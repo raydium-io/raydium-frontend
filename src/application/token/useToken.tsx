@@ -38,14 +38,17 @@ export type TokenStore = {
   // has QuantumSOL
   // support both spl and lp
   /** exact mode: 'so111111112' will be QSOL-WSOL */
+  /** can only get token in tokenList */
   getToken(
     mint: PublicKeyish | undefined,
     options?: { /* use WSOL instead of isQuantumSOLVersionWSOL */ exact?: boolean }
   ): SplToken | undefined
 
   /**  noQuantumSOL*/
+  /** can only get token in tokenList */
   getPureToken(mint: PublicKeyish | undefined): SplToken | undefined
 
+  /** can only get token in tokenList */
   getLpToken(mint: PublicKeyish | undefined): LpToken | undefined
 
   // QuantumSOL will be 'sol' and 'So11111111111111111111111111111111111111112'

@@ -43,8 +43,8 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     assert(ammId, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
     assert(baseMint, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
     assert(quoteMint, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
-    assert(baseDecimals, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
-    assert(quoteDecimals, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
+    assert(baseDecimals != null, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
+    assert(quoteDecimals != null, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
     assert(baseDecimaledAmount, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
     assert(quoteDecimaledAmount, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
     assert(gt(baseDecimaledAmount, 0), 'should input > 0 base amount ')
