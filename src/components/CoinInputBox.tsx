@@ -122,8 +122,12 @@ export default function CoinInputBox({
     ? forceBalance
     : getBalance(token) ??
       (token
-        ? toTokenAmount(token, tokenAccounts.find((t) => toPubString(t.mint) === toPubString(token?.mint))?.amount)
+        ? (() => {
+            const targetTokenAccount = tokenAccounts.find((t) => toPubString(t.mint) === toPubString(token?.mint))
+            return targetTokenAccount && toTokenAmount(token, targetTokenAccount?.amount)
+          })()
         : undefined)
+
   useEffect(() => {
     onBalanceChange?.(currentBalance)
   }, [currentBalance])
