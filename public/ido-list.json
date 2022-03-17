@@ -1,0 +1,36 @@
+{
+  "name": "Raydium AcceleRaytor Pools",
+  "timestamp": "2021-12-10 12:10:36",
+  "version": {
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "official": [
+    {
+      "id": "J4FwTbrLf4xMu6QMHFbmFRxv3KbZmsA2oUVEoXrR61a2",
+      "version": 3,
+      "snapshotVersion": 1,
+      "programId": "9HzJyW1qZsEiSfMUf6L2jo3CcTKAyBmSyKdwQeYisHrC",
+      "snapshotProgramId": "4kCccBVdQpsonm2jL2TRV1noMdarsWR2mhwwkxUTqW3W",
+      "seedId": "G8vdpPXZSRuk6n2EByPHTEJA8fxyQQZVD2LUEKYodNmu",
+      "baseVault": "J2VuN1YdJKuqaYUbJR127oHuLPfdvTdmDE54oVuDHuLs",
+      "quoteVault": "3CL33RsJk3661mYKV8W1LP3fpcxRF8MmNdeH54KFTPvW",
+      "baseMint": "AD27ov5fVU2XzwsbvnFvb1JpCBaCB5dRXrczV9CqSVGb",
+      "quoteMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "project": {
+        "projectName": "REAL",
+        "projectWebsiteLink": "https://realy.pro/",
+        "detailDoc": "https://raydium.medium.com/realy-is-launching-on-acceleraytor-b6d6a63d69d8",
+        "details": "Realy Metaverse will be the 1st Live-to-Earn metaverse on Solana. Developed via Unreal Engine, Realy is a virtual city with AAA graphics that seamlessly integrates virtual and reality.",
+        "docs": {
+          "website": "https://realy.pro/"
+        },
+        "socials": {
+          "Discord": "https://t.co/9O42ibMcNM?amp=1",
+          "Twitter": "https://twitter.com/RealyOfficial"
+        }
+      }
+    }
+  ]
+}

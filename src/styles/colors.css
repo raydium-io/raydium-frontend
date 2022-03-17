@@ -1,0 +1,60 @@
+/* For the darkmode, or tailwindcss urgly and tedious `:dark` */
+:root {
+  --primary: #e3e3e3;
+  --secondary: #bebebe;
+
+  --style-color-fuchsia: #da2eef;
+  --style-color-blue: #2b6aff;
+  --style-color-cyan: #39d0d8;
+
+  --status-active: #aadefe;
+
+  --text-home-page-primary: hsl(0deg, 0%, 100%);
+  --text-home-page-secondary: hsl(222deg, 100%, 84%);
+
+  --ground-color-light-solid: hsla(227, 25%, 34%, 0.95);
+  --ground-color-light: rgba(57, 65, 106, 0.8);
+  --ground-color-slim: hsla(230, 65%, 15%, 0.54); /* bonsai main color */
+  --ground-color: #161c3982;
+  --ground-color-dark: hsl(230deg 43% 15% / 60%);
+  --ground-color-dark-solid: hsla(230, 43%, 16%, 0.9);
+
+  --pop-over-bg-low: hsla(187, 25%, 34%, 0.75);
+  --pop-over-bg-high: #1e2848ab; /* for <Drawer> and <Dialog> */
+  --pop-over-ring: #756aeccc;
+  --pop-over-ring-2: hsla(220, 49%, 30%, 0.4); /* for <Drawer> and <Dialog> */
+
+  --formkit-label-text-active: white;
+  --formkit-label-text-normal: #ffffffa6;
+  --formkit-thumb-text-normal: #ffffff;
+  --formkit-thumb-text-disabled: #ffffffb8;
+  --formkit-bg-active: #7e9db5b0;
+  --formkit-bg-normal: #d8d8d80f;
+  --formkit-thumb-color: #0993ecd9; /* button primary color、max、select coin */
+  --formkit-thumb-color-disable: #6a739796; /* button primary */
+  --formkit-thumb-color-transparent: hsla(204, 93%, 48%, 0.1);
+
+  --app-line-color: rgba(255, 255, 255, 0.1);
+  --link-color: #5ac4be;
+  --link-decorator: hsla(251, 99%, 64%, 0.9);
+  --card-color: hsl(0deg, 0%, 100%);
+  --card-color-dark: #1c274fcc;
+
+  --formkit-ground-color: hsl(264deg, 31%, 94%);
+  --formkit-line-color: hsl(263deg, 47%, 86%);
+  --formkit-text-color: #0993ec; /* button primary color、max、select coin */
+  --formkit-text-color-disable: #292d41; /* button primary */
+}
+
+:root.dark {
+  --primary: hsl(210deg, 6%, 76%);
+  --secondary: hsl(180deg, 90%, 78%);
+  --status-active: hsl(252deg, 100%, 65%);
+
+  --ground-color: hsl(240deg, 4%, 11%);
+  --app-line-color: hsl(187deg, 3%, 12%);
+  --link-color: hsl(226deg, 100%, 84%);
+  --card-color: hsl(238deg, 5%, 19%);
+  --formkit-ground-color: hsl(260deg, 2%, 30%);
+  --formkit-line-color: hsl(263deg, 9%, 29%);
+}

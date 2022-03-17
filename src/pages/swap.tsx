@@ -1,0 +1,1187 @@
+import React, { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import { RouteInfo } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
+
+import useAppSettings from '@/application/appSettings/useAppSettings'
+import useNotification from '@/application/notification/useNotification'
+import { routeTo } from '@/application/routeTools'
+import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
+import txSwap from '@/application/swap/txSwap'
+import { useSwap } from '@/application/swap/useSwap'
+import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
+import useSwapCoin1Filler from '@/application/swap/useSwapCoin1Filler'
+import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
+import { SplToken } from '@/application/token/type'
+import useToken from '@/application/token/useToken'
+import { SOL_BASE_BALANCE, SOLDecimals, WSOLMint } from '@/application/token/utils/quantumSOL'
+import { USDCMint, USDTMint } from '@/application/token/utils/wellknownToken.config'
+import useWallet from '@/application/wallet/useWallet'
+import Button, { ButtonHandle } from '@/components/Button'
+import Card from '@/components/Card'
+import { Checkbox } from '@/components/Checkbox'
+import CoinAvatar from '@/components/CoinAvatar'
+import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
+import Col from '@/components/Col'
+import Collapse from '@/components/Collapse'
+import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import TokenSelectorDialog from '@/components/dialogs/TokenSelectorDialog'
+import FadeInStable, { FadeIn } from '@/components/FadeIn'
+import Icon from '@/components/Icon'
+import Input from '@/components/Input'
+import Link from '@/components/Link'
+import PageLayout from '@/components/PageLayout'
+import RefreshCircle from '@/components/RefreshCircle'
+import Row from '@/components/Row'
+import Tabs from '@/components/Tabs'
+import Tooltip from '@/components/Tooltip'
+import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
+import copyToClipboard from '@/functions/dom/copyToClipboard'
+import formatNumber from '@/functions/format/formatNumber'
+import toPubString from '@/functions/format/toMintString'
+import toPercentString from '@/functions/format/toPercentString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { eq, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { div, mul } from '@/functions/numberish/operations'
+import { toString } from '@/functions/numberish/toString'
+import createContextStore from '@/functions/react/createContextStore'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
+import useLocalStorageItem from '@/hooks/useLocalStorage'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import useToggle from '@/hooks/useToggle'
+import { HexAddress, Numberish } from '@/types/constants'
+
+import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
+import { Badge } from '@/components/Badge'
+import txUnwrapWSOL from '@/application/swap/txUnwrapWSOL'
+
+function SwapEffect() {
+  useSwapCoin1Filler()
+  useSwapUrlParser()
+  // useKlineDataFetcher() // temporary use coingecko price data
+  useSwapAmountCalculator()
+  return null
+}
+const { ContextProvider: SwapUIContextProvider, useStore: useSwapContextStore } = createContextStore({
+  hasAcceptedPriceChange: false,
+  coinInputBox1ComponentRef: createRef<CoinInputBoxHandle>(),
+  coinInputBox2ComponentRef: createRef<CoinInputBoxHandle>(),
+  swapButtonComponentRef: createRef<ButtonHandle>()
+})
+
+export default function Swap() {
+  const { log, popConfirm } = useNotification()
+
+  // useEffect(() => {
+  //   // just for test
+  //   setTimeout(() => {
+  //     log?.({
+  //       type: 'success',
+  //       title: 'Transaction success',
+  //       description: <div>View details on: </div>
+  //     })
+  //   }, 120)
+  //   setTimeout(() => {
+  //     log?.({
+  //       type: 'error',
+  //       title: 'Transaction error',
+  //       description: <div>View details on: </div>
+  //     })
+  //   }, 500)
+  //   setTimeout(() => {
+  //     log?.({
+  //       type: 'warning',
+  //       title: 'Transaction warning',
+  //       description: <div>View details on: </div>
+  //     })
+  //   }, 1000)
+  //   setTimeout(() => {
+  //     log?.({
+  //       type: 'info',
+  //       title: 'Transaction info',
+  //       description: <div>View details on: </div>
+  //     })
+  //   }, 1500)
+  //   setTimeout(() => {
+  //     popConfirm?.({
+  //       type: 'error',
+  //       title: 'Price Impact Warning',
+  //       description: 'The swap you are about to make has a price impact higher than 5%. Try a smaller trade!',
+  //       onCancel() {
+  //         // eslint-disable-next-line no-console
+  //         console.log('cancel')
+  //       },
+  //       onConfirm() {
+  //         // eslint-disable-next-line no-console
+  //         console.log('confirm')
+  //       }
+  //     })
+  //   }, 1800)
+  // }, [log])
+
+  // return useMemo(
+  //   // to avoid unnecessary rerender
+  //   () => (
+  //     <PageLayout metaTitle="Swap">
+  //       <SwapHead />
+  //       <SwapCard />
+  //       <KLineChart />
+  //     </PageLayout>
+  //   ),
+  //   []
+  // )
+  return (
+    <SwapUIContextProvider>
+      <SwapEffect />
+      <PageLayout mobileBarTitle="Swap" metaTitle="Swap - Raydium">
+        <SwapHead />
+        <SwapCard />
+        <UnwrapWSOL />
+        <KLineChart />
+      </PageLayout>
+    </SwapUIContextProvider>
+  )
+}
+
+// to check if downCoin is unOfficial (not is raydium token list but in solana token list)
+function useunOfficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: () => void } {
+  const directionReversed = useSwap((s) => s.directionReversed)
+  const coin1 = useSwap((s) => s.coin1)
+  const coin2 = useSwap((s) => s.coin2)
+  const downCoin = directionReversed ? coin1 : coin2
+  const raydiumTokenMints = useToken((s) => s.tokenListSettings['Raydium Mainnet Token List'].mints)
+
+  const [userPermanentConfirmedTokenMints, setUserPermanentConfirmedTokenMints] =
+    useLocalStorageItem<HexAddress[] /* token mint  */>('USER_CONFIRMED_SWAP_TOKENS')
+
+  const isDownCoinOfficial = Boolean(downCoin && (!raydiumTokenMints || raydiumTokenMints.has(String(downCoin?.mint))))
+
+  const hasUserPermanentConfirmed = Boolean(
+    downCoin && userPermanentConfirmedTokenMints?.includes(String(downCoin?.mint))
+  )
+
+  const [hasUserTemporaryConfirmed, setHasUserTemporaryConfirmed] = useState(false)
+  const [isConfirmPanelOn, setIsConfirmPanelOn] = useState(false)
+
+  useEffect(() => {
+    setHasUserTemporaryConfirmed(false)
+  }, [downCoin])
+
+  const popConfirm = () => {
+    if (isConfirmPanelOn) return
+    setIsConfirmPanelOn(true)
+    useNotification.getState().popConfirm({
+      cardWidth: 'lg',
+      type: 'warning',
+      title: 'Confirm Token',
+      description: (
+        <div className="space-y-2 text-left">
+          <p>
+            This token does not appear on the default token list. Anyone can create an SPL token on Solana, which may
+            include fake versions of existing tokens or tokens that claim to represent projects that do not have a
+            token. Take extra caution to confirm token addresses.
+          </p>
+          <p>Always check the quoted price and that the pool has sufficient liquidity before trading.</p>
+        </div>
+      ),
+      onlyConfirmButton: true,
+      confirmButtonText: 'I Understand',
+      additionalContent: (
+        <Checkbox
+          defaultChecked={hasUserPermanentConfirmed}
+          className="my-2 w-max mx-auto"
+          onChange={(newChecked) => {
+            if (!downCoin?.mint) return
+            if (newChecked) {
+              setUserPermanentConfirmedTokenMints((old) => addItem(old ?? [], String(downCoin.mint)))
+            } else {
+              setUserPermanentConfirmedTokenMints((old) => removeItem(old ?? [], String(downCoin.mint)))
+            }
+          }}
+          label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Do not warn again</div>}
+        />
+      ),
+      onConfirm: () => {
+        setHasUserTemporaryConfirmed(true)
+        setIsConfirmPanelOn(false)
+      },
+      onCancel: () => {
+        setHasUserTemporaryConfirmed(false)
+        setIsConfirmPanelOn(false)
+        useSwap.setState(directionReversed ? { coin1: undefined } : { coin2: undefined })
+      }
+    })
+  }
+
+  const hasConfirmed = isDownCoinOfficial || hasUserPermanentConfirmed || hasUserTemporaryConfirmed
+
+  useEffect(() => {
+    if (!hasConfirmed && downCoin) popConfirm()
+  }, [downCoin, hasConfirmed])
+
+  return { hasConfirmed, popConfirm }
+}
+
+function SwapHead() {
+  return (
+    <Row className="justify-center  mb-12 mobile:mb-2">
+      <Tabs
+        currentValue={'Swap'}
+        values={['Swap', 'Liquidity']}
+        onChange={(newTab) => {
+          // setActiveTabValue(newTab)
+          if (newTab === 'Liquidity') {
+            routeTo('/liquidity/add')
+          }
+        }}
+      />
+    </Row>
+  )
+}
+
+function SwapCard() {
+  const { connected: walletConnected } = useWallet()
+  const coin1 = useSwap((s) => s.coin1)
+  const coin2 = useSwap((s) => s.coin2)
+  const coin1Amount = useSwap((s) => s.coin1Amount)
+  const coin2Amount = useSwap((s) => s.coin2Amount)
+  // console.log('coin: ', coin1?.symbol, coin1Amount, coin2?.symbol, coin2Amount)
+  const directionReversed = useSwap((s) => s.directionReversed)
+  const priceImpact = useSwap((s) => s.priceImpact)
+  const refreshSwap = useSwap((s) => s.refreshSwap)
+  const balances = useWallet((s) => s.balances)
+  const routes = useSwap((s) => s.routes)
+  const swapable = useSwap((s) => s.swapable)
+  const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
+  const { hasConfirmed, popConfirm: popunOfficialConfirm } = useunOfficialTokenConfirmState()
+  const { hasAcceptedPriceChange, swapButtonComponentRef, coinInputBox1ComponentRef, coinInputBox2ComponentRef } =
+    useSwapContextStore()
+
+  const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
+
+  const upCoin = directionReversed ? coin2 : coin1
+  // although info is included in routes, still need upCoinAmount to pop friendly feedback
+  const upCoinAmount = (directionReversed ? coin2Amount : coin1Amount) || '0'
+
+  const downCoin = directionReversed ? coin1 : coin2
+  // although info is included in routes, still need downCoinAmount to pop friendly feedback
+  const downCoinAmount = (directionReversed ? coin1Amount : coin2Amount) || '0'
+
+  const haveEnoughUpCoin = useMemo(
+    () => upCoin && checkWalletHasEnoughBalance(toTokenAmount(upCoin, upCoinAmount, { alreadyDecimaled: true })),
+    [upCoin, upCoinAmount, checkWalletHasEnoughBalance, balances]
+  )
+
+  const switchDirectionReversed = useCallback(() => {
+    useSwap.setState((s) => ({ directionReversed: !s.directionReversed }))
+  }, [])
+  const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
+  const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
+
+  const executionPrice = useSwap((s) => s.executionPrice)
+
+  const swapElementBox1 = useRef<HTMLDivElement>(null)
+  const swapElementBox2 = useRef<HTMLDivElement>(null)
+  const [hasUISwrapped, { toggleSwap: toggleUISwap }] = useSwapTwoElements(swapElementBox1, swapElementBox2, {
+    defaultHasWrapped: directionReversed
+  })
+
+  useEffect(() => {
+    useSwap.setState({ directionReversed: hasUISwrapped })
+  }, [hasUISwrapped])
+
+  const hasSwapDetermined =
+    coin1 && isMeaningfulNumber(coin1Amount) && coin2 && isMeaningfulNumber(coin2Amount) && executionPrice
+  const cardRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    useSwap.setState({
+      scrollToInputBox: () => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }, [])
+
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  return (
+    <CyberpunkStyleCard
+      domRef={cardRef}
+      wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light"
+      className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
+      size="lg"
+      style={{
+        background:
+          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
+      }}
+    >
+      {/* input twin */}
+      <div className="space-y-5 mt-5">
+        <CoinInputBox
+          domRef={swapElementBox1}
+          disabled={isApprovePanelShown}
+          disabledInput={directionReversed}
+          componentRef={coinInputBox1ComponentRef}
+          haveHalfButton
+          haveCoinIcon
+          canSelect
+          topLeftLabel={hasUISwrapped ? 'To' : 'From'}
+          onTryToTokenSelect={() => {
+            turnOnCoinSelector()
+            setTargetCoinNo('1')
+          }}
+          onEnter={(input) => {
+            if (!input) return
+            if (!coin2) coinInputBox2ComponentRef.current?.selectToken?.()
+            if (coin2 && coin2Amount) swapButtonComponentRef.current?.click?.()
+          }}
+          token={coin1}
+          value={coin1Amount ? (eq(coin1Amount, 0) ? '' : toString(coin1Amount)) : undefined}
+          onUserInput={(value) => {
+            useSwap.setState({ focusSide: 'coin1', coin1Amount: value })
+          }}
+        />
+
+        {/* swap button */}
+        <div className="relative h-8">
+          <Row
+            className={`absolute items-center transition-all ${
+              executionPrice ? 'left-4' : 'left-1/2 -translate-x-1/2'
+            }`}
+          >
+            <Icon
+              size="sm"
+              iconSrc="/icons/msic-swap.svg"
+              className={`p-2 frosted-glass frosted-glass-teal rounded-full mr-4 ${
+                isApprovePanelShown ? 'not-clickable' : 'clickable'
+              } select-none transition`}
+              onClick={() => {
+                if (isApprovePanelShown) return
+                toggleUISwap()
+                switchDirectionReversed()
+              }}
+            />
+            {executionPrice && (
+              <div className="absolute left-full">
+                <SwapCardPriceIndicator />
+              </div>
+            )}
+          </Row>
+          <div className="absolute right-0">
+            <RefreshCircle
+              run={!isApprovePanelShown}
+              refreshKey="swap"
+              popPlacement="right-bottom"
+              freshFunction={() => {
+                refreshSwap()
+                refreshTokenPrice()
+              }}
+            />
+          </div>
+        </div>
+
+        <CoinInputBox
+          domRef={swapElementBox2}
+          disabled={isApprovePanelShown}
+          disabledInput={!directionReversed}
+          componentRef={coinInputBox2ComponentRef}
+          haveHalfButton
+          haveCoinIcon
+          canSelect
+          topLeftLabel={hasUISwrapped ? 'From' : 'To'}
+          onTryToTokenSelect={() => {
+            turnOnCoinSelector()
+            setTargetCoinNo('2')
+          }}
+          onEnter={(input) => {
+            if (!input) return
+            if (!coin1) coinInputBox1ComponentRef.current?.selectToken?.()
+            if (coin1 && coin1Amount) swapButtonComponentRef.current?.click?.()
+          }}
+          token={coin2}
+          value={coin2Amount ? (eq(coin2Amount, 0) ? '' : toString(coin2Amount)) : undefined}
+          onUserInput={(value) => {
+            useSwap.setState({ focusSide: 'coin2', coin2Amount: value })
+          }}
+        />
+      </div>
+      {/* info panel */}
+      <FadeInStable show={hasSwapDetermined}>
+        <SwapCardInfo className="mt-5" />
+      </FadeInStable>
+
+      {/* alert user if price has accidently change  */}
+      <SwapPriceAcceptChip />
+      <Button
+        className="w-full frosted-glass-teal mt-5"
+        componentRef={swapButtonComponentRef}
+        validators={[
+          {
+            should: walletConnected,
+            forceActive: true,
+            fallbackProps: {
+              onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+              children: 'Connect Wallet'
+            }
+          },
+          {
+            should: upCoin && downCoin,
+            fallbackProps: { children: 'Select a token' }
+          },
+          {
+            should: hasConfirmed,
+            forceActive: true,
+            fallbackProps: {
+              onClick: popunOfficialConfirm,
+              children: 'Confirm unOfficial warning' // user may never see this
+            }
+          },
+          {
+            should: swapable !== false,
+            fallbackProps: { children: 'Pool Not Ready' }
+          },
+          {
+            should: routes,
+            fallbackProps: { children: 'Finding Pool ...' }
+          },
+          {
+            should: swapable === true || routes?.length === 0,
+            fallbackProps: { children: 'Pool Not Found' }
+          },
+          {
+            should:
+              upCoinAmount && isMeaningfulNumber(upCoinAmount) && downCoinAmount && isMeaningfulNumber(downCoinAmount),
+            fallbackProps: { children: 'Enter an amount' }
+          },
+
+          {
+            should: haveEnoughUpCoin,
+            fallbackProps: { children: `Insufficient ${upCoin?.symbol ?? ''} balance` }
+          },
+          {
+            should: priceImpact && lte(priceImpact, 0.05),
+            forceActive: true,
+            fallbackProps: {
+              onClick: () => popPriceConfirm({ priceImpact })
+            }
+          },
+          {
+            should: hasAcceptedPriceChange,
+            fallbackProps: { children: `Accept price change` }
+          }
+        ]}
+        onClick={txSwap}
+      >
+        Swap
+      </Button>
+      {/* alert user if sol is not much */}
+      <RemainSOLAlert />
+      {/** coin selector panel */}
+      {/* <SelectorPanel open={isCoinSelectorOn} onClose={toggleCoinSelector} /> */}
+      <TokenSelectorDialog
+        open={isCoinSelectorOn}
+        onSelectCoin={(token) => {
+          if (targetCoinNo === '1') {
+            useSwap.setState({ coin1: token })
+            if (String(token.mint) === String(coin2?.mint)) {
+              useSwap.setState({ coin2: undefined })
+            }
+          } else {
+            useSwap.setState({ coin2: token })
+            if (String(token.mint) === String(coin1?.mint)) {
+              useSwap.setState({ coin1: undefined })
+            }
+          }
+          turnOffCoinSelector()
+        }}
+        close={turnOffCoinSelector}
+      />
+    </CyberpunkStyleCard>
+  )
+
+  function popPriceConfirm({ priceImpact }: { priceImpact?: Numberish }) {
+    useNotification.getState().popConfirm({
+      type: 'error',
+      title: 'Price Impact Warning',
+      description: (
+        <div>
+          Price impact is{' '}
+          {priceImpact ? (
+            <>
+              <span className="text-[#DA2EEF]">{toPercentString(priceImpact)}</span> which is{' '}
+            </>
+          ) : (
+            ''
+          )}
+          <span className="text-[#DA2EEF]">higher than 5%.</span> Try a smaller trade!
+        </div>
+      ),
+      confirmButtonText: 'Swap Anyway',
+      onConfirm: txSwap
+    })
+  }
+}
+
+function SwapPriceAcceptChip() {
+  const { hasAcceptedPriceChange, setHasAcceptedPriceChange } = useSwapContextStore()
+  const coin1 = useSwap((s) => s.coin1)
+  const coin2 = useSwap((s) => s.coin2)
+  const coin1Amount = useSwap((s) => s.coin1Amount)
+  const coin2Amount = useSwap((s) => s.coin2Amount)
+  const directionReversed = useSwap((s) => s.directionReversed)
+  const focusSide = directionReversed ? 'coin2' : 'coin1'
+  const focusSideCoin = focusSide === 'coin1' ? coin1 : coin2
+  const focusSideAmount = focusSide === 'coin1' ? coin1Amount : coin2Amount
+  const focusOppositeSideCoin = focusSide === 'coin1' ? coin2 : coin1
+  const focusOppositeSideAmount = focusSide === 'coin1' ? coin2Amount : coin1Amount
+
+  const haveFocusChanged = useRef(false) // flag for calc opposite in  second frame
+
+  useRecordedEffect(
+    ([
+      prevFocusSideCoin,
+      prevFocusSideAmount,
+      prevFocusOppositeSideCoin,
+      prevFocusOppositeSideAmount,
+      prevDirectionReversed
+    ]) => {
+      const isFocusSideCoinChanged = prevFocusSideCoin != null && prevFocusSideCoin !== focusSideCoin
+      const isFocusSideAmountChanged = Boolean(
+        focusSideAmount && prevFocusSideAmount != null && !eq(prevFocusSideAmount, focusSideAmount)
+      )
+      const isFocusOppositeSideCoinChanged =
+        prevFocusOppositeSideCoin != null && prevFocusOppositeSideCoin !== focusOppositeSideCoin
+      const isFocusOppositeSideAmountChanged = Boolean(
+        focusOppositeSideAmount &&
+          prevFocusOppositeSideAmount != null &&
+          !eq(prevFocusOppositeSideAmount, focusOppositeSideAmount)
+      )
+      const isDirectionReversedChanged = prevDirectionReversed != null && prevDirectionReversed !== directionReversed
+
+      const everythingIsUnchanged =
+        !isFocusSideCoinChanged &&
+        !isFocusSideAmountChanged &&
+        !isFocusOppositeSideCoinChanged &&
+        !isFocusOppositeSideAmountChanged &&
+        !isDirectionReversedChanged
+
+      const isChangedByUnfocusPoint =
+        !everythingIsUnchanged &&
+        (isFocusSideAmountChanged ||
+          isFocusSideCoinChanged ||
+          isFocusOppositeSideCoinChanged ||
+          isDirectionReversedChanged)
+
+      // often caused by route change
+      if (everythingIsUnchanged) {
+        setHasAcceptedPriceChange(true)
+      } else if (isChangedByUnfocusPoint) {
+        // direction Reverse change
+        // focusSideAmountChange
+        setHasAcceptedPriceChange(true)
+        haveFocusChanged.current = true
+      } else if (isFocusOppositeSideAmountChanged) {
+        // focusSideAmountChange will always cause focusOppositeSideAmountChange
+        // focusOppositeSideAmountHasChanged without focusSideAmountHasChanged pop
+        if (!haveFocusChanged.current && !isFocusSideAmountChanged && isFocusOppositeSideAmountChanged) {
+          setHasAcceptedPriceChange(!isFocusOppositeSideAmountChanged)
+        }
+        haveFocusChanged.current = false
+      }
+    },
+    [focusSideCoin, focusSideAmount, focusOppositeSideCoin, focusOppositeSideAmount, directionReversed] as const
+  )
+
+  const bothHaveAmount = isMeaningfulNumber(coin1Amount) && isMeaningfulNumber(coin2Amount)
+
+  return (
+    <FadeIn>
+      {bothHaveAmount && !hasAcceptedPriceChange && (
+        <Row className="mt-5 bg-[#141041] rounded-xl py-2 px-6 mobile:px-4 items-center justify-between">
+          <Row className="text-sm font-medium text-[#ABC4FF] items-center ">
+            Price updated
+            <Tooltip placement="bottom-right">
+              <Icon size="sm" heroIconName="question-mark-circle" className="ml-2 cursor-help" />
+              <Tooltip.Panel>
+                <p className="w-80">Price has changed since your swap amount was entered.</p>
+              </Tooltip.Panel>
+            </Tooltip>
+          </Row>
+
+          <Button size="sm" className="frosted-glass-teal" onClick={() => setHasAcceptedPriceChange(true)}>
+            Accept
+          </Button>
+        </Row>
+      )}
+    </FadeIn>
+  )
+}
+
+function RemainSOLAlert() {
+  const rawsolBalance = useWallet((s) => s.solBalance)
+  const solBalance = div(rawsolBalance, 10 ** SOLDecimals)
+  return (
+    <FadeIn>
+      {solBalance && lt(solBalance, SOL_BASE_BALANCE) && gte(solBalance, 0) && (
+        <Row className="text-sm mt-4 text-[#D8CB39] items-center justify-center">
+          SOL balance: {toString(solBalance)}{' '}
+          <Tooltip placement="bottom-right">
+            <Icon size="sm" heroIconName="question-mark-circle" className="ml-2 cursor-help" />
+            <Tooltip.Panel>
+              <p className="w-80">
+                SOL is needed for Solana network fees. A minimum balance of {SOL_BASE_BALANCE} SOL is recommended to
+                avoid failed transactions. This swap will leave you with less than {SOL_BASE_BALANCE} SOL.
+              </p>
+            </Tooltip.Panel>
+          </Tooltip>
+        </Row>
+      )}
+    </FadeIn>
+  )
+}
+
+function SwapCardPriceIndicator({ className }: { className?: string }) {
+  const [innerReversed, setInnerReversed] = useState(false)
+
+  const coin1 = useSwap((s) => s.coin1)
+  const coin2 = useSwap((s) => s.coin2)
+
+  const directionReversed = useSwap((s) => s.directionReversed)
+  const upCoin = directionReversed ? coin2 : coin1
+  const downCoin = directionReversed ? coin1 : coin2
+  const executionPrice = useSwap((s) => s.executionPrice)
+  const priceImpact = useSwap((s) => s.priceImpact)
+
+  const isDangerousPrice = useMemo(() => priceImpact != null && gte(priceImpact, 0.05), [priceImpact])
+  const isWarningPrice = useMemo(() => priceImpact != null && gte(priceImpact, 0.01), [priceImpact])
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const innerPriceLeftCoin = innerReversed ? downCoin : upCoin
+  const innerPriceRightCoin = innerReversed ? upCoin : downCoin
+  return (
+    <Col>
+      <FadeIn>
+        {executionPrice && (
+          <Row className={twMerge('font-medium text-sm text-[#ABC4FF]', className)}>
+            <div className="whitespace-nowrap">
+              {1} {innerPriceLeftCoin?.symbol ?? '--'} ≈{' '}
+              {toString(innerReversed ? div(1, executionPrice) : executionPrice, {
+                decimalLength: isMobile ? 'auto 2' : 'auto',
+                zeroDecimalNotAuto: true
+              })}{' '}
+              {innerPriceRightCoin?.symbol ?? '--'}
+            </div>
+            <div className="ml-2 clickable" onClick={() => setInnerReversed((b) => !b)}>
+              ⇋
+            </div>
+          </Row>
+        )}
+      </FadeIn>
+      <FadeIn>
+        {priceImpact && (
+          <div
+            className={`font-medium text-xs ${
+              isDangerousPrice ? 'text-[#DA2EEF]' : isWarningPrice ? 'text-[#D8CB39]' : 'text-[#39D0D8]'
+            } transition-colors`}
+          >
+            {isDangerousPrice || isWarningPrice ? 'Price Impact Warning' : 'Low Price Impact'}
+          </div>
+        )}
+      </FadeIn>
+    </Col>
+  )
+}
+
+function getRouteMiddleToken(info: { routes: RouteInfo[]; upCoin: SplToken; downCoin: SplToken }) {
+  const allCoinMints = info.routes.flatMap((r) => [toPubString(r.keys.baseMint), toPubString(r.keys.quoteMint)])
+  return allCoinMints.find((c) => ![toPubString(info.upCoin.mint), toPubString(info.downCoin.mint)].includes(c))
+}
+
+function SwapCardInfo({ className }: { className?: string }) {
+  const priceImpact = useSwap((s) => s.priceImpact)
+  const coin1 = useSwap((s) => s.coin1)
+  const coin2 = useSwap((s) => s.coin2)
+  const directionReversed = useSwap((s) => s.directionReversed)
+  const upCoin = directionReversed ? coin2 : coin1
+  const downCoin = directionReversed ? coin1 : coin2
+
+  const focusSide = useSwap((s) => s.focusSide)
+  const minReceived = useSwap((s) => s.minReceived)
+  const fee = useSwap((s) => s.fee)
+  const maxSpent = useSwap((s) => s.maxSpent)
+  const routes = useSwap((s) => s.routes)
+  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
+  const getToken = useToken((s) => s.getToken)
+
+  const isDangerousPrice = useMemo(() => priceImpact != null && gte(priceImpact, 0.05), [priceImpact])
+  const isWarningPrice = useMemo(() => priceImpact != null && gte(priceImpact, 0.01), [priceImpact])
+
+  const swapThrough =
+    upCoin && downCoin
+      ? routes?.length
+        ? routes.length === 1
+          ? routes[0].source === 'serum'
+            ? 'Serum Market'
+            : 'Raydium Pool'
+          : `${upCoin?.symbol} → ${getToken(getRouteMiddleToken({ routes, upCoin, downCoin }))?.symbol} → ${
+              downCoin?.symbol
+            }`
+        : undefined
+      : undefined
+
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+
+  const isStable = useMemo(() => Boolean(routes?.some((route) => route.keys.version === 5)), [routes])
+  return (
+    <Col
+      className={twMerge(
+        `py-4 px-6 flex-grow border-1.5  ${
+          isDangerousPrice
+            ? 'border-[#DA2EEF]'
+            : isWarningPrice
+            ? 'border-[rgba(216,203,57,.5)]'
+            : 'border-[rgba(171,196,255,.5)]'
+        } rounded-xl items-center gap-3 transition-colors`,
+        className
+      )}
+    >
+      {swapThrough && (
+        <SwapCardItem
+          fieldName="Swapping Through"
+          fieldValue={
+            <Row className="items-center gap-2">
+              {isStable && <Badge size="sm">Stable</Badge>}
+              <div>{swapThrough}</div>
+            </Row>
+          }
+          tooltipContent="This venue gave the best price for your trade"
+        />
+      )}
+      {maxSpent ? (
+        <SwapCardItem
+          fieldName="Maximum Spent"
+          fieldValue={`${maxSpent ?? ''} ${(focusSide === 'coin1' ? coin2 : coin1)?.symbol ?? '--'}`}
+          tooltipContent="The max amount of tokens you will spend on this trade"
+        />
+      ) : (
+        <SwapCardItem
+          fieldName="Minimum Received"
+          fieldValue={`${minReceived ?? ''} ${(focusSide === 'coin1' ? coin2 : coin1)?.symbol ?? '--'}`}
+          tooltipContent="The least amount of tokens you will recieve on this trade"
+        />
+      )}
+      <SwapCardItem
+        fieldName="Price Impact"
+        fieldNameTextColor={isDangerousPrice ? '#DA2EEF' : isWarningPrice ? '#D8CB39' : undefined}
+        fieldValue={priceImpact ? (lt(priceImpact, 0.001) ? '<0.1%' : toPercentString(priceImpact)) : '--'}
+        fieldValueTextColor={isDangerousPrice ? '#DA2EEF' : isWarningPrice ? '#D8CB39' : '#39D0D8'}
+        tooltipContent="The difference between the market price and estimated price due to trade size"
+      />
+      {/* <SwapCardItem
+        fieldName="Fee"
+        fieldValue={
+          fee
+            ?.map((CurrencyAmount) => {
+              const tokenAmount = toUITokenAmount(CurrencyAmount)
+              return `${toString(tokenAmount)} ${getToken(tokenAmount.token.mint)?.symbol ?? '--'}`
+            })
+            .join('  ') ?? '--'
+        }
+        tooltipContent="The difference between the market price and estimated price due to trade size"
+      /> */}
+      <Collapse openDirection="upwards" className="w-full">
+        <Collapse.Body>
+          <Col className="gap-3 pb-3">
+            <SwapCardItem fieldName="Addresses" tooltipContent={<SwapCardTooltipPanelAddress />} />
+            <SwapCardItem
+              fieldName="Slippage Tolerance"
+              tooltipContent="The maximum difference between your estimated price and execution price"
+              fieldValue={
+                <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs">
+                  <Input
+                    className="w-6"
+                    disabled={isApprovePanelShown}
+                    value={toString(mul(slippageTolerance, 100), { decimalLength: 'auto 2' })}
+                    onUserInput={(value) => {
+                      const n = div(parseFloat(value), 100)
+                      if (n) {
+                        useAppSettings.setState({ slippageTolerance: n })
+                      }
+                    }}
+                    pattern={/^\d*\.?\d*$/}
+                  />
+                  <div className="opacity-50 ml-1">%</div>
+                </Row>
+              }
+            />
+          </Col>
+        </Collapse.Body>
+        <Collapse.Face>
+          {(open) => (
+            <Row className="w-full items-center text-xs font-medium text-[rgba(171,196,255,0.5)] cursor-pointer select-none">
+              <div>{open ? 'Show less' : 'More information'}</div>
+              <Icon size="xs" heroIconName={open ? 'chevron-up' : 'chevron-down'} className="ml-1" />
+            </Row>
+          )}
+        </Collapse.Face>
+      </Collapse>
+    </Col>
+  )
+}
+
+function SwapCardItem({
+  className,
+  fieldName,
+  fieldValue,
+  tooltipContent,
+  fieldNameTextColor,
+  fieldValueTextColor
+}: {
+  className?: string
+  fieldName?: string
+  fieldValue?: ReactNode
+  tooltipContent?: ReactNode
+  fieldNameTextColor?: string // for price impact warning color
+  fieldValueTextColor?: string // for price impact warning color
+}) {
+  return (
+    <Row className={twMerge('w-full justify-between', className)}>
+      <Row className="items-center text-xs font-medium text-[#ABC4FF]" style={{ color: fieldNameTextColor }}>
+        <div className="mr-1">{fieldName}</div>
+        {tooltipContent && (
+          <Tooltip className={className} placement="bottom-right">
+            <Icon size="xs" heroIconName="question-mark-circle" className="cursor-help" />
+            <Tooltip.Panel>{tooltipContent}</Tooltip.Panel>
+          </Tooltip>
+        )}
+      </Row>
+      <div className="text-xs font-medium text-white" style={{ color: fieldValueTextColor }}>
+        {fieldValue}
+      </div>
+    </Row>
+  )
+}
+
+function SwapCardTooltipPanelAddress() {
+  const coin1 = useSwap((s) => s.coin1)
+  const coin2 = useSwap((s) => s.coin2)
+  const routes = useSwap((s) => s.routes)
+  return (
+    <div className="w-56">
+      <div className="text-sm font-semibold mb-2">Addresses</div>
+      <Col className="gap-2">
+        <SwapCardTooltipPanelAddressItem
+          label={coin1?.symbol ?? '--'}
+          type="token"
+          address={String(coin1?.mint ?? '--')}
+        />
+        <SwapCardTooltipPanelAddressItem
+          label={coin2?.symbol ?? '--'}
+          type="token"
+          address={String(coin2?.mint ?? '--')}
+        />
+
+        {/* show routes address panel */}
+        {routes?.length === 1 ? (
+          routes[0].source === 'serum' ? (
+            routes[0].keys.marketId ? (
+              <SwapCardTooltipPanelAddressItem
+                label="Serum Market"
+                type="market"
+                address={String(routes[0].keys.marketId)}
+              />
+            ) : null
+          ) : routes[0].keys.id ? (
+            <SwapCardTooltipPanelAddressItem label="Amm ID" type="ammId" address={String(routes[0].keys.id)} />
+          ) : null
+        ) : routes?.length && routes.length > 1 ? (
+          routes?.map((routeInfo, idx) => (
+            <SwapCardTooltipPanelAddressItem
+              key={String(routeInfo.keys.id)}
+              label={`Amm ID (route ${idx + 1})`}
+              type="ammId"
+              address={String(routeInfo.keys.id)}
+            />
+          ))
+        ) : null}
+      </Col>
+    </div>
+  )
+}
+
+function SwapCardTooltipPanelAddressItem({
+  className,
+  label,
+  address,
+  type = 'account'
+}: {
+  className?: string
+  label: string
+  address: string
+  type?: 'token' | 'market' | 'ammId' | 'account'
+}) {
+  return (
+    <Row className={twMerge('grid gap-1 items-center grid-cols-[4em,1fr,auto,auto]', className)}>
+      <div className="text-xs font-normal text-white">{label}</div>
+      <Row className="px-1 py-0.5 text-xs font-normal text-white bg-[#141041] rounded justify-center">
+        {/* setting text-overflow empty string will make effect in FireFox, not Chrome */}
+        <div className="self-end overflow-hidden tracking-wide">{address.slice(0, 5)}</div>
+        <div className="tracking-wide">...</div>
+        <div className="overflow-hidden tracking-wide">{address.slice(-5)}</div>
+      </Row>
+      <Icon
+        size="sm"
+        heroIconName="clipboard-copy"
+        className="clickable text-[#ABC4FF]"
+        onClick={() => {
+          copyToClipboard(address)
+        }}
+      />
+      <Link href={`https://solscan.io/${type.replace('ammId', 'account')}/${address}`}>
+        <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
+      </Link>
+    </Row>
+  )
+}
+
+function KLineChart() {
+  const coin1 = useSwap((s) => s.coin1)
+  const coin2 = useSwap((s) => s.coin2)
+  const directionReversed = useSwap((s) => s.directionReversed)
+
+  const kline1Box = useRef<HTMLDivElement>(null)
+  const kline2Box = useRef<HTMLDivElement>(null)
+
+  const [hasUISwrapped, { toggleSwap: toggleUISwap, resetSwapPosition }] = useSwapTwoElements(kline1Box, kline2Box, {
+    defaultHasWrapped: directionReversed
+  })
+
+  useEffect(() => {
+    const klin1BoxHaveHeight = Boolean(kline1Box.current?.clientHeight)
+    const klin2BoxHaveHeight = Boolean(kline2Box.current?.clientHeight)
+    if (hasUISwrapped !== directionReversed && klin1BoxHaveHeight && klin2BoxHaveHeight) {
+      toggleUISwap()
+    }
+  }, [directionReversed])
+
+  const [isLine1BoxReady, setIsLine1BoxReady] = useState(false)
+  const [isLine2BoxReady, setIsLine2BoxReady] = useState(false)
+
+  const availableLength = shakeFalsyItem([isLine1BoxReady, isLine2BoxReady]).length
+
+  useRecordedEffect(
+    ([prevAvailableLength]) => {
+      if (availableLength < (prevAvailableLength ?? 0)) {
+        resetSwapPosition()
+      }
+    },
+    [availableLength]
+  )
+
+  return (
+    <Card
+      className={`flex ${
+        isLine1BoxReady || isLine2BoxReady ? 'visible' : 'invisible'
+      } flex-col mt-10 p-2 w-[min(456px,100%)] self-center`}
+      size="lg"
+      style={{
+        background:
+          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
+      }}
+    >
+      <div ref={kline1Box}>
+        <KLineChartItem coin={coin1} onDataChange={(isReady) => setIsLine1BoxReady(isReady)} />
+      </div>
+      <div ref={kline2Box}>
+        <KLineChartItem coin={coin2} onDataChange={(isReady) => setIsLine2BoxReady(isReady)} />
+      </div>
+    </Card>
+  )
+}
+
+function KLineChartItem({
+  coin,
+  onDataChange
+}: {
+  coin: SplToken | undefined
+  onDataChange?: (isReady: boolean) => void
+}) {
+  const blackListTokenMint = [toPubString(USDCMint), toPubString(USDTMint)]
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const refreshCount = useSwap((s) => s.refreshCount)
+
+  const pricePoints = useAsyncMemo(
+    async () =>
+      coin?.extensions?.coingeckoId ? await getCoingeckoChartPriceData(coin?.extensions?.coingeckoId) : undefined,
+    [coin, refreshCount]
+  )
+
+  const startPrice = pricePoints?.[0]
+  const endPrice = pricePoints?.[pricePoints.length - 1]
+  const floatPercent = isMeaningfulNumber(startPrice) && endPrice ? (endPrice - startPrice) / startPrice : 0
+  const isPositive = floatPercent > 0
+  const isNegative = floatPercent < 0
+
+  const canShowKline = Boolean(coin && !blackListTokenMint.includes(toPubString(coin.mint)) && pricePoints?.length)
+
+  // clean onDataChange
+  useEffect(() => () => onDataChange?.(false), [])
+
+  useEffect(() => {
+    onDataChange?.(canShowKline)
+  }, [canShowKline])
+
+  return (
+    <FadeIn>
+      {canShowKline && (
+        <div className="flex mobile:grid mobile:grid-cols-3 mobile:gap-2 p-4 mobile:py-4 w-[min(456px,100%)] self-center items-center">
+          <Row className="items-center mobile:justify-self-center w-16 mobile:w-8 flex-shrink-0">
+            <Col className="gap-1 grow  mobile:items-center">
+              <CoinAvatar token={coin} size={isMobile ? 'sm' : 'smi'} />
+              <div className="font-medium text-sm text-[#abc4ff]">{coin?.symbol ?? '--'}</div>
+            </Col>
+            {/* <div className="ml-6 self-stretch border-l-1.5 border-[rgba(171,196,255,0.5)]"></div> */}
+          </Row>
+
+          <Col className="items-end mobile:items-center mobile:justify-self-center mobile:ml-0 grow">
+            <div className="text-xs font-medium text-[rgba(171,196,255,0.5)]">Price</div>
+            <div className="text-sm font-medium text-[#abc4ff] whitespace-nowrap">
+              {'$' +
+                formatNumber(endPrice?.toFixed(lt(endPrice, 0.1) ? coin?.decimals ?? 4 : 2), {
+                  fractionLength: 'auto'
+                }) ?? '--'}
+            </div>
+          </Col>
+
+          <Col className="items-start mobile:items-center mobile:justify-self-center ml-8  mobile:ml-0 w-8">
+            <div className="text-xs font-medium text-[rgba(171,196,255,0.5)]">24H%</div>
+            <div
+              className={`text-sm font-medium ${
+                isPositive ? 'text-[#39D0D8]' : isNegative ? 'text-[#DA2EEF]' : 'text-[#abc4ff]'
+              }`}
+            >
+              {toPercentString(floatPercent, { alwaysSigned: true })}
+            </div>
+          </Col>
+          <KLineChartItemThumbnail
+            className="ml-10 w-36 mobile:w-full h-12 mobile:col-span-full  mobile:m-0 mobile:mt-4 flex-shrink-0"
+            isPositive={isPositive}
+            isNegative={isNegative}
+            pricePoints={pricePoints!}
+          />
+        </div>
+      )}
+    </FadeIn>
+  )
+}
+
+function KLineChartItemThumbnail({
+  className,
+  isPositive,
+  isNegative,
+  pricePoints
+}: {
+  className: string
+  isPositive: boolean
+  isNegative: boolean
+  pricePoints: number[]
+}) {
+  const lineColor = isPositive ? '#39D0D8' : isNegative ? '#DA2EEF' : '#abc4ff'
+
+  const maxPrice = Math.max(...pricePoints)
+  const minPrice = Math.min(...pricePoints)
+  const diff = maxPrice - minPrice
+  const xLength = pricePoints.length
+
+  function getPriceYPoint(p: number) {
+    const minH = 0.1 * maxPrice
+    if (diff > minH) {
+      return ((diff - (p - minPrice)) / diff) * 1000
+    } else {
+      return 1000 - (((minH - diff) / 2 + (p - minPrice)) * 1000) / minH
+    }
+  }
+
+  return (
+    /*  */
+    <svg className={className} viewBox={`0 0 2000 1000`} preserveAspectRatio="none">
+      <defs>
+        <filter id={`k-line-glow-${isPositive ? 'positive' : isNegative ? 'negative' : 'normal'}`}>
+          <feFlood result="flood" floodColor={lineColor} floodOpacity=".8"></feFlood>
+          <feComposite in="flood" result="mask" in2="SourceGraphic" operator="in"></feComposite>
+          <feMorphology in="mask" result="dilated" operator="dilate" radius="3"></feMorphology>
+          <feGaussianBlur in="dilated" result="blurred" stdDeviation="8"></feGaussianBlur>
+          <feMerge>
+            <feMergeNode in="blurred"></feMergeNode>
+            <feMergeNode in="SourceGraphic"></feMergeNode>
+          </feMerge>
+        </filter>
+      </defs>
+      <g filter={`url(#k-line-glow-${isPositive ? 'positive' : isNegative ? 'negative' : 'normal'})`}>
+        {Boolean(xLength) &&
+          (diff ? (
+            <polyline
+              vectorEffect="non-scaling-stroke"
+              points={pricePoints
+                .map((p, i) => {
+                  const y = getPriceYPoint(p)
+                  const x = (i / xLength) * 2000
+                  return `${x},${y}`
+                })
+                .join(' ')}
+              stroke={lineColor}
+              fill="none"
+            />
+          ) : (
+            <line
+              x1="0"
+              y1="499.9" // filter will not render 0 height, so have to let it a little diff from end point's y
+              x2="2000"
+              y2="500"
+              stroke={lineColor}
+              fill="none"
+              strokeWidth="16"
+            ></line>
+          ))}
+      </g>
+    </svg>
+  )
+}
+
+function UnwrapWSOL() {
+  const allTokenAccounts = useWallet((s) => s.allTokenAccounts)
+  const wsolTokenAccounts = allTokenAccounts.filter(
+    (tokenAccount) => toPubString(tokenAccount.mint) === toPubString(WSOLMint)
+  )
+  return (
+    <div className="self-center">
+      <FadeIn>
+        {wsolTokenAccounts.length > 0 && (
+          <div className="mt-12 max-w-[456px]">
+            <Card
+              className="p-6 mt-6 mobile:py-5 mobile:px-3"
+              size="lg"
+              style={{
+                background:
+                  'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
+              }}
+            >
+              <Row className="gap-4 items-center">
+                <Col className="gap-1">
+                  <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
+                    Click the button if you want to unwrap WSOL to get SOL
+                  </div>
+                </Col>
+
+                <Button
+                  className="flex items-center frosted-glass-teal opacity-80"
+                  onClick={() => {
+                    txUnwrapWSOL()
+                  }}
+                >
+                  Unwrap WSOL
+                </Button>
+              </Row>
+            </Card>
+          </div>
+        )}
+      </FadeIn>
+    </div>
+  )
+}

@@ -1,0 +1,24 @@
+{
+	"files": [
+		{
+			"path": "src/components/dialogs/RemoveLiquidityDialog.tsx",
+			"bookmarks": [
+				{
+					"line": 76,
+					"column": 95,
+					"label": "validator: amount out of max \\ amount is negative"
+				}
+			]
+		},
+		{
+			"path": "src/pages/farms.tsx",
+			"bookmarks": [
+				{
+					"line": 520,
+					"column": 42,
+					"label": "connect wallet"
+				}
+			]
+		}
+	]
+}
