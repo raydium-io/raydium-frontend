@@ -481,11 +481,6 @@ function PoolCardDatabaseBodyCollapseItemFace({ open, info }: { open: boolean; i
   const lpTokens = useToken((s) => s.lpTokens)
   const lpToken = lpTokens[info.lpMint] as LpToken | undefined
   const haveLp = Boolean(lpToken)
-  const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
-  // TODO: stable judger shoul be a isolate function
-  const isStable = Boolean(
-    lpToken && liquidityJsonInfos?.find((i) => i.lpMint === toPubString(lpToken.mint))?.version === 5
-  )
   const isMobile = useAppSettings((s) => s.isMobile)
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = usePools((s) => s.timeBasis)
@@ -497,7 +492,7 @@ function PoolCardDatabaseBodyCollapseItemFace({ open, info }: { open: boolean; i
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       } transition-all`}
     >
-      <CoinAvatarInfoItem info={info} isStable={isStable} className="pl-8" />
+      <CoinAvatarInfoItem info={info} className="pl-8" />
       <TextInfoItem
         name="Liquidity"
         value={
@@ -557,7 +552,7 @@ function PoolCardDatabaseBodyCollapseItemFace({ open, info }: { open: boolean; i
             open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
           }`}
         >
-          <CoinAvatarInfoItem info={info} isStable={isStable} />
+          <CoinAvatarInfoItem info={info} />
 
           <TextInfoItem
             name="Liquidity"
@@ -808,15 +803,7 @@ function addSetItem<T>(set: Set<T>, item: T): Set<T> {
   return newSet
 }
 
-function CoinAvatarInfoItem({
-  info,
-  className,
-  isStable
-}: {
-  info: HydratedPoolItemInfo | undefined
-  className?: string
-  isStable?: boolean
-}) {
+function CoinAvatarInfoItem({ info, className }: { info: HydratedPoolItemInfo | undefined; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const lowLiquidityAlertText = `This pool has relatively low liquidity. Always check the quoted price and that the pool has sufficient liquidity before trading.`
 
@@ -836,7 +823,7 @@ function CoinAvatarInfoItem({
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         {info?.name}
-        {isStable && <Badge className="self-center">Stable</Badge>}
+        {info?.isStablePool && <Badge className="self-center">Stable</Badge>}
         {lt(info?.liquidity.toFixed(0) ?? 0, 100000) && (
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />
