@@ -5,6 +5,7 @@ import { inClient } from '@/functions/judgers/isSSR'
 import { FarmPoolJsonInfo, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
 import { fetchFarmJsonInfos } from './utils/handleFarmInfo'
 import useToken from '../token/useToken'
+import useLocalStorageItem from '@/hooks/useLocalStorage'
 
 export type FarmStore = {
   isLoading: boolean
@@ -53,5 +54,7 @@ const useFarms = create<FarmStore>((set) => ({
   isStakeDialogOpen: false,
   stakeDialogInfo: undefined
 }))
+
+export const useFarmFavoriteIds = () => useLocalStorageItem<string[]>('FAVOURITE_FARM_IDS')
 
 export default useFarms

@@ -10,7 +10,7 @@ import txFarmDeposit from '@/application/farms/transaction/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/transaction/txFarmHarvest'
 import txFarmWithdraw from '@/application/farms/transaction/txFarmWithdraw'
 import { FarmPoolJsonInfo, HydratedFarmInfo } from '@/application/farms/type'
-import useFarms from '@/application/farms/useFarms'
+import useFarms, { useFarmFavoriteIds } from '@/application/farms/useFarms'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
@@ -49,11 +49,9 @@ import useSort from '@/hooks/useSort'
 import { toggleSetItem } from '../functions/setMethods'
 import Popover from '@/components/Popover'
 import LoadingCircle from '@/components/LoadingCircle'
-import useLiquidity from '@/application/liquidity/useLiquidity'
 import toPubString from '@/functions/format/toMintString'
 import { Badge } from '@/components/Badge'
 import { isFarmJsonInfo } from '@/application/farms/utils/judgeFarmInfo'
-import useLocalStorageItem from '@/hooks/useLocalStorage'
 
 export default function FarmsPage() {
   return (
@@ -240,7 +238,7 @@ function FarmCard() {
   const searchText = useFarms((s) => s.searchText)
   const lpTokens = useToken((s) => s.lpTokens)
 
-  const [favouriteIds, setFavouriteIds] = useLocalStorageItem<string[]>('FAVOURITE_FARM_IDS')
+  const [favouriteIds] = useFarmFavoriteIds()
 
   const dataSource = useMemo(
     () =>
@@ -337,7 +335,11 @@ function FarmCard() {
             }}
           >
             <Icon
-              className="ml-1 opacity-0 group-hover:opacity-100 transition"
+              className={`ml-1 ${
+                sortConfig?.key === 'favorite' && sortConfig.mode !== 'none'
+                  ? 'opacity-100'
+                  : 'opacity-0 group-hover:opacity-100'
+              } transition`}
               size="sm"
               iconSrc={
                 sortConfig?.key === 'favorite'
@@ -445,7 +447,7 @@ function FarmCardDatabaseBody({
   jsonInfos: FarmPoolJsonInfo[]
 }) {
   const expandedItemIds = useFarms((s) => s.expandedItemIds)
-  const [favouriteIds, setFavouriteIds] = useLocalStorageItem<string[]>('FAVOURITE_FARM_IDS')
+  const [favouriteIds, setFavouriteIds] = useFarmFavoriteIds()
   const infos = isLoading ? jsonInfos : sortedHydratedFarmInfos
   return (
     <>
