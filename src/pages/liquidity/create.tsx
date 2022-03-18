@@ -100,11 +100,11 @@ function PanelContent({ close }: { close(): void }) {
 
   const baseToken = baseMint
     ? getToken(baseMint) ??
-      (baseDecimals != null ? createSplToken({ mint: baseMint, decimals: baseDecimals, symbol: `--` }) : undefined)
+      (baseDecimals != null ? createSplToken({ mint: baseMint, decimals: baseDecimals }) : undefined)
     : undefined
   const quoteToken = quoteMint
     ? getToken(quoteMint) ??
-      (quoteDecimals != null ? createSplToken({ mint: quoteMint, decimals: quoteDecimals, symbol: `--` }) : undefined)
+      (quoteDecimals != null ? createSplToken({ mint: quoteMint, decimals: quoteDecimals }) : undefined)
     : undefined
   const [priceReverse, { toggle }] = useToggle()
 
