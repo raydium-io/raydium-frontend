@@ -56,4 +56,7 @@ const useAppSettings = create<AppSettingsStore>(() => ({
   isWalletSelectorShown: false,
   refreshCircleLastTimestamp: {}
 }))
+
+export const APP_VERSION = '1.1.0'
+
 export default useAppSettings

@@ -3,11 +3,12 @@ import { useEffect } from 'react'
 import { Connection } from '@solana/web3.js'
 
 import useConnection from '../useConnection'
-import assertAppVersion, { APP_VERSION } from '../utils/assertAppVersion'
+import assertAppVersion from '../utils/assertAppVersion'
 import caculateEndpointUrlByRpcConfig from '../utils/caculateEndpointUrlByRpcConfig'
 import fetchRpcConfigs, { Config } from '../utils/fetchRPCConfig'
 import postHeartBeat from '../utils/postHeartBeat'
 import { unifyByKey } from '@/functions/arrayMethods'
+import { APP_VERSION } from '@/application/appSettings/useAppSettings'
 
 const devRpcConfig: Omit<Config, 'success'> = {
   rpcs: [
@@ -53,24 +54,10 @@ export default function useConnectionInitialization({
         }))
         assertAppVersion(data, () => {
           callbacks?.onVersionTooOld?.({ localVersion: APP_VERSION, timestamp: Date.now() })
-          // useConnection.setState({
-          //   connectionError: {
-          //     type: CONNECT_ERROR_VERSION_TOO_OLD,
-          //     details: { localVersion: APP_VERSION },
-          //     timestamp: Date.now()
-          //   }
-          // })
         })
         useConnection.setState({ isInHeartbeat: true })
         postHeartBeat(APP_VERSION, () => {
           callbacks?.onVersionTooOld?.({ localVersion: APP_VERSION, timestamp: Date.now() })
-          // useConnection.setState({
-          //   connectionError: {
-          //     type: CONNECT_ERROR_VERSION_TOO_OLD,
-          //     details: { localVersion: APP_VERSION },
-          //     timestamp: Date.now()
-          //   }
-          // })
         })
       })
       .catch(console.error)
