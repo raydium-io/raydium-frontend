@@ -167,14 +167,14 @@ export default async function handleMultiTx(txAction: MultiTxAction): Promise<Fi
 
       useAppSettings.setState({ isApprovePanelShown: true })
       try {
-        const { adapter: walletAdapter, signAllTransactions } = useWallet.getState()
+        const { adapter: walletAdapter, owner, signAllTransactions } = useWallet.getState()
         const connection = useConnection.getState().connection
+        assert(owner, 'wallet not connected')
         assert(walletAdapter, 'wallet not connected')
-        assert(walletAdapter.publicKey, 'wallet not connected')
         assert(connection, 'no rpc connection')
         await txAction({
           transactionCollector,
-          baseUtils: { walletAdapter, connection, owner: walletAdapter.publicKey }
+          baseUtils: { walletAdapter, connection, owner }
         })
         const finalInfos = await sendMultiTransactionAndLogAndRecord({
           transactions: innerTransactions,
