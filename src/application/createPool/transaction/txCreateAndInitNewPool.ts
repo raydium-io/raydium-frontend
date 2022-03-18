@@ -69,9 +69,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
         toPubString(baseMint) === toPubString(WSOLMint)
           ? getMax(pureRawBalances[baseMint] ?? 0, solBalance ?? 0)
           : tokenAccounts.find((t) => toPubString(t.mint) === baseMint)?.amount,
-        toPubString(baseMint) === toPubString(WSOLMint)
-          ? toTokenAmount(baseToken, baseDecimaledAmount).raw
-          : toTokenAmount(baseToken, baseDecimaledAmount).raw
+        toTokenAmount(baseToken, baseDecimaledAmount).raw // input amount
       ),
       "wallet haven't enough base token"
     )
@@ -81,9 +79,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
         toPubString(quoteMint) === toPubString(WSOLMint)
           ? getMax(pureRawBalances[quoteMint] ?? 0, solBalance ?? 0)
           : tokenAccounts.find((t) => toPubString(t.mint) === quoteMint)?.amount,
-        toPubString(quoteMint) === toPubString(WSOLMint)
-          ? toTokenAmount(quoteToken, quoteDecimaledAmount).raw
-          : toTokenAmount(quoteToken, quoteDecimaledAmount).raw
+        toTokenAmount(quoteToken, quoteDecimaledAmount).raw // input amount
       ),
       "wallet haven't enough quote token"
     )
