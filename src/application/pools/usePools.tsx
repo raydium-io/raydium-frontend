@@ -4,6 +4,7 @@ import { HexAddress } from '@/types/constants'
 import { Price } from '@raydium-io/raydium-sdk'
 
 import { HydratedPoolItemInfo, JsonPairItemInfo } from './type'
+import useLocalStorageItem from '@/hooks/useLocalStorage'
 
 // backEnd naming: Pools -> PairInfo
 export type PoolsStore = {
@@ -45,3 +46,5 @@ export const usePools = create<PoolsStore>((set, get) => ({
     }))
   }
 }))
+
+export const usePoolFavoriteIds = () => useLocalStorageItem<string[]>('FAVOURITE_POOL_IDS')

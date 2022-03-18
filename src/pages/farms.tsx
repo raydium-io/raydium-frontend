@@ -331,7 +331,7 @@ function FarmCard() {
               setSortConfig({
                 key: 'favorite',
                 sortModeQueue: ['decrease', 'none'],
-                pickSortValue: (i) => Number(favouriteIds?.includes(toPubString(i.id)))
+                pickSortValue: (i) => favouriteIds?.includes(toPubString(i.id))
               })
             }}
           >
