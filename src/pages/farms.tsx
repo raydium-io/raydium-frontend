@@ -185,7 +185,7 @@ function FarmTableSorterBlock({
   onChange
 }: {
   className?: string
-  onChange?: (newKey: 'name' | 'totalApr' | 'tvl' | undefined) => void
+  onChange?: (newKey: 'name' | 'totalApr' | 'tvl' | 'favorite' | undefined) => void
 }) {
   return (
     <Select
@@ -193,7 +193,8 @@ function FarmTableSorterBlock({
       candidateValues={[
         { label: 'Farm', value: 'name' },
         { label: 'APRS', value: 'totalApr' },
-        { label: 'TVL', value: 'tvl' }
+        { label: 'TVL', value: 'tvl' },
+        { label: 'Favorite', value: 'favorite' }
       ]}
       prefix="Sort by:"
       onChange={onChange}
@@ -289,7 +290,13 @@ function FarmCard() {
         <FarmTableSorterBlock
           className="grow"
           onChange={(newSortKey) => {
-            newSortKey ? setSortConfig({ key: newSortKey, pickSortValue: (i) => i[newSortKey] }) : clearSortConfig()
+            newSortKey
+              ? setSortConfig({
+                  key: newSortKey,
+                  pickSortValue:
+                    newSortKey === 'favorite' ? (i) => favouriteIds?.includes(toPubString(i.id)) : (i) => i[newSortKey]
+                })
+              : clearSortConfig()
           }}
         />
         <ToolsButton className="self-center" />

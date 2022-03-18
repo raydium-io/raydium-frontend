@@ -195,6 +195,7 @@ function PoolTableSorterBox({
       | 'volume7d'
       | 'volume24h'
       | 'volume30d'
+      | 'favorite'
       | undefined
   ) => void
 }) {
@@ -213,7 +214,8 @@ function PoolTableSorterBox({
           label: `Fees ${timeBasis}`,
           value: timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d'
         },
-        { label: `APR ${timeBasis}`, value: timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d' }
+        { label: `APR ${timeBasis}`, value: timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d' },
+        { label: 'Favorite', value: 'favorite' }
       ]}
       // defaultValue="apr"
       prefix="Sort by:"
@@ -451,7 +453,13 @@ function PoolCard() {
         <PoolTableSorterBox
           className="grow"
           onChange={(newSortKey) => {
-            newSortKey ? setSortConfig({ key: newSortKey, pickSortValue: (i) => i[newSortKey] }) : clearSortConfig()
+            newSortKey
+              ? setSortConfig({
+                  key: newSortKey,
+                  pickSortValue:
+                    newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.ammId) : (i) => i[newSortKey]
+                })
+              : clearSortConfig()
           }}
         />
         <ToolsButton className="self-center" />
