@@ -330,6 +330,7 @@ function FarmCard() {
             onClick={() => {
               setSortConfig({
                 key: 'favorite',
+                sortModeQueue: ['decrease', 'none'],
                 pickSortValue: (i) => Number(favouriteIds?.includes(toPubString(i.id)))
               })
             }}
@@ -341,15 +342,7 @@ function FarmCard() {
                   : 'opacity-0 group-hover:opacity-100'
               } transition`}
               size="sm"
-              iconSrc={
-                sortConfig?.key === 'favorite'
-                  ? sortConfig?.mode === 'decrease'
-                    ? '/icons/msic-sort-down.svg'
-                    : sortConfig.mode === 'increase'
-                    ? '/icons/msic-sort-up.svg'
-                    : '/icons/msic-sort.svg'
-                  : '/icons/msic-sort.svg'
-              }
+              iconSrc="/icons/msic-sort-only-down.svg"
             />
           </Row>
           {/* table head column: Farm */}

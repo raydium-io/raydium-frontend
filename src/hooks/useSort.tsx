@@ -8,7 +8,7 @@ import { ExactPartial } from '@/types/generics'
 
 type SortMode = 'decrease' | 'increase' | 'none'
 
-type SortModeArr = [SortMode, SortMode, SortMode]
+type SortModeArr = SortMode[]
 
 type SortConfigItem<D extends Record<string, any>[]> = {
   key: keyof D[number] | EnumStr
