@@ -291,7 +291,7 @@ function FarmCard() {
         <FarmTableSorterBlock
           className="grow"
           onChange={(newSortKey) => {
-            newSortKey ? setSortConfig({ key: newSortKey }) : clearSortConfig()
+            newSortKey ? setSortConfig({ key: newSortKey, pickSortValue: (i) => i[newSortKey] }) : clearSortConfig()
           }}
         />
         <ToolsButton className="self-center" />
@@ -328,16 +328,19 @@ function FarmCard() {
           className="mb-3 h-12  sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl gap-2 grid-cols-[auto,1.5fr,1fr,1fr,1fr,auto]"
         >
           <Row
-            className="w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
+            className="group w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
             onClick={() => {
-              setSortConfig({ key: 'name', sortModeQueue: ['increase', 'decrease', 'none'] })
+              setSortConfig({
+                key: 'favorite',
+                pickSortValue: (i) => Number(favouriteIds?.includes(toPubString(i.id)))
+              })
             }}
           >
             <Icon
-              className="ml-1"
+              className="ml-1 opacity-0 group-hover:opacity-100 transition"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'name'
+                sortConfig?.key === 'favorite'
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
                     : sortConfig.mode === 'increase'
@@ -351,7 +354,11 @@ function FarmCard() {
           <Row
             className=" font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
             onClick={() => {
-              setSortConfig({ key: 'name', sortModeQueue: ['increase', 'decrease', 'none'] })
+              setSortConfig({
+                key: 'name',
+                sortModeQueue: ['increase', 'decrease', 'none'],
+                pickSortValue: (i) => i.name
+              })
             }}
           >
             <div className="mr-16"></div>
@@ -377,7 +384,7 @@ function FarmCard() {
           {/* table head column: Total APR */}
           <Row
             className="pl-2 font-medium items-center text-[#ABC4FF] text-sm cursor-pointer gap-1  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'totalApr' })}
+            onClick={() => setSortConfig({ key: 'totalApr', pickSortValue: (i) => i.totalApr })}
           >
             Total APR
             <Tooltip>
@@ -402,7 +409,7 @@ function FarmCard() {
           {/* table head column: TVL */}
           <Row
             className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'tvl' })}
+            onClick={() => setSortConfig({ key: 'tvl', pickSortValue: (i) => i.tvl })}
           >
             TVL
             <Icon
@@ -499,9 +506,6 @@ function FarmCardDatabaseBodyCollapseItemFace({
   onStartFavorite?: (farmId: string) => void
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
-  // TODO: stable judger shoul be a isolate function
-  const isStable = liquidityJsonInfos?.find((i) => i.lpMint === toPubString(info.lpMint))?.version === 5
 
   const pcCotent = (
     <Row
@@ -532,7 +536,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
         )}
       </div>
 
-      <CoinAvatarInfoItem info={info} isStable={isStable} className="self-center" />
+      <CoinAvatarInfoItem info={info} className="self-center" />
 
       <TextInfoItem
         name="Pending Rewards"
@@ -625,7 +629,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
               />
             )}
           </div>
-          <CoinAvatarInfoItem info={info} isStable={isStable} className="self-center" />
+          <CoinAvatarInfoItem info={info} className="self-center" />
 
           <TextInfoItem
             name="TVL"
@@ -1044,17 +1048,10 @@ function FarmStakeLpDialog() {
   )
 }
 
-function CoinAvatarInfoItem({
-  info,
-  className,
-  isStable
-}: {
-  info: HydratedFarmInfo | FarmPoolJsonInfo
-  className?: string
-  isStable?: boolean
-}) {
+function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | FarmPoolJsonInfo; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const getLpToken = useToken((s) => s.getLpToken)
+  const isStable = isFarmJsonInfo(info) ? false : info.isStablePool
 
   if (isFarmJsonInfo(info)) {
     const lpToken = getLpToken(info.lpMint)
@@ -1075,19 +1072,22 @@ function CoinAvatarInfoItem({
         {lpToken ? (
           <div>
             <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
-            {isStable && <Badge>Stable</Badge>}
           </div>
         ) : null}
       </AutoBox>
     )
   }
-  const { base, quote, isDualFusionPool: isDual, name } = info
+  const { base, quote, name } = info
   return (
-    <AutoBox is={isMobile ? 'Col' : 'Row'} className={twMerge('flex-wrap items-center mobile:items-start', className)}>
+    <AutoBox
+      is={isMobile ? 'Col' : 'Row'}
+      className={twMerge('flex-wrap items-center mobile:items-start gap-x-2', className)}
+    >
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
       <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
       {isStable && <Badge>Stable</Badge>}
-      {isDual && <FarmBadgeDual className="my-2.5" />}
+      {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
+      {info.isDualFusionPool && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
     </AutoBox>
   )
 }
@@ -1112,18 +1112,5 @@ function TextInfoItem({
         {subValue && <div className="text-sm mobile:text-2xs text-[rgba(171,196,255,0.5)]">{subValue}</div>}
       </Col>
     </Col>
-  )
-}
-
-function FarmBadgeDual({ className }: { className?: string }) {
-  return (
-    <Row
-      className={twMerge(
-        'text-[#DA2EEF] text-xs mobile:text-2xs py-1 px-3 mobile:py-0.5 mobile:px-2 rounded-full ring-1.5 mobile:ring-1 ring-inset ring-[#DA2EEF] whitespace-nowrap',
-        className
-      )}
-    >
-      Dual Yield
-    </Row>
   )
 }

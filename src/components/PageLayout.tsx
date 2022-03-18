@@ -804,8 +804,12 @@ function RpcConnectionPanelPopover({ close: closePanel }: { close: () => void })
                   } items-center w-full`}
                 >
                   {endPoint.name ?? '--'}
-                  {endPoint.url === autoChoosedEndPoint?.url && <Badge>recommended</Badge>}
-                  {endPoint.isUserCustomized && <Badge cssColor="#c4d6ff">user added</Badge>}
+                  {endPoint.url === autoChoosedEndPoint?.url && <Badge className="self-center">recommended</Badge>}
+                  {endPoint.isUserCustomized && (
+                    <Badge className="self-center" cssColor="#c4d6ff">
+                      user added
+                    </Badge>
+                  )}
                   {isCurrentEndPoint && (
                     <Icon
                       className="justify-self-end ml-auto text-[rgba(255,255,255,0.85)] clickable  transition"

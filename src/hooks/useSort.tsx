@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ZERO } from '@raydium-io/raydium-sdk'
 
 import { isBigInt, isBN, isBoolean, isFraction, isNumber, isString } from '@/functions/judgers/dateType'
-import { Numberish } from '@/types/constants'
+import { EnumStr, Numberish } from '@/types/constants'
 import { ExactPartial } from '@/types/generics'
 
 type SortMode = 'decrease' | 'increase' | 'none'
@@ -11,17 +11,15 @@ type SortMode = 'decrease' | 'increase' | 'none'
 type SortModeArr = [SortMode, SortMode, SortMode]
 
 type SortConfigItem<D extends Record<string, any>[]> = {
-  key: keyof D[number]
+  key: keyof D[number] | EnumStr
   mode: SortMode
   sortModeQueue: SortModeArr
 
-  rule: (item: D[number]) => any // for item may be tedius, so use rule
+  /** return Numberish / string / boolean*/
+  pickSortValue: (item: D[number]) => any // for item may be tedius, so use rule
 }
 
-type SimplifiedSortConfig<D extends Record<string, any>[]> = ExactPartial<
-  SortConfigItem<D>,
-  'mode' | 'rule' | 'sortModeQueue'
->
+type SimplifiedSortConfig<D extends Record<string, any>[]> = ExactPartial<SortConfigItem<D>, 'mode' | 'sortModeQueue'>
 
 /**
  * don't support too smart configs
@@ -62,8 +60,7 @@ export default function useSort<D extends Record<string, any>[]>(
       {
         ...simpleConfig,
         mode,
-        sortModeQueue,
-        rule: (i) => i[simpleConfig.key]
+        sortModeQueue
       }
     ]
   }
@@ -86,10 +83,7 @@ export default function useSort<D extends Record<string, any>[]>(
   /** this will cause only one sortConfigItem */
   const setConfig = useCallback(
     (simpleConfig: SimplifiedSortConfig<D>) => {
-      setConfigs((currentConfigs) => {
-        const parsedConfig = parseSortConfig(simpleConfig, currentConfigs)
-        return parsedConfig
-      })
+      setConfigs((currentConfigs) => parseSortConfig(simpleConfig, currentConfigs))
     },
     [setConfigs]
   )
@@ -102,12 +96,14 @@ export default function useSort<D extends Record<string, any>[]>(
 
   const sortedData = useMemo(() => {
     if (!sortConfigs.length) return sourceDataList
-    const [{ mode, rule }] = sortConfigs // temp only respect first sortConfigs in queue
+    const [{ mode, pickSortValue }] = sortConfigs // temp only respect first sortConfigs in queue
     if (mode === 'none') return [...sourceDataList]
-    return [...sourceDataList].sort((a, b) => (mode === 'decrease' ? -1 : 1) * compareForSort(rule(a), rule(b)))
+    return [...sourceDataList].sort(
+      (a, b) => (mode === 'decrease' ? -1 : 1) * compareForSort(pickSortValue(a), pickSortValue(b))
+    )
   }, [sortConfigs, sourceDataList])
 
-  return { sortedData, sortConfigs, sortConfig, setConfig: setConfig, clearSortConfig }
+  return { sortedData, sortConfigs, sortConfig, setConfig, clearSortConfig }
 }
 
 function compareForSort(a: unknown, b: unknown): number {

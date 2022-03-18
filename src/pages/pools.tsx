@@ -274,7 +274,7 @@ function PoolCard() {
         const searchKeyWords = searchText.split(/\s|-/)
         return searchKeyWords.every((keyWord) => i.name.toLowerCase().includes(keyWord.toLowerCase()))
       }),
-    { defaultSort: { key: 'liquidity' } }
+    { defaultSort: { key: 'liquidity', pickSortValue: (i) => i.liquidity } }
   )
 
   const TableHeaderBlock = useCallback(
@@ -291,7 +291,11 @@ function PoolCard() {
           <Row
             className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer"
             onClick={() => {
-              setSortConfig({ key: 'name', sortModeQueue: ['increase', 'decrease', 'none'] })
+              setSortConfig({
+                key: 'name',
+                sortModeQueue: ['increase', 'decrease', 'none'],
+                pickSortValue: (i) => i.name
+              })
             }}
           >
             Pool
@@ -313,7 +317,7 @@ function PoolCard() {
         <Row
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: 'liquidity' })
+            setSortConfig({ key: 'liquidity', pickSortValue: (i) => i.liquidity })
           }}
         >
           Liquidity
@@ -334,7 +338,8 @@ function PoolCard() {
         <Row
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d' })
+            const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
+            setSortConfig({ key, pickSortValue: (i) => i[key] })
           }}
         >
           Volume {timeBasis}
@@ -355,7 +360,8 @@ function PoolCard() {
         <Row
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d' })
+            const key = timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d'
+            setSortConfig({ key, pickSortValue: (i) => i[key] })
           }}
         >
           Fees {timeBasis}
@@ -376,7 +382,8 @@ function PoolCard() {
         <Row
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d' })
+            const key = timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d'
+            setSortConfig({ key, pickSortValue: (i) => i[key] })
           }}
         >
           APR {timeBasis}
@@ -413,7 +420,7 @@ function PoolCard() {
         <PoolTableSorterBox
           className="grow"
           onChange={(newSortKey) => {
-            newSortKey ? setSortConfig({ key: newSortKey }) : clearSortConfig()
+            newSortKey ? setSortConfig({ key: newSortKey, pickSortValue: (i) => i[newSortKey] }) : clearSortConfig()
           }}
         />
         <ToolsButton className="self-center" />
@@ -829,7 +836,7 @@ function CoinAvatarInfoItem({
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         {info?.name}
-        {isStable && <Badge>Stable</Badge>}
+        {isStable && <Badge className="self-center">Stable</Badge>}
         {lt(info?.liquidity.toFixed(0) ?? 0, 100000) && (
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />
