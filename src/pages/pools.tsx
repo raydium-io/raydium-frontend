@@ -307,7 +307,7 @@ function PoolCard() {
             className={`ml-1 ${
               sortConfig?.key === 'favorite' && sortConfig.mode !== 'none'
                 ? 'opacity-100'
-                : 'opacity-0 group-hover:opacity-100'
+                : 'opacity-0 group-hover:opacity-30'
             } transition`}
             size="sm"
             iconSrc="/icons/msic-sort-only-down.svg"
@@ -687,7 +687,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
       </Collapse.Face>
 
       <Collapse.Body>
-        <Row type="grid-x" className="py-4 px-5 relative items-center gap-2 grid-cols-[1fr,1fr,1fr,auto]  bg-[#141041]">
+        <Row
+          type="grid-x"
+          className="py-4 px-5 pl-12 relative items-center gap-2 grid-cols-[1.5fr,1fr,1fr,auto]  bg-[#141041]"
+        >
           <div className="absolute top-0 left-5 right-5 border-[rgba(171,196,255,.2)] border-t-1.5"></div>
           <TextInfoItem
             name="Volume(7d)"
@@ -725,12 +728,9 @@ function PoolCardDatabaseBodyCollapseItemFace({
 function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedPoolItemInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const balances = useWallet((s) => s.balances)
-  const walletConnected = useWallet((s) => s.connected)
   const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
-  const { push } = useRouter()
   const farmPoolsList = useFarms((s) => s.jsonInfos)
   const prices = usePools((s) => s.lpPrices)
-  const jsonInfos = useLiquidity((s) => s.jsonInfos)
 
   const hasLp = isMeaningfulNumber(balances[info.lpMint])
 

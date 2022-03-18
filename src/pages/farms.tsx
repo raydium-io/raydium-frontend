@@ -339,7 +339,7 @@ function FarmCard() {
               className={`ml-1 ${
                 sortConfig?.key === 'favorite' && sortConfig.mode !== 'none'
                   ? 'opacity-100'
-                  : 'opacity-0 group-hover:opacity-100'
+                  : 'opacity-0 group-hover:opacity-30'
               } transition`}
               size="sm"
               iconSrc="/icons/msic-sort-only-down.svg"
@@ -597,11 +597,11 @@ function FarmCardDatabaseBodyCollapseItemFace({
       <Collapse.Face>
         <Row
           type="grid-x"
-          className={`py-4 px-5 mobile:p-2 items-stretch gap-2 grid-cols-[auto,1fr,1fr,1fr,auto] bg-[#141041] mobile:rounded-t-lg ${
+          className={`py-4 px-5 mobile:p-2 items-stretch gap-2 grid-cols-[auto,1.1fr,1fr,1fr,auto] bg-[#141041] mobile:rounded-t-lg ${
             open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
           }`}
         >
-          <div className="w-4 self-center ">
+          <div className="w-8 self-center ">
             {isFavourite ? (
               <Icon
                 className="clickable m-auto self-center"
