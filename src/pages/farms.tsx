@@ -268,6 +268,7 @@ function FarmCard() {
         })
         .sort((a, b) => {
           if (a.isUpcomingPool || b.isUpcomingPool) return Number(b.isUpcomingPool) - Number(a.isUpcomingPool) // upcoming first
+          if (a.isNewPool || b.isNewPool) return Number(b.isNewPool) - Number(a.isNewPool) // new pool second
           const isAFavorite = favouriteIds?.includes(toPubString(a.id))
           const isBFavorite = favouriteIds?.includes(toPubString(b.id))
 
@@ -1088,6 +1089,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
       <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
       {isStable && <Badge>Stable</Badge>}
+      {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
       {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
       {info.isDualFusionPool && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
     </AutoBox>

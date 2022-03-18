@@ -1,11 +1,9 @@
 import React, { useCallback, useMemo } from 'react'
-import { useRouter } from 'next/router'
 
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useFarms from '@/application/farms/useFarms'
-import useLiquidity from '@/application/liquidity/useLiquidity'
 import { isHydratedPoolItemInfo } from '@/application/pools/is'
 import { HydratedPoolItemInfo } from '@/application/pools/type'
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'

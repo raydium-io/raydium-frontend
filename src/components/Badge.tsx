@@ -8,6 +8,8 @@ export function Badge(props: {
   children: React.ReactNode
   cssColor?: string
   noOutline?: boolean
+  /** default: outline */
+  type?: 'solid' | 'outline'
   /** default 'md' */
   size?: 'md' | 'sm'
 }) {
@@ -17,8 +19,10 @@ export function Badge(props: {
     <Row
       className={twMerge(
         `text-center items-center ${defaultSize === 'sm' ? 'px-1 text-2xs' : 'px-2 text-xs'} ${
-          props.noOutline ? '' : defaultSize === 'sm' ? 'border' : 'border-1.5'
-        } border-current rounded-full`,
+          props.type === 'solid'
+            ? 'bg-current text-white'
+            : `${props.noOutline ? '' : defaultSize === 'sm' ? 'border' : 'border-1.5'} border-current`
+        } rounded-full`,
         props.className
       )}
       style={{
