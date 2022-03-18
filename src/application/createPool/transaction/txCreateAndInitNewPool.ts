@@ -1,4 +1,4 @@
-import { Liquidity, Token, WSOL } from '@raydium-io/raydium-sdk'
+import { Liquidity, Token } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import useToken from '@/application/token/useToken'
@@ -7,13 +7,12 @@ import handleMultiTx from '@/application/txTools/handleMultiTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import toBN from '@/functions/numberish/toBN'
 
 import useCreatePool from '../useCreatePool'
 import { recordCreatedPool } from '../utils/recordCreatedPool'
-import { deUITokenAmount, WSOLMint } from '@/application/token/utils/quantumSOL'
+import { WSOLMint } from '@/application/token/utils/quantumSOL'
 import toPubString from '@/functions/format/toMintString'
 import { getMax } from '@/functions/numberish/operations'
 
@@ -36,7 +35,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     } = useCreatePool.getState()
 
     const { getPureToken } = useToken.getState()
-    const { pureBalances, solBalance } = useWallet.getState()
+    const { solBalance, tokenAccounts, pureRawBalances } = useWallet.getState()
 
     assert(lpMint, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
     assert(marketId, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
@@ -68,9 +67,9 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     assert(
       gte(
         toPubString(baseMint) === toPubString(WSOLMint)
-          ? getMax(pureBalances[baseMint], solBalance ?? 0)
-          : pureBalances[baseMint],
-        toTokenAmount(baseToken, baseDecimaledAmount)
+          ? getMax(pureRawBalances[baseMint] ?? 0, solBalance ?? 0)
+          : tokenAccounts.find((t) => toPubString(t.mint) === baseMint)?.amount,
+        toTokenAmount(baseToken, baseDecimaledAmount).raw // input amount
       ),
       "wallet haven't enough base token"
     )
@@ -78,9 +77,9 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     assert(
       gte(
         toPubString(quoteMint) === toPubString(WSOLMint)
-          ? getMax(pureBalances[quoteMint], solBalance ?? 0)
-          : pureBalances[quoteMint],
-        toTokenAmount(baseToken, baseDecimaledAmount)
+          ? getMax(pureRawBalances[quoteMint] ?? 0, solBalance ?? 0)
+          : tokenAccounts.find((t) => toPubString(t.mint) === quoteMint)?.amount,
+        toTokenAmount(quoteToken, quoteDecimaledAmount).raw // input amount
       ),
       "wallet haven't enough quote token"
     )
