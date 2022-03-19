@@ -10,7 +10,9 @@ import {
   PAIMint,
   RAYMint,
   SRMMint,
+  stSOLMint,
   USDCMint,
+  USDHMint,
   USDTMint
 } from '@/application/token/utils/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
@@ -35,17 +37,21 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
 
     const avaliableQuoteMints = {
+      //TODO: actually just use getToken() is ok, this structure is build when getToken() is not ready
       USDT: String(USDTMint),
       USDC: String(USDCMint),
       RAY: String(RAYMint),
       WSOL: String(WSOLMint),
       SRM: String(SRMMint),
       PAI: String(PAIMint),
-      mSOL: String(mSOLMint)
+      mSOL: String(mSOLMint),
+      stSOL: String(stSOLMint),
+      USDH: String(USDHMint)
     }
+
     assert(
       Object.values(avaliableQuoteMints).includes(String(quoteMint)),
-      `only support USDT, USDC, RAY, WSOL(SOL), SRM, PAI, mSOL. quoteMint: ${toPubString(quoteMint).slice(
+      `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI. current: ${toPubString(quoteMint).slice(
         0,
         4
       )}...${toPubString(quoteMint).slice(-4)} is not avaliable`

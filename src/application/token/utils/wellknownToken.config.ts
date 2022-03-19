@@ -7,3 +7,4 @@ export const USDCMint = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTD
 export const USDTMint = new PublicKey('Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB')
 export const mSOLMint = new PublicKey('mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So')
 export const stSOLMint = new PublicKey('7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj')
+export const USDHMint = new PublicKey('AkzcmXAWWmGnVmyEfW5eeaHdUUrE9yxGaS2GmtV5UEMq')
