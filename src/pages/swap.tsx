@@ -150,7 +150,7 @@ function useunOfficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
   const downCoin = directionReversed ? coin1 : coin2
-  const raydiumTokenMints = useToken((s) => s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints)
+  const raydiumTokenMints = useToken((s) => s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME]?.mints)
 
   const [userPermanentConfirmedTokenMints, setUserPermanentConfirmedTokenMints] =
     useLocalStorageItem<HexAddress[] /* token mint  */>('USER_CONFIRMED_SWAP_TOKENS')
