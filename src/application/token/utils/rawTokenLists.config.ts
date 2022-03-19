@@ -13,7 +13,7 @@ export const rawTokenListConfigs = [
 ] as TokenListFetchConfigItemWithMethods[]
 
 export function isRaydiumMainnetTokenListName(response: any): response is RaydiumTokenListJsonInfo {
-  return response?.name === RAYDIUM_MAINNET_TOKEN_LIST_NAME
+  return response?.name === 'Raydium Mainnet Token List'
 }
 
 export function isRaydiumDevTokenListName(response: any): response is RaydiumDevTokenListJsonInfo {
