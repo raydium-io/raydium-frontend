@@ -1,0 +1,126 @@
+@tailwind components;
+@tailwind utilities;
+/**
+ * Use this directive to control where Tailwind injects the responsive
+ * variations of each utility.
+ *
+ * If omitted, Tailwind will append these classes to the very end of
+ * your stylesheet by default.
+ */
+@tailwind screens;
+
+@import url(./bonsai.css);
+
+@keyframes shrink {
+  from {
+    transform-origin: left center;
+    transform: scaleX(1);
+  }
+  to {
+    transform-origin: left center;
+    transform: scaleX(0);
+  }
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.primary-gradient-bg {
+  background: linear-gradient(139.73deg, hsl(185deg, 100%, 95%), hsl(255deg, 100%, 97%));
+}
+.home-bg-gradient {
+  background: linear-gradient(45deg, hsl(235, 51%, 26%), hsl(258, 56%, 34%));
+}
+.home-button-gradient {
+  @apply rounded-xl;
+  @apply text-white;
+  background: linear-gradient(245.22deg, #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%);
+}
+
+.children-center {
+  display: grid;
+  justify-items: center;
+  align-items: center;
+  grid-template-columns: 1fr;
+}
+.children-center,
+.children-text-center > * {
+  text-align: center;
+}
+.children-center,
+.children-flex-content-center > * {
+  justify-content: center;
+}
+
+.grid-cover-container {
+  place-items: center;
+  display: grid;
+}
+.grid-cover-container > * {
+  grid-area: 1 / 1;
+}
+
+.jelly-flex {
+  display: flex;
+}
+.jelly-flex > * {
+  flex: 1;
+}
+
+.swap-input-tool-box-grid {
+  display: grid;
+  grid-template:
+    'a b d'
+    'a c d' / auto 12rem 1fr;
+  @apply pc:gap-4 mobile:gap-2;
+  align-items: center;
+}
+.swap-input-tool-box-grid.mobile {
+  grid-template:
+    'b a c'
+    'd d d' / 2fr 1fr auto;
+}
+
+.area-a {
+  grid-area: a;
+}
+.area-b {
+  grid-area: b;
+}
+.area-c {
+  grid-area: c;
+}
+.area-d {
+  grid-area: d;
+}
+.area-e {
+  grid-area: e;
+}
+.area-f {
+  grid-area: f;
+}
+
+.swap-input-box-grid {
+  display: grid;
+  grid-template: 'a b c' / auto 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+.swap-input-box-grid.mobile {
+  grid-template:
+    'a c' 2.4rem
+    'b b' / 1fr 1fr;
+}
+.swap-input-box-grid.mobile .area-a {
+  justify-self: start;
+}
+.swap-input-box-grid.mobile .area-c {
+  justify-self: end;
+}

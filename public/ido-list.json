@@ -1,0 +1,91 @@
+{
+  "name": "Raydium AcceleRaytor Pools",
+  "timestamp": "2021-12-10 12:10:36",
+  "version": {
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "official": [
+    {
+      "id": "3dzFshf1hTJ4xLt8uG87cGFA3fzBmUtT1hoVFc3vNPbN",
+      "version": 3,
+      "snapshotVersion": 1,
+      "programId": "9HzJyW1qZsEiSfMUf6L2jo3CcTKAyBmSyKdwQeYisHrC",
+      "snapshotProgramId": "4kCccBVdQpsonm2jL2TRV1noMdarsWR2mhwwkxUTqW3W",
+      "seedId": "As7Qo4axkCLULMSJcRb88Hd944LtoJgppR5EcPapM66x",
+      "authority": "62PQqZ6ewuaaHa6DK6nJdWypwUwjVCP3jBR3DyEtDG8J",
+      "baseVault": "DoGu2pNFFwjMaQYnkMcEz8GKTBSPPbJkCwgEw2o2KvWV",
+      "quoteVault": "BYMo31vjmaDWYWVs3j364XDeXRssYgwbnqXZi3wMeUz2",
+      "baseMint": "zebeczgi5fSEtbpfQKVZKCJ3WgYXxjkMUkNNx7fLKAF",
+      "quoteMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "project": {
+        "projectName": "Zebec",
+        "projectWebsiteLink": "https://zebec.io/",
+        "detailDoc": "https://raydium.medium.com/zebec-is-launching-on-acceleraytor-410d87988f37",
+        "details": "Zebec Protocol stands as modular money, layer, upgradeable and extensible through governance. Our aim is to strive for a DeFi revolution. Bring change in the Web3 digital economy. Establish Programmable Money Streaming as a foundation for greater, better, and more legendary financial innovations. The Protocol remains programmable, open to apps wanting to establish ongoing connections with user balances, automating payments, investments and trading.",
+        "docs": {
+          "website": "https://zebec.io/"
+        },
+        "socials": {
+          "Twitter": "https://twitter.com/Zebec_HQ",
+          "Telegram": "https://t.me/zebececosystem",
+          "Discord": "https://discord.gg/fJM9cHuvvB"
+        }
+      }
+    },
+    {
+      "id": "7zk92r3Hiy6JWHTc2FaqGGxyP3arhxpTyqairGiWa25M",
+      "version": 3,
+      "snapshotVersion": 1,
+      "programId": "9HzJyW1qZsEiSfMUf6L2jo3CcTKAyBmSyKdwQeYisHrC",
+      "snapshotProgramId": "4kCccBVdQpsonm2jL2TRV1noMdarsWR2mhwwkxUTqW3W",
+      "seedId": "FBcHy7dPGZMMaEKd1tNH5bzERMP1R1CqSTvgem4acXKx",
+      "authority": "5uTzwn1MX3si9QCUofUQjbGU5rotNd86NpBDV26cS5aj",
+      "baseVault": "4nuhCrBekDVeJeJpoyGSKqe9C371CLNBEpkYo7Cx2MTP",
+      "quoteVault": "8eUGYBMdB55E6r4iKxGpqdPyHtiMNVbq95bnpXXB7NVW",
+      "baseMint": "7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR",
+      "quoteMint": "2nkxLptGxQCfaar541Cr87G4v6VuA6BvVWqxsHNVCYoA",
+      "onlyDev": true,
+      "project": {
+        "projectName": "TEST PROJECT",
+        "projectWebsiteLink": "https://realy.pro/",
+        "detailDoc": "https://raydium.medium.com/realy-is-launching-on-acceleraytor-b6d6a63d69d8",
+        "details": "Realy Metaverse will be the 1st Live-to-Earn metaverse on Solana. Developed via Unreal Engine, Realy is a virtual city with AAA graphics that seamlessly integrates virtual and reality.",
+        "docs": {
+          "website": "https://realy.pro/"
+        },
+        "socials": {
+          "Discord": "https://t.co/9O42ibMcNM?amp=1",
+          "Twitter": "https://twitter.com/RealyOfficial"
+        }
+      }
+    },
+    {
+      "id": "ELmdR1aviPeBcJPPSA3UcKHZKBKgSoCrAKyUbXCfFW9H",
+      "version": 3,
+      "snapshotVersion": 1,
+      "programId": "9HzJyW1qZsEiSfMUf6L2jo3CcTKAyBmSyKdwQeYisHrC",
+      "snapshotProgramId": "4kCccBVdQpsonm2jL2TRV1noMdarsWR2mhwwkxUTqW3W",
+      "seedId": "GawJp2GhDEm9FG3tLNMTHXP8GN4N1E33Sf26jVZp13GV",
+      "authority": "2v8cpJz2ErxcoRsHLD67JH9wAPDKSBAaXuzWiBQ8d6j3",
+      "baseVault": "HLGPz2igA44qwu2weF1tSvMXc5gT4aojwVwqiv19DXFn",
+      "quoteVault": "AngzxwJCyMCY6vA8o8QxTsLFezzoztq6jNC7iByHUmGR",
+      "baseMint": "YAWtS7vWCSRPckx1agB6sKidVXiXiDUfehXdEUSRGKE",
+      "quoteMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+      "project": {
+        "projectName": "YAW",
+        "projectWebsiteLink": "https://realy.pro/",
+        "detailDoc": "https://raydium.medium.com/realy-is-launching-on-acceleraytor-b6d6a63d69d8",
+        "details": "Realy Metaverse will be the 1st Live-to-Earn metaverse on Solana. Developed via Unreal Engine, Realy is a virtual city with AAA graphics that seamlessly integrates virtual and reality.",
+        "docs": {
+          "website": "https://realy.pro/"
+        },
+        "socials": {
+          "Discord": "https://t.co/9O42ibMcNM?amp=1",
+          "Twitter": "https://twitter.com/RealyOfficial"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+import React, { ReactNode, RefObject, useCallback, useRef } from 'react'
+
+import { twMerge } from 'tailwind-merge'
+
+import useToggle from '@/hooks/useToggle'
+
+import Button from '../Button'
+import Card from '../Card'
+import Col from '../Col'
+import Dialog from '../Dialog'
+import Icon, { AppHeroIconName } from '../Icon'
+
+export interface ConfirmDialogInfo {
+  cardWidth?: 'md' | 'lg'
+  type?: 'success' | 'warning' | 'error' | 'info' | 'no-head-icon'
+  title?: ReactNode
+  subtitle?: ReactNode
+  description?: ReactNode
+
+  additionalContent?: ReactNode
+  onlyConfirmButton?: boolean
+  confirmButtonText?: ReactNode
+  cancelButtonText?: ReactNode
+  onCancel?(): void
+  onConfirm?(): void
+}
+
+const colors: Record<
+  Exclude<ConfirmDialogInfo['type'], 'no-head-icon'> & string,
+  { heroIconName: AppHeroIconName; ring: string; bg: string; text: string }
+> = {
+  success: {
+    heroIconName: 'check-circle',
+    ring: 'ring-[#39d0d8]',
+    text: 'text-[#39d0d8]',
+    bg: 'bg-[#39d0d8]'
+  },
+  error: {
+    heroIconName: 'exclamation-circle',
+    ring: 'ring-[#DA2EEF]',
+    text: 'text-[#DA2EEF]',
+    bg: 'bg-[#e54bf9]'
+  },
+  info: {
+    heroIconName: 'information-circle',
+    ring: 'ring-[#2e7cf8]',
+    text: 'text-[#2e7cf8]',
+    bg: 'bg-[#92bcff]'
+  },
+  warning: {
+    heroIconName: 'exclamation',
+    ring: 'ring-[#D8CB39]',
+    text: 'text-[#D8CB39]',
+    bg: 'bg-[#D8CB39]'
+  }
+}
+
+export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefObject<HTMLDivElement> }) {
+  const [isOpen, { off: _close }] = useToggle(true)
+  const hasConfirmed = useRef(false)
+
+  const confirm = useCallback(() => {
+    props.onConfirm?.()
+    hasConfirmed.current = true
+    _close()
+  }, [_close])
+
+  const close = useCallback(() => {
+    _close()
+    if (!hasConfirmed.current) props.onCancel?.()
+  }, [_close])
+
+  return (
+    <Dialog open={isOpen} onClose={close}>
+      {({ close: closeDialog }) => (
+        <Card
+          className={twMerge(
+            `p-8 rounded-3xl ${
+              props.cardWidth === 'lg' ? 'w-[min(560px,95vw)]' : 'w-[min(360px,80vw)]'
+            }  mx-8 border-1.5 border-[rgba(171,196,255,0.2)]`
+          )}
+          size="lg"
+          style={{
+            background:
+              'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
+            boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
+          }}
+        >
+          <Col className="items-center">
+            {props.type !== 'no-head-icon' && (
+              <Icon
+                size="lg"
+                heroIconName={colors[props.type ?? 'info'].heroIconName}
+                className={`${colors[props.type ?? 'info'].text} mb-3`}
+              />
+            )}
+
+            <div className="mb-6 text-center">
+              <div className="font-semibold text-xl text-white mb-3">{props.title}</div>
+              {props.subtitle && <div className="font-semibold text-xl text-white">{props.subtitle}</div>}
+              {props.description && <div className="font-normal text-base text-[#ABC4FF]">{props.description}</div>}
+            </div>
+
+            <div className="self-stretch">
+              {props.additionalContent}
+              <Col>
+                {!props.onlyConfirmButton && (
+                  <Button className="text-[#ABC4FF] frosted-glass-skygray" onClick={closeDialog}>
+                    {props.cancelButtonText ?? 'Cancel'}
+                  </Button>
+                )}
+                <Button
+                  className={`text-[#ABC4FF] ${props.onlyConfirmButton ? 'frosted-glass-skygray' : ''}`}
+                  type="text"
+                  onClick={confirm}
+                >
+                  {props.confirmButtonText ?? 'OK'}
+                </Button>
+              </Col>
+            </div>
+          </Col>
+        </Card>
+      )}
+    </Dialog>
+  )
+}

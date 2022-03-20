@@ -1,0 +1,43 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.tabSize": 2,
+  "editor.quickSuggestions": {
+    "strings": true // forces VS Code to trigger completions when editing "string" content
+  },
+  "eslint.validate": ["javascript", "typescript", "html"],
+  "eslint.format.enable": true,
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript", // if you are using typescript
+    "typescriptreact": "javascript" // if you are using typescript with react
+  },
+  "tailwindCSS.experimental.classRegex": [
+    "tw`([^`]*)", // tw`...`
+    "tw\\..+`([^`]*)", // tw.xxx<xxx>`...`
+    "tw\\(.*?\\).*?`([^`]*)" // tw(Component)<xxx>`...`
+  ],
+  "typescript.tsdk": "node_modules\\typescript\\lib",
+  "svg.preview.background": "transparent",
+  "[svg]": {
+    "editor.defaultFormatter": "jock.svg"
+  },
+  // https://marketplace.visualstudio.com/items?itemName=dozerg.tsimportsorter
+  "tsImportSorter.configuration.groupRules": [
+    ["^react", "^next/", "^next-"],
+    ["^@\\w"],
+    ["^\\w"],
+    ["^@/"],
+    ["^\\.\\."],
+    ["^\\."],
+    { "flags": "scripts" }
+  ],
+  "tsImportSorter.configuration.keepUnused": [".*"],
+  "tsImportSorter.configuration.wrappingStyle": {
+    "maxNamesPerWrappedLine": 0,
+    "maxBindingNamesPerLine": 0,
+    "maxDefaultAndBindingNamesPerLine": 0
+  }
+}
