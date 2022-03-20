@@ -8,9 +8,11 @@ import useToken from '../../token/useToken'
 import useWallet from '../../wallet/useWallet'
 import useFarms from '../useFarms'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from '../utils/handleFarmInfo'
+import useLiquidity from '@/application/liquidity/useLiquidity'
 
 export default function useFarmInfoFetcher() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
+  const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
   const getToken = useToken((s) => s.getToken)
   const getLpToken = useToken((s) => s.getLpToken)
   const lpTokens = useToken((s) => s.lpTokens)
@@ -51,8 +53,8 @@ export default function useFarmInfoFetcher() {
   // hydrate action will depends on other state, so it will rerender many times
   useAsyncEffect(async () => {
     const hydratedInfos = sdkParsedInfos?.map((farmInfo) =>
-      hydrateFarmInfo(farmInfo, { getToken, getLpToken, lpPrices, tokenPrices })
+      hydrateFarmInfo(farmInfo, { getToken, getLpToken, lpPrices, tokenPrices, liquidityJsonInfos })
     )
     useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
-  }, [sdkParsedInfos, getToken, lpPrices, tokenPrices, getLpToken, lpTokens])
+  }, [sdkParsedInfos, getToken, lpPrices, tokenPrices, getLpToken, lpTokens, liquidityJsonInfos])
 }

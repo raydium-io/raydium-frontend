@@ -17,10 +17,17 @@ import useWallet from '../wallet/useWallet'
 import computeUserLedgerInfo from './infoCalculater'
 import { HydratedPoolItemInfo, JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
+import useLiquidity from '../liquidity/useLiquidity'
+import listToMap from '@/functions/format/listToMap'
+import toPubString from '@/functions/format/toMintString'
 
 export default function usePoolsInfoLoader() {
   const jsonInfo = usePools((s) => s.jsonInfos, shallow)
-  const tokenJsonInfos = useToken((s) => s.tokenJsonInfos)
+  const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
+  const liquidityJsonInfosMap = useMemo(
+    () => listToMap(liquidityJsonInfos, (i) => toPubString(i.lpMint)),
+    [liquidityJsonInfos]
+  )
 
   const getToken = useToken((s) => s.getToken)
   const tokens = useToken((s) => s.tokens)
@@ -126,10 +133,12 @@ export default function usePoolsInfoLoader() {
           quotePooled: calcLpUserLedgerInfoResult?.quotePooled,
           sharePercent: calcLpUserLedgerInfoResult?.sharePercent,
 
-          price: base ? toTokenPrice(base, pair.price) : null
+          price: base ? toTokenPrice(base, pair.price) : null,
+
+          isStablePool: Boolean(lp && liquidityJsonInfos?.find((i) => i.lpMint === toPubString(lp.mint))?.version === 5)
         }
       }
     })
     usePools.setState({ hydratedInfos, loading: hydratedInfos.length === 0 })
-  }, [jsonInfo, getToken, balances, lpTokens, tokens])
+  }, [jsonInfo, getToken, balances, lpTokens, tokens, liquidityJsonInfosMap])
 }

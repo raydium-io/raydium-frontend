@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import React, { ReactNode, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
 import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
@@ -10,7 +10,7 @@ import txFarmDeposit from '@/application/farms/transaction/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/transaction/txFarmHarvest'
 import txFarmWithdraw from '@/application/farms/transaction/txFarmWithdraw'
 import { FarmPoolJsonInfo, HydratedFarmInfo } from '@/application/farms/type'
-import useFarms from '@/application/farms/useFarms'
+import useFarms, { useFarmFavoriteIds } from '@/application/farms/useFarms'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
@@ -35,7 +35,7 @@ import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tabs from '@/components/Tabs'
 import Tooltip from '@/components/Tooltip'
-import { shakeFalsyItem } from '@/functions/arrayMethods'
+import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -49,10 +49,9 @@ import useSort from '@/hooks/useSort'
 import { toggleSetItem } from '../functions/setMethods'
 import Popover from '@/components/Popover'
 import LoadingCircle from '@/components/LoadingCircle'
-import useLiquidity from '@/application/liquidity/useLiquidity'
 import toPubString from '@/functions/format/toMintString'
 import { Badge } from '@/components/Badge'
-import { isFarmHydratedInfo, isFarmJsonInfo } from '@/application/farms/utils/judgeFarmInfo'
+import { isFarmJsonInfo } from '@/application/farms/utils/judgeFarmInfo'
 
 export default function FarmsPage() {
   return (
@@ -186,7 +185,7 @@ function FarmTableSorterBlock({
   onChange
 }: {
   className?: string
-  onChange?: (newKey: 'name' | 'totalApr' | 'tvl' | undefined) => void
+  onChange?: (newKey: 'name' | 'totalApr' | 'tvl' | 'favorite' | undefined) => void
 }) {
   return (
     <Select
@@ -194,7 +193,8 @@ function FarmTableSorterBlock({
       candidateValues={[
         { label: 'Farm', value: 'name' },
         { label: 'APRS', value: 'totalApr' },
-        { label: 'TVL', value: 'tvl' }
+        { label: 'TVL', value: 'tvl' },
+        { label: 'Favorite', value: 'favorite' }
       ]}
       prefix="Sort by:"
       onChange={onChange}
@@ -238,37 +238,48 @@ function FarmCard() {
   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
   const searchText = useFarms((s) => s.searchText)
   const lpTokens = useToken((s) => s.lpTokens)
-  const {
-    sortedData,
-    setConfig: setSortConfig,
-    sortConfig,
-    clearSortConfig
-  } = useSort(
-    hydratedInfos
-      // TEMP current not includes stable coin's farm
-      .filter((i) => lpTokens[i.jsonInfo.lpMint])
-      // .filter((info) => info.isDualFusionPool) // TEMP for test
-      .filter(
-        (i) =>
-          // currentTab === 'Upcoming'
-          //   ? i.isUpcomingPool
-          //   : // : currentTab === 'Raydium'
-          // ? i.isRaydiumPool && !i.isClosedPool
-          currentTab === 'Fusion'
-            ? i.isNormalFusionPool || i.isDualFusionPool
-            : currentTab === 'Inactive'
-            ? i.isClosedPool && !i.isStakePool
-            : i.isUpcomingPool || (!i.isClosedPool && !i.isStakePool) // currentTab == 'all'
-      ) // Tab
-      .filter((i) => (onlySelfFarms ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true)) // Switch
-      .filter((i) => {
-        // Search
-        if (!searchText) return true
-        const searchKeyWords = searchText.split(/\s|-/)
-        return searchKeyWords.every((keyWord) => i.name.toLowerCase().includes(keyWord.toLowerCase()))
-      })
-      .sort((a, b) => Number(b.isUpcomingPool) - Number(a.isUpcomingPool)) // upcoming first
+
+  const [favouriteIds] = useFarmFavoriteIds()
+
+  const dataSource = useMemo(
+    () =>
+      hydratedInfos
+        // TEMP current not includes stable coin's farm
+        .filter((i) => lpTokens[i.jsonInfo.lpMint])
+        // .filter((info) => info.isDualFusionPool) // TEMP for test
+        .filter(
+          (i) =>
+            // currentTab === 'Upcoming'
+            //   ? i.isUpcomingPool
+            //   : // : currentTab === 'Raydium'
+            // ? i.isRaydiumPool && !i.isClosedPool
+            currentTab === 'Fusion'
+              ? i.isNormalFusionPool || i.isDualFusionPool
+              : currentTab === 'Inactive'
+              ? i.isClosedPool && !i.isStakePool
+              : i.isUpcomingPool || (!i.isClosedPool && !i.isStakePool) // currentTab == 'all'
+        ) // Tab
+        .filter((i) => (onlySelfFarms ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true)) // Switch
+        .filter((i) => {
+          // Search
+          if (!searchText) return true
+          const searchKeyWords = searchText.split(/\s|-/)
+          return searchKeyWords.every((keyWord) => i.name.toLowerCase().includes(keyWord.toLowerCase()))
+        })
+        .sort((a, b) => {
+          if (a.isUpcomingPool || b.isUpcomingPool) return Number(b.isUpcomingPool) - Number(a.isUpcomingPool) // upcoming first
+          if (a.isNewPool || b.isNewPool) return Number(b.isNewPool) - Number(a.isNewPool) // new pool second
+          const isAFavorite = favouriteIds?.includes(toPubString(a.id))
+          const isBFavorite = favouriteIds?.includes(toPubString(b.id))
+
+          if (isAFavorite && !isBFavorite) return -1
+          if (isBFavorite && !isAFavorite) return 1
+          return 0
+        }),
+    [lpTokens, currentTab, onlySelfFarms, searchText, hydratedInfos]
   )
+
+  const { sortedData, setConfig: setSortConfig, sortConfig, clearSortConfig } = useSort(dataSource)
   const isMobile = useAppSettings((s) => s.isMobile)
   const isLoading = useFarms((s) => s.isLoading)
 
@@ -280,7 +291,13 @@ function FarmCard() {
         <FarmTableSorterBlock
           className="grow"
           onChange={(newSortKey) => {
-            newSortKey ? setSortConfig({ key: newSortKey }) : clearSortConfig()
+            newSortKey
+              ? setSortConfig({
+                  key: newSortKey,
+                  pickSortValue:
+                    newSortKey === 'favorite' ? (i) => favouriteIds?.includes(toPubString(i.id)) : (i) => i[newSortKey]
+                })
+              : clearSortConfig()
           }}
         />
         <ToolsButton className="self-center" />
@@ -303,7 +320,7 @@ function FarmCard() {
     <CyberpunkStyleCard
       haveMinHeight
       wrapperClassName="flex-1 overflow-hidden flex flex-col"
-      className="p-10 pt-6 pb-4 mobile:px-4 mobile:py-3 w-full flex flex-col h-full"
+      className="p-10 pt-6 pb-4 mobile:px-3 mobile:py-3 w-full flex flex-col h-full"
       size="lg"
       style={{
         background:
@@ -314,16 +331,40 @@ function FarmCard() {
       {!isMobile && (
         <Row
           type="grid-x"
-          className="mb-3 h-12  sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl gap-2 grid-cols-[1.5fr,1fr,1fr,1fr,auto]"
+          className="mb-3 h-12  sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl gap-2 grid-cols-[auto,1.5fr,1fr,1fr,1fr,auto]"
         >
-          {/* table head column: Farm */}
           <Row
-            className="pl-8 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
+            className="group w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
             onClick={() => {
-              setSortConfig({ key: 'name', sortModeQueue: ['increase', 'decrease', 'none'] })
+              setSortConfig({
+                key: 'favorite',
+                sortModeQueue: ['decrease', 'none'],
+                pickSortValue: (i) => favouriteIds?.includes(toPubString(i.id))
+              })
             }}
           >
-            <div className="w-14 mr-4"></div>
+            <Icon
+              className={`ml-1 ${
+                sortConfig?.key === 'favorite' && sortConfig.mode !== 'none'
+                  ? 'opacity-100'
+                  : 'opacity-0 group-hover:opacity-30'
+              } transition`}
+              size="sm"
+              iconSrc="/icons/msic-sort-only-down.svg"
+            />
+          </Row>
+          {/* table head column: Farm */}
+          <Row
+            className=" font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
+            onClick={() => {
+              setSortConfig({
+                key: 'name',
+                sortModeQueue: ['increase', 'decrease', 'none'],
+                pickSortValue: (i) => i.name
+              })
+            }}
+          >
+            <div className="mr-16"></div>
             Farm
             <Icon
               className="ml-1"
@@ -346,7 +387,7 @@ function FarmCard() {
           {/* table head column: Total APR */}
           <Row
             className="pl-2 font-medium items-center text-[#ABC4FF] text-sm cursor-pointer gap-1  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'totalApr' })}
+            onClick={() => setSortConfig({ key: 'totalApr', pickSortValue: (i) => i.totalApr })}
           >
             Total APR
             <Tooltip>
@@ -371,7 +412,7 @@ function FarmCard() {
           {/* table head column: TVL */}
           <Row
             className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'tvl' })}
+            onClick={() => setSortConfig({ key: 'tvl', pickSortValue: (i) => i.tvl })}
           >
             TVL
             <Icon
@@ -407,11 +448,13 @@ function FarmCardDatabaseBody({
   jsonInfos: FarmPoolJsonInfo[]
 }) {
   const expandedItemIds = useFarms((s) => s.expandedItemIds)
+  const [favouriteIds, setFavouriteIds] = useFarmFavoriteIds()
+  const infos = isLoading ? jsonInfos : sortedHydratedFarmInfos
   return (
     <>
       {sortedHydratedFarmInfos.length || jsonInfos.length ? (
         <List className="gap-3 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
-          {(isLoading ? jsonInfos : sortedHydratedFarmInfos).map((info) => (
+          {infos.map((info: FarmPoolJsonInfo | HydratedFarmInfo) => (
             <List.Item key={String(info.id)}>
               <Collapse
                 open={expandedItemIds.has(String(info.id))}
@@ -420,10 +463,24 @@ function FarmCardDatabaseBody({
                 }}
               >
                 <Collapse.Face>
-                  {(open) => <FarmCardDatabaseBodyCollapseItemFace open={open} info={info} />}
+                  {(open) => (
+                    <FarmCardDatabaseBodyCollapseItemFace
+                      open={open}
+                      info={info}
+                      isFavourite={favouriteIds?.includes(toPubString(info.id))}
+                      onUnFavorite={(farmId) => {
+                        setFavouriteIds((ids) => removeItem(ids ?? [], farmId))
+                      }}
+                      onStartFavorite={(farmId) => {
+                        setFavouriteIds((ids) => addItem(ids ?? [], farmId))
+                      }}
+                    />
+                  )}
                 </Collapse.Face>
                 <Collapse.Body>
-                  {isLoading ? null : <FarmCardDatabaseBodyCollapseItemContent hydratedInfo={info} />}
+                  {isLoading ? null : (
+                    <FarmCardDatabaseBodyCollapseItemContent hydratedInfo={info as HydratedFarmInfo} />
+                  )}
                 </Collapse.Body>
               </Collapse>
             </List.Item>
@@ -440,24 +497,49 @@ function FarmCardDatabaseBody({
 }
 function FarmCardDatabaseBodyCollapseItemFace({
   open,
-  info
+  info,
+  isFavourite,
+  onUnFavorite,
+  onStartFavorite
 }: {
   open: boolean
   info: HydratedFarmInfo | FarmPoolJsonInfo
+  isFavourite?: boolean
+  onUnFavorite?: (farmId: string) => void
+  onStartFavorite?: (farmId: string) => void
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
-  // TODO: stable judger shoul be a isolate function
-  const isStable = liquidityJsonInfos?.find((i) => i.lpMint === toPubString(info.lpMint))?.version === 5
 
   const pcCotent = (
     <Row
       type="grid-x"
-      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-2 grid-cols-[1.5fr,1fr,1fr,1fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
+      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-2 grid-cols-[auto,1.5fr,1fr,1fr,1fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       } transition-all`}
     >
-      <CoinAvatarInfoItem info={info} isStable={isStable} className="self-center pl-8" />
+      <div className="w-12 self-center ml-6 mr-2">
+        {isFavourite ? (
+          <Icon
+            iconSrc="/icons/misc-star-filled.svg"
+            onClick={({ ev }) => {
+              ev.stopPropagation()
+              onUnFavorite?.(toPubString(info.id))
+            }}
+            className="clickable clickable-mask-offset-2 m-auto self-center"
+          />
+        ) : (
+          <Icon
+            iconSrc="/icons/misc-star-empty.svg"
+            onClick={({ ev }) => {
+              ev.stopPropagation()
+              onStartFavorite?.(toPubString(info.id))
+            }}
+            className="clickable clickable-mask-offset-2 opacity-30 hover:opacity-80 transition m-auto self-center"
+          />
+        )}
+      </div>
+
+      <CoinAvatarInfoItem info={info} className="self-center" />
 
       <TextInfoItem
         name="Pending Rewards"
@@ -523,11 +605,34 @@ function FarmCardDatabaseBodyCollapseItemFace({
       <Collapse.Face>
         <Row
           type="grid-x"
-          className={`py-4 px-5 items-stretch gap-2 grid-cols-[1fr,1fr,1fr,auto] bg-[#141041] mobile:rounded-t-lg ${
+          className={`py-4 px-5 mobile:p-2 items-stretch gap-2 grid-cols-[auto,1.1fr,1fr,1fr,auto] bg-[#141041] mobile:rounded-t-lg ${
             open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
           }`}
         >
-          <CoinAvatarInfoItem info={info} isStable={isStable} className="self-center" />
+          <div className="w-8 self-center ">
+            {isFavourite ? (
+              <Icon
+                className="clickable m-auto self-center"
+                iconSrc="/icons/misc-star-filled.svg"
+                onClick={({ ev }) => {
+                  ev.stopPropagation()
+                  onUnFavorite?.(toPubString(info.id))
+                }}
+                size="sm"
+              />
+            ) : (
+              <Icon
+                className="clickable opacity-30 hover:opacity-80 transition clickable-mask-offset-2 m-auto self-center"
+                iconSrc="/icons/misc-star-empty.svg"
+                onClick={({ ev }) => {
+                  ev.stopPropagation()
+                  onStartFavorite?.(toPubString(info.id))
+                }}
+                size="sm"
+              />
+            )}
+          </div>
+          <CoinAvatarInfoItem info={info} className="self-center" />
 
           <TextInfoItem
             name="TVL"
@@ -946,17 +1051,10 @@ function FarmStakeLpDialog() {
   )
 }
 
-function CoinAvatarInfoItem({
-  info,
-  className,
-  isStable
-}: {
-  info: HydratedFarmInfo | FarmPoolJsonInfo
-  className?: string
-  isStable?: boolean
-}) {
+function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | FarmPoolJsonInfo; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const getLpToken = useToken((s) => s.getLpToken)
+  const isStable = isFarmJsonInfo(info) ? false : info.isStablePool
 
   if (isFarmJsonInfo(info)) {
     const lpToken = getLpToken(info.lpMint)
@@ -977,19 +1075,23 @@ function CoinAvatarInfoItem({
         {lpToken ? (
           <div>
             <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
-            {isStable && <Badge>Stable</Badge>}
           </div>
         ) : null}
       </AutoBox>
     )
   }
-  const { base, quote, isDualFusionPool: isDual, name } = info
+  const { base, quote, name } = info
   return (
-    <AutoBox is={isMobile ? 'Col' : 'Row'} className={twMerge('flex-wrap items-center mobile:items-start', className)}>
+    <AutoBox
+      is={isMobile ? 'Col' : 'Row'}
+      className={twMerge('flex-wrap items-center mobile:items-start gap-x-2', className)}
+    >
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
       <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
       {isStable && <Badge>Stable</Badge>}
-      {isDual && <FarmBadgeDual className="my-2.5" />}
+      {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
+      {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
+      {info.isDualFusionPool && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
     </AutoBox>
   )
 }
@@ -1014,18 +1116,5 @@ function TextInfoItem({
         {subValue && <div className="text-sm mobile:text-2xs text-[rgba(171,196,255,0.5)]">{subValue}</div>}
       </Col>
     </Col>
-  )
-}
-
-function FarmBadgeDual({ className }: { className?: string }) {
-  return (
-    <Row
-      className={twMerge(
-        'text-[#DA2EEF] text-xs mobile:text-2xs py-1 px-3 mobile:py-0.5 mobile:px-2 rounded-full ring-1.5 mobile:ring-1 ring-inset ring-[#DA2EEF] whitespace-nowrap',
-        className
-      )}
-    >
-      Dual Yield
-    </Row>
   )
 }

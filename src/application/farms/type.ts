@@ -58,6 +58,9 @@ export interface HydratedFarmInfo extends SdkParsedFarmInfo {
   isRaydiumPool: boolean
   isStakePool: boolean
   isUpcomingPool: boolean
+  isStablePool: boolean
+  /** new pool shoud sort in highest  */
+  isNewPool: boolean
 
   totalApr: Percent | undefined
   tvl: CurrencyAmount | undefined

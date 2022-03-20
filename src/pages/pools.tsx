@@ -1,14 +1,12 @@
 import React, { useCallback, useMemo } from 'react'
-import { useRouter } from 'next/router'
 
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useFarms from '@/application/farms/useFarms'
-import useLiquidity from '@/application/liquidity/useLiquidity'
 import { isHydratedPoolItemInfo } from '@/application/pools/is'
 import { HydratedPoolItemInfo } from '@/application/pools/type'
-import { usePools } from '@/application/pools/usePools'
+import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
@@ -26,9 +24,7 @@ import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
-import Tabs from '@/components/Tabs'
 import Tooltip from '@/components/Tooltip'
-import listToMap from '@/functions/format/listToMap'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
@@ -39,9 +35,9 @@ import useSort from '@/hooks/useSort'
 import Popover from '@/components/Popover'
 import Card from '@/components/Card'
 import LoadingCircle from '@/components/LoadingCircle'
-import toPubString from '@/functions/format/toMintString'
 import { Badge } from '@/components/Badge'
 import { LpToken } from '@/application/token/type'
+import { addItem, removeItem } from '@/functions/arrayMethods'
 
 /**
  * store:
@@ -197,6 +193,7 @@ function PoolTableSorterBox({
       | 'volume7d'
       | 'volume24h'
       | 'volume30d'
+      | 'favorite'
       | undefined
   ) => void
 }) {
@@ -215,7 +212,8 @@ function PoolTableSorterBox({
           label: `Fees ${timeBasis}`,
           value: timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d'
         },
-        { label: `APR ${timeBasis}`, value: timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d' }
+        { label: `APR ${timeBasis}`, value: timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d' },
+        { label: 'Favorite', value: 'favorite' }
       ]}
       // defaultValue="apr"
       prefix="Sort by:"
@@ -258,40 +256,77 @@ function PoolCard() {
   const timeBasis = usePools((s) => s.timeBasis)
 
   const isMobile = useAppSettings((s) => s.isMobile)
+  const [favouriteIds] = usePoolFavoriteIds()
+
+  const dataSource = useMemo(
+    () =>
+      hydratedInfos
+        .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
+        .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)) // Switch
+        .filter((i) => {
+          // Search
+          if (!searchText) return true
+          const searchKeyWords = searchText.split(/\s|-/)
+          return searchKeyWords.every((keyWord) => i.name.toLowerCase().includes(keyWord.toLowerCase()))
+        })
+        .sort((a, b) => {
+          const isAFavorite = favouriteIds?.includes(a.ammId)
+          const isBFavorite = favouriteIds?.includes(b.ammId)
+
+          if (isAFavorite && !isBFavorite) return -1
+          if (isBFavorite && !isAFavorite) return 1
+          return 0
+        }),
+    [onlySelfPools, searchText, hydratedInfos]
+  )
 
   const {
     sortedData,
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
-  } = useSort(
-    hydratedInfos
-      .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
-      .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)) // Switch
-      .filter((i) => {
-        // Search
-        if (!searchText) return true
-        const searchKeyWords = searchText.split(/\s|-/)
-        return searchKeyWords.every((keyWord) => i.name.toLowerCase().includes(keyWord.toLowerCase()))
-      }),
-    { defaultSort: { key: 'liquidity' } }
-  )
+  } = useSort(dataSource, { defaultSort: { key: 'liquidity', pickSortValue: (i) => i.liquidity } })
 
   const TableHeaderBlock = useCallback(
     () => (
       <Row
         type="grid-x"
-        className="mb-3 h-12 justify-between sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl gap-2 grid-cols-[1.6fr,1fr,1fr,1fr,.8fr,auto]"
+        className="mb-3 h-12 justify-between sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,.8fr,auto]"
       >
+        <Row
+          className="group w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
+          onClick={() => {
+            setSortConfig({
+              key: 'favorite',
+              sortModeQueue: ['decrease', 'none'],
+              pickSortValue: (i) => favouriteIds?.includes(i.ammId)
+            })
+          }}
+        >
+          <Icon
+            className={`ml-1 ${
+              sortConfig?.key === 'favorite' && sortConfig.mode !== 'none'
+                ? 'opacity-100'
+                : 'opacity-0 group-hover:opacity-30'
+            } transition`}
+            size="sm"
+            iconSrc="/icons/msic-sort-only-down.svg"
+          />
+        </Row>
+
         {/* empty header */}
-        <Grid className="pl-8 grid-cols-[.4fr,1.2fr] clickable clickable-filter-effect no-clicable-transform-effect">
+        <Grid className="grid-cols-[.4fr,1.2fr] clickable clickable-filter-effect no-clicable-transform-effect">
           <div></div>
 
           {/* table head column: Pool */}
           <Row
             className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer"
             onClick={() => {
-              setSortConfig({ key: 'name', sortModeQueue: ['increase', 'decrease', 'none'] })
+              setSortConfig({
+                key: 'name',
+                sortModeQueue: ['increase', 'decrease', 'none'],
+                pickSortValue: (i) => i.name
+              })
             }}
           >
             Pool
@@ -313,7 +348,7 @@ function PoolCard() {
         <Row
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: 'liquidity' })
+            setSortConfig({ key: 'liquidity', pickSortValue: (i) => i.liquidity })
           }}
         >
           Liquidity
@@ -334,7 +369,8 @@ function PoolCard() {
         <Row
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d' })
+            const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
+            setSortConfig({ key, pickSortValue: (i) => i[key] })
           }}
         >
           Volume {timeBasis}
@@ -355,7 +391,8 @@ function PoolCard() {
         <Row
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d' })
+            const key = timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d'
+            setSortConfig({ key, pickSortValue: (i) => i[key] })
           }}
         >
           Fees {timeBasis}
@@ -376,7 +413,8 @@ function PoolCard() {
         <Row
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d' })
+            const key = timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d'
+            setSortConfig({ key, pickSortValue: (i) => i[key] })
           }}
         >
           APR {timeBasis}
@@ -408,12 +446,18 @@ function PoolCard() {
   // NOTE: filter widgets
   const innerPoolDatabaseWidgets = isMobile ? (
     <div>
-      <Row className="mb-4 gap-3">
+      <Row className="mb-4 gap-3 mobile:mb-2 mobile:gap-2">
         <PoolSearchBlock className="grow-2" />
         <PoolTableSorterBox
           className="grow"
           onChange={(newSortKey) => {
-            newSortKey ? setSortConfig({ key: newSortKey }) : clearSortConfig()
+            newSortKey
+              ? setSortConfig({
+                  key: newSortKey,
+                  pickSortValue:
+                    newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.ammId) : (i) => i[newSortKey]
+                })
+              : clearSortConfig()
           }}
         />
         <ToolsButton className="self-center" />
@@ -434,7 +478,7 @@ function PoolCard() {
     <CyberpunkStyleCard
       haveMinHeight
       wrapperClassName="flex-1 overflow-hidden flex flex-col"
-      className="p-10 pb-4 mobile:px-4 mobile:py-6 w-full flex flex-col flex-grow h-full"
+      className="p-10 pb-4 mobile:px-3 mobile:py-3 w-full flex flex-col flex-grow h-full"
       size="lg"
       style={{
         background:
@@ -450,12 +494,27 @@ function PoolCard() {
 
 function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedPoolItemInfo[] }) {
   const loading = usePools((s) => s.loading)
+  const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
   return sortedData.length ? (
-    <List className="gap-3 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
+    <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
         <List.Item key={info.lpMint}>
           <Collapse>
-            <Collapse.Face>{(open) => <PoolCardDatabaseBodyCollapseItemFace open={open} info={info} />}</Collapse.Face>
+            <Collapse.Face>
+              {(open) => (
+                <PoolCardDatabaseBodyCollapseItemFace
+                  open={open}
+                  info={info}
+                  isFavourite={favouriteIds?.includes(info.ammId)}
+                  onUnFavorite={(ammId) => {
+                    setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
+                  }}
+                  onStartFavorite={(ammId) => {
+                    setFavouriteIds((ids) => addItem(ids ?? [], ammId))
+                  }}
+                />
+              )}
+            </Collapse.Face>
             <Collapse.Body>
               <PoolCardDatabaseBodyCollapseItemContent poolInfo={info} />
             </Collapse.Body>
@@ -470,15 +529,22 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedPoolItemInfo
   )
 }
 
-function PoolCardDatabaseBodyCollapseItemFace({ open, info }: { open: boolean; info: HydratedPoolItemInfo }) {
+function PoolCardDatabaseBodyCollapseItemFace({
+  open,
+  info,
+  isFavourite,
+  onUnFavorite,
+  onStartFavorite
+}: {
+  open: boolean
+  info: HydratedPoolItemInfo
+  isFavourite?: boolean
+  onUnFavorite?: (ammId: string) => void
+  onStartFavorite?: (ammId: string) => void
+}) {
   const lpTokens = useToken((s) => s.lpTokens)
   const lpToken = lpTokens[info.lpMint] as LpToken | undefined
   const haveLp = Boolean(lpToken)
-  const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
-  // TODO: stable judger shoul be a isolate function
-  const isStable = Boolean(
-    lpToken && liquidityJsonInfos?.find((i) => i.lpMint === toPubString(lpToken.mint))?.version === 5
-  )
   const isMobile = useAppSettings((s) => s.isMobile)
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = usePools((s) => s.timeBasis)
@@ -486,11 +552,34 @@ function PoolCardDatabaseBodyCollapseItemFace({ open, info }: { open: boolean; i
   const pcCotent = (
     <Row
       type="grid-x"
-      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-center gap-2 grid-cols-[1.6fr,1fr,1fr,1fr,.8fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
+      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-center gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,.8fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       } transition-all`}
     >
-      <CoinAvatarInfoItem info={info} isStable={isStable} className="pl-8" />
+      <div className="w-12 self-center ml-6 mr-2">
+        {isFavourite ? (
+          <Icon
+            iconSrc="/icons/misc-star-filled.svg"
+            onClick={({ ev }) => {
+              ev.stopPropagation()
+              onUnFavorite?.(info.ammId)
+            }}
+            className="clickable clickable-mask-offset-2 m-auto self-center"
+          />
+        ) : (
+          <Icon
+            iconSrc="/icons/misc-star-empty.svg"
+            onClick={({ ev }) => {
+              ev.stopPropagation()
+              onStartFavorite?.(info.ammId)
+            }}
+            className="clickable clickable-mask-offset-2 opacity-30 hover:opacity-80 transition m-auto self-center"
+          />
+        )}
+      </div>
+
+      <CoinAvatarInfoItem info={info} className="pl-0" />
+
       <TextInfoItem
         name="Liquidity"
         value={
@@ -546,11 +635,35 @@ function PoolCardDatabaseBodyCollapseItemFace({ open, info }: { open: boolean; i
       <Collapse.Face>
         <Row
           type="grid-x"
-          className={`py-4 px-5 items-center gap-2 grid-cols-[1fr,1fr,1fr,auto] bg-[#141041] mobile:rounded-t-lg ${
+          className={`py-3 px-3 items-center gap-2 grid-cols-[auto,1.5fr,1fr,1fr,auto] bg-[#141041] mobile:rounded-t-lg ${
             open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
           }`}
         >
-          <CoinAvatarInfoItem info={info} isStable={isStable} />
+          <div className="w-8 self-center ">
+            {isFavourite ? (
+              <Icon
+                className="clickable m-auto self-center"
+                iconSrc="/icons/misc-star-filled.svg"
+                onClick={({ ev }) => {
+                  ev.stopPropagation()
+                  onUnFavorite?.(info.ammId)
+                }}
+                size="sm"
+              />
+            ) : (
+              <Icon
+                className="clickable opacity-30 hover:opacity-80 transition clickable-mask-offset-2 m-auto self-center"
+                iconSrc="/icons/misc-star-empty.svg"
+                onClick={({ ev }) => {
+                  ev.stopPropagation()
+                  onStartFavorite?.(info.ammId)
+                }}
+                size="sm"
+              />
+            )}
+          </div>
+
+          <CoinAvatarInfoItem info={info} />
 
           <TextInfoItem
             name="Liquidity"
@@ -580,7 +693,10 @@ function PoolCardDatabaseBodyCollapseItemFace({ open, info }: { open: boolean; i
       </Collapse.Face>
 
       <Collapse.Body>
-        <Row type="grid-x" className="py-4 px-5 relative items-center gap-2 grid-cols-[1fr,1fr,1fr,auto]  bg-[#141041]">
+        <Row
+          type="grid-x"
+          className="py-4 px-5 pl-12 relative items-center gap-2 grid-cols-[1.5fr,1fr,1fr,auto]  bg-[#141041]"
+        >
           <div className="absolute top-0 left-5 right-5 border-[rgba(171,196,255,.2)] border-t-1.5"></div>
           <TextInfoItem
             name="Volume(7d)"
@@ -618,12 +734,9 @@ function PoolCardDatabaseBodyCollapseItemFace({ open, info }: { open: boolean; i
 function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedPoolItemInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const balances = useWallet((s) => s.balances)
-  const walletConnected = useWallet((s) => s.connected)
   const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
-  const { push } = useRouter()
   const farmPoolsList = useFarms((s) => s.jsonInfos)
   const prices = usePools((s) => s.lpPrices)
-  const jsonInfos = useLiquidity((s) => s.jsonInfos)
 
   const hasLp = isMeaningfulNumber(balances[info.lpMint])
 
@@ -801,15 +914,7 @@ function addSetItem<T>(set: Set<T>, item: T): Set<T> {
   return newSet
 }
 
-function CoinAvatarInfoItem({
-  info,
-  className,
-  isStable
-}: {
-  info: HydratedPoolItemInfo | undefined
-  className?: string
-  isStable?: boolean
-}) {
+function CoinAvatarInfoItem({ info, className }: { info: HydratedPoolItemInfo | undefined; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const lowLiquidityAlertText = `This pool has relatively low liquidity. Always check the quoted price and that the pool has sufficient liquidity before trading.`
 
@@ -829,7 +934,7 @@ function CoinAvatarInfoItem({
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         {info?.name}
-        {isStable && <Badge>Stable</Badge>}
+        {info?.isStablePool && <Badge className="self-center">Stable</Badge>}
         {lt(info?.liquidity.toFixed(0) ?? 0, 100000) && (
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />

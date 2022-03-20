@@ -746,7 +746,7 @@ function SwapCardInfo({ className }: { className?: string }) {
           fieldName="Swapping Through"
           fieldValue={
             <Row className="items-center gap-2">
-              {isStable && <Badge size="sm">Stable</Badge>}
+              {isStable && <Badge className="self-center">Stable</Badge>}
               <div>{swapThrough}</div>
             </Row>
           }

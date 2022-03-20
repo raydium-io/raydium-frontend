@@ -6,10 +6,9 @@ import { eq, gt, lt, lte } from '@/functions/numberish/compare'
 import useDevice from '@/hooks/useDevice'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 
-import { APP_VERSION } from '../connection/utils/assertAppVersion'
 import useWallet from '../wallet/useWallet'
 
-import useAppSettings from './useAppSettings'
+import useAppSettings, { APP_VERSION } from './useAppSettings'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useNotification from '../notification/useNotification'
 import { useRouter } from 'next/router'

@@ -558,7 +558,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
           fieldName={`LP supply`}
           fieldValue={
             <Row className="items-center gap-2">
-              {isStable && <Badge size="sm">Stable</Badge>}
+              {isStable && <Badge className="self-center">Stable</Badge>}
               <div>
                 {currentHydratedInfo?.lpToken
                   ? `${formatNumber(

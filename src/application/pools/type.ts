@@ -73,4 +73,6 @@ export interface HydratedPoolItemInfo {
   basePooled: TokenAmount | undefined // user's wallet must has pool's lp
   quotePooled: TokenAmount | undefined // user's wallet must has pool's lp
   sharePercent: Fraction | undefined // user's wallet must has pool's lp
+
+  isStablePool: boolean
 }
