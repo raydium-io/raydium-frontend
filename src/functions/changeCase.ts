@@ -110,12 +110,7 @@ export function uncapitalize(str: string): Capitalize<string> {
 export default function changeCase(
   str: string,
   options: {
-    to:
-      | 'camelCase'
-      | 'PascalCase'
-      | 'kebab-case'
-      | 'snake_case'
-      | 'CONSTANT_CASE' /* IDEA 增加属性：copyCaseFrom （就像 Word 的 ctrl + shift + C） */
+    to: 'camelCase' | 'PascalCase' | 'kebab-case' | 'snake_case' | 'CONSTANT_CASE'
   }
 ): string {
   switch (options.to) {

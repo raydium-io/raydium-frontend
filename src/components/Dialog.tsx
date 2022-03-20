@@ -6,6 +6,7 @@ import { twMerge } from 'tailwind-merge'
 
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayFunction } from '@/types/generics'
+import useAppSettings from '@/application/appSettings/useAppSettings'
 
 export interface DialogProps {
   open: boolean
@@ -38,6 +39,7 @@ export default function Dialog({
   // for onCloseTransitionEnd
   // during leave transition, open is still true, but innerOpen is false, so transaction will happen without props:open has change (if open is false, React may destory this component immediately)
   const [innerOpen, setInnerOpen] = React.useState(open)
+  const isMobile = useAppSettings((s) => s.isMobile)
   useEffect(() => {
     setInnerOpen(open)
   }, [open])
@@ -77,14 +79,16 @@ export default function Dialog({
                 `absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2  transition-all z-10`,
                 className
               )}
-              style={{
-                /** to comply to the space occupation of side-bar */
-                // @ts-expect-error style don't accept css variable. but it should can.
-                '--tw-translate-x': "calc(var('--side-menu-width') * 1px / 2)",
-                ...style
-              }}
+              style={style}
             >
-              {shrinkToValue(children, [{ close: () => setInnerOpen(false) }])}
+              <div
+                style={{
+                  /** to comply to the space occupation of side-bar */
+                  transform: isMobile ? undefined : 'translateX(calc(var(--side-menu-width) * 1px / 2))'
+                }}
+              >
+                {shrinkToValue(children, [{ close: () => setInnerOpen(false) }])}
+              </div>
             </div>
           </Transition.Child>
         </div>

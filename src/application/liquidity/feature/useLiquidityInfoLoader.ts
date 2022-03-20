@@ -12,6 +12,9 @@ import { HexAddress } from '@/types/constants'
 import useLiquidity from '../useLiquidity'
 import hydrateLiquidityInfo from '../utils/hydrateLiquidityInfo'
 import sdkParseJsonLiquidityInfo from '../utils/sdkParseJsonLiquidityInfo'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import { areShallowEqual } from '@/functions/judgers/areEqual'
 
 /**
  * will load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -57,18 +60,25 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   }, [disabled, jsonInfos, rawBalances, isLpToken, refreshCount])
 
   /** json infos ➡ sdkParsed infos (only wallet's LP)  */
-  useAsyncEffect(async () => {
-    if (disabled) return
-    if (!connection || !jsonInfos || !userExhibitionLiquidityIds) return
+  useRecordedEffect(
+    async ([prevDisabled, prevConnection, prevJsonInfos, prevUserExhibitionLiquidityIds, prevRefreshCount]) => {
+      if (disabled) return
+      if (!connection || !jsonInfos.length || !userExhibitionLiquidityIds.length) return
 
-    const sdkParsedInfosTasks = jsonInfos
-      .filter((i) => userExhibitionLiquidityIds.includes(i.id))
-      .map(async (jsonInfo) => sdkParseJsonLiquidityInfo([jsonInfo], connection))
+      if (
+        prevRefreshCount == refreshCount &&
+        areShallowEqual(prevUserExhibitionLiquidityIds, userExhibitionLiquidityIds)
+      )
+        return
 
-    Promise.all(sdkParsedInfosTasks).then((sdkParsedInfos) => {
-      useLiquidity.setState({ sdkParsedInfos: sdkParsedInfos.flat().filter(isExist) })
-    })
-  }, [disabled, connection, jsonInfos, userExhibitionLiquidityIds, refreshCount])
+      const sdkParsedInfos = await sdkParseJsonLiquidityInfo(
+        jsonInfos.filter((i) => userExhibitionLiquidityIds.includes(i.id)),
+        connection
+      )
+      useLiquidity.setState({ sdkParsedInfos: shakeUndifindedItem(sdkParsedInfos) })
+    },
+    [disabled, connection, jsonInfos, userExhibitionLiquidityIds, refreshCount] as const
+  )
 
   /** sdkParsed infos (only wallet's LP) ➡  hydrated infos (only wallet's LP)*/
   useAsyncEffect(async () => {

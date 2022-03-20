@@ -40,7 +40,5 @@ tsconfig.tsbuildinfo
 # Sentry
 .sentry.properties
 
-
-# dev i
 # i
 i.json

@@ -1,4 +1,4 @@
-import React, { CSSProperties, ReactNode, useEffect, useMemo, useState } from 'react'
+import React, { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
 import { ZERO } from '@raydium-io/raydium-sdk'
@@ -36,6 +36,8 @@ import PageLayoutPopoverDrawer from './PageLayoutPopoverDrawer'
 import Row from './Row'
 import Tooltip from './Tooltip'
 import LoadingCircle from './LoadingCircle'
+import { setCssVarible } from '@/functions/dom/cssVariable'
+import { inClient } from '@/functions/judgers/isSSR'
 
 /**
  * for easier to code and read
@@ -320,9 +322,17 @@ function Navbar({
 function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickCloseBtn?(): void }) {
   const { pathname } = useRouter()
   const isMobile = useAppSettings((s) => s.isMobile)
+  const sideMenuRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!inClient) return
+    setCssVarible(globalThis.document.documentElement, '--side-menu-width', sideMenuRef.current?.clientWidth)
+  }, [sideMenuRef])
+
   return (
     <>
       <Col
+        domRef={sideMenuRef}
         className={twMerge(
           `h-full overflow-y-auto w-56 mobile:w-48 mobile:rounded-tr-2xl mobile:rounded-br-2xl`,
           className

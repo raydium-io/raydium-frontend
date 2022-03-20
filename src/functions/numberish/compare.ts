@@ -45,6 +45,11 @@ export function isMeaningfulNumber(n: Numberish | undefined): n is Numberish {
   return !eq(n, 0)
 }
 
+export function isMeaninglessNumber(n: Numberish | undefined): n is Numberish {
+  if (n == null) return true
+  return eq(n, 0)
+}
+
 export default function compare(
   mode: 'lt' | 'gt' | 'lte' | 'gte' | 'eq' | 'lessThan' | 'greatThan' | 'lessThanEqual' | 'greatThanEqual' | 'equal',
   a: Numberish,

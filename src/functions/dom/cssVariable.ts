@@ -26,10 +26,10 @@ export const getCSSVariable = (
 /**
  *
  * @param el
- * @param variableName
- * @param value
+ * @param variableName css variable name (kebab case)
+ * @param value (will be wrapped by `String()`)
  * @example
- * setCssVarible(document.getElementById('he'), 'isActive', true)
+ * setCssVarible(document.getElementById('he'), '--is-active', true)
  */
 export function setCssVarible(
   el: HTMLElement | Nullish,
@@ -37,23 +37,20 @@ export function setCssVarible(
   value: Stringish | ((prev: string) => Stringish)
 ): void {
   if (el && variableName) {
-    el.style.setProperty(
-      `--${toKebabCase(variableName)}`,
-      String(shrinkToValue(value, [el.style.getPropertyValue(`--${toKebabCase(variableName)}`)]))
-    )
+    el.style.setProperty(variableName, String(shrinkToValue(value, [el.style.getPropertyValue(variableName)])))
   }
 }
 
 /**
  *
  * @param el
- * @param variableName
+ * @param variableName css variable name (kebab case)
  * @example
- * getCssVariable(document.getElementById('he'), 'isActive')
+ * getCssVariable(document.getElementById('he'), '--is-active')
  */
 export function getCssVariable(el: HTMLElement | Nullish, variableName: string | undefined): string {
   if (el && variableName) {
-    return el.style.getPropertyValue(`--${toKebabCase(variableName)}`)
+    return el.style.getPropertyValue(variableName)
   }
   return ''
 }

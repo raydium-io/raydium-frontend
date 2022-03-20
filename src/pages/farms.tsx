@@ -258,7 +258,7 @@ function FarmCard() {
             ? i.isNormalFusionPool || i.isDualFusionPool
             : currentTab === 'Inactive'
             ? i.isClosedPool && !i.isStakePool
-            : !i.isClosedPool && !i.isStakePool // currentTab == 'all'
+            : i.isUpcomingPool || (!i.isClosedPool && !i.isStakePool) // currentTab == 'all'
       ) // Tab
       .filter((i) => (onlySelfFarms ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true)) // Switch
       .filter((i) => {

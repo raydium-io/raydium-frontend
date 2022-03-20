@@ -138,7 +138,7 @@ const useWallet = create<WalletStore>((set, get) => ({
       return target.collapseTo === 'wsol' ? get().pureRawBalances[WSOL.mint] : get().solBalance
     } else {
       const mint = isToken(target) ? String(target.mint) : String(target)
-      return get().tokenAccounts[mint]
+      return get().rawBalances[mint]
     }
   },
 

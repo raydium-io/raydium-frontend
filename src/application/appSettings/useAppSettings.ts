@@ -25,8 +25,6 @@ export type AppSettingsStore = {
   /** (ui panel controller) ui dialog open flag */
   isRecentTransactionDialogShown: boolean
 
-  isRpcSwitchPanelShown: boolean
-
   /** (ui panel controller) ui dialog open flag */
   isWalletSelectorShown: boolean
 
@@ -55,7 +53,6 @@ const useAppSettings = create<AppSettingsStore>(() => ({
   // inCleanUrlMode: true, // for test
 
   isRecentTransactionDialogShown: false,
-  isRpcSwitchPanelShown: false,
   isWalletSelectorShown: false,
   refreshCircleLastTimestamp: {}
 }))

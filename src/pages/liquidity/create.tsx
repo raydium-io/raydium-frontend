@@ -6,8 +6,7 @@ import { Token } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useInitlyGetCreatedPoolExhibitionData
-  from '@/application/createPool/featureHooks/useInitlyGetCreatedPoolExhibitionData'
+import useInitlyGetCreatedPoolExhibitionData from '@/application/createPool/featureHooks/useInitlyGetCreatedPoolExhibitionData'
 import txCreateAndInitNewPool from '@/application/createPool/transaction/txCreateAndInitNewPool'
 import useCreatePool from '@/application/createPool/useCreatePool'
 import { updateCreatePoolInfo } from '@/application/createPool/utils/updateCreatePoolInfo'
@@ -30,6 +29,7 @@ import copyToClipboard from '@/functions/dom/copyToClipboard'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import useToggle from '@/hooks/useToggle'
+import { createSplToken } from '@/application/token/feature/useTokenListsLoader'
 
 /**
  * @see https://uiwjs.github.io/#/components/date-input
@@ -99,10 +99,12 @@ function PanelContent({ close }: { close(): void }) {
   )
 
   const baseToken = baseMint
-    ? getToken(baseMint) ?? (baseDecimals ? new Token(baseMint, baseDecimals) : undefined)
+    ? getToken(baseMint) ??
+      (baseDecimals != null ? createSplToken({ mint: baseMint, decimals: baseDecimals }) : undefined)
     : undefined
   const quoteToken = quoteMint
-    ? getToken(quoteMint) ?? (quoteDecimals ? new Token(quoteMint, quoteDecimals) : undefined)
+    ? getToken(quoteMint) ??
+      (quoteDecimals != null ? createSplToken({ mint: quoteMint, decimals: quoteDecimals }) : undefined)
     : undefined
   const [priceReverse, { toggle }] = useToggle()
 

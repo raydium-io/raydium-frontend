@@ -75,12 +75,15 @@ async function fetchTokenIconInfoList() {
   return jFetch<Record<HexAddress, SrcAddress>>('/custom-token-icon-list.json')
 }
 
-export function createSplToken(info: TokenJson, customTokenIcons?: Record<string, SrcAddress>): SplToken {
-  const { mint, symbol, name, decimals, ...rest } = info
+export function createSplToken(
+  info: Partial<TokenJson> & { mint: HexAddress; decimals: number },
+  customTokenIcons?: Record<string, SrcAddress>
+): SplToken {
+  const { mint, symbol, name = symbol, decimals, ...rest } = info
   // TODO: recordPubString(token.mint)
-  const splToken = Object.assign(new Token(mint, decimals, symbol, name), rest, { jsonInfo: info })
+  const splToken = Object.assign(new Token(mint, decimals, symbol, name), { icon: '', extensions: {} }, rest)
   if (customTokenIcons?.[mint]) {
-    splToken.icon = customTokenIcons[mint]
+    splToken.icon = customTokenIcons[mint] ?? ''
   }
   return splToken
 }

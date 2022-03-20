@@ -21,6 +21,7 @@ import { deUIToken, deUITokenAmount, toUITokenAmount } from '../token/utils/quan
 
 import { useSwap } from './useSwap'
 import { useEffect } from 'react'
+import useWallet from '../wallet/useWallet'
 
 export function useSwapAmountCalculator() {
   const { pathname } = useRouter()
@@ -34,6 +35,7 @@ export function useSwapAmountCalculator() {
   const directionReversed = useSwap((s) => s.directionReversed)
   const focusSide = directionReversed ? 'coin2' : 'coin1' // temporary focus side is always up, due to swap route's `Trade.getBestAmountIn()` is not ready
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
+  const connected = useWallet((s) => s.connected)
 
   /** for swap is always from up to down, up/down is easier to calc */
   const upCoin = directionReversed ? coin2 : coin1
@@ -41,6 +43,7 @@ export function useSwapAmountCalculator() {
   const downCoin = directionReversed ? coin1 : coin2
   const downCoinAmount = (directionReversed ? userCoin1Amount : userCoin2Amount) || '0'
 
+  const jsonInfos = useLiquidity((s) => s.jsonInfos)
   useEffect(() => {
     cleanCalcCache()
   }, [refreshCount])
@@ -51,15 +54,7 @@ export function useSwapAmountCalculator() {
 
   useAsyncEffect(async () => {
     // pairInfo is not enough
-    if (
-      !upCoin ||
-      !downCoin ||
-      !connection ||
-      !pathname.startsWith('/swap') ||
-      (eq(upCoinAmount, 0) && eq(downCoinAmount, 0)) ||
-      (focusSide === 'coin1' && eq(userCoin1Amount, 0)) ||
-      (focusSide === 'coin2' && eq(userCoin2Amount, 0))
-    ) {
+    if (!upCoin || !downCoin || !connection || !pathname.startsWith('/swap')) {
       useSwap.setState({
         fee: undefined,
         minReceived: undefined,
@@ -74,7 +69,6 @@ export function useSwapAmountCalculator() {
 
     const focusDirectionSide = 'up' // temporary focus side is always up, due to swap route's `Trade.getBestAmountIn()` is not ready
     // focusSide === 'coin1' ? (directionReversed ? 'down' : 'up') : directionReversed ? 'up' : 'down'
-
     try {
       const calcResult = await calculatePairTokenAmount({
         upCoin,
@@ -130,7 +124,9 @@ export function useSwapAmountCalculator() {
     slippageTolerance,
     connection,
     pathname,
-    refreshCount
+    refreshCount,
+    connected, // init fetch data
+    jsonInfos
   ])
 }
 

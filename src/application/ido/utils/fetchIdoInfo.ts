@@ -68,7 +68,6 @@ export const fetchIdoList = async ({
       })
     )
   )
-
   // eslint-disable-next-line no-console
   console.info('idoList data start layout fetching')
   const result = await Ido.getMultipleInfo({
@@ -79,7 +78,6 @@ export const fetchIdoList = async ({
   })
   // eslint-disable-next-line no-console
   console.info('idoList data end layout fetching')
-
   const { getToken } = useToken.getState()
   const parsedPomised = result?.map(async (raw, idx) => {
     const baseCoinInfoBase = {

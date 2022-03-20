@@ -116,7 +116,7 @@ async function calculatePairTokenAmount({
   const sdkParsedInfo = sdkParsedInfoCache.has(jsonInfo.id)
     ? sdkParsedInfoCache.get(jsonInfo.id)!
     : await (async () => {
-        const result = await sdkParseJsonLiquidityInfo([jsonInfo], connection)
+        const result = await sdkParseJsonLiquidityInfo([jsonInfo], connection) // FIXME - too loud
         const sdkParsed: SDKParsedLiquidityInfo | undefined = result[0]
         sdkParsedInfoCache.set(jsonInfo.id, sdkParsed)
         return sdkParsed

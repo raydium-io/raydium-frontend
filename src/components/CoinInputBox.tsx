@@ -32,6 +32,7 @@ import CoinAvatar from './CoinAvatar'
 import Icon from './Icon'
 import Input from './Input'
 import Row from './Row'
+import toPubString from '@/functions/format/toMintString'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -97,7 +98,7 @@ export default function CoinInputBox({
   const disabledTokenSelect = disabled || innerDisabledTokenSelect
   // if user is inputing or just input, no need to update upon out-side value
   const isOutsideValueLocked = useRef(false)
-  const { connected, getBalance } = useWallet()
+  const { connected, getBalance, tokenAccounts } = useWallet()
   const { lpPrices } = usePools()
   const isMobile = useAppSettings((s) => s.isMobile)
   const tokenPrices = useToken((s) => s.tokenPrices)
@@ -117,7 +118,15 @@ export default function CoinInputBox({
     }
   }, [inputedAmount])
 
-  const currentBalance = forceBalanceDepositMode ? forceBalance : getBalance(token)
+  const currentBalance = forceBalanceDepositMode
+    ? forceBalance
+    : getBalance(token) ??
+      (token
+        ? (() => {
+            const targetTokenAccount = tokenAccounts.find((t) => toPubString(t.mint) === toPubString(token?.mint))
+            return targetTokenAccount && toTokenAmount(token, targetTokenAccount?.amount)
+          })()
+        : undefined)
 
   useEffect(() => {
     onBalanceChange?.(currentBalance)

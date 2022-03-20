@@ -14,7 +14,7 @@ import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalcula
 import useSwapCoin1Filler from '@/application/swap/useSwapCoin1Filler'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import { SplToken } from '@/application/token/type'
-import useToken from '@/application/token/useToken'
+import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
 import { SOL_BASE_BALANCE, SOLDecimals, WSOLMint } from '@/application/token/utils/quantumSOL'
 import { USDCMint, USDTMint } from '@/application/token/utils/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
@@ -137,8 +137,8 @@ export default function Swap() {
       <PageLayout mobileBarTitle="Swap" metaTitle="Swap - Raydium">
         <SwapHead />
         <SwapCard />
-        <KLineChart />
         <UnwrapWSOL />
+        <KLineChart />
       </PageLayout>
     </SwapUIContextProvider>
   )
@@ -150,7 +150,7 @@ function useunOfficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
   const downCoin = directionReversed ? coin1 : coin2
-  const raydiumTokenMints = useToken((s) => s.tokenListSettings['Raydium Mainnet Token List'].mints)
+  const raydiumTokenMints = useToken((s) => s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME]?.mints)
 
   const [userPermanentConfirmedTokenMints, setUserPermanentConfirmedTokenMints] =
     useLocalStorageItem<HexAddress[] /* token mint  */>('USER_CONFIRMED_SWAP_TOKENS')
@@ -291,7 +291,8 @@ function SwapCard() {
     useSwap.setState({ directionReversed: hasUISwrapped })
   }, [hasUISwrapped])
 
-  const hasSwapDetermined = coin1 && coin1Amount && coin2 && coin2Amount
+  const hasSwapDetermined =
+    coin1 && isMeaningfulNumber(coin1Amount) && coin2 && isMeaningfulNumber(coin2Amount) && executionPrice
   const cardRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     useSwap.setState({
@@ -316,7 +317,7 @@ function SwapCard() {
         <CoinInputBox
           domRef={swapElementBox1}
           disabled={isApprovePanelShown}
-          disabledInput={!directionReversed}
+          disabledInput={directionReversed}
           componentRef={coinInputBox1ComponentRef}
           haveHalfButton
           haveCoinIcon
@@ -425,14 +426,6 @@ function SwapCard() {
             fallbackProps: { children: 'Select a token' }
           },
           {
-            should: swapable,
-            fallbackProps: { children: 'Pool Not Ready' }
-          },
-          {
-            should: routes?.length,
-            fallbackProps: { children: 'Pool Not Found' }
-          },
-          {
             should: hasConfirmed,
             forceActive: true,
             fallbackProps: {
@@ -441,13 +434,21 @@ function SwapCard() {
             }
           },
           {
-            should:
-              upCoinAmount && isMeaningfulNumber(upCoinAmount) && downCoinAmount && isMeaningfulNumber(downCoinAmount),
-            fallbackProps: { children: 'Enter an amount' }
+            should: swapable !== false,
+            fallbackProps: { children: 'Pool Not Ready' }
           },
           {
             should: routes,
             fallbackProps: { children: 'Finding Pool ...' }
+          },
+          {
+            should: swapable === true || routes?.length === 0,
+            fallbackProps: { children: 'Pool Not Found' }
+          },
+          {
+            should:
+              upCoinAmount && isMeaningfulNumber(upCoinAmount) && downCoinAmount && isMeaningfulNumber(downCoinAmount),
+            fallbackProps: { children: 'Enter an amount' }
           },
 
           {
@@ -1153,7 +1154,6 @@ function UnwrapWSOL() {
       <FadeIn>
         {wsolTokenAccounts.length > 0 && (
           <div className="mt-12 max-w-[456px]">
-            <div className="mb-6 text-xl font-medium text-white">Unwrap WSOL</div>
             <Card
               className="p-6 mt-6 mobile:py-5 mobile:px-3"
               size="lg"
@@ -1162,13 +1162,10 @@ function UnwrapWSOL() {
                   'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
               }}
             >
-              <Row className="gap-4">
+              <Row className="gap-4 items-center">
                 <Col className="gap-1">
                   <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
-                    There are some WSOL in your wallet.
-                  </div>
-                  <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
-                    Click this button if you want unwrap WSOL to SOL
+                    Click the button if you want to unwrap WSOL to get SOL
                   </div>
                 </Col>
 

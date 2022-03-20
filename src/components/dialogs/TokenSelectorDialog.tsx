@@ -376,6 +376,8 @@ function TokenSelectorDialogTokenListItem({ tokenListName }: { tokenListName: Su
       }
     }))
   }
+  if (!tokenList.mints?.size) return null
+  if (tokenList.cannotbBeSeen) return null
   return (
     <Row>
       {tokenList?.icon && <Image className="rounded-full h-8 w-8 overflow-hidden" src={tokenList.icon} />}

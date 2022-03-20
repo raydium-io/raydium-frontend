@@ -51,32 +51,23 @@ export default function txSwap() {
     assert(checkWalletHasEnoughBalance(upCoinTokenAmount), `not enough ${upCoin.symbol}`)
 
     assert(routeType, 'accidently routeType is undefined')
-
-    const shadowKeypairs = useWallet.getState().shadowKeypairs
-    if (!shadowKeypairs) return
-
-    const { setupTransaction: setupTransactionAndSigners, tradeTransaction: tradeTransactionAndSigner } =
-      await Trade.makeTradeTransaction({
-        connection,
-        routes,
-        routeType,
-        fixedSide: 'in', // TODO: currently  only fixed in
-        userKeys: { tokenAccounts: tokenAccountRawInfos, owner: shadowKeypairs[0].publicKey /* experiment */ },
-        amountIn: deUITokenAmount(upCoinTokenAmount), // TODO: currently  only fixed upper side
-        amountOut: deUITokenAmount(toTokenAmount(downCoin, minReceived, { alreadyDecimaled: true }))
-      })
-
-    const additionallySignedTransactions = shakeUndifindedItem(
-      await asyncMap([setupTransactionAndSigners, tradeTransactionAndSigner], (merged) => {
+    const { setupTransaction, tradeTransaction } = await Trade.makeTradeTransaction({
+      connection,
+      routes,
+      routeType,
+      fixedSide: 'in', // TODO: currently  only fixed in
+      userKeys: { tokenAccounts: tokenAccountRawInfos, owner },
+      amountIn: deUITokenAmount(upCoinTokenAmount), // TODO: currently  only fixed upper side
+      amountOut: deUITokenAmount(toTokenAmount(downCoin, minReceived, { alreadyDecimaled: true }))
+    })
+    const signedTransactions = shakeUndifindedItem(
+      await asyncMap([setupTransaction, tradeTransaction], (merged) => {
         if (!merged) return
         const { transaction, signers } = merged
-        return loadTransaction({
-          transaction: transaction,
-          signers: signers
-        })
+        return loadTransaction({ transaction: transaction, signers })
       })
     )
-    for (const signedTransaction of additionallySignedTransactions) {
+    for (const signedTransaction of signedTransactions) {
       transactionCollector.add(signedTransaction, {
         txHistoryInfo: {
           title: 'Swap',

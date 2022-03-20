@@ -1,10 +1,12 @@
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { Numberish } from '@/types/constants'
-import { Fraction, Percent, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Fraction, Percent, Price, TokenAmount } from '@raydium-io/raydium-sdk'
 
 export default function toFraction(value: Numberish): Fraction {
   //  to complete math format(may have decimal), not int
   if (value instanceof Percent) return new Fraction(value.numerator, value.denominator)
+
+  if (value instanceof Price) return value.adjusted
 
   // to complete math format(may have decimal), not BN
   if (value instanceof TokenAmount) return toFraction(value.toExact())
