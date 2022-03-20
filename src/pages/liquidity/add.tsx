@@ -562,7 +562,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
               <div>
                 {currentHydratedInfo?.lpToken
                   ? `${formatNumber(
-                      toTokenAmount(currentHydratedInfo.lpToken, currentHydratedInfo.lpSupply).toSignificant()
+                      toString(toTokenAmount(currentHydratedInfo.lpToken, currentHydratedInfo.lpSupply))
                     )} LP`
                   : '--'}
               </div>
