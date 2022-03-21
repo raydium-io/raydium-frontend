@@ -545,7 +545,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
                   ({ token, pendingReward, canBeRewarded }, idx) =>
                     canBeRewarded && (
                       <div key={idx}>
-                        {pendingReward?.toSignificant() || '0'} {token?.symbol}
+                        {toString(pendingReward) || '0'} {token?.symbol}
                       </div>
                     )
                 )}
@@ -736,12 +736,14 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
                 ? toUsdVolume(toTotalPrice(hydratedInfo.userStakedLpAmount, lpPrices[String(hydratedInfo.lpMint)]))
                 : '--'}
             </div>
-            <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
-              {formatNumber(hydratedInfo.userStakedLpAmount?.toSignificant(), {
-                fractionLength: hydratedInfo.userStakedLpAmount?.token.decimals
-              })}{' '}
-              LP
-            </div>
+            {hydratedInfo.userStakedLpAmount && (
+              <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
+                {formatNumber(toString(hydratedInfo.userStakedLpAmount), {
+                  fractionLength: hydratedInfo.userStakedLpAmount?.token.decimals
+                })}{' '}
+                LP
+              </div>
+            )}
           </div>
           <Row className="gap-3">
             {hydratedInfo.userHasStaked ? (
@@ -829,12 +831,12 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
                       Pending rewards
                     </div>
                     <div className="text-white font-medium text-base mobile:text-xs">
-                      {reward.pendingReward?.toSignificant() ?? '0'} {reward.token?.symbol}
+                      {toString(reward.pendingReward) || '0'} {reward.token?.symbol}
                     </div>
                     <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
                       {prices?.[String(reward.token?.mint)] && reward?.pendingReward
                         ? toUsdVolume(toTotalPrice(reward.pendingReward, prices[String(reward.token?.mint)]))
-                        : '--'}
+                        : null}
                     </div>
                   </div>
                 )

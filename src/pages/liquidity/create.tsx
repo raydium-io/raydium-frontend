@@ -30,6 +30,7 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import useToggle from '@/hooks/useToggle'
 import { createSplToken } from '@/application/token/feature/useTokenListsLoader'
+import { toString } from '@/functions/numberish/toString'
 
 /**
  * @see https://uiwjs.github.io/#/components/date-input
@@ -123,10 +124,9 @@ function PanelContent({ close }: { close(): void }) {
         <Row className="mx-auto my-2 items-center gap-2">
           <div className="text-sm text-[rgb(171,196,255)]">price:</div>
           <div className="text-sm text-white">
-            {(priceReverse
-              ? div(quoteAmount || 0, baseAmount || 1)
-              : div(baseAmount || 0, quoteAmount || 1)
-            ).toSignificant(Math.max(baseToken?.decimals ?? 6, quoteToken?.decimals ?? 6))}
+            {toString(priceReverse ? div(quoteAmount || 0, baseAmount || 1) : div(baseAmount || 0, quoteAmount || 1), {
+              decimalLength: `auto ${Math.max(baseToken?.decimals ?? 6, quoteToken?.decimals ?? 6)}`
+            })}
           </div>
           <div className="text-sm text-white">
             {priceReverse ? quoteToken?.symbol : baseToken?.symbol} /{' '}

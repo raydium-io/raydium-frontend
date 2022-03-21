@@ -769,22 +769,22 @@ function UserLiquidityExhibition() {
                         <Row className="justify-between">
                           <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Base)</div>
                           <div className="text-xs mobile:text-2xs font-medium text-white">
-                            {info.userBasePooled?.toSignificant() ?? '--'} {info.baseToken?.symbol}
+                            {toString(info.userBasePooled) || '--'} {info.baseToken?.symbol}
                           </div>
                         </Row>
                         <Row className="justify-between">
                           <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Quote)</div>
                           <div className="text-xs mobile:text-2xs font-medium text-white">
-                            {info.userQuotePooled?.toSignificant() ?? '--'} {info.quoteToken?.symbol}
+                            {toString(info.userQuotePooled) || '--'} {info.quoteToken?.symbol}
                           </div>
                         </Row>
                         <Row className="justify-between">
                           <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Your Liquidity</div>
                           <div className="text-xs mobile:text-2xs font-medium text-white">
                             {info.lpMint
-                              ? div(rawBalances[String(info.lpMint)], 10 ** info.lpDecimals)?.toSignificant?.(
-                                  info.lpDecimals
-                                )
+                              ? toString(div(rawBalances[String(info.lpMint)], 10 ** info.lpDecimals), {
+                                  decimalLength: `auto ${info.lpDecimals}`
+                                })
                               : '--'}{' '}
                             LP
                           </div>

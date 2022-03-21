@@ -30,6 +30,7 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { greaterThanOrEqual, lessThanOrEqual, multiply, toStringNumber } from '@/functions/numberish/stringNumber'
 import createContextStore from '@/functions/react/createContextStore'
 import { HexAddress } from '@/types/constants'
+import { toString } from '@/functions/numberish/toString'
 
 const { ContextProvider: PageRegistor, useStore: usePageData } = createContextStore({
   /** info for ido object item */
@@ -390,7 +391,7 @@ function FormPanelLotteryInput({ className }: { className?: string }) {
                     idoInfo.quote &&
                     multiply(
                       ticketAmount ?? 0,
-                      toTokenAmount(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount).toSignificant()
+                      toString(toTokenAmount(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount))
                     )
                   }
                 />

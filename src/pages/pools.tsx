@@ -766,10 +766,10 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           <div className="flex-grow">
             <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Assets Pooled</div>
             <div className="text-white font-medium text-base mobile:text-xs">
-              {isHydratedPoolItemInfo(info) ? `${toString(info.basePooled)} ${info.base?.symbol ?? ''}` : '--'}
+              {isHydratedPoolItemInfo(info) ? `${toString(info.basePooled || 0)} ${info.base?.symbol ?? ''}` : '--'}
             </div>
             <div className="text-white font-medium text-base mobile:text-xs">
-              {isHydratedPoolItemInfo(info) ? `${toString(info.quotePooled)} ${info.quote?.symbol ?? ''}` : '--'}
+              {isHydratedPoolItemInfo(info) ? `${toString(info.quotePooled || 0)} ${info.quote?.symbol ?? ''}` : '--'}
             </div>
           </div>
         </Row>

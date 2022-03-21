@@ -11,6 +11,7 @@ import { PublicKey } from '@solana/web3.js'
 import { HydratedIdoInfo, SdkParsedIdoInfo, TicketInfo, TicketTailNumberInfo } from '../type'
 import { gt } from '@/functions/numberish/compare'
 import { mul } from '@/functions/numberish/operations'
+import { toString } from '@/functions/numberish/toString'
 
 export function isLotteryUpcoming(idoInfo: SdkParsedIdoInfo): boolean {
   return currentIsBefore(idoInfo.state.startTime.toNumber())
@@ -111,7 +112,7 @@ function getIdoRaise(
   base: SplToken | undefined,
   maxWinLotteries: SdkParsedIdoInfo['state']['maxWinLotteries'] | undefined
 ): string | undefined {
-  const value = base && maxWinLotteries ? toTokenAmount(base, maxWinLotteries).toSignificant() : undefined
+  const value = base && maxWinLotteries ? toString(toTokenAmount(base, maxWinLotteries)) : undefined
   return value
 }
 
@@ -119,7 +120,7 @@ function getIdoPrice(
   quote: SplToken | undefined,
   perLotteryQuoteAmount: SdkParsedIdoInfo['state']['perLotteryQuoteAmount'] | undefined
 ): string | undefined {
-  const price = quote && perLotteryQuoteAmount ? toTokenAmount(quote, perLotteryQuoteAmount).toSignificant() : undefined
+  const price = quote && perLotteryQuoteAmount ? toString(toTokenAmount(quote, perLotteryQuoteAmount)) : undefined
   return price
 }
 
