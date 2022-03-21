@@ -84,9 +84,6 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       "wallet haven't enough quote token"
     )
 
-    // eslint-disable-next-line no-console
-    console.assert(!isAlreadyCreated, 'pool already created')
-
     if (!isAlreadyCreated) {
       // step1: create pool
       const { transaction: sdkTransaction1, signers: sdkSigners1 } = Liquidity.makeCreatePoolTransaction({
