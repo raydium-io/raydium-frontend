@@ -265,21 +265,21 @@ function FarmCard() {
           if (!searchText) return true
           const searchKeyWords = searchText.split(/\s|-/)
           return searchKeyWords.every((keyWord) => i.name.toLowerCase().includes(keyWord.toLowerCase()))
-        })
-        .sort((a, b) => {
-          if (a.isUpcomingPool || b.isUpcomingPool) return Number(b.isUpcomingPool) - Number(a.isUpcomingPool) // upcoming first
-          if (a.isNewPool || b.isNewPool) return Number(b.isNewPool) - Number(a.isNewPool) // new pool second
-          const isAFavorite = favouriteIds?.includes(toPubString(a.id))
-          const isBFavorite = favouriteIds?.includes(toPubString(b.id))
-
-          if (isAFavorite && !isBFavorite) return -1
-          if (isBFavorite && !isAFavorite) return 1
-          return 0
         }),
     [lpTokens, currentTab, onlySelfFarms, searchText, hydratedInfos]
   )
 
-  const { sortedData, setConfig: setSortConfig, sortConfig, clearSortConfig } = useSort(dataSource)
+  const {
+    sortedData,
+    setConfig: setSortConfig,
+    sortConfig,
+    clearSortConfig
+  } = useSort(dataSource, {
+    defaultSort: {
+      key: 'defaultKey',
+      pickSortValue: [(i) => i.isUpcomingPool, (i) => i.isNewPool, (i) => favouriteIds?.includes(toPubString(i.id))]
+    }
+  })
   const isMobile = useAppSettings((s) => s.isMobile)
   const isLoading = useFarms((s) => s.isLoading)
 
@@ -370,12 +370,10 @@ function FarmCard() {
               className="ml-1"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'name'
+                sortConfig?.key === 'name' && sortConfig.mode !== 'none'
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
-                    : sortConfig.mode === 'increase'
-                    ? '/icons/msic-sort-up.svg'
-                    : '/icons/msic-sort.svg'
+                    : '/icons/msic-sort-up.svg'
                   : '/icons/msic-sort.svg'
               }
             />
@@ -398,12 +396,10 @@ function FarmCard() {
               className="ml-1"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'totalApr'
+                sortConfig?.key === 'totalApr' && sortConfig.mode !== 'none'
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
-                    : sortConfig.mode === 'increase'
-                    ? '/icons/msic-sort-up.svg'
-                    : '/icons/msic-sort.svg'
+                    : '/icons/msic-sort-up.svg'
                   : '/icons/msic-sort.svg'
               }
             />
@@ -419,12 +415,10 @@ function FarmCard() {
               className="ml-1"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'tvl'
+                sortConfig?.key === 'tvl' && sortConfig.mode !== 'none'
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
-                    : sortConfig.mode === 'increase'
-                    ? '/icons/msic-sort-up.svg'
-                    : '/icons/msic-sort.svg'
+                    : '/icons/msic-sort-up.svg'
                   : '/icons/msic-sort.svg'
               }
             />
