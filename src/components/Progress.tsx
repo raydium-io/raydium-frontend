@@ -1,4 +1,4 @@
-import React, { ReactNode, useLayoutEffect, useRef } from 'react'
+import React, { ReactNode, useRef } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 

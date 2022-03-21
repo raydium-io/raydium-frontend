@@ -1,13 +1,4 @@
-import React, {
-  ComponentProps,
-  CSSProperties,
-  Fragment,
-  ReactNode,
-  RefObject,
-  useLayoutEffect,
-  useRef,
-  useState
-} from 'react'
+import React, { ComponentProps, CSSProperties, Fragment, ReactNode, RefObject, useRef, useState } from 'react'
 import ReactDOM from 'react-dom'
 
 import { Transition } from '@headlessui/react'
