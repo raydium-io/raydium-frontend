@@ -321,6 +321,8 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
   const { pathname } = useRouter()
   const isMobile = useAppSettings((s) => s.isMobile)
   const sideMenuRef = useRef<HTMLDivElement>(null)
+  const lastestVersion = useAppVersion((s) => s.lastest)
+  const currentVersion = useAppVersion((s) => s.currentVersion)
 
   useEffect(() => {
     if (!inClient) return
@@ -416,7 +418,10 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             </OptionItem>
           </div>
 
-          <div></div>
+          <div className="text-sm m-2 opacity-20 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap">
+            <div>current: {currentVersion}</div>
+            <div>lastest: {lastestVersion}</div>
+          </div>
         </Col>
       </Col>
     </>
