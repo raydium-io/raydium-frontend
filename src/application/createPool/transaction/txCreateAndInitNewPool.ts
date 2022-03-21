@@ -12,9 +12,10 @@ import toBN from '@/functions/numberish/toBN'
 
 import useCreatePool from '../useCreatePool'
 import { recordCreatedPool } from '../utils/recordCreatedPool'
-import { WSOLMint } from '@/application/token/utils/quantumSOL'
+import { deUITokenAmount, WSOLMint } from '@/application/token/utils/quantumSOL'
 import toPubString from '@/functions/format/toMintString'
 import { getMax } from '@/functions/numberish/operations'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSuccess?: () => void }) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -34,7 +35,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       startTime
     } = useCreatePool.getState()
 
-    const { getPureToken } = useToken.getState()
+    const { getToken } = useToken.getState()
     const { solBalance, tokenAccounts, pureRawBalances } = useWallet.getState()
 
     assert(lpMint, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
@@ -63,8 +64,8 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     // assert user has eligible base and quote
     const { tokenAccountRawInfos } = useWallet.getState()
 
-    const baseToken = getPureToken(baseMint) || new Token(baseMint, baseDecimals)
-    const quoteToken = getPureToken(quoteMint) || new Token(quoteMint, quoteDecimals)
+    const baseToken = getToken(baseMint) || new Token(baseMint, baseDecimals)
+    const quoteToken = getToken(quoteMint) || new Token(quoteMint, quoteDecimals)
 
     assert(
       gte(
@@ -100,12 +101,13 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
         }
       })
     }
+
     // step2: init new pool (inject money into the created pool)
     const { transaction: sdkTransaction2, signers: sdkSigners2 } = await Liquidity.makeInitPoolTransaction({
       poolKeys: sdkAssociatedPoolKeys,
       startTime: startTime ? toBN(startTime.getTime() / 1000) : undefined,
-      baseAmount: toTokenAmount(baseToken, baseDecimaledAmount, { alreadyDecimaled: true, exact: true }),
-      quoteAmount: toTokenAmount(quoteToken, quoteDecimaledAmount, { alreadyDecimaled: true, exact: true }),
+      baseAmount: deUITokenAmount(toTokenAmount(baseToken, baseDecimaledAmount, { alreadyDecimaled: true })),
+      quoteAmount: deUITokenAmount(toTokenAmount(quoteToken, quoteDecimaledAmount, { alreadyDecimaled: true })),
       connection,
       userKeys: { owner, payer: owner, tokenAccounts: tokenAccountRawInfos }
     })
