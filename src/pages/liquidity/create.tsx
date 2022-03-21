@@ -51,7 +51,6 @@ function PanelContent({ close }: { close(): void }) {
   const setCurrentStep = useCreatePool((s) => s.setCurrentStep)
 
   const {
-    lpMint,
     marketId,
     ammId,
     baseMint,

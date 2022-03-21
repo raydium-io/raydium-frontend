@@ -1,4 +1,4 @@
-import { Liquidity, Token } from '@raydium-io/raydium-sdk'
+import { Liquidity, SPL_MINT_LAYOUT, Token } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import useToken from '@/application/token/useToken'
@@ -7,7 +7,7 @@ import handleMultiTx from '@/application/txTools/handleMultiTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import toBN from '@/functions/numberish/toBN'
 
 import useCreatePool from '../useCreatePool'
@@ -50,12 +50,14 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     assert(gt(quoteDecimaledAmount, 0), 'should input > 0 quote amount ')
     assert(sdkAssociatedPoolKeys, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
 
+    const lpMintInfoOnChain = (await connection?.getAccountInfo(new PublicKey(lpMint)))?.data
     const ammInfoOnChain = (await connection?.getAccountInfo(new PublicKey(ammId)))?.data
-    const isAlreadyCreated = Boolean(ammInfoOnChain?.length)
+    const isAlreadyCreated = Boolean(
+      lpMintInfoOnChain?.length && Number(SPL_MINT_LAYOUT.decode(lpMintInfoOnChain).supply) === 0
+    )
     const isAlreadyInited = Boolean(
       ammInfoOnChain?.length && isMeaningfulNumber(Liquidity.getStateLayout(4).decode(ammInfoOnChain)?.status)
     )
-
     assert(!isAlreadyInited, 'pool already inited')
 
     // assert user has eligible base and quote
@@ -98,13 +100,12 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
         }
       })
     }
-
     // step2: init new pool (inject money into the created pool)
     const { transaction: sdkTransaction2, signers: sdkSigners2 } = await Liquidity.makeInitPoolTransaction({
       poolKeys: sdkAssociatedPoolKeys,
       startTime: startTime ? toBN(startTime.getTime() / 1000) : undefined,
-      baseAmount: toTokenAmount(baseToken, baseDecimaledAmount, { alreadyDecimaled: true }),
-      quoteAmount: toTokenAmount(quoteToken, quoteDecimaledAmount, { alreadyDecimaled: true }),
+      baseAmount: toTokenAmount(baseToken, baseDecimaledAmount, { alreadyDecimaled: true, exact: true }),
+      quoteAmount: toTokenAmount(quoteToken, quoteDecimaledAmount, { alreadyDecimaled: true, exact: true }),
       connection,
       userKeys: { owner, payer: owner, tokenAccounts: tokenAccountRawInfos }
     })
