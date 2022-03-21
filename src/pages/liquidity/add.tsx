@@ -562,7 +562,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
               <div>
                 {currentHydratedInfo?.lpToken
                   ? `${formatNumber(
-                      toTokenAmount(currentHydratedInfo.lpToken, currentHydratedInfo.lpSupply).toSignificant()
+                      toString(toTokenAmount(currentHydratedInfo.lpToken, currentHydratedInfo.lpSupply))
                     )} LP`
                   : '--'}
               </div>
@@ -892,7 +892,7 @@ function CreatePoolCardEntry() {
       >
         <Row className="gap-4">
           <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
-            Create a liquidity pool on Raydium that can be traded on the the swap interface.{' '}
+            Create a liquidity pool on Raydium that can be traded on the swap interface.{' '}
             <Link
               noTextStyle
               className="text-[rgba(171,196,255)] hover:underline"

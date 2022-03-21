@@ -14,7 +14,7 @@ import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalcula
 import useSwapCoin1Filler from '@/application/swap/useSwapCoin1Filler'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import { SplToken } from '@/application/token/type'
-import useToken from '@/application/token/useToken'
+import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
 import { SOL_BASE_BALANCE, SOLDecimals, WSOLMint } from '@/application/token/utils/quantumSOL'
 import { USDCMint, USDTMint } from '@/application/token/utils/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
@@ -150,7 +150,7 @@ function useunOfficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
   const downCoin = directionReversed ? coin1 : coin2
-  const raydiumTokenMints = useToken((s) => s.tokenListSettings['Raydium Mainnet Token List'].mints)
+  const raydiumTokenMints = useToken((s) => s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME]?.mints)
 
   const [userPermanentConfirmedTokenMints, setUserPermanentConfirmedTokenMints] =
     useLocalStorageItem<HexAddress[] /* token mint  */>('USER_CONFIRMED_SWAP_TOKENS')

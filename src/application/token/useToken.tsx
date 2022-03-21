@@ -80,6 +80,7 @@ export type TokenStore = {
       disableUserConfig?: boolean
       isOn: boolean
       icon?: SrcAddress
+      cannotbBeSeen?: boolean
     }
   }
   refreshTokenCount: number
@@ -87,11 +88,11 @@ export type TokenStore = {
 }
 
 export type SupportedTokenListSettingName =
-  | 'Raydium Mainnet Token List' // actually  official
+  | 'Raydium Token List' // actually  official
   | 'Raydium Dev Token List'
   | 'Solana Token List' // actually  unOfficial
   | 'User Added Token List'
-export const RAYDIUM_MAINNET_TOKEN_LIST_NAME = 'Raydium Mainnet Token List'
+export const RAYDIUM_MAINNET_TOKEN_LIST_NAME = 'Raydium Token List'
 export const RAYDIUM_DEV_TOKEN_LIST_NAME = 'Raydium Dev Token List'
 export const SOLANA_TOKEN_LIST_NAME = 'Solana Token List'
 export const USER_ADDED_TOKEN_LIST_NAME = 'User Added Token List'
@@ -190,10 +191,11 @@ export const useToken = create<TokenStore>((set, get) => ({
     },
     [RAYDIUM_DEV_TOKEN_LIST_NAME]: {
       disableUserConfig: true,
-      isOn: true
+      isOn: true,
+      cannotbBeSeen: true
     },
     [SOLANA_TOKEN_LIST_NAME]: {
-      isOn: false
+      isOn: true
     },
     [USER_ADDED_TOKEN_LIST_NAME]: {
       isOn: true
