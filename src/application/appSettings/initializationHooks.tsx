@@ -8,13 +8,14 @@ import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 
 import useWallet from '../wallet/useWallet'
 
-import useAppSettings, { APP_VERSION } from './useAppSettings'
+import useAppSettings from './useAppSettings'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useNotification from '../notification/useNotification'
 import { useRouter } from 'next/router'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { toString } from '@/functions/numberish/toString'
 import Link from '@/components/Link'
+import { useAppVersion } from '../appVersion/useAppVersion'
 
 export function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -69,15 +70,15 @@ Sentry.init({
 export function useSentryConfigurator() {
   const wallet = useWallet((s) => s.owner)
   const walletAdress = String(wallet) ?? '(not connected)'
-  const version = APP_VERSION
+  const { currentVersion } = useAppVersion()
 
   useEffect(() => {
     Sentry.setTag('wallet', String(walletAdress))
   }, [walletAdress])
 
   useEffect(() => {
-    Sentry.setTag('version', String(walletAdress))
-  }, [version])
+    Sentry.setTag('version', String(currentVersion))
+  }, [currentVersion])
 }
 
 export function useWelcomeDialog(options?: { force?: boolean }) {

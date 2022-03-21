@@ -57,6 +57,4 @@ const useAppSettings = create<AppSettingsStore>(() => ({
   refreshCircleLastTimestamp: {}
 }))
 
-export const APP_VERSION = '1.1.0'
-
 export default useAppSettings
