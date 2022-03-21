@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
-import useConnection, { LOCALSTORAGE_KEY_USER_RPC } from '../useConnection'
-import { UserCustomizedEndpoint } from '../utils/fetchRPCConfig'
+import useConnection, { LOCALSTORAGE_KEY_USER_RPC } from './useConnection'
+import { UserCustomizedEndpoint } from './fetchRPCConfig'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { unifyByKey } from '@/functions/arrayMethods'
 

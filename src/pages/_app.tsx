@@ -12,8 +12,8 @@ import {
   useThemeModeSync,
   useWelcomeDialog
 } from '@/application/appSettings/initializationHooks'
-import useConnectionInitialization from '@/application/connection/feature/useConnectionInitialization'
-import { useUserCustomizedEndpointInitLoad } from '@/application/connection/feature/useUserCustomizedEndpointInitLoad'
+import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
+import { useUserCustomizedEndpointInitLoad } from '@/application/connection/useUserCustomizedEndpointInitLoad'
 import useFarmInfoFetcher from '@/application/farms/feature/useFarmInfoLoader'
 import useInjectRaydiumFeeAprFromPair from '@/application/farms/feature/useInjectRaydiumFeeAprFromPair'
 import useAutoFetchIdoDetail from '@/application/ido/feature/useAutoFetchIdoDetail'
@@ -43,6 +43,7 @@ import useHandleWindowTopError from '@/hooks/useHandleWindowTopError'
 
 import '../styles/index.css'
 import { useWalletConnectNotifaction } from '@/application/wallet/feature/useWalletConnectNotifaction'
+import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -90,6 +91,10 @@ function ApplicationsInitializations() {
 
   // load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo)
   useLiquidityInfoLoader()
+
+  /********************** appVersion **********************/
+  useAppInitVersionPostHeartBeat()
+  useJudgeAppVersion()
 
   /********************** connection **********************/
   useUserCustomizedEndpointInitLoad()

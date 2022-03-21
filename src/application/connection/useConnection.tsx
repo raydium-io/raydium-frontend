@@ -6,11 +6,10 @@ import assert from '@/functions/assert'
 
 import useNotification from '../notification/useNotification'
 
-import { Endpoint, UserCustomizedEndpoint } from './utils/fetchRPCConfig'
+import { Endpoint, UserCustomizedEndpoint } from './fetchRPCConfig'
 import { setLocalItem } from '@/functions/dom/jStorage'
 import { inServer } from '@/functions/judgers/isSSR'
-import { shakeFalsyItem, shakeUndifindedItem, unifyByKey, unifyItem } from '@/functions/arrayMethods'
-import { capitalize } from '@/functions/changeCase'
+import { unifyByKey } from '@/functions/arrayMethods'
 
 export const CONNECT_ERROR_VERSION_TOO_OLD = 'CONNECT_ERROR_VERSION_TOO_OLD'
 export const CONNECT_ERROR_NETWORK_ERROR = 'CONNECT_ERROR_NETWORK_ERROR'
@@ -24,7 +23,6 @@ export interface ConnectionError {
 
 type ConnectionStore = {
   connection: Connection | undefined
-  isInHeartbeat: boolean
   version?: string | number
 
   availableEndPoints: Endpoint[]
@@ -63,7 +61,6 @@ export const LOCALSTORAGE_KEY_USER_RPC = 'USER_RPC'
 /** zustand store hooks */
 const useConnection = create<ConnectionStore>((set, get) => ({
   connection: undefined,
-  isInHeartbeat: false,
 
   availableEndPoints: [],
 
