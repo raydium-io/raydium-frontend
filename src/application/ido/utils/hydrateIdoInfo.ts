@@ -112,8 +112,7 @@ function getIdoRaise(
   base: SplToken | undefined,
   maxWinLotteries: SdkParsedIdoInfo['state']['maxWinLotteries'] | undefined
 ): string | undefined {
-  if (!base || lte(maxWinLotteries, 0)) return ''
-  const value = base && gt(maxWinLotteries, 0) ? toTokenAmount(base, maxWinLotteries).toExact() : undefined
+  const value = base && maxWinLotteries ? toString(toTokenAmount(base, maxWinLotteries)) : undefined
   return value
 }
 
@@ -121,7 +120,7 @@ function getIdoPrice(
   quote: SplToken | undefined,
   perLotteryQuoteAmount: SdkParsedIdoInfo['state']['perLotteryQuoteAmount'] | undefined
 ): string | undefined {
-  const price = quote && perLotteryQuoteAmount ? toTokenAmount(quote, perLotteryQuoteAmount).toExact() : undefined
+  const price = quote && perLotteryQuoteAmount ? toString(toTokenAmount(quote, perLotteryQuoteAmount)) : undefined
   return price
 }
 

@@ -38,6 +38,8 @@ import Tooltip from './Tooltip'
 import LoadingCircle from './LoadingCircle'
 import { setCssVarible } from '@/functions/dom/cssVariable'
 import { inClient } from '@/functions/judgers/isSSR'
+import { useAppVersion } from '@/application/appVersion/useAppVersion'
+import { refreshWindow } from '@/application/appVersion/forceWindowRefresh'
 
 /**
  * for easier to code and read
@@ -118,7 +120,7 @@ export default function PageLayout(props: {
       >
         {/* do not check ata currently
         <MigrateBubble /> */}
-        <BetaMessageBubble />
+        <VersionMessageBubble />
         {props.children}
       </main>
     </div>
@@ -172,33 +174,22 @@ function RPCPerformanceBanner({ className }: { className?: string }) {
     </div>
   )
 }
-function BetaMessageBubble() {
-  const isBetaBubbleOn = useAppSettings((s) => s.isBetaBubbleOn)
-
+function VersionMessageBubble() {
+  const versionRefreshData = useAppVersion((s) => s.versionFresh)
   return (
     <div>
-      {isBetaBubbleOn && (
-        <Row className="w-[min(324px,100%)]  m-auto justify-between items-center py-4 px-6 mobile:py-3 mb-8 mobile:mb-2 rounded-xl ring-1.5 ring-inset ring-[#39D0D8] bg-[#1B1659]">
-          <div className="text-[#C4D6FF] text-sm font-medium">
-            You are using Raydium V2,{' '}
-            <span
-              className="clickable text-[#39D0D8] font-bold"
-              onClick={() => {
-                popWelcomeDialogFn()
-              }}
-            >
-              learn more.
-            </span>
-          </div>
-
-          <Icon
-            size="sm"
-            className="text-[#C4D6FF] self-start mobile:row-span-2 hover:cursor-pointer translate-x-3 -translate-y-1"
-            heroIconName="x"
-            onClick={() => useAppSettings.setState({ isBetaBubbleOn: false })}
-          />
-        </Row>
-      )}
+      <FadeIn>
+        {versionRefreshData === 'too-old' && (
+          <Row className="w-[min(324px,100%)]  m-auto justify-center items-center py-4 px-6 mobile:py-3 mb-8 mobile:mb-2 rounded-xl ring-1.5 ring-inset ring-[#DA2EEF] bg-[#1B1659]">
+            <div className="text-[#C4D6FF] text-sm font-medium">
+              current version is too old,{' '}
+              <span className="clickable text-[#DA2EEF] font-bold" onClick={() => refreshWindow({ noCache: true })}>
+                refresh app
+              </span>
+            </div>
+          </Row>
+        )}
+      </FadeIn>
     </div>
   )
 }
@@ -323,6 +314,8 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
   const { pathname } = useRouter()
   const isMobile = useAppSettings((s) => s.isMobile)
   const sideMenuRef = useRef<HTMLDivElement>(null)
+  const lastestVersion = useAppVersion((s) => s.lastest)
+  const currentVersion = useAppVersion((s) => s.currentVersion)
 
   useEffect(() => {
     if (!inClient) return
@@ -418,7 +411,10 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             </OptionItem>
           </div>
 
-          <div></div>
+          <div className="text-sm m-2 opacity-20 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap">
+            <div>current: {currentVersion}</div>
+            <div>lastest: {lastestVersion}</div>
+          </div>
         </Col>
       </Col>
     </>

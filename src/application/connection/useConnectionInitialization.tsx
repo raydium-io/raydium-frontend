@@ -2,13 +2,23 @@ import { useEffect } from 'react'
 
 import { Connection } from '@solana/web3.js'
 
-import useConnection from '../useConnection'
-import assertAppVersion from '../utils/assertAppVersion'
-import caculateEndpointUrlByRpcConfig from '../utils/caculateEndpointUrlByRpcConfig'
-import fetchRpcConfigs, { Config } from '../utils/fetchRPCConfig'
-import postHeartBeat from '../utils/postHeartBeat'
+import useConnection from './useConnection'
+import caculateEndpointUrlByRpcConfig from './caculateEndpointUrlByRpcConfig'
 import { unifyByKey } from '@/functions/arrayMethods'
-import { APP_VERSION } from '@/application/appSettings/useAppSettings'
+import jFetch from '@/functions/dom/jFetch'
+
+export interface Endpoint {
+  name?: string
+  url: string
+  weight?: number
+  isUserCustomized?: true
+}
+
+export interface Config {
+  strategy: 'speed' | 'weight'
+  success: boolean
+  rpcs: Endpoint[]
+}
 
 const devRpcConfig: Omit<Config, 'success'> = {
   rpcs: [
@@ -27,19 +37,17 @@ const devRpcConfig: Omit<Config, 'success'> = {
  *
  * will base on rpcpools(in dev mode) to establish connection
  */
-export default function useConnectionInitialization({
-  callbacks
-}: {
-  callbacks?: { onVersionTooOld?(info: { localVersion: string; timestamp: number }): void }
-} = {}) {
+export default function useConnectionInitialization() {
   useEffect(() => {
     useConnection.setState({ isLoading: true })
-    fetchRpcConfigs(APP_VERSION)
+    jFetch<Config>('https://api.raydium.io/v2/main/rpcs')
       .then(async (data) => {
+        if (!data) return
+
         // dev test
         if (!globalThis.location.host.includes('raydium.io')) {
-          data.rpcs = devRpcConfig.rpcs
-          data.strategy = devRpcConfig.strategy
+          Reflect.set(data, 'rpcs', devRpcConfig.rpcs)
+          Reflect.set(data, 'strategy', devRpcConfig.strategy)
         }
 
         const selectedEndpointUrl = await caculateEndpointUrlByRpcConfig(data)
@@ -52,13 +60,6 @@ export default function useConnectionInitialization({
           connection,
           isLoading: false
         }))
-        assertAppVersion(data, () => {
-          callbacks?.onVersionTooOld?.({ localVersion: APP_VERSION, timestamp: Date.now() })
-        })
-        useConnection.setState({ isInHeartbeat: true })
-        postHeartBeat(APP_VERSION, () => {
-          callbacks?.onVersionTooOld?.({ localVersion: APP_VERSION, timestamp: Date.now() })
-        })
       })
       .catch(console.error)
   }, [])

@@ -7,11 +7,12 @@ import { Fraction, Price, Rounding } from '@raydium-io/raydium-sdk'
 //   return value === '0.00' ? '<0.01' : value
 // }
 
+/**
+ * it depends on 'toFixed'
+ */
 export default function toUsdVolume(
   amount: Fraction | undefined,
   options?: {
-    /**@default significent  */
-    mode?: 'fixed' | 'significant'
     autoSuffix?: boolean
 
     decimalPlace?: number
@@ -22,15 +23,10 @@ export default function toUsdVolume(
   if (!amount) return '0'
 
   const formatFn = (n: Fraction) =>
-    formatNumber(
-      n[options?.mode === 'significant' ? 'toSignificant' : 'toFixed'](
-        // @ts-expect-error perfect type is too tedius, no need
-        options?.mode === 'significant' ? undefined : options?.decimalPlace ?? 2,
-        options?.format,
-        options?.rounding
-      ),
-      { fractionLength: 'auto', ...options }
-    )
+    formatNumber(n.toFixed(options?.decimalPlace ?? 2, options?.format, options?.rounding), {
+      fractionLength: 'auto',
+      ...options
+    })
 
   if (options?.autoSuffix) {
     const numberWeigth = amount.toFixed(0).length

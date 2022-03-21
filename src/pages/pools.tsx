@@ -268,14 +268,6 @@ function PoolCard() {
           if (!searchText) return true
           const searchKeyWords = searchText.split(/\s|-/)
           return searchKeyWords.every((keyWord) => i.name.toLowerCase().includes(keyWord.toLowerCase()))
-        })
-        .sort((a, b) => {
-          const isAFavorite = favouriteIds?.includes(a.ammId)
-          const isBFavorite = favouriteIds?.includes(b.ammId)
-
-          if (isAFavorite && !isBFavorite) return -1
-          if (isBFavorite && !isAFavorite) return 1
-          return 0
         }),
     [onlySelfPools, searchText, hydratedInfos]
   )
@@ -285,7 +277,9 @@ function PoolCard() {
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
-  } = useSort(dataSource, { defaultSort: { key: 'liquidity', pickSortValue: (i) => i.liquidity } })
+  } = useSort(dataSource, {
+    defaultSort: { key: 'defaultKey', pickSortValue: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity] }
+  })
 
   const TableHeaderBlock = useCallback(
     () => (
@@ -299,7 +293,7 @@ function PoolCard() {
             setSortConfig({
               key: 'favorite',
               sortModeQueue: ['decrease', 'none'],
-              pickSortValue: (i) => favouriteIds?.includes(i.ammId)
+              pickSortValue: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity]
             })
           }}
         >
@@ -334,7 +328,7 @@ function PoolCard() {
               className="ml-1"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'name'
+                sortConfig?.key === 'name' && sortConfig.mode !== 'none'
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
                     : '/icons/msic-sort-up.svg'
@@ -356,7 +350,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key === 'liquidity'
+              sortConfig?.key === 'liquidity' && sortConfig.mode !== 'none'
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -378,7 +372,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key.startsWith('volume')
+              sortConfig?.key.startsWith('volume') && sortConfig.mode !== 'none'
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -400,7 +394,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key.startsWith('fee')
+              sortConfig?.key.startsWith('fee') && sortConfig.mode !== 'none'
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -428,7 +422,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key.startsWith('apr')
+              sortConfig?.key.startsWith('apr') && sortConfig.mode !== 'none'
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -772,10 +766,10 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           <div className="flex-grow">
             <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Assets Pooled</div>
             <div className="text-white font-medium text-base mobile:text-xs">
-              {isHydratedPoolItemInfo(info) ? `${toString(info.basePooled)} ${info.base?.symbol ?? ''}` : '--'}
+              {isHydratedPoolItemInfo(info) ? `${toString(info.basePooled || 0)} ${info.base?.symbol ?? ''}` : '--'}
             </div>
             <div className="text-white font-medium text-base mobile:text-xs">
-              {isHydratedPoolItemInfo(info) ? `${toString(info.quotePooled)} ${info.quote?.symbol ?? ''}` : '--'}
+              {isHydratedPoolItemInfo(info) ? `${toString(info.quotePooled || 0)} ${info.quote?.symbol ?? ''}` : '--'}
             </div>
           </div>
         </Row>

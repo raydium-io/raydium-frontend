@@ -434,7 +434,7 @@ function FormPanelLotteryInput({ className }: { className?: string }) {
                     idoInfo.quote &&
                     multiply(
                       ticketAmount ?? 0,
-                      toTokenAmount(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount).toSignificant()
+                      toString(toTokenAmount(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount))
                     )
                   }
                 />

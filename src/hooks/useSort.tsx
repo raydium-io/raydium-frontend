@@ -4,7 +4,10 @@ import { ZERO } from '@raydium-io/raydium-sdk'
 
 import { isBigInt, isBN, isBoolean, isFraction, isNumber, isString } from '@/functions/judgers/dateType'
 import { EnumStr, Numberish } from '@/types/constants'
-import { ExactPartial } from '@/types/generics'
+import { ExactPartial, MayArray } from '@/types/generics'
+import { mergeFunction } from '@/functions/merge'
+import compare from '@/functions/numberish/compare'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 type SortMode = 'decrease' | 'increase' | 'none'
 
@@ -16,7 +19,7 @@ type SortConfigItem<D extends Record<string, any>[]> = {
   sortModeQueue: SortModeArr
 
   /** return Numberish / string / boolean*/
-  pickSortValue: (item: D[number]) => any // for item may be tedius, so use rule
+  pickSortValue: MayArray<(item: D[number]) => any> // for item may be tedius, so use rule //TODO: accept array
 }
 
 type SimplifiedSortConfig<D extends Record<string, any>[]> = ExactPartial<SortConfigItem<D>, 'mode' | 'sortModeQueue'>
@@ -65,10 +68,10 @@ export default function useSort<D extends Record<string, any>[]>(
     ]
   }
 
+  const defaultConfigs = options?.defaultSort ? parseSortConfig(options.defaultSort) : []
+
   // currently only consider the first config item
-  const [sortConfigs, setConfigs] = useState<SortConfigItem<D>[]>(
-    options?.defaultSort ? parseSortConfig(options.defaultSort) : []
-  )
+  const [sortConfigs, setConfigs] = useState<SortConfigItem<D>[]>(defaultConfigs)
 
   const appendConfig = useCallback(
     // 🚧 not imply yet!!!
@@ -89,18 +92,26 @@ export default function useSort<D extends Record<string, any>[]>(
   )
 
   const clearSortConfig = useCallback(() => {
-    setConfigs([] as SortConfigItem<D>[])
+    setConfigs(defaultConfigs)
   }, [setConfigs])
 
   const sortConfig = useMemo<SortConfigItem<D> | undefined>(() => sortConfigs[0], [sortConfigs])
 
   const sortedData = useMemo(() => {
-    if (!sortConfigs.length) return sourceDataList
-    const [{ mode, pickSortValue }] = sortConfigs // temp only respect first sortConfigs in queue
-    if (mode === 'none') return [...sourceDataList]
-    return [...sourceDataList].sort(
-      (a, b) => (mode === 'decrease' ? -1 : 1) * compareForSort(pickSortValue(a), pickSortValue(b))
-    )
+    let configs = sortConfigs
+    if (!sortConfigs.length) configs = defaultConfigs
+    if (sortConfigs[0].mode === 'none') configs = defaultConfigs
+    const [{ mode, pickSortValue }] = configs // temp only respect first sortConfigs in queue
+    return [...sourceDataList].sort((a, b) => {
+      const pickFunctions = [pickSortValue].flat()
+      if (!pickFunctions.length) return 0
+
+      const compareFactor = pickFunctions.slice(1).reduce(
+        (acc, item) => (acc(a, b) === 0 ? (a, b) => compareForSort(item(a), item(b)) : acc),
+        (a: D[number], b: D[number]) => compareForSort(pickFunctions[0](a), pickFunctions[0](b))
+      )
+      return (mode === 'decrease' ? -1 : 1) * compareFactor(a, b)
+    })
   }, [sortConfigs, sourceDataList])
 
   return { sortedData, sortConfigs, sortConfig, setConfig, clearSortConfig }

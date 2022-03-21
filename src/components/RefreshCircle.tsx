@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import React, { useEffect, useRef } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -13,6 +13,7 @@ import { useDocumentVisibility } from '../hooks/useDocumentVisibility'
 import { PopoverPlacement } from './Popover'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { inServer } from '@/functions/judgers/isSSR'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 
 const REFRESH_DURATION = 60 * 1000
 
@@ -53,8 +54,8 @@ export default function RefreshCircle({
     refreshCircleProcessPercent &&
     (Date.now() - refreshCircleLastTimestamp) / REFRESH_DURATION + refreshCircleProcessPercent
 
-  // should before <IntervalCircle> has destoryed, so have to useLayoutEffect
-  useLayoutEffect(() => {
+  // should before <IntervalCircle> has destoryed, so have to useIsomorphicLayoutEffect
+  useIsomorphicLayoutEffect(() => {
     if (inServer) return
     if (initPastPercent && initPastPercent > 1) {
       freshFunction?.()

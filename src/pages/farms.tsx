@@ -265,21 +265,21 @@ function FarmCard() {
           if (!searchText) return true
           const searchKeyWords = searchText.split(/\s|-/)
           return searchKeyWords.every((keyWord) => i.name.toLowerCase().includes(keyWord.toLowerCase()))
-        })
-        .sort((a, b) => {
-          if (a.isUpcomingPool || b.isUpcomingPool) return Number(b.isUpcomingPool) - Number(a.isUpcomingPool) // upcoming first
-          if (a.isNewPool || b.isNewPool) return Number(b.isNewPool) - Number(a.isNewPool) // new pool second
-          const isAFavorite = favouriteIds?.includes(toPubString(a.id))
-          const isBFavorite = favouriteIds?.includes(toPubString(b.id))
-
-          if (isAFavorite && !isBFavorite) return -1
-          if (isBFavorite && !isAFavorite) return 1
-          return 0
         }),
     [lpTokens, currentTab, onlySelfFarms, searchText, hydratedInfos]
   )
 
-  const { sortedData, setConfig: setSortConfig, sortConfig, clearSortConfig } = useSort(dataSource)
+  const {
+    sortedData,
+    setConfig: setSortConfig,
+    sortConfig,
+    clearSortConfig
+  } = useSort(dataSource, {
+    defaultSort: {
+      key: 'defaultKey',
+      pickSortValue: [(i) => i.isUpcomingPool, (i) => i.isNewPool, (i) => favouriteIds?.includes(toPubString(i.id))]
+    }
+  })
   const isMobile = useAppSettings((s) => s.isMobile)
   const isLoading = useFarms((s) => s.isLoading)
 
@@ -370,12 +370,10 @@ function FarmCard() {
               className="ml-1"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'name'
+                sortConfig?.key === 'name' && sortConfig.mode !== 'none'
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
-                    : sortConfig.mode === 'increase'
-                    ? '/icons/msic-sort-up.svg'
-                    : '/icons/msic-sort.svg'
+                    : '/icons/msic-sort-up.svg'
                   : '/icons/msic-sort.svg'
               }
             />
@@ -398,12 +396,10 @@ function FarmCard() {
               className="ml-1"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'totalApr'
+                sortConfig?.key === 'totalApr' && sortConfig.mode !== 'none'
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
-                    : sortConfig.mode === 'increase'
-                    ? '/icons/msic-sort-up.svg'
-                    : '/icons/msic-sort.svg'
+                    : '/icons/msic-sort-up.svg'
                   : '/icons/msic-sort.svg'
               }
             />
@@ -419,12 +415,10 @@ function FarmCard() {
               className="ml-1"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'tvl'
+                sortConfig?.key === 'tvl' && sortConfig.mode !== 'none'
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
-                    : sortConfig.mode === 'increase'
-                    ? '/icons/msic-sort-up.svg'
-                    : '/icons/msic-sort.svg'
+                    : '/icons/msic-sort-up.svg'
                   : '/icons/msic-sort.svg'
               }
             />
@@ -551,7 +545,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
                   ({ token, pendingReward, canBeRewarded }, idx) =>
                     canBeRewarded && (
                       <div key={idx}>
-                        {pendingReward?.toSignificant() || '0'} {token?.symbol}
+                        {toString(pendingReward) || '0'} {token?.symbol}
                       </div>
                     )
                 )}
@@ -742,12 +736,14 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
                 ? toUsdVolume(toTotalPrice(hydratedInfo.userStakedLpAmount, lpPrices[String(hydratedInfo.lpMint)]))
                 : '--'}
             </div>
-            <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
-              {formatNumber(hydratedInfo.userStakedLpAmount?.toSignificant(), {
-                fractionLength: hydratedInfo.userStakedLpAmount?.token.decimals
-              })}{' '}
-              LP
-            </div>
+            {hydratedInfo.userStakedLpAmount && (
+              <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
+                {formatNumber(toString(hydratedInfo.userStakedLpAmount), {
+                  fractionLength: hydratedInfo.userStakedLpAmount?.token.decimals
+                })}{' '}
+                LP
+              </div>
+            )}
           </div>
           <Row className="gap-3">
             {hydratedInfo.userHasStaked ? (
@@ -835,12 +831,12 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
                       Pending rewards
                     </div>
                     <div className="text-white font-medium text-base mobile:text-xs">
-                      {reward.pendingReward?.toSignificant() ?? '0'} {reward.token?.symbol}
+                      {toString(reward.pendingReward) || '0'} {reward.token?.symbol}
                     </div>
                     <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
                       {prices?.[String(reward.token?.mint)] && reward?.pendingReward
                         ? toUsdVolume(toTotalPrice(reward.pendingReward, prices[String(reward.token?.mint)]))
-                        : '--'}
+                        : null}
                     </div>
                   </div>
                 )

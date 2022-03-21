@@ -1,5 +1,3 @@
-import { useLayoutEffect } from 'react'
-
 import { routeTo } from '@/application/routeTools'
 import PageLayout from '@/components/PageLayout'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '

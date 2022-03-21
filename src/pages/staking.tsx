@@ -117,7 +117,7 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
               ({ token, pendingReward, canBeRewarded }, idx) =>
                 canBeRewarded && (
                   <div key={idx}>
-                    {pendingReward?.toSignificant() || '0'} {token?.symbol}
+                    {toString(pendingReward ?? 0)} {token?.symbol}
                   </div>
                 )
             )}
@@ -169,7 +169,7 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
                   ({ token, pendingReward, canBeRewarded }, idx) =>
                     canBeRewarded && (
                       <div key={idx}>
-                        {pendingReward?.toSignificant() ?? 0} {token?.symbol ?? ''}
+                        {toString(pendingReward ?? 0)} {token?.symbol ?? ''}
                       </div>
                     )
                 )}
@@ -234,7 +234,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
         <div className="flex-grow">
           <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Deposited</div>
           <div className="text-white font-medium text-base mobile:text-xs">
-            {formatNumber(hydratedInfo.userStakedLpAmount?.toSignificant(), {
+            {formatNumber(toString(hydratedInfo.userStakedLpAmount ?? 0), {
               fractionLength: hydratedInfo.userStakedLpAmount?.token.decimals
             })}{' '}
             RAY
@@ -322,7 +322,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
                     Pending rewards
                   </div>
                   <div className="text-white font-medium text-base mobile:text-xs">
-                    {reward.pendingReward?.toSignificant() ?? '0'} {reward.token?.symbol}
+                    {toString(reward.pendingReward ?? 0)} {reward.token?.symbol}
                   </div>
                   <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
                     {prices?.[String(reward.token?.mint)] && reward?.pendingReward

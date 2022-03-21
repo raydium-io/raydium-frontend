@@ -98,7 +98,7 @@ export function hydrateFarmInfo(
   const ammId = findAmmId(farmInfo.lpMint)
   const rewards: HydratedFarmInfo['rewards'] = farmInfo.state.perSlotRewards.map((perSlotReward, idx) => {
     const pendingReward = pendingRewards?.[idx]
-    const hasPendingReward = pendingReward && pendingReward.toSignificant() !== '0'
+    const hasPendingReward = isMeaningfulNumber(pendingReward)
     const canBeRewarded = hasPendingReward || !perSlotReward.eq(ZERO) // for history reason, reward can be 0
     const apr = aprs[idx]
     const token = rewardTokens[idx]
