@@ -32,6 +32,7 @@ export function toTokenAmount(
      * normally you should not use it
      */
     exact?: boolean
+    /** defaultly {@link toTokenAmount} accept BN, use this to accpet pure number like:3.11 */
     alreadyDecimaled?: boolean // may cause bug, havn't test it
   }
 ): QuantumSOLAmount
@@ -44,6 +45,7 @@ export function toTokenAmount(
      * normally you should not use it
      */
     exact?: boolean
+    /** defaultly {@link toTokenAmount} accept BN, use this to accpet pure number like:3.11 */
     alreadyDecimaled?: boolean // may cause bug, havn't test it
   }
 ): TokenAmount
@@ -56,6 +58,7 @@ export function toTokenAmount(
      * normally you should not use it
      */
     exact?: boolean
+    /** defaultly {@link toTokenAmount} accept BN, use this to accpet pure number like:3.11 */
     alreadyDecimaled?: boolean // may cause bug, havn't test it
   }
 ): TokenAmount | QuantumSOLAmount {
