@@ -6,7 +6,7 @@ import create from 'zustand'
 // frontend (client)
 const APP_VERSION = 'V2.1.2'
 
-const APP_VERSION_CHECKING_DELAY_TIME = 1000 * 60 * 5
+const APP_VERSION_CHECKING_DELAY_TIME = 1000 * 60 * 1
 
 interface BackEndVersion {
   latest: string
@@ -71,7 +71,7 @@ export function useJudgeAppVersion() {
 
 //#region ------------------- util function -------------------
 async function getBackendVersion() {
-  return jFetch<BackEndVersion>('https://api.raydium.io/v2/main/version')
+  return jFetch<BackEndVersion>('https://api.raydium.io/v2/main/version', { ignoreCache: true })
 }
 
 function parseVersionString(versionString: string) {
