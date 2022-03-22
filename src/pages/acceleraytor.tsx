@@ -37,6 +37,7 @@ import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
 import { ZERO } from '@raydium-io/raydium-sdk'
 import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
+import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 
 export default function AcceleRaytor() {
   useAutoFetchIdoInfo()
@@ -534,7 +535,6 @@ function FormPanelClaimButtons({ className, info: idoInfo }: { className?: strin
 
   const refreshIdo = useIdo((s) => s.refreshIdo)
   const refreshSelf = () => refreshIdo(idoInfo.id)
-  const { claim } = useIdo()
   const { connected } = useWallet()
   const userHasDepositedUSDC = idoInfo && idoInfo.ledger && idoInfo.ledger.quoteDeposited.toNumber() > 0
 
@@ -543,7 +543,7 @@ function FormPanelClaimButtons({ className, info: idoInfo }: { className?: strin
   const clickClaim = async (side: 'base' | 'quote') => {
     if (!idoInfo) return
     try {
-      claim({
+      txIdoClaim({
         side,
         idoInfo,
         onTxSuccess: () => {

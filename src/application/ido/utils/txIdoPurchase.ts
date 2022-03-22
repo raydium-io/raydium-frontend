@@ -13,7 +13,8 @@ import { createTransactionCollector } from '@/application/txTools/createTransact
 
 export default async function txIdoPurchase({
   idoInfo,
-  amount
+  amount,
+  ...callbacks
 }: {
   idoInfo: SdkParsedIdoInfo
   amount: BN
@@ -109,6 +110,7 @@ export default async function txIdoPurchase({
     }
 
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
+      ...callbacks,
       txHistoryInfo: {
         title: `JoinLottery`,
         description: `JoinLottery`

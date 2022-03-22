@@ -31,12 +31,12 @@ import { greaterThanOrEqual, lessThanOrEqual, multiply, toStringNumber } from '@
 import createContextStore from '@/functions/react/createContextStore'
 import { HexAddress } from '@/types/constants'
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { useWelcomeDialog } from '@/application/appSettings/initializationHooks'
 import { objectMap } from '@/functions/objectMethods'
 import { toString } from '@/functions/numberish/toString'
 import { ZERO } from '@raydium-io/raydium-sdk'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
-import txIdoClaim from '@/application/ido/utils/txIdoClaimXXX'
+import { eq, gt, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
+import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 
 const { ContextProvider: PageRegistor, useStore: usePageData } = createContextStore({
   /** info for ido object item */
@@ -121,6 +121,16 @@ function ShadowWalletInfoPanel() {
     //   'total:  ',
     //   Object.values(allWinnings).reduce((a, b) => (a ?? 0) + (b ?? 0), 0)
     // )
+    const allClaimable = objectMap(
+      allShadowInfos,
+      (i) =>
+        i.status === 'closed' &&
+        i.ledger &&
+        eq(0, i.ledger.quoteWithdrawn) &&
+        i.quote &&
+        toString(toTokenAmount(i.quote, i.ledger.quoteDeposited))
+    )
+    const allDeposited = objectMap(allShadowInfos, (i) => i.status === 'closed' && toString(i.userEligibleTicketAmount))
   }, [shadowIdoHydratedInfos])
   // if (!shadowKeypairs?.length)
   //   return (
@@ -254,7 +264,7 @@ function FormPanel({ className }: { className?: string }) {
         <RefreshCircle refreshKey="acceleRaytor/[idoid]" freshFunction={refreshSelf} />
       </Row>
       <div className="py-4">
-        <FormPanelLotteryInput />
+        <FormPanelClaimButtons />
         {/* {idoInfo?.status === 'upcoming' && <FormPanelLotteryUpcoming />}
         {idoInfo?.status === 'open' && <FormPanelLotteryInput />}
         {idoInfo?.status === 'closed' && <FormPanelClaimButtons />} */}
@@ -333,7 +343,6 @@ function FormPanelLotteryInput({ className }: { className?: string }) {
   } = usePageData()
   const { connected, adapter, balances } = useWallet()
   const { connection } = useConnection()
-  const { purchase } = useIdo()
 
   const inputMaxEligibleTickets = () => {
     if (idoInfo && idoInfo.state) {
@@ -351,7 +360,7 @@ function FormPanelLotteryInput({ className }: { className?: string }) {
     if (!idoInfo || !ticketAmount) return
     try {
       setIsDepositing(true)
-      await purchase({
+      await txIdoPurchase({
         idoInfo,
         amount: ticketAmount,
         onTxSuccess: () => {
@@ -534,7 +543,6 @@ function FormPanelClaimButtons({ className }: { className?: string }) {
     setIsClaimingQuote,
     setClaimingQuoteHasSuccess
   } = usePageData()
-  const { claim } = useIdo()
   const { connected } = useWallet()
   const userHasDepositedUSDC = idoInfo && idoInfo.ledger && idoInfo.ledger.quoteDeposited.toNumber() > 0
 
@@ -544,7 +552,7 @@ function FormPanelClaimButtons({ className }: { className?: string }) {
     if (!idoInfo) return
     try {
       ;(side === 'base' ? setIsClaimingBase : setIsClaimingQuote)(true)
-      claim({
+      txIdoClaim({
         side,
         idoInfo,
         onTxSuccess: () => {

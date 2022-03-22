@@ -497,9 +497,10 @@ export class Ido {
             return logger.throwArgumentError('invalid ido snapshot account info', 'snapshot', pubkey.toBase58())
           }
 
+          const decodeResult = SNAPSHOT_STATE_LAYOUT.decode(accountInfo.data)
           info[poolId.toBase58()] = {
             ...info[poolId.toBase58()],
-            ...{ snapshot: SNAPSHOT_STATE_LAYOUT.decode(accountInfo.data) }
+            ...{ snapshot: decodeResult }
           }
         }
       }
