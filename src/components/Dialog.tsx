@@ -82,7 +82,7 @@ export default function Dialog({
           >
             <div
               className={twMerge(
-                `absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2  transition-all z-10`,
+                `absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2  transition-all z-10 self-pointer-events-none`,
                 className
               )}
               style={style}

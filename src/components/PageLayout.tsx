@@ -82,7 +82,8 @@ export default function PageLayout(props: {
           "a a a" auto
           "b c c" 1fr
           "b c c" 1fr / auto 1fr 1fr`,
-        overflow: 'hidden' // establish a BFC
+        overflow: 'hidden', // establish a BFC
+        willChange: 'opacity'
       }}
       className={`w-screen mobile:w-full h-screen mobile:h-full`}
     >
