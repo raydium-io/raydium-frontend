@@ -30,7 +30,13 @@ import ListFast from '../ListFast'
 
 export default function TokenSelectorDialog(props: Parameters<typeof TokenSelectorDialogContent>[0]) {
   return (
-    <ResponsiveDialogDrawer transitionSpeed="fast" placement="from-top" open={props.open} onClose={props.close}>
+    <ResponsiveDialogDrawer
+      maskNoBlur
+      transitionSpeed="fast"
+      placement="from-top"
+      open={props.open}
+      onClose={props.close}
+    >
       {({ close: closePanel }) => <TokenSelectorDialogContent {...props} close={closePanel} />}
     </ResponsiveDialogDrawer>
   )
@@ -118,7 +124,7 @@ function TokenSelectorDialogContent({
 
   return (
     <Card
-      className="flex flex-col shadow-xl backdrop-filter backdrop-blur-xl rounded-3xl mobile:rounded-none w-[min(468px,100vw)] mobile:w-full h-[min(680px,100vh)] mobile:h-screen border-1.5 border-[rgba(99,130,202,0.2)]"
+      className="flex flex-col shadow-xl rounded-3xl mobile:rounded-none w-[min(468px,100vw)] mobile:w-full h-[min(680px,100vh)] mobile:h-screen border-1.5 border-[rgba(99,130,202,0.2)]"
       size="lg"
       style={{
         background:

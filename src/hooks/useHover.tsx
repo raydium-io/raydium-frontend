@@ -22,6 +22,7 @@ export function useHover(
     if (disable) return
     let hoverDelayTimerId
     const hoverStartHandler = (ev: PointerEvent) => {
+      if (disable) return
       if (triggerDelay) {
         hoverDelayTimerId = setTimeout(() => {
           hoverDelayTimerId = undefined
@@ -36,6 +37,7 @@ export function useHover(
       }
     }
     const hoverEndHandler = (ev: PointerEvent) => {
+      if (disable) return
       turnoffHover()
       onHover?.({ ev, is: 'end' })
       onHoverLeave?.({ ev })
