@@ -28,7 +28,7 @@ async function fetchRawIdoListJson(): Promise<RawIdoListJson> {
 /**
  * rawIdoList + info from SDK
  */
-export const fetchIdoList = async ({
+export const getHydratedIdoInfos = async ({
   connection,
   owner,
 
@@ -119,6 +119,7 @@ export const fetchIdoDetail = async ({
 }: {
   idoId: PublicKeyish
   options?: {
+    /** detect a special owner, default will be current connceted  */
     owner?: PublicKeyish
   }
 }): Promise<Required<HydratedIdoInfo> | undefined> => {
@@ -131,7 +132,7 @@ export const fetchIdoDetail = async ({
   } else {
     // TODO: only one detail info. not all detail info.
     const result = (
-      await fetchIdoList({
+      await getHydratedIdoInfos({
         connection,
         owner: options?.owner ?? useWallet.getState().owner,
         shouldFetchDetailInfo: true

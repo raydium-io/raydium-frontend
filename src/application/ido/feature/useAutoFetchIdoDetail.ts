@@ -8,26 +8,27 @@ import { useRouter } from 'next/router'
 import { HydratedIdoInfo } from '../type'
 import useIdo from '../useIdo'
 import { fetchIdoDetail, shadowlyFetchIdoDetail } from '../utils/fetchIdoInfo'
+import { EffectCheckSetting, shouldEffectBeOn } from '../../miscTools'
 
-export default function useAutoFetchIdoDetail() {
+export default function useAutoFetchIdoDetail(options?: { when?: EffectCheckSetting }) {
   const connection = useConnection((s) => s.connection)
   const owner = useWallet((s) => s.owner)
   const shadowKeypairs = useWallet((s) => s.shadowKeypairs)
-  const { query, pathname } = useRouter()
+  const { query } = useRouter() // TODO: 🔥 no need
 
   useAsyncEffect(async () => {
-    if (!pathname.includes('acceleraytor')) return
+    if (!shouldEffectBeOn(options?.when)) return
     const hydratedIdoDetailInfo = await fetchIdoDetail({ idoId: String(query.idoid) })
     if (!hydratedIdoDetailInfo) return
 
     useIdo.setState((s) => ({
       idoHydratedInfos: { ...s.idoHydratedInfos, [hydratedIdoDetailInfo.id]: hydratedIdoDetailInfo }
     }))
-  }, [connection, owner])
+  }, [connection, owner, options?.when])
 
   useAsyncEffect(async () => {
+    if (!shouldEffectBeOn(options?.when)) return
     if (!shadowKeypairs?.length) return
-    if (!pathname.includes('acceleraytor')) return
     const hydratedIdoDetailInfo = await shadowlyFetchIdoDetail({ idoId: String(query.idoid) })
 
     const shadowIdoDetailMap = objectShakeNil(
@@ -51,5 +52,5 @@ export default function useAutoFetchIdoDetail() {
         shadowIdoHydratedInfos: mergedShadowInfos
       }
     })
-  }, [connection, shadowKeypairs])
+  }, [connection, shadowKeypairs, options?.when])
 }

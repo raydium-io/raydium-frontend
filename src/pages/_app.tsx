@@ -45,6 +45,7 @@ import '../styles/index.css'
 import { useWalletConnectNotifaction } from '@/application/wallet/feature/useWalletConnectNotifaction'
 import { useInitShadowKeypairs } from '@/application/wallet/feature/useInitShadowKeypairs'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
+import useAutoFetchIdoInfo from '@/application/ido/feature/useAutoFetchIdoList'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -86,6 +87,7 @@ function ClientInitialization() {
 }
 
 function ApplicationsInitializations() {
+  const { pathname } = useRouter()
   useSlippageTolerenceValidator()
   useSlippageTolerenceSyncer()
   // TODO: it may load too much data in init action. should improve this in 0.0.2
@@ -139,7 +141,12 @@ function ApplicationsInitializations() {
   useSyncTxHistoryWithLocalStorage()
 
   /********************** acceleraytor **********************/
-  // useAutoFetchIdoInfo()
-  useAutoFetchIdoDetail()
+  useAutoFetchIdoInfo({
+    when: pathname.toLowerCase().includes('/acceleraytor') || pathname.toLowerCase().includes('/basement')
+  })
+
+  useAutoFetchIdoDetail({
+    when: pathname.toLowerCase().includes('/acceleraytor') || pathname.toLowerCase().includes('/basement')
+  })
   return null
 }

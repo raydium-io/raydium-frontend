@@ -7,21 +7,21 @@ import listToMap from '@/functions/format/listToMap'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 import useIdo from '../useIdo'
-import { fetchIdoList } from '../utils/fetchIdoInfo'
+import { getHydratedIdoInfos } from '../utils/fetchIdoInfo'
+import { EffectCheckSetting, shouldEffectBeOn } from '@/application/miscTools'
 
-export default function useAutoFetchIdoInfo() {
+export default function useAutoFetchIdoInfo(options?: { when?: EffectCheckSetting }) {
   const connection = useConnection((s) => s.connection)
   const walletAdapter = useWallet((s) => s.adapter)
-  const { pathname } = useRouter()
 
   // fetch ido json list => hydrate ido list
   useAsyncEffect(async () => {
-    if (!pathname.includes('acceleraytor')) return
+    if (!shouldEffectBeOn(options?.when)) return
     if (!connection) return
 
     assert(connection, 'fetchIdoDetail: no rpc connection')
 
-    const result = await fetchIdoList({ connection })
+    const result = await getHydratedIdoInfos({ connection })
     if (!result) return
     const { list, bannerInfo } = result
     useIdo.setState((s) => {
@@ -31,5 +31,5 @@ export default function useAutoFetchIdoInfo() {
         idoHydratedInfos: newMap
       }
     })
-  }, [connection, walletAdapter])
+  }, [connection, walletAdapter, options?.when])
 }
