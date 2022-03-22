@@ -202,11 +202,17 @@ export default function CoinInputBox({
 
   return (
     <Row
-      className={twMerge(`flex-col bg-[#141041] rounded-xl py-3 px-6 mobile:px-4`, className)}
+      className={twMerge(`flex-col bg-[#141041] cursor-text rounded-xl py-3 px-6 mobile:px-4`, className)}
       style={style}
       domRef={domRef}
       htmlPorps={{
         tabIndex: 0
+      }}
+      onClick={({ target }) => {
+        const isClickSelf = target === domRef?.current
+        if (isClickSelf) {
+          focusInput()
+        }
       }}
     >
       {/* from&balance */}

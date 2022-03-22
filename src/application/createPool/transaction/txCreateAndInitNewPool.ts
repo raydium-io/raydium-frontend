@@ -1,4 +1,4 @@
-import { Liquidity, Token } from '@raydium-io/raydium-sdk'
+import { Liquidity, SPL_MINT_LAYOUT, Token } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import useToken from '@/application/token/useToken'
@@ -7,14 +7,15 @@ import handleMultiTx from '@/application/txTools/handleMultiTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import toBN from '@/functions/numberish/toBN'
 
 import useCreatePool from '../useCreatePool'
 import { recordCreatedPool } from '../utils/recordCreatedPool'
-import { WSOLMint } from '@/application/token/utils/quantumSOL'
+import { deUITokenAmount, WSOLMint } from '@/application/token/utils/quantumSOL'
 import toPubString from '@/functions/format/toMintString'
 import { getMax } from '@/functions/numberish/operations'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSuccess?: () => void }) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -34,7 +35,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       startTime
     } = useCreatePool.getState()
 
-    const { getPureToken } = useToken.getState()
+    const { getToken } = useToken.getState()
     const { solBalance, tokenAccounts, pureRawBalances } = useWallet.getState()
 
     assert(lpMint, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
@@ -50,19 +51,21 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     assert(gt(quoteDecimaledAmount, 0), 'should input > 0 quote amount ')
     assert(sdkAssociatedPoolKeys, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
 
+    const lpMintInfoOnChain = (await connection?.getAccountInfo(new PublicKey(lpMint)))?.data
     const ammInfoOnChain = (await connection?.getAccountInfo(new PublicKey(ammId)))?.data
-    const isAlreadyCreated = Boolean(ammInfoOnChain?.length)
+    const isAlreadyCreated = Boolean(
+      lpMintInfoOnChain?.length && Number(SPL_MINT_LAYOUT.decode(lpMintInfoOnChain).supply) === 0
+    )
     const isAlreadyInited = Boolean(
       ammInfoOnChain?.length && isMeaningfulNumber(Liquidity.getStateLayout(4).decode(ammInfoOnChain)?.status)
     )
-
     assert(!isAlreadyInited, 'pool already inited')
 
     // assert user has eligible base and quote
     const { tokenAccountRawInfos } = useWallet.getState()
 
-    const baseToken = getPureToken(baseMint) || new Token(baseMint, baseDecimals)
-    const quoteToken = getPureToken(quoteMint) || new Token(quoteMint, quoteDecimals)
+    const baseToken = getToken(baseMint) || new Token(baseMint, baseDecimals)
+    const quoteToken = getToken(quoteMint) || new Token(quoteMint, quoteDecimals)
 
     assert(
       gte(
@@ -84,9 +87,6 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       "wallet haven't enough quote token"
     )
 
-    // eslint-disable-next-line no-console
-    console.assert(!isAlreadyCreated, 'pool already created')
-
     if (!isAlreadyCreated) {
       // step1: create pool
       const { transaction: sdkTransaction1, signers: sdkSigners1 } = Liquidity.makeCreatePoolTransaction({
@@ -106,8 +106,8 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     const { transaction: sdkTransaction2, signers: sdkSigners2 } = await Liquidity.makeInitPoolTransaction({
       poolKeys: sdkAssociatedPoolKeys,
       startTime: startTime ? toBN(startTime.getTime() / 1000) : undefined,
-      baseAmount: toTokenAmount(baseToken, baseDecimaledAmount, { alreadyDecimaled: true }),
-      quoteAmount: toTokenAmount(quoteToken, quoteDecimaledAmount, { alreadyDecimaled: true }),
+      baseAmount: deUITokenAmount(toTokenAmount(baseToken, baseDecimaledAmount, { alreadyDecimaled: true })),
+      quoteAmount: deUITokenAmount(toTokenAmount(quoteToken, quoteDecimaledAmount, { alreadyDecimaled: true })),
       connection,
       userKeys: { owner, payer: owner, tokenAccounts: tokenAccountRawInfos }
     })

@@ -27,6 +27,12 @@ export function toTokenAmount(
   token: QuantumSOLToken,
   amount: Numberish | undefined,
   options?: {
+    /**
+     * without this options, inputed wsol will be quantumSol
+     * normally you should not use it
+     */
+    exact?: boolean
+    /** defaultly {@link toTokenAmount} accept BN, use this to accpet pure number like:3.11 */
     alreadyDecimaled?: boolean // may cause bug, havn't test it
   }
 ): QuantumSOLAmount
@@ -34,6 +40,12 @@ export function toTokenAmount(
   token: HydratedTokenJsonInfo | Token,
   amount: Numberish | undefined,
   options?: {
+    /**
+     * without this options, inputed wsol will be quantumSol
+     * normally you should not use it
+     */
+    exact?: boolean
+    /** defaultly {@link toTokenAmount} accept BN, use this to accpet pure number like:3.11 */
     alreadyDecimaled?: boolean // may cause bug, havn't test it
   }
 ): TokenAmount
@@ -41,6 +53,12 @@ export function toTokenAmount(
   token: HydratedTokenJsonInfo | Token | QuantumSOLToken,
   amount: Numberish | undefined,
   options?: {
+    /**
+     * without this options, inputed wsol will be quantumSol
+     * normally you should not use it
+     */
+    exact?: boolean
+    /** defaultly {@link toTokenAmount} accept BN, use this to accpet pure number like:3.11 */
     alreadyDecimaled?: boolean // may cause bug, havn't test it
   }
 ): TokenAmount | QuantumSOLAmount {
@@ -64,9 +82,9 @@ export function toTokenAmount(
 
   const issol = isQuantumSOL(parsedToken) || isQuantumSOLVersionSOL(parsedToken)
 
-  if (iswsol) {
+  if (iswsol && !options?.exact) {
     return toQuantumSolAmount({ wsolRawAmount: amountBigNumber })
-  } else if (issol) {
+  } else if (issol && !options?.exact) {
     return toQuantumSolAmount({ solRawAmount: amountBigNumber })
   } else {
     return new TokenAmount(parsedToken, amountBigNumber)

@@ -26,6 +26,7 @@ import toPubString from '@/functions/format/toMintString'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
 import { createSplToken } from '@/application/token/feature/useTokenListsLoader'
+import ListFast from '../ListFast'
 
 export default function TokenSelectorDialog(props: Parameters<typeof TokenSelectorDialogContent>[0]) {
   return (
@@ -219,35 +220,35 @@ function TokenSelectorDialogContent({
               <Row className="text-xs font-medium text-[rgba(171,196,255,.5)] items-center gap-1">Balance</Row>
             </Row>
             {haveSearchResult ? (
-              <List className="flex-grow flex flex-col px-4 mobile:px-2 mx-2 gap-2 overflow-auto my-2">
-                {searchedTokens.map((token, idx) => {
-                  const key = isQuantumSOL(token) ? token.symbol : String(token?.mint)
-                  return (
-                    <List.Item key={key}>
-                      <Row
-                        className={`${
-                          selectedTokenIdx === idx
-                            ? 'clickable no-clicable-transform-effect clickable-mask-offset-2 before:bg-[rgba(0,0,0,0.2)]'
-                            : ''
-                        }`}
-                        onHoverChange={({ is: hoverStatus }) => {
-                          if (hoverStatus === 'start') {
-                            setSelectedTokenIdx(idx)
-                          }
+              <ListFast
+                className="flex-grow flex flex-col px-4 mobile:px-2 mx-2 gap-2 overflow-auto my-2"
+                sourceData={searchedTokens}
+                getKey={(token, idx) => (isQuantumSOL(token) ? token.symbol : toPubString(token?.mint)) ?? idx}
+                renderItem={(token, idx) => (
+                  <div>
+                    <Row
+                      className={`${
+                        selectedTokenIdx === idx
+                          ? 'clickable no-clicable-transform-effect clickable-mask-offset-2 before:bg-[rgba(0,0,0,0.2)]'
+                          : ''
+                      }`}
+                      onHoverChange={({ is: hoverStatus }) => {
+                        if (hoverStatus === 'start') {
+                          setSelectedTokenIdx(idx)
+                        }
+                      }}
+                    >
+                      <TokenSelectorDialogTokenItem
+                        onClick={() => {
+                          closeAndClean()
+                          onSelectCoin?.(token)
                         }}
-                      >
-                        <TokenSelectorDialogTokenItem
-                          onClick={() => {
-                            closeAndClean()
-                            onSelectCoin?.(token)
-                          }}
-                          token={token}
-                        />
-                      </Row>
-                    </List.Item>
-                  )
-                })}
-              </List>
+                        token={token}
+                      />
+                    </Row>
+                  </div>
+                )}
+              />
             ) : onlineTokenMintInfo ? (
               <Col className="p-8  gap-4">
                 <InputBox

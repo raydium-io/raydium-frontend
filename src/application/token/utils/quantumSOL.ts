@@ -121,7 +121,7 @@ export const toQuantumSolAmount = ({
       : !wsolRawAmount && solRawAmount
       ? QuantumSOLVersionSOL
       : QuantumSOL
-  const tempTokenAmount = new TokenAmount(quantumSol, solRawAmount ?? ZERO)
+  const tempTokenAmount = new TokenAmount(quantumSol, solRawAmount ?? wsolRawAmount ?? ZERO)
   // @ts-expect-error force
   return Object.assign(tempTokenAmount, { solBalance: solRawAmount, wsolBalance: wsolRawAmount })
 }
