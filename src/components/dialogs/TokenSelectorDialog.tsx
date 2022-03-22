@@ -155,7 +155,7 @@ function TokenSelectorDialogContent({
               onClick={closeAndClean}
             />
           </Row>
-          <List className="p-2 grid gap-4 mt-2 overflow-auto max-h-[70vh]">
+          <List className="p-2 grid mt-2 overflow-auto max-h-[70vh]">
             {Object.entries(tokenListSettings)
               .map(([name]) => name as SupportedTokenListSettingName)
               .map((availableTokenListName) => (
@@ -314,8 +314,8 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
           <div className="text-base font-normal text-[#ABC4FF]">{token.symbol}</div>
           <div className="text-xs font-medium text-[rgba(171,196,255,.5)]">{token.name}</div>
         </Col>
-        {canFlaggedTokenMints.has(String(token.mint)) ? (
-          userFlaggedTokenMints.has(String(token.mint)) ? (
+        {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+          userFlaggedTokenMints.has(toPubString(token.mint)) ? (
             // <Icon
             //   iconSrc="/icons/misc-star-filled.svg"
             //   onClick={(ev) => {
@@ -380,7 +380,7 @@ function TokenSelectorDialogTokenListItem({ tokenListName }: { tokenListName: Su
   if (!tokenList.mints?.size) return null
   if (tokenList.cannotbBeSeen) return null
   return (
-    <Row>
+    <Row className="my-4 items-center">
       {tokenList?.icon && <Image className="rounded-full h-8 w-8 overflow-hidden" src={tokenList.icon} />}
 
       <Col>

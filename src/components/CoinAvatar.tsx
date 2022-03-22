@@ -36,14 +36,11 @@ export default function CoinAvatar({
   onClick
 }: CoinAvatarProps) {
   // if (!token && !iconSrc) return null
-  const src = useAsyncValue(
-    async () =>
-      iconSrc ??
-      ((token as any)?.icons as string[] | undefined) ??
-      ((token as any)?.icon as string | undefined) ??
-      '/coins/dollar.svg',
+  const src =
+    iconSrc ??
+    ((token as any)?.icons as string[] | undefined) ??
+    ((token as any)?.icon as string | undefined) ??
     '/coins/dollar.svg'
-  )
   const hasOpacity = true // temporary all need to be smallize
   const iconSize =
     size === '2xl'
