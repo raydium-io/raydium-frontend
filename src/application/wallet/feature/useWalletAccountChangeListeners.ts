@@ -37,7 +37,7 @@ export function useWalletAccountChangeListeners() {
   }, [connection, owner])
 }
 
-// TODO: the code form  of use this is not straightforward
+// TODO: the code form  of use this is not straightforward, should be integrated in handleMultiTx
 export function addWalletAccountChangeListener(cb: () => void, options?: { once?: boolean }) {
   const listenerId = listenerIdCounter
   listenerIdCounter += 1
