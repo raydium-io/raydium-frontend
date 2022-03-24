@@ -2,7 +2,7 @@ import BN from 'bn.js'
 
 import { DateInfo, HexAddress, LinkAddress, PercentString, SrcAddress, StringNumber } from '@/types/constants'
 
-import { SplToken } from '../token/type'
+import { SplToken, TokenAmount } from '../token/type'
 import { IdoLedgerLayoutV3, IdoPoolBaseInfo, IdoStateLayoutV3, SnapshotStateLayoutV1 } from './sdk'
 
 interface IdoBannerInfoItem {
@@ -80,6 +80,7 @@ export interface HydratedIdoInfo extends SdkParsedIdoInfo {
   isEligible: boolean
   /** only have connection */
   userEligibleTicketAmount?: BN
+  claimableQuote?: TokenAmount
   ledger?: (SdkParsedIdoInfo['ledger'] | undefined) & {
     winningTickets?: TicketInfo[]
     userAllocation?: StringNumber

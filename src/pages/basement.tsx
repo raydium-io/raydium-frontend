@@ -1,9 +1,13 @@
-import React from 'react'
+import React, { ReactNode } from 'react'
 
 import Grid from '@/components/Grid'
 import PageLayout from '@/components/PageLayout'
 import useIdo from '@/application/ido/useIdo'
 import Row from '@/components/Row'
+import { AddressItem } from '@/components/AddressItem'
+import { ThreeSlotItem } from '@/components/ThreeSlotItem'
+import { prependListener } from 'process'
+import { toString } from '@/functions/numberish/toString'
 
 export default function BasementPage() {
   return (
@@ -31,14 +35,36 @@ function IdoPanel() {
               <div className="text-2xl mobile:text-lg font-semibold justify-self-start text-white col-span-full mb-8">
                 {exampleIdoInfo.base?.symbol}
               </div>
-              {Object.entries(idoHydratedInfoCollection ?? {})}
-              <Row className="text-2xl mobile:text-lg font-semibold justify-self-start text-white col-span-full mb-8">
-                <div></div>
-              </Row>
+              {Object.entries(idoHydratedInfoCollection ?? {}).map(([walletOwner, idoHydratedInfo]) => (
+                <div key={walletOwner} className="mb-4">
+                  <AddressItem>{walletOwner}</AddressItem>
+                  <Row className="text-white gap-8">
+                    {idoHydratedInfo.userEligibleTicketAmount && (
+                      <ItemBlock
+                        label="Eligible tickets"
+                        value={String(idoHydratedInfo.userEligibleTicketAmount ?? '--')}
+                      />
+                    )}
+                    {idoHydratedInfo.claimableQuote && (
+                      <ItemBlock
+                        label={`claimable quote(${idoHydratedInfo.quote?.symbol ?? '--'})`}
+                        value={toString(idoHydratedInfo.claimableQuote)}
+                      />
+                    )}
+                    {Boolean(idoHydratedInfo.ledger?.winningTickets?.length) && (
+                      <ItemBlock label="Winning tickets count" value={idoHydratedInfo.ledger?.winningTickets?.length} />
+                    )}
+                  </Row>
+                </div>
+              ))}
             </div>
           )
         })}
       </Grid>
     </div>
   )
+}
+
+function ItemBlock(props: { label: ReactNode; value: ReactNode }) {
+  return <ThreeSlotItem prefix={<div className="text-xs opacity-75">{props.label}: </div>} text={props.value} />
 }

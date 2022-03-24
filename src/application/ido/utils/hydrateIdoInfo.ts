@@ -9,7 +9,7 @@ import { Percent } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { HydratedIdoInfo, SdkParsedIdoInfo, TicketInfo, TicketTailNumberInfo } from '../type'
-import { gt, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, gt, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 
@@ -86,24 +86,34 @@ function getWinningTicketsTailNumbers(idoInfo: SdkParsedIdoInfo): HydratedIdoInf
  *  computed from raw idoInfo
  */
 export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
+  const status = isLotteryUpcoming(idoInfo) ? 'upcoming' : isLotteryOpen(idoInfo) ? 'open' : 'closed'
+  const idoLedger = idoInfo.ledger
+    ? {
+        ...(idoInfo.ledger ?? {}),
+        winningTickets: getWinningTickets(idoInfo),
+        userAllocation: getUserAllocation(idoInfo),
+        depositedTickets: getDepositedTickets(idoInfo)
+      }
+    : undefined
+
   return {
     ...(idoInfo ?? {}),
     state: {
       ...idoInfo.state,
       winningTicketsTailNumber: getWinningTicketsTailNumbers(idoInfo)
     },
-    ledger: idoInfo.ledger
-      ? {
-          ...(idoInfo.ledger ?? {}),
-          winningTickets: getWinningTickets(idoInfo),
-          userAllocation: getUserAllocation(idoInfo),
-          depositedTickets: getDepositedTickets(idoInfo)
-        }
-      : undefined,
-    status: isLotteryUpcoming(idoInfo) ? 'upcoming' : isLotteryOpen(idoInfo) ? 'open' : 'closed',
+    ledger: idoLedger,
+    status,
     raise: getIdoRaise(idoInfo.base, idoInfo.state.maxWinLotteries),
     price: getIdoPrice(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount),
     filled: getIdoFilled(idoInfo),
+    claimableQuote:
+      (status === 'closed' &&
+        idoLedger &&
+        eq(0, idoLedger.quoteWithdrawn) &&
+        idoInfo.quote &&
+        toTokenAmount(idoInfo.quote, idoLedger.quoteDeposited)) ||
+      undefined,
     ...getEligibleInfo(idoInfo)
   }
 }
