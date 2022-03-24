@@ -2,16 +2,13 @@ import { LiquidityPoolJsonInfo as LiquidityJsonInfo, PublicKeyish } from '@raydi
 
 import create from 'zustand'
 
-import { hasSameItems } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
 import { gte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 
-import { usePools } from '../pools/usePools'
 import { SplToken } from '../token/type'
 import { toDataMint, WSOLMint } from '../token/utils/quantumSOL'
 import { mSOLMint, PAIMint, RAYMint, stSOLMint, USDCMint } from '../token/utils/wellknownToken.config'
-import useWallet from '../wallet/useWallet'
 
 import { HydratedLiquidityInfo, SDKParsedLiquidityInfo } from './type'
 import sdkParseJsonLiquidityInfo from './utils/sdkParseJsonLiquidityInfo'
@@ -66,11 +63,14 @@ export type LiquidityStore = {
 
   /** with slippage */
   coin1Amount?: string // for coin may be not selected yet, so it can't be TokenAmount
+  unslippagedCoin1Amount?: string // for coin may be not selected yet, so it can't be TokenAmount
 
   coin2: SplToken | undefined
 
   /** with slippage */
   coin2Amount?: string // for coin may be not selected yet, so it can't be TokenAmount
+  unslippagedCoin2Amount?: string // for coin may be not selected yet, so it can't be TokenAmount
+
   focusSide: 'coin1' | 'coin2' // not reflect ui placement.  maybe coin1 appears below coin2
   isRemoveDialogOpen: boolean
   isSearchAmmDialogOpen: boolean

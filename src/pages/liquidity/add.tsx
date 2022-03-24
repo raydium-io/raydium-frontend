@@ -208,8 +208,10 @@ function LiquidityCard() {
   const {
     coin1,
     coin1Amount,
+    unslippagedCoin1Amount,
     coin2,
     coin2Amount,
+    unslippagedCoin2Amount,
     currentJsonInfo,
     currentHydratedInfo,
     isSearchAmmDialogOpen,
@@ -323,7 +325,7 @@ function LiquidityCard() {
         <CoinInputBox
           componentRef={coinInputBox2ComponentRef}
           disabled={isApprovePanelShown}
-          value={coin2Amount}
+          value={unslippagedCoin2Amount}
           haveHalfButton
           haveCoinIcon
           canSelect
@@ -514,6 +516,9 @@ function LiquidityCardInfo({ className }: { className?: string }) {
   const currentHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
   const coin1 = useLiquidity((s) => s.coin1)
   const coin2 = useLiquidity((s) => s.coin2)
+  const focusSide = useLiquidity((s) => s.focusSide)
+  const coin1Amount = useLiquidity((s) => s.coin1Amount)
+  const coin2Amount = useLiquidity((s) => s.coin2Amount)
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
   const isCoin1Base = String(currentHydratedInfo?.baseMint) === String(coin1?.mint)
@@ -537,21 +542,54 @@ function LiquidityCardInfo({ className }: { className?: string }) {
         className
       )}
     >
-      <Col className="gap-3 w-full">
+      <Col className="w-full">
         <LiquidityCardItem
-          fieldName={`Pooled (base)`}
+          fieldName={`Base`}
+          fieldValue={focusSide === 'coin1' ? coin1?.symbol ?? 'unknown' : coin2?.symbol ?? 'unknown'}
+        />
+        <FadeIn>
+          {(coin1Amount || coin2Amount) && (
+            <LiquidityCardItem
+              fieldName={`Max Amount`}
+              fieldValue={focusSide === 'coin1' ? coin2Amount || '' : coin1Amount ?? ''}
+            />
+          )}
+        </FadeIn>
+        {/* <LiquidityCardItem
+          fieldName={`Pool liquidity`}
           fieldValue={
-            pooledBaseTokenAmount
-              ? `${formatNumber(pooledBaseTokenAmount.toExact())} ${coinBase?.symbol ?? 'unknown'}`
-              : '--'
+            <Col className="items-end">
+              <div>
+                {pooledBaseTokenAmount
+                  ? `${formatNumber(pooledBaseTokenAmount.toExact())} ${coinBase?.symbol ?? 'unknown'}`
+                  : '--'}
+              </div>
+              <div>
+                {pooledQuoteTokenAmount
+                  ? `${formatNumber(pooledQuoteTokenAmount.toExact())} ${coinQuote?.symbol ?? 'unknown'}`
+                  : '--'}
+              </div>
+            </Col>
+          }
+        /> */}
+        <LiquidityCardItem
+          fieldName={`Pool liquidity (${coinBase?.symbol ?? 'unknown'})`}
+          fieldValue={
+            <div>
+              {pooledBaseTokenAmount
+                ? `${formatNumber(pooledBaseTokenAmount.toExact())} ${coinBase?.symbol ?? 'unknown'}`
+                : '--'}
+            </div>
           }
         />
         <LiquidityCardItem
-          fieldName={`Pooled (quote)`}
+          fieldName={`Pool liquidity (${coinQuote?.symbol ?? 'unknown'})`}
           fieldValue={
-            pooledQuoteTokenAmount
-              ? `${formatNumber(pooledQuoteTokenAmount.toExact())} ${coinQuote?.symbol ?? 'unknown'}`
-              : '--'
+            <div>
+              {pooledQuoteTokenAmount
+                ? `${formatNumber(pooledQuoteTokenAmount.toExact())} ${coinQuote?.symbol ?? 'unknown'}`
+                : '--'}
+            </div>
           }
         />
         <LiquidityCardItem
@@ -569,9 +607,9 @@ function LiquidityCardInfo({ className }: { className?: string }) {
             </Row>
           }
         />
-        <Collapse openDirection="upwards" className="w-full">
+        <Collapse openDirection="upwards" className="w-full my-1">
           <Collapse.Body>
-            <Col className="gap-3 pb-3">
+            <Col className="pb-3">
               <LiquidityCardItem fieldName="Addresses" tooltipContent={<LiquidityCardTooltipPanelAddress />} />
               <LiquidityCardItem
                 fieldName="Slippage Tolerance"
@@ -621,7 +659,7 @@ function LiquidityCardItem({
   debugForceOpen?: boolean
 }) {
   return (
-    <Row className={twMerge('w-full justify-between', className)}>
+    <Row className={twMerge('w-full justify-between my-1.5', className)}>
       <Row className="items-center text-xs font-medium text-[#ABC4FF]">
         <div className="mr-1">{fieldName}</div>
         {tooltipContent && (

@@ -49,12 +49,12 @@ export default function useLiquidityAmountCalculator() {
       (focusSide === 'coin1' && eq(userCoin1Amount, 0)) ||
       (focusSide === 'coin2' && eq(userCoin2Amount, 0))
     ) {
-      if (focusSide === 'coin1') useLiquidity.setState({ coin2Amount: '' })
-      if (focusSide === 'coin2') useLiquidity.setState({ coin1Amount: '' })
+      if (focusSide === 'coin1') useLiquidity.setState({ coin2Amount: '', unslippagedCoin2Amount: '' })
+      if (focusSide === 'coin2') useLiquidity.setState({ coin1Amount: '', unslippagedCoin1Amount: '' })
       return
     }
     try {
-      const pairCoinAmount = await calculatePairTokenAmount({
+      const { amount: pairCoinAmount, unslippagedAmount: unslippagedPairCoinAmount } = await calculatePairTokenAmount({
         coin1,
         userCoin1Amount,
         coin2,
@@ -65,9 +65,9 @@ export default function useLiquidityAmountCalculator() {
         slippageTolerance
       })
       if (focusSide === 'coin1') {
-        useLiquidity.setState({ coin2Amount: pairCoinAmount })
+        useLiquidity.setState({ coin2Amount: pairCoinAmount, unslippagedCoin2Amount: unslippagedPairCoinAmount })
       } else {
-        useLiquidity.setState({ coin1Amount: pairCoinAmount })
+        useLiquidity.setState({ coin1Amount: pairCoinAmount, unslippagedCoin1Amount: unslippagedPairCoinAmount })
       }
     } catch (err) {
       console.error('err: ', err)
@@ -112,7 +112,10 @@ async function calculatePairTokenAmount({
   connection: Connection
   slippageTolerance: Numberish
   currentJsonInfo: LiquidityPoolJsonInfo
-}): Promise<string> {
+}): Promise<{
+  amount: string
+  unslippagedAmount: string
+}> {
   const sdkParsedInfo = sdkParsedInfoCache.has(jsonInfo.id)
     ? sdkParsedInfoCache.get(jsonInfo.id)!
     : await (async () => {
@@ -127,7 +130,7 @@ async function calculatePairTokenAmount({
   const inputAmount = toTokenAmount(inputToken, focusSide === 'coin1' ? userCoin1Amount : userCoin2Amount, {
     alreadyDecimaled: true
   })
-  const { maxAnotherAmount } = Liquidity.computeAnotherAmount({
+  const { maxAnotherAmount, anotherAmount } = Liquidity.computeAnotherAmount({
     poolKeys: jsonInfo2PoolKeys(jsonInfo),
     poolInfo: sdkParsedInfo,
     amount: deUITokenAmount(inputAmount),
@@ -135,5 +138,8 @@ async function calculatePairTokenAmount({
     slippage: toPercent(toPercent(slippageTolerance))
   })
 
-  return shakeZero(toUITokenAmount(maxAnotherAmount).toExact())
+  return {
+    amount: shakeZero(toUITokenAmount(maxAnotherAmount).toExact()),
+    unslippagedAmount: shakeZero(toUITokenAmount(anotherAmount).toExact())
+  }
 }
