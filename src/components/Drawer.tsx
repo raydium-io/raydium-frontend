@@ -42,6 +42,8 @@ export interface DrawerProps {
   open: boolean
   placement?: 'from-left' | 'from-bottom' | 'from-top' | 'from-right'
   transitionSpeed?: 'fast' | 'normal'
+  // if content is scrollable, PLEASE open it!!!, for blur will make scroll super fuzzy
+  maskNoBlur?: boolean
   onOpen?: () => void
   onOpenTransitionEnd?: () => void
   onClose?: () => void
@@ -56,6 +58,7 @@ export default function Drawer({
   open,
   placement = 'from-left',
   transitionSpeed = 'normal',
+  maskNoBlur,
   onOpen,
   onOpenTransitionEnd,
   onClose,
@@ -106,7 +109,7 @@ export default function Drawer({
         leaveTo="opacity-0"
       >
         <div
-          className={`absolute inset-0 backdrop-filter backdrop-blur bg-[rgba(25,19,88,0.5)]`}
+          className={`absolute inset-0 ${maskNoBlur ? '' : 'backdrop-filter backdrop-blur'} bg-[rgba(25,19,88,0.5)]`}
           onClick={closeDrawer}
         ></div>
       </Transition.Child>

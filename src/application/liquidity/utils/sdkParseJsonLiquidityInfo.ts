@@ -17,7 +17,6 @@ export default async function sdkParseJsonLiquidityInfo(
       ...jsonInfo2PoolKeys(liquidityJsonInfos[idx]),
       ...sdkParsed
     }))
-
     return result
   } catch (err) {
     console.error(err)

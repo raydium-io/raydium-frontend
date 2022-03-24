@@ -30,7 +30,13 @@ import ListFast from '../ListFast'
 
 export default function TokenSelectorDialog(props: Parameters<typeof TokenSelectorDialogContent>[0]) {
   return (
-    <ResponsiveDialogDrawer transitionSpeed="fast" placement="from-top" open={props.open} onClose={props.close}>
+    <ResponsiveDialogDrawer
+      maskNoBlur
+      transitionSpeed="fast"
+      placement="from-top"
+      open={props.open}
+      onClose={props.close}
+    >
       {({ close: closePanel }) => <TokenSelectorDialogContent {...props} close={closePanel} />}
     </ResponsiveDialogDrawer>
   )
@@ -118,7 +124,7 @@ function TokenSelectorDialogContent({
 
   return (
     <Card
-      className="flex flex-col shadow-xl backdrop-filter backdrop-blur-xl rounded-3xl mobile:rounded-none w-[min(468px,100vw)] mobile:w-full h-[min(680px,100vh)] mobile:h-screen border-1.5 border-[rgba(99,130,202,0.2)]"
+      className="flex flex-col shadow-xl rounded-3xl mobile:rounded-none w-[min(468px,100vw)] mobile:w-full h-[min(680px,100vh)] mobile:h-screen border-1.5 border-[rgba(99,130,202,0.2)]"
       size="lg"
       style={{
         background:
@@ -155,7 +161,7 @@ function TokenSelectorDialogContent({
               onClick={closeAndClean}
             />
           </Row>
-          <List className="p-2 grid gap-4 mt-2 overflow-auto max-h-[70vh]">
+          <List className="p-2 grid mt-2 overflow-auto max-h-[70vh]">
             {Object.entries(tokenListSettings)
               .map(([name]) => name as SupportedTokenListSettingName)
               .map((availableTokenListName) => (
@@ -314,8 +320,8 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
           <div className="text-base font-normal text-[#ABC4FF]">{token.symbol}</div>
           <div className="text-xs font-medium text-[rgba(171,196,255,.5)]">{token.name}</div>
         </Col>
-        {canFlaggedTokenMints.has(String(token.mint)) ? (
-          userFlaggedTokenMints.has(String(token.mint)) ? (
+        {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+          userFlaggedTokenMints.has(toPubString(token.mint)) ? (
             // <Icon
             //   iconSrc="/icons/misc-star-filled.svg"
             //   onClick={(ev) => {
@@ -380,7 +386,7 @@ function TokenSelectorDialogTokenListItem({ tokenListName }: { tokenListName: Su
   if (!tokenList.mints?.size) return null
   if (tokenList.cannotbBeSeen) return null
   return (
-    <Row>
+    <Row className="my-4 items-center">
       {tokenList?.icon && <Image className="rounded-full h-8 w-8 overflow-hidden" src={tokenList.icon} />}
 
       <Col>

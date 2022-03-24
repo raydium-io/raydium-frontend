@@ -82,7 +82,8 @@ export default function PageLayout(props: {
           "a a a" auto
           "b c c" 1fr
           "b c c" 1fr / auto 1fr 1fr`,
-        overflow: 'hidden' // establish a BFC
+        overflow: 'hidden', // establish a BFC
+        willChange: 'opacity'
       }}
       className={`w-screen mobile:w-full h-screen mobile:h-full`}
     >
@@ -180,12 +181,13 @@ function VersionMessageBubble() {
     <div>
       <FadeIn>
         {versionRefreshData === 'too-old' && (
-          <Row className="w-[min(324px,100%)]  m-auto justify-center items-center py-4 px-6 mobile:py-3 mb-8 mobile:mb-2 rounded-xl ring-1.5 ring-inset ring-[#DA2EEF] bg-[#1B1659]">
+          <Row className="w-[min(400px,100%)]  m-auto justify-center items-center py-4 px-6 mobile:py-3 mb-8 mobile:mb-2 rounded-xl ring-1.5 ring-inset ring-[#D8CB39] bg-[#1B1659]">
             <div className="text-[#C4D6FF] text-sm font-medium">
-              current version is too old,{' '}
-              <span className="clickable text-[#DA2EEF] font-bold" onClick={() => refreshWindow({ noCache: true })}>
-                refresh app
-              </span>
+              New app version available,{' '}
+              <span className="clickable text-[#D8CB39] font-bold" onClick={() => refreshWindow({ noCache: true })}>
+                refresh
+              </span>{' '}
+              to update.
             </div>
           </Row>
         )}
@@ -319,7 +321,11 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
 
   useEffect(() => {
     if (!inClient) return
-    setCssVarible(globalThis.document.documentElement, '--side-menu-width', sideMenuRef.current?.clientWidth)
+    setCssVarible(
+      globalThis.document.documentElement,
+      '--side-menu-width',
+      sideMenuRef.current ? Math.min(sideMenuRef.current.clientWidth, sideMenuRef.current.clientHeight) : 0
+    )
   }, [sideMenuRef])
 
   return (

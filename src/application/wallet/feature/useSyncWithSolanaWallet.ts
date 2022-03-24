@@ -4,7 +4,7 @@ import { useWallet as _useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey, Transaction } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
-import { handleRecentBlockhash } from '@/application/txTools/handleRecentBlockhash'
+import { attachRecentBlockhash } from '@/application/txTools/attachRecentBlockhash'
 
 import useWallet from '../useWallet'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
@@ -68,7 +68,7 @@ export function useSyncWithSolanaWallet() {
   useEffect(() => {
     useWallet.setState({
       signAllTransactions: async (transactions: Transaction[]) => {
-        await handleRecentBlockhash(...transactions)
+        await attachRecentBlockhash(...transactions)
         return (
           (await _signAllTransactions?.(transactions).catch((err) => {
             throw err

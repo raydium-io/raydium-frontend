@@ -9,7 +9,7 @@ import useFarms from '../useFarms'
 export default function useInjectRaydiumFeeAprFromPair() {
   const pairs = usePools((s) => s.jsonInfos)
 
-  const aprs = useMemo(() => Object.fromEntries(pairs.map((i) => [i.ammId, i.apr30d])), [pairs])
+  const aprs = useMemo(() => Object.fromEntries(pairs.map((i) => [i.ammId, i.apr7d])), [pairs])
   const hydratedInfos = useFarms((s) => s.hydratedInfos)
 
   useEffect(() => {
