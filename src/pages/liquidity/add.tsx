@@ -270,7 +270,7 @@ function LiquidityCard() {
           className="mt-5"
           disabled={isApprovePanelShown}
           componentRef={coinInputBox1ComponentRef}
-          value={coin1Amount}
+          value={unslippagedCoin1Amount}
           haveHalfButton
           haveCoinIcon
           canSelect
