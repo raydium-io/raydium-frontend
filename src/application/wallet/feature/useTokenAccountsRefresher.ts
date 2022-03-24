@@ -39,7 +39,15 @@ export default function useTokenAccountsRefresher(): void {
   useEffect(() => {
     if (!connection || !owner) return
     fetchTokenAccounts(connection, owner, { noSecondTry: true })
-  }, [walletRefreshCount, swapRefreshCount, liquidityRefreshCount, farmRefreshCount, poolRefreshCount])
+  }, [
+    connection,
+    owner,
+    walletRefreshCount,
+    swapRefreshCount,
+    liquidityRefreshCount,
+    farmRefreshCount,
+    poolRefreshCount
+  ])
 }
 
 /** if all tokenAccount amount is not changed (which may happen in 'confirmed'), auto fetch second time in 'finalized'*/
@@ -68,7 +76,7 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
   const hasWalletTokenAccountChanged = diffCount >= 2
   //#endregion
 
-  if (options?.noSecondTry || hasWalletTokenAccountChanged) {
+  if (options?.noSecondTry || hasWalletTokenAccountChanged || diffCount === 0) {
     useWallet.setState({
       tokenAccountRawInfos: rawInfos,
       verboseTokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated || ta.isNative),
