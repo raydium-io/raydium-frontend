@@ -49,7 +49,9 @@ export function useAppInitVersionPostHeartBeat() {
 }
 
 export function useJudgeAppVersion() {
-  const { lastest, least, currentVersion } = useAppVersion()
+  const lastest = useAppVersion((s) => s.lastest)
+  const least = useAppVersion((s) => s.least)
+  const currentVersion = useAppVersion((s) => s.currentVersion)
   useEffect(() => {
     if (!lastest || !least) return
     if (isVersionOlder(currentVersion, least)) {
@@ -65,7 +67,7 @@ export function useJudgeAppVersion() {
         versionFresh: 'it-works'
       })
     }
-  }, [lastest, least])
+  }, [lastest, least, currentVersion])
 }
 //#endregion
 
@@ -89,9 +91,15 @@ function isVersionEqual(version1: string, version2: string): boolean {
 function isVersionOlder(version1: string, version2: string): boolean {
   const versionConfig1 = parseVersionString(version1)
   const versionConfig2 = parseVersionString(version2)
-  if (versionConfig1.main && versionConfig2.main && versionConfig1.main < versionConfig2.main) return true
-  if (versionConfig1.feature && versionConfig2.feature && versionConfig1.feature < versionConfig2.feature) return true
-  if (versionConfig1.fix && versionConfig2.fix && versionConfig1.fix < versionConfig2.fix) return true
+  if (versionConfig1.main != null && versionConfig2.main != null && versionConfig1.main < versionConfig2.main)
+    return true
+  if (
+    versionConfig1.feature != null &&
+    versionConfig2.feature != null &&
+    versionConfig1.feature < versionConfig2.feature
+  )
+    return true
+  if (versionConfig1.fix != null && versionConfig2.fix != null && versionConfig1.fix < versionConfig2.fix) return true
   return false
 }
 function isVersionNewer(version1: string, version2: string): boolean {
