@@ -551,7 +551,9 @@ function LiquidityCardInfo({ className }: { className?: string }) {
           {(coin1Amount || coin2Amount) && (
             <LiquidityCardItem
               fieldName={`Max Amount`}
-              fieldValue={focusSide === 'coin1' ? coin2Amount || '' : coin1Amount ?? ''}
+              fieldValue={`${formatNumber(focusSide === 'coin1' ? coin2Amount || '' : coin1Amount ?? '', {
+                fractionLength: 'auto'
+              })} ${focusSide === 'coin1' ? coin2?.symbol ?? 'unknown' : coin1?.symbol ?? 'unknown'}`}
             />
           )}
         </FadeIn>
@@ -607,7 +609,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
             </Row>
           }
         />
-        <Collapse openDirection="upwards" className="w-full my-1">
+        <Collapse openDirection="upwards" className="w-full">
           <Collapse.Body>
             <Col className="pb-3">
               <LiquidityCardItem fieldName="Addresses" tooltipContent={<LiquidityCardTooltipPanelAddress />} />
