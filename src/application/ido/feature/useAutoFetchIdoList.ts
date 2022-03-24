@@ -7,7 +7,7 @@ import listToMap from '@/functions/format/listToMap'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 import useIdo from '../useIdo'
-import { getHydratedIdoInfos } from '../utils/fetchIdoInfo'
+import { getAllHydratedIdoInfos } from '../utils/getHydratedInfo'
 import { EffectCheckSetting, shouldEffectBeOn } from '@/application/miscTools'
 
 export default function useAutoFetchIdoInfo(options?: { when?: EffectCheckSetting }) {
@@ -19,15 +19,11 @@ export default function useAutoFetchIdoInfo(options?: { when?: EffectCheckSettin
     if (!shouldEffectBeOn(options?.when)) return
     if (!connection) return
 
-    assert(connection, 'fetchIdoDetail: no rpc connection')
-
-    const result = await getHydratedIdoInfos({ connection })
-    if (!result) return
-    const { list, bannerInfo } = result
+    const list = await getAllHydratedIdoInfos({})
+    if (!list) return
     useIdo.setState((s) => {
       const newMap = { ...s.idoHydratedInfos, ...listToMap(list, (i) => i.id) }
       return {
-        idoBannerInformations: bannerInfo,
         idoHydratedInfos: newMap
       }
     })

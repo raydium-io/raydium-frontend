@@ -11,7 +11,7 @@ import PageLayoutPopoverDrawer from '../PageLayoutPopoverDrawer'
 import Row from '../Row'
 import { FadeIn } from '../FadeIn'
 
-function WalletWidgetItem({
+export function ThreeSlotItem({
   text,
   suffix,
   prefix,
@@ -58,7 +58,7 @@ export default function WalletWidget() {
           <div className="gap-3 divide-y-1.5">
             <FadeIn noOpenTransitation>
               {publicKey && (
-                <WalletWidgetItem
+                <ThreeSlotItem
                   text={isCopied ? 'copied' : `${String(publicKey).slice(0, 7)}...${String(publicKey).slice(-7)}`}
                   suffix={
                     !isCopied && <Icon size="sm" className="clickable text-[#ABC4FF]" heroIconName="clipboard-copy" />
@@ -69,7 +69,7 @@ export default function WalletWidget() {
                 />
               )}
             </FadeIn>
-            <WalletWidgetItem
+            <ThreeSlotItem
               prefix={<Icon size="sm" iconSrc="/icons/misc-recent-transactions.svg" />}
               text="Recent Transactions"
               onClick={() => {
@@ -77,7 +77,7 @@ export default function WalletWidget() {
                 closePanel?.()
               }}
             />
-            <WalletWidgetItem
+            <ThreeSlotItem
               prefix={<Icon size="sm" iconSrc="/icons/misc-disconnect-wallet.svg" />}
               text="Disconnect wallet"
               onClick={() => {

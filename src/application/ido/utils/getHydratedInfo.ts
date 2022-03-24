@@ -1,47 +1,34 @@
 import BN from 'bn.js'
 
 import useToken from '@/application/token/useToken'
-import jFetch from '@/functions/dom/jFetch'
-import { PublicKeyish } from '@/types/constants'
+import { HexAddress, PublicKeyish } from '@/types/constants'
 import { Connection, PublicKey } from '@solana/web3.js'
 
 import { Ido } from '../sdk'
-import { HydratedIdoInfo, IdoBannerInformations, RawIdoListJson, SdkParsedIdoInfo } from '../type'
+import { HydratedIdoInfo, IdoBannerInformations, SdkParsedIdoInfo } from '../type'
 import { hydrateIdoInfo } from './hydrateIdoInfo'
-import { toPub } from '@/functions/format/toMintString'
+import toPubString, { toPub } from '@/functions/format/toMintString'
 import useConnection from '@/application/connection/useConnection'
 import useWallet from '@/application/wallet/useWallet'
 import asyncMap from '@/functions/asyncMap'
+import { fetchRawIdoListJson } from './fetchRawIdoListJson'
+import { objectShakeNil } from '@/functions/objectMethods'
 
 const idoListCache = new Map<HydratedIdoInfo['id'], HydratedIdoInfo>()
 let idoBannerInfos: IdoBannerInformations
 
-async function fetchRawIdoListJson(): Promise<RawIdoListJson> {
-  // eslint-disable-next-line no-console
-  console.info('idoList start fetching')
-  const data = await jFetch('/ido-list.json')
-  // eslint-disable-next-line no-console
-  console.info('idoList end fetching')
-  return data
-}
-
 /**
  * rawIdoList + info from SDK
+ *
+ * ido base info is depends on `fetchRawIdoListJson()`
  */
-export const getHydratedIdoInfos = async ({
-  connection,
-  owner,
-
-  shouldFetchDetailInfo,
-  noCache
-}: {
-  connection: Connection
+export const getAllHydratedIdoInfos = async (options?: {
   owner?: PublicKeyish
-
-  shouldFetchDetailInfo?: boolean
-  noCache?: boolean
-}): Promise<{ list: HydratedIdoInfo[]; bannerInfo: IdoBannerInformations } | undefined> => {
-  if (!noCache && idoListCache.size) return { list: [...idoListCache.values()], bannerInfo: idoBannerInfos }
+}): Promise<HydratedIdoInfo[] | undefined> => {
+  if (idoListCache.size) return [...idoListCache.values()]
+  const { connection } = useConnection.getState()
+  const { owner: currentWalletOwner } = useWallet.getState()
+  if (!connection) return
   const data = await fetchRawIdoListJson()
 
   const env = process.env.NODE_ENV
@@ -69,7 +56,7 @@ export const getHydratedIdoInfos = async ({
   const result = await Ido.getMultipleInfo({
     connection,
     poolsConfig: publicKeyed as any[],
-    owner: shouldFetchDetailInfo ? toPub(owner) : undefined, //TODO
+    owner: toPub(options?.owner) ?? currentWalletOwner,
     config: { batchRequest: true }
   })
   // eslint-disable-next-line no-console
@@ -107,13 +94,14 @@ export const getHydratedIdoInfos = async ({
   parsed.forEach((info) => idoListCache.set(info.id, info))
   // eslint-disable-next-line no-console
   console.info('idoList end parsing')
-  return { list: parsed, bannerInfo: idoBannerInfos }
+  return parsed
 }
 
 /**
  * just fetch an single ido
+ * @todo if {@link getAllHydratedIdoInfos} can get single ido detail, this method is actually unnecessary
  */
-export const fetchIdoDetail = async ({
+export const getSingleHydratedIdoInfo = async ({
   idoId,
   options
 }: {
@@ -131,13 +119,9 @@ export const fetchIdoDetail = async ({
     parsed = [...idoListCache.values()]
   } else {
     // TODO: only one detail info. not all detail info.
-    const result = (
-      await getHydratedIdoInfos({
-        connection,
-        owner: options?.owner ?? useWallet.getState().owner,
-        shouldFetchDetailInfo: true
-      }).catch(console.error)
-    )?.list // TODO: Temporary just one owner
+    const result = await getAllHydratedIdoInfos({
+      owner: options?.owner
+    })
     parsed = result
     parsed?.forEach((info) => idoListCache.set(info.id, info))
   }
@@ -146,14 +130,35 @@ export const fetchIdoDetail = async ({
   return parsed?.find((idoDetail) => idoDetail.id === String(idoId))
 }
 
+type ShowHydratedIdoInfos = {
+  [idoId: string]: {
+    [ownerId: string]: HydratedIdoInfo
+  }
+}
+
 /**
  * just fetch some single ido by shadowWallets
  */
-export async function shadowlyFetchIdoDetail({
-  idoId
-}: {
-  idoId: PublicKeyish
-}): Promise<(Required<HydratedIdoInfo> | undefined)[]> {
+export async function shadowlyGetHydratedIdoInfo(): Promise<ShowHydratedIdoInfos> {
   const { shadowKeypairs } = useWallet.getState()
-  return asyncMap(shadowKeypairs ?? [], (keypairs) => fetchIdoDetail({ idoId, options: { owner: keypairs.publicKey } }))
+  if (!shadowKeypairs) return {}
+  const allResult = await asyncMap(shadowKeypairs ?? [], (keypairs) =>
+    getAllHydratedIdoInfos({ owner: keypairs.publicKey })
+  )
+  const tempResultArray: { owner: HexAddress; idoId: HexAddress; idoInfo: HydratedIdoInfo }[] = allResult.flatMap(
+    (oneOwnerIdoInfo, idx) => {
+      if (!oneOwnerIdoInfo) return []
+      const owner = toPubString(shadowKeypairs[idx].publicKey)
+      return oneOwnerIdoInfo.map((info) => ({ owner, idoId: info.id, idoInfo: info }))
+    }
+  )
+  const structured = tempResultArray.reduce(
+    (acc, { owner, idoId, idoInfo }) => ({ ...acc, [idoId]: { ...acc[idoId], [owner]: idoInfo } }),
+    {} as ShowHydratedIdoInfos
+  )
+  return structured
+}
+
+export async function refreshIdoInfo(idoid: string) {
+  /** TODO */
 }

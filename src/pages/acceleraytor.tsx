@@ -8,7 +8,6 @@ import useConnection from '@/application/connection/useConnection'
 import useAutoFetchIdoInfo from '@/application/ido/feature/useAutoFetchIdoList'
 import { HydratedIdoInfo } from '@/application/ido/type'
 import useIdo from '@/application/ido/useIdo'
-import { refreshIdoInfo } from '@/application/ido/utils/refreshIdoInfo'
 import useWallet from '@/application/wallet/useWallet'
 import AlertText from '@/components/AlertText'
 import Button from '@/components/Button'
@@ -38,6 +37,7 @@ import { Numberish } from '@/types/constants'
 import { ZERO } from '@raydium-io/raydium-sdk'
 import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
+import { refreshIdoInfo } from '@/application/ido/utils/getHydratedInfo'
 
 export default function AcceleRaytor() {
   useAutoFetchIdoInfo()
