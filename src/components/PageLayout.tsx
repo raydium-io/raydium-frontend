@@ -320,7 +320,11 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
 
   useEffect(() => {
     if (!inClient) return
-    setCssVarible(globalThis.document.documentElement, '--side-menu-width', sideMenuRef.current?.clientWidth)
+    setCssVarible(
+      globalThis.document.documentElement,
+      '--side-menu-width',
+      sideMenuRef.current ? Math.min(sideMenuRef.current.clientWidth, sideMenuRef.current.clientHeight) : 0
+    )
   }, [sideMenuRef])
 
   return (
