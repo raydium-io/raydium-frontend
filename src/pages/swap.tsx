@@ -11,7 +11,7 @@ import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
 import { useSwap } from '@/application/swap/useSwap'
 import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
-import useSwapCoin1Filler from '@/application/swap/useSwapCoin1Filler'
+import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -57,7 +57,7 @@ import { Badge } from '@/components/Badge'
 import txUnwrapWSOL from '@/application/swap/txUnwrapWSOL'
 
 function SwapEffect() {
-  useSwapCoin1Filler()
+  useSwapInitCoinFiller()
   useSwapUrlParser()
   // useKlineDataFetcher() // temporary use coingecko price data
   useSwapAmountCalculator()
@@ -71,66 +71,6 @@ const { ContextProvider: SwapUIContextProvider, useStore: useSwapContextStore } 
 })
 
 export default function Swap() {
-  const { log, popConfirm } = useNotification()
-
-  // useEffect(() => {
-  //   // just for test
-  //   setTimeout(() => {
-  //     log?.({
-  //       type: 'success',
-  //       title: 'Transaction success',
-  //       description: <div>View details on: </div>
-  //     })
-  //   }, 120)
-  //   setTimeout(() => {
-  //     log?.({
-  //       type: 'error',
-  //       title: 'Transaction error',
-  //       description: <div>View details on: </div>
-  //     })
-  //   }, 500)
-  //   setTimeout(() => {
-  //     log?.({
-  //       type: 'warning',
-  //       title: 'Transaction warning',
-  //       description: <div>View details on: </div>
-  //     })
-  //   }, 1000)
-  //   setTimeout(() => {
-  //     log?.({
-  //       type: 'info',
-  //       title: 'Transaction info',
-  //       description: <div>View details on: </div>
-  //     })
-  //   }, 1500)
-  //   setTimeout(() => {
-  //     popConfirm?.({
-  //       type: 'error',
-  //       title: 'Price Impact Warning',
-  //       description: 'The swap you are about to make has a price impact higher than 5%. Try a smaller trade!',
-  //       onCancel() {
-  //         // eslint-disable-next-line no-console
-  //         console.log('cancel')
-  //       },
-  //       onConfirm() {
-  //         // eslint-disable-next-line no-console
-  //         console.log('confirm')
-  //       }
-  //     })
-  //   }, 1800)
-  // }, [log])
-
-  // return useMemo(
-  //   // to avoid unnecessary rerender
-  //   () => (
-  //     <PageLayout metaTitle="Swap">
-  //       <SwapHead />
-  //       <SwapCard />
-  //       <KLineChart />
-  //     </PageLayout>
-  //   ),
-  //   []
-  // )
   return (
     <SwapUIContextProvider>
       <SwapEffect />

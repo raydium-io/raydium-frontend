@@ -9,7 +9,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import useFarms from '@/application/farms/useFarms'
 import useLiquidityAmmSelector from '@/application/liquidity/feature/useLiquidityAmmSelector'
 import useLiquidityAmountCalculator from '@/application/liquidity/feature/useLiquidityAmountCalculator'
-import useLiquidityCoin1Filler from '@/application/liquidity/feature/useLiquidityCoin1Filler'
+import useLiquidityInitCoinFiller from '@/application/liquidity/feature/useLiquidityInitCoinFiller'
 import useLiquidityUrlParser from '@/application/liquidity/feature/useLiquidityUrlParser'
 import txAddLiquidity from '@/application/liquidity/transaction/txAddLiquidity'
 import useLiquidity from '@/application/liquidity/useLiquidity'
@@ -76,7 +76,7 @@ export default function Liquidity() {
 
 function LiquidityEffect() {
   useLiquidityUrlParser()
-  useLiquidityCoin1Filler()
+  useLiquidityInitCoinFiller()
   useLiquidityAmmSelector()
   //  auto fresh  liquidity's coin1Amount and coin2Amount
   useLiquidityAmountCalculator()
