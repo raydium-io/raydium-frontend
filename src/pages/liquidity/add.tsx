@@ -15,7 +15,12 @@ import txAddLiquidity from '@/application/liquidity/transaction/txAddLiquidity'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
-import { SOL_BASE_BALANCE, SOLDecimals } from '@/application/token/utils/quantumSOL'
+import {
+  SOL_BASE_BALANCE,
+  SOLDecimals,
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL
+} from '@/application/token/utils/quantumSOL'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
@@ -52,6 +57,8 @@ import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../components/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../components/dialogs/TokenSelectorDialog'
 import { Badge } from '@/components/Badge'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import { SplToken } from '@/application/token/type'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -422,12 +429,14 @@ function LiquidityCard() {
         onSelectCoin={(token) => {
           if (targetCoinNo === '1') {
             useLiquidity.setState({ coin1: token })
-            if (String(token.mint) === String(coin2?.mint)) {
+            // delete other
+            if (!canTokenPairBeSelected(token, coin2)) {
               useLiquidity.setState({ coin2: undefined })
             }
           } else {
+            // delete other
             useLiquidity.setState({ coin2: token })
-            if (String(token.mint) === String(coin1?.mint)) {
+            if (!canTokenPairBeSelected(token, coin1)) {
               useLiquidity.setState({ coin1: undefined })
             }
           }
@@ -442,6 +451,10 @@ function LiquidityCard() {
       />
     </CyberpunkStyleCard>
   )
+}
+
+function canTokenPairBeSelected(targetToken: SplToken | undefined, candidateToken: SplToken | undefined) {
+  return !isMintEqual(targetToken?.mint, candidateToken?.mint)
 }
 
 function RemainSOLAlert() {

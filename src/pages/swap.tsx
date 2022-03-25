@@ -15,7 +15,13 @@ import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
-import { SOL_BASE_BALANCE, SOLDecimals, WSOLMint } from '@/application/token/utils/quantumSOL'
+import {
+  SOL_BASE_BALANCE,
+  SOLDecimals,
+  WSOLMint,
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL
+} from '@/application/token/utils/quantumSOL'
 import { USDCMint, USDTMint } from '@/application/token/utils/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
@@ -55,6 +61,7 @@ import { HexAddress, Numberish } from '@/types/constants'
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
 import { Badge } from '@/components/Badge'
 import txUnwrapWSOL from '@/application/swap/txUnwrapWSOL'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -346,7 +353,6 @@ function SwapCard() {
       <FadeInStable show={hasSwapDetermined}>
         <SwapCardInfo className="mt-5" />
       </FadeInStable>
-
       {/* alert user if price has accidently change  */}
       <SwapPriceAcceptChip />
       <Button
@@ -420,12 +426,12 @@ function SwapCard() {
         onSelectCoin={(token) => {
           if (targetCoinNo === '1') {
             useSwap.setState({ coin1: token })
-            if (String(token.mint) === String(coin2?.mint)) {
+            if (!canTokenPairBeSelected(token, coin2)) {
               useSwap.setState({ coin2: undefined })
             }
           } else {
             useSwap.setState({ coin2: token })
-            if (String(token.mint) === String(coin1?.mint)) {
+            if (!canTokenPairBeSelected(token, coin1)) {
               useSwap.setState({ coin1: undefined })
             }
           }
@@ -435,6 +441,12 @@ function SwapCard() {
       />
     </CyberpunkStyleCard>
   )
+
+  function canTokenPairBeSelected(targetToken: SplToken | undefined, candidateToken: SplToken | undefined) {
+    if (isQuantumSOLVersionSOL(targetToken) && isQuantumSOLVersionWSOL(candidateToken)) return true
+    if (isQuantumSOLVersionWSOL(targetToken) && isQuantumSOLVersionSOL(candidateToken)) return true
+    return !isMintEqual(targetToken?.mint, candidateToken?.mint)
+  }
 
   function popPriceConfirm({ priceImpact }: { priceImpact?: Numberish }) {
     useNotification.getState().popConfirm({
