@@ -3,7 +3,7 @@ import { PublicKey } from '@solana/web3.js'
 
 import { isString } from '../judgers/dateType'
 
-const mintCache = new Map<PublicKey, string>()
+const mintCache = new WeakMap<PublicKey, string>()
 
 //TODO: no token
 export default function toPubString(mint: PublicKeyish | undefined): string {

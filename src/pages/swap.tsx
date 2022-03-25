@@ -358,21 +358,39 @@ function SwapCard() {
       <SwapPriceAcceptChip />
 
       {/* swap sol and wsol */}
-      {isSolToWsol(upCoin, downCoin) ? (
+      {isSolToWsol(upCoin, downCoin) || isWsolToSol(upCoin, downCoin) ? (
         <Button
           className="w-full frosted-glass-teal mt-5"
           componentRef={swapButtonComponentRef}
-          onClick={() => txWrapSOL({ amount: downCoinAmount })}
+          validators={[
+            {
+              should: walletConnected,
+              forceActive: true,
+              fallbackProps: {
+                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                children: 'Connect Wallet'
+              }
+            },
+            {
+              should:
+                upCoinAmount &&
+                isMeaningfulNumber(upCoinAmount) &&
+                downCoinAmount &&
+                isMeaningfulNumber(downCoinAmount),
+              fallbackProps: { children: 'Enter an amount' }
+            },
+            {
+              should: haveEnoughUpCoin,
+              fallbackProps: { children: `Insufficient ${upCoin?.symbol ?? ''} balance` }
+            }
+          ]}
+          onClick={() =>
+            isWsolToSol(upCoin, downCoin)
+              ? txWrapSOL({ amount: downCoinAmount })
+              : txUnwrapWSOL({ amount: downCoinAmount })
+          }
         >
-          Wrap
-        </Button>
-      ) : isWsolToSol(upCoin, downCoin) ? (
-        <Button
-          className="w-full frosted-glass-teal mt-5"
-          componentRef={swapButtonComponentRef}
-          onClick={() => txUnwrapWSOL({ amount: downCoinAmount })}
-        >
-          Unwrap
+          {isWsolToSol(upCoin, downCoin) ? 'Unwrap' : 'Wrap'}
         </Button>
       ) : (
         <Button

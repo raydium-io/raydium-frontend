@@ -15,6 +15,7 @@ import { Numberish } from '@/types/constants'
 import { toString } from '@/functions/numberish/toString'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import toBN from '@/functions/numberish/toBN'
 
 /** it is base on tokenAccounts, so when tokenAccounts refresh, balance will auto refresh */
 export default function useInitBalanceRefresher() {
@@ -47,8 +48,8 @@ export default function useInitBalanceRefresher() {
 
     // currently WSOL show all balance(it a spectial hatch)
     // !it is in BN
-    const allWSOLBalance = allTokenAccounts.some((t) => isMintEqual(t.mint, WSOLMint))
-      ? toString(
+    const allWsolBalance = allTokenAccounts.some((t) => isMintEqual(t.mint, WSOLMint))
+      ? toBN(
           allTokenAccounts.reduce(
             (acc, t) => (isMintEqual(t.mint, WSOLMint) ? add(acc, t.amount) : acc),
             0 as Numberish
@@ -63,7 +64,7 @@ export default function useInitBalanceRefresher() {
         (tokenAccount) => String(tokenAccount.mint),
         (tokenAccount) => toPureBalance(tokenAccount)
       ),
-      [toPubString(WSOLMint)]: toTokenAmount(WSOL, allWSOLBalance)
+      [toPubString(WSOLMint)]: toTokenAmount(WSOL, allWsolBalance)
     })
 
     // use BN (no QuantumSOL)
@@ -86,6 +87,7 @@ export default function useInitBalanceRefresher() {
 
     useWallet.setState({
       solBalance,
+      allWsolBalance,
       balances,
       rawBalances,
       pureBalances,

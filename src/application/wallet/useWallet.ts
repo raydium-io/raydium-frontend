@@ -33,6 +33,9 @@ export type WalletStore = {
 
   solBalance?: BN | undefined
 
+  /** this is a some of wsol's tokenAccounts's amount (sol / wsol is special) */
+  allWsolBalance?: BN | undefined
+
   /** only include ATA (for this app only accept ATA account, no old tokenAccount ) */
   tokenAccounts: ITokenAccount[]
 
