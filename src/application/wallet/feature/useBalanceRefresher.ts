@@ -1,7 +1,7 @@
 import { TokenAmount } from '@raydium-io/raydium-sdk'
 
 import useConnection from '@/application/connection/useConnection'
-import { QuantumSOL, toQuantumSolAmount, WSOLMint } from '@/application/token/utils/quantumSOL'
+import { QuantumSOL, toQuantumSolAmount, WSOL, WSOLMint } from '@/application/token/utils/quantumSOL'
 import listToMap from '@/functions/format/listToMap'
 import { objectMap, objectShakeNil } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
@@ -9,10 +9,17 @@ import useAsyncEffect from '@/hooks/useAsyncEffect'
 import useToken from '../../token/useToken'
 import { ITokenAccount } from '../type'
 import useWallet from '../useWallet'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import { add } from '@/functions/numberish/operations'
+import { Numberish } from '@/types/constants'
+import { toString } from '@/functions/numberish/toString'
+import toPubString from '@/functions/format/toMintString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 /** it is base on tokenAccounts, so when tokenAccounts refresh, balance will auto refresh */
 export default function useInitBalanceRefresher() {
   const tokenAccounts = useWallet((s) => s.tokenAccounts)
+  const allTokenAccounts = useWallet((s) => s.allTokenAccounts) // to get wsol balance
   const verboseTokenAccounts = useWallet((s) => s.verboseTokenAccounts)
   const getPureToken = useToken((s) => s.getPureToken)
   const connection = useConnection((s) => s.connection)
@@ -38,14 +45,26 @@ export default function useInitBalanceRefresher() {
       return new TokenAmount(tokenInfo, tokenAccount.amount)
     }
 
+    // currently WSOL show all balance(it a spectial hatch)
+    // !it is in BN
+    const allWSOLBalance = allTokenAccounts.some((t) => isMintEqual(t.mint, WSOLMint))
+      ? toString(
+          allTokenAccounts.reduce(
+            (acc, t) => (isMintEqual(t.mint, WSOLMint) ? add(acc, t.amount) : acc),
+            0 as Numberish
+          )
+        )
+      : undefined
+
     // use TokenAmount (no QuantumSOL)
-    const pureBalances = objectShakeNil(
-      listToMap(
+    const pureBalances = objectShakeNil({
+      ...listToMap(
         tokenAccounts,
         (tokenAccount) => String(tokenAccount.mint),
         (tokenAccount) => toPureBalance(tokenAccount)
-      )
-    )
+      ),
+      [toPubString(WSOLMint)]: toTokenAmount(WSOL, allWSOLBalance)
+    })
 
     // use BN (no QuantumSOL)
     const pureRawBalances = objectMap(pureBalances, (balance) => balance.raw)
