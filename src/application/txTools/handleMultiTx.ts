@@ -12,6 +12,7 @@ import subscribeTx from './subscribeTx'
 import { noTailingPeriod } from '../../functions/format/noTailingPeriod'
 import useAppSettings from '../appSettings/useAppSettings'
 import { mergeFunction } from '@/functions/merge'
+import tryCatch from '@/functions/tryCatch'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -248,7 +249,13 @@ async function sendMultiTransactionAndLogAndRecord(options: {
             currentIndex: currentIndex
           } as const
           try {
-            const serializedTransaction = allSignedTransactions[currentIndex].serialize()
+            const serializedTransaction = tryCatch(
+              () => allSignedTransactions[currentIndex].serialize(),
+              (err) => {
+                console.error('serialize error', err)
+                throw err
+              }
+            )
             const txid = await options.payload.connection.sendRawTransaction(serializedTransaction, {
               skipPreflight: true
             })
