@@ -296,7 +296,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
                 }
               }}
             >
-              {connected ? 'Start Farming' : 'Connect Wallet'}
+              {connected ? 'Start Staking' : 'Connect Wallet'}
             </Button>
           )}
         </Row>
