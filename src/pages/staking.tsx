@@ -286,7 +286,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
               className="frosted-glass-teal mobile:py-2 mobile:text-xs"
               onClick={() => {
                 if (connected) {
-                  useFarms.setState({
+                  useStaking.setState({
                     isStakeDialogOpen: true,
                     stakeDialogMode: 'deposit',
                     stakeDialogInfo: hydratedInfo
@@ -296,7 +296,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
                 }
               }}
             >
-              {connected ? 'Start Farming' : 'Connect Wallet'}
+              {connected ? 'Start Staking' : 'Connect Wallet'}
             </Button>
           )}
         </Row>
@@ -371,7 +371,6 @@ function StakingPageStakeLpDialog() {
   const stakeDialogInfo = useStaking((s) => s.stakeDialogInfo)
   const stakeDialogMode = useStaking((s) => s.stakeDialogMode)
   const isStakeDialogOpen = useStaking((s) => s.isStakeDialogOpen)
-
   const [amount, setAmount] = useState<string>()
 
   const userHasLp = useMemo(
@@ -404,7 +403,10 @@ function StakingPageStakeLpDialog() {
   return (
     <ResponsiveDialogDrawer
       open={isStakeDialogOpen}
-      onClose={() => useStaking.setState({ isStakeDialogOpen: false })}
+      onClose={() => {
+        setAmount(undefined)
+        useStaking.setState({ isStakeDialogOpen: false, stakeDialogInfo: undefined })
+      }}
       placement="from-bottom"
     >
       {({ close }) => (

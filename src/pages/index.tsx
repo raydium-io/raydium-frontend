@@ -16,9 +16,11 @@ import Tooltip from '@/components/Tooltip'
 import linkTo from '@/functions/dom/linkTo'
 import useDevice from '@/hooks/useDevice'
 import { useDocumentScrollDetector } from '@/hooks/useScrollDetector'
+import useDocumentMetaTitle from '@/hooks/useDocumentMetaTitle'
 
 function HomePageContainer({ children }: { children?: ReactNode }) {
   useDocumentScrollDetector()
+  useDocumentMetaTitle('Raydium')
   return (
     <div
       className="flow-root overflow-x-hidden"

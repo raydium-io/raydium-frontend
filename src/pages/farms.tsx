@@ -975,7 +975,7 @@ function FarmStakeLpDialog() {
       open={isStakeDialogOpen}
       onClose={() => {
         setAmount(undefined)
-        return useFarms.setState({ isStakeDialogOpen: false, stakeDialogInfo: undefined })
+        useFarms.setState({ isStakeDialogOpen: false, stakeDialogInfo: undefined })
       }}
       placement="from-bottom"
     >
@@ -1085,9 +1085,9 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
       <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
       {isStable && <Badge>Stable</Badge>}
+      {info.isDualFusionPool && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
       {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
       {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
-      {info.isDualFusionPool && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
     </AutoBox>
   )
 }

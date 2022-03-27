@@ -52,7 +52,6 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
   const disable = !isActive
 
   const ref = useRef<HTMLButtonElement>(null)
-  useClick(ref, { onClick, disable })
   useImperativeHandle(componentRef, () => ({
     click: () => {
       ref.current?.click()
@@ -64,6 +63,9 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
   return (
     <button
       ref={ref}
+      onClick={() => {
+        if (!disable) onClick?.()
+      }}
       className={twMerge(
         'Button',
         type === 'text'
