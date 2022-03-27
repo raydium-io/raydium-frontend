@@ -403,7 +403,10 @@ function StakingPageStakeLpDialog() {
   return (
     <ResponsiveDialogDrawer
       open={isStakeDialogOpen}
-      onClose={() => useStaking.setState({ isStakeDialogOpen: false })}
+      onClose={() => {
+        setAmount(undefined)
+        useStaking.setState({ isStakeDialogOpen: false, stakeDialogInfo: undefined })
+      }}
       placement="from-bottom"
     >
       {({ close }) => (

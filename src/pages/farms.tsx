@@ -975,7 +975,7 @@ function FarmStakeLpDialog() {
       open={isStakeDialogOpen}
       onClose={() => {
         setAmount(undefined)
-        return useFarms.setState({ isStakeDialogOpen: false, stakeDialogInfo: undefined })
+        useFarms.setState({ isStakeDialogOpen: false, stakeDialogInfo: undefined })
       }}
       placement="from-bottom"
     >
