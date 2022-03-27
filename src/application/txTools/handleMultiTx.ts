@@ -21,6 +21,7 @@ import subscribeTx from './subscribeTx'
 import { noTailingPeriod } from '../../functions/format/noTailingPeriod'
 import useAppSettings from '../appSettings/useAppSettings'
 import { mergeFunction } from '@/functions/merge'
+import tryCatch from '@/functions/tryCatch'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -269,19 +270,14 @@ async function sendMultiTransactionAndLogAndRecord(options: {
           } as const
           try {
             const txid = options.optionsCollection.signerkeyPairs[currentIndex] // if have signer detected, no need signAllTransactions
-              ? await sendAndConfirmTransaction(
-                  options.payload.connection,
-                  allSignedTransactions[currentIndex],
-                  [
-                    options.optionsCollection.signerkeyPairs[currentIndex]!.payerKeypair ??
-                      options.optionsCollection.signerkeyPairs[currentIndex]!.ownerKeypair,
-                    options.optionsCollection.signerkeyPairs[currentIndex]!.ownerKeypair
-                  ] // <-- If you made the keypair, you probably want it here!
-                )
+              ? await sendAndConfirmTransaction(options.payload.connection, allSignedTransactions[currentIndex], [
+                  options.optionsCollection.signerkeyPairs[currentIndex]!.payerKeypair ??
+                    options.optionsCollection.signerkeyPairs[currentIndex]!.ownerKeypair,
+                  options.optionsCollection.signerkeyPairs[currentIndex]!.ownerKeypair
+                ])
               : await options.payload.connection.sendRawTransaction(allSignedTransactions[currentIndex].serialize(), {
                   skipPreflight: true
                 })
-
             txCallbackCollection.txSentSuccess[currentIndex]?.({
               ...extraTxidInfo,
               txid

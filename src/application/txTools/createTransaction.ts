@@ -36,7 +36,7 @@ export const createTransactionCollector = (defaultRawTransaction?: Transaction):
     addSigner(...signers: Signer[]) {
       innerSigners.push(...signers)
     },
-    async spawnTransaction() {
+    async spawnTransaction(): Promise<Transaction> {
       const rawTransaction = innerTransaction || (defaultRawTransaction ?? new Transaction())
       if (frontInstructions.length || endInstructions.length) {
         rawTransaction.add(...frontInstructions, ...endInstructions.reverse())
