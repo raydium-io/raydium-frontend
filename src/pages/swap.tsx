@@ -386,8 +386,8 @@ function SwapCard() {
           ]}
           onClick={() =>
             isWsolToSol(upCoin, downCoin)
-              ? txWrapSOL({ amount: downCoinAmount })
-              : txUnwrapWSOL({ amount: downCoinAmount })
+              ? txUnwrapWSOL({ amount: downCoinAmount })
+              : txWrapSOL({ amount: downCoinAmount })
           }
         >
           {isWsolToSol(upCoin, downCoin) ? 'Unwrap' : 'Wrap'}

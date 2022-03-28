@@ -9,7 +9,11 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { PublicKey } from '@solana/web3.js'
 import { toString } from '@/functions/numberish/toString'
 
-/** it will create non-ATA wsol account */
+/**
+ * it will create non-ATA wsol account
+ *
+ * amount is already decimaled
+ */
 export default function txWrapSOL({ amount }: { amount: Numberish }) {
   const solAmount = deUITokenAmount(
     toTokenAmount(QuantumSOLVersionSOL, amount, { alreadyDecimaled: true })
@@ -29,8 +33,8 @@ export default function txWrapSOL({ amount }: { amount: Numberish }) {
 
     transactionCollector.add(await piecesCollection.spawnTransaction(), {
       txHistoryInfo: {
-        title: 'Wrap SOL',
-        description: `${toString(amount)} SOL to ${toString(amount)} WSOL`
+        title: 'Wrap',
+        description: `${toString(amount)} SOL ⇢ WSOL`
       }
     })
   })
