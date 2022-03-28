@@ -1168,7 +1168,7 @@ function UnwrapWSOL() {
               <Row className="gap-4 items-center">
                 <Col className="gap-1">
                   <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
-                    Click the button if you want to unwrap WSOL to get SOL
+                    Click the button if you want to unwrap all WSOL
                   </div>
                 </Col>
 

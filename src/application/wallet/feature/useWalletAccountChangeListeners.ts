@@ -11,6 +11,7 @@ type WalletAccountChangeListener = () => void
 type ListenerId = number
 
 type InnerWalletAccountChangeListenerSettings = {
+  lifetime: 'confirmed' | 'finalized'
   listenerId: ListenerId
   cb: WalletAccountChangeListener
   once?: boolean
@@ -27,21 +28,41 @@ export function useWalletAccountChangeListeners() {
     const listenerId = connection.onAccountChange(
       new PublicKey(owner),
       () => {
-        invokeWalletAccountChangeListeners()
+        invokeWalletAccountChangeListeners('confirmed')
       },
       'confirmed'
     )
+    const listenerId2 = connection.onAccountChange(
+      new PublicKey(owner),
+      () => {
+        invokeWalletAccountChangeListeners('finalized')
+      },
+      'finalized'
+    )
     return () => {
       connection.removeAccountChangeListener(listenerId)
+      connection.removeAccountChangeListener(listenerId2)
     }
   }, [connection, owner])
 }
 
 // TODO: the code form  of use this is not straightforward, should be integrated in handleMultiTx
-export function addWalletAccountChangeListener(cb: () => void, options?: { once?: boolean }) {
+export function addWalletAccountChangeListener(
+  cb: () => void,
+  options?: {
+    /** default is 'confirmed' */
+    lifetime?: 'confirmed' | 'finalized'
+    once?: boolean
+  }
+) {
   const listenerId = listenerIdCounter
   listenerIdCounter += 1
-  walletAccountChangeListeners.push({ cb, once: options?.once, listenerId: listenerId })
+  walletAccountChangeListeners.push({
+    lifetime: options?.lifetime ?? 'confirmed',
+    cb,
+    once: options?.once,
+    listenerId: listenerId
+  })
   return listenerId
 }
 
@@ -52,7 +73,7 @@ export function removeWalletAccountChangeListener(id: ListenerId) {
   }
 }
 
-export function invokeWalletAccountChangeListeners() {
+export function invokeWalletAccountChangeListeners(lifeTime: 'confirmed' | 'finalized') {
   walletAccountChangeListeners.forEach((l) => l.cb())
-  walletAccountChangeListeners = walletAccountChangeListeners.filter((l) => !l.once)
+  walletAccountChangeListeners = walletAccountChangeListeners.filter((l) => l.lifetime === lifeTime && !l.once)
 }

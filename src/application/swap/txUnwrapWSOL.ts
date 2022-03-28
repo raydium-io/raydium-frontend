@@ -9,12 +9,10 @@ import toPubString from '@/functions/format/toMintString'
 import { Numberish } from '@/types/constants'
 import { PublicKey } from '@solana/web3.js'
 import { gt, gte, lt } from '@/functions/numberish/compare'
-import { add, mul, sub } from '@/functions/numberish/operations'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { mul, sub } from '@/functions/numberish/operations'
 import assert from '@/functions/assert'
 import { toString } from '@/functions/numberish/toString'
 import toBN from '@/functions/numberish/toBN'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function txUnwrapAllWSOL() {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner } }) => {
@@ -31,7 +29,7 @@ export default function txUnwrapAllWSOL() {
 
     transactionCollector.add(await piecesCollection.spawnTransaction(), {
       txHistoryInfo: {
-        title: 'Unwrap WSOL',
+        title: 'Unwrap ALL WSOL',
         description: `closed all WSOL accounts`
       }
     })

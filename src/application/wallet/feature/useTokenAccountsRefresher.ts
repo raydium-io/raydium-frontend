@@ -17,6 +17,7 @@ import { usePools } from '@/application/pools/usePools'
 import { listToJSMap } from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { shakeFalsyItem } from '@/functions/arrayMethods'
+import { WSOLMint } from '@/application/token/utils/quantumSOL'
 
 /** update token accounts will cause balance refresh */
 export default function useTokenAccountsRefresher(): void {
@@ -68,7 +69,7 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
   const newTokenAccounts = listToJSMap(allTokenAccounts, (a) => toPubString(a.publicKey) ?? 'native')
   const diffAccounts = shakeFalsyItem(
     [...newTokenAccounts].filter(([accountPub, { amount: newAmount }]) => {
-      const pastAmount = pastTokenAccounts.get(accountPub)?.amount ?? ZERO
+      const pastAmount = pastTokenAccounts.get(accountPub)?.amount
       return !eq(newAmount, pastAmount)
     })
   )
@@ -85,18 +86,26 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
     })
   } else {
     // try in 'finalized'
-    const { accounts: allTokenAccounts, rawInfos } = await getWalletTokenAccounts({
-      connection,
-      owner: new PublicKey(owner),
-      config: {
-        commitment: 'finalized'
+    addWalletAccountChangeListener(
+      async () => {
+        const { accounts: allTokenAccounts, rawInfos } = await getWalletTokenAccounts({
+          connection,
+          owner: new PublicKey(owner),
+          config: {
+            commitment: 'confirmed'
+          }
+        })
+        useWallet.setState({
+          tokenAccountRawInfos: rawInfos,
+          verboseTokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated || ta.isNative),
+          tokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated),
+          allTokenAccounts: allTokenAccounts
+        })
+      },
+      {
+        once: true,
+        lifetime: 'finalized'
       }
-    })
-    useWallet.setState({
-      tokenAccountRawInfos: rawInfos,
-      verboseTokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated || ta.isNative),
-      tokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated),
-      allTokenAccounts: allTokenAccounts
-    })
+    )
   }
 }
