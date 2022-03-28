@@ -64,7 +64,7 @@ export default function useInitBalanceRefresher() {
         (tokenAccount) => String(tokenAccount.mint),
         (tokenAccount) => toPureBalance(tokenAccount)
       ),
-      [toPubString(WSOLMint)]: toTokenAmount(WSOL, allWsolBalance)
+      [toPubString(WSOLMint)]: allWsolBalance && toTokenAmount(WSOL, allWsolBalance)
     })
 
     // use BN (no QuantumSOL)
