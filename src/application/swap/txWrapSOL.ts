@@ -29,7 +29,7 @@ export default function txWrapSOL({ amount }: { amount: Numberish }) {
     const allWsolTokenAccounts = allTokenAccounts.filter(
       (tokenAccount) => toPubString(tokenAccount.mint) === toPubString(WSOLMint)
     )
-    /** balance low to balance large to ATA */
+    /** ATA to balance large to balance low */
     const sortedTokenAccounts = allWsolTokenAccounts.sort((a, b) => {
       if (a.isAssociated) return -1
       if (b.isAssociated) return 1
