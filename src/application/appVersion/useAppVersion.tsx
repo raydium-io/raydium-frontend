@@ -91,15 +91,17 @@ function isVersionEqual(version1: string, version2: string): boolean {
 function isVersionOlder(version1: string, version2: string): boolean {
   const versionConfig1 = parseVersionString(version1)
   const versionConfig2 = parseVersionString(version2)
-  if (versionConfig1.main != null && versionConfig2.main != null && versionConfig1.main < versionConfig2.main)
-    return true
+  if (versionConfig1.main != null && versionConfig2.main != null && versionConfig1.main !== versionConfig2.main)
+    return versionConfig1.main < versionConfig2.main
   if (
     versionConfig1.feature != null &&
     versionConfig2.feature != null &&
-    versionConfig1.feature < versionConfig2.feature
+    versionConfig1.feature !== versionConfig2.feature
   )
-    return true
-  if (versionConfig1.fix != null && versionConfig2.fix != null && versionConfig1.fix < versionConfig2.fix) return true
+    return versionConfig1.feature < versionConfig2.feature
+  if (versionConfig1.fix != null && versionConfig2.fix != null && versionConfig1.fix !== versionConfig2.fix)
+    return versionConfig1.fix < versionConfig2.fix
+
   return false
 }
 function isVersionNewer(version1: string, version2: string): boolean {
