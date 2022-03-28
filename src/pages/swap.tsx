@@ -85,7 +85,7 @@ export default function Swap() {
       <PageLayout mobileBarTitle="Swap" metaTitle="Swap - Raydium">
         <SwapHead />
         <SwapCard />
-        <UnwrapWSOL />
+        {/* <UnwrapWSOL /> */}
         <KLineChart />
       </PageLayout>
     </SwapUIContextProvider>
@@ -1147,44 +1147,44 @@ function KLineChartItemThumbnail({
   )
 }
 
-function UnwrapWSOL() {
-  const allTokenAccounts = useWallet((s) => s.allTokenAccounts)
-  const wsolTokenAccounts = allTokenAccounts.filter(
-    (tokenAccount) => toPubString(tokenAccount.mint) === toPubString(WSOLMint)
-  )
-  return (
-    <div className="self-center">
-      <FadeIn>
-        {wsolTokenAccounts.length > 0 && (
-          <div className="mt-12 max-w-[456px]">
-            <Card
-              className="p-6 mt-6 mobile:py-5 mobile:px-3"
-              size="lg"
-              style={{
-                background:
-                  'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-              }}
-            >
-              <Row className="gap-4 items-center">
-                <Col className="gap-1">
-                  <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
-                    Click the button if you want to unwrap all WSOL
-                  </div>
-                </Col>
+// function UnwrapWSOL() {
+//   const allTokenAccounts = useWallet((s) => s.allTokenAccounts)
+//   const wsolTokenAccounts = allTokenAccounts.filter(
+//     (tokenAccount) => toPubString(tokenAccount.mint) === toPubString(WSOLMint)
+//   )
+//   return (
+//     <div className="self-center">
+//       <FadeIn>
+//         {wsolTokenAccounts.length > 0 && (
+//           <div className="mt-12 max-w-[456px]">
+//             <Card
+//               className="p-6 mt-6 mobile:py-5 mobile:px-3"
+//               size="lg"
+//               style={{
+//                 background:
+//                   'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
+//               }}
+//             >
+//               <Row className="gap-4 items-center">
+//                 <Col className="gap-1">
+//                   <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
+//                     Click the button if you want to unwrap all WSOL
+//                   </div>
+//                 </Col>
 
-                <Button
-                  className="flex items-center frosted-glass-teal opacity-80"
-                  onClick={() => {
-                    txUnwrapAllWSOL()
-                  }}
-                >
-                  Unwrap WSOL
-                </Button>
-              </Row>
-            </Card>
-          </div>
-        )}
-      </FadeIn>
-    </div>
-  )
-}
+//                 <Button
+//                   className="flex items-center frosted-glass-teal opacity-80"
+//                   onClick={() => {
+//                     txUnwrapAllWSOL()
+//                   }}
+//                 >
+//                   Unwrap WSOL
+//                 </Button>
+//               </Row>
+//             </Card>
+//           </div>
+//         )}
+//       </FadeIn>
+//     </div>
+//   )
+// }
