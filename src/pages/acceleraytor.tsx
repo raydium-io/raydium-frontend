@@ -38,12 +38,13 @@ import { ZERO } from '@raydium-io/raydium-sdk'
 import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import { refreshIdoInfo } from '@/application/ido/utils/getHydratedInfo'
+import Image from '@/components/Image'
 
 export default function AcceleRaytor() {
   useAutoFetchIdoInfo()
 
   return (
-    <PageLayout>
+    <PageLayout mobileBarTitle="AcceleRaytor" metaTitle="AcceleRaytor - Raydium">
       <AcceleRaytorHeader />
       <IdoList />
     </PageLayout>
@@ -55,8 +56,11 @@ function AcceleRaytorHeader() {
   const isMobile = useAppSettings((s) => s.isMobile)
 
   return (
-    <Grid className="grid-cols-[1fr,3fr,1fr] mobile:grid-cols-2 grid-flow-row-dense items-baseline gap-y-8 pb-8">
-      <div className="text-2xl mobile:text-lg font-semibold justify-self-start text-white">AcceleRaytor</div>
+    <Col className="items-center gap-20 mb-11">
+      <Col className="items-center cyberpunk-bg-light-acceleraytor">
+        <Image src="/logo/accecleraytor-text-logo.svg" />
+        <div className="text-[26px] font-medium  text-[#ABC4FF] opacity-50">Buy new tokens launching on Solana.</div>
+      </Col>
       <Tabs
         currentValue={currentTab}
         values={['All', 'Inactive']}
@@ -66,7 +70,7 @@ function AcceleRaytorHeader() {
         className="justify-self-center mobile:col-span-full"
         itemClassName={isMobile ? 'w-[108px] h-[30px]' : 'w-32'}
       />
-    </Grid>
+    </Col>
   )
 }
 
