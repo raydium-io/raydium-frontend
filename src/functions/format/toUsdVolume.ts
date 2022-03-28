@@ -1,5 +1,5 @@
 import formatNumber, { FormatOptions } from '@/functions/format/formatNumber'
-import { Fraction, Price, Rounding } from '@raydium-io/raydium-sdk'
+import { Fraction, Rounding } from '@raydium-io/raydium-sdk'
 
 // urgly indeed
 
