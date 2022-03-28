@@ -62,7 +62,7 @@ export function hydrateFarmInfo(
   const isNormalFusionPool = farmPoolType === 'normal fusion pool'
   const isClosedPool = farmPoolType === 'closed pool'
   const isUpcomingPool = farmInfo.jsonInfo.upcoming && isClosedPool
-  const isNewPool = farmInfo.jsonInfo.upcoming
+  const isNewPool = farmInfo.jsonInfo.upcoming && !isClosedPool
   const isStablePool = payload.liquidityJsonInfos?.find((i) => i.lpMint === toPubString(farmInfo.lpMint))?.version === 5
 
   const lpToken = isStakePool ? payload.getToken(farmInfo.lpMint) : payload.getLpToken(farmInfo.lpMint)
