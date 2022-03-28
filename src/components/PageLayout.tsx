@@ -134,6 +134,7 @@ function RPCPerformanceBanner({ className }: { className?: string }) {
   const MAX_TPS = 1500 // force settings
 
   useAsyncEffect(async () => {
+    if (isLowRpcPerformance) return // no need calc again
     if (!currentEndPoint?.url) return
     const result = await jFetch<{
       result: {
