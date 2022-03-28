@@ -8,7 +8,6 @@ import useWallet from '../useWallet'
 import { getWalletTokenAccounts } from '../utils/getWalletTokenAccounts'
 
 import { addWalletAccountChangeListener, removeWalletAccountChangeListener } from './useWalletAccountChangeListeners'
-import { ZERO } from '@raydium-io/raydium-sdk'
 import { eq } from '@/functions/numberish/compare'
 import { useSwap } from '@/application/swap/useSwap'
 import useLiquidity from '@/application/liquidity/useLiquidity'
@@ -55,10 +54,7 @@ export default function useTokenAccountsRefresher(): void {
 const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, options?: { noSecondTry?: boolean }) => {
   const { accounts: allTokenAccounts, rawInfos } = await getWalletTokenAccounts({
     connection,
-    owner: new PublicKey(owner),
-    config: {
-      commitment: 'confirmed'
-    }
+    owner: new PublicKey(owner)
   })
 
   //#region ------------------- diff -------------------
@@ -90,10 +86,7 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
       async () => {
         const { accounts: allTokenAccounts, rawInfos } = await getWalletTokenAccounts({
           connection,
-          owner: new PublicKey(owner),
-          config: {
-            commitment: 'confirmed'
-          }
+          owner: new PublicKey(owner)
         })
         useWallet.setState({
           tokenAccountRawInfos: rawInfos,
