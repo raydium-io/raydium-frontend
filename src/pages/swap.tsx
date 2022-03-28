@@ -976,7 +976,6 @@ function KLineChart() {
     },
     [availableLength]
   )
-
   return (
     <Card
       className={`flex ${
@@ -992,7 +991,9 @@ function KLineChart() {
         <KLineChartItem coin={coin1} onDataChange={(isReady) => setIsLine1BoxReady(isReady)} />
       </div>
       <div ref={kline2Box}>
-        <KLineChartItem coin={coin2} onDataChange={(isReady) => setIsLine2BoxReady(isReady)} />
+        {toPubString(coin2?.mint) !== toPubString(coin1?.mint) && (
+          <KLineChartItem coin={coin2} onDataChange={(isReady) => setIsLine2BoxReady(isReady)} />
+        )}
       </div>
     </Card>
   )
@@ -1102,7 +1103,6 @@ function KLineChartItemThumbnail({
   }
 
   return (
-    /*  */
     <svg className={className} viewBox={`0 0 2000 1000`} preserveAspectRatio="none">
       <defs>
         <filter id={`k-line-glow-${isPositive ? 'positive' : isNegative ? 'negative' : 'normal'}`}>
