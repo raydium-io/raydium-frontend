@@ -101,7 +101,7 @@ export function txUnwrapWSOL({ amount }: { amount: Numberish }) {
     transactionCollector.add(await piecesCollection.spawnTransaction(), {
       txHistoryInfo: {
         title: 'Unwrap',
-        description: `${toString(amount)} WSOL ⇢ SOL`
+        description: `${toString(amount)} WSOL ⇢ ${toString(amount)} SOL`
       }
     })
   })
