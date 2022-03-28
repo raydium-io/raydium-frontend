@@ -1,6 +1,7 @@
 import create from 'zustand'
 
 import { Numberish } from '@/types/constants'
+import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 
 // it is some global uiStates
 
@@ -43,9 +44,9 @@ const useAppSettings = create<AppSettingsStore>(() => ({
 
   isBetaBubbleOn: true,
 
-  isMobile: false,
-  isTablet: false,
-  isPc: true,
+  isMobile: getPlatformInfo()?.isMobile ?? false,
+  isTablet: getPlatformInfo()?.isMobile ?? false,
+  isPc: getPlatformInfo()?.isPc ?? true,
 
   isApprovePanelShown: false,
 

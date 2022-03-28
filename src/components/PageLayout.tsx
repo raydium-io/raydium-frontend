@@ -134,6 +134,7 @@ function RPCPerformanceBanner({ className }: { className?: string }) {
   const MAX_TPS = 1500 // force settings
 
   useAsyncEffect(async () => {
+    if (isLowRpcPerformance) return // no need calc again
     if (!currentEndPoint?.url) return
     const result = await jFetch<{
       result: {
@@ -809,9 +810,9 @@ function RpcConnectionPanelPopover({ close: closePanel }: { close: () => void })
                   } items-center w-full`}
                 >
                   {endPoint.name ?? '--'}
-                  {endPoint.url === autoChoosedEndPoint?.url && <Badge className="self-center">recommended</Badge>}
+                  {endPoint.url === autoChoosedEndPoint?.url && <Badge className="self-center ml-2">recommended</Badge>}
                   {endPoint.isUserCustomized && (
-                    <Badge className="self-center" cssColor="#c4d6ff">
+                    <Badge className="self-center ml-2" cssColor="#c4d6ff">
                       user added
                     </Badge>
                   )}

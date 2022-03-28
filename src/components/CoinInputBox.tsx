@@ -33,6 +33,7 @@ import Icon from './Icon'
 import Input from './Input'
 import Row from './Row'
 import toPubString from '@/functions/format/toMintString'
+import { trimTailingZero } from '@/functions/numberish/stringNumber'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -181,7 +182,9 @@ export default function CoinInputBox({
         }
       )
     }
-    const newAmount = maxBalance?.mul(new Fraction(numerator, denominator)).toFixed(maxBalance.token.decimals)
+    const newAmount = trimTailingZero(
+      maxBalance?.mul(new Fraction(numerator, denominator)).toFixed(maxBalance.token.decimals)
+    )
 
     onUserInput?.(newAmount) // set both outside and inside
     setInputedAmount(newAmount) // set both outside and inside

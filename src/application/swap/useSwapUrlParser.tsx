@@ -12,6 +12,22 @@ import { areShallowEqual } from '@/functions/judgers/areEqual'
 import { toString } from '@/functions/numberish/toString'
 import { objectShakeFalsy } from '@/functions/objectMethods'
 import { EnumStr } from '@/types/constants'
+import { SplToken } from '../token/type'
+import {
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  QuantumSOLVersionSOL,
+  QuantumSOLVersionWSOL,
+  WSOLMint
+} from '../token/utils/quantumSOL'
+import toPubString from '@/functions/format/toMintString'
+
+function isSolAndWsol(query1: string, query2: string): boolean {
+  return query1 === 'sol' && query2 === toPubString(WSOLMint)
+}
+function isWsolAndSol(query1: string, query2: string): boolean {
+  return query1 === toPubString(WSOLMint) && query2 === 'sol'
+}
 
 export default function useSwapUrlParser(): void {
   const { query, pathname, replace } = useRouter()
@@ -66,8 +82,14 @@ export default function useSwapUrlParser(): void {
     // eslint-disable-next-line @typescript-eslint/ban-types
     const urlFixedSide = String(query.fixed ?? '') as EnumStr | 'in' | 'out'
 
-    // from URL: according to user's ammId , match liquidity pool json info, extract it's base and quote as coin1 and coin2
-    if (urlAmmId) {
+    if (isSolAndWsol(urlCoin1Mint, urlCoin2Mint)) {
+      // SPECIAL CASE: wrap (sol ⇢ wsol)
+      useSwap.setState({ coin1: QuantumSOLVersionSOL, coin2: QuantumSOLVersionWSOL })
+    } else if (isWsolAndSol(urlCoin1Mint, urlCoin2Mint)) {
+      // SPECIAL CASE: unwrap (wsol ⇢ sol)
+      useSwap.setState({ coin1: QuantumSOLVersionWSOL, coin2: QuantumSOLVersionSOL })
+    } else if (urlAmmId) {
+      // from URL: according to user's ammId , match liquidity pool json info, extract it's base and quote as coin1 and coin2
       const { logWarning } = useNotification.getState()
       const matchedMarketJson = findLiquidityInfoByAmmId(urlAmmId)
       if (matchedMarketJson) {
@@ -96,9 +118,7 @@ export default function useSwapUrlParser(): void {
           logWarning(`can't find Liquidity pool with url ammId`)
         }
       }
-    }
-
-    if (!urlAmmId && (urlCoin1Mint || urlCoin2Mint)) {
+    } else if (urlCoin1Mint || urlCoin2Mint) {
       // attach coin1 and coin2 to swap zustand store
       const coin1 = getToken(urlCoin1Mint)
       const coin2 = getToken(urlCoin2Mint)

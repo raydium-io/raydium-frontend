@@ -39,11 +39,11 @@ function toStringNumberAtom(from: Numberable | StringNumberAtom): StringNumberAt
  * toStringNumber({ decimal: 2, all: '42312' }) => '423.12'
  * toStringNumber({ decimal: 0, all: '12' }) //=> '12'
  * toStringNumber({ decimal: 7, all: '4000000' }) //=> '4.0000000'
- * toStringNumber({ decimal: 7, all: '4000000' }, {cleanMeanlessZero:true}) //=> '4'
+ * toStringNumber({ decimal: 7, all: '4000000' }, {noMeanlessZero:true}) //=> '4'
  */
 export function toStringNumber(
   from: StringNumberable,
-  { cleanMeanlessZero = true }: { cleanMeanlessZero?: boolean } = {}
+  { noMeanlessZero = true }: { noMeanlessZero?: boolean } = {}
 ): StringNumber {
   if (isNumber(from)) return String(from)
   if (isBigInt(from)) return String(from)
@@ -58,15 +58,15 @@ export function toStringNumber(
     resultN = parsedString
   }
 
-  return cleanMeanlessZero ? trimTailingZero(resultN) : resultN
+  return noMeanlessZero ? trimTailingZero(resultN) : resultN
 }
 
 /**
  *
  * @example
- * cleanMeanlessZero('-33.33000000') //=> '-33.33'
- * cleanMeanlessZero('-33.000000') //=> '-33'
- * cleanMeanlessZero('.000000') //=> '0'
+ * trimTailingZero('-33.33000000') //=> '-33.33'
+ * trimTailingZero('-33.000000') //=> '-33'
+ * trimTailingZero('.000000') //=> '0'
  */
 export function trimTailingZero(s: string) {
   // no decimal part
@@ -101,7 +101,7 @@ export function toFixed(n: Numberable, fractionLength: number): string {
 export function add(
   a: Numberable = 0,
   b: Numberable = 0,
-  { cleanMeanlessZero = true }: { cleanMeanlessZero?: boolean } = {}
+  { noMeanlessZero = true }: { noMeanlessZero?: boolean } = {}
 ) {
   const { decimal: decimalA, all: allA } = toStringNumberAtom(a)
   const { decimal: decimalB, all: allB } = toStringNumberAtom(b)
@@ -113,7 +113,7 @@ export function add(
       decimal: biggerDecimal,
       all: String(BigInt(padZero(allA, biggerDecimal - decimalA)) + BigInt(padZero(allB, biggerDecimal - decimalB)))
     },
-    { cleanMeanlessZero }
+    { noMeanlessZero }
   )
 }
 
@@ -126,7 +126,7 @@ export function add(
 export function minus(
   a: Numberable = 0,
   b: Numberable = 0,
-  { cleanMeanlessZero = true }: { cleanMeanlessZero?: boolean } = {}
+  { noMeanlessZero = true }: { noMeanlessZero?: boolean } = {}
 ) {
   const { decimal: decimalA, all: allA } = toStringNumberAtom(a)
   const { decimal: decimalB, all: allB } = toStringNumberAtom(b)
@@ -138,7 +138,7 @@ export function minus(
       decimal: biggerDecimal,
       all: String(BigInt(padZero(allA, biggerDecimal - decimalA)) - BigInt(padZero(allB, biggerDecimal - decimalB)))
     },
-    { cleanMeanlessZero }
+    { noMeanlessZero }
   )
 }
 
@@ -150,7 +150,7 @@ export function minus(
 export function multiply(
   a: Numberable = 1,
   b: Numberable = 1,
-  { cleanMeanlessZero = true }: { cleanMeanlessZero?: boolean } = {}
+  { noMeanlessZero = true }: { noMeanlessZero?: boolean } = {}
 ) {
   const { decimal: decimalA, all: allA } = toStringNumberAtom(a)
   const { decimal: decimalB, all: allB } = toStringNumberAtom(b)
@@ -159,14 +159,14 @@ export function multiply(
       decimal: decimalA + decimalB,
       all: String(BigInt(allA) * BigInt(allB))
     },
-    { cleanMeanlessZero }
+    { noMeanlessZero }
   )
 }
 
 export function divide(
   a: Numberable = 1,
   b: Numberable = 1,
-  { decimalPlace = 20, cleanMeanlessZero = true }: { decimalPlace?: number; cleanMeanlessZero?: boolean } = {}
+  { decimalPlace = 20, noMeanlessZero = true }: { decimalPlace?: number; noMeanlessZero?: boolean } = {}
 ) {
   const { decimal: decimalA, all: allA } = toStringNumberAtom(a)
   const { decimal: decimalB, all: allB } = toStringNumberAtom(b)
@@ -175,7 +175,7 @@ export function divide(
       decimal: decimalA - decimalB + decimalPlace,
       all: String(BigInt(padZero(allA, decimalPlace)) / BigInt(allB))
     },
-    { cleanMeanlessZero }
+    { noMeanlessZero }
   )
   return result
 }
@@ -183,7 +183,7 @@ export function divide(
 export function exponentiatedBy(
   a: Numberable = 1,
   b: Numberable = 1, // don't support decimal now
-  { cleanMeanlessZero = true }: { cleanMeanlessZero?: boolean } = {}
+  { noMeanlessZero = true }: { noMeanlessZero?: boolean } = {}
 ) {
   const { decimal: decimalA, all: allA } = toStringNumberAtom(a)
 
@@ -193,7 +193,7 @@ export function exponentiatedBy(
       decimal: decimalA,
       all: all
     },
-    { cleanMeanlessZero }
+    { noMeanlessZero }
   )
   return result
 }

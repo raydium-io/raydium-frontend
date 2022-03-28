@@ -8,7 +8,6 @@ import useWallet from '../useWallet'
 import { getWalletTokenAccounts } from '../utils/getWalletTokenAccounts'
 
 import { addWalletAccountChangeListener, removeWalletAccountChangeListener } from './useWalletAccountChangeListeners'
-import { ZERO } from '@raydium-io/raydium-sdk'
 import { eq } from '@/functions/numberish/compare'
 import { useSwap } from '@/application/swap/useSwap'
 import useLiquidity from '@/application/liquidity/useLiquidity'
@@ -17,6 +16,7 @@ import { usePools } from '@/application/pools/usePools'
 import { listToJSMap } from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { shakeFalsyItem } from '@/functions/arrayMethods'
+import { WSOLMint } from '@/application/token/utils/quantumSOL'
 
 /** update token accounts will cause balance refresh */
 export default function useTokenAccountsRefresher(): void {
@@ -54,10 +54,7 @@ export default function useTokenAccountsRefresher(): void {
 const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, options?: { noSecondTry?: boolean }) => {
   const { accounts: allTokenAccounts, rawInfos } = await getWalletTokenAccounts({
     connection,
-    owner: new PublicKey(owner),
-    config: {
-      commitment: 'confirmed'
-    }
+    owner: new PublicKey(owner)
   })
 
   //#region ------------------- diff -------------------
@@ -68,7 +65,7 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
   const newTokenAccounts = listToJSMap(allTokenAccounts, (a) => toPubString(a.publicKey) ?? 'native')
   const diffAccounts = shakeFalsyItem(
     [...newTokenAccounts].filter(([accountPub, { amount: newAmount }]) => {
-      const pastAmount = pastTokenAccounts.get(accountPub)?.amount ?? ZERO
+      const pastAmount = pastTokenAccounts.get(accountPub)?.amount
       return !eq(newAmount, pastAmount)
     })
   )
@@ -85,18 +82,23 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
     })
   } else {
     // try in 'finalized'
-    const { accounts: allTokenAccounts, rawInfos } = await getWalletTokenAccounts({
-      connection,
-      owner: new PublicKey(owner),
-      config: {
-        commitment: 'finalized'
+    addWalletAccountChangeListener(
+      async () => {
+        const { accounts: allTokenAccounts, rawInfos } = await getWalletTokenAccounts({
+          connection,
+          owner: new PublicKey(owner)
+        })
+        useWallet.setState({
+          tokenAccountRawInfos: rawInfos,
+          verboseTokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated || ta.isNative),
+          tokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated),
+          allTokenAccounts: allTokenAccounts
+        })
+      },
+      {
+        once: true,
+        lifetime: 'finalized'
       }
-    })
-    useWallet.setState({
-      tokenAccountRawInfos: rawInfos,
-      verboseTokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated || ta.isNative),
-      tokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated),
-      allTokenAccounts: allTokenAccounts
-    })
+    )
   }
 }

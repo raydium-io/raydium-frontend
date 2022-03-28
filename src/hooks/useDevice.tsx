@@ -1,3 +1,4 @@
+import { getPlatformInfo } from '../functions/dom/getPlatformInfo'
 import useMedia from './useMedia'
 
 const breakPointsconfigs = {
@@ -10,7 +11,7 @@ export default function useDevice() {
   const currentBreakPoint = useMedia(
     Object.values(breakPointsconfigs),
     Object.keys(breakPointsconfigs) as (keyof typeof breakPointsconfigs)[],
-    'isPc'
+    getPlatformInfo()?.isPc ? 'isPc' : 'isMobile'
   )
   return {
     isMobile: currentBreakPoint === 'isMobile',
