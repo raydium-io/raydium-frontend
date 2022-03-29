@@ -77,6 +77,7 @@ export interface IconProps {
   onHover?: UseHoverOptions['onHover']
   /* this prop will auto add some tailwind class for Icon */
   onClick?: UseClickOptions['onClick']
+  forceColor?: string // TODO: <Icon> can basicly change theme color
 }
 
 export default function Icon({
@@ -88,6 +89,7 @@ export default function Icon({
   onHover,
   /* this prop will auto add some tailwind class for Icon */
   onClick,
+  forceColor,
   domRef,
   className,
   /** sx: 12px; sm: 16px; smi: 20px;  md: 24px; lg: 32px (default: md) */

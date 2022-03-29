@@ -96,6 +96,14 @@ function IdoList() {
     </Col>
   )
 }
+const socialIconSrcMap = {
+  twitter: '/icons/acceleraytor-twitter.svg',
+  telegram: '/icons/acceleraytor-telegram.svg',
+  discord: '/icons/acceleraytor-discord.svg',
+  medium: '/icons/acceleraytor-medium.svg',
+  twitch: '/icons/acceleraytor-twitch.svg',
+  youtube: '/icons/acceleraytor-youtube.svg'
+}
 function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: HydratedIdoInfo }) {
   return (
     <Row
@@ -104,13 +112,24 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       }`}
     >
-      <div className="w-9 h-9"></div>
+      <Row className="items-center gap-4 w-48">
+        <CoinAvatar size="lg" token={info.base} />
+        <div>
+          <div className="text-base font-semibold text-white">{info.base?.symbol ?? 'UNKNOWN'}</div>
+          <div className="text-sm text-[#ABC4FF] opacity-50">{info.project.projectName}</div>
+        </div>
+      </Row>
 
-      <Row className="gap-4 items-center">
-        <CoinAvatar size="2xl" haveAnime iconSrc={info.base?.iconSrc} />
-        {info.base?.symbol && (
-          <div className="text-2xl mobile:text-lg font-semibold justify-self-start text-white">{info.base?.symbol}</div>
-        )}
+      <Row className="gap-4 items-center border-l border-[rgba(171,196,255,0.5)] self-center pl-6">
+        {Object.entries(info.project.socials).map(([socialName, link]) => (
+          <Link key={socialName} href={link} className="flex items-center gap-2">
+            <Icon
+              className="frosted-glass-skygray p-2.5 rounded-lg text"
+              iconClassName="w-3 h-3 opacity-50"
+              iconSrc={socialIconSrcMap[socialName.toLowerCase()]}
+            />
+          </Link>
+        ))}
       </Row>
 
       <Grid className="w-9 h-9 place-items-center self-center">
@@ -128,9 +147,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
   const { push } = useRouter()
   return (
-    <div
-      className="p-4 px-12 gap-8 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg"
-    >
+    <div className="p-4 px-12 gap-8 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg">
       <Link href={`/acceleraytor/${info.id}`}>
         <Card className="mx-auto w-[min(90vw,420px)] py-4 px-8 bg-acceleraytor-card-bg rounded-2xl frosted-glass-lightsmoke">
           <FormPanel info={info} />
