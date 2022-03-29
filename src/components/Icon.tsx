@@ -208,3 +208,12 @@ export default function Icon({
   console.warn('not heroIconName or iconName in <Icon>')
   return null
 }
+
+export const socialIconSrcMap = {
+  twitter: '/icons/acceleraytor-twitter.svg',
+  telegram: '/icons/acceleraytor-telegram.svg',
+  discord: '/icons/acceleraytor-discord.svg',
+  medium: '/icons/acceleraytor-medium.svg',
+  twitch: '/icons/acceleraytor-twitch.svg',
+  youtube: '/icons/acceleraytor-youtube.svg'
+}

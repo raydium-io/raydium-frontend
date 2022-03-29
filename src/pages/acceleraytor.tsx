@@ -18,7 +18,7 @@ import Collapse from '@/components/Collapse'
 import CountDownClock from '@/components/CountDownClock'
 import DecimalInput from '@/components/DecimalInput'
 import Grid from '@/components/Grid'
-import Icon from '@/components/Icon'
+import Icon, { socialIconSrcMap } from '@/components/Icon'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
@@ -39,6 +39,7 @@ import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import { refreshIdoInfo } from '@/application/ido/utils/getHydratedInfo'
 import Image from '@/components/Image'
+import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 
 export default function AcceleRaytor() {
   useAutoFetchIdoInfo()
@@ -86,29 +87,32 @@ function IdoList() {
         //       <IdoCard key={parsedInfo.id + idx} {...parsedInfo} />
         //     ))}
         // </div>
-        <Collapse key={info.id}>
-          <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
-          <Collapse.Body>
-            <AcceleRaytorCollapseItemContent info={info} />
-          </Collapse.Body>
-        </Collapse>
+        <div key={info.id}>
+          <CyberpunkStyleCard cssGradientRotate={190}>
+            <Collapse>
+              <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
+              <Collapse.Body>
+                <AcceleRaytorCollapseItemContent info={info} />
+              </Collapse.Body>
+            </Collapse>
+            {/* <Grid className="w-9 h-9 place-items-center self-center">
+              <Icon
+                size="sm"
+                className="justify-self-end p-3 mr-1.5 frosted-glass-teal rounded-xl"
+                heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`}
+              />
+            </Grid> */}
+          </CyberpunkStyleCard>
+        </div>
       ))}
     </Col>
   )
 }
-const socialIconSrcMap = {
-  twitter: '/icons/acceleraytor-twitter.svg',
-  telegram: '/icons/acceleraytor-telegram.svg',
-  discord: '/icons/acceleraytor-discord.svg',
-  medium: '/icons/acceleraytor-medium.svg',
-  twitch: '/icons/acceleraytor-twitch.svg',
-  youtube: '/icons/acceleraytor-youtube.svg'
-}
+
 function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: HydratedIdoInfo }) {
   return (
     <Row
-      type="grid-x"
-      className={`py-6 px-8 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-2 grid-cols-[auto,1fr,auto]  rounded-t-3xl mobile:rounded-t-lg ${
+      className={`flex-wrap py-6 px-8 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-2 rounded-t-3xl mobile:rounded-t-lg ${
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       }`}
     >
@@ -132,13 +136,11 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
         ))}
       </Row>
 
-      <Grid className="w-9 h-9 place-items-center self-center">
-        <Icon
-          size="sm"
-          className="justify-self-end p-3 mr-1.5 frosted-glass-teal rounded-xl"
-          heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`}
-        />
-      </Grid>
+      <Row className="ml-auto gap-4">
+        <Button className="frosted-glass-teal" onClick={() => {}}>
+          Enter
+        </Button>
+      </Row>
     </Row>
   )
 }

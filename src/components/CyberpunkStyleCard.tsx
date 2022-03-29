@@ -14,8 +14,9 @@ export default function CyberpunkStyleCard({
   children,
   domRef,
   size = 'lg',
+  cssGradientRotate,
   ...restProps
-}: CardProps & { haveMinHeight?: boolean; wrapperClassName?: string }) {
+}: CardProps & { haveMinHeight?: boolean; wrapperClassName?: string; cssGradientRotate?: number /* unit: deg */ }) {
   const borderRoundSize = useMemo(() => {
     if (restProps.style?.borderRadius) return `calc(${restProps.style.borderRadius} + ${paddingSize}px)`
     if (restProps.className?.includes('round-2xl')) return 16 + paddingSize
@@ -27,10 +28,12 @@ export default function CyberpunkStyleCard({
       ref={domRef as any}
       className={wrapperClassName}
       style={{
+        //@ts-expect-error css variable
+        ['--gradient-rotate']: cssGradientRotate != null ? `${cssGradientRotate}deg` : undefined,
         minHeight: haveMinHeight ? '300px' : undefined, // or style will be freak
         borderRadius: borderRoundSize,
         padding: paddingSize,
-        backgroundImage: 'linear-gradient(246deg, #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%)'
+        backgroundImage: 'linear-gradient(var(--gradient-rotate, 246deg), #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%)'
       }}
     >
       <Card {...restProps} size={size} className={twMerge('bg-cyberpunk-card-bg', restProps.className)}>
