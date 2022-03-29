@@ -263,13 +263,9 @@ function LiquidityCard() {
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
-      wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light"
+      wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light bg-cyberpunk-card-bg"
       className="py-8 pt-4 px-6 mobile:py-5"
       size="lg"
-      style={{
-        background:
-          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-      }}
     >
       {/* input twin */}
       <>
@@ -779,12 +775,8 @@ function UserLiquidityExhibition() {
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Your Liquidity</div>
       <Card
-        className="p-6 mt-6 mobile:py-5 mobile:px-3"
+        className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg"
         size="lg"
-        style={{
-          background:
-            'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-        }}
       >
         <List className={`flex flex-col gap-6 mobile:gap-5 ${exhibitionInfos.length ? 'mb-5' : ''}`}>
           {exhibitionInfos.map((info, idx) => {
@@ -936,12 +928,8 @@ function CreatePoolCardEntry() {
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Create Pool</div>
       <Card
-        className="p-6 mt-6 mobile:py-5 mobile:px-3"
+        className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg"
         size="lg"
-        style={{
-          background:
-            'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-        }}
       >
         <Row className="gap-4">
           <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">

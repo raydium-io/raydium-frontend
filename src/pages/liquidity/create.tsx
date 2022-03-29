@@ -224,11 +224,9 @@ function PanelContent({ close }: { close(): void }) {
     <div className="self-center w-[min(456px,90vw)]">
       <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Pool</div>
       <Card
-        className="p-8 mobile:p-4 flex flex-col shadow-xl rounded-3xl border-1.5 border-[rgba(171,196,255,0.2)] overflow-y-auto overflow-x-hidden"
+        className="p-8 mobile:p-4 flex flex-col shadow-xl rounded-3xl border-1.5 border-[rgba(171,196,255,0.2)] overflow-y-auto overflow-x-hidden bg-cyberpunk-card-bg"
         size="lg"
         style={{
-          background:
-            'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
           boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
         }}
       >
@@ -344,14 +342,7 @@ function UserCreatedPoolsExhibitionPanel() {
   return (
     <div className="self-center w-[min(456px,90vw)] mt-12">
       <div className="pb-8 text-xl mobile:text-base font-semibold justify-self-start text-white">Your Created Pool</div>
-      <Card
-        className="p-4"
-        size="lg"
-        style={{
-          background:
-            'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-        }}
-      >
+      <Card className="p-4 bg-cyberpunk-card-bg" size="lg">
         <Col className={`gap-6 mobile:gap-5`}>
           {userExhibitionHistory.map((info, idx) => (
             <Collapse

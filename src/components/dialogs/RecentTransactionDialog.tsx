@@ -62,11 +62,9 @@ function PanelContent({ historyItems, onClickX }: { historyItems: TxHistoryInfo[
   const owner = useWallet((s) => s.owner)
   return (
     <Card
-      className="flex flex-col max-h-[60vh] mobile:max-h-screen shadow-xl rounded-3xl mobile:rounded-none w-[min(750px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden"
+      className="flex flex-col max-h-[60vh] mobile:max-h-screen shadow-xl rounded-3xl mobile:rounded-none w-[min(750px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg"
       size="lg"
       style={{
-        background:
-          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
         boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
       }}
     >

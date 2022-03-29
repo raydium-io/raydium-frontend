@@ -253,12 +253,8 @@ function SwapCard() {
     <CyberpunkStyleCard
       domRef={cardRef}
       wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light"
-      className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
+      className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg"
       size="lg"
-      style={{
-        background:
-          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-      }}
     >
       {/* input twin */}
       <div className="space-y-5 mt-5">
@@ -980,12 +976,8 @@ function KLineChart() {
     <Card
       className={`flex ${
         isLine1BoxReady || isLine2BoxReady ? 'visible' : 'invisible'
-      } flex-col mt-10 p-2 w-[min(456px,100%)] self-center`}
+      } flex-col mt-10 p-2 w-[min(456px,100%)] self-center bg-cyberpunk-card-bg`}
       size="lg"
-      style={{
-        background:
-          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-      }}
     >
       <div ref={kline1Box}>
         <KLineChartItem coin={coin1} onDataChange={(isReady) => setIsLine1BoxReady(isReady)} />

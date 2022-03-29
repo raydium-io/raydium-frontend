@@ -41,11 +41,7 @@ export default function Tabs<T extends string = string>({ affectUrlHash, classNa
   return (
     <RadioGroup
       {...restProps}
-      className={twMerge('rounded-full p-1', className)}
-      style={{
-        background:
-          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-      }}
+      className={twMerge('rounded-full p-1 bg-cyberpunk-card-bg', className)}
       itemClassName={(checked) =>
         twMerge(
           `grid min-w-[96px] mobile:min-w-[72px] px-4 h-9 mobile:h-7 rounded-full place-items-center text-sm mobile:text-xs font-medium ${

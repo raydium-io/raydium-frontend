@@ -129,11 +129,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   const { push } = useRouter()
   return (
     <div
-      className="p-4 px-12 gap-8 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg"
-      style={{
-        background:
-          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-      }}
+      className="p-4 px-12 gap-8 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg"
     >
       <Link href={`/acceleraytor/${info.id}`}>
         <Card className="mx-auto w-[min(90vw,420px)] py-4 px-8 bg-acceleraytor-card-bg rounded-2xl frosted-glass-lightsmoke">

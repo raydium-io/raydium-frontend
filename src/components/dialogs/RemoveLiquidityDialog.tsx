@@ -49,13 +49,11 @@ export function RemoveLiquidityDialog({
       {({ close: closeDialog }) => (
         <Card
           className={twMerge(
-            'shadow-xl backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(456px,90vw)] border-1.5 border-[rgba(171,196,255,0.2)]',
+            'shadow-xl backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(456px,90vw)] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg',
             className
           )}
           size="lg"
           style={{
-            background:
-              'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
             boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
           }}
         >
