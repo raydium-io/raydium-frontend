@@ -100,11 +100,8 @@ export default function MessageBoardWidget() {
       >
         {({ close }) => (
           <Card
-            className="flex flex-col shadow-xl backdrop-filter backdrop-blur-xl p-8 mobile:py-4 w-[min(750px,100vw)] mobile:w-screen max-h-[min(850px,100vh)] mobile:h-screen border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg"
+            className="flex flex-col backdrop-filter backdrop-blur-xl p-8 mobile:py-4 w-[min(750px,100vw)] mobile:w-screen max-h-[min(850px,100vh)] mobile:h-screen border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
             size="lg"
-            style={{
-              boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-            }}
           >
             <Row className="justify-between items-center mb-6">
               <div className="text-3xl font-semibold text-white">{currentMessageBoardItem?.title}</div>

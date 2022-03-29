@@ -56,13 +56,10 @@ export function SearchAmmDialog({
       {({ close: closeDialog }) => (
         <Card
           className={twMerge(
-            'shadow-xl backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(456px,90vw)] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg',
+            'backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(456px,90vw)] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card',
             className
           )}
           size="lg"
-          style={{
-            boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-          }}
         >
           <Row className="justify-between items-center mb-6">
             <div className="text-xl font-semibold text-white">Pool Search</div>

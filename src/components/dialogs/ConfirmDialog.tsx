@@ -77,12 +77,9 @@ export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefO
           className={twMerge(
             `p-8 rounded-3xl ${
               props.cardWidth === 'lg' ? 'w-[min(560px,95vw)]' : 'w-[min(360px,80vw)]'
-            }  mx-8 border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg`
+            }  mx-8 border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card`
           )}
           size="lg"
-          style={{
-            boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-          }}
         >
           <Col className="items-center">
             {props.type !== 'no-head-icon' && (

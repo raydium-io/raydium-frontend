@@ -405,11 +405,8 @@ function StakingPageStakeLpDialog() {
     >
       {({ close }) => (
         <Card
-          className="shadow-xl backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(468px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg"
+          className="backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(468px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
           size="lg"
-          style={{
-            boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-          }}
         >
           {/* {String(info?.lpMint)} */}
           <Row className="justify-between items-center mb-6">

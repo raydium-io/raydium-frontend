@@ -224,11 +224,8 @@ function PanelContent({ close }: { close(): void }) {
     <div className="self-center w-[min(456px,90vw)]">
       <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Pool</div>
       <Card
-        className="p-8 mobile:p-4 flex flex-col shadow-xl rounded-3xl border-1.5 border-[rgba(171,196,255,0.2)] overflow-y-auto overflow-x-hidden bg-cyberpunk-card-bg"
+        className="p-8 mobile:p-4 flex flex-col rounded-3xl border-1.5 border-[rgba(171,196,255,0.2)] overflow-y-auto overflow-x-hidden bg-cyberpunk-card-bg shadow-cyberpunk-card"
         size="lg"
-        style={{
-          boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-        }}
       >
         {/* step indicator */}
         <SetpIndicator

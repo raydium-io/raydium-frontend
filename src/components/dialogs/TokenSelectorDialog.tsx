@@ -124,11 +124,8 @@ function TokenSelectorDialogContent({
 
   return (
     <Card
-      className="flex flex-col shadow-xl rounded-3xl mobile:rounded-none w-[min(468px,100vw)] mobile:w-full h-[min(680px,100vh)] mobile:h-screen border-1.5 border-[rgba(99,130,202,0.2)] bg-cyberpunk-card-bg"
+      className="flex flex-col rounded-3xl mobile:rounded-none w-[min(468px,100vw)] mobile:w-full h-[min(680px,100vh)] mobile:h-screen border-1.5 border-[rgba(99,130,202,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
       size="lg"
-      style={{
-        boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-      }}
       htmlProps={{
         onKeyDown: (e) => {
           if (e.key === 'ArrowUp') {

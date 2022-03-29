@@ -28,12 +28,9 @@ export default function WelcomeBetaDialog(props: { content: react.ReactNode; onC
     <Dialog open={isOpen} onClose={close}>
       <Card
         className={twMerge(
-          `p-8 rounded-3xl w-[min(480px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg`
+          `p-8 rounded-3xl w-[min(480px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card`
         )}
         size="lg"
-        style={{
-          boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-        }}
       >
         <Col className="items-center">
           {props.content}

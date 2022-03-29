@@ -96,11 +96,8 @@ function ToolsButton({ className }: { className?: string }) {
         <Popover.Panel>
           <div>
             <Card
-              className="flex flex-col shadow-xl backdrop-filter backdrop-blur-xl py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg"
+              className="flex flex-col backdrop-filter backdrop-blur-xl py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
               size="lg"
-              style={{
-                boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-              }}
             >
               <Grid className="grid-cols-1 items-center gap-2">
                 <PoolStakedOnlyBlock />

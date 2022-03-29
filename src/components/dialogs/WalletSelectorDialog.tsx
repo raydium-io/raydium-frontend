@@ -119,11 +119,8 @@ function PanelContent({
   const [isAllWalletShown, setIsAllWalletShown] = useState(false)
   return (
     <Card
-      className="flex flex-col max-h-screen  w-[586px] mobile:w-screen shadow-xl rounded-3xl mobile:rounded-none border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg"
+      className="flex flex-col max-h-screen  w-[586px] mobile:w-screen rounded-3xl mobile:rounded-none border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg shadow-cyberpunk-card"
       size="lg"
-      style={{
-        boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-      }}
     >
       <Row className="items-center justify-between px-8 py-8">
         <div className="text-xl font-semibold text-white">Connect your wallet to Raydium</div>

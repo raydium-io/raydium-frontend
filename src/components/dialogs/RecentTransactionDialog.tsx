@@ -62,11 +62,8 @@ function PanelContent({ historyItems, onClickX }: { historyItems: TxHistoryInfo[
   const owner = useWallet((s) => s.owner)
   return (
     <Card
-      className="flex flex-col max-h-[60vh] mobile:max-h-screen shadow-xl rounded-3xl mobile:rounded-none w-[min(750px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg"
+      className="flex flex-col max-h-[60vh] mobile:max-h-screen rounded-3xl mobile:rounded-none w-[min(750px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg shadow-cyberpunk-card"
       size="lg"
-      style={{
-        boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-      }}
     >
       <Row className="justify-between items-center p-8">
         <div className="text-xl font-semibold text-white">Recent transactions</div>
