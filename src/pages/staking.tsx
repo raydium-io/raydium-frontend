@@ -74,10 +74,7 @@ function StakingCard() {
       </Row>
     )
   return (
-    <CyberpunkStyleCard
-    className="bg-cyberpunk-card-bg"
-      size="lg"
-    >
+    <CyberpunkStyleCard>
       <Row type="grid" className="gap-3 text-[#ABC4FF]">
         {infos.map((info) => (
           <div key={String(info.id)}>

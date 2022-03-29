@@ -470,8 +470,7 @@ function PoolCard() {
     <CyberpunkStyleCard
       haveMinHeight
       wrapperClassName="flex-1 overflow-hidden flex flex-col"
-      className="p-10 pb-4 mobile:px-3 mobile:py-3 w-full flex flex-col flex-grow h-full bg-cyberpunk-card-bg"
-      size="lg"
+      className="p-10 pb-4 mobile:px-3 mobile:py-3 w-full flex flex-col flex-grow h-full"
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && <TableHeaderBlock />}

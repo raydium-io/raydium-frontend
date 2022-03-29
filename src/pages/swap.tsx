@@ -253,8 +253,7 @@ function SwapCard() {
     <CyberpunkStyleCard
       domRef={cardRef}
       wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light"
-      className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg"
-      size="lg"
+      className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
     >
       {/* input twin */}
       <div className="space-y-5 mt-5">

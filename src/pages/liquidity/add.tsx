@@ -263,9 +263,8 @@ function LiquidityCard() {
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
-      wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light bg-cyberpunk-card-bg"
+      wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light"
       className="py-8 pt-4 px-6 mobile:py-5"
-      size="lg"
     >
       {/* input twin */}
       <>
@@ -774,10 +773,7 @@ function UserLiquidityExhibition() {
   return (
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Your Liquidity</div>
-      <Card
-        className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg"
-        size="lg"
-      >
+      <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
         <List className={`flex flex-col gap-6 mobile:gap-5 ${exhibitionInfos.length ? 'mb-5' : ''}`}>
           {exhibitionInfos.map((info, idx) => {
             const correspondingFarm = farmPoolsList.find(
@@ -927,10 +923,7 @@ function CreatePoolCardEntry() {
   return (
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Create Pool</div>
-      <Card
-        className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg"
-        size="lg"
-      >
+      <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
         <Row className="gap-4">
           <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
             Create a liquidity pool on Raydium that can be traded on the swap interface.{' '}

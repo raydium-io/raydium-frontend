@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { twMerge } from 'tailwind-merge'
 
 import Card, { CardProps } from './Card'
 
@@ -12,14 +13,15 @@ export default function CyberpunkStyleCard({
   wrapperClassName,
   children,
   domRef,
+  size = 'lg',
   ...restProps
 }: CardProps & { haveMinHeight?: boolean; wrapperClassName?: string }) {
   const borderRoundSize = useMemo(() => {
     if (restProps.style?.borderRadius) return `calc(${restProps.style.borderRadius} + ${paddingSize}px)`
     if (restProps.className?.includes('round-2xl')) return 16 + paddingSize
-    if (restProps.size === 'lg') return 20 + paddingSize
-    if (restProps.size === 'md') return 6 + paddingSize
-  }, [restProps.className, restProps.size, restProps.style?.borderRadius])
+    if (size === 'md') return 6 + paddingSize
+    return 20 + paddingSize // default size is lg
+  }, [restProps.className, size, restProps.style?.borderRadius])
   return (
     <div
       ref={domRef as any}
@@ -31,7 +33,9 @@ export default function CyberpunkStyleCard({
         backgroundImage: 'linear-gradient(246deg, #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%)'
       }}
     >
-      <Card {...restProps}>{children}</Card>
+      <Card {...restProps} size={size} className={twMerge('bg-cyberpunk-card-bg', restProps.className)}>
+        {children}
+      </Card>
     </div>
   )
 }
