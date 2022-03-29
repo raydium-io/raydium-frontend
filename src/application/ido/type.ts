@@ -4,6 +4,7 @@ import { DateInfo, HexAddress, LinkAddress, PercentString, SrcAddress, StringNum
 
 import { SplToken, TokenAmount } from '../token/type'
 import { IdoLedgerLayoutV3, IdoPoolBaseInfo, IdoStateLayoutV3, SnapshotStateLayoutV1 } from './sdk'
+import { Price } from '@raydium-io/raydium-sdk'
 
 interface IdoBannerInfoItem {
   text?: string
@@ -40,13 +41,11 @@ export interface RawIdoInfo extends IdoPoolBaseInfo {
   onlyDev?: boolean // for develop easily (may be test ido pool)
   project: {
     projectName: string
+    idoThumbnail: SrcAddress
     projectWebsiteLink: LinkAddress
     detailDoc: LinkAddress
-    details: string
+    detailText: string
     alertDetails?: string
-    docs: {
-      [docName: string]: LinkAddress
-    }
     socials: {
       [socialName: string]: LinkAddress
     }
@@ -74,12 +73,22 @@ export interface SdkParsedIdoInfo extends RawIdoInfo {
 export interface HydratedIdoInfo extends SdkParsedIdoInfo {
   status: IdoPoolInfoStatus // TEMP: should auto added by {@link hydrateIdoPoolInfo}
   filled: PercentString
-  raise: string | undefined // uiString
-  price: string | undefined // uiString
+  totalRaise: TokenAmount | undefined
+
+  /* coin init price when market open */
+  coinPrice: Price | undefined
+
+  /* how much usdc each ticket */
+  ticketPrice: TokenAmount | undefined
+
+  depositedTicketCount: number
+
   /** only have connection */
   isEligible: boolean
+
   /** only have connection */
   userEligibleTicketAmount?: BN
+
   claimableQuote?: TokenAmount
   ledger?: (SdkParsedIdoInfo['ledger'] | undefined) & {
     winningTickets?: TicketInfo[]

@@ -5,13 +5,14 @@ import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { divide, greaterThan, multiply } from '@/functions/numberish/stringNumber'
 import { StringNumber } from '@/types/constants'
-import { Percent } from '@raydium-io/raydium-sdk'
+import { Percent, Price } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { HydratedIdoInfo, SdkParsedIdoInfo, TicketInfo, TicketTailNumberInfo } from '../type'
 import { eq, gt, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import { usdCurrency } from '@/functions/format/toTokenPrice'
 
 export function isLotteryUpcoming(idoInfo: SdkParsedIdoInfo): boolean {
   return currentIsBefore(idoInfo.state.startTime.toNumber())
@@ -96,6 +97,11 @@ export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
       }
     : undefined
 
+  const totalRaise = idoInfo.base && toTokenAmount(idoInfo.base, idoInfo.state.baseSupply)
+  const coinPrice =
+    idoInfo.base && new Price(idoInfo.base, idoInfo.state.denominator, usdCurrency, idoInfo.state.numerator)
+  const ticketPrice = idoInfo.quote && toTokenAmount(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount)
+  const depositedTicketCount = idoInfo.state.raisedLotteries.toNumber()
   return {
     ...(idoInfo ?? {}),
     state: {
@@ -104,9 +110,12 @@ export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
     },
     ledger: idoLedger,
     status,
-    raise: getIdoRaise(idoInfo.base, idoInfo.state.maxWinLotteries),
-    price: getIdoPrice(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount),
+    totalRaise,
+    coinPrice,
+    ticketPrice,
+
     filled: getIdoFilled(idoInfo),
+    depositedTicketCount,
     claimableQuote:
       (status === 'closed' &&
         idoLedger &&

@@ -201,11 +201,11 @@ function TopInfoPanelDetailPart({ className }: { className?: string }) {
           >
             <TopInfoPanelFieldItem
               fieldName="Total Drop Boxes"
-              fieldValue={`${formatNumber(idoInfo.raise)} ${idoInfo.base?.symbol ?? ''}`}
+              fieldValue={`${formatNumber(idoInfo.totalRaise)} ${idoInfo.base?.symbol ?? ''}`}
             />
             <TopInfoPanelFieldItem
               fieldName="Per Drop Box"
-              fieldValue={`${formatNumber(idoInfo.price)} ${idoInfo.quote?.symbol ?? ''}`}
+              fieldValue={`${formatNumber(idoInfo.coinPrice)} ${idoInfo.quote?.symbol ?? ''}`}
             />
             {/* TODO */}
             <TopInfoPanelFieldItem
@@ -652,7 +652,7 @@ function ProjectDetailsPanel({ className }: { className?: string }) {
         <>
           <Row className="space-x-4">
             <h2 className="font-bold text-2xl">Project details</h2>
-            {Object.entries(idoInfo.project.docs).map(([docName, linkAddress]) => (
+            {Object.entries(idoInfo.project.socials).map(([docName, linkAddress]) => (
               <Link key={docName} href={linkAddress}>
                 {docName}
               </Link>
@@ -660,7 +660,9 @@ function ProjectDetailsPanel({ className }: { className?: string }) {
           </Row>
 
           {/* <p className="details whitespace-pre-line my-6">{idoInfo.project.details}</p> */}
-          <ReactMarkdown className="my-6 whitespace-pre-line mobile:text-sm">{idoInfo.project.details}</ReactMarkdown>
+          <ReactMarkdown className="my-6 whitespace-pre-line mobile:text-sm">
+            {idoInfo.project.detailText}
+          </ReactMarkdown>
           {/* {idoInfo.project.alertDetails && (
             <p className="details-alert whitespace-pre-line my-6 italic">{idoInfo.project.alertDetails}</p>
           )} */}
@@ -707,11 +709,11 @@ function BottomInfoPanel() {
             <BottomInfoPanalFieldItem fieldName="Pool closes" fieldValue={toUTC(idoInfo.state.endTime.toNumber())} />
             <BottomInfoPanalFieldItem
               fieldName="Total Drop Boxes"
-              fieldValue={`${formatNumber(idoInfo.raise)} ${idoInfo.base?.symbol ?? ''}`}
+              fieldValue={`${formatNumber(idoInfo.totalRaise)} ${idoInfo.base?.symbol ?? ''}`}
             />
             <BottomInfoPanalFieldItem
               fieldName="Per Drop Box"
-              fieldValue={`${formatNumber(idoInfo.price)} ${idoInfo.quote?.symbol ?? ''}`}
+              fieldValue={`${formatNumber(idoInfo.coinPrice)} ${idoInfo.quote?.symbol ?? ''}`}
             />
             <BottomInfoPanalFieldItem
               fieldName="Max winners"

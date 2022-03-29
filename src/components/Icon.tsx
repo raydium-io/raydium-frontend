@@ -162,7 +162,7 @@ export default function Icon({
         <HeroIconComponent
           /** HeroIcon can't use ref */
           className={twMerge(
-            `w-full h-full ${
+            `select-none w-full h-full ${
               size === 'md'
                 ? 'h-6 w-6'
                 : size === 'smi'
@@ -187,7 +187,7 @@ export default function Icon({
           src={iconSrc}
           alt={getFileNameOfURI(iconSrc ?? '')}
           className={twMerge(
-            `w-full h-full ${
+            `select-none w-full h-full ${
               size === 'md'
                 ? 'h-6 w-6'
                 : size === 'smi'
@@ -210,6 +210,7 @@ export default function Icon({
 }
 
 export const socialIconSrcMap = {
+  website: '/icons/acceleraytor-global.svg',
   twitter: '/icons/acceleraytor-twitter.svg',
   telegram: '/icons/acceleraytor-telegram.svg',
   discord: '/icons/acceleraytor-discord.svg',

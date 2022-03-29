@@ -5,11 +5,13 @@ import { TimeStamp } from './interface'
  * toUTC() // => '2021-09-09 10:25 UTC'
  * toUTC('Thu, 09 Sep 2021 10:26:33 GMT') // => '2021-09-09 10:25 UTC'
  */
-export function toUTC(timestamp?: TimeStamp, options?: { showSeconds?: boolean }): string {
+export function toUTC(timestamp?: TimeStamp, options?: { hideUTCBadge?: boolean; showSeconds?: boolean }): string {
   const utcString = (timestamp ? new Date(Number(timestamp)) : new Date()).toISOString() // '2021-09-09T10:32:32.498Z'
   const matchInfo = utcString.match(/^([\d-]+)T(\d+):(\d+):(\d+)/)
   const [, date, hour, minutes, seconds] = matchInfo ?? []
-  return options?.showSeconds ? `${date} ${hour}:${minutes}:${seconds} UTC` : `${date} ${hour}:${minutes} UTC`
+  return options?.showSeconds
+    ? `${date} ${hour}:${minutes}:${seconds}${options.hideUTCBadge ? '' : ' UTC'}`
+    : `${date} ${hour}:${minutes}${options?.hideUTCBadge ? '' : ' UTC'}`
 }
 
 export function toTimestampNumber(a: TimeStamp) {

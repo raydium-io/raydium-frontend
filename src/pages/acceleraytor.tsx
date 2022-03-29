@@ -40,6 +40,8 @@ import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import { refreshIdoInfo } from '@/application/ido/utils/getHydratedInfo'
 import Image from '@/components/Image'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import formatNumber from '@/functions/format/formatNumber'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function AcceleRaytor() {
   useAutoFetchIdoInfo()
@@ -88,7 +90,7 @@ function IdoList() {
         //     ))}
         // </div>
         <div key={info.id}>
-          <CyberpunkStyleCard cssGradientRotate={190}>
+          <CyberpunkStyleCard>
             <Collapse>
               <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
               <Collapse.Body>
@@ -149,28 +151,77 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
   const { push } = useRouter()
   return (
-    <div className="p-4 px-12 gap-8 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg">
-      <Link href={`/acceleraytor/${info.id}`}>
-        <Card className="mx-auto w-[min(90vw,420px)] py-4 px-8 bg-acceleraytor-card-bg rounded-2xl frosted-glass-lightsmoke">
-          <FormPanel info={info} />
-        </Card>
+    <Row className="p-4 gap-8 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg">
+      <Link href={info.project.detailDoc} className="flex-shrink-0">
+        <Image src={info.project.idoThumbnail} className={`w-[360px] h-[310px] object-cover rounded-xl`} />
       </Link>
-      <div className="grid grid-flow-row grid-cols-2-auto gap-4 my-4">
-        {/* <IdoItem
-          className="col-span-full"
-          fieldName="Filled"
-          fieldValue={<Progress value={toPercentNumber(info.filled)} showLabel />}
-        /> */}
-        {/* <IdoItem
-          className="col-span-2"
-          fieldName="Collection Size"
-          fieldValue={`${formatNumber(info.raise)} ${info.base?.symbol ?? ''}`}
+      <div className="grow grid grid-flow-row grid-cols-2-auto gap-6 my-4 self-start">
+        <IdoItem
+          fieldName="Total Raise"
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">{formatNumber(toString(info.totalRaise))}</div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{info.totalRaise?.token.symbol ?? 'UNKNOWN'}</div>
+            </Row>
+          }
         />
-        <IdoItem fieldName="Price per token" fieldValue={`${formatNumber(info.price)} ${info.quote?.symbol ?? ''}`} />
-        <IdoItem fieldName="Status" fieldValue={<DropZoneBadgeStatusTag tag={info.status} />} /> */}
-        <IdoItem fieldName="Pool Opens" fieldValue={toUTC(Number(info.state.startTime))} />
-        <IdoItem fieldName="Pool Close" fieldValue={toUTC(Number(info.state.endTime))} />
-        <IdoItem fieldName="Token Claim" fieldValue={toUTC(Number(info.state.startWithdrawTime))} />
+        <IdoItem
+          fieldName={`Per ${info.base?.symbol ?? 'UNKNOWN'}`}
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">
+                {formatNumber(toString(info.coinPrice), { fractionLength: 'auto' })}
+              </div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{info.quote?.symbol ?? 'UNKNOWN'}</div>
+            </Row>
+          }
+        />
+        <IdoItem
+          fieldName={`Total tickets deposited`}
+          fieldValue={<div className="text-white font-medium">{formatNumber(info.depositedTicketCount)}</div>}
+        />
+        <IdoItem
+          fieldName={`Allocation / Winning Ticket`}
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">
+                {formatNumber(toString(info.ticketPrice), { fractionLength: 'auto' })}
+              </div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{info.quote?.symbol ?? 'UNKNOWN'}</div>
+            </Row>
+          }
+        />
+        <IdoItem
+          fieldName="Pool open"
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">
+                {toUTC(Number(info.state.startTime), { hideUTCBadge: true })}
+              </div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+            </Row>
+          }
+        />
+        <IdoItem
+          fieldName="Pool close"
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">{toUTC(Number(info.state.endTime), { hideUTCBadge: true })}</div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+            </Row>
+          }
+        />
+        {/* <IdoItem
+          fieldName="Token Claim"
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">
+                {toUTC(Number(info.state.startWithdrawTime), { hideUTCBadge: true })}
+              </div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+            </Row>
+          }
+        />
         <IdoItem
           fieldName="learn more"
           fieldValue={
@@ -178,66 +229,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
               <Link href={info.project.detailDoc}>About {info.project.projectName}</Link>
             </Row>
           }
-        />
-
-        <SetpIndicator
-          currentStep={1}
-          stepInfos={[
-            {
-              stepNumber: 1,
-              stepContent: (
-                <div>
-                  <div>lottery upcoming</div>
-
-                  <AlertText>
-                    Eligible tickets will be visible closer to pool open on {toUTC(info.state.startTime.toNumber())}
-                  </AlertText>
-
-                  <AlertText>
-                    Deposited {info.quote?.symbol ?? ''} can be claimed after the lottery ends. Drop Box can be claimed
-                    after {toUTC(info.state.startWithdrawTime.toNumber())}
-                  </AlertText>
-                </div>
-              )
-            },
-            {
-              stepNumber: 2,
-              stepContent: (
-                <div>
-                  <div>lottery open </div>
-
-                  <AlertText>
-                    Deposited {info.quote?.symbol ?? ''} can be claimed after the lottery ends. Drop Box can be claimed
-                    after {toUTC(info.state.startWithdrawTime.toNumber())}
-                  </AlertText>
-
-                  <AlertText>User can only deposit once, and cannot add tickets or deposit a second time</AlertText>
-                </div>
-              )
-            },
-            {
-              stepNumber: 3,
-              stepContent: (
-                <div>
-                  <div>lottery closed </div>
-
-                  <AlertText>
-                    Deposited {info.quote?.symbol ?? ''} can be claimed after the lottery ends. Drop Box can be claimed
-                    after {toUTC(info.state.startWithdrawTime.toNumber())}
-                  </AlertText>
-
-                  {/* <AlertText className={className}>
-                    Drop Boxes MUST be redeemed on{' '}
-                    <a href={idoInfo.project.projectWebsiteLink} rel="nofollow noopener noreferrer" target="_blank">
-                      {idoInfo.project.projectName}
-                    </a>{' '}
-                    by
-                  </AlertText> */}
-                </div>
-              )
-            }
-          ]}
-        />
+        /> */}
 
         {/* <IdoItem fieldName="Price per token" fieldValue={`${formatNumber(info.price)} ${info.quote?.symbol ?? ''}`} />
         <IdoItem fieldName="Status" fieldValue={<DropZoneBadgeStatusTag tag={info.status} />} /> */}
@@ -245,7 +237,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
 
       {/* time-line */}
       <div></div>
-    </div>
+    </Row>
   )
 }
 
@@ -260,8 +252,8 @@ function IdoItem({
 }) {
   return (
     <div className={`top-info-panel-field-item ${className ?? ''}`}>
-      <div className="field-value opacity-80 text-xs mb-1">{fieldName}</div>
-      <div className="field-name font-semibold text-lg mobile:text-sm">{fieldValue}</div>
+      <div>{fieldValue}</div>
+      <div className="text-[#ABC4FF] font-bold text-xs opacity-50 mt-1">{fieldName}</div>
     </div>
   )
 }
