@@ -29,7 +29,7 @@ export const getAllHydratedIdoInfos = async (options?: {
   const { connection } = useConnection.getState()
   const { owner: currentWalletOwner } = useWallet.getState()
   if (!connection) return
-  const data = await fetchRawIdoListJson()
+  const data = await fetchRawIdoListJson() // TODO: JSON info must inject in useEffect. this 💩 code is too deep, hard to debug.
 
   const env = process.env.NODE_ENV
 

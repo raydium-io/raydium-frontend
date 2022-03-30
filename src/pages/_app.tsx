@@ -16,7 +16,7 @@ import useConnectionInitialization from '@/application/connection/useConnectionI
 import { useUserCustomizedEndpointInitLoad } from '@/application/connection/useUserCustomizedEndpointInitLoad'
 import useFarmInfoFetcher from '@/application/farms/feature/useFarmInfoLoader'
 import useInjectRaydiumFeeAprFromPair from '@/application/farms/feature/useInjectRaydiumFeeAprFromPair'
-import useAutoFetchIdoDetail from '@/application/ido/feature/useAutoFetchIdoDetail'
+import useAutoFetchIdoInfos from '@/application/ido/useAutoFetchIdoInfos'
 import useLiquidityInfoLoader from '@/application/liquidity/feature/useLiquidityInfoLoader'
 import useMessageBoardFileLoader from '@/application/messageBoard/useMessageBoardFileLoader'
 import useMessageBoardReadedIdRecorder from '@/application/messageBoard/useMessageBoardReadedIdRecorder'
@@ -45,7 +45,6 @@ import '../styles/index.css'
 import { useWalletConnectNotifaction } from '@/application/wallet/feature/useWalletConnectNotifaction'
 import { useInitShadowKeypairs } from '@/application/wallet/feature/useInitShadowKeypairs'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
-import useAutoFetchIdoInfo from '@/application/ido/feature/useAutoFetchIdoList'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -141,11 +140,11 @@ function ApplicationsInitializations() {
   useSyncTxHistoryWithLocalStorage()
 
   /********************** acceleraytor **********************/
-  useAutoFetchIdoInfo({
-    when: pathname.toLowerCase().includes('/acceleraytor') || pathname.toLowerCase().includes('/basement')
-  })
+  // useAutoFetchIdoInfo({
+  //   when: pathname.toLowerCase().includes('/acceleraytor') || pathname.toLowerCase().includes('/basement')
+  // })
 
-  useAutoFetchIdoDetail({
+  useAutoFetchIdoInfos({
     when: pathname.toLowerCase().includes('/acceleraytor') || pathname.toLowerCase().includes('/basement')
   })
   return null

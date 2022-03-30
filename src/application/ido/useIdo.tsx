@@ -12,12 +12,14 @@ type IdoState = {
 }
 
 type IdoStore = {
-  idoBannerInformations: IdoBannerInformations | undefined
   idoHydratedInfos: { [idoid: string]: HydratedIdoInfo }
   shadowIdoHydratedInfos?: { [idoid: string]: { [walletOwner: string]: HydratedIdoInfo } } // for shadowOwners
 
+  /** only use it in acceleraytor/lottery page */
+  idoId?: string
+  idoBannerInformations: IdoBannerInformations | undefined
   currentTab: 'All' | 'Inactive'
-  idoState: Record<string, IdoState>
+  idoState: Record<string, IdoState> // for fast refresh without backend
   setIdoState: (idoId: string, statePiece: Partial<IdoState>) => void
 
   refreshIdo: (idoId?: string) => void

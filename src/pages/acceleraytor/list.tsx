@@ -5,25 +5,21 @@ import BN from 'bn.js'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
-import useAutoFetchIdoInfo from '@/application/ido/feature/useAutoFetchIdoList'
 import { HydratedIdoInfo } from '@/application/ido/type'
 import useIdo from '@/application/ido/useIdo'
 import useWallet from '@/application/wallet/useWallet'
 import AlertText from '@/components/AlertText'
 import Button from '@/components/Button'
-import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CountDownClock from '@/components/CountDownClock'
 import DecimalInput from '@/components/DecimalInput'
-import Grid from '@/components/Grid'
 import Icon, { socialIconSrcMap } from '@/components/Icon'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
-import SetpIndicator from '@/components/SetpIndicator'
 import Tabs from '@/components/Tabs'
 import { toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
@@ -41,11 +37,9 @@ import { refreshIdoInfo } from '@/application/ido/utils/getHydratedInfo'
 import Image from '@/components/Image'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import formatNumber from '@/functions/format/formatNumber'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { routeTo } from '@/application/routeTools'
 
 export default function AcceleRaytor() {
-  useAutoFetchIdoInfo()
-
   return (
     <PageLayout mobileBarTitle="AcceleRaytor" metaTitle="AcceleRaytor - Raydium">
       <AcceleRaytorHeader />
@@ -224,6 +218,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
           <Button
             className="frosted-glass-skygray"
             suffix={<Icon className="inline-block" size="sm" heroIconName="arrow-circle-right" />}
+            onClick={() => routeTo('/acceleraytor/lotteryDetail', { queryProps: { idoId: info.id } })}
           >
             Pool Information
           </Button>

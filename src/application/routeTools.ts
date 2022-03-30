@@ -12,6 +12,7 @@ import { useSwap } from './swap/useSwap'
 import { SplToken } from './token/type'
 import useToken from './token/useToken'
 import useFarms from './farms/useFarms'
+import useIdo from './ido/useIdo'
 
 export type PageRouteConfigs = {
   '/swap': {
@@ -42,6 +43,14 @@ export type PageRouteConfigs = {
   }
   '/staking': {
     queryProps?: any
+  }
+  '/acceleraytor/list': {
+    queryProps?: any
+  }
+  '/acceleraytor/lotteryDetail': {
+    queryProps?: {
+      idoId?: HexAddress
+    }
   }
 }
 
@@ -96,6 +105,20 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         })
       )
     })
+  } else if (toPage === '/acceleraytor/lotteryDetail') {
+    router
+      .push({
+        pathname: '/acceleraytor/lotteryDetail',
+        query: {
+          idoId: options?.queryProps?.idoId
+        }
+      })
+      .then(() => {
+        /** jump to target page */
+        useIdo.setState({
+          idoId: options?.queryProps?.idoId
+        })
+      })
   } else {
     router.push({ pathname: toPage, query: options?.queryProps })
   }

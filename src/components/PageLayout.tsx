@@ -385,10 +385,10 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             >
               Staking
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor">
+            <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/list">
               AcceleRaytor
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/basement">
+            <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/basement">
               Basement
             </LinkItem>
             <LinkItem icon="/icons/entry-icon-dropzone.svg" href="https://dropzone.raydium.io/">
