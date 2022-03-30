@@ -43,7 +43,7 @@ export interface RawIdoInfo extends IdoPoolBaseInfo {
     projectName: string
     idoThumbnail: SrcAddress
     projectWebsiteLink: LinkAddress
-    detailDoc: LinkAddress
+    detailDocLink: LinkAddress
     detailText: string
     alertDetails?: string
     socials: {

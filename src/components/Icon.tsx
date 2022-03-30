@@ -32,8 +32,10 @@ import {
   TrashIcon,
   DotsHorizontalIcon
 } from '@heroicons/react/outline'
+import { ArrowCircleRightIcon } from '@heroicons/react/outline'
 
 import { getFileNameOfURI } from '../functions/dom/getFileNameOfURI'
+import { arrayBuffer } from 'node:stream/consumers'
 
 export type AppHeroIconName =
   | 'menu'
@@ -62,6 +64,7 @@ export type AppHeroIconName =
   | 'desktop-computer'
   | 'trash'
   | 'dots-horizontal'
+  | 'arrow-circle-right' // solid
   | ' '
 
 export interface IconProps {
@@ -154,6 +157,8 @@ export default function Icon({
         ? TrashIcon
         : heroIconName === 'dots-horizontal'
         ? DotsHorizontalIcon
+        : heroIconName === 'arrow-circle-right'
+        ? ArrowCircleRightIcon
         : heroIconName === ' '
         ? ({ className }: { className?: string }) => <div className={className} />
         : Fragment

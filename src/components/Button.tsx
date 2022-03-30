@@ -7,6 +7,7 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useClick } from '@/hooks/useClick'
 import { AnyFn, BooleanLike, MayFunction } from '@/types/constants'
 import { MayArray } from '@/types/generics'
+import Row from './Row'
 
 export interface ButtonHandle {
   click?: () => void
@@ -33,6 +34,10 @@ export interface ButtonProps {
     fallbackProps?: Omit<ButtonProps, 'validators' | 'disabled'>
   }>
   children?: ReactNode
+  /** normally, it's an icon  */
+  prefix?: ReactNode
+  /** normally, it's an icon  */
+  suffix?: ReactNode
   onClick?: AnyFn
   componentRef?: RefObject<any>
 }
@@ -46,7 +51,7 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
     ...restProps,
     ...failedValidator?.fallbackProps
   }
-  const { type = 'solid', className = '', size, children, onClick, componentRef } = mergedProps
+  const { type = 'solid', className = '', size, children, onClick, componentRef, suffix, prefix } = mergedProps
 
   const isActive = failedValidator?.forceActive || (!failedValidator && !mergedProps.disabled)
   const disable = !isActive
@@ -76,7 +81,15 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
         className
       )}
     >
-      {children}
+      {suffix || prefix ? (
+        <Row className="items-center gap-1">
+          {prefix}
+          <div>{children}</div>
+          {suffix}
+        </Row>
+      ) : (
+        children
+      )}
     </button>
   )
 }

@@ -139,8 +139,11 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
       </Row>
 
       <Row className="ml-auto gap-4">
+        <Button className="frosted-glass-teal" disabled onClick={() => {}}>
+          Withdraw {info.base?.symbol ?? 'UNKNOWN'}
+        </Button>
         <Button className="frosted-glass-teal" onClick={() => {}}>
-          Enter
+          Withdraw {info.quote?.symbol ?? 'UNKNOWN'}
         </Button>
       </Row>
     </Row>
@@ -152,91 +155,83 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   const { push } = useRouter()
   return (
     <Row className="p-4 gap-8 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg">
-      <Link href={info.project.detailDoc} className="flex-shrink-0">
+      <Link href={info.project.detailDocLink} className="flex-shrink-0">
         <Image src={info.project.idoThumbnail} className={`w-[360px] h-[310px] object-cover rounded-xl`} />
       </Link>
-      <div className="grow grid grid-flow-row grid-cols-2-auto gap-6 my-4 self-start">
-        <IdoItem
-          fieldName="Total Raise"
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">{formatNumber(toString(info.totalRaise))}</div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{info.totalRaise?.token.symbol ?? 'UNKNOWN'}</div>
-            </Row>
-          }
-        />
-        <IdoItem
-          fieldName={`Per ${info.base?.symbol ?? 'UNKNOWN'}`}
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">
-                {formatNumber(toString(info.coinPrice), { fractionLength: 'auto' })}
-              </div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{info.quote?.symbol ?? 'UNKNOWN'}</div>
-            </Row>
-          }
-        />
-        <IdoItem
-          fieldName={`Total tickets deposited`}
-          fieldValue={<div className="text-white font-medium">{formatNumber(info.depositedTicketCount)}</div>}
-        />
-        <IdoItem
-          fieldName={`Allocation / Winning Ticket`}
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">
-                {formatNumber(toString(info.ticketPrice), { fractionLength: 'auto' })}
-              </div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{info.quote?.symbol ?? 'UNKNOWN'}</div>
-            </Row>
-          }
-        />
-        <IdoItem
-          fieldName="Pool open"
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">
-                {toUTC(Number(info.state.startTime), { hideUTCBadge: true })}
-              </div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
-            </Row>
-          }
-        />
-        <IdoItem
-          fieldName="Pool close"
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">{toUTC(Number(info.state.endTime), { hideUTCBadge: true })}</div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
-            </Row>
-          }
-        />
-        {/* <IdoItem
-          fieldName="Token Claim"
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">
-                {toUTC(Number(info.state.startWithdrawTime), { hideUTCBadge: true })}
-              </div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
-            </Row>
-          }
-        />
-        <IdoItem
-          fieldName="learn more"
-          fieldValue={
-            <Row className="gap-2">
-              <Link href={info.project.detailDoc}>About {info.project.projectName}</Link>
-            </Row>
-          }
-        /> */}
-
-        {/* <IdoItem fieldName="Price per token" fieldValue={`${formatNumber(info.price)} ${info.quote?.symbol ?? ''}`} />
-        <IdoItem fieldName="Status" fieldValue={<DropZoneBadgeStatusTag tag={info.status} />} /> */}
-      </div>
-
-      {/* time-line */}
-      <div></div>
+      <Col className="grow justify-between py-4">
+        <div className="grid grid-flow-row grid-cols-2-auto gap-6">
+          <IdoItem
+            fieldName="Total Raise"
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">{formatNumber(toString(info.totalRaise))}</div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">{info.totalRaise?.token.symbol ?? 'UNKNOWN'}</div>
+              </Row>
+            }
+          />
+          <IdoItem
+            fieldName={`Per ${info.base?.symbol ?? 'UNKNOWN'}`}
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">
+                  {formatNumber(toString(info.coinPrice), { fractionLength: 'auto' })}
+                </div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">{info.quote?.symbol ?? 'UNKNOWN'}</div>
+              </Row>
+            }
+          />
+          <IdoItem
+            fieldName={`Total tickets deposited`}
+            fieldValue={<div className="text-white font-medium">{formatNumber(info.depositedTicketCount)}</div>}
+          />
+          <IdoItem
+            fieldName={`Allocation / Winning Ticket`}
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">
+                  {formatNumber(toString(info.ticketPrice), { fractionLength: 'auto' })}
+                </div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">{info.quote?.symbol ?? 'UNKNOWN'}</div>
+              </Row>
+            }
+          />
+          <IdoItem
+            fieldName="Pool open"
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">
+                  {toUTC(Number(info.state.startTime), { hideUTCBadge: true })}
+                </div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+              </Row>
+            }
+          />
+          <IdoItem
+            fieldName="Pool close"
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">
+                  {toUTC(Number(info.state.endTime), { hideUTCBadge: true })}
+                </div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+              </Row>
+            }
+          />
+        </div>
+        {/* time-line */}
+        <div className="border-t-1.5 border-[#ABC4FF] opacity-20"></div>
+        <div>
+          <Button
+            className="frosted-glass-skygray"
+            suffix={<Icon className="inline-block" size="sm" heroIconName="arrow-circle-right" />}
+          >
+            Pool Information
+          </Button>
+          <Link className="mx-4 text-[#ABC4FF] opacity-50 font-bold" href={info.project.detailDocLink}>
+            Full Details
+          </Link>
+        </div>
+      </Col>
     </Row>
   )
 }
