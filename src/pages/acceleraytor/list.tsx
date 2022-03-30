@@ -112,7 +112,10 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       }`}
     >
-      <Row className="items-center gap-4 w-48">
+      <Row
+        className="items-center gap-4 w-48 clickable"
+        onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
+      >
         <CoinAvatar size="lg" token={info.base} />
         <div>
           <div className="text-base font-semibold text-white">{info.base?.symbol ?? 'UNKNOWN'}</div>
@@ -218,7 +221,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
           <Button
             className="frosted-glass-skygray"
             suffix={<Icon className="inline-block" size="sm" heroIconName="arrow-circle-right" />}
-            onClick={() => routeTo('/acceleraytor/lotteryDetail', { queryProps: { idoId: info.id } })}
+            onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
           >
             Pool Information
           </Button>

@@ -47,7 +47,7 @@ export type PageRouteConfigs = {
   '/acceleraytor/list': {
     queryProps?: any
   }
-  '/acceleraytor/lotteryDetail': {
+  '/acceleraytor/detail': {
     queryProps?: {
       idoId?: HexAddress
     }
@@ -105,10 +105,10 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         })
       )
     })
-  } else if (toPage === '/acceleraytor/lotteryDetail') {
+  } else if (toPage === '/acceleraytor/detail') {
     router
       .push({
-        pathname: '/acceleraytor/lotteryDetail',
+        pathname: '/acceleraytor/detail',
         query: {
           idoId: options?.queryProps?.idoId
         }

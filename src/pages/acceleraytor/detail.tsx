@@ -1,6 +1,5 @@
 import React, { ReactNode, useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { useRouter } from 'next/router'
 
 import BN from 'bn.js'
 
@@ -29,12 +28,11 @@ import toPercentNumber from '@/functions/format/toPercentNumber'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { greaterThanOrEqual, lessThanOrEqual, multiply, toStringNumber } from '@/functions/numberish/stringNumber'
 import createContextStore from '@/functions/react/createContextStore'
-import { HexAddress } from '@/types/constants'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { objectMap } from '@/functions/objectMethods'
 import { toString } from '@/functions/numberish/toString'
 import { ZERO } from '@raydium-io/raydium-sdk'
-import { eq, gt, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 
@@ -64,14 +62,13 @@ export default function _IdoIdPage() {
 }
 
 function IdoIdPage() {
-  const { query } = useRouter()
-  const idoId = query.idoid as HexAddress
   // there is a little bit tedious when use both recoil and
   const { setIdoInfo, idoInfo } = usePageData()
-  const { idoHydratedInfos } = useIdo()
+  const { idoHydratedInfos, idoId } = useIdo()
 
+  // console.log('idoid: ', idoId)
   useEffect(() => {
-    if (idoHydratedInfos) setIdoInfo(idoHydratedInfos[idoId])
+    if (idoId && idoHydratedInfos[idoId]) setIdoInfo(idoHydratedInfos[idoId])
   }, [idoId, idoHydratedInfos, setIdoInfo])
 
   return (
