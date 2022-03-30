@@ -53,7 +53,7 @@ const { ContextProvider: PageRegistor, useStore: usePageData } = createContextSt
   claimingQuoteHasSuccess: false
 })
 
-export default function _IdoIdPage() {
+export default function LotteryDetail() {
   return (
     <PageRegistor>
       <IdoIdPage />
