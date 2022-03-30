@@ -106,6 +106,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       )
     })
   } else if (toPage === '/acceleraytor/detail') {
+    const { idoHydratedInfos } = useIdo.getState()
     router
       .push({
         pathname: '/acceleraytor/detail',
@@ -115,8 +116,9 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       })
       .then(() => {
         /** jump to target page */
+
         useIdo.setState({
-          idoId: options?.queryProps?.idoId
+          currentIdoHydratedInfo: idoHydratedInfos[options?.queryProps?.idoId]
         })
       })
   } else {

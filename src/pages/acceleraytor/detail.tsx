@@ -4,7 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import BN from 'bn.js'
 
 import useConnection from '@/application/connection/useConnection'
-import { HydratedIdoInfo, TicketInfo } from '@/application/ido/type'
+import { TicketInfo } from '@/application/ido/type'
 import useIdo from '@/application/ido/useIdo'
 import useWallet from '@/application/wallet/useWallet'
 import AlertText from '@/components/AlertText'
@@ -26,51 +26,19 @@ import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import formatNumber from '@/functions/format/formatNumber'
 import toPercentNumber from '@/functions/format/toPercentNumber'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { greaterThanOrEqual, lessThanOrEqual, multiply, toStringNumber } from '@/functions/numberish/stringNumber'
-import createContextStore from '@/functions/react/createContextStore'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { objectMap } from '@/functions/objectMethods'
 import { toString } from '@/functions/numberish/toString'
 import { ZERO } from '@raydium-io/raydium-sdk'
-import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
-
-const { ContextProvider: PageRegistor, useStore: usePageData } = createContextStore({
-  /** info for ido object item */
-  idoInfo: undefined as HydratedIdoInfo | undefined,
-  refreshSelf: (() => {}) as () => void,
-
-  /** ticketAmout user want to deposit */
-  ticketAmount: undefined as BN | undefined,
-
-  /** action status (haven't realize it yet) */
-  isDepositing: false,
-  depositingHasSuccess: false,
-  isClaimingBase: false,
-  claimingBaseHasSuccess: false,
-  isClaimingQuote: false,
-  claimingQuoteHasSuccess: false
-})
+import { Numberish } from '@/types/constants'
+import toBN from '@/functions/numberish/toBN'
+import { mul } from '@/functions/numberish/operations'
 
 export default function LotteryDetail() {
-  return (
-    <PageRegistor>
-      <IdoIdPage />
-    </PageRegistor>
-  )
-}
-
-function IdoIdPage() {
-  // there is a little bit tedious when use both recoil and
-  const { setIdoInfo, idoInfo } = usePageData()
-  const { idoHydratedInfos, idoId } = useIdo()
-
-  // console.log('idoid: ', idoId)
-  useEffect(() => {
-    if (idoId && idoHydratedInfos[idoId]) setIdoInfo(idoHydratedInfos[idoId])
-  }, [idoId, idoHydratedInfos, setIdoInfo])
-
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   return (
     <PageLayout metaTitle="Acceleraytor">
       <ShadowWalletInfoPanel />
@@ -98,10 +66,11 @@ function IdoIdPage() {
     </PageLayout>
   )
 }
+
 function ShadowWalletInfoPanel() {
   const shadowKeypairs = useWallet((s) => s.shadowKeypairs)
   const shadowIdoHydratedInfos = useIdo((s) => s.shadowIdoHydratedInfos)
-  const { idoInfo } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
 
   useEffect(() => {
     if (!idoInfo?.id) return // haven't load basic info now
@@ -169,7 +138,7 @@ function TopInfoPanelFieldItem({ fieldName, fieldValue }: { fieldName?: ReactNod
 }
 
 function TopInfoPanelTitlePart({ className }: { className?: string }) {
-  const { idoInfo } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   return (
     <Row className={`top-info-panel-title-part ${className ?? ''} justify-between items-center`}>
       {idoInfo && (
@@ -188,7 +157,7 @@ function TopInfoPanelTitlePart({ className }: { className?: string }) {
 }
 
 function TopInfoPanelDetailPart({ className }: { className?: string }) {
-  const { idoInfo } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   return (
     <div className="top-info-panel-detail-part">
       {idoInfo && (
@@ -222,7 +191,7 @@ function TopInfoPanelDetailPart({ className }: { className?: string }) {
 }
 
 function TopInfoPanelTicketPart({ className }: { className?: string }) {
-  const { idoInfo } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   return (
     <Row className={`flex flex-wrap gap-2 top-info-panel-ticket-part justify-between ${className ?? ''}`}>
       {idoInfo && (
@@ -251,7 +220,10 @@ function TopInfoPanelTicketPart({ className }: { className?: string }) {
 
 // to manage different period of lottery activity
 function FormPanel({ className }: { className?: string }) {
-  const { idoInfo, refreshSelf } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const refreshIdo = useIdo((s) => s.refreshIdo)
+  const refreshSelf = () => refreshIdo(idoInfo?.id)
+
   return (
     <Row className={`flex-col bg-ground-color-light py-1 px-8 mobile:px-6 min-w-[300px] ${className ?? ''}`}>
       <Row className="items-center gap-2">
@@ -271,7 +243,7 @@ function FormPanel({ className }: { className?: string }) {
 }
 
 function IdoAlertText({ flag, className }: { flag: '1' | '2' | '3' | '4'; className?: string }) {
-  const { idoInfo } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
 
   if (idoInfo && flag === '1') {
     return (
@@ -310,7 +282,9 @@ function IdoAlertText({ flag, className }: { flag: '1' | '2' | '3' | '4'; classN
 }
 
 function FormPanelLotteryUpcoming() {
-  const { idoInfo, refreshSelf } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const refreshIdo = useIdo((s) => s.refreshIdo)
+  const refreshSelf = () => refreshIdo(idoInfo?.id)
   return (
     <>
       <Row className="flex-1 grid place-items-center">
@@ -328,18 +302,12 @@ function FormPanelLotteryUpcoming() {
 
 function FormPanelLotteryInput({ className }: { className?: string }) {
   const [userBalance, setUserBalance] = useState<string | undefined>()
-  const {
-    idoInfo,
-    refreshSelf,
-    ticketAmount,
-    isDepositing,
-    depositingHasSuccess,
-    setTicketAmount,
-    setIsDepositing,
-    setDepositingHasSuccess
-  } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const [ticketAmount, setTicketAmount] = useState<Numberish | undefined>(undefined)
   const { connected, adapter, balances } = useWallet()
-  const { connection } = useConnection()
+  const connection = useConnection((s) => s.connection)
+  const refreshIdo = useIdo((s) => s.refreshIdo)
+  const refreshSelf = () => refreshIdo(idoInfo?.id)
 
   const inputMaxEligibleTickets = () => {
     if (idoInfo && idoInfo.state) {
@@ -356,17 +324,11 @@ function FormPanelLotteryInput({ className }: { className?: string }) {
   const clickPurchase = async () => {
     if (!idoInfo || !ticketAmount) return
     try {
-      setIsDepositing(true)
       await txIdoPurchase({
         idoInfo,
-        amount: ticketAmount,
+        amount: toBN(ticketAmount),
         onTxSuccess: () => {
-          setIsDepositing(false)
-          setDepositingHasSuccess(true)
           refreshSelf()
-        },
-        onTxError: () => {
-          setIsDepositing(false)
         }
       })
       // eslint-disable-next-line no-empty
@@ -404,7 +366,7 @@ function FormPanelLotteryInput({ className }: { className?: string }) {
                 <DecimalInput
                   placeholder="(ticket amount)"
                   value={String(ticketAmount)}
-                  onUserInput={(v) => setTicketAmount(new BN(toStringNumber(v)))}
+                  onUserInput={(v) => setTicketAmount(v)}
                 />
               }
               bottomRight={
@@ -438,9 +400,11 @@ function FormPanelLotteryInput({ className }: { className?: string }) {
                   disabled
                   value={
                     idoInfo.quote &&
-                    multiply(
-                      ticketAmount ?? 0,
-                      toString(toTokenAmount(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount))
+                    toString(
+                      mul(
+                        ticketAmount ?? 0,
+                        toString(toTokenAmount(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount))
+                      )
                     )
                   }
                 />
@@ -470,7 +434,7 @@ function FormPanelLotteryInput({ className }: { className?: string }) {
                 className="block w-full"
                 validators={[
                   {
-                    should: !depositingHasSuccess,
+                    should: !idoInfo.ledger?.quoteDeposited || eq(idoInfo.ledger.quoteDeposited, 0),
                     fallbackProps: { children: 'Joined' }
                   },
                   {
@@ -478,7 +442,7 @@ function FormPanelLotteryInput({ className }: { className?: string }) {
                     fallbackProps: { children: 'You have already deposited' }
                   },
                   {
-                    should: Number(ticketAmount?.toNumber()),
+                    should: gt(ticketAmount, 0),
                     fallbackProps: { children: 'Enter ticket amount' }
                   },
                   {
@@ -486,16 +450,15 @@ function FormPanelLotteryInput({ className }: { className?: string }) {
                     fallbackProps: { children: 'No eligible tickets' }
                   },
                   {
-                    should: ticketAmount && greaterThanOrEqual(ticketAmount, idoInfo.state.perUserMinLotteries),
+                    should: ticketAmount && gte(ticketAmount, idoInfo.state.perUserMinLotteries),
                     fallbackProps: { children: `Min. tickets amount is ${idoInfo.state.perUserMinLotteries}` }
                   },
                   {
-                    should: ticketAmount && lessThanOrEqual(ticketAmount, idoInfo.userEligibleTicketAmount),
+                    should: ticketAmount && gte(ticketAmount, idoInfo.userEligibleTicketAmount),
                     fallbackProps: { children: `Max. tickets amount is ${idoInfo.userEligibleTicketAmount}` }
                   }
                 ]}
                 onClick={clickPurchase}
-                isLoading={isDepositing}
               >
                 Join Lottery
               </Button>
@@ -532,14 +495,9 @@ function FormPanelLotteryInputTemplate({
 }
 
 function FormPanelClaimButtons({ className }: { className?: string }) {
-  const {
-    idoInfo,
-    refreshSelf,
-    setIsClaimingBase,
-    setClaimingBaseHasSuccess,
-    setIsClaimingQuote,
-    setClaimingQuoteHasSuccess
-  } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const refreshIdo = useIdo((s) => s.refreshIdo)
+  const refreshSelf = () => refreshIdo(idoInfo?.id)
   const { connected } = useWallet()
   const userHasDepositedUSDC = idoInfo && idoInfo.ledger && idoInfo.ledger.quoteDeposited.toNumber() > 0
 
@@ -547,21 +505,13 @@ function FormPanelClaimButtons({ className }: { className?: string }) {
 
   const clickClaim = async (side: 'base' | 'quote') => {
     if (!idoInfo) return
-    try {
-      ;(side === 'base' ? setIsClaimingBase : setIsClaimingQuote)(true)
-      txIdoClaim({
-        side,
-        idoInfo,
-        onTxSuccess: () => {
-          ;(side === 'base' ? setClaimingBaseHasSuccess : setClaimingQuoteHasSuccess)(true)
-          refreshSelf()
-        }
-      })
-      // eslint-disable-next-line no-empty
-    } catch (err) {
-    } finally {
-      ;(side === 'base' ? setIsClaimingBase : setIsClaimingQuote)(false)
-    }
+    txIdoClaim({
+      side,
+      idoInfo,
+      onTxSuccess: () => {
+        refreshSelf()
+      }
+    })
   }
 
   return (
@@ -642,7 +592,7 @@ function FormPanelClaimButtons({ className }: { className?: string }) {
 }
 
 function ProjectDetailsPanel({ className }: { className?: string }) {
-  const { idoInfo } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   return (
     <div className={`detail-box ${className ?? ''}`}>
       {idoInfo && (
@@ -691,7 +641,7 @@ function BottomInfoPanalFieldItem({ fieldName, fieldValue }: { fieldName?: React
 }
 
 function BottomInfoPanel() {
-  const { idoInfo } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   return (
     <TabWithPanel
       className="rounded-lg overflow-hidden"
@@ -736,7 +686,7 @@ function MiddleTicketPanelFieldItem({ fieldName, fieldValue }: { fieldName?: Rea
   )
 }
 function TicketPanel({ className }: { className?: string }) {
-  const { idoInfo } = usePageData()
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   const { connected } = useWallet()
   return (
     <Row className={`grid justify-center ${className ?? ''}`}>
