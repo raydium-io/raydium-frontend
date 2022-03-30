@@ -41,6 +41,7 @@ export default function LotteryDetail() {
   const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   return (
     <PageLayout metaTitle="Acceleraytor">
+      <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail top-1/2 left-1/2"></div>
       <ShadowWalletInfoPanel />
       {idoInfo ? (
         <div className="acceleraytor-id-panel mx-auto px-3 max-w-[84rem] py-8 mobile:py-12">
@@ -51,7 +52,7 @@ export default function LotteryDetail() {
             </Row>
           </div>
 
-          <TicketPanel className="pt-10" />
+          <TicketPanel className="pt-10 opacity-0 pointer-events-none" />
 
           <div className="detail-box pt-16 mx-16 mobile:mx-0">
             <Row className="detail-box grid grid-cols-auto-fit mobile:grid-flow-row mobile:grid-cols-none gap-8">

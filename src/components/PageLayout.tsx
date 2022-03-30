@@ -114,7 +114,6 @@ export default function PageLayout(props: {
           props.contentClassName
         )}
         style={{
-          contentVisibility: 'auto',
           overflowX: 'hidden',
           overflowY: 'scroll'
         }}

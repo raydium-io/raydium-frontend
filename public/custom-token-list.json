@@ -3,41 +3,6 @@
   "timestamp": "2021-10-22T05:58:23.919Z",
   "tokens": [
     {
-      "symbol": "fake Playground",
-      "name": "fake Playground",
-      "mint": "GQAJxy4qdckdevK3MRbRnTep4dvPLTfbRsgiX1izMY4K",
-      "decimals": 0,
-      "extensions": {}
-    },
-    {
-      "symbol": "Cyber Samurai",
-      "name": "Cyber Samurai",
-      "mint": "5W92urhaa7ZDqWrEVrzWsrcLwvsPCkHJN4FsFRBNn3Hu",
-      "decimals": 0,
-      "extensions": {}
-    },
-    {
-      "symbol": "Playground",
-      "name": "Playground",
-      "mint": "9cQRuxqvQseNbBuQ1BNzUiEu6QApKcmU45mhUS38GUqX",
-      "decimals": 0,
-      "extensions": {}
-    },
-    {
-      "symbol": "Solarmy",
-      "name": "Solarmy",
-      "mint": "FyRoSABkYyyEeYTBNFEVh8zTy1ut6PLBWeKpwJnYRXwB",
-      "decimals": 0,
-      "extensions": {}
-    },
-    {
-      "symbol": "Fake Solarmy",
-      "name": "Fake Solarmy",
-      "mint": "FSvmLv4oVXHdb5kYydEJmznRXor9vwcvyyq9abETmbZw",
-      "decimals": 0,
-      "extensions": {}
-    },
-    {
       "symbol": "Test Base",
       "name": "Test Base",
       "mint": "7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR",
@@ -49,27 +14,6 @@
       "name": "Test Result",
       "mint": "2nkxLptGxQCfaar541Cr87G4v6VuA6BvVWqxsHNVCYoA",
       "decimals": 6,
-      "extensions": {}
-    },
-    {
-      "symbol": "REAL",
-      "name": "REAL",
-      "mint": "AD27ov5fVU2XzwsbvnFvb1JpCBaCB5dRXrczV9CqSVGb",
-      "decimals": 9,
-      "extensions": {}
-    },
-    {
-      "symbol": "YAW",
-      "name": "YAW",
-      "mint": "YAWtS7vWCSRPckx1agB6sKidVXiXiDUfehXdEUSRGKE",
-      "decimals": 6,
-      "extensions": {}
-    },
-    {
-      "symbol": "ZBC",
-      "name": "ZBC",
-      "mint": "zebeczgi5fSEtbpfQKVZKCJ3WgYXxjkMUkNNx7fLKAF",
-      "decimals": 9,
       "extensions": {}
     }
   ]
