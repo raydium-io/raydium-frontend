@@ -37,6 +37,12 @@ import { Numberish } from '@/types/constants'
 import toBN from '@/functions/numberish/toBN'
 import { mul } from '@/functions/numberish/operations'
 import { useRouter } from 'next/router'
+import { FadeIn } from '@/components/FadeIn'
+import Card from '@/components/Card'
+import { twMerge } from 'tailwind-merge'
+import Col from '@/components/Col'
+import Grid from '@/components/Grid'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -52,13 +58,43 @@ function useUrlParser() {
   }, [idoHydratedInfos])
 }
 
+function NavButtons({ className }: { className?: string }) {
+  return (
+    <Row className={twMerge('items-center justify-between', className)}>
+      <Button
+        type="text"
+        className="text-sm text-[#ABC4FF] opacity-50"
+        prefix={<Icon heroIconName="chevron-left" size="sm" />}
+      >
+        Back to all pools
+      </Button>
+
+      <Link>
+        <Button
+          type="text"
+          className="text-sm text-[#ABC4FF] opacity-50"
+          prefix={<Icon heroIconName="information-circle" size="sm" />}
+        >
+          Read full details
+        </Button>
+      </Link>
+    </Row>
+  )
+}
+
 export default function LotteryDetail() {
   const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   useUrlParser()
   return (
-    <PageLayout metaTitle="Acceleraytor">
+    <PageLayout metaTitle="AcceleRaytor" mobileBarTitle="AcceleRaytor" contentYPaddingShorter>
       <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail top-1/2 left-1/2"></div>
-      <ShadowWalletInfoPanel />
+
+      <NavButtons className="mb-10" />
+
+      <FadeIn>
+        <TicketPanel />
+      </FadeIn>
+
       {idoInfo ? (
         <div className="acceleraytor-id-panel mx-auto px-3 max-w-[84rem] py-8 mobile:py-12">
           <div className="cyberpunk-hero-bg-gradient">
@@ -82,52 +118,6 @@ export default function LotteryDetail() {
       )}
     </PageLayout>
   )
-}
-
-function ShadowWalletInfoPanel() {
-  const shadowKeypairs = useWallet((s) => s.shadowKeypairs)
-  const shadowIdoHydratedInfos = useIdo((s) => s.shadowIdoHydratedInfos)
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
-
-  useEffect(() => {
-    if (!idoInfo?.id) return // haven't load basic info now
-    const allShadowInfos = shadowIdoHydratedInfos?.[idoInfo.id]
-    const allEligiable = objectMap(allShadowInfos, (i) => i.userEligibleTicketAmount?.toNumber())
-    // console.log('allShadowInfos: ', allEligiable)
-    // console.log(
-    //   'total:  ',
-    //   Object.values(allEligiable).reduce((a, b) => (a ?? 0) + (b ?? 0), 0)
-    // )
-    const allWinnings = objectMap(allShadowInfos, (i) => i.ledger?.winningTickets?.length)
-    // console.log('allShadowInfos: ', allWinnings)
-    // console.log(
-    //   'total:  ',
-    //   Object.values(allWinnings).reduce((a, b) => (a ?? 0) + (b ?? 0), 0)
-    // )
-    const allClaimable = objectMap(
-      allShadowInfos,
-      (i) =>
-        i.status === 'closed' &&
-        i.ledger &&
-        eq(0, i.ledger.quoteWithdrawn) &&
-        i.quote &&
-        toString(toTokenAmount(i.quote, i.ledger.quoteDeposited))
-    )
-    const allDeposited = objectMap(allShadowInfos, (i) => i.status === 'closed' && toString(i.userEligibleTicketAmount))
-  }, [shadowIdoHydratedInfos])
-  // if (!shadowKeypairs?.length)
-  //   return (
-  //     <Button
-  //       className="flex items-center frosted-glass-teal opacity-80"
-  //       onClick={() => {
-  //         txIdoClaim()
-  //       }}
-  //     >
-  //       Unwrap WSOL
-  //     </Button>
-  //   ) // haven't open experimantal shadowWallet
-
-  return null // TODO: can show panel in UI, not just console.log
 }
 
 function TopInfoPanel({ className }: { className?: string }) {
@@ -690,96 +680,94 @@ function BottomInfoPanel() {
   )
 }
 
-function MiddleTicketPanelFieldItem({ fieldName, fieldValue }: { fieldName?: ReactNode; fieldValue?: ReactNode }) {
-  return (
-    <Row className="ticket-item py-1">
-      <div className="w-[192px] mobile:w-32">
-        <div className="field-name mobile:text-sm opacity-60 font-bold">{fieldName}</div>
-      </div>
-      <div>
-        <div className="field-value mobile:text-sm">{fieldValue}</div>
-      </div>
-    </Row>
-  )
-}
 function TicketPanel({ className }: { className?: string }) {
   const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
-  const { connected } = useWallet()
+
+  // TODO: `const winningNumbers = ` (no heavy logic in jsx return)
+  if (idoInfo?.status !== 'closed') return null
+  if (!idoInfo.ledger?.depositedTickets?.length) return null
   return (
-    <Row className={`grid justify-center ${className ?? ''}`}>
-      <div className="py-6 px-48 mobile:py-4 mobile:px-8 bg-ground-color-light rounded-3xl">
-        <h2 className="mb-4 font-bold text-xl text-center">Ticket information</h2>
-        <Row className="grid justify-center">
-          <MiddleTicketPanelFieldItem
-            fieldName={
+    <Card
+      className={twMerge(
+        'overflow-hidden rounded-3xl mx-8 border-1.5 border-[rgba(171,196,255,0.1)] bg-cyberpunk-card-bg',
+        className
+      )}
+      size="lg"
+    >
+      <Row className="justify-between p-8 ">
+        <Col className="gap-1">
+          <div className="mobile:text-sm font-semibold text-base text-white">
+            {['1', '2'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
+              <div>
+                {idoInfo?.state
+                  .winningTicketsTailNumber!.tickets.map(({ no, isPartial }) => `${no}${isPartial ? ' (partial)' : ''}`)
+                  .join(', ')}
+              </div>
+            ) : ['3'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
+              <div>(Every deposited ticket wins)</div>
+            ) : (
+              <div className="opacity-50">
+                {idoInfo?.status === 'closed' ? '(Lottery in progress)' : '(Numbers selected when lottery ends)'}
+              </div>
+            )}
+          </div>
+          <div className="text-xs font-semibold  text-[#ABC4FF] opacity-50">
+            {
               {
                 '0': 'Lucky Ending Numbers',
                 '1': 'All numbers not ending with',
                 '2': 'Lucky Ending Numbers',
                 '3': 'All Tickets Win',
                 undefined: 'Lucky Ending Numbers'
-              }[String(idoInfo?.state.winningTicketsTailNumber.isWinning)]
+              }[String(idoInfo?.state.winningTicketsTailNumber.isWinning)] // TODO: to hydrated info
             }
-            fieldValue={
-              ['1', '2'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
-                <div>
-                  {idoInfo?.state
-                    .winningTicketsTailNumber!.tickets.map(
-                      ({ no, isPartial }) => `${no}${isPartial ? '(partial)' : ''}`
-                    )
-                    .join(', ')}
-                </div>
-              ) : ['3'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
-                <div>(Every deposited ticket wins)</div>
-              ) : (
-                <div className="opacity-50">
-                  {idoInfo?.status === 'closed' ? '(Lottery in progress)' : '(Numbers selected when lottery ends)'}
-                </div>
-              )
-            }
-          />
-          <MiddleTicketPanelFieldItem
-            fieldName="Your Ticket Numbers"
-            fieldValue={
-              idoInfo?.ledger?.depositedTickets?.length ? (
-                <div className="grid grid-cols-5-auto gap-y-2 gap-x-8">
-                  {idoInfo?.ledger?.depositedTickets?.map((ticket) => (
-                    <TicketItem key={ticket.no} ticket={ticket} />
-                  ))}
-                </div>
-              ) : (
-                <div className="opacity-50">{connected ? '(No tickets deposited)' : '(Wallet not connected)'}</div>
-              )
-            }
-          />
-          <MiddleTicketPanelFieldItem
-            fieldName="Your Winning Numbers"
-            fieldValue={
-              idoInfo?.ledger?.winningTickets?.length ? (
-                <div className="grid grid-cols-5-auto gap-y-2 gap-x-8">
-                  {idoInfo?.ledger?.winningTickets?.map((ticket) => (
-                    <TicketItem key={ticket.no} ticket={ticket} />
-                  ))}
-                </div>
-              ) : (
-                <div className="opacity-50">
-                  {connected
-                    ? idoInfo?.status === 'closed'
-                      ? idoInfo.ledger?.winningTickets?.length
-                        ? '(Lottery in progress)'
-                        : '(No winning tickets)'
-                      : '(Numbers selected when lottery ends)'
-                    : '(Wallet not connected)'}
-                </div>
-              )
-            }
-          />
+          </div>
+        </Col>
+
+        <Row className="ml-auto gap-8">
+          <Button className="frosted-glass-teal" disabled onClick={() => {}}>
+            Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'}
+          </Button>
+          <Button className="frosted-glass-teal" onClick={() => {}}>
+            Withdraw {idoInfo.quote?.symbol ?? 'UNKNOWN'}
+          </Button>
         </Row>
-      </div>
-    </Row>
+      </Row>
+
+      <Col className="bg-[#141041] py-5 px-6">
+        <div className="text-xs mb-5 font-semibold  text-[#ABC4FF] opacity-50">Your ticket numbers</div>
+        <Grid
+          className="grid-gap-board -mx-5"
+          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', clipPath: 'inset(1px 16px)' }}
+        >
+          {idoInfo?.ledger?.depositedTickets?.map((ticket) => (
+            <TicketItem key={ticket.no} ticket={ticket} className="px-5 py-3" />
+          ))}
+        </Grid>
+      </Col>
+    </Card>
   )
 }
-export function TicketItem({ ticket }: { ticket?: TicketInfo }) {
+export function TicketItem({
+  ticket,
+  className,
+  style
+}: {
+  ticket?: TicketInfo
+  className?: string
+  style?: React.CSSProperties
+}) {
   if (!ticket) return null
-  return <div>{ticket.no}</div>
+  return (
+    <Row className={twMerge('items-center gap-1', className)} style={style}>
+      <div className={`text-xs font-semibold ${ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'} `}>
+        {ticket.no}
+      </div>
+      <Icon
+        size="smi"
+        className={ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'}
+        heroIconName={ticket.isWinning ? 'check-circle' : 'x-circle'}
+      />
+    </Row>
+  )
 }

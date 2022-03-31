@@ -11,7 +11,7 @@ import { toString } from '@/functions/numberish/toString'
 
 export default function BasementPage() {
   return (
-    <PageLayout mobileBarTitle="Staking" metaTitle="Staking - Raydium" contentIsFixedLength>
+    <PageLayout mobileBarTitle="Staking" metaTitle="Staking - Raydium" contentButtonPaddingShorter>
       <IdoPanel />
     </PageLayout>
   )

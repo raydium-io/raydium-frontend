@@ -40,7 +40,7 @@ import LoadingCircle from '@/components/LoadingCircle'
 
 export default function StakingPage() {
   return (
-    <PageLayout mobileBarTitle="Staking" metaTitle="Staking - Raydium" contentIsFixedLength>
+    <PageLayout mobileBarTitle="Staking" metaTitle="Staking - Raydium" contentButtonPaddingShorter>
       <StakingHeader />
       <StakingCard />
     </PageLayout>

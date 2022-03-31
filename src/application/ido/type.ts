@@ -91,6 +91,7 @@ export interface HydratedIdoInfo extends SdkParsedIdoInfo {
 
   claimableQuote?: TokenAmount
   ledger?: (SdkParsedIdoInfo['ledger'] | undefined) & {
+    /**@deprecated whether is winning ticket is in depositedTickets */
     winningTickets?: TicketInfo[]
     userAllocation?: StringNumber
     depositedTickets?: TicketInfo[]
@@ -105,7 +106,7 @@ export interface HydratedIdoInfo extends SdkParsedIdoInfo {
 
 export type IdoPoolInfoStatus = 'open' | 'upcoming' | 'closed'
 export type IdoPoolInfoAccess = 'RAY'
-export type TicketInfo = { no: number }
+export type TicketInfo = { no: number; isWinning?: boolean }
 export type TicketTailNumberInfo = {
   no: number | string
   isPartial?: boolean

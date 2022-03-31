@@ -14,7 +14,6 @@ import asyncMap from '@/functions/asyncMap'
 import { fetchRawIdoListJson } from './fetchRawIdoListJson'
 import { objectShakeNil } from '@/functions/objectMethods'
 
-const idoListCache = new Map<HydratedIdoInfo['id'], HydratedIdoInfo>()
 let idoBannerInfos: IdoBannerInformations
 
 /**
@@ -25,7 +24,6 @@ let idoBannerInfos: IdoBannerInformations
 export const getAllHydratedIdoInfos = async (options?: {
   owner?: PublicKeyish
 }): Promise<HydratedIdoInfo[] | undefined> => {
-  if (idoListCache.size) return [...idoListCache.values()]
   const { connection } = useConnection.getState()
   const { owner: currentWalletOwner } = useWallet.getState()
   if (!connection) return
@@ -90,8 +88,6 @@ export const getAllHydratedIdoInfos = async (options?: {
   })
   const parsed = await Promise.all(parsedPomised)
 
-  idoListCache.clear()
-  parsed.forEach((info) => idoListCache.set(info.id, info))
   // eslint-disable-next-line no-console
   console.info('idoList end parsing')
   return parsed
@@ -111,23 +107,15 @@ export const getSingleHydratedIdoInfo = async ({
     owner?: PublicKeyish
   }
 }): Promise<Required<HydratedIdoInfo> | undefined> => {
-  let parsed: HydratedIdoInfo[] | undefined = undefined
   const { connection } = useConnection.getState()
   if (!connection) return
 
-  if (idoListCache.size) {
-    parsed = [...idoListCache.values()]
-  } else {
-    // TODO: only one detail info. not all detail info.
-    const result = await getAllHydratedIdoInfos({
-      owner: options?.owner
-    })
-    parsed = result
-    parsed?.forEach((info) => idoListCache.set(info.id, info))
-  }
+  const result = await getAllHydratedIdoInfos({
+    owner: options?.owner
+  })
 
   // @ts-expect-error force
-  return parsed?.find((idoDetail) => idoDetail.id === String(idoId))
+  return result?.find((idoDetail) => idoDetail.id === String(idoId))
 }
 
 type ShowHydratedIdoInfos = {

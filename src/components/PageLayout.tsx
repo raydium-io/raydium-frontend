@@ -56,11 +56,13 @@ export default function PageLayout(props: {
   topbarClassName?: string
   sideMenuClassName?: string
 
-  contentIsFixedLength?: boolean // it will cause content bottom padding shorter than usual
+  contentYPaddingShorter?: boolean // it will set both contentTopPaddingShorter and contentButtonPaddingShorter
+  contentButtonPaddingShorter?: boolean // it will cause content bottom padding shorter than usual
+  contentTopPaddingShorter?: boolean // it will cause content top padding shorter than usual
 
-  showWalletWidget?: boolean
-  showRpcWidget?: boolean
-  showLanguageWidget?: boolean
+  // showWalletWidget?: boolean
+  // showRpcWidget?: boolean
+  // showLanguageWidget?: boolean
 }) {
   useDocumentMetaTitle(props.metaTitle)
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -109,8 +111,8 @@ export default function PageLayout(props: {
         // always occupy scrollbar space
         className={twMerge(
           `PageLayoutContent relative isolate flex-container grid-area-c bg-gradient-to-b from-[#0c0927] to-[#110d36] rounded-tl-3xl mobile:rounded-none p-12 ${
-            props.contentIsFixedLength ? 'pb-4' : ''
-          } mobile:py-2 mobile:px-3`,
+            props.contentButtonPaddingShorter ?? props.contentYPaddingShorter ? 'pb-4' : ''
+          } ${props.contentTopPaddingShorter ?? props.contentYPaddingShorter ? 'pt-5' : ''} mobile:py-2 mobile:px-3`,
           props.contentClassName
         )}
         style={{

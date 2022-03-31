@@ -88,12 +88,18 @@ function getWinningTicketsTailNumbers(idoInfo: SdkParsedIdoInfo): HydratedIdoInf
  */
 export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
   const status = isLotteryUpcoming(idoInfo) ? 'upcoming' : isLotteryOpen(idoInfo) ? 'open' : 'closed'
+
+  const depositedTickets = getDepositedTickets(idoInfo).map((ticketInfo) => ({
+    ...ticketInfo,
+    isWinning: isTicketWin(ticketInfo.no, idoInfo)
+  }))
+  const winningTickets = getWinningTickets(idoInfo)
   const idoLedger = idoInfo.ledger
     ? {
         ...(idoInfo.ledger ?? {}),
-        winningTickets: getWinningTickets(idoInfo),
+        winningTickets,
         userAllocation: getUserAllocation(idoInfo),
-        depositedTickets: getDepositedTickets(idoInfo)
+        depositedTickets: depositedTickets
       }
     : undefined
 

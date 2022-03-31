@@ -150,4 +150,13 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
       mask: 'linear-gradient(to bottom, rgba(0, 0, 0, .2), rgba(0, 0, 0, 1) var(--to-top-boundary), rgba(0, 0, 0, 1) calc(100% - var(--to-bottom-boundary)), rgba(0, 0, 0, .2))'
     }
   })
+
+  addUtilities({
+    '.grid-gap-board': {
+      clipPath: 'inset(1px)',
+      '*': {
+        border: '1px solid #abc4ff1a'
+      }
+    }
+  })
 })

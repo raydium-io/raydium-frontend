@@ -30,12 +30,12 @@ import {
   SwitchVerticalIcon,
   XIcon,
   TrashIcon,
-  DotsHorizontalIcon
+  DotsHorizontalIcon,
+  XCircleIcon
 } from '@heroicons/react/outline'
 import { ArrowCircleRightIcon } from '@heroicons/react/outline'
 
 import { getFileNameOfURI } from '../functions/dom/getFileNameOfURI'
-import { arrayBuffer } from 'node:stream/consumers'
 
 export type AppHeroIconName =
   | 'menu'
@@ -49,6 +49,7 @@ export type AppHeroIconName =
   | 'plus'
   | 'minus'
   | 'check-circle'
+  | 'x-circle'
   | 'information-circle'
   | 'exclamation'
   | 'exclamation-circle'
@@ -127,6 +128,8 @@ export default function Icon({
         ? MinusIcon
         : heroIconName === 'check-circle'
         ? CheckCircleIcon
+        : heroIconName === 'x-circle'
+        ? XCircleIcon
         : heroIconName === 'exclamation'
         ? ExclamationIcon
         : heroIconName === 'exclamation-circle'

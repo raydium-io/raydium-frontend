@@ -55,7 +55,7 @@ import { isFarmJsonInfo } from '@/application/farms/utils/judgeFarmInfo'
 
 export default function FarmsPage() {
   return (
-    <PageLayout mobileBarTitle="Farms" contentIsFixedLength metaTitle="Farms - Raydium">
+    <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
       <FarmHeader />
       <FarmCard />
     </PageLayout>

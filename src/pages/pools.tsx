@@ -47,7 +47,7 @@ import { addItem, removeItem } from '@/functions/arrayMethods'
  */
 export default function PoolsPage() {
   return (
-    <PageLayout contentIsFixedLength mobileBarTitle="Pools" metaTitle="Pools - Raydium">
+    <PageLayout contentButtonPaddingShorter mobileBarTitle="Pools" metaTitle="Pools - Raydium">
       <PoolHeader />
       <PoolCard />
     </PageLayout>
