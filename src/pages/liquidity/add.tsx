@@ -512,7 +512,7 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
   if (!price) return null
   return (
     <Row className={twMerge('font-medium text-sm text-[#ABC4FF]', className)}>
-      {1} {innerPriceLeftCoin?.symbol ?? '--'} ≈{' '}
+      {1} {innerPriceLeftCoin?.symbol ?? '--'} ≑{' '}
       {toString(innerReversed ? div(1, price) : price, {
         decimalLength: isMobile ? 'auto 2' : 'auto',
         zeroDecimalNotAuto: true
