@@ -43,6 +43,8 @@ import { twMerge } from 'tailwind-merge'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import { Badge } from '@/components/Badge'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -92,8 +94,12 @@ export default function LotteryDetail() {
       <NavButtons className="mb-10" />
 
       <FadeIn>
-        <TicketPanel />
+        <TicketPanel className="mb-5" />
       </FadeIn>
+
+      <Grid className="grid-cols-[4fr,1fr]">
+        <IdoMainInfoPanel />
+      </Grid>
 
       {idoInfo ? (
         <div className="acceleraytor-id-panel mx-auto px-3 max-w-[84rem] py-8 mobile:py-12">
@@ -117,6 +123,205 @@ export default function LotteryDetail() {
         <LoadingCircle className="place-self-center" />
       )}
     </PageLayout>
+  )
+}
+
+function TicketPanel({ className }: { className?: string }) {
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+
+  // TODO: `const winningNumbers = ` (no heavy logic in jsx return)
+  if (idoInfo?.status !== 'closed') return null
+  if (!idoInfo.ledger?.depositedTickets?.length) return null
+  return (
+    <Card
+      className={twMerge(
+        'overflow-hidden rounded-3xl mx-8 border-1.5 border-[rgba(171,196,255,0.1)] bg-cyberpunk-card-bg',
+        className
+      )}
+      size="lg"
+    >
+      <Row className="justify-between p-8 ">
+        <Col className="gap-1">
+          <div className="mobile:text-sm font-semibold text-base text-white">
+            {['1', '2'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
+              <div>
+                {idoInfo?.state
+                  .winningTicketsTailNumber!.tickets.map(({ no, isPartial }) => `${no}${isPartial ? ' (partial)' : ''}`)
+                  .join(', ')}
+              </div>
+            ) : ['3'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
+              <div>(Every deposited ticket wins)</div>
+            ) : (
+              <div className="opacity-50">
+                {idoInfo?.status === 'closed' ? '(Lottery in progress)' : '(Numbers selected when lottery ends)'}
+              </div>
+            )}
+          </div>
+          <div className="text-xs font-semibold  text-[#ABC4FF] opacity-50">
+            {
+              {
+                '0': 'Lucky Ending Numbers',
+                '1': 'All numbers not ending with',
+                '2': 'Lucky Ending Numbers',
+                '3': 'All Tickets Win',
+                undefined: 'Lucky Ending Numbers'
+              }[String(idoInfo?.state.winningTicketsTailNumber.isWinning)] // TODO: to hydrated info
+            }
+          </div>
+        </Col>
+
+        <Row className="ml-auto gap-8">
+          <Button className="frosted-glass-teal" disabled onClick={() => {}}>
+            Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'}
+          </Button>
+          <Button className="frosted-glass-teal" onClick={() => {}}>
+            Withdraw {idoInfo.quote?.symbol ?? 'UNKNOWN'}
+          </Button>
+        </Row>
+      </Row>
+
+      <Col className="bg-[#141041] py-5 px-6">
+        <div className="text-xs mb-5 font-semibold  text-[#ABC4FF] opacity-50">Your ticket numbers</div>
+        <Grid
+          className="grid-gap-board -mx-5"
+          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', clipPath: 'inset(1px 16px)' }}
+        >
+          {idoInfo?.ledger?.depositedTickets?.map((ticket) => (
+            <TicketItem key={ticket.no} ticket={ticket} className="px-5 py-3" />
+          ))}
+        </Grid>
+      </Col>
+    </Card>
+  )
+}
+export function TicketItem({
+  ticket,
+  className,
+  style
+}: {
+  ticket?: TicketInfo
+  className?: string
+  style?: React.CSSProperties
+}) {
+  if (!ticket) return null
+  return (
+    <Row className={twMerge('items-center gap-1', className)} style={style}>
+      <div className={`text-xs font-semibold ${ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'} `}>
+        {ticket.no}
+      </div>
+      <Icon
+        size="smi"
+        className={ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'}
+        heroIconName={ticket.isWinning ? 'check-circle' : 'x-circle'}
+      />
+    </Row>
+  )
+}
+
+function IdoMainInfoPanel({ className }: { className?: string }) {
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  if (!idoInfo) return null
+  return (
+    <Card
+      className={twMerge(
+        'grid grid-cols-[auto,1fr] overflow-hidden rounded-3xl mx-8 border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]',
+        className
+      )}
+      size="lg"
+    >
+      <CyberpunkStyleCard
+        className="flex flex-col items-center justify-center gap-2 w-[140px] py-8"
+        wrapperClassName="w-[140px]"
+      >
+        <CoinAvatar size="lg" token={idoInfo.base} />
+        <div>
+          <div className="text-center text-base font-semibold text-white">{idoInfo.base?.symbol ?? 'UNKNOWN'}</div>
+          <div className="text-center text-sm text-[#ABC4FF] opacity-50">{idoInfo.project.projectName}</div>
+        </div>
+        <Badge cssColor={idoInfo.status === 'upcoming' ? '#ABC4FF' : idoInfo.status === 'open' ? '#39D0D8' : '#DA2EEF'}>
+          {idoInfo.status}
+        </Badge>
+      </CyberpunkStyleCard>
+
+      <div className="grid grid-cols-3-auto grid-gap-board m-4">
+        <IdoInfoItem
+          fieldName="Total Raise"
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">{formatNumber(toString(idoInfo.totalRaise))}</div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">
+                {idoInfo.totalRaise?.token.symbol ?? 'UNKNOWN'}
+              </div>
+            </Row>
+          }
+        />
+        <IdoInfoItem
+          fieldName={`Per ${idoInfo.base?.symbol ?? 'UNKNOWN'}`}
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">
+                {formatNumber(toString(idoInfo.coinPrice), { fractionLength: 'auto' })}
+              </div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{idoInfo.quote?.symbol ?? 'UNKNOWN'}</div>
+            </Row>
+          }
+        />
+        <IdoInfoItem
+          fieldName="Pool open"
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">
+                {toUTC(Number(idoInfo.state.startTime), { hideUTCBadge: true })}
+              </div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+            </Row>
+          }
+        />
+        <IdoInfoItem
+          fieldName={`Allocation / Winning Ticket`}
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">
+                {formatNumber(toString(idoInfo.ticketPrice), { fractionLength: 'auto' })}
+              </div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{idoInfo.quote?.symbol ?? 'UNKNOWN'}</div>
+            </Row>
+          }
+        />
+        <IdoInfoItem
+          fieldName={`Total tickets deposited`}
+          fieldValue={<div className="text-white font-medium">{formatNumber(idoInfo.depositedTicketCount)}</div>}
+        />
+        <IdoInfoItem
+          fieldName="Pool close"
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">
+                {toUTC(Number(idoInfo.state.endTime), { hideUTCBadge: true })}
+              </div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+            </Row>
+          }
+        />
+      </div>
+    </Card>
+  )
+}
+
+function IdoInfoItem({
+  fieldName,
+  fieldValue,
+  className
+}: {
+  className?: string
+  fieldName?: ReactNode
+  fieldValue?: ReactNode
+}) {
+  return (
+    <div className={`py-3 px-4 ${className ?? ''}`}>
+      <div>{fieldValue}</div>
+      <div className="text-[#ABC4FF] font-bold text-xs opacity-50 mt-1">{fieldName}</div>
+    </div>
   )
 }
 
@@ -677,97 +882,5 @@ function BottomInfoPanel() {
         </>
       )}
     </TabWithPanel>
-  )
-}
-
-function TicketPanel({ className }: { className?: string }) {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
-
-  // TODO: `const winningNumbers = ` (no heavy logic in jsx return)
-  if (idoInfo?.status !== 'closed') return null
-  if (!idoInfo.ledger?.depositedTickets?.length) return null
-  return (
-    <Card
-      className={twMerge(
-        'overflow-hidden rounded-3xl mx-8 border-1.5 border-[rgba(171,196,255,0.1)] bg-cyberpunk-card-bg',
-        className
-      )}
-      size="lg"
-    >
-      <Row className="justify-between p-8 ">
-        <Col className="gap-1">
-          <div className="mobile:text-sm font-semibold text-base text-white">
-            {['1', '2'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
-              <div>
-                {idoInfo?.state
-                  .winningTicketsTailNumber!.tickets.map(({ no, isPartial }) => `${no}${isPartial ? ' (partial)' : ''}`)
-                  .join(', ')}
-              </div>
-            ) : ['3'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
-              <div>(Every deposited ticket wins)</div>
-            ) : (
-              <div className="opacity-50">
-                {idoInfo?.status === 'closed' ? '(Lottery in progress)' : '(Numbers selected when lottery ends)'}
-              </div>
-            )}
-          </div>
-          <div className="text-xs font-semibold  text-[#ABC4FF] opacity-50">
-            {
-              {
-                '0': 'Lucky Ending Numbers',
-                '1': 'All numbers not ending with',
-                '2': 'Lucky Ending Numbers',
-                '3': 'All Tickets Win',
-                undefined: 'Lucky Ending Numbers'
-              }[String(idoInfo?.state.winningTicketsTailNumber.isWinning)] // TODO: to hydrated info
-            }
-          </div>
-        </Col>
-
-        <Row className="ml-auto gap-8">
-          <Button className="frosted-glass-teal" disabled onClick={() => {}}>
-            Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'}
-          </Button>
-          <Button className="frosted-glass-teal" onClick={() => {}}>
-            Withdraw {idoInfo.quote?.symbol ?? 'UNKNOWN'}
-          </Button>
-        </Row>
-      </Row>
-
-      <Col className="bg-[#141041] py-5 px-6">
-        <div className="text-xs mb-5 font-semibold  text-[#ABC4FF] opacity-50">Your ticket numbers</div>
-        <Grid
-          className="grid-gap-board -mx-5"
-          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', clipPath: 'inset(1px 16px)' }}
-        >
-          {idoInfo?.ledger?.depositedTickets?.map((ticket) => (
-            <TicketItem key={ticket.no} ticket={ticket} className="px-5 py-3" />
-          ))}
-        </Grid>
-      </Col>
-    </Card>
-  )
-}
-export function TicketItem({
-  ticket,
-  className,
-  style
-}: {
-  ticket?: TicketInfo
-  className?: string
-  style?: React.CSSProperties
-}) {
-  if (!ticket) return null
-  return (
-    <Row className={twMerge('items-center gap-1', className)} style={style}>
-      <div className={`text-xs font-semibold ${ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'} `}>
-        {ticket.no}
-      </div>
-      <Icon
-        size="smi"
-        className={ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'}
-        heroIconName={ticket.isWinning ? 'check-circle' : 'x-circle'}
-      />
-    </Row>
   )
 }
