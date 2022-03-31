@@ -36,9 +36,25 @@ import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import { Numberish } from '@/types/constants'
 import toBN from '@/functions/numberish/toBN'
 import { mul } from '@/functions/numberish/operations'
+import { useRouter } from 'next/router'
+// paser url to patch idoid
+function useUrlParser() {
+  const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const { query } = useRouter()
+  useEffect(() => {
+    if (idoInfo) return
+    const idoIdFromUrl = query.idoId as string | undefined
+    if (idoIdFromUrl) {
+      const current = idoHydratedInfos[idoIdFromUrl]
+      if (current) useIdo.setState({ currentIdoHydratedInfo: current })
+    }
+  }, [idoHydratedInfos])
+}
 
 export default function LotteryDetail() {
   const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  useUrlParser()
   return (
     <PageLayout metaTitle="Acceleraytor">
       <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail top-1/2 left-1/2"></div>
