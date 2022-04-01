@@ -3,8 +3,9 @@ const plugin = require('tailwindcss/plugin')
 exports.cyberpunkLightBorders = plugin(({ addUtilities }) => {
   const cyberpunkLightBorders = {
     '.cyberpunk-border': {
-      borderColor: 'transparent',
       position: 'relative',
+      borderRadius: '20px',
+      border: '2px solid transparent',
       '&::after': {
         content: "''",
         position: 'absolute',
@@ -12,11 +13,12 @@ exports.cyberpunkLightBorders = plugin(({ addUtilities }) => {
         right: '0',
         bottom: '0',
         left: '0',
-        pointerEvents: 'none',
-        overflow: 'hidden',
-        background: 'linear-gradient(246deg, #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%)',
         borderRadius: 'inherit',
-        maskImage: `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><rect width='100%' height='100%' fill='none' stroke='black' stroke-width='2'/></svg>")`
+        border: 'inherit',
+        background: 'linear-gradient(246deg, #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%) border-box',
+        '-webkit-mask': 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+        '-webkit-mask-composite': 'destination-out',
+        'mask-composite': 'exclude'
       }
     }
   }

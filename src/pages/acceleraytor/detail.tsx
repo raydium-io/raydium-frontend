@@ -229,10 +229,7 @@ function IdoMainInfoPanel({ className }: { className?: string }) {
       )}
       size="lg"
     >
-      <CyberpunkStyleCard
-        className="flex flex-col items-center justify-center gap-2 w-[140px] py-8"
-        wrapperClassName="w-[140px]"
-      >
+      <CyberpunkStyleCard className="flex flex-col items-center justify-center gap-2 py-8" wrapperClassName="w-[140px]">
         <CoinAvatar size="lg" token={idoInfo.base} />
         <div>
           <div className="text-center text-base font-semibold text-white">{idoInfo.base?.symbol ?? 'UNKNOWN'}</div>
