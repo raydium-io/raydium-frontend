@@ -94,11 +94,21 @@ export default function LotteryDetail() {
       <NavButtons className="mb-10" />
 
       <FadeIn>
-        <TicketPanel className="mb-5" />
+        <TicketPanelClosed className="mb-5" />
       </FadeIn>
 
-      <Grid className="grid-cols-[4fr,1fr]">
-        <IdoMainInfoPanel />
+      <Grid
+        className="gap-5"
+        style={{
+          gridTemplate: `
+            "a a b" auto
+            "c c b" auto
+            "d d b" auto / 4fr 1fr`
+        }}
+      >
+        <div className="grid-area-b">Join Lottery Card</div>
+        <LotteryInfoPanel className="grid-area-a" />
+        <LotteryLedgerPanel className="grid-area-c" />
       </Grid>
 
       {idoInfo ? (
@@ -110,7 +120,7 @@ export default function LotteryDetail() {
             </Row>
           </div>
 
-          <TicketPanel className="pt-10 opacity-0 pointer-events-none" />
+          <LotteryLedgerPanel className="pt-10 opacity-0 pointer-events-none" />
 
           <div className="detail-box pt-16 mx-16 mobile:mx-0">
             <Row className="detail-box grid grid-cols-auto-fit mobile:grid-flow-row mobile:grid-cols-none gap-8">
@@ -126,7 +136,7 @@ export default function LotteryDetail() {
   )
 }
 
-function TicketPanel({ className }: { className?: string }) {
+function TicketPanelClosed({ className }: { className?: string }) {
   const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
 
   // TODO: `const winningNumbers = ` (no heavy logic in jsx return)
@@ -135,7 +145,7 @@ function TicketPanel({ className }: { className?: string }) {
   return (
     <Card
       className={twMerge(
-        'overflow-hidden rounded-3xl mx-8 border-1.5 border-[rgba(171,196,255,0.1)] bg-cyberpunk-card-bg',
+        'overflow-hidden rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-cyberpunk-card-bg',
         className
       )}
       size="lg"
@@ -194,37 +204,14 @@ function TicketPanel({ className }: { className?: string }) {
     </Card>
   )
 }
-export function TicketItem({
-  ticket,
-  className,
-  style
-}: {
-  ticket?: TicketInfo
-  className?: string
-  style?: React.CSSProperties
-}) {
-  if (!ticket) return null
-  return (
-    <Row className={twMerge('items-center gap-1', className)} style={style}>
-      <div className={`text-xs font-semibold ${ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'} `}>
-        {ticket.no}
-      </div>
-      <Icon
-        size="smi"
-        className={ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'}
-        heroIconName={ticket.isWinning ? 'check-circle' : 'x-circle'}
-      />
-    </Row>
-  )
-}
 
-function IdoMainInfoPanel({ className }: { className?: string }) {
+function LotteryInfoPanel({ className }: { className?: string }) {
   const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   if (!idoInfo) return null
   return (
     <Card
       className={twMerge(
-        'grid grid-cols-[auto,1fr] overflow-hidden rounded-3xl mx-8 border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]',
+        'grid grid-cols-[auto,1fr] overflow-hidden rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]',
         className
       )}
       size="lg"
@@ -305,6 +292,68 @@ function IdoMainInfoPanel({ className }: { className?: string }) {
   )
 }
 
+function LotteryLedgerPanel({ className }: { className?: string }) {
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+
+  const TopInfoPanelFieldItem = (props: { fieldName: ReactNode; fieldValue: ReactNode }) => (
+    <div className="px-6">
+      <div className="text-base font-semibold text-white">{props.fieldValue}</div>
+      <div className="text-sm text-[#ABC4FF] opacity-50">{props.fieldName}</div>
+    </div>
+  )
+
+  if (!idoInfo) return null
+  return (
+    <Card
+      className={twMerge('py-5 rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]', className)}
+      size="lg"
+    >
+      <Grid className="grid-cols-4 grid-gap-board">
+        <TopInfoPanelFieldItem
+          fieldName="Your Eligible Tickets"
+          fieldValue={`${formatNumber(idoInfo.userEligibleTicketAmount)}`}
+        />
+        <TopInfoPanelFieldItem
+          fieldName="Your Deposited Tickets"
+          fieldValue={`${formatNumber(idoInfo.ledger?.depositedTickets?.length ?? 0)}`}
+        />
+        <TopInfoPanelFieldItem
+          fieldName="Your Winning Tickets"
+          fieldValue={`${formatNumber(idoInfo.ledger?.depositedTickets?.filter((i) => i.isWinning)?.length ?? 0)}`}
+        />
+        <TopInfoPanelFieldItem
+          fieldName="Your allocation"
+          fieldValue={`${formatNumber(idoInfo.ledger?.userAllocation)} ${idoInfo.base?.symbol ?? ''}`}
+        />
+      </Grid>
+    </Card>
+  )
+}
+
+function TicketItem({
+  ticket,
+  className,
+  style
+}: {
+  ticket?: TicketInfo
+  className?: string
+  style?: React.CSSProperties
+}) {
+  if (!ticket) return null
+  return (
+    <Row className={twMerge('items-center gap-1', className)} style={style}>
+      <div className={`text-xs font-semibold ${ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'} `}>
+        {ticket.no}
+      </div>
+      <Icon
+        size="smi"
+        className={ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'}
+        heroIconName={ticket.isWinning ? 'check-circle' : 'x-circle'}
+      />
+    </Row>
+  )
+}
+
 function IdoInfoItem({
   fieldName,
   fieldValue,
@@ -332,7 +381,6 @@ function TopInfoPanel({ className }: { className?: string }) {
     >
       <TopInfoPanelTitlePart className="py-6" />
       <TopInfoPanelDetailPart className="py-6" />
-      <TopInfoPanelTicketPart className="py-6" />
     </Row>
   )
 }
@@ -396,34 +444,6 @@ function TopInfoPanelDetailPart({ className }: { className?: string }) {
         </>
       )}
     </div>
-  )
-}
-
-function TopInfoPanelTicketPart({ className }: { className?: string }) {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
-  return (
-    <Row className={`flex flex-wrap gap-2 top-info-panel-ticket-part justify-between ${className ?? ''}`}>
-      {idoInfo && (
-        <>
-          <TopInfoPanelFieldItem
-            fieldName="Your Eligible Tickets"
-            fieldValue={`${formatNumber(idoInfo.userEligibleTicketAmount)} Ticket(s)`}
-          />
-          <TopInfoPanelFieldItem
-            fieldName="Your Deposited Tickets"
-            fieldValue={`${formatNumber(idoInfo.ledger?.depositedTickets?.length ?? 0)} Ticket(s)`}
-          />
-          <TopInfoPanelFieldItem
-            fieldName="Your Winning Tickets"
-            fieldValue={`${formatNumber(idoInfo.ledger?.winningTickets?.length ?? 0)} Ticket(s)`}
-          />
-          {/* <TopInfoPanelFieldItem
-            fieldName="Your allocation"
-            fieldValue={`${formatNumber(idoInfo.ledger?.userAllocation)} ${idoInfo.base?.symbol ?? ''}`}
-          /> */}
-        </>
-      )}
-    </Row>
   )
 }
 
