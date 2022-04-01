@@ -46,7 +46,11 @@ export interface RawIdoInfo extends IdoPoolBaseInfo {
     detailDocLink: LinkAddress
     detailText: string
     alertDetails?: string
-    socials: {
+
+    officialSites: {
+      [officialSitesName: string]: LinkAddress
+    }
+    socialsSites: {
       [socialName: string]: LinkAddress
     }
   }

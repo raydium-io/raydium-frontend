@@ -124,15 +124,17 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
       </Row>
 
       <Row className="gap-4 items-center border-l border-[rgba(171,196,255,0.5)] self-center pl-6">
-        {Object.entries(info.project.socials).map(([socialName, link]) => (
-          <Link key={socialName} href={link} className="flex items-center gap-2">
-            <Icon
-              className="frosted-glass-skygray p-2.5 rounded-lg text"
-              iconClassName="w-3 h-3 opacity-50"
-              iconSrc={socialIconSrcMap[socialName.toLowerCase()]}
-            />
-          </Link>
-        ))}
+        {Object.entries({ ...info.project.socialsSites, website: info.project.officialSites.website }).map(
+          ([socialName, link]) => (
+            <Link key={socialName} href={link} className="flex items-center gap-2">
+              <Icon
+                className="frosted-glass-skygray p-2.5 rounded-lg text"
+                iconClassName="w-3 h-3 opacity-50"
+                iconSrc={socialIconSrcMap[socialName.toLowerCase()]}
+              />
+            </Link>
+          )
+        )}
       </Row>
 
       <Row className="ml-auto gap-4">
