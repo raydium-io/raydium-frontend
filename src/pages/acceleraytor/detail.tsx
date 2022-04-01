@@ -45,6 +45,9 @@ import Grid from '@/components/Grid'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import { Badge } from '@/components/Badge'
+import Tabs from '@/components/Tabs'
+import { shakeFalsyItem } from '@/functions/arrayMethods'
+import { Markdown } from '@/components/Markdown'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -109,6 +112,7 @@ export default function LotteryDetail() {
         <div className="grid-area-b">Join Lottery Card</div>
         <LotteryInfoPanel className="grid-area-a" />
         <LotteryLedgerPanel className="grid-area-c" />
+        <ProjectDetailsPanel className="grid-area-d" />
       </Grid>
 
       {idoInfo ? (
@@ -124,7 +128,6 @@ export default function LotteryDetail() {
 
           <div className="detail-box pt-16 mx-16 mobile:mx-0">
             <Row className="detail-box grid grid-cols-auto-fit mobile:grid-flow-row mobile:grid-cols-none gap-8">
-              <ProjectDetailsPanel />
               <BottomInfoPanel />
             </Row>
           </div>
@@ -326,6 +329,45 @@ function LotteryLedgerPanel({ className }: { className?: string }) {
           fieldValue={`${formatNumber(idoInfo.ledger?.userAllocation)} ${idoInfo.base?.symbol ?? ''}`}
         />
       </Grid>
+    </Card>
+  )
+}
+
+function ProjectDetailsPanel({ className }: { className?: string }) {
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const [currentTab, setCurrentTab] = useState<'Project Details' | 'How to join?'>('Project Details')
+
+  if (!idoInfo) return null
+  return (
+    <Card
+      className={twMerge('py-8 px-6 rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]', className)}
+      size="lg"
+    >
+      <Tabs
+        currentValue={currentTab}
+        values={shakeFalsyItem(['Project Details', 'How to join?'] as const)}
+        onChange={(tab) => setCurrentTab(tab)}
+      />
+
+      <Markdown className="py-6">{idoInfo.project.detailText}</Markdown>
+
+      <Row className="justify-between">
+        <Row className="gap-8">
+          {Object.entries(idoInfo.project.socials ?? {}).map(([socialMediaName, linkAddress]) => (
+            <Link key={socialMediaName} href={linkAddress} className="p-2">
+              <Icon size="md" iconSrc={`/icons/acceleraytor-${socialMediaName.toLowerCase()}.svg`} />
+            </Link>
+          ))}
+        </Row>
+
+        <Row className="gap-8">
+          {Object.entries(idoInfo.project.socials).map(([docName, linkAddress]) => (
+            <Link key={docName} href={linkAddress}>
+              {docName}
+            </Link>
+          ))}
+        </Row>
+      </Row>
     </Card>
   )
 }
@@ -817,42 +859,6 @@ function FormPanelClaimButtons({ className }: { className?: string }) {
       <IdoAlertText flag="2" className="pt-4 pb-2 border-t-2 border-white border-opacity-10" />
       <IdoAlertText flag="3" className="pt-2 pb-4" />
     </>
-  )
-}
-
-function ProjectDetailsPanel({ className }: { className?: string }) {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
-  return (
-    <div className={`detail-box ${className ?? ''}`}>
-      {idoInfo && (
-        <>
-          <Row className="space-x-4">
-            <h2 className="font-bold text-2xl">Project details</h2>
-            {Object.entries(idoInfo.project.socials).map(([docName, linkAddress]) => (
-              <Link key={docName} href={linkAddress}>
-                {docName}
-              </Link>
-            ))}
-          </Row>
-
-          {/* <p className="details whitespace-pre-line my-6">{idoInfo.project.details}</p> */}
-          <ReactMarkdown className="my-6 whitespace-pre-line mobile:text-sm">
-            {idoInfo.project.detailText}
-          </ReactMarkdown>
-          {/* {idoInfo.project.alertDetails && (
-            <p className="details-alert whitespace-pre-line my-6 italic">{idoInfo.project.alertDetails}</p>
-          )} */}
-
-          <Row className="space-x-4">
-            {Object.entries(idoInfo.project.socials ?? {}).map(([socialMediaName, linkAddress]) => (
-              <Link key={socialMediaName} href={linkAddress} className="p-2">
-                <Icon size="md" iconSrc={`/icons/acceleraytor-${socialMediaName.toLowerCase()}.svg`} />
-              </Link>
-            ))}
-          </Row>
-        </>
-      )}
-    </div>
   )
 }
 

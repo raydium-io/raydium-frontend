@@ -54,7 +54,7 @@ export default function Tabs<T extends string = string>({ affectUrlHash, classNa
         checked
           ? {
               background: 'linear-gradient(245.22deg, rgb(218, 46, 239), rgb(43, 106, 255), rgb(57, 208, 216))',
-              backgroundSize: '400% 100%',
+              backgroundSize: `${values.length || 1}00% 100%`,
               backgroundPosition: toPercentString((1 / (values.length - 1)) * idx)
             }
           : {}
