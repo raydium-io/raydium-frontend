@@ -421,8 +421,14 @@ function StakingPageStakeLpDialog() {
             topLeftLabel="Staking RAY"
             token={stakeDialogInfo?.lp}
             onUserInput={setAmount}
-            forceBalanceDepositMode={stakeDialogMode === 'withdraw'}
-            forceBalance={stakeDialogInfo?.userStakedLpAmount}
+            maxValue={stakeDialogMode === 'withdraw' ? stakeDialogInfo?.userStakedLpAmount : undefined}
+            topRightLabel={
+              stakeDialogMode === 'withdraw'
+                ? stakeDialogInfo?.userStakedLpAmount
+                  ? `Deposited:${toString(stakeDialogInfo?.userStakedLpAmount)}`
+                  : '(no deposited)'
+                : undefined
+            }
           />
           <Row className="flex-col gap-1">
             <Button

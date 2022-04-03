@@ -9,23 +9,20 @@ import React, {
   useState
 } from 'react'
 
-import { Fraction } from '@raydium-io/raydium-sdk'
-
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { usePools } from '@/application/pools/usePools'
-import { Token, TokenAmount } from '@/application/token/type'
+import { Token } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import { isQuantumSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE } from '@/application/token/utils/quantumSOL'
 import useWallet from '@/application/wallet/useWallet'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { isString } from '@/functions/judgers/dateType'
+import { isTokenAmount } from '@/functions/judgers/dateType'
 import { gt, gte, lt } from '@/functions/numberish/compare'
-import { sub } from '@/functions/numberish/operations'
-import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
+import { mul, sub } from '@/functions/numberish/operations'
 
 import Button from './Button'
 import CoinAvatar from './CoinAvatar'
@@ -33,7 +30,8 @@ import Icon from './Icon'
 import Input from './Input'
 import Row from './Row'
 import toPubString from '@/functions/format/toMintString'
-import { trimTailingZero } from '@/functions/numberish/stringNumber'
+import { toString } from '@/functions/numberish/toString'
+import { Numberish } from '@/types/constants'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -59,6 +57,7 @@ export interface CoinInputBoxProps {
   onEnter?(input: string | undefined): void
 
   onTryToTokenSelect?(): void
+  // return valid info
   onInputAmountClampInBalanceChange?(info: { outOfMax: boolean; negative: boolean }): void
 
   // -------- customized ----------
@@ -66,6 +65,8 @@ export interface CoinInputBoxProps {
   topLeftLabel?: ReactNode
   /** By default, it will be Balance: xxx,  */
   topRightLabel?: ReactNode
+  // sometimes, should show staked deposited lp, instead of wallet balance
+  maxValue?: Numberish
 
   // used in acceleraytor (input tickets)
   hideTokenPart?: boolean
@@ -73,10 +74,7 @@ export interface CoinInputBoxProps {
   hidePricePredictor?: boolean
   haveHalfButton?: boolean
   haveCoinIcon?: boolean
-  canSelect?: boolean
-  // sometimes, should show staked deposited lp, instead of wallet balance
-  forceBalance?: TokenAmount
-  forceBalanceDepositMode?: boolean
+  showTokenSelectIcon?: boolean
 }
 
 // TODO: split into different customized component (to handle different use cases)
@@ -102,13 +100,12 @@ export default function CoinInputBox({
   topLeftLabel,
   topRightLabel,
 
-  forceBalance,
-  forceBalanceDepositMode,
+  maxValue: forceMaxValue,
   hideTokenPart,
   hidePricePredictor,
   haveHalfButton,
   haveCoinIcon,
-  canSelect
+  showTokenSelectIcon
 }: CoinInputBoxProps) {
   const disabledInput = disabled || innerDisabledInput
   const disabledTokenSelect = disabled || innerDisabledTokenSelect
@@ -134,24 +131,25 @@ export default function CoinInputBox({
     }
   }, [inputedAmount])
 
-  const currentBalance = forceBalanceDepositMode
-    ? forceBalance
-    : getBalance(token) ??
-      (token
-        ? (() => {
-            const targetTokenAccount = tokenAccounts.find((t) => toPubString(t.mint) === toPubString(token?.mint))
-            return targetTokenAccount && toTokenAmount(token, targetTokenAccount?.amount)
-          })()
-        : undefined)
+  // input over max value in invalid
+  const maxValue =
+    forceMaxValue ??
+    getBalance(token) ??
+    (token
+      ? (() => {
+          const targetTokenAccount = tokenAccounts.find((t) => toPubString(t.mint) === toPubString(token?.mint))
+          return targetTokenAccount && toTokenAmount(token, targetTokenAccount?.amount)
+        })()
+      : undefined)
 
   useEffect(() => {
-    if (inputedAmount && currentBalance) {
+    if (inputedAmount && maxValue) {
       onInputAmountClampInBalanceChange?.({
         negative: lt(inputedAmount, '0'),
-        outOfMax: gt(inputedAmount, currentBalance)
+        outOfMax: gt(inputedAmount, maxValue)
       })
     }
-  }, [inputedAmount, currentBalance])
+  }, [inputedAmount, maxValue])
 
   const inputRef = useRef<HTMLInputElement>(null)
   const focusInput = () => inputRef.current?.focus()
@@ -179,24 +177,18 @@ export default function CoinInputBox({
 
   // press button will also cause user input.
   function fillAmountWithBalance(percent: number) {
-    if (!connected) return
-    if (!currentBalance?.token) return
-    let maxBalance = currentBalance
-    const { numerator, denominator } = parseNumberInfo(percent)
-    if (isQuantumSOL(currentBalance.token) && !isQuantumSOLVersionWSOL(currentBalance.token)) {
+    let maxBalance = maxValue
+    if (isTokenAmount(maxValue) && isQuantumSOL(maxValue.token) && !isQuantumSOLVersionWSOL(maxValue.token)) {
       // if user select sol max balance is -0.05
       maxBalance = toTokenAmount(
-        currentBalance.token,
-        gte(currentBalance, SOL_BASE_BALANCE) ? sub(currentBalance, SOL_BASE_BALANCE) : 0,
+        maxValue.token,
+        gte(maxValue, SOL_BASE_BALANCE) ? sub(maxValue, SOL_BASE_BALANCE) : 0,
         {
           alreadyDecimaled: true
         }
       )
     }
-    const newAmount = trimTailingZero(
-      maxBalance?.mul(new Fraction(numerator, denominator)).toFixed(maxBalance.token.decimals)
-    )
-
+    const newAmount = toString(mul(maxBalance, percent))
     onUserInput?.(newAmount) // set both outside and inside
     setInputedAmount(newAmount) // set both outside and inside
   }
@@ -241,11 +233,7 @@ export default function CoinInputBox({
             fillAmountWithBalance(1)
           }}
         >
-          {topRightLabel ??
-            `Balance: ${
-              currentBalance?.toExact?.() ||
-              (connected ? (forceBalanceDepositMode ? '(no deposited)' : '--') : '(wallet not connected)')
-            }`}
+          {topRightLabel ?? `Balance: ${toString(maxValue) || (connected ? '--' : '(wallet not connected)')}`}
         </div>
       </Row>
 
@@ -255,7 +243,7 @@ export default function CoinInputBox({
           <>
             <Row
               className={`items-center gap-1.5 ${
-                canSelect && !disabledTokenSelect ? 'clickable clickable-mask-offset-2' : ''
+                showTokenSelectIcon && !disabledTokenSelect ? 'clickable clickable-mask-offset-2' : ''
               }`}
               onClick={(ev) => {
                 ev.stopPropagation()
@@ -268,7 +256,7 @@ export default function CoinInputBox({
               <div className="text-[rgb(171,196,255)] font-medium text-base flex-grow mobile:text-sm whitespace-nowrap">
                 {token?.symbol ?? '--'}
               </div>
-              {canSelect && <Icon size="xs" heroIconName="chevron-down" className="text-[#ABC4FF]" />}
+              {showTokenSelectIcon && <Icon size="xs" heroIconName="chevron-down" className="text-[#ABC4FF]" />}
             </Row>
             {/* divider */}
             <div className="my-1 mx-4 mobile:my-0 mobile:mx-2 border-r border-[rgba(171,196,255,0.5)] self-stretch" />

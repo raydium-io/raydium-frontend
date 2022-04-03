@@ -988,12 +988,18 @@ function FarmStakeLpDialog() {
             topLeftLabel="Farm"
             token={stakeDialogFarmInfo?.lp}
             onUserInput={setAmount}
-            forceBalanceDepositMode={stakeDialogMode === 'withdraw'}
-            forceBalance={stakeDialogFarmInfo?.userStakedLpAmount}
             onEnter={(input) => {
               if (!input) return
               buttonComponentRef.current?.click?.()
             }}
+            maxValue={stakeDialogMode === 'withdraw' ? stakeDialogFarmInfo?.userStakedLpAmount : undefined}
+            topRightLabel={
+              stakeDialogMode === 'withdraw'
+                ? stakeDialogFarmInfo?.userStakedLpAmount
+                  ? `Deposited: ${toString(stakeDialogFarmInfo?.userStakedLpAmount)}`
+                  : '(no deposited)'
+                : undefined
+            }
           />
           <Row className="flex-col gap-1">
             <Button

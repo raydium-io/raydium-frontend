@@ -264,7 +264,7 @@ function SwapCard() {
           componentRef={coinInputBox1ComponentRef}
           haveHalfButton
           haveCoinIcon
-          canSelect
+          showTokenSelectIcon
           topLeftLabel={hasUISwrapped ? 'To' : 'From'}
           onTryToTokenSelect={() => {
             turnOnCoinSelector()
@@ -327,7 +327,7 @@ function SwapCard() {
           componentRef={coinInputBox2ComponentRef}
           haveHalfButton
           haveCoinIcon
-          canSelect
+          showTokenSelectIcon
           topLeftLabel={hasUISwrapped ? 'From' : 'To'}
           onTryToTokenSelect={() => {
             turnOnCoinSelector()

@@ -275,7 +275,7 @@ function LiquidityCard() {
           value={unslippagedCoin1Amount}
           haveHalfButton
           haveCoinIcon
-          canSelect
+          showTokenSelectIcon
           topLeftLabel=""
           onTryToTokenSelect={() => {
             turnOnCoinSelector()
@@ -330,7 +330,7 @@ function LiquidityCard() {
           value={unslippagedCoin2Amount}
           haveHalfButton
           haveCoinIcon
-          canSelect
+          showTokenSelectIcon
           topLeftLabel=""
           onTryToTokenSelect={() => {
             turnOnCoinSelector()

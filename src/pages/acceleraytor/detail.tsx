@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from 'react'
+import React, { ReactNode, useEffect, useMemo, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 
 import BN from 'bn.js'
@@ -30,7 +30,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import { objectMap } from '@/functions/objectMethods'
 import { toString } from '@/functions/numberish/toString'
 import { ZERO } from '@raydium-io/raydium-sdk'
-import { eq, gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import { Numberish } from '@/types/constants'
@@ -106,10 +106,10 @@ export default function LotteryDetailPage() {
           gridTemplate: `
             "b a" auto
             "c a" auto
-            "d a" auto / 2fr 1fr`
+            "d a" auto / 2fr  400px`
         }}
       >
-        <IdoInputPanel className="grid-area-a" />
+        <IdoInputPanel className="grid-area-a self-start" />
         <LotteryInfoPanel className="grid-area-b" />
         <LotteryLedgerPanel className="grid-area-c" />
         <ProjectDetailsPanel className="grid-area-d" />
@@ -417,42 +417,20 @@ function IdoInfoItem({
   )
 }
 
-function IdoAlertText({ flag, className }: { flag: '1' | '2' | '3' | '4'; className?: string }) {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
-  if (!idoInfo) return null
-  if (flag === '4') {
-    return (
-      <AlertText className="bg-[rgba(171,196,255,0.1)] rounded-xl text-[#ABC4FF80]">
-        Once deposited USDC can be claimed after lottery ends and tokens after 2022.03.10 14.00 UTC.
-      </AlertText>
-    )
-  }
-  return null
-}
-
-function FormPanelLotteryUpcoming() {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
-  const refreshIdo = useIdo((s) => s.refreshIdo)
-  const refreshSelf = () => refreshIdo(idoInfo?.id)
-  return (
-    <Row className="flex-1 grid place-items-center">
-      <div className="text-2xl mobile:text-lg opacity-60">Upcoming DropZone Launch</div>
-      <Row className="flex-col items-center py-4">
-        <div className="justify-self-start opacity-80 mb-2">Deposits will open in:</div>
-        <CountDownClock endTime={idoInfo?.state.startTime.toNumber()} onEnd={refreshSelf} />
-      </Row>
-    </Row>
-  )
-}
-
 function IdoInputPanel({ className }: { className?: string }) {
-  const [userBalance, setUserBalance] = useState<string | undefined>()
   const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
-  const [ticketAmount, setTicketAmount] = useState<Numberish | undefined>(undefined)
-  const { connected, adapter, balances } = useWallet()
-  const connection = useConnection((s) => s.connection)
+  const { connected, balances, checkWalletHasEnoughBalance } = useWallet()
   const refreshIdo = useIdo((s) => s.refreshIdo)
   const refreshSelf = () => refreshIdo(idoInfo?.id)
+
+  const [ticketAmount, setTicketAmount] = useState<Numberish | undefined>(undefined)
+  const quoteTokenAmount =
+    idoInfo?.quote && toTokenAmount(idoInfo.quote, mul(ticketAmount, idoInfo.ticketPrice), { alreadyDecimaled: true })
+
+  const haveEnoughQuoteCoin = useMemo(
+    () => Boolean(quoteTokenAmount && checkWalletHasEnoughBalance(quoteTokenAmount)),
+    [quoteTokenAmount, checkWalletHasEnoughBalance, balances]
+  )
 
   const clickPurchase = async () => {
     if (!idoInfo || !ticketAmount) return
@@ -467,14 +445,6 @@ function IdoInputPanel({ className }: { className?: string }) {
       // eslint-disable-next-line no-empty
     } catch (err) {}
   }
-
-  useEffect(() => {
-    const userBalance =
-      connection && adapter?.publicKey && idoInfo?.quote?.mint ? balances[String(idoInfo?.quote?.mint)] : undefined
-
-    if (userBalance === undefined) setUserBalance(undefined)
-    else setUserBalance(userBalance.toFixed())
-  }, [connected, adapter, idoInfo?.quote?.mint])
 
   if (!idoInfo) return null
   const renderPoolUpcoming = (
@@ -536,10 +506,19 @@ function IdoInputPanel({ className }: { className?: string }) {
           className="px-4"
           topLeftLabel="Tickets"
           topRightLabel={`Eligible tickets: ${toString(idoInfo.userEligibleTicketAmount ?? 0)}`}
+          maxValue={idoInfo.userEligibleTicketAmount}
           hideTokenPart
           hidePricePredictor
+          onUserInput={(input) => setTicketAmount(input)}
         />
-        <CoinInputBox className="px-4" topLeftLabel="Deposit" token={idoInfo.quote} haveCoinIcon />
+        <CoinInputBox
+          className="px-4"
+          topLeftLabel="Deposit"
+          token={idoInfo.quote}
+          value={toString(quoteTokenAmount)}
+          disabled
+          haveCoinIcon
+        />
       </div>
 
       <Button
@@ -555,9 +534,7 @@ function IdoInputPanel({ className }: { className?: string }) {
           },
           {
             should: idoInfo?.isEligible,
-            fallbackProps: {
-              children: 'Wallet not eligible for this pool'
-            }
+            fallbackProps: { children: 'Wallet not eligible for this pool' }
           },
           {
             should: !idoInfo.ledger?.quoteDeposited || eq(idoInfo.ledger.quoteDeposited, 0),
@@ -580,181 +557,25 @@ function IdoInputPanel({ className }: { className?: string }) {
             fallbackProps: { children: `Min. tickets amount is ${idoInfo.state.perUserMinLotteries}` }
           },
           {
-            should: ticketAmount && gte(ticketAmount, idoInfo.userEligibleTicketAmount),
+            should: ticketAmount && lte(ticketAmount, idoInfo.state.perUserMaxLotteries),
             fallbackProps: { children: `Max. tickets amount is ${idoInfo.userEligibleTicketAmount}` }
+          },
+          {
+            should: ticketAmount && lte(ticketAmount, idoInfo.userEligibleTicketAmount),
+            fallbackProps: { children: `Not enough eligible tickets` }
+          },
+          {
+            should: haveEnoughQuoteCoin,
+            fallbackProps: { children: `Not enough ${idoInfo.quote?.symbol ?? ''}` }
           }
         ]}
         onClick={clickPurchase}
       >
         Join Lottery
       </Button>
+      <Link className="text-xs text-center text-[#ABC4FF] opacity-50 font-semibold py-3 border-t border-[rgba(171,196,255,0.1)]">
+        When can I withdraw?
+      </Link>
     </CyberpunkStyleCard>
-  )
-}
-
-//TODO: dreprecated, should replace by <CoinInputBox>
-function FormPanelLotteryInputTemplate({
-  className,
-  topLeft,
-  topRight,
-  bottomLeft,
-  bottomRight
-}: {
-  className?: string
-  topLeft?: ReactNode
-  topRight?: ReactNode
-  bottomLeft?: ReactNode
-  bottomRight?: ReactNode
-}) {
-  return (
-    <div className={`grid gap-1 grid-cols-2 ${className ?? ''}`}>
-      <div className="top-left opacity-50 text-xs">{topLeft}</div>
-      <div className="top-right opacity-50 text-xs justify-self-end">{topRight}</div>
-      <div className="bottom-left">{bottomLeft}</div>
-      <div className="bottom-right justify-self-end">{bottomRight}</div>
-    </div>
-  )
-}
-
-function FormPanelClaimButtons({ className }: { className?: string }) {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
-  const refreshIdo = useIdo((s) => s.refreshIdo)
-  const refreshSelf = () => refreshIdo(idoInfo?.id)
-  const { connected } = useWallet()
-  const userHasDepositedUSDC = idoInfo && idoInfo.ledger && idoInfo.ledger.quoteDeposited.toNumber() > 0
-
-  if (!idoInfo) return null
-
-  const clickClaim = async (side: 'base' | 'quote') => {
-    if (!idoInfo) return
-    txIdoClaim({
-      side,
-      idoInfo,
-      onTxSuccess: () => {
-        refreshSelf()
-      }
-    })
-  }
-
-  return (
-    <>
-      <div className="my-6">
-        {!connected ? (
-          <Button
-            className="block w-full"
-            onClick={() => {
-              useAppSettings.setState({ isWalletSelectorShown: true })
-            }}
-          >
-            Connect Wallet
-          </Button>
-        ) : !idoInfo.isEligible ? (
-          <Button className="block w-full" disabled>
-            Wallet not eligible for this pool
-          </Button>
-        ) : (
-          <Row className={`space-x-6 justify-center ${className}`}>
-            {userHasDepositedUSDC ? (
-              <>
-                <Button
-                  className="flex-1"
-                  validators={[
-                    {
-                      should:
-                        Number(idoInfo.ledger?.winningTickets?.length ?? 0) !==
-                        Number(idoInfo.ledger?.depositedTickets?.length ?? 0)
-                    },
-                    {
-                      should: Number(idoInfo.ledger?.quoteWithdrawn ?? 0) <= 0
-                    }
-                  ]}
-                  onClick={() => {
-                    clickClaim('quote')
-                  }}
-                >
-                  Claim {idoInfo.quote?.symbol ?? ''}
-                </Button>
-                <Button
-                  className="flex-1"
-                  validators={[
-                    { should: currentIsAfter(idoInfo.state.startWithdrawTime.toNumber()) },
-                    { should: idoInfo.ledger?.winningTickets && idoInfo.ledger?.winningTickets.length > 0 },
-                    { should: idoInfo.ledger && idoInfo.ledger.baseWithdrawn.toNumber() <= 0 }
-                  ]}
-                  onClick={() => {
-                    clickClaim('base')
-                  }}
-                >
-                  Claim {idoInfo.base?.symbol ?? ''}
-                </Button>
-              </>
-            ) : (
-              <div className="text-xl opacity-50 ">You did not deposit</div>
-            )}
-          </Row>
-        )}
-        {currentIsBefore(idoInfo.state.startWithdrawTime.toNumber()) && userHasDepositedUSDC && (
-          <Row className="flex-col items-center py-4">
-            <div className="justify-self-start opacity-80 mb-2">Claim Drop Box in:</div>
-            <CountDownClock
-              showDays="auto"
-              showHours="auto"
-              endTime={idoInfo.state.startWithdrawTime.toNumber()}
-              onEnd={() => {
-                refreshSelf()
-              }}
-            />
-          </Row>
-        )}
-      </div>
-      <IdoAlertText flag="2" className="pt-4 pb-2 border-t-2 border-white border-opacity-10" />
-      <IdoAlertText flag="3" className="pt-2 pb-4" />
-    </>
-  )
-}
-
-function BottomInfoPanalFieldItem({ fieldName, fieldValue }: { fieldName?: ReactNode; fieldValue?: ReactNode }) {
-  return (
-    <Row className="info-item py-5 px-4">
-      <div className="w-1/2">
-        <div className="field-name mobile:text-sm">{fieldName}</div>
-      </div>
-      <div className="w-1/2">
-        <div className="field-value mobile:text-sm">{fieldValue}</div>
-      </div>
-    </Row>
-  )
-}
-
-function BottomInfoPanel() {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
-  return (
-    <TabWithPanel
-      className="rounded-lg overflow-hidden"
-      values={['Pool Information']}
-      tabGroupClassName="bg-ground-color-dark"
-      tabItemClassName={(checked) => `py-2 border-b-2 ${checked ? 'border-current' : 'border-transparent'}`}
-    >
-      {idoInfo && (
-        <>
-          <TabWithPanel.Panel className="divide-y divide-white divide-opacity-10 bg-acceleraytor-card-bg cyberpunk-hero-bg-gradient-simi">
-            <BottomInfoPanalFieldItem fieldName="Pool opens" fieldValue={toUTC(idoInfo.state.startTime.toNumber())} />
-            <BottomInfoPanalFieldItem fieldName="Pool closes" fieldValue={toUTC(idoInfo.state.endTime.toNumber())} />
-            <BottomInfoPanalFieldItem
-              fieldName="Total Drop Boxes"
-              fieldValue={`${formatNumber(idoInfo.totalRaise)} ${idoInfo.base?.symbol ?? ''}`}
-            />
-            <BottomInfoPanalFieldItem
-              fieldName="Per Drop Box"
-              fieldValue={`${formatNumber(idoInfo.coinPrice)} ${idoInfo.quote?.symbol ?? ''}`}
-            />
-            <BottomInfoPanalFieldItem
-              fieldName="Max winners"
-              fieldValue={formatNumber(idoInfo.state.maxWinLotteries)}
-            />
-          </TabWithPanel.Panel>
-        </>
-      )}
-    </TabWithPanel>
   )
 }
