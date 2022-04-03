@@ -48,6 +48,10 @@ import Tabs from '@/components/Tabs'
 import { shakeFalsyItem } from '@/functions/arrayMethods'
 import { Markdown } from '@/components/Markdown'
 import CoinInputBox from '@/components/CoinInputBox'
+import useFarms from '@/application/farms/useFarms'
+import toPercentString from '@/functions/format/toPercentString'
+import useStaking from '@/application/staking/useStaking'
+import { StakingPageStakeLpDialog } from '@/components/dialogs/StakingPageStakeLpDialog'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -88,7 +92,6 @@ function NavButtons({ className }: { className?: string }) {
 }
 
 export default function LotteryDetailPage() {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   useUrlParser()
   return (
     <PageLayout metaTitle="AcceleRaytor" mobileBarTitle="AcceleRaytor" contentYPaddingShorter>
@@ -106,35 +109,14 @@ export default function LotteryDetailPage() {
           gridTemplate: `
             "b a" auto
             "c a" auto
-            "d a" auto / 2fr  400px`
+            "d a" auto / 3fr minmax(350px, 1fr)`
         }}
       >
         <IdoInputPanel className="grid-area-a self-start" />
         <LotteryInfoPanel className="grid-area-b" />
         <LotteryLedgerPanel className="grid-area-c" />
-        <ProjectDetailsPanel className="grid-area-d" />
+        <LotteryProjectInfoPanel className="grid-area-d" />
       </Grid>
-      {/* 
-      {idoInfo ? (
-        <div className="acceleraytor-id-panel mx-auto px-3 max-w-[84rem] py-8 mobile:py-12">
-          <div className="cyberpunk-hero-bg-gradient">
-            <Row className="top-box mobile:flex-col my-6 ">
-              <TopInfoPanel className="w-2/3 mobile:w-full pc:rounded-tl-3xl pc:rounded-bl-3xl mobile:rounded-tl-2xl mobile:rounded-tr-2xl" />
-              <LotteryFormCard className="w-1/3 mobile:w-full pc:rounded-tr-3xl pc:rounded-br-3xl mobile:rounded-bl-3xl mobile:rounded-br-3xl" />
-            </Row>
-          </div>
-
-          <LotteryLedgerPanel className="pt-10 opacity-0 pointer-events-none" />
-
-          <div className="detail-box pt-16 mx-16 mobile:mx-0">
-            <Row className="detail-box grid grid-cols-auto-fit mobile:grid-flow-row mobile:grid-cols-none gap-8">
-              <BottomInfoPanel />
-            </Row>
-          </div>
-        </div>
-      ) : (
-        <LoadingCircle className="place-self-center" />
-      )} */}
     </PageLayout>
   )
 }
@@ -350,31 +332,30 @@ function LotteryLedgerPanel({ className }: { className?: string }) {
         />
         <TopInfoPanelFieldItem
           fieldName="Your allocation"
-          fieldValue={`${formatNumber(idoInfo.ledger?.userAllocation)} ${idoInfo.base?.symbol ?? ''}`}
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div>{formatNumber(idoInfo.ledger?.userAllocation)}</div>
+              <div className="text-sm text-[#ABC4FF] opacity-50"> {idoInfo.base?.symbol ?? ''}</div>
+            </Row>
+          }
         />
       </Grid>
     </Card>
   )
 }
 
-function ProjectDetailsPanel({ className }: { className?: string }) {
+function LotteryProjectInfoPanel({ className }: { className?: string }) {
   const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
-  const [currentTab, setCurrentTab] = useState<'Project Details' | 'How to join?'>('Project Details')
+  const connected = useWallet((s) => s.connected)
+  const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
+
+  const [currentTab, setCurrentTab] = useState<'Project Details' | 'How to join?'>('How to join?')
 
   if (!idoInfo) return null
-  return (
-    <Card
-      className={twMerge('py-8 px-6 rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]', className)}
-      size="lg"
-    >
-      <Tabs
-        currentValue={currentTab}
-        values={shakeFalsyItem(['Project Details', 'How to join?'] as const)}
-        onChange={(tab) => setCurrentTab(tab)}
-      />
 
+  const renderProjectDetails = (
+    <>
       <Markdown className="py-6">{idoInfo.project.detailText}</Markdown>
-
       <Row className="justify-between">
         <Row className="gap-6">
           {Object.entries(idoInfo.project.officialSites).map(([docName, linkAddress]) => (
@@ -383,7 +364,6 @@ function ProjectDetailsPanel({ className }: { className?: string }) {
             </Link>
           ))}
         </Row>
-
         <Row className="gap-6">
           {Object.entries(idoInfo.project.socialsSites ?? {}).map(([socialName, link]) => (
             <Link key={socialName} href={link} className="flex items-center gap-2">
@@ -396,6 +376,113 @@ function ProjectDetailsPanel({ className }: { className?: string }) {
           ))}
         </Row>
       </Row>
+    </>
+  )
+  const renderHowToJoin = (
+    <>
+      {/* wrapbox */}
+      <Row>
+        {/* card row */}
+        <Row className="overflow-auto gap-6 grow w-0">
+          {/* step 1 */}
+          <Card size="lg" className="shrink-0 flex flex-col py-5 px-4 gap-3 bg-[#1B1659] grow w-[206px]">
+            <Col className="items-center gap-3">
+              <StepBadge n={1} />
+              <div className="text-sm text-center text-[#ABC4FF] font-semibold">Stake RAY</div>
+            </Col>
+
+            <Col className="grow gap-3">
+              <div className="text-xs text-center text-[#ABC4FF] opacity-50">
+                Stake and Earn RAY to participate in pools. The more and longer you stake the more lottery tickets
+                you'll be eligible to join with.
+              </div>
+              <Col className="items-center">
+                <Button
+                  className="frosted-glass-skygray"
+                  size="xs"
+                  validators={[
+                    {
+                      should: connected,
+                      forceActive: true,
+                      fallbackProps: {
+                        onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                        children: 'Connect Wallet'
+                      }
+                    }
+                  ]}
+                  onClick={() => {
+                    useStaking.setState({
+                      isStakeDialogOpen: true,
+                      stakeDialogMode: 'deposit'
+                    })
+                  }}
+                >
+                  Stake
+                </Button>
+
+                <div className="text-xs text-center text-[#ABC4FF] opacity-50 mt-1">
+                  APR: {toPercentString(stakingHydratedInfo?.totalApr)}
+                </div>
+              </Col>
+            </Col>
+          </Card>
+
+          {/* step 2 */}
+          <Card size="lg" className="shrink-0 flex flex-col py-5 px-4 gap-3 bg-[#1B1659] grow w-[206px]">
+            <Col className="items-center gap-3">
+              <StepBadge n={2} />
+              <div className="text-sm text-center text-[#ABC4FF] font-semibold">Deposit {idoInfo.quote?.symbol}</div>
+            </Col>
+
+            <Col className="grow gap-3">
+              <div className="text-xs text-center text-[#ABC4FF] opacity-50 space-y-3">
+                <p>
+                  When the pool opens, deposit {idoInfo.quote?.symbol} for each ticket in order for it to be counted in
+                  the lottery.
+                </p>
+                <p>
+                  The lottery will be done on-chain, with lottery numbers assigned to tickets in the order that users
+                  deposit.
+                </p>
+              </div>
+            </Col>
+          </Card>
+
+          {/* step 3 */}
+          <Card size="lg" className="shrink-0 flex flex-col py-5 px-4 gap-3 bg-[#1B1659] grow w-[206px]">
+            <Col className="items-center gap-3">
+              <StepBadge n={3} />
+              <div className="text-sm text-center text-[#ABC4FF] font-semibold">Claim tokens</div>
+            </Col>
+
+            <Col className="grow gap-3">
+              <div className="text-xs text-center text-[#ABC4FF] opacity-50 space-y-3">
+                <p>
+                  If you have winning tickets you can claim your token allocation. You can then stake these tokens to
+                  earn yield on them.
+                </p>
+                <p>For the non-winning tickets you can withdraw your {idoInfo.quote?.symbol}.</p>
+              </div>
+            </Col>
+          </Card>
+        </Row>
+      </Row>
+    </>
+  )
+  return (
+    <Card
+      className={twMerge('py-8 px-6 rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]', className)}
+      size="lg"
+    >
+      <Tabs
+        className="mb-6"
+        currentValue={currentTab}
+        values={shakeFalsyItem(['Project Details', 'How to join?'] as const)}
+        onChange={(tab) => setCurrentTab(tab)}
+      />
+
+      {currentTab === 'Project Details' ? renderProjectDetails : renderHowToJoin}
+      <StakingPageStakeLpDialog />
     </Card>
   )
 }
@@ -576,6 +663,14 @@ function IdoInputPanel({ className }: { className?: string }) {
       <Link className="text-xs text-center text-[#ABC4FF] opacity-50 font-semibold py-3 border-t border-[rgba(171,196,255,0.1)]">
         When can I withdraw?
       </Link>
+    </CyberpunkStyleCard>
+  )
+}
+
+function StepBadge(props: { n: number }) {
+  return (
+    <CyberpunkStyleCard wrapperClassName="w-8 h-8" className="grid place-content-center bg-[#2f2c78]">
+      <div className="font-semibold text-white">{props.n}</div>
     </CyberpunkStyleCard>
   )
 }

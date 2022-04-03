@@ -45,6 +45,7 @@ import '../styles/index.css'
 import { useWalletConnectNotifaction } from '@/application/wallet/feature/useWalletConnectNotifaction'
 import { useInitShadowKeypairs } from '@/application/wallet/feature/useInitShadowKeypairs'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
+import useStealDataFromFarm from '@/application/staking/feature/useStealDataFromFarm'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -134,6 +135,9 @@ function ApplicationsInitializations() {
   /********************** farm **********************/
   useInjectRaydiumFeeAprFromPair() // auto inject apr to farm info from backend pair interface
   useFarmInfoFetcher()
+
+  /********************** staking **********************/
+  useStealDataFromFarm() // auto inject apr to farm info from backend pair interface
 
   /********************** txHistory **********************/
   useInitRefreshTransactionStatus()

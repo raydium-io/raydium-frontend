@@ -7,6 +7,6 @@ import useStaking from '../useStaking'
 export default function useStealDataFromFarm() {
   const hydratedFarmInfos = useFarms((s) => s.hydratedInfos)
   useEffect(() => {
-    useStaking.setState({ hydratedStakingInfos: hydratedFarmInfos })
+    useStaking.setState({ stakeDialogInfo: hydratedFarmInfos.find((info) => info.isStakePool) })
   }, [hydratedFarmInfos])
 }
