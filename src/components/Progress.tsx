@@ -73,7 +73,13 @@ export default function Progress({
           className={twMerge(`inline-block Progress-label ${labelClassName ?? ''}`)}
           style={{
             marginLeft: `${clampedValue * 100}%`,
-            transform: `translate(calc(-50% + var(--patch-delta, 0px)))`
+            transform: `translate(calc(-50% + var(--patch-delta, 0px)))`,
+            color:
+              clampedValue < 1 / 3
+                ? 'var(--style-color-cyan)'
+                : clampedValue < 2 / 3
+                ? 'var(--style-color-blue)'
+                : 'var(--style-color-fuchsia)'
           }}
         >
           {shrinkToValue(labelFormat, [value])}

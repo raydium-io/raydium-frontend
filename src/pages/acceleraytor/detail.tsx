@@ -38,6 +38,9 @@ import toPercentString from '@/functions/format/toPercentString'
 import useStaking from '@/application/staking/useStaking'
 import { StakingPageStakeLpDialog } from '@/components/dialogs/StakingPageStakeLpDialog'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
+import toPercentNumber from '@/functions/format/toPercentNumber'
+import Progress from '@/components/Progress'
+import assert from 'assert'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -77,6 +80,8 @@ function NavButtons({ className }: { className?: string }) {
 
 export default function LotteryDetailPage() {
   useUrlParser()
+  const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
+  const connected = useWallet((s) => s.connected)
   return (
     <PageLayout metaTitle="AcceleRaytor" mobileBarTitle="AcceleRaytor" contentYPaddingShorter>
       <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail-page top-1/2 left-1/2"></div>
@@ -84,7 +89,7 @@ export default function LotteryDetailPage() {
       <NavButtons className="mb-10" />
 
       <FadeIn>
-        <WinningTicketPanel className="mb-5" />
+        {connected && idoInfo?.ledger?.depositedTickets?.length ? <WinningTicketPanel className="mb-5" /> : null}
       </FadeIn>
 
       <Grid
@@ -130,12 +135,10 @@ function TicketItem({
 }
 
 function WinningTicketPanel({ className }: { className?: string }) {
-  const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const connected = useWallet((s) => s.connected)
+  const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
 
-  // TODO: `const winningNumbers = ` (no heavy logic in jsx return)
-  if (idoInfo?.status !== 'closed') return null
-  if (!idoInfo.ledger?.depositedTickets?.length) return null
+  assert(idoInfo?.ledger, 'unnecessary in logic, but necessary in type check')
   return (
     <Card
       className={twMerge(
@@ -144,108 +147,117 @@ function WinningTicketPanel({ className }: { className?: string }) {
       )}
       size="lg"
     >
-      <Row className="justify-between p-8 ">
-        <Col className="gap-1">
-          <div className="mobile:text-sm font-semibold text-base text-white">
-            {['1', '2'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
-              <div>
-                {idoInfo?.state
-                  .winningTicketsTailNumber!.tickets.map(({ no, isPartial }) => `${no}${isPartial ? ' (partial)' : ''}`)
-                  .join(', ')}
-              </div>
-            ) : ['3'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
-              <div>(Every deposited ticket wins)</div>
-            ) : (
-              <div className="opacity-50">
-                {idoInfo?.status === 'closed' ? '(Lottery in progress)' : '(Numbers selected when lottery ends)'}
-              </div>
-            )}
-          </div>
-          <div className="text-xs font-semibold  text-[#ABC4FF] opacity-50">
-            {
+      <Row className="justify-between p-8">
+        {idoInfo.status === 'have-lottery-result' || idoInfo.status === 'closed' ? (
+          <Col className="gap-1">
+            <div className="mobile:text-sm font-semibold text-base text-white">
+              {['1', '2'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
+                <div>
+                  {idoInfo?.state
+                    .winningTicketsTailNumber!.tickets.map(
+                      ({ no, isPartial }) => `${no}${isPartial ? ' (partial)' : ''}`
+                    )
+                    .join(', ')}
+                </div>
+              ) : ['3'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
+                <div>(Every deposited ticket wins)</div>
+              ) : (
+                <div className="opacity-50">
+                  {idoInfo?.status === 'closed' ? '(Lottery in progress)' : '(Numbers selected when lottery ends)'}
+                </div>
+              )}
+            </div>
+            <div className="text-xs font-semibold  text-[#ABC4FF] opacity-50">
               {
-                '0': 'Lucky Ending Numbers',
-                '1': 'All numbers not ending with',
-                '2': 'Lucky Ending Numbers',
-                '3': 'All Tickets Win',
-                undefined: 'Lucky Ending Numbers'
-              }[String(idoInfo?.state.winningTicketsTailNumber.isWinning)] // TODO: to hydrated info
-            }
-          </div>
-        </Col>
-
-        <Row className="ml-auto gap-8">
-          <Col className="items-center">
-            <Button
-              className="frosted-glass-teal"
-              validators={[
-                { should: connected },
-                { should: gt(idoInfo.ledger.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
                 {
-                  should: connected,
-                  forceActive: true,
-                  fallbackProps: {
-                    onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
-                  }
-                }
-              ]}
-              onClick={() => {
-                txIdoClaim({
-                  idoInfo: idoInfo,
-                  side: 'base'
-                })
-              }}
-            >
-              Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'}
-            </Button>
-            <div
-              className={`text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50 ${
-                gt(idoInfo.ledger.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0)
-                  ? 'opacity-100'
-                  : 'opacity-0'
-              } transition`}
-            >
-              {idoInfo.ledger.winningTickets?.length} winning tickets
+                  '0': 'Lucky Ending Numbers',
+                  '1': 'All numbers not ending with',
+                  '2': 'Lucky Ending Numbers',
+                  '3': 'All Tickets Win',
+                  undefined: 'Lucky Ending Numbers'
+                }[String(idoInfo?.state.winningTicketsTailNumber.isWinning)] // TODO: to hydrated info
+              }
             </div>
           </Col>
+        ) : (
+          <div></div>
+        )}
 
-          <Col className="items-center">
-            <Button
-              className="frosted-glass-teal"
-              validators={[
-                { should: connected },
-                { should: eq(idoInfo.ledger.quoteWithdrawn, 0) },
-                {
-                  should: connected,
-                  forceActive: true,
-                  fallbackProps: {
-                    onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+        {idoInfo.status === 'have-lottery-result' || idoInfo.status === 'closed' ? (
+          <Row className="ml-auto gap-8">
+            <Col className="items-center">
+              <Button
+                className="frosted-glass-teal"
+                validators={[
+                  { should: connected },
+                  { should: gt(idoInfo.ledger.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
+                  {
+                    should: connected,
+                    forceActive: true,
+                    fallbackProps: {
+                      onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                    }
                   }
-                }
-              ]}
-              onClick={() => {
-                txIdoClaim({
-                  idoInfo: idoInfo,
-                  side: 'quote'
-                })
-              }}
-            >
-              Withdraw {idoInfo.quote?.symbol ?? 'UNKNOWN'}
-            </Button>
-            <div
-              className={`text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50 ${
-                eq(idoInfo.ledger.quoteWithdrawn, 0) ? 'opacity-100' : 'opacity-0'
-              } transition`}
-            >
-              {idoInfo.ledger.depositedTickets.length - (idoInfo.ledger.winningTickets?.length ?? 0)} non-winning
-              tickets
-            </div>
-          </Col>
-        </Row>
+                ]}
+                onClick={() => {
+                  txIdoClaim({
+                    idoInfo: idoInfo,
+                    side: 'base'
+                  })
+                }}
+              >
+                Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'}
+              </Button>
+              <FadeIn>
+                {gt(idoInfo.ledger.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) && (
+                  <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
+                    {idoInfo.ledger.winningTickets?.length} winning tickets
+                  </div>
+                )}
+              </FadeIn>
+            </Col>
+
+            <Col className="items-center">
+              <Button
+                className="frosted-glass-teal"
+                validators={[
+                  { should: connected },
+                  { should: eq(idoInfo.ledger.quoteWithdrawn, 0) },
+                  { should: idoInfo.status === 'closed' },
+                  {
+                    should: connected,
+                    forceActive: true,
+                    fallbackProps: {
+                      onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                    }
+                  }
+                ]}
+                onClick={() => {
+                  txIdoClaim({
+                    idoInfo: idoInfo,
+                    side: 'quote'
+                  })
+                }}
+              >
+                Withdraw {idoInfo.quote?.symbol ?? 'UNKNOWN'}
+              </Button>
+              <FadeIn>
+                {eq(idoInfo.ledger.quoteWithdrawn, 0) && (
+                  <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
+                    {(idoInfo.ledger.depositedTickets?.length ?? 0) - (idoInfo.ledger.winningTickets?.length ?? 0)}{' '}
+                    non-winning tickets
+                  </div>
+                )}
+              </FadeIn>
+            </Col>
+          </Row>
+        ) : (
+          <div></div>
+        )}
       </Row>
 
       <Col className="bg-[#141041] py-5 px-6">
-        <div className="text-xs mb-5 font-semibold  text-[#ABC4FF] opacity-50">Your ticket numbers</div>
+        <div className="text-sm mb-5 font-semibold  text-[#ABC4FF] opacity-50">Your ticket numbers</div>
         <Grid
           className="grid-gap-board -mx-5"
           style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', clipPath: 'inset(1px 16px)' }}
@@ -320,8 +332,22 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
           }
         />
         <IdoInfoItem
-          fieldName={`Total tickets deposited`}
-          fieldValue={<div className="text-white font-medium">{formatNumber(idoInfo.depositedTicketCount)}</div>}
+          className="pb-1"
+          fieldName={
+            <div>
+              <div>Total tickets deposited</div>
+              <Progress className="mt-2" slotClassName="h-1" showLabel value={toPercentNumber(idoInfo.filled)} />
+            </div>
+          }
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">{formatNumber(idoInfo.depositedTicketCount)}</div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">
+                {' '}
+                / {formatNumber(idoInfo.state.maxWinLotteries)}
+              </div>
+            </Row>
+          }
         />
         <IdoInfoItem
           fieldName="Pool open"
@@ -443,7 +469,7 @@ function LotteryLedgerPanel({ className }: { className?: string }) {
           fieldName="Your allocation"
           fieldValue={
             <Row className="items-baseline gap-1">
-              <div>{formatNumber(idoInfo.ledger?.userAllocation)}</div>
+              <div>{formatNumber(toString(idoInfo.ledger?.userAllocation))}</div>
               <div className="text-sm text-[#ABC4FF] opacity-50"> {idoInfo.base?.symbol ?? ''}</div>
             </Row>
           }

@@ -10,20 +10,24 @@ import { PublicKey } from '@solana/web3.js'
 
 import { HydratedIdoInfo, SdkParsedIdoInfo, TicketInfo, TicketTailNumberInfo } from '../type'
 import { eq, gt, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
-import { mul } from '@/functions/numberish/operations'
+import { div, getMin, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { usdCurrency } from '@/functions/format/toTokenPrice'
 
-export function isLotteryUpcoming(idoInfo: SdkParsedIdoInfo): boolean {
+function isLotteryUpcoming(idoInfo: SdkParsedIdoInfo): boolean {
   return currentIsBefore(idoInfo.state.startTime.toNumber())
 }
 
-export function isLotteryOpen(idoInfo: SdkParsedIdoInfo): boolean {
+function isLotteryOpen(idoInfo: SdkParsedIdoInfo): boolean {
   return currentIsAfter(idoInfo.state.startTime.toNumber()) && currentIsBefore(idoInfo.state.endTime.toNumber())
 }
 
-export function isLotteryClosed(idoInfo: SdkParsedIdoInfo): boolean {
-  return currentIsAfter(idoInfo.state.endTime.toNumber())
+function isLotteryHaveLotteryResult(idoInfo: SdkParsedIdoInfo): boolean {
+  return currentIsAfter(idoInfo.state.endTime.toNumber()) && currentIsBefore(idoInfo.state.startWithdrawTime.toNumber())
+}
+
+function isLotteryClosed(idoInfo: SdkParsedIdoInfo): boolean {
+  return currentIsAfter(idoInfo.state.startWithdrawTime.toNumber())
 }
 
 function getDepositedTickets(idoInfo: SdkParsedIdoInfo): TicketInfo[] {
@@ -34,7 +38,7 @@ function getDepositedTickets(idoInfo: SdkParsedIdoInfo): TicketInfo[] {
 }
 
 function getUserAllocation(idoInfo: SdkParsedIdoInfo): StringNumber {
-  if (!idoInfo.ledger) return `0 ${idoInfo.base?.symbol ?? ''}`
+  if (!idoInfo.ledger) return 0
   return gt(idoInfo.state.quoteDeposited, mul(idoInfo.state.perLotteryQuoteAmount, idoInfo.state.perLotteryMinStake))
     ? multiply(divide(idoInfo.ledger.quoteDeposited, idoInfo.state.quoteDeposited), idoInfo.state.baseSupply)
     : divide(idoInfo.ledger.quoteDeposited, idoInfo.state.perLotteryMinStake)
@@ -87,27 +91,36 @@ function getWinningTicketsTailNumbers(idoInfo: SdkParsedIdoInfo): HydratedIdoInf
  *  computed from raw idoInfo
  */
 export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
-  const status = isLotteryUpcoming(idoInfo) ? 'upcoming' : isLotteryOpen(idoInfo) ? 'open' : 'closed'
+  const status = isLotteryUpcoming(idoInfo)
+    ? 'upcoming'
+    : isLotteryOpen(idoInfo)
+    ? 'open'
+    : isLotteryHaveLotteryResult(idoInfo)
+    ? 'have-lottery-result'
+    : 'closed'
 
   const depositedTickets = getDepositedTickets(idoInfo).map((ticketInfo) => ({
     ...ticketInfo,
     isWinning: isTicketWin(ticketInfo.no, idoInfo)
   }))
   const winningTickets = getWinningTickets(idoInfo)
-  const idoLedger = idoInfo.ledger
-    ? {
-        ...(idoInfo.ledger ?? {}),
-        winningTickets,
-        userAllocation: getUserAllocation(idoInfo),
-        depositedTickets: depositedTickets
-      }
-    : undefined
 
   const totalRaise = idoInfo.base && toTokenAmount(idoInfo.base, idoInfo.state.baseSupply)
   const coinPrice =
     idoInfo.base && new Price(idoInfo.base, idoInfo.state.denominator, usdCurrency, idoInfo.state.numerator)
   const ticketPrice = idoInfo.quote && toTokenAmount(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount)
   const depositedTicketCount = idoInfo.state.raisedLotteries.toNumber()
+  const idoLedger = idoInfo.ledger
+    ? {
+        ...(idoInfo.ledger ?? {}),
+        winningTickets,
+        userAllocation: mul(
+          div(winningTickets?.length, getMin(idoInfo.state.maxWinLotteries, depositedTicketCount)),
+          totalRaise
+        ),
+        depositedTickets: depositedTickets
+      }
+    : undefined
   return {
     ...(idoInfo ?? {}),
     state: {

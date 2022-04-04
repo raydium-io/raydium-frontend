@@ -1,6 +1,14 @@
 import BN from 'bn.js'
 
-import { DateInfo, HexAddress, LinkAddress, PercentString, SrcAddress, StringNumber } from '@/types/constants'
+import {
+  DateInfo,
+  HexAddress,
+  LinkAddress,
+  Numberish,
+  PercentString,
+  SrcAddress,
+  StringNumber
+} from '@/types/constants'
 
 import { SplToken, TokenAmount } from '../token/type'
 import { IdoLedgerLayoutV3, IdoPoolBaseInfo, IdoStateLayoutV3, SnapshotStateLayoutV1 } from './sdk'
@@ -97,7 +105,7 @@ export interface HydratedIdoInfo extends SdkParsedIdoInfo {
   claimableQuote?: TokenAmount
   ledger?: (SdkParsedIdoInfo['ledger'] | undefined) & {
     winningTickets?: TicketInfo[]
-    userAllocation?: StringNumber
+    userAllocation?: Numberish
     depositedTickets?: TicketInfo[]
   }
   state: SdkParsedIdoInfo['state'] & {
@@ -108,7 +116,7 @@ export interface HydratedIdoInfo extends SdkParsedIdoInfo {
   }
 }
 
-export type IdoPoolInfoStatus = 'open' | 'upcoming' | 'closed'
+export type IdoPoolInfoStatus = 'upcoming' | 'open' | 'have-lottery-result' | 'closed'
 export type IdoPoolInfoAccess = 'RAY'
 export type TicketInfo = { no: number; isWinning?: boolean }
 export type TicketTailNumberInfo = {
