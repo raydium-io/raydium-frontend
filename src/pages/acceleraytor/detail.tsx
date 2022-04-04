@@ -37,6 +37,7 @@ import CoinInputBox from '@/components/CoinInputBox'
 import toPercentString from '@/functions/format/toPercentString'
 import useStaking from '@/application/staking/useStaking'
 import { StakingPageStakeLpDialog } from '@/components/dialogs/StakingPageStakeLpDialog'
+import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -83,7 +84,7 @@ export default function LotteryDetailPage() {
       <NavButtons className="mb-10" />
 
       <FadeIn>
-        <TicketPanelClosed className="mb-5" />
+        <WinningTicketPanel className="mb-5" />
       </FadeIn>
 
       <Grid
@@ -95,7 +96,7 @@ export default function LotteryDetailPage() {
             "d a" auto / 3fr minmax(350px, 1fr)`
         }}
       >
-        <IdoInputPanel className="grid-area-a self-start" />
+        <LotteryInputPanel className="grid-area-a self-start" />
         <LotteryStateInfoPanel className="grid-area-b" />
         <LotteryLedgerPanel className="grid-area-c" />
         <LotteryProjectInfoPanel className="grid-area-d" />
@@ -128,8 +129,9 @@ function TicketItem({
   )
 }
 
-function TicketPanelClosed({ className }: { className?: string }) {
+function WinningTicketPanel({ className }: { className?: string }) {
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
+  const connected = useWallet((s) => s.connected)
 
   // TODO: `const winningNumbers = ` (no heavy logic in jsx return)
   if (idoInfo?.status !== 'closed') return null
@@ -173,12 +175,72 @@ function TicketPanelClosed({ className }: { className?: string }) {
         </Col>
 
         <Row className="ml-auto gap-8">
-          <Button className="frosted-glass-teal" disabled onClick={() => {}}>
-            Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'}
-          </Button>
-          <Button className="frosted-glass-teal" onClick={() => {}}>
-            Withdraw {idoInfo.quote?.symbol ?? 'UNKNOWN'}
-          </Button>
+          <Col className="items-center">
+            <Button
+              className="frosted-glass-teal"
+              validators={[
+                { should: connected },
+                { should: gt(idoInfo.ledger.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
+                {
+                  should: connected,
+                  forceActive: true,
+                  fallbackProps: {
+                    onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                  }
+                }
+              ]}
+              onClick={() => {
+                txIdoClaim({
+                  idoInfo: idoInfo,
+                  side: 'base'
+                })
+              }}
+            >
+              Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'}
+            </Button>
+            <div
+              className={`text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50 ${
+                gt(idoInfo.ledger.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0)
+                  ? 'opacity-100'
+                  : 'opacity-0'
+              } transition`}
+            >
+              {idoInfo.ledger.winningTickets?.length} winning tickets
+            </div>
+          </Col>
+
+          <Col className="items-center">
+            <Button
+              className="frosted-glass-teal"
+              validators={[
+                { should: connected },
+                { should: eq(idoInfo.ledger.quoteWithdrawn, 0) },
+                {
+                  should: connected,
+                  forceActive: true,
+                  fallbackProps: {
+                    onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                  }
+                }
+              ]}
+              onClick={() => {
+                txIdoClaim({
+                  idoInfo: idoInfo,
+                  side: 'quote'
+                })
+              }}
+            >
+              Withdraw {idoInfo.quote?.symbol ?? 'UNKNOWN'}
+            </Button>
+            <div
+              className={`text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50 ${
+                eq(idoInfo.ledger.quoteWithdrawn, 0) ? 'opacity-100' : 'opacity-0'
+              } transition`}
+            >
+              {idoInfo.ledger.depositedTickets.length - (idoInfo.ledger.winningTickets?.length ?? 0)} non-winning
+              tickets
+            </div>
+          </Col>
         </Row>
       </Row>
 
@@ -566,7 +628,7 @@ function IdoInfoItem({
   )
 }
 
-function IdoInputPanel({ className }: { className?: string }) {
+function LotteryInputPanel({ className }: { className?: string }) {
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const { connected, balances, checkWalletHasEnoughBalance } = useWallet()
   const refreshIdo = useIdo((s) => s.refreshIdo)
@@ -574,7 +636,9 @@ function IdoInputPanel({ className }: { className?: string }) {
 
   const [ticketAmount, setTicketAmount] = useState<Numberish | undefined>(undefined)
   const quoteTokenAmount =
-    idoInfo?.quote && toTokenAmount(idoInfo.quote, mul(ticketAmount, idoInfo.ticketPrice), { alreadyDecimaled: true })
+    idoInfo?.quote &&
+    ticketAmount &&
+    toTokenAmount(idoInfo.quote, mul(ticketAmount, idoInfo.ticketPrice), { alreadyDecimaled: true })
 
   const haveEnoughQuoteCoin = useMemo(
     () => Boolean(quoteTokenAmount && checkWalletHasEnoughBalance(quoteTokenAmount)),

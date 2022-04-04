@@ -74,6 +74,7 @@ export interface SdkParsedIdoInfo extends RawIdoInfo {
  * this is the  idoInfo with some calculated result
  */
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
+//TODO: hydratedInfo has property sdkParsedInfo
 export interface HydratedIdoInfo extends SdkParsedIdoInfo {
   status: IdoPoolInfoStatus // TEMP: should auto added by {@link hydrateIdoPoolInfo}
   filled: PercentString
@@ -95,7 +96,6 @@ export interface HydratedIdoInfo extends SdkParsedIdoInfo {
 
   claimableQuote?: TokenAmount
   ledger?: (SdkParsedIdoInfo['ledger'] | undefined) & {
-    /**@deprecated whether is winning ticket is in depositedTickets */
     winningTickets?: TicketInfo[]
     userAllocation?: StringNumber
     depositedTickets?: TicketInfo[]
