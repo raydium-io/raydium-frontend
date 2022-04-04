@@ -102,7 +102,7 @@ exports.cyberpunkBgLight = plugin(({ addUtilities }) => {
           opacity: '.45'
         }
       },
-      '.cyberpunk-bg-light-acceleraytor-detail': {
+      '.cyberpunk-bg-light-acceleraytor-detail-page': {
         position: 'sticky',
         '&::before': {
           content: "''",
@@ -119,6 +119,40 @@ exports.cyberpunkBgLight = plugin(({ addUtilities }) => {
           backgroundBlendMode: 'lighten, color-burn, normal',
           filter: 'blur(132px)',
           opacity: '.15'
+        }
+      },
+      '.cyberpunk-bg-acceleraytor-prject-step-1, .cyberpunk-bg-acceleraytor-prject-step-2, .cyberpunk-bg-acceleraytor-prject-step-3':
+        {
+          position: 'relative',
+          contain: 'paint',
+          '&::before': {
+            content: "''",
+            position: 'absolute',
+            top: '130%',
+            left: '90%',
+            width: '346px',
+            height: '346px',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            background:
+              'linear-gradient(221.5deg, #DA2EEF 16.15%, rgba(218, 46, 239, 0) 84.46%), radial-gradient(53.22% 53.22% at 93.67% 75.22%, rgba(218, 46, 239, 0.5) 0%, rgba(57, 208, 216, 0.5) 55.21%, rgba(84, 44, 238, 0.5) 100%), radial-gradient(63.44% 63.44% at 42.78% 105%, #39D0D8 0%, #542CEE 100%)',
+            backgroundBlendMode: 'lighten, color-burn, normal',
+            filter: 'blur(133px)',
+            opacity: '.25'
+          }
+        },
+      '.cyberpunk-bg-acceleraytor-prject-step-2': {
+        '&::before': {
+          with: '282px',
+          height: '282px',
+          top: '-19%',
+          left: '53%'
+        }
+      },
+      '.cyberpunk-bg-acceleraytor-prject-step-3': {
+        '&::before': {
+          top: '36%',
+          left: '95%'
         }
       }
     },

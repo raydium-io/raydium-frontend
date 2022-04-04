@@ -68,6 +68,7 @@ function useUrlParser() {
 }
 
 function NavButtons({ className }: { className?: string }) {
+  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
   return (
     <Row className={twMerge('items-center justify-between', className)}>
       <Button
@@ -78,14 +79,12 @@ function NavButtons({ className }: { className?: string }) {
         Back to all pools
       </Button>
 
-      <Link>
-        <Button
-          type="text"
-          className="text-sm text-[#ABC4FF] opacity-50"
-          prefix={<Icon heroIconName="information-circle" size="sm" />}
-        >
-          Read full details
-        </Button>
+      <Link
+        className="rounded-none font-medium text-sm text-[#ABC4FF] opacity-50 flex gap-1 items-center"
+        href={idoInfo?.project.detailDocLink}
+      >
+        <Icon size="sm" inline heroIconName="information-circle" />
+        Read full details
       </Link>
     </Row>
   )
@@ -95,7 +94,7 @@ export default function LotteryDetailPage() {
   useUrlParser()
   return (
     <PageLayout metaTitle="AcceleRaytor" mobileBarTitle="AcceleRaytor" contentYPaddingShorter>
-      <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail top-1/2 left-1/2"></div>
+      <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail-page top-1/2 left-1/2"></div>
 
       <NavButtons className="mb-10" />
 
@@ -236,7 +235,7 @@ function LotteryInfoPanel({ className }: { className?: string }) {
         </Badge>
       </CyberpunkStyleCard>
 
-      <div className="grid grid-cols-3-auto grid-gap-board m-4">
+      <div className="grid grid-cols-3-auto grid-gap-board my-2 mx-4">
         <IdoInfoItem
           fieldName="Total Raise"
           fieldValue={
@@ -379,13 +378,16 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
     </>
   )
   const renderHowToJoin = (
-    <>
-      {/* wrapbox */}
+    <div>
+      {/* wrapbox(have scroll bar) */}
       <Row>
         {/* card row */}
         <Row className="overflow-auto gap-6 grow w-0">
           {/* step 1 */}
-          <Card size="lg" className="shrink-0 flex flex-col py-5 px-4 gap-3 bg-[#1B1659] grow w-[206px]">
+          <Card
+            size="lg"
+            className="shrink-0 flex flex-col py-5 px-4 gap-3 bg-[#1B1659] grow w-[206px] cyberpunk-bg-acceleraytor-prject-step-1"
+          >
             <Col className="items-center gap-3">
               <StepBadge n={1} />
               <div className="text-sm text-center text-[#ABC4FF] font-semibold">Stake RAY</div>
@@ -428,7 +430,10 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
           </Card>
 
           {/* step 2 */}
-          <Card size="lg" className="shrink-0 flex flex-col py-5 px-4 gap-3 bg-[#1B1659] grow w-[206px]">
+          <Card
+            size="lg"
+            className="shrink-0 flex flex-col py-5 px-4 gap-3 bg-[#1B1659] grow w-[206px] cyberpunk-bg-acceleraytor-prject-step-2"
+          >
             <Col className="items-center gap-3">
               <StepBadge n={2} />
               <div className="text-sm text-center text-[#ABC4FF] font-semibold">Deposit {idoInfo.quote?.symbol}</div>
@@ -449,7 +454,10 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
           </Card>
 
           {/* step 3 */}
-          <Card size="lg" className="shrink-0 flex flex-col py-5 px-4 gap-3 bg-[#1B1659] grow w-[206px]">
+          <Card
+            size="lg"
+            className="shrink-0 flex flex-col py-5 px-4 gap-3 bg-[#1B1659] grow w-[206px] cyberpunk-bg-acceleraytor-prject-step-3"
+          >
             <Col className="items-center gap-3">
               <StepBadge n={3} />
               <div className="text-sm text-center text-[#ABC4FF] font-semibold">Claim tokens</div>
@@ -467,7 +475,14 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
           </Card>
         </Row>
       </Row>
-    </>
+      <Link
+        className="pt-4 rounded-none flex-grow font-medium text-[#ABC4FF] text-xs flex justify-center gap-1 items-center"
+        href={idoInfo.project.detailDocLink}
+      >
+        <Icon size="sm" inline heroIconName="information-circle" />
+        Read full details on Medium
+      </Link>
+    </div>
   )
   return (
     <Card

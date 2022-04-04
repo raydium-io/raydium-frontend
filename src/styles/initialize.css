@@ -30,6 +30,7 @@ body {
   ::-webkit-scrollbar {
     background-color: transparent;
     width: 7px;
+    height: 7px;
   }
   ::-webkit-scrollbar-thumb {
     background-color: rgba(255, 255, 255, 0.2);
