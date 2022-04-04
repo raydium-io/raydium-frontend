@@ -115,14 +115,13 @@ function PanelContent({ historyItems, onClickX }: { historyItems: TxHistoryInfo[
       </div>
 
       <Row className="border-t-1.5 border-[rgba(171,196,255,0.2)]">
-        <Button
-          type="text"
-          className="py-4 rounded-none flex-grow font-medium text-[#ABC4FF] text-xs flex justify-center gap-2 items-center"
+        <Link
+          className="py-4 rounded-none flex-grow font-medium text-[#ABC4FF] text-xs flex justify-center gap-1 items-center"
+          href={owner ? `https://solscan.io/account/${toPubString(owner)}` : ''}
         >
-          <Link href={owner ? `https://solscan.io/account/${toPubString(owner)}` : ''}>
-            View all transactions <Icon size="sm" inline heroIconName="external-link" />
-          </Link>
-        </Button>
+          View all transactions
+          <Icon size="xs" inline heroIconName="external-link" />
+        </Link>
       </Row>
     </Card>
   )
