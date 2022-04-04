@@ -1,9 +1,5 @@
 import React, { ReactNode, useEffect, useMemo, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
 
-import BN from 'bn.js'
-
-import useConnection from '@/application/connection/useConnection'
 import { TicketInfo } from '@/application/ido/type'
 import useIdo from '@/application/ido/useIdo'
 import useWallet from '@/application/wallet/useWallet'
@@ -11,28 +7,18 @@ import AlertText from '@/components/AlertText'
 import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
 import CountDownClock from '@/components/CountDownClock'
-import DecimalInput from '@/components/DecimalInput'
-import DropZoneBadgeStatusTag from '@/components/DropZoneBadgeStatusTag'
 import Icon, { socialIconSrcMap } from '@/components/Icon'
 import Link from '@/components/Link'
-import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
-import Progress from '@/components/Progress'
-import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
-import TabWithPanel from '@/components/TabWithPanel'
 import { toUTC } from '@/functions/date/dateFormat'
-import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
+import { currentIsBefore } from '@/functions/date/judges'
 import formatNumber from '@/functions/format/formatNumber'
-import toPercentNumber from '@/functions/format/toPercentNumber'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { objectMap } from '@/functions/objectMethods'
 import { toString } from '@/functions/numberish/toString'
-import { ZERO } from '@raydium-io/raydium-sdk'
-import { eq, gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
-import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import { Numberish } from '@/types/constants'
 import toBN from '@/functions/numberish/toBN'
 import { mul } from '@/functions/numberish/operations'
@@ -48,28 +34,25 @@ import Tabs from '@/components/Tabs'
 import { shakeFalsyItem } from '@/functions/arrayMethods'
 import { Markdown } from '@/components/Markdown'
 import CoinInputBox from '@/components/CoinInputBox'
-import useFarms from '@/application/farms/useFarms'
 import toPercentString from '@/functions/format/toPercentString'
 import useStaking from '@/application/staking/useStaking'
 import { StakingPageStakeLpDialog } from '@/components/dialogs/StakingPageStakeLpDialog'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const { query } = useRouter()
   useEffect(() => {
     if (idoInfo) return
     const idoIdFromUrl = query.idoId as string | undefined
     if (idoIdFromUrl) {
-      const current = idoHydratedInfos[idoIdFromUrl]
-      if (current) useIdo.setState({ currentIdoHydratedInfo: current })
+      useIdo.setState({ currentIdoId: idoIdFromUrl })
     }
   }, [idoHydratedInfos])
 }
 
 function NavButtons({ className }: { className?: string }) {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   return (
     <Row className={twMerge('items-center justify-between', className)}>
       <Button
@@ -146,7 +129,7 @@ function TicketItem({
 }
 
 function TicketPanelClosed({ className }: { className?: string }) {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
 
   // TODO: `const winningNumbers = ` (no heavy logic in jsx return)
   if (idoInfo?.status !== 'closed') return null
@@ -215,7 +198,7 @@ function TicketPanelClosed({ className }: { className?: string }) {
 }
 
 function LotteryStateInfoPanel({ className }: { className?: string }) {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
   const connected = useWallet((s) => s.connected)
 
@@ -366,7 +349,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
 }
 
 function LotteryLedgerPanel({ className }: { className?: string }) {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
 
   const TopInfoPanelFieldItem = (props: { fieldName: ReactNode; fieldValue: ReactNode }) => (
     <div className="px-6">
@@ -409,7 +392,7 @@ function LotteryLedgerPanel({ className }: { className?: string }) {
 }
 
 function LotteryProjectInfoPanel({ className }: { className?: string }) {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const connected = useWallet((s) => s.connected)
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
 
@@ -584,7 +567,7 @@ function IdoInfoItem({
 }
 
 function IdoInputPanel({ className }: { className?: string }) {
-  const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const { connected, balances, checkWalletHasEnoughBalance } = useWallet()
   const refreshIdo = useIdo((s) => s.refreshIdo)
   const refreshSelf = () => refreshIdo(idoInfo?.id)
