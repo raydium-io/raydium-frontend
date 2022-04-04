@@ -30,7 +30,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import { objectMap } from '@/functions/objectMethods'
 import { toString } from '@/functions/numberish/toString'
 import { ZERO } from '@raydium-io/raydium-sdk'
-import { eq, gt, gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import { Numberish } from '@/types/constants'
@@ -52,6 +52,7 @@ import useFarms from '@/application/farms/useFarms'
 import toPercentString from '@/functions/format/toPercentString'
 import useStaking from '@/application/staking/useStaking'
 import { StakingPageStakeLpDialog } from '@/components/dialogs/StakingPageStakeLpDialog'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -112,7 +113,7 @@ export default function LotteryDetailPage() {
         }}
       >
         <IdoInputPanel className="grid-area-a self-start" />
-        <LotteryInfoPanel className="grid-area-b" />
+        <LotteryStateInfoPanel className="grid-area-b" />
         <LotteryLedgerPanel className="grid-area-c" />
         <LotteryProjectInfoPanel className="grid-area-d" />
       </Grid>
@@ -213,9 +214,13 @@ function TicketPanelClosed({ className }: { className?: string }) {
   )
 }
 
-function LotteryInfoPanel({ className }: { className?: string }) {
+function LotteryStateInfoPanel({ className }: { className?: string }) {
   const idoInfo = useIdo((s) => s.currentIdoHydratedInfo)
+  const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
+  const connected = useWallet((s) => s.connected)
+
   if (!idoInfo) return null
+  const raySnapshotDeadline = Number(idoInfo.state.startTime) - 3600 * 24 * 7 * 1000 //TODO : always 7 days before lottery start, which is fragile
   return (
     <Card
       className={twMerge(
@@ -224,7 +229,7 @@ function LotteryInfoPanel({ className }: { className?: string }) {
       )}
       size="lg"
     >
-      <CyberpunkStyleCard className="flex flex-col items-center justify-center gap-2 py-8" wrapperClassName="w-[140px]">
+      <CyberpunkStyleCard className="flex flex-col items-center justify-center gap-2" wrapperClassName="w-[140px]">
         <CoinAvatar size="lg" token={idoInfo.base} />
         <div>
           <div className="text-center text-base font-semibold text-white">{idoInfo.base?.symbol ?? 'UNKNOWN'}</div>
@@ -235,7 +240,7 @@ function LotteryInfoPanel({ className }: { className?: string }) {
         </Badge>
       </CyberpunkStyleCard>
 
-      <div className="grid grid-cols-3-auto grid-gap-board my-2 mx-4">
+      <div className="grid grid-flow-col grid-rows-2 grid-gap-board m-4">
         <IdoInfoItem
           fieldName="Total Raise"
           fieldValue={
@@ -244,28 +249,6 @@ function LotteryInfoPanel({ className }: { className?: string }) {
               <div className="text-[#ABC4FF80] font-medium text-xs">
                 {idoInfo.totalRaise?.token.symbol ?? 'UNKNOWN'}
               </div>
-            </Row>
-          }
-        />
-        <IdoInfoItem
-          fieldName={`Per ${idoInfo.base?.symbol ?? 'UNKNOWN'}`}
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">
-                {formatNumber(toString(idoInfo.coinPrice), { fractionLength: 'auto' })}
-              </div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{idoInfo.quote?.symbol ?? 'UNKNOWN'}</div>
-            </Row>
-          }
-        />
-        <IdoInfoItem
-          fieldName="Pool open"
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">
-                {toUTC(Number(idoInfo.state.startTime), { hideUTCBadge: true })}
-              </div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
             </Row>
           }
         />
@@ -281,8 +264,30 @@ function LotteryInfoPanel({ className }: { className?: string }) {
           }
         />
         <IdoInfoItem
+          fieldName={`Per ${idoInfo.base?.symbol ?? 'UNKNOWN'}`}
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">
+                {formatNumber(toString(idoInfo.coinPrice), { fractionLength: 'auto' })}
+              </div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{idoInfo.quote?.symbol ?? 'UNKNOWN'}</div>
+            </Row>
+          }
+        />
+        <IdoInfoItem
           fieldName={`Total tickets deposited`}
           fieldValue={<div className="text-white font-medium">{formatNumber(idoInfo.depositedTicketCount)}</div>}
+        />
+        <IdoInfoItem
+          fieldName="Pool open"
+          fieldValue={
+            <Row className="items-baseline gap-1">
+              <div className="text-white font-medium">
+                {toUTC(Number(idoInfo.state.startTime), { hideUTCBadge: true })}
+              </div>
+              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+            </Row>
+          }
         />
         <IdoInfoItem
           fieldName="Pool close"
@@ -295,6 +300,66 @@ function LotteryInfoPanel({ className }: { className?: string }) {
             </Row>
           }
         />
+        {idoInfo.status === 'closed' && (
+          <Row className="items-center justify-between gap-8">
+            <IdoInfoItem
+              fieldValue={
+                <Row className="items-baseline gap-1">
+                  <div className="text-white font-medium">
+                    {toString(stakingHydratedInfo?.userStakedLpAmount) || '--'} RAY
+                  </div>
+                </Row>
+              }
+              fieldName={
+                <Row className="gap-1 items-center">
+                  <div>Staking eligibility</div>
+                  {idoInfo.userEligibleTicketAmount && gt(idoInfo.userEligibleTicketAmount, 0) && (
+                    <Icon size="sm" heroIconName="check-circle" className="text-[#39D0D8]" />
+                  )}
+                </Row>
+              }
+            />
+            <Col className="items-center">
+              <Button
+                className="frosted-glass-skygray"
+                size="xs"
+                validators={[
+                  {
+                    should: connected,
+                    forceActive: true,
+                    fallbackProps: {
+                      onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                    }
+                  }
+                ]}
+                disabled={!currentIsBefore(raySnapshotDeadline)}
+                onClick={() => {
+                  useStaking.setState({
+                    isStakeDialogOpen: true,
+                    stakeDialogMode: 'deposit'
+                  })
+                }}
+              >
+                Stake
+              </Button>
+
+              <div className="text-xs text-center text-[#ABC4FF] opacity-50 mt-1">
+                APR: {toPercentString(stakingHydratedInfo?.totalApr)}
+              </div>
+            </Col>
+          </Row>
+        )}
+        {idoInfo.status === 'closed' && (
+          <IdoInfoItem
+            fieldName="RAY staking deadline"
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">{toUTC(raySnapshotDeadline, { hideUTCBadge: true })}</div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+              </Row>
+            }
+          />
+        )}
       </div>
     </Card>
   )
@@ -407,8 +472,7 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
                       should: connected,
                       forceActive: true,
                       fallbackProps: {
-                        onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                        children: 'Connect Wallet'
+                        onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
                       }
                     }
                   ]}
@@ -514,7 +578,7 @@ function IdoInfoItem({
   return (
     <div className={`py-3 px-4 ${className ?? ''}`}>
       <div>{fieldValue}</div>
-      <div className="text-[#ABC4FF] font-bold text-xs opacity-50 mt-1">{fieldName}</div>
+      <div className="text-[#abc4ff80] font-bold text-xs mt-1">{fieldName}</div>
     </div>
   )
 }
