@@ -40,7 +40,6 @@ import { StakingPageStakeLpDialog } from '@/components/dialogs/StakingPageStakeL
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import toPercentNumber from '@/functions/format/toPercentNumber'
 import Progress from '@/components/Progress'
-import assert from 'assert'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -68,7 +67,9 @@ function NavButtons({ className }: { className?: string }) {
       </Button>
 
       <Link
-        className="rounded-none font-medium text-sm text-[#ABC4FF] opacity-50 flex gap-1 items-center"
+        className={`rounded-none font-medium text-sm text-[#ABC4FF] opacity-50 flex gap-1 items-center ${
+          idoInfo?.project.detailDocLink ? 'opacity-50' : 'opacity-0'
+        } transition`}
         href={idoInfo?.project.detailDocLink}
       >
         <Icon size="sm" inline heroIconName="information-circle" />
@@ -78,34 +79,45 @@ function NavButtons({ className }: { className?: string }) {
   )
 }
 
-export default function LotteryDetailPage() {
+export default function LotteryDetailPageLayout() {
   useUrlParser()
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
-  const connected = useWallet((s) => s.connected)
+
   return (
     <PageLayout metaTitle="AcceleRaytor" mobileBarTitle="AcceleRaytor" contentYPaddingShorter>
-      <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail-page top-1/2 left-1/2"></div>
-
       <NavButtons className="mb-10" />
+      <div className="max-w-[1130px] m-auto">
+        <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail-page top-1/2 left-1/2"></div>
 
-      <FadeIn>
-        {connected && idoInfo?.ledger?.depositedTickets?.length ? <WinningTicketPanel className="mb-5" /> : null}
-      </FadeIn>
+        <FadeIn>
+          {idoInfo?.status === 'have-lottery-result' ||
+          idoInfo?.status === 'closed' ||
+          idoInfo?.ledger?.depositedTickets?.length ? (
+            <WinningTicketPanel className="mb-5" />
+          ) : null}
+        </FadeIn>
 
-      <Grid
-        className="gap-5"
-        style={{
-          gridTemplate: `
-            "b a" auto
-            "c a" auto
-            "d a" auto / 3fr minmax(350px, 1fr)`
-        }}
-      >
-        <LotteryInputPanel className="grid-area-a self-start" />
-        <LotteryStateInfoPanel className="grid-area-b" />
-        <LotteryLedgerPanel className="grid-area-c" />
-        <LotteryProjectInfoPanel className="grid-area-d" />
-      </Grid>
+        <Grid
+          className="gap-5"
+          style={{
+            gridTemplate:
+              idoInfo?.status === 'upcoming'
+                ? `
+              "b b" auto
+              "c a" auto
+              "d a" auto / 3fr minmax(350px, 1fr)`
+                : `
+              "b a" auto
+              "c a" auto
+              "d a" auto / 3fr minmax(350px, 1fr)`
+          }}
+        >
+          <LotteryInputPanel className="grid-area-a self-start" />
+          <LotteryStateInfoPanel className="grid-area-b" />
+          <LotteryLedgerPanel className="grid-area-c" />
+          <LotteryProjectInfoPanel className="grid-area-d" />
+        </Grid>
+      </div>
     </PageLayout>
   )
 }
@@ -138,7 +150,6 @@ function WinningTicketPanel({ className }: { className?: string }) {
   const connected = useWallet((s) => s.connected)
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
 
-  assert(idoInfo?.ledger, 'unnecessary in logic, but necessary in type check')
   return (
     <Card
       className={twMerge(
@@ -148,7 +159,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
       size="lg"
     >
       <Row className="justify-between p-8">
-        {idoInfo.status === 'have-lottery-result' || idoInfo.status === 'closed' ? (
+        {idoInfo?.status === 'have-lottery-result' || idoInfo?.status === 'closed' ? (
           <Col className="gap-1">
             <div className="mobile:text-sm font-semibold text-base text-white">
               {['1', '2'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
@@ -183,7 +194,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
           <div></div>
         )}
 
-        {idoInfo.status === 'have-lottery-result' || idoInfo.status === 'closed' ? (
+        {idoInfo?.ledger && (idoInfo?.status === 'have-lottery-result' || idoInfo?.status === 'closed') ? (
           <Row className="ml-auto gap-8">
             <Col className="items-center">
               <Button
@@ -256,17 +267,21 @@ function WinningTicketPanel({ className }: { className?: string }) {
         )}
       </Row>
 
-      <Col className="bg-[#141041] py-5 px-6">
-        <div className="text-sm mb-5 font-semibold  text-[#ABC4FF] opacity-50">Your ticket numbers</div>
-        <Grid
-          className="grid-gap-board -mx-5"
-          style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', clipPath: 'inset(1px 16px)' }}
-        >
-          {idoInfo?.ledger?.depositedTickets?.map((ticket) => (
-            <TicketItem key={ticket.no} ticket={ticket} className="px-5 py-3" />
-          ))}
-        </Grid>
-      </Col>
+      <FadeIn>
+        {idoInfo?.ledger && (
+          <Col className="bg-[#141041] py-5 px-6">
+            <div className="text-sm mb-5 font-semibold  text-[#ABC4FF] opacity-50">Your ticket numbers</div>
+            <Grid
+              className="grid-gap-board -mx-5"
+              style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))', clipPath: 'inset(1px 16px)' }}
+            >
+              {idoInfo.ledger.depositedTickets?.map((ticket) => (
+                <TicketItem key={ticket.no} ticket={ticket} className="px-5 py-3" />
+              ))}
+            </Grid>
+          </Col>
+        )}
+      </FadeIn>
     </Card>
   )
 }
@@ -281,7 +296,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
   return (
     <Card
       className={twMerge(
-        'grid grid-cols-[auto,1fr] overflow-hidden rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]',
+        'flex overflow-hidden rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]',
         className
       )}
       size="lg"
@@ -297,140 +312,142 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
         </Badge>
       </CyberpunkStyleCard>
 
-      <div className="grid grid-flow-col grid-rows-2 grid-gap-board m-4">
-        <IdoInfoItem
-          fieldName="Total Raise"
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">{formatNumber(toString(idoInfo.totalRaise))}</div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">
-                {idoInfo.totalRaise?.token.symbol ?? 'UNKNOWN'}
-              </div>
-            </Row>
-          }
-        />
-        <IdoInfoItem
-          fieldName={`Allocation / Winning Ticket`}
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">
-                {formatNumber(toString(idoInfo.ticketPrice), { fractionLength: 'auto' })}
-              </div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{idoInfo.quote?.symbol ?? 'UNKNOWN'}</div>
-            </Row>
-          }
-        />
-        <IdoInfoItem
-          fieldName={`Per ${idoInfo.base?.symbol ?? 'UNKNOWN'}`}
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">
-                {formatNumber(toString(idoInfo.coinPrice), { fractionLength: 'auto' })}
-              </div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{idoInfo.quote?.symbol ?? 'UNKNOWN'}</div>
-            </Row>
-          }
-        />
-        <IdoInfoItem
-          className="pb-1"
-          fieldName={
-            <div>
-              <div>Total tickets deposited</div>
-              <Progress className="mt-2" slotClassName="h-1" showLabel value={toPercentNumber(idoInfo.filled)} />
-            </div>
-          }
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">{formatNumber(idoInfo.depositedTicketCount)}</div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">
-                {' '}
-                / {formatNumber(idoInfo.state.maxWinLotteries)}
-              </div>
-            </Row>
-          }
-        />
-        <IdoInfoItem
-          fieldName="Pool open"
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">
-                {toUTC(Number(idoInfo.state.startTime), { hideUTCBadge: true })}
-              </div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
-            </Row>
-          }
-        />
-        <IdoInfoItem
-          fieldName="Pool close"
-          fieldValue={
-            <Row className="items-baseline gap-1">
-              <div className="text-white font-medium">
-                {toUTC(Number(idoInfo.state.endTime), { hideUTCBadge: true })}
-              </div>
-              <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
-            </Row>
-          }
-        />
-        {idoInfo.status === 'closed' && (
-          <Row className="items-center justify-between gap-8">
-            <IdoInfoItem
-              fieldValue={
-                <Row className="items-baseline gap-1">
-                  <div className="text-white font-medium">
-                    {toString(stakingHydratedInfo?.userStakedLpAmount) || '--'} RAY
-                  </div>
-                </Row>
-              }
-              fieldName={
-                <Row className="gap-1 items-center">
-                  <div>Staking eligibility</div>
-                  {idoInfo.userEligibleTicketAmount && gt(idoInfo.userEligibleTicketAmount, 0) && (
-                    <Icon size="sm" heroIconName="check-circle" className="text-[#39D0D8]" />
-                  )}
-                </Row>
-              }
-            />
-            <Col className="items-center">
-              <Button
-                className="frosted-glass-skygray"
-                size="xs"
-                validators={[
-                  {
-                    should: connected,
-                    forceActive: true,
-                    fallbackProps: {
-                      onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
-                    }
-                  }
-                ]}
-                disabled={!currentIsBefore(raySnapshotDeadline)}
-                onClick={() => {
-                  useStaking.setState({
-                    isStakeDialogOpen: true,
-                    stakeDialogMode: 'deposit'
-                  })
-                }}
-              >
-                Stake
-              </Button>
-
-              <div className="text-xs text-center text-[#ABC4FF] opacity-50 mt-1">
-                APR: {toPercentString(stakingHydratedInfo?.totalApr)}
-              </div>
-            </Col>
-          </Row>
-        )}
-        {idoInfo.status === 'closed' && (
+      <div className="w-0 grow overflow-auto m-4">
+        <Grid className="grid-cols-[repeat(auto-fit,minmax(154px,1fr))] grid-gap-board">
           <IdoInfoItem
-            fieldName="RAY staking deadline"
+            fieldName="Total Raise"
             fieldValue={
               <Row className="items-baseline gap-1">
-                <div className="text-white font-medium">{toUTC(raySnapshotDeadline, { hideUTCBadge: true })}</div>
+                <div className="text-white font-medium">{formatNumber(toString(idoInfo.totalRaise))}</div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">
+                  {idoInfo.totalRaise?.token.symbol ?? 'UNKNOWN'}
+                </div>
+              </Row>
+            }
+          />
+          <IdoInfoItem
+            fieldName={`Allocation / Winning Ticket`}
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">
+                  {formatNumber(toString(idoInfo.ticketPrice), { fractionLength: 'auto' })}
+                </div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">{idoInfo.quote?.symbol ?? 'UNKNOWN'}</div>
+              </Row>
+            }
+          />
+          <IdoInfoItem
+            fieldName={`Per ${idoInfo.base?.symbol ?? 'UNKNOWN'}`}
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">
+                  {formatNumber(toString(idoInfo.coinPrice), { fractionLength: 'auto' })}
+                </div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">{idoInfo.quote?.symbol ?? 'UNKNOWN'}</div>
+              </Row>
+            }
+          />
+          <IdoInfoItem
+            className="pb-1"
+            fieldName={
+              <div>
+                <div>Total tickets deposited</div>
+                <Progress className="mt-2" slotClassName="h-1" showLabel value={toPercentNumber(idoInfo.filled)} />
+              </div>
+            }
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">{formatNumber(idoInfo.depositedTicketCount)}</div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">
+                  {' '}
+                  / {formatNumber(idoInfo.state.maxWinLotteries)}
+                </div>
+              </Row>
+            }
+          />
+          <IdoInfoItem
+            fieldName="Pool open"
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">
+                  {toUTC(Number(idoInfo.state.startTime), { hideUTCBadge: true })}
+                </div>
                 <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
               </Row>
             }
           />
-        )}
+          <IdoInfoItem
+            fieldName="Pool close"
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">
+                  {toUTC(Number(idoInfo.state.endTime), { hideUTCBadge: true })}
+                </div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+              </Row>
+            }
+          />
+          {idoInfo.status === 'upcoming' && (
+            <Row className="items-center justify-between gap-8">
+              <IdoInfoItem
+                fieldValue={
+                  <Row className="items-baseline gap-1">
+                    <div className="text-white font-medium">
+                      {toString(stakingHydratedInfo?.userStakedLpAmount) || '--'} RAY
+                    </div>
+                  </Row>
+                }
+                fieldName={
+                  <Row className="gap-1 items-center">
+                    <div>Staking eligibility</div>
+                    {idoInfo.userEligibleTicketAmount && gt(idoInfo.userEligibleTicketAmount, 0) && (
+                      <Icon size="sm" heroIconName="check-circle" className="text-[#39D0D8]" />
+                    )}
+                  </Row>
+                }
+              />
+              <Col className="items-center">
+                <Button
+                  className="frosted-glass-skygray"
+                  size="xs"
+                  validators={[
+                    {
+                      should: connected,
+                      forceActive: true,
+                      fallbackProps: {
+                        onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                      }
+                    }
+                  ]}
+                  disabled={!currentIsBefore(raySnapshotDeadline)}
+                  onClick={() => {
+                    useStaking.setState({
+                      isStakeDialogOpen: true,
+                      stakeDialogMode: 'deposit'
+                    })
+                  }}
+                >
+                  Stake
+                </Button>
+
+                <div className="text-xs text-center text-[#ABC4FF] opacity-50 mt-1">
+                  APR: {toPercentString(stakingHydratedInfo?.totalApr)}
+                </div>
+              </Col>
+            </Row>
+          )}
+          {idoInfo.status === 'upcoming' && (
+            <IdoInfoItem
+              fieldName="RAY staking deadline"
+              fieldValue={
+                <Row className="items-baseline gap-1">
+                  <div className="text-white font-medium">{toUTC(raySnapshotDeadline, { hideUTCBadge: true })}</div>
+                  <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                </Row>
+              }
+            />
+          )}
+        </Grid>
       </div>
     </Card>
   )
@@ -438,6 +455,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
 
 function LotteryLedgerPanel({ className }: { className?: string }) {
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
+  const connected = useWallet((s) => s.connected)
 
   const TopInfoPanelFieldItem = (props: { fieldName: ReactNode; fieldValue: ReactNode }) => (
     <div className="px-6">
@@ -455,21 +473,25 @@ function LotteryLedgerPanel({ className }: { className?: string }) {
       <Grid className="grid-cols-4 grid-gap-board">
         <TopInfoPanelFieldItem
           fieldName="Your Eligible Tickets"
-          fieldValue={`${formatNumber(idoInfo.userEligibleTicketAmount)}`}
+          fieldValue={connected ? `${formatNumber(idoInfo.userEligibleTicketAmount)}` : '--'}
         />
         <TopInfoPanelFieldItem
           fieldName="Your Deposited Tickets"
-          fieldValue={`${formatNumber(idoInfo.ledger?.depositedTickets?.length ?? 0)}`}
+          fieldValue={connected ? `${formatNumber(idoInfo.ledger?.depositedTickets?.length ?? 0)}` : '--'}
         />
         <TopInfoPanelFieldItem
           fieldName="Your Winning Tickets"
-          fieldValue={`${formatNumber(idoInfo.ledger?.depositedTickets?.filter((i) => i.isWinning)?.length ?? 0)}`}
+          fieldValue={
+            connected
+              ? `${formatNumber(idoInfo.ledger?.depositedTickets?.filter((i) => i.isWinning)?.length ?? 0)}`
+              : '--'
+          }
         />
         <TopInfoPanelFieldItem
           fieldName="Your allocation"
           fieldValue={
             <Row className="items-baseline gap-1">
-              <div>{formatNumber(toString(idoInfo.ledger?.userAllocation))}</div>
+              <div>{connected ? formatNumber(toString(idoInfo.ledger?.userAllocation)) : '--'}</div>
               <div className="text-sm text-[#ABC4FF] opacity-50"> {idoInfo.base?.symbol ?? ''}</div>
             </Row>
           }
