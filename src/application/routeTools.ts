@@ -10,7 +10,6 @@ import useAppSettings from './appSettings/useAppSettings'
 import useLiquidity from './liquidity/useLiquidity'
 import { useSwap } from './swap/useSwap'
 import { SplToken } from './token/type'
-import useToken from './token/useToken'
 import useFarms from './farms/useFarms'
 import useIdo from './ido/useIdo'
 

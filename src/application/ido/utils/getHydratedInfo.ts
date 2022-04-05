@@ -61,6 +61,7 @@ export const getAllHydratedIdoInfos = async (options?: {
   console.info('idoList data end layout fetching')
   const { getToken } = useToken.getState()
   const parsedPomised = result?.map(async (raw, idx) => {
+    // TODO: maybe getToken get nothing
     const baseCoinInfoBase = {
       ...(await getToken(String(raw.state.baseMint))), // TODO: `getToken()` should include customized token list
       iconSrc: await getToken(raw.state.baseMint)?.icon

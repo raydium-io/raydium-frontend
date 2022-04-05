@@ -40,6 +40,7 @@ import { StakingPageStakeLpDialog } from '@/components/dialogs/StakingPageStakeL
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import toPercentNumber from '@/functions/format/toPercentNumber'
 import Progress from '@/components/Progress'
+import { routeTo } from '@/application/routeTools'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -62,6 +63,7 @@ function NavButtons({ className }: { className?: string }) {
         type="text"
         className="text-sm text-[#ABC4FF] opacity-50 px-0"
         prefix={<Icon heroIconName="chevron-left" size="sm" />}
+        onClick={() => routeTo('/acceleraytor/list')}
       >
         Back to all pools
       </Button>
@@ -419,7 +421,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
             <Progress
               className="-mt-2 px-4 mb-2"
               slotClassName="h-1"
-              labelClassName="text-xs font-simibold px-4"
+              labelClassName="text-xs font-bold px-4"
               showLabel
               value={toPercentNumber(idoInfo.filled)}
             />
@@ -560,7 +562,7 @@ function LotteryLedgerPanel({ className }: { className?: string }) {
           fieldName="Your allocation"
           fieldValue={
             <Row className="items-baseline gap-1">
-              <div>{connected ? formatNumber(toString(idoInfo.ledger?.userAllocation)) : '--'}</div>
+              <div>{connected ? formatNumber(toString(idoInfo.ledger?.userAllocation) || 0) : '--'}</div>
               <div className="text-sm text-[#ABC4FF] opacity-50"> {idoInfo.base?.symbol ?? ''}</div>
             </Row>
           }
