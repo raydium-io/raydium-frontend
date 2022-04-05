@@ -44,9 +44,9 @@ const useAppSettings = create<AppSettingsStore>(() => ({
 
   isBetaBubbleOn: true,
 
-  isMobile: getPlatformInfo()?.isMobile ?? false,
-  isTablet: getPlatformInfo()?.isMobile ?? false,
-  isPc: getPlatformInfo()?.isPc ?? true,
+  isMobile: false,
+  isTablet: false,
+  isPc: true,
 
   isApprovePanelShown: false,
 
