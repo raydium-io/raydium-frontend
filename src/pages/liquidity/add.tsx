@@ -205,7 +205,7 @@ function LiquidityConfirmRiskPanel({
 }
 
 function LiquidityCard() {
-  const { connected } = useWallet()
+  const { connected, owner } = useWallet()
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
@@ -241,15 +241,10 @@ function LiquidityCard() {
     togglePermanentlyConfirm
   } = useLiquidityWarning()
 
-  const haveEnoughCoin1 = useMemo(
-    () => coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })),
-    [coin1, coin1Amount, checkWalletHasEnoughBalance]
-  )
-
-  const haveEnoughCoin2 = useMemo(
-    () => coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })),
-    [coin2, coin2Amount, checkWalletHasEnoughBalance]
-  )
+  const haveEnoughCoin1 =
+    coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
+  const haveEnoughCoin2 =
+    coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }))
 
   const cardRef = useRef<HTMLDivElement>(null)
 
@@ -507,7 +502,7 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
   if (!price) return null
   return (
     <Row className={twMerge('font-medium text-sm text-[#ABC4FF]', className)}>
-      {1} {innerPriceLeftCoin?.symbol ?? '--'} ≈{' '}
+      {1} {innerPriceLeftCoin?.symbol ?? '--'} ≑{' '}
       {toString(innerReversed ? div(1, price) : price, {
         decimalLength: isMobile ? 'auto 2' : 'auto',
         zeroDecimalNotAuto: true
