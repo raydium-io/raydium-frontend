@@ -117,7 +117,7 @@ export default function LotteryDetailPageLayout() {
   return (
     <PageLayout metaTitle="AcceleRaytor" mobileBarTitle="AcceleRaytor" contentYPaddingShorter>
       <NavButtons className="mb-8" />
-      <div className="max-w-[1130px] m-auto">
+      <div className="max-w-[1130px] mobile:max-w-[530px] m-auto">
         <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail-page top-1/2 left-1/2"></div>
 
         <WinningTicketPanel className="mb-5" />
@@ -888,7 +888,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
       >
         Join Lottery
       </Button>
-      <Link className="text-xs text-center text-[#ABC4FF] opacity-50 font-semibold py-3 border-t border-[rgba(171,196,255,0.1)]">
+      <Link className="text-xs text-center text-[#ABC4FF] opacity-50 font-semibold pt-3 border-t border-[rgba(171,196,255,0.1)]">
         When can I withdraw?
       </Link>
     </CyberpunkStyleCard>

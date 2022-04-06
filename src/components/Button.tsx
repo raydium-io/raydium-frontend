@@ -38,7 +38,7 @@ export interface ButtonProps {
   prefix?: ReactNode
   /** normally, it's an icon  */
   suffix?: ReactNode
-  onClick?: AnyFn
+  onClick?: (info: { ev: React.MouseEvent<HTMLButtonElement, MouseEvent> }) => void
   componentRef?: RefObject<any>
 }
 
@@ -68,11 +68,11 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
   return (
     <button
       ref={ref}
-      onClick={() => {
-        if (!disable) onClick?.()
+      onClick={(ev) => {
+        if (!disable) onClick?.({ ev })
       }}
       className={twMerge(
-        'Button',
+        'Button select-none',
         type === 'text'
           ? textButtonTailwind({ size, disable })
           : type === 'outline'

@@ -46,16 +46,13 @@ import AutoBox from '@/components/AutoBox'
 export default function AcceleRaytor() {
   return (
     <PageLayout mobileBarTitle="AcceleRaytor" metaTitle="AcceleRaytor - Raydium">
-      <AcceleRaytorHeader />
+      <AcceleRaytorHeaderCyberpunk />
       <IdoList />
     </PageLayout>
   )
 }
 
-function AcceleRaytorHeader() {
-  const currentTab = useIdo((s) => s.currentTab)
-  const isMobile = useAppSettings((s) => s.isMobile)
-
+function AcceleRaytorHeaderCyberpunk() {
   return (
     <Col className="items-center gap-20 mb-11">
       <Col className="items-center cyberpunk-bg-light-acceleraytor mobile:scale-75 mobile:translate-y-4">
@@ -64,42 +61,75 @@ function AcceleRaytorHeader() {
           Buy new tokens launching on Solana.
         </div>
       </Col>
+    </Col>
+  )
+}
+
+function IdoList() {
+  const currentTab = useIdo((s) => s.currentTab)
+  const infos = useIdo((s) => s.idoHydratedInfos)
+  const isMobile = useAppSettings((s) => s.isMobile)
+
+  const upcomingPools = Object.values(infos).filter((i) => i.status === 'upcoming')
+  const openPools = Object.values(infos).filter((i) => i.status === 'open')
+  const closedPools = Object.values(infos).filter((i) => i.status === 'closed' || i.status === 'have-lottery-result')
+  return (
+    <>
+      {openPools.length > 0 && (
+        <>
+          <div className="text-2xl mobile:text-base mobile:px-4 mb-8 mobile:mb-4 font-semibold text-white w-[min(890px,100%)] self-center">
+            Open Pool{openPools.length > 1 ? 's' : ''}
+          </div>
+          <Col className="gap-12 mobile:gap-8 w-[min(890px,100%)] mx-auto mobile:w-full">
+            {openPools.map((info) => (
+              <div key={info.id}>
+                <CyberpunkStyleCard>
+                  <Collapse>
+                    <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
+                    <Collapse.Body>
+                      <AcceleRaytorCollapseItemContent info={info} />
+                    </Collapse.Body>
+                  </Collapse>
+                </CyberpunkStyleCard>
+              </div>
+            ))}
+          </Col>
+        </>
+      )}
       <Tabs
         currentValue={currentTab}
         values={['Upcoming Pools', 'Closed Pools']}
         onChange={(currentTab) => {
           useIdo.setState({ currentTab })
         }}
-        className="justify-self-center mobile:col-span-full"
+        className="self-center mobile:col-span-full mt-24 mobile:mt-16 mb-10 mobile:mb-8"
         itemClassName={isMobile ? 'w-[112px] h-[30px] px-2' : 'w-32'}
       />
-    </Col>
-  )
-}
-
-function IdoList() {
-  const infos = useIdo((s) => s.idoHydratedInfos)
-  return (
-    <Col className="gap-12 w-[min(890px,100%)] mx-auto mobile:w-full">
-      {Object.values(infos).map((info) => (
-        <div key={info.id}>
-          <CyberpunkStyleCard>
-            <Collapse>
-              <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
-              <Collapse.Body>
-                <AcceleRaytorCollapseItemContent info={info} />
-              </Collapse.Body>
-            </Collapse>
-          </CyberpunkStyleCard>
+      {(upcomingPools.length > 0 || closedPools.length > 0) && (
+        <div className="text-2xl mobile:text-base mobile:px-4 mb-8 mobile:mb-4 font-semibold text-white w-[min(890px,100%)] self-center">
+          {currentTab}
         </div>
-      ))}
-    </Col>
+      )}
+      <Col className="gap-12 mobile:gap-8 w-[min(890px,100%)] mx-auto mobile:w-full">
+        {(currentTab === 'Upcoming Pools' ? upcomingPools : closedPools).map((info) => (
+          <div key={info.id}>
+            <CyberpunkStyleCard>
+              <Collapse>
+                <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
+                <Collapse.Body>
+                  <AcceleRaytorCollapseItemContent info={info} />
+                </Collapse.Body>
+              </Collapse>
+            </CyberpunkStyleCard>
+          </div>
+        ))}
+      </Col>
+    </>
   )
 }
 
 function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const connected = useWallet((s) => s.connected)
 
   return (
     <Row
@@ -107,19 +137,21 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       }`}
     >
-      <Row
-        className="items-center gap-4 mobile:gap-3 mobile:w-auto clickable"
-        onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
-      >
-        <CoinAvatar noCoinIconBorder size={isMobile ? 'md' : 'lg'} token={info.base} />
-        <div>
-          <div className="text-base mobile:text-sm font-semibold text-white">{info.base?.symbol ?? 'UNKNOWN'}</div>
-          <div className="text-sm mobile:text-xs text-[#ABC4FF] opacity-50">{info.project.projectName}</div>
-        </div>
+      <Row className="items-center gap-4 mobile:gap-3 mobile:w-auto">
+        <Row
+          className="items-center gap-4 mobile:gap-3 mobile:w-auto clickable"
+          onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
+        >
+          <CoinAvatar noCoinIconBorder size={isMobile ? 'md' : 'lg'} token={info.base} />
+          <div>
+            <div className="text-base mobile:text-sm font-semibold text-white">{info.base?.symbol ?? 'UNKNOWN'}</div>
+            <div className="text-sm mobile:text-xs text-[#ABC4FF] opacity-50">{info.project.projectName}</div>
+          </div>
+        </Row>
         <Row className="flex-wrap gap-4 mobile:gap-3 items-center border-l border-[rgba(171,196,255,0.5)] self-center pl-6 mobile:pl-3">
           {Object.entries({ website: info.project.officialSites.website, ...info.project.socialsSites }).map(
             ([socialName, link]) => (
-              <Link key={socialName} href={link} className="flex items-center gap-2">
+              <Link key={socialName} href={link} className="flex items-center gap-2 clickable">
                 <Icon
                   className="frosted-glass-skygray p-2.5 mobile:p-2 rounded-xl mobile:rounded-lg"
                   iconClassName="w-3 h-3 opacity-50"
@@ -132,81 +164,131 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
       </Row>
 
       <Row className="gap-4 mobile:gap-6 grow justify-end mobile:justify-center">
-        <Col className="items-center">
-          <Button
-            size={isMobile ? 'xs' : 'md'}
-            className="frosted-glass-teal"
-            validators={[
-              { should: connected },
-              { should: gt(info.ledger?.winningTickets?.length, 0) && eq(info.ledger?.baseWithdrawn, 0) },
-              {
-                should: connected,
-                forceActive: true,
-                fallbackProps: {
-                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
-                }
-              }
-            ]}
-            onClick={() => {
-              txIdoClaim({
-                idoInfo: info,
-                side: 'base'
-              })
-            }}
-          >
-            Withdraw {info.base?.symbol ?? 'UNKNOWN'}
-          </Button>
-          <FadeIn>
-            {gt(info.ledger?.winningTickets?.length, 0) && eq(info.ledger?.baseWithdrawn, 0) && (
-              <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
-                {info.ledger?.winningTickets?.length} winning tickets
-              </div>
-            )}
-          </FadeIn>
-        </Col>
-        <Col className="items-center">
-          <Button
-            size={isMobile ? 'xs' : 'md'}
-            className="frosted-glass-teal"
-            validators={[
-              { should: connected },
-              { should: eq(info.ledger?.quoteWithdrawn, 0) },
-              { should: info.status === 'closed' },
-              {
-                should: connected,
-                forceActive: true,
-                fallbackProps: {
-                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
-                }
-              }
-            ]}
-            onClick={() => {
-              txIdoClaim({
-                idoInfo: info,
-                side: 'quote'
-              })
-            }}
-          >
-            Withdraw {info.quote?.symbol ?? 'UNKNOWN'}
-          </Button>
-          <FadeIn>
-            {eq(info.ledger?.quoteWithdrawn, 0) && (
-              <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
-                {(info.ledger?.depositedTickets?.length ?? 0) - (info.ledger?.winningTickets?.length ?? 0)} non-winning
-                tickets
-              </div>
-            )}
-          </FadeIn>
-        </Col>
+        {info.status === 'upcoming' ? (
+          <FaceButtonGroupUpcoming info={info} />
+        ) : info.status === 'open' ? (
+          <FaceButtonGroupJoin info={info} />
+        ) : (
+          <FaceButtonGroupClaim info={info} />
+        )}
       </Row>
     </Row>
   )
 }
 
+function FaceButtonGroupUpcoming({ info }: { info: HydratedIdoInfo }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  return (
+    <AutoBox is={isMobile ? 'Col' : 'Row'} className="items-center pt-5">
+      <Button
+        size={isMobile ? 'xs' : 'md'}
+        className="frosted-glass-skygray mobile:mb-3 mobile:self-stretch"
+        suffix={<Icon className="inline-block" size="sm" heroIconName="arrow-circle-right" />}
+        onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
+      >
+        Pool Information
+      </Button>
+      <Link className="mx-4 text-[#ABC4FF] opacity-50 font-bold mobile:text-xs" href={info.project.detailDocLink}>
+        Full Details
+      </Link>
+    </AutoBox>
+  )
+}
+function FaceButtonGroupJoin({ info }: { info: HydratedIdoInfo }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  return (
+    <Button
+      size={isMobile ? 'xs' : 'md'}
+      className="frosted-glass-teal mobile:self-stretch"
+      validators={[{ should: info.status === 'open' }]}
+      onClick={({ ev }) => {
+        ev.stopPropagation()
+        routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })
+      }}
+    >
+      Join Lottery
+    </Button>
+  )
+}
+function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const connected = useWallet((s) => s.connected)
+  return (
+    <>
+      <Col className="items-center mobile:grow">
+        <Button
+          size={isMobile ? 'xs' : 'md'}
+          className="frosted-glass-teal mobile:self-stretch"
+          validators={[
+            { should: connected },
+            { should: gt(info.ledger?.winningTickets?.length, 0) && eq(info.ledger?.baseWithdrawn, 0) },
+            {
+              should: connected,
+              forceActive: true,
+              fallbackProps: {
+                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+              }
+            }
+          ]}
+          onClick={({ ev }) => {
+            ev.stopPropagation()
+            txIdoClaim({
+              idoInfo: info,
+              side: 'base'
+            })
+          }}
+        >
+          Withdraw {info.base?.symbol ?? 'UNKNOWN'}
+        </Button>
+        <FadeIn>
+          {gt(info.ledger?.winningTickets?.length, 0) && eq(info.ledger?.baseWithdrawn, 0) && (
+            <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
+              {info.ledger?.winningTickets?.length} winning tickets
+            </div>
+          )}
+        </FadeIn>
+      </Col>
+      <Col className="items-center mobile:grow">
+        <Button
+          size={isMobile ? 'xs' : 'md'}
+          className="frosted-glass-teal mobile:self-stretch"
+          validators={[
+            { should: connected },
+            { should: eq(info.ledger?.quoteWithdrawn, 0) },
+            { should: info.status === 'closed' },
+            {
+              should: connected,
+              forceActive: true,
+              fallbackProps: {
+                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+              }
+            }
+          ]}
+          onClick={({ ev }) => {
+            ev.stopPropagation()
+            txIdoClaim({
+              idoInfo: info,
+              side: 'quote'
+            })
+          }}
+        >
+          Withdraw {info.quote?.symbol ?? 'UNKNOWN'}
+        </Button>
+        <FadeIn>
+          {eq(info.ledger?.quoteWithdrawn, 0) && (
+            <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
+              {(info.ledger?.depositedTickets?.length ?? 0) - (info.ledger?.winningTickets?.length ?? 0)} non-winning
+              tickets
+            </div>
+          )}
+        </FadeIn>
+      </Col>
+    </>
+  )
+}
+
 function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
-  const { push } = useRouter()
   return (
     <Row className="p-4 mobile:p-3 gap-8 flex-wrap mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg">
       <Link href={info.project.detailDocLink} className="flex-shrink-0 mobile:w-full">
@@ -239,7 +321,12 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
           />
           <IdoItem
             fieldName={`Total tickets deposited`}
-            fieldValue={<div className="text-white font-medium">{formatNumber(info.depositedTicketCount)}</div>}
+            fieldValue={
+              <Row className="items-baseline gap-1">
+                <div className="text-white font-medium">{formatNumber(info.depositedTicketCount)}</div>
+                <div className="text-[#ABC4FF80] font-medium text-xs">tickets</div>
+              </Row>
+            }
           />
           <IdoItem
             fieldName={`Allocation / Winning Ticket`}
