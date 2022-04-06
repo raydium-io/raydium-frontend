@@ -19,7 +19,7 @@ type IdoStore = {
   currentIdoId?: string
 
   idoBannerInformations: IdoBannerInformations | undefined
-  currentTab: 'All' | 'Inactive'
+  currentTab: 'Upcoming Pools' | 'Closed Pools'
   idoState: Record<string, IdoState> // for fast refresh without backend
   setIdoState: (idoId: string, statePiece: Partial<IdoState>) => void
 
@@ -33,7 +33,7 @@ const useIdo = create<IdoStore, SetState<IdoStore>, GetState<IdoStore>, StoreApi
         idoBannerInformations: undefined,
         idoHydratedInfos: {}, // auto parse info in {@link useLiquidityAuto}
 
-        currentTab: 'All',
+        currentTab: 'Closed Pools',
 
         refreshIdo: (idoId?: string) => Promise.resolve(undefined),
         idoState: {},

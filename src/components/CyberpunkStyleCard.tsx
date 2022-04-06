@@ -42,7 +42,7 @@ export default function CyberpunkStyleCard({
       <Card
         {...restProps}
         size={size}
-        className={twMerge('bg-cyberpunk-card-bg', restProps.className)}
+        className={twMerge('bg-cyberpunk-card-bg overflow-hidden', restProps.className)}
         style={{
           height: '100%',
           width: '100%'

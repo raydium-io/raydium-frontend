@@ -352,7 +352,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
         className="flex flex-col mobile:flex-row mobile:rounded-2xl mobile:py-4 mobile:px-5 items-center justify-center mobile:justify-start gap-2"
         wrapperClassName="w-[140px] mobile:w-auto mobile:rounded-2xl"
       >
-        <CoinAvatar size="lg" token={idoInfo.base} />
+        <CoinAvatar noCoinIconBorder size="lg" token={idoInfo.base} />
         <div>
           <div className="text-center mobile:text-left text-base font-semibold text-white">
             {idoInfo.base?.symbol ?? 'UNKNOWN'}

@@ -14,7 +14,7 @@ export interface ButtonHandle {
   focus?: () => void
 }
 export interface ButtonProps {
-  size?: 'xs' | 'md' | 'sm' | 'lg' | 'default'
+  size?: 'xs' | 'md' | 'sm' | 'lg'
   // used in "connect wallet" button, it's order is over props: disabled
   forceActive?: boolean
   /** a short cut for validator */
@@ -82,7 +82,7 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
       )}
     >
       {suffix || prefix ? (
-        <Row className="items-center gap-1">
+        <Row className="justify-center items-center gap-1">
           {prefix}
           <div>{children}</div>
           {suffix}
