@@ -4,6 +4,7 @@ import Row from './Row'
 
 export function ThreeSlotItem({
   className,
+  textClassName,
 
   text,
   suffix,
@@ -11,6 +12,7 @@ export function ThreeSlotItem({
   onClick
 }: {
   className?: string
+  textClassName?: string
   text: ReactNode
   suffix?: ReactNode
   prefix?: ReactNode
@@ -22,7 +24,7 @@ export function ThreeSlotItem({
       onClick={onClick}
     >
       {prefix}
-      <div className="text-white text-sm whitespace-nowrap">{text}</div>
+      <div className={twMerge('text-white text-sm whitespace-nowrap', textClassName)}>{text}</div>
       {suffix}
     </Row>
   )
