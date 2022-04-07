@@ -119,7 +119,7 @@ export default function LotteryDetailPageLayout() {
   return (
     <PageLayout metaTitle="AcceleRaytor" mobileBarTitle="AcceleRaytor" contentYPaddingShorter>
       <NavButtons className="mb-8" />
-      <div className="max-w-[1130px] mobile:max-w-[530px] m-auto">
+      <div className="max-w-[1130px] mobile:max-w-[530px] mx-auto">
         <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail-page top-1/2 left-1/2"></div>
 
         <WinningTicketPanel className="mb-5" />
