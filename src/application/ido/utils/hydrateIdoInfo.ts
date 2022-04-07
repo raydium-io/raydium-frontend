@@ -26,7 +26,7 @@ function isLotteryClosed(idoInfo: SdkParsedIdoInfo): boolean {
   return currentIsAfter(idoInfo.state.startWithdrawTime.toNumber())
 }
 
-function isLotteryCanWithdrawBase(idoInfo: SdkParsedIdoInfo): boolean {
+function canLotteryWithdrawBase(idoInfo: SdkParsedIdoInfo): boolean {
   return currentIsAfter(idoInfo.state.startWithdrawTime.toNumber())
 }
 
@@ -35,13 +35,6 @@ function getDepositedTickets(idoInfo: SdkParsedIdoInfo): TicketInfo[] {
   const begin = Number(idoInfo.ledger.startNumber)
   const end = Number(idoInfo.ledger.endNumber)
   return Array.from({ length: end - begin + 1 }, (_, i) => ({ no: begin + i }))
-}
-
-function getUserAllocation(idoInfo: SdkParsedIdoInfo): StringNumber {
-  if (!idoInfo.ledger) return 0
-  return gt(idoInfo.state.quoteDeposited, mul(idoInfo.state.perLotteryQuoteAmount, idoInfo.state.perLotteryMinStake))
-    ? multiply(divide(idoInfo.ledger.quoteDeposited, idoInfo.state.quoteDeposited), idoInfo.state.baseSupply)
-    : divide(idoInfo.ledger.quoteDeposited, idoInfo.state.perLotteryMinStake)
 }
 
 function isTicketWin(ticketNumber: number, idoInfo: SdkParsedIdoInfo): boolean {
@@ -91,13 +84,10 @@ function getWinningTicketsTailNumbers(idoInfo: SdkParsedIdoInfo): HydratedIdoInf
  *  computed from raw idoInfo
  */
 export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
-  const status = isLotteryUpcoming(idoInfo)
-    ? 'upcoming'
-    : isLotteryOpen(idoInfo)
-    ? 'open'
-    : isLotteryCanWithdrawBase(idoInfo)
-    ? 'have-lottery-result'
-    : 'closed'
+  const isUpcoming = isLotteryUpcoming(idoInfo)
+  const isOpen = isLotteryOpen(idoInfo)
+  const isClosed = isLotteryClosed(idoInfo)
+  const canWithdrawBase = canLotteryWithdrawBase(idoInfo)
 
   const depositedTickets = getDepositedTickets(idoInfo).map((ticketInfo) => ({
     ...ticketInfo,
@@ -121,6 +111,15 @@ export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
         depositedTickets: depositedTickets
       }
     : undefined
+
+  const claimableQuote =
+    (isClosed &&
+      idoLedger &&
+      eq(0, idoLedger.quoteWithdrawn) &&
+      idoInfo.quote &&
+      toTokenAmount(idoInfo.quote, idoLedger.quoteDeposited)) ||
+    undefined
+
   return {
     ...(idoInfo ?? {}),
     state: {
@@ -128,38 +127,22 @@ export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
       winningTicketsTailNumber: getWinningTicketsTailNumbers(idoInfo)
     },
     ledger: idoLedger,
-    status,
+
+    isUpcoming,
+    isOpen,
+    isClosed,
+    canWithdrawBase,
+
     totalRaise,
     coinPrice,
     ticketPrice,
 
     filled: getIdoFilled(idoInfo),
     depositedTicketCount,
-    claimableQuote:
-      (status === 'closed' &&
-        idoLedger &&
-        eq(0, idoLedger.quoteWithdrawn) &&
-        idoInfo.quote &&
-        toTokenAmount(idoInfo.quote, idoLedger.quoteDeposited)) ||
-      undefined,
+
+    claimableQuote,
     ...getEligibleInfo(idoInfo)
   }
-}
-
-function getIdoRaise(
-  base: SplToken | undefined,
-  maxWinLotteries: SdkParsedIdoInfo['state']['maxWinLotteries'] | undefined
-): string | undefined {
-  const value = base && maxWinLotteries ? toString(toTokenAmount(base, maxWinLotteries)) : undefined
-  return value
-}
-
-function getIdoPrice(
-  quote: SplToken | undefined,
-  perLotteryQuoteAmount: SdkParsedIdoInfo['state']['perLotteryQuoteAmount'] | undefined
-): string | undefined {
-  const price = quote && perLotteryQuoteAmount ? toString(toTokenAmount(quote, perLotteryQuoteAmount)) : undefined
-  return price
 }
 
 function getIdoFilled(idoInfo: SdkParsedIdoInfo) {

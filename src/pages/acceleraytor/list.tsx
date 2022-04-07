@@ -57,9 +57,9 @@ function IdoList() {
   const infos = useIdo((s) => s.idoHydratedInfos)
   const isMobile = useAppSettings((s) => s.isMobile)
 
-  const upcomingPools = Object.values(infos).filter((i) => i.status === 'upcoming')
-  const openPools = Object.values(infos).filter((i) => i.status === 'open')
-  const closedPools = Object.values(infos).filter((i) => i.status === 'closed' || i.status === 'have-lottery-result')
+  const upcomingPools = Object.values(infos).filter((i) => i.isUpcoming)
+  const openPools = Object.values(infos).filter((i) => i.isOpen)
+  const closedPools = Object.values(infos).filter((i) => i.isClosed || i.canWithdrawBase)
   return (
     <>
       {openPools.length > 0 && (
@@ -151,9 +151,9 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
       </Row>
 
       <Row className="gap-4 mobile:gap-6 grow justify-end mobile:justify-center">
-        {info.status === 'upcoming' ? (
+        {info.isUpcoming ? (
           <FaceButtonGroupUpcoming info={info} />
-        ) : info.status === 'open' ? (
+        ) : info.isOpen ? (
           <FaceButtonGroupJoin info={info} />
         ) : (
           <FaceButtonGroupClaim info={info} />
@@ -187,7 +187,7 @@ function FaceButtonGroupJoin({ info }: { info: HydratedIdoInfo }) {
     <Button
       size={isMobile ? 'xs' : 'md'}
       className="frosted-glass-teal mobile:self-stretch"
-      validators={[{ should: info.status === 'open' }]}
+      validators={[{ should: info.isOpen }]}
       onClick={({ ev }) => {
         ev.stopPropagation()
         routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })
@@ -217,7 +217,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
             },
             { should: info.ledger && gt(info.ledger.winningTickets?.length, 0) && eq(info.ledger.baseWithdrawn, 0) },
             {
-              should: info.status === 'have-lottery-result',
+              should: info.canWithdrawBase,
               fallbackProps: {
                 children: (
                   <Row>
@@ -259,7 +259,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
           validators={[
             { should: connected },
             { should: eq(info.ledger?.quoteWithdrawn, 0) },
-            { should: info.status === 'closed' },
+            { should: info.isClosed },
             {
               should: connected,
               forceActive: true,

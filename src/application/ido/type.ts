@@ -84,7 +84,12 @@ export interface SdkParsedIdoInfo extends RawIdoInfo {
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 //TODO: hydratedInfo has property sdkParsedInfo
 export interface HydratedIdoInfo extends SdkParsedIdoInfo {
-  status: IdoPoolInfoStatus // TEMP: should auto added by {@link hydrateIdoPoolInfo}
+  // privously is
+  isUpcoming: boolean
+  isOpen: boolean
+  isClosed: boolean
+  canWithdrawBase: boolean
+
   filled: PercentString
   totalRaise: TokenAmount | undefined
 
@@ -116,7 +121,6 @@ export interface HydratedIdoInfo extends SdkParsedIdoInfo {
   }
 }
 
-export type IdoPoolInfoStatus = 'upcoming' | 'open' | 'have-lottery-result' | 'closed'
 export type IdoPoolInfoAccess = 'RAY'
 export type TicketInfo = { no: number; isWinning?: boolean }
 export type TicketTailNumberInfo = {

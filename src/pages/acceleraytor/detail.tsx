@@ -87,7 +87,7 @@ function PageGridTemplate({ children }: { children?: ReactNode }) {
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const isMobile = useAppSettings((s) => s.isMobile)
   const gridTemplate = isMobile
-    ? idoInfo?.status === 'closed'
+    ? idoInfo?.isClosed
       ? `
           "b" auto
           "c" auto
@@ -98,7 +98,7 @@ function PageGridTemplate({ children }: { children?: ReactNode }) {
           "b" auto
           "c" auto
           "d" auto / 1fr`
-    : idoInfo?.status === 'upcoming'
+    : idoInfo?.isUpcoming
     ? `
         "b b" auto
         "c a" auto
@@ -167,9 +167,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
   const [, forceUpdate] = useForceUpdate()
   return (
     <FadeIn>
-      {idoInfo?.status === 'have-lottery-result' ||
-      idoInfo?.status === 'closed' ||
-      idoInfo?.ledger?.depositedTickets?.length ? (
+      {idoInfo?.canWithdrawBase || idoInfo?.isClosed || idoInfo?.ledger?.depositedTickets?.length ? (
         <Card
           className={twMerge(
             'overflow-hidden rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-cyberpunk-card-bg',
@@ -178,7 +176,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
           size="lg"
         >
           <Row className="flex-wrap gap-7 justify-between p-8 mobile:p-5">
-            {idoInfo?.status === 'have-lottery-result' || idoInfo?.status === 'closed' ? (
+            {idoInfo?.canWithdrawBase || idoInfo?.isClosed ? (
               <Col className="gap-1">
                 <div className="mobile:text-sm font-semibold text-base text-white">
                   {['1', '2'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
@@ -193,7 +191,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                     <div>(Every deposited ticket wins)</div>
                   ) : (
                     <div className="opacity-50">
-                      {idoInfo?.status === 'closed' ? '(Lottery in progress)' : '(Numbers selected when lottery ends)'}
+                      {idoInfo?.isClosed ? '(Lottery in progress)' : '(Numbers selected when lottery ends)'}
                     </div>
                   )}
                 </div>
@@ -213,7 +211,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
               <div></div>
             )}
 
-            {idoInfo?.ledger && (idoInfo?.status === 'have-lottery-result' || idoInfo?.status === 'closed') ? (
+            {idoInfo?.ledger && (idoInfo.canWithdrawBase || idoInfo?.isClosed) ? (
               <Row className="gap-8 mobile:gap-6 mobile:w-full mobile:grid mobile:grid-cols-2">
                 <Col className="items-center">
                   <Button
@@ -228,7 +226,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                       },
                       { should: gt(idoInfo.ledger.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
                       {
-                        should: idoInfo.status === 'have-lottery-result',
+                        should: idoInfo.canWithdrawBase,
                         fallbackProps: {
                           children: (
                             <Row>
@@ -270,7 +268,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                     validators={[
                       { should: connected },
                       { should: eq(idoInfo.ledger.quoteWithdrawn, 0) },
-                      { should: idoInfo.status === 'closed' },
+                      { should: idoInfo.isClosed },
                       {
                         should: connected,
                         forceActive: true,
@@ -382,9 +380,9 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
         <Badge
           size="md"
           className="mobile:ml-auto"
-          cssColor={idoInfo.status === 'upcoming' ? '#ABC4FF' : idoInfo.status === 'open' ? '#39D0D8' : '#DA2EEF'}
+          cssColor={idoInfo.isUpcoming ? '#ABC4FF' : idoInfo.isOpen ? '#39D0D8' : '#DA2EEF'}
         >
-          {idoInfo.status}
+          {idoInfo.isUpcoming ? 'upcoming' : idoInfo.isOpen ? 'open' : 'closed'}
         </Badge>
       </CyberpunkStyleCard>
 
@@ -488,7 +486,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
               </Row>
             }
           />
-          {idoInfo.status === 'upcoming' && (
+          {idoInfo.isUpcoming && (
             <Row className="items-center justify-between gap-8">
               <IdoInfoItem
                 fieldValue={
@@ -537,7 +535,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
               </Col>
             </Row>
           )}
-          {idoInfo.status === 'upcoming' && (
+          {idoInfo.isUpcoming && (
             <IdoInfoItem
               fieldName="RAY staking deadline"
               fieldValue={
@@ -847,20 +845,16 @@ function LotteryInputPanel({ className }: { className?: string }) {
       wrapperClassName={className}
     >
       <div className="font-semibold text-base text-white">
-        {idoInfo.status === 'upcoming'
-          ? renderPoolUpcoming
-          : idoInfo.status === 'open'
-          ? renderPoolOpen
-          : renderPoolClosed}
+        {idoInfo.isUpcoming ? renderPoolUpcoming : idoInfo.isOpen ? renderPoolOpen : renderPoolClosed}
       </div>
 
       <FadeIn>
-        {connected && (idoInfo.status === 'upcoming' || idoInfo.status === 'open') && (
+        {connected && (idoInfo.isUpcoming || idoInfo.isOpen) && (
           <AlertText
             className="p-3 bg-[rgba(171,196,255,0.1)] rounded-xl text-[#ABC4FF80] text-xs font-semibold"
             iconSize="sm"
           >
-            {idoInfo.status === 'upcoming' ? (
+            {idoInfo.isUpcoming ? (
               'Eligible tickets will be visible a couple of hourse before the pool opens.'
             ) : idoInfo.isEligible ? (
               `Once deposited ${
@@ -918,11 +912,11 @@ function LotteryInputPanel({ className }: { className?: string }) {
             fallbackProps: { children: 'Not eligible' }
           },
           {
-            should: idoInfo?.status !== 'upcoming',
+            should: !idoInfo?.isUpcoming,
             fallbackProps: { children: 'Upcoming Pool' }
           },
           {
-            should: idoInfo?.status !== 'closed' && idoInfo?.status !== 'have-lottery-result',
+            should: !idoInfo?.isClosed,
             fallbackProps: { children: 'Pool Closed' }
           },
           {
