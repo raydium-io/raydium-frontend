@@ -60,6 +60,11 @@ function IdoList() {
   const upcomingPools = Object.values(infos).filter((i) => i.isUpcoming)
   const openPools = Object.values(infos).filter((i) => i.isOpen)
   const closedPools = Object.values(infos).filter((i) => i.isClosed || i.canWithdrawBase)
+  useEffect(() => {
+    if (upcomingPools.length) {
+      useIdo.setState({ currentTab: 'Upcoming Pools' })
+    }
+  }, [upcomingPools])
   return (
     <>
       {openPools.length > 0 && (
@@ -90,7 +95,7 @@ function IdoList() {
           useIdo.setState({ currentTab })
         }}
         className="self-center mobile:col-span-full mt-24 mobile:mt-16 mb-10 mobile:mb-8"
-        itemClassName={isMobile ? 'w-[112px] h-[30px] px-2' : 'w-32'}
+        itemClassName={isMobile ? 'min-w-[112px] h-[30px] px-2' : 'min-w-[128px]'}
       />
       {(upcomingPools.length > 0 || closedPools.length > 0) && (
         <div className="text-2xl mobile:text-base mobile:px-4 mb-8 mobile:mb-4 font-semibold text-white w-[min(890px,100%)] self-center">

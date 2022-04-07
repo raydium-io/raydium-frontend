@@ -54,7 +54,7 @@ export default function Image({
       width={width}
       height={height}
       ref={mergeRef(domRef, ref)}
-      className={`Image ${className ?? ''}`}
+      className={`Image ${src || srcSet.length ? '' : 'invisible'} ${className ?? ''}`}
       src={srcSet[currentUsedSrcIndex]}
       alt={alertText}
       style={style}

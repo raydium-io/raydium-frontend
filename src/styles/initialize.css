@@ -20,6 +20,7 @@ body {
   box-sizing: border-box;
   outline: none !important; /* without !important, the priority is not high enough */
 }
+
 /* Temp make headlessui not conflict with other z-index */
 /* TODO: remove headlessui dependence */
 #headlessui-portal-root {
