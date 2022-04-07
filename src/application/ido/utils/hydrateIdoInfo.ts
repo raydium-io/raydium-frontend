@@ -22,11 +22,11 @@ function isLotteryOpen(idoInfo: SdkParsedIdoInfo): boolean {
   return currentIsAfter(idoInfo.state.startTime.toNumber()) && currentIsBefore(idoInfo.state.endTime.toNumber())
 }
 
-function isLotteryHaveLotteryResult(idoInfo: SdkParsedIdoInfo): boolean {
-  return currentIsAfter(idoInfo.state.endTime.toNumber()) && currentIsBefore(idoInfo.state.startWithdrawTime.toNumber())
+function isLotteryClosed(idoInfo: SdkParsedIdoInfo): boolean {
+  return currentIsAfter(idoInfo.state.startWithdrawTime.toNumber())
 }
 
-function isLotteryClosed(idoInfo: SdkParsedIdoInfo): boolean {
+function isLotteryCanWithdrawBase(idoInfo: SdkParsedIdoInfo): boolean {
   return currentIsAfter(idoInfo.state.startWithdrawTime.toNumber())
 }
 
@@ -95,7 +95,7 @@ export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
     ? 'upcoming'
     : isLotteryOpen(idoInfo)
     ? 'open'
-    : isLotteryHaveLotteryResult(idoInfo)
+    : isLotteryCanWithdrawBase(idoInfo)
     ? 'have-lottery-result'
     : 'closed'
 

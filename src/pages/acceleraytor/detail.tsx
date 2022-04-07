@@ -41,6 +41,8 @@ import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import toPercentNumber from '@/functions/format/toPercentNumber'
 import Progress from '@/components/Progress'
 import { routeTo } from '@/application/routeTools'
+import RefreshCircle from '@/components/RefreshCircle'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -763,44 +765,44 @@ function LotteryInputPanel({ className }: { className?: string }) {
 
   if (!idoInfo) return null
   const renderPoolUpcoming = (
-    <div>
-      Pool opens in{' '}
-      <CountDownClock
-        type="text"
-        showDays="auto"
-        showHours="auto"
-        endTime={idoInfo.state.endTime.toNumber()}
-        onEnd={refreshSelf}
-      />
-    </div>
+    <Row className="items-center">
+      <div>
+        Pool opens in{' '}
+        <CountDownClock
+          type="text"
+          showDays="auto"
+          showHours="auto"
+          endTime={idoInfo.state.endTime.toNumber()}
+          onEnd={refreshSelf}
+        />
+      </div>
+      <div className="ml-auto">
+        <RefreshCircle refreshKey="acceleraytor" />
+      </div>
+    </Row>
   )
   const renderPoolOpen = (
-    <div>
-      Pool opens in{' '}
-      <CountDownClock
-        type="text"
-        showDays="auto"
-        showHours="auto"
-        endTime={idoInfo.state.endTime.toNumber()}
-        onEnd={refreshSelf}
-      />
-    </div>
+    <Row className="items-center">
+      {idoInfo.isEligible ? 'Join Lottery' : "You're not eligible to join pool"}
+      <div className="ml-auto">
+        <RefreshCircle refreshKey="acceleraytor" freshFunction={refreshSelf} />
+      </div>
+    </Row>
   )
   const renderPoolClosed = (
-    <div>
-      Pool opens in{' '}
-      <CountDownClock
-        type="text"
-        showDays="auto"
-        showHours="auto"
-        endTime={idoInfo.state.endTime.toNumber()}
-        onEnd={refreshSelf}
-      />
-    </div>
+    <Row className="items-center">
+      Pool Closed
+      <div className="ml-auto">
+        <RefreshCircle refreshKey="acceleraytor" />
+      </div>
+    </Row>
   )
 
   return (
-    <CyberpunkStyleCard className="flex flex-col mobile:rounded-2xl p-6 mobile:px-4 gap-5" wrapperClassName={className}>
+    <CyberpunkStyleCard
+      className="flex flex-col mobile:rounded-2xl p-6 mobile:px-4 space-y-5"
+      wrapperClassName={className}
+    >
       <div className="font-semibold text-base text-white">
         {idoInfo.status === 'upcoming'
           ? renderPoolUpcoming
@@ -809,12 +811,31 @@ function LotteryInputPanel({ className }: { className?: string }) {
           : renderPoolClosed}
       </div>
 
-      <AlertText
-        className="p-3 bg-[rgba(171,196,255,0.1)] rounded-xl text-[#ABC4FF80] text-xs font-semibold"
-        iconSize="sm"
-      >
-        Once deposited USDC can be claimed after lottery ends and tokens after 2022.03.10 14.00 UTC.
-      </AlertText>
+      <FadeIn>
+        {connected && (idoInfo.status === 'upcoming' || idoInfo.status === 'open') && (
+          <AlertText
+            className="p-3 bg-[rgba(171,196,255,0.1)] rounded-xl text-[#ABC4FF80] text-xs font-semibold"
+            iconSize="sm"
+          >
+            {idoInfo.status === 'upcoming' ? (
+              'Eligible tickets will be visible a couple of hourse before the pool opens.'
+            ) : idoInfo.isEligible ? (
+              'Once deposited USDC can be claimed after lottery ends and tokens after 2022.03.10 14.00 UTC.'
+            ) : (
+              <div>
+                <Link className="text-[#ABC4FF]" href="https://twitter.com/RaydiumProtocol">
+                  Follow us on Twitter
+                </Link>{' '}
+                or{' '}
+                <Link className="text-[#ABC4FF]" href="https://discord.gg/raydium">
+                  join our Discord
+                </Link>
+                to get notified when we lunch our next pool.
+              </div>
+            )}
+          </AlertText>
+        )}
+      </FadeIn>
 
       <div className="space-y-3">
         <CoinInputBox
@@ -849,7 +870,15 @@ function LotteryInputPanel({ className }: { className?: string }) {
           },
           {
             should: idoInfo?.isEligible,
-            fallbackProps: { children: 'Wallet not eligible for this pool' }
+            fallbackProps: { children: 'Not eligible' }
+          },
+          {
+            should: idoInfo?.status !== 'upcoming',
+            fallbackProps: { children: 'Upcoming Pool' }
+          },
+          {
+            should: idoInfo?.status !== 'closed' && idoInfo?.status !== 'have-lottery-result',
+            fallbackProps: { children: 'Pool Closed' }
           },
           {
             should: !idoInfo.ledger?.quoteDeposited || eq(idoInfo.ledger.quoteDeposited, 0),
