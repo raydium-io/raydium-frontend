@@ -1,49 +1,34 @@
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
-
-import BN from 'bn.js'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useConnection from '@/application/connection/useConnection'
 import { HydratedIdoInfo } from '@/application/ido/type'
 import useIdo from '@/application/ido/useIdo'
 import useWallet from '@/application/wallet/useWallet'
-import AlertText from '@/components/AlertText'
 import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
-import CountDownClock from '@/components/IdoCountDownClock'
-import DecimalInput from '@/components/DecimalInput'
+import IdoCountDownClock from '@/components/IdoCountDownClock'
 import Icon, { socialIconSrcMap } from '@/components/Icon'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
-import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import Tabs from '@/components/Tabs'
 import { getTime, toUTC } from '@/functions/date/dateFormat'
-import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { eq, gt, gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
-import { mul } from '@/functions/numberish/operations'
-import { toStringNumber } from '@/functions/numberish/stringNumber'
-import toBN from '@/functions/numberish/toBN'
+import { currentIsBefore } from '@/functions/date/judges'
+import { eq, gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
-import { Numberish } from '@/types/constants'
-import { ZERO } from '@raydium-io/raydium-sdk'
-import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
-import { refreshIdoInfo } from '@/application/ido/utils/getHydratedInfo'
 import Image from '@/components/Image'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import formatNumber from '@/functions/format/formatNumber'
 import { routeTo } from '@/application/routeTools'
 import { FadeIn } from '@/components/FadeIn'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import Grid from '@/components/Grid'
 import AutoBox from '@/components/AutoBox'
 import { TimeStamp } from '@/functions/date/interface'
 import parseDuration from '@/functions/date/parseDuration'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
 
 export default function AcceleRaytor() {
   return (
@@ -215,6 +200,8 @@ function FaceButtonGroupJoin({ info }: { info: HydratedIdoInfo }) {
 function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
+
+  const [, forceUpdate] = useForceUpdate()
   return (
     <>
       <Col className="items-center mobile:grow">
@@ -222,13 +209,28 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
           size={isMobile ? 'xs' : 'md'}
           className="frosted-glass-teal mobile:self-stretch"
           validators={[
-            { should: connected },
-            { should: gt(info.ledger?.winningTickets?.length, 0) && eq(info.ledger?.baseWithdrawn, 0) },
             {
               should: connected,
-              forceActive: true,
               fallbackProps: {
                 onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+              }
+            },
+            { should: info.ledger && gt(info.ledger.winningTickets?.length, 0) && eq(info.ledger.baseWithdrawn, 0) },
+            {
+              should: info.status === 'have-lottery-result',
+              fallbackProps: {
+                children: (
+                  <Row>
+                    Withdraw {info.base?.symbol ?? 'UNKNOWN'} in{' '}
+                    <IdoCountDownClock
+                      className="ml-1"
+                      singleValueMode
+                      labelClassName="text-base"
+                      endTime={Number(info.state.startWithdrawTime)}
+                      onEnd={forceUpdate}
+                    />
+                  </Row>
+                )
               }
             }
           ]}
@@ -371,7 +373,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
-                      <CountDownClock endTime={Number(info.state.startTime)} />
+                      <IdoCountDownClock endTime={Number(info.state.startTime)} />
                     </div>
                   </>
                 ) : (
@@ -393,7 +395,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
-                      <CountDownClock endTime={Number(info.state.endTime)} />
+                      <IdoCountDownClock endTime={Number(info.state.endTime)} />
                     </div>
                   </>
                 ) : (

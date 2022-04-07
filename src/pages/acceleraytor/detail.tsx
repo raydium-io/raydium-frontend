@@ -6,12 +6,12 @@ import useWallet from '@/application/wallet/useWallet'
 import AlertText from '@/components/AlertText'
 import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
-import CountDownClock from '@/components/IdoCountDownClock'
+import IdoCountDownClock from '@/components/IdoCountDownClock'
 import Icon, { socialIconSrcMap } from '@/components/Icon'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import { toUTC } from '@/functions/date/dateFormat'
+import { getTime, toUTC } from '@/functions/date/dateFormat'
 import { currentIsBefore } from '@/functions/date/judges'
 import formatNumber from '@/functions/format/formatNumber'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -42,7 +42,7 @@ import toPercentNumber from '@/functions/format/toPercentNumber'
 import Progress from '@/components/Progress'
 import { routeTo } from '@/application/routeTools'
 import RefreshCircle from '@/components/RefreshCircle'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -164,6 +164,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const isMobile = useAppSettings((s) => s.isMobile)
 
+  const [, forceUpdate] = useForceUpdate()
   return (
     <FadeIn>
       {idoInfo?.status === 'have-lottery-result' ||
@@ -213,19 +214,34 @@ function WinningTicketPanel({ className }: { className?: string }) {
             )}
 
             {idoInfo?.ledger && (idoInfo?.status === 'have-lottery-result' || idoInfo?.status === 'closed') ? (
-              <Row className="gap-8 mobile:gap-6 mobile:w-full mobile:justify-center">
+              <Row className="gap-8 mobile:gap-6 mobile:w-full mobile:grid mobile:grid-cols-2">
                 <Col className="items-center">
                   <Button
                     size={isMobile ? 'sm' : 'md'}
-                    className="frosted-glass-teal"
+                    className="frosted-glass-teal mobile:w-full"
                     validators={[
-                      { should: connected },
-                      { should: gt(idoInfo.ledger.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
                       {
                         should: connected,
-                        forceActive: true,
                         fallbackProps: {
                           onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                        }
+                      },
+                      { should: gt(idoInfo.ledger.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
+                      {
+                        should: idoInfo.status === 'have-lottery-result',
+                        fallbackProps: {
+                          children: (
+                            <Row>
+                              Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'} in{' '}
+                              <IdoCountDownClock
+                                className="ml-1"
+                                singleValueMode
+                                labelClassName="text-base"
+                                endTime={Number(idoInfo.state.startWithdrawTime)}
+                                onEnd={forceUpdate}
+                              />
+                            </Row>
+                          )
                         }
                       }
                     ]}
@@ -250,7 +266,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                 <Col className="items-center">
                   <Button
                     size={isMobile ? 'sm' : 'md'}
-                    className="frosted-glass-teal"
+                    className="frosted-glass-teal mobile:w-full"
                     validators={[
                       { should: connected },
                       { should: eq(idoInfo.ledger.quoteWithdrawn, 0) },
@@ -318,7 +334,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
 
   if (!idoInfo) return null
-  const raySnapshotDeadline = Number(idoInfo.state.startTime) - 3600 * 24 * 7 * 1000 //TODO : always 7 days before lottery start, which is fragile
+  const raySnapshotDeadline = Number(idoInfo.state.startTime) - 3600 * 24 * 7 * 1000 //TODO : always 7 days before lottery start, which is fragile <--- rudy said should managed by backend
 
   const IdoInfoItem = ({
     fieldName,
@@ -421,7 +437,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
               }
             />
             <Progress
-              className="-mt-2 px-4 mb-2"
+              className="-mt-2 px-4"
               slotClassName="h-1"
               labelClassName="text-xs font-bold px-4"
               showLabel
@@ -436,7 +452,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
-                      <CountDownClock endTime={Number(idoInfo.state.startTime)} />
+                      <IdoCountDownClock endTime={Number(idoInfo.state.startTime)} />
                     </div>
                   </>
                 ) : (
@@ -458,7 +474,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
-                      <CountDownClock endTime={Number(idoInfo.state.endTime)} />
+                      <IdoCountDownClock endTime={Number(idoInfo.state.endTime)} />
                     </div>
                   </>
                 ) : (
@@ -530,7 +546,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                     <>
                       <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                       <div className="text-white font-medium">
-                        <CountDownClock endTime={raySnapshotDeadline} />
+                        <IdoCountDownClock endTime={raySnapshotDeadline} />
                       </div>
                     </>
                   ) : (
@@ -801,7 +817,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
     <Row className="items-center">
       <Row className="items-center gap-1">
         <span>Pool opens in</span>
-        <CountDownClock endTime={idoInfo.state.endTime.toNumber()} onEnd={refreshSelf} />
+        <IdoCountDownClock endTime={idoInfo.state.endTime.toNumber()} onEnd={refreshSelf} />
       </Row>
       <div className="ml-auto">
         <RefreshCircle refreshKey="acceleraytor" />
@@ -847,7 +863,9 @@ function LotteryInputPanel({ className }: { className?: string }) {
             {idoInfo.status === 'upcoming' ? (
               'Eligible tickets will be visible a couple of hourse before the pool opens.'
             ) : idoInfo.isEligible ? (
-              'Once deposited USDC can be claimed after lottery ends and tokens after 2022.03.10 14.00 UTC.'
+              `Once deposited ${
+                idoInfo.quote?.symbol ?? '--'
+              } can be claimed after lottery ends and tokens after 2022.03.10 14.00 UTC.`
             ) : (
               <div>
                 <Link className="text-[#ABC4FF]" href="https://twitter.com/RaydiumProtocol">
