@@ -6,7 +6,7 @@ import useWallet from '@/application/wallet/useWallet'
 import AlertText from '@/components/AlertText'
 import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
-import CountDownClock from '@/components/CountDownClock'
+import CountDownClock from '@/components/IdoCountDownClock'
 import Icon, { socialIconSrcMap } from '@/components/Icon'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
@@ -372,7 +372,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
         </Badge>
       </CyberpunkStyleCard>
 
-      <div className={`${isMobile ? '' : 'w-0 grow overflow-auto'} m-4`}>
+      <div className={`${isMobile ? '' : 'w-0 grow'} m-4`}>
         <Grid className={`${isMobile ? '' : 'grid-cols-[repeat(auto-fit,minmax(154px,1fr))]'} grid-gap-board`}>
           <IdoInfoItem
             fieldName="Total Raise"
@@ -432,10 +432,21 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
             fieldName="Pool open"
             fieldValue={
               <Row className="items-baseline gap-1">
-                <div className="text-white font-medium">
-                  {toUTC(Number(idoInfo.state.startTime), { hideUTCBadge: true })}
-                </div>
-                <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                {currentIsBefore(Number(idoInfo.state.startTime)) ? (
+                  <>
+                    <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
+                    <div className="text-white font-medium">
+                      <CountDownClock endTime={Number(idoInfo.state.startTime)} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-white font-medium">
+                      {toUTC(Number(idoInfo.state.startTime), { hideUTCBadge: true })}
+                    </div>
+                    <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                  </>
+                )}
               </Row>
             }
           />
@@ -443,10 +454,21 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
             fieldName="Pool close"
             fieldValue={
               <Row className="items-baseline gap-1">
-                <div className="text-white font-medium">
-                  {toUTC(Number(idoInfo.state.endTime), { hideUTCBadge: true })}
-                </div>
-                <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                {currentIsBefore(Number(idoInfo.state.endTime)) ? (
+                  <>
+                    <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
+                    <div className="text-white font-medium">
+                      <CountDownClock endTime={Number(idoInfo.state.endTime)} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-white font-medium">
+                      {toUTC(Number(idoInfo.state.endTime), { hideUTCBadge: true })}
+                    </div>
+                    <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                  </>
+                )}
               </Row>
             }
           />
@@ -504,8 +526,19 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
               fieldName="RAY staking deadline"
               fieldValue={
                 <Row className="items-baseline gap-1">
-                  <div className="text-white font-medium">{toUTC(raySnapshotDeadline, { hideUTCBadge: true })}</div>
-                  <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                  {currentIsBefore(raySnapshotDeadline) ? (
+                    <>
+                      <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
+                      <div className="text-white font-medium">
+                        <CountDownClock endTime={raySnapshotDeadline} />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-white font-medium">{toUTC(raySnapshotDeadline, { hideUTCBadge: true })}</div>
+                      <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                    </>
+                  )}
                 </Row>
               }
             />
@@ -766,16 +799,10 @@ function LotteryInputPanel({ className }: { className?: string }) {
   if (!idoInfo) return null
   const renderPoolUpcoming = (
     <Row className="items-center">
-      <div>
-        Pool opens in{' '}
-        <CountDownClock
-          type="text"
-          showDays="auto"
-          showHours="auto"
-          endTime={idoInfo.state.endTime.toNumber()}
-          onEnd={refreshSelf}
-        />
-      </div>
+      <Row className="items-center gap-1">
+        <span>Pool opens in</span>
+        <CountDownClock endTime={idoInfo.state.endTime.toNumber()} onEnd={refreshSelf} />
+      </Row>
       <div className="ml-auto">
         <RefreshCircle refreshKey="acceleraytor" />
       </div>

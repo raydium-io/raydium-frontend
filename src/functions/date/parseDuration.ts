@@ -1,3 +1,5 @@
+import { shakeFalsyItem } from '../arrayMethods'
+
 export type ParsedDurationInfo = Record<'days' | 'hours' | 'minutes' | 'seconds' | 'milliseconds' | 'full', number>
 
 /**
@@ -40,4 +42,71 @@ export function parseDurationAbsolute(duration: number): ParsedDurationInfo {
     seconds: duration / 1000,
     milliseconds: duration
   }
+}
+
+/**
+ *
+ * @example
+ * toDurationString(parseDuration(getTime() - new Date(2020, 0, 1))) // '65days '
+ */
+export function toDurationString(
+  duration: ParsedDurationInfo,
+  options?: {
+    /**singular/plural label is the same */
+    labelDays?: string
+    labelHours?: string
+    labelMinutes?: string
+    labelSeconds?: string
+    labelMilliseconds?: string
+
+    showMilliseconds?: boolean
+  }
+): string {
+  const labelDays = options?.labelDays ?? 'days'
+  const labelDay = options?.labelDays ?? 'day'
+  const durationDay = duration.days
+    ? duration.days > 1
+      ? `${duration.days}${labelDays}`
+      : `${duration.days}${labelDay}`
+    : null
+
+  const labelHours = options?.labelHours ?? 'hours'
+  const labelHour = options?.labelHours ?? 'hour'
+  const durationHour = duration.hours
+    ? duration.hours > 1
+      ? `${duration.hours}${labelHours}`
+      : `${duration.hours}${labelHour}`
+    : null
+
+  const labelMinutes = options?.labelMinutes ?? 'minutes'
+  const labelMinute = options?.labelMinutes ?? 'minute'
+  const durationMinute = duration.minutes
+    ? duration.minutes > 1
+      ? `${duration.minutes}${labelMinutes}`
+      : `${duration.minutes}${labelMinute}`
+    : null
+
+  const labelSeconds = options?.labelSeconds ?? 'seconds'
+  const labelSecond = options?.labelSeconds ?? 'second'
+  const durationSecond = duration.seconds
+    ? duration.seconds > 1
+      ? `${duration.seconds}${labelSeconds}`
+      : `${duration.seconds}${labelSecond}`
+    : null
+
+  const labelMilliseconds = options?.labelMilliseconds ?? 'milliseconds'
+  const labelMillisecond = options?.labelMilliseconds ?? 'millisecond'
+  const durationMillisecond = duration.milliseconds
+    ? duration.milliseconds > 1
+      ? `${duration.milliseconds}${labelMilliseconds}`
+      : `${duration.milliseconds}${labelMillisecond}`
+    : null
+
+  return shakeFalsyItem([
+    durationDay,
+    durationHour,
+    durationMinute,
+    durationSecond,
+    options?.showMilliseconds && durationMillisecond
+  ]).join(' ')
 }

@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState } from 'react'
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
 import BN from 'bn.js'
@@ -13,7 +13,7 @@ import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
-import CountDownClock from '@/components/CountDownClock'
+import CountDownClock from '@/components/IdoCountDownClock'
 import DecimalInput from '@/components/DecimalInput'
 import Icon, { socialIconSrcMap } from '@/components/Icon'
 import Link from '@/components/Link'
@@ -21,7 +21,7 @@ import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import Tabs from '@/components/Tabs'
-import { toUTC } from '@/functions/date/dateFormat'
+import { getTime, toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { eq, gt, gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
@@ -42,6 +42,8 @@ import { FadeIn } from '@/components/FadeIn'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import Grid from '@/components/Grid'
 import AutoBox from '@/components/AutoBox'
+import { TimeStamp } from '@/functions/date/interface'
+import parseDuration from '@/functions/date/parseDuration'
 
 export default function AcceleRaytor() {
   return (
@@ -286,7 +288,29 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
     </>
   )
 }
+/**
+ * invoke rerender every seconds
+ */
+function useDateTimeCountdown(opts: { endTime: TimeStamp }) {
+  const getDiff = () => parseDuration(getTime(opts.endTime) - getTime())
+  const initDuration = useMemo(() => getDiff(), [])
+  const [duration, setDuration] = useState(initDuration)
+  const currentDuration = useRef(duration)
+  currentDuration.current = duration // always keep ref updated
 
+  useEffect(() => {
+    if (initDuration.full <= 0) return
+    const intervelId = setInterval(() => {
+      if (currentDuration.current.full <= 0) {
+        clearInterval(intervelId)
+      }
+      setDuration(getDiff())
+    }, 1000)
+    return () => clearInterval(intervelId)
+  }, [])
+
+  return duration
+}
 function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
@@ -343,10 +367,21 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
             fieldName="Pool open"
             fieldValue={
               <Row className="items-baseline gap-1">
-                <div className="text-white font-medium">
-                  {toUTC(Number(info.state.startTime), { hideUTCBadge: true })}
-                </div>
-                <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                {currentIsBefore(Number(info.state.startTime)) ? (
+                  <>
+                    <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
+                    <div className="text-white font-medium">
+                      <CountDownClock endTime={Number(info.state.startTime)} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-white font-medium">
+                      {toUTC(Number(info.state.startTime), { hideUTCBadge: true })}
+                    </div>
+                    <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                  </>
+                )}
               </Row>
             }
           />
@@ -354,10 +389,21 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
             fieldName="Pool close"
             fieldValue={
               <Row className="items-baseline gap-1">
-                <div className="text-white font-medium">
-                  {toUTC(Number(info.state.endTime), { hideUTCBadge: true })}
-                </div>
-                <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                {currentIsBefore(Number(info.state.endTime)) ? (
+                  <>
+                    <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
+                    <div className="text-white font-medium">
+                      <CountDownClock endTime={Number(info.state.endTime)} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-white font-medium">
+                      {toUTC(Number(info.state.endTime), { hideUTCBadge: true })}
+                    </div>
+                    <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                  </>
+                )}
               </Row>
             }
           />
