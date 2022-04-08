@@ -1,5 +1,3 @@
-import BN from 'bn.js'
-
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { Percent, Price } from '@raydium-io/raydium-sdk'

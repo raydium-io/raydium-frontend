@@ -31,12 +31,14 @@ import parseDuration from '@/functions/date/parseDuration'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import useStaking from '@/application/staking/useStaking'
 import toPercentString from '@/functions/format/toPercentString'
+import LoadingCircle from '@/components/LoadingCircle'
 
 export default function AcceleRaytor() {
+  const infos = useIdo((s) => s.idoHydratedInfos)
   return (
     <PageLayout mobileBarTitle="AcceleRaytor" metaTitle="AcceleRaytor - Raydium">
       <AcceleRaytorHeaderCyberpunk />
-      <IdoList />
+      {Object.keys(infos).length ? <IdoList /> : <LoadingCircle className="mx-auto my-12" />}
     </PageLayout>
   )
 }

@@ -46,6 +46,7 @@ import { useForceUpdate } from '@/hooks/useForceUpdate'
 import AutoBox from '@/components/AutoBox'
 import Tooltip from '@/components/Tooltip'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import LoadingCircle from '@/components/LoadingCircle'
 
 // paser url to patch idoid
 function useUrlParser() {
@@ -124,22 +125,27 @@ function PageGridTemplate({ children }: { children?: ReactNode }) {
 
 export default function LotteryDetailPageLayout() {
   useUrlParser()
+  const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   return (
     <PageLayout metaTitle="AcceleRaytor" mobileBarTitle="AcceleRaytor" contentYPaddingShorter>
       <NavButtons className="mb-8" />
-      <div className="max-w-[1130px] mobile:max-w-[530px] mx-auto">
-        <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail-page top-1/2 left-1/2"></div>
+      {idoInfo ? (
+        <div className="max-w-[1130px] mobile:max-w-[530px] mx-auto">
+          <div className="-z-10 cyberpunk-bg-light-acceleraytor-detail-page top-1/2 left-1/2"></div>
 
-        <WinningTicketPanel className="mb-5" />
+          <WinningTicketPanel className="mb-5" />
 
-        <PageGridTemplate>
-          <LotteryInputPanel className="grid-area-a self-start" />
-          <LotteryStateInfoPanel className="grid-area-b" />
-          <LotteryLedgerPanel className="grid-area-c" />
-          <LotteryProjectInfoPanel className="grid-area-d" />
-          <LotteryLicense className="grid-area-e" />
-        </PageGridTemplate>
-      </div>
+          <PageGridTemplate>
+            <LotteryInputPanel className="grid-area-a self-start" />
+            <LotteryStateInfoPanel className="grid-area-b" />
+            <LotteryLedgerPanel className="grid-area-c" />
+            <LotteryProjectInfoPanel className="grid-area-d" />
+            <LotteryLicense className="grid-area-e" />
+          </PageGridTemplate>
+        </div>
+      ) : (
+        <LoadingCircle className="mx-auto my-12" />
+      )}
     </PageLayout>
   )
 }
