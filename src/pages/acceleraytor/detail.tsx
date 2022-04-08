@@ -44,6 +44,8 @@ import { routeTo } from '@/application/routeTools'
 import RefreshCircle from '@/components/RefreshCircle'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import AutoBox from '@/components/AutoBox'
+import Tooltip from '@/components/Tooltip'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 // paser url to patch idoid
 function useUrlParser() {
@@ -441,6 +443,17 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                     {' '}
                     / {formatNumber(idoInfo.state.maxWinLotteries)}
                   </div>
+                  <Tooltip placement="bottom" className="self-center">
+                    <Icon size="sm" heroIconName="information-circle" className="text-[#ABC4FF80]" />
+                    <Tooltip.Panel>
+                      <div className="max-w-[260px]">
+                        <div className="font-normal text-xs opacity-50">
+                          The amount shows the number of winning tickets. A pool can be oversubscribed if more tickets
+                          are deposited.
+                        </div>
+                      </div>
+                    </Tooltip.Panel>
+                  </Tooltip>
                 </Row>
               }
             />
@@ -506,15 +519,31 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                 fieldValue={
                   <Row className="items-baseline gap-1">
                     <div className="text-white font-medium">
-                      {toString(stakingHydratedInfo?.userStakedLpAmount) || '--'} RAY
+                      {formatNumber(toString(stakingHydratedInfo?.userStakedLpAmount)) || '--'} RAY
                     </div>
                   </Row>
                 }
                 fieldName={
                   <Row className="gap-1 items-center">
                     <div>Staking eligibility</div>
-                    {idoInfo.userEligibleTicketAmount && gt(idoInfo.userEligibleTicketAmount, 0) && (
-                      <Icon size="sm" heroIconName="check-circle" className="text-[#39D0D8]" />
+                    {connected && (
+                      <Tooltip placement="bottom">
+                        <Icon
+                          size="sm"
+                          heroIconName={idoInfo.isEligible ? 'check-circle' : 'x-circle'}
+                          className={idoInfo.isEligible ? 'text-[#39D0D8]' : 'text-[#DA2EEF]'}
+                        />
+                        <Tooltip.Panel>
+                          <div className="text-sm font-semibold max-w-[160px]">
+                            <div className="text-white pb-1">
+                              Your Stake Ray: {formatNumber(toString(stakingHydratedInfo?.userStakedLpAmount))}
+                            </div>
+                            <div className="font-normal text-xs opacity-50">
+                              The more and longer you stake RAY the more tickets you will receive.
+                            </div>
+                          </div>
+                        </Tooltip.Panel>
+                      </Tooltip>
                     )}
                   </Row>
                 }
@@ -829,7 +858,12 @@ function LotteryInputPanel({ className }: { className?: string }) {
     <Row className="items-center">
       <Row className="items-center gap-1">
         <span>Pool opens in</span>
-        <IdoCountDownClock endTime={idoInfo.state.endTime.toNumber()} onEnd={refreshSelf} />
+        <IdoCountDownClock
+          singleValueMode
+          labelClassName="text-base"
+          endTime={idoInfo.state.endTime.toNumber()}
+          onEnd={refreshSelf}
+        />
       </Row>
       <div className="ml-auto">
         <RefreshCircle refreshKey="acceleraytor" />

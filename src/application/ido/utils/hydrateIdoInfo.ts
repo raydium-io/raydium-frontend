@@ -89,6 +89,8 @@ export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
     isWinning: isTicketWin(ticketInfo.no, idoInfo)
   }))
   const winningTickets = getWinningTickets(idoInfo)
+  const userEligibleTicketAmount = idoInfo.snapshot?.maxLotteries
+  const isEligible = isMeaningfulNumber(userEligibleTicketAmount)
 
   const totalRaise = idoInfo.base && toTokenAmount(idoInfo.base, idoInfo.state.baseSupply)
   const coinPrice =
@@ -136,16 +138,11 @@ export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
     depositedTicketCount,
 
     claimableQuote,
-    ...getEligibleInfo(idoInfo)
-  }
+    userEligibleTicketAmount,
+    isEligible
+  } as HydratedIdoInfo
 }
 
 function getIdoFilled(idoInfo: SdkParsedIdoInfo) {
   return new Percent(idoInfo.state.raisedLotteries, idoInfo.state.maxWinLotteries).toFixed()
-}
-
-function getEligibleInfo(idoInfo: SdkParsedIdoInfo): { userEligibleTicketAmount: BN | undefined; isEligible: boolean } {
-  const userEligibleTicketAmount = idoInfo.snapshot?.maxLotteries
-  const isEligible = isLotteryClosed(idoInfo) || isMeaningfulNumber(userEligibleTicketAmount)
-  return { userEligibleTicketAmount, isEligible }
 }
