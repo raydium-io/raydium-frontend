@@ -94,13 +94,13 @@ exports.glassStyle = plugin(({ addUtilities }) => {
         '--border-color': 'hsl(0, 0%, 100%)',
         '--bg-board-color': 'hsl(0, 0%, 100%, 0.12)',
         '--bg-board-color-2': 'hsl(0, 0%, 100%, 0)',
-        '--blur-size': '3px',
 
         position: 'relative',
         backdropFilter: 'blur(calc(var(--blur-size) * (-1 * var(--is-scrolling, 0) + 1)))',
         color: 'var(--text-color)',
         background:
           'linear-gradient(162deg, var(--bg-board-color) 28.7%, var(--bg-board-color-2, var(--bg-board-color)))',
+        isolation: 'isolate',
         '&::before': {
           content: "''",
           position: 'absolute',
@@ -119,30 +119,35 @@ exports.glassStyle = plugin(({ addUtilities }) => {
       '--text-color': 'hsl(183, 67%, 54%)',
       '--border-color': 'hsl(165, 87%, 65%)',
       '--bg-board-color': 'hsl(183, 67%, 54%, 0.2)',
-      '--bg-board-color-2': 'hsl(183, 67%, 54%, 0)',
-      '--blur-size': '6px'
+      '--bg-board-color-2': 'hsl(183, 67%, 54%, 0)'
     },
     '.frosted-glass-skygray': {
       '--text-color': '#ABC4FF',
       '--border-color': '#ABC4FF',
       '--bg-board-color': 'rgba(171, 196, 255, 0.2)',
-      '--bg-board-color-2': 'rgba(171, 196, 255, 0)',
-      '--blur-size': '6px'
+      '--bg-board-color-2': 'rgba(171, 196, 255, 0)'
     },
     '.frosted-glass-lightsmoke': {
       '--border-color': 'hsl(0, 0%, 100%)',
       '--bg-board-color': 'hsl(0, 0%, 100%, 0.08)',
       '--bg-board-color-2': 'hsl(0, 0%, 100%, 0)',
-      '--text-color': 'hsl(0, 0%, 100%)',
-      '--blur-size': '1.5px'
+      '--text-color': 'hsl(0, 0%, 100%)'
     },
     '.frosted-glass-smoke': {
       '--border-color': 'hsl(0, 0%, 100%)',
       '--bg-board-color': 'hsl(0, 0%, 100%, 0.12)',
-      '--text-color': 'hsl(0, 0%, 100%)',
+      '--text-color': 'hsl(0, 0%, 100%)'
+    },
+    '.forsted-blur-lg': {
+      '--blur-size': '6px'
+    },
+    '.forsted-blur': {
+      '--blur-size': '3px'
+    },
+    '.forsted-blur-sm': {
       '--blur-size': '2px'
     },
-    '.no-frosted-blur': {
+    '.frosted-blur-none': {
       '--blur-size': '0'
     }
   })
