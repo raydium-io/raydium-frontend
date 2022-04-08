@@ -9,6 +9,7 @@ import { ThreeSlotItem } from '@/components/ThreeSlotItem'
 import { toString } from '@/functions/numberish/toString'
 import { add } from '@/functions/numberish/operations'
 import { Numberish } from '@/types/constants'
+import Button from '@/components/Button'
 
 export default function BasementPage() {
   return (
@@ -22,7 +23,6 @@ function IdoPanel() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
   const shadowIdoHydratedInfos = useIdo((s) => s.shadowIdoHydratedInfos) // maybe independent it from useEffect
   // eslint-disable-next-line no-console
-  console.log('shadowIdoHydratedInfos: ', shadowIdoHydratedInfos)
   return (
     <div className="justify-self-end">
       <div className="text-2xl mobile:text-lg font-semibold justify-self-start text-white col-span-full mb-8">
@@ -43,10 +43,13 @@ function IdoPanel() {
                     value={String(idoHydratedInfo.userEligibleTicketAmount ?? '--')}
                   />
                   <ItemBlock label="Winning tickets count" value={idoHydratedInfo.ledger?.winningTickets?.length} />
-                  <ItemBlock
-                    label={`claimable ${idoHydratedInfo.quote?.symbol ?? '--'}`}
-                    value={toString(idoHydratedInfo.claimableQuote)}
-                  />
+                  <div>
+                    <ItemBlock
+                      label={`claimable ${idoHydratedInfo.quote?.symbol ?? '--'}`}
+                      value={toString(idoHydratedInfo.claimableQuote)}
+                    />
+                    <Button size="sm">claim</Button>
+                  </div>
                 </Grid>
               </div>
             ))}
