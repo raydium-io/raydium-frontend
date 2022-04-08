@@ -1030,7 +1030,7 @@ function LotteryLicense({ className }: { className?: string }) {
   return (
     <div
       className={twMerge(
-        'text-2xs text-[#ABC4FF80] leading-relaxed pt-5 font-medium border-t border-[rgba(171,196,255,0.1)] mobile:p-4',
+        'text-2xs text-[#ABC4FF80] leading-relaxed pt-5 font-medium text-justify border-t border-[rgba(171,196,255,0.1)] mobile:p-4',
         className
       )}
     >
