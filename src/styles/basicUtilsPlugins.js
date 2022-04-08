@@ -152,7 +152,7 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
   })
 
   addUtilities({
-    '.grid-gap-board': {
+    '.gap-board': {
       clipPath: 'inset(1px)',
       '> *': {
         border: '1px solid #abc4ff1a'

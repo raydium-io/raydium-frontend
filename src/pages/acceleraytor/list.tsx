@@ -331,7 +331,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
         />
       </Link>
       <Col className="grow justify-between">
-        <div className="grid grid-flow-row grid-cols-2 mobile:grid-cols-1 mobile:grid-gap-board px-6 pt-4 mobile:p-0">
+        <div className="grid grid-flow-row grid-cols-2 mobile:grid-cols-1 mobile:gap-board px-6 pt-4 mobile:p-0">
           <IdoItem
             fieldName="Total Raise"
             fieldValue={

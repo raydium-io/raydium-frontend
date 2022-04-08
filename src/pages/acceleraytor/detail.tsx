@@ -96,21 +96,25 @@ function PageGridTemplate({ children }: { children?: ReactNode }) {
           "b" auto
           "c" auto
           "a" auto
-          "d" auto / 1fr`
+          "d" auto
+          "e" auto / 1fr`
       : `
           "a" auto
           "b" auto
           "c" auto
-          "d" auto / 1fr`
+          "d" auto
+          "e" auto / 1fr`
     : idoInfo?.isUpcoming
     ? `
         "b b" auto
         "c a" auto
-        "d a" auto / 3fr minmax(350px, 1fr)`
+        "d a" auto
+        "e a" auto / 3fr minmax(350px, 1fr)`
     : ` 
         "b a" auto
         "c a" auto
-        "d a" auto / 3fr minmax(350px, 1fr)`
+        "d a" auto
+        "e a" auto / 3fr minmax(350px, 1fr)`
   return (
     <Grid className="gap-5" style={{ gridTemplate }}>
       {children}
@@ -133,6 +137,7 @@ export default function LotteryDetailPageLayout() {
           <LotteryStateInfoPanel className="grid-area-b" />
           <LotteryLedgerPanel className="grid-area-c" />
           <LotteryProjectInfoPanel className="grid-area-d" />
+          <LotteryLicense className="grid-area-e" />
         </PageGridTemplate>
       </div>
     </PageLayout>
@@ -310,7 +315,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
               <Col className="bg-[#141041] py-5 px-6">
                 <div className="text-sm mb-5 font-semibold  text-[#ABC4FF] opacity-50">Your ticket numbers</div>
                 <Grid
-                  className="grid-gap-board -mx-5"
+                  className="gap-board -mx-5"
                   style={{
                     gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
                     clipPath: 'inset(1px 16px)'
@@ -398,7 +403,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
               : idoInfo.isUpcoming
               ? 'grid-cols-[repeat(auto-fit,minmax(200px,1fr))]'
               : 'grid-cols-[repeat(auto-fit,minmax(154px,1fr))]'
-          } grid-gap-board`}
+          } gap-board`}
         >
           <IdoInfoItem
             fieldName="Total Raise"
@@ -633,7 +638,7 @@ function LotteryLedgerPanel({ className }: { className?: string }) {
       )}
       size="lg"
     >
-      <Grid className="grid-cols-4 mobile:grid-cols-1 grid-gap-board">
+      <Grid className="grid-cols-4 mobile:grid-cols-1 gap-board">
         <TopInfoPanelFieldItem
           fieldName="Your Eligible Tickets"
           fieldValue={connected ? `${formatNumber(idoInfo.userEligibleTicketAmount)}` : '--'}
@@ -668,6 +673,7 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const connected = useWallet((s) => s.connected)
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
+  const isMobile = useAppSettings((s) => s.isMobile)
 
   const [currentTab, setCurrentTab] = useState<'Project Details' | 'How to join?'>('How to join?')
 
@@ -676,17 +682,21 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
   const renderProjectDetails = (
     <>
       <Markdown className="py-6">{idoInfo.project.detailText}</Markdown>
-      <Row className="justify-between">
-        <Row className="gap-6">
+      <Row className="justify-between mobile:gap-board">
+        <AutoBox is={isMobile ? 'Col' : 'Row'} className="gap-6 mobile:gap-3">
           {Object.entries(idoInfo.project.officialSites).map(([docName, linkAddress]) => (
-            <Link key={docName} href={linkAddress} className="text-[#ABC4FF] opacity-50">
+            <Link
+              key={docName}
+              href={linkAddress}
+              className="text-[#ABC4FF] opacity-50 capitalize mobile:text-xs font-semibold"
+            >
               {docName}
             </Link>
           ))}
-        </Row>
-        <Row className="gap-6">
+        </AutoBox>
+        <Row className="gap-6 mobile:gap-3">
           {Object.entries(idoInfo.project.socialsSites ?? {}).map(([socialName, link]) => (
-            <Link key={socialName} href={link} className="flex items-center gap-2">
+            <Link key={socialName} href={link} className="flex items-center">
               <Icon
                 className="frosted-glass-skygray p-2.5 rounded-lg text"
                 iconClassName="w-3 h-3 opacity-50"
@@ -1008,6 +1018,24 @@ function LotteryInputPanel({ className }: { className?: string }) {
         When can I withdraw?
       </Link>
     </CyberpunkStyleCard>
+  )
+}
+
+function LotteryLicense({ className }: { className?: string }) {
+  return (
+    <div
+      className={twMerge(
+        'text-2xs text-[#ABC4FF80] leading-relaxed pt-5 font-medium border-t border-[rgba(171,196,255,0.1)] mobile:p-4',
+        className
+      )}
+    >
+      People located in or residents of the United States, North Korea, Iran, Venezuela, any sanctioned countries as
+      provided by OFAC, or any other jurisdiction in which it is prohibited from using any of the services offered on
+      the Raydium website, including AcceleRaytor, (the "Prohibited Jurisdictions") are not permitted to make use of
+      these services or participate in this token sale. For the avoidance of doubt, the foregoing restrictions on any of
+      the services offered on the Raydium website from Prohibited Jurisdictions apply equally to residents and citizens
+      of other nations while located in a Prohibited Jurisdiction.
+    </div>
   )
 }
 

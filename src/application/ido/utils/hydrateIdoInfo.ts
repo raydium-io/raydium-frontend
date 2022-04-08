@@ -125,7 +125,7 @@ export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
     },
     ledger: idoLedger,
 
-    isUpcoming: true,
+    isUpcoming,
     isOpen,
     isClosed,
     canWithdrawBase,
