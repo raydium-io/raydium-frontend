@@ -19,7 +19,7 @@ export function Markdown({
     <ReactMarkdown
       className={className}
       components={{
-        p: (props) => <p className="text-[#ABC4FF] mobile:text-xs" {...props} />,
+        p: (props) => <p className="text-[#ABC4FF] mobile:text-xs text-justify py-2" {...props} />,
         li: ({ children }) => <li className="pl-2">{children}</li>,
         ul: ({ children }) => <ul className="pl-6 list-disc">{children}</ul>,
         h1: ({ children }) => <h1 className="text-white text-2xl font-semibold">{children}</h1>,

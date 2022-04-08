@@ -45,7 +45,6 @@ import RefreshCircle from '@/components/RefreshCircle'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import AutoBox from '@/components/AutoBox'
 import Tooltip from '@/components/Tooltip'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import LoadingCircle from '@/components/LoadingCircle'
 
 // paser url to patch idoid

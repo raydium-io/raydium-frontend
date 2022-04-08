@@ -299,31 +299,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
     </>
   )
 }
-/**
- * invoke rerender every seconds
- */
-function useDateTimeCountdown(opts: { endTime: TimeStamp }) {
-  const getDiff = () => parseDuration(getTime(opts.endTime) - getTime())
-  const initDuration = useMemo(() => getDiff(), [])
-  const [duration, setDuration] = useState(initDuration)
-  const currentDuration = useRef(duration)
-  currentDuration.current = duration // always keep ref updated
-
-  useEffect(() => {
-    if (initDuration.full <= 0) return
-    const intervelId = setInterval(() => {
-      if (currentDuration.current.full <= 0) {
-        clearInterval(intervelId)
-      }
-      setDuration(getDiff())
-    }, 1000)
-    return () => clearInterval(intervelId)
-  }, [])
-
-  return duration
-}
 function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
-  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Row className="p-4 mobile:p-3 flex-wrap gap-6 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg">
       <Link href={info.project.detailDocLink} className="flex-shrink-0 mobile:w-full">
