@@ -48,7 +48,7 @@ export default function useTokenPriceRefresher() {
     const raydiumTokenPrices = objectMap(raydiumPrices, (v, k) =>
       tokenJsonInfos[k] ? toTokenPrice(tokenJsonInfos[k], v, { alreadyDecimaled: true }) : undefined
     )
-    const tokenPrices = objectShakeNil({ ...raydiumTokenPrices, ...coingeckoTokenPrices })
+    const tokenPrices = objectShakeNil({ ...coingeckoTokenPrices, ...raydiumTokenPrices })
 
     useToken.setState({ tokenPrices })
   }, [tokenJsonInfos, refreshTokenCount])
