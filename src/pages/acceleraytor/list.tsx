@@ -31,7 +31,6 @@ import parseDuration from '@/functions/date/parseDuration'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import useStaking from '@/application/staking/useStaking'
 import toPercentString from '@/functions/format/toPercentString'
-import useThenableSetState from '@/hooks/useThenableSetState'
 
 export default function AcceleRaytor() {
   return (

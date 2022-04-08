@@ -1,17 +1,12 @@
 import BN from 'bn.js'
 
-import { SplToken, Token } from '@/application/token/type'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { divide, greaterThan, multiply } from '@/functions/numberish/stringNumber'
-import { StringNumber } from '@/types/constants'
 import { Percent, Price } from '@raydium-io/raydium-sdk'
-import { PublicKey } from '@solana/web3.js'
 
 import { HydratedIdoInfo, SdkParsedIdoInfo, TicketInfo, TicketTailNumberInfo } from '../type'
-import { eq, gt, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, getMin, mul } from '@/functions/numberish/operations'
-import { toString } from '@/functions/numberish/toString'
 import { usdCurrency } from '@/functions/format/toTokenPrice'
 
 function isLotteryUpcoming(idoInfo: SdkParsedIdoInfo): boolean {
@@ -128,7 +123,7 @@ export function hydrateIdoInfo(idoInfo: SdkParsedIdoInfo): HydratedIdoInfo {
     },
     ledger: idoLedger,
 
-    isUpcoming,
+    isUpcoming: true,
     isOpen,
     isClosed,
     canWithdrawBase,

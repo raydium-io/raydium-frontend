@@ -43,6 +43,8 @@ import Progress from '@/components/Progress'
 import { routeTo } from '@/application/routeTools'
 import RefreshCircle from '@/components/RefreshCircle'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
+import AutoBox from '@/components/AutoBox'
+
 // paser url to patch idoid
 function useUrlParser() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
@@ -344,12 +346,12 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
     fieldValue?: ReactNode
   }) =>
     isMobile ? (
-      <Grid className="grid-cols-[3fr,4fr] items-center p-3 px-4 gap-3">
+      <Grid className={twMerge('grid-cols-[3fr,4fr] items-center p-3 px-4 gap-3', className)}>
         <div className="text-xs font-bold text-[#ABC4FF] opacity-50">{fieldName}</div>
         <div className="text-sm font-semibold text-white">{fieldValue}</div>
       </Grid>
     ) : (
-      <div className={`py-3 px-4 ${className ?? ''}`}>
+      <div className={twMerge('py-3 px-4', className)}>
         <div>{fieldValue}</div>
         <div className="text-[#abc4ff80] font-bold text-xs mt-1">{fieldName}</div>
       </div>
@@ -387,7 +389,15 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
       </CyberpunkStyleCard>
 
       <div className={`${isMobile ? '' : 'w-0 grow'} m-4`}>
-        <Grid className={`${isMobile ? '' : 'grid-cols-[repeat(auto-fit,minmax(154px,1fr))]'} grid-gap-board`}>
+        <Grid
+          className={`${
+            isMobile
+              ? ''
+              : idoInfo.isUpcoming
+              ? 'grid-cols-[repeat(auto-fit,minmax(200px,1fr))]'
+              : 'grid-cols-[repeat(auto-fit,minmax(154px,1fr))]'
+          } grid-gap-board`}
+        >
           <IdoInfoItem
             fieldName="Total Raise"
             fieldValue={
@@ -487,8 +497,12 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
             }
           />
           {idoInfo.isUpcoming && (
-            <Row className="items-center justify-between gap-8">
+            <AutoBox
+              is={isMobile ? 'Col' : 'Row'}
+              className="items-center mobile:items-stretch justify-between gap-4 p-3 px-4"
+            >
               <IdoInfoItem
+                className="p-0"
                 fieldValue={
                   <Row className="items-baseline gap-1">
                     <div className="text-white font-medium">
@@ -505,7 +519,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                   </Row>
                 }
               />
-              <Col className="items-center">
+              <Col>
                 <Button
                   className="frosted-glass-skygray"
                   size="xs"
@@ -533,7 +547,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                   APR: {toPercentString(stakingHydratedInfo?.totalApr)}
                 </div>
               </Col>
-            </Row>
+            </AutoBox>
           )}
           {idoInfo.isUpcoming && (
             <IdoInfoItem
