@@ -16,9 +16,8 @@ export default async function txFarmHarvest(
   info: HydratedFarmInfo,
   options: { isStaking?: boolean; rewardAmounts: TokenAmount[] }
 ) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { walletAdapter } }) => {
+  return handleMultiTx(async ({ transactionCollector, baseUtils: { owner } }) => {
     const piecesCollector = createTransactionCollector()
-    const owner = walletAdapter.publicKey
     assert(owner, 'require connected wallet')
 
     const jsonFarmInfo = useFarms.getState().jsonInfos.find(({ lpMint }) => String(lpMint) === String(info.lpMint))

@@ -22,6 +22,7 @@ import { noTailingPeriod } from '../../functions/format/noTailingPeriod'
 import useAppSettings from '../appSettings/useAppSettings'
 import { mergeFunction } from '@/functions/merge'
 import tryCatch from '@/functions/tryCatch'
+import toPubString from '@/functions/format/toMintString'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -75,7 +76,6 @@ export type TxFinalBatchErrorInfo = {
 export type MultiTxAction = (providedTools: {
   transactionCollector: TransactionCollector
   baseUtils: {
-    walletAdapter: WalletAdapter
     connection: Connection
     owner: PublicKey
   }
@@ -116,26 +116,23 @@ type TxOptionsCollection = {
   txSentFinally: (TxSentFinallyCallback | undefined)[]
   txAllSuccess: (AllSuccessCallback | undefined)[]
   txAnyError: (AnyErrorCallback | undefined)[]
-  signerkeyPairs: (TxKeypairDetective | undefined)[]
+}
+
+export interface TxAddOptions {
+  txHistoryInfo?: Pick<TxHistoryInfo, 'title' | 'description'>
+  onTxSuccess?: TxSuccessCallback
+  onTxError?: TxErrorCallback
+  onTxFinally?: TxFinallyCallback
+  onTxSentSuccess?: TxSentSuccessCallback
+  onTxSentError?: TxSentErrorCallback
+  onTxSentFinally?: TxSentFinallyCallback
 }
 
 export type TransactionCollector = {
   /**@deprecated for can't control */
   addSets(...transactions: Transaction[]): void
 
-  add(
-    transactions: Transaction,
-    options?: {
-      txHistoryInfo?: Pick<TxHistoryInfo, 'title' | 'description'>
-      onTxSuccess?: TxSuccessCallback
-      onTxError?: TxErrorCallback
-      onTxFinally?: TxFinallyCallback
-      onTxSentSuccess?: TxSentSuccessCallback
-      onTxSentError?: TxSentErrorCallback
-      onTxSentFinally?: TxSentFinallyCallback
-      signerkeyPairs?: TxKeypairDetective
-    }
-  ): void
+  add(transactions: Transaction, options?: TxAddOptions): void
 }
 
 type FinalInfos = {
@@ -145,12 +142,17 @@ type FinalInfos = {
   // txList: (TxSuccessInfo | TxErrorInfo)[]
 }
 
+export type TxShadowOptions = {
+  /** if add this, handleTx's shadow mode will open,  */
+  forceKeyPairs?: TxKeypairDetective
+}
+
 /**
  * duty:
  * 1. provide tools for a tx action
  * 2. auto handle txError and txSuccess
  */
-export default async function handleMultiTx(txAction: MultiTxAction): Promise<FinalInfos> {
+export default async function handleMultiTx(txAction: MultiTxAction, options?: TxShadowOptions): Promise<FinalInfos> {
   return new Promise((resolve, reject) =>
     (async () => {
       const callbackCollection: TxOptionsCollection = {
@@ -162,8 +164,7 @@ export default async function handleMultiTx(txAction: MultiTxAction): Promise<Fi
         txSentError: [],
         txSentFinally: [],
         txAllSuccess: [],
-        txAnyError: [],
-        signerkeyPairs: []
+        txAnyError: []
       }
 
       const innerTransactions = [] as Transaction[]
@@ -185,15 +186,23 @@ export default async function handleMultiTx(txAction: MultiTxAction): Promise<Fi
 
       useAppSettings.setState({ isApprovePanelShown: true })
       try {
-        const { adapter: walletAdapter, signAllTransactions, owner } = useWallet.getState()
+        const { signAllTransactions, owner } = useWallet.getState()
         const connection = useConnection.getState().connection
-        assert(walletAdapter, 'wallet not connected')
-        assert(owner, 'wallet not connected')
         assert(connection, 'no rpc connection')
-        await txAction({
-          transactionCollector,
-          baseUtils: { walletAdapter, connection, owner }
-        })
+
+        if (options?.forceKeyPairs?.ownerKeypair) {
+          // have force key pair info, no need to check wallet connect
+          await txAction({
+            transactionCollector,
+            baseUtils: { connection, owner: options.forceKeyPairs.ownerKeypair.publicKey }
+          })
+        } else {
+          assert(owner, 'wallet not connected')
+          await txAction({
+            transactionCollector,
+            baseUtils: { connection, owner }
+          })
+        }
         const finalInfos = await sendMultiTransactionAndLogAndRecord({
           transactions: innerTransactions,
           txHistoryInfo: callbackCollection.txHistoryInfo,
@@ -208,7 +217,8 @@ export default async function handleMultiTx(txAction: MultiTxAction): Promise<Fi
           },
           payload: {
             connection,
-            signAllTransactions
+            signAllTransactions,
+            signerkeyPair: options?.forceKeyPairs
           }
         })
         resolve(finalInfos)
@@ -241,6 +251,8 @@ async function sendMultiTransactionAndLogAndRecord(options: {
   payload: {
     signAllTransactions: WalletStore['signAllTransactions']
     connection: Connection
+    // only if have been shadow open
+    signerkeyPair?: TxKeypairDetective
   }
 }): Promise<FinalInfos> {
   const { logError, logTxid } = useNotification.getState()
@@ -249,7 +261,7 @@ async function sendMultiTransactionAndLogAndRecord(options: {
       try {
         const txCallbackCollection = options.optionsCollection
         // const allSignedTransactions = await options.payload.signAllTransactions(options.transactions)
-        const allSignedTransactions = await (options.optionsCollection.signerkeyPairs[0] // if have signer detected, no need signAllTransactions
+        const allSignedTransactions = await (options.payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions
           ? options.transactions
           : options.payload.signAllTransactions(options.transactions))
 
@@ -269,11 +281,10 @@ async function sendMultiTransactionAndLogAndRecord(options: {
             currentIndex: currentIndex
           } as const
           try {
-            const txid = options.optionsCollection.signerkeyPairs[currentIndex] // if have signer detected, no need signAllTransactions
+            const txid = options.payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions
               ? await sendAndConfirmTransaction(options.payload.connection, allSignedTransactions[currentIndex], [
-                  options.optionsCollection.signerkeyPairs[currentIndex]!.payerKeypair ??
-                    options.optionsCollection.signerkeyPairs[currentIndex]!.ownerKeypair,
-                  options.optionsCollection.signerkeyPairs[currentIndex]!.ownerKeypair
+                  options.payload.signerkeyPair.payerKeypair ?? options.payload.signerkeyPair.ownerKeypair,
+                  options.payload.signerkeyPair.ownerKeypair
                 ])
               : await options.payload.connection.sendRawTransaction(allSignedTransactions[currentIndex].serialize(), {
                   skipPreflight: true

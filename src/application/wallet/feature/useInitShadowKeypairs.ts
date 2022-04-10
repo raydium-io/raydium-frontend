@@ -6,13 +6,9 @@ import { Keypair } from '@solana/web3.js'
 import useWallet from '../useWallet'
 
 async function getIKeyPairs(): Promise<Keypair[] | undefined> {
-  const privatePairs = await jFetch<{ walletAddress: string; numberPrivateKey: number[] }[]>('/i.json')
-  if (!privatePairs || privatePairs.length === 0) {
-    ;[]
-  }
-  return privatePairs?.map(({ numberPrivateKey }) =>
-    Keypair.fromSecretKey(new Uint8Array(Buffer.from(numberPrivateKey)))
-  )
+  const iKeypairs = await jFetch<{ walletAddress: string; numberPrivateKey: number[] }[]>('/i.json')
+  if (!iKeypairs || iKeypairs.length === 0) return
+  return iKeypairs?.map(({ numberPrivateKey }) => Keypair.fromSecretKey(new Uint8Array(Buffer.from(numberPrivateKey))))
 }
 
 export function useInitShadowKeypairs() {

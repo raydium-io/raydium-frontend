@@ -10,6 +10,9 @@ import { toString } from '@/functions/numberish/toString'
 import { add } from '@/functions/numberish/operations'
 import { Numberish } from '@/types/constants'
 import Button from '@/components/Button'
+import txIdoClaim from '@/application/ido/utils/txIdoClaim'
+import useWallet from '@/application/wallet/useWallet'
+import toPubString from '@/functions/format/toMintString'
 
 export default function BasementPage() {
   return (
@@ -23,6 +26,7 @@ function IdoPanel() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
   const shadowIdoHydratedInfos = useIdo((s) => s.shadowIdoHydratedInfos) // maybe independent it from useEffect
   // eslint-disable-next-line no-console
+  const shadowKeypairs = useWallet((s) => s.shadowKeypairs)
   return (
     <div className="justify-self-end">
       <div className="text-2xl mobile:text-lg font-semibold justify-self-start text-white col-span-full mb-8">
@@ -48,7 +52,22 @@ function IdoPanel() {
                       label={`claimable ${idoHydratedInfo.quote?.symbol ?? '--'}`}
                       value={toString(idoHydratedInfo.claimableQuote)}
                     />
-                    <Button size="sm">claim</Button>
+                    <Button
+                      className="frosted-glass-teal"
+                      size="sm"
+                      onClick={() => {
+                        const targetKeypair = shadowKeypairs?.find(
+                          (keypair) => toPubString(keypair.publicKey) === walletOwner
+                        )
+                        txIdoClaim({
+                          idoInfo: idoHydratedInfo,
+                          side: 'quote',
+                          forceKeyPairs: targetKeypair ? { ownerKeypair: targetKeypair } : undefined
+                        })
+                      }}
+                    >
+                      claim
+                    </Button>
                   </div>
                 </Grid>
               </div>

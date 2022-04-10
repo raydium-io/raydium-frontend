@@ -21,6 +21,7 @@ export type WalletStore = {
   adapter?: Adapter
 
   // a experimental feature (owner isn't in shadowOwners)
+  /** each Keypair object hold both publicKey and secret key */
   shadowKeypairs?: Keypair[]
   availableWallets: Wallet[]
   currentWallet?: Wallet | null
