@@ -96,7 +96,7 @@ function HomePageSection0() {
           </Button>
 
           <Button
-            className="frosted-glass-teal text-white mobile:text-xs px-5 mobile:px-4"
+            className="frosted-glass-teal text-white mobile:text-xs px-5 mobile:px-4 forsted-blur"
             onClick={() => {
               linkTo('https://raydium.gitbook.io/raydium/')
             }}
@@ -109,7 +109,7 @@ function HomePageSection0() {
         </Row>
         {/* two panels */}
         <Row className="gap-6 mobile:gap-3 mb-9 grid grid-cols-2-fr">
-          <Card className="frosted-glass-smoke rounded-3xl mobile:rounded-2xl p-6 mobile:py-3 mobile:px-6 mobile:min-w-[156px] min-w-[250px] tablet:min-w-[250px]">
+          <Card className="frosted-glass-smoke forsted-blur-sm rounded-3xl mobile:rounded-2xl p-6 mobile:py-3 mobile:px-6 mobile:min-w-[156px] min-w-[250px] tablet:min-w-[250px]">
             <div className="text-sm text-[#adc6ff] mb-1 mobile:text-[8px]">TOTAL VALUE LOCKED</div>
             {/* value */}
             <Row className="justify-center text-xl mobile:text-xs font-normal text-white tracking-widest mobile:tracking-wider">
@@ -126,7 +126,7 @@ function HomePageSection0() {
             </Row>
           </Card>
 
-          <Card className="frosted-glass-smoke rounded-3xl mobile:rounded-2xl p-6 mobile:py-3 mobile:px-6 mobile:min-w-[156px] min-w-[250px] tablet:min-w-[250px]">
+          <Card className="frosted-glass-smoke forsted-blur-sm rounded-3xl mobile:rounded-2xl p-6 mobile:py-3 mobile:px-6 mobile:min-w-[156px] min-w-[250px] tablet:min-w-[250px]">
             <div className="text-sm text-[#adc6ff] mb-1 mobile:text-[8px]">TOTAL TRADING VOLUME</div>
             {/* value */}
             <Row className="justify-center text-xl mobile:text-xs font-normal text-white tracking-widest mobile:tracking-wider">
@@ -182,14 +182,14 @@ function HomePageSection1() {
         </div>
 
         <Grid className="gap-5 grid-cols-4 tablet:grid-cols-2 mobile:grid-cols-1">
-          <Card className="flex-1 children-center frosted-glass-lightsmoke py-6 px-12 rounded-3xl">
-            <div className="frosted-glass-teal no-frosted-blur p-3 mb-3 rounded-xl">
+          <Card className="flex-1 children-center frosted-glass-lightsmoke forsted-blur-sm py-6 px-12 rounded-3xl">
+            <div className="frosted-glass-teal p-3 mb-3 rounded-xl">
               <Icon iconSrc="/icons/home-trade.svg" />
             </div>
             <div className="font-semibold text-lg text-white mb-2">Trade</div>
             <div className="font-light text-sm text-[#c4d6ff] mb-5">Swap or Trade quickly and cheaply.</div>
             <Button
-              className="frosted-glass-teal no-frosted-blur"
+              className="frosted-glass-teal"
               onClick={() => {
                 push('/swap')
               }}
@@ -198,14 +198,14 @@ function HomePageSection1() {
             </Button>
           </Card>
 
-          <Card className="flex-1 children-center frosted-glass-lightsmoke py-6 px-12 rounded-3xl">
-            <div className="frosted-glass-teal no-frosted-blur p-3 mb-3 rounded-xl">
+          <Card className="flex-1 children-center frosted-glass-lightsmoke forsted-blur-sm py-6 px-12 rounded-3xl">
+            <div className="frosted-glass-teal p-3 mb-3 rounded-xl">
               <Icon iconSrc="/icons/home-yield.svg" />
             </div>
             <div className="font-semibold text-lg text-white mb-2">Yield</div>
             <div className="font-light text-sm text-[#c4d6ff] mb-5">Earn yield through fees and yield farms.</div>
             <Button
-              className="frosted-glass-teal no-frosted-blur"
+              className="frosted-glass-teal"
               onClick={() => {
                 push('/farms')
               }}
@@ -214,14 +214,14 @@ function HomePageSection1() {
             </Button>
           </Card>
 
-          <Card className="flex-1 children-center frosted-glass-lightsmoke py-6 px-12 rounded-3xl">
-            <div className="frosted-glass-teal no-frosted-blur p-3 mb-3 rounded-xl">
+          <Card className="flex-1 children-center frosted-glass-lightsmoke forsted-blur-sm py-6 px-12 rounded-3xl">
+            <div className="frosted-glass-teal p-3 mb-3 rounded-xl">
               <Icon iconSrc="/icons/home-pool.svg" />
             </div>
             <div className="font-semibold text-lg text-white mb-2">Pool</div>
             <div className="font-light text-sm text-[#c4d6ff] mb-5">Provide liquidity for any SPL token.</div>
             <Button
-              className="frosted-glass-teal no-frosted-blur"
+              className="frosted-glass-teal"
               onClick={() => {
                 push('/liquidity/add')
               }}
@@ -230,14 +230,14 @@ function HomePageSection1() {
             </Button>
           </Card>
 
-          <Card className="flex-1 children-center frosted-glass-lightsmoke py-6 px-12 rounded-3xl">
-            <div className="frosted-glass-teal no-frosted-blur p-3 mb-3 rounded-xl">
+          <Card className="flex-1 children-center frosted-glass-lightsmoke forsted-blur-sm py-6 px-12 rounded-3xl">
+            <div className="frosted-glass-teal p-3 mb-3 rounded-xl">
               <Icon iconSrc="/icons/home-acceleraytor.svg" />
             </div>
             <div className="font-semibold text-lg text-white mb-2">AcceleRaytor</div>
             <div className="font-light text-sm text-[#c4d6ff] mb-5">Launchpad for new Solana projects.</div>
             <Button
-              className="frosted-glass-teal no-frosted-blur"
+              className="frosted-glass-teal"
               onClick={() => {
                 push('/acceleraytor')
               }}
@@ -276,13 +276,13 @@ function HomePageSection2() {
 
         <Grid className="gap-6 grid-cols-3 tablet:grid-cols-1 mobile:grid-cols-1 justify-items-center">
           <Card
-            className="max-w-[356px] grid children-center frosted-glass-smoke py-6 px-10 rounded-3xl"
+            className="max-w-[356px] grid children-center frosted-glass-smoke  forsted-blur-sm py-6 px-10 rounded-3xl"
             style={{
               gridTemplateRows: 'auto auto 1fr',
               alignItems: 'normal'
             }}
           >
-            <div className="frosted-glass-teal no-frosted-blur p-3 mb-3 rounded-xl">
+            <div className="frosted-glass-teal p-3 mb-3 rounded-xl">
               <Icon iconSrc="/icons/home-order-book-AMM.svg" />
             </div>
             <div className="font-semibold text-lg text-white mb-2">Order Book AMM</div>
@@ -293,13 +293,13 @@ function HomePageSection2() {
           </Card>
 
           <Card
-            className="max-w-[356px] grid children-center frosted-glass-smoke py-6 px-10 rounded-3xl"
+            className="max-w-[356px] grid children-center frosted-glass-smoke  forsted-blur-sm py-6 px-10 rounded-3xl"
             style={{
               gridTemplateRows: 'auto auto 1fr',
               alignItems: 'normal'
             }}
           >
-            <div className="frosted-glass-teal no-frosted-blur p-3 mb-3 rounded-xl">
+            <div className="frosted-glass-teal p-3 mb-3 rounded-xl">
               <Icon iconSrc="/icons/home-yield.svg" />
             </div>
             <div className="font-semibold text-lg text-white mb-2">Best Price Swaps</div>
@@ -310,13 +310,13 @@ function HomePageSection2() {
           </Card>
 
           <Card
-            className="max-w-[356px] grid children-center frosted-glass-smoke py-6 px-10 rounded-3xl"
+            className="max-w-[356px] grid children-center frosted-glass-smoke  forsted-blur-sm py-6 px-10 rounded-3xl"
             style={{
               gridTemplateRows: 'auto auto 1fr',
               alignItems: 'normal'
             }}
           >
-            <div className="frosted-glass-teal no-frosted-blur p-3 mb-3 rounded-xl">
+            <div className="frosted-glass-teal p-3 mb-3 rounded-xl">
               <Icon iconSrc="/icons/home-pool.svg" />
             </div>
             <div className="font-semibold text-lg text-white mb-2">High-Liquidity Launches</div>
