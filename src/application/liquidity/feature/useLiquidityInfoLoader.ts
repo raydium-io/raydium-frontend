@@ -32,7 +32,9 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   /** fetch json info list  */
   useAsyncEffect(async () => {
     if (disabled) return
-    const response = await jFetch<LiquidityPoolsJsonFile>('https://api.raydium.io/v2/sdk/liquidity/mainnet.json')
+    const response = await jFetch<LiquidityPoolsJsonFile>('https://api.raydium.io/v2/sdk/liquidity/mainnet.json', {
+      ignoreCache: true
+    })
     const blacklist = await jFetch<HexAddress[]>('/amm-blacklist.json')
     const liquidityInfoList = [...(response?.official ?? []), ...(response?.unOfficial ?? [])]
       // no raydium blacklist amm
@@ -107,8 +109,9 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
     if (disabled) return
     if (connection && currentSdkParsedInfo) {
       const lpBalance = rawBalances[String(currentSdkParsedInfo.lpMint)]
+      const hydrated = await hydrateLiquidityInfo(currentSdkParsedInfo, { getToken, getLpToken, lpBalance })
       useLiquidity.setState({
-        currentHydratedInfo: await hydrateLiquidityInfo(currentSdkParsedInfo, { getToken, getLpToken, lpBalance })
+        currentHydratedInfo: hydrated
       })
     } else {
       useLiquidity.setState({ currentHydratedInfo: undefined })

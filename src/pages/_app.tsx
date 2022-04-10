@@ -44,6 +44,7 @@ import useHandleWindowTopError from '@/hooks/useHandleWindowTopError'
 import '../styles/index.css'
 import { useWalletConnectNotifaction } from '@/application/wallet/feature/useWalletConnectNotifaction'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
+import { useTokenGetterFnLoader } from '@/application/token/feature/useTokenGetterFnLoader'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -121,6 +122,7 @@ function ApplicationsInitializations() {
   useTokenPriceRefresher()
   useTokenMintAutoRecord()
   useTokenListSettingsLocalStorage()
+  useTokenGetterFnLoader()
 
   /********************** pariInfo(pools) **********************/
   usePoolsInfoLoader()

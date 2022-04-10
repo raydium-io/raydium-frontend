@@ -171,6 +171,7 @@ async function loadTokens() {
     )
   }))
 
+  /** NOTE -  getToken place 1 */
   /** exact mode: 'so111111112' will be QSOL-WSOL 'sol' will be QSOL-SOL */
   function getToken(mint: PublicKeyish | undefined, options?: { exact?: boolean }): SplToken | undefined {
     if (String(mint) === SOLUrlMint) {

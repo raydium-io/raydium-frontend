@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 import useToken from '@/application/token/useToken'
-import { areEqualToken } from '@/functions/judgers/areEqual'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 import useLiquidity from '../useLiquidity'
@@ -17,13 +17,14 @@ export default function useLiquidityAmmSelector() {
   useEffect(() => {
     if (!ammId) return
     const { coin1, coin2, jsonInfos } = useLiquidity.getState()
+    const targetInfo = jsonInfos.find((info) => info.id === ammId)
+    // current is right, no need to sync again
+    if (isMintEqual(coin1?.mint, targetInfo?.baseMint) && isMintEqual(coin2?.mint, targetInfo?.quoteMint)) return
+    if (isMintEqual(coin1?.mint, targetInfo?.quoteMint) && isMintEqual(coin1?.mint, targetInfo?.baseMint)) return
+
     const { getToken } = useToken.getState()
     const baseCoin = getToken(jsonInfos.find((i) => i.id === ammId)?.baseMint)
     const quoteCoin = getToken(jsonInfos.find((i) => i.id === ammId)?.quoteMint)
-
-    // current is right, no need to sync again
-    if (areEqualToken(coin1, baseCoin) && areEqualToken(coin2, quoteCoin)) return
-    if (areEqualToken(coin1, quoteCoin) && areEqualToken(coin2, baseCoin)) return
 
     useLiquidity.setState({
       coin1: baseCoin,
