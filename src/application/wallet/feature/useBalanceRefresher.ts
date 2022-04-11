@@ -21,7 +21,7 @@ import toBN from '@/functions/numberish/toBN'
 export default function useInitBalanceRefresher() {
   const tokenAccounts = useWallet((s) => s.tokenAccounts)
   const allTokenAccounts = useWallet((s) => s.allTokenAccounts) // to get wsol balance
-  const verboseTokenAccounts = useWallet((s) => s.verboseTokenAccounts)
+  const nativeTokenAccount = useWallet((s) => s.nativeTokenAccount)
   const getPureToken = useToken((s) => s.getPureToken)
   const connection = useConnection((s) => s.connection)
   const owner = useWallet((s) => s.owner)
@@ -71,7 +71,7 @@ export default function useInitBalanceRefresher() {
     const pureRawBalances = objectMap(pureBalances, (balance) => balance.raw)
 
     // native sol balance (for QuantumSOL)
-    const solBalance = verboseTokenAccounts.find((ta) => ta.isNative)?.amount
+    const solBalance = nativeTokenAccount?.amount
 
     // wsol balance (for QuantumSOL)
     const wsolBalance = tokenAccounts.find((ta) => String(ta.mint) === String(WSOLMint))?.amount
@@ -93,5 +93,5 @@ export default function useInitBalanceRefresher() {
       pureBalances,
       pureRawBalances
     })
-  }, [connection, tokenAccounts, verboseTokenAccounts, getPureToken, owner])
+  }, [connection, tokenAccounts, nativeTokenAccount, getPureToken, owner])
 }

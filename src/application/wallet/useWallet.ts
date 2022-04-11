@@ -45,8 +45,8 @@ export type WalletStore = {
   /** pass to SDK */
   tokenAccountRawInfos: TokenAccountRawInfo[]
 
-  /** ATAs and SOL  */
-  verboseTokenAccounts: ITokenAccount[]
+  /** SOL  */
+  nativeTokenAccount: ITokenAccount | undefined
 
   /** raw: include no ATA (only use it in migrate detect) */
   allTokenAccounts: ITokenAccount[]
@@ -110,7 +110,7 @@ const useWallet = create<WalletStore>((set, get) => ({
 
   tokenAccounts: [],
   tokenAccountRawInfos: [],
-  verboseTokenAccounts: [],
+  nativeTokenAccount: undefined,
   allTokenAccounts: [],
   getTokenAccount(target) {
     if (!target) return undefined

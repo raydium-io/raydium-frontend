@@ -1,4 +1,4 @@
-import { Transaction } from '@solana/web3.js'
+import { Connection, Transaction } from '@solana/web3.js'
 
 import assert from '@/functions/assert'
 
@@ -14,13 +14,16 @@ export async function attachRecentBlockhash(...transactions: Transaction[]) {
   for await (const transaction of transactions) {
     if (!transaction.recentBlockhash) {
       // recentBlockhash may already attached by sdk
-      try {
-        transaction.recentBlockhash =
-          (await connection.getLatestBlockhash?.())?.blockhash || (await connection.getRecentBlockhash()).blockhash
-      } catch {
-        transaction.recentBlockhash = (await connection.getRecentBlockhash()).blockhash
-      }
+      transaction.recentBlockhash = await getRecentBlockhash(connection)
     }
     transaction.feePayer = owner
+  }
+}
+
+export async function getRecentBlockhash(connection: Connection) {
+  try {
+    return (await connection.getLatestBlockhash?.())?.blockhash || (await connection.getRecentBlockhash()).blockhash
+  } catch {
+    return (await connection.getRecentBlockhash()).blockhash
   }
 }

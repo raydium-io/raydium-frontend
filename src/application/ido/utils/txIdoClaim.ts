@@ -1,21 +1,17 @@
 import { Spl, WSOL } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import useWallet from '@/application/wallet/useWallet'
-
 import { Ido, Snapshot } from '../sdk'
 import { SdkParsedIdoInfo } from '../type'
 import handleMultiTx, { TxAddOptions, TxShadowOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import toPubString from '@/functions/format/toMintString'
 
 export default async function txIdoClaim(
   options: { idoInfo: SdkParsedIdoInfo; side: 'base' | 'quote' } & TxAddOptions & TxShadowOptions
 ) {
   const { idoInfo, side, forceKeyPairs, ...restTxAddOptions } = options
   return handleMultiTx(
-    async ({ transactionCollector, baseUtils: { owner, connection } }) => {
-      const tokenAccounts = useWallet.getState().tokenAccounts
+    async ({ transactionCollector, baseUtils: { owner, connection, tokenAccounts } }) => {
       if (!idoInfo.base || !idoInfo.quote) return
 
       const piecesCollection = createTransactionCollector()

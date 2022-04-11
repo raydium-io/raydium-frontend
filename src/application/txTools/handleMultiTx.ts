@@ -23,6 +23,8 @@ import useAppSettings from '../appSettings/useAppSettings'
 import { mergeFunction } from '@/functions/merge'
 import tryCatch from '@/functions/tryCatch'
 import toPubString from '@/functions/format/toMintString'
+import { getRecentBlockhash } from './attachRecentBlockhash'
+import { getRichWalletTokenAccounts } from '../wallet/feature/useTokenAccountsRefresher'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -78,6 +80,8 @@ export type MultiTxAction = (providedTools: {
   baseUtils: {
     connection: Connection
     owner: PublicKey
+    tokenAccounts: WalletStore['tokenAccounts']
+    allTokenAccounts: WalletStore['allTokenAccounts']
   }
 }) => void
 //#region ------------------- callbacks -------------------
@@ -192,15 +196,18 @@ export default async function handleMultiTx(txAction: MultiTxAction, options?: T
 
         if (options?.forceKeyPairs?.ownerKeypair) {
           // have force key pair info, no need to check wallet connect
+          const shadowWalletOwner = options.forceKeyPairs.ownerKeypair.publicKey
+          const tokenAccountInfos = await getRichWalletTokenAccounts({ owner: shadowWalletOwner, connection })
           await txAction({
             transactionCollector,
-            baseUtils: { connection, owner: options.forceKeyPairs.ownerKeypair.publicKey }
+            baseUtils: { connection, owner: shadowWalletOwner, ...tokenAccountInfos }
           })
         } else {
+          const { tokenAccounts, allTokenAccounts } = useWallet.getState()
           assert(owner, 'wallet not connected')
           await txAction({
             transactionCollector,
-            baseUtils: { connection, owner }
+            baseUtils: { connection, owner, tokenAccounts, allTokenAccounts }
           })
         }
         const finalInfos = await sendMultiTransactionAndLogAndRecord({
@@ -280,15 +287,25 @@ async function sendMultiTransactionAndLogAndRecord(options: {
             multiTransactionLength: allSignedTransactions.length,
             currentIndex: currentIndex
           } as const
+          const transaction = allSignedTransactions[currentIndex]
           try {
-            const txid = options.payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions
-              ? await sendAndConfirmTransaction(options.payload.connection, allSignedTransactions[currentIndex], [
-                  options.payload.signerkeyPair.payerKeypair ?? options.payload.signerkeyPair.ownerKeypair,
-                  options.payload.signerkeyPair.ownerKeypair
+            const txid = await (async () => {
+              if (options.payload.signerkeyPair?.ownerKeypair) {
+                // if have signer detected, no need signAllTransactions
+                transaction.recentBlockhash = await getRecentBlockhash(options.payload.connection)
+                transaction.feePayer =
+                  options.payload.signerkeyPair.payerKeypair?.publicKey ??
+                  options.payload.signerkeyPair.ownerKeypair.publicKey
+
+                return options.payload.connection.sendTransaction(transaction, [
+                  options.payload.signerkeyPair.payerKeypair ?? options.payload.signerkeyPair.ownerKeypair
                 ])
-              : await options.payload.connection.sendRawTransaction(allSignedTransactions[currentIndex].serialize(), {
+              } else {
+                return await options.payload.connection.sendRawTransaction(transaction.serialize(), {
                   skipPreflight: true
                 })
+              }
+            })()
             txCallbackCollection.txSentSuccess[currentIndex]?.({
               ...extraTxidInfo,
               txid
