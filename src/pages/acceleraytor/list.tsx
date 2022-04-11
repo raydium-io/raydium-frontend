@@ -422,10 +422,7 @@ function IdoItemCardContentButtonGroup({ info }: { info: HydratedIdoInfo }) {
           }
           fieldName={
             <Row className="gap-1 items-center">
-              <div className="text-xs font-bold text-[#ABC4FF80]">Staking eligibility</div>
-              {info.userEligibleTicketAmount && gt(info.userEligibleTicketAmount, 0) && (
-                <Icon size="sm" heroIconName="check-circle" className="text-[#39D0D8]" />
-              )}
+              <div className="text-xs font-bold text-[#ABC4FF80]">Your staking</div>
             </Row>
           }
         />
@@ -437,10 +434,7 @@ function IdoItemCardContentButtonGroup({ info }: { info: HydratedIdoInfo }) {
             </div>
           </Row>
           <Row className="gap-1 items-center">
-            <div className="text-xs font-bold text-[#ABC4FF80]">Staking eligibility</div>
-            {info.userEligibleTicketAmount && gt(info.userEligibleTicketAmount, 0) && (
-              <Icon size="sm" heroIconName="check-circle" className="text-[#39D0D8]" />
-            )}
+            <div className="text-xs font-bold text-[#ABC4FF80]">Your staking</div>
           </Row>
         </Col>
       )}

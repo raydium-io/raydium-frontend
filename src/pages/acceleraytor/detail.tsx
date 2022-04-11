@@ -535,26 +535,24 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                 }
                 fieldName={
                   <Row className="gap-1 items-center">
-                    <div>Staking eligibility</div>
-                    {connected && (
-                      <Tooltip placement="bottom">
-                        <Icon
-                          size="sm"
-                          heroIconName={idoInfo.isEligible ? 'check-circle' : 'x-circle'}
-                          className={idoInfo.isEligible ? 'text-[#39D0D8]' : 'text-[#DA2EEF]'}
-                        />
-                        <Tooltip.Panel>
-                          <div className="text-sm font-semibold max-w-[160px]">
-                            <div className="text-white pb-1">
-                              Your Stake Ray: {formatNumber(toString(stakingHydratedInfo?.userStakedLpAmount))}
-                            </div>
-                            <div className="font-normal text-xs opacity-50">
-                              The more and longer you stake RAY the more tickets you will receive.
-                            </div>
+                    <div>Your staking</div>
+
+                    <Tooltip placement="bottom">
+                      <Icon size="sm" heroIconName="information-circle" className="text-[#ABC4FF80]" />
+                      <Tooltip.Panel>
+                        <div className="text-sm font-semibold max-w-[160px]">
+                          <div className="text-white pb-1">
+                            Your Stake Ray:{' '}
+                            {connected
+                              ? formatNumber(toString(stakingHydratedInfo?.userStakedLpAmount))
+                              : '(not connected)'}
                           </div>
-                        </Tooltip.Panel>
-                      </Tooltip>
-                    )}
+                          <div className="font-normal text-xs opacity-50">
+                            The more and longer you stake RAY the more tickets you will receive.
+                          </div>
+                        </div>
+                      </Tooltip.Panel>
+                    </Tooltip>
                   </Row>
                 }
               />
