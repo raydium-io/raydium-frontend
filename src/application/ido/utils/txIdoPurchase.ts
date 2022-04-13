@@ -19,10 +19,9 @@ export default async function txIdoPurchase({
   idoInfo: SdkParsedIdoInfo
   amount: BN
 } & SubscribeSignatureCallbacks) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
+  return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner, tokenAccounts } }) => {
     if (!idoInfo.base || !idoInfo.quote) return
     const piecesCollector = createTransactionCollector()
-    const { tokenAccounts } = useWallet.getState()
 
     const lamports = idoInfo.state.perLotteryQuoteAmount.mul(amount)
 
