@@ -225,7 +225,11 @@ function PopoverPanel({
 }: PopoverPanelProps) {
   if (!$isRenderByMain) return null
 
-  return <div ref={domRef} className={className} style={style}></div>
+  return (
+    <div ref={domRef} className={className} style={style}>
+      {children as ReactNode}
+    </div>
+  )
 }
 
 Popover.Panel = PopoverPanel
