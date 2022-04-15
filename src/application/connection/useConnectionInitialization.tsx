@@ -22,12 +22,12 @@ export interface Config {
 
 const devRpcConfig: Omit<Config, 'success'> = {
   rpcs: [
-    { name: 'genesysgo', url: 'https://raydium.genesysgo.net', weight: 0 }
+    // { name: 'genesysgo', url: 'https://raydium.genesysgo.net', weight: 0 }
     // { name: 'rpcpool', url: 'https://raydium.rpcpool.com', weight: 100 }
     // { url: 'https://arbirgis.rpcpool.com/', weight: 100 },
     // { url: 'https://solana-api.projectserum.com', weight: 100 }
-    // { url: 'https://mainnet.rpcpool.com/', weight: 100 },
-    // { url: 'https://api.mainnet.rpcpool.com/', weight: 100 }
+    { name: 'mainnet', url: 'https://mainnet.rpcpool.com/', weight: 100 }
+    // { name: 'api.mainnet', url: 'https://api.mainnet.rpcpool.com/', weight: 100 }
   ],
   strategy: 'speed'
 }
