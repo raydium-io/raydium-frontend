@@ -20,7 +20,7 @@ import useConnection from '@/application/connection/useConnection'
 import { BitKeepWalletAdapter, LedgerWalletAdapter } from '@solana/wallet-adapter-wallets'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */
-export const SolanaWalletProviders: FC = ({ children }: { children?: ReactNode }) => {
+export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
   // Set to 'devnet' | 'testnet' | 'mainnet-beta' or provide a custom RPC endpoint
   const { currentEndPoint } = useConnection()
   const { pathname } = useRouter()
