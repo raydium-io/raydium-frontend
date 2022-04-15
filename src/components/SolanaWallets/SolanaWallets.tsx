@@ -17,7 +17,7 @@ import { TorusWalletAdapter } from '@solana/wallet-adapter-torus'
 import { clusterApiUrl } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
-import { LedgerWalletAdapter } from '@solana/wallet-adapter-wallets'
+import { BitKeepWalletAdapter, LedgerWalletAdapter } from '@solana/wallet-adapter-wallets'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */
 export const SolanaWalletProviders: FC = ({ children }) => {
@@ -42,7 +42,8 @@ export const SolanaWalletProviders: FC = ({ children }) => {
       new SlopeWalletAdapter({ endpoint }),
       new BitpieWalletAdapter({ endpoint }),
       new GlowWalletAdapter({ endpoint }),
-      new TokenPocketWalletAdapter()
+      new TokenPocketWalletAdapter(),
+      new BitKeepWalletAdapter({ endpoint })
     ],
     [endpoint]
   )
