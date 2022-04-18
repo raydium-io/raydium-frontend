@@ -227,7 +227,7 @@ function PopoverPanel({
 
   return (
     <div ref={domRef} className={className} style={style}>
-      {children}
+      {children as ReactNode}
     </div>
   )
 }
