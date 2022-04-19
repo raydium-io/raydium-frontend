@@ -41,7 +41,7 @@ function IdoPanel() {
                     label="Eligible tickets"
                     value={String(idoHydratedInfo.userEligibleTicketAmount ?? '--')}
                   />
-                  <ItemBlock label="Winning tickets count" value={idoHydratedInfo.ledger?.winningTickets?.length} />
+                  <ItemBlock label="Winning tickets count" value={idoHydratedInfo.winningTickets?.length} />
                   <ItemBlock
                     label={`claimable ${idoHydratedInfo.quote?.symbol ?? '--'}`}
                     value={toString(idoHydratedInfo.claimableQuote)}
@@ -63,7 +63,7 @@ function IdoPanel() {
                 label="Total winning tickets"
                 value={toString(
                   Object.values(idoHydratedInfoCollection ?? {}).reduce(
-                    (acc, idoHydratedInfo) => add(acc, idoHydratedInfo.ledger?.winningTickets?.length ?? 0),
+                    (acc, idoHydratedInfo) => add(acc, idoHydratedInfo.winningTickets?.length ?? 0),
                     0 as Numberish
                   )
                 )}

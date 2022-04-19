@@ -23,7 +23,6 @@ import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js'
 
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 
-import { wordlist } from './algorithm'
 import { IDO_PROGRAMID_TO_VERSION, IDO_VERSION_TO_PROGRAMID } from './id'
 import {
   IDO_VERSION_TO_LEDGER_LAYOUT,
@@ -66,7 +65,7 @@ export interface IdoUserKeys {
 }
 
 export interface IdoInfo {
-  state: IdoStateLayout
+  state?: IdoStateLayout
   ledger?: IdoLedgerLayout
   snapshot?: SnapshotStateLayout
 }
@@ -127,36 +126,6 @@ export class Ido {
   //   const info = await Ido.getInfo()
   //   this.info = info
   // }
-
-  /* ================= pool info ================= */
-  get isUpcoming() {
-    return currentIsBefore(this.info.state.startTime.toNumber())
-  }
-
-  get isOpen() {
-    return currentIsAfter(this.info.state.startTime.toNumber()) && currentIsBefore(this.info.state.endTime.toNumber())
-  }
-
-  get isClosed() {
-    return currentIsAfter(this.info.state.endTime.toNumber())
-  }
-
-  get isWithdrawStart() {
-    return currentIsAfter(this.info.state.startWithdrawTime.toNumber())
-  }
-
-  get raise() {
-    return new TokenAmount(this.poolConfig.baseToken, this.info.state.baseSupply)
-  }
-
-  get price() {
-    return new TokenAmount(this.poolConfig.quoteToken, this.info.state.perLotteryQuoteAmount)
-  }
-
-  get raisedTickets() {
-    // TODO toNumber 53 bits?
-    return this.info.state.raisedLotteries.toNumber()
-  }
 
   /* ================= user info ================= */
   get maxTickets() {
@@ -422,6 +391,7 @@ export class Ido {
     return info as IdoInfo
   }
 
+  /** return {@link IdoInfo} */
   static async getMultipleInfo({ connection, poolsConfig, owner, config }: GetIdoMultipleInfoParams) {
     const publicKeys: {
       pubkey: PublicKey

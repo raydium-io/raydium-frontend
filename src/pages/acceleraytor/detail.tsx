@@ -76,9 +76,9 @@ function NavButtons({ className }: { className?: string }) {
 
       <Link
         className={`rounded-none font-medium text-sm text-[#ABC4FF] opacity-50 flex gap-1 items-center ${
-          idoInfo?.project.detailDocLink ? 'opacity-50' : 'opacity-0'
+          idoInfo?.projectDetailLink ? 'opacity-50' : 'opacity-0'
         } transition`}
-        href={idoInfo?.project.detailDocLink}
+        href={idoInfo?.projectDetailLink}
       >
         <Icon size="sm" inline heroIconName="information-circle" />
         Read full details
@@ -181,7 +181,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
   const [, forceUpdate] = useForceUpdate()
   return (
     <FadeIn>
-      {idoInfo?.canWithdrawBase || idoInfo?.isClosed || idoInfo?.ledger?.depositedTickets?.length ? (
+      {idoInfo?.canWithdrawBase || idoInfo?.isClosed || idoInfo?.depositedTickets?.length ? (
         <Card
           className={twMerge(
             'overflow-hidden rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-cyberpunk-card-bg',
@@ -193,15 +193,15 @@ function WinningTicketPanel({ className }: { className?: string }) {
             {idoInfo?.canWithdrawBase || idoInfo?.isClosed ? (
               <Col className="gap-1">
                 <div className="mobile:text-sm font-semibold text-base text-white">
-                  {['1', '2'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
+                  {['1', '2'].includes(String(idoInfo?.winningTicketsTailNumber.isWinning)) ? (
                     <div>
-                      {idoInfo?.state
-                        .winningTicketsTailNumber!.tickets.map(
+                      {idoInfo
+                        ?.winningTicketsTailNumber!.tickets.map(
                           ({ no, isPartial }) => `${no}${isPartial ? ' (partial)' : ''}`
                         )
                         .join(', ')}
                     </div>
-                  ) : ['3'].includes(String(idoInfo?.state.winningTicketsTailNumber.isWinning)) ? (
+                  ) : ['3'].includes(String(idoInfo?.winningTicketsTailNumber.isWinning)) ? (
                     <div>(Every deposited ticket wins)</div>
                   ) : (
                     <div className="opacity-50">
@@ -217,7 +217,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                       '2': 'Lucky Ending Numbers',
                       '3': 'All Tickets Win',
                       undefined: 'Lucky Ending Numbers'
-                    }[String(idoInfo?.state.winningTicketsTailNumber.isWinning)] // TODO: to hydrated info
+                    }[String(idoInfo?.winningTicketsTailNumber.isWinning)] // TODO: to hydrated info
                   }
                 </div>
               </Col>
@@ -238,7 +238,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                           onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
                         }
                       },
-                      { should: gt(idoInfo.ledger.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
+                      { should: gt(idoInfo.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
                       {
                         should: idoInfo.canWithdrawBase,
                         fallbackProps: {
@@ -249,7 +249,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                                 className="ml-1"
                                 singleValueMode
                                 labelClassName="text-base"
-                                endTime={Number(idoInfo.state.startWithdrawTime)}
+                                endTime={Number(idoInfo.startWithdrawTime)}
                                 onEnd={forceUpdate}
                               />
                             </Row>
@@ -267,9 +267,9 @@ function WinningTicketPanel({ className }: { className?: string }) {
                     Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'}
                   </Button>
                   <FadeIn>
-                    {gt(idoInfo.ledger.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) && (
+                    {gt(idoInfo.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) && (
                       <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
-                        {idoInfo.ledger.winningTickets?.length} winning tickets
+                        {idoInfo.winningTickets?.length} winning tickets
                       </div>
                     )}
                   </FadeIn>
@@ -303,8 +303,8 @@ function WinningTicketPanel({ className }: { className?: string }) {
                   <FadeIn>
                     {eq(idoInfo.ledger.quoteWithdrawn, 0) && (
                       <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
-                        {(idoInfo.ledger.depositedTickets?.length ?? 0) - (idoInfo.ledger.winningTickets?.length ?? 0)}{' '}
-                        non-winning tickets
+                        {(idoInfo.depositedTickets?.length ?? 0) - (idoInfo.winningTickets?.length ?? 0)} non-winning
+                        tickets
                       </div>
                     )}
                   </FadeIn>
@@ -326,7 +326,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                     clipPath: 'inset(1px 16px)'
                   }}
                 >
-                  {idoInfo.ledger.depositedTickets?.map((ticket) => (
+                  {idoInfo.depositedTickets?.map((ticket) => (
                     <TicketItem key={ticket.no} ticket={ticket} className="px-5 py-3" />
                   ))}
                 </Grid>
@@ -346,7 +346,6 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
 
   if (!idoInfo) return null
-  const raySnapshotDeadline = Number(idoInfo.state.startTime) - 3600 * 24 * 7 * 1000 //TODO : always 7 days before lottery start, which is fragile <--- rudy said should managed by backend
 
   const IdoInfoItem = ({
     fieldName,
@@ -387,9 +386,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
           <div className="text-center mobile:text-left text-base font-semibold text-white">
             {idoInfo.base?.symbol ?? 'UNKNOWN'}
           </div>
-          <div className="text-center mobile:text-left text-sm text-[#ABC4FF] opacity-50">
-            {idoInfo.project.projectName}
-          </div>
+          <div className="text-center mobile:text-left text-sm text-[#ABC4FF] opacity-50">{idoInfo.projectName}</div>
         </div>
         <Badge
           size="md"
@@ -449,10 +446,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
               fieldValue={
                 <Row className="items-baseline gap-1">
                   <div className="text-white font-medium">{formatNumber(idoInfo.depositedTicketCount)}</div>
-                  <div className="text-[#ABC4FF80] font-medium text-xs">
-                    {' '}
-                    / {formatNumber(idoInfo.state.maxWinLotteries)}
-                  </div>
+                  <div className="text-[#ABC4FF80] font-medium text-xs"> / {formatNumber(idoInfo.maxWinLotteries)}</div>
                   <Tooltip placement="bottom" className="self-center">
                     <Icon size="sm" heroIconName="information-circle" className="text-[#ABC4FF80]" />
                     <Tooltip.Panel>
@@ -479,17 +473,17 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
             fieldName="Pool open"
             fieldValue={
               <Row className="items-baseline gap-1">
-                {currentIsBefore(Number(idoInfo.state.startTime)) ? (
+                {currentIsBefore(Number(idoInfo.startTime)) ? (
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
-                      <IdoCountDownClock endTime={Number(idoInfo.state.startTime)} />
+                      <IdoCountDownClock endTime={Number(idoInfo.startTime)} />
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="text-white font-medium">
-                      {toUTC(Number(idoInfo.state.startTime), { hideUTCBadge: true })}
+                      {toUTC(Number(idoInfo.startTime), { hideUTCBadge: true })}
                     </div>
                     <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
                   </>
@@ -501,17 +495,17 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
             fieldName="Pool close"
             fieldValue={
               <Row className="items-baseline gap-1">
-                {currentIsBefore(Number(idoInfo.state.endTime)) ? (
+                {currentIsBefore(Number(idoInfo.endTime)) ? (
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
-                      <IdoCountDownClock endTime={Number(idoInfo.state.endTime)} />
+                      <IdoCountDownClock endTime={Number(idoInfo.endTime)} />
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="text-white font-medium">
-                      {toUTC(Number(idoInfo.state.endTime), { hideUTCBadge: true })}
+                      {toUTC(Number(idoInfo.endTime), { hideUTCBadge: true })}
                     </div>
                     <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
                   </>
@@ -569,7 +563,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                       }
                     }
                   ]}
-                  disabled={!currentIsBefore(raySnapshotDeadline)}
+                  disabled={!currentIsBefore(idoInfo.stakeTimeEnd)}
                   onClick={() => {
                     useStaking.setState({
                       isStakeDialogOpen: true,
@@ -591,16 +585,18 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
               fieldName="RAY staking deadline"
               fieldValue={
                 <Row className="items-baseline gap-1">
-                  {currentIsBefore(raySnapshotDeadline) ? (
+                  {currentIsBefore(idoInfo.stakeTimeEnd) ? (
                     <>
                       <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                       <div className="text-white font-medium">
-                        <IdoCountDownClock endTime={raySnapshotDeadline} />
+                        <IdoCountDownClock endTime={idoInfo.stakeTimeEnd} />
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="text-white font-medium">{toUTC(raySnapshotDeadline, { hideUTCBadge: true })}</div>
+                      <div className="text-white font-medium">
+                        {toUTC(idoInfo.stakeTimeEnd, { hideUTCBadge: true })}
+                      </div>
                       <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
                     </>
                   )}
@@ -648,21 +644,19 @@ function LotteryLedgerPanel({ className }: { className?: string }) {
         />
         <TopInfoPanelFieldItem
           fieldName="Your Deposited Tickets"
-          fieldValue={connected ? `${formatNumber(idoInfo.ledger?.depositedTickets?.length ?? 0)}` : '--'}
+          fieldValue={connected ? `${formatNumber(idoInfo.depositedTickets?.length ?? 0)}` : '--'}
         />
         <TopInfoPanelFieldItem
           fieldName="Your Winning Tickets"
           fieldValue={
-            connected
-              ? `${formatNumber(idoInfo.ledger?.depositedTickets?.filter((i) => i.isWinning)?.length ?? 0)}`
-              : '--'
+            connected ? `${formatNumber(idoInfo.depositedTickets?.filter((i) => i.isWinning)?.length ?? 0)}` : '--'
           }
         />
         <TopInfoPanelFieldItem
           fieldName="Your allocation"
           fieldValue={
             <Row className="items-baseline gap-1">
-              <div>{connected ? formatNumber(toString(idoInfo.ledger?.userAllocation) || 0) : '--'}</div>
+              <div>{connected ? formatNumber(toString(idoInfo.userAllocation) || 0) : '--'}</div>
               <div className="text-sm text-[#ABC4FF] opacity-50"> {idoInfo.base?.symbol ?? ''}</div>
             </Row>
           }
@@ -684,10 +678,10 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
 
   const renderProjectDetails = (
     <>
-      <Markdown className="py-6">{idoInfo.project.detailText}</Markdown>
+      <Markdown className="py-6">{idoInfo.projectDetailText ?? ''}</Markdown>
       <Row className="justify-between mobile:gap-board">
         <AutoBox is={isMobile ? 'Col' : 'Row'} className="gap-6 mobile:gap-3">
-          {Object.entries(idoInfo.project.officialSites).map(([docName, linkAddress]) => (
+          {Object.entries(idoInfo.projectDocs ?? {}).map(([docName, linkAddress]) => (
             <Link
               key={docName}
               href={linkAddress}
@@ -698,7 +692,7 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
           ))}
         </AutoBox>
         <Row className="gap-6 mobile:gap-3">
-          {Object.entries(idoInfo.project.socialsSites ?? {}).map(([socialName, link]) => (
+          {Object.entries(idoInfo.projectSocials ?? {}).map(([socialName, link]) => (
             <Link key={socialName} href={link} className="flex items-center">
               <Icon
                 className="frosted-glass-skygray p-2.5 rounded-lg text"
@@ -810,7 +804,7 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
       </Row>
       <Link
         className="pt-4 rounded-none flex-grow font-medium text-[#ABC4FF] text-xs flex justify-center gap-1 items-center"
-        href={idoInfo.project.detailDocLink}
+        href={idoInfo.projectDetailLink}
       >
         <Icon size="sm" inline heroIconName="information-circle" />
         Read full details on Medium
@@ -871,12 +865,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
     <Row className="items-center">
       <Row className="items-center gap-1">
         <span>Pool opens in</span>
-        <IdoCountDownClock
-          singleValueMode
-          labelClassName="text-base"
-          endTime={idoInfo.state.endTime.toNumber()}
-          onEnd={refreshSelf}
-        />
+        <IdoCountDownClock singleValueMode labelClassName="text-base" endTime={idoInfo.endTime} onEnd={refreshSelf} />
       </Row>
       <div className="ml-auto">
         <RefreshCircle refreshKey="acceleraytor" />
@@ -985,7 +974,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
             fallbackProps: { children: 'Joined' }
           },
           {
-            should: (idoInfo.ledger?.depositedTickets?.length ?? 0) === 0,
+            should: (idoInfo.depositedTickets?.length ?? 0) === 0,
             fallbackProps: { children: 'You have already deposited' }
           },
           {
@@ -997,11 +986,11 @@ function LotteryInputPanel({ className }: { className?: string }) {
             fallbackProps: { children: 'No eligible tickets' }
           },
           {
-            should: ticketAmount && gte(ticketAmount, idoInfo.state.perUserMinLotteries),
-            fallbackProps: { children: `Min. tickets amount is ${idoInfo.state.perUserMinLotteries}` }
+            should: ticketAmount && idoInfo.state && gte(ticketAmount, idoInfo.state.perUserMinLotteries),
+            fallbackProps: { children: `Min. tickets amount is ${idoInfo.state?.perUserMinLotteries}` }
           },
           {
-            should: ticketAmount && lte(ticketAmount, idoInfo.state.perUserMaxLotteries),
+            should: ticketAmount && idoInfo.state && lte(ticketAmount, idoInfo.state.perUserMaxLotteries),
             fallbackProps: { children: `Max. tickets amount is ${idoInfo.userEligibleTicketAmount}` }
           },
           {

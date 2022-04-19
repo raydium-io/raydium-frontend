@@ -4,7 +4,7 @@ import { PublicKey } from '@solana/web3.js'
 import useWallet from '@/application/wallet/useWallet'
 
 import { Ido, Snapshot } from '../sdk'
-import { SdkParsedIdoInfo } from '../type'
+import { SdkIdoInfo } from '../type'
 import handleMultiTx from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import { SubscribeSignatureCallbacks } from '@/application/txTools/subscribeTx'
@@ -13,7 +13,7 @@ export default async function txIdoClaim({
   idoInfo,
   side,
   ...callbacks
-}: { idoInfo: SdkParsedIdoInfo; side: 'base' | 'quote' } & SubscribeSignatureCallbacks) {
+}: { idoInfo: SdkIdoInfo; side: 'base' | 'quote' } & SubscribeSignatureCallbacks) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const tokenAccounts = useWallet.getState().tokenAccounts
     if (!idoInfo.base || !idoInfo.quote) return

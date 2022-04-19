@@ -32,6 +32,7 @@ import { useForceUpdate } from '@/hooks/useForceUpdate'
 import useStaking from '@/application/staking/useStaking'
 import toPercentString from '@/functions/format/toPercentString'
 import LoadingCircle from '@/components/LoadingCircle'
+import useUpdate from '@/hooks/useUpdate'
 
 export default function AcceleRaytor() {
   const infos = useIdo((s) => s.idoHydratedInfos)
@@ -61,10 +62,10 @@ function IdoList() {
   const infos = useIdo((s) => s.idoHydratedInfos)
   const isMobile = useAppSettings((s) => s.isMobile)
 
-  const upcomingPools = Object.values(infos).filter((i) => i.isUpcoming)
+  const upcomingPools = useMemo(() => Object.values(infos).filter((i) => i.isUpcoming), [infos])
   const openPools = Object.values(infos).filter((i) => i.isOpen)
   const closedPools = Object.values(infos).filter((i) => i.isClosed || i.canWithdrawBase)
-  useEffect(() => {
+  useUpdate(() => {
     if (upcomingPools.length) {
       useIdo.setState({ currentTab: 'Upcoming Pools' })
     }
@@ -76,7 +77,7 @@ function IdoList() {
           <div className="text-2xl mobile:text-base mobile:px-4 mb-8 mobile:mb-4 font-semibold text-white w-[min(890px,100%)] self-center">
             Open Pool{openPools.length > 1 ? 's' : ''}
           </div>
-          <Col className="gap-12 mobile:gap-8 w-[min(890px,100%)] mx-auto mobile:w-full">
+          <Col className="gap-10 mobile:gap-8 w-[min(890px,100%)] mx-auto mobile:w-full">
             {openPools.map((info) => (
               <div key={info.id}>
                 <CyberpunkStyleCard>
@@ -141,11 +142,11 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
           <CoinAvatar noCoinIconBorder size={isMobile ? 'md' : 'lg'} token={info.base} />
           <div>
             <div className="text-base mobile:text-sm font-semibold text-white">{info.base?.symbol ?? 'UNKNOWN'}</div>
-            <div className="text-sm mobile:text-xs text-[#ABC4FF80]">{info.project.projectName}</div>
+            <div className="text-sm mobile:text-xs text-[#ABC4FF80]">{info.projectName}</div>
           </div>
         </Row>
         <Row className="flex-wrap gap-4 mobile:gap-3 items-center border-l border-[rgba(171,196,255,0.5)] self-center pl-6 mobile:pl-3">
-          {Object.entries({ website: info.project.officialSites.website, ...info.project.socialsSites }).map(
+          {/* {Object.entries({ website: info.project.officialSites.website, ...info.project.socialsSites }).map(
             ([socialName, link]) => (
               <Link key={socialName} href={link} className="flex items-center gap-2 clickable">
                 <Icon
@@ -155,7 +156,7 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
                 />
               </Link>
             )
-          )}
+          )} */}
         </Row>
       </Row>
 
@@ -184,9 +185,9 @@ function FaceButtonGroupUpcoming({ info }: { info: HydratedIdoInfo }) {
       >
         Pool Information
       </Button>
-      <Link className="mx-4 text-[#ABC4FF80] font-bold mobile:text-xs" href={info.project.detailDocLink}>
+      {/* <Link className="mx-4 text-[#ABC4FF80] font-bold mobile:text-xs" href={info.}>
         Full Details
-      </Link>
+      </Link> */}
     </AutoBox>
   )
 }
@@ -224,7 +225,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
                 onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
               }
             },
-            { should: info.ledger && gt(info.ledger.winningTickets?.length, 0) && eq(info.ledger.baseWithdrawn, 0) },
+            { should: info.ledger && gt(info?.winningTickets?.length, 0) && eq(info.ledger.baseWithdrawn, 0) },
             {
               should: info.canWithdrawBase,
               fallbackProps: {
@@ -235,7 +236,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
                       className="ml-1"
                       singleValueMode
                       labelClassName="text-base"
-                      endTime={Number(info.state.startWithdrawTime)}
+                      endTime={Number(info.startWithdrawTime)}
                       onEnd={forceUpdate}
                     />
                   </Row>
@@ -254,9 +255,9 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
           Withdraw {info.base?.symbol ?? 'UNKNOWN'}
         </Button>
         <FadeIn>
-          {gt(info.ledger?.winningTickets?.length, 0) && eq(info.ledger?.baseWithdrawn, 0) && (
+          {gt(info.winningTickets?.length, 0) && eq(info.ledger?.baseWithdrawn, 0) && (
             <div className="text-xs mt-1 font-semibold text-[#ABC4FF80]">
-              {info.ledger?.winningTickets?.length} winning tickets
+              {info.winningTickets?.length} winning tickets
             </div>
           )}
         </FadeIn>
@@ -290,8 +291,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
         <FadeIn>
           {eq(info.ledger?.quoteWithdrawn, 0) && (
             <div className="text-xs mt-1 font-semibold text-[#ABC4FF80]">
-              {(info.ledger?.depositedTickets?.length ?? 0) - (info.ledger?.winningTickets?.length ?? 0)} non-winning
-              tickets
+              {(info.depositedTickets?.length ?? 0) - (info.winningTickets?.length ?? 0)} non-winning tickets
             </div>
           )}
         </FadeIn>
@@ -302,9 +302,10 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
 function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   return (
     <Row className="p-4 mobile:p-3 flex-wrap gap-6 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg">
-      <Link href={info.project.detailDocLink} className="flex-shrink-0 mobile:w-full">
+      <Link className="flex-shrink-0 mobile:w-full">
+        {/* href={info.project.detailDocLink}  */}
         <Image
-          src={info.project.idoThumbnail}
+          src={info.projectPosters}
           className={`w-[360px] mobile:w-full h-[310px] mobile:h-[106px] object-cover rounded-xl`}
         />
       </Link>
@@ -354,17 +355,17 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
             fieldName="Pool open"
             fieldValue={
               <Row className="items-baseline gap-1">
-                {currentIsBefore(Number(info.state.startTime)) ? (
+                {currentIsBefore(Number(info.startTime)) ? (
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
-                      <IdoCountDownClock endTime={Number(info.state.startTime)} />
+                      <IdoCountDownClock endTime={Number(info.startTime)} />
                     </div>
                   </>
                 ) : (
                   <>
                     <div className="text-white font-medium">
-                      {toUTC(Number(info.state.startTime), { hideUTCBadge: true })}
+                      {toUTC(Number(info.startTime), { hideUTCBadge: true })}
                     </div>
                     <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
                   </>
@@ -376,18 +377,16 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
             fieldName="Pool close"
             fieldValue={
               <Row className="items-baseline gap-1">
-                {currentIsBefore(Number(info.state.endTime)) ? (
+                {currentIsBefore(Number(info.endTime)) ? (
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
-                      <IdoCountDownClock endTime={Number(info.state.endTime)} />
+                      <IdoCountDownClock endTime={Number(info.endTime)} />
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="text-white font-medium">
-                      {toUTC(Number(info.state.endTime), { hideUTCBadge: true })}
-                    </div>
+                    <div className="text-white font-medium">{toUTC(Number(info.endTime), { hideUTCBadge: true })}</div>
                     <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
                   </>
                 )}
@@ -404,7 +403,6 @@ function IdoItemCardContentButtonGroup({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
-  const raySnapshotDeadline = Number(info.state.startTime) - 3600 * 24 * 7 * 1000 //TODO : always 7 days before lottery start, which is fragile <--- rudy said should managed by backend
 
   return info.isUpcoming ? (
     <AutoBox
@@ -452,7 +450,7 @@ function IdoItemCardContentButtonGroup({ info }: { info: HydratedIdoInfo }) {
               }
             }
           ]}
-          disabled={!currentIsBefore(raySnapshotDeadline)}
+          disabled={!currentIsBefore(info.stakeTimeEnd)}
           onClick={() => {
             useStaking.setState({
               isStakeDialogOpen: true,
@@ -481,7 +479,8 @@ function IdoItemCardContentButtonGroup({ info }: { info: HydratedIdoInfo }) {
       >
         Pool Information
       </Button>
-      <Link className="mx-4 text-[#ABC4FF80] font-bold mobile:text-xs" href={info.project.detailDocLink}>
+      <Link className="mx-4 text-[#ABC4FF80] font-bold mobile:text-xs">
+        {/* href={info.project.detailDocLink} */}
         Full Details
       </Link>
     </AutoBox>
