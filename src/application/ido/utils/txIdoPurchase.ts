@@ -6,24 +6,25 @@ import BN from 'bn.js'
 import { SubscribeSignatureCallbacks } from '@/application/txTools/subscribeTx'
 
 import { Ido, Snapshot } from '../sdk'
-import { SdkParsedIdoInfo } from '../type'
-import useWallet from '@/application/wallet/useWallet'
+import { SdkIdoInfo } from '../type'
 import handleMultiTx from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
+import assert from '@/functions/assert'
 
 export default async function txIdoPurchase({
   idoInfo,
   amount,
   ...callbacks
 }: {
-  idoInfo: SdkParsedIdoInfo
+  idoInfo: SdkIdoInfo
   amount: BN
 } & SubscribeSignatureCallbacks) {
+  assert(idoInfo.state, 'opps sdk fail to load')
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner, tokenAccounts } }) => {
     if (!idoInfo.base || !idoInfo.quote) return
     const piecesCollector = createTransactionCollector()
 
-    const lamports = idoInfo.state.perLotteryQuoteAmount.mul(amount)
+    const lamports = idoInfo.state!.perLotteryQuoteAmount.mul(amount)
 
     const baseTokenAccount = await Spl.getAssociatedTokenAccount({ mint: idoInfo.base.mint, owner })
     let quoteTokenAccount = await Spl.getAssociatedTokenAccount({ mint: idoInfo.quote.mint, owner })

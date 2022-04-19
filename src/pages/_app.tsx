@@ -46,6 +46,7 @@ import { useWalletConnectNotifaction } from '@/application/wallet/feature/useWal
 import { useInitShadowKeypairs } from '@/application/wallet/feature/useInitShadowKeypairs'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
 import useStealDataFromFarm from '@/application/staking/feature/useStealDataFromFarm'
+import { useTokenGetterFnLoader } from '@/application/token/feature/useTokenGetterFnLoader'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -128,6 +129,7 @@ function ApplicationsInitializations() {
   useTokenPriceRefresher()
   useTokenMintAutoRecord()
   useTokenListSettingsLocalStorage()
+  useTokenGetterFnLoader()
 
   /********************** pariInfo(pools) **********************/
   usePoolsInfoLoader()

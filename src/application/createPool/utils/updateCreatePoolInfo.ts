@@ -6,7 +6,9 @@ import useNotification from '@/application/notification/useNotification'
 import { usePools } from '@/application/pools/usePools'
 import { WSOLMint } from '@/application/token/utils/quantumSOL'
 import {
+  ANAMint,
   mSOLMint,
+  NRVMint,
   PAIMint,
   RAYMint,
   SRMMint,
@@ -46,15 +48,16 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
       PAI: String(PAIMint),
       mSOL: String(mSOLMint),
       stSOL: String(stSOLMint),
-      USDH: String(USDHMint)
+      USDH: String(USDHMint),
+      NRV: String(NRVMint),
+      ANA: String(ANAMint)
     }
 
     assert(
       Object.values(avaliableQuoteMints).includes(String(quoteMint)),
-      `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI. current: ${toPubString(quoteMint).slice(
-        0,
-        4
-      )}...${toPubString(quoteMint).slice(-4)} is not avaliable`
+      `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, NRV, ANA. current: ${toPubString(
+        quoteMint
+      ).slice(0, 4)}...${toPubString(quoteMint).slice(-4)} is not avaliable`
     )
 
     const baseTokenBufferInfo = await connection.getAccountInfo(new PublicKey(baseMint))

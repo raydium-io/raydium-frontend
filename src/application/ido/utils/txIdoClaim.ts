@@ -2,12 +2,12 @@ import { Spl, WSOL } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { Ido, Snapshot } from '../sdk'
-import { SdkParsedIdoInfo } from '../type'
+import { SdkIdoInfo } from '../type'
 import handleMultiTx, { TxAddOptions, TxShadowOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 
 export default async function txIdoClaim(
-  options: { idoInfo: SdkParsedIdoInfo; side: 'base' | 'quote' } & TxAddOptions & TxShadowOptions
+  options: { idoInfo: SdkIdoInfo; side: 'base' | 'quote' } & TxAddOptions & TxShadowOptions
 ) {
   const { idoInfo, side, forceKeyPairs, ...restTxAddOptions } = options
   return handleMultiTx(

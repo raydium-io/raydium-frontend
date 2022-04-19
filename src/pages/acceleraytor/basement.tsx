@@ -3,7 +3,6 @@ import React, { ReactNode } from 'react'
 import Grid from '@/components/Grid'
 import PageLayout from '@/components/PageLayout'
 import useIdo from '@/application/ido/useIdo'
-import Row from '@/components/Row'
 import { AddressItem } from '@/components/AddressItem'
 import { ThreeSlotItem } from '@/components/ThreeSlotItem'
 import { toString } from '@/functions/numberish/toString'
@@ -46,7 +45,7 @@ function IdoPanel() {
                     label="Eligible tickets"
                     value={String(idoHydratedInfo.userEligibleTicketAmount ?? '--')}
                   />
-                  <ItemBlock label="Winning tickets count" value={idoHydratedInfo.ledger?.winningTickets?.length} />
+                  <ItemBlock label="Winning tickets count" value={idoHydratedInfo.winningTickets?.length} />
                   <div>
                     <ItemBlock
                       label={`claimable ${idoHydratedInfo.quote?.symbol ?? '--'}`}
@@ -86,7 +85,7 @@ function IdoPanel() {
                 label="Total winning tickets"
                 value={toString(
                   Object.values(idoHydratedInfoCollection ?? {}).reduce(
-                    (acc, idoHydratedInfo) => add(acc, idoHydratedInfo.ledger?.winningTickets?.length ?? 0),
+                    (acc, idoHydratedInfo) => add(acc, idoHydratedInfo.winningTickets?.length ?? 0),
                     0 as Numberish
                   )
                 )}

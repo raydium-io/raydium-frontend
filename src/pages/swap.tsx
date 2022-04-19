@@ -672,7 +672,7 @@ function SwapCardPriceIndicator({ className }: { className?: string }) {
         )}
       </FadeIn>
       <FadeIn>
-        {priceImpact && (
+        {priceImpact ? (
           <div
             className={`font-medium text-xs whitespace-nowrap ${
               isDangerousPrice ? 'text-[#DA2EEF]' : isWarningPrice ? 'text-[#D8CB39]' : 'text-[#39D0D8]'
@@ -680,7 +680,7 @@ function SwapCardPriceIndicator({ className }: { className?: string }) {
           >
             {isDangerousPrice || isWarningPrice ? 'Price Impact Warning' : 'Low Price Impact'}
           </div>
-        )}
+        ) : null}
       </FadeIn>
     </Col>
   )

@@ -1,4 +1,4 @@
-import React, { FC, useCallback, useMemo } from 'react'
+import React, { FC, ReactNode, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
 import { BitpieWalletAdapter } from '@solana/wallet-adapter-bitpie'
@@ -17,10 +17,10 @@ import { TorusWalletAdapter } from '@solana/wallet-adapter-torus'
 import { clusterApiUrl } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
-import { LedgerWalletAdapter } from '@solana/wallet-adapter-wallets'
+import { BitKeepWalletAdapter, LedgerWalletAdapter } from '@solana/wallet-adapter-wallets'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */
-export const SolanaWalletProviders: FC = ({ children }) => {
+export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
   // Set to 'devnet' | 'testnet' | 'mainnet-beta' or provide a custom RPC endpoint
   const { currentEndPoint } = useConnection()
   const { pathname } = useRouter()
@@ -42,7 +42,8 @@ export const SolanaWalletProviders: FC = ({ children }) => {
       new SlopeWalletAdapter({ endpoint }),
       new BitpieWalletAdapter({ endpoint }),
       new GlowWalletAdapter({ endpoint }),
-      new TokenPocketWalletAdapter()
+      new TokenPocketWalletAdapter(),
+      new BitKeepWalletAdapter({ endpoint })
     ],
     [endpoint]
   )
