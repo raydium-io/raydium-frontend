@@ -11,7 +11,7 @@ import toPubString, { toPub } from '@/functions/format/toMintString'
 import useConnection from '@/application/connection/useConnection'
 import useWallet from '@/application/wallet/useWallet'
 import asyncMap from '@/functions/asyncMap'
-import { fetchRawIdoListJson } from './fetchRawIdoListJson'
+import { fetchRawIdoListJson } from './fetchIdoInfo'
 import { objectShakeNil } from '@/functions/objectMethods'
 
 // function wrapJsonValueToPublicKey(value: T): PublicKey {

@@ -100,10 +100,12 @@ export interface GetIdoInfoParams {
   // then there is no need to pass in
   // But it can't work in SDK
   owner?: PublicKey
+
   config?: GetMultipleAccountsInfoConfig
 }
 
 export interface GetIdoMultipleInfoParams extends Omit<GetIdoInfoParams, 'poolConfig'> {
+  noNeedState?: boolean
   poolsConfig: IdoPoolConfig[]
 }
 
@@ -392,7 +394,7 @@ export class Ido {
   }
 
   /** return {@link IdoInfo} */
-  static async getMultipleInfo({ connection, poolsConfig, owner, config }: GetIdoMultipleInfoParams) {
+  static async getMultipleInfo({ connection, poolsConfig, noNeedState, owner, config }: GetIdoMultipleInfoParams) {
     const publicKeys: {
       pubkey: PublicKey
       version: IdoVersion | SnapshotVersion
@@ -401,12 +403,14 @@ export class Ido {
     }[] = []
 
     for (const poolConfig of poolsConfig) {
-      publicKeys.push({
-        pubkey: poolConfig.id,
-        version: poolConfig.version,
-        key: 'state',
-        poolId: poolConfig.id
-      })
+      if (!noNeedState) {
+        publicKeys.push({
+          pubkey: poolConfig.id,
+          version: poolConfig.version,
+          key: 'state',
+          poolId: poolConfig.id
+        })
+      }
 
       if (owner) {
         publicKeys.push({

@@ -2,7 +2,7 @@ import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { Percent, Price } from '@raydium-io/raydium-sdk'
 
-import { HydratedIdoInfo, SdkIdoInfo, TicketInfo, TicketTailNumberInfo } from '../type'
+import { BackendApiIdoListItem, HydratedIdoInfo, SdkIdoInfo, TicketInfo, TicketTailNumberInfo } from '../type'
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, getMin, mul } from '@/functions/numberish/operations'
 import { usdCurrency } from '@/functions/format/toTokenPrice'

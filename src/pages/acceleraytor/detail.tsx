@@ -192,23 +192,25 @@ function WinningTicketPanel({ className }: { className?: string }) {
           <Row className="flex-wrap gap-7 justify-between p-8 mobile:p-5">
             {idoInfo?.canWithdrawBase || idoInfo?.isClosed ? (
               <Col className="gap-1">
-                <div className="mobile:text-sm font-semibold text-base text-white">
-                  {['1', '2'].includes(String(idoInfo?.winningTicketsTailNumber.isWinning)) ? (
-                    <div>
-                      {idoInfo
-                        ?.winningTicketsTailNumber!.tickets.map(
-                          ({ no, isPartial }) => `${no}${isPartial ? ' (partial)' : ''}`
-                        )
-                        .join(', ')}
-                    </div>
-                  ) : ['3'].includes(String(idoInfo?.winningTicketsTailNumber.isWinning)) ? (
-                    <div>(Every deposited ticket wins)</div>
-                  ) : (
-                    <div className="opacity-50">
-                      {idoInfo?.isClosed ? '(Lottery in progress)' : '(Numbers selected when lottery ends)'}
-                    </div>
-                  )}
-                </div>
+                {idoInfo.winningTicketsTailNumber ? (
+                  <div className="mobile:text-sm font-semibold text-base text-white">
+                    {['1', '2'].includes(String(idoInfo.winningTicketsTailNumber?.isWinning)) ? (
+                      <div>
+                        {idoInfo.winningTicketsTailNumber?.tickets
+                          .map(({ no, isPartial }) => `${no}${isPartial ? ' (partial)' : ''}`)
+                          .join(', ')}
+                      </div>
+                    ) : ['3'].includes(String(idoInfo.winningTicketsTailNumber?.isWinning)) ? (
+                      <div>(Every deposited ticket wins)</div>
+                    ) : (
+                      <div className="opacity-50">
+                        {idoInfo?.isClosed ? '(Lottery in progress)' : '(Numbers selected when lottery ends)'}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div></div>
+                )}
                 <div className="text-xs font-semibold  text-[#ABC4FF] opacity-50">
                   {
                     {
@@ -217,7 +219,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                       '2': 'Lucky Ending Numbers',
                       '3': 'All Tickets Win',
                       undefined: 'Lucky Ending Numbers'
-                    }[String(idoInfo?.winningTicketsTailNumber.isWinning)] // TODO: to hydrated info
+                    }[String(idoInfo.winningTicketsTailNumber?.isWinning)] // TODO: to hydrated info
                   }
                 </div>
               </Col>
@@ -672,13 +674,13 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
   const isMobile = useAppSettings((s) => s.isMobile)
 
-  const [currentTab, setCurrentTab] = useState<'Project Details' | 'How to join?'>('How to join?')
+  const [currentTab, setCurrentTab] = useState<'Project Details' | 'How to join?'>('Project Details')
 
   if (!idoInfo) return null
 
   const renderProjectDetails = (
     <>
-      <Markdown className="py-6">{idoInfo.projectDetailText ?? ''}</Markdown>
+      <Markdown className="py-6">{idoInfo.projectDetails ?? ''}</Markdown>
       <Row className="justify-between mobile:gap-board">
         <AutoBox is={isMobile ? 'Col' : 'Row'} className="gap-6 mobile:gap-3">
           {Object.entries(idoInfo.projectDocs ?? {}).map(([docName, linkAddress]) => (
@@ -813,7 +815,7 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
   )
   return (
     <Card
-      className={twMerge('py-8 px-6 rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]', className)}
+      className={twMerge('p-6 rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]', className)}
       size="lg"
     >
       <Tabs

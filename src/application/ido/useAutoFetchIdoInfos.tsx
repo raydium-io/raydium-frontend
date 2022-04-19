@@ -5,13 +5,17 @@ import useAsyncEffect from '@/hooks/useAsyncEffect'
 import useIdo from './useIdo'
 import { EffectCheckSetting, shouldEffectBeOn } from '../miscTools'
 import useToken from '@/application/token/useToken'
-import { fetchRawIdoListJson } from './utils/fetchRawIdoListJson'
+import { fetchRawIdoListJson, fetchRawIdoProjectInfoJson, getSdkIdoList } from './utils/fetchIdoInfo'
 import { hydrateIdoInfo } from './utils/hydrateIdoInfo'
+import toPubString, { ToPubPropertyValue } from '@/functions/format/toMintString'
+import { objectMap } from '@/functions/objectMethods'
 
 export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetting }) {
   const connection = useConnection((s) => s.connection)
   const owner = useWallet((s) => s.owner)
   const shadowKeypairs = useWallet((s) => s.shadowKeypairs)
+  const idoRawInfos = useIdo((s) => s.idoRawInfos)
+  const currentIdoId = useIdo((s) => s.currentIdoId)
   const tokens = useToken((s) => s.tokens)
   const getToken = useToken((s) => s.getToken)
 
@@ -19,30 +23,91 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
   useAsyncEffect(async () => {
     if (!shouldEffectBeOn(options?.when)) return
     const rawList = await fetchRawIdoListJson()
-
     const hydrated = rawList.map((raw) => {
       const base = getToken(raw.baseMint)
       const quote = getToken(raw.quoteMint)
       return hydrateIdoInfo({ ...raw, base, quote })
     })
-    useIdo.setState({
+    const hydratedInfos = listToMap(hydrated, (i) => i.id)
+    useIdo.setState((s) => ({
       idoRawInfos: listToMap(rawList, (i) => i.id),
-      idoHydratedInfos: listToMap(hydrated, (i) => i.id)
+      idoHydratedInfos: {
+        ...s.idoHydratedInfos,
+        ...objectMap(hydratedInfos, (newHydratedInfo, idoid) => ({
+          ...s.idoHydratedInfos[idoid],
+          ...newHydratedInfo
+        }))
+      }
+    }))
+  }, [tokens, options?.when])
+
+  // inject project info
+  useAsyncEffect(async () => {
+    if (!shouldEffectBeOn(options?.when)) return
+    if (!currentIdoId) return
+    const projectInfo = await fetchRawIdoProjectInfoJson({ idoId: currentIdoId })
+    if (!projectInfo) return // some error occurs
+    useIdo.setState((s) => ({
+      idoProjectInfos: { ...s.idoProjectInfos, [currentIdoId]: projectInfo },
+      idoHydratedInfos: {
+        ...s.idoHydratedInfos,
+        [currentIdoId]: { ...s.idoHydratedInfos[currentIdoId], ...projectInfo }
+      }
+    }))
+  }, [currentIdoId, options?.when])
+
+  // get SDKInfo, and merge with rawInfo
+  useAsyncEffect(async () => {
+    if (!shouldEffectBeOn(options?.when)) return
+    if (!connection) return
+    const rawList = Object.values(idoRawInfos ?? {})
+    const publicKeyed = ToPubPropertyValue(rawList)
+
+    // get sdk ledger/snapshot and render
+    const sdkList = await getSdkIdoList({ publicKeyed, connection, owner, options: { noIdoState: true } })
+    const sdkInfos = Object.fromEntries([rawList.map((raw, idx) => [raw.id, sdkList[idx]])])
+    const hydrated = sdkList.map((sdkInfo, idx) => {
+      const rawInfo = rawList[idx]
+      const base = getToken(rawInfo.baseMint) // must haeeeve raw.state
+      const quote = getToken(rawInfo.quoteMint)
+      return hydrateIdoInfo({ ...rawInfo, ...sdkInfo, base, quote })
     })
-  }, [tokens])
+    const hydratedInfos = listToMap(hydrated, (i) => i.id)
+    useIdo.setState((s) => ({
+      idoSDKInfos: sdkInfos,
+      idoHydratedInfos: {
+        ...s.idoHydratedInfos,
+        ...objectMap(hydratedInfos, (newHydratedInfo, idoid) => ({
+          ...s.idoHydratedInfos[idoid],
+          ...newHydratedInfo
+        }))
+      }
+    }))
 
-  // get SDK without state
-
-  // hydrated
-  // useAsyncEffect(async () => {
-  //   if (!shouldEffectBeOn(options?.when)) return
-  //   if (!Object.keys(tokens).length) return
-  //   const hydratedIdoDetailInfo = (await getAllHydratedIdoInfos()) ?? []
-  //   if (!hydratedIdoDetailInfo) return
-  //   useIdo.setState({
-  //     idoHydratedInfos: listToMap(hydratedIdoDetailInfo, (i) => i.id)
-  //   })
-  // }, [connection, owner, tokens, options?.when])
+    // defferly get all
+    setTimeout(async () => {
+      const sdkList = await getSdkIdoList({ publicKeyed, connection, owner })
+      const sdkInfos = Object.fromEntries([rawList.map((raw, idx) => [raw.id, sdkList[idx]])])
+      const hydrated = sdkList.map((sdkInfo, idx) => {
+        const rawInfo = rawList[idx]
+        const base = getToken(rawInfo.baseMint) // must have raw.state
+        const quote = getToken(rawInfo.quoteMint)
+        const hydratedResult = hydrateIdoInfo({ ...rawInfo, ...sdkInfo, base, quote })
+        return hydratedResult
+      })
+      const hydratedInfos = listToMap(hydrated, (i) => i.id)
+      useIdo.setState((s) => ({
+        idoSDKInfos: sdkInfos,
+        idoHydratedInfos: {
+          ...s.idoHydratedInfos,
+          ...objectMap(hydratedInfos, (newHydratedInfo, idoid) => ({
+            ...s.idoHydratedInfos[idoid],
+            ...newHydratedInfo
+          }))
+        }
+      }))
+    }, 1000)
+  }, [idoRawInfos, connection, options?.when, owner])
 
   // useAsyncEffect(async () => {
   //   if (!shouldEffectBeOn(options?.when)) return

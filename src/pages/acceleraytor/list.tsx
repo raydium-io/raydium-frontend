@@ -65,9 +65,14 @@ function IdoList() {
   const upcomingPools = useMemo(() => Object.values(infos).filter((i) => i.isUpcoming), [infos])
   const openPools = Object.values(infos).filter((i) => i.isOpen)
   const closedPools = Object.values(infos).filter((i) => i.isClosed || i.canWithdrawBase)
+
+  // because upcoming may change many times
+  const hasSetUpcomingTab = useRef(false)
   useUpdate(() => {
+    if (hasSetUpcomingTab.current) return
     if (upcomingPools.length) {
       useIdo.setState({ currentTab: 'Upcoming Pools' })
+      hasSetUpcomingTab.current = true
     }
   }, [upcomingPools])
   return (
