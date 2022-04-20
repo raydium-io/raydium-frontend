@@ -81,17 +81,6 @@ type ShowHydratedIdoInfos = {
   }
 }
 
-export async function getSdkIdoList({ publicKeyed, owner }: { publicKeyed: any[]; owner?: PublicKeyish }) {
-  const { connection } = useConnection.getState()
-  if (!connection) return
-  return await Ido.getMultipleInfo({
-    connection,
-    poolsConfig: publicKeyed,
-    owner: toPub(owner),
-    config: { batchRequest: true }
-  })
-}
-
 // /**
 //  * just fetch some single ido by shadowWallets
 //  */

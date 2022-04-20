@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useMemo } from 'react'
 
 import Grid from '@/components/Grid'
 import PageLayout from '@/components/PageLayout'
@@ -12,6 +12,7 @@ import Button from '@/components/Button'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import useWallet from '@/application/wallet/useWallet'
 import toPubString from '@/functions/format/toMintString'
+import { HydratedIdoInfo } from '@/application/ido/type'
 
 export default function BasementPage() {
   return (
@@ -24,6 +25,28 @@ export default function BasementPage() {
 function IdoPanel() {
   const idoHydratedInfos = useIdo((s) => s.idoHydratedInfos)
   const shadowIdoHydratedInfos = useIdo((s) => s.shadowIdoHydratedInfos) // maybe independent it from useEffect
+  const switchKeyLeveledShadowIdoHydratedInfos = useMemo(() => {
+    const items = [] as { shadowWalletAddress: string; idoid: string; hydratedInfo: HydratedIdoInfo }[]
+
+    // decode
+    for (const [shadowWalletAddress, infoBlock] of Object.entries(shadowIdoHydratedInfos ?? {})) {
+      for (const [idoid, hydratedInfo] of Object.entries(infoBlock)) {
+        items.push({
+          shadowWalletAddress,
+          idoid,
+          hydratedInfo
+        })
+      }
+    }
+
+    // re-compose
+    const composed = {} as { [idoid: string]: { [walletOwnerAddress: string]: HydratedIdoInfo } }
+    for (const { idoid, shadowWalletAddress, hydratedInfo } of items) {
+      composed[idoid] = { ...composed[idoid], [shadowWalletAddress]: hydratedInfo }
+    }
+
+    return composed
+  }, [shadowIdoHydratedInfos])
   // eslint-disable-next-line no-console
   const shadowKeypairs = useWallet((s) => s.shadowKeypairs)
   return (
@@ -32,7 +55,7 @@ function IdoPanel() {
         Ido Tickets
       </div>
       <Grid className="grid-cols-2 gap-24 pb-4 pt-2">
-        {Object.entries(shadowIdoHydratedInfos ?? {}).map(([idoId, idoHydratedInfoCollection]) => (
+        {Object.entries(switchKeyLeveledShadowIdoHydratedInfos ?? {}).map(([idoId, idoHydratedInfoCollection]) => (
           <Grid key={idoId} className="gap-2">
             <div className="text-2xl mobile:text-lg font-semibold justify-self-start text-white col-span-full mb-8">
               {Object.values(idoHydratedInfoCollection)[0].base?.symbol}
