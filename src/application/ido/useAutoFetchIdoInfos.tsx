@@ -121,8 +121,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
       const sdkList = await getSdkIdoList({
         publicKeyed,
         connection,
-        owner: publicKey,
-        options: { noIdoState: true }
+        owner: publicKey
       })
       const hydrated = sdkList.map((sdkInfo, idx) => {
         const rawInfo = rawList[idx]

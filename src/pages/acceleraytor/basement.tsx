@@ -6,7 +6,7 @@ import useIdo from '@/application/ido/useIdo'
 import { AddressItem } from '@/components/AddressItem'
 import { ThreeSlotItem } from '@/components/ThreeSlotItem'
 import { toString } from '@/functions/numberish/toString'
-import { add } from '@/functions/numberish/operations'
+import { add, mul, sub } from '@/functions/numberish/operations'
 import { Numberish } from '@/types/constants'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useWallet from '@/application/wallet/useWallet'
@@ -19,6 +19,7 @@ import toPubString from '@/functions/format/toMintString'
 import { HydratedIdoInfo } from '@/application/ido/type'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import Button from '@/components/Button'
+import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
 
 export default function BasementPage() {
   return (
@@ -120,10 +121,38 @@ function IdoPanel() {
                     label={`claimable ${idoHydratedInfo.quote?.symbol ?? '--'}`}
                     value={toString(idoHydratedInfo.claimableQuote)}
                   />
-                  <ItemBlock
-                    label={`${idoHydratedInfo.quote?.symbol ?? '--'} balance`}
-                    value={toString(shallowBalanceMap?.[walletOwner]?.balances?.[idoHydratedInfo.quoteMint]) || '--'}
-                  />
+                  <div>
+                    <ItemBlock
+                      label={`${idoHydratedInfo.quote?.symbol ?? '--'} balance`}
+                      value={`${
+                        toString(shallowBalanceMap?.[walletOwner]?.balances?.[idoHydratedInfo.quoteMint]) || '--'
+                      }(${toString(
+                        sub(
+                          shallowBalanceMap?.[walletOwner]?.balances?.[idoHydratedInfo.quoteMint],
+                          mul(idoHydratedInfo.userEligibleTicketAmount, idoHydratedInfo.ticketPrice)
+                        )
+                      )})`}
+                    />
+                    {toString(idoHydratedInfo.userEligibleTicketAmount) && (
+                      <Button
+                        className="frosted-glass-teal"
+                        size="xs"
+                        onClick={() => {
+                          const targetKeypair = shadowKeypairs?.find(
+                            (keypair) => toPubString(keypair.publicKey) === walletOwner
+                          )
+                          idoHydratedInfo.userEligibleTicketAmount &&
+                            txIdoPurchase({
+                              idoInfo: idoHydratedInfo,
+                              amount: idoHydratedInfo.userEligibleTicketAmount,
+                              forceKeyPairs: targetKeypair ? { ownerKeypair: targetKeypair } : undefined
+                            })
+                        }}
+                      >
+                        join
+                      </Button>
+                    )}
+                  </div>
                 </Grid>
               </div>
             ))}
