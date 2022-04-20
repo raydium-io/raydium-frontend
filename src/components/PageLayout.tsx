@@ -10,6 +10,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import useWallet from '@/application/wallet/useWallet'
+import { useWallet as useWalletAdapter } from '@solana/wallet-adapter-react'
 import jFetch from '@/functions/dom/jFetch'
 import linkTo from '@/functions/dom/linkTo'
 import { eq } from '@/functions/numberish/compare'
@@ -40,6 +41,8 @@ import { setCssVarible } from '@/functions/dom/cssVariable'
 import { inClient } from '@/functions/judgers/isSSR'
 import { useAppVersion } from '@/application/appVersion/useAppVersion'
 import { refreshWindow } from '@/application/appVersion/forceWindowRefresh'
+import {NotificationsButton} from "@dialectlabs/react-ui"
+import {PublicKey} from "@solana/web3.js"
 
 /**
  * for easier to code and read
@@ -256,6 +259,10 @@ function MigrateBubble() {
   )
 }
 
+const RAYDIUM_MONITORING_PUBLIC_KEY = new PublicKey(
+  'HZrny6ciLzhUt2HfZxj731NzAJUhTbwXhdKgQZsG8CTf'
+)
+
 function Navbar({
   barTitle,
   className,
@@ -268,6 +275,8 @@ function Navbar({
   // TODO: move it into useAppSetting()
   onOpenMenu?: () => void
 }) {
+  // Using original wallet adapter, since Dialect requires the original WalletContextState
+  const wallet = useWalletAdapter();
   const isMobile = useAppSettings((s) => s.isMobile)
   const pcNavContent = (
     <Row className="justify-between items-center">
@@ -276,7 +285,7 @@ function Navbar({
       </Link>
 
       <Row className="gap-8 items-center">
-        <MessageBoardWidget />
+        <NotificationsButton wallet={wallet} publicKey={RAYDIUM_MONITORING_PUBLIC_KEY} network="localnet" theme="dark" notifications={[]} />
         <WalletWidget />
       </Row>
     </Row>

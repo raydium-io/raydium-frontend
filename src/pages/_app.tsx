@@ -42,6 +42,8 @@ import { SolanaWalletProviders } from '@/components/SolanaWallets/SolanaWallets'
 import useHandleWindowTopError from '@/hooks/useHandleWindowTopError'
 
 import '../styles/index.css'
+import '@dialectlabs/react-ui/index.css'
+
 import { useWalletConnectNotifaction } from '@/application/wallet/feature/useWalletConnectNotifaction'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
 import { useTokenGetterFnLoader } from '@/application/token/feature/useTokenGetterFnLoader'
