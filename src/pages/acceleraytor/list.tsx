@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import React, { ReactNode, useMemo, useRef } from 'react'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedIdoInfo } from '@/application/ido/type'
@@ -9,13 +9,13 @@ import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import IdoCountDownClock from '@/components/IdoCountDownClock'
-import Icon, { socialIconSrcMap } from '@/components/Icon'
+import Icon from '@/components/Icon'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import Tabs from '@/components/Tabs'
-import { getTime, toUTC } from '@/functions/date/dateFormat'
-import { currentIsBefore } from '@/functions/date/judges'
+import { toUTC } from '@/functions/date/dateFormat'
+import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { eq, gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
@@ -26,13 +26,11 @@ import { routeTo } from '@/application/routeTools'
 import { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import AutoBox from '@/components/AutoBox'
-import { TimeStamp } from '@/functions/date/interface'
-import parseDuration from '@/functions/date/parseDuration'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import useStaking from '@/application/staking/useStaking'
 import toPercentString from '@/functions/format/toPercentString'
 import LoadingCircle from '@/components/LoadingCircle'
-import useUpdate from '@/hooks/useUpdate'
+import { twMerge } from 'tailwind-merge'
 
 export default function AcceleRaytor() {
   const infos = useIdo((s) => s.idoHydratedInfos)
@@ -65,23 +63,25 @@ function IdoList() {
   const upcomingPools = useMemo(() => Object.values(infos).filter((i) => i.isUpcoming), [infos])
   const openPools = Object.values(infos).filter((i) => i.isOpen)
   const closedPools = Object.values(infos).filter((i) => i.isClosed || i.canWithdrawBase)
-  useUpdate(() => {
-    if (upcomingPools.length) {
-      useIdo.setState({ currentTab: 'Upcoming Pools' })
-    }
-  }, [upcomingPools])
+
+  // because upcoming may change many times
+  const hasSetUpcomingTab = useRef(false)
+  if (!hasSetUpcomingTab.current && upcomingPools.length) {
+    useIdo.setState({ currentTab: 'Upcoming Pools' })
+    hasSetUpcomingTab.current = true
+  }
   return (
     <>
       {openPools.length > 0 && (
         <>
-          <div className="text-2xl mobile:text-base mobile:px-4 mb-8 mobile:mb-4 font-semibold text-white w-[min(890px,100%)] self-center">
+          <div className="text-2xl mobile:text-base mobile:px-4 mb-6 mobile:mb-4 font-semibold text-white w-[min(890px,100%)] self-center">
             Open Pool{openPools.length > 1 ? 's' : ''}
           </div>
           <Col className="gap-10 mobile:gap-8 w-[min(890px,100%)] mx-auto mobile:w-full">
             {openPools.map((info) => (
               <div key={info.id}>
                 <CyberpunkStyleCard>
-                  <Collapse>
+                  <Collapse defaultOpen>
                     <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
                     <Collapse.Body>
                       <AcceleRaytorCollapseItemContent info={info} />
@@ -103,7 +103,7 @@ function IdoList() {
         itemClassName={isMobile ? 'min-w-[112px] h-[30px] px-2' : 'min-w-[128px]'}
       />
       {(upcomingPools.length > 0 || closedPools.length > 0) && (
-        <div className="text-2xl mobile:text-base mobile:px-4 mb-8 mobile:mb-4 font-semibold text-white w-[min(890px,100%)] self-center">
+        <div className="text-2xl mobile:text-base mobile:px-4 mb-6 mobile:mb-4 font-semibold text-white w-[min(890px,100%)] self-center">
           {currentTab}
         </div>
       )}
@@ -111,7 +111,7 @@ function IdoList() {
         {(currentTab === 'Upcoming Pools' ? upcomingPools : closedPools).map((info) => (
           <div key={info.id}>
             <CyberpunkStyleCard>
-              <Collapse>
+              <Collapse defaultOpen={currentTab === 'Upcoming Pools'}>
                 <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
                 <Collapse.Body>
                   <AcceleRaytorCollapseItemContent info={info} />
@@ -129,24 +129,25 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
   const isMobile = useAppSettings((s) => s.isMobile)
 
   return (
-    <Row
-      className={`flex-wrap py-6 px-8 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-5 rounded-t-3xl mobile:rounded-t-lg ${
+    <div
+      className={`py-6 px-8 mobile:py-4 mobile:px-5 bg-[#141041]  rounded-t-3xl mobile:rounded-t-lg  ${
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       }`}
     >
-      <Row className="items-center gap-4 mobile:gap-3 mobile:w-auto">
-        <Row
-          className="items-center gap-4 mobile:gap-3 mobile:w-auto clickable"
-          onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
-        >
-          <CoinAvatar noCoinIconBorder size={isMobile ? 'md' : 'lg'} token={info.base} />
-          <div>
-            <div className="text-base mobile:text-sm font-semibold text-white">{info.base?.symbol ?? 'UNKNOWN'}</div>
-            <div className="text-sm mobile:text-xs text-[#ABC4FF80]">{info.projectName}</div>
-          </div>
-        </Row>
-        <Row className="flex-wrap gap-4 mobile:gap-3 items-center border-l border-[rgba(171,196,255,0.5)] self-center pl-6 mobile:pl-3">
-          {/* {Object.entries({ website: info.project.officialSites.website, ...info.project.socialsSites }).map(
+      <AutoBox is={isMobile ? 'Col' : 'Row'} className={`flex-wrap items-stretch gap-5`}>
+        <Row className="items-center gap-4 mobile:gap-3 mobile:w-full">
+          <Row
+            className="items-center gap-4 mobile:gap-3 mobile:w-auto clickable"
+            onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
+          >
+            <CoinAvatar noCoinIconBorder size={isMobile ? 'md' : 'lg'} token={info.base} />
+            <div>
+              <div className="text-base mobile:text-sm font-semibold text-white">{info.baseSymbol}</div>
+              <div className="text-sm mobile:text-xs text-[#ABC4FF80]">{info.projectName}</div>
+            </div>
+          </Row>
+          <Row className="flex-wrap gap-4 mobile:gap-3 items-center border-l border-[rgba(171,196,255,0.5)] self-center pl-6 mobile:pl-3">
+            {/* {Object.entries({ website: info.project.officialSites.website, ...info.project.socialsSites }).map(
             ([socialName, link]) => (
               <Link key={socialName} href={link} className="flex items-center gap-2 clickable">
                 <Icon
@@ -157,26 +158,33 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
               </Link>
             )
           )} */}
+          </Row>
         </Row>
-      </Row>
 
-      <Row className="gap-4 mobile:gap-6 grow justify-end mobile:justify-center">
-        {info.isUpcoming ? (
-          <FaceButtonGroupUpcoming info={info} />
-        ) : info.isOpen ? (
-          <FaceButtonGroupJoin info={info} />
-        ) : (
-          <FaceButtonGroupClaim info={info} />
-        )}
-      </Row>
-    </Row>
+        <Row className="gap-4 mobile:gap-6 grow justify-end mobile:justify-center">
+          {info.isUpcoming ? (
+            <FaceButtonGroupUpcoming info={info} />
+          ) : info.isOpen ? (
+            <FaceButtonGroupJoin info={info} />
+          ) : (
+            <FaceButtonGroupClaim info={info} />
+          )}
+        </Row>
+      </AutoBox>
+      {currentIsAfter(info.endTime) && (
+        <Icon
+          iconSrc="/icons/acceleraytor-list-collapse-open.svg"
+          className="mx-auto -mt-3 -mb-3 mobile:mt-3 mobile:mb-0 clickable hover:brightness-110 "
+        />
+      )}
+    </div>
   )
 }
 
 function FaceButtonGroupUpcoming({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <AutoBox is={isMobile ? 'Col' : 'Row'} className="items-center pt-5">
+    <AutoBox is={isMobile ? 'Col' : 'Row'} className="items-center mobile:w-full">
       <Button
         size={isMobile ? 'xs' : 'md'}
         className="frosted-glass-skygray mobile:mb-3 mobile:self-stretch"
@@ -185,9 +193,11 @@ function FaceButtonGroupUpcoming({ info }: { info: HydratedIdoInfo }) {
       >
         Pool Information
       </Button>
-      {/* <Link className="mx-4 text-[#ABC4FF80] font-bold mobile:text-xs" href={info.}>
-        Full Details
-      </Link> */}
+      {isMobile && (
+        <Link href={info.projectDetailLink} className="text-[#ABC4FF80] font-medium text-xs">
+          Read Full Detail
+        </Link>
+      )}
     </AutoBox>
   )
 }
@@ -300,116 +310,171 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
   )
 }
 function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <Row className="p-4 mobile:p-3 flex-wrap gap-6 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg">
-      <Link className="flex-shrink-0 mobile:w-full">
-        {/* href={info.project.detailDocLink}  */}
-        <Image
-          src={info.projectPosters}
-          className={`w-[360px] mobile:w-full h-[310px] mobile:h-[106px] object-cover rounded-xl`}
-        />
-      </Link>
-      <Col className="grow justify-between">
-        <div className="grid grid-flow-row grid-cols-2 mobile:grid-cols-1 mobile:gap-board px-6 pt-4 mobile:p-0">
-          <IdoItem
-            fieldName="Total Raise"
-            fieldValue={
-              <Row className="items-baseline gap-1">
-                <div className="text-white font-medium">{formatNumber(toString(info.totalRaise))}</div>
-                <div className="text-[#ABC4FF80] font-medium text-xs">{info.totalRaise?.token.symbol ?? 'UNKNOWN'}</div>
-              </Row>
-            }
+    <div className="p-6 mobile:p-3">
+      {<IdoItemCardStakeChip info={info} />}
+      <Row className="flex-wrap gap-6 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg items-center">
+        <div className={`relative w-[360px] mobile:w-full max-h-[192px] mobile:h-[106px] rounded-xl overflow-hidden`}>
+          <Image
+            src={info.projectPosters}
+            className={`shrink-0 mobile:h-full mobile:w-full object-contain mobile:object-cover clickable`}
+            onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
           />
-          <IdoItem
-            fieldName={`Per ${info.base?.symbol ?? 'UNKNOWN'}`}
-            fieldValue={
-              <Row className="items-baseline gap-1">
-                <div className="text-white font-medium">
-                  {formatNumber(toString(info.coinPrice), { fractionLength: 'auto' })}
-                </div>
-                <div className="text-[#ABC4FF80] font-medium text-xs">{info.quote?.symbol ?? 'UNKNOWN'}</div>
+          {!isMobile && (
+            <div className="bg-[#141041cc] absolute bottom-0 w-full  ">
+              <Row className="py-1 justify-center items-center">
+                <Icon className="mr-2" iconSrc="/icons/acceleraytor-list-medium.svg" />
+                <Link href={info.projectDetailLink} className="text-[#ABC4FF80] font-medium text-xs">
+                  Read Full Detail
+                </Link>
               </Row>
-            }
-          />
-          <IdoItem
-            fieldName={`Total tickets deposited`}
-            fieldValue={
-              <Row className="items-baseline gap-1">
-                <div className="text-white font-medium">{formatNumber(info.depositedTicketCount)}</div>
-                <div className="text-[#ABC4FF80] font-medium text-xs">tickets</div>
-              </Row>
-            }
-          />
-          <IdoItem
-            fieldName={`Allocation / Winning Ticket`}
-            fieldValue={
-              <Row className="items-baseline gap-1">
-                <div className="text-white font-medium">
-                  {formatNumber(toString(info.ticketPrice), { fractionLength: 'auto' })}
-                </div>
-                <div className="text-[#ABC4FF80] font-medium text-xs">{info.quote?.symbol ?? 'UNKNOWN'}</div>
-              </Row>
-            }
-          />
-          <IdoItem
-            fieldName="Pool open"
-            fieldValue={
-              <Row className="items-baseline gap-1">
-                {currentIsBefore(Number(info.startTime)) ? (
-                  <>
-                    <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
-                    <div className="text-white font-medium">
-                      <IdoCountDownClock endTime={Number(info.startTime)} />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-white font-medium">
-                      {toUTC(Number(info.startTime), { hideUTCBadge: true })}
-                    </div>
-                    <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
-                  </>
-                )}
-              </Row>
-            }
-          />
-          <IdoItem
-            fieldName="Pool close"
-            fieldValue={
-              <Row className="items-baseline gap-1">
-                {currentIsBefore(Number(info.endTime)) ? (
-                  <>
-                    <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
-                    <div className="text-white font-medium">
-                      <IdoCountDownClock endTime={Number(info.endTime)} />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-white font-medium">{toUTC(Number(info.endTime), { hideUTCBadge: true })}</div>
-                    <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
-                  </>
-                )}
-              </Row>
-            }
-          />
+            </div>
+          )}
         </div>
-        <IdoItemCardContentButtonGroup info={info} />
-      </Col>
+        <Col className="grow justify-between">
+          <div className="grid grid-flow-row grid-cols-2 mobile:grid-cols-1 mobile:gap-board px-6 mobile:p-0">
+            <IdoItem
+              fieldName="Total Raise"
+              fieldValue={
+                <Row className="items-baseline gap-1">
+                  <div className="text-white font-medium">{formatNumber(toString(info.totalRaise))}</div>
+                  <div className="text-[#ABC4FF80] font-medium text-xs">{info.baseSymbol}</div>
+                </Row>
+              }
+            />
+            <IdoItem
+              fieldName={`Per ${info.base?.symbol ?? 'UNKNOWN'}`}
+              fieldValue={
+                <Row className="items-baseline gap-1">
+                  <div className="text-white font-medium">
+                    {formatNumber(toString(info.coinPrice), { fractionLength: 'auto' })}
+                  </div>
+                  <div className="text-[#ABC4FF80] font-medium text-xs">{info.quote?.symbol ?? 'UNKNOWN'}</div>
+                </Row>
+              }
+            />
+            <IdoItem
+              fieldName={`Total tickets deposited`}
+              fieldValue={
+                <Row className="items-baseline gap-1">
+                  <div className="text-white font-medium">{formatNumber(info.depositedTicketCount)}</div>
+                  <div className="text-[#ABC4FF80] font-medium text-xs">tickets</div>
+                </Row>
+              }
+            />
+            <IdoItem
+              fieldName={`Allocation / Winning Ticket`}
+              fieldValue={
+                <Row className="items-baseline gap-1">
+                  <div className="text-white font-medium">
+                    {formatNumber(toString(info.ticketPrice), { fractionLength: 'auto' })}
+                  </div>
+                  <div className="text-[#ABC4FF80] font-medium text-xs">{info.quote?.symbol ?? 'UNKNOWN'}</div>
+                </Row>
+              }
+            />
+            <IdoItem
+              fieldName="Pool open"
+              fieldValue={
+                <Row className="items-baseline gap-1">
+                  {currentIsBefore(Number(info.startTime)) ? (
+                    <>
+                      <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
+                      <div className="text-white font-medium">
+                        <IdoCountDownClock endTime={Number(info.startTime)} />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-white font-medium">
+                        {toUTC(Number(info.startTime), { hideUTCBadge: true })}
+                      </div>
+                      <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                    </>
+                  )}
+                </Row>
+              }
+            />
+            <IdoItem
+              fieldName="Pool close"
+              fieldValue={
+                <Row className="items-baseline gap-1">
+                  {currentIsBefore(Number(info.endTime)) ? (
+                    <>
+                      <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
+                      <div className="text-white font-medium">
+                        <IdoCountDownClock endTime={Number(info.endTime)} />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-white font-medium">
+                        {toUTC(Number(info.endTime), { hideUTCBadge: true })}
+                      </div>
+                      <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
+                    </>
+                  )}
+                </Row>
+              }
+            />
+          </div>
+        </Col>
+        <IdoItemCardContentButtonGroup className="w-full" info={info} />
+      </Row>
+    </div>
+  )
+}
+function IdoItemCardStakeChip({ info }: { info: HydratedIdoInfo }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const connected = useWallet((s) => s.connected)
+  const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
+  if (isMobile || currentIsAfter(info.stakeTimeEnd)) return null
+  return (
+    <Row className={`AlertText items-center bg-[#abc4ff1a] p-3 rounded-xl mb-6`}>
+      <Icon className="flex-none text-[#ABC4FF80] mr-2" size="sm" heroIconName="exclamation-circle" />
+      <div className="text-[#ABC4FF80] font-medium text-xs">
+        To be eligible for the lottery, you need to <span className="text-[#ABC4FF]">stake 100 RAY</span> with a
+        deadline of <span className="text-[#ABC4FF]">{toUTC(info.stakeTimeEnd)}</span>.
+      </div>
+      <Button
+        className="frosted-glass-skygray ml-auto"
+        size="xs"
+        validators={[
+          {
+            should: connected,
+            forceActive: true,
+            fallbackProps: {
+              onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+            }
+          }
+        ]}
+        disabled={!currentIsBefore(info.stakeTimeEnd)}
+        onClick={() => {
+          useStaking.setState({
+            isStakeDialogOpen: true,
+            stakeDialogMode: 'deposit'
+          })
+        }}
+      >
+        Stake
+      </Button>
     </Row>
   )
 }
-function IdoItemCardContentButtonGroup({ info }: { info: HydratedIdoInfo }) {
+function IdoItemCardContentButtonGroup({ className, info }: { className?: string; info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
 
   return info.isUpcoming ? (
-    <AutoBox
-      is={isMobile ? 'Col' : 'Row'}
-      className="justify-between bg-[#14104180] px-6 py-3 mr-4 pr-12 mobile:pt-0 mobile:pb-2 mobile:px-4 mobile:-mx-4 mobile:-mb-4 rounded-xl mobile:rounded-none"
-    >
-      {isMobile ? (
+    isMobile && currentIsBefore(info.stakeTimeEnd) ? (
+      <Col
+        className={twMerge(
+          'justify-between bg-[#14104180] px-6 py-3 mr-4 mobile:pt-0 mobile:pb-2 mobile:px-4 mobile:-mx-4 mobile:-mb-4 rounded-xl mobile:rounded-none',
+          className
+        )}
+      >
         <IdoItem
           fieldValue={
             <Row className="items-baseline gap-1">
@@ -424,52 +489,45 @@ function IdoItemCardContentButtonGroup({ info }: { info: HydratedIdoInfo }) {
             </Row>
           }
         />
-      ) : (
         <Col>
-          <Row className="items-baseline gap-1">
-            <div className="text-white font-medium">
-              {toString(stakingHydratedInfo?.userStakedLpAmount) || '--'} RAY
-            </div>
-          </Row>
-          <Row className="gap-1 items-center">
-            <div className="text-xs font-bold text-[#ABC4FF80]">Your staking</div>
-          </Row>
-        </Col>
-      )}
-
-      <Col>
-        <Button
-          className="frosted-glass-skygray"
-          size="xs"
-          validators={[
-            {
-              should: connected,
-              forceActive: true,
-              fallbackProps: {
-                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+          <Button
+            className="frosted-glass-skygray"
+            size="xs"
+            validators={[
+              {
+                should: connected,
+                forceActive: true,
+                fallbackProps: {
+                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                }
               }
-            }
-          ]}
-          disabled={!currentIsBefore(info.stakeTimeEnd)}
-          onClick={() => {
-            useStaking.setState({
-              isStakeDialogOpen: true,
-              stakeDialogMode: 'deposit'
-            })
-          }}
-        >
-          Stake
-        </Button>
+            ]}
+            disabled={!currentIsBefore(info.stakeTimeEnd)}
+            onClick={() => {
+              useStaking.setState({
+                isStakeDialogOpen: true,
+                stakeDialogMode: 'deposit'
+              })
+            }}
+          >
+            Stake
+          </Button>
 
-        <div className="text-xs text-center text-[#ABC4FF80] my-1">
-          APR: {toPercentString(stakingHydratedInfo?.totalApr)}
-        </div>
+          <div className="text-xs text-center text-[#ABC4FF80] my-1">
+            APR: {toPercentString(stakingHydratedInfo?.totalApr)}
+          </div>
+        </Col>
       </Col>
-    </AutoBox>
+    ) : null
   ) : (
     <AutoBox
       is={isMobile ? 'Col' : 'Row'}
-      className="items-center mx-4 mobile:mx-0 py-4 border-t-1.5 border-[rgba(171,196,255,0.2)]"
+      className={twMerge(
+        `${
+          isMobile ? '' : 'flex-row-reverse'
+        } items-center mx-4 mobile:mx-0 mobile:-mt-3 pt-4 border-t-1.5 border-[rgba(171,196,255,0.1)]`,
+        className
+      )}
     >
       <Button
         size={isMobile ? 'xs' : 'md'}
@@ -479,8 +537,7 @@ function IdoItemCardContentButtonGroup({ info }: { info: HydratedIdoInfo }) {
       >
         Pool Information
       </Button>
-      <Link className="mx-4 text-[#ABC4FF80] font-bold mobile:text-xs">
-        {/* href={info.project.detailDocLink} */}
+      <Link href={info.projectDetailLink} className="mx-4 text-[#ABC4FF80] font-bold mobile:text-xs">
         Full Details
       </Link>
     </AutoBox>

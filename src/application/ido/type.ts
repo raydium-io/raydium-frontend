@@ -48,7 +48,7 @@ export type BackendApiIdoListItem = {
 }
 
 export type BackendApiIdoProjectDetails = {
-  projectDetailText: string // markdown string
+  projectDetails: string // markdown string
   projectDocs: {
     [docName: string]: LinkAddress
   }
@@ -100,7 +100,7 @@ export interface HydratedIdoInfo extends SdkIdoInfo, BackendApiIdoListItem, Part
   userAllocation?: Numberish
   depositedTickets?: TicketInfo[]
 
-  winningTicketsTailNumber: {
+  winningTicketsTailNumber?: {
     tickets: TicketTailNumberInfo[]
     isWinning: /* not roll */ 0 | /* not win */ 1 | /* is win */ 2 | /* all win */ 3
   }

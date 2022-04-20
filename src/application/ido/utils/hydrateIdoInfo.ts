@@ -2,10 +2,10 @@ import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { Percent, Price } from '@raydium-io/raydium-sdk'
 
-import { HydratedIdoInfo, SdkIdoInfo, TicketInfo, TicketTailNumberInfo } from '../type'
+import { BackendApiIdoListItem, HydratedIdoInfo, SdkIdoInfo, TicketInfo, TicketTailNumberInfo } from '../type'
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, getMin, mul } from '@/functions/numberish/operations'
-import { usdCurrency } from '@/functions/format/toTokenPrice'
+import toTokenPrice, { usdCurrency } from '@/functions/format/toTokenPrice'
 
 function isLotteryUpcoming(idoInfo: SdkIdoInfo): boolean {
   return currentIsBefore(idoInfo.startTime)
@@ -91,11 +91,9 @@ export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
   const userEligibleTicketAmount = idoInfo.snapshot?.maxLotteries
   const isEligible = isMeaningfulNumber(userEligibleTicketAmount)
 
-  const totalRaise = idoInfo.base && idoInfo.state && toTokenAmount(idoInfo.base, idoInfo.state.baseSupply)
+  const totalRaise = idoInfo.base && toTokenAmount(idoInfo.base, idoInfo.raise, { alreadyDecimaled: true })
   const coinPrice =
-    idoInfo.base &&
-    idoInfo.state &&
-    new Price(idoInfo.base, idoInfo.state.denominator, usdCurrency, idoInfo.state.numerator)
+    idoInfo.base && idoInfo.state && toTokenPrice(idoInfo.base, idoInfo.price, { alreadyDecimaled: true })
   const ticketPrice =
     idoInfo.quote && idoInfo.state && toTokenAmount(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount)
   const depositedTicketCount = idoInfo.state && idoInfo.state.raisedLotteries.toNumber()

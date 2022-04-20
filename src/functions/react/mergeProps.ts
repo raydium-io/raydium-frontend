@@ -20,7 +20,7 @@ export default function mergeProps<P1 = AnyProp, P2 = AnyProp, P3 = AnyProp, P4 
   ...propsObjs: [P1, P2, P3, P4, P5]
 ): Exclude<P1 & P2 & P3 & P4 & P5, undefined>
 export default function mergeProps<P extends AnyProp | undefined>(...propsObjs: P[]): Exclude<P, undefined> {
-  const trimedProps = propsObjs.flat(Infinity).filter(isObject)
+  const trimedProps = propsObjs.flat(Infinity).filter(isObject) as any[]
   if (trimedProps.length === 0) return {} as any
   if (trimedProps.length === 1) return trimedProps[0]
   return _mergeObjects(trimedProps, (key, v1: any, v2: any) =>
