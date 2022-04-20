@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import React, { ReactNode, useMemo, useRef } from 'react'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedIdoInfo } from '@/application/ido/type'
@@ -9,13 +9,13 @@ import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import IdoCountDownClock from '@/components/IdoCountDownClock'
-import Icon, { socialIconSrcMap } from '@/components/Icon'
+import Icon from '@/components/Icon'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import Tabs from '@/components/Tabs'
-import { getTime, toUTC } from '@/functions/date/dateFormat'
-import { currentIsBefore } from '@/functions/date/judges'
+import { toUTC } from '@/functions/date/dateFormat'
+import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { eq, gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
@@ -26,13 +26,11 @@ import { routeTo } from '@/application/routeTools'
 import { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import AutoBox from '@/components/AutoBox'
-import { TimeStamp } from '@/functions/date/interface'
-import parseDuration from '@/functions/date/parseDuration'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import useStaking from '@/application/staking/useStaking'
 import toPercentString from '@/functions/format/toPercentString'
 import LoadingCircle from '@/components/LoadingCircle'
-import useUpdate from '@/hooks/useUpdate'
+import { twMerge } from 'tailwind-merge'
 
 export default function AcceleRaytor() {
   const infos = useIdo((s) => s.idoHydratedInfos)
@@ -113,7 +111,7 @@ function IdoList() {
         {(currentTab === 'Upcoming Pools' ? upcomingPools : closedPools).map((info) => (
           <div key={info.id}>
             <CyberpunkStyleCard>
-              <Collapse defaultOpen>
+              <Collapse defaultOpen={currentTab === 'Upcoming Pools'}>
                 <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
                 <Collapse.Body>
                   <AcceleRaytorCollapseItemContent info={info} />
@@ -131,24 +129,25 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
   const isMobile = useAppSettings((s) => s.isMobile)
 
   return (
-    <Row
-      className={`flex-wrap py-6 px-8 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-5 rounded-t-3xl mobile:rounded-t-lg ${
+    <div
+      className={`py-6 px-8 mobile:py-4 mobile:px-5 bg-[#141041]  rounded-t-3xl mobile:rounded-t-lg  ${
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       }`}
     >
-      <Row className="items-center gap-4 mobile:gap-3 mobile:w-auto">
-        <Row
-          className="items-center gap-4 mobile:gap-3 mobile:w-auto clickable"
-          onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
-        >
-          <CoinAvatar noCoinIconBorder size={isMobile ? 'md' : 'lg'} token={info.base} />
-          <div>
-            <div className="text-base mobile:text-sm font-semibold text-white">{info.baseSymbol}</div>
-            <div className="text-sm mobile:text-xs text-[#ABC4FF80]">{info.projectName}</div>
-          </div>
-        </Row>
-        <Row className="flex-wrap gap-4 mobile:gap-3 items-center border-l border-[rgba(171,196,255,0.5)] self-center pl-6 mobile:pl-3">
-          {/* {Object.entries({ website: info.project.officialSites.website, ...info.project.socialsSites }).map(
+      <AutoBox is={isMobile ? 'Col' : 'Row'} className={`flex-wrap items-stretch gap-5`}>
+        <Row className="items-center gap-4 mobile:gap-3 mobile:w-full">
+          <Row
+            className="items-center gap-4 mobile:gap-3 mobile:w-auto clickable"
+            onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
+          >
+            <CoinAvatar noCoinIconBorder size={isMobile ? 'md' : 'lg'} token={info.base} />
+            <div>
+              <div className="text-base mobile:text-sm font-semibold text-white">{info.baseSymbol}</div>
+              <div className="text-sm mobile:text-xs text-[#ABC4FF80]">{info.projectName}</div>
+            </div>
+          </Row>
+          <Row className="flex-wrap gap-4 mobile:gap-3 items-center border-l border-[rgba(171,196,255,0.5)] self-center pl-6 mobile:pl-3">
+            {/* {Object.entries({ website: info.project.officialSites.website, ...info.project.socialsSites }).map(
             ([socialName, link]) => (
               <Link key={socialName} href={link} className="flex items-center gap-2 clickable">
                 <Icon
@@ -159,26 +158,33 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
               </Link>
             )
           )} */}
+          </Row>
         </Row>
-      </Row>
 
-      <Row className="gap-4 mobile:gap-6 grow justify-end mobile:justify-center">
-        {info.isUpcoming ? (
-          <FaceButtonGroupUpcoming info={info} />
-        ) : info.isOpen ? (
-          <FaceButtonGroupJoin info={info} />
-        ) : (
-          <FaceButtonGroupClaim info={info} />
-        )}
-      </Row>
-    </Row>
+        <Row className="gap-4 mobile:gap-6 grow justify-end mobile:justify-center">
+          {info.isUpcoming ? (
+            <FaceButtonGroupUpcoming info={info} />
+          ) : info.isOpen ? (
+            <FaceButtonGroupJoin info={info} />
+          ) : (
+            <FaceButtonGroupClaim info={info} />
+          )}
+        </Row>
+      </AutoBox>
+      {currentIsAfter(info.endTime) && (
+        <Icon
+          iconSrc="/icons/acceleraytor-list-collapse-open.svg"
+          className="mx-auto -mt-3 -mb-3 mobile:mt-3 mobile:mb-0 clickable hover:brightness-110 "
+        />
+      )}
+    </div>
   )
 }
 
 function FaceButtonGroupUpcoming({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <AutoBox is={isMobile ? 'Col' : 'Row'} className="items-center">
+    <AutoBox is={isMobile ? 'Col' : 'Row'} className="items-center mobile:w-full">
       <Button
         size={isMobile ? 'xs' : 'md'}
         className="frosted-glass-skygray mobile:mb-3 mobile:self-stretch"
@@ -187,6 +193,11 @@ function FaceButtonGroupUpcoming({ info }: { info: HydratedIdoInfo }) {
       >
         Pool Information
       </Button>
+      {isMobile && (
+        <Link href={info.projectDetailLink} className="text-[#ABC4FF80] font-medium text-xs">
+          Read Full Detail
+        </Link>
+      )}
     </AutoBox>
   )
 }
@@ -304,19 +315,23 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
     <div className="p-6 mobile:p-3">
       {<IdoItemCardStakeChip info={info} />}
       <Row className="flex-wrap gap-6 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg items-center">
-        <Link href={info.projectDetailLink} className="flex-shrink-0 mobile:w-full text-[#ABC4FF80]">
-          <div className={`relative w-[360px] mobile:w-full max-h-[192px] mobile:h-[106px] rounded-xl overflow-hidden`}>
-            <Image src={info.projectPosters} className={`shrink-0 mobile:h-full object-contain mobile:object-cover`} />
-            {!isMobile && (
-              <div className="bg-[#141041cc] absolute bottom-0 w-full  ">
-                <Row className="py-2 justify-center items-center">
-                  <Icon className="mr-2" iconSrc="/icons/acceleraytor-list-medium.svg" />
-                  <span className=" font-medium text-xs">Read Full Detail</span>
-                </Row>
-              </div>
-            )}
-          </div>
-        </Link>
+        <div className={`relative w-[360px] mobile:w-full max-h-[192px] mobile:h-[106px] rounded-xl overflow-hidden`}>
+          <Image
+            src={info.projectPosters}
+            className={`shrink-0 mobile:h-full mobile:w-full object-contain mobile:object-cover clickable`}
+            onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
+          />
+          {!isMobile && (
+            <div className="bg-[#141041cc] absolute bottom-0 w-full  ">
+              <Row className="py-1 justify-center items-center">
+                <Icon className="mr-2" iconSrc="/icons/acceleraytor-list-medium.svg" />
+                <Link href={info.projectDetailLink} className="text-[#ABC4FF80] font-medium text-xs">
+                  Read Full Detail
+                </Link>
+              </Row>
+            </div>
+          )}
+        </div>
         <Col className="grow justify-between">
           <div className="grid grid-flow-row grid-cols-2 mobile:grid-cols-1 mobile:gap-board px-6 mobile:p-0">
             <IdoItem
@@ -405,9 +420,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
             />
           </div>
         </Col>
-        <div className="w-full">
-          <IdoItemCardContentButtonGroup info={info} />
-        </div>
+        <IdoItemCardContentButtonGroup className="w-full" info={info} />
       </Row>
     </div>
   )
@@ -416,7 +429,7 @@ function IdoItemCardStakeChip({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
-  if (isMobile) return null
+  if (isMobile || currentIsAfter(info.stakeTimeEnd)) return null
   return (
     <Row className={`AlertText items-center bg-[#abc4ff1a] p-3 rounded-xl mb-6`}>
       <Icon className="flex-none text-[#ABC4FF80] mr-2" size="sm" heroIconName="exclamation-circle" />
@@ -449,14 +462,19 @@ function IdoItemCardStakeChip({ info }: { info: HydratedIdoInfo }) {
     </Row>
   )
 }
-function IdoItemCardContentButtonGroup({ info }: { info: HydratedIdoInfo }) {
+function IdoItemCardContentButtonGroup({ className, info }: { className?: string; info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
 
   return info.isUpcoming ? (
-    isMobile ? (
-      <Col className="justify-between bg-[#14104180] px-6 py-3 mr-4 pr-12 mobile:pt-0 mobile:pb-2 mobile:px-4 mobile:-mx-4 mobile:-mb-4 rounded-xl mobile:rounded-none">
+    isMobile && currentIsBefore(info.stakeTimeEnd) ? (
+      <Col
+        className={twMerge(
+          'justify-between bg-[#14104180] px-6 py-3 mr-4 mobile:pt-0 mobile:pb-2 mobile:px-4 mobile:-mx-4 mobile:-mb-4 rounded-xl mobile:rounded-none',
+          className
+        )}
+      >
         <IdoItem
           fieldValue={
             <Row className="items-baseline gap-1">
@@ -471,7 +489,6 @@ function IdoItemCardContentButtonGroup({ info }: { info: HydratedIdoInfo }) {
             </Row>
           }
         />
-
         <Col>
           <Button
             className="frosted-glass-skygray"
@@ -505,9 +522,12 @@ function IdoItemCardContentButtonGroup({ info }: { info: HydratedIdoInfo }) {
   ) : (
     <AutoBox
       is={isMobile ? 'Col' : 'Row'}
-      className={`${
-        isMobile ? '' : 'flex-row-reverse'
-      } items-center mx-4 mobile:mx-0 py-4 border-t-1.5 border-[rgba(171,196,255,0.2)]`}
+      className={twMerge(
+        `${
+          isMobile ? '' : 'flex-row-reverse'
+        } items-center mx-4 mobile:mx-0 mobile:-mt-3 pt-4 border-t-1.5 border-[rgba(171,196,255,0.1)]`,
+        className
+      )}
     >
       <Button
         size={isMobile ? 'xs' : 'md'}

@@ -559,10 +559,12 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                   validators={[
                     {
                       should: connected,
-                      forceActive: true,
                       fallbackProps: {
                         onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
                       }
+                    },
+                    {
+                      should: currentIsBefore(idoInfo.stakeTimeEnd)
                     }
                   ]}
                   disabled={!currentIsBefore(idoInfo.stakeTimeEnd)}
@@ -735,10 +737,12 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
                   validators={[
                     {
                       should: connected,
-                      forceActive: true,
                       fallbackProps: {
                         onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
                       }
+                    },
+                    {
+                      should: currentIsBefore(idoInfo.stakeTimeEnd)
                     }
                   ]}
                   onClick={() => {
@@ -867,7 +871,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
     <Row className="items-center">
       <Row className="items-center gap-1">
         <span>Pool opens in</span>
-        <IdoCountDownClock singleValueMode labelClassName="text-base" endTime={idoInfo.endTime} onEnd={refreshSelf} />
+        <IdoCountDownClock singleValueMode labelClassName="text-base" endTime={idoInfo.startTime} onEnd={refreshSelf} />
       </Row>
       <div className="ml-auto">
         <RefreshCircle refreshKey="acceleraytor" />
