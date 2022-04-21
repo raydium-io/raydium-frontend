@@ -1,9 +1,9 @@
-import create, { GetState, SetState } from 'zustand'
-import { StoreApiWithSubscribeWithSelector, subscribeWithSelector } from 'zustand/middleware'
+import create from 'zustand'
 
 import { BackendApiIdoListItem, BackendApiIdoProjectDetails, HydratedIdoInfo } from './type'
-import { Numberish } from '@/types/constants'
+import { MayArray, Numberish } from '@/types/constants'
 import { IdoInfo as SDKIdoInfo } from './sdk'
+import { inServer } from '@/functions/judgers/isSSR'
 
 type IdoStoreState = {
   hasDeposited?: boolean // secondary flag, primary use backend data
@@ -32,8 +32,9 @@ type IdoStore = {
 
   currentTab: 'Upcoming Pools' | 'Closed Pools'
   idoState: Record<string, IdoStoreState> // for fast refresh without backend
-  setIdoState: (idoId: string, statePiece: Partial<IdoStoreState>) => void
 
+  // do not care it's value, just trigger React refresh
+  idoRefreshFactor?: { count: number; refreshIdoId: MayArray<string> }
   refreshIdo: (idoId?: string) => void
 }
 
@@ -45,19 +46,18 @@ const useIdo = create<IdoStore>((set, get) => ({
   idoSDKInfos: {},
   currentTab: 'Closed Pools',
 
-  refreshIdo: (idoId?: string) => Promise.resolve(undefined),
-  idoState: {},
-  setIdoState: (idoId, statePiece) => {
-    set((s) => ({
-      idoState: {
-        ...s.idoState,
-        [idoId]: {
-          ...s[idoId],
-          ...statePiece
+  refreshIdo: (idoId?: string) => {
+    if (inServer) return
+    setTimeout(() => {
+      set((s) => ({
+        idoRefreshFactor: {
+          count: (s.idoRefreshFactor?.count ?? 0) + 1,
+          refreshIdoId: idoId ?? Object.keys(get().idoRawInfos)
         }
-      }
-    }))
-  }
+      }))
+    }, 800) // fot ido info it's immediately change
+  },
+  idoState: {}
 }))
 
 export default useIdo

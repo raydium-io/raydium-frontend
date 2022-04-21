@@ -9,6 +9,7 @@ import { fetchRawIdoListJson, fetchRawIdoProjectInfoJson, getSdkIdoList } from '
 import { hydrateIdoInfo } from './utils/hydrateIdoInfo'
 import toPubString, { ToPubPropertyValue } from '@/functions/format/toMintString'
 import { objectMap } from '@/functions/objectMethods'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetting }) {
   const connection = useConnection((s) => s.connection)
@@ -16,6 +17,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
   const shadowKeypairs = useWallet((s) => s.shadowKeypairs)
   const idoRawInfos = useIdo((s) => s.idoRawInfos)
   const currentIdoId = useIdo((s) => s.currentIdoId)
+  const idoRefreshFactor = useIdo((s) => s.idoRefreshFactor)
   const tokens = useToken((s) => s.tokens)
   const getToken = useToken((s) => s.getToken)
 
@@ -55,6 +57,35 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
       }
     }))
   }, [currentIdoId, options?.when])
+
+  // refresh SDK info
+  useAsyncEffect(async () => {
+    if (!connection) return
+    const targetIds = shakeUndifindedItem([idoRefreshFactor?.refreshIdoId].flat())
+    const rawList = Object.values(idoRawInfos ?? {}).filter((item) => targetIds.includes(item.id))
+    const publicKeyed = ToPubPropertyValue(rawList)
+
+    // get sdk ledger/snapshot and render
+    const sdkList = await getSdkIdoList({ publicKeyed, connection, owner })
+    const sdkInfos = Object.fromEntries([rawList.map((raw, idx) => [raw.id, sdkList[idx]])])
+    const hydrated = sdkList.map((sdkInfo, idx) => {
+      const rawInfo = rawList[idx]
+      const base = getToken(rawInfo.baseMint) // must haeeeve raw.state
+      const quote = getToken(rawInfo.quoteMint)
+      return hydrateIdoInfo({ ...rawInfo, ...sdkInfo, base, quote })
+    })
+    const hydratedInfos = listToMap(hydrated, (i) => i.id)
+    useIdo.setState((s) => ({
+      idoSDKInfos: { ...s.idoSDKInfos, ...sdkInfos },
+      idoHydratedInfos: {
+        ...s.idoHydratedInfos,
+        ...objectMap(hydratedInfos, (newHydratedInfo, idoid) => ({
+          ...s.idoHydratedInfos[idoid],
+          ...newHydratedInfo
+        }))
+      }
+    }))
+  }, [idoRefreshFactor])
 
   // get SDKInfo, and merge with rawInfo
   useAsyncEffect(async () => {
@@ -108,14 +139,4 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
       }))
     }, 1000)
   }, [idoRawInfos, connection, options?.when, owner])
-
-  // useAsyncEffect(async () => {
-  //   if (!shouldEffectBeOn(options?.when)) return
-  //   if (!shadowKeypairs?.length) return
-  //   const hydratedIdoDetailInfo = await shadowlyGetHydratedIdoInfo()
-
-  //   useIdo.setState({
-  //     shadowIdoHydratedInfos: hydratedIdoDetailInfo
-  //   })
-  // }, [connection, shadowKeypairs, options?.when])
 }
