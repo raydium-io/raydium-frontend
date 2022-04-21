@@ -220,7 +220,7 @@ function FaceButtonGroupJoin({ info }: { info: HydratedIdoInfo }) {
 function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
-
+  const refreshIdo = useIdo((s) => s.refreshIdo)
   const [, forceUpdate] = useForceUpdate()
   return (
     <>
@@ -258,7 +258,10 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
             ev.stopPropagation()
             txIdoClaim({
               idoInfo: info,
-              side: 'base'
+              side: 'base',
+              onTxSuccess: () => {
+                refreshIdo(info.id)
+              }
             })
           }}
         >
@@ -292,7 +295,10 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
             ev.stopPropagation()
             txIdoClaim({
               idoInfo: info,
-              side: 'quote'
+              side: 'quote',
+              onTxSuccess: () => {
+                refreshIdo(info.id)
+              }
             })
           }}
         >

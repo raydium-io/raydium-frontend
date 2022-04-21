@@ -11,7 +11,7 @@ import Icon, { socialIconSrcMap } from '@/components/Icon'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import { getTime, toUTC } from '@/functions/date/dateFormat'
+import { toUTC } from '@/functions/date/dateFormat'
 import { currentIsBefore } from '@/functions/date/judges'
 import formatNumber from '@/functions/format/formatNumber'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -177,6 +177,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
   const connected = useWallet((s) => s.connected)
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const isMobile = useAppSettings((s) => s.isMobile)
+  const refreshIdo = useIdo((s) => s.refreshIdo)
 
   const [, forceUpdate] = useForceUpdate()
   return (
@@ -262,7 +263,10 @@ function WinningTicketPanel({ className }: { className?: string }) {
                     onClick={() => {
                       txIdoClaim({
                         idoInfo: idoInfo,
-                        side: 'base'
+                        side: 'base',
+                        onTxSuccess: () => {
+                          refreshIdo(idoInfo.id)
+                        }
                       })
                     }}
                   >
@@ -296,7 +300,10 @@ function WinningTicketPanel({ className }: { className?: string }) {
                     onClick={() => {
                       txIdoClaim({
                         idoInfo: idoInfo,
-                        side: 'quote'
+                        side: 'quote',
+                        onTxSuccess: () => {
+                          refreshIdo(idoInfo.id)
+                        }
                       })
                     }}
                   >
@@ -318,7 +325,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
           </Row>
 
           <FadeIn>
-            {idoInfo?.ledger && (
+            {isMeaningfulNumber(idoInfo.depositedTickets?.length) && (
               <Col className="bg-[#141041] py-5 px-6">
                 <div className="text-sm mb-5 font-semibold  text-[#ABC4FF] opacity-50">Your ticket numbers</div>
                 <Grid
@@ -859,7 +866,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
         idoInfo,
         amount: toBN(ticketAmount),
         onTxSuccess: () => {
-          refreshSelf()
+          refreshIdo(idoInfo.id)
         }
       })
       // eslint-disable-next-line no-empty
@@ -882,7 +889,12 @@ function LotteryInputPanel({ className }: { className?: string }) {
     <Row className="items-center">
       {idoInfo.isEligible ? 'Join Lottery' : "You're not eligible to join pool"}
       <div className="ml-auto">
-        <RefreshCircle refreshKey="acceleraytor" freshFunction={refreshSelf} />
+        <RefreshCircle
+          refreshKey="acceleraytor"
+          freshFunction={() => {
+            refreshIdo(idoInfo.id)
+          }}
+        />
       </div>
     </Row>
   )
