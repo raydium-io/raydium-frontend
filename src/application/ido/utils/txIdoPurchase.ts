@@ -11,6 +11,7 @@ import useWallet from '@/application/wallet/useWallet'
 import handleMultiTx from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import assert from '@/functions/assert'
+import { toString } from '@/functions/numberish/toString'
 
 export default async function txIdoPurchase({
   idoInfo,
@@ -114,8 +115,8 @@ export default async function txIdoPurchase({
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       ...callbacks,
       txHistoryInfo: {
-        title: `JoinLottery`,
-        description: `JoinLottery`
+        title: `Ido Purchase`,
+        description: `Purchase for ${idoInfo.baseSymbol} (${toString(amount)} tickets)`
       }
     })
   })

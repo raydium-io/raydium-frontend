@@ -264,7 +264,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                       txIdoClaim({
                         idoInfo: idoInfo,
                         side: 'base',
-                        onTxSuccess: () => {
+                        onTxFinally: () => {
                           refreshIdo(idoInfo.id)
                         }
                       })
@@ -301,7 +301,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                       txIdoClaim({
                         idoInfo: idoInfo,
                         side: 'quote',
-                        onTxSuccess: () => {
+                        onTxFinally: () => {
                           refreshIdo(idoInfo.id)
                         }
                       })
@@ -865,7 +865,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
       await txIdoPurchase({
         idoInfo,
         amount: toBN(ticketAmount),
-        onTxSuccess: () => {
+        onTxFinally: () => {
           refreshIdo(idoInfo.id)
         }
       })
