@@ -244,7 +244,7 @@ function LiquidityCard() {
   const haveEnoughCoin1 =
     coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
   const haveEnoughCoin2 =
-    coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }))
+    coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, unslippagedCoin2Amount, { alreadyDecimaled: true }))
 
   const cardRef = useRef<HTMLDivElement>(null)
 
