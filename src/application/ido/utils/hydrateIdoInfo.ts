@@ -7,22 +7,6 @@ import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, getMin, mul } from '@/functions/numberish/operations'
 import toTokenPrice, { usdCurrency } from '@/functions/format/toTokenPrice'
 
-function isLotteryUpcoming(idoInfo: SdkIdoInfo): boolean {
-  return currentIsBefore(idoInfo.startTime)
-}
-
-function isLotteryOpen(idoInfo: SdkIdoInfo): boolean {
-  return currentIsAfter(idoInfo.startTime) && currentIsBefore(idoInfo.endTime)
-}
-
-function isLotteryClosed(idoInfo: SdkIdoInfo): boolean {
-  return currentIsAfter(idoInfo.startWithdrawTime)
-}
-
-function canLotteryWithdrawBase(idoInfo: SdkIdoInfo): boolean {
-  return currentIsAfter(idoInfo.startWithdrawTime)
-}
-
 function getDepositedTickets(idoInfo: SdkIdoInfo): TicketInfo[] {
   if (!idoInfo.ledger) return []
   const begin = Number(idoInfo.ledger.startNumber)
@@ -78,10 +62,10 @@ function getWinningTicketsTailNumbers(idoInfo: SdkIdoInfo): HydratedIdoInfo['win
  *  computed from raw idoInfo
  */
 export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
-  const isUpcoming = isLotteryUpcoming(idoInfo)
-  const isOpen = isLotteryOpen(idoInfo)
-  const isClosed = isLotteryClosed(idoInfo)
-  const canWithdrawBase = canLotteryWithdrawBase(idoInfo)
+  const isUpcoming = currentIsBefore(idoInfo.startTime)
+  const isOpen = currentIsAfter(idoInfo.startTime) && currentIsBefore(idoInfo.endTime)
+  const isClosed = currentIsAfter(idoInfo.endTime)
+  const canWithdrawBase = currentIsAfter(idoInfo.startWithdrawTime)
 
   const depositedTickets = getDepositedTickets(idoInfo).map((ticketInfo) => ({
     ...ticketInfo,
@@ -115,6 +99,7 @@ export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
   return {
     ...idoInfo,
     winningTicketsTailNumber: getWinningTicketsTailNumbers(idoInfo),
+    winningTickets,
     depositedTickets,
     userAllocation,
     depositedTicketCount,
