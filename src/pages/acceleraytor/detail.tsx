@@ -375,7 +375,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
     ) : (
       <div className={twMerge('py-3 px-4', className)}>
         <div>{fieldValue}</div>
-        <div className="text-[#abc4ff80] font-bold text-xs mt-1">{fieldName}</div>
+        <div className="text-[#abc4ff] font-bold text-xs mt-1">{fieldName}</div>
       </div>
     )
   return (
@@ -587,7 +587,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                   Stake
                 </Button>
 
-                <div className="text-xs text-center text-[#ABC4FF] opacity-50 mt-1">
+                <div className="text-xs text-center text-[#ABC4FF] mt-1">
                   APR: {toPercentString(stakingHydratedInfo?.totalApr)}
                 </div>
               </Col>
@@ -637,7 +637,7 @@ function LotteryLedgerPanel({ className }: { className?: string }) {
     ) : (
       <div className="px-6">
         <div className="text-base font-semibold text-white">{props.fieldValue}</div>
-        <div className="text-sm text-[#ABC4FF] opacity-50">{props.fieldName}</div>
+        <div className="text-sm text-[#ABC4FF] font-bold">{props.fieldName}</div>
       </div>
     )
 
@@ -652,21 +652,21 @@ function LotteryLedgerPanel({ className }: { className?: string }) {
     >
       <Grid className="grid-cols-4 mobile:grid-cols-1 gap-board">
         <TopInfoPanelFieldItem
-          fieldName="Your Eligible Tickets"
+          fieldName="Eligible Tickets"
           fieldValue={connected ? `${formatNumber(idoInfo.userEligibleTicketAmount)}` : '--'}
         />
         <TopInfoPanelFieldItem
-          fieldName="Your Deposited Tickets"
+          fieldName="Deposited Tickets"
           fieldValue={connected ? `${formatNumber(idoInfo.depositedTickets?.length ?? 0)}` : '--'}
         />
         <TopInfoPanelFieldItem
-          fieldName="Your Winning Tickets"
+          fieldName="Winning Tickets"
           fieldValue={
             connected ? `${formatNumber(idoInfo.depositedTickets?.filter((i) => i.isWinning)?.length ?? 0)}` : '--'
           }
         />
         <TopInfoPanelFieldItem
-          fieldName="Your allocation"
+          fieldName="Allocation"
           fieldValue={
             <Row className="items-baseline gap-1">
               <div>{connected ? formatNumber(toString(idoInfo.userAllocation) || 0) : '--'}</div>
