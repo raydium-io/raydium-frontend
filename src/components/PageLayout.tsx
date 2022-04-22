@@ -37,7 +37,7 @@ import Row from './Row'
 import Tooltip from './Tooltip'
 import LoadingCircle from './LoadingCircle'
 import { setCssVarible } from '@/functions/dom/cssVariable'
-import { inClient } from '@/functions/judgers/isSSR'
+import { inClient, isInLocalhost } from '@/functions/judgers/isSSR'
 import { useAppVersion } from '@/application/appVersion/useAppVersion'
 import { refreshWindow } from '@/application/appVersion/forceWindowRefresh'
 
@@ -389,9 +389,11 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/list">
               AcceleRaytor
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/basement">
-              Basement
-            </LinkItem>
+            {isInLocalhost && (
+              <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/basement">
+                Basement
+              </LinkItem>
+            )}
             <LinkItem icon="/icons/entry-icon-dropzone.svg" href="https://dropzone.raydium.io/">
               Dropzone
             </LinkItem>
@@ -422,7 +424,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             </OptionItem>
           </div>
 
-          <div className="text-sm m-2 opacity-20 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap">
+          <div className="text-sm m-2 opacity-20 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
             <div>current: {currentVersion}</div>
             <div>lastest: {lastestVersion}</div>
           </div>
