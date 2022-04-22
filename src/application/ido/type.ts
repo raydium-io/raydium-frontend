@@ -32,7 +32,6 @@ export type BackendApiIdoListItem = {
   startTime: number // timestamp (milliseconds)
   endTime: number // timestamp (milliseconds)
   startWithdrawTime: number // timestamp (milliseconds)
-  withdrawTimeQuote: number // timestamp (milliseconds)
   stakeTimeEnd: number // timestamp (milliseconds)
   price: number // real price
   raise: number // raise token amount

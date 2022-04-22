@@ -18,13 +18,7 @@ export async function fetchRawIdoListJson(): Promise<BackendApiIdoListItem[]> {
       success: res?.success,
       data: res?.data?.map((item: BackendApiIdoListItem) =>
         objectMap(item, (v, k) => {
-          if (
-            k === 'startTime' ||
-            k === 'endTime' ||
-            k === 'stakeTimeEnd' ||
-            k === 'startWithdrawTime' ||
-            k === 'withdrawTimeQuote'
-          ) {
+          if (k === 'startTime' || k === 'endTime' || k === 'stakeTimeEnd' || k === 'startWithdrawTime') {
             return (v as number) * 1000
           }
           return v
@@ -34,7 +28,18 @@ export async function fetchRawIdoListJson(): Promise<BackendApiIdoListItem[]> {
   })
   if (!response?.success) return []
   if (isInLocalhost) {
-    const devIdoList = (await jFetch<any[]>('/ido-list.json')) ?? []
+    const devIdoList =
+      (await jFetch<any[]>('/ido-list.json', {
+        afterJson: (res) =>
+          res?.map((item: BackendApiIdoListItem) =>
+            objectMap(item, (v, k) => {
+              if (k === 'startTime' || k === 'endTime' || k === 'stakeTimeEnd' || k === 'startWithdrawTime') {
+                return (v as number) * 1000
+              }
+              return v
+            })
+          )
+      })) ?? []
     return response.data.concat(devIdoList)
   } else {
     return response.data
