@@ -20,7 +20,8 @@ import {
   SOLDecimals,
   WSOLMint,
   isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL
+  isQuantumSOLVersionWSOL,
+  toUITokenAmount
 } from '@/application/token/utils/quantumSOL'
 import { USDCMint, USDTMint } from '@/application/token/utils/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
@@ -776,7 +777,7 @@ function SwapCardInfo({ className }: { className?: string }) {
         fieldValueTextColor={isDangerousPrice ? '#DA2EEF' : isWarningPrice ? '#D8CB39' : '#39D0D8'}
         tooltipContent="The difference between the market price and estimated price due to trade size"
       />
-      {/* <SwapCardItem
+      <SwapCardItem
         fieldName="Fee"
         fieldValue={
           fee
@@ -787,7 +788,7 @@ function SwapCardInfo({ className }: { className?: string }) {
             .join('  ') ?? '--'
         }
         tooltipContent="The difference between the market price and estimated price due to trade size"
-      /> */}
+      />
       <Collapse openDirection="upwards" className="w-full">
         <Collapse.Body>
           <Col className="gap-3 pb-3">
