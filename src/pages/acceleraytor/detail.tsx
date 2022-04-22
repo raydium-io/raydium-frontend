@@ -881,7 +881,12 @@ function LotteryInputPanel({ className }: { className?: string }) {
         <IdoCountDownClock singleValueMode labelClassName="text-base" endTime={idoInfo.startTime} onEnd={refreshSelf} />
       </Row>
       <div className="ml-auto">
-        <RefreshCircle refreshKey="acceleraytor" />
+        <RefreshCircle
+          refreshKey="acceleraytor"
+          freshFunction={() => {
+            refreshIdo(idoInfo.id)
+          }}
+        />
       </div>
     </Row>
   )
@@ -901,9 +906,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
   const renderPoolClosed = (
     <Row className="items-center">
       Pool Closed
-      <div className="ml-auto">
-        <RefreshCircle refreshKey="acceleraytor" />
-      </div>
+      <div className="ml-auto"></div>
     </Row>
   )
 

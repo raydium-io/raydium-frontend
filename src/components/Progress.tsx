@@ -4,6 +4,7 @@ import { twMerge } from 'tailwind-merge'
 
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import AutoBox from './AutoBox'
 
 /**
  * same as html <progress>
@@ -17,6 +18,10 @@ export default function Progress({
   className,
   slotClassName,
   pillarClassName,
+
+  labelStayToRight,
+  isGray,
+
   labelClassName,
   value,
   showLabel,
@@ -25,6 +30,12 @@ export default function Progress({
   className?: string
   slotClassName?: string
   pillarClassName?: string
+
+  /** UI */
+  labelStayToRight?: boolean
+  /**css color */
+  isGray?: boolean
+
   labelClassName?: string
   value?: number
   showLabel?: boolean
@@ -47,8 +58,24 @@ export default function Progress({
     )
   })
   const clampedValue = Math.min(Number(value), 1)
+  const themeColor =
+    clampedValue < 1 / 3
+      ? isGray
+        ? '#ABC4FF80'
+        : 'var(--style-color-cyan)'
+      : clampedValue < 2 / 3
+      ? isGray
+        ? '#ABC4FF80'
+        : 'var(--style-color-blue)'
+      : isGray
+      ? '#ABC4FF80'
+      : 'var(--style-color-fuchsia)'
   return (
-    <div ref={progressRef} className={twMerge(`Progress relative ${className ?? ''}`)}>
+    <AutoBox
+      is={labelStayToRight ? 'Row' : 'div'}
+      domRef={progressRef}
+      className={twMerge(`Progress relative ${labelStayToRight ? 'items-center gap-2' : ''} ${className ?? ''}`)}
+    >
       <div
         className={twMerge(
           `Progress-whole-slot bg-gray-50 bg-opacity-20 rounded-full overflow-hidden w-full h-2 ${slotClassName ?? ''}`
@@ -58,12 +85,7 @@ export default function Progress({
           className={twMerge(`Progress-inner-pillar rounded-full  h-full ${pillarClassName ?? ''}`)}
           style={{
             width: `${clampedValue * 100}%`,
-            backgroundColor:
-              clampedValue < 1 / 3
-                ? 'var(--style-color-cyan)'
-                : clampedValue < 2 / 3
-                ? 'var(--style-color-blue)'
-                : 'var(--style-color-fuchsia)'
+            backgroundColor: themeColor
           }}
         />
       </div>
@@ -72,19 +94,14 @@ export default function Progress({
           ref={labelRef}
           className={twMerge(`inline-block Progress-label ${labelClassName ?? ''}`)}
           style={{
-            marginLeft: `${clampedValue * 100}%`,
-            transform: `translate(calc(-50% + var(--patch-delta, 0px)))`,
-            color:
-              clampedValue < 1 / 3
-                ? 'var(--style-color-cyan)'
-                : clampedValue < 2 / 3
-                ? 'var(--style-color-blue)'
-                : 'var(--style-color-fuchsia)'
+            marginLeft: labelStayToRight ? undefined : `${clampedValue * 100}%`,
+            transform: labelStayToRight ? undefined : `translate(calc(-50% + var(--patch-delta, 0px)))`,
+            color: themeColor
           }}
         >
           {shrinkToValue(labelFormat, [value])}
         </div>
       )}
-    </div>
+    </AutoBox>
   )
 }

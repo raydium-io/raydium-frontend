@@ -31,6 +31,8 @@ import useStaking from '@/application/staking/useStaking'
 import toPercentString from '@/functions/format/toPercentString'
 import LoadingCircle from '@/components/LoadingCircle'
 import { twMerge } from 'tailwind-merge'
+import Progress from '@/components/Progress'
+import toPercentNumber from '@/functions/format/toPercentNumber'
 
 export default function AcceleRaytor() {
   const infos = useIdo((s) => s.idoHydratedInfos)
@@ -143,21 +145,18 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
             <CoinAvatar noCoinIconBorder size={isMobile ? 'md' : 'lg'} token={info.base} />
             <div>
               <div className="text-base mobile:text-sm font-semibold text-white">{info.baseSymbol}</div>
-              <div className="text-sm mobile:text-xs text-[#ABC4FF80]">{info.projectName}</div>
+              <div className="text-sm w-max mobile:text-xs text-[#ABC4FF80]">{info.projectName}</div>
             </div>
           </Row>
-          <Row className="flex-wrap gap-4 mobile:gap-3 items-center border-l border-[rgba(171,196,255,0.5)] self-center pl-6 mobile:pl-3">
-            {/* {Object.entries({ website: info.project.officialSites.website, ...info.project.socialsSites }).map(
-            ([socialName, link]) => (
-              <Link key={socialName} href={link} className="flex items-center gap-2 clickable">
-                <Icon
-                  className="frosted-glass-skygray p-2.5 mobile:p-2 rounded-xl mobile:rounded-lg"
-                  iconClassName="w-3 h-3 opacity-50"
-                  iconSrc={socialIconSrcMap[socialName.toLowerCase()]}
-                />
-              </Link>
-            )
-          )} */}
+          <Row className="flex-wrap gap-4 mobile:gap-3 items-center border-l border-[rgba(171,196,255,0.5)] w-full self-center pl-6 mobile:pl-3">
+            {/* <Progress
+              labelStayToRight
+              className="w-[180px] mobile:w-full"
+              slotClassName="h-1"
+              labelClassName="text-sm font-bold"
+              showLabel
+              value={toPercentNumber(info.filled)}
+            /> */}
           </Row>
         </Row>
 
