@@ -106,6 +106,12 @@ export interface HydratedIdoInfo extends SdkIdoInfo, BackendApiIdoListItem, Part
   }
 }
 
+type ShowHydratedIdoInfos = {
+  [idoId: string]: {
+    [ownerId: string]: HydratedIdoInfo
+  }
+}
+
 export type IdoPoolInfoAccess = 'RAY'
 export type TicketInfo = { no: number; isWinning?: boolean }
 export type TicketTailNumberInfo = {

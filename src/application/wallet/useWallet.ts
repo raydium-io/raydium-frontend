@@ -21,6 +21,7 @@ export type WalletStore = {
   adapter?: Adapter
 
   // a experimental feature (owner isn't in shadowOwners)
+  /** each Keypair object hold both publicKey and secret key */
   shadowKeypairs?: Keypair[]
   availableWallets: Wallet[]
   currentWallet?: Wallet | null
@@ -44,8 +45,8 @@ export type WalletStore = {
   /** pass to SDK */
   tokenAccountRawInfos: TokenAccountRawInfo[]
 
-  /** ATAs and SOL  */
-  verboseTokenAccounts: ITokenAccount[]
+  /** SOL  */
+  nativeTokenAccount: ITokenAccount | undefined
 
   /** raw: include no ATA (only use it in migrate detect) */
   allTokenAccounts: ITokenAccount[]
@@ -60,6 +61,12 @@ export type WalletStore = {
    * for balance without QuantumSOL, use `pureBalances`
    */
   balances: Record<HexAddress, TokenAmount>
+
+  /**
+   * only if shadowWallet is on
+   * @todo not imply yet!
+   */
+  shadowBalances?: Record<HexAddress, TokenAmount>
 
   /**
    * rawbalance is BN , has QuantumSOL,
@@ -109,7 +116,7 @@ const useWallet = create<WalletStore>((set, get) => ({
 
   tokenAccounts: [],
   tokenAccountRawInfos: [],
-  verboseTokenAccounts: [],
+  nativeTokenAccount: undefined,
   allTokenAccounts: [],
   getTokenAccount(target) {
     if (!target) return undefined

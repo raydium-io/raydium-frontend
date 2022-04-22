@@ -12,9 +12,9 @@ type IdoStoreState = {
   ticketAmount?: Numberish
 }
 
-type IdoStore = {
+export type IdoStore = {
   idoHydratedInfos: { [idoid: string]: HydratedIdoInfo }
-  shadowIdoHydratedInfos?: { [idoid: string]: { [walletOwner: string]: HydratedIdoInfo } } // for shadowOwners
+  shadowIdoHydratedInfos?: { [walletOwner: string]: { [idoid: string]: HydratedIdoInfo } } // for shadowOwners
 
   idoRawInfos: {
     [idoid: string]: BackendApiIdoListItem
@@ -25,7 +25,6 @@ type IdoStore = {
   idoSDKInfos: {
     [idoid: string]: SDKIdoInfo
   }
-  shadowIdoSDKInfos?: { [idoid: string]: { [walletOwner: string]: HydratedIdoInfo } } // for shadowOwners
 
   /** only use it in acceleraytor/lottery page */
   currentIdoId?: string
