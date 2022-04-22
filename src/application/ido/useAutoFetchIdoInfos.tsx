@@ -9,9 +9,10 @@ import { fetchRawIdoListJson, fetchRawIdoProjectInfoJson, getSdkIdoList } from '
 import { hydrateIdoInfo } from './utils/hydrateIdoInfo'
 import toPubString, { ToPubPropertyValue } from '@/functions/format/toMintString'
 import { objectMap } from '@/functions/objectMethods'
-import { HydratedIdoInfo } from './type'
+import { BackendApiIdoListItem, HydratedIdoInfo } from './type'
 import asyncMap from '@/functions/asyncMap'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { createSplToken } from '../token/feature/useTokenListsLoader'
 
 export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetting }) {
   const connection = useConnection((s) => s.connection)
@@ -23,13 +24,27 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
   const tokens = useToken((s) => s.tokens)
   const getToken = useToken((s) => s.getToken)
 
+  const getIdoTokens = (rawInfo: BackendApiIdoListItem) => {
+    const base = createSplToken({
+      mint: rawInfo.baseMint,
+      decimals: rawInfo.baseDecimals,
+      symbol: rawInfo.baseSymbol,
+      icon: rawInfo.baseIcon
+    })
+    const quote = createSplToken({
+      mint: rawInfo.quoteMint,
+      decimals: rawInfo.quoteDecimals,
+      symbol: rawInfo.quoteSymbol,
+      icon: rawInfo.quoteIcon
+    })
+    return { base, quote }
+  }
   // raw list info
   useAsyncEffect(async () => {
     if (!shouldEffectBeOn(options?.when)) return
     const rawList = await fetchRawIdoListJson()
     const hydrated = rawList.map((raw) => {
-      const base = getToken(raw.baseMint)
-      const quote = getToken(raw.quoteMint)
+      const { base, quote } = getIdoTokens(raw)
       return hydrateIdoInfo({ ...raw, base, quote })
     })
     const hydratedInfos = listToMap(hydrated, (i) => i.id)
@@ -72,8 +87,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
     const sdkInfos = Object.fromEntries([rawList.map((raw, idx) => [raw.id, sdkList[idx]])])
     const hydrated = sdkList.map((sdkInfo, idx) => {
       const rawInfo = rawList[idx]
-      const base = getToken(rawInfo.baseMint) // must haeeeve raw.state
-      const quote = getToken(rawInfo.quoteMint)
+      const { base, quote } = getIdoTokens(rawInfo)
       return hydrateIdoInfo({ ...rawInfo, ...sdkInfo, base, quote })
     })
     const hydratedInfos = listToMap(hydrated, (i) => i.id)
@@ -101,8 +115,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
     const sdkInfos = Object.fromEntries([rawList.map((raw, idx) => [raw.id, sdkList[idx]])])
     const hydrated = sdkList.map((sdkInfo, idx) => {
       const rawInfo = rawList[idx]
-      const base = getToken(rawInfo.baseMint) // must haeeeve raw.state
-      const quote = getToken(rawInfo.quoteMint)
+      const { base, quote } = getIdoTokens(rawInfo)
       return hydrateIdoInfo({ ...rawInfo, ...sdkInfo, base, quote })
     })
     const hydratedInfos = listToMap(hydrated, (i) => i.id)
@@ -123,8 +136,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
       const sdkInfos = Object.fromEntries([rawList.map((raw, idx) => [raw.id, sdkList[idx]])])
       const hydrated = sdkList.map((sdkInfo, idx) => {
         const rawInfo = rawList[idx]
-        const base = getToken(rawInfo.baseMint) // must have raw.state
-        const quote = getToken(rawInfo.quoteMint)
+        const { base, quote } = getIdoTokens(rawInfo)
         const hydratedResult = hydrateIdoInfo({ ...rawInfo, ...sdkInfo, base, quote })
         return hydratedResult
       })
