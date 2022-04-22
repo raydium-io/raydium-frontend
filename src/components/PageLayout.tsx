@@ -257,7 +257,7 @@ function MigrateBubble() {
   )
 }
 
-const RAYDIUM_MONITORING_PUBLIC_KEY = new PublicKey('HZrny6ciLzhUt2HfZxj731NzAJUhTbwXhdKgQZsG8CTf')
+const RAYDIUM_MONITORING_PUBLIC_KEY = new PublicKey('21NkpAe9wQAmdVUSpDqjttu5Czisg1KfktmEpn44maco')
 
 // TODO: add notification types
 const RAYDIUM_NOTIFICATION_TYPES: NotificationType[] = []
