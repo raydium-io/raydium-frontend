@@ -1,6 +1,7 @@
 import jFetch from '@/functions/dom/jFetch'
 import { toPub, tryToPub } from '@/functions/format/toMintString'
 import { isArray, isObject } from '@/functions/judgers/dateType'
+import { isInLocalhost } from '@/functions/judgers/isSSR'
 import { objectMap } from '@/functions/objectMethods'
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
 import { isString } from '@sentry/utils'
@@ -32,7 +33,12 @@ export async function fetchRawIdoListJson(): Promise<BackendApiIdoListItem[]> {
     })
   })
   if (!response?.success) return []
-  return response.data
+  if (isInLocalhost) {
+    const devIdoList = (await jFetch<any[]>('/ido-list.json')) ?? []
+    return response.data.concat(devIdoList)
+  } else {
+    return response.data
+  }
 }
 
 export async function fetchRawIdoProjectInfoJson({
