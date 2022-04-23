@@ -111,7 +111,7 @@ export function popWelcomeDialogFn(cb?: { onConfirm: () => void }) {
       </div>
       <div className="text-[#C4D6FF] mb-4 ">
         Help Raydium improve by reporting bugs <Link href="https://forms.gle/DvUS4YknduBgu2D7A">here</Link>, or in{' '}
-        <Link href="https://discord.gg/mEPnd8chex">Discord.</Link>
+        <Link href="https://discord.com/invite/raydiumprotocol">Discord.</Link>
       </div>
     </div>,
     {
