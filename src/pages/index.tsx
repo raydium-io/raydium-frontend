@@ -484,7 +484,7 @@ function HomePageFooter() {
                 <div className="tablet:hidden">Medium</div>
               </Row>
             </Link>
-            <Link className="text-[#c4d6ff] hover:text-white" href="https://discord.com/invite/raydiumprotocol">
+            <Link className="text-[#c4d6ff] hover:text-white" href="https://discord.gg/raydium">
               <Row className="items-center gap-2">
                 <Icon
                   className="frosted-glass-teal p-1.5 rounded-lg text"
