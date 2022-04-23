@@ -641,7 +641,7 @@ function CommunityPopover() {
       <div className="pt-3 -mb-1 mobile:mb-2 px-6 text-[rgba(171,196,255,0.5)] text-xs mobile:text-sm">COMMUNITY</div>
       <div className="gap-3 divide-y-1.5 divide-[rgba(171,196,255,0.2)] ">
         <Item href="https://twitter.com/RaydiumProtocol" iconSrc="/icons/media-twitter.svg" text="Twitter" />
-        <Item href="https://discord.gg/raydium" iconSrc="/icons/media-discord.svg" text="Discord" />
+        <Item href="https://discord.gg/mEPnd8chex" iconSrc="/icons/media-discord.svg" text="Discord" />
         <PageLayoutPopoverDrawer
           renderPopoverContent={({ close }) => (
             <Col className="divide-y-1.5 divide-[rgba(171,196,255,0.2)]">

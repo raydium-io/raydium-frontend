@@ -268,6 +268,16 @@ async function calculatePairTokenAmount({
         amountIn: deUITokenAmount(upCoinTokenAmount),
         slippage: toPercent(slippageTolerance)
       })
+    // console.log('{ amountOut, minAmountOut, executionPrice, currentPrice, priceImpact, routes, routeType, fee }: ', {
+    //   amountOut,
+    //   minAmountOut,
+    //   executionPrice,
+    //   currentPrice,
+    //   priceImpact,
+    //   routes,
+    //   routeType,
+    //   fee
+    // })
 
     const sdkParsedInfoMap = new Map(sdkParsedInfos.map((info) => [toPubString(info.id), info]))
     const choosedSdkParsedInfos = shakeUndifindedItem(
