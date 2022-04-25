@@ -876,7 +876,7 @@ function SwapCardTooltipPanelAddress() {
   const coin2 = useSwap((s) => s.coin2)
   const routes = useSwap((s) => s.routes)
   return (
-    <div className="w-56">
+    <div className="w-60">
       <div className="text-sm font-semibold mb-2">Addresses</div>
       <Col className="gap-2">
         <SwapCardTooltipPanelAddressItem
@@ -889,29 +889,33 @@ function SwapCardTooltipPanelAddress() {
           type="token"
           address={String(coin2?.mint ?? '--')}
         />
-
         {/* show routes address panel */}
-        {routes?.length === 1 ? (
-          routes[0].source === 'serum' ? (
-            routes[0].keys.marketId ? (
-              <SwapCardTooltipPanelAddressItem
-                label="Serum Market"
-                type="market"
-                address={String(routes[0].keys.marketId)}
-              />
-            ) : null
-          ) : routes[0].keys.id ? (
-            <SwapCardTooltipPanelAddressItem label="Amm ID" type="ammId" address={String(routes[0].keys.id)} />
-          ) : null
+        {routes?.length && routes?.length === 1 ? (
+          <>
+            {routes[0].keys.marketId && (
+              <SwapCardTooltipPanelAddressItem label="Market ID" address={String(routes[0].keys.marketId)} />
+            )}
+            {routes[0].keys.id && (
+              <SwapCardTooltipPanelAddressItem label="Amm ID" address={String(routes[0].keys.id)} />
+            )}
+          </>
         ) : routes?.length && routes.length > 1 ? (
-          routes?.map((routeInfo, idx) => (
-            <SwapCardTooltipPanelAddressItem
-              key={String(routeInfo.keys.id)}
-              label={`Amm ID (route ${idx + 1})`}
-              type="ammId"
-              address={String(routeInfo.keys.id)}
-            />
-          ))
+          <>
+            {routes?.map((routeInfo, idx) => (
+              <SwapCardTooltipPanelAddressItem
+                key={'market' + String(routeInfo.keys.id)}
+                label={`Market ID (route ${idx + 1})`}
+                address={String(routeInfo.keys.marketId)}
+              />
+            ))}
+            {routes?.map((routeInfo, idx) => (
+              <SwapCardTooltipPanelAddressItem
+                key={'amm' + String(routeInfo.keys.id)}
+                label={`Amm ID (route ${idx + 1})`}
+                address={String(routeInfo.keys.id)}
+              />
+            ))}
+          </>
         ) : null}
       </Col>
     </div>
@@ -927,10 +931,11 @@ function SwapCardTooltipPanelAddressItem({
   className?: string
   label: string
   address: string
-  type?: 'token' | 'market' | 'ammId' | 'account'
+  /** this is for site:solscan check */
+  type?: 'token' | 'account'
 }) {
   return (
-    <Row className={twMerge('grid gap-1 items-center grid-cols-[4em,1fr,auto,auto]', className)}>
+    <Row className={twMerge('grid gap-2 items-center grid-cols-[5em,1fr,auto,auto]', className)}>
       <div className="text-xs font-normal text-white">{label}</div>
       <Row className="px-1 py-0.5 text-xs font-normal text-white bg-[#141041] rounded justify-center">
         {/* setting text-overflow empty string will make effect in FireFox, not Chrome */}
@@ -938,17 +943,19 @@ function SwapCardTooltipPanelAddressItem({
         <div className="tracking-wide">...</div>
         <div className="overflow-hidden tracking-wide">{address.slice(-5)}</div>
       </Row>
-      <Icon
-        size="sm"
-        heroIconName="clipboard-copy"
-        className="clickable text-[#ABC4FF]"
-        onClick={() => {
-          copyToClipboard(address)
-        }}
-      />
-      <Link href={`https://solscan.io/${type.replace('ammId', 'account')}/${address}`}>
-        <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
-      </Link>
+      <Row className="gap-1 items-center">
+        <Icon
+          size="sm"
+          heroIconName="clipboard-copy"
+          className="clickable text-[#ABC4FF]"
+          onClick={() => {
+            copyToClipboard(address)
+          }}
+        />
+        <Link href={`https://solscan.io/${type}/${address}`}>
+          <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
+        </Link>
+      </Row>
     </Row>
   )
 }

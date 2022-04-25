@@ -687,9 +687,9 @@ function LiquidityCardItem({
 function LiquidityCardTooltipPanelAddress() {
   const coin1 = useLiquidity((s) => s.coin1)
   const coin2 = useLiquidity((s) => s.coin2)
-  const { lpMint, id } = useLiquidity((s) => s.currentJsonInfo) ?? {}
+  const { lpMint, id, marketId } = useLiquidity((s) => s.currentJsonInfo) ?? {}
   return (
-    <div className="w-56">
+    <div className="w-60">
       <div className="text-sm font-semibold mb-2">Addresses</div>
       <Col className="gap-2">
         {coin1 && (
@@ -707,7 +707,8 @@ function LiquidityCardTooltipPanelAddress() {
           />
         )}
         {Boolean(lpMint) && <LiquidityCardTooltipPanelAddressItem label="LP" type="token" address={lpMint!} />}
-        {Boolean(id) && <LiquidityCardTooltipPanelAddressItem label="AmmID" type="ammId" address={id!} />}
+        {Boolean(id) && <LiquidityCardTooltipPanelAddressItem label="Amm ID" address={id!} />}
+        {Boolean(marketId) && <LiquidityCardTooltipPanelAddressItem label="Market ID" address={marketId!} />}
       </Col>
     </div>
   )
@@ -722,10 +723,10 @@ function LiquidityCardTooltipPanelAddressItem({
   className?: string
   label: string
   address: string
-  type?: 'token' | 'market' | 'ammId' | 'account'
+  type?: 'token' | 'account'
 }) {
   return (
-    <Row className={twMerge('grid gap-1 items-center grid-cols-[4em,1fr,auto,auto]', className)}>
+    <Row className={twMerge('grid gap-2 items-center grid-cols-[5em,1fr,auto,auto]', className)}>
       <div className="text-xs font-normal text-white">{label}</div>
       <Row className="px-1 py-0.5 text-xs font-normal text-white bg-[#141041] rounded justify-center">
         {/* setting text-overflow empty string will make effect in FireFox, not Chrome */}
@@ -733,17 +734,19 @@ function LiquidityCardTooltipPanelAddressItem({
         <div className="tracking-wide">...</div>
         <div className="overflow-hidden tracking-wide">{address.slice(-5)}</div>
       </Row>
-      <Icon
-        size="sm"
-        heroIconName="clipboard-copy"
-        className="clickable text-[#ABC4FF]"
-        onClick={() => {
-          copyToClipboard(address)
-        }}
-      />
-      <Link href={`https://solscan.io/${type.replace('ammId', 'account')}/${address}`}>
-        <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
-      </Link>
+      <Row className="gap-1 items-center">
+        <Icon
+          size="sm"
+          heroIconName="clipboard-copy"
+          className="clickable text-[#ABC4FF]"
+          onClick={() => {
+            copyToClipboard(address)
+          }}
+        />
+        <Link href={`https://solscan.io/${type}/${address}`}>
+          <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
+        </Link>
+      </Row>
     </Row>
   )
 }
