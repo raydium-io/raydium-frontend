@@ -804,7 +804,7 @@ function SwapCardInfo({ className }: { className?: string }) {
               }
             />
             <SwapCardItem
-              fieldName="Fee"
+              fieldName="Swap Fee"
               fieldValue={
                 fee ? (
                   <Col>
