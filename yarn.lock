@@ -186,10 +186,10 @@
   dependencies:
     "@cspotcode/source-map-consumer" "0.8.0"
 
-"@dialectlabs/react-ui@^0.6.4":
-  version "0.6.4"
-  resolved "https://registry.yarnpkg.com/@dialectlabs/react-ui/-/react-ui-0.6.4.tgz#d15b79afa9ae833d7aad1a579d6c5a68970a3feb"
-  integrity sha512-0m8VNRC4SX9JbClGo/n/CeD/B9Ei2BE03+eF90fo5Oa9VSNInmWuApA29jHYVqkL2QuWfiE7pnUpKIl6P6DAFA==
+"@dialectlabs/react-ui@^0.6.10":
+  version "0.6.10"
+  resolved "https://registry.yarnpkg.com/@dialectlabs/react-ui/-/react-ui-0.6.10.tgz#9129d56cb66a9b233467f716e59267f46f8250d7"
+  integrity sha512-XoMrRSlSqAt31XPOSfVc9zaCGp5W7lrKVuFjxZgskPHaGiSU597mz/JhWlmVnBsY1Q6HeRRaHlm5aUL8rLYrFg==
   dependencies:
     "@cardinal/namespaces-components" "2.5.0"
     "@dialectlabs/web3" "^0.2.0"
@@ -201,14 +201,15 @@
     react-media-hook "^0.4.9"
     swr "^0.5.6"
 
-"@dialectlabs/react@^0.4.3":
-  version "0.4.3"
-  resolved "https://registry.yarnpkg.com/@dialectlabs/react/-/react-0.4.3.tgz#6b5b6f25ed6323ff59b8ef11040185c82e5d7f4d"
-  integrity sha512-2k95WyvnwADFBzo4wSFLHGu0l6ZLl8yVTxxmePsMoOdZLrgtLAOlWyzPi21vYt8M91d4T0OElgYaFsyhC7sTTA==
+"@dialectlabs/react@^0.4.8":
+  version "0.4.8"
+  resolved "https://registry.yarnpkg.com/@dialectlabs/react/-/react-0.4.8.tgz#ae0cf344f4d9b024a01a9b35fbf3368240ecfd9d"
+  integrity sha512-2VoxMnu5wQHb+6vJ9gp8XYgr/Gk18YTAS7AYdmGEJ4SpeUp4k1sADZIwuG/8YeBrkdKaXG4z6PGCBiyu0GjKwQ==
   dependencies:
     "@dialectlabs/web3" "^0.2.0"
     "@project-serum/anchor" "^0.23.0"
-    "@solana/web3.js" "^1.39.1"
+    "@solana/web3.js" "1.38.0"
+    object-hash "^3.0.0"
     swr "^0.5.6"
     unfetch "^4.2.0"
 
@@ -1368,7 +1369,7 @@
     "@solana/wallet-adapter-tokenpocket" "^0.4.2"
     "@solana/wallet-adapter-torus" "^0.11.10"
 
-"@solana/web3.js@1.36.0", "@solana/web3.js@^1.17.0", "@solana/web3.js@^1.20.0", "@solana/web3.js@^1.21.0", "@solana/web3.js@^1.22.0", "@solana/web3.js@^1.30.2", "@solana/web3.js@^1.31.0", "@solana/web3.js@^1.36.0", "@solana/web3.js@^1.39.1":
+"@solana/web3.js@1.36.0", "@solana/web3.js@1.38.0", "@solana/web3.js@^1.17.0", "@solana/web3.js@^1.20.0", "@solana/web3.js@^1.21.0", "@solana/web3.js@^1.22.0", "@solana/web3.js@^1.30.2", "@solana/web3.js@^1.31.0", "@solana/web3.js@^1.36.0":
   version "1.36.0"
   resolved "https://registry.yarnpkg.com/@solana/web3.js/-/web3.js-1.36.0.tgz#79d7d5217b49b80139f4de68953adc5b9a9a264f"
   integrity sha512-RNT1451iRR7TyW7EJKMCrH/0OXawIe4zVm0DWQASwXlR/u1jmW6FrmH0lujIh7cGTlfOVbH+2ZU9AVUPLBFzwA==
