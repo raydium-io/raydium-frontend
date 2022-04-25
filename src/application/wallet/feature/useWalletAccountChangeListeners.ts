@@ -75,5 +75,5 @@ export function removeWalletAccountChangeListener(id: ListenerId) {
 
 export function invokeWalletAccountChangeListeners(lifeTime: 'confirmed' | 'finalized') {
   walletAccountChangeListeners.forEach((l) => l.cb())
-  walletAccountChangeListeners = walletAccountChangeListeners.filter((l) => l.lifetime === lifeTime && !l.once)
+  walletAccountChangeListeners = walletAccountChangeListeners.filter((l) => !(l.lifetime === lifeTime && l.once))
 }
