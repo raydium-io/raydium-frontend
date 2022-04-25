@@ -777,24 +777,7 @@ function SwapCardInfo({ className }: { className?: string }) {
         fieldValueTextColor={isDangerousPrice ? '#DA2EEF' : isWarningPrice ? '#D8CB39' : '#39D0D8'}
         tooltipContent="The difference between the market price and estimated price due to trade size"
       />
-      {fee && (
-        <SwapCardItem
-          fieldName="Fee"
-          fieldValue={
-            <Col>
-              {fee.map((CurrencyAmount) => {
-                const tokenAmount = toUITokenAmount(CurrencyAmount)
-                return (
-                  <div key={tokenAmount.token.symbol} className="text-right">
-                    {toString(tokenAmount)} {getToken(tokenAmount.token.mint)?.symbol ?? '--'}
-                  </div>
-                )
-              })}
-            </Col>
-          }
-          tooltipContent="The difference between the market price and estimated price due to trade size"
-        />
-      )}
+
       <Collapse openDirection="upwards" className="w-full">
         <Collapse.Body>
           <Col className="gap-3 pb-3">
@@ -819,6 +802,26 @@ function SwapCardInfo({ className }: { className?: string }) {
                   <div className="opacity-50 ml-1">%</div>
                 </Row>
               }
+            />
+            <SwapCardItem
+              fieldName="Fee"
+              fieldValue={
+                fee ? (
+                  <Col>
+                    {fee.map((CurrencyAmount) => {
+                      const tokenAmount = toUITokenAmount(CurrencyAmount)
+                      return (
+                        <div key={tokenAmount.token.symbol} className="text-right">
+                          {toString(tokenAmount)} {getToken(tokenAmount.token.mint)?.symbol ?? '--'}
+                        </div>
+                      )
+                    })}
+                  </Col>
+                ) : (
+                  '--'
+                )
+              }
+              // tooltipContent="The difference between the market price and estimated price due to trade size"
             />
           </Col>
         </Collapse.Body>
