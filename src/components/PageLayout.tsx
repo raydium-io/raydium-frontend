@@ -40,7 +40,6 @@ import { useAppVersion } from '@/application/appVersion/useAppVersion'
 import { refreshWindow } from '@/application/appVersion/forceWindowRefresh'
 import { IncomingThemeVariables, NotificationsButton } from '@dialectlabs/react-ui'
 import { PublicKey } from '@solana/web3.js'
-import { NotificationType } from '@dialectlabs/react-ui/lib/types/components/Notifications'
 
 /**
  * for easier to code and read
@@ -259,8 +258,10 @@ function MigrateBubble() {
 
 const RAYDIUM_MONITORING_PUBLIC_KEY = new PublicKey('21NkpAe9wQAmdVUSpDqjttu5Czisg1KfktmEpn44maco')
 
-// TODO: add notification types
-const RAYDIUM_NOTIFICATION_TYPES: NotificationType[] = []
+const RAYDIUM_NOTIFICATION_TYPES = [{
+  name: 'Unstaked Ray Balances',
+  detail: 'On Change'
+}]
 
 function DialectNotificationsButton() {
   // Using original wallet adapter, since Dialect requires the original WalletContextState
