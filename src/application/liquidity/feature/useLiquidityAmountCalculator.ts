@@ -69,6 +69,16 @@ export default function useLiquidityAmountCalculator() {
         currentSdkParsedInfo,
         slippageTolerance
       })
+
+      // for calculatePairTokenAmount is async, result maybe droped. if that, just stop it
+      const resultStillFresh = (() => {
+        const { coin1Amount, coin2Amount } = useLiquidity.getState()
+        const currentFocusSideAmount = focusSide === 'coin1' ? coin1Amount : coin2Amount
+        const focusSideAmount = focusSide === 'coin1' ? userCoin1Amount : userCoin2Amount
+        return eq(currentFocusSideAmount, focusSideAmount)
+      })()
+      if (!resultStillFresh) return
+
       if (focusSide === 'coin1') {
         useLiquidity.setState({ coin2Amount: pairCoinAmount, unslippagedCoin2Amount: unslippagedPairCoinAmount })
       } else {

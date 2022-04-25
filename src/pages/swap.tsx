@@ -49,7 +49,7 @@ import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { eq, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, gte, isMeaningfulNumber, isMeaninglessNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
@@ -536,7 +536,7 @@ function SwapPriceAcceptChip() {
   const focusOppositeSideCoin = focusSide === 'coin1' ? coin2 : coin1
   const focusOppositeSideAmount = focusSide === 'coin1' ? coin2Amount : coin1Amount
 
-  const haveFocusChanged = useRef(false) // flag for calc opposite in  second frame
+  const causedByFocusChanged = useRef(false) // flag for calc opposite in  second frame
 
   useRecordedEffect(
     ([
@@ -548,13 +548,13 @@ function SwapPriceAcceptChip() {
     ]) => {
       const isFocusSideCoinChanged = prevFocusSideCoin != null && prevFocusSideCoin !== focusSideCoin
       const isFocusSideAmountChanged = Boolean(
-        focusSideAmount && prevFocusSideAmount != null && !eq(prevFocusSideAmount, focusSideAmount)
+        focusSideAmount && isMeaningfulNumber(prevFocusSideAmount) && !eq(prevFocusSideAmount, focusSideAmount)
       )
       const isFocusOppositeSideCoinChanged =
         prevFocusOppositeSideCoin != null && prevFocusOppositeSideCoin !== focusOppositeSideCoin
       const isFocusOppositeSideAmountChanged = Boolean(
         focusOppositeSideAmount &&
-          prevFocusOppositeSideAmount != null &&
+          isMeaningfulNumber(prevFocusOppositeSideAmount) &&
           !eq(prevFocusOppositeSideAmount, focusOppositeSideAmount)
       )
       const isDirectionReversedChanged = prevDirectionReversed != null && prevDirectionReversed !== directionReversed
@@ -580,14 +580,14 @@ function SwapPriceAcceptChip() {
         // direction Reverse change
         // focusSideAmountChange
         setHasAcceptedPriceChange(true)
-        haveFocusChanged.current = true
+        causedByFocusChanged.current = true
       } else if (isFocusOppositeSideAmountChanged) {
         // focusSideAmountChange will always cause focusOppositeSideAmountChange
         // focusOppositeSideAmountHasChanged without focusSideAmountHasChanged pop
-        if (!haveFocusChanged.current && !isFocusSideAmountChanged && isFocusOppositeSideAmountChanged) {
+        if (!causedByFocusChanged.current && !isFocusSideAmountChanged) {
           setHasAcceptedPriceChange(!isFocusOppositeSideAmountChanged)
         }
-        haveFocusChanged.current = false
+        causedByFocusChanged.current = false
       }
     },
     [focusSideCoin, focusSideAmount, focusOppositeSideCoin, focusOppositeSideAmount, directionReversed] as const
