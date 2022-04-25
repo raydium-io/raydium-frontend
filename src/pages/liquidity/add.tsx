@@ -59,6 +59,7 @@ import TokenSelectorDialog from '../../components/dialogs/TokenSelectorDialog'
 import { Badge } from '@/components/Badge'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { SplToken } from '@/application/token/type'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -205,7 +206,7 @@ function LiquidityConfirmRiskPanel({
 }
 
 function LiquidityCard() {
-  const { connected, owner } = useWallet()
+  const { connected } = useWallet()
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
@@ -219,6 +220,7 @@ function LiquidityCard() {
     coin2,
     coin2Amount,
     unslippagedCoin2Amount,
+    focusSide,
     currentJsonInfo,
     currentHydratedInfo,
     isSearchAmmDialogOpen,
@@ -240,11 +242,16 @@ function LiquidityCard() {
     toggleTemporarilyConfirm,
     togglePermanentlyConfirm
   } = useLiquidityWarning()
-
   const haveEnoughCoin1 =
-    coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
+    coin1 &&
+    checkWalletHasEnoughBalance(
+      toTokenAmount(coin1, focusSide === 'coin1' ? coin1Amount : unslippagedCoin1Amount, { alreadyDecimaled: true })
+    )
   const haveEnoughCoin2 =
-    coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, unslippagedCoin2Amount, { alreadyDecimaled: true }))
+    coin2 &&
+    checkWalletHasEnoughBalance(
+      toTokenAmount(coin2, focusSide === 'coin2' ? coin2Amount : unslippagedCoin2Amount, { alreadyDecimaled: true })
+    )
 
   const cardRef = useRef<HTMLDivElement>(null)
 
@@ -565,23 +572,6 @@ function LiquidityCardInfo({ className }: { className?: string }) {
             />
           )}
         </FadeIn>
-        {/* <LiquidityCardItem
-          fieldName={`Pool liquidity`}
-          fieldValue={
-            <Col className="items-end">
-              <div>
-                {pooledBaseTokenAmount
-                  ? `${formatNumber(pooledBaseTokenAmount.toExact())} ${coinBase?.symbol ?? 'unknown'}`
-                  : '--'}
-              </div>
-              <div>
-                {pooledQuoteTokenAmount
-                  ? `${formatNumber(pooledQuoteTokenAmount.toExact())} ${coinQuote?.symbol ?? 'unknown'}`
-                  : '--'}
-              </div>
-            </Col>
-          }
-        /> */}
         <LiquidityCardItem
           fieldName={`Pool liquidity (${coinBase?.symbol ?? 'unknown'})`}
           fieldValue={
@@ -619,7 +609,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
         />
         <Collapse openDirection="upwards" className="w-full">
           <Collapse.Body>
-            <Col className="pb-3">
+            <Col>
               <LiquidityCardItem fieldName="Addresses" tooltipContent={<LiquidityCardTooltipPanelAddress />} />
               <LiquidityCardItem
                 fieldName="Slippage Tolerance"

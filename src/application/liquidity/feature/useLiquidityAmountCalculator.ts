@@ -1,5 +1,4 @@
 import { jsonInfo2PoolKeys, Liquidity, LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
-import { Connection } from '@solana/web3.js'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { SplToken } from '@/application/token/type'
@@ -15,7 +14,6 @@ import { hasSameItems } from '../../../functions/arrayMethods'
 import useConnection from '../../connection/useConnection'
 import { SDKParsedLiquidityInfo } from '../type'
 import useLiquidity from '../useLiquidity'
-import sdkParseJsonLiquidityInfo from '../utils/sdkParseJsonLiquidityInfo'
 import { useEffect } from 'react'
 import toPubString from '@/functions/format/toMintString'
 
