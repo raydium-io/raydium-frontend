@@ -206,7 +206,7 @@ function LiquidityConfirmRiskPanel({
 }
 
 function LiquidityCard() {
-  const { connected } = useWallet()
+  const { connected, owner } = useWallet()
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
@@ -279,7 +279,7 @@ function LiquidityCard() {
           className="mt-5"
           disabled={isApprovePanelShown}
           componentRef={coinInputBox1ComponentRef}
-          value={unslippagedCoin1Amount}
+          value={focusSide === 'coin1' ? coin1Amount : unslippagedCoin1Amount}
           haveHalfButton
           haveCoinIcon
           canSelect
@@ -334,7 +334,7 @@ function LiquidityCard() {
         <CoinInputBox
           componentRef={coinInputBox2ComponentRef}
           disabled={isApprovePanelShown}
-          value={unslippagedCoin2Amount}
+          value={focusSide === 'coin2' ? coin2Amount : unslippagedCoin2Amount}
           haveHalfButton
           haveCoinIcon
           canSelect
