@@ -26,11 +26,11 @@ export function toFractionWithDecimals(value: Numberish): { fr: Fraction; decima
 
   if (value instanceof Price) return { fr: value.adjusted }
 
-  // do not ideal with other fraction value
-  if (value instanceof Fraction) return { fr: value }
-
   // to complete math format(may have decimal), not BN
   if (value instanceof TokenAmount) return { fr: toFraction(value.toExact()), decimals: value.token.decimals }
+
+  // do not ideal with other fraction value
+  if (value instanceof Fraction) return { fr: value }
 
   // wrap to Fraction
   const n = String(value)

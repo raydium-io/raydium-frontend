@@ -19,7 +19,7 @@ export function toString(
   const { fr, decimals } = toFractionWithDecimals(n)
   let result = ''
   const decimalLength = options?.decimalLength ?? (decimals != null ? `auto ${decimals}` : 'auto')
-  if (decimalLength === 'auto') {
+  if (decimalLength === 'auto' || decimalLength === 'auto ') {
     result = trimTailingZero(fr.toFixed(6)) // if it is not tokenAmount, it will have max 6 decimal
   } else if (isString(decimalLength) && decimalLength.startsWith('auto')) {
     const autoDecimalLength = Number(decimalLength.split(' ')[1])
