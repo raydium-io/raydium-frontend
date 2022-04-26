@@ -252,7 +252,8 @@ function HomePageSection1() {
 }
 
 function HomePageSection2() {
-  const { isMobile, isTablet } = useDevice()
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const isTablet = useAppSettings((s) => s.isTablet)
 
   return (
     <section className="grid-child-center grid-cover-container">
@@ -350,7 +351,8 @@ function HomePageSection3() {
 }
 
 function HomePageFooter() {
-  const { isTablet, isMobile } = useDevice()
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const isTablet = useAppSettings((s) => s.isTablet)
   return (
     <footer
       className="pt-56 overflow-hidden"

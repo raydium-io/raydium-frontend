@@ -45,27 +45,15 @@ import '../styles/index.css'
 import { useWalletConnectNotifaction } from '@/application/wallet/feature/useWalletConnectNotifaction'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
 import { useTokenGetterFnLoader } from '@/application/token/feature/useTokenGetterFnLoader'
+import { POPOVER_STACK_ID } from '@/components/Popover'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
   return (
-    <SolanaWalletProviders>
-      {/* initializations hooks */}
-      <ClientInitialization />
-      {pathname !== '/' && <ApplicationsInitializations />}
-
-      <div className="app">
-        <NextNProgress color="#34ade5" showOnShallow={false} />
-
-        {/* Page Components */}
-        <Component {...pageProps} />
-
-        {/* Global Components */}
-        <RecentTransactionDialog />
-        <WalletSelectorDialog />
-        <NotificationSystemStack />
-      </div>
-    </SolanaWalletProviders>
+    <>
+      <Component {...pageProps} />
+      <div id={POPOVER_STACK_ID} className="fixed z-popover inset-0 self-pointer-events-none"></div>
+    </>
   )
 }
 

@@ -6,7 +6,7 @@ type ReactComponent = (...params: any[]) => ReactElement | null
 function isSpawnByTargetComponent(item: ReactElement, targetComponent: ReactComponent) {
   const isDirectSpawner = item.type === targetComponent
   if (isDirectSpawner) return true
-  const composers = (item.type as any).composedBy as ReactComponent | ReactComponent[] | undefined
+  const composers = (item.type as any)?.composedBy as ReactComponent | ReactComponent[] | undefined
   const isSpawnerOfComposers = isArray(composers) ? composers.includes(targetComponent) : composers === targetComponent
   if (isSpawnerOfComposers) return true
   return false
