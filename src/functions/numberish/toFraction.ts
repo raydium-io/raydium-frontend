@@ -19,3 +19,21 @@ export default function toFraction(value: Numberish): Fraction {
   const details = parseNumberInfo(n)
   return new Fraction(details.numerator, details.denominator)
 }
+
+export function toFractionWithDecimals(value: Numberish): { fr: Fraction; decimals?: number } {
+  //  to complete math format(may have decimal), not int
+  if (value instanceof Percent) return { fr: new Fraction(value.numerator, value.denominator) }
+
+  if (value instanceof Price) return { fr: value.adjusted }
+
+  // do not ideal with other fraction value
+  if (value instanceof Fraction) return { fr: value }
+
+  // to complete math format(may have decimal), not BN
+  if (value instanceof TokenAmount) return { fr: toFraction(value.toExact()), decimals: value.token.decimals }
+
+  // wrap to Fraction
+  const n = String(value)
+  const details = parseNumberInfo(n)
+  return { fr: new Fraction(details.numerator, details.denominator), decimals: details.dec?.length }
+}
