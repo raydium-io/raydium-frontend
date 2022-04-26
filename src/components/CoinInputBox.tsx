@@ -185,7 +185,7 @@ export default function CoinInputBox({
     const newAmount = trimTailingZero(
       maxBalance?.mul(new Fraction(numerator, denominator)).toFixed(maxBalance.token.decimals)
     )
-
+    isOutsideValueLocked.current = false
     onUserInput?.(newAmount) // set both outside and inside
     setInputedAmount(newAmount) // set both outside and inside
   }

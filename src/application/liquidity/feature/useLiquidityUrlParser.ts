@@ -157,7 +157,7 @@ export default function useLiquidityUrlParser() {
       (pathname: string, query: Record<string, any>) => {
         replace({ pathname, query }, undefined, { shallow: true })
       },
-      { delay: 100 }
+      { delay: 500 }
     ),
     []
   )

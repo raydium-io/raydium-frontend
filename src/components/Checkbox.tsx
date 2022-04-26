@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useEffect } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -7,23 +7,31 @@ import useToggle from '@/hooks/useToggle'
 
 import Row from './Row'
 
+/**
+ * it is both
+ */
 export function Checkbox({
+  checked,
   checkBoxSize = 'md',
   className,
   defaultChecked,
   onChange,
   label
 }: {
+  checked?: boolean
   checkBoxSize?: 'sm' | 'md'
   className?: string
   defaultChecked?: boolean
   onChange?: (newChecked: boolean) => void
   label?: ReactNode
 }) {
-  const [innerChecked, { toggle }] = useToggle(defaultChecked, {
+  const [innerChecked, { toggle, set }] = useToggle(defaultChecked, {
     onOn: () => onChange?.(true),
     onOff: () => onChange?.(false)
   })
+  useEffect(() => {
+    if (checked != null) set(checked)
+  }, [checked])
 
   return label ? (
     <Row className={twMerge('items-center clickable no-clicable-transform-effect', className)} onClick={toggle}>
