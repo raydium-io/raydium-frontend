@@ -389,7 +389,7 @@ function HomePageFooter() {
             >
               CoinGecko
             </Link>
-            <Link openInNewTab className="text-[#c4d6ff] hover:text-white tablet:text-center" href="/doc/disclaimer">
+            <Link openInNewTab className="text-[#c4d6ff] hover:text-white tablet:text-center" href="/docs/disclaimer">
               Disclaimer
             </Link>
           </Col>
