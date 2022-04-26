@@ -786,7 +786,7 @@ function SwapCardInfo({ className }: { className?: string }) {
               fieldName="Slippage Tolerance"
               tooltipContent="The maximum difference between your estimated price and execution price"
               fieldValue={
-                <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs">
+                <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs -my-1">
                   <Input
                     className="w-6"
                     disabled={isApprovePanelShown}

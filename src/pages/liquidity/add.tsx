@@ -1,4 +1,4 @@
-import React, { createRef, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import React, { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Percent } from '@raydium-io/raydium-sdk'
 
@@ -40,7 +40,7 @@ import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import Tabs from '@/components/Tabs'
 import Tooltip from '@/components/Tooltip'
-import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
+import { addItem, removeItem, shakeFalsyItem, unifyItem } from '@/functions/arrayMethods'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
@@ -59,7 +59,6 @@ import TokenSelectorDialog from '../../components/dialogs/TokenSelectorDialog'
 import { Badge } from '@/components/Badge'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { SplToken } from '@/application/token/type'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -116,24 +115,43 @@ function useLiquidityWarning() {
   const [userConfirmedList, setUserConfirmedList] = useLocalStorageItem<HexAddress /* ammId */[]>(
     'USER_CONFIRMED_LIQUIDITY_AMM_LIST'
   )
-  // permanent state
-  const hasUserPermanentConfirmed = currentJsonInfo && userConfirmedList?.includes(currentJsonInfo.id)
+  const userConfirmedListRef = useRef(userConfirmedList)
+  userConfirmedListRef.current = userConfirmedList
 
+  const checkPermanent = useCallback(
+    () =>
+      Boolean(
+        useLiquidity.getState().currentJsonInfo &&
+          userConfirmedListRef.current?.includes(useLiquidity.getState().currentJsonInfo!.id)
+      ),
+    []
+  )
+
+  // permanent state
+  const [hasUserPermanentConfirmed, setHasUserPermanentConfirmed] = useState(checkPermanent)
   // temporary state
   const [hasUserTemporaryConfirmed, setHasUserTemporaryConfirmed] = useState(false)
 
+  // when change coin pair, just reset temporary confirm and permanent confirm
   useEffect(() => {
     if (currentJsonInfo) {
       setHasUserTemporaryConfirmed(false)
     }
+    if (currentJsonInfo) {
+      setHasUserPermanentConfirmed(checkPermanent())
+    }
   }, [currentJsonInfo])
 
+  const applyPermanentConfirm = (ammId: string) => {
+    if (hasUserPermanentConfirmed) {
+      setUserConfirmedList((old) => unifyItem(addItem(old ?? [], ammId)))
+    }
+  }
   const toggleTemporarilyConfirm = (checkState: boolean) => setHasUserTemporaryConfirmed(checkState)
-  const togglePermanentlyConfirm = (checkState: boolean, ammId: string) => {
+  const togglePermanentlyConfirm = (checkState: boolean) => {
+    setHasUserPermanentConfirmed(checkState)
     if (checkState) {
-      setUserConfirmedList((old) => addItem(old ?? [], ammId))
-    } else {
-      setUserConfirmedList((old) => removeItem(old ?? [], ammId))
+      setHasUserTemporaryConfirmed(true)
     }
   }
   // box state
@@ -144,8 +162,11 @@ function useLiquidityWarning() {
   useEffect(() => {
     if (!coin1 || !coin2) {
       setIsPanelShown(false)
+    } else {
+      const noPermanent = !checkPermanent()
+      setIsPanelShown(noPermanent)
     }
-  }, [coin1, coin2])
+  }, [coin1, coin2, currentJsonInfo])
 
   useEffect(() => {
     if (needPanelShown) {
@@ -159,20 +180,25 @@ function useLiquidityWarning() {
     closePanel,
     toggleTemporarilyConfirm,
     togglePermanentlyConfirm,
+    applyPermanentConfirm,
     hasUserPermanentConfirmed,
     hasUserTemporaryConfirmed,
     needConfirmPanel: isPanelShown
   }
 }
 
-function LiquidityConfirmRiskPanel({
+function ConfirmRiskPanel({
   className,
   isPanelOpen,
+  temporarilyConfirm,
+  permanentlyConfirm,
   onTemporarilyConfirm,
   onPermanentlyConfirm
 }: {
   className?: string
   isPanelOpen?: boolean
+  temporarilyConfirm?: boolean
+  permanentlyConfirm?: boolean
   onTemporarilyConfirm?: (checkState: boolean) => void
   onPermanentlyConfirm?: (checkState: boolean) => void
 }) {
@@ -190,6 +216,7 @@ function LiquidityConfirmRiskPanel({
         <Checkbox
           checkBoxSize="sm"
           className="my-2 w-max"
+          checked={temporarilyConfirm}
           onChange={onTemporarilyConfirm}
           label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Confirm</div>}
         />
@@ -197,6 +224,7 @@ function LiquidityConfirmRiskPanel({
         <Checkbox
           checkBoxSize="sm"
           className="my-2 w-max"
+          checked={permanentlyConfirm}
           onChange={onPermanentlyConfirm}
           label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Do not warn again for this pool</div>}
         />
@@ -239,6 +267,7 @@ function LiquidityCard() {
     needConfirmPanel,
     hasUserTemporaryConfirmed,
     hasUserPermanentConfirmed,
+    applyPermanentConfirm,
     toggleTemporarilyConfirm,
     togglePermanentlyConfirm
   } = useLiquidityWarning()
@@ -361,13 +390,13 @@ function LiquidityCard() {
       </FadeInStable>
 
       {/* confirm panel */}
-      <LiquidityConfirmRiskPanel
+      <ConfirmRiskPanel
         className="mt-5"
-        isPanelOpen={needConfirmPanel}
+        isPanelOpen={needConfirmPanel && connected}
+        temporarilyConfirm={hasUserTemporaryConfirmed}
+        permanentlyConfirm={hasUserPermanentConfirmed}
         onTemporarilyConfirm={toggleTemporarilyConfirm}
-        onPermanentlyConfirm={(checkState) => {
-          currentJsonInfo && togglePermanentlyConfirm(checkState, currentJsonInfo?.id)
-        }}
+        onPermanentlyConfirm={togglePermanentlyConfirm}
       />
 
       {/* supply button */}
@@ -376,16 +405,16 @@ function LiquidityCard() {
         componentRef={liquidityButtonComponentRef}
         validators={[
           {
+            should: hasFoundLiquidityPool,
+            fallbackProps: { children: `Pool not found` }
+          },
+          {
             should: connected,
             forceActive: true,
             fallbackProps: {
               onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
               children: 'Connect Wallet'
             }
-          },
-          {
-            should: hasFoundLiquidityPool,
-            fallbackProps: { children: `Pool not found` }
           },
           {
             should: coin1 && coin2,
@@ -413,6 +442,7 @@ function LiquidityCard() {
           }
         ]}
         onClick={() => {
+          currentJsonInfo && applyPermanentConfirm(currentJsonInfo.id)
           txAddLiquidity().then(
             ({ allSuccess }) => allSuccess && needConfirmPanel && hasUserPermanentConfirmed && closePanel()
           )
@@ -614,7 +644,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
               <LiquidityCardItem
                 fieldName="Slippage Tolerance"
                 fieldValue={
-                  <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs">
+                  <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs -my-1">
                     <Input
                       className="w-6"
                       value={toString(mul(slippageTolerance, 100), { decimalLength: 'auto 2' })}
@@ -634,7 +664,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
           <Collapse.Face>
             {(open) => (
               <Row className="w-full items-center text-xs font-medium text-[rgba(171,196,255,0.5)] cursor-pointer select-none">
-                <div>{open ? 'Show less' : 'More information'}</div>
+                <div className="py-1.5">{open ? 'Show less' : 'More information'}</div>
                 <Icon size="xs" heroIconName={open ? 'chevron-up' : 'chevron-down'} className="ml-1" />
               </Row>
             )}
