@@ -3,7 +3,6 @@ import React, { CSSProperties, RefObject } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import { SplToken, Token } from '@/application/token/type'
-import useAsyncValue from '@/hooks/useAsyncValue'
 
 import Image from './Image'
 

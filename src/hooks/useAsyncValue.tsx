@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayFunction, MayPromise } from '@/types/constants'
+import useAsyncEffect from './useAsyncEffect'
 
 /**
  *
@@ -17,34 +18,22 @@ import { MayFunction, MayPromise } from '@/types/constants'
  */
 export default function useAsyncValue<V, F = never>(
   asyncGetValue: MayFunction<MayPromise<V>>,
-  fallbackValue?: undefined
-): V | undefined
-export default function useAsyncValue<V, F = never>(
-  asyncGetValue: MayFunction<MayPromise<V>>,
-  fallbackValue: MayFunction<F>
-): V | F
-export default function useAsyncValue<V, F = never>(
-  asyncGetValue: MayFunction<MayPromise<V>>,
-  fallbackValue?: MayFunction<F>
+  fallbackValue: MayFunction<F>,
+  dependenceList?: any[]
 ): V | F | undefined {
-  const [valueState, setValueState] = useState(fallbackValue)
-  const activeAsyncSetterNumber = useRef(0)
-  const asyncSetterNumber = useRef(0)
-  ;(async () => {
-    // update async setter number
-    const actionNumber = asyncSetterNumber.current
-    asyncSetterNumber.current += 1
-    activeAsyncSetterNumber.current = actionNumber
+  const [valueState, setValueState] = useState<V | F | undefined>(fallbackValue)
+  const effectCallbackIndex = useRef(0)
 
+  useAsyncEffect(async () => {
+    const thisEffectFlagNumber = effectCallbackIndex.current
+    // update next loop's flag
+    effectCallbackIndex.current = thisEffectFlagNumber + 1
     const syncValue = await shrinkToValue(asyncGetValue)
-
-    if (actionNumber == activeAsyncSetterNumber.current) {
-      //@ts-expect-error force
-      return setValueState(syncValue)
-    } else {
-      // it means: there should be a newer setAsyncState
-      return undefined
+    const effectFlagIsStillFresh = effectCallbackIndex.current - 1 === thisEffectFlagNumber // maybe a newer calculate result is coming
+    if (effectFlagIsStillFresh && syncValue !== undefined) {
+      setValueState(syncValue)
     }
-  })()
+  }, dependenceList ?? [])
+
   return valueState
 }
