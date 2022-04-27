@@ -29,7 +29,7 @@
     "bn.js": "5.2.0"
   },
   "dependencies": {
-    "@headlessui/react": "^1.5.0",
+    "@headlessui/react": "^1.6.0",
     "@heroicons/react": "^1.0.6",
     "@raydium-io/raydium-sdk": "^1.1.0-beta.0",
     "@sentry/nextjs": "^6.19.7",
