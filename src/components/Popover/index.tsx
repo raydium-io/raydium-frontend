@@ -1,11 +1,20 @@
-import React, { ComponentProps, CSSProperties, Fragment, ReactNode, RefObject, useRef, useState } from 'react'
-import ReactDOM from 'react-dom'
+import React, {
+  ComponentProps,
+  CSSProperties,
+  Fragment,
+  ReactNode,
+  RefObject,
+  useEffect,
+  useRef,
+  useState
+} from 'react'
+import ReactDOM, { createPortal } from 'react-dom'
 
 import { Transition } from '@headlessui/react'
 
 import { twMerge } from 'tailwind-merge'
 
-import { inServer } from '@/functions/judgers/isSSR'
+import { inClient, inServer } from '@/functions/judgers/isSSR'
 import addPropsToReactElement from '@/functions/react/addPropsToReactElement'
 import { pickReactChild } from '@/functions/react/pickChild'
 import { shrinkToValue } from '@/functions/shrinkToValue'
@@ -15,6 +24,7 @@ import { MayFunction } from '@/types/constants'
 
 import { PopupLocationInfo, usePopoverLocation } from './useLocationCalculator'
 import { usePopoverTrigger } from './usePopoverTrigger'
+import dynamic from 'next/dynamic'
 
 export type PopoverPlacement =
   | 'left'
@@ -75,7 +85,7 @@ type PopoverButtonProps = {
   className?: string
 }
 
-const POPOVER_STACK_ID = 'popover-stack'
+export const POPOVER_STACK_ID = 'popover-stack'
 
 const popupOrigins = {
   top: 'origin-bottom',
@@ -90,6 +100,20 @@ const popupOrigins = {
   bottom: 'origin-top',
   'bottom-left': 'origin-top-left',
   'bottom-right': 'origin-top-right'
+}
+
+const PopoverStackPortal = ({ children }) => {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+
+    return () => setMounted(false)
+  }, [])
+
+  return mounted && inClient && document.querySelector(`#${POPOVER_STACK_ID}`)
+    ? createPortal(children, document.querySelector(`#${POPOVER_STACK_ID}`)!)
+    : null
 }
 
 export default function Popover({
@@ -154,22 +178,10 @@ export default function Popover({
     }))
   )
 
-  if (inServer) return null
-
-  let popoverStackElement = document?.getElementById?.(POPOVER_STACK_ID)
-  if (!popoverStackElement) {
-    const stack = document?.createElement('div')
-    stack.id = POPOVER_STACK_ID
-    stack.classList.add('fixed', 'z-popover', 'inset-0', 'self-pointer-events-none')
-    document?.body?.appendChild(stack)
-    popoverStackElement = stack
-  }
-
-  if (!popoverStackElement) return null
   return (
     <>
       <div ref={buttonRef}>{popoverButton}</div>
-      {ReactDOM.createPortal(
+      <PopoverStackPortal>
         <div className={twMerge(Popover.name, className)}>
           <Transition
             appear
@@ -198,9 +210,8 @@ export default function Popover({
               {popoverContent}
             </div>
           </Transition>
-        </div>,
-        popoverStackElement
-      )}
+        </div>
+      </PopoverStackPortal>
     </>
   )
 }

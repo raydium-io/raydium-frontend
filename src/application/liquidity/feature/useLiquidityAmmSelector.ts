@@ -20,7 +20,7 @@ export default function useLiquidityAmmSelector() {
     const targetInfo = jsonInfos.find((info) => info.id === ammId)
     // current is right, no need to sync again
     if (isMintEqual(coin1?.mint, targetInfo?.baseMint) && isMintEqual(coin2?.mint, targetInfo?.quoteMint)) return
-    if (isMintEqual(coin1?.mint, targetInfo?.quoteMint) && isMintEqual(coin1?.mint, targetInfo?.baseMint)) return
+    if (isMintEqual(coin1?.mint, targetInfo?.quoteMint) && isMintEqual(coin2?.mint, targetInfo?.baseMint)) return
 
     const { getToken } = useToken.getState()
     const baseCoin = getToken(jsonInfos.find((i) => i.id === ammId)?.baseMint)

@@ -1,4 +1,4 @@
-import React, { createRef, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import React, { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Percent } from '@raydium-io/raydium-sdk'
 
@@ -40,7 +40,7 @@ import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import Tabs from '@/components/Tabs'
 import Tooltip from '@/components/Tooltip'
-import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
+import { addItem, removeItem, shakeFalsyItem, unifyItem } from '@/functions/arrayMethods'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
@@ -115,24 +115,43 @@ function useLiquidityWarning() {
   const [userConfirmedList, setUserConfirmedList] = useLocalStorageItem<HexAddress /* ammId */[]>(
     'USER_CONFIRMED_LIQUIDITY_AMM_LIST'
   )
-  // permanent state
-  const hasUserPermanentConfirmed = currentJsonInfo && userConfirmedList?.includes(currentJsonInfo.id)
+  const userConfirmedListRef = useRef(userConfirmedList)
+  userConfirmedListRef.current = userConfirmedList
 
+  const checkPermanent = useCallback(
+    () =>
+      Boolean(
+        useLiquidity.getState().currentJsonInfo &&
+          userConfirmedListRef.current?.includes(useLiquidity.getState().currentJsonInfo!.id)
+      ),
+    []
+  )
+
+  // permanent state
+  const [hasUserPermanentConfirmed, setHasUserPermanentConfirmed] = useState(checkPermanent)
   // temporary state
   const [hasUserTemporaryConfirmed, setHasUserTemporaryConfirmed] = useState(false)
 
+  // when change coin pair, just reset temporary confirm and permanent confirm
   useEffect(() => {
     if (currentJsonInfo) {
       setHasUserTemporaryConfirmed(false)
     }
+    if (currentJsonInfo) {
+      setHasUserPermanentConfirmed(checkPermanent())
+    }
   }, [currentJsonInfo])
 
+  const applyPermanentConfirm = (ammId: string) => {
+    if (hasUserPermanentConfirmed) {
+      setUserConfirmedList((old) => unifyItem(addItem(old ?? [], ammId)))
+    }
+  }
   const toggleTemporarilyConfirm = (checkState: boolean) => setHasUserTemporaryConfirmed(checkState)
-  const togglePermanentlyConfirm = (checkState: boolean, ammId: string) => {
+  const togglePermanentlyConfirm = (checkState: boolean) => {
+    setHasUserPermanentConfirmed(checkState)
     if (checkState) {
-      setUserConfirmedList((old) => addItem(old ?? [], ammId))
-    } else {
-      setUserConfirmedList((old) => removeItem(old ?? [], ammId))
+      setHasUserTemporaryConfirmed(true)
     }
   }
   // box state
@@ -143,8 +162,11 @@ function useLiquidityWarning() {
   useEffect(() => {
     if (!coin1 || !coin2) {
       setIsPanelShown(false)
+    } else {
+      const noPermanent = !checkPermanent()
+      setIsPanelShown(noPermanent)
     }
-  }, [coin1, coin2])
+  }, [coin1, coin2, currentJsonInfo])
 
   useEffect(() => {
     if (needPanelShown) {
@@ -158,20 +180,25 @@ function useLiquidityWarning() {
     closePanel,
     toggleTemporarilyConfirm,
     togglePermanentlyConfirm,
+    applyPermanentConfirm,
     hasUserPermanentConfirmed,
     hasUserTemporaryConfirmed,
     needConfirmPanel: isPanelShown
   }
 }
 
-function LiquidityConfirmRiskPanel({
+function ConfirmRiskPanel({
   className,
   isPanelOpen,
+  temporarilyConfirm,
+  permanentlyConfirm,
   onTemporarilyConfirm,
   onPermanentlyConfirm
 }: {
   className?: string
   isPanelOpen?: boolean
+  temporarilyConfirm?: boolean
+  permanentlyConfirm?: boolean
   onTemporarilyConfirm?: (checkState: boolean) => void
   onPermanentlyConfirm?: (checkState: boolean) => void
 }) {
@@ -189,6 +216,7 @@ function LiquidityConfirmRiskPanel({
         <Checkbox
           checkBoxSize="sm"
           className="my-2 w-max"
+          checked={temporarilyConfirm}
           onChange={onTemporarilyConfirm}
           label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Confirm</div>}
         />
@@ -196,6 +224,7 @@ function LiquidityConfirmRiskPanel({
         <Checkbox
           checkBoxSize="sm"
           className="my-2 w-max"
+          checked={permanentlyConfirm}
           onChange={onPermanentlyConfirm}
           label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Do not warn again for this pool</div>}
         />
@@ -219,6 +248,7 @@ function LiquidityCard() {
     coin2,
     coin2Amount,
     unslippagedCoin2Amount,
+    focusSide,
     currentJsonInfo,
     currentHydratedInfo,
     isSearchAmmDialogOpen,
@@ -237,14 +267,20 @@ function LiquidityCard() {
     needConfirmPanel,
     hasUserTemporaryConfirmed,
     hasUserPermanentConfirmed,
+    applyPermanentConfirm,
     toggleTemporarilyConfirm,
     togglePermanentlyConfirm
   } = useLiquidityWarning()
-
   const haveEnoughCoin1 =
-    coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
+    coin1 &&
+    checkWalletHasEnoughBalance(
+      toTokenAmount(coin1, focusSide === 'coin1' ? coin1Amount : unslippagedCoin1Amount, { alreadyDecimaled: true })
+    )
   const haveEnoughCoin2 =
-    coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, unslippagedCoin2Amount, { alreadyDecimaled: true }))
+    coin2 &&
+    checkWalletHasEnoughBalance(
+      toTokenAmount(coin2, focusSide === 'coin2' ? coin2Amount : unslippagedCoin2Amount, { alreadyDecimaled: true })
+    )
 
   const cardRef = useRef<HTMLDivElement>(null)
 
@@ -267,7 +303,7 @@ function LiquidityCard() {
           className="mt-5"
           disabled={isApprovePanelShown}
           componentRef={coinInputBox1ComponentRef}
-          value={unslippagedCoin1Amount}
+          value={focusSide === 'coin1' ? coin1Amount : unslippagedCoin1Amount}
           haveHalfButton
           haveCoinIcon
           showTokenSelectIcon
@@ -322,7 +358,7 @@ function LiquidityCard() {
         <CoinInputBox
           componentRef={coinInputBox2ComponentRef}
           disabled={isApprovePanelShown}
-          value={unslippagedCoin2Amount}
+          value={focusSide === 'coin2' ? coin2Amount : unslippagedCoin2Amount}
           haveHalfButton
           haveCoinIcon
           showTokenSelectIcon
@@ -349,13 +385,13 @@ function LiquidityCard() {
       </FadeInStable>
 
       {/* confirm panel */}
-      <LiquidityConfirmRiskPanel
+      <ConfirmRiskPanel
         className="mt-5"
-        isPanelOpen={needConfirmPanel}
+        isPanelOpen={needConfirmPanel && connected}
+        temporarilyConfirm={hasUserTemporaryConfirmed}
+        permanentlyConfirm={hasUserPermanentConfirmed}
         onTemporarilyConfirm={toggleTemporarilyConfirm}
-        onPermanentlyConfirm={(checkState) => {
-          currentJsonInfo && togglePermanentlyConfirm(checkState, currentJsonInfo?.id)
-        }}
+        onPermanentlyConfirm={togglePermanentlyConfirm}
       />
 
       {/* supply button */}
@@ -364,16 +400,16 @@ function LiquidityCard() {
         componentRef={liquidityButtonComponentRef}
         validators={[
           {
+            should: hasFoundLiquidityPool,
+            fallbackProps: { children: `Pool not found` }
+          },
+          {
             should: connected,
             forceActive: true,
             fallbackProps: {
               onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
               children: 'Connect Wallet'
             }
-          },
-          {
-            should: hasFoundLiquidityPool,
-            fallbackProps: { children: `Pool not found` }
           },
           {
             should: coin1 && coin2,
@@ -401,6 +437,7 @@ function LiquidityCard() {
           }
         ]}
         onClick={() => {
+          currentJsonInfo && applyPermanentConfirm(currentJsonInfo.id)
           txAddLiquidity().then(
             ({ allSuccess }) => allSuccess && needConfirmPanel && hasUserPermanentConfirmed && closePanel()
           )
@@ -560,23 +597,6 @@ function LiquidityCardInfo({ className }: { className?: string }) {
             />
           )}
         </FadeIn>
-        {/* <LiquidityCardItem
-          fieldName={`Pool liquidity`}
-          fieldValue={
-            <Col className="items-end">
-              <div>
-                {pooledBaseTokenAmount
-                  ? `${formatNumber(pooledBaseTokenAmount.toExact())} ${coinBase?.symbol ?? 'unknown'}`
-                  : '--'}
-              </div>
-              <div>
-                {pooledQuoteTokenAmount
-                  ? `${formatNumber(pooledQuoteTokenAmount.toExact())} ${coinQuote?.symbol ?? 'unknown'}`
-                  : '--'}
-              </div>
-            </Col>
-          }
-        /> */}
         <LiquidityCardItem
           fieldName={`Pool liquidity (${coinBase?.symbol ?? 'unknown'})`}
           fieldValue={
@@ -614,12 +634,12 @@ function LiquidityCardInfo({ className }: { className?: string }) {
         />
         <Collapse openDirection="upwards" className="w-full">
           <Collapse.Body>
-            <Col className="pb-3">
+            <Col>
               <LiquidityCardItem fieldName="Addresses" tooltipContent={<LiquidityCardTooltipPanelAddress />} />
               <LiquidityCardItem
                 fieldName="Slippage Tolerance"
                 fieldValue={
-                  <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs">
+                  <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs -my-1">
                     <Input
                       className="w-6"
                       value={toString(mul(slippageTolerance, 100), { decimalLength: 'auto 2' })}
@@ -639,7 +659,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
           <Collapse.Face>
             {(open) => (
               <Row className="w-full items-center text-xs font-medium text-[rgba(171,196,255,0.5)] cursor-pointer select-none">
-                <div>{open ? 'Show less' : 'More information'}</div>
+                <div className="py-1.5">{open ? 'Show less' : 'More information'}</div>
                 <Icon size="xs" heroIconName={open ? 'chevron-up' : 'chevron-down'} className="ml-1" />
               </Row>
             )}
@@ -682,9 +702,9 @@ function LiquidityCardItem({
 function LiquidityCardTooltipPanelAddress() {
   const coin1 = useLiquidity((s) => s.coin1)
   const coin2 = useLiquidity((s) => s.coin2)
-  const { lpMint, id } = useLiquidity((s) => s.currentJsonInfo) ?? {}
+  const { lpMint, id, marketId } = useLiquidity((s) => s.currentJsonInfo) ?? {}
   return (
-    <div className="w-56">
+    <div className="w-60">
       <div className="text-sm font-semibold mb-2">Addresses</div>
       <Col className="gap-2">
         {coin1 && (
@@ -702,7 +722,8 @@ function LiquidityCardTooltipPanelAddress() {
           />
         )}
         {Boolean(lpMint) && <LiquidityCardTooltipPanelAddressItem label="LP" type="token" address={lpMint!} />}
-        {Boolean(id) && <LiquidityCardTooltipPanelAddressItem label="AmmID" type="ammId" address={id!} />}
+        {Boolean(id) && <LiquidityCardTooltipPanelAddressItem label="Amm ID" address={id!} />}
+        {Boolean(marketId) && <LiquidityCardTooltipPanelAddressItem label="Market ID" address={marketId!} />}
       </Col>
     </div>
   )
@@ -717,10 +738,10 @@ function LiquidityCardTooltipPanelAddressItem({
   className?: string
   label: string
   address: string
-  type?: 'token' | 'market' | 'ammId' | 'account'
+  type?: 'token' | 'account'
 }) {
   return (
-    <Row className={twMerge('grid gap-1 items-center grid-cols-[4em,1fr,auto,auto]', className)}>
+    <Row className={twMerge('grid gap-2 items-center grid-cols-[5em,1fr,auto,auto]', className)}>
       <div className="text-xs font-normal text-white">{label}</div>
       <Row className="px-1 py-0.5 text-xs font-normal text-white bg-[#141041] rounded justify-center">
         {/* setting text-overflow empty string will make effect in FireFox, not Chrome */}
@@ -728,17 +749,19 @@ function LiquidityCardTooltipPanelAddressItem({
         <div className="tracking-wide">...</div>
         <div className="overflow-hidden tracking-wide">{address.slice(-5)}</div>
       </Row>
-      <Icon
-        size="sm"
-        heroIconName="clipboard-copy"
-        className="clickable text-[#ABC4FF]"
-        onClick={() => {
-          copyToClipboard(address)
-        }}
-      />
-      <Link href={`https://solscan.io/${type.replace('ammId', 'account')}/${address}`}>
-        <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
-      </Link>
+      <Row className="gap-1 items-center">
+        <Icon
+          size="sm"
+          heroIconName="clipboard-copy"
+          className="clickable text-[#ABC4FF]"
+          onClick={() => {
+            copyToClipboard(address)
+          }}
+        />
+        <Link href={`https://solscan.io/${type}/${address}`}>
+          <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
+        </Link>
+      </Row>
     </Row>
   )
 }

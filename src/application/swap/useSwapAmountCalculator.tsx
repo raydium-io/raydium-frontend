@@ -50,58 +50,6 @@ export function useSwapAmountCalculator() {
   useEffect(() => {
     cleanCalcCache()
   }, [refreshCount])
-  // TODO be a react hook
-  // useRecordedEffect(
-  //   ([
-  //     prevupCoin,
-  //     prevdownCoin,
-  //     prevupCoinAmount,
-  //     prevdownCoinAmount,
-  //     prevdirectionReversed,
-  //     prevfocusSide,
-  //     prevslippageTolerance,
-  //     prevconnection,
-  //     prevpathname,
-  //     prevrefreshCount,
-  //     prevconnected, // init fetch data
-  //     prevjsonInfos
-  //   ]) => {
-  //     console.assert(Object.is(prevupCoin, upCoin), 'upCoin HasChange', prevupCoin, upCoin)
-  //     console.assert(Object.is(prevdownCoin, downCoin), 'downCoin HasChange', prevdownCoin, downCoin)
-  //     console.assert(
-  //       Object.is(prevupCoinAmount, upCoinAmount),
-  //       'upCoinAmount HasChange',
-  //       prevupCoinAmount,
-  //       upCoinAmount
-  //     )
-  //     console.assert(
-  //       Object.is(prevdownCoinAmount, downCoinAmount),
-  //       'downCoinAmount HasChange',
-  //       prevdownCoinAmount,
-  //       downCoinAmount
-  //     )
-  //     console.assert(
-  //       Object.is(prevdirectionReversed, directionReversed),
-  //       'directionReversed HasChange',
-  //       prevdirectionReversed,
-  //       directionReversed
-  //     )
-  //   },
-  //   [
-  //     upCoin,
-  //     downCoin,
-  //     upCoinAmount,
-  //     downCoinAmount,
-  //     directionReversed,
-  //     focusSide,
-  //     slippageTolerance,
-  //     connection,
-  //     pathname,
-  //     refreshCount,
-  //     connected, // init fetch data
-  //     jsonInfos
-  //   ]
-  // )
 
   // if don't check focusSideCoin, it will calc twice.
   // one for coin1Amount then it will change coin2Amount
@@ -153,6 +101,18 @@ export function useSwapAmountCalculator() {
         focusSide: focusDirectionSide,
         slippageTolerance
       })
+      // for calculatePairTokenAmount is async, result maybe droped. if that, just stop it
+      const resultStillFresh = (() => {
+        const directionReversed = useSwap.getState().directionReversed
+        const currentUpCoinAmount =
+          (directionReversed ? useSwap.getState().coin2Amount : useSwap.getState().coin1Amount) || '0'
+        const currentDownCoinAmount =
+          (directionReversed ? useSwap.getState().coin1Amount : useSwap.getState().coin2Amount) || '0'
+        const currentFocusSideAmount = focusDirectionSide === 'up' ? currentUpCoinAmount : currentDownCoinAmount
+        const focusSideAmount = focusDirectionSide === 'up' ? upCoinAmount : downCoinAmount
+        return eq(currentFocusSideAmount, focusSideAmount)
+      })()
+      if (!resultStillFresh) return
 
       if (focusDirectionSide === 'up') {
         const { routes, priceImpact, executionPrice, currentPrice, swapable, routeType, fee } = calcResult ?? {}
@@ -267,6 +227,16 @@ async function calculatePairTokenAmount({
         amountIn: deUITokenAmount(upCoinTokenAmount),
         slippage: toPercent(slippageTolerance)
       })
+    // console.log('{ amountOut, minAmountOut, executionPrice, currentPrice, priceImpact, routes, routeType, fee }: ', {
+    //   amountOut,
+    //   minAmountOut,
+    //   executionPrice,
+    //   currentPrice,
+    //   priceImpact,
+    //   routes,
+    //   routeType,
+    //   fee
+    // })
 
     const sdkParsedInfoMap = new Map(sdkParsedInfos.map((info) => [toPubString(info.id), info]))
     const choosedSdkParsedInfos = shakeUndifindedItem(

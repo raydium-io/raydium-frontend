@@ -33,25 +33,35 @@ export function useSyncWithSolanaWallet() {
 
   const _adapter = _wallet?.adapter
 
-  if (!useWallet.getState().inSimulateMode && useWallet.getState().owner != _publicKey) {
-    useWallet.setState({ owner: _publicKey ?? undefined })
-  }
+  useIsomorphicLayoutEffect(() => {
+    if (!useWallet.getState().inSimulateMode && useWallet.getState().owner != _publicKey) {
+      useWallet.setState({ owner: _publicKey ?? undefined })
+    }
+  }, [_publicKey])
 
-  if (!useWallet.getState().inSimulateMode && useWallet.getState().availableWallets !== _wallets) {
-    useWallet.setState({ availableWallets: _wallets })
-  }
+  useIsomorphicLayoutEffect(() => {
+    if (!useWallet.getState().inSimulateMode && useWallet.getState().availableWallets !== _wallets) {
+      useWallet.setState({ availableWallets: _wallets })
+    }
+  }, [_wallets])
 
-  if (!useWallet.getState().inSimulateMode && useWallet.getState().disconnecting !== _disconnecting) {
-    useWallet.setState({ disconnecting: _disconnecting })
-  }
+  useIsomorphicLayoutEffect(() => {
+    if (!useWallet.getState().inSimulateMode && useWallet.getState().disconnecting !== _disconnecting) {
+      useWallet.setState({ disconnecting: _disconnecting })
+    }
+  }, [_disconnecting])
 
-  if (!useWallet.getState().inSimulateMode && useWallet.getState().connecting !== _connecting) {
-    useWallet.setState({ connecting: _connecting })
-  }
+  useIsomorphicLayoutEffect(() => {
+    if (!useWallet.getState().inSimulateMode && useWallet.getState().connecting !== _connecting) {
+      useWallet.setState({ connecting: _connecting })
+    }
+  }, [_connecting])
 
-  if (!useWallet.getState().inSimulateMode && useWallet.getState().connected !== _connected) {
-    useWallet.setState({ connected: _connected })
-  }
+  useIsomorphicLayoutEffect(() => {
+    if (!useWallet.getState().inSimulateMode && useWallet.getState().connected !== _connected) {
+      useWallet.setState({ connected: _connected })
+    }
+  }, [_connected])
 
   useIsomorphicLayoutEffect(() => {
     if (_select) {
@@ -78,13 +88,17 @@ export function useSyncWithSolanaWallet() {
     })
   }, [_signAllTransactions, _adapter, connection])
 
-  if (!useWallet.getState().inSimulateMode && useWallet.getState().currentWallet !== _wallet) {
-    useWallet.setState({ currentWallet: _wallet })
-  }
+  useIsomorphicLayoutEffect(() => {
+    if (!useWallet.getState().inSimulateMode && useWallet.getState().currentWallet !== _wallet) {
+      useWallet.setState({ currentWallet: _wallet })
+    }
+  }, [_wallet])
 
-  if (!useWallet.getState().inSimulateMode && useWallet.getState().adapter !== _adapter) {
-    useWallet.setState({ adapter: _adapter })
-  }
+  useIsomorphicLayoutEffect(() => {
+    if (!useWallet.getState().inSimulateMode && useWallet.getState().adapter !== _adapter) {
+      useWallet.setState({ adapter: _adapter })
+    }
+  }, [_adapter])
 }
 
 function simulateFakeWallet(walletAddress: string) {

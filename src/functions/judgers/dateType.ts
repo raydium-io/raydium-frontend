@@ -69,6 +69,14 @@ export function isPrimitive(val: unknown): val is Primitive {
   return isBoolean(val) || isNumber(val) || isString(val) || isBigInt(val)
 }
 
+export function isEmtyObject(obj: any): boolean {
+  return (isArray(obj) && obj.length === 0) || (isObject(obj) && Object.keys(obj).length === 0)
+}
+
+export function isEmtyString(v: any): boolean {
+  return v === ''
+}
+
 export function isBN(val: unknown): val is BN {
   return val instanceof BN
 }

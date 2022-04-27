@@ -4,23 +4,23 @@ import { isString } from '../judgers/dateType'
 
 import { eq } from './compare'
 import { trimTailingZero } from './stringNumber'
-import toFraction from './toFraction'
+import toFraction, { toFractionWithDecimals } from './toFraction'
 
 export function toString(
   n: Numberish | null | undefined,
   options?: {
-    /** @default 'auto' */
+    /** @default 'auto' / 'auto [decimals]' */
     decimalLength?: number | 'auto' | 'auto ' | `auto ${number}`
     /** whether set zero decimal depends on how you get zero. if you get it from very samll number, */
     zeroDecimalNotAuto?: boolean
   }
 ): string {
   if (n == null) return ''
-  const fr = toFraction(n)
+  const { fr, decimals } = toFractionWithDecimals(n)
   let result = ''
-  const decimalLength = options?.decimalLength ?? 'auto'
-  if (decimalLength === 'auto') {
-    result = trimTailingZero(fr.toFixed(6))
+  const decimalLength = options?.decimalLength ?? (decimals != null ? `auto ${decimals}` : 'auto')
+  if (decimalLength === 'auto' || decimalLength === 'auto ') {
+    result = trimTailingZero(fr.toFixed(6)) // if it is not tokenAmount, it will have max 6 decimal
   } else if (isString(decimalLength) && decimalLength.startsWith('auto')) {
     const autoDecimalLength = Number(decimalLength.split(' ')[1])
     result = trimTailingZero(fr.toFixed(autoDecimalLength))

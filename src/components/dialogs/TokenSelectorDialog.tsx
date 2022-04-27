@@ -109,13 +109,11 @@ function TokenSelectorDialogContent({
       return false
     }
   }
-  const onlineTokenMintInfo = useAsyncValue(async () => {
-    if (!haveSearchResult && searchText) {
-      const result = await getOnlineTokenInfo(searchText)
-      return result
-    }
-    return false
-  }, false)
+  const onlineTokenMintInfo = useAsyncValue(
+    !haveSearchResult && searchText ? getOnlineTokenInfo(searchText) : undefined,
+    undefined,
+    [searchText]
+  )
 
   // some keyboard (arrow up/down / mouse hover) will change the selected index
   const [selectedTokenIdx, setSelectedTokenIdx] = useState(0)

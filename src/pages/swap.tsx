@@ -20,7 +20,8 @@ import {
   SOLDecimals,
   WSOLMint,
   isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL
+  isQuantumSOLVersionWSOL,
+  toUITokenAmount
 } from '@/application/token/utils/quantumSOL'
 import { USDCMint, USDTMint } from '@/application/token/utils/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
@@ -48,7 +49,7 @@ import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { eq, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, gte, isMeaningfulNumber, isMeaninglessNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
@@ -530,7 +531,7 @@ function SwapPriceAcceptChip() {
   const focusOppositeSideCoin = focusSide === 'coin1' ? coin2 : coin1
   const focusOppositeSideAmount = focusSide === 'coin1' ? coin2Amount : coin1Amount
 
-  const haveFocusChanged = useRef(false) // flag for calc opposite in  second frame
+  const causedByFocusChanged = useRef(false) // flag for calc opposite in  second frame
 
   useRecordedEffect(
     ([
@@ -542,13 +543,13 @@ function SwapPriceAcceptChip() {
     ]) => {
       const isFocusSideCoinChanged = prevFocusSideCoin != null && prevFocusSideCoin !== focusSideCoin
       const isFocusSideAmountChanged = Boolean(
-        focusSideAmount && prevFocusSideAmount != null && !eq(prevFocusSideAmount, focusSideAmount)
+        focusSideAmount && isMeaningfulNumber(prevFocusSideAmount) && !eq(prevFocusSideAmount, focusSideAmount)
       )
       const isFocusOppositeSideCoinChanged =
         prevFocusOppositeSideCoin != null && prevFocusOppositeSideCoin !== focusOppositeSideCoin
       const isFocusOppositeSideAmountChanged = Boolean(
         focusOppositeSideAmount &&
-          prevFocusOppositeSideAmount != null &&
+          isMeaningfulNumber(prevFocusOppositeSideAmount) &&
           !eq(prevFocusOppositeSideAmount, focusOppositeSideAmount)
       )
       const isDirectionReversedChanged = prevDirectionReversed != null && prevDirectionReversed !== directionReversed
@@ -574,14 +575,14 @@ function SwapPriceAcceptChip() {
         // direction Reverse change
         // focusSideAmountChange
         setHasAcceptedPriceChange(true)
-        haveFocusChanged.current = true
+        causedByFocusChanged.current = true
       } else if (isFocusOppositeSideAmountChanged) {
         // focusSideAmountChange will always cause focusOppositeSideAmountChange
         // focusOppositeSideAmountHasChanged without focusSideAmountHasChanged pop
-        if (!haveFocusChanged.current && !isFocusSideAmountChanged && isFocusOppositeSideAmountChanged) {
+        if (!causedByFocusChanged.current && !isFocusSideAmountChanged) {
           setHasAcceptedPriceChange(!isFocusOppositeSideAmountChanged)
         }
-        haveFocusChanged.current = false
+        causedByFocusChanged.current = false
       }
     },
     [focusSideCoin, focusSideAmount, focusOppositeSideCoin, focusOppositeSideAmount, directionReversed] as const
@@ -771,18 +772,7 @@ function SwapCardInfo({ className }: { className?: string }) {
         fieldValueTextColor={isDangerousPrice ? '#DA2EEF' : isWarningPrice ? '#D8CB39' : '#39D0D8'}
         tooltipContent="The difference between the market price and estimated price due to trade size"
       />
-      {/* <SwapCardItem
-        fieldName="Fee"
-        fieldValue={
-          fee
-            ?.map((CurrencyAmount) => {
-              const tokenAmount = toUITokenAmount(CurrencyAmount)
-              return `${toString(tokenAmount)} ${getToken(tokenAmount.token.mint)?.symbol ?? '--'}`
-            })
-            .join('  ') ?? '--'
-        }
-        tooltipContent="The difference between the market price and estimated price due to trade size"
-      /> */}
+
       <Collapse openDirection="upwards" className="w-full">
         <Collapse.Body>
           <Col className="gap-3 pb-3">
@@ -791,7 +781,7 @@ function SwapCardInfo({ className }: { className?: string }) {
               fieldName="Slippage Tolerance"
               tooltipContent="The maximum difference between your estimated price and execution price"
               fieldValue={
-                <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs">
+                <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs -my-1">
                   <Input
                     className="w-6"
                     disabled={isApprovePanelShown}
@@ -807,6 +797,26 @@ function SwapCardInfo({ className }: { className?: string }) {
                   <div className="opacity-50 ml-1">%</div>
                 </Row>
               }
+            />
+            <SwapCardItem
+              fieldName="Swap Fee"
+              fieldValue={
+                fee ? (
+                  <Col>
+                    {fee.map((CurrencyAmount) => {
+                      const tokenAmount = toUITokenAmount(CurrencyAmount)
+                      return (
+                        <div key={tokenAmount.token.symbol} className="text-right">
+                          {toString(tokenAmount)} {getToken(tokenAmount.token.mint)?.symbol ?? '--'}
+                        </div>
+                      )
+                    })}
+                  </Col>
+                ) : (
+                  '--'
+                )
+              }
+              // tooltipContent="The difference between the market price and estimated price due to trade size"
             />
           </Col>
         </Collapse.Body>
@@ -861,7 +871,7 @@ function SwapCardTooltipPanelAddress() {
   const coin2 = useSwap((s) => s.coin2)
   const routes = useSwap((s) => s.routes)
   return (
-    <div className="w-56">
+    <div className="w-60">
       <div className="text-sm font-semibold mb-2">Addresses</div>
       <Col className="gap-2">
         <SwapCardTooltipPanelAddressItem
@@ -874,29 +884,33 @@ function SwapCardTooltipPanelAddress() {
           type="token"
           address={String(coin2?.mint ?? '--')}
         />
-
         {/* show routes address panel */}
-        {routes?.length === 1 ? (
-          routes[0].source === 'serum' ? (
-            routes[0].keys.marketId ? (
-              <SwapCardTooltipPanelAddressItem
-                label="Serum Market"
-                type="market"
-                address={String(routes[0].keys.marketId)}
-              />
-            ) : null
-          ) : routes[0].keys.id ? (
-            <SwapCardTooltipPanelAddressItem label="Amm ID" type="ammId" address={String(routes[0].keys.id)} />
-          ) : null
+        {routes?.length && routes?.length === 1 ? (
+          <>
+            {routes[0].keys.marketId && (
+              <SwapCardTooltipPanelAddressItem label="Market ID" address={String(routes[0].keys.marketId)} />
+            )}
+            {routes[0].keys.id && (
+              <SwapCardTooltipPanelAddressItem label="Amm ID" address={String(routes[0].keys.id)} />
+            )}
+          </>
         ) : routes?.length && routes.length > 1 ? (
-          routes?.map((routeInfo, idx) => (
-            <SwapCardTooltipPanelAddressItem
-              key={String(routeInfo.keys.id)}
-              label={`Amm ID (route ${idx + 1})`}
-              type="ammId"
-              address={String(routeInfo.keys.id)}
-            />
-          ))
+          <>
+            {routes?.map((routeInfo, idx) => (
+              <SwapCardTooltipPanelAddressItem
+                key={'market' + String(routeInfo.keys.id)}
+                label={`Market ID (route ${idx + 1})`}
+                address={String(routeInfo.keys.marketId)}
+              />
+            ))}
+            {routes?.map((routeInfo, idx) => (
+              <SwapCardTooltipPanelAddressItem
+                key={'amm' + String(routeInfo.keys.id)}
+                label={`Amm ID (route ${idx + 1})`}
+                address={String(routeInfo.keys.id)}
+              />
+            ))}
+          </>
         ) : null}
       </Col>
     </div>
@@ -912,10 +926,11 @@ function SwapCardTooltipPanelAddressItem({
   className?: string
   label: string
   address: string
-  type?: 'token' | 'market' | 'ammId' | 'account'
+  /** this is for site:solscan check */
+  type?: 'token' | 'account'
 }) {
   return (
-    <Row className={twMerge('grid gap-1 items-center grid-cols-[4em,1fr,auto,auto]', className)}>
+    <Row className={twMerge('grid gap-2 items-center grid-cols-[5em,1fr,auto,auto]', className)}>
       <div className="text-xs font-normal text-white">{label}</div>
       <Row className="px-1 py-0.5 text-xs font-normal text-white bg-[#141041] rounded justify-center">
         {/* setting text-overflow empty string will make effect in FireFox, not Chrome */}
@@ -923,17 +938,19 @@ function SwapCardTooltipPanelAddressItem({
         <div className="tracking-wide">...</div>
         <div className="overflow-hidden tracking-wide">{address.slice(-5)}</div>
       </Row>
-      <Icon
-        size="sm"
-        heroIconName="clipboard-copy"
-        className="clickable text-[#ABC4FF]"
-        onClick={() => {
-          copyToClipboard(address)
-        }}
-      />
-      <Link href={`https://solscan.io/${type.replace('ammId', 'account')}/${address}`}>
-        <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
-      </Link>
+      <Row className="gap-1 items-center">
+        <Icon
+          size="sm"
+          heroIconName="clipboard-copy"
+          className="clickable text-[#ABC4FF]"
+          onClick={() => {
+            copyToClipboard(address)
+          }}
+        />
+        <Link href={`https://solscan.io/${type}/${address}`}>
+          <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
+        </Link>
+      </Row>
     </Row>
   )
 }
