@@ -29,8 +29,8 @@
     "bn.js": "5.2.0"
   },
   "dependencies": {
-    "@dialectlabs/react": "^0.4.8",
-    "@dialectlabs/react-ui": "^0.6.10",
+    "@dialectlabs/react": "^0.4.10",
+    "@dialectlabs/react-ui": "^0.7.0",
     "@headlessui/react": "^1.5.0",
     "@heroicons/react": "^1.0.6",
     "@raydium-io/raydium-sdk": "^1.0.1-beta.46",
