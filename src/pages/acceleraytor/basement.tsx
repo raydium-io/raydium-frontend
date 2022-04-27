@@ -20,6 +20,10 @@ import { HydratedIdoInfo } from '@/application/ido/type'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import Button from '@/components/Button'
 import txIdoPurchase from '@/application/ido/utils/txIdoPurchase'
+import txTransferToken from '@/application/txTools/txTransformSqlToken'
+import { isTokenAmount } from '@/functions/judgers/dateType'
+import assert from 'assert'
+import { gt } from '@/functions/numberish/compare'
 
 export default function BasementPage() {
   return (
@@ -152,6 +156,36 @@ function IdoPanel() {
                         join
                       </Button>
                     )}
+                    <Button
+                      className="frosted-glass-teal"
+                      size="xs"
+                      onClick={() => {
+                        const DJWallet = shadowKeypairs?.find((keypair) =>
+                          toPubString(keypair.publicKey).startsWith('DJ')
+                        )?.publicKey
+                        if (!DJWallet) return
+
+                        const amount = shallowBalanceMap?.[walletOwner]?.balances?.[idoHydratedInfo.quoteMint]
+                        assert(isTokenAmount(amount), 'amount is not token amount, maybe SOL?')
+
+                        const targetKeypair = shadowKeypairs?.find(
+                          (keypair) => toPubString(keypair.publicKey) === walletOwner
+                        )
+                        assert(targetKeypair, "can't find target keypair")
+
+                        assert(gt(amount, 0), `no ${idoHydratedInfo.quoteSymbol}`)
+                        txTransferToken({
+                          to: DJWallet,
+                          from: walletOwner,
+                          tokenAmount: amount,
+                          forceKeyPairs: {
+                            ownerKeypair: targetKeypair
+                          }
+                        })
+                      }}
+                    >
+                      transform to DJ
+                    </Button>
                   </div>
                 </Grid>
               </div>

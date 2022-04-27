@@ -16,7 +16,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { toString } from '@/functions/numberish/toString'
 import Link from '@/components/Link'
 import { useAppVersion } from '../appVersion/useAppVersion'
-import { inClient, inServer, isInBonsaiTest } from '@/functions/judgers/isSSR'
+import { inClient, inServer, isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 
 export function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -38,7 +38,7 @@ export function useDeviceInfoSyc() {
       inClient: inClient,
       inServer: inServer,
       isInBonsaiTest: isInBonsaiTest,
-      isInLocalhost: isInBonsaiTest
+      isInLocalhost: isInLocalhost
     })
   }, [])
 }
