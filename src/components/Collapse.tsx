@@ -8,7 +8,7 @@ import { pickReactChildProps } from '@/functions/react/pickChild'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
-import useToggle from '@/hooks/useToggle'
+import useToggle, { useToggleRef } from '@/hooks/useToggle'
 
 type CollapseController = {
   open: () => void
@@ -57,7 +57,6 @@ export default function Collapse({
   const collapseFaceProps = pickReactChildProps(children, CollapseFace)
   const collapseBodyProps = pickReactChildProps(children, CollapseBody)
   const collapseBodyRef = useRef<HTMLDivElement>(null)
-  const bodyHeight = useRef<number>()
   const collapseRef = useRef<HTMLDivElement>(null)
 
   useClickOutside(collapseRef, { disable: !closeByOutsideClick, onClickOutSide: off })
@@ -70,6 +69,9 @@ export default function Collapse({
     }),
     [on, off]
   )
+  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
+    delay: 300 + 20 /* transition time */
+  })
 
   return (
     <div ref={collapseRef} className={`Collapse flex flex-col ${className}`} style={style}>
@@ -93,52 +95,56 @@ export default function Collapse({
         leaveTo="opacity-0"
         beforeEnter={() => {
           // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element load
-          setTimeout(() => {
-            // <CollapseBody> must have init height to let <Transition> work
-            // But don't know why
-            collapseBodyRef.current?.style.removeProperty('height')
-            // record true <CollapseBody> height
-            if (!bodyHeight.current) {
-              bodyHeight.current = collapseBodyRef.current?.clientHeight
-            }
+          collapseBodyRef.current?.style.setProperty('position', 'absolute') // init will rerender element, "position:absolute" is for not affect others
+          collapseBodyRef.current?.style.setProperty('visibility', 'hidden')
 
-            // force <CollapseBody> to have height. which is the base of transition
+          setTimeout(() => {
+            collapseBodyRef.current?.style.removeProperty('position')
+
+            collapseBodyRef.current?.style.removeProperty('height')
+            const height = collapseBodyRef.current?.clientHeight
             collapseBodyRef.current?.style.setProperty('height', '0px')
+            // get a layout property to manually to force the browser to layout the above code.
+            // So trick. But have to.🤯🤯🤯🤯
+            collapseBodyRef.current?.clientHeight
+            collapseBodyRef.current?.style.setProperty('height', height + 'px')
+            collapseBodyRef.current?.style.removeProperty('visibility')
+
+            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+            transactionFlagDelayOff()
+
+            // clean unnecessary style
+            setTimeout(() => {
+              if (isDuringTransition.current) return
+              collapseBodyRef.current?.style.removeProperty('height')
+              collapseBodyRef.current?.style.setProperty('user-select', 'auto')
+            }, 300 + 20 /* transition time */)
+          })
+        }}
+        beforeLeave={() => {
+          setTimeout(() => {
+            const height = collapseBodyRef.current?.clientHeight
+            // force <CollapseBody> to have height. which is the base of transition
+            collapseBodyRef.current?.style.setProperty('height', height + 'px')
 
             // get a layout property to manually to force the browser to layout the above code.
             // So trick. But have to.🤯🤯🤯🤯
             collapseBodyRef.current?.clientHeight
-            // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element unload
-            collapseBodyRef.current?.style.setProperty('height', bodyHeight.current + 'px')
-          })
-        }}
-        afterEnter={() => {
-          setTimeout(() => {
-            // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element unload
-            collapseBodyRef.current?.style.removeProperty('height')
-            collapseBodyRef.current?.style.setProperty('user-select', 'auto')
-          })
-        }}
-        beforeLeave={() => {
-          // force <CollapseBody> to have height. which is the base of transition
-          collapseBodyRef.current?.style.setProperty('height', bodyHeight.current + 'px')
 
-          // get a layout property to manually to force the browser to layout the above code.
-          // So trick. But have to.🤯🤯🤯🤯
-          collapseBodyRef.current?.clientHeight
+            // force <CollapseBody> to have content height. which is the aim of transition
+            collapseBodyRef.current?.style.setProperty('height', '0px')
+            collapseBodyRef.current?.style.setProperty('user-select', 'none')
 
-          // force <CollapseBody> to have content height. which is the aim of transition
-          collapseBodyRef.current?.style.setProperty('height', '0px')
-          collapseBodyRef.current?.style.setProperty('user-select', 'none')
+            transactionFlagOn()
+            transactionFlagDelayOff()
+          })
         }}
       >
         <CollapseBody
           domRef={collapseBodyRef}
           {...collapseBodyProps}
           className={twMerge(
-            `transition-all duration-300 ease-in-out select-none overflow-hidden ${
-              openDirection === 'downwards' ? '' : 'order-1'
-            }`,
+            `transition-all duration-300 ease-in-out overflow-hidden ${openDirection === 'downwards' ? '' : 'order-1'}`,
             collapseBodyProps?.className
           )}
           style={{ height: '0' }}
