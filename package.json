@@ -24,8 +24,8 @@
   },
   "resolutions": {
     "@solana/spl-token": "0.1.8",
-    "@solana/wallet-adapter-base": "0.9.4",
-    "@solana/web3.js": "1.36.0",
+    "@solana/wallet-adapter-base": "0.9.5",
+    "@solana/web3.js": "1.41.0",
     "bn.js": "5.2.0"
   },
   "dependencies": {
@@ -36,7 +36,7 @@
     "@solana/wallet-adapter-base": "^0.9.5",
     "@solana/wallet-adapter-react": "^0.15.4",
     "@solana/wallet-adapter-wallets": "^0.16.0",
-    "@solana/web3.js": "^1.36.0",
+    "@solana/web3.js": "^1.41.0",
     "@uiw/react-date-input": "^4.21.5",
     "@uiw/react-date-picker": "^4.21.5",
     "bn.js": "^5.2.0",
