@@ -37,7 +37,7 @@ import Row from './Row'
 import Tooltip from './Tooltip'
 import LoadingCircle from './LoadingCircle'
 import { setCssVarible } from '@/functions/dom/cssVariable'
-import { inClient, isInLocalhost } from '@/functions/judgers/isSSR'
+import { inClient } from '@/functions/judgers/isSSR'
 import { useAppVersion } from '@/application/appVersion/useAppVersion'
 import { refreshWindow } from '@/application/appVersion/forceWindowRefresh'
 
@@ -317,6 +317,7 @@ function Navbar({
 function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickCloseBtn?(): void }) {
   const { pathname } = useRouter()
   const isMobile = useAppSettings((s) => s.isMobile)
+  const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
   const sideMenuRef = useRef<HTMLDivElement>(null)
   const lastestVersion = useAppVersion((s) => s.lastest)
   const currentVersion = useAppVersion((s) => s.currentVersion)

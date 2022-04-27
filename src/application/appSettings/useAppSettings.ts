@@ -17,6 +17,12 @@ export type AppSettingsStore = {
   isTablet: boolean
   isPc: boolean
 
+  // dev
+  inClient?: boolean
+  inServer?: boolean
+  isInLocalhost?: boolean
+  isInBonsaiTest?: boolean
+
   /** sould block any update when approve panel shows on  */
   isApprovePanelShown: boolean
 

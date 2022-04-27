@@ -13,7 +13,6 @@ import Link from '../Link'
 import ResponsiveDialogDrawer from '../ResponsiveDialogDrawer'
 import Input from '../Input'
 import Col from '../Col'
-import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import Button from '../Button'
 import FadeInStable from '../FadeIn'
 
@@ -117,6 +116,8 @@ function PanelContent({
     .filter((w) => w.readyState == WalletReadyState.NotDetected)
 
   const [isAllWalletShown, setIsAllWalletShown] = useState(false)
+  const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
+  const isInBonsaiTest = useAppSettings((s) => s.isInBonsaiTest)
   return (
     <Card
       className="flex flex-col max-h-screen  w-[586px] mobile:w-screen rounded-3xl mobile:rounded-none border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg shadow-cyberpunk-card"

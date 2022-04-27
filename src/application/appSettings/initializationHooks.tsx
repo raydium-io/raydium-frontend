@@ -16,6 +16,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { toString } from '@/functions/numberish/toString'
 import Link from '@/components/Link'
 import { useAppVersion } from '../appVersion/useAppVersion'
+import { inClient, inServer, isInBonsaiTest } from '@/functions/judgers/isSSR'
 
 export function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -26,10 +27,20 @@ export function useThemeModeSync() {
 }
 
 export function useDeviceInfoSyc() {
+  // device
   const { isMobile, isPc, isTablet } = useDevice()
   useIsomorphicLayoutEffect(() => {
     useAppSettings.setState({ isMobile, isTablet, isPc })
   }, [isMobile, isPc, isTablet])
+
+  useIsomorphicLayoutEffect(() => {
+    useAppSettings.setState({
+      inClient: inClient,
+      inServer: inServer,
+      isInBonsaiTest: isInBonsaiTest,
+      isInLocalhost: isInBonsaiTest
+    })
+  }, [])
 }
 
 export function useSlippageTolerenceValidator() {
