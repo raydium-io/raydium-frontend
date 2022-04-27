@@ -111,12 +111,12 @@ function ApplicationsInitializations() {
   useMessageBoardFileLoader() // load `raydium-message-board.json`
   useMessageBoardReadedIdRecorder() // sync user's readedIds
 
-  // /********************** wallet **********************/
-  // useSyncWithSolanaWallet()
-  // useWalletConnectNotifaction()
-  // useTokenAccountsRefresher()
-  // useInitBalanceRefresher()
-  // useWalletAccountChangeListeners()
+  /********************** wallet **********************/
+  useSyncWithSolanaWallet()
+  useWalletConnectNotifaction()
+  useTokenAccountsRefresher()
+  useInitBalanceRefresher()
+  useWalletAccountChangeListeners()
 
   /********************** token **********************/
   // application initializations
