@@ -95,7 +95,10 @@ export default function NotificationItem({ description, title, subtitle, type = 
         itemWrapperRef.current?.style.setProperty('height', `${height}px`)
       }}
       afterEnter={() => {
-        itemWrapperRef.current?.style.removeProperty('height')
+        setTimeout(() => {
+          // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element unload
+          itemWrapperRef.current?.style.removeProperty('height')
+        })
       }}
       beforeLeave={() => {
         const height = itemWrapperRef.current?.clientHeight
