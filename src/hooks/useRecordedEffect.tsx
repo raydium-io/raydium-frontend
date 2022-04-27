@@ -1,9 +1,12 @@
 import { useEffect, useRef } from 'react'
 
 import { areShallowEqual, areShallowShallowEqual } from '@/functions/judgers/areEqual'
+import { isFunction } from '@/functions/judgers/dateType'
 
 /**
  * similiar to React.useEffect, but can record dependence list
+ *
+ * if clean fn is promise<function>, it will just ignore it
  *
  * cost:
  * - 1 `React.useEffect()`
@@ -25,6 +28,6 @@ export function useRecordedEffect<T extends readonly any[]>(
     const returnedFn = effectFn(prevValue.current)
     prevValue.current = dependenceList
     cleanupFn.current = returnedFn
-    return returnedFn
+    return isFunction(returnedFn) ? returnedFn : undefined
   }, dependenceList)
 }

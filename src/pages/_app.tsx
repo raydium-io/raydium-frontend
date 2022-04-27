@@ -46,14 +46,32 @@ import { useWalletConnectNotifaction } from '@/application/wallet/feature/useWal
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
 import { useTokenGetterFnLoader } from '@/application/token/feature/useTokenGetterFnLoader'
 import { POPOVER_STACK_ID } from '@/components/Popover'
+import { DRAWER_STACK_ID } from '@/components/Drawer'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
   return (
-    <>
-      <Component {...pageProps} />
-      <div id={POPOVER_STACK_ID} className="fixed z-popover inset-0 self-pointer-events-none"></div>
-    </>
+    <SolanaWalletProviders>
+      {/* initializations hooks */}
+      <ClientInitialization />
+      {pathname !== '/' && <ApplicationsInitializations />}
+
+      <div className="app">
+        <NextNProgress color="#34ade5" showOnShallow={false} />
+
+        {/* Page Components */}
+        <Component {...pageProps} />
+
+        {/* popup stack */}
+        <div id={POPOVER_STACK_ID} className="fixed z-popover inset-0 self-pointer-events-none"></div>
+        <div id={DRAWER_STACK_ID} className="fixed z-popover inset-0 self-pointer-events-none"></div>
+
+        {/* Global Components */}
+        <RecentTransactionDialog />
+        <WalletSelectorDialog />
+        <NotificationSystemStack />
+      </div>
+    </SolanaWalletProviders>
   )
 }
 
@@ -93,12 +111,12 @@ function ApplicationsInitializations() {
   useMessageBoardFileLoader() // load `raydium-message-board.json`
   useMessageBoardReadedIdRecorder() // sync user's readedIds
 
-  /********************** wallet **********************/
-  useSyncWithSolanaWallet()
-  useWalletConnectNotifaction()
-  useTokenAccountsRefresher()
-  useInitBalanceRefresher()
-  useWalletAccountChangeListeners()
+  // /********************** wallet **********************/
+  // useSyncWithSolanaWallet()
+  // useWalletConnectNotifaction()
+  // useTokenAccountsRefresher()
+  // useInitBalanceRefresher()
+  // useWalletAccountChangeListeners()
 
   /********************** token **********************/
   // application initializations
