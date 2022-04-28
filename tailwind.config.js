@@ -124,11 +124,10 @@ const config = {
       },
       backgroundImage: {
         'popup-bg':
-          'linear-gradient(139.48deg, rgba(0, 182, 191, 0.15) 1.07%, rgba(27, 22, 89, 0.1) 86.75%), linear-gradient(321.17deg, #18134D 0%, #1B1659 98.97%)'
+          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
       },
       dropShadow: {
-        'popup-white': '0px 8px 48px rgba(171, 196, 255, 0.12)', // drop-shadow(0px 0px 2px rgba(171, 196, 255, 0.5))',
-        'popup-white-thick': '0px 0px 12px rgba(255, 255, 255, 0.4)'
+        'popup-white': ['0px 8px 48px rgba(171, 196, 255, 0.12)', '0px 0px 2px rgba(171, 196, 255, 0.5)'],
       }
     }
   },

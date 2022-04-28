@@ -287,7 +287,7 @@ function DialectNotificationsButton() {
           )
         },
         colors: {
-          bg: 'bg-[#20285F]',
+          bg: 'bg-popup-bg',
           highlight: 'bg-[#FFFFFF]/5',
         },
         textStyles: {
@@ -298,8 +298,8 @@ function DialectNotificationsButton() {
         },
         bellButton:
           'text-[#ABC4FF] opacity-60 hover:opacity-75 clickable clickable-filter-effect clickable-mask-offset-3a !bg-transparent',
-        modal: 'rounded-lg pc:!drop-shadow-popup-white-thick mobile:!drop-shadow-none pt-1',
-        modalWrapper: `fixed pc:h-[35rem] pc:w-[30rem] z-popover top-20 right-auto -mr-5 mobile:mr-0 mobile:top-0 mobile:right-0 mobile:w-screen mobile:h-screen`,
+        modal: 'rounded-lg pc:!drop-shadow-popup-white mobile:!drop-shadow-none pt-1',
+        modalWrapper: `fixed pc:h-[35rem] pc:w-[30rem] z-popover top-[5.5rem] right-auto -mr-4 mobile:mr-0 mobile:top-0 mobile:right-0 mobile:w-screen mobile:h-screen`,
         button:
           'Button px-4 py-2.5 rounded-xl mobile:rounded-lg whitespace-nowrap appearance-none inline-block font-medium bg-formkit-thumb text-formkit-thumb-text-normal clickable clickable-filter-effect !frosted-glass-teal mobile:py-2 mobile:text-xs'
       }
@@ -312,7 +312,7 @@ function DialectNotificationsButton() {
       wallet={wallet}
       publicKey={RAYDIUM_MONITORING_PUBLIC_KEY}
       variables={themeVariables}
-      network="mainnet"
+      network="localnet"
       theme="dark"
       notifications={RAYDIUM_NOTIFICATION_TYPES}
     />
