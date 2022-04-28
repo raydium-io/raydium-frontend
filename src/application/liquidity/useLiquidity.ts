@@ -8,7 +8,16 @@ import { div } from '@/functions/numberish/operations'
 
 import { SplToken } from '../token/type'
 import { toDataMint, WSOLMint } from '../token/utils/quantumSOL'
-import { mSOLMint, PAIMint, RAYMint, stSOLMint, USDCMint } from '../token/utils/wellknownToken.config'
+import {
+  ETHMint,
+  mSOLMint,
+  PAIMint,
+  RAYMint,
+  stSOLMint,
+  USDCMint,
+  USDHMint,
+  USDTMint
+} from '../token/utils/wellknownToken.config'
 
 import { HydratedLiquidityInfo, SDKParsedLiquidityInfo } from './type'
 import sdkParseJsonLiquidityInfo from './utils/sdkParseJsonLiquidityInfo'
@@ -117,7 +126,17 @@ const useLiquidity = create<LiquidityStore>((set, get) => ({
     )
 
     /** swap's route transaction middle token  */
-    const routeMiddleMints = [USDCMint, RAYMint, WSOLMint, mSOLMint, PAIMint, stSOLMint].map(toPubString)
+    const routeMiddleMints = [
+      USDCMint,
+      RAYMint,
+      WSOLMint,
+      mSOLMint,
+      PAIMint,
+      stSOLMint,
+      USDHMint,
+      USDTMint,
+      ETHMint
+    ].map(toPubString)
     const candidateTokenMints = routeMiddleMints.concat([mint1, mint2])
     const onlyRouteMints = routeMiddleMints.filter((routeMint) => ![mint1, mint2].includes(routeMint))
     const routeRelated = get().jsonInfos.filter((info) => {

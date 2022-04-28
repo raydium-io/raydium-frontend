@@ -87,25 +87,39 @@ export default function NotificationItem({ description, title, subtitle, type = 
       leaveFrom="opacity-100 transform pc:origin-right-bottom pc:translate-x-0 mobile:translate-y-0 scale-100"
       leaveTo="opacity-0 transform pc:origin-right-bottom pc:translate-x-full mobile:-translate-y-full scale-0"
       beforeEnter={() => {
-        const height = itemWrapperRef.current?.clientHeight
-        itemWrapperRef.current?.style.setProperty('height', '0')
-        // get a layout property to manually to force the browser to layout the above code.
-        // So trick. But have to.🤯🤯🤯🤯
-        itemWrapperRef.current?.clientHeight
-        itemWrapperRef.current?.style.setProperty('height', `${height}px`)
-      }}
-      afterEnter={() => {
-        itemWrapperRef.current?.style.removeProperty('height')
+        // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element load
+        itemWrapperRef.current?.style.setProperty('position', 'absolute') // init will rerender element, "position:absolute" is for not affect others
+        itemWrapperRef.current?.style.setProperty('visibility', 'hidden')
+
+        setTimeout(() => {
+          itemWrapperRef.current?.style.removeProperty('position')
+          const height = itemWrapperRef.current?.clientHeight
+          itemWrapperRef.current?.style.setProperty('height', '0')
+          // get a layout property to manually to force the browser to layout the above code.
+          // So trick. But have to.🤯🤯🤯🤯
+          itemWrapperRef.current?.clientHeight
+          itemWrapperRef.current?.style.setProperty('height', `${height}px`)
+          itemWrapperRef.current?.style.removeProperty('visibility')
+
+          // clean unnecessary style
+          setTimeout(() => {
+            itemWrapperRef.current?.style.removeProperty('height')
+          }, 500 + 20 /* transition time */)
+        })
       }}
       beforeLeave={() => {
-        const height = itemWrapperRef.current?.clientHeight
-        itemWrapperRef.current?.style.setProperty('height', `${height}px`)
-        // get a layout property to manually to force the browser to layout the above code.
-        // So trick. But have to.🤯🤯🤯🤯
-        itemWrapperRef.current?.clientHeight
-        itemWrapperRef.current?.style.setProperty('height', '0')
+        setTimeout(() => {
+          const height = itemWrapperRef.current?.clientHeight
+          itemWrapperRef.current?.style.setProperty('height', `${height}px`)
+          // get a layout property to manually to force the browser to layout the above code.
+          // So trick. But have to.🤯🤯🤯🤯
+          itemWrapperRef.current?.clientHeight
+          itemWrapperRef.current?.style.setProperty('height', '0')
+        })
+
+        // clean unnecessary style
+        setTimeout(destory, 500 + 20 /* transition time */)
       }}
-      afterLeave={destory}
     >
       {/* U have to gen another <div> to have the gap between <NotificationItem> */}
       <div ref={itemWrapperRef} className={`overflow-hidden mobile:w-screen transition-all duration-500`}>

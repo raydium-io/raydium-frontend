@@ -47,6 +47,8 @@ import '@dialectlabs/react-ui/index.css'
 import { useWalletConnectNotifaction } from '@/application/wallet/feature/useWalletConnectNotifaction'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
 import { useTokenGetterFnLoader } from '@/application/token/feature/useTokenGetterFnLoader'
+import { POPOVER_STACK_ID } from '@/components/Popover'
+import { DRAWER_STACK_ID } from '@/components/Drawer'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -61,6 +63,10 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
         {/* Page Components */}
         <Component {...pageProps} />
+
+        {/* popup stack */}
+        <div id={POPOVER_STACK_ID} className="fixed z-popover inset-0 self-pointer-events-none"></div>
+        <div id={DRAWER_STACK_ID} className="fixed z-popover inset-0 self-pointer-events-none"></div>
 
         {/* Global Components */}
         <RecentTransactionDialog />

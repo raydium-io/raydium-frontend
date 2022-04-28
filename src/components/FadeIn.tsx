@@ -2,11 +2,14 @@ import { ReactNode, useRef } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import { Transition } from '@headlessui/react'
+import { useToggleRef } from '@/hooks/useToggle'
 
 export default function FadeInStable({ show, children }: { show?: any; children?: ReactNode }) {
   // const [nodeExist, { off: destory }] = useToggle(true)
   const contentRef = useRef<HTMLDivElement>(null)
-  const trueHeight = useRef<number | undefined>()
+  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
+    delay: 200 + 20 /* transition time */
+  })
   return (
     <Transition
       show={Boolean(show)}
@@ -18,32 +21,54 @@ export default function FadeInStable({ show, children }: { show?: any; children?
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
       beforeEnter={() => {
-        if (!contentRef.current?.style.height) {
-          // only if it is invoked after the afterLeave or init
-          trueHeight.current = contentRef.current?.clientHeight
-        }
-        contentRef.current?.style.setProperty('height', '0')
-        // get a layout property to manually to force the browser to layout the above code.
-        // So trick. But have to.🤯🤯🤯🤯
-        contentRef.current?.clientHeight
-        contentRef.current?.style.setProperty('height', `${trueHeight.current}px`)
-      }}
-      afterEnter={() => {
-        contentRef.current?.style.removeProperty('height')
+        // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element load
+        contentRef.current?.style.setProperty('position', 'absolute') // init will rerender element, "position:absolute" is for not affect others
+        contentRef.current?.style.setProperty('visibility', 'hidden')
+        setTimeout(() => {
+          contentRef.current?.style.removeProperty('position')
+          contentRef.current?.style.removeProperty('visibility')
+
+          const height = contentRef.current?.clientHeight
+          // frequent ui action may cause element havn't attach to DOM yet, when occors, just ignore it.
+          if (height) {
+            contentRef.current?.style.setProperty('height', '0')
+            // get a layout property to manually to force the browser to layout the above code.
+            // So trick. But have to.🤯🤯🤯🤯
+            contentRef.current?.clientHeight
+            contentRef.current?.style.setProperty('height', `${height}px`)
+            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+            transactionFlagDelayOff()
+
+            // clean unnecessary style
+            setTimeout(() => {
+              if (isDuringTransition.current) return
+              contentRef.current?.style.removeProperty('height')
+            }, 200 + 20 /* transition time */)
+          }
+        })
       }}
       beforeLeave={() => {
-        if (!contentRef.current?.style.height) {
-          // only if it is invoked after the afterEnter
-          trueHeight.current = contentRef.current?.clientHeight
-        }
-        contentRef.current?.style.setProperty('height', `${trueHeight.current}px`)
-        // get a layout property to manually to force the browser to layout the above code.
-        // So trick. But have to.🤯🤯🤯🤯
-        contentRef.current?.clientHeight
-        contentRef.current?.style.setProperty('height', '0')
-      }}
-      afterLeave={() => {
-        contentRef.current?.style.removeProperty('height')
+        setTimeout(() => {
+          const height = contentRef.current?.clientHeight
+          if (!height) {
+            contentRef.current?.style.setProperty('height', '0')
+          } else {
+            contentRef.current?.style.setProperty('height', `${height}px`)
+            // get a layout property to manually to force the browser to layout the above code.
+            // So trick. But have to.🤯🤯🤯🤯
+            contentRef.current?.clientHeight
+            contentRef.current?.style.setProperty('height', '0')
+
+            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+            transactionFlagDelayOff()
+
+            // clean unnecessary style
+            setTimeout(() => {
+              if (isDuringTransition.current) return
+              contentRef.current?.style.removeProperty('height')
+            }, 200 + 20 /* transition time */)
+          }
+        })
       }}
     >
       {/* outer div can't set ref for it's being used by headless-ui <Transition/> */}
@@ -67,7 +92,9 @@ export function FadeIn({
   const contentRef = useRef<HTMLDivElement>(null)
   const innerChildren = useRef<ReactNode>(children)
   if (children) innerChildren.current = children
-  const trueHeight = useRef<number | undefined>()
+  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
+    delay: 200 + 20 /* transition time */
+  })
   return (
     <Transition
       appear
@@ -80,34 +107,54 @@ export function FadeIn({
       leaveTo="opacity-0"
       beforeEnter={() => {
         if (noOpenTransitation) return
-        if (!contentRef.current?.style.height) {
-          // only if it is invoked after the afterLeave or init
-          trueHeight.current = contentRef.current?.clientHeight
-        }
-        contentRef.current?.style.setProperty('height', '0')
-        // get a layout property to manually to force the browser to layout the above code.
-        // So trick. But have to.🤯🤯🤯🤯
-        contentRef.current?.clientHeight
-        contentRef.current?.style.setProperty('height', `${trueHeight.current}px`)
-      }}
-      afterEnter={() => {
-        if (noOpenTransitation) return
-        contentRef.current?.style.removeProperty('height')
+        // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element load
+        contentRef.current?.style.setProperty('position', 'absolute') // init will rerender element, "position:absolute" is for not affect others
+        contentRef.current?.style.setProperty('visibility', 'hidden')
+        setTimeout(() => {
+          contentRef.current?.style.removeProperty('position')
+          contentRef.current?.style.removeProperty('visibility')
+
+          const height = contentRef.current?.clientHeight
+          // frequent ui action may cause element havn't attach to DOM yet, when occors, just ignore it.
+          if (height) {
+            contentRef.current?.style.setProperty('height', '0')
+            // get a layout property to manually to force the browser to layout the above code.
+            // So trick. But have to.🤯🤯🤯🤯
+            contentRef.current?.clientHeight
+            contentRef.current?.style.setProperty('height', `${height}px`)
+            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+            transactionFlagDelayOff()
+
+            // clean unnecessary style
+            setTimeout(() => {
+              if (isDuringTransition.current) return
+              contentRef.current?.style.removeProperty('height')
+            }, 200 + 20 /* transition time */)
+          }
+        })
       }}
       beforeLeave={() => {
-        if (!contentRef.current?.style.height) {
-          // only if it is invoked after the afterEnter
-          trueHeight.current = contentRef.current?.clientHeight
-        }
-        contentRef.current?.style.setProperty('height', `${trueHeight.current}px`)
-        // get a layout property to manually to force the browser to layout the above code.
-        // So trick. But have to.🤯🤯🤯🤯
-        contentRef.current?.clientHeight
-        contentRef.current?.style.setProperty('height', '0')
-      }}
-      afterLeave={() => {
-        contentRef.current?.style.removeProperty('height')
-        innerChildren.current = null
+        setTimeout(() => {
+          const height = contentRef.current?.clientHeight
+          if (!height) {
+            contentRef.current?.style.setProperty('height', '0')
+          } else {
+            contentRef.current?.style.setProperty('height', `${height}px`)
+            // get a layout property to manually to force the browser to layout the above code.
+            // So trick. But have to.🤯🤯🤯🤯
+            contentRef.current?.clientHeight
+            contentRef.current?.style.setProperty('height', '0')
+
+            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+            transactionFlagDelayOff()
+
+            // clean unnecessary style
+            setTimeout(() => {
+              if (isDuringTransition.current) return
+              contentRef.current?.style.removeProperty('height')
+            }, 200 + 20 /* transition time */)
+          }
+        })
       }}
     >
       <div ref={contentRef} className={`transition-all duration-200 ease overflow-hidden`}>

@@ -7,6 +7,7 @@ import { usePools } from '@/application/pools/usePools'
 import { WSOLMint } from '@/application/token/utils/quantumSOL'
 import {
   ANAMint,
+  ETHMint,
   mSOLMint,
   NRVMint,
   PAIMint,
@@ -50,12 +51,13 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
       stSOL: String(stSOLMint),
       USDH: String(USDHMint),
       NRV: String(NRVMint),
-      ANA: String(ANAMint)
+      ANA: String(ANAMint),
+      ETH: String(ETHMint)
     }
 
     assert(
       Object.values(avaliableQuoteMints).includes(String(quoteMint)),
-      `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, NRV, ANA. current: ${toPubString(
+      `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, NRV, ANA, ETH. current: ${toPubString(
         quoteMint
       ).slice(0, 4)}...${toPubString(quoteMint).slice(-4)} is not avaliable`
     )
