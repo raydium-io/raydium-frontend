@@ -201,12 +201,12 @@
     react-media-hook "^0.4.9"
     swr "^0.5.6"
 
-"@dialectlabs/react@^0.4.10":
-  version "0.4.10"
-  resolved "https://registry.yarnpkg.com/@dialectlabs/react/-/react-0.4.10.tgz#286828cfd834ee7af6a551899153dc8be2bb89ef"
-  integrity sha512-aFIHIx77xkqiL1sV7S0KLVoPYDqgIHcUU4iEbEpO0aPdL01RHOzpwKZvqWl3rl2jGrXiTnWqzXDCQ45xPEyAPg==
+"@dialectlabs/react@^0.4.11":
+  version "0.4.11"
+  resolved "https://registry.yarnpkg.com/@dialectlabs/react/-/react-0.4.11.tgz#9a60025cf764ae6a613d56f0d45dec64937bdfbb"
+  integrity sha512-8pqDGytQ/9GYbtV2/FekwyX7Z0kEp03+TbDmdGS9LlDWcli3Gtb/0wnlPcGDgslKbV/MWyk0P7UTezZhBV8HGA==
   dependencies:
-    "@dialectlabs/web3" "^0.3.0"
+    "@dialectlabs/web3" "^0.3.1"
     "@project-serum/anchor" "^0.23.0"
     "@solana/web3.js" "1.38.0"
     object-hash "^3.0.0"
@@ -217,6 +217,20 @@
   version "0.3.0"
   resolved "https://registry.yarnpkg.com/@dialectlabs/web3/-/web3-0.3.0.tgz#a6e7725b1e087aea33c25970e2247d73d1a58ccc"
   integrity sha512-JwpD6zsdRr7W4ITAYvqMxWyEfHOZyrf9BClpFGslx5kVB3y8Ks/HdUNie/DTeywf9evB/85wi+wcx9E8O2S9+g==
+  dependencies:
+    "@project-serum/anchor" "0.23.0"
+    "@solana/spl-token" "^0.1.8"
+    "@solana/web3.js" "^1.22.0"
+    bytebuffer "^5.0.1"
+    copy-to-clipboard "^3.3.1"
+    ed2curve "0.3.0"
+    js-sha256 "^0.9.0"
+    tweetnacl "1.0.3"
+
+"@dialectlabs/web3@^0.3.1":
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/@dialectlabs/web3/-/web3-0.3.1.tgz#8332c61a4cefd01ce789239bbcbb63f42941960b"
+  integrity sha512-h/KldrvI5OX0+m2SVrbswVAhFIJX70t1LAcdWkpKn/oX6jCdPzBTzoYJCwCkcMboknMzpbU1tAtKT8dP3Y0OMA==
   dependencies:
     "@project-serum/anchor" "0.23.0"
     "@solana/spl-token" "^0.1.8"

@@ -30,7 +30,7 @@
     "react": "18.1.0"
   },
   "dependencies": {
-    "@dialectlabs/react": "^0.4.10",
+    "@dialectlabs/react": "^0.4.11",
     "@dialectlabs/react-ui": "^0.7.0",
     "@headlessui/react": "^1.6.0",
     "@heroicons/react": "^1.0.6",
