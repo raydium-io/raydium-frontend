@@ -30,6 +30,7 @@ export type IdoStore = {
   currentIdoId?: string
 
   currentTab: 'Upcoming Pools' | 'Closed Pools'
+  searchText?: string
   idoState: Record<string, IdoStoreState> // for fast refresh without backend
 
   // do not care it's value, just trigger React refresh

@@ -33,6 +33,7 @@ import LoadingCircle from '@/components/LoadingCircle'
 import { twMerge } from 'tailwind-merge'
 import Progress from '@/components/Progress'
 import toPercentNumber from '@/functions/format/toPercentNumber'
+import Input from '@/components/Input'
 
 export default function AcceleRaytor() {
   const infos = useIdo((s) => s.idoHydratedInfos)
@@ -60,6 +61,7 @@ function AcceleRaytorHeaderCyberpunk() {
 function IdoList() {
   const currentTab = useIdo((s) => s.currentTab)
   const infos = useIdo((s) => s.idoHydratedInfos)
+  const searchText = useIdo((s) => s.searchText)
   const isMobile = useAppSettings((s) => s.isMobile)
 
   const upcomingPools = useMemo(() => Object.values(infos).filter((i) => i.isUpcoming), [infos])
@@ -72,6 +74,12 @@ function IdoList() {
     useIdo.setState({ currentTab: 'Upcoming Pools' })
     hasSetUpcomingTab.current = true
   }
+  const upcomingOrClosedPoolItems =
+    currentTab === 'Upcoming Pools'
+      ? upcomingPools
+      : closedPools.filter((pool) =>
+          (pool.baseSymbol + pool.projectName).toLowerCase().includes((searchText ?? '').trim().toLowerCase())
+        )
   return (
     <>
       {openPools.length > 0 && (
@@ -105,25 +113,65 @@ function IdoList() {
         itemClassName={isMobile ? 'min-w-[112px] h-[30px] px-2' : 'min-w-[128px]'}
       />
       {(upcomingPools.length > 0 || closedPools.length > 0) && (
-        <div className="text-2xl mobile:text-base mobile:px-4 mb-6 mobile:mb-4 font-semibold text-white w-[min(890px,100%)] self-center">
-          {currentTab}
-        </div>
+        <Row className="mobile:px-4 mb-6 mobile:mb-4 justify-between w-[min(890px,100%)] self-center">
+          <div className="text-2xl mobile:text-base font-semibold text-white">{currentTab}</div>
+          {currentTab === 'Closed Pools' && <IdoSearchBlock />}
+        </Row>
       )}
+
       <Col className="gap-12 mobile:gap-8 w-[min(890px,100%)] mx-auto mobile:w-full">
-        {(currentTab === 'Upcoming Pools' ? upcomingPools : closedPools).map((info) => (
-          <div key={info.id}>
-            <CyberpunkStyleCard>
-              <Collapse defaultOpen={currentTab === 'Upcoming Pools'}>
-                <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
-                <Collapse.Body>
-                  <AcceleRaytorCollapseItemContent info={info} />
-                </Collapse.Body>
-              </Collapse>
-            </CyberpunkStyleCard>
+        {upcomingOrClosedPoolItems.length > 0 ? (
+          upcomingOrClosedPoolItems.map((info) => (
+            <div key={info.id}>
+              <CyberpunkStyleCard>
+                <Collapse defaultOpen={currentTab === 'Upcoming Pools'}>
+                  <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
+                  <Collapse.Body>
+                    <AcceleRaytorCollapseItemContent info={info} />
+                  </Collapse.Body>
+                </Collapse>
+              </CyberpunkStyleCard>
+            </div>
+          ))
+        ) : (
+          <div className="text-xl mobile:text-lg text-[#ABC4FF80] mx-auto">
+            ( {currentTab === 'Closed Pools' && searchText ? 'Searched Not Found' : 'Empty'} )
           </div>
-        ))}
+        )}
       </Col>
     </>
+  )
+}
+
+function IdoSearchBlock({ className }: { className?: string }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const storeSearchText = useIdo((s) => s.searchText)
+  return (
+    <Input
+      value={storeSearchText}
+      className={twMerge(
+        'px-2 py-2 mobile:py-1 gap-2 border-1.5 border-[rgba(196,214,255,0.5)] rounded-xl min-w-[7em]',
+        className
+      )}
+      inputClassName="font-medium mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
+      prefix={<Icon heroIconName="search" size={isMobile ? 'sm' : 'md'} className="text-[rgba(196,214,255,0.5)]" />}
+      suffix={
+        <Icon
+          heroIconName="x"
+          size={isMobile ? 'xs' : 'sm'}
+          className={`text-[rgba(196,214,255,0.5)] transition clickable ${
+            storeSearchText ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+          onClick={() => {
+            useIdo.setState({ searchText: '' })
+          }}
+        />
+      }
+      placeholder="Search by token"
+      onUserInput={(searchText) => {
+        useIdo.setState({ searchText })
+      }}
+    />
   )
 }
 
@@ -148,14 +196,16 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
               <div className="text-sm w-max mobile:text-xs text-[#ABC4FF80]">{info.projectName}</div>
             </div>
           </Row>
-          <Row className="flex-wrap gap-4  items-center border-l border-[rgba(171,196,255,0.5)] w-full self-center pl-6 mobile:pl-4">
-            <Progress
-              borderThemeMode
-              className="w-[180px] mobile:w-full"
-              labelClassName="text-sm font-bold"
-              value={toPercentNumber(info.filled)}
-            />
-          </Row>
+          {info.filled && (
+            <Row className="flex-wrap gap-4  items-center border-l border-[rgba(171,196,255,0.5)] w-full self-center pl-6 mobile:pl-4">
+              <Progress
+                borderThemeMode
+                className="w-[180px] mobile:w-full"
+                labelClassName="text-sm font-bold"
+                value={toPercentNumber(info.filled)}
+              />
+            </Row>
+          )}
         </Row>
 
         <Row className="gap-4 mobile:gap-6 grow justify-end mobile:justify-center">
