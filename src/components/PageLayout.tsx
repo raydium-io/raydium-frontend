@@ -316,7 +316,7 @@ function DialectNotificationsButton() {
       wallet={wallet}
       publicKey={RAYDIUM_MONITORING_PUBLIC_KEY}
       variables={themeVariables}
-      network="localnet"
+      network="mainnet"
       theme="dark"
       notifications={RAYDIUM_NOTIFICATION_TYPES}
     />
