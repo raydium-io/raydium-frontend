@@ -148,7 +148,7 @@ export default function Collapse({
             `transition-all duration-300 ease-in-out overflow-hidden ${openDirection === 'downwards' ? '' : 'order-1'}`,
             collapseBodyProps?.className
           )}
-          style={{ height: '0' }}
+          style={{ height: defaultOpen ? 'auto' : '0' }}
           $open={innerOpen}
           $controller={controller}
         />

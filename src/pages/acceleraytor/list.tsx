@@ -203,7 +203,7 @@ function FaceButtonGroupJoin({ info }: { info: HydratedIdoInfo }) {
   return (
     <Button
       size={isMobile ? 'xs' : 'md'}
-      className="frosted-glass-teal mobile:self-stretch"
+      className="frosted-glass-teal mobile:w-full"
       validators={[{ should: info.isOpen }]}
       onClick={({ ev }) => {
         ev.stopPropagation()

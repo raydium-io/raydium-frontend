@@ -57,12 +57,7 @@ export default function Progress({
     )
   })
   const clampedValue = Math.min(Number(value), 1)
-  const themeColor =
-    clampedValue < 1 / 3
-      ? 'var(--style-color-cyan)'
-      : clampedValue < 2 / 3
-      ? 'var(--style-color-blue)'
-      : 'var(--style-color-fuchsia)'
+  const themeColor = clampedValue < 1 / 3 ? '#ABC4FF' : clampedValue < 2 / 3 ? '#39D0D8' : '#DA2EEF'
   return borderThemeMode ? (
     <Row
       className={twMerge(`Progress relative border-1.5 rounded-full overflow-hidden w-full h-6  ${className ?? ''}`)}
