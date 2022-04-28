@@ -292,10 +292,11 @@ function DialectNotificationsButton() {
         },
         colors: {
           bg: 'bg-popup-bg',
-          highlight: 'bg-[#FFFFFF]/5'
+          highlight: 'bg-[#FFFFFF]/5',
+          primary: 'text-primary'
         },
         textStyles: {
-          body: 'text-[#ABE2E5] text-[0.9375rem]',
+          body: 'text-[#abc4ff] text-[0.9375rem]',
           header: 'text-[0.9375rem]',
           bigText: 'text-base',
           small: 'text-sm text-[#ABC4FF]'
