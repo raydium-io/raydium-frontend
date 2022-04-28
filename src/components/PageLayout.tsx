@@ -261,6 +261,12 @@ const RAYDIUM_MONITORING_PUBLIC_KEY = new PublicKey('21NkpAe9wQAmdVUSpDqjttu5Czi
 const RAYDIUM_NOTIFICATION_TYPES = [{
   name: 'Unstaked Ray Balances',
   detail: 'On Change'
+}, {
+  name: 'Unstaked LP tokens for pools',
+  detail: 'On Change'
+}, {
+  name: 'New Farm launch',
+  detail: 'On Launch'
 }]
 
 function DialectNotificationsButton() {
