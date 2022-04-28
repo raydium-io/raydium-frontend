@@ -476,7 +476,6 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
               className="-mt-2 px-4"
               slotClassName="h-1"
               labelClassName="text-xs font-bold px-4"
-              showLabel
               value={toPercentNumber(idoInfo.filled)}
             />
           </div>

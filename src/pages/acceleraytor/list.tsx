@@ -137,7 +137,7 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
       }`}
     >
       <AutoBox is={isMobile ? 'Col' : 'Row'} className={`flex-wrap items-stretch gap-5`}>
-        <Row className="items-center gap-4 mobile:gap-3 mobile:w-full">
+        <Row className="items-center gap-4 mobile:w-full">
           <Row
             className="items-center gap-4 mobile:gap-3 mobile:w-auto clickable"
             onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
@@ -148,15 +148,13 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
               <div className="text-sm w-max mobile:text-xs text-[#ABC4FF80]">{info.projectName}</div>
             </div>
           </Row>
-          <Row className="flex-wrap gap-4 mobile:gap-3 items-center border-l border-[rgba(171,196,255,0.5)] w-full self-center pl-6 mobile:pl-3">
-            {/* <Progress
-              labelStayToRight
+          <Row className="flex-wrap gap-4  items-center border-l border-[rgba(171,196,255,0.5)] w-full self-center pl-6 mobile:pl-4">
+            <Progress
+              borderThemeMode
               className="w-[180px] mobile:w-full"
-              slotClassName="h-1"
               labelClassName="text-sm font-bold"
-              showLabel
               value={toPercentNumber(info.filled)}
-            /> */}
+            />
           </Row>
         </Row>
 
