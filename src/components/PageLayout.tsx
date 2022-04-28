@@ -258,16 +258,20 @@ function MigrateBubble() {
 
 const RAYDIUM_MONITORING_PUBLIC_KEY = new PublicKey('21NkpAe9wQAmdVUSpDqjttu5Czisg1KfktmEpn44maco')
 
-const RAYDIUM_NOTIFICATION_TYPES = [{
-  name: 'Unstaked Ray Balances',
-  detail: 'On Change'
-}, {
-  name: 'Unstaked LP tokens for pools',
-  detail: 'On Change'
-}, {
-  name: 'New Farm launch',
-  detail: 'On Launch'
-}]
+const RAYDIUM_NOTIFICATION_TYPES = [
+  {
+    name: 'Unstaked Ray Balances',
+    detail: 'On Change'
+  },
+  {
+    name: 'Unstaked LP tokens for pools',
+    detail: 'On Change'
+  },
+  {
+    name: 'New Farm launch',
+    detail: 'On Launch'
+  }
+]
 
 function DialectNotificationsButton() {
   // Using original wallet adapter, since Dialect requires the original WalletContextState
@@ -288,7 +292,7 @@ function DialectNotificationsButton() {
         },
         colors: {
           bg: 'bg-popup-bg',
-          highlight: 'bg-[#FFFFFF]/5',
+          highlight: 'bg-[#FFFFFF]/5'
         },
         textStyles: {
           body: 'text-[#ABE2E5] text-[0.9375rem]',
