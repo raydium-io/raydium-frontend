@@ -6,15 +6,15 @@ import { areShallowEqual } from '@/functions/judgers/areEqual'
 /** can't judege which is newer is firstTime, U counld set conflictMasterSide, ('auto' will respect larger one) */
 export default function useTwoStateSyncer<T>({
   state1,
-  setState1,
+  onState2Changed,
   state2,
-  setState2,
+  onState1Changed,
   conflictMasterSide = 'state1'
 }: {
   state1: T | undefined
-  setState1: (pairValue: T | undefined) => void
+  onState2Changed?: (pairValue: T | undefined) => void
   state2: T | undefined
-  setState2: (pairValue: T | undefined) => void
+  onState1Changed?: (pairValue: T | undefined) => void
   conflictMasterSide?: 'state1' | 'state2'
 }) {
   useRecordedEffect(
@@ -36,8 +36,8 @@ export default function useTwoStateSyncer<T>({
         (bothHasChanged && conflictMasterSide === 'state1') ||
         (canInitlySync && conflictMasterSide === 'state1')
 
-      shouldUpdateState1 && setState1(state2)
-      shouldUpdateState2 && setState2(state1)
+      shouldUpdateState1 && onState2Changed?.(state2)
+      shouldUpdateState2 && onState1Changed?.(state1)
     },
     [state1, state2]
   )

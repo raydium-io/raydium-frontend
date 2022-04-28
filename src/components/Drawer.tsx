@@ -8,6 +8,9 @@ import { twMerge } from 'tailwind-merge'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayFunction } from '@/types/constants'
 import { inClient } from '@/functions/judgers/isSSR'
+import useTwoStateSyncer from '@/hooks/use2StateSyncer'
+import { useToggleRef } from '@/hooks/useToggle'
+import { useSignalState } from '@/hooks/useSignalState'
 
 export const DRAWER_STACK_ID = 'drawer-stack'
 
@@ -47,7 +50,6 @@ export interface DrawerProps {
   // if content is scrollable, PLEASE open it!!!, for blur will make scroll super fuzzy
   maskNoBlur?: boolean
   onOpen?: () => void
-  onOpenTransitionEnd?: () => void
   onClose?: () => void
   /** fired when close transform effect is end */
   onCloseTransitionEnd?(): void
@@ -75,7 +77,6 @@ export default function Drawer({
   transitionSpeed = 'normal',
   maskNoBlur,
   onOpen,
-  onOpenTransitionEnd,
   onClose,
   onCloseTransitionEnd
 }: DrawerProps) {
@@ -83,14 +84,40 @@ export default function Drawer({
 
   // for onCloseTransitionEnd
   // during leave transition, open is still true, but innerOpen is false, so transaction will happen without props:open has change (if open is false, React may destory this component immediately)
-  const [innerOpen, setInnerOpen] = useState(open)
+  const [innerOpen, setInnerOpen, innerOpenSignal] = useSignalState(open)
   useEffect(() => {
-    setInnerOpen(open)
+    if (open) onOpen?.()
   }, [open])
 
-  const openDrawer = () => setInnerOpen(true)
-  const closeDrawer = () => setInnerOpen(false)
-  const toggleDrawer = () => setInnerOpen((b) => !b)
+  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
+    delay: transitionSpeed === 'fast' ? 100 : 200 /* transition time */,
+    onOff: () => {
+      // seems headlessui/react 1.6 doesn't fired this certainly(because React 16 priority strategy), so i have to use setTimeout 👇 in <Dialog>'s onClose
+      if (!innerOpenSignal()) {
+        onCloseTransitionEnd?.()
+      }
+    }
+  })
+
+  const openDrawer = () => {
+    setInnerOpen(true)
+    transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+    transactionFlagDelayOff()
+  }
+
+  const closeDrawer = () => {
+    setInnerOpen(false)
+    transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+    transactionFlagDelayOff()
+  }
+
+  useTwoStateSyncer({
+    state1: open,
+    state2: innerOpen,
+    onState1Changed: (open) => {
+      open ? openDrawer() : closeDrawer()
+    }
+  })
 
   if (!open) return null
   return (
@@ -99,10 +126,8 @@ export default function Drawer({
         className="absolute inset-0"
         appear
         show={innerOpen}
-        beforeEnter={onOpen}
-        afterEnter={onOpenTransitionEnd}
         beforeLeave={onClose}
-        afterLeave={onCloseTransitionEnd}
+        // afterLeave={onCloseTransitionEnd}
       >
         <Transition.Child
           as={Fragment}
@@ -132,7 +157,7 @@ export default function Drawer({
             style={style}
             ref={drawerContentRef}
           >
-            {shrinkToValue(children, [{ open: openDrawer, close: closeDrawer, toggle: toggleDrawer }])}
+            {shrinkToValue(children, [{ open: openDrawer, close: closeDrawer }])}
           </div>
         </Transition.Child>
       </Transition>

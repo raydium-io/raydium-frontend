@@ -2,11 +2,14 @@ import { ReactNode, useRef } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import { Transition } from '@headlessui/react'
+import { useToggleRef } from '@/hooks/useToggle'
 
 export default function FadeInStable({ show, children }: { show?: any; children?: ReactNode }) {
   // const [nodeExist, { off: destory }] = useToggle(true)
   const contentRef = useRef<HTMLDivElement>(null)
-  const trueHeight = useRef<number | undefined>()
+  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
+    delay: 200 + 20 /* transition time */
+  })
   return (
     <Transition
       show={Boolean(show)}
@@ -19,42 +22,52 @@ export default function FadeInStable({ show, children }: { show?: any; children?
       leaveTo="opacity-0"
       beforeEnter={() => {
         // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element load
+        contentRef.current?.style.setProperty('position', 'absolute') // init will rerender element, "position:absolute" is for not affect others
+        contentRef.current?.style.setProperty('visibility', 'hidden')
         setTimeout(() => {
-          if (!contentRef.current?.style.height) {
-            // only if it is invoked after the afterLeave or init
-            trueHeight.current = contentRef.current?.clientHeight
+          contentRef.current?.style.removeProperty('position')
+          contentRef.current?.style.removeProperty('visibility')
+
+          const height = contentRef.current?.clientHeight
+          // frequent ui action may cause element havn't attach to DOM yet, when occors, just ignore it.
+          if (height) {
+            contentRef.current?.style.setProperty('height', '0')
+            // get a layout property to manually to force the browser to layout the above code.
+            // So trick. But have to.🤯🤯🤯🤯
+            contentRef.current?.clientHeight
+            contentRef.current?.style.setProperty('height', `${height}px`)
+            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+            transactionFlagDelayOff()
+
+            // clean unnecessary style
+            setTimeout(() => {
+              if (isDuringTransition.current) return
+              contentRef.current?.style.removeProperty('height')
+            }, 200 + 20 /* transition time */)
           }
-          contentRef.current?.style.setProperty('height', '0')
-          // get a layout property to manually to force the browser to layout the above code.
-          // So trick. But have to.🤯🤯🤯🤯
-          contentRef.current?.clientHeight
-          contentRef.current?.style.setProperty('height', `${trueHeight.current}px`)
-        })
-      }}
-      afterEnter={() => {
-        // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element unload
-        setTimeout(() => {
-          contentRef.current?.style.removeProperty('height')
         })
       }}
       beforeLeave={() => {
-        // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element load
         setTimeout(() => {
-          if (!contentRef.current?.style.height) {
-            // only if it is invoked after the afterEnter
-            trueHeight.current = contentRef.current?.clientHeight
+          const height = contentRef.current?.clientHeight
+          if (!height) {
+            contentRef.current?.style.setProperty('height', '0')
+          } else {
+            contentRef.current?.style.setProperty('height', `${height}px`)
+            // get a layout property to manually to force the browser to layout the above code.
+            // So trick. But have to.🤯🤯🤯🤯
+            contentRef.current?.clientHeight
+            contentRef.current?.style.setProperty('height', '0')
+
+            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+            transactionFlagDelayOff()
+
+            // clean unnecessary style
+            setTimeout(() => {
+              if (isDuringTransition.current) return
+              contentRef.current?.style.removeProperty('height')
+            }, 200 + 20 /* transition time */)
           }
-          contentRef.current?.style.setProperty('height', `${trueHeight.current}px`)
-          // get a layout property to manually to force the browser to layout the above code.
-          // So trick. But have to.🤯🤯🤯🤯
-          contentRef.current?.clientHeight
-          contentRef.current?.style.setProperty('height', '0')
-        })
-      }}
-      afterLeave={() => {
-        // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element unload
-        setTimeout(() => {
-          contentRef.current?.style.removeProperty('height')
         })
       }}
     >
@@ -79,7 +92,9 @@ export function FadeIn({
   const contentRef = useRef<HTMLDivElement>(null)
   const innerChildren = useRef<ReactNode>(children)
   if (children) innerChildren.current = children
-  const trueHeight = useRef<number | undefined>()
+  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
+    delay: 200 + 20 /* transition time */
+  })
   return (
     <Transition
       appear
@@ -92,42 +107,53 @@ export function FadeIn({
       leaveTo="opacity-0"
       beforeEnter={() => {
         if (noOpenTransitation) return
-        if (!contentRef.current?.style.height) {
-          // only if it is invoked after the afterLeave or init
-          trueHeight.current = contentRef.current?.clientHeight
-        }
-        contentRef.current?.style.setProperty('height', '0')
-        // get a layout property to manually to force the browser to layout the above code.
-        // So trick. But have to.🤯🤯🤯🤯
-        contentRef.current?.clientHeight
-        contentRef.current?.style.setProperty('height', `${trueHeight.current}px`)
-      }}
-      afterEnter={() => {
-        if (noOpenTransitation) return
+        // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element load
+        contentRef.current?.style.setProperty('position', 'absolute') // init will rerender element, "position:absolute" is for not affect others
+        contentRef.current?.style.setProperty('visibility', 'hidden')
         setTimeout(() => {
-          // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element unload
-          contentRef.current?.style.removeProperty('height')
+          contentRef.current?.style.removeProperty('position')
+          contentRef.current?.style.removeProperty('visibility')
+
+          const height = contentRef.current?.clientHeight
+          // frequent ui action may cause element havn't attach to DOM yet, when occors, just ignore it.
+          if (height) {
+            contentRef.current?.style.setProperty('height', '0')
+            // get a layout property to manually to force the browser to layout the above code.
+            // So trick. But have to.🤯🤯🤯🤯
+            contentRef.current?.clientHeight
+            contentRef.current?.style.setProperty('height', `${height}px`)
+            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+            transactionFlagDelayOff()
+
+            // clean unnecessary style
+            setTimeout(() => {
+              if (isDuringTransition.current) return
+              contentRef.current?.style.removeProperty('height')
+            }, 200 + 20 /* transition time */)
+          }
         })
       }}
       beforeLeave={() => {
-        // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element unload
         setTimeout(() => {
-          if (!contentRef.current?.style.height) {
-            // only if it is invoked after the afterEnter
-            trueHeight.current = contentRef.current?.clientHeight
+          const height = contentRef.current?.clientHeight
+          if (!height) {
+            contentRef.current?.style.setProperty('height', '0')
+          } else {
+            contentRef.current?.style.setProperty('height', `${height}px`)
+            // get a layout property to manually to force the browser to layout the above code.
+            // So trick. But have to.🤯🤯🤯🤯
+            contentRef.current?.clientHeight
+            contentRef.current?.style.setProperty('height', '0')
+
+            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+            transactionFlagDelayOff()
+
+            // clean unnecessary style
+            setTimeout(() => {
+              if (isDuringTransition.current) return
+              contentRef.current?.style.removeProperty('height')
+            }, 200 + 20 /* transition time */)
           }
-          contentRef.current?.style.setProperty('height', `${trueHeight.current}px`)
-          // get a layout property to manually to force the browser to layout the above code.
-          // So trick. But have to.🤯🤯🤯🤯
-          contentRef.current?.clientHeight
-          contentRef.current?.style.setProperty('height', '0')
-        })
-      }}
-      afterLeave={() => {
-        // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element unload
-        setTimeout(() => {
-          contentRef.current?.style.removeProperty('height')
-          innerChildren.current = null
         })
       }}
     >

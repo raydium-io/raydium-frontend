@@ -15,8 +15,8 @@ export default function useSyncTxHistoryWithLocalStorage() {
   useTwoStateSyncer({
     state1: rawHistory,
     state2: alltxHistory,
-    setState1: (pairValue) => pairValue && setRawHistory(pairValue),
-    setState2: (pairValue) => pairValue && useTxHistory.setState({ alltxHistory: pairValue })
+    onState2Changed: (pairValue) => pairValue && setRawHistory(pairValue),
+    onState1Changed: (pairValue) => pairValue && useTxHistory.setState({ alltxHistory: pairValue })
   })
 
   /**  calc txHistory of {@link useTxHistory} */
