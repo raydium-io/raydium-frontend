@@ -1,4 +1,4 @@
-import React, { CSSProperties, Fragment, ReactNode, useEffect } from 'react'
+import React, { CSSProperties, Fragment, ReactNode, useEffect, useRef, useState } from 'react'
 
 import { Dialog as _Dialog, Transition } from '@headlessui/react'
 
@@ -7,20 +7,16 @@ import { twMerge } from 'tailwind-merge'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayFunction } from '@/types/generics'
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import useTwoStateSyncer from '@/hooks/use2StateSyncer'
+import { useToggleRef } from '@/hooks/useToggle'
+import { useSignalState } from '@/hooks/useSignalState'
 
 export interface DialogProps {
   open: boolean
   /** this is the className of modal card */
   className?: string
   style?: CSSProperties
-  children?: MayFunction<
-    ReactNode,
-    [
-      {
-        close: () => void
-      }
-    ]
-  >
+  children?: MayFunction<ReactNode, [{ close: () => void }]>
   transitionSpeed?: 'fast' | 'normal'
   // if content is scrollable, PLEASE open it!!!, for blur will make scroll super fuzzy
   maskNoBlur?: boolean
@@ -42,20 +38,52 @@ export default function Dialog({
 }: DialogProps) {
   // for onCloseTransitionEnd
   // during leave transition, open is still true, but innerOpen is false, so transaction will happen without props:open has change (if open is false, React may destory this component immediately)
-  const [innerOpen, setInnerOpen] = React.useState(open)
+  const [innerOpen, setInnerOpen, innerOpenSignal] = useSignalState(open)
   const isMobile = useAppSettings((s) => s.isMobile)
-  useEffect(() => {
-    setInnerOpen(open)
-  }, [open])
+
+  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
+    delay: transitionSpeed === 'fast' ? 100 : 200 /* transition time */,
+    onOff: () => {
+      // seems headlessui/react 1.6 doesn't fired this certainly(because React 16 priority strategy), so i have to use setTimeout 👇 in <Dialog>'s onClose
+      if (!innerOpenSignal()) {
+        onCloseTransitionEnd?.()
+      }
+    }
+  })
+
+  const openDialog = () => {
+    setInnerOpen(true)
+    transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+    transactionFlagDelayOff()
+  }
+
+  const closeDialog = () => {
+    setInnerOpen(false)
+    transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
+    transactionFlagDelayOff()
+  }
+
+  useTwoStateSyncer({
+    state1: open,
+    state2: innerOpen,
+    onState1Changed: (open) => {
+      open ? openDialog() : closeDialog()
+    }
+  })
+
   return (
-    <Transition as={Fragment} show={innerOpen} appear beforeLeave={onClose} afterLeave={onCloseTransitionEnd}>
-      <_Dialog
-        open={innerOpen}
-        static
-        as="div"
-        className="fixed inset-0 z-model overflow-y-auto"
-        onClose={() => setInnerOpen(false)}
-      >
+    <Transition
+      as={Fragment}
+      show={innerOpen}
+      appear
+      beforeLeave={onClose}
+      // afterLeave={() => {
+      //   // seems headlessui/react 1.6 doesn't fired this certainly(because React 16 priority strategy), so i have to use setTimeout 👇 in <Dialog>'s onClose
+      //   console.log('onCloseTransitionEnd')
+      //   return onCloseTransitionEnd?.()
+      // }}
+    >
+      <_Dialog open={innerOpen} static as="div" className="fixed inset-0 z-model overflow-y-auto" onClose={closeDialog}>
         <div className="Dialog w-screen h-screen fixed">
           <Transition.Child
             as={Fragment}
@@ -93,7 +121,7 @@ export default function Dialog({
                   transform: isMobile ? undefined : 'translateX(calc(var(--side-menu-width) * 1px / 2))'
                 }}
               >
-                {shrinkToValue(children, [{ close: () => setInnerOpen(false) }])}
+                {shrinkToValue(children, [{ close: closeDialog }])}
               </div>
             </div>
           </Transition.Child>
