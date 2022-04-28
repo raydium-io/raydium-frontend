@@ -119,6 +119,7 @@ export default function Drawer({
     }
   })
 
+  if (!open) return null
   return (
     <DrawerStackPortal>
       <Transition

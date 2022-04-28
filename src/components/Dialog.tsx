@@ -71,6 +71,7 @@ export default function Dialog({
     }
   })
 
+  if (!open) return null
   return (
     <Transition
       as={Fragment}
