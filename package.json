@@ -14,7 +14,7 @@
     "run-misc": "cross-env TS_NODE_PROJECT=tsconfig.commonjs.json yarn ts-node",
     "build-ido-json": "yarn run-misc ./misc/build-ido-json.ts",
     "prepare": "husky install",
-    "push-frontend": "git push frontend master && start https://api.vercel.com/v1/integrations/deploy/prj_sXoOdtotBPQDvqrLqJ3jZhs8LYx1/kHhKT0YUfU"
+    "push-frontend": "git push frontend master"
   },
   "sideEffects": false,
   "lint-staged": {
