@@ -37,7 +37,7 @@ export default function WalletWidget() {
             CONNECTED WALLET
           </div>
           <div className="gap-3 divide-y-1.5">
-            <FadeIn noOpenTransitation>
+            <FadeIn ignoreEnterTransition>
               <AddressItem showDigitCount={7} className="py-4 px-6 border-[rgba(171,196,255,0.2)]">
                 {publicKey}
               </AddressItem>

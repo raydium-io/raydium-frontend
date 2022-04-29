@@ -185,7 +185,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
 
   const [, forceUpdate] = useForceUpdate()
   return (
-    <FadeIn>
+    <FadeIn ignoreEnterTransition>
       {idoInfo?.canWithdrawBase || idoInfo?.isClosed || idoInfo?.depositedTickets?.length ? (
         <Card
           className={twMerge(
