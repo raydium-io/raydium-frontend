@@ -1,4 +1,4 @@
-import { ReactNode, useRef } from 'react'
+import { ReactNode, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import { Transition } from '@headlessui/react'
@@ -10,7 +10,6 @@ export default function FadeInStable({ show, children }: { show?: any; children?
   const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
     delay: 200 + 20 /* transition time */
   })
-  if (!show && !isDuringTransition.current) return null
   return (
     <Transition
       show={Boolean(show)}
@@ -93,10 +92,10 @@ export function FadeIn({
   const contentRef = useRef<HTMLDivElement>(null)
   const innerChildren = useRef<ReactNode>(children)
   if (children) innerChildren.current = children
+
   const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
     delay: 200 + 20 /* transition time */
   })
-  if (!children && !isDuringTransition.current) return null
   return (
     <Transition
       appear

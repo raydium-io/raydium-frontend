@@ -1,11 +1,11 @@
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { Percent, Price } from '@raydium-io/raydium-sdk'
+import { Percent } from '@raydium-io/raydium-sdk'
 
-import { BackendApiIdoListItem, HydratedIdoInfo, SdkIdoInfo, TicketInfo, TicketTailNumberInfo } from '../type'
+import { HydratedIdoInfo, SdkIdoInfo, TicketInfo, TicketTailNumberInfo } from '../type'
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, getMin, mul } from '@/functions/numberish/operations'
-import toTokenPrice, { usdCurrency } from '@/functions/format/toTokenPrice'
+import toTokenPrice from '@/functions/format/toTokenPrice'
 
 function getDepositedTickets(idoInfo: SdkIdoInfo): TicketInfo[] {
   if (!idoInfo.ledger) return []

@@ -8,11 +8,12 @@ import useToken from '@/application/token/useToken'
 import { fetchRawIdoListJson, fetchRawIdoProjectInfoJson, getSdkIdoList } from './utils/fetchIdoInfo'
 import { hydrateIdoInfo } from './utils/hydrateIdoInfo'
 import toPubString, { ToPubPropertyValue } from '@/functions/format/toMintString'
-import { objectMap } from '@/functions/objectMethods'
-import { BackendApiIdoListItem, HydratedIdoInfo } from './type'
+import { objectMap, pick } from '@/functions/objectMethods'
+import { BackendApiIdoListItem } from './type'
 import asyncMap from '@/functions/asyncMap'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { createSplToken } from '../token/feature/useTokenListsLoader'
+import { useRouter } from 'next/router'
 
 export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetting }) {
   const connection = useConnection((s) => s.connection)
@@ -22,6 +23,8 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
   const currentIdoId = useIdo((s) => s.currentIdoId)
   const idoRefreshFactor = useIdo((s) => s.idoRefreshFactor)
   const tokens = useToken((s) => s.tokens)
+  const { pathname } = useRouter()
+  const inIdoDetailPage = pathname.includes('/acceleraytor/detail')
   const getToken = useToken((s) => s.getToken)
 
   const getIdoTokens = (rawInfo: BackendApiIdoListItem) => {
@@ -107,7 +110,9 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
   useAsyncEffect(async () => {
     if (!shouldEffectBeOn(options?.when)) return
     if (!connection) return
-    const rawList = Object.values(idoRawInfos ?? {})
+    const rawList = Object.values(
+      (inIdoDetailPage && currentIdoId ? pick(idoRawInfos, [currentIdoId]) : idoRawInfos) ?? {}
+    )
     const publicKeyed = ToPubPropertyValue(rawList)
 
     // get sdk ledger/snapshot and render
@@ -152,7 +157,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
         }
       }))
     }, 1000)
-  }, [idoRawInfos, connection, options?.when, owner])
+  }, [idoRawInfos, currentIdoId, connection, options?.when, owner, inIdoDetailPage])
 
   useAsyncEffect(async () => {
     if (!shouldEffectBeOn(options?.when)) return
