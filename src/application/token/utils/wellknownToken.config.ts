@@ -10,3 +10,4 @@ export const stSOLMint = new PublicKey('7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y
 export const USDHMint = new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTgkX')
 export const NRVMint = new PublicKey('NRVwhjBQiUPYtfDT5zRBVJajzFQHaBUNtC7SNVvqRFa')
 export const ANAMint = new PublicKey('ANAxByE6G2WjFp7A4NqtWYXb3mgruyzZYg3spfxe6Lbo')
+export const ETHMint = new PublicKey('7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs')
