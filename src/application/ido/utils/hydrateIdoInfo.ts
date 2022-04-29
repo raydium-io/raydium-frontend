@@ -73,7 +73,8 @@ export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
   }))
   const winningTickets = getWinningTickets(idoInfo)
   const userEligibleTicketAmount = idoInfo.snapshot?.maxLotteries
-  const isEligible = isMeaningfulNumber(userEligibleTicketAmount)
+
+  const isEligible = userEligibleTicketAmount == null ? undefined : isMeaningfulNumber(userEligibleTicketAmount)
 
   const totalRaise = idoInfo.base && toTokenAmount(idoInfo.base, idoInfo.raise, { alreadyDecimaled: true })
   const coinPrice =

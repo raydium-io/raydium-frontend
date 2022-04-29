@@ -893,7 +893,9 @@ function LotteryInputPanel({ className }: { className?: string }) {
   )
   const renderPoolOpen = (
     <Row className="items-center">
-      {idoInfo.isEligible ? 'Join Lottery' : "You're not eligible to join pool"}
+      {idoInfo.isEligible || idoInfo.isEligible == null || !connected
+        ? 'Join Lottery'
+        : "You're not eligible to join pool"}
       <div className="ml-auto">
         <RefreshCircle
           refreshKey="acceleraytor"
@@ -921,7 +923,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
       </div>
 
       <FadeIn>
-        {connected && (idoInfo.isUpcoming || idoInfo.isOpen) && (
+        {connected && (idoInfo.isUpcoming || (idoInfo.isOpen && idoInfo.isEligible != null)) && (
           <AlertText
             className="p-3 bg-[rgba(171,196,255,0.1)] rounded-xl text-[#ABC4FF80] text-xs font-semibold"
             iconSize="sm"
@@ -985,7 +987,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
           },
           {
             should: idoInfo?.isEligible,
-            fallbackProps: { children: 'Not eligible' }
+            fallbackProps: { children: idoInfo?.isEligible == null ? 'Data Loading' : 'Not eligible' }
           },
           {
             should: !idoInfo?.isUpcoming,
@@ -1028,7 +1030,10 @@ function LotteryInputPanel({ className }: { className?: string }) {
       >
         Join Lottery
       </Button>
-      <Link className="text-xs text-center text-[#ABC4FF] opacity-50 font-semibold pt-3 border-t border-[rgba(171,196,255,0.1)]">
+      <Link
+        href={idoInfo.projectDetailLink}
+        className="text-xs text-center text-[#ABC4FF] opacity-50 font-semibold pt-3 border-t border-[rgba(171,196,255,0.1)]"
+      >
         When can I withdraw?
       </Link>
     </CyberpunkStyleCard>
