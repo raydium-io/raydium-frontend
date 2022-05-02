@@ -36,6 +36,11 @@ const moduleExports = {
   async redirects() {
     return [
       {
+        source: '/liquidity',
+        destination: '/liquidity/add',
+        permanent: true
+      },
+      {
         source: '/acceleRaytor',
         destination: 'https://v1.raydium.io/acceleRaytor',
         permanent: false
