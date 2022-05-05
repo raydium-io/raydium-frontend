@@ -5,7 +5,6 @@ import { ZERO } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
-import { popWelcomeDialogFn } from '@/application/appSettings/initializationHooks'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'

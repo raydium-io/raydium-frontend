@@ -9,8 +9,7 @@ import {
   useSentryConfigurator,
   useSlippageTolerenceSyncer,
   useSlippageTolerenceValidator,
-  useThemeModeSync,
-  useWelcomeDialog
+  useThemeModeSync
 } from '@/application/appSettings/initializationHooks'
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
 import { useUserCustomizedEndpointInitLoad } from '@/application/connection/useUserCustomizedEndpointInitLoad'
@@ -84,9 +83,6 @@ function ClientInitialization() {
   useThemeModeSync()
 
   useDeviceInfoSyc()
-
-  // beta welcome dialogs
-  useWelcomeDialog()
 
   return null
 }
