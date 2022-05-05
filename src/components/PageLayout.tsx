@@ -194,7 +194,7 @@ function VersionTooOldDialog() {
           <Col className="items-center">
             <div className="font-semibold text-xl text-[#D8CB39] mb-3 text-center">New version available</div>
             <div className="text-center mt-2  mb-6 text-[#ABC4FF]">
-              Refresh the page to update and use the app. You can ignore this message if you have already refreshed.
+              Refresh the page to update and use the app. You can close this message if you have already refreshed.
             </div>
 
             <div className="self-stretch">
@@ -206,7 +206,7 @@ function VersionTooOldDialog() {
                   Refresh
                 </Button>
                 <Button className="text-[#ABC4FF]" type="text" onClick={close}>
-                  Ignore
+                  Close
                 </Button>
               </Col>
             </div>
