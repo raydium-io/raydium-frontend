@@ -13,6 +13,14 @@ body {
   color: var(--primary);
   background-color: rgb(19, 26, 53);
 }
+
+/* Quick qverride font-family */
+.app .dialect {
+  font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol';
+}
+
 :root {
   font-size: 16px;
 }
