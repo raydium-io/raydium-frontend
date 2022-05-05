@@ -21,6 +21,7 @@ export interface DialogProps {
   // if content is scrollable, PLEASE open it!!!, for blur will make scroll super fuzzy
   maskNoBlur?: boolean
 
+  canClosedByMask?: boolean
   onClose?(): void
   /** fired when close transform effect is end */
   onCloseTransitionEnd?(): void
@@ -33,6 +34,7 @@ export default function Dialog({
   transitionSpeed = 'normal',
   maskNoBlur,
   style,
+  canClosedByMask = true,
   onClose,
   onCloseTransitionEnd
 }: DialogProps) {
@@ -96,7 +98,9 @@ export default function Dialog({
             leaveTo="opacity-0"
           >
             <_Dialog.Overlay
-              className={`fixed inset-0 ${maskNoBlur ? '' : 'backdrop-filter backdrop-blur'}  bg-[rgba(20,16,65,0.4)]`}
+              className={`fixed inset-0 ${maskNoBlur ? '' : 'backdrop-filter backdrop-blur'} bg-[rgba(20,16,65,0.4)] ${
+                canClosedByMask ? '' : 'pointer-events-none'
+              }`}
             />
           </Transition.Child>
 

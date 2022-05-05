@@ -39,6 +39,8 @@ import { setCssVarible } from '@/functions/dom/cssVariable'
 import { inClient } from '@/functions/judgers/isSSR'
 import { useAppVersion } from '@/application/appVersion/useAppVersion'
 import { refreshWindow } from '@/application/appVersion/forceWindowRefresh'
+import Card from './Card'
+import Dialog from './Dialog'
 
 /**
  * for easier to code and read
@@ -120,7 +122,7 @@ export default function PageLayout(props: {
       >
         {/* do not check ata currently
         <MigrateBubble /> */}
-        <VersionMessageBubble />
+        <VersionTooOldDialog />
         {props.children}
       </main>
     </div>
@@ -175,24 +177,44 @@ function RPCPerformanceBanner({ className }: { className?: string }) {
     </div>
   )
 }
-function VersionMessageBubble() {
+function VersionTooOldDialog() {
   const versionRefreshData = useAppVersion((s) => s.versionFresh)
   return (
-    <div>
-      <FadeIn>
-        {versionRefreshData === 'too-old' && (
-          <Row className="w-[min(400px,100%)]  m-auto justify-center items-center py-4 px-6 mobile:py-3 mb-8 mobile:mb-2 rounded-xl ring-1.5 ring-inset ring-[#D8CB39] bg-[#1B1659]">
-            <div className="text-[#C4D6FF] text-sm font-medium">
-              New app version available,{' '}
-              <span className="clickable text-[#D8CB39] font-bold" onClick={() => refreshWindow({ noCache: true })}>
-                refresh
-              </span>{' '}
-              to update.
+    <Dialog open={true /* versionRefreshData === 'too-old' */} canClosedByMask={false}>
+      {({ close }) => (
+        <Card
+          className={twMerge(`p-8 rounded-3xl w-[min(480px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]`)}
+          size="lg"
+          style={{
+            background:
+              'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
+            boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
+          }}
+        >
+          <Col className="items-center">
+            <div className="mb-4">
+              <div className="font-semibold text-xl text-white mb-3 text-center"> Current version is TOO OLD.</div>
+              <div className="text-center my-2">
+                To update the app, please{' '}
+                <span
+                  className="clickable text-center text-[#D8CB39] font-bold text-2xl"
+                  onClick={() => refreshWindow({ noCache: true })}
+                >
+                  refresh
+                </span>
+              </div>
             </div>
-          </Row>
-        )}
-      </FadeIn>
-    </div>
+            <div className="self-stretch">
+              <Col>
+                <Button className={`frosted-glass-teal`} onClick={close}>
+                  Use current version anyway
+                </Button>
+              </Col>
+            </div>
+          </Col>
+        </Card>
+      )}
+    </Dialog>
   )
 }
 
