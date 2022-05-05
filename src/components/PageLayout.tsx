@@ -180,7 +180,7 @@ function RPCPerformanceBanner({ className }: { className?: string }) {
 function VersionTooOldDialog() {
   const versionRefreshData = useAppVersion((s) => s.versionFresh)
   return (
-    <Dialog open={true /* versionRefreshData === 'too-old' */} canClosedByMask={false}>
+    <Dialog open={versionRefreshData === 'too-old'} canClosedByMask={false}>
       {({ close }) => (
         <Card
           className={twMerge(`p-8 rounded-3xl w-[min(480px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]`)}
@@ -193,9 +193,7 @@ function VersionTooOldDialog() {
         >
           <Col className="items-center">
             <div className="font-semibold text-xl text-[#D8CB39] mb-3 text-center">New version available</div>
-            <div className="text-center mt-2  mb-6 text-[#ABC4FF]">
-              Refresh the page to update and use the app. You can close this message if you have already refreshed.
-            </div>
+            <div className="text-center mt-2  mb-6 text-[#ABC4FF]">Refresh the page to update and use the app.</div>
 
             <div className="self-stretch">
               <Col>
@@ -206,7 +204,7 @@ function VersionTooOldDialog() {
                   Refresh
                 </Button>
                 <Button className="text-[#ABC4FF]" type="text" onClick={close}>
-                  Close
+                  Update later
                 </Button>
               </Col>
             </div>
