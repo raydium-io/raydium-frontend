@@ -239,7 +239,7 @@ function HomePageSection1() {
             <Button
               className="frosted-glass-teal"
               onClick={() => {
-                push('/acceleraytor')
+                push('https://raydium.io/acceleraytor/')
               }}
             >
               View Projects
