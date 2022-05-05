@@ -192,22 +192,21 @@ function VersionTooOldDialog() {
           }}
         >
           <Col className="items-center">
-            <div className="mb-4">
-              <div className="font-semibold text-xl text-white mb-3 text-center"> Current version is TOO OLD.</div>
-              <div className="text-center my-2">
-                To update the app, please{' '}
-                <span
-                  className="clickable text-center text-[#D8CB39] font-bold text-2xl"
-                  onClick={() => refreshWindow({ noCache: true })}
-                >
-                  refresh
-                </span>
-              </div>
+            <div className="font-semibold text-xl text-[#D8CB39] mb-3 text-center">New version available</div>
+            <div className="text-center mt-2  mb-6 text-[#ABC4FF]">
+              Refresh the page to update and use the app. You can ignore this message if you have already refreshed.
             </div>
+
             <div className="self-stretch">
               <Col>
-                <Button className={`frosted-glass-teal`} onClick={close}>
-                  Use current version anyway
+                <Button
+                  className={`text-[#ABC4FF]  frosted-glass-teal`}
+                  onClick={() => refreshWindow({ noCache: true })}
+                >
+                  Refresh
+                </Button>
+                <Button className="text-[#ABC4FF]" type="text" onClick={close}>
+                  Ignore
                 </Button>
               </Col>
             </div>
