@@ -47,6 +47,9 @@ import { useTokenGetterFnLoader } from '@/application/token/feature/useTokenGett
 import { POPOVER_STACK_ID } from '@/components/Popover'
 import { DRAWER_STACK_ID } from '@/components/Drawer'
 
+import { PublicKey } from '@solana/web3.js'
+import toPubString from '@/functions/format/toMintString'
+
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
   return (
@@ -72,6 +75,14 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       </div>
     </SolanaWalletProviders>
   )
+}
+
+// accelerayte
+PublicKey.prototype.toString = function () {
+  return toPubString(this)
+}
+PublicKey.prototype.toJSON = function () {
+  return toPubString(this)
 }
 
 function ClientInitialization() {
