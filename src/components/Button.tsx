@@ -101,13 +101,13 @@ function solidButtonTailwind({
 }: { size?: 'xs' | 'md' | 'sm' | 'lg' | 'default'; disable?: boolean } = {}) {
   return `${
     size === 'lg'
-      ? 'py-4 px-4 rounded-xl'
+      ? 'px-6 py-3.5 rounded-xl font-bold'
       : size === 'sm'
-      ? 'px-4 py-2 text-sm rounded-xl'
+      ? 'px-4 py-2 text-sm rounded-xl font-medium'
       : size === 'xs'
-      ? 'px-4 py-2 text-xs rounded-xl'
-      : 'px-4 py-2.5  rounded-xl'
-  } whitespace-nowrap appearance-none inline-block font-medium ${
+      ? 'px-4 py-2 text-xs rounded-xl font-medium'
+      : 'px-4 py-2.5  rounded-xl font-medium'
+  } whitespace-nowrap appearance-none inline-block ${
     disable
       ? 'bg-formkit-thumb-disable text-formkit-thumb-text-disabled opacity-50 cursor-not-allowed'
       : 'bg-formkit-thumb text-formkit-thumb-text-normal clickable clickable-filter-effect'
@@ -127,7 +127,7 @@ function outlineButtonTailwind({
       : size === 'xs'
       ? 'px-4 py-2 text-xs rounded-xl'
       : 'px-4 py-2.5  rounded-xl'
-  } whitespace-nowrap appearance-none inline-block ring-formkit-thumb ring-1 text-primary ${
+  } whitespace-nowrap appearance-none inline-block ring-1.5 ring-inset ring-current ${
     disable ? 'opacity-30 cursor-not-allowed' : 'clickable clickable-filter-effect'
   }`
 }
