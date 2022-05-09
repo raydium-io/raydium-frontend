@@ -5,15 +5,12 @@ import CoinInputBox from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import TokenSelectorDialog from '@/components/dialogs/TokenSelectorDialog'
-import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import useToggle from '@/hooks/useToggle'
-import { type } from 'os'
-import { title } from 'process'
 import { ReactNode } from 'react'
 
 // unless ido have move this component, it can't be renamed or move to /components
@@ -29,9 +26,7 @@ function WarningBoard({ className }: { className: string }) {
   return (
     <Row className={className}>
       <Icon iconSrc="/icons/create-farm-exclamation-circle.svg" className="my-4" iconClassName="w-12 h-12" />
-      <Card
-        className={`min-w-[260px] relative rounded-xl ring-1.5 ring-inset ring-[#DA2EEF] bg-[#1B1659] p-6 mx-4 my-2 overflow-hidden pointer-events-auto`}
-      >
+      <Card className={`p-6 mx-4 my-2 rounded-3xl ring-1 ring-inset ring-[#DA2EEF] bg-[#1B1659]`}>
         <div className="font-medium text-base text-white mb-3">This tool is for advanced users!</div>
 
         <div className="font-medium text-sm text-[#ABC4FF80] mb-4">
@@ -51,15 +46,16 @@ function WarningBoard({ className }: { className: string }) {
     </Row>
   )
 }
+
 function SearchBlock() {
   const searchPoolId = useCreateFarms((s) => s.searchPoolId)
   return (
     <Input
       value={searchPoolId}
-      className="px-2 py-2 mobile:py-1 gap-2 border-1.5 border-[rgba(196,214,255,0.5)] rounded-xl min-w-[7em]"
-      inputClassName="font-medium mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
+      className="p-4 py-3 gap-2 bg-[#141041] rounded-xl min-w-[7em]"
+      inputClassName="font-medium mobile:text-xs text-[#abc4ff] placeholder-[#abc4Ff80]"
       suffix={<Icon heroIconName="search" className="text-[rgba(196,214,255,0.5)]" />}
-      placeholder="Search by token"
+      placeholder="Search for a pool or paste AMM ID"
       onUserInput={(searchText) => {
         // useFarms.setState({ searchText })
       }}
@@ -84,8 +80,8 @@ function FormStep({
         <StepBadge n={stepNumber} />
         <div className={`grow my-4 border-r-1.5 ${haveNavline ? 'border-[#abc4ff1a]' : 'border-transparent'} `} />
       </Col>
-      <Col>
-        <div className="font-medium text-base text-white mb-3">{title}</div>
+      <Col className="grow">
+        <div className="font-medium text-lg text-white leading-8 ml-3 mb-5">{title}</div>
         <div className="mb-16">{children}</div>
       </Col>
     </Row>
@@ -103,15 +99,17 @@ export default function CreateFarmPage() {
 
         <div className="space-y-4">
           <FormStep stepNumber={1} title="Select Pool" haveNavline>
-            <CoinInputBox />
+            <Card className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a]" size="lg">
+              <SearchBlock />
+            </Card>
           </FormStep>
 
           <FormStep
             stepNumber={2}
             title={
               <>
-                Farming Reward
-                <div>
+                <div className="font-medium text-lg text-white leading-8 mb-1">Farming Reward</div>
+                <div className="font-medium text-sm leading-snug text-[#abc4ff80]">
                   Please note: All rewards provided are final and unused rewards cannot be recovered. You will be able
                   to add more rewards to the farm.
                 </div>
@@ -161,7 +159,9 @@ export default function CreateFarmPage() {
           </FormStep>
 
           <FormStep stepNumber={3} title="Farm Period">
-            <CoinInputBox />
+            <Card className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a]" size="lg">
+              <CoinInputBox />
+            </Card>
           </FormStep>
         </div>
 
