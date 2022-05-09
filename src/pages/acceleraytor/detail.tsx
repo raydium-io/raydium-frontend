@@ -745,12 +745,10 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
                   validators={[
                     {
                       should: connected,
+                      forceActive: true,
                       fallbackProps: {
                         onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
                       }
-                    },
-                    {
-                      should: currentIsBefore(idoInfo.stakeTimeEnd)
                     }
                   ]}
                   onClick={() => {
