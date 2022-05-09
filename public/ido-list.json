@@ -1,36 +1,40 @@
-{
-  "name": "Raydium AcceleRaytor Pools",
-  "timestamp": "2021-12-10 12:10:36",
-  "version": {
-    "major": 1,
-    "minor": 0,
-    "patch": 0
-  },
-  "official": [
-    {
-      "id": "J4FwTbrLf4xMu6QMHFbmFRxv3KbZmsA2oUVEoXrR61a2",
-      "version": 3,
-      "snapshotVersion": 1,
-      "programId": "9HzJyW1qZsEiSfMUf6L2jo3CcTKAyBmSyKdwQeYisHrC",
-      "snapshotProgramId": "4kCccBVdQpsonm2jL2TRV1noMdarsWR2mhwwkxUTqW3W",
-      "seedId": "G8vdpPXZSRuk6n2EByPHTEJA8fxyQQZVD2LUEKYodNmu",
-      "baseVault": "J2VuN1YdJKuqaYUbJR127oHuLPfdvTdmDE54oVuDHuLs",
-      "quoteVault": "3CL33RsJk3661mYKV8W1LP3fpcxRF8MmNdeH54KFTPvW",
-      "baseMint": "AD27ov5fVU2XzwsbvnFvb1JpCBaCB5dRXrczV9CqSVGb",
-      "quoteMint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-      "project": {
-        "projectName": "REAL",
-        "projectWebsiteLink": "https://realy.pro/",
-        "detailDoc": "https://raydium.medium.com/realy-is-launching-on-acceleraytor-b6d6a63d69d8",
-        "details": "Realy Metaverse will be the 1st Live-to-Earn metaverse on Solana. Developed via Unreal Engine, Realy is a virtual city with AAA graphics that seamlessly integrates virtual and reality.",
-        "docs": {
-          "website": "https://realy.pro/"
-        },
-        "socials": {
-          "Discord": "https://t.co/9O42ibMcNM?amp=1",
-          "Twitter": "https://twitter.com/RealyOfficial"
-        }
-      }
-    }
-  ]
-}
+[
+  {
+    "id": "7zk92r3Hiy6JWHTc2FaqGGxyP3arhxpTyqairGiWa25M",
+    "version": 3,
+    "snapshotVersion": 1,
+    "programId": "9HzJyW1qZsEiSfMUf6L2jo3CcTKAyBmSyKdwQeYisHrC",
+    "snapshotProgramId": "4kCccBVdQpsonm2jL2TRV1noMdarsWR2mhwwkxUTqW3W",
+    "seedId": "FBcHy7dPGZMMaEKd1tNH5bzERMP1R1CqSTvgem4acXKx",
+    "authority": "5uTzwn1MX3si9QCUofUQjbGU5rotNd86NpBDV26cS5aj",
+    "baseVault": "4nuhCrBekDVeJeJpoyGSKqe9C371CLNBEpkYo7Cx2MTP",
+    "quoteVault": "8eUGYBMdB55E6r4iKxGpqdPyHtiMNVbq95bnpXXB7NVW",
+    "baseMint": "7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR",
+    "quoteMint": "2nkxLptGxQCfaar541Cr87G4v6VuA6BvVWqxsHNVCYoA",
+    "projectName": "TEST PROJECT",
+    "projectDocs": {
+      "website": "https://realy.pro/"
+    },
+    "projectSocials": {
+      "Discord": "https://t.co/9O42ibMcNM?amp=1",
+      "Twitter": "https://twitter.com/RealyOfficial"
+    },
+    "projectPosters": "https://miro.medium.com/max/1400/0*7Sqwmm63VyBf3ZXD",
+    "projectDetailLink": "https://raydium.medium.com/hawksight-is-launching-on-acceleraytor-88b5e8f9f2a8",
+    "baseSymbol": "Test base",
+    "baseDecimals": 0,
+    "baseIcon": "",
+    "quoteSymbol": "Test Result",
+    "quoteDecimals": 6,
+    "quoteIcon": "",
+    "startTime": 1650448800,
+    "endTime": 1660492000,
+    "startWithdrawTime": 1660535200,
+    "stakeTimeEnd": 1649844000,
+    "stakeMinSize": 100,
+    "price": 0.012,
+    "raise": 30000000,
+    "maxWinLotteries": 6000,
+    "raisedLotteries": 369553
+  }
+]

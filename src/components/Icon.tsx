@@ -30,8 +30,10 @@ import {
   SwitchVerticalIcon,
   XIcon,
   TrashIcon,
-  DotsHorizontalIcon
+  DotsHorizontalIcon,
+  XCircleIcon
 } from '@heroicons/react/outline'
+import { ArrowCircleRightIcon } from '@heroicons/react/outline'
 
 import { getFileNameOfURI } from '../functions/dom/getFileNameOfURI'
 
@@ -47,6 +49,7 @@ export type AppHeroIconName =
   | 'plus'
   | 'minus'
   | 'check-circle'
+  | 'x-circle'
   | 'information-circle'
   | 'exclamation'
   | 'exclamation-circle'
@@ -62,6 +65,7 @@ export type AppHeroIconName =
   | 'desktop-computer'
   | 'trash'
   | 'dots-horizontal'
+  | 'arrow-circle-right' // solid
   | ' '
 
 export interface IconProps {
@@ -77,6 +81,7 @@ export interface IconProps {
   onHover?: UseHoverOptions['onHover']
   /* this prop will auto add some tailwind class for Icon */
   onClick?: UseClickOptions['onClick']
+  forceColor?: string // TODO: <Icon> can basicly change theme color
 }
 
 export default function Icon({
@@ -88,6 +93,7 @@ export default function Icon({
   onHover,
   /* this prop will auto add some tailwind class for Icon */
   onClick,
+  forceColor,
   domRef,
   className,
   /** sx: 12px; sm: 16px; smi: 20px;  md: 24px; lg: 32px (default: md) */
@@ -122,6 +128,8 @@ export default function Icon({
         ? MinusIcon
         : heroIconName === 'check-circle'
         ? CheckCircleIcon
+        : heroIconName === 'x-circle'
+        ? XCircleIcon
         : heroIconName === 'exclamation'
         ? ExclamationIcon
         : heroIconName === 'exclamation-circle'
@@ -152,6 +160,8 @@ export default function Icon({
         ? TrashIcon
         : heroIconName === 'dots-horizontal'
         ? DotsHorizontalIcon
+        : heroIconName === 'arrow-circle-right'
+        ? ArrowCircleRightIcon
         : heroIconName === ' '
         ? ({ className }: { className?: string }) => <div className={className} />
         : Fragment
@@ -160,7 +170,7 @@ export default function Icon({
         <HeroIconComponent
           /** HeroIcon can't use ref */
           className={twMerge(
-            `w-full h-full ${
+            `select-none w-full h-full ${
               size === 'md'
                 ? 'h-6 w-6'
                 : size === 'smi'
@@ -185,7 +195,7 @@ export default function Icon({
           src={iconSrc}
           alt={getFileNameOfURI(iconSrc ?? '')}
           className={twMerge(
-            `w-full h-full ${
+            `select-none w-full h-full ${
               size === 'md'
                 ? 'h-6 w-6'
                 : size === 'smi'
@@ -205,4 +215,14 @@ export default function Icon({
 
   console.warn('not heroIconName or iconName in <Icon>')
   return null
+}
+
+export const socialIconSrcMap = {
+  website: '/icons/acceleraytor-global.svg',
+  twitter: '/icons/acceleraytor-twitter.svg',
+  telegram: '/icons/acceleraytor-telegram.svg',
+  discord: '/icons/acceleraytor-discord.svg',
+  medium: '/icons/acceleraytor-medium.svg',
+  twitch: '/icons/acceleraytor-twitch.svg',
+  youtube: '/icons/acceleraytor-youtube.svg'
 }

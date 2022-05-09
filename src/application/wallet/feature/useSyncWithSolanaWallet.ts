@@ -41,8 +41,8 @@ export function useSyncWithSolanaWallet() {
 
   useEffect(() => {
     // sometimes `_wallet`'s data is delayed is not ready
-    if (!useWallet.getState().inSimulateMode && useWallet.getState().wallets !== _wallets) {
-      useWallet.setState({ wallets: _wallets })
+    if (!useWallet.getState().inSimulateMode && useWallet.getState().availableWallets !== _wallets) {
+      useWallet.setState({ availableWallets: _wallets })
     }
   }, [_wallets])
 

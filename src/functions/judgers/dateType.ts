@@ -10,7 +10,7 @@ export function isFunction(value: unknown): value is AnyFn {
   return typeof value === 'function'
 }
 
-export function isObject(val: unknown): val is Extract<Record<string, any>, Array<any>> {
+export function isObject(val: unknown): val is Record<string | number, any> | Array<any> {
   return !(val === null) && typeof val === 'object'
 }
 

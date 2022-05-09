@@ -16,7 +16,6 @@ import { usePools } from '@/application/pools/usePools'
 import { listToJSMap } from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { shakeFalsyItem } from '@/functions/arrayMethods'
-import { WSOLMint } from '@/application/token/utils/quantumSOL'
 
 /** update token accounts will cause balance refresh */
 export default function useTokenAccountsRefresher(): void {
@@ -52,10 +51,11 @@ export default function useTokenAccountsRefresher(): void {
 
 /** if all tokenAccount amount is not changed (which may happen in 'confirmed'), auto fetch second time in 'finalized'*/
 const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, options?: { noSecondTry?: boolean }) => {
-  const { accounts: allTokenAccounts, rawInfos } = await getWalletTokenAccounts({
-    connection,
-    owner: new PublicKey(owner)
-  })
+  const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
+    await getRichWalletTokenAccounts({
+      connection,
+      owner: new PublicKey(owner)
+    })
 
   //#region ------------------- diff -------------------
   const pastTokenAccounts = listToJSMap(
@@ -75,24 +75,25 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
 
   if (options?.noSecondTry || hasWalletTokenAccountChanged || diffCount === 0) {
     useWallet.setState({
-      tokenAccountRawInfos: rawInfos,
-      verboseTokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated || ta.isNative),
-      tokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated),
-      allTokenAccounts: allTokenAccounts
+      tokenAccountRawInfos,
+      nativeTokenAccount,
+      tokenAccounts,
+      allTokenAccounts
     })
   } else {
     // try in 'finalized'
     addWalletAccountChangeListener(
       async () => {
-        const { accounts: allTokenAccounts, rawInfos } = await getWalletTokenAccounts({
-          connection,
-          owner: new PublicKey(owner)
-        })
+        const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
+          await getRichWalletTokenAccounts({
+            connection,
+            owner: new PublicKey(owner)
+          })
         useWallet.setState({
-          tokenAccountRawInfos: rawInfos,
-          verboseTokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated || ta.isNative),
-          tokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated),
-          allTokenAccounts: allTokenAccounts
+          tokenAccountRawInfos,
+          nativeTokenAccount,
+          tokenAccounts,
+          allTokenAccounts
         })
       },
       {
@@ -100,5 +101,16 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
         lifetime: 'finalized'
       }
     )
+  }
+}
+
+/**  rich info of {@link getWalletTokenAccounts}'s return  */
+export async function getRichWalletTokenAccounts(...params: Parameters<typeof getWalletTokenAccounts>) {
+  const { accounts: allTokenAccounts, rawInfos } = await getWalletTokenAccounts(...params)
+  return {
+    tokenAccountRawInfos: rawInfos,
+    nativeTokenAccount: allTokenAccounts.find((ta) => ta.isNative),
+    tokenAccounts: allTokenAccounts.filter((ta) => ta.isAssociated),
+    allTokenAccounts: allTokenAccounts
   }
 }

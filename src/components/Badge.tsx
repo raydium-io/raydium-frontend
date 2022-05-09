@@ -22,7 +22,7 @@ export function Badge(props: {
           props.type === 'solid'
             ? 'bg-current text-white'
             : `${props.noOutline ? '' : defaultSize === 'sm' ? 'border' : 'border-1.5'} border-current`
-        } rounded-full`,
+        } rounded-full capitalize`,
         props.className
       )}
       style={{

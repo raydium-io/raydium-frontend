@@ -207,7 +207,6 @@ async function calculatePairTokenAmount({
 
   if (jsonInfos.length) {
     const key = jsonInfos.map((jsonInfo) => jsonInfo.id).join('-')
-
     const sdkParsedInfos = sdkParsedInfoCache.has(key)
       ? sdkParsedInfoCache.get(key)!
       : await (async () => {

@@ -62,13 +62,8 @@ function PanelContent({ historyItems, onClickX }: { historyItems: TxHistoryInfo[
   const owner = useWallet((s) => s.owner)
   return (
     <Card
-      className="flex flex-col max-h-[60vh] mobile:max-h-screen shadow-xl rounded-3xl mobile:rounded-none w-[min(750px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden"
+      className="flex flex-col max-h-[60vh] mobile:max-h-screen rounded-3xl mobile:rounded-none w-[min(750px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg shadow-cyberpunk-card"
       size="lg"
-      style={{
-        background:
-          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
-        boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-      }}
     >
       <Row className="justify-between items-center p-8">
         <div className="text-xl font-semibold text-white">Recent transactions</div>
@@ -120,14 +115,13 @@ function PanelContent({ historyItems, onClickX }: { historyItems: TxHistoryInfo[
       </div>
 
       <Row className="border-t-1.5 border-[rgba(171,196,255,0.2)]">
-        <Button
-          type="text"
-          className="py-4 rounded-none flex-grow font-medium text-[#ABC4FF] text-xs flex justify-center gap-2 items-center"
+        <Link
+          className="py-4 rounded-none flex-grow font-medium text-[#ABC4FF] text-xs flex justify-center gap-1 items-center"
+          href={owner ? `https://solscan.io/account/${toPubString(owner)}` : ''}
         >
-          <Link href={owner ? `https://solscan.io/account/${toPubString(owner)}` : ''}>
-            View all transactions <Icon size="sm" inline heroIconName="external-link" />
-          </Link>
-        </Button>
+          View all transactions
+          <Icon size="xs" inline heroIconName="external-link" />
+        </Link>
       </Row>
     </Card>
   )

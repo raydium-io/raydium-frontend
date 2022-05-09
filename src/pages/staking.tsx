@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useState } from 'react'
+import React, { ReactNode, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
 import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
@@ -6,9 +6,7 @@ import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import txFarmDeposit from '@/application/farms/transaction/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/transaction/txFarmHarvest'
-import txFarmWithdraw from '@/application/farms/transaction/txFarmWithdraw'
 import { HydratedFarmInfo } from '@/application/farms/type'
 import useFarms from '@/application/farms/useFarms'
 import useStaking from '@/application/staking/useStaking'
@@ -16,9 +14,7 @@ import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
-import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
-import CoinInputBox from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
@@ -26,7 +22,6 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
-import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import formatNumber from '@/functions/format/formatNumber'
 import toPercentString from '@/functions/format/toPercentString'
@@ -37,10 +32,11 @@ import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import LoadingCircle from '@/components/LoadingCircle'
+import { StakingPageStakeLpDialog } from '../components/dialogs/StakingPageStakeLpDialog'
 
 export default function StakingPage() {
   return (
-    <PageLayout mobileBarTitle="Staking" metaTitle="Staking - Raydium" contentIsFixedLength>
+    <PageLayout mobileBarTitle="Staking" metaTitle="Staking - Raydium" contentButtonPaddingShorter>
       <StakingHeader />
       <StakingCard />
     </PageLayout>
@@ -74,13 +70,7 @@ function StakingCard() {
       </Row>
     )
   return (
-    <CyberpunkStyleCard
-      size="lg"
-      style={{
-        background:
-          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-      }}
-    >
+    <CyberpunkStyleCard>
       <Row type="grid" className="gap-3 text-[#ABC4FF]">
         {infos.map((info) => (
           <div key={String(info.id)}>
@@ -254,8 +244,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
                   if (connected) {
                     useStaking.setState({
                       isStakeDialogOpen: true,
-                      stakeDialogMode: 'deposit',
-                      stakeDialogInfo: hydratedInfo
+                      stakeDialogMode: 'deposit'
                     })
                   } else {
                     useAppSettings.setState({ isWalletSelectorShown: true })
@@ -272,8 +261,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
                   if (connected) {
                     useStaking.setState({
                       isStakeDialogOpen: true,
-                      stakeDialogMode: 'withdraw',
-                      stakeDialogInfo: hydratedInfo
+                      stakeDialogMode: 'withdraw'
                     })
                   } else {
                     useAppSettings.setState({ isWalletSelectorShown: true })
@@ -288,8 +276,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
                 if (connected) {
                   useStaking.setState({
                     isStakeDialogOpen: true,
-                    stakeDialogMode: 'deposit',
-                    stakeDialogInfo: hydratedInfo
+                    stakeDialogMode: 'deposit'
                   })
                 } else {
                   useAppSettings.setState({ isWalletSelectorShown: true })
@@ -360,114 +347,6 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
         </Button>
       </AutoBox>
     </AutoBox>
-  )
-}
-
-function StakingPageStakeLpDialog() {
-  const connected = useWallet((s) => s.connected)
-  const balances = useWallet((s) => s.balances)
-  const tokenAccounts = useWallet((s) => s.tokenAccounts)
-
-  const stakeDialogInfo = useStaking((s) => s.stakeDialogInfo)
-  const stakeDialogMode = useStaking((s) => s.stakeDialogMode)
-  const isStakeDialogOpen = useStaking((s) => s.isStakeDialogOpen)
-  const [amount, setAmount] = useState<string>()
-
-  const userHasLp = useMemo(
-    () =>
-      Boolean(stakeDialogInfo?.lpMint) &&
-      tokenAccounts.some(({ mint }) => String(mint) === String(stakeDialogInfo?.lpMint)),
-    [tokenAccounts, stakeDialogInfo]
-  )
-  const avaliableTokenAmount = useMemo(
-    () =>
-      stakeDialogMode === 'deposit'
-        ? stakeDialogInfo?.lpMint && balances[String(stakeDialogInfo.lpMint)]
-        : stakeDialogInfo?.userStakedLpAmount,
-    [stakeDialogInfo, balances, stakeDialogMode]
-  )
-  const userInputTokenAmount = useMemo(() => {
-    if (!stakeDialogInfo?.lp || !amount) return undefined
-    return toTokenAmount(stakeDialogInfo.lp, amount, { alreadyDecimaled: true })
-  }, [stakeDialogInfo, amount])
-  const isAvailableInput = useMemo(
-    () =>
-      Boolean(
-        userInputTokenAmount &&
-          userInputTokenAmount.numerator.gt(ZERO) &&
-          avaliableTokenAmount &&
-          avaliableTokenAmount.subtract(userInputTokenAmount).numerator.gte(ZERO)
-      ),
-    [avaliableTokenAmount, userInputTokenAmount]
-  )
-  return (
-    <ResponsiveDialogDrawer
-      open={isStakeDialogOpen}
-      onClose={() => {
-        setAmount(undefined)
-        useStaking.setState({ isStakeDialogOpen: false, stakeDialogInfo: undefined })
-      }}
-      placement="from-bottom"
-    >
-      {({ close }) => (
-        <Card
-          className="shadow-xl backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(468px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)]"
-          size="lg"
-          style={{
-            background:
-              'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
-            boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-          }}
-        >
-          {/* {String(info?.lpMint)} */}
-          <Row className="justify-between items-center mb-6">
-            <div className="text-xl font-semibold text-white">
-              {stakeDialogMode === 'withdraw' ? 'Unstake RAY' : 'Stake RAY'}
-            </div>
-            <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={close} />
-          </Row>
-          {/* input-container-box */}
-          <CoinInputBox
-            className="mb-6"
-            topLeftLabel="Staking RAY"
-            token={stakeDialogInfo?.lp}
-            onUserInput={setAmount}
-            forceBalanceDepositMode={stakeDialogMode === 'withdraw'}
-            forceBalance={stakeDialogInfo?.userStakedLpAmount}
-          />
-          <Row className="flex-col gap-1">
-            <Button
-              className="frosted-glass-teal"
-              validators={[
-                { should: connected },
-                { should: stakeDialogInfo?.lp },
-                { should: isAvailableInput },
-                { should: amount },
-                {
-                  should: userHasLp,
-                  fallbackProps: { children: stakeDialogMode === 'withdraw' ? 'No Unstakable RAY' : 'No Stakable RAY' }
-                }
-              ]}
-              onClick={() => {
-                if (!stakeDialogInfo?.lp || !amount) return
-                const tokenAmount = toTokenAmount(stakeDialogInfo.lp, amount, { alreadyDecimaled: true })
-                ;(stakeDialogMode === 'withdraw'
-                  ? txFarmWithdraw(stakeDialogInfo, { isStaking: true, amount: tokenAmount })
-                  : txFarmDeposit(stakeDialogInfo, { isStaking: true, amount: tokenAmount })
-                ).then(() => {
-                  close()
-                })
-              }}
-            >
-              {stakeDialogMode === 'withdraw' ? 'Unstake RAY' : 'Stake RAY'}
-            </Button>
-            <Button type="text" className="text-sm backdrop-filter-none" onClick={close}>
-              Cancel
-            </Button>
-          </Row>
-        </Card>
-      )}
-    </ResponsiveDialogDrawer>
   )
 }
 

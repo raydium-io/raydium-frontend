@@ -5,7 +5,19 @@ import { Transition } from '@headlessui/react'
 import { useToggleRef } from '@/hooks/useToggle'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 
-export default function FadeInStable({ show, children }: { show?: any; children?: ReactNode }) {
+export default function FadeInStable({
+  openDelay = 17,
+  ignoreEnterTransition,
+  ignoreLeaveTransition,
+  show,
+  children
+}: {
+  openDelay?: number
+  ignoreEnterTransition?: boolean
+  ignoreLeaveTransition?: boolean
+  show?: any
+  children?: ReactNode // if immediately, inner content maybe be still not render ready
+}) {
   // const [nodeExist, { off: destory }] = useToggle(true)
   const contentRef = useRef<HTMLDivElement>(null)
   const [, forceUpdate] = useForceUpdate()
@@ -25,6 +37,7 @@ export default function FadeInStable({ show, children }: { show?: any; children?
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
       beforeEnter={() => {
+        if (ignoreEnterTransition) return
         // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element load
         contentRef.current?.style.setProperty('position', 'absolute') // init will rerender element, "position:absolute" is for not affect others
         contentRef.current?.style.setProperty('visibility', 'hidden')
@@ -49,9 +62,10 @@ export default function FadeInStable({ show, children }: { show?: any; children?
               contentRef.current?.style.removeProperty('height')
             }, 200 + 20 /* transition time */)
           }
-        })
+        }, openDelay)
       }}
       beforeLeave={() => {
+        if (ignoreLeaveTransition) return
         setTimeout(() => {
           const height = contentRef.current?.clientHeight
           if (!height) {
@@ -89,11 +103,16 @@ export default function FadeInStable({ show, children }: { show?: any; children?
 }
 
 export function FadeIn({
-  noOpenTransitation,
+  openDelay = 35,
+  ignoreEnterTransition,
+  ignoreLeaveTransition,
   className,
   children
 }: {
-  noOpenTransitation?: boolean
+  // if immediately, inner content maybe be still not render ready
+  openDelay?: number
+  ignoreEnterTransition?: boolean
+  ignoreLeaveTransition?: boolean
   className?: string
   children?: ReactNode
 }) {
@@ -110,14 +129,14 @@ export function FadeIn({
     <Transition
       appear
       show={Boolean(children)}
-      enter={`select-none transition-all duration-200 ease`}
+      enter={`select-none ${ignoreEnterTransition ? '' : 'transition-all'} duration-200 ease`}
       enterFrom="opacity-0"
       enterTo="opacity-100"
-      leave={`select-none transition-all duration-200 ease`}
+      leave={`select-none ${ignoreLeaveTransition ? '' : 'transition-all'} duration-200 ease`}
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
       beforeEnter={() => {
-        if (noOpenTransitation) return
+        if (ignoreEnterTransition) return
         // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element load
         contentRef.current?.style.setProperty('position', 'absolute') // init will rerender element, "position:absolute" is for not affect others
         contentRef.current?.style.setProperty('visibility', 'hidden')
@@ -136,15 +155,16 @@ export function FadeIn({
             transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
             transactionFlagDelayOff()
 
-            // clean unnecessary style
+            // // clean unnecessary style
             setTimeout(() => {
               if (isDuringTransition.current) return
               contentRef.current?.style.removeProperty('height')
             }, 200 + 20 /* transition time */)
           }
-        })
+        }, openDelay)
       }}
       beforeLeave={() => {
+        if (ignoreLeaveTransition) return
         setTimeout(() => {
           const height = contentRef.current?.clientHeight
           if (!height) {

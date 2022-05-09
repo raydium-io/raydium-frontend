@@ -3,8 +3,9 @@ const plugin = require('tailwindcss/plugin')
 exports.cyberpunkLightBorders = plugin(({ addUtilities }) => {
   const cyberpunkLightBorders = {
     '.cyberpunk-border': {
-      borderColor: 'transparent',
       position: 'relative',
+      borderRadius: '20px',
+      border: '2px solid transparent',
       '&::after': {
         content: "''",
         position: 'absolute',
@@ -12,11 +13,12 @@ exports.cyberpunkLightBorders = plugin(({ addUtilities }) => {
         right: '0',
         bottom: '0',
         left: '0',
-        pointerEvents: 'none',
-        overflow: 'hidden',
-        background: 'linear-gradient(246deg, #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%)',
         borderRadius: 'inherit',
-        maskImage: `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><rect width='100%' height='100%' fill='none' stroke='black' stroke-width='2'/></svg>")`
+        border: 'inherit',
+        background: 'linear-gradient(246deg, #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%) border-box',
+        '-webkit-mask': 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
+        '-webkit-mask-composite': 'destination-out',
+        'mask-composite': 'exclude'
       }
     }
   }
@@ -79,6 +81,78 @@ exports.cyberpunkBgLight = plugin(({ addUtilities }) => {
             'radial-gradient(closest-side at 66.7%, #da2eef8c, transparent), radial-gradient(closest-side at 33.3%, #39d0d88c, transparent)',
           filter: 'blur(90px)',
           opacity: '.45'
+        }
+      },
+      '.cyberpunk-bg-light-acceleraytor': {
+        position: 'relative',
+        '&::before': {
+          content: "''",
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: '442px',
+          height: '442px',
+          transform: 'translate(-50%, -50%)',
+          zIndex: '-1',
+          pointerEvents: 'none',
+          background:
+            'linear-gradient(221.5deg, #DA2EEF 16.15%, rgba(218, 46, 239, 0) 84.46%), radial-gradient(53.22% 53.22% at 93.67% 75.22%, rgba(218, 46, 239, 0.5) 0%, rgba(57, 208, 216, 0.5) 55.21%, rgba(84, 44, 238, 0.5) 100%), radial-gradient(63.44% 63.44% at 42.78% 105%, #39D0D8 0%, #542CEE 100%)',
+          backgroundBlendMode: 'lighten, color-burn, normal',
+          filter: 'blur(132px)',
+          opacity: '.45'
+        }
+      },
+      '.cyberpunk-bg-light-acceleraytor-detail-page': {
+        position: 'sticky',
+        '&::before': {
+          content: "''",
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: '620px',
+          height: '620px',
+          transform: 'translate(-50%, -50%)',
+          zIndex: '-1',
+          pointerEvents: 'none',
+          background:
+            'linear-gradient(221.5deg, #DA2EEF 16.15%, rgba(218, 46, 239, 0) 84.46%), radial-gradient(53.22% 53.22% at 93.67% 75.22%, rgba(218, 46, 239, 0.5) 0%, rgba(57, 208, 216, 0.5) 55.21%, rgba(84, 44, 238, 0.5) 100%), radial-gradient(63.44% 63.44% at 42.78% 105%, #39D0D8 0%, #542CEE 100%)',
+          backgroundBlendMode: 'lighten, color-burn, normal',
+          filter: 'blur(132px)',
+          opacity: '.15'
+        }
+      },
+      '.cyberpunk-bg-acceleraytor-prject-step-1, .cyberpunk-bg-acceleraytor-prject-step-2, .cyberpunk-bg-acceleraytor-prject-step-3':
+        {
+          position: 'relative',
+          contain: 'paint',
+          '&::before': {
+            content: "''",
+            position: 'absolute',
+            top: '130%',
+            left: '90%',
+            width: '346px',
+            height: '346px',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'none',
+            background:
+              'linear-gradient(221.5deg, #DA2EEF 16.15%, rgba(218, 46, 239, 0) 84.46%), radial-gradient(53.22% 53.22% at 93.67% 75.22%, rgba(218, 46, 239, 0.5) 0%, rgba(57, 208, 216, 0.5) 55.21%, rgba(84, 44, 238, 0.5) 100%), radial-gradient(63.44% 63.44% at 42.78% 105%, #39D0D8 0%, #542CEE 100%)',
+            backgroundBlendMode: 'lighten, color-burn, normal',
+            filter: 'blur(133px)',
+            opacity: '.25'
+          }
+        },
+      '.cyberpunk-bg-acceleraytor-prject-step-2': {
+        '&::before': {
+          with: '282px',
+          height: '282px',
+          top: '-19%',
+          left: '53%'
+        }
+      },
+      '.cyberpunk-bg-acceleraytor-prject-step-3': {
+        '&::before': {
+          top: '36%',
+          left: '95%'
         }
       }
     },

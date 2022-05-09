@@ -1,19 +1,40 @@
 import {
-  AccountMeta, AccountMetaReadonly, BigNumberish, findProgramAddress, GetMultipleAccountsInfoConfig, Logger,
-  parseBigNumberish, PublicKeyish, struct, SYSTEM_PROGRAM_ID, SYSVAR_CLOCK_PUBKEY, SYSVAR_RENT_PUBKEY, Token,
-  TOKEN_PROGRAM_ID, TokenAmount, u64, u8, validateAndParsePublicKey
+  getMultipleAccountsInfoWithCustomFlags,
+  AccountMeta,
+  AccountMetaReadonly,
+  BigNumberish,
+  findProgramAddress,
+  GetMultipleAccountsInfoConfig,
+  Logger,
+  parseBigNumberish,
+  PublicKeyish,
+  struct,
+  SYSTEM_PROGRAM_ID,
+  SYSVAR_CLOCK_PUBKEY,
+  SYSVAR_RENT_PUBKEY,
+  Token,
+  TOKEN_PROGRAM_ID,
+  TokenAmount,
+  u64,
+  u8,
+  validateAndParsePublicKey
 } from '@raydium-io/raydium-sdk'
-import { Commitment, Connection, PublicKey, TransactionInstruction } from '@solana/web3.js'
+import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js'
 
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 
-import { wordlist } from './algorithm'
 import { IDO_PROGRAMID_TO_VERSION, IDO_VERSION_TO_PROGRAMID } from './id'
 import {
-  IDO_VERSION_TO_LEDGER_LAYOUT, IDO_VERSION_TO_STATE_LAYOUT, IdoLedgerLayout, IdoStateLayout, SnapshotStateLayout
+  IDO_VERSION_TO_LEDGER_LAYOUT,
+  IDO_VERSION_TO_STATE_LAYOUT,
+  IdoLedgerLayout,
+  IdoStateLayout,
+  SnapshotStateLayout
 } from './layout'
 import { Snapshot } from './snapshot'
 import { IdoVersion, SnapshotVersion } from './type'
+import { toString } from '@/functions/numberish/toString'
+import toPubString from '@/functions/format/toMintString'
 
 const logger = new Logger('NFT')
 
@@ -44,7 +65,7 @@ export interface IdoUserKeys {
 }
 
 export interface IdoInfo {
-  state: IdoStateLayout
+  state?: IdoStateLayout
   ledger?: IdoLedgerLayout
   snapshot?: SnapshotStateLayout
 }
@@ -79,10 +100,12 @@ export interface GetIdoInfoParams {
   // then there is no need to pass in
   // But it can't work in SDK
   owner?: PublicKey
+
   config?: GetMultipleAccountsInfoConfig
 }
 
 export interface GetIdoMultipleInfoParams extends Omit<GetIdoInfoParams, 'poolConfig'> {
+  noNeedState?: boolean
   poolsConfig: IdoPoolConfig[]
 }
 
@@ -105,36 +128,6 @@ export class Ido {
   //   const info = await Ido.getInfo()
   //   this.info = info
   // }
-
-  /* ================= pool info ================= */
-  get isUpcoming() {
-    return currentIsBefore(this.info.state.startTime.toNumber())
-  }
-
-  get isOpen() {
-    return currentIsAfter(this.info.state.startTime.toNumber()) && currentIsBefore(this.info.state.endTime.toNumber())
-  }
-
-  get isClosed() {
-    return currentIsAfter(this.info.state.endTime.toNumber())
-  }
-
-  get isWithdrawStart() {
-    return currentIsAfter(this.info.state.startWithdrawTime.toNumber())
-  }
-
-  get raise() {
-    return new TokenAmount(this.poolConfig.baseToken, this.info.state.baseSupply)
-  }
-
-  get price() {
-    return new TokenAmount(this.poolConfig.quoteToken, this.info.state.perLotteryQuoteAmount)
-  }
-
-  get raisedTickets() {
-    // TODO toNumber 53 bits?
-    return this.info.state.raisedLotteries.toNumber()
-  }
 
   /* ================= user info ================= */
   get maxTickets() {
@@ -238,12 +231,7 @@ export class Ido {
     owner: PublicKey
   }) {
     const { publicKey } = await findProgramAddress(
-      [
-        poolId.toBuffer(),
-        owner.toBuffer(),
-        // new Uint8Array(Buffer.from('nft_associated_seed', 'utf-8'))
-        Buffer.from([110, 102, 116, 95, 97, 115, 115, 111, 99, 105, 97, 116, 101, 100, 95, 115, 101, 101, 100])
-      ],
+      [poolId.toBuffer(), owner.toBuffer(), Buffer.from(new Uint8Array(Buffer.from('ido_associated_seed', 'utf-8')))],
       programId
     )
     return publicKey
@@ -275,41 +263,10 @@ export class Ido {
       // user
       AccountMeta(userKeys.quoteTokenAccount, false),
       AccountMeta(userKeys.ledgerAccount, false),
-      AccountMetaReadonly(userKeys.owner, true)
+      AccountMetaReadonly(userKeys.owner, true),
+      // snapshot
+      AccountMetaReadonly(userKeys.snapshotAccount, false)
     ]
-
-    const i = [10, 15, 8, 23]
-    const seeds: { i: number; word: string }[] = []
-    const randoms: number[] = []
-    const _keys = [] as any[]
-
-    for (let i = 0; i < 20; i++) randoms.push(Math.ceil(Math.random() * 100))
-    let buffer = Buffer.from('dropzone')
-
-    for (let index = 0; index < wordlist.length; index++) {
-      const word = wordlist[index]
-      const { publicKey } = await findProgramAddress(
-        [Buffer.from(word, 'utf-8'), userKeys.owner.toBuffer()],
-        poolConfig.programId
-      )
-      const [pta, nonce] = await PublicKey.findProgramAddress(
-        [buffer, Buffer.from(word, 'utf-8'), userKeys.owner.toBuffer()],
-        poolConfig.programId
-      )
-      buffer = pta.toBuffer()
-
-      if (seeds.length < i.length && randoms.includes(index)) {
-        seeds.push({ i: index, word })
-        keys.push(AccountMetaReadonly(publicKey, false))
-        buffer[i[seeds.length - 1]] = index
-        keys.push(AccountMetaReadonly(new PublicKey(buffer), false))
-      } else {
-        _keys.push(AccountMetaReadonly(publicKey, false))
-        _keys.push(AccountMetaReadonly(pta, false))
-      }
-    }
-
-    keys.push(AccountMetaReadonly(userKeys.snapshotAccount, false))
 
     return new TransactionInstruction({
       programId: poolConfig.programId,
@@ -394,8 +351,7 @@ export class Ido {
 
     let info = {}
 
-    const accountsInfo = await getMultipleAccountsInfoWithCustomFlag(connection, publicKeys, config)
-    // @ts-expect-error old version of getMultipleAccountsInfoWithCustomFlag
+    const accountsInfo = await getMultipleAccountsInfoWithCustomFlags(connection, publicKeys, config)
     for (const { pubkey, version, key, poolId, accountInfo } of accountsInfo) {
       if (key === 'state') {
         const STATE_LAYOUT = this.getStateLayout(version)
@@ -437,7 +393,8 @@ export class Ido {
     return info as IdoInfo
   }
 
-  static async getMultipleInfo({ connection, poolsConfig, owner, config }: GetIdoMultipleInfoParams) {
+  /** return {@link IdoInfo} */
+  static async getMultipleInfo({ connection, poolsConfig, noNeedState, owner, config }: GetIdoMultipleInfoParams) {
     const publicKeys: {
       pubkey: PublicKey
       version: IdoVersion | SnapshotVersion
@@ -446,12 +403,14 @@ export class Ido {
     }[] = []
 
     for (const poolConfig of poolsConfig) {
-      publicKeys.push({
-        pubkey: poolConfig.id,
-        version: poolConfig.version,
-        key: 'state',
-        poolId: poolConfig.id
-      })
+      if (!noNeedState) {
+        publicKeys.push({
+          pubkey: poolConfig.id,
+          version: poolConfig.version,
+          key: 'state',
+          poolId: poolConfig.id
+        })
+      }
 
       if (owner) {
         publicKeys.push({
@@ -480,8 +439,8 @@ export class Ido {
 
     const info: { [key: string]: IdoInfo } = {}
 
-    const accountsInfo = await getMultipleAccountsInfoWithCustomFlag(connection, publicKeys, config)
-    // @ts-expect-error old version of getMultipleAccountsInfoWithCustomFlag
+    // TODO: why can't fetch ledger and snapshot
+    const accountsInfo = await getMultipleAccountsInfoWithCustomFlags(connection, publicKeys, config)
     for (const { pubkey, version, key, poolId, accountInfo } of accountsInfo) {
       if (key === 'state') {
         const STATE_LAYOUT = this.getStateLayout(version)
@@ -512,9 +471,10 @@ export class Ido {
             return logger.throwArgumentError('invalid ido snapshot account info', 'snapshot', pubkey.toBase58())
           }
 
+          const decodeResult = SNAPSHOT_STATE_LAYOUT.decode(accountInfo.data)
           info[poolId.toBase58()] = {
             ...info[poolId.toBase58()],
-            ...{ snapshot: SNAPSHOT_STATE_LAYOUT.decode(accountInfo.data) }
+            ...{ snapshot: decodeResult }
           }
         }
       }
@@ -522,16 +482,4 @@ export class Ido {
 
     return Object.values(info)
   }
-}
-function getMultipleAccountsInfoWithCustomFlag(
-  connection: Connection,
-  publicKeys: {
-    pubkey: PublicKey
-    version: IdoVersion | SnapshotVersion
-    key: 'state' | 'ledger' | 'snapshot'
-    poolId: PublicKey
-  }[],
-  config: GetMultipleAccountsInfoConfig | undefined
-) {
-  throw new Error('Function not implemented.')
 }

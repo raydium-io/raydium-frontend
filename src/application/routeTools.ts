@@ -10,8 +10,8 @@ import useAppSettings from './appSettings/useAppSettings'
 import useLiquidity from './liquidity/useLiquidity'
 import { useSwap } from './swap/useSwap'
 import { SplToken } from './token/type'
-import useToken from './token/useToken'
 import useFarms from './farms/useFarms'
+import useIdo from './ido/useIdo'
 
 export type PageRouteConfigs = {
   '/swap': {
@@ -42,6 +42,14 @@ export type PageRouteConfigs = {
   }
   '/staking': {
     queryProps?: any
+  }
+  '/acceleraytor/list': {
+    queryProps?: any
+  }
+  '/acceleraytor/detail': {
+    queryProps?: {
+      idoId?: HexAddress
+    }
   }
 }
 
@@ -96,6 +104,20 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         })
       )
     })
+  } else if (toPage === '/acceleraytor/detail') {
+    router
+      .push({
+        pathname: '/acceleraytor/detail',
+        query: {
+          idoId: options?.queryProps?.idoId
+        }
+      })
+      .then(() => {
+        /** jump to target page */
+        useIdo.setState({
+          currentIdoId: options?.queryProps?.idoId
+        })
+      })
   } else {
     router.push({ pathname: toPage, query: options?.queryProps })
   }

@@ -7,13 +7,14 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useClick } from '@/hooks/useClick'
 import { AnyFn, BooleanLike, MayFunction } from '@/types/constants'
 import { MayArray } from '@/types/generics'
+import Row from './Row'
 
 export interface ButtonHandle {
   click?: () => void
   focus?: () => void
 }
 export interface ButtonProps {
-  size?: 'md' | 'sm' | 'lg' | 'default'
+  size?: 'xs' | 'md' | 'sm' | 'lg'
   // used in "connect wallet" button, it's order is over props: disabled
   forceActive?: boolean
   /** a short cut for validator */
@@ -33,7 +34,11 @@ export interface ButtonProps {
     fallbackProps?: Omit<ButtonProps, 'validators' | 'disabled'>
   }>
   children?: ReactNode
-  onClick?: AnyFn
+  /** normally, it's an icon  */
+  prefix?: ReactNode
+  /** normally, it's an icon  */
+  suffix?: ReactNode
+  onClick?: (info: { ev: React.MouseEvent<HTMLButtonElement, MouseEvent> }) => void
   componentRef?: RefObject<any>
 }
 
@@ -46,7 +51,7 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
     ...restProps,
     ...failedValidator?.fallbackProps
   }
-  const { type = 'solid', className = '', size, children, onClick, componentRef } = mergedProps
+  const { type = 'solid', className = '', size, children, onClick, componentRef, suffix, prefix } = mergedProps
 
   const isActive = failedValidator?.forceActive || (!failedValidator && !mergedProps.disabled)
   const disable = !isActive
@@ -63,11 +68,11 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
   return (
     <button
       ref={ref}
-      onClick={() => {
-        if (!disable) onClick?.()
+      onClick={(ev) => {
+        if (!disable) onClick?.({ ev })
       }}
       className={twMerge(
-        'Button',
+        'Button select-none',
         type === 'text'
           ? textButtonTailwind({ size, disable })
           : type === 'outline'
@@ -76,7 +81,15 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
         className
       )}
     >
-      {children}
+      {suffix || prefix ? (
+        <Row className="justify-center items-center gap-1">
+          {prefix}
+          <div>{children}</div>
+          {suffix}
+        </Row>
+      ) : (
+        children
+      )}
     </button>
   )
 }
@@ -85,13 +98,15 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
 function solidButtonTailwind({
   size = 'default',
   disable
-}: { size?: 'md' | 'sm' | 'lg' | 'default'; disable?: boolean } = {}) {
+}: { size?: 'xs' | 'md' | 'sm' | 'lg' | 'default'; disable?: boolean } = {}) {
   return `${
-    size === 'default'
-      ? 'px-4 py-2.5  rounded-xl mobile:rounded-lg'
+    size === 'lg'
+      ? 'py-4 px-4 rounded-xl'
       : size === 'sm'
-      ? 'px-2.5 py-1.5 text-sm rounded-lg mobile:rounded-md'
-      : 'py-4 px-4 rounded-xl mobile:rounded-lg'
+      ? 'px-4 py-2 text-sm rounded-xl'
+      : size === 'xs'
+      ? 'px-4 py-2 text-xs rounded-xl'
+      : 'px-4 py-2.5  rounded-xl'
   } whitespace-nowrap appearance-none inline-block font-medium ${
     disable
       ? 'bg-formkit-thumb-disable text-formkit-thumb-text-disabled opacity-50 cursor-not-allowed'
@@ -103,13 +118,15 @@ function solidButtonTailwind({
 function outlineButtonTailwind({
   size = 'default',
   disable
-}: { size?: 'md' | 'sm' | 'lg' | 'default'; disable?: boolean } = {}) {
+}: { size?: 'xs' | 'md' | 'sm' | 'lg' | 'default'; disable?: boolean } = {}) {
   return `${
-    size === 'default'
-      ? 'px-4 py-2.5  rounded-xl mobile:rounded-lg'
+    size === 'lg'
+      ? 'py-4 px-4 rounded-xl'
       : size === 'sm'
-      ? 'px-2.5 py-1.5 text-sm rounded-lg mobile:rounded-md'
-      : 'py-4 px-4 rounded-xl mobile:rounded-lg'
+      ? 'px-2.5 py-1.5 text-sm rounded-xl'
+      : size === 'xs'
+      ? 'px-4 py-2 text-xs rounded-xl'
+      : 'px-4 py-2.5  rounded-xl'
   } whitespace-nowrap appearance-none inline-block ring-formkit-thumb ring-1 text-primary ${
     disable ? 'opacity-30 cursor-not-allowed' : 'clickable clickable-filter-effect'
   }`
@@ -119,13 +136,15 @@ function outlineButtonTailwind({
 function textButtonTailwind({
   size = 'default',
   disable
-}: { size?: 'md' | 'sm' | 'lg' | 'default'; disable?: boolean } = {}) {
+}: { size?: 'xs' | 'md' | 'sm' | 'lg' | 'default'; disable?: boolean } = {}) {
   return `${
-    size === 'default'
-      ? 'px-4 py-2.5  rounded-xl mobile:rounded-lg'
+    size === 'lg'
+      ? 'py-4 px-4 rounded-xl'
       : size === 'sm'
-      ? 'px-2.5 py-1.5 text-sm rounded-lg mobile:rounded-md'
-      : 'py-4 px-4 rounded-xl mobile:rounded-lg'
+      ? 'px-2.5 py-1.5 text-sm rounded-xl'
+      : size === 'xs'
+      ? 'px-4 py-2 text-xs rounded-xl'
+      : 'px-4 py-2.5  rounded-xl'
   } whitespace-nowrap appearance-none inline-block text-white ${
     disable ? 'opacity-30 cursor-not-allowed' : 'clickable clickable-filter-effect'
   }`

@@ -17,6 +17,7 @@ type CollapseController = {
 }
 /**
  * default **uncontrolled** Kit
+ * once set open, compnent becomes **controlled** Kit
  */
 export default function Collapse({
   children = null as ReactNode,
@@ -33,9 +34,9 @@ export default function Collapse({
   children?: ReactNode
   className?: string
   style?: CSSProperties
-  /** only first render */
+  /** only first render, !important, this and open can only set one */
   defaultOpen?: boolean
-  /** it's change will cause ui change */
+  /** it's change will cause ui change, !important, this and defaultOpen can only set one  */
   open?: boolean
   /** (maybe not have to this, cause writing of collapseFace and collapseBody can express this ) */
   openDirection?: 'downwards' | 'upwards'
@@ -44,14 +45,14 @@ export default function Collapse({
   onToggle?(): void
   closeByOutsideClick?: boolean
 }) {
-  const [innerOpen, { toggle, off, on, set }] = useToggle(defaultOpen, {
+  const [innerOpen, { toggle, off, on, set }] = useToggle(open ?? defaultOpen, {
     onOff: onClose,
     onOn: onOpen,
     onToggle: onToggle
   })
 
   useIsomorphicLayoutEffect(() => {
-    set(Boolean(open))
+    if (!defaultOpen) set(Boolean(open))
   }, [open])
 
   const collapseFaceProps = pickReactChildProps(children, CollapseFace)
@@ -147,7 +148,7 @@ export default function Collapse({
             `transition-all duration-300 ease-in-out overflow-hidden ${openDirection === 'downwards' ? '' : 'order-1'}`,
             collapseBodyProps?.className
           )}
-          style={{ height: '0' }}
+          style={{ height: defaultOpen ? 'auto' : '0' }}
           $open={innerOpen}
           $controller={controller}
         />

@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect } from 'react'
+import React, { useEffect } from 'react'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useWallet from '@/application/wallet/useWallet'
@@ -10,29 +10,10 @@ import Icon from '../Icon'
 import PageLayoutPopoverDrawer from '../PageLayoutPopoverDrawer'
 import Row from '../Row'
 import { FadeIn } from '../FadeIn'
-
-function WalletWidgetItem({
-  text,
-  suffix,
-  prefix,
-  onClick
-}: {
-  text: string
-  suffix?: ReactNode
-  prefix?: ReactNode
-  onClick?(): void
-}) {
-  return (
-    <Row
-      className="gap-3 py-4 px-6 border-[rgba(171,196,255,0.2)] cursor-pointer clickable clickable-filter-effect items-center"
-      onClick={onClick}
-    >
-      {prefix}
-      <div className="text-white text-sm whitespace-nowrap">{text}</div>
-      {suffix}
-    </Row>
-  )
-}
+import { ThreeSlotItem } from '../ThreeSlotItem'
+import { PublicKeyish } from '@/types/constants'
+import toPubString from '@/functions/format/toMintString'
+import { AddressItem } from '../AddressItem'
 
 /** this should be used in ./Navbar.tsx */
 export default function WalletWidget() {
@@ -56,29 +37,23 @@ export default function WalletWidget() {
             CONNECTED WALLET
           </div>
           <div className="gap-3 divide-y-1.5">
-            <FadeIn noOpenTransitation>
-              {publicKey && (
-                <WalletWidgetItem
-                  text={isCopied ? 'copied' : `${String(publicKey).slice(0, 7)}...${String(publicKey).slice(-7)}`}
-                  suffix={
-                    !isCopied && <Icon size="sm" className="clickable text-[#ABC4FF]" heroIconName="clipboard-copy" />
-                  }
-                  onClick={() => {
-                    if (!isCopied) copyToClipboard(String(publicKey)).then(on)
-                  }}
-                />
-              )}
+            <FadeIn ignoreEnterTransition>
+              <AddressItem showDigitCount={7} className="py-4 px-6 border-[rgba(171,196,255,0.2)]">
+                {publicKey}
+              </AddressItem>
             </FadeIn>
-            <WalletWidgetItem
-              prefix={<Icon size="sm" iconSrc="/icons/misc-recent-transactions.svg" />}
+            <ThreeSlotItem
+              className="py-4 px-6 border-[rgba(171,196,255,0.2)]"
+              prefix={<Icon className="mr-3" size="sm" iconSrc="/icons/misc-recent-transactions.svg" />}
               text="Recent Transactions"
               onClick={() => {
                 useAppSettings.setState({ isRecentTransactionDialogShown: true })
                 closePanel?.()
               }}
             />
-            <WalletWidgetItem
-              prefix={<Icon size="sm" iconSrc="/icons/misc-disconnect-wallet.svg" />}
+            <ThreeSlotItem
+              className="py-4 px-6 border-[rgba(171,196,255,0.2)]"
+              prefix={<Icon className="mr-3" size="sm" iconSrc="/icons/misc-disconnect-wallet.svg" />}
               text="Disconnect wallet"
               onClick={() => {
                 disconnect()

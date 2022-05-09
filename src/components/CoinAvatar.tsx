@@ -7,6 +7,8 @@ import { SplToken, Token } from '@/application/token/type'
 import Image from './Image'
 
 export interface CoinAvatarProps {
+  /** the shadow transparent fondation border */
+  noCoinIconBorder?: boolean
   haveAnime?: boolean
   /** this is a prop for faster develop */
   iconSrc?: string
@@ -23,6 +25,7 @@ export interface CoinAvatarProps {
 }
 
 export default function CoinAvatar({
+  noCoinIconBorder,
   haveAnime,
 
   iconSrc,
@@ -40,7 +43,7 @@ export default function CoinAvatar({
     ((token as any)?.icons as string[] | undefined) ??
     ((token as any)?.icon as string | undefined) ??
     '/coins/dollar.svg'
-  const hasOpacity = true // temporary all need to be smallize
+  const hasOpacity = !noCoinIconBorder
   const iconSize =
     size === '2xl'
       ? 'h-20 w-20'

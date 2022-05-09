@@ -61,12 +61,9 @@ export default function Select<T extends string>({
         <FaceCotent />
       </div>
       <Collapse
-        className={`absolute z-10 top-0 left-0 ring-inset  ring-1.5 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-xl w-full`}
-        style={{
-          background: isOpen
-            ? 'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-            : ''
-        }}
+        className={`absolute z-10 top-0 left-0 ring-inset  ring-1.5 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-xl w-full ${
+          isOpen ? 'bg-cyberpunk-card-bg' : ''
+        }`}
         onClose={() => setIsOpen(false)}
         onOpen={() => setIsOpen(true)}
         closeByOutsideClick

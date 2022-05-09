@@ -57,11 +57,13 @@ export default function PageLayout(props: {
   topbarClassName?: string
   sideMenuClassName?: string
 
-  contentIsFixedLength?: boolean // it will cause content bottom padding shorter than usual
+  contentYPaddingShorter?: boolean // it will set both contentTopPaddingShorter and contentButtonPaddingShorter
+  contentButtonPaddingShorter?: boolean // it will cause content bottom padding shorter than usual
+  contentTopPaddingShorter?: boolean // it will cause content top padding shorter than usual
 
-  showWalletWidget?: boolean
-  showRpcWidget?: boolean
-  showLanguageWidget?: boolean
+  // showWalletWidget?: boolean
+  // showRpcWidget?: boolean
+  // showLanguageWidget?: boolean
 }) {
   useDocumentMetaTitle(props.metaTitle)
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -110,12 +112,11 @@ export default function PageLayout(props: {
         // always occupy scrollbar space
         className={twMerge(
           `PageLayoutContent relative isolate flex-container grid-area-c bg-gradient-to-b from-[#0c0927] to-[#110d36] rounded-tl-3xl mobile:rounded-none p-12 ${
-            props.contentIsFixedLength ? 'pb-4' : ''
-          } mobile:py-2 mobile:px-3`,
+            props.contentButtonPaddingShorter ?? props.contentYPaddingShorter ? 'pb-4' : ''
+          } ${props.contentTopPaddingShorter ?? props.contentYPaddingShorter ? 'pt-5' : ''} mobile:py-2 mobile:px-3`,
           props.contentClassName
         )}
         style={{
-          contentVisibility: 'auto',
           overflowX: 'hidden',
           overflowY: 'scroll'
         }}
@@ -334,6 +335,7 @@ function Navbar({
 function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickCloseBtn?(): void }) {
   const { pathname } = useRouter()
   const isMobile = useAppSettings((s) => s.isMobile)
+  const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
   const sideMenuRef = useRef<HTMLDivElement>(null)
   const lastestVersion = useAppVersion((s) => s.lastest)
   const currentVersion = useAppVersion((s) => s.currentVersion)
@@ -375,8 +377,8 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             />
           </Row>
         )}
-        <Col className="grid-cols-[auto,5fr,auto,1fr] justify-between flex-1 overflow-hidden">
-          <div className="shrink overflow-y-auto  py-4 space-y-1 mobile:py-0 px-2 mx-2 mb-2">
+        <Col className="grid grid-rows-[2fr,1fr,auto] flex-1 overflow-hidden">
+          <div className="shrink overflow-y-auto min-h-[120px] py-4 space-y-1 mobile:py-0 px-2 mr-2 mobile:ml-2 mb-2">
             <LinkItem icon="/icons/entry-icon-trade.svg" href="https://dex.raydium.io/">
               Trading
             </LinkItem>
@@ -410,9 +412,14 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             >
               Staking
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="https://v1.raydium.io/acceleRaytor/">
+            <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/list">
               AcceleRaytor
             </LinkItem>
+            {isInLocalhost && (
+              <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/basement">
+                Basement
+              </LinkItem>
+            )}
             <LinkItem icon="/icons/entry-icon-dropzone.svg" href="https://dropzone.raydium.io/">
               Dropzone
             </LinkItem>
@@ -421,29 +428,28 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             </LinkItem>
           </div>
 
-          <div></div>
+          <Col className="mobile:h-[180px] overflow-scroll no-native-scrollbar">
+            <div className="mx-8 border-b border-[rgba(57,208,216,0.16)] my-2 mobile:my-1"></div>
+            <div className="flex-1 overflow-auto no-native-scrollbar mt-2">
+              <RpcConnectionPanelSidebarWidget />
+              <SettingSidebarWidget />
+              <CommunityPanelSidebarWidget />
 
-          <div>
-            <hr className="mx-8 border-[rgba(57,208,216,0.16)] mb-3" />
+              <OptionItem noArrow href="https://raydium.gitbook.io/raydium/" iconSrc="/icons/msic-docs.svg">
+                Docs
+              </OptionItem>
 
-            <RpcConnectionPanelSidebarWidget />
-            <SettingSidebarWidget />
-            <CommunityPanelSidebarWidget />
+              <OptionItem noArrow href="https://v1.raydium.io/swap" heroIconName="desktop-computer">
+                Raydium V1
+              </OptionItem>
 
-            <OptionItem noArrow href="https://raydium.gitbook.io/raydium/" iconSrc="/icons/msic-docs.svg">
-              Docs
-            </OptionItem>
+              <OptionItem noArrow href="https://forms.gle/DvUS4YknduBgu2D7A" iconSrc="/icons/misc-feedback.svg">
+                Feedback
+              </OptionItem>
+            </div>
+          </Col>
 
-            <OptionItem noArrow href="https://v1.raydium.io/swap" heroIconName="desktop-computer">
-              Raydium V1
-            </OptionItem>
-
-            <OptionItem noArrow href="https://forms.gle/DvUS4YknduBgu2D7A" iconSrc="/icons/misc-feedback.svg">
-              Feedback
-            </OptionItem>
-          </div>
-
-          <div className="text-sm m-2 opacity-20 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap">
+          <div className="text-sm m-2 opacity-20 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
             <div>current: {currentVersion}</div>
             <div>lastest: {lastestVersion}</div>
           </div>
@@ -471,7 +477,7 @@ function LinkItem({
     <Link
       href={href}
       noTextStyle
-      className={`group block py-3 mobile:py-2 px-4 mobile:px-1 rounded-xl mobile:rounded-lg hover:bg-[rgba(57,208,216,0.05)] ${
+      className={`group block py-2.5 mobile:py-2 px-4 mobile:px-1 rounded-xl mobile:rounded-lg hover:bg-[rgba(57,208,216,0.05)] ${
         isCurrentRoutePath ? 'bg-[rgba(57,208,216,0.1)]' : ''
       }`}
     >
@@ -514,7 +520,7 @@ function OptionItem({
     <Link
       href={href}
       noTextStyle
-      className="block py-4 mobile:py-3 px-8 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group"
+      className="block py-3 mobile:py-3 px-8 pl-6 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group"
     >
       <Row className="items-center w-full mobile:justify-center" onClick={onClick}>
         <Icon
@@ -759,7 +765,7 @@ function RpcConnectionFace() {
   const isMobile = useAppSettings((s) => s.isMobile)
 
   return (
-    <div className="block py-4 mobile:py-3 px-8 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group">
+    <div className="block py-4 mobile:py-3 px-8 pl-6 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group">
       <Row className="items-center w-full mobile:justify-center">
         <div className="h-4 w-4 mobile:w-3 mobile:h-3 grid place-items-center mr-3 ">
           {isLoading ? (

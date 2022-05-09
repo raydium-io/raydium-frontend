@@ -55,7 +55,7 @@ import { isFarmJsonInfo } from '@/application/farms/utils/judgeFarmInfo'
 
 export default function FarmsPage() {
   return (
-    <PageLayout mobileBarTitle="Farms" contentIsFixedLength metaTitle="Farms - Raydium">
+    <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
       <FarmHeader />
       <FarmCard />
     </PageLayout>
@@ -95,13 +95,8 @@ function ToolsButton({ className }: { className?: string }) {
         <Popover.Panel>
           <div>
             <Card
-              className="flex flex-col shadow-xl backdrop-filter backdrop-blur-xl py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)]"
+              className="flex flex-col backdrop-filter backdrop-blur-xl py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
               size="lg"
-              style={{
-                background:
-                  'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
-                boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-              }}
             >
               <Grid className="grid-cols-1 items-center gap-2">
                 <FarmStakedOnlyBlock />
@@ -321,11 +316,6 @@ function FarmCard() {
       haveMinHeight
       wrapperClassName="flex-1 overflow-hidden flex flex-col"
       className="p-10 pt-6 pb-4 mobile:px-3 mobile:py-3 w-full flex flex-col h-full"
-      size="lg"
-      style={{
-        background:
-          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-      }}
     >
       {innerFarmDatabaseWidgets}
       {!isMobile && (
@@ -981,13 +971,8 @@ function FarmStakeLpDialog() {
     >
       {({ close }) => (
         <Card
-          className="shadow-xl backdrop-filter backdrop-blur-xl p-8 w-[min(468px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)]"
+          className="backdrop-filter backdrop-blur-xl p-8 w-[min(468px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
           size="lg"
-          style={{
-            background:
-              'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
-            boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
-          }}
         >
           {/* {String(info?.lpMint)} */}
           <Row className="justify-between items-center mb-6">
@@ -1003,12 +988,18 @@ function FarmStakeLpDialog() {
             topLeftLabel="Farm"
             token={stakeDialogFarmInfo?.lp}
             onUserInput={setAmount}
-            forceBalanceDepositMode={stakeDialogMode === 'withdraw'}
-            forceBalance={stakeDialogFarmInfo?.userStakedLpAmount}
             onEnter={(input) => {
               if (!input) return
               buttonComponentRef.current?.click?.()
             }}
+            maxValue={stakeDialogMode === 'withdraw' ? stakeDialogFarmInfo?.userStakedLpAmount : undefined}
+            topRightLabel={
+              stakeDialogMode === 'withdraw'
+                ? stakeDialogFarmInfo?.userStakedLpAmount
+                  ? `Deposited: ${toString(stakeDialogFarmInfo?.userStakedLpAmount)}`
+                  : '(no deposited)'
+                : undefined
+            }
           />
           <Row className="flex-col gap-1">
             <Button

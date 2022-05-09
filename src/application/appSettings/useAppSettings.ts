@@ -17,6 +17,12 @@ export type AppSettingsStore = {
   isTablet: boolean
   isPc: boolean
 
+  // dev
+  inClient?: boolean
+  inServer?: boolean
+  isInLocalhost?: boolean
+  isInBonsaiTest?: boolean
+
   /** sould block any update when approve panel shows on  */
   isApprovePanelShown: boolean
 
@@ -44,9 +50,9 @@ const useAppSettings = create<AppSettingsStore>(() => ({
 
   isBetaBubbleOn: true,
 
-  isMobile: getPlatformInfo()?.isMobile ?? false,
-  isTablet: getPlatformInfo()?.isMobile ?? false,
-  isPc: getPlatformInfo()?.isPc ?? true,
+  isMobile: false,
+  isTablet: false,
+  isPc: true,
 
   isApprovePanelShown: false,
 

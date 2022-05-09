@@ -296,11 +296,6 @@ function LiquidityCard() {
       domRef={cardRef}
       wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light"
       className="py-8 pt-4 px-6 mobile:py-5"
-      size="lg"
-      style={{
-        background:
-          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-      }}
     >
       {/* input twin */}
       <>
@@ -311,7 +306,7 @@ function LiquidityCard() {
           value={focusSide === 'coin1' ? coin1Amount : unslippagedCoin1Amount}
           haveHalfButton
           haveCoinIcon
-          canSelect
+          showTokenSelectIcon
           topLeftLabel=""
           onTryToTokenSelect={() => {
             turnOnCoinSelector()
@@ -366,7 +361,7 @@ function LiquidityCard() {
           value={focusSide === 'coin2' ? coin2Amount : unslippagedCoin2Amount}
           haveHalfButton
           haveCoinIcon
-          canSelect
+          showTokenSelectIcon
           topLeftLabel=""
           onTryToTokenSelect={() => {
             turnOnCoinSelector()
@@ -796,14 +791,7 @@ function UserLiquidityExhibition() {
   return (
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Your Liquidity</div>
-      <Card
-        className="p-6 mt-6 mobile:py-5 mobile:px-3"
-        size="lg"
-        style={{
-          background:
-            'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-        }}
-      >
+      <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
         <List className={`flex flex-col gap-6 mobile:gap-5 ${exhibitionInfos.length ? 'mb-5' : ''}`}>
           {exhibitionInfos.map((info, idx) => {
             const correspondingFarm = farmPoolsList.find(
@@ -953,14 +941,7 @@ function CreatePoolCardEntry() {
   return (
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Create Pool</div>
-      <Card
-        className="p-6 mt-6 mobile:py-5 mobile:px-3"
-        size="lg"
-        style={{
-          background:
-            'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
-        }}
-      >
+      <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
         <Row className="gap-4">
           <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
             Create a liquidity pool on Raydium that can be traded on the swap interface.{' '}

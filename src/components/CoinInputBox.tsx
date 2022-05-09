@@ -9,23 +9,20 @@ import React, {
   useState
 } from 'react'
 
-import { Fraction } from '@raydium-io/raydium-sdk'
-
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { usePools } from '@/application/pools/usePools'
-import { Token, TokenAmount } from '@/application/token/type'
+import { Token } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import { isQuantumSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE } from '@/application/token/utils/quantumSOL'
 import useWallet from '@/application/wallet/useWallet'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { isString } from '@/functions/judgers/dateType'
+import { isTokenAmount } from '@/functions/judgers/dateType'
 import { gt, gte, lt } from '@/functions/numberish/compare'
-import { sub } from '@/functions/numberish/operations'
-import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
+import { mul, sub } from '@/functions/numberish/operations'
 
 import Button from './Button'
 import CoinAvatar from './CoinAvatar'
@@ -33,7 +30,8 @@ import Icon from './Icon'
 import Input from './Input'
 import Row from './Row'
 import toPubString from '@/functions/format/toMintString'
-import { trimTailingZero } from '@/functions/numberish/stringNumber'
+import { toString } from '@/functions/numberish/toString'
+import { Numberish } from '@/types/constants'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -52,22 +50,34 @@ export interface CoinInputBoxProps {
   disabledTokenSelect?: boolean // if not prop:disabledTokenSelect but prop:disabled, result is disabled
   disabledInput?: boolean // if not prop:disabledInput but prop:disabled, result is disabled
   token?: Token
+
+  // -------- callbacks ----------
   //! include press max button
   onUserInput?(input: string): void
-  onTryToTokenSelect?(): void
-  onBalanceChange?(balance: TokenAmount | undefined): void
-  onInputAmountClampInBalanceChange?(info: { outOfMax: boolean; negative: boolean }): void
   onEnter?(input: string | undefined): void
+
+  onTryToTokenSelect?(): void
+  // return valid info
+  onInputAmountClampInBalanceChange?(info: { outOfMax: boolean; negative: boolean }): void
+
+  // -------- customized ----------
   // customize component appearance
   topLeftLabel?: ReactNode
+  /** By default, it will be Balance: xxx,  */
+  topRightLabel?: ReactNode
+  // sometimes, should show staked deposited lp, instead of wallet balance
+  maxValue?: Numberish
+
+  // used in acceleraytor (input tickets)
+  hideTokenPart?: boolean
+  // sometimes, U don't need price predictor, for it's not a token (may be it's lottery ticket or some pure amount input)
+  hidePricePredictor?: boolean
   haveHalfButton?: boolean
   haveCoinIcon?: boolean
-  canSelect?: boolean
-  // sometimes, should show deposited lp, instead of wallet balance
-  forceBalance?: TokenAmount
-  forceBalanceDepositMode?: boolean
+  showTokenSelectIcon?: boolean
 }
 
+// TODO: split into different customized component (to handle different use cases)
 /**
  * support to input both token and lpToken
  */
@@ -84,16 +94,18 @@ export default function CoinInputBox({
   token,
   onUserInput,
   onTryToTokenSelect,
-  onBalanceChange,
   onInputAmountClampInBalanceChange,
   onEnter,
 
   topLeftLabel,
-  forceBalance,
-  forceBalanceDepositMode,
+  topRightLabel,
+
+  maxValue: forceMaxValue,
+  hideTokenPart,
+  hidePricePredictor,
   haveHalfButton,
   haveCoinIcon,
-  canSelect
+  showTokenSelectIcon
 }: CoinInputBoxProps) {
   const disabledInput = disabled || innerDisabledInput
   const disabledTokenSelect = disabled || innerDisabledTokenSelect
@@ -119,28 +131,25 @@ export default function CoinInputBox({
     }
   }, [inputedAmount])
 
-  const currentBalance = forceBalanceDepositMode
-    ? forceBalance
-    : getBalance(token) ??
-      (token
-        ? (() => {
-            const targetTokenAccount = tokenAccounts.find((t) => toPubString(t.mint) === toPubString(token?.mint))
-            return targetTokenAccount && toTokenAmount(token, targetTokenAccount?.amount)
-          })()
-        : undefined)
+  // input over max value in invalid
+  const maxValue =
+    forceMaxValue ??
+    getBalance(token) ??
+    (token
+      ? (() => {
+          const targetTokenAccount = tokenAccounts.find((t) => toPubString(t.mint) === toPubString(token?.mint))
+          return targetTokenAccount && toTokenAmount(token, targetTokenAccount?.amount)
+        })()
+      : undefined)
 
   useEffect(() => {
-    onBalanceChange?.(currentBalance)
-  }, [currentBalance])
-
-  useEffect(() => {
-    if (inputedAmount && currentBalance) {
+    if (inputedAmount && maxValue) {
       onInputAmountClampInBalanceChange?.({
         negative: lt(inputedAmount, '0'),
-        outOfMax: gt(inputedAmount, currentBalance)
+        outOfMax: gt(inputedAmount, maxValue)
       })
     }
-  }, [inputedAmount, currentBalance])
+  }, [inputedAmount, maxValue])
 
   const inputRef = useRef<HTMLInputElement>(null)
   const focusInput = () => inputRef.current?.focus()
@@ -168,23 +177,18 @@ export default function CoinInputBox({
 
   // press button will also cause user input.
   function fillAmountWithBalance(percent: number) {
-    if (!connected) return
-    if (!currentBalance?.token) return
-    let maxBalance = currentBalance
-    const { numerator, denominator } = parseNumberInfo(percent)
-    if (isQuantumSOL(currentBalance.token) && !isQuantumSOLVersionWSOL(currentBalance.token)) {
+    let maxBalance = maxValue
+    if (isTokenAmount(maxValue) && isQuantumSOL(maxValue.token) && !isQuantumSOLVersionWSOL(maxValue.token)) {
       // if user select sol max balance is -0.05
       maxBalance = toTokenAmount(
-        currentBalance.token,
-        gte(currentBalance, SOL_BASE_BALANCE) ? sub(currentBalance, SOL_BASE_BALANCE) : 0,
+        maxValue.token,
+        gte(maxValue, SOL_BASE_BALANCE) ? sub(maxValue, SOL_BASE_BALANCE) : 0,
         {
           alreadyDecimaled: true
         }
       )
     }
-    const newAmount = trimTailingZero(
-      maxBalance?.mul(new Fraction(numerator, denominator)).toFixed(maxBalance.token.decimals)
-    )
+    const newAmount = toString(mul(maxBalance, percent))
     isOutsideValueLocked.current = false
     onUserInput?.(newAmount) // set both outside and inside
     setInputedAmount(newAmount) // set both outside and inside
@@ -220,11 +224,7 @@ export default function CoinInputBox({
     >
       {/* from&balance */}
       <Row className="justify-between mb-2 mobile:mb-4">
-        {isString(topLeftLabel) ? (
-          <div className="text-xs mobile:text-2xs text-[rgba(171,196,255,.5)]">{topLeftLabel}</div>
-        ) : (
-          topLeftLabel
-        )}
+        <div className="text-xs mobile:text-2xs text-[rgba(171,196,255,.5)]">{topLeftLabel}</div>
         <div
           className={`text-xs mobile:text-2xs justify-self-end text-[rgba(171,196,255,.5)] ${
             disabledInput ? '' : 'clickable no-clicable-transform-effect clickable-filter-effect'
@@ -234,37 +234,39 @@ export default function CoinInputBox({
             fillAmountWithBalance(1)
           }}
         >
-          {forceBalanceDepositMode
-            ? `Balance: ${currentBalance?.toExact?.() || (connected ? '(no deposited)' : '(wallet not connected)')}`
-            : `Balance: ${currentBalance?.toExact?.() || (connected ? '--' : '(wallet not connected)')}`}
+          {topRightLabel ?? `Balance: ${toString(maxValue) || (connected ? '--' : '(wallet not connected)')}`}
         </div>
       </Row>
 
       {/* input-container */}
       <Row className="col-span-full items-center">
-        <Row
-          className={`items-center gap-1.5 ${
-            canSelect && !disabledTokenSelect ? 'clickable clickable-mask-offset-2' : ''
-          }`}
-          onClick={(ev) => {
-            ev.stopPropagation()
-            ev.preventDefault()
-            if (disabledTokenSelect) return
-            onTryToTokenSelect?.()
-          }}
-        >
-          {haveCoinIcon && token && <CoinAvatar token={token} size={isMobile ? 'sm' : 'md'} />}
-          <div className="text-[rgb(171,196,255)] font-medium text-base flex-grow mobile:text-sm whitespace-nowrap">
-            {token?.symbol ?? '--'}
-          </div>
-          {canSelect && <Icon size="xs" heroIconName="chevron-down" className="text-[#ABC4FF]" />}
-        </Row>
-        {/* divider */}
-        <div className="my-1 mx-4 mobile:my-0 mobile:mx-2 border-r border-[rgba(171,196,255,0.5)] self-stretch" />
+        {!hideTokenPart && (
+          <>
+            <Row
+              className={`items-center gap-1.5 ${
+                showTokenSelectIcon && !disabledTokenSelect ? 'clickable clickable-mask-offset-2' : ''
+              }`}
+              onClick={(ev) => {
+                ev.stopPropagation()
+                ev.preventDefault()
+                if (disabledTokenSelect) return
+                onTryToTokenSelect?.()
+              }}
+            >
+              {haveCoinIcon && token && <CoinAvatar token={token} size={isMobile ? 'smi' : 'md'} />}
+              <div className="text-[rgb(171,196,255)] font-medium text-base flex-grow mobile:text-sm whitespace-nowrap">
+                {token?.symbol ?? '--'}
+              </div>
+              {showTokenSelectIcon && <Icon size="xs" heroIconName="chevron-down" className="text-[#ABC4FF]" />}
+            </Row>
+            {/* divider */}
+            <div className="my-1 mx-4 mobile:my-0 mobile:mx-2 border-r border-[rgba(171,196,255,0.5)] self-stretch" />
+          </>
+        )}
         <Row className="justify-between flex-grow-2">
           <Row className="gap-px items-center mr-2">
             <Button
-              disabled={disabledInput || !token}
+              disabled={disabledInput}
               className="py-0.5 px-1.5 rounded text-[rgba(171,196,255,.5)] font-bold bg-[#1B1659] bg-opacity-80 text-xs mobile:text-2xs transition"
               onClick={() => {
                 fillAmountWithBalance(1)
@@ -274,7 +276,7 @@ export default function CoinInputBox({
             </Button>
             {haveHalfButton && (
               <Button
-                disabled={disabledInput || !token}
+                disabled={disabledInput}
                 className="py-0.5 px-1.5 rounded text-[rgba(171,196,255,.5)] font-bold bg-[#1B1659] bg-opacity-80 text-xs mobile:text-2xs transition"
                 onClick={() => {
                   fillAmountWithBalance(0.5)
@@ -286,7 +288,7 @@ export default function CoinInputBox({
           </Row>
           <Input
             className="font-medium text-lg text-white flex-grow w-full"
-            disabled={disabledInput || !token}
+            disabled={disabledInput}
             type="number"
             pattern={validPattern}
             componentRef={inputRef}
@@ -303,13 +305,15 @@ export default function CoinInputBox({
       </Row>
 
       {/* price-predictor */}
-      <div
-        className={`text-xs mobile:text-2xs text-[rgba(171,196,255,.5)] ${
-          !inputedAmount || inputedAmount === '0' ? 'invisible' : ''
-        } text-ellipsis overflow-hidden text-right`}
-      >
-        {totalPrice ? toUsdVolume(totalPrice) : '--'}
-      </div>
+      {!hidePricePredictor && (
+        <div
+          className={`text-xs mobile:text-2xs text-[rgba(171,196,255,.5)] ${
+            !inputedAmount || inputedAmount === '0' ? 'invisible' : ''
+          } text-ellipsis overflow-hidden text-right`}
+        >
+          {totalPrice ? toUsdVolume(totalPrice) : '--'}
+        </div>
+      )}
     </Row>
   )
 }

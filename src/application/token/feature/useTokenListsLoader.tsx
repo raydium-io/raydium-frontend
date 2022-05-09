@@ -12,7 +12,6 @@ import { HexAddress, PublicKeyish, SrcAddress } from '@/types/constants'
 import { objectMap, replaceValue } from '../../../functions/objectMethods'
 import {
   RaydiumDevTokenListJsonInfo,
-  HydratedTokenJsonInfo,
   RaydiumTokenListJsonInfo,
   SplToken,
   TokenListFetchConfigItem,

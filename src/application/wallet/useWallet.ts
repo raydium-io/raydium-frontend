@@ -1,7 +1,7 @@
 import { PublicKeyish, Token, TokenAmount, WSOL } from '@raydium-io/raydium-sdk'
 import { Adapter, WalletName } from '@solana/wallet-adapter-base'
 import { Wallet } from '@solana/wallet-adapter-react'
-import { PublicKey, Transaction } from '@solana/web3.js'
+import { Keypair, PublicKey, Transaction } from '@solana/web3.js'
 
 import BN from 'bn.js'
 import create from 'zustand'
@@ -13,20 +13,23 @@ import { HexAddress } from '@/types/constants'
 import { isQuantumSOL, QuantumSOLAmount, WSOLMint } from '../token/utils/quantumSOL'
 
 import { ITokenAccount, TokenAccountRawInfo } from './type'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export type WalletStore = {
   // owner
   owner: PublicKey | undefined
-  wallets: Wallet[]
-  currentWallet?: Wallet | null
   /** old version of currentWallet */
   adapter?: Adapter
+
+  // a experimental feature (owner isn't in shadowOwners)
+  /** each Keypair object hold both publicKey and secret key */
+  shadowKeypairs?: Keypair[]
+  availableWallets: Wallet[]
+  currentWallet?: Wallet | null
   connected: boolean
   disconnecting: boolean
   connecting: boolean
   select(walletName: WalletName): void
-  signAllTransactions: (transaction: Transaction[]) => Promise<Transaction[]> // if not connected, return empty array
+  signAllTransactions: (transactions: Transaction[]) => Promise<Transaction[]> // if not connected, return empty array
   disconnect(): Promise<unknown>
   /** only for Dev */
   inSimulateMode: boolean
@@ -42,8 +45,8 @@ export type WalletStore = {
   /** pass to SDK */
   tokenAccountRawInfos: TokenAccountRawInfo[]
 
-  /** ATAs and SOL  */
-  verboseTokenAccounts: ITokenAccount[]
+  /** SOL  */
+  nativeTokenAccount: ITokenAccount | undefined
 
   /** raw: include no ATA (only use it in migrate detect) */
   allTokenAccounts: ITokenAccount[]
@@ -58,6 +61,12 @@ export type WalletStore = {
    * for balance without QuantumSOL, use `pureBalances`
    */
   balances: Record<HexAddress, TokenAmount>
+
+  /**
+   * only if shadowWallet is on
+   * @todo not imply yet!
+   */
+  shadowBalances?: Record<HexAddress, TokenAmount>
 
   /**
    * rawbalance is BN , has QuantumSOL,
@@ -95,7 +104,7 @@ export type WalletStore = {
 const useWallet = create<WalletStore>((set, get) => ({
   // owner
   owner: undefined,
-  wallets: [],
+  availableWallets: [],
   connected: false,
   disconnecting: false,
   connecting: false,
@@ -107,7 +116,7 @@ const useWallet = create<WalletStore>((set, get) => ({
 
   tokenAccounts: [],
   tokenAccountRawInfos: [],
-  verboseTokenAccounts: [],
+  nativeTokenAccount: undefined,
   allTokenAccounts: [],
   getTokenAccount(target) {
     if (!target) return undefined

@@ -10,6 +10,9 @@ import { getFileNameOfURI } from '../functions/dom/getFileNameOfURI'
  * usually in the leading part of an list-item
  */
 export default function Image({
+  width,
+  height,
+
   src,
   fallbackSrc,
   alt: alert,
@@ -18,6 +21,8 @@ export default function Image({
   className,
   style
 }: {
+  width?: number
+  height?: number
   /** can accept multi srcs */
   src: string | string[]
   fallbackSrc?: string
@@ -46,8 +51,10 @@ export default function Image({
   }, [])
   return (
     <img
+      width={width}
+      height={height}
       ref={mergeRef(domRef, ref)}
-      className={`Image ${className ?? ''}`}
+      className={`Image ${src || srcSet.length ? '' : 'invisible'} ${className ?? ''}`}
       src={srcSet[currentUsedSrcIndex]}
       alt={alertText}
       style={style}

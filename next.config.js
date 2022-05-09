@@ -42,16 +42,30 @@ const moduleExports = {
       },
       {
         source: '/acceleRaytor',
-        destination: 'https://v1.raydium.io/acceleRaytor',
+        destination: '/acceleraytor',
         permanent: false
       },
-      {
-        source: '/acceleraytor',
-        destination: 'https://v1.raydium.io/acceleRaytor',
-        permanent: false
-      }
+      // {
+      //   source: '/acceleraytor',
+      //   destination: 'https://v1.raydium.io/acceleRaytor',
+      //   permanent: false
+      // }
     ]
   }
+  // async redirects() {
+  //   return [
+  //     {
+  //       source: '/acceleRaytor',
+  //       destination: 'https://v1.raydium.io/acceleRaytor',
+  //       permanent: false
+  //     },
+  //     {
+  //       source: '/acceleraytor',
+  //       destination: 'https://v1.raydium.io/acceleRaytor',
+  //       permanent: false
+  //     }
+  //   ]
+  // }
 }
 
 module.exports = withBundleAnalyzer(withGlobalCssConfig(withSentryConfig(moduleExports)))
