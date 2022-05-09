@@ -397,6 +397,13 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
               Farms
             </LinkItem>
             <LinkItem
+              icon="/icons/entry-icon-farms.svg"
+              href="/farms/create"
+              isCurrentRoutePath={pathname.includes('farms/create')}
+            >
+              create Farms(temp)
+            </LinkItem>
+            <LinkItem
               icon="/icons/entry-icon-staking.svg"
               href="/staking"
               isCurrentRoutePath={pathname.includes('staking')}
