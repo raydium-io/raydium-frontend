@@ -6,6 +6,7 @@ import { HydratedIdoInfo, SdkIdoInfo, TicketInfo, TicketTailNumberInfo } from '.
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, getMin, mul } from '@/functions/numberish/operations'
 import toTokenPrice from '@/functions/format/toTokenPrice'
+import { objectShakeFalsy } from '@/functions/objectMethods'
 
 function getDepositedTickets(idoInfo: SdkIdoInfo): TicketInfo[] {
   if (!idoInfo.ledger) return []
@@ -58,48 +59,73 @@ function getWinningTicketsTailNumbers(idoInfo: SdkIdoInfo): HydratedIdoInfo['win
   return { tickets: [], isWinning }
 }
 
+function fromSToMs(s: undefined): undefined
+function fromSToMs(s: number): number
+function fromSToMs(s: undefined | number): undefined | number
+function fromSToMs(s: undefined | number) {
+  if (s == null) return s
+  return s * 1000
+}
 /**
  *  computed from raw idoInfo
  */
 export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
-  const isUpcoming = currentIsBefore(idoInfo.startTime)
-  const isOpen = currentIsAfter(idoInfo.startTime) && currentIsBefore(idoInfo.endTime)
-  const isClosed = currentIsAfter(idoInfo.endTime)
-  const canWithdrawBase = currentIsAfter(idoInfo.startWithdrawTime)
+  //updatedIdoInfo
+  const updatedIdoInfo = Object.assign(
+    { ...idoInfo } as SdkIdoInfo,
+    objectShakeFalsy({
+      maxWinLotteries: idoInfo.state?.maxWinLotteries.toNumber(),
+      raisedLotteries: fromSToMs(idoInfo.state?.raisedLotteries.toNumber()),
+      startTime: fromSToMs(idoInfo.state?.startTime.toNumber()),
+      endTime: fromSToMs(idoInfo.state?.endTime.toNumber()),
+      startWithdrawTime: fromSToMs(idoInfo.state?.startWithdrawTime.toNumber())
+    } as Partial<SdkIdoInfo>)
+  )
+  const isUpcoming = currentIsBefore(updatedIdoInfo.startTime)
+  const isOpen = currentIsAfter(updatedIdoInfo.startTime) && currentIsBefore(updatedIdoInfo.endTime)
+  const isClosed = currentIsAfter(updatedIdoInfo.endTime)
+  const canWithdrawBase = currentIsAfter(updatedIdoInfo.startWithdrawTime)
 
-  const depositedTickets = getDepositedTickets(idoInfo).map((ticketInfo) => ({
+  const depositedTickets = getDepositedTickets(updatedIdoInfo).map((ticketInfo) => ({
     ...ticketInfo,
-    isWinning: isTicketWin(ticketInfo.no, idoInfo)
+    isWinning: isTicketWin(ticketInfo.no, updatedIdoInfo)
   }))
-  const winningTickets = getWinningTickets(idoInfo)
-  const userEligibleTicketAmount = idoInfo.snapshot?.maxLotteries
+  const winningTickets = getWinningTickets(updatedIdoInfo)
+  const userEligibleTicketAmount = updatedIdoInfo.snapshot?.maxLotteries
 
   const isEligible = userEligibleTicketAmount == null ? undefined : isMeaningfulNumber(userEligibleTicketAmount)
 
-  const totalRaise = idoInfo.base && toTokenAmount(idoInfo.base, idoInfo.raise, { alreadyDecimaled: true })
+  const totalRaise =
+    updatedIdoInfo.base && toTokenAmount(updatedIdoInfo.base, updatedIdoInfo.raise, { alreadyDecimaled: true })
   const coinPrice =
-    idoInfo.base && idoInfo.state && toTokenPrice(idoInfo.base, idoInfo.price, { alreadyDecimaled: true })
+    updatedIdoInfo.base &&
+    updatedIdoInfo.state &&
+    toTokenPrice(updatedIdoInfo.base, updatedIdoInfo.price, { alreadyDecimaled: true })
   const ticketPrice =
-    idoInfo.quote && idoInfo.state && toTokenAmount(idoInfo.quote, idoInfo.state.perLotteryQuoteAmount)
-  const depositedTicketCount = idoInfo.state && idoInfo.state.raisedLotteries.toNumber()
+    updatedIdoInfo.quote &&
+    updatedIdoInfo.state &&
+    toTokenAmount(updatedIdoInfo.quote, updatedIdoInfo.state.perLotteryQuoteAmount)
+  const depositedTicketCount = updatedIdoInfo.state && updatedIdoInfo.state.raisedLotteries.toNumber()
 
   const userAllocation =
-    idoInfo.state &&
+    updatedIdoInfo.state &&
     depositedTicketCount &&
-    mul(div(winningTickets?.length, getMin(idoInfo.state.maxWinLotteries, depositedTicketCount)), totalRaise)
+    mul(div(winningTickets?.length, getMin(updatedIdoInfo.state.maxWinLotteries, depositedTicketCount)), totalRaise)
 
   const claimableQuote =
     (isClosed &&
-      idoInfo.ledger &&
-      eq(0, idoInfo.ledger.quoteWithdrawn) &&
-      idoInfo.quote &&
-      toTokenAmount(idoInfo.quote, idoInfo.ledger.quoteDeposited)) ||
+      updatedIdoInfo.ledger &&
+      eq(0, updatedIdoInfo.ledger.quoteWithdrawn) &&
+      updatedIdoInfo.quote &&
+      toTokenAmount(updatedIdoInfo.quote, updatedIdoInfo.ledger.quoteDeposited)) ||
     undefined
 
-  const filled = idoInfo.state && new Percent(idoInfo.state.raisedLotteries, idoInfo.state.maxWinLotteries).toFixed()
+  const filled =
+    updatedIdoInfo.state &&
+    new Percent(updatedIdoInfo.state.raisedLotteries, updatedIdoInfo.state.maxWinLotteries).toFixed()
   return {
-    ...idoInfo,
-    winningTicketsTailNumber: getWinningTicketsTailNumbers(idoInfo),
+    ...updatedIdoInfo,
+    winningTicketsTailNumber: getWinningTicketsTailNumbers(updatedIdoInfo),
     winningTickets,
     depositedTickets,
     userAllocation,
