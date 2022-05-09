@@ -5,7 +5,6 @@ import { ZERO } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
-import { popWelcomeDialogFn } from '@/application/appSettings/initializationHooks'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
@@ -40,6 +39,8 @@ import { setCssVarible } from '@/functions/dom/cssVariable'
 import { inClient } from '@/functions/judgers/isSSR'
 import { useAppVersion } from '@/application/appVersion/useAppVersion'
 import { refreshWindow } from '@/application/appVersion/forceWindowRefresh'
+import Card from './Card'
+import Dialog from './Dialog'
 
 /**
  * for easier to code and read
@@ -122,7 +123,7 @@ export default function PageLayout(props: {
       >
         {/* do not check ata currently
         <MigrateBubble /> */}
-        <VersionMessageBubble />
+        <VersionTooOldDialog />
         {props.children}
       </main>
     </div>
@@ -177,24 +178,41 @@ function RPCPerformanceBanner({ className }: { className?: string }) {
     </div>
   )
 }
-function VersionMessageBubble() {
+function VersionTooOldDialog() {
   const versionRefreshData = useAppVersion((s) => s.versionFresh)
   return (
-    <div>
-      <FadeIn>
-        {versionRefreshData === 'too-old' && (
-          <Row className="w-[min(400px,100%)]  m-auto justify-center items-center py-4 px-6 mobile:py-3 mb-8 mobile:mb-2 rounded-xl ring-1.5 ring-inset ring-[#D8CB39] bg-[#1B1659]">
-            <div className="text-[#C4D6FF] text-sm font-medium">
-              New app version available,{' '}
-              <span className="clickable text-[#D8CB39] font-bold" onClick={() => refreshWindow({ noCache: true })}>
-                refresh
-              </span>{' '}
-              to update.
+    <Dialog open={versionRefreshData === 'too-old'} canClosedByMask={false}>
+      {({ close }) => (
+        <Card
+          className={twMerge(`p-8 rounded-3xl w-[min(480px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]`)}
+          size="lg"
+          style={{
+            background:
+              'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
+            boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
+          }}
+        >
+          <Col className="items-center">
+            <div className="font-semibold text-xl text-[#D8CB39] mb-3 text-center">New version available</div>
+            <div className="text-center mt-2  mb-6 text-[#ABC4FF]">Refresh the page to update and use the app.</div>
+
+            <div className="self-stretch">
+              <Col>
+                <Button
+                  className={`text-[#ABC4FF]  frosted-glass-teal`}
+                  onClick={() => refreshWindow({ noCache: true })}
+                >
+                  Refresh
+                </Button>
+                <Button className="text-[#ABC4FF]" type="text" onClick={close}>
+                  Update later
+                </Button>
+              </Col>
             </div>
-          </Row>
-        )}
-      </FadeIn>
-    </div>
+          </Col>
+        </Card>
+      )}
+    </Dialog>
   )
 }
 
@@ -359,8 +377,8 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             />
           </Row>
         )}
-        <Col className="grid-cols-[auto,5fr,auto,1fr] justify-between flex-1 overflow-hidden">
-          <div className="shrink overflow-y-auto  py-4 space-y-1 mobile:py-0 px-2 mx-2 mb-2">
+        <Col className="grid grid-rows-[2fr,1fr,auto] flex-1 overflow-hidden">
+          <div className="shrink overflow-y-auto min-h-[120px] py-4 space-y-1 mobile:py-0 px-2 mr-2 mobile:ml-2 mb-2">
             <LinkItem icon="/icons/entry-icon-trade.svg" href="https://dex.raydium.io/">
               Trading
             </LinkItem>
@@ -403,27 +421,26 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             </LinkItem>
           </div>
 
-          <div></div>
+          <Col className="mobile:h-[180px] overflow-scroll no-native-scrollbar">
+            <div className="mx-8 border-b border-[rgba(57,208,216,0.16)] my-2 mobile:my-1"></div>
+            <div className="flex-1 overflow-auto no-native-scrollbar mt-2">
+              <RpcConnectionPanelSidebarWidget />
+              <SettingSidebarWidget />
+              <CommunityPanelSidebarWidget />
 
-          <div>
-            <hr className="mx-8 border-[rgba(57,208,216,0.16)] mb-3" />
+              <OptionItem noArrow href="https://raydium.gitbook.io/raydium/" iconSrc="/icons/msic-docs.svg">
+                Docs
+              </OptionItem>
 
-            <RpcConnectionPanelSidebarWidget />
-            <SettingSidebarWidget />
-            <CommunityPanelSidebarWidget />
+              <OptionItem noArrow href="https://v1.raydium.io/swap" heroIconName="desktop-computer">
+                Raydium V1
+              </OptionItem>
 
-            <OptionItem noArrow href="https://raydium.gitbook.io/raydium/" iconSrc="/icons/msic-docs.svg">
-              Docs
-            </OptionItem>
-
-            <OptionItem noArrow href="https://v1.raydium.io/swap" heroIconName="desktop-computer">
-              Raydium V1
-            </OptionItem>
-
-            <OptionItem noArrow href="https://forms.gle/DvUS4YknduBgu2D7A" iconSrc="/icons/misc-feedback.svg">
-              Feedback
-            </OptionItem>
-          </div>
+              <OptionItem noArrow href="https://forms.gle/DvUS4YknduBgu2D7A" iconSrc="/icons/misc-feedback.svg">
+                Feedback
+              </OptionItem>
+            </div>
+          </Col>
 
           <div className="text-sm m-2 opacity-20 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
             <div>current: {currentVersion}</div>
@@ -453,7 +470,7 @@ function LinkItem({
     <Link
       href={href}
       noTextStyle
-      className={`group block py-3 mobile:py-2 px-4 mobile:px-1 rounded-xl mobile:rounded-lg hover:bg-[rgba(57,208,216,0.05)] ${
+      className={`group block py-2.5 mobile:py-2 px-4 mobile:px-1 rounded-xl mobile:rounded-lg hover:bg-[rgba(57,208,216,0.05)] ${
         isCurrentRoutePath ? 'bg-[rgba(57,208,216,0.1)]' : ''
       }`}
     >
@@ -496,7 +513,7 @@ function OptionItem({
     <Link
       href={href}
       noTextStyle
-      className="block py-4 mobile:py-3 px-8 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group"
+      className="block py-3 mobile:py-3 px-8 pl-6 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group"
     >
       <Row className="items-center w-full mobile:justify-center" onClick={onClick}>
         <Icon
@@ -741,7 +758,7 @@ function RpcConnectionFace() {
   const isMobile = useAppSettings((s) => s.isMobile)
 
   return (
-    <div className="block py-4 mobile:py-3 px-8 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group">
+    <div className="block py-4 mobile:py-3 px-8 pl-6 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group">
       <Row className="items-center w-full mobile:justify-center">
         <div className="h-4 w-4 mobile:w-3 mobile:h-3 grid place-items-center mr-3 ">
           {isLoading ? (

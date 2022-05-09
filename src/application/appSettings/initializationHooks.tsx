@@ -62,15 +62,19 @@ export function useSlippageTolerenceSyncer() {
 
   const [localStoredSlippage, setLocalStoredSlippage] = useLocalStorageItem<string>('SLIPPAGE')
 
-  useEffect(() => {
-    if (!slippageTolerance && !eq(slippageTolerance, localStoredSlippage)) {
-      useAppSettings.setState({
-        slippageTolerance: localStoredSlippage ?? 0.01
-      })
-    } else if (slippageTolerance) {
-      setLocalStoredSlippage(toString(slippageTolerance))
-    }
-  }, [slippageTolerance, localStoredSlippage])
+  useRecordedEffect(
+    ([prevSlippageTolerance, prevLocalStoredSlippaged]) => {
+      const slippageHasLoaded = prevLocalStoredSlippaged == null && localStoredSlippage !== null
+      if (slippageHasLoaded && !eq(slippageTolerance, localStoredSlippage)) {
+        useAppSettings.setState({
+          slippageTolerance: localStoredSlippage ?? 0.01
+        })
+      } else if (slippageTolerance) {
+        setLocalStoredSlippage(toString(slippageTolerance))
+      }
+    },
+    [slippageTolerance, localStoredSlippage]
+  )
 }
 
 Sentry.init({

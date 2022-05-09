@@ -9,8 +9,7 @@ import {
   useSentryConfigurator,
   useSlippageTolerenceSyncer,
   useSlippageTolerenceValidator,
-  useThemeModeSync,
-  useWelcomeDialog
+  useThemeModeSync
 } from '@/application/appSettings/initializationHooks'
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
 import { useUserCustomizedEndpointInitLoad } from '@/application/connection/useUserCustomizedEndpointInitLoad'
@@ -50,6 +49,9 @@ import { useTokenGetterFnLoader } from '@/application/token/feature/useTokenGett
 import { POPOVER_STACK_ID } from '@/components/Popover'
 import { DRAWER_STACK_ID } from '@/components/Drawer'
 
+import { PublicKey } from '@solana/web3.js'
+import toPubString from '@/functions/format/toMintString'
+
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
   return (
@@ -77,6 +79,14 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   )
 }
 
+// accelerayte
+PublicKey.prototype.toString = function () {
+  return toPubString(this)
+}
+PublicKey.prototype.toJSON = function () {
+  return toPubString(this)
+}
+
 function ClientInitialization() {
   useHandleWindowTopError()
 
@@ -86,9 +96,6 @@ function ClientInitialization() {
   useThemeModeSync()
 
   useDeviceInfoSyc()
-
-  // beta welcome dialogs
-  useWelcomeDialog()
 
   return null
 }

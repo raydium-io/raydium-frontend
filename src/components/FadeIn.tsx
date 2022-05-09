@@ -1,8 +1,9 @@
-import { ReactNode, useRef, useState } from 'react'
+import { isValidElement, ReactNode, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import { Transition } from '@headlessui/react'
 import { useToggleRef } from '@/hooks/useToggle'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
 
 export default function FadeInStable({
   openDelay = 17,
@@ -19,9 +20,12 @@ export default function FadeInStable({
 }) {
   // const [nodeExist, { off: destory }] = useToggle(true)
   const contentRef = useRef<HTMLDivElement>(null)
+  const [, forceUpdate] = useForceUpdate()
   const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
-    delay: 200 + 20 /* transition time */
+    delay: 200 + 20 /* transition time */,
+    onToggle: forceUpdate
   })
+
   return (
     <Transition
       show={Boolean(show)}
@@ -86,7 +90,12 @@ export default function FadeInStable({
       }}
     >
       {/* outer div can't set ref for it's being used by headless-ui <Transition/> */}
-      <div ref={contentRef} className={twMerge('transition-all duration-200 ease overflow-hidden')}>
+      <div
+        ref={contentRef}
+        className={twMerge(
+          `transition-all duration-200 ease overflow-hidden ${children || isDuringTransition.current ? '' : 'hidden'}`
+        )}
+      >
         {children}
       </div>
     </Transition>
@@ -111,9 +120,10 @@ export function FadeIn({
   const contentRef = useRef<HTMLDivElement>(null)
   const innerChildren = useRef<ReactNode>(children)
   if (children) innerChildren.current = children
-
+  const [, forceUpdate] = useForceUpdate()
   const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
-    delay: 200 + 20 /* transition time */
+    delay: 200 + 20 /* transition time */,
+    onToggle: forceUpdate
   })
   return (
     <Transition
@@ -178,7 +188,12 @@ export function FadeIn({
         })
       }}
     >
-      <div ref={contentRef} className={`transition-all duration-200  ease overflow-hidden`}>
+      <div
+        ref={contentRef}
+        className={`transition-all duration-200 ease overflow-hidden ${
+          children || isDuringTransition.current ? '' : 'hidden'
+        }`}
+      >
         {innerChildren.current}
       </div>
     </Transition>

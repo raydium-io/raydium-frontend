@@ -39,7 +39,8 @@ export function useSyncWithSolanaWallet() {
     }
   }, [_publicKey])
 
-  useIsomorphicLayoutEffect(() => {
+  useEffect(() => {
+    // sometimes `_wallet`'s data is delayed is not ready
     if (!useWallet.getState().inSimulateMode && useWallet.getState().availableWallets !== _wallets) {
       useWallet.setState({ availableWallets: _wallets })
     }

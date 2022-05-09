@@ -32,6 +32,25 @@ const moduleExports = {
     // locales: ['en-US', 'zh-CN'],
     locales: ['en-US'],
     defaultLocale: 'en-US'
+  },
+  async redirects() {
+    return [
+      {
+        source: '/liquidity',
+        destination: '/liquidity/add',
+        permanent: true
+      },
+      {
+        source: '/acceleRaytor',
+        destination: '/acceleraytor',
+        permanent: false
+      },
+      // {
+      //   source: '/acceleraytor',
+      //   destination: 'https://v1.raydium.io/acceleRaytor',
+      //   permanent: false
+      // }
+    ]
   }
   // async redirects() {
   //   return [
