@@ -19,7 +19,7 @@ export default function CreateFarmReviewPage() {
         </div>
 
         <Card
-          className="py-4 px-8 mobile:px-2 bg-cyberpunk-card-bg border-1.5 divide-y divide-[#abc4ff1a] border-[rgba(171,196,255,0.2)] mb-"
+          className="py-4 px-8 mobile:px-2 bg-cyberpunk-card-bg border-1.5 divide-y divide-[#abc4ff1a] border-[rgba(171,196,255,0.2)] mb-5"
           size="lg"
         >
           {/* <CreateFarmReviewItem
@@ -62,7 +62,7 @@ export default function CreateFarmReviewPage() {
           />
         </Card>
 
-        <div className="font-medium text-sm text-center leading-snug text-[#abc4ff80] mb-">
+        <div className="font-medium text-sm text-center leading-snug text-[#abc4ff80] mb-5">
           <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards cannot
           be recovered. You will be able to add more rewards to the farm.
         </div>

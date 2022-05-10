@@ -28,7 +28,13 @@ import useToggle from '@/hooks/useToggle'
 import { createSplToken } from '@/application/token/feature/useTokenListsLoader'
 import ListFast from '../ListFast'
 
-export default function TokenSelectorDialog(props: Parameters<typeof TokenSelectorDialogContent>[0]) {
+export type TokenSelectorProps = {
+  open: boolean
+  close: () => void
+  onSelectCoin?: (token: SplToken) => unknown
+}
+
+export default function TokenSelectorDialog(props: TokenSelectorProps) {
   return (
     <ResponsiveDialogDrawer
       maskNoBlur
@@ -42,15 +48,7 @@ export default function TokenSelectorDialog(props: Parameters<typeof TokenSelect
   )
 }
 
-function TokenSelectorDialogContent({
-  open,
-  close: closePanel,
-  onSelectCoin
-}: {
-  open: boolean
-  close: () => void
-  onSelectCoin?: (token: SplToken) => unknown
-}) {
+function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin }: TokenSelectorProps) {
   const tokenListSettings = useToken((s) => s.tokenListSettings)
   const getToken = useToken((s) => s.getToken)
 

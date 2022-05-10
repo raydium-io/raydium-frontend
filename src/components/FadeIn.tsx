@@ -84,6 +84,8 @@ export default function FadeInStable({
             setTimeout(() => {
               if (isDuringTransition.current) return
               contentRef.current?.style.removeProperty('height')
+              contentRef.current?.style.setProperty('position', 'absolute')
+              contentRef.current?.style.setProperty('visibility', 'hidden')
             }, 200 + 20 /* transition time */)
           }
         })
