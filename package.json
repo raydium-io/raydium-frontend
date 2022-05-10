@@ -28,6 +28,9 @@
     "@solana/web3.js": "^1.41.4",
     "bn.js": "^5.2.0"
   },
+  "foo-comments": {
+    "@solana/wallet-adapter-tokenpocket": "IMPORTANT: should delete it in future!!!! Install this package is for use it's v0.4.4, this package in @solana/wallet-adapter-wallets is still v0.4.2"
+  },
   "dependencies": {
     "@headlessui/react": "^1.6.1",
     "@heroicons/react": "^1.0.6",
@@ -35,6 +38,7 @@
     "@sentry/nextjs": "^6.19.7",
     "@solana/wallet-adapter-base": "^0.9.5",
     "@solana/wallet-adapter-react": "^0.15.4",
+    "@solana/wallet-adapter-tokenpocket": "^0.4.4",
     "@solana/wallet-adapter-wallets": "^0.16.1",
     "@solana/web3.js": "^1.41.4",
     "@uiw/react-date-input": "^4.21.7",

@@ -20,9 +20,9 @@ import {
   SolletExtensionWalletAdapter,
   SolletWalletAdapter,
   SolongWalletAdapter,
-  TokenPocketWalletAdapter,
   TorusWalletAdapter
 } from '@solana/wallet-adapter-wallets'
+import { TokenPocketWalletAdapter } from '@solana/wallet-adapter-tokenpocket'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */
 export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
