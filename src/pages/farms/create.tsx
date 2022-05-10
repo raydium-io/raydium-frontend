@@ -1,4 +1,5 @@
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { routeTo } from '@/application/routeTools'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinInputBox from '@/components/CoinInputBox'
@@ -110,8 +111,8 @@ export default function CreateFarmPage() {
               <>
                 <div className="font-medium text-lg text-white leading-8 mb-1">Farming Reward</div>
                 <div className="font-medium text-sm leading-snug text-[#abc4ff80]">
-                  Please note: All rewards provided are final and unused rewards cannot be recovered. You will be able
-                  to add more rewards to the farm.
+                  <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards
+                  cannot be recovered. You will be able to add more rewards to the farm.
                 </div>
               </>
             }
@@ -165,7 +166,13 @@ export default function CreateFarmPage() {
           </FormStep>
         </div>
 
-        <Button className="frosted-glass-teal ml-12" size="lg">
+        <Button
+          className="frosted-glass-teal ml-12"
+          size="lg"
+          onClick={() => {
+            routeTo('/farms/createReview')
+          }}
+        >
           Review Farm
         </Button>
       </div>

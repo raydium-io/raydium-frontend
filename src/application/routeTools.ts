@@ -51,6 +51,12 @@ export type PageRouteConfigs = {
       idoId?: HexAddress
     }
   }
+  '/farms/create': {
+    queryProps?: any
+  }
+  '/farms/createReview': {
+    queryProps?: any
+  }
 }
 
 export type PageRouteName = keyof PageRouteConfigs
@@ -121,7 +127,6 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
   } else {
     router.push({ pathname: toPage, query: options?.queryProps })
   }
-
   return
 }
 
