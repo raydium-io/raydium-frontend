@@ -6,6 +6,7 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import AutoBox from './AutoBox'
 import Row from './Row'
+import toPercentString from '@/functions/format/toPercentString'
 
 /**
  * same as html <progress>
@@ -24,7 +25,7 @@ export default function Progress({
 
   labelClassName,
   value,
-  labelFormat = (v) => (v * 100).toFixed(2) + '%'
+  labelFormat = (v) => toPercentString(v, { fixed: 0 })
 }: {
   className?: string
   slotClassName?: string

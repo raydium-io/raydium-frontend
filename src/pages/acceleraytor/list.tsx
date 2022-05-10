@@ -51,7 +51,7 @@ function AcceleRaytorHeaderCyberpunk() {
       <Col className="items-center cyberpunk-bg-light-acceleraytor mobile:scale-75 mobile:translate-y-4">
         <Image src="/logo/accecleraytor-text-logo.svg" />
         <div className="text-[20px] mt-2 font-medium text-[#ABC4FF80] whitespace-nowrap">
-          Buy new tokens launching on Solana.
+          A launchpad for new Solana projects
         </div>
       </Col>
     </Col>
@@ -109,13 +109,19 @@ function IdoList() {
         onChange={(currentTab) => {
           useIdo.setState({ currentTab })
         }}
-        className="self-center mobile:col-span-full mt-24 mobile:mt-16 mb-10 mobile:mb-8"
+        className={`self-center mobile:col-span-full ${
+          upcomingPools.length > 0
+            ? ' mt-24 mobile:mt-16 mb-10 mobile:mb-8'
+            : openPools.length > 0
+            ? 'invisible mt-12 mobile:mt-8 mb-10 mobile:mb-8'
+            : 'invisible m-0'
+        }`}
         itemClassName={isMobile ? 'min-w-[112px] h-[30px] px-2' : 'min-w-[128px]'}
       />
       {(upcomingPools.length > 0 || closedPools.length > 0) && (
-        <Row className="mobile:px-4 mb-6 mobile:mb-4 justify-between w-[min(890px,100%)] self-center">
+        <Row className="mobile:px-4 gap-6 mb-6 mobile:mb-4 justify-between w-[min(890px,100%)] self-center">
           <div className="text-2xl mobile:text-base font-semibold text-white">{currentTab}</div>
-          {currentTab === 'Closed Pools' && <IdoSearchBlock />}
+          {currentTab === 'Closed Pools' && <IdoSearchBlock className="mobile:w-[12em]" />}
         </Row>
       )}
 
@@ -150,7 +156,7 @@ function IdoSearchBlock({ className }: { className?: string }) {
     <Input
       value={storeSearchText}
       className={twMerge(
-        'px-2 py-2 mobile:py-1 gap-2 border-1.5 border-[rgba(196,214,255,0.5)] rounded-xl min-w-[7em]',
+        'px-2 py-2 mobile:py-1 gap-2 border-1.5 border-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg',
         className
       )}
       inputClassName="font-medium mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
@@ -187,13 +193,13 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
       <AutoBox is={isMobile ? 'Col' : 'Row'} className={`flex-wrap items-stretch gap-5`}>
         <Row className="items-center gap-4 mobile:w-full">
           <Row
-            className="items-center gap-4 mobile:gap-3 mobile:w-auto clickable"
+            className="items-center min-w-[160px] mobile:min-w-[120px] gap-4 mobile:gap-3 mobile:w-auto clickable"
             onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
           >
             <CoinAvatar noCoinIconBorder size={isMobile ? 'md' : 'lg'} token={info.base} />
             <div>
               <div className="text-base mobile:text-sm font-semibold text-white">{info.baseSymbol}</div>
-              <div className="text-sm w-max mobile:text-xs text-[#ABC4FF80]">{info.projectName}</div>
+              <div className="text-sm mobile:text-xs text-[#ABC4FF80]">{info.projectName}</div>
             </div>
           </Row>
           {info.filled && (
@@ -221,7 +227,7 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
       {currentIsAfter(info.endTime) && (
         <Icon
           iconSrc="/icons/acceleraytor-list-collapse-open.svg"
-          className="mx-auto -mt-3 -mb-3 mobile:mt-3 mobile:mb-0 clickable hover:brightness-110 "
+          className="mx-auto -mt-3 -mb-3 translate-y-3 mobile:mt-3 mobile:mb-0 clickable hover:brightness-110 "
         />
       )}
     </div>
@@ -274,7 +280,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
       <Col className="items-center mobile:grow">
         <Button
           size={isMobile ? 'xs' : 'md'}
-          className="frosted-glass-teal mobile:self-stretch"
+          className="frosted-glass-teal mobile:self-stretch min-w-[160px] mobile:min-w-[50%]"
           validators={[
             {
               should: connected,
@@ -379,7 +385,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
               <Row className="py-1 justify-center items-center">
                 <Icon className="mr-2" iconSrc="/icons/acceleraytor-list-medium.svg" />
                 <Link href={info.projectDetailLink} className="text-[#ABC4FF80] font-medium text-xs">
-                  Read Full Detail
+                  Read Full Details
                 </Link>
               </Row>
             </div>
@@ -412,7 +418,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
               fieldValue={
                 <Row className="items-baseline gap-1">
                   <div className="text-white font-medium">{formatNumber(info.depositedTicketCount)}</div>
-                  <div className="text-[#ABC4FF80] font-medium text-xs">tickets</div>
+                  <div className="text-[#ABC4FF80] font-medium text-xs">Tickets</div>
                 </Row>
               }
             />

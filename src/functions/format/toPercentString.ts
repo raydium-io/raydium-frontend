@@ -1,10 +1,10 @@
 import { Numberish } from '@/types/constants'
 import { Percent } from '@raydium-io/raydium-sdk'
 
-import { eq, gt, lt } from '../numberish/compare'
+import { eq, gt } from '../numberish/compare'
 import { mul } from '../numberish/operations'
 import toFraction from '../numberish/toFraction'
-import { toString } from '../numberish/toString'
+import formatNumber from './formatNumber'
 
 /**
  * @example
@@ -31,7 +31,9 @@ export default function toPercentString(
     const stringPart = fractionN.mul(options?.alreadyPercented ? 1 : 100).toFixed(options?.fixed ?? 2)
     if (eq(fractionN, 0)) return '0%'
     if (!options?.exact && stringPart === '0.00') return options?.alwaysSigned ? '<+0.01%' : '<0.01%'
-    return options?.alwaysSigned ? `${getSign(stringPart)}${toString(getUnsignNumber(stringPart))}%` : `${stringPart}%`
+    return options?.alwaysSigned
+      ? `${getSign(stringPart)}${formatNumber(getUnsignNumber(stringPart))}%`
+      : `${formatNumber(stringPart)}%`
   } catch (err) {
     return '0%'
   }
