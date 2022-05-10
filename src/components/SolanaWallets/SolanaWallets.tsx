@@ -1,23 +1,28 @@
-import React, { FC, ReactNode, useCallback, useMemo } from 'react'
+import React, { ReactNode, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
-import { BitpieWalletAdapter } from '@solana/wallet-adapter-bitpie'
-import { Coin98WalletAdapter } from '@solana/wallet-adapter-coin98'
-import { GlowWalletAdapter } from '@solana/wallet-adapter-glow'
-import { MathWalletAdapter } from '@solana/wallet-adapter-mathwallet'
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom'
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
-import { SafePalWalletAdapter } from '@solana/wallet-adapter-safepal'
-import { SlopeWalletAdapter } from '@solana/wallet-adapter-slope'
-import { SolflareWalletAdapter } from '@solana/wallet-adapter-solflare'
-import { SolletExtensionWalletAdapter, SolletWalletAdapter } from '@solana/wallet-adapter-sollet'
-import { SolongWalletAdapter } from '@solana/wallet-adapter-solong'
-import { TokenPocketWalletAdapter } from '@solana/wallet-adapter-tokenpocket'
-import { TorusWalletAdapter } from '@solana/wallet-adapter-torus'
 import { clusterApiUrl } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
-import { BitKeepWalletAdapter, LedgerWalletAdapter } from '@solana/wallet-adapter-wallets'
+
+import {
+  BitKeepWalletAdapter,
+  LedgerWalletAdapter,
+  BitpieWalletAdapter,
+  Coin98WalletAdapter,
+  GlowWalletAdapter,
+  MathWalletAdapter,
+  PhantomWalletAdapter,
+  SafePalWalletAdapter,
+  SlopeWalletAdapter,
+  SolflareWalletAdapter,
+  SolletExtensionWalletAdapter,
+  SolletWalletAdapter,
+  SolongWalletAdapter,
+  TokenPocketWalletAdapter,
+  TorusWalletAdapter
+} from '@solana/wallet-adapter-wallets'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */
 export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
