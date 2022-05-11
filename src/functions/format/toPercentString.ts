@@ -4,6 +4,7 @@ import { Percent } from '@raydium-io/raydium-sdk'
 import { eq, gt } from '../numberish/compare'
 import { mul } from '../numberish/operations'
 import toFraction from '../numberish/toFraction'
+import { toString } from '../numberish/toString'
 import formatNumber from './formatNumber'
 
 /**
@@ -39,9 +40,9 @@ export default function toPercentString(
   }
 }
 
-function getSign(s: Numberish) {
+function getSign(s: Numberish): '+' | '-' {
   return gt(s, 0) ? '+' : '-'
 }
-function getUnsignNumber(s: Numberish) {
-  return gt(s, 0) ? s : mul(s, -1)
+function getUnsignNumber(s: Numberish): string {
+  return gt(s, 0) ? toString(s) : toString(mul(s, -1))
 }

@@ -1,13 +1,14 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
 import useCreateFarms, { CreateFarmStore } from '@/application/createFarm/useCreateFarm'
 import { routeTo } from '@/application/routeTools'
+import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
-import CoinInputBox from '@/components/CoinInputBox'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import DateInput from '@/components/DateInput'
-import FadeInStable, { FadeIn } from '@/components/FadeIn'
+import FadeInStable from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
@@ -33,7 +34,7 @@ function WarningBoard({ className }: { className: string }) {
     <FadeInStable show={needWarning}>
       <Row className={className}>
         <Icon iconSrc="/icons/create-farm-exclamation-circle.svg" className="my-4" iconClassName="w-12 h-12" />
-        <Card className={`p-6 mx-4 my-2 rounded-3xl ring-1 ring-inset ring-[#DA2EEF] bg-[#1B1659]`}>
+        <Card className={`p-6 grow mx-4 my-2 rounded-3xl ring-1 ring-inset ring-[#DA2EEF] bg-[#1B1659]`}>
           <div className="font-medium text-base text-white mb-3">This tool is for advanced users!</div>
 
           <div className="font-medium text-sm text-[#ABC4FF80] mb-4">
@@ -180,6 +181,7 @@ function RewardSettingsCard({
 
 export default function CreateFarmPage() {
   const rewards = useCreateFarms((s) => s.rewards)
+  const connected = useWallet((s) => s.connected)
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div
@@ -189,7 +191,7 @@ export default function CreateFarmPage() {
       >
         <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
 
-        <WarningBoard className="pb-16" />
+        <WarningBoard className="pb-16 w-full" />
 
         <div className="space-y-4">
           <FormStep stepNumber={1} title="Select Pool" haveNavline>
@@ -253,6 +255,16 @@ export default function CreateFarmPage() {
           onClick={() => {
             routeTo('/farms/createReview')
           }}
+          validators={[
+            {
+              should: connected,
+              forceActive: true,
+              fallbackProps: {
+                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                children: 'Connect Wallet'
+              }
+            }
+          ]}
         >
           Review Farm
         </Button>
