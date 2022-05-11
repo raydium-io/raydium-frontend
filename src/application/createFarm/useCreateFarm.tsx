@@ -8,8 +8,8 @@ export type CreateFarmStore = {
   rewards: {
     token?: SplToken
     amount?: Numberish
-    startTime?: number
-    endTime?: number
+    startTime?: Date
+    endTime?: Date
   }[]
 }
 

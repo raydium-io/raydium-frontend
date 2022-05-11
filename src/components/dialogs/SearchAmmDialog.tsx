@@ -67,7 +67,6 @@ export function SearchAmmDialog({
           </Row>
 
           <InputBox
-            inputStyle="textarea"
             className="mb-6"
             label="AMM ID or Serum market ID"
             onUserInput={setSearchText}

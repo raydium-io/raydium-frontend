@@ -69,7 +69,6 @@ function PanelContent({ close }: { close(): void }) {
         <Link href="https://raydium.gitbook.io/raydium/permissionless/creating-a-pool">detailed guide</Link>
       </div>
       <InputBox
-        inputStyle="textarea"
         label="Serum Market ID:"
         className="mb-5"
         onUserInput={(value) => useCreatePool.setState({ marketId: value })}
@@ -154,7 +153,6 @@ function PanelContent({ close }: { close(): void }) {
         onUserInput={(inputText) => useCreatePool.setState({ quoteDecimaledAmount: inputText })}
       />
       <DateInput
-        inputStyle="textarea"
         className="mb-5"
         label="Start time (Optional):"
         onDateChange={(selectedDate) => useCreatePool.setState({ startTime: selectedDate })}

@@ -2,59 +2,64 @@ import React, { ReactNode, RefObject, useRef } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
-import Row from '@/components/Row'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 
 import Col from './Col'
 import Input, { InputProps } from './Input'
+import mergeRef from '@/functions/react/mergeRef'
+import { mergeFunction } from '@/functions/merge'
 
 export type InputBoxParams = {
-  inputStyle?: 'inline-input' | 'textarea'
   className?: string
+  cannotInput?: boolean
+
   label?: string
+  labelClassName?: string
+
   onUserInput?(text: string): void
+  inputProps?: InputProps
   onEnter?: InputProps['onEnter']
+  /** should  attach domref want focus input by click */
   renderInput?: ((domRef: RefObject<any>) => ReactNode) | ReactNode
 }
 
 export default function InputBox({
-  inputStyle = 'inline-input',
   className,
+  cannotInput,
+
   label,
+  labelClassName,
+
   onUserInput,
+  inputProps,
   onEnter,
   renderInput
 }: InputBoxParams) {
   const inputRef = useRef<HTMLInputElement>(null)
-
   function focusInput() {
     inputRef.current?.focus()
   }
-  return inputStyle === 'textarea' ? (
-    <Col onClick={focusInput} className={twMerge(`bg-[#141041] rounded-xl py-3 px-6 cursor-text`, className)}>
+  return (
+    <Col
+      onClick={focusInput}
+      className={twMerge(`bg-[#141041] rounded-xl py-3 px-6 ${cannotInput ? '' : 'cursor-text'}`, className)}
+    >
       {label && (
-        <div className={`text-sm font-medium text-[rgba(171,196,255,.5)] mb-3 mobile:mb-1 mobile:text-xs`}>{label}</div>
+        <div
+          className={twMerge(`text-xs mobile:text-2xs text-[#abc4ff80] font-medium mb-2 mobile:mb-1`, labelClassName)}
+        >
+          {label}
+        </div>
       )}
       {shrinkToValue(renderInput, [inputRef]) ?? (
         <Input
-          className="w-full"
-          componentRef={inputRef}
-          onUserInput={(text) => onUserInput?.(text)}
+          {...inputProps}
+          className={twMerge('w-full font-medium text-lg text-white', inputProps?.className)}
+          componentRef={mergeRef(inputRef, inputProps?.componentRef)}
+          onUserInput={mergeFunction((text) => onUserInput?.(text), inputProps?.onUserInput)}
           onEnter={onEnter}
         />
       )}
     </Col>
-  ) : (
-    <Row onClick={focusInput} className={twMerge(`flex-wrap items-center cursor-text justify-between`, className)}>
-      {label && <div className={`text-sm font-medium text-[rgba(171,196,255,.5)] mobile:text-xs my-1`}>{label}</div>}
-      {shrinkToValue(renderInput, [inputRef]) ?? (
-        <Input
-          className="w-full bg-[#141041] rounded-lg py-2 px-4"
-          componentRef={inputRef}
-          onUserInput={(text) => onUserInput?.(text)}
-          onEnter={onEnter}
-        />
-      )}
-    </Row>
   )
 }

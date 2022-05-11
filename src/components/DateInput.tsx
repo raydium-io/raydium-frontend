@@ -1,59 +1,81 @@
-import React, { ComponentProps, RefObject, useState } from 'react'
+import React, { ComponentProps, useEffect, useState } from 'react'
 
 import _DatePicker from '@uiw/react-date-picker'
 
 import Input, { InputProps } from '@/components/Input'
 import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
 
-import { CoinInputBoxProps } from './CoinInputBox'
-import InputBox, { InputBoxParams } from './InputBox'
+import InputBox from './InputBox'
 import Popover from './Popover'
 
 import './DatePicker.css'
+import { twMerge } from 'tailwind-merge'
 
 export default function DateInput({
-  inputStyle,
   defaultCurrentDate,
   className,
   label,
+  labelClassName,
+  inputProps,
   onDateChange
 }: {
-  inputStyle?: InputBoxParams['inputStyle']
   defaultCurrentDate?: Date
   className?: string
   label?: string
+  labelClassName?: string
+  inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
   onDateChange?(selectedDate: Date | undefined): void
 }) {
   return (
     <InputBox
-      inputStyle={inputStyle}
       className={className}
       label={label}
-      renderInput={<DateInputBody onDateChange={onDateChange} defaultCurrentDate={defaultCurrentDate}></DateInputBody>}
+      labelClassName={labelClassName}
+      renderInput={
+        <DateInputBody
+          inputProps={inputProps}
+          onDateChange={onDateChange}
+          defaultValue={defaultCurrentDate}
+        ></DateInputBody>
+      }
     />
   )
 }
+type DateInputBodyProps = {
+  defaultValue?: Date
+  value?: Date
+  className?: string
+  inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
+  onDateChange?(selectedDate: Date | undefined): void
+}
+
 /**
  * base on uiw's `<DataPicker>`
  */
-function DateInputBody({
-  defaultCurrentDate,
-  className,
-  onDateChange
-}: {
-  defaultCurrentDate?: Date
-  className?: string
-  onDateChange?(selectedDate: Date | undefined): void
-}) {
-  const [currentDate, setCurrentDate] = useState<Date | undefined>(defaultCurrentDate)
+function DateInputBody({ value, defaultValue, className, onDateChange, inputProps }: DateInputBodyProps) {
+  const [currentDate, setCurrentDate] = useState<Date | undefined>(defaultValue)
   const currentTimezoneOffset = currentDate?.getTimezoneOffset()
 
+  useEffect(() => {
+    setCurrentDate(value)
+  }, [value])
+
+  useEffect(() => {
+    onDateChange?.(currentDate)
+  }, [currentDate])
   return (
     <Popover placement="top" className={className} cornerOffset={20}>
       <Popover.Button>
         <Input
-          className="bg-[#141041] rounded-lg py-2 px-4 cursor-text"
+          {...inputProps}
+          className={twMerge(
+            'bg-[#141041] font-medium text-lg text-white rounded-lg py-2 cursor-text',
+            inputProps?.className
+          )}
           value={currentDate ? toUTC(currentDate, { showSeconds: true }) : undefined}
+          onUserInput={(text) => {
+            if (!text) setCurrentDate(undefined)
+          }}
         />
       </Popover.Button>
       <Popover.Panel>
@@ -74,7 +96,6 @@ function DateInputBody({
                 ? offsetDateTime(selectedDate, -currentTimezoneOffset, { unit: 'minutes' })
                 : selectedDate
             setCurrentDate(newDate)
-            onDateChange?.(newDate)
           }}
           lang="en"
         />

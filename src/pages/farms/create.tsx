@@ -6,10 +6,12 @@ import CoinInputBox from '@/components/CoinInputBox'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import DateInput from '@/components/DateInput'
 import FadeInStable, { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
+import InputBox from '@/components/InputBox'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
@@ -115,7 +117,7 @@ function RewardSettingsCard({
 }) {
   return (
     <Card
-      className="grid gap-4 p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]"
+      className="grid gap-3 p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]"
       size="lg"
     >
       <CoinInputBoxWithTokenSelector
@@ -130,7 +132,48 @@ function RewardSettingsCard({
           })
         }}
       />
-      <CoinInputBox />
+
+      <Row className="gap-2">
+        <DateInput
+          className=" grow"
+          label="Farming Start"
+          inputProps={{
+            placeholder: '(now)',
+            inputClassName: 'text-[#abc4ff] text-xs font-medium'
+          }}
+          onDateChange={(selectedDate) =>
+            useCreateFarms.setState({
+              rewards: produce(rewards, (draft) => {
+                draft[idx].startTime = selectedDate
+              })
+            })
+          }
+        />
+
+        <DateInput
+          className=" grow"
+          label="Farming Ends"
+          inputProps={{
+            inputClassName: 'text-[#abc4ff] text-xs font-medium'
+          }}
+          onDateChange={(selectedDate) =>
+            useCreateFarms.setState({
+              rewards: produce(rewards, (draft) => {
+                draft[idx].endTime = selectedDate
+              })
+            })
+          }
+        />
+
+        <InputBox
+          className="py-2 px-3"
+          cannotInput
+          label="Days"
+          renderInput={() => <div className="w-8 flex justify-center">7</div>}
+        />
+      </Row>
+
+      <InputBox label="Estimated rewards per day" />
     </Card>
   )
 }
@@ -141,7 +184,7 @@ export default function CreateFarmPage() {
     <PageLayout metaTitle="Farms - Raydium">
       <div
         className={`self-center transition-all duration-500 ${
-          rewards.length > 1 ? 'w-[min(1200px,70vw)]' : 'w-[min(500px,70vw)]'
+          rewards.length > 1 ? 'w-[min(1200px,70vw)]' : 'w-[min(560px,70vw)]'
         } mobile:w-[90vw]`}
       >
         <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
@@ -196,7 +239,7 @@ export default function CreateFarmPage() {
                 </Button>
               )}
             </Row>
-            <Grid className="grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-8">
+            <Grid className="grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-8">
               {rewards.map((reward, index) => (
                 <RewardSettingsCard key={index} rewards={rewards} reward={reward} idx={index} />
               ))}
