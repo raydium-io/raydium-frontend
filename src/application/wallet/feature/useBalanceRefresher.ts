@@ -63,7 +63,6 @@ export function parseBalanceFromTokenAccount({
   allTokenAccounts: ITokenAccount[]
 }) {
   const tokenAccounts = allTokenAccounts.filter((ta) => ta.isAssociated || ta.isNative)
-  const verboseTokenAccounts = allTokenAccounts.filter((ta) => ta.isAssociated)
   function toPureBalance(tokenAccount: ITokenAccount) {
     const tokenInfo = getPureToken(tokenAccount.mint)
     // console.log('tokenAccount: ', tokenAccount)
@@ -93,7 +92,8 @@ export function parseBalanceFromTokenAccount({
   const pureRawBalances = objectMap(pureBalances, (balance) => balance.raw)
 
   // native sol balance (for QuantumSOL)
-  const solBalance = verboseTokenAccounts.find((ta) => ta.isNative)?.amount
+  const nativeTokenAccount = allTokenAccounts.find((ta) => ta.isNative)
+  const solBalance = nativeTokenAccount?.amount
 
   // wsol balance (for QuantumSOL)
   const wsolBalance = tokenAccounts.find((ta) => String(ta.mint) === String(WSOLMint))?.amount
@@ -106,5 +106,5 @@ export function parseBalanceFromTokenAccount({
 
   // use BN (QuantumSOL)
   const rawBalances = objectMap(balances, (balance) => balance.raw)
-  return { solBalance, allWsolBalance, balances, rawBalances, pureBalances, pureRawBalances }
+  return { solBalance, allWsolBalance, balances, rawBalances, pureBalances, pureRawBalances, nativeTokenAccount }
 }
