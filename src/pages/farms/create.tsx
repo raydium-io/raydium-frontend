@@ -6,7 +6,7 @@ import CoinInputBox from '@/components/CoinInputBox'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
-import FadeInStable from '@/components/FadeIn'
+import FadeInStable, { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
@@ -91,16 +91,16 @@ function FormStep({
   children: ReactNode
 }) {
   return (
-    <Row className="gap-4">
+    <Grid className="grid-cols-[auto,1fr] gap-4">
       <Col className="items-center">
         <StepBadge n={stepNumber} />
         <div className={`grow my-4 border-r-1.5 ${haveNavline ? 'border-[#abc4ff1a]' : 'border-transparent'} `} />
       </Col>
       <Col className="grow">
         <div className="font-medium text-lg text-white leading-8 ml-3 mb-5">{title}</div>
-        <div className="mb-16">{children}</div>
+        <Grid className="mb-16">{children}</Grid>
       </Col>
-    </Row>
+    </Grid>
   )
 }
 
@@ -139,7 +139,11 @@ export default function CreateFarmPage() {
   const rewards = useCreateFarms((s) => s.rewards)
   return (
     <PageLayout metaTitle="Farms - Raydium">
-      <div className="self-center w-[min(560px,90vw)]">
+      <div
+        className={`self-center transition-all duration-500 ${
+          rewards.length > 1 ? 'w-[min(1200px,70vw)]' : 'w-[min(500px,70vw)]'
+        } mobile:w-[90vw]`}
+      >
         <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
 
         <WarningBoard className="pb-16" />
@@ -163,7 +167,36 @@ export default function CreateFarmPage() {
               </>
             }
           >
-            <Grid>
+            <Row className="gap-3 mb-3 justify-center">
+              <Button
+                className="grid place-items-center h-12 w-12 frosted-glass-teal p-0"
+                disabled={rewards.length >= 5}
+                onClick={() => {
+                  useCreateFarms.setState({
+                    rewards: produce(rewards, (draft) => {
+                      draft.push({})
+                    })
+                  })
+                }}
+              >
+                <Icon heroIconName="plus" className="grid place-items-center" />
+              </Button>
+              {rewards.length > 1 && (
+                <Button
+                  className="grid place-items-center h-12 w-12 frosted-glass-teal p-0"
+                  onClick={() => {
+                    useCreateFarms.setState({
+                      rewards: produce(rewards, (draft) => {
+                        draft.pop()
+                      })
+                    })
+                  }}
+                >
+                  <Icon heroIconName="minus" className="grid place-items-center" />
+                </Button>
+              )}
+            </Row>
+            <Grid className="grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-8">
               {rewards.map((reward, index) => (
                 <RewardSettingsCard key={index} rewards={rewards} reward={reward} idx={index} />
               ))}
@@ -172,7 +205,7 @@ export default function CreateFarmPage() {
         </div>
 
         <Button
-          className="frosted-glass-teal ml-12"
+          className="frosted-glass-teal ml-12 "
           size="lg"
           onClick={() => {
             routeTo('/farms/createReview')
