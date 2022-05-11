@@ -16,8 +16,13 @@ import InputBox from '@/components/InputBox'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
+import { parseDurationAbsolute } from '@/functions/date/parseDuration'
+import formatNumber from '@/functions/format/formatNumber'
+import { div, mul } from '@/functions/numberish/operations'
+import { trimTailingZero } from '@/functions/numberish/stringNumber'
+import { toString } from '@/functions/numberish/toString'
 import produce from 'immer'
-import { ReactNode, useState } from 'react'
+import { ReactNode, useMemo, useState } from 'react'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -116,6 +121,10 @@ function RewardSettingsCard({
   idx: number
   rewards: CreateFarmStore['rewards']
 }) {
+  const durationDays = useMemo(() => {
+    if (!reward.endTime) return
+    return parseDurationAbsolute(reward.endTime.getTime() - (reward.startTime?.getTime() ?? Date.now())).days
+  }, [reward])
   return (
     <Card
       className="grid gap-3 p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]"
@@ -124,11 +133,19 @@ function RewardSettingsCard({
       <CoinInputBoxWithTokenSelector
         haveHalfButton
         topLeftLabel="Assert"
+        value={toString(reward.amount)}
         token={reward.token}
         onSelectCoin={(token) => {
           useCreateFarms.setState({
             rewards: produce(rewards, (draft) => {
               draft[idx].token = token
+            })
+          })
+        }}
+        onUserInput={(amount) => {
+          useCreateFarms.setState({
+            rewards: produce(rewards, (draft) => {
+              draft[idx].amount = amount
             })
           })
         }}
@@ -167,14 +184,32 @@ function RewardSettingsCard({
         />
 
         <InputBox
-          className="py-2 px-3"
+          className="py-3 px-3"
           cannotInput
           label="Days"
-          renderInput={() => <div className="w-8 flex justify-center">7</div>}
+          renderInput={() => (
+            <div className="mobile:text-sm text-base text-white text-center font-medium py-1">
+              {durationDays ? trimTailingZero(formatNumber(durationDays, { fractionLength: 1 })) : '--'}
+            </div>
+          )}
         />
       </Row>
 
-      <InputBox label="Estimated rewards per day" />
+      <InputBox
+        decimalMode
+        floating={0.001}
+        label="Estimated rewards per day"
+        value={reward.amount && durationDays ? div(reward.amount, durationDays) : undefined}
+        onUserInput={(v) => {
+          if (!durationDays) return
+          useCreateFarms.setState({
+            rewards: produce(rewards, (draft) => {
+              draft[idx].amount = mul(v, durationDays)
+            })
+          })
+        }}
+        suffix={reward.token && <div>{reward.token.symbol} per day</div>}
+      />
     </Card>
   )
 }

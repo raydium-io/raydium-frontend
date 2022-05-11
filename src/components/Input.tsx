@@ -37,12 +37,12 @@ export interface InputProps {
   pattern?: RegExp // with force pattern, you only can input pattern allowed string
 
   /** only first render */
-  defaultValue?: string
+  defaultValue?: string | number
 
   /** when change, affact to ui*/
-  value?: string
+  value?: string | number
 
-  placeholder?: string
+  placeholder?: string | number
 
   disabled?: boolean
 
@@ -163,7 +163,7 @@ export default function Input(props: InputProps) {
       onClick={() => {
         if (disabled || !inputRef.current) return
         inputRef.current.focus()
-        onClick?.(selfValue, { el: inputRef.current, control: inputControls })
+        onClick?.(String(selfValue), { el: inputRef.current, control: inputControls })
       }}
       style={style}
       domRef={domRef}
@@ -211,7 +211,7 @@ export default function Input(props: InputProps) {
           }}
           onBlur={() => {
             unlockOutsideValue()
-            onBlur?.(selfValue, { el: inputRef.current!, control: inputControls })
+            onBlur?.(String(selfValue), { el: inputRef.current!, control: inputControls })
           }}
           onKeyDown={(ev) => {
             if (ev.key === 'Enter') {

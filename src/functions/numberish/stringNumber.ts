@@ -10,7 +10,7 @@ type StringNumberable = Numberable | StringNumberAtom
 type StringNumber = string
 type StringNumberAtom = { decimal: number; all: string }
 
-const stringNumberRegex = /(-?)(\d*)\.?(\d*)/
+const stringNumberRegex = /(-?)([\d,_]*)\.?(\d*)/
 
 function isStringNumberAtom(value: any): value is StringNumberAtom {
   return isObject(value) && hasProperty(value, ['decimal', 'all'])
