@@ -69,6 +69,7 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
     <button
       ref={ref}
       onClick={(ev) => {
+        if (disable) ev.stopPropagation()
         if (!disable) onClick?.({ ev })
       }}
       className={twMerge(

@@ -8,7 +8,7 @@ import useToken from '@/application/token/useToken'
 import { fetchRawIdoListJson, fetchRawIdoProjectInfoJson, getSdkIdoList } from './utils/fetchIdoInfo'
 import { hydrateIdoInfo } from './utils/hydrateIdoInfo'
 import toPubString, { ToPubPropertyValue } from '@/functions/format/toMintString'
-import { objectMap, pick } from '@/functions/objectMethods'
+import { objectMap, objectShakeNil, pick } from '@/functions/objectMethods'
 import { BackendApiIdoListItem } from './type'
 import asyncMap from '@/functions/asyncMap'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -100,7 +100,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
         ...s.idoHydratedInfos,
         ...objectMap(hydratedInfos, (newHydratedInfo, idoid) => ({
           ...s.idoHydratedInfos[idoid],
-          ...newHydratedInfo
+          ...objectShakeNil(newHydratedInfo)
         }))
       }
     }))
@@ -130,7 +130,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
         ...s.idoHydratedInfos,
         ...objectMap(hydratedInfos, (newHydratedInfo, idoid) => ({
           ...s.idoHydratedInfos[idoid],
-          ...newHydratedInfo
+          ...objectShakeNil(newHydratedInfo)
         }))
       }
     }))
@@ -152,7 +152,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
           ...s.idoHydratedInfos,
           ...objectMap(hydratedInfos, (newHydratedInfo, idoid) => ({
             ...s.idoHydratedInfos[idoid],
-            ...newHydratedInfo
+            ...objectShakeNil(newHydratedInfo)
           }))
         }
       }))
