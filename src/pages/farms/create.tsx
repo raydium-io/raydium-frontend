@@ -1,4 +1,4 @@
-import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import useCreateFarms, { CreateFarmStore } from '@/application/createFarm/useCreateFarm'
 import { routeTo } from '@/application/routeTools'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -7,6 +7,7 @@ import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSel
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import FadeInStable from '@/components/FadeIn'
+import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Link from '@/components/Link'
@@ -60,6 +61,9 @@ function WarningBoard({ className }: { className: string }) {
 
 function SearchBlock() {
   const searchPoolId = useCreateFarms((s) => s.searchPoolId)
+
+  // const [poolLabel, setPoolLabel] = useState('')
+
   return (
     <Input
       value={searchPoolId}
@@ -69,6 +73,7 @@ function SearchBlock() {
       placeholder="Search for a pool or paste AMM ID"
       onUserInput={(searchText) => {
         // useFarms.setState({ searchText })
+        useCreateFarms.setState({ searchPoolId: searchText })
       }}
     />
   )
@@ -96,6 +101,37 @@ function FormStep({
         <div className="mb-16">{children}</div>
       </Col>
     </Row>
+  )
+}
+
+function RewardSettingsCard({
+  reward,
+  idx,
+  rewards
+}: {
+  reward: CreateFarmStore['rewards'][number]
+  idx: number
+  rewards: CreateFarmStore['rewards']
+}) {
+  return (
+    <Card
+      className="grid gap-4 p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]"
+      size="lg"
+    >
+      <CoinInputBoxWithTokenSelector
+        haveHalfButton
+        topLeftLabel="Assert"
+        token={reward.token}
+        onSelectCoin={(token) => {
+          useCreateFarms.setState({
+            rewards: produce(rewards, (draft) => {
+              draft[idx].token = token
+            })
+          })
+        }}
+      />
+      <CoinInputBox />
+    </Card>
   )
 }
 
@@ -127,24 +163,11 @@ export default function CreateFarmPage() {
               </>
             }
           >
-            <Card
-              className="grid gap-2 p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]"
-              size="lg"
-            >
-              <CoinInputBoxWithTokenSelector
-                haveHalfButton
-                topLeftLabel="Assert"
-                token={rewards[0].token}
-                onSelectCoin={(token) => {
-                  useCreateFarms.setState({
-                    rewards: produce(rewards, (draft) => {
-                      draft[0].token = token
-                    })
-                  })
-                }}
-              />
-              <CoinInputBox />
-            </Card>
+            <Grid>
+              {rewards.map((reward, index) => (
+                <RewardSettingsCard key={index} rewards={rewards} reward={reward} idx={index} />
+              ))}
+            </Grid>
           </FormStep>
         </div>
 
