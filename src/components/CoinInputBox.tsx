@@ -215,12 +215,7 @@ export default function CoinInputBox({
       htmlPorps={{
         tabIndex: 0
       }}
-      onClick={({ target }) => {
-        const isClickSelf = target === domRef?.current
-        if (isClickSelf) {
-          focusInput()
-        }
-      }}
+      onClick={focusInput}
     >
       {/* from&balance */}
       <Row className="justify-between mb-2 mobile:mb-4">
