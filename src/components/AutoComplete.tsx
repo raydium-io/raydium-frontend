@@ -1,8 +1,9 @@
 import { isString } from '@/functions/judgers/dateType'
+import { inClient } from '@/functions/judgers/isSSR'
 import { mergeFunction } from '@/functions/merge'
 import mergeRef from '@/functions/react/mergeRef'
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import { Fragment, ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import Card from './Card'
 import Input, { InputProps } from './Input'
 import Popover, { PopoverHandles } from './Popover'
@@ -13,6 +14,7 @@ export type AutoCompleteCandidateItem =
       /**
        * for search
        * for item ui (if `renderCandidateItem` is not defined)
+       * for filled text of `<Input>`
        */
       label?: string
       /** for React list key */
@@ -35,7 +37,13 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
   const inputRef = useRef<HTMLInputElement>(null)
   const [inputWidth, setInputWidth] = useState<number>()
   useEffect(() => {
-    setInputWidth(inputRef.current?.clientWidth)
+    const resizeObserver = new ResizeObserver(() => {
+      setInputWidth(inputRef.current?.clientWidth)
+    })
+    if (inClient && inputRef.current) {
+      resizeObserver.observe(inputRef.current)
+      return () => resizeObserver.disconnect()
+    }
   }, [])
 
   // handle candidates
@@ -59,9 +67,15 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
       {filtered?.length ? (
         filtered.map((candidate, idx, candidates) =>
           candidate ? (
-            <Fragment key={isString(candidate) ? candidate : candidate.id ?? `${idx}_${candidate.label}`}>
+            <div
+              key={isString(candidate) ? candidate : candidate.id ?? `${idx}_${candidate.label}`}
+              className="clickable border-[#abc4ff1a]" /* divide-[#abc4ff1a] is not very stable */
+              onClick={() => {
+                setSearchText(isString(candidate) ? candidate : candidate.label)
+              }}
+            >
               {createLabelNode(candidate, idx, candidates, renderCandidateItem)}
-            </Fragment>
+            </div>
           ) : null
         )
       ) : (
@@ -76,6 +90,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
           {...restProps}
           {...restProps.inputProps}
           domRef={mergeRef(inputRef, restProps.domRef, restProps.inputProps?.domRef)}
+          value={searchText}
           onUserInput={mergeFunction(
             (text) => {
               setSearchText(text)

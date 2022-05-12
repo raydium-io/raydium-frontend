@@ -84,7 +84,10 @@ function SearchBlock() {
         .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
         .map((pool) => ({
           ...pool,
-          label: `${tokens[pool.baseMint]?.symbol}-${tokens[pool.quoteMint]?.symbol}`
+          label: `${tokens[pool.baseMint]?.symbol}-${tokens[pool.quoteMint]?.symbol} (${pool.id.slice(
+            0,
+            4
+          )}...${pool.id.slice(-4)})`
         }))}
       renderCandidateItem={(i) => (
         <Row className="py-3 items-center gap-2">
