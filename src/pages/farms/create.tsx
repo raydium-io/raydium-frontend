@@ -4,9 +4,11 @@ import useLiquidity from '@/application/liquidity/useLiquidity'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
 import AutoComplete from '@/components/AutoComplete'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
@@ -84,6 +86,17 @@ function SearchBlock() {
           ...pool,
           label: `${tokens[pool.baseMint]?.symbol}-${tokens[pool.quoteMint]?.symbol}`
         }))}
+      renderCandidateItem={(i) => (
+        <Row className="py-3 items-center gap-2">
+          <CoinAvatarPair token1={tokens[i.baseMint]} token2={tokens[i.quoteMint]} />
+          <div className="text-[#abc4ff] font-medium">
+            {tokens[i.baseMint]?.symbol}-{tokens[i.quoteMint]?.symbol}
+          </div>
+          <AddressItem showDigitCount={8} className="text-[#abc4ff80] text-xs ml-auto">
+            {i.id}
+          </AddressItem>
+        </Row>
+      )}
       value={poolId}
       className="p-4 py-3 gap-2 bg-[#141041] rounded-xl min-w-[7em]"
       inputClassName="font-medium mobile:text-xs text-[#abc4ff] placeholder-[#abc4Ff80]"

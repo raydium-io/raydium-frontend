@@ -19,12 +19,9 @@ export function ThreeSlotItem({
   onClick?(): void
 }) {
   return (
-    <Row
-      className={twMerge('cursor-pointer clickable clickable-filter-effect items-center', className)}
-      onClick={onClick}
-    >
+    <Row className={twMerge('items-center', className)} onClick={onClick}>
       {prefix}
-      <div className={twMerge('text-white text-sm whitespace-nowrap', textClassName)}>{text}</div>
+      <div className={twMerge('text-sm whitespace-nowrap', textClassName)}>{text}</div>
       {suffix}
     </Row>
   )

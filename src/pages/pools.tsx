@@ -96,7 +96,7 @@ function ToolsButton({ className }: { className?: string }) {
         <Popover.Panel>
           <div>
             <Card
-              className="flex flex-col backdrop-filter backdrop-blur-xl py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
+              className="flex flex-col py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
               size="lg"
             >
               <Grid className="grid-cols-1 items-center gap-2">

@@ -38,12 +38,17 @@ export default function WalletWidget() {
           </div>
           <div className="gap-3 divide-y-1.5">
             <FadeIn ignoreEnterTransition>
-              <AddressItem showDigitCount={7} className="py-4 px-6 border-[rgba(171,196,255,0.2)]">
+              <AddressItem
+                textClassName="text-white"
+                showDigitCount={7}
+                className="py-4 px-6 border-[rgba(171,196,255,0.2)]"
+              >
                 {publicKey}
               </AddressItem>
             </FadeIn>
             <ThreeSlotItem
-              className="py-4 px-6 border-[rgba(171,196,255,0.2)]"
+              textClassName="text-white"
+              className="py-4 px-6 border-[rgba(171,196,255,0.2)] cursor-pointer clickable clickable-filter-effect"
               prefix={<Icon className="mr-3" size="sm" iconSrc="/icons/misc-recent-transactions.svg" />}
               text="Recent Transactions"
               onClick={() => {
@@ -52,7 +57,8 @@ export default function WalletWidget() {
               }}
             />
             <ThreeSlotItem
-              className="py-4 px-6 border-[rgba(171,196,255,0.2)]"
+              textClassName="text-white"
+              className="py-4 px-6 border-[rgba(171,196,255,0.2)] cursor-pointer clickable clickable-filter-effect"
               prefix={<Icon className="mr-3" size="sm" iconSrc="/icons/misc-disconnect-wallet.svg" />}
               text="Disconnect wallet"
               onClick={() => {

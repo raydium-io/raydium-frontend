@@ -19,13 +19,13 @@ export function usePopoverTrigger(
     triggerDelay?: number
     closeDelay?: number
     /** @default click */
-    triggerBy?: 'hover' | 'click'
+    triggerBy?: 'hover' | 'click' | 'click-hover'
   }
 ): { isPanelShowed: boolean; controls: { off(): void; on(): void; toggle(): void } } {
   const { closeDelay = 600, triggerBy = 'click', triggerDelay, disabled } = options ?? {}
 
   const [isPanelShowed, { toggle, on, delayOff, off }] = useToggle(false, { delay: closeDelay })
-  useClick(buttonRef, { disable: disabled || triggerBy === 'hover', onClick: toggle })
+  useClick(buttonRef, { disable: disabled || triggerBy === 'hover' || isPanelShowed, onClick: on })
   useHover(buttonRef, {
     disable: disabled || triggerBy === 'click',
     triggerDelay,
@@ -38,7 +38,7 @@ export function usePopoverTrigger(
     onHoverEnd: delayOff
   })
   useClickOutside([panelRef, buttonRef], {
-    disable: disabled || triggerBy === 'hover',
+    disable: disabled || triggerBy === 'hover' || !isPanelShowed,
     onClickOutSide: () => {
       if (isPanelShowed) off()
     }

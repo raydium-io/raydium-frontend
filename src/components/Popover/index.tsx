@@ -130,7 +130,6 @@ export default function Popover({
   closeDelay,
   canOpen = true,
   componentRef,
-
   cornerOffset,
   popoverGap,
   viewportBoundaryInset
