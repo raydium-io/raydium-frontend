@@ -99,11 +99,21 @@ export function formatDate(
 }
 export function offsetDateTime(
   baseDate: DateParam,
-  offset: number,
-  options: { unit: 'minutes' | 'seconds' | 'milliseconds' }
+  offset: {
+    days?: number
+    hours?: number
+    minutes?: number
+    seconds?: number
+    milliseconds?: number
+  }
 ) {
   const timestamp = getTime(baseDate)
   const offsetedTimestamp =
-    timestamp + (options.unit === 'minutes' ? offset * 60 * 1000 : options.unit === 'seconds' ? offset * 1000 : offset)
+    timestamp +
+    (offset.days ? offset.days * 24 * 60 * 60 * 1000 : 0) +
+    (offset.hours ? offset.hours * 60 * 60 * 1000 : 0) +
+    (offset.minutes ? offset.minutes * 60 * 1000 : 0) +
+    (offset.seconds ? offset.seconds * 1000 : 0) +
+    (offset.milliseconds ? offset.milliseconds : 0)
   return getDate(offsetedTimestamp)
 }

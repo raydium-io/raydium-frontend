@@ -16,6 +16,7 @@ import InputBox from '@/components/InputBox'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
+import { offsetDateTime } from '@/functions/date/dateFormat'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
 import { div, mul } from '@/functions/numberish/operations'
@@ -121,10 +122,11 @@ function RewardSettingsCard({
   idx: number
   rewards: CreateFarmStore['rewards']
 }) {
-  const durationDays = useMemo(() => {
-    if (!reward.endTime) return
-    return parseDurationAbsolute(reward.endTime.getTime() - (reward.startTime?.getTime() ?? Date.now())).days
-  }, [reward])
+  const durationDays = reward.endTime
+    ? parseDurationAbsolute(reward.endTime.getTime() - (reward.startTime?.getTime() ?? Date.now())).days
+    : undefined
+
+  const estimatedValue = reward.amount && durationDays ? div(reward.amount, durationDays) : undefined
   return (
     <Card
       className="grid gap-3 p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]"
@@ -159,6 +161,7 @@ function RewardSettingsCard({
             placeholder: '(now)',
             inputClassName: 'text-[#abc4ff] text-xs font-medium'
           }}
+          value={reward.startTime}
           onDateChange={(selectedDate) =>
             useCreateFarms.setState({
               rewards: produce(rewards, (draft) => {
@@ -169,11 +172,12 @@ function RewardSettingsCard({
         />
 
         <DateInput
-          className=" grow"
+          className="grow"
           label="Farming Ends"
           inputProps={{
             inputClassName: 'text-[#abc4ff] text-xs font-medium'
           }}
+          value={reward.endTime}
           onDateChange={(selectedDate) =>
             useCreateFarms.setState({
               rewards: produce(rewards, (draft) => {
@@ -184,27 +188,33 @@ function RewardSettingsCard({
         />
 
         <InputBox
+          decimalMode
           className="py-3 px-3"
-          cannotInput
           label="Days"
-          renderInput={() => (
-            <div className="mobile:text-sm text-base text-white text-center font-medium py-1">
-              {durationDays ? trimTailingZero(formatNumber(durationDays, { fractionLength: 1 })) : '--'}
-            </div>
-          )}
+          inputClassName="w-12"
+          value={durationDays && trimTailingZero(formatNumber(durationDays, { fractionLength: 1 }))}
+          onUserInput={(v) => {
+            if (v) {
+              useCreateFarms.setState({
+                rewards: produce(rewards, (draft) => {
+                  draft[idx].endTime = offsetDateTime(reward.startTime ?? Date.now(), { days: Number(v) })
+                })
+              })
+            }
+          }}
         />
       </Row>
 
       <InputBox
         decimalMode
-        floating={0.001}
+        floating
         label="Estimated rewards per day"
-        value={reward.amount && durationDays ? div(reward.amount, durationDays) : undefined}
+        value={estimatedValue}
         onUserInput={(v) => {
           if (!durationDays) return
           useCreateFarms.setState({
             rewards: produce(rewards, (draft) => {
-              draft[idx].amount = mul(v, durationDays)
+              draft[idx].amount = mul(durationDays, v)
             })
           })
         }}

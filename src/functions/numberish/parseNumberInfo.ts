@@ -26,7 +26,7 @@ export default function parseNumberInfo(n: Numberish | undefined): {
   }
 
   const s = String(n)
-  const [, sign = '', int = '', dec = ''] = s.match(/(-?)(\d*)\.?(\d*)/) ?? []
+  const [, sign = '', int = '', dec = ''] = s.replace(',', '').match(/(-?)(\d*)\.?(\d*)/) ?? []
   const denominator = '1' + '0'.repeat(dec.length)
   const numerator = sign + (int === '0' ? '' : int) + dec || '0'
   return { denominator, numerator, sign, int, dec }

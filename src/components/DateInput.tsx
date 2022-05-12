@@ -11,21 +11,27 @@ import Popover from './Popover'
 import './DatePicker.css'
 import { twMerge } from 'tailwind-merge'
 
-export default function DateInput({
-  defaultCurrentDate,
-  className,
-  label,
-  labelClassName,
-  inputProps,
-  onDateChange
-}: {
-  defaultCurrentDate?: Date
+export type DateInputProps = {
   className?: string
   label?: string
   labelClassName?: string
   inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
   onDateChange?(selectedDate: Date | undefined): void
-}) {
+} & Omit<InputProps, 'value' | 'defaultValue'> & {
+    value?: Date
+    defaultValue?: Date
+  }
+
+export default function DateInput({
+  value,
+  defaultValue,
+
+  className,
+  label,
+  labelClassName,
+  inputProps,
+  onDateChange
+}: DateInputProps) {
   return (
     <InputBox
       className={className}
@@ -35,7 +41,8 @@ export default function DateInput({
         <DateInputBody
           inputProps={inputProps}
           onDateChange={onDateChange}
-          defaultValue={defaultCurrentDate}
+          defaultValue={defaultValue}
+          value={value}
         ></DateInputBody>
       }
     />
@@ -60,9 +67,6 @@ function DateInputBody({ value, defaultValue, className, onDateChange, inputProp
     setCurrentDate(value)
   }, [value])
 
-  useEffect(() => {
-    onDateChange?.(currentDate)
-  }, [currentDate])
   return (
     <Popover placement="top" className={className} cornerOffset={20}>
       <Popover.Button>
@@ -74,7 +78,10 @@ function DateInputBody({ value, defaultValue, className, onDateChange, inputProp
           )}
           value={currentDate ? toUTC(currentDate, { showSeconds: true }) : undefined}
           onUserInput={(text) => {
-            if (!text) setCurrentDate(undefined)
+            if (!text) {
+              setCurrentDate(undefined)
+              onDateChange?.(undefined)
+            }
           }}
         />
       </Popover.Button>
@@ -86,16 +93,17 @@ function DateInputBody({ value, defaultValue, className, onDateChange, inputProp
           monthLabel={['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']}
           date={
             currentDate && currentTimezoneOffset
-              ? offsetDateTime(currentDate, currentTimezoneOffset, { unit: 'minutes' })
+              ? offsetDateTime(currentDate, { minutes: currentTimezoneOffset })
               : currentDate
           }
           todayButton="today"
           onChange={(selectedDate) => {
             const newDate =
               selectedDate && currentTimezoneOffset
-                ? offsetDateTime(selectedDate, -currentTimezoneOffset, { unit: 'minutes' })
+                ? offsetDateTime(selectedDate, { minutes: -currentTimezoneOffset })
                 : selectedDate
             setCurrentDate(newDate)
+            onDateChange?.(newDate)
           }}
           lang="en"
         />
