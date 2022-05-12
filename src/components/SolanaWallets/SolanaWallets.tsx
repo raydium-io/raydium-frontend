@@ -3,12 +3,26 @@ import { useRouter } from 'next/router'
 
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
 import {
-  BitKeepWalletAdapter, BitpieWalletAdapter, CloverWalletAdapter, Coin98WalletAdapter, CoinhubWalletAdapter,
-  ExodusWalletAdapter, GlowWalletAdapter, LedgerWalletAdapter, MathWalletAdapter, PhantomWalletAdapter,
-  SafePalWalletAdapter, SlopeWalletAdapter, SolflareWalletAdapter, SolletExtensionWalletAdapter, SolletWalletAdapter,
-  SolongWalletAdapter, TokenPocketWalletAdapter, TorusWalletAdapter
+  BitKeepWalletAdapter,
+  BitpieWalletAdapter,
+  CloverWalletAdapter,
+  Coin98WalletAdapter,
+  CoinhubWalletAdapter,
+  ExodusWalletAdapter,
+  GlowWalletAdapter,
+  LedgerWalletAdapter,
+  MathWalletAdapter,
+  PhantomWalletAdapter,
+  SafePalWalletAdapter,
+  SlopeWalletAdapter,
+  SolflareWalletAdapter,
+  SolletExtensionWalletAdapter,
+  SolletWalletAdapter,
+  SolongWalletAdapter,
+  TorusWalletAdapter
 } from '@solana/wallet-adapter-wallets'
 import { clusterApiUrl } from '@solana/web3.js'
+import { TokenPocketWalletAdapter } from '@solana/wallet-adapter-tokenpocket'
 
 import useConnection from '@/application/connection/useConnection'
 
