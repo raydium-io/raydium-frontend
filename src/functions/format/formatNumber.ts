@@ -1,7 +1,8 @@
-import { StringNumber } from '@/types/constants'
+import { Numberish, StringNumber } from '@/types/constants'
 
 import fall from '../fall'
 import { toFixed } from '../numberish/stringNumber'
+import { toString } from '../numberish/toString'
 
 export type FormatOptions = {
   /**
@@ -39,12 +40,13 @@ export type FormatOptions = {
  * formatNumber(100.1234, { fractionLength: 3 }) // result: '100.123'
  */
 export default function formatNumber(
-  n: StringNumber | { toString(): string } | undefined,
+  n: Numberish | null | undefined,
   { groupSeparator = ',', fractionLength = 2, groupSize = 3 }: FormatOptions = {}
 ): string {
   if (n === undefined) return '0'
   return fall(n, [
-    (n) => (fractionLength === 'auto' ? String(n) : toFixed(String(n), fractionLength)),
+    (n) => toString(n),
+    (n) => (fractionLength === 'auto' ? n : toFixed(n, fractionLength)),
     (str) => {
       const [, sign = '', int = '', dec = ''] = str.match(/(-?)(\d*)\.?(\d*)/) ?? []
       const newIntegerPart = [...int].reduceRight((acc, cur, idx, strN) => {

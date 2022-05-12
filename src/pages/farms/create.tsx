@@ -23,7 +23,7 @@ import { div, mul } from '@/functions/numberish/operations'
 import { trimTailingZero } from '@/functions/numberish/stringNumber'
 import { toString } from '@/functions/numberish/toString'
 import produce from 'immer'
-import { ReactNode, useMemo, useState } from 'react'
+import { ReactNode, useState } from 'react'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -69,7 +69,7 @@ function WarningBoard({ className }: { className: string }) {
 }
 
 function SearchBlock() {
-  const searchPoolId = useCreateFarms((s) => s.searchPoolId)
+  const searchPoolId = useCreateFarms((s) => s.poolId)
 
   // const [poolLabel, setPoolLabel] = useState('')
 
@@ -82,7 +82,7 @@ function SearchBlock() {
       placeholder="Search for a pool or paste AMM ID"
       onUserInput={(searchText) => {
         // useFarms.setState({ searchText })
-        useCreateFarms.setState({ searchPoolId: searchText })
+        useCreateFarms.setState({ poolId: searchText })
       }}
     />
   )

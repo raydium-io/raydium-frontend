@@ -4,7 +4,7 @@ import create from 'zustand'
 import { SplToken } from '../token/type'
 
 export type CreateFarmStore = {
-  searchPoolId?: string
+  poolId?: string
   rewards: {
     token?: SplToken
     amount?: Numberish
