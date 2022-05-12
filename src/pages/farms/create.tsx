@@ -1,7 +1,10 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useCreateFarms, { CreateFarmStore } from '@/application/createFarm/useCreateFarm'
+import useLiquidity from '@/application/liquidity/useLiquidity'
 import { routeTo } from '@/application/routeTools'
+import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
+import AutoComplete from '@/components/AutoComplete'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
@@ -69,13 +72,19 @@ function WarningBoard({ className }: { className: string }) {
 }
 
 function SearchBlock() {
-  const searchPoolId = useCreateFarms((s) => s.poolId)
-
-  // const [poolLabel, setPoolLabel] = useState('')
+  const poolId = useCreateFarms((s) => s.poolId)
+  const liquidityPools = useLiquidity((s) => s.jsonInfos)
+  const tokens = useToken((s) => s.tokens)
 
   return (
-    <Input
-      value={searchPoolId}
+    <AutoComplete
+      candidates={liquidityPools
+        .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
+        .map((pool) => ({
+          ...pool,
+          label: `${tokens[pool.baseMint]?.symbol}-${tokens[pool.quoteMint]?.symbol}`
+        }))}
+      value={poolId}
       className="p-4 py-3 gap-2 bg-[#141041] rounded-xl min-w-[7em]"
       inputClassName="font-medium mobile:text-xs text-[#abc4ff] placeholder-[#abc4Ff80]"
       suffix={<Icon heroIconName="search" className="text-[rgba(196,214,255,0.5)]" />}
@@ -87,7 +96,6 @@ function SearchBlock() {
     />
   )
 }
-
 function FormStep({
   stepNumber,
   title,
@@ -208,7 +216,7 @@ function RewardSettingsCard({
       <InputBox
         decimalMode
         floating
-        label="Estimated rewards per day"
+        label="Estimated rewards / day"
         value={estimatedValue}
         onUserInput={(v) => {
           if (!durationDays) return
@@ -218,7 +226,7 @@ function RewardSettingsCard({
             })
           })
         }}
-        suffix={reward.token && <div>{reward.token.symbol} per day</div>}
+        suffix={reward.token && durationDays && durationDays > 0 ? <div>{reward.token.symbol} / day</div> : undefined}
       />
     </Card>
   )

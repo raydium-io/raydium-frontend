@@ -5,16 +5,17 @@ import React, {
   ReactNode,
   RefObject,
   useEffect,
+  useImperativeHandle,
   useRef,
   useState
 } from 'react'
-import ReactDOM, { createPortal } from 'react-dom'
+import { createPortal } from 'react-dom'
 
 import { Transition } from '@headlessui/react'
 
 import { twMerge } from 'tailwind-merge'
 
-import { inClient, inServer } from '@/functions/judgers/isSSR'
+import { inClient } from '@/functions/judgers/isSSR'
 import addPropsToReactElement from '@/functions/react/addPropsToReactElement'
 import { pickReactChild } from '@/functions/react/pickChild'
 import { shrinkToValue } from '@/functions/shrinkToValue'
@@ -23,8 +24,7 @@ import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { MayFunction } from '@/types/constants'
 
 import { PopupLocationInfo, usePopoverLocation } from './useLocationCalculator'
-import { usePopoverTrigger } from './usePopoverTrigger'
-import dynamic from 'next/dynamic'
+import { PopoverTriggerControls, usePopoverTrigger } from './usePopoverTrigger'
 
 export type PopoverPlacement =
   | 'left'
@@ -50,7 +50,7 @@ export interface PopoverProps {
   /** usually it's for debug */
   forceOpen?: boolean
   canOpen?: boolean
-
+  componentRef?: RefObject<any>
   placement?: PopoverPlacement
   /** for corner placement like 'top-left' 'top-right etc. */
   cornerOffset?: number
@@ -116,6 +116,10 @@ const PopoverStackPortal = ({ children }) => {
     : null
 }
 
+export type PopoverHandles = {
+  isPanelShowed: boolean
+} & PopoverTriggerControls
+
 export default function Popover({
   className,
   children,
@@ -125,6 +129,8 @@ export default function Popover({
   triggerDelay,
   closeDelay,
   canOpen = true,
+  componentRef,
+
   cornerOffset,
   popoverGap,
   viewportBoundaryInset
@@ -152,6 +158,8 @@ export default function Popover({
     popoverGap,
     viewportBoundaryInset
   })
+
+  useImperativeHandle(componentRef, () => ({ ...controls, isPanelShowed } as PopoverHandles))
 
   useIsomorphicLayoutEffect(() => {
     if (isPanelShowed && isPanelRefReady) {

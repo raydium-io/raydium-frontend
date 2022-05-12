@@ -21,7 +21,7 @@ export default function Card({ size = 'md', domRef, children, style, onClick, cl
   return (
     <div
       {...htmlProps}
-      className={twMerge(`Card ${size === 'lg' ? 'rounded-3xl' : 'rounded-md'} ${className ?? ''}`)}
+      className={twMerge(`Card ${size === 'lg' ? 'rounded-3xl' : 'rounded-xl'} ${className ?? ''}`)}
       ref={mergeRef(domRef as RefObject<HTMLDivElement>, clickRef)}
       style={style}
     >
