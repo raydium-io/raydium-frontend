@@ -19,10 +19,11 @@ import { MayArray, MayFunction, BooleanLike } from '@/types/constants'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import mergeProps from '@/functions/react/mergeProps'
 
-export interface InputHandler {
+export interface InputComponentHandler {
+  text: string | number | undefined
   focus(): void
   blur(): void
-  setInputValue(value: string): void
+  setInputText(value: string | number | undefined, options?: { isUserInput?: boolean }): void
   clearInputValue(): void
 }
 
@@ -56,19 +57,19 @@ export interface InputProps {
   /** must all condition passed (one by one) */
   validators?: MayArray<{
     /** expression must return true to pass this validator */
-    should: MayFunction<boolean, [text: string, payload: { el: HTMLInputElement; control: InputHandler }]>
+    should: MayFunction<boolean, [text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }]>
     /**  items are button's setting which will apply when corresponding validator has failed */
     validProps?: Omit<InputProps, 'validators' | 'disabled'>
     invalidProps?: Omit<InputProps, 'validators' | 'disabled'>
-    onValid?: (text: string, payload: { el: HTMLInputElement; control: InputHandler }) => void
-    onInvalid?: (text: string, payload: { el: HTMLInputElement; control: InputHandler }) => void
+    onValid?: (text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }) => void
+    onInvalid?: (text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }) => void
   }>
 
   /** Optional. usually, it is an <Input>'s icon */
-  prefix?: ReactNode
+  prefix?: MayFunction<ReactNode, [InputComponentHandler]>
 
   /** Optional. usually, it is an <Input>'s unit or feature icon */
-  suffix?: ReactNode
+  suffix?: MayFunction<ReactNode, [InputComponentHandler]>
 
   domRef?: RefObject<any>
   className?: string
@@ -86,9 +87,9 @@ export interface InputProps {
    */
   onDangerousValueChange?: (currentValue: string, el: HTMLInputElement) => void
   onUserInput?: (text: string, el: HTMLInputElement) => void
-  onClick?: (text: string, payload: { el: HTMLInputElement; control: InputHandler }) => void
-  onEnter?: (text: string, payload: { el: HTMLInputElement; control: InputHandler }) => void
-  onBlur?: (text: string, payload: { el: HTMLInputElement; control: InputHandler }) => void
+  onClick?: (text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }) => void
+  onEnter?: (text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }) => void
+  onBlur?: (text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }) => void
 }
 
 /**
@@ -154,22 +155,26 @@ export default function Input(props: InputProps) {
   // if user is inputing or just input, no need to update upon out-side value
   const [isOutsideValueLocked, { on: lockOutsideValue, off: unlockOutsideValue }] = useToggle()
 
-  const inputControls: InputHandler = {
+  const inputValue = isOutsideValueLocked ? selfValue ?? value : value ?? selfValue
+  const inputComponentHandler: InputComponentHandler = {
+    text: inputValue,
     focus() {
       inputRef?.current?.focus()
     },
     blur() {
       inputRef?.current?.blur()
     },
-    setInputValue(value: string | number) {
-      setSelfValue(String(value))
+    setInputText(value, options) {
+      const text = String(value ?? '')
+      setSelfValue(text)
+      if (options?.isUserInput) onUserInput?.(text, inputRef.current!)
     },
     clearInputValue() {
       setSelfValue('')
     }
   }
 
-  useImperativeHandle(componentRef, () => inputControls)
+  useImperativeHandle(componentRef, () => inputComponentHandler)
 
   return (
     <Row
@@ -177,12 +182,12 @@ export default function Input(props: InputProps) {
       onClick={() => {
         if (disabled || !inputRef.current) return
         inputRef.current.focus()
-        onClick?.(String(selfValue), { el: inputRef.current, control: inputControls })
+        onClick?.(String(selfValue), { el: inputRef.current, control: inputComponentHandler })
       }}
       style={style}
       domRef={domRef}
     >
-      <div className="flex-initial">{prefix}</div>
+      <div className="flex-initial">{shrinkToValue(prefix, [inputComponentHandler])}</div>
 
       {/* input-wrapperbox is for style input inner body easier */}
       <div className={twMerge('flex-grow flex-shrink', inputWrapperClassName)}>
@@ -192,7 +197,7 @@ export default function Input(props: InputProps) {
           type={type}
           ref={mergeRef(inputRef, inputDomRef)}
           className={`bg-transparent border-none w-full outline-none block ${inputClassName ?? ''}`} // start html input with only 2rem, if need width please define it in parent div
-          value={isOutsideValueLocked ? selfValue ?? value : value ?? selfValue}
+          value={inputValue}
           placeholder={placeholder ? String(placeholder) : undefined}
           disabled={disabled}
           onChange={(ev) => {
@@ -206,15 +211,18 @@ export default function Input(props: InputProps) {
               // all validators must be true
               for (const validator of [validators].flat()) {
                 const passed = Boolean(
-                  shrinkToValue(validator.should, [inputText, { el: inputRef.current!, control: inputControls }])
+                  shrinkToValue(validator.should, [
+                    inputText,
+                    { el: inputRef.current!, control: inputComponentHandler }
+                  ])
                 )
                 if (passed) {
                   setFallbackProps(validator.validProps ?? {})
-                  validator.onValid?.(inputText, { el: inputRef.current!, control: inputControls })
+                  validator.onValid?.(inputText, { el: inputRef.current!, control: inputComponentHandler })
                 }
                 if (!passed) {
                   setFallbackProps(validator.invalidProps ?? {})
-                  validator.onInvalid?.(inputText, { el: inputRef.current!, control: inputControls })
+                  validator.onInvalid?.(inputText, { el: inputRef.current!, control: inputComponentHandler })
                 }
               }
             }
@@ -224,11 +232,14 @@ export default function Input(props: InputProps) {
           }}
           onBlur={() => {
             unlockOutsideValue()
-            onBlur?.(String(selfValue), { el: inputRef.current!, control: inputControls })
+            onBlur?.(String(selfValue), { el: inputRef.current!, control: inputComponentHandler })
           }}
           onKeyDown={(ev) => {
             if (ev.key === 'Enter') {
-              onEnter?.((ev.target as HTMLInputElement).value, { el: inputRef.current!, control: inputControls })
+              onEnter?.((ev.target as HTMLInputElement).value, {
+                el: inputRef.current!,
+                control: inputComponentHandler
+              })
             }
           }}
           aria-label={labelText}
@@ -236,7 +247,7 @@ export default function Input(props: InputProps) {
           {...inputHTMLProps}
         />
       </div>
-      {suffix && <div className="flex-initial ml-2">{suffix}</div>}
+      {suffix && <div className="flex-initial ml-2">{shrinkToValue(suffix, [inputComponentHandler])}</div>}
     </Row>
   )
 }

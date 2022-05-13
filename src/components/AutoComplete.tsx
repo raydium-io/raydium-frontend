@@ -1,3 +1,4 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
 import { isString } from '@/functions/judgers/dateType'
 import { inClient } from '@/functions/judgers/isSSR'
 import { mergeFunction } from '@/functions/merge'
@@ -5,7 +6,8 @@ import mergeRef from '@/functions/react/mergeRef'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import Card from './Card'
-import Input, { InputHandler, InputProps } from './Input'
+import Icon from './Icon'
+import Input, { InputComponentHandler, InputProps } from './Input'
 import Popover, { PopoverHandles } from './Popover'
 
 export type AutoCompleteCandidateItem =
@@ -45,9 +47,11 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
   onBlurMatchedFailed,
   ...restProps
 }: AutoCompleteProps<T>) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+
   // card should have same width as <Input>
   const inputWrapperRef = useRef<HTMLElement>(null)
-  const inputComponentRef = useRef<InputHandler>(null)
+  const inputComponentRef = useRef<InputComponentHandler>(null)
   const [inputWidth, setInputWidth] = useState<number>()
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
@@ -92,7 +96,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
     setCurrentCandidateIdx(idx)
     onSelectCandiateItem?.({ selected: targetCandidate, idx: idx })
     const labelString = isString(targetCandidate) ? targetCandidate : targetCandidate.label
-    inputComponentRef.current?.setInputValue(labelString)
+    inputComponentRef.current?.setInputText(labelString)
     setSearchText(labelString)
   }
 
@@ -137,6 +141,22 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
           domRef={mergeRef(inputWrapperRef, restProps.domRef, restProps.inputProps?.domRef)}
           componentRef={inputComponentRef}
           value={searchText}
+          suffix={(handler) =>
+            handler.text ? (
+              <Icon
+                heroIconName="x"
+                size={isMobile ? 'xs' : 'sm'}
+                className={`text-[rgba(196,214,255,0.5)] transition clickable ${
+                  handler.text ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                }`}
+                onClick={() => {
+                  handler.setInputText('', { isUserInput: true })
+                }}
+              />
+            ) : (
+              shrinkToValue(restProps.inputProps?.suffix ?? restProps.suffix, [handler])
+            )
+          }
           onUserInput={mergeFunction(
             (text) => {
               setSearchText(text)
@@ -158,15 +178,6 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
           }}
           inputHTMLProps={{
             onKeyDown: (e) => {
-              // if (e.key === 'Tab') {
-              //   if (!filtered) return
-              //   if (e.shiftKey) {
-              //     setCurrentCandidateIdx((s) => Math.max((s ?? 0) - 1, 0))
-              //   } else {
-              //     setCurrentCandidateIdx((s) => Math.min((s ?? 0) + 1, filtered.length - 1))
-              //   }
-              //   e.preventDefault()
-              // } else
               if (e.key === 'ArrowUp') {
                 if (!filtered) return
                 setCurrentCandidateIdx((s) => Math.max((s ?? 0) - 1, 0))
