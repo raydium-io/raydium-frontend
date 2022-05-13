@@ -59,7 +59,8 @@ export function AddressItem({
           heroIconName="clipboard-copy"
         />
       }
-      onClick={() => {
+      onClick={(ev) => {
+        ev.stopPropagation()
         if (!isCopied) copyToClipboard(toPubString(publicKey)).then(on)
       }}
     />

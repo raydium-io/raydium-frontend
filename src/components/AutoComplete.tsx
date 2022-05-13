@@ -12,11 +12,13 @@ export type AutoCompleteCandidateItem =
   | string
   | {
       /**
-       * for search
+       * for search (if not inner search property is provided )
        * for item ui (if `renderCandidateItem` is not defined)
        * for filled text of `<Input>`
        */
       label: string
+
+      searchText?: string
       /** for React list key */
       id?: string
     }
@@ -30,16 +32,17 @@ export type AutoCompleteProps<T extends AutoCompleteCandidateItem | undefined> =
     isSelected: boolean
   }) => ReactNode
   renderCandidatePanelCard?: (payloads: { children: ReactNode; candidates: T[] | undefined }) => ReactNode
-  onSelectCandiateItem?: (payloads: { selected: T; idx: number; candidates: T[] | undefined }) => void
-} & (Omit<InputProps, 'onUserInput' /* use onSelectCandiateItem instead */> & {
-  inputProps?: Omit<InputProps, 'onUserInput' /* use onSelectCandiateItem instead */>
-})
+  // when blur from `<AutoComplete>` this fn will also invoked
+  onSelectCandiateItem?: (payloads: { selected: T; idx: number }) => void
+  onBlurMatchedFailed?: () => void
+} & (InputProps & { inputProps?: InputProps })
 
 export default function AutoComplete<T extends AutoCompleteCandidateItem | undefined>({
   candidates,
   renderCandidateItem,
   renderCandidatePanelCard,
   onSelectCandiateItem,
+  onBlurMatchedFailed,
   ...restProps
 }: AutoCompleteProps<T>) {
   // card should have same width as <Input>
@@ -65,7 +68,11 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
       if (!searchText) return true
 
       const lowercasedSearchText = searchText?.toLowerCase()
-      const candidateText = (isString(candidate) ? candidate : candidate.label)?.toLowerCase() ?? ''
+      const candidateText =
+        (isString(candidate)
+          ? candidate
+          : candidate.searchText ?? candidate.label + ' ' + candidate.id
+        )?.toLowerCase() ?? ''
 
       return candidateText.includes(lowercasedSearchText)
     })
@@ -83,16 +90,10 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
     const targetCandidate = filtered[idx]
     if (!targetCandidate) return
     setCurrentCandidateIdx(idx)
-    onSelectCandiateItem?.({
-      selected: targetCandidate,
-      idx: idx,
-      candidates
-    })
+    onSelectCandiateItem?.({ selected: targetCandidate, idx: idx })
     const labelString = isString(targetCandidate) ? targetCandidate : targetCandidate.label
     inputComponentRef.current?.setInputValue(labelString)
     setSearchText(labelString)
-    inputComponentRef.current?.blur()
-    popoverComponentRef.current?.off()
   }
 
   // have to open popover manually in some case
@@ -109,6 +110,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
                 setSearchText(isString(candidate) ? candidate : candidate.label)
                 setCurrentCandidateIdx(idx)
                 applySelectedIndex(idx)
+                popoverComponentRef.current?.off()
               }}
             >
               {createLabelNode({
@@ -135,21 +137,37 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
           domRef={mergeRef(inputWrapperRef, restProps.domRef, restProps.inputProps?.domRef)}
           componentRef={inputComponentRef}
           value={searchText}
-          onUserInput={mergeFunction((text) => {
-            setSearchText(text)
-            popoverComponentRef.current?.on()
-          })}
+          onUserInput={mergeFunction(
+            (text) => {
+              setSearchText(text)
+              popoverComponentRef.current?.on()
+            },
+            restProps.onUserInput,
+            restProps.inputProps?.onUserInput
+          )}
+          onBlur={(...args) => {
+            if (filtered?.length == 1) {
+              setCurrentCandidateIdx(0)
+              applySelectedIndex(0)
+            } else {
+              onBlurMatchedFailed?.()
+            }
+
+            restProps.onBlur?.(...args)
+            restProps.inputProps?.onBlur?.(...args)
+          }}
           inputHTMLProps={{
             onKeyDown: (e) => {
-              if (e.key === 'Tab') {
-                if (!filtered) return
-                if (e.shiftKey) {
-                  setCurrentCandidateIdx((s) => Math.max((s ?? 0) - 1, 0))
-                } else {
-                  setCurrentCandidateIdx((s) => Math.min((s ?? 0) + 1, filtered.length - 1))
-                }
-                e.preventDefault()
-              } else if (e.key === 'ArrowUp') {
+              // if (e.key === 'Tab') {
+              //   if (!filtered) return
+              //   if (e.shiftKey) {
+              //     setCurrentCandidateIdx((s) => Math.max((s ?? 0) - 1, 0))
+              //   } else {
+              //     setCurrentCandidateIdx((s) => Math.min((s ?? 0) + 1, filtered.length - 1))
+              //   }
+              //   e.preventDefault()
+              // } else
+              if (e.key === 'ArrowUp') {
                 if (!filtered) return
                 setCurrentCandidateIdx((s) => Math.max((s ?? 0) - 1, 0))
               } else if (e.key === 'ArrowDown') {
@@ -157,9 +175,10 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
                 setCurrentCandidateIdx((s) => Math.min((s ?? 0) + 1, filtered.length - 1))
               } else if (e.key === 'Enter') {
                 if (selectedCandidateIdx != null) applySelectedIndex(selectedCandidateIdx)
-                inputComponentRef.current?.blur()
+                popoverComponentRef.current?.off()
               } else if (e.key === 'Escape') {
                 inputComponentRef.current?.blur()
+                popoverComponentRef.current?.off()
               }
             }
           }}

@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react'
+import React, { MouseEvent, ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
 import Row from './Row'
 
@@ -16,7 +16,7 @@ export function ThreeSlotItem({
   text: ReactNode
   suffix?: ReactNode
   prefix?: ReactNode
-  onClick?(): void
+  onClick?(ev: MouseEvent): void
 }) {
   return (
     <Row className={twMerge('items-center', className)} onClick={onClick}>

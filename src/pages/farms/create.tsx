@@ -5,7 +5,7 @@ import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
-import AutoComplete from '@/components/AutoComplete'
+import AutoComplete, { AutoCompleteCandidateItem } from '@/components/AutoComplete'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
@@ -24,9 +24,12 @@ import Row from '@/components/Row'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
+import { isArray } from '@/functions/judgers/dateType'
 import { div, mul } from '@/functions/numberish/operations'
 import { trimTailingZero } from '@/functions/numberish/stringNumber'
 import { toString } from '@/functions/numberish/toString'
+import { shrinkToValue } from '@/functions/shrinkToValue'
+import { BooleanLike, MayArray, MayFunction } from '@/types/constants'
 import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
 import produce from 'immer'
 import { ReactNode, useState } from 'react'
@@ -87,36 +90,86 @@ function SearchBlock() {
   }
   const candidates = liquidityPools
     .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
-    .map((pool) => ({
-      ...pool,
-      label: getInputLabelByPool(pool)
-    }))
+    .map((pool) =>
+      Object.assign(pool, {
+        label: getInputLabelByPool(pool)
+      } as AutoCompleteCandidateItem)
+    )
 
+  const [inputValue, setInputValue] = useState<string>()
+  const [isInputing, setIsInputing] = useState(false)
   return (
-    <AutoComplete
-      candidates={candidates}
-      value={selectedPool && getInputLabelByPool(selectedPool)}
-      className="p-4 py-3 gap-2 bg-[#141041] rounded-xl min-w-[7em]"
-      inputClassName="font-medium mobile:text-xs text-[#abc4ff] placeholder-[#abc4Ff80]"
-      suffix={<Icon heroIconName="search" className="text-[rgba(196,214,255,0.5)]" />}
-      placeholder="Search for a pool or paste AMM ID"
-      renderCandidateItem={({ candidate, isSelected }) => (
-        <Row className={`py-3 px-4 items-center gap-2 ${isSelected ? 'backdrop-brightness-50' : ''}`}>
-          <CoinAvatarPair token1={tokens[candidate.baseMint]} token2={tokens[candidate.quoteMint]} />
-          <div className="text-[#abc4ff] font-medium">
-            {tokens[candidate.baseMint]?.symbol}-{tokens[candidate.quoteMint]?.symbol}
-          </div>
-          <AddressItem showDigitCount={8} className="text-[#abc4ff80] text-xs ml-auto">
-            {candidate.id}
-          </AddressItem>
+    <Card className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a]" size="lg">
+      <AutoComplete
+        candidates={candidates}
+        value={selectedPool && getInputLabelByPool(selectedPool)}
+        className="p-4 py-3 gap-2 bg-[#141041] rounded-xl min-w-[7em]"
+        inputClassName="font-medium mobile:text-xs text-[#abc4ff] placeholder-[#abc4Ff80]"
+        suffix={<Icon heroIconName="search" className="text-[rgba(196,214,255,0.5)]" />}
+        placeholder="Search for a pool or paste AMM ID"
+        renderCandidateItem={({ candidate, isSelected }) => (
+          <Row className={`py-3 px-4 items-center gap-2 ${isSelected ? 'backdrop-brightness-50' : ''}`}>
+            <CoinAvatarPair token1={tokens[candidate.baseMint]} token2={tokens[candidate.quoteMint]} />
+            <div className="text-[#abc4ff] font-medium">
+              {tokens[candidate.baseMint]?.symbol}-{tokens[candidate.quoteMint]?.symbol}
+            </div>
+            <AddressItem showDigitCount={8} className="text-[#abc4ff80] text-xs ml-auto">
+              {candidate.id}
+            </AddressItem>
+          </Row>
+        )}
+        onSelectCandiateItem={({ selected }) => {
+          useCreateFarms.setState({ poolId: selected.id })
+        }}
+        onBlurMatchedFailed={() => {
+          useCreateFarms.setState({ poolId: undefined })
+        }}
+        onDangerousValueChange={(v) => {
+          setInputValue(v)
+        }}
+        onUserInput={() => {
+          setIsInputing(true)
+        }}
+        onBlur={() => {
+          setIsInputing(false)
+        }}
+      />
+
+      <FadeInStable show={inputValue && !isInputing && !poolId}>
+        <Row className="items-center pl-4 pt-2 gap-2">
+          <Icon size="smi" heroIconName="x-circle" className="text-[#DA2EEF]" />
+          <div className="text-[#DA2EEF] text-xs font-medium">Can't find pool</div>
         </Row>
-      )}
-      onSelectCandiateItem={({ selected }) => {
-        useCreateFarms.setState({ poolId: selected.id })
-      }}
-    />
+      </FadeInStable>
+    </Card>
   )
 }
+
+type ValidatorItem<F> = {
+  /** must return true to pass this validator */
+  should: MayFunction<BooleanLike>
+  fallback?: F
+}
+
+function useValidators<T extends ValidatorItem<any>>(validators: MayArray<T>) {
+  const [isValid, setIsValid] = useState(false)
+  const [failedValidator, setFailedValidator] = useState<T>()
+  const validate = () => {
+    const failedValidator = (
+      (isArray(validators) ? validators.length > 0 : validators)
+        ? [validators!].flat().find(({ should }) => !shrinkToValue(should))
+        : undefined
+    ) as T | undefined
+    setIsValid(failedValidator == null)
+    setFailedValidator(() => failedValidator)
+  }
+  return {
+    isValid,
+    failedValidator,
+    validate
+  }
+}
+
 function FormStep({
   stepNumber,
   title,
@@ -269,9 +322,7 @@ export default function CreateFarmPage() {
 
         <div className="space-y-4">
           <FormStep stepNumber={1} title="Select Pool" haveNavline>
-            <Card className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a]" size="lg">
-              <SearchBlock />
-            </Card>
+            <SearchBlock />
           </FormStep>
 
           <FormStep
