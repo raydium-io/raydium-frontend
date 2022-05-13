@@ -16,16 +16,21 @@ export type AutoCompleteCandidateItem =
        * for item ui (if `renderCandidateItem` is not defined)
        * for filled text of `<Input>`
        */
-      label?: string
+      label: string
       /** for React list key */
       id?: string
     }
 
 export type AutoCompleteProps<T extends AutoCompleteCandidateItem | undefined> = {
   candidates?: T[]
-  renderCandidateItem?: (payloads: { candidate: T; idx: number; candidates: T[]; isSelected: boolean }) => ReactNode
-  renderCandidatePanelCard?: (payloads: { children: ReactNode; candidates: T[] }) => ReactNode
-  onSelectCandiateItem?: (payloads: { selected: T; idx: number; candidates: T[] }) => void
+  renderCandidateItem?: (payloads: {
+    candidate: T
+    idx: number
+    candidates: T[] | undefined
+    isSelected: boolean
+  }) => ReactNode
+  renderCandidatePanelCard?: (payloads: { children: ReactNode; candidates: T[] | undefined }) => ReactNode
+  onSelectCandiateItem?: (payloads: { selected: T; idx: number; candidates: T[] | undefined }) => void
 } & (Omit<InputProps, 'onUserInput' /* use onSelectCandiateItem instead */> & {
   inputProps?: Omit<InputProps, 'onUserInput' /* use onSelectCandiateItem instead */>
 })
@@ -53,7 +58,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
 
   // handle candidates
   const [searchText, setSearchText] = useState<string>()
-  const [selectedCandidateIdx, setSelectedCandidateIdx] = useState<number>()
+  const [selectedCandidateIdx, setCurrentCandidateIdx] = useState<number>()
   const filtered = candidates
     ?.filter((candidate) => {
       if (!candidate) return false
@@ -69,18 +74,26 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
   // update seletedIdx when filtered result change
   useEffect(() => {
     if (selectedCandidateIdx != null && filtered?.length) {
-      setSelectedCandidateIdx(Math.max(Math.min(selectedCandidateIdx, filtered.length - 1), 0))
+      setCurrentCandidateIdx(Math.max(Math.min(selectedCandidateIdx, filtered.length - 1), 0))
     }
   }, [filtered])
 
-  // auto fill
-  useEffect(() => {
-    if (selectedCandidateIdx != null && filtered?.length && candidates) {
-      setSelectedCandidateIdx(Math.max(Math.min(selectedCandidateIdx, filtered.length - 1), 0))
-      const targetCandidate = candidates[selectedCandidateIdx]
-      onSelectCandiateItem?.({ selected: targetCandidate, idx: selectedCandidateIdx, candidates })
-    }
-  }, [selectedCandidateIdx])
+  function applySelectedIndex(idx: number) {
+    if (!filtered) return
+    const targetCandidate = filtered[idx]
+    if (!targetCandidate) return
+    setCurrentCandidateIdx(idx)
+    onSelectCandiateItem?.({
+      selected: targetCandidate,
+      idx: idx,
+      candidates
+    })
+    const labelString = isString(targetCandidate) ? targetCandidate : targetCandidate.label
+    inputComponentRef.current?.setInputValue(labelString)
+    setSearchText(labelString)
+    inputComponentRef.current?.blur()
+    popoverComponentRef.current?.off()
+  }
 
   // have to open popover manually in some case
   const popoverComponentRef = useRef<PopoverHandles>(null)
@@ -94,8 +107,8 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
               className="clickable border-[#abc4ff1a]" /* divide-[#abc4ff1a] is not very stable */
               onClick={() => {
                 setSearchText(isString(candidate) ? candidate : candidate.label)
-                setSelectedCandidateIdx(idx)
-                popoverComponentRef.current?.off()
+                setCurrentCandidateIdx(idx)
+                applySelectedIndex(idx)
               }}
             >
               {createLabelNode({
@@ -131,20 +144,22 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
               if (e.key === 'Tab') {
                 if (!filtered) return
                 if (e.shiftKey) {
-                  setSelectedCandidateIdx((s) => Math.max((s ?? 0) - 1, 0))
+                  setCurrentCandidateIdx((s) => Math.max((s ?? 0) - 1, 0))
                 } else {
-                  setSelectedCandidateIdx((s) => Math.min((s ?? 0) + 1, filtered.length - 1))
+                  setCurrentCandidateIdx((s) => Math.min((s ?? 0) + 1, filtered.length - 1))
                 }
                 e.preventDefault()
               } else if (e.key === 'ArrowUp') {
                 if (!filtered) return
-                setSelectedCandidateIdx((s) => Math.max((s ?? 0) - 1, 0))
+                setCurrentCandidateIdx((s) => Math.max((s ?? 0) - 1, 0))
               } else if (e.key === 'ArrowDown') {
                 if (!filtered) return
-                setSelectedCandidateIdx((s) => Math.min((s ?? 0) + 1, filtered.length - 1))
+                setCurrentCandidateIdx((s) => Math.min((s ?? 0) + 1, filtered.length - 1))
               } else if (e.key === 'Enter') {
+                if (selectedCandidateIdx != null) applySelectedIndex(selectedCandidateIdx)
                 inputComponentRef.current?.blur()
-                popoverComponentRef.current?.off()
+              } else if (e.key === 'Escape') {
+                inputComponentRef.current?.blur()
               }
             }
           }}

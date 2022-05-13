@@ -79,20 +79,19 @@ function SearchBlock() {
   const liquidityPools = useLiquidity((s) => s.jsonInfos)
   const tokens = useToken((s) => s.tokens)
   const selectedPool = liquidityPools.find((i) => i.id === poolId)
-  const candidates = liquidityPools
-    .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
-    .map((pool) => ({
-      ...pool,
-      label: getInputLabelByPool(pool)
-    }))
   function getInputLabelByPool(pool: LiquidityPoolJsonInfo): string {
     return `${tokens[pool.baseMint]?.symbol}-${tokens[pool.quoteMint]?.symbol} (${pool.id.slice(
       0,
       4
     )}...${pool.id.slice(-4)})`
   }
+  const candidates = liquidityPools
+    .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
+    .map((pool) => ({
+      ...pool,
+      label: getInputLabelByPool(pool)
+    }))
 
-  // console.log('getInputLabelByPool(selectedPool): ', getInputLabelByPool(selectedPool))
   return (
     <AutoComplete
       candidates={candidates}

@@ -22,7 +22,8 @@ import mergeProps from '@/functions/react/mergeProps'
 export interface InputHandler {
   focus(): void
   blur(): void
-  clearInput(): void
+  setInputValue(value: string): void
+  clearInputValue(): void
 }
 
 export interface InputProps {
@@ -42,6 +43,11 @@ export interface InputProps {
 
   /** when change, affact to ui*/
   value?: string | number
+
+  // /**
+  //  * when unset this property, value can only effect inner when input is not no focus
+  //  */
+  // outsideValueCanEffectWhen?: 'if-not-focus' /* default */ | 'any-time'
 
   placeholder?: string | number
 
@@ -114,6 +120,7 @@ export default function Input(props: InputProps) {
 
     defaultValue,
     value,
+
     prefix,
     suffix,
     domRef,
@@ -154,7 +161,10 @@ export default function Input(props: InputProps) {
     blur() {
       inputRef?.current?.blur()
     },
-    clearInput() {
+    setInputValue(value: string | number) {
+      setSelfValue(String(value))
+    },
+    clearInputValue() {
       setSelfValue('')
     }
   }
@@ -208,7 +218,6 @@ export default function Input(props: InputProps) {
                 }
               }
             }
-
             setSelfValue(inputText)
             onUserInput?.(ev.target.value, inputRef.current!)
             lockOutsideValue()
