@@ -11,7 +11,7 @@ import { AddressItem } from '@/components/AddressItem'
 import formatNumber from '@/functions/format/formatNumber'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import { ReactNode, useMemo } from 'react'
+import { Fragment, ReactNode, useMemo } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 export default function CreateFarmReviewPage() {
@@ -64,7 +64,7 @@ export default function CreateFarmReviewPage() {
               )
             const estimatedValue = reward.amount && durationDays ? div(reward.amount, durationDays) : undefined
             return (
-              <>
+              <Fragment key={idx}>
                 <div className="py-2 text-xl mobile:text-lg font-semibold justify-self-start text-[#abc4ff80] mt-8">
                   Reward {rewards.length > 1 ? `${idx + 1}` : ''}
                 </div>
@@ -115,7 +115,7 @@ export default function CreateFarmReviewPage() {
                     }
                   />
                 </div>
-              </>
+              </Fragment>
             )
           })}
         </Card>

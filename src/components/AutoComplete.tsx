@@ -36,7 +36,7 @@ export type AutoCompleteProps<T extends AutoCompleteCandidateItem | undefined> =
   renderCandidatePanelCard?: (payloads: { children: ReactNode; candidates: T[] | undefined }) => ReactNode
   // when blur from `<AutoComplete>` this fn will also invoked
   onSelectCandiateItem?: (payloads: { selected: T; idx: number }) => void
-  onBlurMatchedFailed?: () => void
+  onBlurMatchCandiateFailed?: (payloads: { text: string | undefined }) => void
 } & (InputProps & { inputProps?: InputProps })
 
 export default function AutoComplete<T extends AutoCompleteCandidateItem | undefined>({
@@ -44,7 +44,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
   renderCandidateItem,
   renderCandidatePanelCard,
   onSelectCandiateItem,
-  onBlurMatchedFailed,
+  onBlurMatchCandiateFailed,
   ...restProps
 }: AutoCompleteProps<T>) {
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -170,7 +170,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
               setCurrentCandidateIdx(0)
               applySelectedIndex(0)
             } else {
-              onBlurMatchedFailed?.()
+              onBlurMatchCandiateFailed?.({ text: searchText })
             }
 
             restProps.onBlur?.(...args)

@@ -121,8 +121,9 @@ function SearchBlock() {
         onSelectCandiateItem={({ selected }) => {
           useCreateFarms.setState({ poolId: selected.id })
         }}
-        onBlurMatchedFailed={() => {
-          useCreateFarms.setState({ poolId: undefined })
+        onBlurMatchCandiateFailed={({ text: candidatedPoolId }) => {
+          const matchedPoolId = liquidityPools.find((i) => i.id === candidatedPoolId)?.id
+          useCreateFarms.setState({ poolId: matchedPoolId })
         }}
         onDangerousValueChange={(v) => {
           setInputValue(v)
