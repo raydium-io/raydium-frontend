@@ -27,6 +27,7 @@ import formatNumber from '@/functions/format/formatNumber'
 import { div, mul } from '@/functions/numberish/operations'
 import { trimTailingZero } from '@/functions/numberish/stringNumber'
 import { toString } from '@/functions/numberish/toString'
+import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
 import produce from 'immer'
 import { ReactNode, useState } from 'react'
 
@@ -77,37 +78,42 @@ function SearchBlock() {
   const poolId = useCreateFarms((s) => s.poolId)
   const liquidityPools = useLiquidity((s) => s.jsonInfos)
   const tokens = useToken((s) => s.tokens)
+  const selectedPool = liquidityPools.find((i) => i.id === poolId)
+  const candidates = liquidityPools
+    .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
+    .map((pool) => ({
+      ...pool,
+      label: getInputLabelByPool(pool)
+    }))
+  function getInputLabelByPool(pool: LiquidityPoolJsonInfo): string {
+    return `${tokens[pool.baseMint]?.symbol}-${tokens[pool.quoteMint]?.symbol} (${pool.id.slice(
+      0,
+      4
+    )}...${pool.id.slice(-4)})`
+  }
 
+  // console.log('getInputLabelByPool(selectedPool): ', getInputLabelByPool(selectedPool))
   return (
     <AutoComplete
-      candidates={liquidityPools
-        .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
-        .map((pool) => ({
-          ...pool,
-          label: `${tokens[pool.baseMint]?.symbol}-${tokens[pool.quoteMint]?.symbol} (${pool.id.slice(
-            0,
-            4
-          )}...${pool.id.slice(-4)})`
-        }))}
-      renderCandidateItem={(i) => (
-        <Row className="py-3 items-center gap-2">
-          <CoinAvatarPair token1={tokens[i.baseMint]} token2={tokens[i.quoteMint]} />
-          <div className="text-[#abc4ff] font-medium">
-            {tokens[i.baseMint]?.symbol}-{tokens[i.quoteMint]?.symbol}
-          </div>
-          <AddressItem showDigitCount={8} className="text-[#abc4ff80] text-xs ml-auto">
-            {i.id}
-          </AddressItem>
-        </Row>
-      )}
-      value={poolId}
+      candidates={candidates}
+      value={selectedPool && getInputLabelByPool(selectedPool)}
       className="p-4 py-3 gap-2 bg-[#141041] rounded-xl min-w-[7em]"
       inputClassName="font-medium mobile:text-xs text-[#abc4ff] placeholder-[#abc4Ff80]"
       suffix={<Icon heroIconName="search" className="text-[rgba(196,214,255,0.5)]" />}
       placeholder="Search for a pool or paste AMM ID"
-      onUserInput={(searchText) => {
-        // useFarms.setState({ searchText })
-        useCreateFarms.setState({ poolId: searchText })
+      renderCandidateItem={({ candidate, isSelected }) => (
+        <Row className={`py-3 px-4 items-center gap-2 ${isSelected ? 'backdrop-brightness-50' : ''}`}>
+          <CoinAvatarPair token1={tokens[candidate.baseMint]} token2={tokens[candidate.quoteMint]} />
+          <div className="text-[#abc4ff] font-medium">
+            {tokens[candidate.baseMint]?.symbol}-{tokens[candidate.quoteMint]?.symbol}
+          </div>
+          <AddressItem showDigitCount={8} className="text-[#abc4ff80] text-xs ml-auto">
+            {candidate.id}
+          </AddressItem>
+        </Row>
+      )}
+      onSelectCandiateItem={({ selected }) => {
+        useCreateFarms.setState({ poolId: selected.id })
       }}
     />
   )

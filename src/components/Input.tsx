@@ -21,6 +21,7 @@ import mergeProps from '@/functions/react/mergeProps'
 
 export interface InputHandler {
   focus(): void
+  blur(): void
   clearInput(): void
 }
 
@@ -149,6 +150,9 @@ export default function Input(props: InputProps) {
   const inputControls: InputHandler = {
     focus() {
       inputRef?.current?.focus()
+    },
+    blur() {
+      inputRef?.current?.blur()
     },
     clearInput() {
       setSelfValue('')

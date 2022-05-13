@@ -5,7 +5,7 @@ import mergeRef from '@/functions/react/mergeRef'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import Card from './Card'
-import Input, { InputProps } from './Input'
+import Input, { InputHandler, InputProps } from './Input'
 import Popover, { PopoverHandles } from './Popover'
 
 export type AutoCompleteCandidateItem =
@@ -23,31 +23,37 @@ export type AutoCompleteCandidateItem =
 
 export type AutoCompleteProps<T extends AutoCompleteCandidateItem | undefined> = {
   candidates?: T[]
-  renderCandidateItem?: (candidate: T, idx: number, candidates: T[]) => ReactNode
+  renderCandidateItem?: (payloads: { candidate: T; idx: number; candidates: T[]; isSelected: boolean }) => ReactNode
   renderCandidatePanelCard?: (payloads: { children: ReactNode; candidates: T[] }) => ReactNode
-} & (InputProps & { inputProps?: InputProps })
+  onSelectCandiateItem?: (payloads: { selected: T; idx: number; candidates: T[] }) => void
+} & (Omit<InputProps, 'onUserInput' /* use onSelectCandiateItem instead */> & {
+  inputProps?: Omit<InputProps, 'onUserInput' /* use onSelectCandiateItem instead */>
+})
 
 export default function AutoComplete<T extends AutoCompleteCandidateItem | undefined>({
   candidates,
   renderCandidateItem,
   renderCandidatePanelCard,
+  onSelectCandiateItem,
   ...restProps
 }: AutoCompleteProps<T>) {
   // card should have same width as <Input>
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputWrapperRef = useRef<HTMLElement>(null)
+  const inputComponentRef = useRef<InputHandler>(null)
   const [inputWidth, setInputWidth] = useState<number>()
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
-      setInputWidth(inputRef.current?.clientWidth)
+      setInputWidth(inputWrapperRef.current?.clientWidth)
     })
-    if (inClient && inputRef.current) {
-      resizeObserver.observe(inputRef.current)
+    if (inClient && inputWrapperRef.current) {
+      resizeObserver.observe(inputWrapperRef.current)
       return () => resizeObserver.disconnect()
     }
   }, [])
 
   // handle candidates
   const [searchText, setSearchText] = useState<string>()
+  const [selectedCandidateIdx, setSelectedCandidateIdx] = useState<number>()
   const filtered = candidates
     ?.filter((candidate) => {
       if (!candidate) return false
@@ -59,6 +65,22 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
       return candidateText.includes(lowercasedSearchText)
     })
     .slice(0, 20)
+
+  // update seletedIdx when filtered result change
+  useEffect(() => {
+    if (selectedCandidateIdx != null && filtered?.length) {
+      setSelectedCandidateIdx(Math.max(Math.min(selectedCandidateIdx, filtered.length - 1), 0))
+    }
+  }, [filtered])
+
+  // auto fill
+  useEffect(() => {
+    if (selectedCandidateIdx != null && filtered?.length && candidates) {
+      setSelectedCandidateIdx(Math.max(Math.min(selectedCandidateIdx, filtered.length - 1), 0))
+      const targetCandidate = candidates[selectedCandidateIdx]
+      onSelectCandiateItem?.({ selected: targetCandidate, idx: selectedCandidateIdx, candidates })
+    }
+  }, [selectedCandidateIdx])
 
   // have to open popover manually in some case
   const popoverComponentRef = useRef<PopoverHandles>(null)
@@ -72,9 +94,17 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
               className="clickable border-[#abc4ff1a]" /* divide-[#abc4ff1a] is not very stable */
               onClick={() => {
                 setSearchText(isString(candidate) ? candidate : candidate.label)
+                setSelectedCandidateIdx(idx)
+                popoverComponentRef.current?.off()
               }}
             >
-              {createLabelNode(candidate, idx, candidates, renderCandidateItem)}
+              {createLabelNode({
+                candidate,
+                idx,
+                candidates,
+                isSelected: idx === selectedCandidateIdx,
+                renderNode: renderCandidateItem
+              })}
             </div>
           ) : null
         )
@@ -89,16 +119,35 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
         <Input
           {...restProps}
           {...restProps.inputProps}
-          domRef={mergeRef(inputRef, restProps.domRef, restProps.inputProps?.domRef)}
+          domRef={mergeRef(inputWrapperRef, restProps.domRef, restProps.inputProps?.domRef)}
+          componentRef={inputComponentRef}
           value={searchText}
-          onUserInput={mergeFunction(
-            (text) => {
-              setSearchText(text)
-              popoverComponentRef.current?.on()
-            },
-            restProps.onUserInput,
-            restProps.inputProps?.onUserInput
-          )}
+          onUserInput={mergeFunction((text) => {
+            setSearchText(text)
+            popoverComponentRef.current?.on()
+          })}
+          inputHTMLProps={{
+            onKeyDown: (e) => {
+              if (e.key === 'Tab') {
+                if (!filtered) return
+                if (e.shiftKey) {
+                  setSelectedCandidateIdx((s) => Math.max((s ?? 0) - 1, 0))
+                } else {
+                  setSelectedCandidateIdx((s) => Math.min((s ?? 0) + 1, filtered.length - 1))
+                }
+                e.preventDefault()
+              } else if (e.key === 'ArrowUp') {
+                if (!filtered) return
+                setSelectedCandidateIdx((s) => Math.max((s ?? 0) - 1, 0))
+              } else if (e.key === 'ArrowDown') {
+                if (!filtered) return
+                setSelectedCandidateIdx((s) => Math.min((s ?? 0) + 1, filtered.length - 1))
+              } else if (e.key === 'Enter') {
+                inputComponentRef.current?.blur()
+                popoverComponentRef.current?.off()
+              }
+            }
+          }}
         />
       </Popover.Button>
       <Popover.Panel style={{ width: inputWidth }}>
@@ -106,7 +155,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
           shrinkToValue(renderCandidatePanelCard, [{ children: autoCompleteItemsContent, candidates: filtered ?? [] }])
         ) : (
           <Card
-            className="flex flex-col py-3 px-4 border-1.5 border-[#abc4ff80] bg-[#141041] shadow-cyberpunk-card"
+            className="flex flex-col py-3 border-1.5 border-[#abc4ff80] bg-[#141041] shadow-cyberpunk-card"
             size="md"
           >
             <div className="divide-y divide-[#abc4ff1a] max-h-[40vh] px-2 overflow-auto">
@@ -119,15 +168,22 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
   )
 }
 
-function createLabelNode<T extends AutoCompleteCandidateItem | undefined>(
-  candidate: T,
-  idx: number,
-  candidates: T[],
-  renderNode?: (candidate: T, idx: number, candidates: T[]) => React.ReactNode
-): React.ReactNode {
+function createLabelNode<T extends AutoCompleteCandidateItem | undefined>({
+  candidate,
+  idx,
+  candidates,
+  isSelected,
+  renderNode
+}: {
+  candidate: T
+  idx: number
+  candidates: T[]
+  isSelected: boolean
+  renderNode?: AutoCompleteProps<T>['renderCandidateItem']
+}): React.ReactNode {
   if (!candidate) return null
   return renderNode ? (
-    renderNode(candidate, idx, candidates)
+    renderNode({ candidate, idx, candidates, isSelected })
   ) : (
     <div className="py-3">{isString(candidate) ? candidate : candidate.label}</div>
   )
