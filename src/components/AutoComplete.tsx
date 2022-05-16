@@ -111,7 +111,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
               key={isString(candidate) ? candidate : candidate.id ?? `${idx}_${candidate.label}`}
               className="clickable border-[#abc4ff1a]" /* divide-[#abc4ff1a] is not very stable */
               onClick={() => {
-                setSearchText(isString(candidate) ? candidate : candidate.label)
+                setSearchText(isString(candidate) ? candidate : candidate.label ?? candidate.id)
                 setCurrentCandidateIdx(idx)
                 applySelectedIndex(idx)
                 popoverComponentRef.current?.off()

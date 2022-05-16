@@ -32,6 +32,7 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import { BooleanLike, MayArray, MayFunction } from '@/types/constants'
 import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
 import produce from 'immer'
+import { stringify } from 'querystring'
 import { ReactNode, useState } from 'react'
 
 // unless ido have move this component, it can't be renamed or move to /components
@@ -82,17 +83,12 @@ function SearchBlock() {
   const liquidityPools = useLiquidity((s) => s.jsonInfos)
   const tokens = useToken((s) => s.tokens)
   const selectedPool = liquidityPools.find((i) => i.id === poolId)
-  function getInputLabelByPool(pool: LiquidityPoolJsonInfo): string {
-    return `${tokens[pool.baseMint]?.symbol}-${tokens[pool.quoteMint]?.symbol} (${pool.id.slice(
-      0,
-      4
-    )}...${pool.id.slice(-4)})`
-  }
   const candidates = liquidityPools
     .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
     .map((pool) =>
       Object.assign(pool, {
-        label: getInputLabelByPool(pool)
+        label: pool.id,
+        searchText: `${tokens[pool.baseMint]?.symbol} ${tokens[pool.quoteMint]?.symbol} ${pool.id}`
       } as AutoCompleteCandidateItem)
     )
 
@@ -102,7 +98,7 @@ function SearchBlock() {
     <Card className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a]" size="lg">
       <AutoComplete
         candidates={candidates}
-        value={selectedPool && getInputLabelByPool(selectedPool)}
+        value={selectedPool?.id}
         className="p-4 py-3 gap-2 bg-[#141041] rounded-xl min-w-[7em]"
         inputClassName="font-medium mobile:text-xs text-[#abc4ff] placeholder-[#abc4Ff80]"
         suffix={<Icon heroIconName="search" className="text-[rgba(196,214,255,0.5)]" />}
@@ -119,6 +115,7 @@ function SearchBlock() {
           </Row>
         )}
         onSelectCandiateItem={({ selected }) => {
+          setIsInputing(false)
           useCreateFarms.setState({ poolId: selected.id })
         }}
         onBlurMatchCandiateFailed={({ text: candidatedPoolId }) => {
@@ -136,10 +133,21 @@ function SearchBlock() {
         }}
       />
 
-      <FadeInStable show={inputValue && !isInputing && !poolId}>
+      <FadeInStable show={inputValue && !isInputing}>
         <Row className="items-center pl-4 pt-2 gap-2">
-          <Icon size="smi" heroIconName="x-circle" className="text-[#DA2EEF]" />
-          <div className="text-[#DA2EEF] text-xs font-medium">Can't find pool</div>
+          {selectedPool ? (
+            <>
+              <CoinAvatarPair token1={tokens[selectedPool.baseMint]} token2={tokens[selectedPool.quoteMint]} />
+              <div className="text-[#abc4ff] text-base font-medium">
+                {tokens[selectedPool.baseMint]?.symbol} - {tokens[selectedPool.quoteMint]?.symbol}
+              </div>
+            </>
+          ) : (
+            <>
+              <Icon size="smi" heroIconName="x-circle" className="text-[#DA2EEF]" />
+              <div className="text-[#DA2EEF] text-xs font-medium">Can't find pool</div>
+            </>
+          )}
         </Row>
       </FadeInStable>
     </Card>
@@ -314,7 +322,7 @@ export default function CreateFarmPage() {
     <PageLayout metaTitle="Farms - Raydium">
       <div
         className={`self-center transition-all duration-500 ${
-          rewards.length > 1 ? 'w-[min(1200px,70vw)]' : 'w-[min(560px,70vw)]'
+          rewards.length > 1 ? 'w-[min(1200px,70vw)]' : 'w-[min(640px,70vw)]'
         } mobile:w-[90vw]`}
       >
         <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
