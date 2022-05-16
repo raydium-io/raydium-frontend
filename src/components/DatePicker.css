@@ -158,7 +158,8 @@
 .w-datepicker-week > div.disabled:hover > div {
   color: #d3d3d3;
   cursor: not-allowed;
-  background-color: #f5f5f5;
+  background-color: transparent;
+  opacity: 0.3;
 }
 .w-datepicker-week > div.disabled.today > div,
 .w-datepicker-week > div.disabled:hover.today > div {

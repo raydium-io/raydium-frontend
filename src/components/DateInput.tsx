@@ -10,12 +10,14 @@ import Popover from './Popover'
 
 import './DatePicker.css'
 import { twMerge } from 'tailwind-merge'
+import { currentIsAfter } from '@/functions/date/judges'
 
 export type DateInputProps = {
   className?: string
   label?: string
   labelClassName?: string
   inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
+  disableDateBeforeCurrent?: boolean
   onDateChange?(selectedDate: Date | undefined): void
 } & Omit<InputProps, 'value' | 'defaultValue'> & {
     value?: Date
@@ -30,6 +32,7 @@ export default function DateInput({
   label,
   labelClassName,
   inputProps,
+  disableDateBeforeCurrent,
   onDateChange
 }: DateInputProps) {
   return (
@@ -41,6 +44,7 @@ export default function DateInput({
         <DateInputBody
           inputProps={inputProps}
           onDateChange={onDateChange}
+          disableDateBeforeCurrent={disableDateBeforeCurrent}
           defaultValue={defaultValue}
           value={value}
         ></DateInputBody>
@@ -53,13 +57,21 @@ type DateInputBodyProps = {
   value?: Date
   className?: string
   inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
+  disableDateBeforeCurrent?: boolean
   onDateChange?(selectedDate: Date | undefined): void
 }
 
 /**
  * base on uiw's `<DataPicker>`
  */
-function DateInputBody({ value, defaultValue, className, onDateChange, inputProps }: DateInputBodyProps) {
+function DateInputBody({
+  value,
+  defaultValue,
+  className,
+  disableDateBeforeCurrent,
+  onDateChange,
+  inputProps
+}: DateInputBodyProps) {
   const [currentDate, setCurrentDate] = useState<Date | undefined>(defaultValue)
   const currentTimezoneOffset = currentDate?.getTimezoneOffset()
 
@@ -96,6 +108,7 @@ function DateInputBody({ value, defaultValue, className, onDateChange, inputProp
               ? offsetDateTime(currentDate, { minutes: currentTimezoneOffset })
               : currentDate
           }
+          disabledDate={disableDateBeforeCurrent ? (date) => currentIsAfter(date) : undefined}
           todayButton="today"
           onChange={(selectedDate) => {
             const newDate =

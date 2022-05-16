@@ -1,6 +1,7 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useCreateFarms, { CreateFarmStore } from '@/application/createFarm/useCreateFarm'
 import useLiquidity from '@/application/liquidity/useLiquidity'
+import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
@@ -16,7 +17,6 @@ import DateInput from '@/components/DateInput'
 import FadeInStable from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
-import Input from '@/components/Input'
 import InputBox from '@/components/InputBox'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
@@ -24,16 +24,13 @@ import Row from '@/components/Row'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
-import { isArray } from '@/functions/judgers/dateType'
+import listToMap, { listToJSMap } from '@/functions/format/listToMap'
+import toUsdVolume from '@/functions/format/toUsdVolume'
 import { div, mul } from '@/functions/numberish/operations'
 import { trimTailingZero } from '@/functions/numberish/stringNumber'
 import { toString } from '@/functions/numberish/toString'
-import { shrinkToValue } from '@/functions/shrinkToValue'
-import { BooleanLike, MayArray, MayFunction } from '@/types/constants'
-import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
 import produce from 'immer'
-import { stringify } from 'querystring'
-import { ReactNode, useState } from 'react'
+import { ReactNode, useMemo, useState } from 'react'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -80,9 +77,16 @@ function WarningBoard({ className }: { className: string }) {
 
 function SearchBlock() {
   const poolId = useCreateFarms((s) => s.poolId)
+  const pairInfos = usePools((s) => s.hydratedInfos)
   const liquidityPools = useLiquidity((s) => s.jsonInfos)
   const tokens = useToken((s) => s.tokens)
+
+  const liquidityPoolMap = useMemo(() => listToMap(liquidityPools, (s) => s.id), [liquidityPools])
+  const pairInfoMap = useMemo(() => listToMap(pairInfos, (s) => s.ammId), [pairInfos])
+
   const selectedPool = liquidityPools.find((i) => i.id === poolId)
+  const selectedPoolPairInfo = pairInfos.find((i) => i.ammId === poolId)
+
   const candidates = liquidityPools
     .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
     .map((pool) =>
@@ -109,7 +113,12 @@ function SearchBlock() {
             <div className="text-[#abc4ff] font-medium">
               {tokens[candidate.baseMint]?.symbol}-{tokens[candidate.quoteMint]?.symbol}
             </div>
-            <AddressItem showDigitCount={8} className="text-[#abc4ff80] text-xs ml-auto">
+            {pairInfoMap[candidate.id] ? (
+              <div className="text-[#abc4ff80] text-sm font-medium">
+                {toUsdVolume(pairInfoMap[candidate.id].liquidity, { decimalPlace: 0 })}
+              </div>
+            ) : null}
+            <AddressItem canCopy={false} showDigitCount={8} className="text-[#abc4ff80] text-xs ml-auto">
               {candidate.id}
             </AddressItem>
           </Row>
@@ -134,13 +143,18 @@ function SearchBlock() {
       />
 
       <FadeInStable show={inputValue && !isInputing}>
-        <Row className="items-center pl-4 pt-2 gap-2">
+        <Row className="items-center px-4 pt-2 gap-2">
           {selectedPool ? (
             <>
               <CoinAvatarPair token1={tokens[selectedPool.baseMint]} token2={tokens[selectedPool.quoteMint]} />
               <div className="text-[#abc4ff] text-base font-medium">
                 {tokens[selectedPool.baseMint]?.symbol} - {tokens[selectedPool.quoteMint]?.symbol}
               </div>
+              {selectedPoolPairInfo ? (
+                <div className="text-[#abc4ff80] text-sm ml-auto font-medium">
+                  Liquidity: {toUsdVolume(selectedPoolPairInfo.liquidity, { decimalPlace: 0 })}
+                </div>
+              ) : null}
             </>
           ) : (
             <>
@@ -152,31 +166,6 @@ function SearchBlock() {
       </FadeInStable>
     </Card>
   )
-}
-
-type ValidatorItem<F> = {
-  /** must return true to pass this validator */
-  should: MayFunction<BooleanLike>
-  fallback?: F
-}
-
-function useValidators<T extends ValidatorItem<any>>(validators: MayArray<T>) {
-  const [isValid, setIsValid] = useState(false)
-  const [failedValidator, setFailedValidator] = useState<T>()
-  const validate = () => {
-    const failedValidator = (
-      (isArray(validators) ? validators.length > 0 : validators)
-        ? [validators!].flat().find(({ should }) => !shrinkToValue(should))
-        : undefined
-    ) as T | undefined
-    setIsValid(failedValidator == null)
-    setFailedValidator(() => failedValidator)
-  }
-  return {
-    isValid,
-    failedValidator,
-    validate
-  }
 }
 
 function FormStep({
@@ -246,13 +235,13 @@ function RewardSettingsCard({
 
       <Row className="gap-2">
         <DateInput
-          className=" grow"
+          className="grow"
           label="Farming Start"
           inputProps={{
-            placeholder: '(now)',
             inputClassName: 'text-[#abc4ff] text-xs font-medium'
           }}
           value={reward.startTime}
+          disableDateBeforeCurrent
           onDateChange={(selectedDate) =>
             useCreateFarms.setState({
               rewards: produce(rewards, (draft) => {
@@ -269,6 +258,7 @@ function RewardSettingsCard({
             inputClassName: 'text-[#abc4ff] text-xs font-medium'
           }}
           value={reward.endTime}
+          disableDateBeforeCurrent
           onDateChange={(selectedDate) =>
             useCreateFarms.setState({
               rewards: produce(rewards, (draft) => {

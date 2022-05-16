@@ -11,12 +11,14 @@ import { ThreeSlotItem } from './ThreeSlotItem'
  * base on {@link ThreeSlotItem}
  */
 export function AddressItem({
+  canCopy = true,
   className,
   textClassName,
   iconClassName,
   children: publicKey,
   showDigitCount = 4
 }: {
+  canCopy?: boolean
   className?: string
   textClassName?: string
   iconClassName?: string
@@ -53,15 +55,19 @@ export function AddressItem({
         </div>
       }
       suffix={
-        <Icon
-          size="sm"
-          className={twMerge('clickable text-[#ABC4FF] ml-3', iconClassName)}
-          heroIconName="clipboard-copy"
-        />
+        canCopy ? (
+          <Icon
+            size="sm"
+            className={twMerge('clickable text-[#ABC4FF] ml-3', iconClassName)}
+            heroIconName="clipboard-copy"
+          />
+        ) : null
       }
       onClick={(ev) => {
-        ev.stopPropagation()
-        if (!isCopied) copyToClipboard(toPubString(publicKey)).then(on)
+        if (canCopy) {
+          ev.stopPropagation()
+          if (!isCopied) copyToClipboard(toPubString(publicKey)).then(on)
+        }
       }}
     />
   )
