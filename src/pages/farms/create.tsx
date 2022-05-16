@@ -22,6 +22,7 @@ import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { offsetDateTime } from '@/functions/date/dateFormat'
+import { currentIsBefore, isDateBefore } from '@/functions/date/judges'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
 import listToMap, { listToJSMap } from '@/functions/format/listToMap'
@@ -306,6 +307,7 @@ function RewardSettingsCard({
 }
 
 export default function CreateFarmPage() {
+  const poolId = useCreateFarms((s) => s.poolId)
   const rewards = useCreateFarms((s) => s.rewards)
   const connected = useWallet((s) => s.connected)
   return (
@@ -380,6 +382,36 @@ export default function CreateFarmPage() {
             routeTo('/farms/createReview')
           }}
           validators={[
+            {
+              should: poolId,
+              fallbackProps: {
+                children: 'Select pool' // NOTE: should ask manager about the text content
+              }
+            },
+            {
+              should: rewards.every((r) => r.token),
+              fallbackProps: {
+                children: 'Choose reward token' // NOTE: should ask manager about the text content
+              }
+            },
+            {
+              should: rewards.every((r) => r.amount),
+              fallbackProps: {
+                children: 'Input reward amount' // NOTE: should ask manager about the text content
+              }
+            },
+            {
+              should: rewards.every((r) => r.startTime && r.endTime),
+              fallbackProps: {
+                children: 'Set StartTime and EndTime' // NOTE: should ask manager about the text content
+              }
+            },
+            {
+              should: rewards.every((r) => r.startTime && r.endTime && isDateBefore(r.startTime, r.endTime)),
+              fallbackProps: {
+                children: 'StartTime must before EndTime' // NOTE: should ask manager about the text content
+              }
+            },
             {
               should: connected,
               forceActive: true,
