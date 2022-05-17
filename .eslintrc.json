@@ -39,11 +39,12 @@
     "@typescript-eslint/no-explicit-any": 0,
     "@typescript-eslint/no-var-requires": 0,
     "@typescript-eslint/no-use-before-define": 0,
-    "no-console": [
-      2,
-      {
-        "allow": ["warn", "error"]
-      }
-    ]
+    // "no-console": [
+    //   2,
+    //   {
+    //     "allow": ["warn", "error"]
+    //   }
+    // ]
+    "no-console": "off"
   }
 }

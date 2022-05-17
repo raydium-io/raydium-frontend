@@ -9,6 +9,8 @@ import useNotification from '@/application/notification/useNotification'
 import { routeTo } from '@/application/routeTools'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
+import txUnwrapAllWSOL, { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
+import txWrapSOL from '@/application/swap/txWrapSOL'
 import { useSwap } from '@/application/swap/useSwap'
 import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
@@ -16,15 +18,11 @@ import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
 import {
-  SOL_BASE_BALANCE,
-  SOLDecimals,
-  WSOLMint,
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  toUITokenAmount
+  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE, SOLDecimals, toUITokenAmount, WSOLMint
 } from '@/application/token/utils/quantumSOL'
 import { USDCMint, USDTMint } from '@/application/token/utils/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
+import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
 import { Checkbox } from '@/components/Checkbox'
@@ -49,6 +47,7 @@ import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { eq, gte, isMeaningfulNumber, isMeaninglessNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -60,10 +59,6 @@ import useToggle from '@/hooks/useToggle'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
-import { Badge } from '@/components/Badge'
-import txUnwrapAllWSOL, { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import txWrapSOL from '@/application/swap/txWrapSOL'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -83,7 +78,7 @@ export default function Swap() {
   return (
     <SwapUIContextProvider>
       <SwapEffect />
-      <PageLayout mobileBarTitle="Swap" metaTitle="Swap - Raydium">
+      <PageLayout mobileBarTitle="Swap" metaTitle="Swap - ViewDex">
         <SwapHead />
         <SwapCard />
         {/* <UnwrapWSOL /> */}
@@ -177,12 +172,12 @@ function SwapHead() {
     <Row className="justify-center  mb-12 mobile:mb-2">
       <Tabs
         currentValue={'Swap'}
-        values={['Swap', 'Liquidity']}
+        values={['Swap']}
         onChange={(newTab) => {
           // setActiveTabValue(newTab)
-          if (newTab === 'Liquidity') {
-            routeTo('/liquidity/add')
-          }
+          // if (newTab === 'Liquidity') {
+          //   routeTo('/liquidity/add')
+          // }
         }}
       />
     </Row>
@@ -195,7 +190,6 @@ function SwapCard() {
   const coin2 = useSwap((s) => s.coin2)
   const coin1Amount = useSwap((s) => s.coin1Amount)
   const coin2Amount = useSwap((s) => s.coin2Amount)
-  // console.log('coin: ', coin1?.symbol, coin1Amount, coin2?.symbol, coin2Amount)
   const directionReversed = useSwap((s) => s.directionReversed)
   const priceImpact = useSwap((s) => s.priceImpact)
   const refreshSwap = useSwap((s) => s.refreshSwap)
@@ -810,6 +804,7 @@ function SwapCardInfo({ className }: { className?: string }) {
                   <Col>
                     {fee.map((CurrencyAmount) => {
                       const tokenAmount = toUITokenAmount(CurrencyAmount)
+                      //! Change 0.25% fees to 1% fees
                       return (
                         <div key={tokenAmount.token.symbol} className="text-right">
                           {toString(tokenAmount)} {getToken(tokenAmount.token.mint)?.symbol ?? '--'}

@@ -1,4 +1,5 @@
 import { CurrencyAmount, Price, RouteInfo, RouteType } from '@raydium-io/raydium-sdk'
+import { Signer, Transaction } from '@solana/web3.js'
 
 import create from 'zustand'
 
@@ -64,3 +65,8 @@ export const useSwap = create<SwapStore>((set, get) => ({
     }))
   }
 }))
+
+export interface UnsignedTransactionAndSigners {
+  transaction: Transaction
+  signers: Signer[]
+}
