@@ -34,6 +34,7 @@ import { twMerge } from 'tailwind-merge'
 import Progress from '@/components/Progress'
 import toPercentNumber from '@/functions/format/toPercentNumber'
 import Input from '@/components/Input'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function AcceleRaytor() {
   const infos = useIdo((s) => s.idoHydratedInfos)
@@ -275,6 +276,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
   const connected = useWallet((s) => s.connected)
   const refreshIdo = useIdo((s) => s.refreshIdo)
   const [, forceUpdate] = useForceUpdate()
+
   return (
     <>
       <Col className="items-center mobile:grow">
