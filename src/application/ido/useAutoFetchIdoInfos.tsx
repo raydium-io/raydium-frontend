@@ -86,19 +86,18 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
     const publicKeyed = ToPubPropertyValue(rawList)
 
     // get sdk ledger/snapshot and render
-    const sdkList = await getSdkIdoList({ publicKeyed, connection, owner })
-    const sdkInfos = Object.fromEntries([rawList.map((raw, idx) => [raw.id, sdkList[idx]])])
-    const hydrated = sdkList.map((sdkInfo, idx) => {
-      const rawInfo = rawList[idx]
+    const sdkInfos = await getSdkIdoList({ publicKeyed, connection, owner, options: { noIdoState: true } })
+    const hydratedInfos = objectMap(sdkInfos, (sdkInfo, idoid) => {
+      const rawInfo = rawList.find(({ id }) => id === idoid)
+      if (!rawInfo) return undefined
       const { base, quote } = getIdoTokens(rawInfo)
       return hydrateIdoInfo({ ...rawInfo, ...sdkInfo, base, quote })
     })
-    const hydratedInfos = listToMap(hydrated, (i) => i.id)
     useIdo.setState((s) => ({
-      idoSDKInfos: { ...s.idoSDKInfos, ...sdkInfos },
+      idoSDKInfos: sdkInfos,
       idoHydratedInfos: {
         ...s.idoHydratedInfos,
-        ...objectMap(hydratedInfos, (newHydratedInfo, idoid) => ({
+        ...objectMap(objectShakeNil(hydratedInfos), (newHydratedInfo, idoid) => ({
           ...s.idoHydratedInfos[idoid],
           ...objectShakeNil(newHydratedInfo)
         }))
@@ -116,19 +115,18 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
     const publicKeyed = ToPubPropertyValue(rawList)
 
     // get sdk ledger/snapshot and render
-    const sdkList = await getSdkIdoList({ publicKeyed, connection, owner, options: { noIdoState: true } })
-    const sdkInfos = Object.fromEntries([rawList.map((raw, idx) => [raw.id, sdkList[idx]])])
-    const hydrated = sdkList.map((sdkInfo, idx) => {
-      const rawInfo = rawList[idx]
+    const sdkInfos = await getSdkIdoList({ publicKeyed, connection, owner, options: { noIdoState: true } })
+    const hydratedInfos = objectMap(sdkInfos, (sdkInfo, idoid) => {
+      const rawInfo = rawList.find(({ id }) => id === idoid)
+      if (!rawInfo) return undefined
       const { base, quote } = getIdoTokens(rawInfo)
       return hydrateIdoInfo({ ...rawInfo, ...sdkInfo, base, quote })
     })
-    const hydratedInfos = listToMap(hydrated, (i) => i.id)
     useIdo.setState((s) => ({
       idoSDKInfos: sdkInfos,
       idoHydratedInfos: {
         ...s.idoHydratedInfos,
-        ...objectMap(hydratedInfos, (newHydratedInfo, idoid) => ({
+        ...objectMap(objectShakeNil(hydratedInfos), (newHydratedInfo, idoid) => ({
           ...s.idoHydratedInfos[idoid],
           ...objectShakeNil(newHydratedInfo)
         }))
@@ -137,20 +135,18 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
 
     // defferly get all
     setTimeout(async () => {
-      const sdkList = await getSdkIdoList({ publicKeyed, connection, owner })
-      const sdkInfos = Object.fromEntries([rawList.map((raw, idx) => [raw.id, sdkList[idx]])])
-      const hydrated = sdkList.map((sdkInfo, idx) => {
-        const rawInfo = rawList[idx]
+      const sdkInfos = await getSdkIdoList({ publicKeyed, connection, owner })
+      const hydratedInfos = objectMap(sdkInfos, (sdkInfo, idoid) => {
+        const rawInfo = rawList.find(({ id }) => id === idoid)
+        if (!rawInfo) return undefined
         const { base, quote } = getIdoTokens(rawInfo)
-        const hydratedResult = hydrateIdoInfo({ ...rawInfo, ...sdkInfo, base, quote })
-        return hydratedResult
+        return hydrateIdoInfo({ ...rawInfo, ...sdkInfo, base, quote })
       })
-      const hydratedInfos = listToMap(hydrated, (i) => i.id)
       useIdo.setState((s) => ({
         idoSDKInfos: sdkInfos,
         idoHydratedInfos: {
           ...s.idoHydratedInfos,
-          ...objectMap(hydratedInfos, (newHydratedInfo, idoid) => ({
+          ...objectMap(objectShakeNil(hydratedInfos), (newHydratedInfo, idoid) => ({
             ...s.idoHydratedInfos[idoid],
             ...objectShakeNil(newHydratedInfo)
           }))
@@ -166,18 +162,13 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
     const rawList = Object.values(idoRawInfos ?? {}).slice(0, 3)
     const publicKeyed = ToPubPropertyValue(rawList)
     const structured = await asyncMap(shadowKeypairs, async ({ publicKey, secretKey }) => {
-      const sdkList = await getSdkIdoList({
-        publicKeyed,
-        connection,
-        owner: publicKey
-      })
-      const hydrated = sdkList.map((sdkInfo, idx) => {
-        const rawInfo = rawList[idx]
-        const base = getToken(rawInfo.baseMint) // must haeeeve raw.state
-        const quote = getToken(rawInfo.quoteMint)
+      const sdkInfos = await getSdkIdoList({ publicKeyed, connection, owner: publicKey })
+      const hydratedInfos = objectMap(sdkInfos, (sdkInfo, idoid) => {
+        const rawInfo = rawList.find(({ id }) => id === idoid)
+        if (!rawInfo) return undefined
+        const { base, quote } = getIdoTokens(rawInfo)
         return hydrateIdoInfo({ ...rawInfo, ...sdkInfo, base, quote })
       })
-      const hydratedInfos = listToMap(hydrated, (i) => i.id)
       return [toPubString(publicKey), hydratedInfos]
     })
     const shadowIdoHydratedInfos: NonNullable<IdoStore['shadowIdoHydratedInfos']> = Object.fromEntries(structured)
