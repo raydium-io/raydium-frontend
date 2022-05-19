@@ -1,14 +1,4 @@
-import React, {
-  ComponentProps,
-  CSSProperties,
-  ReactNode,
-  RefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState
-} from 'react'
+import React, { ComponentProps, CSSProperties, ReactNode, RefObject, useMemo, useRef, useState } from 'react'
 
 import addPropsToReactElement from '@/functions/react/addPropsToReactElement'
 import mergeRef from '@/functions/react/mergeRef'
@@ -17,36 +7,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
 import Col from './Col'
 import { FadeIn } from './FadeIn'
-
-function useInfiniteScrollDirector(
-  ref: RefObject<HTMLElement | null | undefined>,
-  options?: {
-    onReachBottom?: () => void
-    reachBottomMargin?: number
-  }
-) {
-  const isReachedBottom = useRef(false)
-  const onScroll = useCallback(() => {
-    if (!ref.current) return
-    const { scrollHeight, scrollTop, clientHeight } = ref.current
-    const isNearlyReachBottom = scrollTop + clientHeight + (options?.reachBottomMargin ?? 0) >= scrollHeight
-
-    if (isNearlyReachBottom && !isReachedBottom.current) {
-      options?.onReachBottom?.()
-      isReachedBottom.current = true
-    }
-
-    if (!isNearlyReachBottom && isReachedBottom.current) {
-      isReachedBottom.current = false
-    }
-  }, [ref, options])
-
-  useEffect(() => {
-    onScroll()
-    ref.current?.addEventListener('scroll', onScroll, { passive: true })
-    return () => ref.current?.removeEventListener('scroll', onScroll)
-  }, [ref, onScroll])
-}
+import { useInfiniteScrollDirector } from '../hooks/useInfiniteScrollDirector'
 
 export default function List({
   increaseRenderCount = 30,

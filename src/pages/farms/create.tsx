@@ -9,6 +9,7 @@ import { AddressItem } from '@/components/AddressItem'
 import AutoComplete, { AutoCompleteCandidateItem } from '@/components/AutoComplete'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import Col from '@/components/Col'
@@ -19,11 +20,12 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Link from '@/components/Link'
+import ListTable from '@/components/ListTable'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import { offsetDateTime } from '@/functions/date/dateFormat'
+import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
 import { currentIsBefore, isDateBefore } from '@/functions/date/judges'
-import { parseDurationAbsolute } from '@/functions/date/parseDuration'
+import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
 import listToMap, { listToJSMap } from '@/functions/format/listToMap'
 import toUsdVolume from '@/functions/format/toUsdVolume'
@@ -194,7 +196,7 @@ function FormStep({
   )
 }
 
-function RewardSettingsCard({
+function RewardFormCard({
   reward,
   idx,
   rewards
@@ -314,7 +316,7 @@ export default function CreateFarmPage() {
     <PageLayout metaTitle="Farms - Raydium">
       <div
         className={`self-center transition-all duration-500 ${
-          rewards.length > 1 ? 'w-[min(1200px,70vw)]' : 'w-[min(640px,70vw)]'
+          rewards.length > 1 ? 'w-[min(1200px,70vw)]' : 'w-[min(800px,70vw)]'
         } mobile:w-[90vw]`}
       >
         <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
@@ -367,9 +369,72 @@ export default function CreateFarmPage() {
                 </Button>
               )}
             </Row>
+            <div className="mb-8">
+              <ListTable
+                list={rewards}
+                propertyLabelTextMapper={[
+                  {
+                    key: 'token',
+                    label: 'Asset'
+                  },
+                  {
+                    key: 'amount',
+                    label: 'Amount'
+                  },
+                  {
+                    label: 'Day and Hours'
+                  },
+                  {
+                    key: ['startTime', 'endTime'],
+                    label: 'Period (yy-mm-dd)'
+                  },
+                  {
+                    label: 'Est. daily rewards'
+                  }
+                ]}
+                renderItem={({ item, label, key }) => {
+                  if (label === 'Asset') {
+                    return (
+                      <Row className="gap-1 items-center">
+                        <CoinAvatar token={item.token} size="sm" />
+                        <div>{item.token?.symbol ?? 'UNKNOWN'}</div>
+                      </Row>
+                    )
+                  }
+                  if (label === 'Amount') {
+                    return formatNumber(item.amount)
+                  }
+                  if (label === 'Day and Hours') {
+                    if (!item.startTime || !item.endTime) return
+                    const duration = parseDuration(getDuration(item.endTime, item.startTime))
+                    return `${duration.days} days ${duration.hours} hours`
+                  }
+                  if (label === 'Period (yy-mm-dd)') {
+                    if (!item.startTime || !item.endTime) return
+                    return (
+                      <div>
+                        <div>{toUTC(item.startTime)}</div>
+                        <div>{toUTC(item.endTime)}</div>
+                      </div>
+                    )
+                  }
+                  if (label === 'Est. daily rewards') {
+                    const durationDays = item.endTime
+                      ? parseDurationAbsolute(item.endTime.getTime() - (item.startTime?.getTime() ?? Date.now())).days
+                      : undefined
+                    const estimatedValue = item.amount && durationDays ? div(item.amount, durationDays) : undefined
+                    return (
+                      <div className="text-xs">
+                        {toString(estimatedValue)} {item.token?.symbol}
+                      </div>
+                    )
+                  }
+                }}
+              />
+            </div>
             <Grid className="grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-8">
               {rewards.map((reward, index) => (
-                <RewardSettingsCard key={index} rewards={rewards} reward={reward} idx={index} />
+                <RewardFormCard key={index} rewards={rewards} reward={reward} idx={index} />
               ))}
             </Grid>
           </FormStep>

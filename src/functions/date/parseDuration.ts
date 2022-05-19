@@ -1,4 +1,5 @@
 import { shakeFalsyItem } from '../arrayMethods'
+import { TimeStamp } from './interface'
 
 export type ParsedDurationInfo = Record<'days' | 'hours' | 'minutes' | 'seconds' | 'milliseconds' | 'full', number>
 
@@ -42,6 +43,10 @@ export function parseDurationAbsolute(duration: number): ParsedDurationInfo {
     seconds: duration / 1000,
     milliseconds: duration
   }
+}
+
+export function getDuration(timestampA: TimeStamp, timeStampB: TimeStamp) {
+  return new Date(timestampA).getTime() - new Date(timeStampB).getTime()
 }
 
 /**

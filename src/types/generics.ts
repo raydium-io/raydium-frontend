@@ -21,3 +21,8 @@ export type ExactRequired<T, U> = {
 } & {
   [P in Exclude<keyof T, U>]: T[P]
 }
+
+/**
+ * extract only string and number
+ */
+export type SKeyof<O> = Extract<keyof O, string>
