@@ -93,7 +93,8 @@ const config = {
         1.5: '1.5px'
       },
       borderRadius: {
-        '3xl': '1.25rem'
+        '3xl': '1.25rem',
+        inherit: 'inherit'
       },
       ringWidth: {
         1.5: '1.5px'

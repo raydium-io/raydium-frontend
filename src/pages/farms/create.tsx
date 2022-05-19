@@ -308,17 +308,96 @@ function RewardFormCard({
   )
 }
 
+function RewardSummery({ rewards }: { rewards: CreateFarmStore['rewards'] }) {
+  return (
+    <ListTable
+      list={rewards}
+      labelMapper={[
+        {
+          key: 'token',
+          label: 'Asset'
+        },
+        {
+          key: 'amount',
+          label: 'Amount'
+        },
+        {
+          label: 'Day and Hours'
+        },
+        {
+          key: ['startTime', 'endTime'],
+          label: 'Period (yy-mm-dd)'
+        },
+        {
+          label: 'Est. daily rewards'
+        }
+      ]}
+      renderItem={({ item, label, key }) => {
+        if (label === 'Asset') {
+          return item.token ? (
+            <Row className="gap-1 items-center">
+              <CoinAvatar token={item.token} size="sm" />
+              <div>{item.token?.symbol ?? 'UNKNOWN'}</div>
+            </Row>
+          ) : (
+            '--'
+          )
+        }
+
+        if (label === 'Amount') {
+          return item.amount ? formatNumber(item.amount) : undefined
+        }
+
+        if (label === 'Day and Hours') {
+          if (!item.startTime || !item.endTime) return
+          const duration = parseDuration(getDuration(item.endTime, item.startTime))
+          return `${duration.days} Days ${duration.hours} Hours`
+        }
+
+        if (label === 'Period (yy-mm-dd)') {
+          if (!item.startTime || !item.endTime) return
+          return (
+            <div>
+              <div>{toUTC(item.startTime)}</div>
+              <div>{toUTC(item.endTime)}</div>
+            </div>
+          )
+        }
+
+        if (label === 'Est. daily rewards') {
+          const durationDays = item.endTime
+            ? parseDurationAbsolute(item.endTime.getTime() - (item.startTime?.getTime() ?? Date.now())).days
+            : undefined
+          const estimatedValue = item.amount && durationDays ? div(item.amount, durationDays) : undefined
+          if (!estimatedValue) return
+          return (
+            <div className="text-xs">
+              {toString(estimatedValue)} {item.token?.symbol}
+            </div>
+          )
+        }
+      }}
+      renderRowControls={({ destorySelf }) =>
+        rewards.length > 1 && (
+          <Icon heroIconName="x-circle" className="clickable text-[#abc4ff]" onClick={destorySelf} />
+        )
+      }
+      onListChange={(list) => {
+        useCreateFarms.setState({
+          rewards: list
+        })
+      }}
+    />
+  )
+}
+
 export default function CreateFarmPage() {
   const poolId = useCreateFarms((s) => s.poolId)
   const rewards = useCreateFarms((s) => s.rewards)
   const connected = useWallet((s) => s.connected)
   return (
     <PageLayout metaTitle="Farms - Raydium">
-      <div
-        className={`self-center transition-all duration-500 ${
-          rewards.length > 1 ? 'w-[min(1200px,70vw)]' : 'w-[min(800px,70vw)]'
-        } mobile:w-[90vw]`}
-      >
+      <div className={`self-center transition-all duration-500 w-[min(640px,70vw)] mobile:w-[90vw]`}>
         <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
 
         <WarningBoard className="pb-16 w-full" />
@@ -340,103 +419,31 @@ export default function CreateFarmPage() {
               </>
             }
           >
-            <Row className="gap-3 mb-3 justify-center">
-              <Button
-                className="grid place-items-center h-12 w-12 frosted-glass-teal p-0"
-                disabled={rewards.length >= 5}
-                onClick={() => {
-                  useCreateFarms.setState({
-                    rewards: produce(rewards, (draft) => {
-                      draft.push({})
-                    })
-                  })
-                }}
-              >
-                <Icon heroIconName="plus" className="grid place-items-center" />
-              </Button>
-              {rewards.length > 1 && (
-                <Button
-                  className="grid place-items-center h-12 w-12 frosted-glass-teal p-0"
-                  onClick={() => {
-                    useCreateFarms.setState({
-                      rewards: produce(rewards, (draft) => {
-                        draft.pop()
-                      })
-                    })
-                  }}
-                >
-                  <Icon heroIconName="minus" className="grid place-items-center" />
-                </Button>
-              )}
-            </Row>
             <div className="mb-8">
-              <ListTable
-                list={rewards}
-                propertyLabelTextMapper={[
-                  {
-                    key: 'token',
-                    label: 'Asset'
-                  },
-                  {
-                    key: 'amount',
-                    label: 'Amount'
-                  },
-                  {
-                    label: 'Day and Hours'
-                  },
-                  {
-                    key: ['startTime', 'endTime'],
-                    label: 'Period (yy-mm-dd)'
-                  },
-                  {
-                    label: 'Est. daily rewards'
-                  }
-                ]}
-                renderItem={({ item, label, key }) => {
-                  if (label === 'Asset') {
-                    return (
-                      <Row className="gap-1 items-center">
-                        <CoinAvatar token={item.token} size="sm" />
-                        <div>{item.token?.symbol ?? 'UNKNOWN'}</div>
-                      </Row>
-                    )
-                  }
-                  if (label === 'Amount') {
-                    return formatNumber(item.amount)
-                  }
-                  if (label === 'Day and Hours') {
-                    if (!item.startTime || !item.endTime) return
-                    const duration = parseDuration(getDuration(item.endTime, item.startTime))
-                    return `${duration.days} days ${duration.hours} hours`
-                  }
-                  if (label === 'Period (yy-mm-dd)') {
-                    if (!item.startTime || !item.endTime) return
-                    return (
-                      <div>
-                        <div>{toUTC(item.startTime)}</div>
-                        <div>{toUTC(item.endTime)}</div>
-                      </div>
-                    )
-                  }
-                  if (label === 'Est. daily rewards') {
-                    const durationDays = item.endTime
-                      ? parseDurationAbsolute(item.endTime.getTime() - (item.startTime?.getTime() ?? Date.now())).days
-                      : undefined
-                    const estimatedValue = item.amount && durationDays ? div(item.amount, durationDays) : undefined
-                    return (
-                      <div className="text-xs">
-                        {toString(estimatedValue)} {item.token?.symbol}
-                      </div>
-                    )
-                  }
-                }}
-              />
+              <RewardSummery rewards={rewards} />
             </div>
             <Grid className="grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-8">
               {rewards.map((reward, index) => (
                 <RewardFormCard key={index} rewards={rewards} reward={reward} idx={index} />
               ))}
             </Grid>
+            <Button
+              type="text"
+              disabled={rewards.length >= 5}
+              onClick={() => {
+                useCreateFarms.setState({
+                  rewards: produce(rewards, (draft) => {
+                    draft.push({})
+                  })
+                })
+              }}
+            >
+              <Row className="items-center">
+                <Icon className="text-[#abc4ff]" heroIconName="plus-circle" size="sm" />
+                <div className="ml-1.5 text-[#abc4ff] font-medium">Add another reward token</div>
+                <div className="ml-1.5 text-[#abc4ff80] font-medium">({5 - rewards.length} more)</div>
+              </Row>
+            </Button>
           </FormStep>
         </div>
 
