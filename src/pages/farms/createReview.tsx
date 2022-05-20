@@ -1,18 +1,9 @@
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
-import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import Button from '@/components/Button'
-import Card from '@/components/Card'
+import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import { toUTC } from '@/functions/date/dateFormat'
-import { parseDurationAbsolute } from '@/functions/date/parseDuration'
-import { AddressItem } from '@/components/AddressItem'
-import formatNumber from '@/functions/format/formatNumber'
-import { div } from '@/functions/numberish/operations'
-import { toString } from '@/functions/numberish/toString'
-import { Fragment, ReactNode, useMemo } from 'react'
-import { twMerge } from 'tailwind-merge'
 import { PoolSummary } from '@/pageComponents/createFarm/PoolSummary'
 import { RewardSummery } from '@/pageComponents/createFarm/RewardSummary'
 
@@ -33,7 +24,7 @@ export default function CreateFarmReviewPage() {
 
         <div className="mb-6">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Farm rewards</div>
-          <RewardSummery />
+          <RewardSummery mode="normal" />
         </div>
 
         <div className="font-medium text-sm text-center leading-snug text-[#abc4ff80] mb-8">
@@ -57,14 +48,5 @@ export default function CreateFarmReviewPage() {
         </Row>
       </div>
     </PageLayout>
-  )
-}
-
-function CreateFarmReviewItem({ className, label, value }: { className?: string; label: ReactNode; value: ReactNode }) {
-  return (
-    <Row className={twMerge('grid gap-4 items-center grid-cols-[1fr,1fr] py-3 px-24', className)}>
-      <div className="text-sm text-[#abc4ff] font-medium">{label}</div>
-      <div className="text-sm text-white font-medium">{value}</div>
-    </Row>
   )
 }

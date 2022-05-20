@@ -1,4 +1,4 @@
-import useCreateFarms, { CreateFarmStore } from '@/application/createFarm/useCreateFarm'
+import useCreateFarms, { CreateFarmStore, RewardInfo } from '@/application/createFarm/useCreateFarm'
 import CoinAvatar from '@/components/CoinAvatar'
 import Icon from '@/components/Icon'
 import ListTable from '@/components/ListTable'
@@ -9,12 +9,27 @@ import formatNumber from '@/functions/format/formatNumber'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 
+/**
+ * mode: list show
+ * mode: list show (item select)
+ * mode: edit
+ */
 export function RewardSummery({
+  mode,
   activeIndex,
-  onActiveIndexChange
+  onActiveIndexChange,
+  onClickIncreaseReward,
+  onDeleteReward
 }: {
+  mode: 'normal' | 'selectable' | 'edit'
+
+  // --------- when selectable ------------
   activeIndex?: number
   onActiveIndexChange?(index: number): void
+
+  // --------- when edit ------------
+  onClickIncreaseReward?(reward: RewardInfo): void
+  onDeleteReward?(reward: RewardInfo): void
 }) {
   const rewards = useCreateFarms((s) => s.rewards)
   return (
@@ -45,7 +60,9 @@ export function RewardSummery({
       ]}
       // className="backdrop-brightness-"
       rowClassName={({ index }) =>
-        `${activeIndex === index ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'} `
+        mode === 'selectable'
+          ? `${activeIndex === index ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
+          : ''
       }
       onClickRow={({ index }) => {
         onActiveIndexChange?.(index)
@@ -95,24 +112,51 @@ export function RewardSummery({
           )
         }
       }}
-      renderRowControls={({ destorySelf, index: idx }) => (
-        <Row className="gap-2">
-          <Icon
-            size="smi"
-            heroIconName="pencil"
-            className="clickable clickable-opacity-effect text-[#abc4ff]"
-            onClick={() => {
-              onActiveIndexChange?.(idx)
-            }}
-          />
-          <Icon
-            size="smi"
-            heroIconName="trash"
-            className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'not-clickable'}`}
-            onClick={() => rewards.length > 1 && destorySelf()}
-          />
-        </Row>
-      )}
+      renderRowControls={
+        mode === 'selectable'
+          ? ({ destorySelf, index: idx }) => (
+              <Row className="gap-2">
+                <Icon
+                  size="smi"
+                  heroIconName="pencil"
+                  className="clickable clickable-opacity-effect text-[#abc4ff]"
+                  onClick={() => {
+                    onActiveIndexChange?.(idx)
+                  }}
+                />
+                <Icon
+                  size="smi"
+                  heroIconName="trash"
+                  className={`clickable text-[#abc4ff] ${
+                    rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'not-clickable'
+                  }`}
+                  onClick={() => rewards.length > 1 && destorySelf()}
+                />
+              </Row>
+            )
+          : mode === 'edit'
+          ? ({ destorySelf, index: idx, itemData }) => (
+              <Row className="gap-2">
+                <Icon
+                  size="smi"
+                  heroIconName="plus-circle"
+                  className="clickable clickable-opacity-effect text-[#abc4ff]"
+                  onClick={() => {
+                    onClickIncreaseReward?.(itemData)
+                  }}
+                />
+                <Icon
+                  size="smi"
+                  heroIconName="trash"
+                  className={`clickable text-[#abc4ff] ${
+                    rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'not-clickable'
+                  }`}
+                  onClick={() => rewards.length > 1 && destorySelf()}
+                />
+              </Row>
+            )
+          : undefined
+      }
       onListChange={(list) => {
         useCreateFarms.setState({
           rewards: list

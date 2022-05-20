@@ -126,7 +126,7 @@ export default function CreateFarmPage() {
             }
           >
             <div className="mb-8">
-              <RewardSummery activeIndex={activeIndex} onActiveIndexChange={setActiveIndex} />
+              <RewardSummery mode="selectable" activeIndex={activeIndex} onActiveIndexChange={setActiveIndex} />
             </div>
             <Grid className="grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-8">
               <FadeIn>
@@ -143,7 +143,7 @@ export default function CreateFarmPage() {
               onClick={() => {
                 useCreateFarms.setState({
                   rewards: produce(rewards, (draft) => {
-                    draft.push({})
+                    draft.push({ isNewAdded: true })
                   })
                 })
               }}
