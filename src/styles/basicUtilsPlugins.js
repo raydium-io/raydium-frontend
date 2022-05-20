@@ -97,13 +97,19 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
         borderRadius: '9999px'
       }
     },
+    '.clickable-opacity-effect': {
+      transition: '175ms',
+      opacity: 0.9,
+      '&:active': { opacity: 1 },
+      '&:hover': { opacity: 1 }
+    },
     '.no-clicable-transform-effect': {
       '&:active': { transform: 'none' }
     },
     '.not-clickable': {
       cursor: 'not-allowed',
       pointerEvents: 'none',
-      opacity: '0.5',
+      opacity: '0.4',
       '&:active': { all: 'none' },
       '&:hover': { all: 'none' }
     }

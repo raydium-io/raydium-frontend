@@ -15,7 +15,7 @@ import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSel
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import DateInput from '@/components/DateInput'
-import FadeInStable from '@/components/FadeIn'
+import FadeInStable, { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
@@ -308,7 +308,15 @@ function RewardFormCard({
   )
 }
 
-function RewardSummery({ rewards }: { rewards: CreateFarmStore['rewards'] }) {
+function RewardSummery({
+  rewards,
+  activeIndex,
+  onActiveIndexChange
+}: {
+  rewards: CreateFarmStore['rewards']
+  activeIndex?: number
+  onActiveIndexChange?(index: number): void
+}) {
   return (
     <ListTable
       list={rewards}
@@ -326,12 +334,20 @@ function RewardSummery({ rewards }: { rewards: CreateFarmStore['rewards'] }) {
         },
         {
           key: ['startTime', 'endTime'],
-          label: 'Period (yy-mm-dd)'
+          label: 'Period (yy-mm-dd)',
+          cssInitialWidth: '1.5fr'
         },
         {
           label: 'Est. daily rewards'
         }
       ]}
+      // className="backdrop-brightness-"
+      rowClassName={({ index }) =>
+        `${activeIndex === index ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'} `
+      }
+      onClickRow={({ index }) => {
+        onActiveIndexChange?.(index)
+      }}
       renderItem={({ item, label, key }) => {
         if (label === 'Asset') {
           return item.token ? (
@@ -377,11 +393,24 @@ function RewardSummery({ rewards }: { rewards: CreateFarmStore['rewards'] }) {
           )
         }
       }}
-      renderRowControls={({ destorySelf }) =>
-        rewards.length > 1 && (
-          <Icon heroIconName="x-circle" className="clickable text-[#abc4ff]" onClick={destorySelf} />
-        )
-      }
+      renderRowControls={({ destorySelf, index: idx }) => (
+        <Row className="gap-2">
+          <Icon
+            size="smi"
+            heroIconName="pencil"
+            className="clickable clickable-opacity-effect text-[#abc4ff]"
+            onClick={() => {
+              onActiveIndexChange?.(idx)
+            }}
+          />
+          <Icon
+            size="smi"
+            heroIconName="trash"
+            className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'not-clickable'}`}
+            onClick={() => rewards.length > 1 && destorySelf()}
+          />
+        </Row>
+      )}
       onListChange={(list) => {
         useCreateFarms.setState({
           rewards: list
@@ -395,6 +424,7 @@ export default function CreateFarmPage() {
   const poolId = useCreateFarms((s) => s.poolId)
   const rewards = useCreateFarms((s) => s.rewards)
   const connected = useWallet((s) => s.connected)
+  const [activeIndex, setActiveIndex] = useState(0)
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className={`self-center transition-all duration-500 w-[min(640px,70vw)] mobile:w-[90vw]`}>
@@ -420,12 +450,14 @@ export default function CreateFarmPage() {
             }
           >
             <div className="mb-8">
-              <RewardSummery rewards={rewards} />
+              <RewardSummery rewards={rewards} activeIndex={activeIndex} onActiveIndexChange={setActiveIndex} />
             </div>
             <Grid className="grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-8">
-              {rewards.map((reward, index) => (
-                <RewardFormCard key={index} rewards={rewards} reward={reward} idx={index} />
-              ))}
+              <FadeIn>
+                {rewards[activeIndex] && (
+                  <RewardFormCard rewards={rewards} reward={rewards[activeIndex]} idx={activeIndex} />
+                )}
+              </FadeIn>
             </Grid>
             <Button
               type="text"
