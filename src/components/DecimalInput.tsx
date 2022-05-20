@@ -35,14 +35,14 @@ export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultVa
    * if newValue - oldValue is between floatingValue, input will not update
    * if value is true, it will use default floatingValue:value/10000
    */
-  floating?: Numberish | boolean
+  valueFloating?: Numberish | boolean
 }
 
 /** let <Input> be a independent  component, it for consistency, as <Button> and <Icon> and <Link> etc is independent */
 export default function DecimalInput({
   defaultValue,
   value,
-  floating,
+  valueFloating,
 
   typeDecimalDecimalCount = 3,
   typeDecimalMinValue = 0,
@@ -52,9 +52,9 @@ export default function DecimalInput({
 }: DecimalInputProps) {
   const [innerValue, setInnerValue] = useState(defaultValue)
   useIsomorphicLayoutEffect(() => {
-    if (floating && value && innerValue) {
+    if (valueFloating && value && innerValue) {
       const diff = abs(sub(value, innerValue))
-      if (gt(diff, floating === true ? div(innerValue, 10000) : floating)) setInnerValue(value)
+      if (gt(diff, valueFloating === true ? div(innerValue, 10000) : valueFloating)) setInnerValue(value)
     } else {
       setInnerValue(value)
     }

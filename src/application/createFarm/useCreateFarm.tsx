@@ -3,6 +3,7 @@ import { SplTokens } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 import { SplToken } from '../token/type'
 
+// actually it also use to edit farm
 export type CreateFarmStore = {
   poolId?: string
   rewards: {

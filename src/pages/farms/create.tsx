@@ -196,7 +196,15 @@ function FormStep({
   )
 }
 
-function RewardFormCard({
+function RewardFormCard({ children }: { children?: ReactNode }) {
+  return (
+    <Card className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]" size="lg">
+      {children}
+    </Card>
+  )
+}
+
+export function RewardFormCardContent({
   reward,
   idx,
   rewards
@@ -211,11 +219,9 @@ function RewardFormCard({
 
   const estimatedValue = reward.amount && durationDays ? div(reward.amount, durationDays) : undefined
   return (
-    <Card
-      className="grid gap-3 p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]"
-      size="lg"
-    >
+    <Grid className="gap-4">
       <CoinInputBoxWithTokenSelector
+        className="rounded-md"
         haveHalfButton
         topLeftLabel="Assert"
         value={toString(reward.amount)}
@@ -236,9 +242,9 @@ function RewardFormCard({
         }}
       />
 
-      <Row className="gap-2">
+      <Row className="gap-4">
         <DateInput
-          className="grow"
+          className="grow rounded-md"
           label="Farming Start"
           inputProps={{
             inputClassName: 'text-[#abc4ff] text-xs font-medium'
@@ -255,7 +261,7 @@ function RewardFormCard({
         />
 
         <DateInput
-          className="grow"
+          className="grow rounded-md"
           label="Farming Ends"
           inputProps={{
             inputClassName: 'text-[#abc4ff] text-xs font-medium'
@@ -273,7 +279,7 @@ function RewardFormCard({
 
         <InputBox
           decimalMode
-          className="py-3 px-3"
+          className="py-3 px-3 rounded-md"
           label="Days"
           inputClassName="w-12"
           value={durationDays && trimTailingZero(formatNumber(durationDays, { fractionLength: 1 }))}
@@ -291,7 +297,8 @@ function RewardFormCard({
 
       <InputBox
         decimalMode
-        floating
+        valueFloating
+        className="rounded-md"
         label="Estimated rewards / day"
         value={estimatedValue}
         onUserInput={(v) => {
@@ -304,7 +311,7 @@ function RewardFormCard({
         }}
         suffix={reward.token && durationDays && durationDays > 0 ? <div>{reward.token.symbol} / day</div> : undefined}
       />
-    </Card>
+    </Grid>
   )
 }
 
@@ -455,7 +462,9 @@ export default function CreateFarmPage() {
             <Grid className="grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-8">
               <FadeIn>
                 {rewards[activeIndex] && (
-                  <RewardFormCard rewards={rewards} reward={rewards[activeIndex]} idx={activeIndex} />
+                  <RewardFormCard>
+                    <RewardFormCardContent rewards={rewards} reward={rewards[activeIndex]} idx={activeIndex} />
+                  </RewardFormCard>
                 )}
               </FadeIn>
             </Grid>
