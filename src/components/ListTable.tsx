@@ -24,7 +24,7 @@ interface ListTableHeader<D> {
 type ListTableMap<T> = {
   key?: MayArray<SKeyof<T>>
   label: string
-  cssInitialWidth?: string // default '1fr'
+  cssGridItemWidth?: string // default '1fr'
 }
 
 type ListTableProps<T> = {
@@ -89,7 +89,10 @@ export default function ListTable<T>({
   const headerRefs = useRef<ListTableHeader<T>[]>([]) // for itemWidth
   const parsedShowedPropertyNames = shrinkToValue(labelMapper, [Object.keys(list[0] ?? {}), list[0]])
 
-  const gridTemplateColumns = parsedShowedPropertyNames.map((i) => i.cssInitialWidth ?? '1fr').join(' ')
+  const gridTemplateStyle = {
+    gridTemplateColumns: parsedShowedPropertyNames.map((i) => i.cssGridItemWidth ?? '1fr').join(' '),
+    gap: 4
+  } as CSSProperties
   return (
     <Card
       className={twMerge('grid bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]', className)}
@@ -98,7 +101,7 @@ export default function ListTable<T>({
       {/* Header */}
       <Grid
         className={twMerge('bg-[#141041] px-5 rounded-tr-inherit rounded-tl-inherit items-center', headerCardClassName)}
-        style={{ gridTemplateColumns }}
+        style={gridTemplateStyle}
       >
         {parsedShowedPropertyNames.map(({ key, label }, idx) => (
           <Fragment key={idx}>
@@ -117,12 +120,13 @@ export default function ListTable<T>({
         {/* Body */}
         {wrapped.map(({ data, destorySelf, changeSelf }, idx) => (
           <div key={isObject(data) ? (data as any)?.id ?? idx : idx} className="relative">
+            {/* Row */}
             <Grid
               className={twMerge(
-                'text-[#abc4ff] text-xs font-medium py-4 px-5 -mx-5',
+                'text-[#abc4ff] text-xs font-medium py-4 px-5 -mx-5 items-center',
                 shrinkToValue(rowClassName, [{ index: idx, itemData: data }])
               )}
-              style={{ gridTemplateColumns }}
+              style={gridTemplateStyle}
               onClick={() => {
                 onClickRow?.({ index: idx, itemData: data })
               }}

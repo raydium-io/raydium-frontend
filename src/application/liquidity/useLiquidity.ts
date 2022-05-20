@@ -45,6 +45,7 @@ export type LiquidityStore = {
 
   /**
    * additionally add 'hydrated data' (shorcuts data or customized data)
+   * !important: only if pool is in userExhibitionLiquidityIds
    */
   hydratedInfos: HydratedLiquidityInfo[] // auto parse info in {@link useLiquidityAuto}
   findLiquidityInfoByTokenMint: (

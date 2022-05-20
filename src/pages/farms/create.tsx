@@ -1,39 +1,24 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useCreateFarms, { CreateFarmStore } from '@/application/createFarm/useCreateFarm'
-import useLiquidity from '@/application/liquidity/useLiquidity'
-import { usePools } from '@/application/pools/usePools'
+import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { routeTo } from '@/application/routeTools'
-import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
-import { AddressItem } from '@/components/AddressItem'
-import AutoComplete, { AutoCompleteCandidateItem } from '@/components/AutoComplete'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
-import CoinAvatar from '@/components/CoinAvatar'
-import CoinAvatarPair from '@/components/CoinAvatarPair'
-import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
-import DateInput from '@/components/DateInput'
 import FadeInStable, { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
-import InputBox from '@/components/InputBox'
 import Link from '@/components/Link'
-import ListTable from '@/components/ListTable'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
 import { currentIsBefore, isDateBefore } from '@/functions/date/judges'
-import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
-import formatNumber from '@/functions/format/formatNumber'
-import listToMap, { listToJSMap } from '@/functions/format/listToMap'
-import toUsdVolume from '@/functions/format/toUsdVolume'
-import { div, mul } from '@/functions/numberish/operations'
-import { trimTailingZero } from '@/functions/numberish/stringNumber'
-import { toString } from '@/functions/numberish/toString'
+import { listToJSMap } from '@/functions/format/listToMap'
 import produce from 'immer'
-import { ReactNode, useMemo, useState } from 'react'
+import { ReactNode, useState } from 'react'
+import { RewardFormCardInputs } from '../../pageComponents/createFarm/RewardFormCardInputs'
+import { PoolIdInputBlock } from '../../pageComponents/createFarm/PoolIdInputBlock'
+import { RewardSummery } from '../../pageComponents/createFarm/RewardSummary'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -78,99 +63,6 @@ function WarningBoard({ className }: { className: string }) {
   )
 }
 
-function SearchBlock() {
-  const poolId = useCreateFarms((s) => s.poolId)
-  const pairInfos = usePools((s) => s.hydratedInfos)
-  const liquidityPools = useLiquidity((s) => s.jsonInfos)
-  const tokens = useToken((s) => s.tokens)
-
-  const liquidityPoolMap = useMemo(() => listToMap(liquidityPools, (s) => s.id), [liquidityPools])
-  const pairInfoMap = useMemo(() => listToMap(pairInfos, (s) => s.ammId), [pairInfos])
-
-  const selectedPool = liquidityPools.find((i) => i.id === poolId)
-  const selectedPoolPairInfo = pairInfos.find((i) => i.ammId === poolId)
-
-  const candidates = liquidityPools
-    .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
-    .map((pool) =>
-      Object.assign(pool, {
-        label: pool.id,
-        searchText: `${tokens[pool.baseMint]?.symbol} ${tokens[pool.quoteMint]?.symbol} ${pool.id}`
-      } as AutoCompleteCandidateItem)
-    )
-
-  const [inputValue, setInputValue] = useState<string>()
-  const [isInputing, setIsInputing] = useState(false)
-  return (
-    <Card className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a]" size="lg">
-      <AutoComplete
-        candidates={candidates}
-        value={selectedPool?.id}
-        className="p-4 py-3 gap-2 bg-[#141041] rounded-xl min-w-[7em]"
-        inputClassName="font-medium mobile:text-xs text-[#abc4ff] placeholder-[#abc4Ff80]"
-        suffix={<Icon heroIconName="search" className="text-[rgba(196,214,255,0.5)]" />}
-        placeholder="Search for a pool or paste AMM ID"
-        renderCandidateItem={({ candidate, isSelected }) => (
-          <Row className={`py-3 px-4 items-center gap-2 ${isSelected ? 'backdrop-brightness-50' : ''}`}>
-            <CoinAvatarPair token1={tokens[candidate.baseMint]} token2={tokens[candidate.quoteMint]} />
-            <div className="text-[#abc4ff] font-medium">
-              {tokens[candidate.baseMint]?.symbol}-{tokens[candidate.quoteMint]?.symbol}
-            </div>
-            {pairInfoMap[candidate.id] ? (
-              <div className="text-[#abc4ff80] text-sm font-medium">
-                {toUsdVolume(pairInfoMap[candidate.id].liquidity, { decimalPlace: 0 })}
-              </div>
-            ) : null}
-            <AddressItem canCopy={false} showDigitCount={8} className="text-[#abc4ff80] text-xs ml-auto">
-              {candidate.id}
-            </AddressItem>
-          </Row>
-        )}
-        onSelectCandiateItem={({ selected }) => {
-          setIsInputing(false)
-          useCreateFarms.setState({ poolId: selected.id })
-        }}
-        onBlurMatchCandiateFailed={({ text: candidatedPoolId }) => {
-          const matchedPoolId = liquidityPools.find((i) => i.id === candidatedPoolId)?.id
-          useCreateFarms.setState({ poolId: matchedPoolId })
-        }}
-        onDangerousValueChange={(v) => {
-          setInputValue(v)
-        }}
-        onUserInput={() => {
-          setIsInputing(true)
-        }}
-        onBlur={() => {
-          setIsInputing(false)
-        }}
-      />
-
-      <FadeInStable show={inputValue && !isInputing}>
-        <Row className="items-center px-4 pt-2 gap-2">
-          {selectedPool ? (
-            <>
-              <CoinAvatarPair token1={tokens[selectedPool.baseMint]} token2={tokens[selectedPool.quoteMint]} />
-              <div className="text-[#abc4ff] text-base font-medium">
-                {tokens[selectedPool.baseMint]?.symbol} - {tokens[selectedPool.quoteMint]?.symbol}
-              </div>
-              {selectedPoolPairInfo ? (
-                <div className="text-[#abc4ff80] text-sm ml-auto font-medium">
-                  Liquidity: {toUsdVolume(selectedPoolPairInfo.liquidity, { decimalPlace: 0 })}
-                </div>
-              ) : null}
-            </>
-          ) : (
-            <>
-              <Icon size="smi" heroIconName="x-circle" className="text-[#DA2EEF]" />
-              <div className="text-[#DA2EEF] text-xs font-medium">Can't find pool</div>
-            </>
-          )}
-        </Row>
-      </FadeInStable>
-    </Card>
-  )
-}
-
 function FormStep({
   stepNumber,
   title,
@@ -204,229 +96,6 @@ function RewardFormCard({ children }: { children?: ReactNode }) {
   )
 }
 
-export function RewardFormCardContent({
-  reward,
-  idx,
-  rewards
-}: {
-  reward: CreateFarmStore['rewards'][number]
-  idx: number
-  rewards: CreateFarmStore['rewards']
-}) {
-  const durationDays = reward.endTime
-    ? parseDurationAbsolute(reward.endTime.getTime() - (reward.startTime?.getTime() ?? Date.now())).days
-    : undefined
-
-  const estimatedValue = reward.amount && durationDays ? div(reward.amount, durationDays) : undefined
-  return (
-    <Grid className="gap-4">
-      <CoinInputBoxWithTokenSelector
-        className="rounded-md"
-        haveHalfButton
-        topLeftLabel="Assert"
-        value={toString(reward.amount)}
-        token={reward.token}
-        onSelectCoin={(token) => {
-          useCreateFarms.setState({
-            rewards: produce(rewards, (draft) => {
-              draft[idx].token = token
-            })
-          })
-        }}
-        onUserInput={(amount) => {
-          useCreateFarms.setState({
-            rewards: produce(rewards, (draft) => {
-              draft[idx].amount = amount
-            })
-          })
-        }}
-      />
-
-      <Row className="gap-4">
-        <DateInput
-          className="grow rounded-md"
-          label="Farming Start"
-          inputProps={{
-            inputClassName: 'text-[#abc4ff] text-xs font-medium'
-          }}
-          value={reward.startTime}
-          disableDateBeforeCurrent
-          onDateChange={(selectedDate) =>
-            useCreateFarms.setState({
-              rewards: produce(rewards, (draft) => {
-                draft[idx].startTime = selectedDate
-              })
-            })
-          }
-        />
-
-        <DateInput
-          className="grow rounded-md"
-          label="Farming Ends"
-          inputProps={{
-            inputClassName: 'text-[#abc4ff] text-xs font-medium'
-          }}
-          value={reward.endTime}
-          disableDateBeforeCurrent
-          onDateChange={(selectedDate) =>
-            useCreateFarms.setState({
-              rewards: produce(rewards, (draft) => {
-                draft[idx].endTime = selectedDate
-              })
-            })
-          }
-        />
-
-        <InputBox
-          decimalMode
-          className="py-3 px-3 rounded-md"
-          label="Days"
-          inputClassName="w-12"
-          value={durationDays && trimTailingZero(formatNumber(durationDays, { fractionLength: 1 }))}
-          onUserInput={(v) => {
-            if (v) {
-              useCreateFarms.setState({
-                rewards: produce(rewards, (draft) => {
-                  draft[idx].endTime = offsetDateTime(reward.startTime ?? Date.now(), { days: Number(v) })
-                })
-              })
-            }
-          }}
-        />
-      </Row>
-
-      <InputBox
-        decimalMode
-        valueFloating
-        className="rounded-md"
-        label="Estimated rewards / day"
-        value={estimatedValue}
-        onUserInput={(v) => {
-          if (!durationDays) return
-          useCreateFarms.setState({
-            rewards: produce(rewards, (draft) => {
-              draft[idx].amount = mul(durationDays, v)
-            })
-          })
-        }}
-        suffix={reward.token && durationDays && durationDays > 0 ? <div>{reward.token.symbol} / day</div> : undefined}
-      />
-    </Grid>
-  )
-}
-
-function RewardSummery({
-  rewards,
-  activeIndex,
-  onActiveIndexChange
-}: {
-  rewards: CreateFarmStore['rewards']
-  activeIndex?: number
-  onActiveIndexChange?(index: number): void
-}) {
-  return (
-    <ListTable
-      list={rewards}
-      labelMapper={[
-        {
-          key: 'token',
-          label: 'Asset'
-        },
-        {
-          key: 'amount',
-          label: 'Amount'
-        },
-        {
-          label: 'Day and Hours'
-        },
-        {
-          key: ['startTime', 'endTime'],
-          label: 'Period (yy-mm-dd)',
-          cssInitialWidth: '1.5fr'
-        },
-        {
-          label: 'Est. daily rewards'
-        }
-      ]}
-      // className="backdrop-brightness-"
-      rowClassName={({ index }) =>
-        `${activeIndex === index ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'} `
-      }
-      onClickRow={({ index }) => {
-        onActiveIndexChange?.(index)
-      }}
-      renderItem={({ item, label, key }) => {
-        if (label === 'Asset') {
-          return item.token ? (
-            <Row className="gap-1 items-center">
-              <CoinAvatar token={item.token} size="sm" />
-              <div>{item.token?.symbol ?? 'UNKNOWN'}</div>
-            </Row>
-          ) : (
-            '--'
-          )
-        }
-
-        if (label === 'Amount') {
-          return item.amount ? formatNumber(item.amount) : undefined
-        }
-
-        if (label === 'Day and Hours') {
-          if (!item.startTime || !item.endTime) return
-          const duration = parseDuration(getDuration(item.endTime, item.startTime))
-          return `${duration.days} Days ${duration.hours} Hours`
-        }
-
-        if (label === 'Period (yy-mm-dd)') {
-          if (!item.startTime || !item.endTime) return
-          return (
-            <div>
-              <div>{toUTC(item.startTime)}</div>
-              <div>{toUTC(item.endTime)}</div>
-            </div>
-          )
-        }
-
-        if (label === 'Est. daily rewards') {
-          const durationDays = item.endTime
-            ? parseDurationAbsolute(item.endTime.getTime() - (item.startTime?.getTime() ?? Date.now())).days
-            : undefined
-          const estimatedValue = item.amount && durationDays ? div(item.amount, durationDays) : undefined
-          if (!estimatedValue) return
-          return (
-            <div className="text-xs">
-              {toString(estimatedValue)} {item.token?.symbol}
-            </div>
-          )
-        }
-      }}
-      renderRowControls={({ destorySelf, index: idx }) => (
-        <Row className="gap-2">
-          <Icon
-            size="smi"
-            heroIconName="pencil"
-            className="clickable clickable-opacity-effect text-[#abc4ff]"
-            onClick={() => {
-              onActiveIndexChange?.(idx)
-            }}
-          />
-          <Icon
-            size="smi"
-            heroIconName="trash"
-            className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'not-clickable'}`}
-            onClick={() => rewards.length > 1 && destorySelf()}
-          />
-        </Row>
-      )}
-      onListChange={(list) => {
-        useCreateFarms.setState({
-          rewards: list
-        })
-      }}
-    />
-  )
-}
-
 export default function CreateFarmPage() {
   const poolId = useCreateFarms((s) => s.poolId)
   const rewards = useCreateFarms((s) => s.rewards)
@@ -441,7 +110,7 @@ export default function CreateFarmPage() {
 
         <div className="space-y-4">
           <FormStep stepNumber={1} title="Select Pool" haveNavline>
-            <SearchBlock />
+            <PoolIdInputBlock />
           </FormStep>
 
           <FormStep
@@ -457,13 +126,13 @@ export default function CreateFarmPage() {
             }
           >
             <div className="mb-8">
-              <RewardSummery rewards={rewards} activeIndex={activeIndex} onActiveIndexChange={setActiveIndex} />
+              <RewardSummery activeIndex={activeIndex} onActiveIndexChange={setActiveIndex} />
             </div>
             <Grid className="grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-8">
               <FadeIn>
                 {rewards[activeIndex] && (
                   <RewardFormCard>
-                    <RewardFormCardContent rewards={rewards} reward={rewards[activeIndex]} idx={activeIndex} />
+                    <RewardFormCardInputs rewardIndex={activeIndex} />
                   </RewardFormCard>
                 )}
               </FadeIn>
@@ -494,46 +163,46 @@ export default function CreateFarmPage() {
           onClick={() => {
             routeTo('/farms/createReview')
           }}
-          validators={[
-            {
-              should: poolId,
-              fallbackProps: {
-                children: 'Select pool' // NOTE: should ask manager about the text content
-              }
-            },
-            {
-              should: rewards.every((r) => r.token),
-              fallbackProps: {
-                children: 'Choose reward token' // NOTE: should ask manager about the text content
-              }
-            },
-            {
-              should: rewards.every((r) => r.amount),
-              fallbackProps: {
-                children: 'Input reward amount' // NOTE: should ask manager about the text content
-              }
-            },
-            {
-              should: rewards.every((r) => r.startTime && r.endTime),
-              fallbackProps: {
-                children: 'Set StartTime and EndTime' // NOTE: should ask manager about the text content
-              }
-            },
-            {
-              should: rewards.every((r) => r.startTime && r.endTime && isDateBefore(r.startTime, r.endTime)),
-              fallbackProps: {
-                children: 'StartTime must before EndTime' // NOTE: should ask manager about the text content
-              }
-            },
-            {
-              should: connected,
-              forceActive: true,
-              fallbackProps: {
-                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                children: 'Connect Wallet'
-              }
-            }
-          ]}
+          // validators={[
+          //   {
+          //     should: poolId,
+          //     fallbackProps: {
+          //       children: 'Select pool' // NOTE: should ask manager about the text content
+          //     }
+          //   },
+          //   {
+          //     should: rewards.every((r) => r.token),
+          //     fallbackProps: {
+          //       children: 'Choose reward token' // NOTE: should ask manager about the text content
+          //     }
+          //   },
+          //   {
+          //     should: rewards.every((r) => r.amount),
+          //     fallbackProps: {
+          //       children: 'Input reward amount' // NOTE: should ask manager about the text content
+          //     }
+          //   },
+          //   {
+          //     should: rewards.every((r) => r.startTime && r.endTime),
+          //     fallbackProps: {
+          //       children: 'Set StartTime and EndTime' // NOTE: should ask manager about the text content
+          //     }
+          //   },
+          //   {
+          //     should: rewards.every((r) => r.startTime && r.endTime && isDateBefore(r.startTime, r.endTime)),
+          //     fallbackProps: {
+          //       children: 'StartTime must before EndTime' // NOTE: should ask manager about the text content
+          //     }
+          //   },
+          //   {
+          //     should: connected,
+          //     forceActive: true,
+          //     fallbackProps: {
+          //       onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+          //       children: 'Connect Wallet'
+          //     }
+          //   }
+          // ]}
         >
           Review Farm
         </Button>
