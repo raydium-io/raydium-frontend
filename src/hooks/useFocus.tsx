@@ -11,13 +11,12 @@ export interface UseFocusOptions {
   onBlur?: (info: { ev: FocusEvent }) => void
 }
 
-function getEls(refs: MayArray<RefObject<HTMLElement | undefined | null> | HTMLElement | undefined | null>) {
+type ElementRefs = MayArray<RefObject<HTMLElement | undefined | null> | HTMLElement | undefined | null>
+
+function getEls(refs: ElementRefs) {
   return shakeFalsyItem([refs].flat().map((ref) => (isObject(ref) && 'current' in ref ? ref.current : ref)))
 }
-export function useFocus(
-  refs: MayArray<RefObject<HTMLElement | undefined | null> | HTMLElement | undefined | null>,
-  { disable, onFocus, onBlur }: UseFocusOptions = {}
-) {
+export function useFocus(refs: ElementRefs, { disable, onFocus, onBlur }: UseFocusOptions = {}) {
   const [isActive, { on: turnOnActive, off: turnOffActive }] = useToggle(false)
 
   const elsFocusStates = useRef(new Map<HTMLElement, boolean>())

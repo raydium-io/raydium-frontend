@@ -8,6 +8,7 @@ import { offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
+import { isNumber } from '@/functions/judgers/dateType'
 import { isExist } from '@/functions/judgers/nil'
 import { div, mul } from '@/functions/numberish/operations'
 import { trimTailingZero } from '@/functions/numberish/stringNumber'
@@ -74,14 +75,13 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
           decimalMode
           className="rounded-md px-4"
           label="Day and Hours"
-          inputClassName="w-12"
-          value={durationDays && trimTailingZero(formatNumber(durationDays, { fractionLength: 1 }))}
+          value={durationDays && trimTailingZero(formatNumber(durationDays, { fractionLength: 1, groupSeparator: '' }))}
           // TODO: maxValue (for end time is setted and start can't before now)
-          onUserInput={(v) => {
-            const durationDays = Number(v)
+          onUserInput={(v, { canSafelyCovertToNumber }) => {
+            if (!canSafelyCovertToNumber) return
+            const durationDays = v ? Number(v) : undefined // NOTE: v maybe empty string
             setDurationDays(durationDays)
-
-            if (v) {
+            if (isNumber(durationDays)) {
               useCreateFarms.setState({
                 rewards: produce(rewards, (draft) => {
                   if (!draft[rewardIndex]) return

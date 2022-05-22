@@ -55,6 +55,7 @@ export default function InputBox({
       {shrinkToValue(renderInput, [inputRef]) ??
         (decimalMode ? (
           <DecimalInput
+            noCSSInputDefaultWidth
             {...(restProps as DecimalInputProps)}
             {...(inputProps as DecimalInputProps)}
             className={twMerge('w-full font-medium text-lg text-white', inputProps?.className)}
@@ -62,6 +63,7 @@ export default function InputBox({
           />
         ) : (
           <Input
+            noCSSInputDefaultWidth
             {...(restProps as InputProps)}
             {...(inputProps as InputProps)}
             className={twMerge('w-full font-medium text-lg text-white', inputProps?.className)}

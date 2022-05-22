@@ -32,6 +32,8 @@ export interface InputProps {
 
   type?: string // current support type in this app
 
+  noCSSInputDefaultWidth?: boolean // <input> have default width, sometimes, it's weird
+
   /** this will cause auto-grow <input> */
   required?: boolean // for readability
   /**aria */
@@ -86,7 +88,7 @@ export interface InputProps {
    * it may be confusing with onUserInput sometimes
    */
   onDangerousValueChange?: (currentValue: string, el: HTMLInputElement) => void
-  onUserInput?: (text: string, el: HTMLInputElement) => void
+  onUserInput?: (text: string /* TODO: should also undefined */, el: HTMLInputElement) => void
   onClick?: (text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }) => void
   onEnter?: (text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }) => void
   onBlur?: (text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }) => void
@@ -108,6 +110,8 @@ export default function Input(props: InputProps) {
     id,
 
     type,
+
+    noCSSInputDefaultWidth,
 
     required,
     labelText,
@@ -190,13 +194,15 @@ export default function Input(props: InputProps) {
       <div className="flex-initial">{shrinkToValue(prefix, [inputComponentHandler])}</div>
 
       {/* input-wrapperbox is for style input inner body easier */}
-      <div className={twMerge('flex-grow flex-shrink', inputWrapperClassName)}>
+      <div className={twMerge('flex flex-grow flex-shrink', inputWrapperClassName)}>
         <input
           autoComplete="off"
           id={id}
           type={type}
           ref={mergeRef(inputRef, inputDomRef)}
-          className={`bg-transparent border-none w-full outline-none block ${inputClassName ?? ''}`} // start html input with only 2rem, if need width please define it in parent div
+          className={`${noCSSInputDefaultWidth ? 'w-0 grow' : 'w-full'} bg-transparent border-none outline-none block ${
+            inputClassName ?? ''
+          }`} // start html input with only 2rem, if need width please define it in parent div
           value={inputValue}
           placeholder={placeholder ? String(placeholder) : undefined}
           disabled={disabled}
