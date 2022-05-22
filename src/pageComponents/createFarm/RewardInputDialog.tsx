@@ -17,7 +17,7 @@ export default function RewardInputDialog({
   rewardIndex?: number
 }) {
   return (
-    <Dialog open={Boolean(open)} onClose={onClose}>
+    <Dialog open={Boolean(open)} onCloseTransitionEnd={onClose}>
       <Card
         className={twMerge(
           `p-8 rounded-3xl w-[min(580px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card`

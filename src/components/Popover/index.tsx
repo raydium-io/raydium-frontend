@@ -24,7 +24,7 @@ import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { MayFunction } from '@/types/constants'
 
 import { PopupLocationInfo, usePopoverLocation } from './useLocationCalculator'
-import { PopoverTriggerControls, usePopoverTrigger } from './usePopoverTrigger'
+import { PopoverTiggerBy, PopoverTriggerControls, usePopoverTrigger } from './usePopoverTrigger'
 
 export type PopoverPlacement =
   | 'left'
@@ -41,7 +41,7 @@ export type PopoverPlacement =
   | 'bottom-right'
 
 export interface PopoverProps {
-  triggerBy?: 'click' | 'hover'
+  triggerBy?: PopoverTiggerBy
   /** after delay time, `<Popover>` will be trigger */
   triggerDelay?: number
   closeDelay?: number
@@ -146,9 +146,9 @@ export default function Popover({
   // TODO: buttonRef can be HTMLDivElement not just RefObject<HTMLDivElement>
   const { isPanelShowed, controls } = usePopoverTrigger(buttonRef, panelRef, {
     disabled: !canOpen,
-    triggerBy,
     triggerDelay,
-    closeDelay
+    closeDelay,
+    triggerBy
   })
 
   const { locationInfo, updateLocation } = usePopoverLocation(buttonRef, panelRef, {

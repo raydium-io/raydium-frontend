@@ -18,7 +18,7 @@ export type InputBoxProps = {
 
   onEnter?: InputProps['onEnter']
   /** should  attach domref want focus input by click */
-  renderInput?: ((domRef: RefObject<any>) => ReactNode) | ReactNode
+  renderInput?: ((inputRef: RefObject<any>) => ReactNode) | ReactNode
 } & (
   | ({ decimalMode: true } & DecimalInputProps & { inputProps?: DecimalInputProps })
   | ({ decimalMode?: false } & InputProps & { inputProps?: InputProps })
@@ -36,9 +36,9 @@ export default function InputBox({
   renderInput,
   ...restProps // input Props
 }: InputBoxProps) {
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLElement>(null)
   function focusInput() {
-    inputRef.current?.focus()
+    inputRef.current?.focus?.()
   }
   return (
     <Col

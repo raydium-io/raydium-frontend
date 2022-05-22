@@ -23,9 +23,9 @@ export function useClickOutside(
       if (targetElements.some((el) => el && path.includes(el))) return
       onClickOutSide?.()
     }
-    window.document?.addEventListener('click', handleClickOutside)
+    window.document?.addEventListener('click', handleClickOutside, { capture: true })
     return () => {
-      window.document?.removeEventListener('click', handleClickOutside)
+      window.document?.removeEventListener('click', handleClickOutside, { capture: true })
     }
   }, [ref, disable, onClickOutSide])
 }

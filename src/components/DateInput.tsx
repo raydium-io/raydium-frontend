@@ -1,4 +1,4 @@
-import React, { ComponentProps, useEffect, useState } from 'react'
+import React, { ComponentProps, Ref, RefObject, useEffect, useState } from 'react'
 
 import _DatePicker from '@uiw/react-date-picker'
 
@@ -11,6 +11,7 @@ import Popover from './Popover'
 import './DatePicker.css'
 import { twMerge } from 'tailwind-merge'
 import { currentIsAfter } from '@/functions/date/judges'
+import mergeRef from '@/functions/react/mergeRef'
 
 export type DateInputProps = {
   className?: string
@@ -40,19 +41,21 @@ export default function DateInput({
       className={className}
       label={label}
       labelClassName={labelClassName}
-      renderInput={
+      renderInput={(inputRef) => (
         <DateInputBody
+          inputRef={inputRef}
           inputProps={inputProps}
           onDateChange={onDateChange}
           disableDateBeforeCurrent={disableDateBeforeCurrent}
           defaultValue={defaultValue}
           value={value}
         ></DateInputBody>
-      }
+      )}
     />
   )
 }
 type DateInputBodyProps = {
+  inputRef?: RefObject<HTMLInputElement | HTMLElement>
   defaultValue?: Date
   value?: Date
   className?: string
@@ -65,6 +68,7 @@ type DateInputBodyProps = {
  * base on uiw's `<DataPicker>`
  */
 function DateInputBody({
+  inputRef,
   value,
   defaultValue,
   className,
@@ -80,10 +84,11 @@ function DateInputBody({
   }, [value])
 
   return (
-    <Popover placement="top" className={className} cornerOffset={20}>
+    <Popover placement="top" className={className} cornerOffset={20} triggerBy="focus">
       <Popover.Button>
         <Input
           {...inputProps}
+          inputDomRef={inputRef}
           className={twMerge(
             'bg-[#141041] font-medium text-lg text-white rounded-lg py-2 cursor-text',
             inputProps?.className
