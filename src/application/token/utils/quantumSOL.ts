@@ -42,7 +42,7 @@ export const quantumSOLHydratedTokenJsonInfo: QuantumSOLJsonInfo = {
   decimals: SOLDecimals,
   symbol: 'SOL', // QSOL
   name: 'solana',
-  icon: `https://sdk.raydium.io/icons/${toPubString(WSOLMint)}.png`,
+  icon: `https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png`,
   extensions: {
     coingeckoId: 'solana'
   }
@@ -67,7 +67,7 @@ export const quantumSOLVersionSOLTokenJsonInfo: QuantumSOLJsonInfo = {
   collapseTo: 'sol',
   symbol: 'SOL',
   name: 'solana',
-  icon: `https://sdk.raydium.io/icons/${toPubString(WSOLMint)}.png`,
+  icon: `https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png`,
   extensions: {
     coingeckoId: 'solana'
   }
@@ -92,7 +92,7 @@ export const quantumSOLVersionWSOLTokenJsonInfo: QuantumSOLJsonInfo = {
   collapseTo: 'wsol',
   symbol: 'WSOL',
   name: 'Wrapped SOL',
-  icon: `https://sdk.raydium.io/icons/${String(WSOLMint)}.png`,
+  icon: `https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/So11111111111111111111111111111111111111112/logo.png`,
   extensions: {
     coingeckoId: 'solana'
   }
