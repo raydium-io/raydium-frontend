@@ -109,7 +109,7 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
     '.not-clickable': {
       cursor: 'not-allowed',
       pointerEvents: 'none',
-      opacity: '0.4',
+      opacity: '0.3',
       '&:active': { all: 'none' },
       '&:hover': { all: 'none' }
     }

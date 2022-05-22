@@ -14,12 +14,13 @@ export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultVa
    * only if type is decimal
    * @default  3
    */
-  typeDecimalDecimalCount?: number
+  decimalCount?: number
   /**
    * only if type is decimal
    * @default  0
    */
-  typeDecimalMinValue?: number | string
+  minN?: number | string
+  maxN?: number | string
 
   /** it will auto-valid each time when user input.
    * html will invoke this
@@ -44,8 +45,9 @@ export default function DecimalInput({
   value,
   valueFloating,
 
-  typeDecimalDecimalCount = 3,
-  typeDecimalMinValue = 0,
+  decimalCount = 3,
+  minN = 0,
+  maxN,
   onInvalid,
   onValid,
   ...restProps
@@ -63,9 +65,10 @@ export default function DecimalInput({
     <Input
       type="decimal"
       inputHTMLProps={{
-        pattern: `^[0-9]*[.,]?[0-9]{0,${typeDecimalDecimalCount}}$`,
+        pattern: `^[0-9]*[.,]?[0-9]{0,${decimalCount}}$`,
         inputMode: 'decimal',
-        min: String(typeDecimalMinValue)
+        min: String(minN),
+        max: maxN ? String(maxN) : undefined
       }}
       {...restProps}
       value={toString(innerValue)}

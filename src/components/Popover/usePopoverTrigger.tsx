@@ -40,17 +40,16 @@ export function usePopoverTrigger(
     onHoverStart: on,
     onHoverEnd: delayOff
   })
-  useFocus(buttonRef, {
+  // TODO: popover content may not focusable, so can't set onBlur
+  useFocus([buttonRef, panelRef], {
     disable: disabled || !triggerBy.includes('focus'),
-    onFocus: on,
-    onBlur: delayOff
+    onFocus: on
+    // onBlur: delayOff
   })
 
   useClickOutside([panelRef, buttonRef], {
     disable: disabled || !isPanelShowed,
-    onClickOutSide: () => {
-      if (isPanelShowed) off()
-    }
+    onClickOutSide: off
   })
   return { isPanelShowed, controls: { off, on, toggle } }
 }

@@ -12,6 +12,7 @@ import './DatePicker.css'
 import { twMerge } from 'tailwind-merge'
 import { currentIsAfter } from '@/functions/date/judges'
 import mergeRef from '@/functions/react/mergeRef'
+import { mergeFunction } from '@/functions/merge'
 
 export type DateInputProps = {
   className?: string
@@ -19,6 +20,7 @@ export type DateInputProps = {
   labelClassName?: string
   inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
   disableDateBeforeCurrent?: boolean
+  isDisableDate?: (date: Date) => boolean
   onDateChange?(selectedDate: Date | undefined): void
 } & Omit<InputProps, 'value' | 'defaultValue'> & {
     value?: Date
@@ -34,6 +36,7 @@ export default function DateInput({
   labelClassName,
   inputProps,
   disableDateBeforeCurrent,
+  isDisableDate,
   onDateChange
 }: DateInputProps) {
   return (
@@ -47,6 +50,7 @@ export default function DateInput({
           inputProps={inputProps}
           onDateChange={onDateChange}
           disableDateBeforeCurrent={disableDateBeforeCurrent}
+          isDisableDate={isDisableDate}
           defaultValue={defaultValue}
           value={value}
         ></DateInputBody>
@@ -58,6 +62,7 @@ type DateInputBodyProps = {
   inputRef?: RefObject<HTMLInputElement | HTMLElement>
   defaultValue?: Date
   value?: Date
+  isDisableDate?: (date: Date) => boolean
   className?: string
   inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
   disableDateBeforeCurrent?: boolean
@@ -73,6 +78,7 @@ function DateInputBody({
   defaultValue,
   className,
   disableDateBeforeCurrent,
+  isDisableDate,
   onDateChange,
   inputProps
 }: DateInputBodyProps) {
@@ -84,7 +90,7 @@ function DateInputBody({
   }, [value])
 
   return (
-    <Popover placement="top" className={className} cornerOffset={20} triggerBy="focus">
+    <Popover placement="top" className={className} cornerOffset={20} triggerBy={['focus', 'click']}>
       <Popover.Button>
         <Input
           {...inputProps}
@@ -113,7 +119,9 @@ function DateInputBody({
               ? offsetDateTime(currentDate, { minutes: currentTimezoneOffset })
               : currentDate
           }
-          disabledDate={disableDateBeforeCurrent ? (date) => currentIsAfter(date) : undefined}
+          disabledDate={(date) =>
+            [isDisableDate, disableDateBeforeCurrent ? currentIsAfter : undefined].some((fn) => fn?.(date))
+          }
           todayButton="today"
           onChange={(selectedDate) => {
             const newDate =
