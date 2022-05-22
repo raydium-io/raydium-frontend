@@ -8,13 +8,13 @@ import Card from '@/components/Card'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 
-import Grid from '../Grid'
-import Link from '../Link'
-import ResponsiveDialogDrawer from '../ResponsiveDialogDrawer'
-import Input from '../Input'
-import Col from '../Col'
-import Button from '../Button'
-import FadeInStable from '../FadeIn'
+import Grid from '../../components/Grid'
+import Link from '../../components/Link'
+import ResponsiveDialogDrawer from '../../components/ResponsiveDialogDrawer'
+import Input from '../../components/Input'
+import Col from '../../components/Col'
+import Button from '../../components/Button'
+import FadeInStable from '../../components/FadeIn'
 
 function WalletSelectorPanelItem({
   wallet,

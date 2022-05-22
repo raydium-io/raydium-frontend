@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import create from 'zustand'
 
-import { ConfirmDialogInfo } from '@/components/dialogs/ConfirmDialog'
+import { ConfirmDialogInfo } from '@/pageComponents/dialogs/ConfirmDialog'
 import { NotificationItemInfo } from '@/components/NotificationItem'
 
 //! params base on <NotificationItem>

@@ -26,7 +26,7 @@ import toPubString from '@/functions/format/toMintString'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
 import { createSplToken } from '@/application/token/feature/useTokenListsLoader'
-import ListFast from '../ListFast'
+import ListFast from '../../components/ListFast'
 
 export type TokenSelectorProps = {
   open: boolean

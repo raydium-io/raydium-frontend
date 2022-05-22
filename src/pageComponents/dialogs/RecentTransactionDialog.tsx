@@ -9,8 +9,8 @@ import Icon, { AppHeroIconName } from '@/components/Icon'
 import Row from '@/components/Row'
 import { toUTC } from '@/functions/date/dateFormat'
 
-import Drawer from '../Drawer'
-import Link from '../Link'
+import Drawer from '../../components/Drawer'
+import Link from '../../components/Link'
 import useWallet from '@/application/wallet/useWallet'
 import toPubString from '@/functions/format/toMintString'
 

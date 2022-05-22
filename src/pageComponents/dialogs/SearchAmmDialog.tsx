@@ -12,7 +12,7 @@ import assert from '@/functions/assert'
 import { isValidePublicKey } from '@/functions/judgers/dateType'
 import { findTokenMintByAmmId, findTokenMintByMarketId } from '@/application/liquidity/utils/miscToolFns'
 import useNotification from '@/application/notification/useNotification'
-import InputBox from '../InputBox'
+import InputBox from '../../components/InputBox'
 
 export function SearchAmmDialog({
   open,

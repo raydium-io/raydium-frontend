@@ -1,5 +1,5 @@
 import CoinInputBox, { CoinInputBoxProps } from './CoinInputBox'
-import TokenSelectorDialog, { TokenSelectorProps } from './dialogs/TokenSelectorDialog'
+import TokenSelectorDialog, { TokenSelectorProps } from '../pageComponents/dialogs/TokenSelectorDialog'
 import useToggle from '@/hooks/useToggle'
 
 export type CoinInputBoxWithSelectorProps = Omit<CoinInputBoxProps, 'haveCoinIcon' | 'showTokenSelectIcon'> &

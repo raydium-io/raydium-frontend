@@ -32,7 +32,7 @@ import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import LoadingCircle from '@/components/LoadingCircle'
-import { StakingPageStakeLpDialog } from '../components/dialogs/StakingPageStakeLpDialog'
+import { StakingPageStakeLpDialog } from '../pageComponents/dialogs/StakingPageStakeLpDialog'
 
 export default function StakingPage() {
   return (

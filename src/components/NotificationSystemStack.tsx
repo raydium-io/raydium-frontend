@@ -4,10 +4,10 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
 
 import Col from './Col'
-import ConfirmDialog, { ConfirmDialogInfo } from './dialogs/ConfirmDialog'
+import ConfirmDialog, { ConfirmDialogInfo } from '../pageComponents/dialogs/ConfirmDialog'
 import Link from './Link'
 import NotificationItem, { NotificationItemInfo } from './NotificationItem'
-import WelcomeBetaDialog from './dialogs/WelcomeBetaDialog'
+import WelcomeBetaDialog from '../pageComponents/dialogs/WelcomeBetaDialog'
 
 //#region ------------------- core definition -------------------
 type PopInfo =
