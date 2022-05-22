@@ -28,8 +28,8 @@ export function RewardSummery({
   onActiveIndexChange?(index: number): void
 
   // --------- when edit ------------
-  onClickIncreaseReward?(reward: RewardInfo): void
-  onDeleteReward?(reward: RewardInfo): void
+  onClickIncreaseReward?(payload: { reward: RewardInfo; rewardIndex: number }): void
+  onDeleteReward?(payload: { reward: RewardInfo; rewardIndex: number }): void
 }) {
   const rewards = useCreateFarms((s) => s.rewards)
   return (
@@ -142,7 +142,7 @@ export function RewardSummery({
                   heroIconName="plus-circle"
                   className="clickable clickable-opacity-effect text-[#abc4ff]"
                   onClick={() => {
-                    onClickIncreaseReward?.(itemData)
+                    onClickIncreaseReward?.({ reward: itemData, rewardIndex: idx })
                   }}
                 />
                 <Icon

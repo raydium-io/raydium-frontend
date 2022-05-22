@@ -4,11 +4,15 @@ import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { PoolSummary } from '@/pageComponents/createFarm/PoolSummary'
+import RewardInputDialog from '@/pageComponents/createFarm/RewardInputDialog'
 import { RewardSummery } from '@/pageComponents/createFarm/RewardSummary'
 import produce from 'immer'
+import { useRef, useState } from 'react'
 
 export default function FarmEditPage() {
   const rewards = useCreateFarms((s) => s.rewards)
+  const [isRewardEditDialogOpen, setIsRewardEditDialogOpen] = useState(false)
+  const [focusRewardIndex, setFocusRewardIndex] = useState<number>()
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(640px,90vw)]">
@@ -21,7 +25,13 @@ export default function FarmEditPage() {
 
         <div className="mb-6">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Farm rewards</div>
-          <RewardSummery mode="edit" />
+          <RewardSummery
+            mode="edit"
+            onClickIncreaseReward={({ rewardIndex }) => {
+              setIsRewardEditDialogOpen(true)
+              setFocusRewardIndex(rewardIndex)
+            }}
+          />
           <Row
             className="items-center my-2 text-sm clickable"
             onClick={() => {
@@ -60,6 +70,12 @@ export default function FarmEditPage() {
             </div>
           </div>
         </Card>
+
+        <RewardInputDialog
+          open={isRewardEditDialogOpen}
+          onClose={() => setIsRewardEditDialogOpen(false)}
+          rewardIndex={focusRewardIndex}
+        />
       </div>
     </PageLayout>
   )
