@@ -147,9 +147,6 @@ export default function Input(props: InputProps) {
 
   // only useable for uncontrolled formkit
   const [selfValue, setSelfValue] = useState(defaultValue ?? value ?? '')
-  useEffect(() => {
-    setSelfValue(value ?? '')
-  }, [value])
 
   useEffect(() => {
     if (!inputRef.current) return
@@ -158,10 +155,12 @@ export default function Input(props: InputProps) {
 
   // if user is inputing or just input, no need to update upon out-side value
   const [isOutsideValueLocked, { on: lockOutsideValue, off: unlockOutsideValue }] = useToggle()
+  useEffect(() => {
+    if (!isOutsideValueLocked) setSelfValue(value ?? '')
+  }, [value])
 
-  const inputValue = isOutsideValueLocked ? selfValue ?? value : value ?? selfValue
   const inputComponentHandler: InputComponentHandler = {
-    text: inputValue,
+    text: selfValue,
     focus() {
       inputRef?.current?.focus()
     },
@@ -203,7 +202,7 @@ export default function Input(props: InputProps) {
           className={`${noCSSInputDefaultWidth ? 'w-0 grow' : 'w-full'} bg-transparent border-none outline-none block ${
             inputClassName ?? ''
           }`} // start html input with only 2rem, if need width please define it in parent div
-          value={inputValue}
+          value={selfValue}
           placeholder={placeholder ? String(placeholder) : undefined}
           disabled={disabled}
           onChange={(ev) => {
@@ -238,6 +237,7 @@ export default function Input(props: InputProps) {
           }}
           onBlur={() => {
             unlockOutsideValue()
+            if (value != null) setSelfValue(value)
             onBlur?.(String(selfValue), { el: inputRef.current!, control: inputComponentHandler })
           }}
           onKeyDown={(ev) => {

@@ -6,12 +6,10 @@ import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
-import { parseDurationAbsolute } from '@/functions/date/parseDuration'
-import formatNumber from '@/functions/format/formatNumber'
-import { isNumber } from '@/functions/judgers/dateType'
+import parseDuration, { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { isExist } from '@/functions/judgers/nil'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
-import { trimTailingZero } from '@/functions/numberish/stringNumber'
 import { toString } from '@/functions/numberish/toString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayFunction } from '@/types/constants'
@@ -36,14 +34,12 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
   const reward = rewards[rewardIndex]
   if (!reward) return null
 
-  const [durationDays, setDurationDays] = useStateWithSuperPreferential(
-    reward.endTime && reward.startTime
-      ? parseDurationAbsolute(reward.endTime.getTime() - reward.startTime.getTime()).days
-      : undefined
+  const [durationTime, setDurationTime] = useStateWithSuperPreferential(
+    reward.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
   )
 
   const [estimatedValue, setEstimatedValue] = useStateWithSuperPreferential(
-    reward.amount && durationDays ? div(reward.amount, durationDays) : undefined
+    reward.amount && durationTime ? div(reward.amount, durationTime) : undefined
   )
 
   return (
@@ -72,16 +68,15 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
 
       <Row className="gap-4">
         <InputBox
-          decimalMode
           className="rounded-md px-4"
           label="Day and Hours"
-          value={durationDays && trimTailingZero(formatNumber(durationDays, { fractionLength: 1, groupSeparator: '' }))}
+          value={getStringFromDuration(durationTime)}
           // TODO: maxValue (for end time is setted and start can't before now)
-          onUserInput={(v, { canSafelyCovertToNumber }) => {
-            if (!canSafelyCovertToNumber) return
-            const durationDays = v ? Number(v) : undefined // NOTE: v maybe empty string
-            setDurationDays(durationDays)
-            if (isNumber(durationDays)) {
+          onUserInput={(v) => {
+            if (!v) return
+            const { totalDuration } = getDurationFromString(v)
+            setDurationTime(isMeaningfulNumber(totalDuration) ? totalDuration : undefined)
+            if (totalDuration > 0) {
               useCreateFarms.setState({
                 rewards: produce(rewards, (draft) => {
                   if (!draft[rewardIndex]) return
@@ -92,13 +87,15 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
                   // set end time
                   if (haveStartTime) {
                     draft[rewardIndex].endTime = offsetDateTime(draft[rewardIndex].startTime, {
-                      days: durationDays
+                      milliseconds: totalDuration
                     })
                   }
 
                   // set start time
                   if (haveEndTime && !haveStartTime) {
-                    const calculatedStartTime = offsetDateTime(draft[rewardIndex].endTime, { days: -durationDays })
+                    const calculatedStartTime = offsetDateTime(draft[rewardIndex].endTime, {
+                      milliseconds: -totalDuration
+                    })
                     if (isDateAfter(calculatedStartTime, Date.now())) {
                       draft[rewardIndex].startTime = calculatedStartTime
                     }
@@ -130,8 +127,8 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
                 draft[rewardIndex].startTime = selectedDate
 
                 // set end time
-                if (durationDays && !haveEndTime) {
-                  draft[rewardIndex].endTime = offsetDateTime(selectedDate, { days: durationDays })
+                if (durationTime && !haveEndTime) {
+                  draft[rewardIndex].endTime = offsetDateTime(selectedDate, { milliseconds: durationTime })
                 }
 
                 // set duration days
@@ -139,7 +136,7 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
                   const durationDays = parseDurationAbsolute(
                     draft[rewardIndex].endTime!.getTime() - selectedDate.getTime()
                   ).days
-                  setDurationDays(durationDays)
+                  setDurationTime(durationDays)
                 }
               })
             })
@@ -168,8 +165,8 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
                 draft[rewardIndex].endTime = selectedDate
 
                 // set start time
-                if (durationDays && !haveStartTime) {
-                  draft[rewardIndex].startTime = offsetDateTime(selectedDate, { days: -durationDays })
+                if (durationTime && !haveStartTime) {
+                  draft[rewardIndex].startTime = offsetDateTime(selectedDate, { milliseconds: -durationTime })
                 }
 
                 // set duration days
@@ -177,7 +174,7 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
                   const durationDays = parseDurationAbsolute(
                     selectedDate.getTime() - draft[rewardIndex].startTime!.getTime()
                   ).days
-                  setDurationDays(durationDays)
+                  setDurationTime(durationDays)
                 }
               })
             })
@@ -187,20 +184,37 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
 
       <InputBox
         decimalMode
+        decimalCount={reward.token?.decimals ?? 6}
         valueFloating
         className="rounded-md px-4"
         label="Estimated rewards / day"
         value={estimatedValue}
         onUserInput={(v) => {
-          if (!durationDays) return
+          if (!durationTime) return
           useCreateFarms.setState({
             rewards: produce(rewards, (draft) => {
-              draft[rewardIndex].amount = mul(durationDays, v)
+              draft[rewardIndex].amount = mul(durationTime, v)
             })
           })
         }}
-        suffix={reward.token && durationDays && durationDays > 0 ? <div>{reward.token.symbol} / day</div> : undefined}
+        suffix={reward.token && durationTime && durationTime > 0 ? <div>{reward.token.symbol} / day</div> : undefined}
       />
     </Grid>
   )
+}
+function getDurationFromString(v: string) {
+  const [, day, hour] = v.match(/(?:(\d+)D?) ?(?:(\d+)H?)?/i) ?? []
+  const dayNumber = isFinite(Number(day)) ? Number(day) : undefined
+  const hourNumber = isFinite(Number(hour)) ? Number(hour) : undefined
+  const totalDuration = (dayNumber ?? 0) * 24 * 60 * 60 * 1000 + (hourNumber ?? 0) * 60 * 60 * 1000
+  return { day: dayNumber, hour: hourNumber, totalDuration }
+}
+function getStringFromDuration(duration: number | undefined) {
+  if (!duration) return
+  const { days, hours } = parseDuration(duration)
+  if (hours > 0) {
+    return `${days}D ${hours}H`
+  } else {
+    return `${days}D`
+  }
 }

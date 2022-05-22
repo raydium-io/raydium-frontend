@@ -79,7 +79,7 @@ export default function DecimalInput({
         max: maxN ? String(maxN) : undefined
       }}
       {...restProps}
-      pattern={new RegExp(`^[0-9-]*[.,]?[0-9]{0,${decimalCount}}$`)}
+      pattern={new RegExp(`^[0-9-]*[.,]?[0-9]{0,${decimalCount}}$`)} // TODO: pattern should also accept function, so it can accept: (v, oldV)=> v.length < oldV.length
       value={toString(innerValue)}
       defaultValue={toString(defaultValue)}
       onUserInput={(v) => {

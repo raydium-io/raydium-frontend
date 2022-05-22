@@ -47,6 +47,14 @@ export function isNumber(val: unknown): val is number {
   return typeof val === 'number'
 }
 
+export function isFinite(val: unknown): val is number {
+  return Number.isFinite(val)
+}
+
+export function isNaN(val: unknown): val is number {
+  return Number.isNaN(val)
+}
+
 export function isBoolean(val: unknown): val is boolean {
   return typeof val === 'boolean'
 }

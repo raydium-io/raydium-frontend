@@ -43,11 +43,11 @@ export function RewardSummery({
         },
         {
           key: 'amount',
-          label: 'Amount',
-          cssGridItemWidth: '.6fr'
+          label: 'Amount'
         },
         {
-          label: 'Day and Hours'
+          label: 'Day and Hours',
+          cssGridItemWidth: '.6fr'
         },
         {
           key: ['startTime', 'endTime'],
@@ -80,13 +80,13 @@ export function RewardSummery({
         }
 
         if (label === 'Amount') {
-          return item.amount ? formatNumber(item.amount) : undefined
+          return item.amount ? <div className="break-all">{formatNumber(item.amount)}</div> : undefined
         }
 
         if (label === 'Day and Hours') {
           if (!item.startTime || !item.endTime) return
           const duration = parseDuration(getDuration(item.endTime, item.startTime))
-          return `${duration.days} Days ${duration.hours} Hours`
+          return duration.hours ? `${duration.days}D ${duration.hours} H` : `${duration.days}D`
         }
 
         if (label === 'Period (yy-mm-dd)') {
@@ -100,10 +100,9 @@ export function RewardSummery({
         }
 
         if (label === 'Est. daily rewards') {
-          const durationDays = item.endTime
-            ? parseDurationAbsolute(item.endTime.getTime() - (item.startTime?.getTime() ?? Date.now())).days
-            : undefined
-          const estimatedValue = item.amount && durationDays ? div(item.amount, durationDays) : undefined
+          const durationTime =
+            item.endTime && item.startTime ? item.endTime.getTime() - item.startTime.getTime() : undefined
+          const estimatedValue = item.amount && durationTime ? div(item.amount, durationTime) : undefined
           if (!estimatedValue) return
           return (
             <div className="text-xs">
