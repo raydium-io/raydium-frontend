@@ -1,4 +1,4 @@
-import { jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
+import { ReplaceType, validateAndParsePublicKey } from '@raydium-io/raydium-sdk'
 
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
@@ -9,6 +9,7 @@ import useWallet from '../../wallet/useWallet'
 import useFarms from '../useFarms'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from '../utils/handleFarmInfo'
 import useLiquidity from '@/application/liquidity/useLiquidity'
+import { PublicKey } from '@solana/web3.js'
 
 export default function useFarmInfoFetcher() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
@@ -57,4 +58,19 @@ export default function useFarmInfoFetcher() {
     )
     useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
   }, [sdkParsedInfos, getToken, lpPrices, tokenPrices, getLpToken, lpTokens, liquidityJsonInfos])
+}
+
+export function jsonInfo2PoolKeys<T>(jsonInfo: T): ReplaceType<T, string, PublicKey> {
+  // @ts-expect-error no need type for inner code
+  return Object.entries(jsonInfo).reduce((result, [key, value]) => {
+    if (typeof value === 'string') {
+      result[key] = validateAndParsePublicKey(value)
+    } else if (value instanceof Array) {
+      result[key] = value.map((k) => jsonInfo2PoolKeys(k))
+    } else {
+      result[key] = value
+    }
+
+    return result
+  }, {})
 }

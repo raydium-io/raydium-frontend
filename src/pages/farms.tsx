@@ -1,7 +1,7 @@
 import React, { ReactNode, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
+import { Fraction, option, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -534,7 +534,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
               : info.rewards.map(
                   ({ token, pendingReward, canBeRewarded }, idx) =>
                     canBeRewarded && (
-                      <div key={idx}>
+                      <div key={idx} /* className={isMeaningfulNumber(toString(pendingReward)) ? '' : 'opacity-50'} */>
                         {toString(pendingReward) || '0'} {token?.symbol}
                       </div>
                     )
@@ -820,8 +820,8 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
                     <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
                       Pending rewards
                     </div>
-                    <div className="text-white font-medium text-base mobile:text-xs">
-                      {toString(reward.pendingReward) || '0'} {reward.token?.symbol}
+                    <div className={`text-white font-medium text-base mobile:text-xs`}>
+                      {reward.pendingReward ? toString(reward.pendingReward) : 0} {reward.token?.symbol}
                     </div>
                     <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
                       {prices?.[String(reward.token?.mint)] && reward?.pendingReward

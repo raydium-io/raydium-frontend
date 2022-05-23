@@ -31,8 +31,9 @@ export default async function txFarmDeposit(
 
     // ------------- add rewards token transaction --------------
     const rewardTokenAccountsPublicKeys = await Promise.all(
-      jsonFarmInfo!.rewardMints.map(
-        async (jsonMint) => await createAssociatedTokenAccountIfNotExist({ collector: piecesCollector, mint: jsonMint })
+      jsonFarmInfo!.rewardInfos.map(
+        async ({ rewardMint }) =>
+          await createAssociatedTokenAccountIfNotExist({ collector: piecesCollector, mint: rewardMint })
       )
     )
 

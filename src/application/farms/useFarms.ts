@@ -9,7 +9,7 @@ import useLocalStorageItem from '@/hooks/useLocalStorage'
 
 export type FarmStore = {
   isLoading: boolean
-  jsonInfos: FarmPoolJsonInfo[] // TODO: switch to Object key value pair, for faster extracting
+  jsonInfos: (FarmPoolJsonInfo & { official: boolean })[] // TODO: switch to Object key value pair, for faster extracting
   sdkParsedInfos: SdkParsedFarmInfo[] // TODO: switch to Object key value pair, for faster extracting
   hydratedInfos: HydratedFarmInfo[] // TODO: switch to Object key value pair, for faster extracting
   /**

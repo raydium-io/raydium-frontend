@@ -2,6 +2,10 @@ import {
   CurrencyAmount,
   Farm,
   FarmFetchMultipleInfoParams,
+  FarmState,
+  FarmStateV3,
+  FarmStateV5,
+  FarmStateV6,
   Fraction,
   ONE,
   Price,
@@ -23,11 +27,17 @@ import { FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInf
 import toPubString from '@/functions/format/toMintString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { LiquidityStore } from '@/application/liquidity/useLiquidity'
+import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
+import { RAYMint } from '@/application/token/utils/wellknownToken.config'
 
-export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefined> {
-  return jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm/mainnet.json', {
+export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { official: boolean })[] | undefined> {
+  const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
     ignoreCache: true
-  }).then((res) => res?.official)
+  })
+  if (!result) return undefined
+  const officials = result.official.map((i) => ({ ...i, official: true }))
+  const unOfficial = result.unOfficial?.map((i) => ({ ...i, official: false }))
+  return [...officials, ...(unOfficial ?? [])]
 }
 
 /** and state info  */
@@ -38,8 +48,13 @@ export async function mergeSdkFarmInfo(
   }
 ): Promise<SdkParsedFarmInfo[]> {
   const rawInfos = await Farm.fetchMultipleInfo(options)
-  const result = options.pools.map((pool, idx) =>
-    Object.assign(pool, rawInfos[String(pool.id)], { jsonInfo: payload.jsonInfos[idx] })
+  const result = options.pools.map(
+    (pool, idx) =>
+      ({
+        ...pool,
+        ...rawInfos[String(pool.id)],
+        jsonInfo: payload.jsonInfos[idx]
+      } as SdkParsedFarmInfo)
   )
 
   return result
@@ -56,12 +71,11 @@ export function hydrateFarmInfo(
   }
 ): HydratedFarmInfo {
   const farmPoolType = judgeFarmType(farmInfo)
-  const isRaydiumPool = whetherIsRaydiumFarmPool(farmInfo)
   const isStakePool = whetherIsStakeFarmPool(farmInfo)
   const isDualFusionPool = farmPoolType === 'dual fusion pool'
   const isNormalFusionPool = farmPoolType === 'normal fusion pool'
   const isClosedPool = farmPoolType === 'closed pool'
-  const isUpcomingPool = farmInfo.jsonInfo.upcoming && isClosedPool
+  const isUpcomingPool = (farmInfo.jsonInfo.upcoming && isClosedPool) || farmPoolType === 'upcoming pool'
   const isNewPool = farmInfo.jsonInfo.upcoming && !isClosedPool
   const isStablePool = payload.liquidityJsonInfos?.find((i) => i.lpMint === toPubString(farmInfo.lpMint))?.version === 5
 
@@ -76,7 +90,7 @@ export function hydrateFarmInfo(
     ? `${baseToken?.symbol ?? 'unknown'}`
     : `${baseToken?.symbol ?? 'unknown'}-${quoteToken?.symbol ?? 'unknown'}`
 
-  const rewardTokens = farmInfo.rewardMints.map((mint) => payload.getToken(String(mint)))
+  const rewardTokens = farmInfo.rewardInfos.map(({ rewardMint: mint }) => payload.getToken(String(mint)))
 
   const pendingRewards = farmInfo.wrapped?.pendingRewards.map((reward, idx) =>
     rewardTokens[idx] ? new TokenAmount(rewardTokens[idx]!, reward) : undefined
@@ -91,18 +105,27 @@ export function hydrateFarmInfo(
   const aprs = calculateFarmPoolAprs(farmInfo, {
     tvl,
     rewardTokens: rewardTokens,
-    rewardTokenPrices: farmInfo.rewardMints.map((rewardMint) => payload.tokenPrices?.[String(rewardMint)]) ?? []
+    rewardTokenPrices: farmInfo.rewardInfos.map(({ rewardMint }) => payload.tokenPrices?.[String(rewardMint)]) ?? []
   })
 
   const totalApr = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), undefined)
   const ammId = findAmmId(farmInfo.lpMint)
-  const rewards: HydratedFarmInfo['rewards'] = farmInfo.state.perSlotRewards.map((perSlotReward, idx) => {
+  const rewards: HydratedFarmInfo['rewards'] = farmInfo.state.rewardInfos.map((rewardInfo, idx) => {
     const pendingReward = pendingRewards?.[idx]
-    const hasPendingReward = isMeaningfulNumber(pendingReward)
-    const canBeRewarded = hasPendingReward || !perSlotReward.eq(ZERO) // for history reason, reward can be 0
     const apr = aprs[idx]
     const token = rewardTokens[idx]
-    return { apr, token, pendingReward, canBeRewarded }
+    if (farmInfo.version === 6) {
+      const { rewardOpenTime, rewardEndTime } = rewardInfo as FarmStateV6['rewardInfos'][number]
+      const openTime = rewardOpenTime.toNumber()
+      const endTime = rewardEndTime.toNumber()
+      const canBeRewarded =
+        (openTime ? currentIsAfter(openTime, { unit: 's' }) : true) && currentIsBefore(endTime, { unit: 's' }) /* v6 */
+      return { ...rewardInfo, apr, token, pendingReward, canBeRewarded }
+    } else {
+      const { perSlotReward } = rewardInfo as (FarmStateV3 | FarmStateV5)['rewardInfos'][number]
+      const canBeRewarded = isMeaningfulNumber(pendingReward) || isMeaningfulNumber(perSlotReward)
+      return { ...rewardInfo, apr, token, pendingReward, canBeRewarded }
+    }
   })
   const userStakedLpAmount =
     lpToken && farmInfo.ledger?.deposited ? new TokenAmount(lpToken, farmInfo.ledger?.deposited) : undefined
@@ -127,7 +150,6 @@ export function hydrateFarmInfo(
     quote: quoteToken,
     name,
 
-    isRaydiumPool,
     isStakePool,
     isDualFusionPool,
     isNormalFusionPool,
@@ -155,56 +177,75 @@ function calculateFarmPoolAprs(
     rewardTokenPrices: (Price | undefined)[]
   }
 ) {
-  const calcAprs = info.state.perSlotRewards.map((perSlotReward, idx) => {
-    const rewardToken = payload.rewardTokens[idx]
-    if (!rewardToken) return undefined
-    const rewardTokenPrice = payload.rewardTokenPrices[idx]
-    if (!rewardTokenPrice) return undefined
-    const rewardtotalPricePerYear = toTotalPrice(
-      new Fraction(perSlotReward, ONE)
-        .div(TEN.pow(new BN(rewardToken.decimals || 1)))
-        .mul(new BN(2 * 60 * 60 * 24 * 365)),
-      rewardTokenPrice
-    )
-    if (!payload.tvl) return undefined
-    const apr = rewardtotalPricePerYear.div(payload.tvl ?? ONE)
-    return apr
-  })
-  return calcAprs
+  if (info.version === 6) {
+    return (info.state as FarmStateV6).rewardInfos.map(({ rewardPerSecond }, idx) => {
+      const rewardToken = payload.rewardTokens[idx]
+      if (!rewardToken) return undefined
+      const rewardTokenPrice = payload.rewardTokenPrices[idx]
+      if (!rewardTokenPrice) return undefined
+      const rewardtotalPricePerYear = toTotalPrice(
+        new Fraction(rewardPerSecond, ONE)
+          .div(TEN.pow(new BN(rewardToken.decimals || 1)))
+          .mul(new BN(60 * 60 * 24 * 365)),
+        rewardTokenPrice
+      )
+      if (!payload.tvl) return undefined
+      const apr = rewardtotalPricePerYear.div(payload.tvl ?? ONE)
+      return apr
+    })
+  } else {
+    const calcAprs = (info.state as FarmStateV3 | FarmStateV5).rewardInfos.map(({ perSlotReward }, idx) => {
+      const rewardToken = payload.rewardTokens[idx]
+      if (!rewardToken) return undefined
+      const rewardTokenPrice = payload.rewardTokenPrices[idx]
+      if (!rewardTokenPrice) return undefined
+      const rewardtotalPricePerYear = toTotalPrice(
+        new Fraction(perSlotReward, ONE)
+          .div(TEN.pow(new BN(rewardToken.decimals || 1)))
+          .mul(new BN(2 * 60 * 60 * 24 * 365)),
+        rewardTokenPrice
+      )
+      if (!payload.tvl) return undefined
+      const apr = rewardtotalPricePerYear.div(payload.tvl ?? ONE)
+      return apr
+    })
+    return calcAprs
+  }
 }
 
 function judgeFarmType(
   info: SdkParsedFarmInfo
-): 'closed pool' | 'normal fusion pool' | 'dual fusion pool' | 'unknown type pool' {
-  const perSlotRewards = info.state.perSlotRewards
-
-  if (perSlotRewards.length === 2) {
-    // v5
-    if (String(perSlotRewards[0]) === '0' && String(perSlotRewards[1]) !== '0') {
-      return 'normal fusion pool' // reward xxx token
-    }
-    if (String(perSlotRewards[0]) !== '0' && String(perSlotRewards[1]) !== '0') {
-      return 'dual fusion pool' // reward ray and xxx token
-    }
-    if (String(perSlotRewards[0]) === '0' && String(perSlotRewards[1]) === '0') {
+): 'closed pool' | 'normal fusion pool' | 'dual fusion pool' | undefined | 'upcoming pool' {
+  if (info.version === 9) {
+    const rewardInfos = (info.state as FarmStateV6).rewardInfos
+    if (rewardInfos.every(({ rewardOpenTime }) => currentIsBefore(rewardOpenTime.toNumber(), { unit: 's' })))
+      return 'upcoming pool'
+    if (rewardInfos.every(({ rewardEndTime }) => currentIsBefore(rewardEndTime.toNumber(), { unit: 's' })))
       return 'closed pool'
-    }
-  } else if (perSlotRewards.length === 1) {
-    // v3
-    if (String(perSlotRewards[0]) === '0') {
-      return 'closed pool'
+  } else {
+    const perSlotRewards = (info.state as FarmStateV3 | FarmStateV5).rewardInfos.map(
+      ({ perSlotReward }) => perSlotReward
+    )
+    if (perSlotRewards.length === 2) {
+      // v5
+      if (String(perSlotRewards[0]) === '0' && String(perSlotRewards[1]) !== '0') {
+        return 'normal fusion pool' // reward xxx token
+      }
+      if (String(perSlotRewards[0]) !== '0' && String(perSlotRewards[1]) !== '0') {
+        return 'dual fusion pool' // reward ray and xxx token
+      }
+      if (String(perSlotRewards[0]) === '0' && String(perSlotRewards[1]) === '0') {
+        return 'closed pool'
+      }
+    } else if (perSlotRewards.length === 1) {
+      // v3
+      if (String(perSlotRewards[0]) === '0') {
+        return 'closed pool'
+      }
     }
   }
-
-  return 'unknown type pool'
-}
-
-function whetherIsRaydiumFarmPool(info: SdkParsedFarmInfo): boolean {
-  return info.state.perSlotRewards.length === 1 && !whetherIsStakeFarmPool(info)
 }
 
 function whetherIsStakeFarmPool(info: SdkParsedFarmInfo): boolean {
-  return (
-    info.state.perSlotRewards.length === 1 && String(info.lpMint) === '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R'
-  ) // Ray Mint
+  return info.state.rewardInfos.length === 1 && String(info.lpMint) === toPubString(RAYMint) // Ray Mint
 }
