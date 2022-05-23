@@ -102,7 +102,8 @@ export function RewardSummery({
         if (label === 'Est. daily rewards') {
           const durationTime =
             item.endTime && item.startTime ? item.endTime.getTime() - item.startTime.getTime() : undefined
-          const estimatedValue = item.amount && durationTime ? div(item.amount, durationTime) : undefined
+          const estimatedValue =
+            item.amount && durationTime ? div(item.amount, parseDurationAbsolute(durationTime).days) : undefined
           if (!estimatedValue) return
           return (
             <div className="text-xs">

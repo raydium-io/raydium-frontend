@@ -38,9 +38,8 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
     reward.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
   )
 
-  const [estimatedValue, setEstimatedValue] = useStateWithSuperPreferential(
-    reward.amount && durationTime ? div(reward.amount, durationTime) : undefined
-  )
+  const estimatedValue =
+    reward.amount && durationTime ? div(reward.amount, parseDurationAbsolute(durationTime).days) : undefined
 
   return (
     <Grid className="gap-4">
