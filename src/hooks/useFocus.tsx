@@ -1,7 +1,5 @@
-import { shakeFalsyItem } from '@/functions/arrayMethods'
-import { isObject } from '@/functions/judgers/dateType'
-import { MayArray } from '@/types/constants'
-import { RefObject, useEffect, useRef } from 'react'
+import { useEffect, useRef } from 'react'
+import { ElementRefs, getElementsFromRef } from '../functions/react/getElementsFromRef'
 
 import useToggle from './useToggle'
 
@@ -11,18 +9,13 @@ export interface UseFocusOptions {
   onBlur?: (info: { ev: FocusEvent }) => void
 }
 
-type ElementRefs = MayArray<RefObject<HTMLElement | undefined | null> | HTMLElement | undefined | null>
-
-function getEls(refs: ElementRefs) {
-  return shakeFalsyItem([refs].flat().map((ref) => (isObject(ref) && 'current' in ref ? ref.current : ref)))
-}
 export function useFocus(refs: ElementRefs, { disable, onFocus, onBlur }: UseFocusOptions = {}) {
   const [isActive, { on: turnOnActive, off: turnOffActive }] = useToggle(false)
 
   const elsFocusStates = useRef(new Map<HTMLElement, boolean>())
   useEffect(() => {
     if (disable) return
-    const targetEls = getEls(refs)
+    const targetEls = getElementsFromRef(refs)
     const handelFocus = (ev: FocusEvent) => {
       const haveAnyFocus = targetEls.map((el) => elsFocusStates.current.get(el)).some((isFocus) => isFocus)
       elsFocusStates.current.set(ev.target as HTMLElement, true)

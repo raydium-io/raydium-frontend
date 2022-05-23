@@ -39,6 +39,7 @@ export default function InputBox({
   const inputRef = useRef<HTMLElement>(null)
   function focusInput() {
     inputRef.current?.focus?.()
+    inputRef.current?.click?.()
   }
   return (
     <Col

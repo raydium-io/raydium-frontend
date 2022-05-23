@@ -1,5 +1,6 @@
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import { Dispatch, RefObject, SetStateAction, useCallback, useMemo, useRef, useState } from 'react'
+import { Dispatch, MutableRefObject, RefObject, SetStateAction, useCallback, useMemo, useRef, useState } from 'react'
+import useCallbackRef from './useCallbackRef'
 
 type MayFunc<T, Params extends any[] = any[]> = T | ((...params: Params) => T)
 export interface ToggleSyncFunction {
@@ -21,7 +22,7 @@ type ToggleController = {
 }
 
 export type UseToggleReturn = [boolean, ToggleController]
-export type UseToggleRefReturn = [RefObject<boolean>, ToggleController]
+export type UseToggleRefReturn = [MutableRefObject<boolean>, ToggleController]
 
 /**
  * it too widely use that there should be a hook
@@ -37,7 +38,7 @@ export default function useToggle(
     /* usually it is for debug */
     onOn?(): void
     /* usually it is for debug */
-    onToggle?(): void
+    onToggle?(isOn: boolean): void
   } = {}
 ): UseToggleReturn {
   const opts = { delay: 800, ...options }
@@ -68,7 +69,7 @@ export default function useToggle(
       if (!b) opts.onOn?.()
       return !b
     })
-    opts.onToggle?.()
+    opts.onToggle?.(isOn)
   }, [cancelDelayAction])
 
   const delayOn = useCallback<ToggleController['delayOn']>(
@@ -136,10 +137,15 @@ export function useToggleRef(
     onOn?(): void
     /* usually it is for debug */
     onToggle?(): void
+
+    onChange?(isOn: boolean, prev: boolean): void
   } = {}
 ): UseToggleRefReturn {
   const opts = { delay: 800, ...options }
-  const isOn = useRef(shrinkToValue(initValue))
+  const isOn = useCallbackRef({
+    defaultValue: shrinkToValue(initValue),
+    onChange: (v, prev) => options.onChange?.(v, prev)
+  })
   const delayActionId = useRef<number | NodeJS.Timeout>(0)
   const setDelayActionId = (id: number | NodeJS.Timeout) => (delayActionId.current = id)
   const setIsOn = (status: MayFunc<boolean>) => {

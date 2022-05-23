@@ -1,23 +1,18 @@
 import { RefObject, useEffect } from 'react'
 
 import { MayArray } from '@/types/constants'
+import { ElementRefs, getElementsFromRef } from '@/functions/react/getElementsFromRef'
 
 export interface UseClickOutsideOptions {
   disable?: boolean
   onClickOutSide?: () => void
 }
 
-export function useClickOutside(
-  ref: MayArray<RefObject<HTMLElement | null | undefined>>,
-  { disable, onClickOutSide }: UseClickOutsideOptions = {}
-) {
+export function useClickOutside(refs: ElementRefs, { disable, onClickOutSide }: UseClickOutsideOptions = {}) {
   useEffect(() => {
     if (disable) return
     const handleClickOutside = (ev: Event) => {
-      const targetElements = [ref]
-        .flat()
-        .flatMap((ref) => ref.current)
-        .filter(Boolean) as HTMLElement[]
+      const targetElements = getElementsFromRef(refs)
       if (!targetElements.length) return
       const path = ev.composedPath()
       if (targetElements.some((el) => el && path.includes(el))) return
@@ -27,5 +22,5 @@ export function useClickOutside(
     return () => {
       window.document?.removeEventListener('click', handleClickOutside, { capture: true })
     }
-  }, [ref, disable, onClickOutSide])
+  }, [refs, disable, onClickOutSide])
 }

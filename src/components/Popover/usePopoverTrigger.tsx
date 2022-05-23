@@ -1,11 +1,10 @@
-import { RefObject } from 'react'
+import { RefObject, useState } from 'react'
 
 import { useClick } from '@/hooks/useClick'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { useHover } from '@/hooks/useHover'
-import useToggle from '@/hooks/useToggle'
+import { useToggleRef } from '@/hooks/useToggle'
 import { MayArray } from '@/types/constants'
-import { useFocus } from '@/hooks/useFocus'
 
 export type PopoverTriggerControls = {
   on(): void
@@ -27,11 +26,19 @@ export function usePopoverTrigger(
   }
 ): { isPanelShowed: boolean; controls: { off(): void; on(): void; toggle(): void } } {
   const { closeDelay = 600, triggerBy = 'click', triggerDelay, disabled } = options ?? {}
-  const [isPanelShowed, { toggle, on, delayOff, off }] = useToggle(false, { delay: closeDelay })
+
+  // TODO: useToggleRef should be toggleWrapper(useSignalState())
+  const [isPanelShowed, setisPanelShowed] = useState(false)
+  const [isPanelShowedRef, { toggle, on, delayOff, off }] = useToggleRef(false, {
+    delay: closeDelay,
+    onChange: (isOn) => {
+      setisPanelShowed(isOn)
+    }
+  })
   useClick(buttonRef, {
-    disable: disabled || !triggerBy.includes('click') || isPanelShowed,
+    disable: disabled || !triggerBy.includes('click') || isPanelShowedRef.current,
     onClick: () => {
-      if (isPanelShowed === false) {
+      if (isPanelShowedRef.current === false) {
         on()
       }
     }
@@ -47,17 +54,18 @@ export function usePopoverTrigger(
     onHoverStart: on,
     onHoverEnd: () => delayOff()
   })
-  // TODO: popover content may not focusable, so can't set onBlur
-  useFocus([buttonRef, panelRef], {
-    disable: disabled || !triggerBy.includes('focus'),
-    onFocus: on
-    // onBlur: delayOff
-  })
+  // // TODO: popover content may not focusable, so can't set onBlur
+  // NOTE: foce can confilt with useClickOutside
+  // useFocus([buttonRef, panelRef], {
+  //   disable: disabled || !triggerBy.includes('focus'),
+  //   onFocus: on
+  //   // onBlur: delayOff
+  // })
 
-  useClickOutside([panelRef], {
-    disable: disabled || !isPanelShowed,
+  useClickOutside(panelRef, {
+    disable: disabled || !isPanelShowedRef.current,
     onClickOutSide: () => {
-      if (isPanelShowed === true) {
+      if (isPanelShowedRef.current === true) {
         delayOff({ forceDelayTime: 10 })
       }
     }
