@@ -28,17 +28,24 @@ export function usePopoverTrigger(
 ): { isPanelShowed: boolean; controls: { off(): void; on(): void; toggle(): void } } {
   const { closeDelay = 600, triggerBy = 'click', triggerDelay, disabled } = options ?? {}
   const [isPanelShowed, { toggle, on, delayOff, off }] = useToggle(false, { delay: closeDelay })
-  useClick(buttonRef, { disable: disabled || !triggerBy.includes('click') || isPanelShowed, onClick: on })
+  useClick(buttonRef, {
+    disable: disabled || !triggerBy.includes('click') || isPanelShowed,
+    onClick: () => {
+      if (isPanelShowed === false) {
+        on()
+      }
+    }
+  })
   useHover(buttonRef, {
     disable: disabled || !triggerBy.includes('hover'),
     triggerDelay,
     onHoverStart: on,
-    onHoverEnd: delayOff
+    onHoverEnd: () => delayOff()
   })
   useHover(panelRef, {
     disable: disabled || !triggerBy.includes('hover'),
     onHoverStart: on,
-    onHoverEnd: delayOff
+    onHoverEnd: () => delayOff()
   })
   // TODO: popover content may not focusable, so can't set onBlur
   useFocus([buttonRef, panelRef], {
@@ -47,9 +54,13 @@ export function usePopoverTrigger(
     // onBlur: delayOff
   })
 
-  useClickOutside([panelRef, buttonRef], {
+  useClickOutside([panelRef], {
     disable: disabled || !isPanelShowed,
-    onClickOutSide: off
+    onClickOutSide: () => {
+      if (isPanelShowed === true) {
+        delayOff({ forceDelayTime: 10 })
+      }
+    }
   })
   return { isPanelShowed, controls: { off, on, toggle } }
 }

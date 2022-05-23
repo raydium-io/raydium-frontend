@@ -78,7 +78,7 @@ function FarmHeader() {
       <Grid className="grid-cols-3 justify-between items-center pb-8 pt-0">
         <div className="text-2xl font-semibold justify-self-start text-white">Farms</div>
         <FarmTabBlock />
-        <FarmStakedOnlyBlock />
+        <FarmCreateFarmEntryBlock />
       </Grid>
     </Col>
   )
@@ -117,11 +117,11 @@ function FarmSearchBlock({ className }: { className?: string }) {
     <Input
       value={storeSearchText}
       className={twMerge(
-        'px-2 py-2 mobile:py-1 gap-2 border-1.5 border-[rgba(196,214,255,0.5)] rounded-xl min-w-[7em]',
+        'px-2 py-2 mobile:py-1 gap-2  border-1.5 border-[rgba(196,214,255,0.5)] rounded-xl min-w-[7em]',
         className
       )}
-      inputClassName="font-medium mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
-      prefix={<Icon heroIconName="search" size={isMobile ? 'sm' : 'md'} className="text-[rgba(196,214,255,0.5)]" />}
+      inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
+      prefix={<Icon heroIconName="search" size={isMobile ? 'sm' : 'smi'} className="text-[rgba(196,214,255,0.5)]" />}
       suffix={
         <Icon
           heroIconName="x"
@@ -146,12 +146,26 @@ function FarmStakedOnlyBlock({ className }: { className?: string }) {
   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
   return (
     <Row className="justify-self-end  mobile:justify-self-auto flex-wrap items-center">
-      <span className="text-[rgba(196,214,255,0.5)] font-medium mobile:text-xs">Show Staked</span>
+      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show Staked</span>
       <Switcher
         className="ml-2 "
         defaultChecked={onlySelfFarms}
         onToggle={(isOnly) => useFarms.setState({ onlySelfFarms: isOnly })}
       />
+    </Row>
+  )
+}
+
+function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
+  return (
+    <Row
+      className="justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center clickable"
+      onClick={() => {
+        routeTo('/farms/create')
+      }}
+    >
+      <Icon heroIconName="plus-circle" className="text-[#abc4ff80]" size="sm" />
+      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Create Farm</span>
     </Row>
   )
 }
@@ -202,7 +216,7 @@ function FarmRefreshCircleBlock({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
     <Row className={twMerge('items-center', className)}>
-      <span className="text-[rgba(196,214,255,0.5)] font-medium mobile:text-xs">Refresh farms</span>
+      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Refresh farms</span>
       <RefreshCircle
         refreshKey="farms"
         className="justify-self-end"
@@ -306,8 +320,10 @@ function FarmCard() {
           Stake your LP tokens and earn token rewards
         </div>
       </div>
-
-      <FarmSearchBlock />
+      <Row className="items-center gap-8">
+        <FarmStakedOnlyBlock />
+        <FarmSearchBlock />
+      </Row>
     </Row>
   )
 

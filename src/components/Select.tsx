@@ -1,6 +1,6 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { isString } from '@/functions/judgers/dateType'
-import React, { useMemo } from 'react'
+import React, { ReactNode, useMemo } from 'react'
 import { twMerge } from 'tailwind-merge'
 import Col from './Col'
 import Collapse from './Collapse'
@@ -20,7 +20,7 @@ export default function Select<T extends string>({
   className?: string
   candidateValues: (T | { label: string; value: T })[]
   defaultValue?: string
-  prefix?: string
+  prefix?: ReactNode
   onChange?: (value: T | undefined /* emptify */) => void
 }) {
   const [currentValue, setCurrentValue] = React.useState(defaultValue)
@@ -40,10 +40,10 @@ export default function Select<T extends string>({
 
   const FaceCotent = ({ open = false }) => (
     <Row className="items-center w-full">
-      <div className="mobile:text-xs text-base font-medium text-[rgba(196,214,255,.5)] mr-1 whitespace-nowrap">
+      <div className="mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)] mr-1 whitespace-nowrap">
         {prefix}
       </div>
-      <div className="grow mobile:text-xs text-base font-medium text-[rgba(196,214,255)] whitespace-nowrap">
+      <div className="grow mobile:text-xs text-sm font-medium text-[rgba(196,214,255)] whitespace-nowrap">
         {currentLable}
       </div>
       <Icon
@@ -61,7 +61,7 @@ export default function Select<T extends string>({
         <FaceCotent />
       </div>
       <Collapse
-        className={`absolute z-10 top-0 left-0 ring-inset  ring-1.5 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-xl w-full ${
+        className={`absolute z-10 top-0 left-0 ring-inset ring-1.5 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-xl w-full ${
           isOpen ? 'bg-cyberpunk-card-bg' : ''
         }`}
         onClose={() => setIsOpen(false)}

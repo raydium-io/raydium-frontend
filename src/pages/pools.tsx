@@ -61,9 +61,7 @@ function PoolHeader() {
   ) : (
     <Grid className="grid-cols-[1fr,1fr] mobile:grid-cols-2 grid-flow-row-dense items-baseline gap-y-8 pb-8">
       <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white">Pools</div>
-      <Row className="justify-self-end items-center">
-        <PoolStakedOnlyBlock />
-      </Row>
+      <Row className="justify-self-end items-center">{/* <PoolStakedOnlyBlock /> */}</Row>
     </Grid>
   )
 }
@@ -72,7 +70,7 @@ function PoolStakedOnlyBlock() {
   const onlySelfPools = usePools((s) => s.onlySelfPools)
   return (
     <Row className="justify-self-end mobile:justify-self-auto items-center">
-      <span className="text-[rgba(196,214,255,0.5)] font-medium mobile:text-xs">Show Staked</span>
+      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show Staked</span>
       <Switcher
         className="ml-2"
         defaultChecked={onlySelfPools}
@@ -122,8 +120,8 @@ function PoolSearchBlock({ className }: { className?: string }) {
         'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1.5 ring-[rgba(196,214,255,0.5)] rounded-xl min-w-[7em]',
         className
       )}
-      inputClassName="font-medium mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
-      prefix={<Icon heroIconName="search" size={isMobile ? 'sm' : 'md'} className="text-[rgba(196,214,255,0.5)]" />}
+      inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
+      prefix={<Icon heroIconName="search" size={isMobile ? 'sm' : 'smi'} className="text-[rgba(196,214,255,0.5)]" />}
       suffix={
         <Icon
           heroIconName="x"
@@ -220,7 +218,7 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
     <Row className={twMerge('items-center', className)}>
-      <span className="text-[rgba(196,214,255,0.5)] font-medium mobile:text-xs">Refresh Pools</span>
+      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Refresh Pools</span>
       <RefreshCircle
         refreshKey="pools"
         freshFunction={() => {
@@ -457,6 +455,7 @@ function PoolCard() {
       <Row className={'justify-between pb-5 gap-16 items-end'}>
         <PoolLabelBlock />
         <Row className="gap-8 items-stretch">
+          <PoolStakedOnlyBlock />
           <PoolTimeBasisSelectorBox />
           <PoolSearchBlock />
         </Row>
