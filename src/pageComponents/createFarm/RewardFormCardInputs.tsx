@@ -29,6 +29,11 @@ function useStateWithSuperPreferential<T>(
   return [isExist(superValue) ? superValue : value, (isExist(superValue) ? doNothing : setValue) as any]
 }
 
+const MAX_DURATION = 90 * 24 * 60 * 60 * 1000
+const MAX_DURATION_TEXT = '90D'
+const MIN_DURATION_TEXT = '7D'
+const MIN_DURATION = 7 * 24 * 60 * 60 * 1000
+
 export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
   const rewards = useCreateFarms((s) => s.rewards)
   const reward = rewards[rewardIndex]
@@ -71,6 +76,20 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
           label="Day and Hours"
           value={getStringFromDuration(durationTime)}
           // TODO: maxValue (for end time is setted and start can't before now)
+          pattern={[
+            /(?:(\d+)D?) ?(?:(\d+)H?)?/i,
+            (v) => (v ? getDurationFromString(v).totalDuration <= MAX_DURATION : true)
+          ]}
+          onBlur={(v, { setSelf }) => {
+            const duration = getDurationFromString(v)
+            if (duration.totalDuration > MAX_DURATION) {
+              setSelf(MAX_DURATION_TEXT)
+              setDurationTime(MAX_DURATION)
+            } else if (duration.totalDuration < MIN_DURATION) {
+              setSelf(MIN_DURATION_TEXT)
+              setDurationTime(MIN_DURATION)
+            }
+          }}
           onUserInput={(v) => {
             if (!v) return
             const { totalDuration } = getDurationFromString(v)

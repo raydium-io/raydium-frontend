@@ -43,6 +43,10 @@ export function isEmptyObject(target: Record<string, any>): boolean {
   return !notEmptyObject(target)
 }
 
+export function isRegExp(target: unknown): target is RegExp {
+  return isObject(target) && target instanceof RegExp
+}
+
 export function isNumber(val: unknown): val is number {
   return typeof val === 'number'
 }

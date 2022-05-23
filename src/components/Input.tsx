@@ -15,9 +15,10 @@ import mergeRef from '@/functions/react/mergeRef'
 import useToggle from '@/hooks/useToggle'
 
 import Row from './Row'
-import { MayArray, MayFunction, BooleanLike } from '@/types/constants'
+import { MayArray, MayFunction } from '@/types/constants'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import mergeProps from '@/functions/react/mergeProps'
+import { isRegExp } from '@/functions/judgers/dateType'
 
 export interface InputComponentHandler {
   text: string | number | undefined
@@ -39,7 +40,8 @@ export interface InputProps {
   /**aria */
   labelText?: string // for readability used for aria
 
-  pattern?: RegExp // with force pattern, you only can input pattern allowed string
+  // with force pattern, you only can input pattern allowed string
+  pattern?: MayArray<RegExp | ((v: string | undefined) => boolean)> /* if return false, user's input will be ignore */
 
   /** only first render */
   defaultValue?: string | number
@@ -89,9 +91,33 @@ export interface InputProps {
    */
   onDangerousValueChange?: (currentValue: string, el: HTMLInputElement) => void
   onUserInput?: (text: string /* TODO: should also undefined */, el: HTMLInputElement) => void
-  onClick?: (text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }) => void
-  onEnter?: (text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }) => void
-  onBlur?: (text: string, payload: { el: HTMLInputElement; control: InputComponentHandler }) => void
+  onClick?: (
+    text: string,
+    payload: {
+      el: HTMLInputElement
+      control: InputComponentHandler
+      setSelfWithoutUserInput: (v: string | undefined) => void
+      setSelf: (v: string | undefined) => void
+    }
+  ) => void
+  onEnter?: (
+    text: string,
+    payload: {
+      el: HTMLInputElement
+      control: InputComponentHandler
+      setSelfWithoutUserInput: (v: string | undefined) => void
+      setSelf: (v: string | undefined) => void
+    }
+  ) => void
+  onBlur?: (
+    text: string,
+    payload: {
+      el: HTMLInputElement
+      control: InputComponentHandler
+      setSelfWithoutUserInput: (v: string | undefined) => void
+      setSelf: (v: string | undefined) => void
+    }
+  ) => void
 }
 
 /**
@@ -185,7 +211,15 @@ export default function Input(props: InputProps) {
       onClick={() => {
         if (disabled || !inputRef.current) return
         inputRef.current.focus()
-        onClick?.(String(selfValue), { el: inputRef.current, control: inputComponentHandler })
+        onClick?.(String(selfValue), {
+          el: inputRef.current,
+          control: inputComponentHandler,
+          setSelfWithoutUserInput: (v) => setSelfValue(v ?? ''),
+          setSelf: (v) => {
+            setSelfValue(v ?? '')
+            onUserInput?.(v ?? '', inputRef.current!)
+          }
+        })
       }}
       style={style}
       domRef={domRef}
@@ -209,7 +243,7 @@ export default function Input(props: InputProps) {
             const inputText = ev.target.value
 
             // refuse unallowed input
-            if (pattern && !pattern.test(inputText)) return
+            if (pattern && [pattern].flat().some((p) => (isRegExp(p) ? !p.test(inputText) : !p(inputText)))) return
 
             // update validator infos
             if (validators) {
@@ -238,13 +272,26 @@ export default function Input(props: InputProps) {
           onBlur={() => {
             unlockOutsideValue()
             if (value != null) setSelfValue(value)
-            onBlur?.(String(selfValue), { el: inputRef.current!, control: inputComponentHandler })
+            onBlur?.(String(selfValue), {
+              el: inputRef.current!,
+              control: inputComponentHandler,
+              setSelfWithoutUserInput: (v) => setSelfValue(v ?? ''),
+              setSelf: (v) => {
+                setSelfValue(v ?? '')
+                onUserInput?.(v ?? '', inputRef.current!)
+              }
+            })
           }}
           onKeyDown={(ev) => {
             if (ev.key === 'Enter') {
               onEnter?.((ev.target as HTMLInputElement).value, {
                 el: inputRef.current!,
-                control: inputComponentHandler
+                control: inputComponentHandler,
+                setSelfWithoutUserInput: (v) => setSelfValue(v ?? ''),
+                setSelf: (v) => {
+                  setSelfValue(v ?? '')
+                  onUserInput?.(v ?? '', inputRef.current!)
+                }
               })
             }
           }}
