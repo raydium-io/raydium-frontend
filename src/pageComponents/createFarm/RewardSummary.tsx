@@ -129,9 +129,7 @@ export function RewardSummery({
                 <Icon
                   size="smi"
                   heroIconName="trash"
-                  className={`clickable text-[#abc4ff] ${
-                    rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'not-clickable'
-                  }`}
+                  className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
                   onClick={() => rewards.length > 1 && destorySelf()}
                 />
               </Row>
@@ -150,9 +148,7 @@ export function RewardSummery({
                 <Icon
                   size="smi"
                   heroIconName="trash"
-                  className={`clickable text-[#abc4ff] ${
-                    rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'not-clickable'
-                  }`}
+                  className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
                   onClick={() => rewards.length > 1 && destorySelf()}
                 />
               </Row>

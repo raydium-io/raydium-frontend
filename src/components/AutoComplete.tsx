@@ -145,7 +145,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
             handler.text ? (
               <Icon
                 heroIconName="x"
-                size={isMobile ? 'xs' : 'sm'}
+                size={isMobile ? 'sm' : 'smi'}
                 className={`text-[rgba(196,214,255,0.5)] transition clickable ${
                   handler.text ? 'opacity-100' : 'opacity-0 pointer-events-none'
                 }`}

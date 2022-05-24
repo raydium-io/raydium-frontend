@@ -36,7 +36,7 @@ function WarningBoard({ className }: { className: string }) {
   return (
     <FadeInStable show={needWarning}>
       <Row className={className}>
-        <Icon iconSrc="/icons/create-farm-exclamation-circle.svg" className="my-4" iconClassName="w-12 h-12" />
+        <Icon iconSrc="/icons/create-farm-exclamation-circle.svg" className="my-4" iconClassName="w-8 h-8" />
         <Card className={`p-6 grow mx-4 my-2 rounded-3xl ring-1 ring-inset ring-[#DA2EEF] bg-[#1B1659]`}>
           <div className="font-medium text-base text-white mb-3">This tool is for advanced users!</div>
 
@@ -145,7 +145,7 @@ export default function CreateFarmPage() {
               onClick={() => {
                 useCreateFarms.setState({
                   rewards: produce(rewards, (draft) => {
-                    draft.push({ isNewAdded: true, tokenMint: toPubString(RAYMint) })
+                    draft.push({ isNewAdded: true })
                   })
                 })
               }}
