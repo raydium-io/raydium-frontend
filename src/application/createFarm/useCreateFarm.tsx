@@ -1,10 +1,10 @@
+import toPubString from '@/functions/format/toMintString'
 import { Numberish } from '@/types/constants'
-import { SplTokens } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
-import { SplToken } from '../token/type'
+import { RAYMint } from '../token/utils/wellknownToken.config'
 
 export type RewardInfo = {
-  token?: SplToken
+  tokenMint?: string
   amount?: Numberish
   startTime?: Date
   endTime?: Date
@@ -18,7 +18,7 @@ export type CreateFarmStore = {
 }
 
 const useCreateFarms = create<CreateFarmStore>((set) => ({
-  rewards: [{ isNewAdded: true }]
+  rewards: [{ isNewAdded: true, tokenMint: toPubString(RAYMint) }]
 }))
 
 export default useCreateFarms

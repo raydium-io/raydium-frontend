@@ -1,8 +1,10 @@
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { RAYMint } from '@/application/token/utils/wellknownToken.config'
 import Card from '@/components/Card'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
+import toPubString from '@/functions/format/toMintString'
 import { PoolSummary } from '@/pageComponents/createFarm/PoolSummary'
 import RewardInputDialog from '@/pageComponents/createFarm/RewardInputDialog'
 import { RewardSummery } from '@/pageComponents/createFarm/RewardSummary'
@@ -37,7 +39,7 @@ export default function FarmEditPage() {
             onClick={() => {
               useCreateFarms.setState({
                 rewards: produce(rewards, (draft) => {
-                  draft.push({ isNewAdded: true })
+                  draft.push({ isNewAdded: true, tokenMint: toPubString(RAYMint) })
                 })
               })
             }}

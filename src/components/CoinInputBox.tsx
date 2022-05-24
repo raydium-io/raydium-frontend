@@ -291,9 +291,11 @@ export default function CoinInputBox({
             onUserInput={setInputedAmount}
             onEnter={onEnter}
             inputClassName="text-right mobile:text-sm font-medium text-white"
-            inputHTMLProps={{
-              onFocus: () => (isOutsideValueLocked.current = true),
-              onBlur: () => (isOutsideValueLocked.current = false)
+            onFocus={() => {
+              isOutsideValueLocked.current = true
+            }}
+            onBlur={() => {
+              isOutsideValueLocked.current = false
             }}
           />
         </Row>

@@ -59,7 +59,7 @@ export default function InputBox({
             noCSSInputDefaultWidth
             {...(restProps as DecimalInputProps)}
             {...(inputProps as DecimalInputProps)}
-            className={twMerge('w-full font-medium text-lg text-white', inputProps?.className)}
+            className={twMerge('w-full py-2 font-medium', inputProps?.className)}
             componentRef={mergeRef(inputRef, inputProps?.componentRef)}
           />
         ) : (
@@ -67,7 +67,7 @@ export default function InputBox({
             noCSSInputDefaultWidth
             {...(restProps as InputProps)}
             {...(inputProps as InputProps)}
-            className={twMerge('w-full font-medium text-lg text-white', inputProps?.className)}
+            className={twMerge('w-full py-2 font-medium', inputProps?.className)}
             componentRef={mergeRef(inputRef, inputProps?.componentRef)}
           />
         ))}

@@ -20,7 +20,7 @@ export type DateInputProps = {
   labelClassName?: string
   inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
   disableDateBeforeCurrent?: boolean
-  isDisableDate?: (date: Date) => boolean
+  isValidDate?: (date: Date) => boolean
   onDateChange?(selectedDate: Date | undefined): void
 } & Omit<InputProps, 'value' | 'defaultValue'> & {
     value?: Date
@@ -36,7 +36,7 @@ export default function DateInput({
   labelClassName,
   inputProps,
   disableDateBeforeCurrent,
-  isDisableDate,
+  isValidDate,
   onDateChange
 }: DateInputProps) {
   return (
@@ -50,7 +50,7 @@ export default function DateInput({
           inputProps={inputProps}
           onDateChange={onDateChange}
           disableDateBeforeCurrent={disableDateBeforeCurrent}
-          isDisableDate={isDisableDate}
+          isValidDate={isValidDate}
           defaultValue={defaultValue}
           value={value}
         ></DateInputBody>
@@ -62,7 +62,7 @@ type DateInputBodyProps = {
   inputRef?: RefObject<HTMLInputElement | HTMLElement>
   defaultValue?: Date
   value?: Date
-  isDisableDate?: (date: Date) => boolean
+  isValidDate?: (date: Date) => boolean
   className?: string
   inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
   disableDateBeforeCurrent?: boolean
@@ -78,7 +78,7 @@ function DateInputBody({
   defaultValue,
   className,
   disableDateBeforeCurrent,
-  isDisableDate,
+  isValidDate,
   onDateChange,
   inputProps
 }: DateInputBodyProps) {
@@ -120,7 +120,10 @@ function DateInputBody({
               : currentDate
           }
           disabledDate={(date) =>
-            [isDisableDate, disableDateBeforeCurrent ? currentIsAfter : undefined].some((fn) => fn?.(date))
+            [
+              (date) => (isValidDate ? !isValidDate(date) : false),
+              disableDateBeforeCurrent ? currentIsAfter : undefined
+            ].some((fn) => fn?.(date))
           }
           todayButton="today"
           onChange={(selectedDate) => {

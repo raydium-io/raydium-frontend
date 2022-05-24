@@ -1,4 +1,5 @@
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import useToken from '@/application/token/useToken'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import DateInput from '@/components/DateInput'
 import Grid from '@/components/Grid'
@@ -7,6 +8,7 @@ import Row from '@/components/Row'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import parseDuration, { parseDurationAbsolute } from '@/functions/date/parseDuration'
+import toPubString from '@/functions/format/toMintString'
 import { isExist } from '@/functions/judgers/nil'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
@@ -37,6 +39,8 @@ const MIN_DURATION = 7 * 24 * 60 * 60 * 1000
 export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
   const rewards = useCreateFarms((s) => s.rewards)
   const reward = rewards[rewardIndex]
+  const getToken = useToken((s) => s.getToken)
+  const rewardToken = getToken(reward.tokenMint)
   if (!reward) return null
 
   const [durationTime, setDurationTime] = useStateWithSuperPreferential(
@@ -53,11 +57,11 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
         haveHalfButton
         topLeftLabel="Assert"
         value={toString(reward.amount)}
-        token={reward.token}
+        token={rewardToken}
         onSelectCoin={(token) => {
           useCreateFarms.setState({
             rewards: produce(rewards, (draft) => {
-              draft[rewardIndex].token = token
+              draft[rewardIndex].tokenMint = toPubString(token.mint)
             })
           })
         }}
@@ -72,14 +76,11 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
 
       <Row className="gap-4">
         <InputBox
-          className="rounded-md px-4"
+          className="grow-2 rounded-md text-sm font-medium text-white px-4"
           label="Day and Hours"
           value={getStringFromDuration(durationTime)}
           // TODO: maxValue (for end time is setted and start can't before now)
-          pattern={[
-            /(?:(\d+)D?) ?(?:(\d+)H?)?/i,
-            (v) => (v ? getDurationFromString(v).totalDuration <= MAX_DURATION : true)
-          ]}
+          pattern={[/^(?:(\d+)D?)? ?(?:(\d+)H?)?$/i]}
           onBlur={(v, { setSelf }) => {
             const duration = getDurationFromString(v)
             if (duration.totalDuration > MAX_DURATION) {
@@ -128,11 +129,15 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
           className="grow rounded-md px-4"
           label="Farming Start"
           inputProps={{
-            inputClassName: 'text-[#abc4ff] text-xs font-medium'
+            inputClassName: 'text-sm font-medium text-white'
           }}
           value={reward.startTime}
           disableDateBeforeCurrent
-          isDisableDate={reward.endTime ? (date) => isDateAfter(date, reward.endTime!) : undefined}
+          isValidDate={(date) => {
+            if (!reward.endTime) return true
+            const duration = reward.endTime.getTime() - date.getTime()
+            return MIN_DURATION < duration && duration < MAX_DURATION
+          }}
           onDateChange={(selectedDate) => {
             if (!selectedDate) return
             return useCreateFarms.setState({
@@ -162,14 +167,18 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
         />
 
         <DateInput
-          className="grow rounded-md px-4"
+          className="shrink-0 grow rounded-md px-4"
           label="Farming Ends"
           inputProps={{
-            inputClassName: 'text-[#abc4ff] text-xs font-medium'
+            inputClassName: 'text-sm font-medium text-white'
           }}
           value={reward.endTime}
           disableDateBeforeCurrent
-          isDisableDate={reward.startTime ? (date) => isDateBefore(date, reward.startTime!) : undefined}
+          isValidDate={(date) => {
+            if (!reward.startTime) return true
+            const duration = date.getTime() - reward.startTime.getTime()
+            return MIN_DURATION < duration && duration < MAX_DURATION
+          }}
           onDateChange={(selectedDate) => {
             if (!selectedDate) return
             return useCreateFarms.setState({
@@ -202,20 +211,25 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
 
       <InputBox
         decimalMode
-        decimalCount={reward.token?.decimals ?? 6}
+        decimalCount={rewardToken?.decimals ?? 6}
         valueFloating
-        className="rounded-md px-4"
+        className="rounded-md px-4 font-medium text-sm"
+        inputClassName="text-white"
         label="Estimated rewards / day"
         value={estimatedValue}
         onUserInput={(v) => {
           if (!durationTime) return
           useCreateFarms.setState({
             rewards: produce(rewards, (draft) => {
-              draft[rewardIndex].amount = mul(durationTime, v)
+              draft[rewardIndex].amount = mul(parseDurationAbsolute(durationTime).days, v)
             })
           })
         }}
-        suffix={reward.token && durationTime && durationTime > 0 ? <div>{reward.token.symbol} / day</div> : undefined}
+        suffix={
+          isMeaningfulNumber(estimatedValue) ? (
+            <div className="font-medium text-sm text-[#abc4ff80]">{rewardToken?.symbol ?? '--'}</div>
+          ) : undefined
+        }
       />
     </Grid>
   )

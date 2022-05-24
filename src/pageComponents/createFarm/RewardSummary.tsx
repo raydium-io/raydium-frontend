@@ -1,4 +1,5 @@
 import useCreateFarms, { CreateFarmStore, RewardInfo } from '@/application/createFarm/useCreateFarm'
+import useToken from '@/application/token/useToken'
 import CoinAvatar from '@/components/CoinAvatar'
 import Icon from '@/components/Icon'
 import ListTable from '@/components/ListTable'
@@ -32,17 +33,16 @@ export function RewardSummery({
   onDeleteReward?(payload: { reward: RewardInfo; rewardIndex: number }): void
 }) {
   const rewards = useCreateFarms((s) => s.rewards)
+  const getToken = useToken((s) => s.getToken)
   return (
     <ListTable
       list={rewards}
       labelMapper={[
         {
-          key: 'token',
           label: 'Asset',
           cssGridItemWidth: '.6fr'
         },
         {
-          key: 'amount',
           label: 'Amount'
         },
         {
@@ -50,7 +50,6 @@ export function RewardSummery({
           cssGridItemWidth: '.6fr'
         },
         {
-          key: ['startTime', 'endTime'],
           label: 'Period (yy-mm-dd)',
           cssGridItemWidth: '1.5fr'
         },
@@ -68,11 +67,12 @@ export function RewardSummery({
         onActiveIndexChange?.(index)
       }}
       renderItem={({ item, label, key }) => {
+        const rewardToken = getToken(item.tokenMint)
         if (label === 'Asset') {
-          return item.token ? (
+          return item.tokenMint ? (
             <Row className="gap-1 items-center">
-              <CoinAvatar token={item.token} size="sm" />
-              <div>{item.token?.symbol ?? 'UNKNOWN'}</div>
+              <CoinAvatar token={rewardToken} size="sm" />
+              <div>{rewardToken?.symbol ?? 'UNKNOWN'}</div>
             </Row>
           ) : (
             '--'
@@ -80,7 +80,9 @@ export function RewardSummery({
         }
 
         if (label === 'Amount') {
-          return item.amount ? <div className="break-all">{formatNumber(item.amount)}</div> : undefined
+          return item.amount ? (
+            <div className="break-all">{formatNumber(item.amount, { fractionLength: rewardToken?.decimals ?? 6 })}</div>
+          ) : undefined
         }
 
         if (label === 'Day and Hours') {
@@ -107,7 +109,7 @@ export function RewardSummery({
           if (!estimatedValue) return
           return (
             <div className="text-xs">
-              {toString(estimatedValue)} {item.token?.symbol}
+              {toString(estimatedValue)} {rewardToken?.symbol}
             </div>
           )
         }

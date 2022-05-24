@@ -22,16 +22,6 @@
   }
 }
 
-input[type='number']::-webkit-outer-spin-button,
-input[type='number']::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-/* Firefox */
-input[type='number'] {
-  -moz-appearance: textfield;
-}
-
 .primary-gradient-bg {
   background: linear-gradient(139.73deg, hsl(185deg, 100%, 95%), hsl(255deg, 100%, 97%));
 }

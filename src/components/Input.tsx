@@ -118,6 +118,15 @@ export interface InputProps {
       setSelf: (v: string | undefined) => void
     }
   ) => void
+  onFocus?: (
+    text: string,
+    payload: {
+      el: HTMLInputElement
+      control: InputComponentHandler
+      setSelfWithoutUserInput: (v: string | undefined) => void
+      setSelf: (v: string | undefined) => void
+    }
+  ) => void
 }
 
 /**
@@ -166,6 +175,7 @@ export default function Input(props: InputProps) {
     onUserInput,
     onEnter,
     onBlur,
+    onFocus,
     onClick
   } = mergeProps(props, fallbackProps)
 
@@ -269,7 +279,11 @@ export default function Input(props: InputProps) {
             onUserInput?.(ev.target.value, inputRef.current!)
             lockOutsideValue()
           }}
-          onBlur={() => {
+          aria-label={labelText}
+          aria-required={required}
+          {...inputHTMLProps}
+          onBlur={(ev) => {
+            inputHTMLProps?.onBlur?.(ev)
             unlockOutsideValue()
             if (value != null) setSelfValue(value)
             onBlur?.(String(selfValue), {
@@ -282,7 +296,20 @@ export default function Input(props: InputProps) {
               }
             })
           }}
+          onFocus={(ev) => {
+            inputHTMLProps?.onFocus?.(ev)
+            onFocus?.(String(selfValue), {
+              el: inputRef.current!,
+              control: inputComponentHandler,
+              setSelfWithoutUserInput: (v) => setSelfValue(v ?? ''),
+              setSelf: (v) => {
+                setSelfValue(v ?? '')
+                onUserInput?.(v ?? '', inputRef.current!)
+              }
+            })
+          }}
           onKeyDown={(ev) => {
+            inputHTMLProps?.onKeyDown?.(ev)
             if (ev.key === 'Enter') {
               onEnter?.((ev.target as HTMLInputElement).value, {
                 el: inputRef.current!,
@@ -295,9 +322,6 @@ export default function Input(props: InputProps) {
               })
             }
           }}
-          aria-label={labelText}
-          aria-required={required}
-          {...inputHTMLProps}
         />
       </div>
       {suffix && <div className="flex-initial ml-2">{shrinkToValue(suffix, [inputComponentHandler])}</div>}

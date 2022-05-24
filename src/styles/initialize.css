@@ -20,6 +20,19 @@ body {
   box-sizing: border-box;
   outline: none !important; /* without !important, the priority is not high enough */
 }
+input {
+  font-weight: inherit;
+}
+
+input[type='number']::-webkit-outer-spin-button,
+input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* Firefox */
+input[type='number'] {
+  -moz-appearance: textfield;
+}
 
 /* Temp make headlessui not conflict with other z-index */
 /* TODO: remove headlessui dependence */

@@ -19,6 +19,8 @@ import { ReactNode, useState } from 'react'
 import { RewardFormCardInputs } from '../../pageComponents/createFarm/RewardFormCardInputs'
 import { PoolIdInputBlock } from '../../pageComponents/createFarm/PoolIdInputBlock'
 import { RewardSummery } from '../../pageComponents/createFarm/RewardSummary'
+import toPubString from '@/functions/format/toMintString'
+import { RAYMint } from '@/application/token/utils/wellknownToken.config'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -103,7 +105,7 @@ export default function CreateFarmPage() {
   const [activeIndex, setActiveIndex] = useState(0)
   return (
     <PageLayout metaTitle="Farms - Raydium">
-      <div className={`self-center transition-all duration-500 w-[min(640px,70vw)] mobile:w-[90vw]`}>
+      <div className={`self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
         <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
 
         <WarningBoard className="pb-16 w-full" />
@@ -143,7 +145,7 @@ export default function CreateFarmPage() {
               onClick={() => {
                 useCreateFarms.setState({
                   rewards: produce(rewards, (draft) => {
-                    draft.push({ isNewAdded: true })
+                    draft.push({ isNewAdded: true, tokenMint: toPubString(RAYMint) })
                   })
                 })
               }}
