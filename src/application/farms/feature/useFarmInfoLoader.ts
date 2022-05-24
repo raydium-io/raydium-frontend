@@ -7,7 +7,7 @@ import useWallet from '../../wallet/useWallet'
 import useFarms from '../useFarms'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from '../utils/handleFarmInfo'
 import useLiquidity from '@/application/liquidity/useLiquidity'
-import { jsonInfo2PoolKeys } from '../../txTools/jsonInfo2PoolKeys'
+import { jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
 
 export default function useFarmInfoFetcher() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()

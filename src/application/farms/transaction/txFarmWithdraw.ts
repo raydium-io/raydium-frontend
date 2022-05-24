@@ -1,4 +1,4 @@
-import { Farm, ReplaceType, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Farm, TokenAmount, jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
 
 import createAssociatedTokenAccountIfNotExist from '@/application/txTools/createAssociatedTokenAccountIfNotExist'
 import {
@@ -11,7 +11,6 @@ import { HydratedFarmInfo } from '../type'
 import useFarms from '../useFarms'
 import handleMultiTx from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import { jsonInfo2PoolKeys } from '@/application/txTools/jsonInfo2PoolKeys'
 
 export default async function txFarmWithdraw(
   info: HydratedFarmInfo,
