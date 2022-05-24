@@ -27,12 +27,9 @@ const devRpcConfig: Omit<Config, 'success'> = {
     // { url: 'https://arbirgis.rpcpool.com/', weight: 100 },
     // { url: 'https://solana-api.projectserum.com', weight: 100 }
     // { name: 'tt', url: 'https://solana-api.tt-prod.net' },
-    { name: 'apricot', url: 'https://apricot-main-67cd.mainnet.rpcpool.com/' },
-    { name: 'serum', url: 'https://solana-api.projectserum.com/' },
     { name: 'beta-mainnet', url: 'https://api.mainnet-beta.solana.com/' },
-    { name: '67d', url: 'https://apricot-main-67cd.mainnet.rpcpool.com/' },
-
-    { name: 'api.mainnet', url: 'https://api.mainnet.rpcpool.com/', weight: 100 }
+    { name: 'api.mainnet', url: 'https://api.mainnet.rpcpool.com/' },
+    { name: 'solana-public', url: 'https://solana.public-rpc.com' }
   ],
   strategy: 'speed'
 }
