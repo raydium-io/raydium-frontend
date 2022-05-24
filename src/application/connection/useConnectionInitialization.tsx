@@ -26,9 +26,10 @@ const devRpcConfig: Omit<Config, 'success'> = {
     // { name: 'rpcpool', url: 'https://raydium.rpcpool.com', weight: 100 }
     // { url: 'https://arbirgis.rpcpool.com/', weight: 100 },
     // { url: 'https://solana-api.projectserum.com', weight: 100 }
-    { name: 'tt', url: 'https://solana-api.tt-prod.net', weight: 100 },
-    { name: 'apricot', url: 'https://apricot-main-67cd.mainnet.rpcpool.com/' }
-    // { name: 'api.mainnet', url: 'https://api.mainnet.rpcpool.com/', weight: 100 }
+    { name: 'solana-public', url: 'https://solana.public-rpc.com' },
+    { name: 'beta-mainnet', url: 'https://api.mainnet-beta.solana.com/' },
+
+    { name: 'api.mainnet', url: 'https://api.mainnet.rpcpool.com/' }
   ],
   strategy: 'speed'
 }

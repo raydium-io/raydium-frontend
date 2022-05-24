@@ -805,6 +805,9 @@ function SwapCardInfo({ className }: { className?: string }) {
             />
             <SwapCardItem
               fieldName="Swap Fee"
+              tooltipContent={`Of the 0.25% swap fee, 0.22% goes to LPs and 0.03% is used to buy back RAY.${
+                isStable ? ' For stable swaps, the 0.02% fee goes to LPs.' : ''
+              } `}
               fieldValue={
                 fee ? (
                   <Col>
@@ -860,7 +863,9 @@ function SwapCardItem({
         {tooltipContent && (
           <Tooltip className={className} placement="bottom-right">
             <Icon size="xs" heroIconName="question-mark-circle" className="cursor-help" />
-            <Tooltip.Panel>{tooltipContent}</Tooltip.Panel>
+            <Tooltip.Panel>
+              <div className="max-w-[30em]">{tooltipContent}</div>
+            </Tooltip.Panel>
           </Tooltip>
         )}
       </Row>
