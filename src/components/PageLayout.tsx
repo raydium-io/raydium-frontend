@@ -94,11 +94,7 @@ export default function PageLayout(props: {
       {isMobile ? (
         <>
           <Navbar barTitle={props.mobileBarTitle} className="grid-area-a" onOpenMenu={() => setIsSideMenuOpen(true)} />
-          <Drawer
-            open={isSideMenuOpen}
-            onCloseTransitionEnd={() => setIsSideMenuOpen(false)}
-            onOpen={() => setIsSideMenuOpen(true)}
-          >
+          <Drawer open={isSideMenuOpen} onClose={() => setIsSideMenuOpen(false)} onOpen={() => setIsSideMenuOpen(true)}>
             {({ close }) => <SideMenu className="flex-container h-screen" onClickCloseBtn={close} />}
           </Drawer>
         </>

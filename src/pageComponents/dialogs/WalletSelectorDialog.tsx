@@ -94,7 +94,7 @@ export default function WalletSelectorDialog() {
     <ResponsiveDialogDrawer
       placement="from-top"
       open={isWalletSelectorShown}
-      onCloseTransitionEnd={() => useAppSettings.setState({ isWalletSelectorShown: false })}
+      onCloseImmediately={() => useAppSettings.setState({ isWalletSelectorShown: false })}
     >
       {({ close }) => <PanelContent close={close} wallets={availableWallets} />}
     </ResponsiveDialogDrawer>

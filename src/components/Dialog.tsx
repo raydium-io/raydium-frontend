@@ -22,9 +22,9 @@ export interface DialogProps {
   maskNoBlur?: boolean
 
   canClosedByMask?: boolean
+  /** fired before close transform effect is end */
+  onCloseImmediately?(): void
   onClose?(): void
-  /** fired when close transform effect is end */
-  onCloseTransitionEnd?(): void
 }
 
 export default function Dialog({
@@ -35,8 +35,8 @@ export default function Dialog({
   maskNoBlur,
   style,
   canClosedByMask = true,
-  onClose,
-  onCloseTransitionEnd
+  onCloseImmediately,
+  onClose
 }: DialogProps) {
   // for onCloseTransitionEnd
   // during leave transition, open is still true, but innerOpen is false, so transaction will happen without props:open has change (if open is false, React may destory this component immediately)
@@ -48,7 +48,7 @@ export default function Dialog({
     onOff: () => {
       // seems headlessui/react 1.6 doesn't fired this certainly(because React 16 priority strategy), so i have to use setTimeout 👇 in <Dialog>'s onClose
       if (!innerOpenSignal()) {
-        onCloseTransitionEnd?.()
+        onClose?.()
       }
     }
   })
@@ -79,7 +79,7 @@ export default function Dialog({
       as={Fragment}
       show={innerOpen}
       appear
-      beforeLeave={onClose}
+      beforeLeave={onCloseImmediately}
       // afterLeave={() => {
       //   // seems headlessui/react 1.6 doesn't fired this certainly(because React 16 priority strategy), so i have to use setTimeout 👇 in <Dialog>'s onClose
       //   console.log('onCloseTransitionEnd')

@@ -88,7 +88,7 @@ export default function MessageBoardWidget() {
       </PageLayoutPopoverDrawer>
       <ResponsiveDialogDrawer
         open={isExist(currentMessageBoardItem)}
-        onCloseTransitionEnd={() => {
+        onClose={() => {
           if (currentMessageBoardItem?.id) {
             useMessageBoard.setState((s) => ({
               readedIds: new Set(s.readedIds.add(currentMessageBoardItem.id))

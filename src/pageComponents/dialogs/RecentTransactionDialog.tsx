@@ -44,14 +44,14 @@ export default function RecentTransactionDialog() {
     <Drawer
       placement="from-top"
       open={isRecentTransactionDialogShown}
-      onCloseTransitionEnd={() => useAppSettings.setState({ isRecentTransactionDialogShown: false })}
+      onClose={() => useAppSettings.setState({ isRecentTransactionDialogShown: false })}
     >
       {({ close }) => <PanelContent onClickX={close} historyItems={txHistory} />}
     </Drawer>
   ) : (
     <Dialog
       open={isRecentTransactionDialogShown}
-      onCloseTransitionEnd={() => useAppSettings.setState({ isRecentTransactionDialogShown: false })}
+      onClose={() => useAppSettings.setState({ isRecentTransactionDialogShown: false })}
     >
       {({ close }) => <PanelContent onClickX={close} historyItems={txHistory} />}
     </Dialog>

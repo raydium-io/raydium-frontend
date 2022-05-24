@@ -98,7 +98,7 @@ export function DrawerPanel({
     <Drawer
       className={className}
       open={Boolean(canOpen && isOpen)}
-      onCloseTransitionEnd={() => {
+      onClose={() => {
         closePanel()
         onClose?.()
       }}

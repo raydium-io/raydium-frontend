@@ -50,9 +50,9 @@ export interface DrawerProps {
   // if content is scrollable, PLEASE open it!!!, for blur will make scroll super fuzzy
   maskNoBlur?: boolean
   onOpen?: () => void
-  onClose?: () => void
-  /** fired when close transform effect is end */
-  onCloseTransitionEnd?(): void
+  /** fired before close transform effect is end */
+  onCloseImmediately?: () => void
+  onClose?(): void
 }
 const DrawerStackPortal = ({ children }) => {
   const [mounted, setMounted] = useState(false)
@@ -77,8 +77,8 @@ export default function Drawer({
   transitionSpeed = 'normal',
   maskNoBlur,
   onOpen,
-  onClose,
-  onCloseTransitionEnd
+  onCloseImmediately,
+  onClose
 }: DrawerProps) {
   const drawerContentRef = useRef<HTMLDivElement>(null)
 
@@ -94,7 +94,7 @@ export default function Drawer({
     onOff: () => {
       // seems headlessui/react 1.6 doesn't fired this certainly(because React 16 priority strategy), so i have to use setTimeout 👇 in <Dialog>'s onClose
       if (!innerOpenSignal()) {
-        onCloseTransitionEnd?.()
+        onClose?.()
       }
     }
   })
@@ -126,7 +126,7 @@ export default function Drawer({
         className="absolute inset-0"
         appear
         show={innerOpen}
-        beforeLeave={onClose}
+        beforeLeave={onCloseImmediately}
         // afterLeave={onCloseTransitionEnd}
       >
         <Transition.Child
