@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react'
 
-import { SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
+import { PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -27,11 +27,14 @@ import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
 import { createSplToken } from '@/application/token/feature/useTokenListsLoader'
 import ListFast from '../../components/ListFast'
+import { shakeFalsyItem } from '@/functions/arrayMethods'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 
 export type TokenSelectorProps = {
   open: boolean
   close: () => void
   onSelectCoin?: (token: SplToken) => unknown
+  disableTokenMints?: PublicKeyish[]
 }
 
 export default function TokenSelectorDialog(props: TokenSelectorProps) {
@@ -48,7 +51,7 @@ export default function TokenSelectorDialog(props: TokenSelectorProps) {
   )
 }
 
-function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin }: TokenSelectorProps) {
+function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin, disableTokenMints }: TokenSelectorProps) {
   const tokenListSettings = useToken((s) => s.tokenListSettings)
   const getToken = useToken((s) => s.getToken)
 
@@ -65,7 +68,14 @@ function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin }: T
     closePanel?.()
   }, [])
 
-  const sortedTokens = useToken((s) => s.allSelectableTokens)
+  function isTokenDisabled(mint: PublicKey): boolean {
+    return disableTokenMints ? disableTokenMints.some((disableMint) => isMintEqual(disableMint, mint)) : false
+  }
+
+  const sourceTokens = useToken((s) => s.allSelectableTokens)
+  const sortedTokens = disableTokenMints?.length
+    ? sourceTokens.filter(({ mint }) => !isTokenDisabled(mint))
+    : sourceTokens
 
   // by user's search text
   const searchedTokens = useMemo(
@@ -86,6 +96,7 @@ function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin }: T
         : sortedTokens,
     [searchText, sortedTokens, balances]
   )
+
   function firstFullMatched(tokens: SplToken[], searchText: string): SplToken[] {
     const fullMatched = tokens.filter((token) => token.symbol?.toLowerCase() === searchText.toLowerCase())
     const fullMatchedMint = fullMatched.map((m) => toPubString(m.mint))
@@ -195,7 +206,9 @@ function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin }: T
                 return (
                   <Row
                     key={toPubString(isQuantumSOL(mintish) ? mintish.mint : mintish)}
-                    className="gap-1 py-1 px-2 mobile:py-1.5 mobile:px-2.5 rounded ring-1 ring-inset ring-[rgba(171,196,255,.3)] items-center flex-wrap clickable clickable-filter-effect"
+                    className={`gap-1 py-1 px-2 mobile:py-1.5 mobile:px-2.5 rounded ring-1 ring-inset ring-[rgba(171,196,255,.3)] items-center flex-wrap clickable clickable-filter-effect ${
+                      token?.mint && isTokenDisabled(token.mint) ? 'opacity-30 pointer-events-none' : ''
+                    }`}
                     onClick={() => {
                       closeAndClean()
                       if (token && onSelectCoin) onSelectCoin(token)

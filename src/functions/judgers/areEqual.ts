@@ -4,6 +4,7 @@ import { PublicKey } from '@solana/web3.js'
 import { SplToken, Token } from '@/application/token/type'
 
 import { isObject } from './dateType'
+import toPubString from '../format/toMintString'
 
 export function areEqual(v1: any, v2: any) {
   return v1 === v2
@@ -33,14 +34,14 @@ export function areShallowShallowEqual(v1: any, v2: any) {
     : areShallowEqual(v1, v2)
 }
 
-export function areEqualToken(token1?: SplToken | Token, token2?: SplToken | Token) {
-  return String(token1?.mint) === String(token2?.mint)
-}
-
 export function isMintEqual(p1: Token | PublicKeyish | undefined, p2: Token | PublicKeyish | undefined) {
   if (p1 == undefined || p2 == undefined) return false
   const publicKeyish1 = p1 instanceof Token ? p1.mint : p1
   const publicKeyish2 = p2 instanceof Token ? p2.mint : p2
   if (p1 instanceof PublicKey && p2 instanceof PublicKey) return p1.equals(p2)
-  return String(publicKeyish1) === String(publicKeyish2)
+  return toPubString(publicKeyish1) === toPubString(publicKeyish2)
+}
+
+export function areEqualToken(token1?: SplToken | Token, token2?: SplToken | Token) {
+  return isMintEqual(token1?.mint, token2?.mint)
 }

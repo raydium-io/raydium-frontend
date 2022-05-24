@@ -5,6 +5,7 @@ import DateInput from '@/components/DateInput'
 import Grid from '@/components/Grid'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import parseDuration, { parseDurationAbsolute } from '@/functions/date/parseDuration'
@@ -56,6 +57,7 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
         className="rounded-md"
         haveHalfButton
         topLeftLabel="Assert"
+        disableTokenMints={shakeUndifindedItem(rewards.map((r) => r.tokenMint))}
         value={toString(reward.amount)}
         token={rewardToken}
         onSelectCoin={(token) => {
