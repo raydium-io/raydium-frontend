@@ -863,7 +863,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
     try {
       await txIdoPurchase({
         idoInfo,
-        amount: toBN(ticketAmount),
+        ticketAmount: toBN(ticketAmount),
         onTxFinally: () => {
           refreshIdo(idoInfo.id)
         }

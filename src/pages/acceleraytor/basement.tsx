@@ -148,7 +148,7 @@ function IdoPanel() {
                           idoHydratedInfo.userEligibleTicketAmount &&
                             txIdoPurchase({
                               idoInfo: idoHydratedInfo,
-                              amount: idoHydratedInfo.userEligibleTicketAmount,
+                              ticketAmount: idoHydratedInfo.userEligibleTicketAmount,
                               forceKeyPairs: targetKeypair ? { ownerKeypair: targetKeypair } : undefined
                             })
                         }}
