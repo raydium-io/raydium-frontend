@@ -6,6 +6,8 @@ import { HydratedIdoInfo, SdkIdoInfo } from '../type'
 import handleMultiTx, { TxAddOptions, TxShadowOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import { toString } from '@/functions/numberish/toString'
+import { div } from '@/functions/numberish/operations'
+import { padZero } from '@/functions/numberish/stringNumber'
 
 export default async function txIdoClaim(
   options: { idoInfo: HydratedIdoInfo; side: 'base' | 'quote' } & TxAddOptions & TxShadowOptions
@@ -92,7 +94,11 @@ export default async function txIdoClaim(
           description:
             side === 'base'
               ? `Claim ${toString(idoInfo.userAllocation)} ${idoInfo.base.symbol ?? '--'}`
-              : `Claim ${idoInfo.ledger?.quoteDeposited} ${idoInfo.quote.symbol ?? '--'}`
+              : `Claim ${
+                  idoInfo.quote && idoInfo.ledger
+                    ? toString(div(idoInfo.ledger?.quoteDeposited, padZero(1, idoInfo.quote?.decimals ?? 0)))
+                    : ''
+                } ${idoInfo.quote.symbol ?? '--'}`
         }
       })
     },

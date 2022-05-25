@@ -34,7 +34,6 @@ import { twMerge } from 'tailwind-merge'
 import Progress from '@/components/Progress'
 import toPercentNumber from '@/functions/format/toPercentNumber'
 import Input from '@/components/Input'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function AcceleRaytor() {
   const infos = useIdo((s) => s.idoHydratedInfos)
@@ -296,16 +295,16 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
               should: info.canWithdrawBase,
               fallbackProps: {
                 children: (
-                  <Row>
+                  <div>
                     Withdraw {info.base?.symbol ?? 'UNKNOWN'} in{' '}
                     <IdoCountDownClock
                       className="ml-1"
                       singleValueMode
-                      labelClassName="text-base"
+                      labelClassName="text-base inline-block mx-auto"
                       endTime={Number(info.startWithdrawTime)}
                       onEnd={forceUpdate}
                     />
-                  </Row>
+                  </div>
                 )
               }
             }
