@@ -1,41 +1,6 @@
 import { AnyFn, ObjectNotArray } from '@/types/constants'
-
-import { isFunction, isObject, isUndefined } from './judgers/dateType'
+import { isUndefined } from './judgers/dateType'
 import { isExist } from './judgers/nil'
-
-export type MayDeepArray<T> = T | Array<MayDeepArray<T>>
-/**
- * @deprecated
- * @example
- * mergeDeep({a:3, b:2}, {a:1}) // {a:1, b:2}
- * mergeDeep({a:3, b:2}, undefined, {a:1}) // {a:1, b:2}
- * mergeDeep({a:3, b:2, c:{a:2}}, {a:1, c:{b:3}}) // {a:1, b:2, c:{a:2, b:3}}
- * mergeDeep({a:3, b:2, c:{a:2}}, {a:1, c:{b:3}}, false) // {a:1, b:2, c:{a:2, b:3}}
- * mergeDeep({a:3, b:2, c:{a:2}}, {a:1, c:{b:3}}, {c:false}) // {a:1, b:2, c:false}
- * mergeDeep({a:3, b:2, c:{a:2}}, [{a:1, c:{b:3}}, {c:false}]) // {a:1, b:2, c:false}
- *
- * mergeDeep({a:3, b:2, c:[2]}, {a:1, c:[3]}, {c:[4,5]}) // {a:1, b:2, c:[4,5]}
- */
-export function mergeDeep<T>(...deepObjArrays: MayDeepArray<T>[]): T {
-  const flattedItems = deepObjArrays.flat(Infinity).filter(Boolean)
-  if (flattedItems.length === 1) return flattedItems[0]
-  const resultObj = {} as any
-  for (const obj of flattedItems) {
-    for (const [key, value] of Object.entries(obj ?? {})) {
-      if (isObject(resultObj[key]) && isObject(value)) {
-        resultObj[key] = mergeDeep([resultObj[key], value])
-      } else if (isFunction(resultObj[key]) && isFunction(value)) {
-        resultObj[key] = (...params: any[]) => {
-          value(...params)
-          resultObj[key](...params)
-        }
-      } else {
-        resultObj[key] = value
-      }
-    }
-  }
-  return resultObj
-}
 
 /**
  * @example
