@@ -40,7 +40,7 @@ export async function fetchRawIdoListJson(): Promise<BackendApiIdoListItem[]> {
             })
           )
       })) ?? []
-    return response.data.concat(devIdoList)
+    return devIdoList.concat(response.data)
   } else {
     return response.data
   }
