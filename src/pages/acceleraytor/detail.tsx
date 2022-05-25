@@ -169,7 +169,7 @@ function TicketItem({
       {idoInfo?.isClosed && (
         <Icon
           size="smi"
-          className={ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'}
+          className={ticket.isWinning ? 'text-[#39D0D8]' : idoInfo.isClosed ? 'text-[#ABC4FF]' : 'hidden'}
           heroIconName={ticket.isWinning ? 'check-circle' : 'x-circle'}
         />
       )}
