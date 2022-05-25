@@ -1,13 +1,39 @@
+import txCreateNewFarm from '@/application/createFarm/txCreateNewFarm'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { routeTo } from '@/application/routeTools'
+import useToken from '@/application/token/useToken'
 import Button from '@/components/Button'
-import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
+import assert from '@/functions/assert'
+import tryCatch from '@/functions/tryCatch'
 import { PoolSummary } from '@/pageComponents/createFarm/PoolSummary'
 import { RewardSummery } from '@/pageComponents/createFarm/RewardSummary'
+import { useMemo } from 'react'
 
 export default function CreateFarmReviewPage() {
+  const getToken = useToken((s) => s.getToken)
+  const { poolId, rewards } = useCreateFarms()
+
+  const canCreateFarm = useMemo(
+    () =>
+      tryCatch(
+        () => {
+          assert(poolId, 'poolId is not defined')
+          rewards.forEach((reward) => {
+            assert(reward.amount, 'reward amount is not defined')
+            assert(reward.tokenMint, 'reward token mint is not defined')
+            assert(getToken(reward.tokenMint), "can't find selected reward token")
+            assert(reward.startTime, 'reward start time is not defined')
+            assert(reward.endTime, 'reward end time is not defined')
+          })
+          return true
+        },
+        () => false
+      ),
+    [poolId, rewards, getToken]
+  )
+
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(640px,90vw)]">
@@ -33,7 +59,14 @@ export default function CreateFarmReviewPage() {
         </div>
 
         <Row className="gap-5 justify-center">
-          <Button className="frosted-glass-teal" size="lg">
+          <Button
+            className="frosted-glass-teal"
+            size="lg"
+            disabled={!canCreateFarm}
+            onClick={() => {
+              txCreateNewFarm()
+            }}
+          >
             Create Farm
           </Button>
           <Button

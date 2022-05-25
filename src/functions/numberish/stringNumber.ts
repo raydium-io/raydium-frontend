@@ -83,8 +83,8 @@ export function trimTailingZero(s: string) {
  * @example
  * padZero('30', 3) //=> '30000'
  */
-function padZero(str: string, count: number) {
-  return str + Array(count).fill('0').join('')
+export function padZero(str: string | number, count: number) {
+  return String(str) + Array(count).fill('0').join('')
 }
 
 export function toFixed(n: Numberable, fractionLength: number): string {

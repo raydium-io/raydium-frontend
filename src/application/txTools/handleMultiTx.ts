@@ -139,6 +139,7 @@ export type TransactionCollector = {
   add(transactions: Transaction, options?: TxAddOptions): void
 }
 
+// TODO: should also export addTxSuccessListener() and addTxErrorListener() and addTxFinallyListener()
 type FinalInfos = {
   allSuccess: boolean
   txids: string[]

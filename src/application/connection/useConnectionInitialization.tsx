@@ -28,8 +28,8 @@ const devRpcConfig: Omit<Config, 'success'> = {
     // { url: 'https://solana-api.projectserum.com', weight: 100 }
     // { name: 'tt', url: 'https://solana-api.tt-prod.net' },
     { name: 'beta-mainnet', url: 'https://api.mainnet-beta.solana.com/' },
-    { name: 'api.mainnet', url: 'https://api.mainnet.rpcpool.com/' },
-    { name: 'solana-public', url: 'https://solana.public-rpc.com' }
+    { name: 'api.mainnet', url: 'https://api.mainnet.rpcpool.com/' }
+    // { name: 'solana-public', url: 'https://solana.public-rpc.com' }
   ],
   strategy: 'speed'
 }

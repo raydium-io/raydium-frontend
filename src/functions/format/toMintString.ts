@@ -20,6 +20,7 @@ export default function toPubString(mint: PublicKeyish | undefined): string {
   }
 }
 
+// TODO: use mintCache
 export function toPub(mint: PublicKeyish): PublicKey
 export function toPub(mint: undefined): undefined
 export function toPub(mint: PublicKeyish | undefined): PublicKey | undefined

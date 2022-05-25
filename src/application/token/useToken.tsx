@@ -35,10 +35,13 @@ export type TokenStore = {
   // has QuantumSOL
   lpTokens: Record<HexAddress, LpToken>
 
-  // has QuantumSOL
-  // support both spl and lp
-  /** exact mode: 'so111111112' will be QSOL-WSOL */
-  /** can only get token in tokenList */
+  /**
+   * has QuantumSOL\
+   * can only get token in tokenList \
+   * TODO:should also get user Added Token \
+   * exact mode: 'so111111112' will be QSOL-WSOL\
+   * support both spl and lp
+   */
   getToken(
     mint: PublicKeyish | undefined,
     options?: { /* use WSOL instead of isQuantumSOLVersionWSOL */ exact?: boolean }
