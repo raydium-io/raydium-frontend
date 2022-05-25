@@ -210,6 +210,7 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
                 className="w-[180px] mobile:w-full"
                 labelClassName="text-sm font-bold"
                 value={toPercentNumber(info.filled)}
+                labelFormat={(v) => `Filled: ${toPercentString(v, { fixed: 0 })}`}
               />
             </Row>
           )}

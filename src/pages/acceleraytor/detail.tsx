@@ -911,6 +911,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
     </Row>
   )
 
+  const notJoined = !idoInfo.ledger?.quoteDeposited || eq(idoInfo.ledger.quoteDeposited, 0)
   return (
     <CyberpunkStyleCard
       className="flex flex-col mobile:rounded-2xl p-6 mobile:px-4 space-y-5"
@@ -948,7 +949,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
         )}
       </FadeIn>
 
-      <div className="space-y-3">
+      <div className={`space-y-3 ${notJoined ? '' : 'not-clickable'}`}>
         <CoinInputBox
           className="px-4"
           topLeftLabel="Tickets"
@@ -992,7 +993,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
             fallbackProps: { children: 'Upcoming Pool' }
           },
           {
-            should: !idoInfo.ledger?.quoteDeposited || eq(idoInfo.ledger.quoteDeposited, 0),
+            should: notJoined,
             fallbackProps: { children: 'Joined' }
           },
           {
