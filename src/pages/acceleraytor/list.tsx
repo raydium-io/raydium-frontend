@@ -283,7 +283,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
       <Col className="items-center mobile:grow">
         <Button
           size={isMobile ? 'xs' : 'md'}
-          className="frosted-glass-teal mobile:self-stretch min-w-[160px] mobile:min-w-[50%]"
+          className="frosted-glass-teal mobile:self-stretch w-[160px] mobile:w-[100%] whitespace-normal"
           validators={[
             {
               should: connected,
@@ -334,7 +334,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
       <Col className="items-center mobile:grow">
         <Button
           size={isMobile ? 'xs' : 'md'}
-          className="frosted-glass-teal mobile:self-stretch"
+          className="frosted-glass-teal mobile:self-stretch w-[160px] mobile:w-[100%] whitespace-normal"
           validators={[
             { should: connected },
             { should: eq(info.ledger?.quoteWithdrawn, 0) },
