@@ -26,10 +26,7 @@ const devRpcConfig: Omit<Config, 'success'> = {
     // { name: 'rpcpool', url: 'https://raydium.rpcpool.com', weight: 100 }
     // { url: 'https://arbirgis.rpcpool.com/', weight: 100 },
     // { url: 'https://solana-api.projectserum.com', weight: 100 }
-    // { name: 'tt', url: 'https://solana-api.tt-prod.net' },
-    { name: 'serum', url: 'https://solana-api.projectserum.com' },
     { name: 'beta-mainnet', url: 'https://api.mainnet-beta.solana.com/' }
-    // { name: 'api.mainnet', url: 'https://api.mainnet.rpcpool.com/', weight: 100 }
   ],
   strategy: 'speed'
 }
