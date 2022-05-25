@@ -298,9 +298,9 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
                   <div>
                     Withdraw {info.base?.symbol ?? 'UNKNOWN'} in{' '}
                     <IdoCountDownClock
-                      className="ml-1"
+                      className="justify-center"
                       singleValueMode
-                      labelClassName="text-base inline-block mx-auto"
+                      labelClassName="text-base"
                       endTime={Number(info.startWithdrawTime)}
                       onEnd={forceUpdate}
                     />
