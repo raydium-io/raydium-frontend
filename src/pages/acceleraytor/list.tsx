@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useRef, useState } from 'react'
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedIdoInfo } from '@/application/ido/type'
@@ -274,11 +274,17 @@ function FaceButtonGroupJoin({ info }: { info: HydratedIdoInfo }) {
 function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
+  const owner = useWallet((s) => s.owner)
   const refreshIdo = useIdo((s) => s.refreshIdo)
   const [, forceUpdate] = useForceUpdate()
 
   const [isBaseClaimed, setIsBaseClaimed] = useState(false)
   const [isQuoteClaimed, setIsQuoteClaimed] = useState(false)
+
+  useEffect(() => {
+    setIsBaseClaimed(false)
+    setIsQuoteClaimed(false)
+  }, [owner])
 
   return (
     <>
@@ -287,6 +293,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
           size={isMobile ? 'xs' : 'md'}
           className="frosted-glass-teal mobile:self-stretch w-[160px] mobile:w-[100%] whitespace-normal"
           validators={[
+            { should: !isBaseClaimed },
             {
               should: connected,
               fallbackProps: {
@@ -339,6 +346,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
           size={isMobile ? 'xs' : 'md'}
           className="frosted-glass-teal mobile:self-stretch w-[160px] mobile:w-[100%] whitespace-normal"
           validators={[
+            { should: !isQuoteClaimed },
             { should: connected },
             { should: eq(info.ledger?.quoteWithdrawn, 0) },
             { should: info.isClosed },

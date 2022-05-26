@@ -179,11 +179,21 @@ function TicketItem({
 
 function WinningTicketPanel({ className }: { className?: string }) {
   const connected = useWallet((s) => s.connected)
+  const owner = useWallet((s) => s.owner)
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const isMobile = useAppSettings((s) => s.isMobile)
   const refreshIdo = useIdo((s) => s.refreshIdo)
 
   const [, forceUpdate] = useForceUpdate()
+
+  const [isBaseClaimed, setIsBaseClaimed] = useState(false)
+  const [isQuoteClaimed, setIsQuoteClaimed] = useState(false)
+
+  useEffect(() => {
+    setIsBaseClaimed(false)
+    setIsQuoteClaimed(false)
+  }, [owner])
+
   return (
     <FadeIn ignoreEnterTransition /* no need. inside has FadeIn already */>
       {idoInfo?.canWithdrawBase || idoInfo?.isClosed || idoInfo?.depositedTickets?.length ? (
@@ -236,6 +246,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                       size={isMobile ? 'sm' : 'md'}
                       className="frosted-glass-teal mobile:w-full"
                       validators={[
+                        { should: !isBaseClaimed },
                         {
                           should: connected,
                           fallbackProps: {
@@ -271,7 +282,9 @@ function WinningTicketPanel({ className }: { className?: string }) {
                         })
                       }}
                     >
-                      Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'}
+                      {isBaseClaimed
+                        ? `${idoInfo.base?.symbol ?? 'UNKNOWN'} Claimed`
+                        : `Withdraw ${idoInfo.base?.symbol ?? 'UNKNOWN'}`}
                     </Button>
                     <FadeIn>
                       {gt(idoInfo.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) && (
@@ -287,6 +300,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                       size={isMobile ? 'sm' : 'md'}
                       className="frosted-glass-teal mobile:w-full"
                       validators={[
+                        { should: !isQuoteClaimed },
                         { should: connected },
                         { should: eq(idoInfo.ledger.quoteWithdrawn, 0) },
                         { should: idoInfo.isClosed },
@@ -308,7 +322,9 @@ function WinningTicketPanel({ className }: { className?: string }) {
                         })
                       }}
                     >
-                      Withdraw {idoInfo.quote?.symbol ?? 'UNKNOWN'}
+                      {isQuoteClaimed
+                        ? `${idoInfo.quote?.symbol ?? 'UNKNOWN'} Claimed`
+                        : `Withdraw ${idoInfo.quote?.symbol ?? 'UNKNOWN'}`}
                     </Button>
                     <FadeIn>
                       {eq(idoInfo.ledger.quoteWithdrawn, 0) && (
