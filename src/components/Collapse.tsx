@@ -70,9 +70,6 @@ export default function Collapse({
     }),
     [on, off]
   )
-  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
-    delay: 300 + 20 /* transition time */
-  })
 
   return (
     <div ref={collapseRef} className={`Collapse flex flex-col ${className}`} style={style}>
@@ -88,6 +85,7 @@ export default function Collapse({
       />
       <Transition
         show={innerOpen}
+        appear
         enter="transition-all duration-300 ease-in-out"
         enterFrom="opacity-0"
         enterTo="opacity-100"
@@ -110,17 +108,11 @@ export default function Collapse({
             collapseBodyRef.current?.clientHeight
             collapseBodyRef.current?.style.setProperty('height', height + 'px')
             collapseBodyRef.current?.style.removeProperty('visibility')
-
-            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
-            transactionFlagDelayOff()
-
-            // clean unnecessary style
-            setTimeout(() => {
-              if (isDuringTransition.current) return
-              collapseBodyRef.current?.style.removeProperty('height')
-              collapseBodyRef.current?.style.setProperty('user-select', 'auto')
-            }, 300 + 20 /* transition time */)
           })
+        }}
+        afterEnter={() => {
+          collapseBodyRef.current?.style.removeProperty('height')
+          collapseBodyRef.current?.style.setProperty('user-select', 'auto')
         }}
         beforeLeave={() => {
           setTimeout(() => {
@@ -135,9 +127,6 @@ export default function Collapse({
             // force <CollapseBody> to have content height. which is the aim of transition
             collapseBodyRef.current?.style.setProperty('height', '0px')
             collapseBodyRef.current?.style.setProperty('user-select', 'none')
-
-            transactionFlagOn()
-            transactionFlagDelayOff()
           })
         }}
       >
