@@ -12,6 +12,12 @@ import { useSwap } from './swap/useSwap'
 import { SplToken } from './token/type'
 import useFarms from './farms/useFarms'
 import useIdo from './ido/useIdo'
+import useCreateFarms from './createFarm/useCreateFarm'
+import { HydratedFarmInfo } from './farms/type'
+import parseDuration from '@/functions/date/parseDuration'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { parsedApiFarmInfoToUIRewardsInfo } from './createFarm/parsedApiFarmInfoToUIRewardsInfo'
 
 export type PageRouteConfigs = {
   '/swap': {
@@ -56,6 +62,11 @@ export type PageRouteConfigs = {
   }
   '/farms/createReview': {
     queryProps?: any
+  }
+  '/farms/edit': {
+    queryProps: {
+      farmInfo: HydratedFarmInfo
+    }
   }
 }
 
@@ -124,15 +135,21 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
           currentIdoId: options?.queryProps?.idoId
         })
       })
+  } else if (toPage === '/farms/edit') {
+    const farmInfo = (options!.queryProps as PageRouteConfigs['/farms/edit']['queryProps']).farmInfo
+    router
+      .push({
+        pathname: '/farms/edit',
+        query: {
+          farmId: farmInfo?.id.toBase58()
+        }
+      })
+      .then(() => {
+        const { isCreator, poolId, uiRewardsInfos } = parsedApiFarmInfoToUIRewardsInfo(farmInfo)
+        useCreateFarms.setState({ poolId, rewards: uiRewardsInfos, cannotAddNewReward: !isCreator })
+      })
   } else {
     router.push({ pathname: toPage, query: options?.queryProps })
   }
   return
-}
-
-/** TODO */
-export function replaceURL(coin1Mint?: string, coin2Mint?: string, ammId?: string): void {
-  const { inCleanUrlMode } = useAppSettings.getState()
-  // if (inCleanUrlMode) {
-  // }
 }

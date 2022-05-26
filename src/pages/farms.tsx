@@ -254,7 +254,7 @@ function FarmCard() {
     () =>
       hydratedInfos
         // TEMP current not includes stable coin's farm
-        .filter((i) => lpTokens[i.jsonInfo.lpMint])
+        .filter((i) => lpTokens[toPubString(i.lpMint)])
         // .filter((info) => info.isDualFusionPool) // TEMP for test
         .filter(
           (i) =>
@@ -726,210 +726,226 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
     [hydratedInfo]
   )
   return (
-    <AutoBox
-      is={isMobile ? 'Col' : 'Row'}
-      className={`mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg`}
+    <div
+      className="rounded-b-3xl mobile:rounded-b-lg overflow-hidden"
       style={{
         background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.12), rgb(171 196 255 / 4%) 100%)'
       }}
     >
-      <AutoBox is={isMobile ? 'Col' : 'Row'} className="gap-8 mobile:gap-3 flex-grow px-8 py-5 mobile:px-4 mobile:py-3">
-        <Row className="p-6 mobile:py-3 mobile:px-4 flex-grow ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl items-center gap-3">
-          <div className="flex-grow">
-            <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Deposited</div>
-            <div className="text-white font-medium text-base mobile:text-xs">
-              {lpPrices[String(hydratedInfo.lpMint)] && hydratedInfo.userStakedLpAmount
-                ? toUsdVolume(toTotalPrice(hydratedInfo.userStakedLpAmount, lpPrices[String(hydratedInfo.lpMint)]))
-                : '--'}
-            </div>
-            {hydratedInfo.userStakedLpAmount && (
-              <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
-                {formatNumber(toString(hydratedInfo.userStakedLpAmount), {
-                  fractionLength: hydratedInfo.userStakedLpAmount?.token.decimals
-                })}{' '}
-                LP
+      <AutoBox is={isMobile ? 'Col' : 'Row'} className={`mobile:gap-3`}>
+        <AutoBox
+          is={isMobile ? 'Col' : 'Row'}
+          className="gap-8 mobile:gap-3 flex-grow px-8 py-5 mobile:px-4 mobile:py-3"
+        >
+          <Row className="p-6 mobile:py-3 mobile:px-4 flex-grow ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl items-center gap-3">
+            <div className="flex-grow">
+              <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Deposited</div>
+              <div className="text-white font-medium text-base mobile:text-xs">
+                {lpPrices[String(hydratedInfo.lpMint)] && hydratedInfo.userStakedLpAmount
+                  ? toUsdVolume(toTotalPrice(hydratedInfo.userStakedLpAmount, lpPrices[String(hydratedInfo.lpMint)]))
+                  : '--'}
               </div>
-            )}
-          </div>
-          <Row className="gap-3">
-            {hydratedInfo.userHasStaked ? (
-              <>
-                <Button
-                  className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
-                  disabled={(hydratedInfo.isClosedPool && !hydratedInfo.isUpcomingPool) || !hasLp}
-                  onClick={() => {
-                    if (connected) {
-                      useFarms.setState({
-                        isStakeDialogOpen: true,
-                        stakeDialogMode: 'deposit',
-                        stakeDialogInfo: hydratedInfo
-                      })
-                    } else {
-                      useAppSettings.setState({ isWalletSelectorShown: true })
-                    }
-                  }}
-                >
-                  Stake
-                </Button>
-                <Tooltip>
-                  <Icon
-                    size={isMobile ? 'sm' : 'smi'}
-                    heroIconName="minus"
-                    className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+              {hydratedInfo.userStakedLpAmount && (
+                <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
+                  {formatNumber(toString(hydratedInfo.userStakedLpAmount), {
+                    fractionLength: hydratedInfo.userStakedLpAmount?.token.decimals
+                  })}{' '}
+                  LP
+                </div>
+              )}
+            </div>
+            <Row className="gap-3">
+              {hydratedInfo.userHasStaked ? (
+                <>
+                  <Button
+                    className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+                    disabled={(hydratedInfo.isClosedPool && !hydratedInfo.isUpcomingPool) || !hasLp}
                     onClick={() => {
                       if (connected) {
                         useFarms.setState({
                           isStakeDialogOpen: true,
-                          stakeDialogMode: 'withdraw',
+                          stakeDialogMode: 'deposit',
                           stakeDialogInfo: hydratedInfo
                         })
                       } else {
                         useAppSettings.setState({ isWalletSelectorShown: true })
                       }
                     }}
-                  />
-                  <Tooltip.Panel>Unstake LP</Tooltip.Panel>
-                </Tooltip>
-              </>
-            ) : (
-              <Button
-                className="frosted-glass-teal mobile:py-2 mobile:text-xs"
-                validators={[
-                  {
-                    should: connected,
-                    forceActive: true,
-                    fallbackProps: {
-                      children: 'Connect Wallet',
-                      onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
-                    }
-                  },
-                  { should: hasLp }
-                ]}
-                onClick={() => {
-                  useFarms.setState({
-                    isStakeDialogOpen: true,
-                    stakeDialogMode: 'deposit',
-                    stakeDialogInfo: hydratedInfo
-                  })
-                }}
-              >
-                Start Farming
-              </Button>
-            )}
-          </Row>
-        </Row>
-
-        <AutoBox
-          is={isMobile ? 'Col' : 'Row'}
-          className="p-6 mobile:py-3 mobile:px-4 flex-grow ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl items-center gap-3"
-        >
-          <Row className="flex-grow divide-x-1.5 w-full">
-            {hydratedInfo.rewards?.map(
-              (reward, idx) =>
-                reward.canBeRewarded && (
-                  <div
-                    key={idx}
-                    className={`px-4 ${idx === 0 ? 'pl-0' : ''} ${
-                      idx === hydratedInfo.rewards.length - 1 ? 'pr-0' : ''
-                    } border-[rgba(171,196,255,.5)]`}
                   >
-                    <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
-                      Pending rewards
-                    </div>
-                    <div className={`text-white font-medium text-base mobile:text-xs`}>
-                      {reward.pendingReward ? toString(reward.pendingReward) : 0} {reward.token?.symbol}
-                    </div>
-                    <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-                      {prices?.[String(reward.token?.mint)] && reward?.pendingReward
-                        ? toUsdVolume(toTotalPrice(reward.pendingReward, prices[String(reward.token?.mint)]))
-                        : null}
-                    </div>
-                  </div>
-                )
-            )}
+                    Stake
+                  </Button>
+                  <Tooltip>
+                    <Icon
+                      size={isMobile ? 'sm' : 'smi'}
+                      heroIconName="minus"
+                      className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                      onClick={() => {
+                        if (connected) {
+                          useFarms.setState({
+                            isStakeDialogOpen: true,
+                            stakeDialogMode: 'withdraw',
+                            stakeDialogInfo: hydratedInfo
+                          })
+                        } else {
+                          useAppSettings.setState({ isWalletSelectorShown: true })
+                        }
+                      }}
+                    />
+                    <Tooltip.Panel>Unstake LP</Tooltip.Panel>
+                  </Tooltip>
+                </>
+              ) : (
+                <Button
+                  className="frosted-glass-teal mobile:py-2 mobile:text-xs"
+                  validators={[
+                    {
+                      should: connected,
+                      forceActive: true,
+                      fallbackProps: {
+                        children: 'Connect Wallet',
+                        onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                      }
+                    },
+                    { should: hasLp }
+                  ]}
+                  onClick={() => {
+                    useFarms.setState({
+                      isStakeDialogOpen: true,
+                      stakeDialogMode: 'deposit',
+                      stakeDialogInfo: hydratedInfo
+                    })
+                  }}
+                >
+                  Start Farming
+                </Button>
+              )}
+            </Row>
           </Row>
-          <Button
-            // disable={Number(info.pendingReward?.numerator) <= 0}
-            className="frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"
-            onClick={() => {
-              txFarmHarvest(hydratedInfo, {
-                isStaking: false,
-                rewardAmounts: hydratedInfo.rewards
-                  .map(({ pendingReward }) => pendingReward)
-                  .filter(isMeaningfulNumber) as TokenAmount[]
-              })
-            }}
-            validators={[
-              {
-                should: connected,
-                forceActive: true,
-                fallbackProps: {
-                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                  children: 'Connect Wallet'
-                }
-              },
-              {
-                should: hasPendingReward
-              }
-            ]}
-          >
-            Harvest
-          </Button>
-        </AutoBox>
-      </AutoBox>
 
-      <Row
-        className={`px-8 py-2 gap-3 items-center self-center justify-center ${
-          isMobile ? lightBoardClass : ''
-        } mobile:w-full`}
-      >
-        {isMobile ? (
-          <Row className="gap-5">
-            <Icon
-              size="sm"
-              heroIconName="plus"
-              className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+          <AutoBox
+            is={isMobile ? 'Col' : 'Row'}
+            className="p-6 mobile:py-3 mobile:px-4 flex-grow ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl items-center gap-3"
+          >
+            <Row className="flex-grow divide-x-1.5 w-full">
+              {hydratedInfo.rewards?.map(
+                (reward, idx) =>
+                  reward.canBeRewarded && (
+                    <div
+                      key={idx}
+                      className={`px-4 ${idx === 0 ? 'pl-0' : ''} ${
+                        idx === hydratedInfo.rewards.length - 1 ? 'pr-0' : ''
+                      } border-[rgba(171,196,255,.5)]`}
+                    >
+                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
+                        Pending rewards
+                      </div>
+                      <div className={`text-white font-medium text-base mobile:text-xs`}>
+                        {reward.pendingReward ? toString(reward.pendingReward) : 0} {reward.token?.symbol}
+                      </div>
+                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                        {prices?.[String(reward.token?.mint)] && reward?.pendingReward
+                          ? toUsdVolume(toTotalPrice(reward.pendingReward, prices[String(reward.token?.mint)]))
+                          : null}
+                      </div>
+                    </div>
+                  )
+              )}
+            </Row>
+            <Button
+              // disable={Number(info.pendingReward?.numerator) <= 0}
+              className="frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"
               onClick={() => {
-                routeTo('/liquidity/add', { queryProps: { ammId: hydratedInfo.ammId } })
+                txFarmHarvest(hydratedInfo, {
+                  isStaking: false,
+                  rewardAmounts: hydratedInfo.rewards
+                    .map(({ pendingReward }) => pendingReward)
+                    .filter(isMeaningfulNumber) as TokenAmount[]
+                })
               }}
-            />
-            <Icon
-              size="sm"
-              iconSrc="/icons/msic-swap-h.svg"
-              className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
-              onClick={() => {
-                routeTo('/swap', { queryProps: { coin1: hydratedInfo.base, coin2: hydratedInfo.quote } })
-              }}
-            />
-          </Row>
-        ) : (
-          <>
-            <Tooltip>
+              validators={[
+                {
+                  should: connected,
+                  forceActive: true,
+                  fallbackProps: {
+                    onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                    children: 'Connect Wallet'
+                  }
+                },
+                {
+                  should: hasPendingReward
+                }
+              ]}
+            >
+              Harvest
+            </Button>
+          </AutoBox>
+        </AutoBox>
+
+        <Row
+          className={`px-8 py-2 gap-3 items-center self-center justify-center ${
+            isMobile ? lightBoardClass : ''
+          } mobile:w-full`}
+        >
+          {isMobile ? (
+            <Row className="gap-5">
               <Icon
-                size="smi"
+                size="sm"
                 heroIconName="plus"
                 className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
                   routeTo('/liquidity/add', { queryProps: { ammId: hydratedInfo.ammId } })
                 }}
               />
-              <Tooltip.Panel>Add Liquidity</Tooltip.Panel>
-            </Tooltip>
-            <Tooltip>
               <Icon
-                size="smi"
+                size="sm"
                 iconSrc="/icons/msic-swap-h.svg"
                 className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
                   routeTo('/swap', { queryProps: { coin1: hydratedInfo.base, coin2: hydratedInfo.quote } })
                 }}
               />
-              <Tooltip.Panel>Swap</Tooltip.Panel>
-            </Tooltip>
-          </>
-        )}
+            </Row>
+          ) : (
+            <>
+              <Tooltip>
+                <Icon
+                  size="smi"
+                  heroIconName="plus"
+                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                  onClick={() => {
+                    routeTo('/liquidity/add', { queryProps: { ammId: hydratedInfo.ammId } })
+                  }}
+                />
+                <Tooltip.Panel>Add Liquidity</Tooltip.Panel>
+              </Tooltip>
+              <Tooltip>
+                <Icon
+                  size="smi"
+                  iconSrc="/icons/msic-swap-h.svg"
+                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                  onClick={() => {
+                    routeTo('/swap', { queryProps: { coin1: hydratedInfo.base, coin2: hydratedInfo.quote } })
+                  }}
+                />
+                <Tooltip.Panel>Swap</Tooltip.Panel>
+              </Tooltip>
+            </>
+          )}
+        </Row>
+      </AutoBox>
+
+      {/* farm edit button  */}
+      <Row className="bg-[#14104133] py-3 px-8 justify-end">
+        <Button
+          className="frosted-glass-teal"
+          onClick={() => {
+            routeTo('/farms/edit', { queryProps: { farmInfo: hydratedInfo } })
+          }}
+        >
+          Edit Farm
+        </Button>
       </Row>
-    </AutoBox>
+    </div>
   )
 }
 

@@ -4,7 +4,6 @@ import { twMerge } from 'tailwind-merge'
 
 import Card from '../../components/Card'
 import Dialog from '../../components/Dialog'
-import { RefObject, useImperativeHandle, useState } from 'react'
 import { RewardFormCardInputs } from './RewardFormCardInputs'
 
 export default function RewardInputDialog({
@@ -20,7 +19,7 @@ export default function RewardInputDialog({
     <Dialog open={Boolean(open)} onClose={onClose}>
       <Card
         className={twMerge(
-          `p-8 rounded-3xl w-[min(580px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card`
+          `p-8 rounded-3xl w-[min(670px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card`
         )}
         size="lg"
       >

@@ -29,6 +29,7 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { LiquidityStore } from '@/application/liquidity/useLiquidity'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { RAYMint } from '@/application/token/utils/wellknownToken.config'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { official: boolean })[] | undefined> {
   const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
@@ -75,8 +76,8 @@ export function hydrateFarmInfo(
   const isDualFusionPool = farmPoolType === 'dual fusion pool'
   const isNormalFusionPool = farmPoolType === 'normal fusion pool'
   const isClosedPool = farmPoolType === 'closed pool'
-  const isUpcomingPool = (farmInfo.jsonInfo.upcoming && isClosedPool) || farmPoolType === 'upcoming pool'
-  const isNewPool = farmInfo.jsonInfo.upcoming && !isClosedPool
+  const isUpcomingPool = (farmInfo.upcoming && isClosedPool) || farmPoolType === 'upcoming pool'
+  const isNewPool = farmInfo.upcoming && !isClosedPool
   const isStablePool = payload.liquidityJsonInfos?.find((i) => i.lpMint === toPubString(farmInfo.lpMint))?.version === 5
 
   const lpToken = isStakePool ? payload.getToken(farmInfo.lpMint) : payload.getLpToken(farmInfo.lpMint)

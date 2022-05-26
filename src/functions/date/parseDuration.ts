@@ -1,4 +1,9 @@
+import { Numberish } from '@/types/constants'
 import { shakeFalsyItem } from '../arrayMethods'
+import { isNumberish } from '../judgers/dateType'
+import { isNullish } from '../judgers/nil'
+import toBN from '../numberish/toBN'
+import { toString } from '../numberish/toString'
 import { TimeStamp } from './interface'
 
 export type ParsedDurationInfo = Record<'days' | 'hours' | 'minutes' | 'seconds' | 'milliseconds' | 'full', number>
@@ -45,8 +50,8 @@ export function parseDurationAbsolute(duration: number): ParsedDurationInfo {
   }
 }
 
-export function getDuration(timestampA: TimeStamp, timeStampB: TimeStamp) {
-  return new Date(timestampA).getTime() - new Date(timeStampB).getTime()
+export function getDuration(timestampA: TimeStamp, timestampB: TimeStamp): number {
+  return new Date(timestampA).getTime() - new Date(timestampB).getTime()
 }
 
 /**

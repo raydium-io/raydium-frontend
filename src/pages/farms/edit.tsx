@@ -37,7 +37,7 @@ export default function FarmEditPage() {
             onClick={() => {
               useCreateFarms.setState({
                 rewards: produce(rewards, (draft) => {
-                  draft.push({ isNewAdded: true })
+                  draft.push({ canEdit: true })
                 })
               })
             }}
