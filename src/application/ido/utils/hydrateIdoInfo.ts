@@ -7,6 +7,9 @@ import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, getMin, mul } from '@/functions/numberish/operations'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import { objectShakeFalsy } from '@/functions/objectMethods'
+import { toString } from '@/functions/numberish/toString'
+import { info } from 'console'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 function getDepositedTickets(idoInfo: SdkIdoInfo): TicketInfo[] {
   if (!idoInfo.ledger) return []
@@ -75,10 +78,10 @@ export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
     { ...idoInfo } as SdkIdoInfo,
     objectShakeFalsy({
       maxWinLotteries: idoInfo.state?.maxWinLotteries.toNumber(),
-      raisedLotteries: fromSToMs(idoInfo.state?.raisedLotteries.toNumber()),
       startTime: fromSToMs(idoInfo.state?.startTime.toNumber()),
       endTime: fromSToMs(idoInfo.state?.endTime.toNumber()),
-      startWithdrawTime: fromSToMs(idoInfo.state?.startWithdrawTime.toNumber())
+      startWithdrawTime: fromSToMs(idoInfo.state?.startWithdrawTime.toNumber()),
+      raise: idoInfo.state?.baseSupply.toNumber()
     } as Partial<SdkIdoInfo>)
   )
   const isUpcoming = currentIsBefore(updatedIdoInfo.startTime)
@@ -111,6 +114,12 @@ export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
     updatedIdoInfo.state &&
     depositedTicketCount &&
     mul(div(winningTickets?.length, getMin(updatedIdoInfo.state.maxWinLotteries, depositedTicketCount)), totalRaise)
+  // console.log('updatedIdoInfo.id, updatedIdoInfo.b: ', updatedIdoInfo.id, updatedIdoInfo.baseSymbol)
+  // if (updatedIdoInfo.id === '7zk92r3Hiy6JWHTc2FaqGGxyP3arhxpTyqairGiWa25M') {
+  //   console.log('totalRaise: ', toString(totalRaise))
+  //   console.log('idoInfo.state?.raisedLotteries: ', idoInfo.state?.raisedLotteries.toNumber())
+  //   console.log('idoInfo.state: ', toHumanReadable(idoInfo.state))
+  // }
 
   const claimableQuote =
     (isClosed &&

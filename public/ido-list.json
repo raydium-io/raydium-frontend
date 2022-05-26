@@ -22,7 +22,7 @@
     "projectPosters": "https://miro.medium.com/max/1400/0*7Sqwmm63VyBf3ZXD",
     "projectDetailLink": "https://raydium.medium.com/hawksight-is-launching-on-acceleraytor-88b5e8f9f2a8",
     "baseSymbol": "Test Base",
-    "baseDecimals": 0,
+    "baseDecimals": 9,
     "baseIcon": "",
     "quoteSymbol": "Test Quote",
     "quoteDecimals": 6,

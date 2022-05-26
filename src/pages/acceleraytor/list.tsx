@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useRef } from 'react'
+import React, { ReactNode, useMemo, useRef, useState } from 'react'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedIdoInfo } from '@/application/ido/type'
@@ -277,6 +277,9 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
   const refreshIdo = useIdo((s) => s.refreshIdo)
   const [, forceUpdate] = useForceUpdate()
 
+  const [isBaseClaimed, setIsBaseClaimed] = useState(false)
+  const [isQuoteClaimed, setIsQuoteClaimed] = useState(false)
+
   return (
     <>
       <Col className="items-center mobile:grow">
@@ -315,12 +318,13 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
               idoInfo: info,
               side: 'base',
               onTxSuccess: () => {
+                setIsBaseClaimed(true)
                 refreshIdo(info.id)
               }
             })
           }}
         >
-          Withdraw {info.base?.symbol ?? 'UNKNOWN'}
+          {isBaseClaimed ? `${info.base?.symbol ?? 'UNKNOWN'} Claimed` : `Withdraw ${info.base?.symbol ?? 'UNKNOWN'}`}
         </Button>
         <FadeIn>
           {gt(info.winningTickets?.length, 0) && eq(info.ledger?.baseWithdrawn, 0) && (
@@ -352,12 +356,15 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
               idoInfo: info,
               side: 'quote',
               onTxSuccess: () => {
+                setIsQuoteClaimed(true)
                 refreshIdo(info.id)
               }
             })
           }}
         >
-          Withdraw {info.quote?.symbol ?? 'UNKNOWN'}
+          {isQuoteClaimed
+            ? `${info.quote?.symbol ?? 'UNKNOWN'} Claimed`
+            : `Withdraw ${info.quote?.symbol ?? 'UNKNOWN'}`}
         </Button>
         <FadeIn>
           {eq(info.ledger?.quoteWithdrawn, 0) && (

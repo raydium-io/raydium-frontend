@@ -88,8 +88,8 @@ export default async function txIdoClaim(
         })
       )
       transactionCollector.add(await piecesCollection.spawnTransaction(), {
+        ...restTxAddOptions,
         txHistoryInfo: {
-          ...restTxAddOptions,
           title: 'AccelerRaytor Claim',
           description:
             side === 'base'
