@@ -51,9 +51,30 @@ import { DRAWER_STACK_ID } from '@/components/Drawer'
 
 import { PublicKey } from '@solana/web3.js'
 import toPubString from '@/functions/format/toMintString'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { inClient } from '@/functions/judgers/isSSR'
+import { createDOMElement } from '@/functions/dom/createDOMElement'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
+
+  /* add popup stack */
+  useIsomorphicLayoutEffect(() => {
+    if (inClient) {
+      const popoverStackElement = createDOMElement({
+        classNames: ['fixed', 'z-popover', 'inset-0', 'self-pointer-events-none'],
+        id: POPOVER_STACK_ID
+      })
+      const drawerStackElement = createDOMElement({
+        classNames: ['fixed', 'z-drawer', 'inset-0', 'self-pointer-events-none'],
+        id: DRAWER_STACK_ID
+      })
+
+      document.body.append(popoverStackElement)
+      document.body.append(drawerStackElement)
+    }
+  }, [])
+
   return (
     <SolanaWalletProviders>
       {/* initializations hooks */}
@@ -65,10 +86,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
         {/* Page Components */}
         <Component {...pageProps} />
-
-        {/* popup stack */}
-        <div id={POPOVER_STACK_ID} className="fixed z-popover inset-0 self-pointer-events-none"></div>
-        <div id={DRAWER_STACK_ID} className="fixed z-popover inset-0 self-pointer-events-none"></div>
 
         {/* Global Components */}
         <RecentTransactionDialog />

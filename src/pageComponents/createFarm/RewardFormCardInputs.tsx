@@ -134,7 +134,7 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
           inputProps={{
             inputClassName: 'text-sm font-medium text-white'
           }}
-          disabled
+          // disabled
           value={reward.startTime}
           disableDateBeforeCurrent
           isValidDate={(date) => {
@@ -189,7 +189,6 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
               rewards: produce(rewards, (draft) => {
                 if (!draft[rewardIndex]) return
 
-                const haveEndTime = Boolean(reward.endTime)
                 const haveStartTime = Boolean(reward.startTime)
 
                 // set end time
@@ -201,7 +200,7 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
                 }
 
                 // set duration days
-                if (haveEndTime) {
+                if (haveStartTime) {
                   const durationDays = parseDurationAbsolute(
                     selectedDate.getTime() - draft[rewardIndex].startTime!.getTime()
                   ).days
