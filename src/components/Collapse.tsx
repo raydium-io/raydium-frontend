@@ -88,6 +88,7 @@ export default function Collapse({
       />
       <Transition
         show={innerOpen}
+        appear
         enter="transition-all duration-300 ease-in-out"
         enterFrom="opacity-0"
         enterTo="opacity-100"
