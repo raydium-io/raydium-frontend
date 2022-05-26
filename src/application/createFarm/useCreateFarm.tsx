@@ -10,14 +10,16 @@ export type RewardInfo = {
   startTime?: Date
   endTime?: Date
   apr?: Percent // for farm edit
-  canEdit: boolean | 'only-x' | 'only'
+  canEdit: boolean
+  isRewarding?: boolean // exist working farm
+  version?: 'v3/v5' | 'v6' // if not satisfied, that's v6
 }
 
 // actually it also use to edit farm
 export type CreateFarmStore = {
   poolId?: string
   rewards: RewardInfo[]
-  cannotAddNewReward?: boolean // only create can add token info entry
+  cannotAddNewReward?: boolean // only creater can add token info entry
 }
 
 const useCreateFarms = create<CreateFarmStore>((set) => ({

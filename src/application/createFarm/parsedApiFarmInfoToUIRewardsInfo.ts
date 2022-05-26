@@ -32,7 +32,9 @@ export function parsedApiFarmInfoToUIRewardsInfo(farmInfo: HydratedFarmInfo) {
       endTime: reward.endTime ? new Date(reward.endTime * 1000) : undefined,
       startTime: reward.openTime ? new Date(reward.openTime * 1000) : undefined,
       apr: reward.apr,
-      canEdit: isRewardEditable
+      canEdit: isRewardEditable,
+      isRewarding: (!rewardHasEndTime && !rewardHasOpenTime) /* v3/v5 */ || (rewardIsOpen && !rewardIsEnd) /* v6 */,
+      version: !rewardHasEndTime && !rewardHasOpenTime ? 'v3/v5' : 'v6'
     }
   })
   const isCreator = isMintEqual(farmInfo.creator, currentWalletOwner)

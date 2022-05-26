@@ -6,7 +6,7 @@ import Card from '../../components/Card'
 import Dialog from '../../components/Dialog'
 import { RewardFormCardInputs } from './RewardFormCardInputs'
 
-export default function RewardInputDialog({
+export default function RewardEditInputDialog({
   open,
   onClose,
   rewardIndex

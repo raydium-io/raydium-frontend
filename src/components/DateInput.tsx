@@ -37,10 +37,12 @@ export default function DateInput({
   inputProps,
   disableDateBeforeCurrent,
   isValidDate,
-  onDateChange
+  onDateChange,
+  ...otherProps
 }: DateInputProps) {
   return (
     <InputBox
+      {...otherProps}
       className={className}
       label={label}
       labelClassName={labelClassName}

@@ -261,6 +261,7 @@ function SwapCard() {
         <CoinInputBox
           domRef={swapElementBox1}
           disabled={isApprovePanelShown}
+          noDisableStyle
           disabledInput={directionReversed}
           componentRef={coinInputBox1ComponentRef}
           haveHalfButton
@@ -324,6 +325,7 @@ function SwapCard() {
         <CoinInputBox
           domRef={swapElementBox2}
           disabled={isApprovePanelShown}
+          noDisableStyle
           disabledInput={!directionReversed}
           componentRef={coinInputBox2ComponentRef}
           haveHalfButton

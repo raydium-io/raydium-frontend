@@ -58,18 +58,20 @@ export function RewardSummery({
         }
       ]}
       // className="backdrop-brightness-"
-      rowClassName={({ index }) =>
-        mode === 'selectable'
-          ? `${activeIndex === index ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
-          : ''
-      }
+      rowClassName={({ index, itemData: reward }) => {
+        if (!reward.canEdit) return `not-clickable`
+        if (mode === 'selectable') {
+          return `${activeIndex === index ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
+        }
+        return ''
+      }}
       onClickRow={({ index }) => {
         onActiveIndexChange?.(index)
       }}
-      renderItem={({ item, label, key }) => {
-        const rewardToken = getToken(item.tokenMint)
+      renderItem={({ item: reward, label, key }) => {
+        const rewardToken = getToken(reward.tokenMint)
         if (label === 'Asset') {
-          return item.tokenMint ? (
+          return reward.tokenMint ? (
             <Row className="gap-1 items-center">
               <CoinAvatar token={rewardToken} size="sm" />
               <div>{rewardToken?.symbol ?? 'UNKNOWN'}</div>
@@ -80,32 +82,38 @@ export function RewardSummery({
         }
 
         if (label === 'Amount') {
-          return item.amount ? (
-            <div className="break-all">{formatNumber(item.amount, { fractionLength: rewardToken?.decimals ?? 6 })}</div>
+          if (reward.isRewarding && reward.version === 'v3/v5') return '--'
+          return reward.amount ? (
+            <div className="break-all">
+              {formatNumber(reward.amount, { fractionLength: rewardToken?.decimals ?? 6 })}
+            </div>
           ) : undefined
         }
 
         if (label === 'Day and Hours') {
-          if (!item.startTime || !item.endTime) return
-          const duration = parseDuration(getDuration(item.endTime, item.startTime))
+          if (reward.isRewarding && reward.version === 'v3/v5') return '--'
+          if (!reward.startTime || !reward.endTime) return
+          const duration = parseDuration(getDuration(reward.endTime, reward.startTime))
           return duration.hours ? `${duration.days}D ${duration.hours} H` : `${duration.days}D`
         }
 
         if (label === 'Period (yy-mm-dd)') {
-          if (!item.startTime || !item.endTime) return
+          if (reward.isRewarding && reward.version === 'v3/v5') return '--'
+          if (!reward.startTime || !reward.endTime) return
           return (
             <div>
-              <div>{toUTC(item.startTime)}</div>
-              <div>{toUTC(item.endTime)}</div>
+              <div>{toUTC(reward.startTime)}</div>
+              <div>{toUTC(reward.endTime)}</div>
             </div>
           )
         }
 
         if (label === 'Est. daily rewards') {
+          if (reward.isRewarding && reward.version === 'v3/v5') return '--'
           const durationTime =
-            item.endTime && item.startTime ? item.endTime.getTime() - item.startTime.getTime() : undefined
+            reward.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
           const estimatedValue =
-            item.amount && durationTime ? div(item.amount, parseDurationAbsolute(durationTime).days) : undefined
+            reward.amount && durationTime ? div(reward.amount, parseDurationAbsolute(durationTime).days) : undefined
           if (!estimatedValue) return
           return (
             <div className="text-xs">
@@ -114,47 +122,54 @@ export function RewardSummery({
           )
         }
       }}
-      renderRowControls={
-        mode === 'selectable'
-          ? ({ destorySelf, index: idx }) => (
-              <Row className="gap-2">
-                <Icon
-                  size="smi"
-                  heroIconName="pencil"
-                  className="clickable clickable-opacity-effect text-[#abc4ff]"
-                  onClick={() => {
-                    onActiveIndexChange?.(idx)
-                  }}
-                />
-                <Icon
-                  size="smi"
-                  heroIconName="trash"
-                  className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
-                  onClick={() => rewards.length > 1 && destorySelf()}
-                />
-              </Row>
-            )
-          : mode === 'edit'
-          ? ({ destorySelf, index: idx, itemData }) => (
-              <Row className="gap-2">
-                <Icon
-                  size="smi"
-                  heroIconName="plus-circle"
-                  className="clickable clickable-opacity-effect text-[#abc4ff]"
-                  onClick={() => {
-                    onClickIncreaseReward?.({ reward: itemData, rewardIndex: idx })
-                  }}
-                />
-                <Icon
-                  size="smi"
-                  heroIconName="trash"
-                  className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
-                  onClick={() => rewards.length > 1 && destorySelf()}
-                />
-              </Row>
-            )
-          : undefined
-      }
+      renderRowControls={({ destorySelf, index: idx, itemData: reward }) => {
+        if (!reward.canEdit) return null
+        if (mode === 'selectable') {
+          return (
+            <Row className="gap-2">
+              <Icon
+                size="smi"
+                heroIconName="pencil"
+                className="clickable clickable-opacity-effect text-[#abc4ff]"
+                onClick={() => {
+                  onActiveIndexChange?.(idx)
+                }}
+              />
+              <Icon
+                size="smi"
+                heroIconName="trash"
+                className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
+                onClick={() => rewards.length > 1 && destorySelf()}
+              />
+            </Row>
+          )
+        } else if (mode === 'edit') {
+          return (
+            <Row className="gap-2">
+              <Icon
+                size="smi"
+                heroIconName="plus-circle"
+                className="clickable clickable-opacity-effect text-[#abc4ff]"
+                onClick={() => {
+                  onClickIncreaseReward?.({ reward, rewardIndex: idx })
+                }}
+              />
+              <Icon
+                size="smi"
+                heroIconName="trash"
+                className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
+                onClick={() => {
+                  if (rewards.length > 1) {
+                    destorySelf()
+                    onDeleteReward?.({ reward, rewardIndex: idx })
+                  }
+                }}
+              />
+            </Row>
+          )
+        }
+        return null
+      }}
       onListChange={(list) => {
         useCreateFarms.setState({
           rewards: list

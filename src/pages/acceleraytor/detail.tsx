@@ -964,6 +964,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
           token={idoInfo.quote}
           value={toString(quoteTokenAmount)}
           disabled
+          noDisableStyle
           haveCoinIcon
         />
       </div>

@@ -302,6 +302,7 @@ function LiquidityCard() {
         <CoinInputBox
           className="mt-5"
           disabled={isApprovePanelShown}
+          noDisableStyle
           componentRef={coinInputBox1ComponentRef}
           value={focusSide === 'coin1' ? coin1Amount : unslippagedCoin1Amount}
           haveHalfButton
@@ -358,6 +359,7 @@ function LiquidityCard() {
         <CoinInputBox
           componentRef={coinInputBox2ComponentRef}
           disabled={isApprovePanelShown}
+          noDisableStyle
           value={focusSide === 'coin2' ? coin2Amount : unslippagedCoin2Amount}
           haveHalfButton
           haveCoinIcon

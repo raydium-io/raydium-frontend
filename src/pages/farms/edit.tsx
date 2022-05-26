@@ -4,15 +4,16 @@ import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { PoolSummary } from '@/pageComponents/createFarm/PoolSummary'
-import RewardInputDialog from '@/pageComponents/createFarm/RewardInputDialog'
+import RewardEditInputDialog from '@/pageComponents/createFarm/RewardInputDialog'
 import { RewardSummery } from '@/pageComponents/createFarm/RewardSummary'
 import produce from 'immer'
 import { useState } from 'react'
 
 export default function FarmEditPage() {
-  const rewards = useCreateFarms((s) => s.rewards)
+  const { rewards, cannotAddNewReward } = useCreateFarms()
   const [isRewardEditDialogOpen, setIsRewardEditDialogOpen] = useState(false)
   const [focusRewardIndex, setFocusRewardIndex] = useState<number>()
+  const canAddRewardInfo = !cannotAddNewReward && rewards.length < 5
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(640px,90vw)]">
@@ -33,8 +34,11 @@ export default function FarmEditPage() {
             }}
           />
           <Row
-            className="items-center my-2 text-sm clickable"
+            className={`items-center my-2 text-sm clickable ${
+              !canAddRewardInfo ? 'not-clickable-with-disallowed' : ''
+            }`}
             onClick={() => {
+              if (!canAddRewardInfo) return
               useCreateFarms.setState({
                 rewards: produce(rewards, (draft) => {
                   draft.push({ canEdit: true })
@@ -71,7 +75,7 @@ export default function FarmEditPage() {
           </div>
         </Card>
 
-        <RewardInputDialog
+        <RewardEditInputDialog
           open={isRewardEditDialogOpen}
           onClose={() => setIsRewardEditDialogOpen(false)}
           rewardIndex={focusRewardIndex}

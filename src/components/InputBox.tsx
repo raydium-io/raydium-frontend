@@ -11,7 +11,10 @@ import DecimalInput, { DecimalInputProps } from './DecimalInput'
 
 export type InputBoxProps = {
   className?: string
-  cannotInput?: boolean
+
+  // validator
+  disabled?: boolean
+  noDisableStyle?: boolean
 
   label?: string
   labelClassName?: string
@@ -27,7 +30,9 @@ export type InputBoxProps = {
 export default function InputBox({
   decimalMode,
   className,
-  cannotInput,
+
+  disabled,
+  noDisableStyle,
 
   label,
   labelClassName,
@@ -44,7 +49,12 @@ export default function InputBox({
   return (
     <Col
       onClick={focusInput}
-      className={twMerge(`bg-[#141041] rounded-xl py-3 px-6 ${cannotInput ? '' : 'cursor-text'}`, className)}
+      className={twMerge(
+        `bg-[#141041] rounded-xl py-3 px-6 cursor-text ${
+          disabled && !noDisableStyle ? 'pointer-events-none-entirely cursor-default opacity-50' : ''
+        }`,
+        className
+      )}
     >
       {label && (
         <div

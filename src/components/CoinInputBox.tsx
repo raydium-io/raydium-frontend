@@ -46,10 +46,13 @@ export interface CoinInputBoxProps {
   style?: CSSProperties
   // data
   value?: string
+  token?: Token
+
+  // validator
   disabled?: boolean
+  noDisableStyle?: boolean
   disabledTokenSelect?: boolean // if not prop:disabledTokenSelect but prop:disabled, result is disabled
   disabledInput?: boolean // if not prop:disabledInput but prop:disabled, result is disabled
-  token?: Token
 
   // -------- callbacks ----------
   //! include press max button
@@ -87,10 +90,12 @@ export default function CoinInputBox({
   componentRef,
   style,
 
-  value,
   disabled,
+  noDisableStyle,
   disabledInput: innerDisabledInput,
   disabledTokenSelect: innerDisabledTokenSelect,
+
+  value,
   token,
   onUserInput,
   onTryToTokenSelect,
@@ -209,7 +214,12 @@ export default function CoinInputBox({
 
   return (
     <Row
-      className={twMerge(`flex-col bg-[#141041] cursor-text rounded-xl py-3 px-6 mobile:px-4`, className)}
+      className={twMerge(
+        `flex-col bg-[#141041] cursor-text rounded-xl py-3 px-6 mobile:px-4 ${
+          disabled && !noDisableStyle ? 'pointer-events-none-entirely cursor-default opacity-50' : ''
+        }`,
+        className
+      )}
       style={style}
       domRef={domRef}
       htmlPorps={{

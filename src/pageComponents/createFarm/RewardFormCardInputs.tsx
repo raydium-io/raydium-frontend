@@ -33,9 +33,9 @@ function useStateWithSuperPreferential<T>(
 }
 
 const MAX_DURATION = 90 * 24 * 60 * 60 * 1000
+const MIN_DURATION = 7 * 24 * 60 * 60 * 1000
 const MAX_DURATION_TEXT = '90D'
 const MIN_DURATION_TEXT = '7D'
-const MIN_DURATION = 7 * 24 * 60 * 60 * 1000
 
 export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
   const rewards = useCreateFarms((s) => s.rewards)
@@ -54,7 +54,8 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
   return (
     <Grid className="gap-4">
       <CoinInputBoxWithTokenSelector
-        className="rounded-md"
+        disabled
+        className={`rounded-md`}
         haveHalfButton
         topLeftLabel="Assert"
         disableTokenMints={shakeUndifindedItem(rewards.map((r) => r.tokenMint))}
@@ -133,6 +134,7 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
           inputProps={{
             inputClassName: 'text-sm font-medium text-white'
           }}
+          disabled
           value={reward.startTime}
           disableDateBeforeCurrent
           isValidDate={(date) => {

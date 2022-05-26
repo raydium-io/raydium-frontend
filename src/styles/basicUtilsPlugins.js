@@ -103,13 +103,19 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
       '&:active': { opacity: 1 },
       '&:hover': { opacity: 1 }
     },
-    '.no-clicable-transform-effect': {
+    '.not-clickable-with-disallowed, .no-clicable-transform-effect': {
       '&:active': { transform: 'none' }
     },
     '.not-clickable': {
-      cursor: 'not-allowed',
       pointerEvents: 'none',
       opacity: '0.3',
+      '&:active': { all: 'none' },
+      '&:hover': { all: 'none' }
+    },
+    '.not-clickable-with-disallowed': {
+      cursor: 'not-allowed',
+      opacity: '0.3',
+      transform: 'none',
       '&:active': { all: 'none' },
       '&:hover': { all: 'none' }
     }
@@ -139,11 +145,17 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
   })
 
   // self-pointer-events-none
-  addBase({
+  addUtilities({
     '.self-pointer-events-none': {
       pointerEvents: 'none',
       '*': {
         pointerEvents: 'auto'
+      }
+    },
+    '.pointer-events-none-entirely': {
+      pointerEvents: 'none',
+      '*': {
+        pointerEvents: 'none'
       }
     }
   })
