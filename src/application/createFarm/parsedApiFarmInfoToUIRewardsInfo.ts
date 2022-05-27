@@ -29,12 +29,14 @@ export function parsedApiFarmInfoToUIRewardsInfo(farmInfo: HydratedFarmInfo) {
     return {
       tokenMint: toPubString(reward.token?.mint),
       amount: restAmount,
-      endTime: reward.endTime ? new Date(reward.endTime * 1000) : undefined,
-      startTime: reward.openTime ? new Date(reward.openTime * 1000) : undefined,
+      endTime: rewardHasEndTime ? new Date(reward.endTime! * 1000) : undefined,
+      startTime: rewardHasOpenTime ? new Date(reward.openTime! * 1000) : undefined,
       apr: reward.apr,
       canEdit: isRewardEditable,
       isRewarding: (!rewardHasEndTime && !rewardHasOpenTime) /* v3/v5 */ || (rewardIsOpen && !rewardIsEnd) /* v6 */,
-      version: !rewardHasEndTime && !rewardHasOpenTime ? 'v3/v5' : 'v6'
+      version: !rewardHasEndTime && !rewardHasOpenTime ? 'v3/v5' : 'v6',
+      isBeforeOpen: rewardHasOpenTime && currentIsBefore(reward.openTime!, { unit: 's' }),
+      isEnded: rewardHasEndTime && currentIsBefore(reward.endTime!, { unit: 's' })
     }
   })
   const isCreator = isMintEqual(farmInfo.creator, currentWalletOwner)

@@ -14,6 +14,7 @@ import useListDataManager from '../hooks/useListDataManager'
 import Icon from './Icon'
 import Grid from './Grid'
 import { twMerge } from 'tailwind-merge'
+import useConnection from '@/application/connection/useConnection'
 
 interface ListTableHeader<D> {
   key?: MayArray<SKeyof<D>>
@@ -51,7 +52,7 @@ type ListTableProps<T> = {
   onListChange?: (newlist: T[]) => void
 
   // --------- render ---------
-  renderItem?: (payload: {
+  renderRowItem?: (payload: {
     item: T
     index: number
     key?: MayArray<SKeyof<T>>
@@ -60,7 +61,8 @@ type ListTableProps<T> = {
     header?: ListTableHeader<T>['el']
     allHeaders: ListTableHeader<T>[]
   }) => ReactNode
-  renderRowControls?: (payload: {
+  renderRowEntry?: (payload: {
+    contentNode: ReactNode
     destorySelf(): void
     changeSelf(newItem: T): void
     itemData: T
@@ -78,8 +80,8 @@ export default function ListTable<T>({
   onClickRow,
 
   list,
-  renderItem,
-  renderRowControls,
+  renderRowItem,
+  renderRowEntry,
   renderPropertyLabel,
   labelMapper = (Object.keys(list[0]) as SKeyof<T>[]).map((key) => ({ key, label: key })),
   onListChange
@@ -93,6 +95,46 @@ export default function ListTable<T>({
     gridTemplateColumns: parsedShowedPropertyNames.map((i) => i.cssGridItemWidth ?? '1fr').join(' '),
     gap: 4
   } as CSSProperties
+
+  const renderListTableRowContent = ({ data }: typeof wrapped[number], idx: number) => (
+    <Grid
+      className={twMerge(
+        'text-[#abc4ff] text-xs font-medium py-4 px-5 -mx-5 items-center',
+        shrinkToValue(rowClassName, [{ index: idx, itemData: data }])
+      )}
+      style={gridTemplateStyle}
+      onClick={() => {
+        onClickRow?.({ index: idx, itemData: data })
+      }}
+    >
+      {parsedShowedPropertyNames.map(({ key, label }) => {
+        const targetDataItemValue =
+          key &&
+          (Object.entries(data) as [SKeyof<T>, unknown][]).find(([k, v]) =>
+            (isNumber(k) ? String(k) : k).includes(k)
+          )?.[1]
+        const headerElement = headerRefs.current.find(({ label: headerLabel }) => headerLabel === label)?.el
+        return (
+          <div key={label} style={{ width: headerElement?.clientWidth }}>
+            {renderRowItem
+              ? renderRowItem({
+                  item: data,
+                  index: idx,
+                  key,
+                  label,
+                  wholeDataList: list,
+                  allHeaders: headerRefs.current,
+                  header: headerElement
+                })
+              : key
+              ? String(targetDataItemValue ?? '')
+              : ''}
+          </div>
+        )
+      })}
+    </Grid>
+  )
+
   return (
     <Card
       className={twMerge('grid bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]', className)}
@@ -118,53 +160,20 @@ export default function ListTable<T>({
       </Grid>
       <Col className={twMerge('px-5 divide-y divide-[#abc4ff1a]', bodyCardClassName)}>
         {/* Body */}
-        {wrapped.map(({ data, destorySelf, changeSelf }, idx) => (
-          <div key={isObject(data) ? (data as any)?.id ?? idx : idx} className="relative">
-            {/* Row */}
-            <Grid
-              className={twMerge(
-                'text-[#abc4ff] text-xs font-medium py-4 px-5 -mx-5 items-center',
-                shrinkToValue(rowClassName, [{ index: idx, itemData: data }])
-              )}
-              style={gridTemplateStyle}
-              onClick={() => {
-                onClickRow?.({ index: idx, itemData: data })
-              }}
-            >
-              {parsedShowedPropertyNames.map(({ key, label }) => {
-                const targetDataItemValue =
-                  key &&
-                  (Object.entries(data) as [SKeyof<T>, unknown][]).find(([k, v]) =>
-                    (isNumber(k) ? String(k) : k).includes(k)
-                  )?.[1]
-                const headerElement = headerRefs.current.find(({ label: headerLabel }) => headerLabel === label)?.el
-                return (
-                  <div key={label} style={{ width: headerElement?.clientWidth }}>
-                    {renderItem
-                      ? renderItem({
-                          item: data,
-                          index: idx,
-                          key,
-                          label,
-                          wholeDataList: list,
-                          allHeaders: headerRefs.current,
-                          header: headerElement
-                        })
-                      : key
-                      ? String(targetDataItemValue ?? '')
-                      : ''}
-                  </div>
-                )
-              })}
-            </Grid>
-            {/* Controls */}
-            {renderRowControls && (
-              <div className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full">
-                {renderRowControls({ destorySelf, changeSelf, itemData: data, index: idx })}
-              </div>
-            )}
-          </div>
-        ))}
+        {wrapped.map(({ data, destorySelf, changeSelf }, idx) => {
+          const RowContent = renderListTableRowContent({ data, destorySelf, changeSelf }, idx)
+          return (
+            <div key={isObject(data) ? (data as any)?.id ?? idx : idx} className="relative">
+              {renderRowEntry?.({
+                contentNode: RowContent,
+                destorySelf,
+                changeSelf,
+                itemData: data,
+                index: idx
+              }) ?? RowContent}
+            </div>
+          )
+        })}
       </Col>
     </Card>
   )

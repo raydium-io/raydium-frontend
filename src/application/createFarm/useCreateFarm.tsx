@@ -11,6 +11,8 @@ export type RewardInfo = {
   endTime?: Date
   apr?: Percent // for farm edit
   canEdit: boolean
+  isEnded?: boolean // for farm edit
+  isBeforeOpen?: boolean // for farm edit
   isRewarding?: boolean // exist working farm
   version?: 'v3/v5' | 'v6' // if not satisfied, that's v6
 }

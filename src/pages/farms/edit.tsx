@@ -3,11 +3,13 @@ import Card from '@/components/Card'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import { PoolSummary } from '@/pageComponents/createFarm/PoolSummary'
+import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import RewardEditInputDialog from '@/pageComponents/createFarm/RewardInputDialog'
-import { RewardSummery } from '@/pageComponents/createFarm/RewardSummary'
+import { RewardSummery } from '@/pageComponents/createFarm/RewardCreateSummary'
 import produce from 'immer'
 import { useState } from 'react'
+import { RewardEditSummery } from '@/pageComponents/createFarm/RewardEditSummary'
+import { Farm } from '@raydium-io/raydium-sdk'
 
 export default function FarmEditPage() {
   const { rewards, cannotAddNewReward } = useCreateFarms()
@@ -21,16 +23,19 @@ export default function FarmEditPage() {
 
         <div className="mb-8">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Pool</div>
-          <PoolSummary />
+          <PoolInfoSummary />
         </div>
 
         <div className="mb-6">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Farm rewards</div>
-          <RewardSummery
+          <RewardEditSummery
             mode="edit"
             onClickIncreaseReward={({ rewardIndex }) => {
               setIsRewardEditDialogOpen(true)
               setFocusRewardIndex(rewardIndex)
+            }}
+            onClaimReward={({ reward }) => {
+              // Farm.makeWithdrawFarmRewardInstruction() //TODO: imply it!
             }}
           />
           <Row
@@ -54,7 +59,7 @@ export default function FarmEditPage() {
 
         <Card className={`p-6 rounded-3xl ring-1 ring-inset ring-[#abc4ff1a] bg-[#1B1659] relative`}>
           <div className="absolute -left-4 top-5 -translate-x-full">
-            <Icon iconSrc="/icons/create-farm-info-circle.svg" iconClassName="w-8 h-8" />
+            <Icon iconSrc="/icons/create-farm-info-circle.svg" iconClassName="w-7 h-7" />
           </div>
 
           <div className="font-medium text-base text-[#abc4ff] mb-3">How to add more rewards?</div>

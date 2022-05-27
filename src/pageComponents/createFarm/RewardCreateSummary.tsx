@@ -68,7 +68,7 @@ export function RewardSummery({
       onClickRow={({ index }) => {
         onActiveIndexChange?.(index)
       }}
-      renderItem={({ item: reward, label, key }) => {
+      renderRowItem={({ item: reward, label, key }) => {
         const rewardToken = getToken(reward.tokenMint)
         if (label === 'Asset') {
           return reward.tokenMint ? (
@@ -122,10 +122,9 @@ export function RewardSummery({
           )
         }
       }}
-      renderRowControls={({ destorySelf, index: idx, itemData: reward }) => {
-        if (!reward.canEdit) return null
-        if (mode === 'selectable') {
-          return (
+      renderRowEntry={({ contentNode, destorySelf, index: idx, itemData: reward }) => {
+        const controlsNode = reward.canEdit ? (
+          mode === 'selectable' ? (
             <Row className="gap-2">
               <Icon
                 size="smi"
@@ -142,9 +141,7 @@ export function RewardSummery({
                 onClick={() => rewards.length > 1 && destorySelf()}
               />
             </Row>
-          )
-        } else if (mode === 'edit') {
-          return (
+          ) : mode === 'edit' ? (
             <Row className="gap-2">
               <Icon
                 size="smi"
@@ -166,9 +163,15 @@ export function RewardSummery({
                 }}
               />
             </Row>
-          )
-        }
-        return null
+          ) : null
+        ) : null
+
+        return (
+          <>
+            {contentNode}
+            <div className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full">{controlsNode}</div>
+          </>
+        )
       }}
       onListChange={(list) => {
         useCreateFarms.setState({

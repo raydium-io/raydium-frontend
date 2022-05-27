@@ -9,7 +9,7 @@ import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 
-export function PoolSummary() {
+export function PoolInfoSummary() {
   const poolId = useCreateFarms((s) => s.poolId)
   const pairInfos = usePools((s) => s.hydratedInfos)
   const liquidityPoolJsons = useLiquidity((s) => s.jsonInfos)
@@ -41,7 +41,7 @@ export function PoolSummary() {
           label: 'TVL'
         }
       ]}
-      renderItem={({ item, label }) => {
+      renderRowItem={({ item, label }) => {
         if (label === 'Pool') {
           return item.id ? (
             <Row className="gap-1 items-center">

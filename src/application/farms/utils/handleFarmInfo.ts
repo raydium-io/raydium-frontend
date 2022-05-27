@@ -2,7 +2,6 @@ import {
   CurrencyAmount,
   Farm,
   FarmFetchMultipleInfoParams,
-  FarmState,
   FarmStateV3,
   FarmStateV5,
   FarmStateV6,
@@ -10,8 +9,7 @@ import {
   ONE,
   Price,
   TEN,
-  TokenAmount,
-  ZERO
+  TokenAmount
 } from '@raydium-io/raydium-sdk'
 
 import BN from 'bn.js'
@@ -29,7 +27,6 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { LiquidityStore } from '@/application/liquidity/useLiquidity'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { RAYMint } from '@/application/token/utils/wellknownToken.config'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { official: boolean })[] | undefined> {
   const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {

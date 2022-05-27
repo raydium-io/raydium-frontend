@@ -18,7 +18,7 @@ import produce from 'immer'
 import { ReactNode, useState } from 'react'
 import { RewardFormCardInputs } from '../../pageComponents/createFarm/RewardFormCardInputs'
 import { PoolIdInputBlock } from '../../pageComponents/createFarm/PoolIdInputBlock'
-import { RewardSummery } from '../../pageComponents/createFarm/RewardSummary'
+import { RewardSummery } from '../../pageComponents/createFarm/RewardCreateSummary'
 import toPubString from '@/functions/format/toMintString'
 import { RAYMint } from '@/application/token/utils/wellknownToken.config'
 
