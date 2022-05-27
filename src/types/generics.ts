@@ -46,4 +46,6 @@ export type Fallback<T, FallbackT> = T extends undefined ? FallbackT : T
  *
  * type D = Cover<A, B> // { a: string; b: string; c: string; d?: boolean}
  */
-export type Cover<O, T> = { [K in keyof O | keyof T]: Fallback<GetValue<T, K>, GetValue<O, K>> }
+export type Cover<O, T> = { [K in SKeyof<O> | SKeyof<T>]: Fallback<GetValue<T, K>, GetValue<O, K>> }
+
+export type UnionCover<O, T> = T extends T ? Cover<O, T> : never

@@ -4,6 +4,9 @@ import {
   CurrencyAmount,
   FarmLedger,
   FarmState,
+  FarmStateV3,
+  FarmStateV5,
+  FarmStateV6,
   Percent,
   Price,
   ReplaceType,
@@ -15,7 +18,8 @@ import { PublicKey } from '@solana/web3.js'
 
 import { SplToken } from '../token/type'
 import { HexAddress } from '@/types/constants'
-import { Cover } from '@/types/generics'
+import { Cover, UnionCover } from '@/types/generics'
+import { type } from 'os'
 
 export interface FarmPoolJsonInfo {
   readonly id: string
@@ -57,28 +61,36 @@ type SDKRewardInfo = {
   owner?: PublicKey
 }
 
-export type SdkParsedFarmInfo = Cover<
-  FarmPoolJsonInfo,
-  {
-    jsonInfo: FarmPoolJsonInfo
+type SdkParsedFarmInfoBase = {
+  jsonInfo: FarmPoolJsonInfo
+  id: PublicKey
+  lpMint: PublicKey
+  programId: PublicKey
+  authority: PublicKey
+  lpVault: SplAccount
+  rewardInfos: SDKRewardInfo[]
+  /** only when user have deposited and connected wallet */
+  ledger?: {
     id: PublicKey
-    lpMint: PublicKey
-    version: number
-    programId: PublicKey
-    authority: PublicKey
-    lpVault: SplAccount
-    state: FarmState
-    rewardInfos: SDKRewardInfo[]
-
-    /** only when user have deposited and connected wallet */
-    ledger?: { id: PublicKey; owner: PublicKey; state: BN; deposited: BN; rewardDebts: BN[] }
-    /** only when user have deposited and connected wallet */
-    wrapped?: { pendingRewards: BN[] }
+    owner: PublicKey
+    state: BN
+    deposited: BN
+    rewardDebts: BN[]
   }
+  /** only when user have deposited and connected wallet */
+  wrapped?: {
+    pendingRewards: BN[]
+  }
+}
+
+export type SdkParsedFarmInfo = UnionCover<
+  FarmPoolJsonInfo,
+  SdkParsedFarmInfoBase &
+    ({ version: 6; state: FarmStateV6 } | { version: 3; state: FarmStateV3 } | { version: 5; state: FarmStateV5 })
 >
 /** computed by other info  */
 
-export interface HydratedFarmInfo extends SdkParsedFarmInfo {
+export type HydratedFarmInfo = SdkParsedFarmInfo & {
   lp: SplToken | Token | /* staking pool */ undefined
   lpPrice: Price | undefined
 

@@ -2,9 +2,6 @@ import {
   CurrencyAmount,
   Farm,
   FarmFetchMultipleInfoParams,
-  FarmStateV3,
-  FarmStateV5,
-  FarmStateV6,
   Fraction,
   ONE,
   Price,
@@ -52,7 +49,7 @@ export async function mergeSdkFarmInfo(
         ...pool,
         ...rawInfos[String(pool.id)],
         jsonInfo: payload.jsonInfos[idx]
-      } as SdkParsedFarmInfo)
+      } as unknown as SdkParsedFarmInfo)
   )
 
   return result
@@ -113,14 +110,14 @@ export function hydrateFarmInfo(
     const apr = aprs[idx]
     const token = rewardTokens[idx]
     if (farmInfo.version === 6) {
-      const { rewardOpenTime, rewardEndTime } = rewardInfo as FarmStateV6['rewardInfos'][number]
+      const { rewardOpenTime, rewardEndTime } = rewardInfo
       const openTime = rewardOpenTime.toNumber()
       const endTime = rewardEndTime.toNumber()
       const canBeRewarded =
         (openTime ? currentIsAfter(openTime, { unit: 's' }) : true) && currentIsBefore(endTime, { unit: 's' }) /* v6 */
       return { ...rewardInfo, apr, token, pendingReward, canBeRewarded }
     } else {
-      const { perSlotReward } = rewardInfo as (FarmStateV3 | FarmStateV5)['rewardInfos'][number]
+      const { perSlotReward } = rewardInfo
       const canBeRewarded = isMeaningfulNumber(pendingReward) || isMeaningfulNumber(perSlotReward)
       return { ...rewardInfo, apr, token, pendingReward, canBeRewarded }
     }
@@ -176,7 +173,7 @@ function calculateFarmPoolAprs(
   }
 ) {
   if (info.version === 6) {
-    return (info.state as FarmStateV6).rewardInfos.map(({ rewardPerSecond }, idx) => {
+    return info.state.rewardInfos.map(({ rewardPerSecond }, idx) => {
       const rewardToken = payload.rewardTokens[idx]
       if (!rewardToken) return undefined
       const rewardTokenPrice = payload.rewardTokenPrices[idx]
@@ -192,7 +189,7 @@ function calculateFarmPoolAprs(
       return apr
     })
   } else {
-    const calcAprs = (info.state as FarmStateV3 | FarmStateV5).rewardInfos.map(({ perSlotReward }, idx) => {
+    const calcAprs = info.state.rewardInfos.map(({ perSlotReward }, idx) => {
       const rewardToken = payload.rewardTokens[idx]
       if (!rewardToken) return undefined
       const rewardTokenPrice = payload.rewardTokenPrices[idx]
@@ -214,16 +211,14 @@ function calculateFarmPoolAprs(
 function judgeFarmType(
   info: SdkParsedFarmInfo
 ): 'closed pool' | 'normal fusion pool' | 'dual fusion pool' | undefined | 'upcoming pool' {
-  if (info.version === 9) {
-    const rewardInfos = (info.state as FarmStateV6).rewardInfos
+  if (info.version === 6) {
+    const rewardInfos = info.state.rewardInfos
     if (rewardInfos.every(({ rewardOpenTime }) => currentIsBefore(rewardOpenTime.toNumber(), { unit: 's' })))
       return 'upcoming pool'
     if (rewardInfos.every(({ rewardEndTime }) => currentIsBefore(rewardEndTime.toNumber(), { unit: 's' })))
       return 'closed pool'
   } else {
-    const perSlotRewards = (info.state as FarmStateV3 | FarmStateV5).rewardInfos.map(
-      ({ perSlotReward }) => perSlotReward
-    )
+    const perSlotRewards = info.state.rewardInfos.map(({ perSlotReward }) => perSlotReward)
     if (perSlotRewards.length === 2) {
       // v5
       if (String(perSlotRewards[0]) === '0' && String(perSlotRewards[1]) !== '0') {
