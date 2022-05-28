@@ -10,6 +10,6 @@ export function parsedApiFarmInfo(farmInfo: HydratedFarmInfo) {
   const uiRewardsInfos: CreateFarmStore['rewards'] = farmInfo.rewards.map((reward) =>
     parsedApiRewardInfoToUiRewardInfo(reward)
   )
-  const isCreator = isMintEqual(farmInfo.creator, currentWalletOwner)
-  return { isCreator, poolId, uiRewardsInfos }
+  const isFarmCreator = isMintEqual(farmInfo.creator, currentWalletOwner)
+  return { isFarmCreator, poolId, uiRewardsInfos }
 }

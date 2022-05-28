@@ -19,7 +19,7 @@ type SortConfigItem<D extends Record<string, any>[]> = {
   sortModeQueue: SortModeArr
 
   /** return Numberish / string / boolean*/
-  pickSortValue: MayArray<(item: D[number]) => any> // for item may be tedius, so use rule //TODO: accept array
+  sortBy: MayArray<(item: D[number]) => any> // for item may be tedius, so use rule //TODO: accept array
 }
 
 type SimplifiedSortConfig<D extends Record<string, any>[]> = ExactPartial<SortConfigItem<D>, 'mode' | 'sortModeQueue'>
@@ -101,9 +101,9 @@ export default function useSort<D extends Record<string, any>[]>(
     let configs = sortConfigs
     if (!sortConfigs.length) configs = defaultConfigs
     if (sortConfigs[0].mode === 'none') configs = defaultConfigs
-    const [{ mode, pickSortValue }] = configs // temp only respect first sortConfigs in queue
+    const [{ mode, sortBy }] = configs // temp only respect first sortConfigs in queue
     return [...sourceDataList].sort((a, b) => {
-      const pickFunctions = [pickSortValue].flat()
+      const pickFunctions = [sortBy].flat()
       if (!pickFunctions.length) return 0
 
       const compareFactor = pickFunctions.slice(1).reduce(

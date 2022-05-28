@@ -100,9 +100,7 @@ function RewardFormCard({ children }: { children?: ReactNode }) {
 }
 
 export default function CreateFarmPage() {
-  const poolId = useCreateFarms((s) => s.poolId)
   const rewards = useCreateFarms((s) => s.rewards)
-  const connected = useWallet((s) => s.connected)
   const [activeIndex, setActiveIndex] = useState(0)
   return (
     <PageLayout metaTitle="Farms - Raydium">

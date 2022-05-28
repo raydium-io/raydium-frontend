@@ -23,7 +23,7 @@ export type FarmStore = {
   refreshFarmInfos(): void
 
   onlySelfFarms: boolean
-  currentTab: 'All' | 'Upcoming' | 'Raydium' | 'Fusion' | 'Inactive'
+  currentTab: 'All' | 'Upcoming' | 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive'
   searchText: string
 
   stakeDialogMode: 'deposit' | 'withdraw'

@@ -107,6 +107,7 @@ export type HydratedFarmInfo = SdkParsedFarmInfo & {
 
   ammId: string | undefined
 
+  /** only for v3/v5 */
   isDualFusionPool: boolean
   isNormalFusionPool: boolean
   isClosedPool: boolean

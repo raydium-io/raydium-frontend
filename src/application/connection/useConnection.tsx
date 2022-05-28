@@ -28,7 +28,7 @@ type ConnectionStore = {
   availableEndPoints: Endpoint[]
 
   // for online chain time is later than UTC
-  onlineChainTimeOffset?: number // UTCTime + onlineChainTimeOffset = onLineTime // TODO: imply it
+  chainTimeOffset?: number // UTCTime + onlineChainTimeOffset = onLineTime // TODO: imply it
 
   /**
    * for ui

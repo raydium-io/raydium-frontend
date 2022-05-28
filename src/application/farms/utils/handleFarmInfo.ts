@@ -215,7 +215,7 @@ function judgeFarmType(
     const rewardInfos = info.state.rewardInfos
     if (rewardInfos.every(({ rewardOpenTime }) => currentIsBefore(rewardOpenTime.toNumber(), { unit: 's' })))
       return 'upcoming pool'
-    if (rewardInfos.every(({ rewardEndTime }) => currentIsBefore(rewardEndTime.toNumber(), { unit: 's' })))
+    if (rewardInfos.every(({ rewardEndTime }) => currentIsAfter(rewardEndTime.toNumber(), { unit: 's' })))
       return 'closed pool'
   } else {
     const perSlotRewards = info.state.rewardInfos.map(({ perSlotReward }) => perSlotReward)

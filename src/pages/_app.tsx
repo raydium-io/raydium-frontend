@@ -54,6 +54,7 @@ import toPubString from '@/functions/format/toMintString'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { inClient } from '@/functions/judgers/isSSR'
 import { createDOMElement } from '@/functions/dom/createDOMElement'
+import useFreshChainTimeOffset from '@/application/connection/useConnectionInitialization copy'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -133,6 +134,7 @@ function ApplicationsInitializations() {
   /********************** connection **********************/
   useUserCustomizedEndpointInitLoad()
   useConnectionInitialization()
+  useFreshChainTimeOffset()
 
   /********************** message boards **********************/
   useMessageBoardFileLoader() // load `raydium-message-board.json`

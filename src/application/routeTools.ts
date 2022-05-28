@@ -145,8 +145,8 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         }
       })
       .then(() => {
-        const { isCreator, poolId, uiRewardsInfos } = parsedApiFarmInfo(farmInfo)
-        useCreateFarms.setState({ poolId, rewards: uiRewardsInfos, cannotAddNewReward: !isCreator })
+        const { isFarmCreator, poolId, uiRewardsInfos } = parsedApiFarmInfo(farmInfo)
+        useCreateFarms.setState({ poolId, rewards: uiRewardsInfos, cannotAddNewReward: !isFarmCreator })
       })
   } else {
     router.push({ pathname: toPage, query: options?.queryProps })

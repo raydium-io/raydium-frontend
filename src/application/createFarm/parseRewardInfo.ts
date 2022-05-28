@@ -22,7 +22,7 @@ export function createNewUIRewardInfo(): UIRewardInfo {
  * inner have onlineChainTimeOffset
  */
 export function parsedApiRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): UIRewardInfo {
-  const { onlineChainTimeOffset } = useConnection.getState()
+  const { chainTimeOffset } = useConnection.getState()
   const restAmount = reward.endTime
     ? currentIsBefore(reward.endTime, { unit: 's' })
       ? mul(
@@ -42,7 +42,7 @@ export function parsedApiRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): U
   const rewardVersion = !reward.endTime && !reward.openTime ? 'v3/v5' : 'v6'
   const rewardStartTime = reward.openTime ? new Date(reward.openTime * 1000) : undefined // chain time
   const rewardEndTime = reward.endTime ? new Date(reward.endTime * 1000) : undefined // chain time
-  const onlineCurrentDate = Date.now() + (onlineChainTimeOffset ?? 0)
+  const onlineCurrentDate = Date.now() + (chainTimeOffset ?? 0)
   const isRewardBeforeStart = Boolean(rewardStartTime && isDateBefore(onlineCurrentDate, rewardStartTime))
   const isRewardEnded = Boolean(rewardEndTime && isDateAfter(onlineCurrentDate, rewardEndTime))
   const isRewarding = (!rewardStartTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)

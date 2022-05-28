@@ -17,7 +17,8 @@ export default function useFarmInfoFetcher() {
   const lpTokens = useToken((s) => s.lpTokens)
   const tokenPrices = useToken((s) => s.tokenPrices)
 
-  const { connection } = useConnection()
+  const connection = useConnection((s) => s.connection)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const owner = useWallet((s) => s.owner)
   const lpPrices = usePools((s) => s.lpPrices)
 
@@ -55,5 +56,14 @@ export default function useFarmInfoFetcher() {
       hydrateFarmInfo(farmInfo, { getToken, getLpToken, lpPrices, tokenPrices, liquidityJsonInfos })
     )
     useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
-  }, [sdkParsedInfos, getToken, lpPrices, tokenPrices, getLpToken, lpTokens, liquidityJsonInfos])
+  }, [
+    sdkParsedInfos,
+    getToken,
+    lpPrices,
+    tokenPrices,
+    getLpToken,
+    lpTokens,
+    liquidityJsonInfos,
+    chainTimeOffset // when connection is ready, should get connection's chain time
+  ])
 }

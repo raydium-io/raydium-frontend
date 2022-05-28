@@ -46,7 +46,7 @@ import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useSort from '@/hooks/useSort'
 
-import { toggleSetItem } from '../functions/setMethods'
+import { toggleSetItem } from '../../functions/setMethods'
 import Popover from '@/components/Popover'
 import LoadingCircle from '@/components/LoadingCircle'
 import toPubString from '@/functions/format/toMintString'
@@ -180,6 +180,7 @@ function FarmTabBlock({ className }: { className?: string }) {
         'All',
         // 'Raydium',
         'Fusion',
+        'Ecosystem',
         'Inactive'
       ] as const)}
       onChange={(tab) => useFarms.setState({ currentTab: tab })}
@@ -250,22 +251,28 @@ function FarmCard() {
 
   const [favouriteIds] = useFarmFavoriteIds()
 
+  const isMobile = useAppSettings((s) => s.isMobile)
+
   const dataSource = useMemo(
     () =>
       hydratedInfos
         // TEMP current not includes stable coin's farm
         .filter((i) => lpTokens[toPubString(i.lpMint)])
         // .filter((info) => info.isDualFusionPool) // TEMP for test
+        .filter((i) => (isMobile ? i.version !== 6 : true))
         .filter(
           (i) =>
             // currentTab === 'Upcoming'
             //   ? i.isUpcomingPool
             //   : // : currentTab === 'Raydium'
             // ? i.isRaydiumPool && !i.isClosedPool
+
             currentTab === 'Fusion'
               ? i.isNormalFusionPool || i.isDualFusionPool
               : currentTab === 'Inactive'
               ? i.isClosedPool && !i.isStakePool
+              : currentTab === 'Ecosystem'
+              ? i.version === 6
               : i.isUpcomingPool || (!i.isClosedPool && !i.isStakePool) // currentTab == 'all'
         ) // Tab
         .filter((i) => (onlySelfFarms ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true)) // Switch
@@ -286,10 +293,10 @@ function FarmCard() {
   } = useSort(dataSource, {
     defaultSort: {
       key: 'defaultKey',
-      pickSortValue: [(i) => i.isUpcomingPool, (i) => i.isNewPool, (i) => favouriteIds?.includes(toPubString(i.id))]
+      sortBy: [(i) => i.isUpcomingPool, (i) => i.isNewPool, (i) => favouriteIds?.includes(toPubString(i.id))]
     }
   })
-  const isMobile = useAppSettings((s) => s.isMobile)
+
   const isLoading = useFarms((s) => s.isLoading)
 
   // NOTE: filter widgets
@@ -303,7 +310,7 @@ function FarmCard() {
             newSortKey
               ? setSortConfig({
                   key: newSortKey,
-                  pickSortValue:
+                  sortBy:
                     newSortKey === 'favorite' ? (i) => favouriteIds?.includes(toPubString(i.id)) : (i) => i[newSortKey]
                 })
               : clearSortConfig()
@@ -345,7 +352,7 @@ function FarmCard() {
               setSortConfig({
                 key: 'favorite',
                 sortModeQueue: ['decrease', 'none'],
-                pickSortValue: (i) => favouriteIds?.includes(toPubString(i.id))
+                sortBy: (i) => favouriteIds?.includes(toPubString(i.id))
               })
             }}
           >
@@ -366,7 +373,7 @@ function FarmCard() {
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
-                pickSortValue: (i) => i.name
+                sortBy: (i) => i.name
               })
             }}
           >
@@ -391,7 +398,7 @@ function FarmCard() {
           {/* table head column: Total APR */}
           <Row
             className="pl-2 font-medium items-center text-[#ABC4FF] text-sm cursor-pointer gap-1  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'totalApr', pickSortValue: (i) => i.totalApr })}
+            onClick={() => setSortConfig({ key: 'totalApr', sortBy: (i) => i.totalApr })}
           >
             Total APR
             <Tooltip>
@@ -414,7 +421,7 @@ function FarmCard() {
           {/* table head column: TVL */}
           <Row
             className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'tvl', pickSortValue: (i) => i.tvl })}
+            onClick={() => setSortConfig({ key: 'tvl', sortBy: (i) => i.tvl })}
           >
             TVL
             <Icon

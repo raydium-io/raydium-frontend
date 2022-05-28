@@ -271,7 +271,7 @@ function PoolCard() {
     sortConfig,
     clearSortConfig
   } = useSort(dataSource, {
-    defaultSort: { key: 'defaultKey', pickSortValue: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity] }
+    defaultSort: { key: 'defaultKey', sortBy: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity] }
   })
 
   const TableHeaderBlock = useCallback(
@@ -286,7 +286,7 @@ function PoolCard() {
             setSortConfig({
               key: 'favorite',
               sortModeQueue: ['decrease', 'none'],
-              pickSortValue: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity]
+              sortBy: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity]
             })
           }}
         >
@@ -312,7 +312,7 @@ function PoolCard() {
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
-                pickSortValue: (i) => i.name
+                sortBy: (i) => i.name
               })
             }}
           >
@@ -335,7 +335,7 @@ function PoolCard() {
         <Row
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: 'liquidity', pickSortValue: (i) => i.liquidity })
+            setSortConfig({ key: 'liquidity', sortBy: (i) => i.liquidity })
           }}
         >
           Liquidity
@@ -357,7 +357,7 @@ function PoolCard() {
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
-            setSortConfig({ key, pickSortValue: (i) => i[key] })
+            setSortConfig({ key, sortBy: (i) => i[key] })
           }}
         >
           Volume {timeBasis}
@@ -379,7 +379,7 @@ function PoolCard() {
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             const key = timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d'
-            setSortConfig({ key, pickSortValue: (i) => i[key] })
+            setSortConfig({ key, sortBy: (i) => i[key] })
           }}
         >
           Fees {timeBasis}
@@ -401,7 +401,7 @@ function PoolCard() {
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             const key = timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d'
-            setSortConfig({ key, pickSortValue: (i) => i[key] })
+            setSortConfig({ key, sortBy: (i) => i[key] })
           }}
         >
           APR {timeBasis}
@@ -441,8 +441,7 @@ function PoolCard() {
             newSortKey
               ? setSortConfig({
                   key: newSortKey,
-                  pickSortValue:
-                    newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.ammId) : (i) => i[newSortKey]
+                  sortBy: newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.ammId) : (i) => i[newSortKey]
                 })
               : clearSortConfig()
           }}
