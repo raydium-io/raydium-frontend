@@ -12,7 +12,7 @@ import { toPub } from '@/functions/format/toMintString'
 import useWallet from '../wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import useToken from '../token/useToken'
-import { padZero } from '@/functions/numberish/stringNumber'
+import { padZero } from '@/functions/numberish/handleZero'
 
 export default async function txCreateNewFarm() {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {

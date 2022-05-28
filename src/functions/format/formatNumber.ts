@@ -1,8 +1,14 @@
-import { Numberish, StringNumber } from '@/types/constants'
+import { Numberish } from '@/types/constants'
 
 import fall from '../fall'
-import { toFixed } from '../numberish/stringNumber'
 import { toString } from '../numberish/toString'
+
+function toFixed(n: string /* a format of number */, fractionLength: number): string {
+  const [, sign = '', int = '', dec = ''] = n.match(/(-?)(\d*)\.?(\d*)/) ?? []
+  if (!dec) return String(n)
+  if (dec.length < fractionLength) return String(n)
+  else return Number(n).toFixed(fractionLength) // TODO: imply this
+}
 
 export type FormatOptions = {
   /**

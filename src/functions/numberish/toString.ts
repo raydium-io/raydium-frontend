@@ -3,8 +3,8 @@ import { Numberish } from '@/types/constants'
 import { isString } from '../judgers/dateType'
 
 import { eq } from './compare'
-import { trimTailingZero } from './stringNumber'
-import toFraction, { toFractionWithDecimals } from './toFraction'
+import { trimTailingZero } from './handleZero'
+import { toFractionWithDecimals } from './toFraction'
 
 export function toString(
   n: Numberish | null | undefined,

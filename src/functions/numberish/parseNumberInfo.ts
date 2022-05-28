@@ -1,6 +1,6 @@
 import BN from 'bn.js'
 
-import { Numberish, StringNumber } from '@/types/constants'
+import { Numberish } from '@/types/constants'
 import { Fraction } from '@raydium-io/raydium-sdk'
 
 /**
