@@ -2,14 +2,11 @@ import BN from 'bn.js'
 
 import {
   CurrencyAmount,
-  FarmLedger,
-  FarmState,
   FarmStateV3,
   FarmStateV5,
   FarmStateV6,
   Percent,
   Price,
-  ReplaceType,
   SplAccount,
   Token,
   TokenAmount
@@ -18,33 +15,34 @@ import { PublicKey } from '@solana/web3.js'
 
 import { SplToken } from '../token/type'
 import { HexAddress } from '@/types/constants'
-import { Cover, UnionCover } from '@/types/generics'
-import { type } from 'os'
+import { UnionCover } from '@/types/generics'
+
+export interface APIRewardInfo {
+  rewardMint: string
+  rewardVault: string
+  openTime: number
+  endTime: number
+  perSecond: string | number
+  owner?: string
+}
 
 export interface FarmPoolJsonInfo {
-  readonly id: string
-  readonly lpMint: string
-  // readonly rewardMints: string[]
+  id: string
+  lpMint: string
+  // rewardMints: string[]
 
-  readonly version: number
-  readonly programId: string
+  version: number
+  programId: string
 
-  readonly authority: string
-  readonly lpVault: string
-  // readonly rewardVaults: string[]
+  authority: string
+  lpVault: string
+  // rewardVaults: string[]
   lockMint?: HexAddress
   lockVault?: HexAddress
   lockAmount?: string | number
   creator?: HexAddress
-  readonly rewardInfos: {
-    rewardMint: string
-    rewardVault: string
-    openTime: number
-    endTime: number
-    perSecond: string | number
-    owner?: string
-  }[]
-  readonly upcoming: boolean
+  rewardInfos: APIRewardInfo[]
+  upcoming: boolean
 }
 
 export type FarmPoolsJsonFile = {
@@ -88,6 +86,15 @@ export type SdkParsedFarmInfo = UnionCover<
   SdkParsedFarmInfoBase &
     ({ version: 6; state: FarmStateV6 } | { version: 3; state: FarmStateV3 } | { version: 5; state: FarmStateV5 })
 >
+
+export type HydratedRewardInfo = {
+  canBeRewarded: boolean
+  apr: Percent | undefined // farm's rewards apr
+  token: SplToken | undefined
+  /** only when user have deposited and connected wallet */
+  pendingReward: TokenAmount | undefined
+} & SDKRewardInfo
+
 /** computed by other info  */
 
 export type HydratedFarmInfo = SdkParsedFarmInfo & {
@@ -114,13 +121,7 @@ export type HydratedFarmInfo = SdkParsedFarmInfo & {
   userHasStaked: boolean
   /** undefined means couldn't find this token by known tokenList */
   raydiumFeeRpr: Percent | undefined // raydium fee for each transaction
-  rewards: ({
-    canBeRewarded: boolean
-    apr: Percent | undefined // farm's rewards apr
-    token: SplToken | undefined
-    /** only when user have deposited and connected wallet */
-    pendingReward: TokenAmount | undefined
-  } & SDKRewardInfo)[]
+  rewards: HydratedRewardInfo[]
   userStakedLpAmount: TokenAmount | undefined
   stakedLpAmount: TokenAmount | undefined
 }

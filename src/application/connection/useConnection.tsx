@@ -26,6 +26,10 @@ type ConnectionStore = {
   version?: string | number
 
   availableEndPoints: Endpoint[]
+
+  // for online chain time is later than UTC
+  onlineChainTimeOffset?: number // UTCTime + onlineChainTimeOffset = onLineTime // TODO: imply it
+
   /**
    * for ui
    * maybe user customized

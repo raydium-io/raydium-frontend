@@ -21,6 +21,7 @@ import { PoolIdInputBlock } from '../../pageComponents/createFarm/PoolIdInputBlo
 import { RewardSummery } from '../../pageComponents/createFarm/RewardCreateSummary'
 import toPubString from '@/functions/format/toMintString'
 import { RAYMint } from '@/application/token/utils/wellknownToken.config'
+import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -145,7 +146,7 @@ export default function CreateFarmPage() {
               onClick={() => {
                 useCreateFarms.setState({
                   rewards: produce(rewards, (draft) => {
-                    draft.push({ canEdit: true })
+                    draft.push(createNewUIRewardInfo())
                   })
                 })
               }}

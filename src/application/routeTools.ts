@@ -17,7 +17,7 @@ import { HydratedFarmInfo } from './farms/type'
 import parseDuration from '@/functions/date/parseDuration'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import { parsedApiFarmInfoToUIRewardsInfo } from './createFarm/parsedApiFarmInfoToUIRewardsInfo'
+import { parsedApiFarmInfo } from './createFarm/parsedApiFarmInfoToUIRewardsInfo'
 
 export type PageRouteConfigs = {
   '/swap': {
@@ -145,7 +145,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         }
       })
       .then(() => {
-        const { isCreator, poolId, uiRewardsInfos } = parsedApiFarmInfoToUIRewardsInfo(farmInfo)
+        const { isCreator, poolId, uiRewardsInfos } = parsedApiFarmInfo(farmInfo)
         useCreateFarms.setState({ poolId, rewards: uiRewardsInfos, cannotAddNewReward: !isCreator })
       })
   } else {

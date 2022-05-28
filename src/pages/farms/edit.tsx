@@ -10,6 +10,7 @@ import produce from 'immer'
 import { useState } from 'react'
 import { RewardEditSummery } from '@/pageComponents/createFarm/RewardEditSummary'
 import { Farm } from '@raydium-io/raydium-sdk'
+import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 
 export default function FarmEditPage() {
   const { rewards, cannotAddNewReward } = useCreateFarms()
@@ -46,7 +47,7 @@ export default function FarmEditPage() {
               if (!canAddRewardInfo) return
               useCreateFarms.setState({
                 rewards: produce(rewards, (draft) => {
-                  draft.push({ canEdit: true })
+                  draft.push(createNewUIRewardInfo())
                 })
               })
             }}

@@ -1,4 +1,5 @@
-import useCreateFarms, { CreateFarmStore, RewardInfo } from '@/application/createFarm/useCreateFarm'
+import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { CreateFarmStore, UIRewardInfo } from '@/application/createFarm/type'
 import useToken from '@/application/token/useToken'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
@@ -31,8 +32,8 @@ export function RewardEditSummery({
   onActiveIndexChange?(index: number): void
 
   // --------- when edit ------------
-  onClickIncreaseReward?(payload: { reward: RewardInfo; rewardIndex: number }): void
-  onClaimReward?(payload: { reward: RewardInfo; rewardIndex: number }): void
+  onClickIncreaseReward?(payload: { reward: UIRewardInfo; rewardIndex: number }): void
+  onClaimReward?(payload: { reward: UIRewardInfo; rewardIndex: number }): void
 }) {
   const rewards = useCreateFarms((s) => s.rewards)
   const getToken = useToken((s) => s.getToken)
@@ -138,7 +139,7 @@ export function RewardEditSummery({
               </Col>
             )}
 
-            {reward.isEnded && (
+            {reward.isRewardEnded && (
               <Grid className="grid-cols-2 gap-board">
                 <Row
                   className="items-center justify-center gap-1"

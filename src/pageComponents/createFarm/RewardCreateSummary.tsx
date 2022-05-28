@@ -1,4 +1,5 @@
-import useCreateFarms, { CreateFarmStore, RewardInfo } from '@/application/createFarm/useCreateFarm'
+import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { CreateFarmStore, UIRewardInfo } from '@/application/createFarm/type'
 import useToken from '@/application/token/useToken'
 import CoinAvatar from '@/components/CoinAvatar'
 import Icon from '@/components/Icon'
@@ -9,6 +10,8 @@ import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/d
 import formatNumber from '@/functions/format/formatNumber'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import useWallet from '@/application/wallet/useWallet'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 
 /**
  * mode: list show
@@ -29,9 +32,10 @@ export function RewardSummery({
   onActiveIndexChange?(index: number): void
 
   // --------- when edit ------------
-  onClickIncreaseReward?(payload: { reward: RewardInfo; rewardIndex: number }): void
-  onDeleteReward?(payload: { reward: RewardInfo; rewardIndex: number }): void
+  onClickIncreaseReward?(payload: { reward: UIRewardInfo; rewardIndex: number }): void
+  onDeleteReward?(payload: { reward: UIRewardInfo; rewardIndex: number }): void
 }) {
+  const owner = useWallet((s) => s.owner)
   const rewards = useCreateFarms((s) => s.rewards)
   const getToken = useToken((s) => s.getToken)
   return (
@@ -59,7 +63,8 @@ export function RewardSummery({
       ]}
       // className="backdrop-brightness-"
       rowClassName={({ index, itemData: reward }) => {
-        if (!reward.canEdit) return `not-clickable`
+        const canRewardEdit = isMintEqual(reward.creator, owner)
+        if (!canRewardEdit) return `not-clickable`
         if (mode === 'selectable') {
           return `${activeIndex === index ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
         }
@@ -123,7 +128,8 @@ export function RewardSummery({
         }
       }}
       renderRowEntry={({ contentNode, destorySelf, index: idx, itemData: reward }) => {
-        const controlsNode = reward.canEdit ? (
+        const canEdit = isMintEqual(reward.creator, owner)
+        const controlsNode = canEdit ? (
           mode === 'selectable' ? (
             <Row className="gap-2">
               <Icon
