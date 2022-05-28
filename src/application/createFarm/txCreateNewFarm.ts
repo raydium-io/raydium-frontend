@@ -19,23 +19,22 @@ export default async function txCreateNewFarm() {
     const piecesCollector = createTransactionCollector()
     const { rewards: uiRewardInfos } = useCreateFarms.getState()
     const { tokenAccounts } = useWallet.getState()
-    const { getToken } = useToken.getState()
     const testStartTime = toBN(div(Date.now(), 1000)) // NOTE: test
     const testEndTime = toBN(div(Date.now() + 1000 * 60 * 60 * 1.2, 1000)) // NOTE: test
     const rewards = uiRewardInfos.map((reward) => {
-      const rewardToken = getToken(reward.tokenMint)
+      const rewardToken = reward.token
       assert(reward.startTime, 'reward start time is required')
       assert(reward.endTime, 'reward end time is required')
       assert(reward.amount, 'reward amount is required')
       assert(rewardToken, `can't find selected reward token`)
-      const rewardTokenAccount = tokenAccounts.find((t) => isMintEqual(reward.tokenMint, t.mint))
+      const rewardTokenAccount = tokenAccounts.find((t) => isMintEqual(rewardToken.mint, t.mint))
       assert(rewardTokenAccount?.publicKey, `can't find reward ${rewardToken?.symbol}'s tokenAccount `)
       const durationTime = reward.endTime.getTime() - reward.startTime.getTime()
       const estimatedValue = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
       const rewardInfo = {
         rewardStartTime: testStartTime || toBN(div(reward.startTime.getTime(), 1000)),
         rewardEndTime: testEndTime || toBN(div(reward.endTime.getTime(), 1000)),
-        rewardMint: toPub(reward.tokenMint),
+        rewardMint: rewardToken.mint,
         rewardPerSecond: toBN(mul(estimatedValue, padZero(1, rewardToken.decimals))),
         rewardOwnerAccount: rewardTokenAccount.publicKey
       } as FarmCreateInstructionParamsV6['rewardInfos'][number]

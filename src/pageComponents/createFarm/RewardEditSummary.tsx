@@ -72,12 +72,11 @@ export function RewardEditSummery({
         onActiveIndexChange?.(index)
       }}
       renderRowItem={({ item: reward, label }) => {
-        const rewardToken = getToken(reward.tokenMint)
         if (label === 'Asset') {
-          return reward.tokenMint ? (
+          return reward.token ? (
             <Row className="gap-1 items-center">
-              <CoinAvatar token={rewardToken} size="sm" />
-              <div>{rewardToken?.symbol ?? 'UNKNOWN'}</div>
+              <CoinAvatar token={reward.token} size="sm" />
+              <div>{reward.token?.symbol ?? 'UNKNOWN'}</div>
             </Row>
           ) : (
             '--'
@@ -88,7 +87,7 @@ export function RewardEditSummery({
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
           return reward.amount ? (
             <div className="break-all">
-              {formatNumber(reward.amount, { fractionLength: rewardToken?.decimals ?? 6 })}
+              {formatNumber(reward.amount, { fractionLength: reward.token?.decimals ?? 6 })}
             </div>
           ) : undefined
         }
@@ -120,7 +119,7 @@ export function RewardEditSummery({
           if (!estimatedValue) return
           return (
             <div className="text-xs">
-              {toString(estimatedValue)} {rewardToken?.symbol}
+              {toString(estimatedValue)} {reward.token?.symbol}
             </div>
           )
         }

@@ -5,7 +5,7 @@ import toPubString from '@/functions/format/toMintString'
 import { mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useConnection from '../connection/useConnection'
-import { HydratedRewardInfo } from '../farms/type'
+import { APIRewardInfo, HydratedRewardInfo } from '../farms/type'
 import { UIRewardInfo } from './type'
 
 let lastTempUIRewardId = 1
@@ -50,7 +50,7 @@ export function parsedApiRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): U
   return {
     id: toPubString(reward.rewardVault),
     type: 'exist reward info',
-    tokenMint: toPubString(reward.rewardMint),
+    token: reward.token,
     amount: fullAmount,
     restAmount,
     endTime: reward.endTime ? new Date(reward.endTime * 1000) : undefined, // chain time

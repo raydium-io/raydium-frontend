@@ -22,8 +22,7 @@ export default function CreateFarmReviewPage() {
           assert(poolId, 'poolId is not defined')
           rewards.forEach((reward) => {
             assert(reward.amount, 'reward amount is not defined')
-            assert(reward.tokenMint, 'reward token mint is not defined')
-            assert(getToken(reward.tokenMint), "can't find selected reward token")
+            assert(reward.token, 'reward token is not defined')
             assert(reward.startTime, 'reward start time is not defined')
             assert(reward.endTime, 'reward end time is not defined')
           })

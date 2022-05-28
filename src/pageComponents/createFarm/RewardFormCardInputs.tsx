@@ -41,7 +41,6 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
   const rewards = useCreateFarms((s) => s.rewards)
   const reward = rewards[rewardIndex]
   const getToken = useToken((s) => s.getToken)
-  const rewardToken = getToken(reward.tokenMint)
   if (!reward) return null
 
   const [durationTime, setDurationTime] = useStateWithSuperPreferential(
@@ -58,13 +57,13 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
         className={`rounded-md`}
         haveHalfButton
         topLeftLabel="Assert"
-        disableTokenMints={shakeUndifindedItem(rewards.map((r) => r.tokenMint))}
+        disableTokenMints={shakeUndifindedItem(rewards.map((r) => r.token?.mint))}
         value={toString(reward.amount)}
-        token={rewardToken}
+        token={reward.token}
         onSelectCoin={(token) => {
           useCreateFarms.setState({
             rewards: produce(rewards, (draft) => {
-              draft[rewardIndex].tokenMint = toPubString(token.mint)
+              draft[rewardIndex].token = token
             })
           })
         }}
@@ -214,7 +213,7 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
 
       <InputBox
         decimalMode
-        decimalCount={rewardToken?.decimals ?? 6}
+        decimalCount={reward.token?.decimals ?? 6}
         valueFloating
         className="rounded-md px-4 font-medium text-sm"
         inputClassName="text-white"
@@ -230,7 +229,7 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
         }}
         suffix={
           isMeaningfulNumber(estimatedValue) ? (
-            <div className="font-medium text-sm text-[#abc4ff80]">{rewardToken?.symbol ?? '--'}</div>
+            <div className="font-medium text-sm text-[#abc4ff80]">{reward.token?.symbol ?? '--'}</div>
           ) : undefined
         }
       />

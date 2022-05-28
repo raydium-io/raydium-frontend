@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useRef, useState } from 'react'
+import React, { Fragment, ReactNode, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
 import { Fraction, option, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
@@ -9,7 +9,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txFarmDeposit from '@/application/farms/transaction/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/transaction/txFarmHarvest'
 import txFarmWithdraw from '@/application/farms/transaction/txFarmWithdraw'
-import { FarmPoolJsonInfo, HydratedFarmInfo } from '@/application/farms/type'
+import { FarmPoolJsonInfo, HydratedFarmInfo, HydratedRewardInfo } from '@/application/farms/type'
 import useFarms, { useFarmFavoriteIds } from '@/application/farms/useFarms'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
@@ -52,6 +52,8 @@ import LoadingCircle from '@/components/LoadingCircle'
 import toPubString from '@/functions/format/toMintString'
 import { Badge } from '@/components/Badge'
 import { isFarmJsonInfo } from '@/application/farms/utils/judgeFarmInfo'
+import CoinAvatar from '@/components/CoinAvatar'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function FarmsPage() {
   return (
@@ -502,6 +504,16 @@ function FarmCardDatabaseBody({
     </>
   )
 }
+
+function FarmRewardToken({ reward }: { reward: HydratedRewardInfo }) {
+  return (
+    <Row className="border border-white">
+      <div>{toPubString(reward.token?.mint)}</div>
+      <CoinAvatar token={reward.token} />
+    </Row>
+  )
+}
+
 function FarmCardDatabaseBodyCollapseItemFace({
   open,
   info,
@@ -548,23 +560,43 @@ function FarmCardDatabaseBodyCollapseItemFace({
 
       <CoinAvatarInfoItem info={info} className="self-center" />
 
-      <TextInfoItem
-        name="Pending Rewards"
-        value={
-          <div>
-            {isFarmJsonInfo(info)
-              ? '--'
-              : info.rewards.map(
-                  ({ token, pendingReward, canBeRewarded }, idx) =>
-                    canBeRewarded && (
-                      <div key={idx} /* className={isMeaningfulNumber(toString(pendingReward)) ? '' : 'opacity-50'} */>
-                        {toString(pendingReward) || '0'} {token?.symbol}
-                      </div>
+      {info.version === 6 ? (
+        <TextInfoItem
+          name="Pending Rewards"
+          value={
+            <div>
+              {isFarmJsonInfo(info)
+                ? '--'
+                : info.rewards.map((reward, idx) => {
+                    console.log('reward: ', toHumanReadable(reward), toPubString(info.id))
+                    return (
+                      <Fragment key={toPubString(reward.rewardVault)}>
+                        <FarmRewardToken reward={reward} />
+                      </Fragment>
                     )
-                )}
-          </div>
-        }
-      />
+                  })}
+            </div>
+          }
+        />
+      ) : (
+        <TextInfoItem
+          name="Pending Rewards"
+          value={
+            <div>
+              {isFarmJsonInfo(info)
+                ? '--'
+                : info.rewards.map(
+                    ({ token, pendingReward, canBeRewarded }, idx) =>
+                      canBeRewarded && (
+                        <div key={idx}>
+                          {toString(pendingReward) || '0'} {token?.symbol}
+                        </div>
+                      )
+                  )}
+            </div>
+          }
+        />
+      )}
 
       <TextInfoItem
         name="Total APR"

@@ -1,5 +1,6 @@
 import { HexAddress, Numberish } from '@/types/constants'
 import { Percent } from '@raydium-io/raydium-sdk'
+import { SplToken } from '../token/type'
 
 export type UIRewardInfo = {
   id: string | number // for farm edit it will be
@@ -9,7 +10,7 @@ export type UIRewardInfo = {
 
   // rewardVault?: HexAddress // only existed reward may have this
 
-  tokenMint?: string
+  token?: SplToken
   amount?: Numberish
   startTime?: Date
   endTime?: Date

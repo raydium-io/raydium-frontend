@@ -50,15 +50,6 @@ export type FarmPoolsJsonFile = {
   unOfficial?: FarmPoolJsonInfo[]
 }
 
-type SDKRewardInfo = {
-  rewardMint: PublicKey
-  rewardVault: PublicKey
-  openTime?: number
-  endTime?: number
-  perSecond: string | number
-  owner?: PublicKey
-}
-
 type SdkParsedFarmInfoBase = {
   jsonInfo: FarmPoolJsonInfo
   id: PublicKey
@@ -66,7 +57,7 @@ type SdkParsedFarmInfoBase = {
   programId: PublicKey
   authority: PublicKey
   lpVault: SplAccount
-  rewardInfos: SDKRewardInfo[]
+  rewardInfos: APIRewardInfo[]
   /** only when user have deposited and connected wallet */
   ledger?: {
     id: PublicKey
@@ -93,7 +84,13 @@ export type HydratedRewardInfo = {
   token: SplToken | undefined
   /** only when user have deposited and connected wallet */
   pendingReward: TokenAmount | undefined
-} & SDKRewardInfo
+  version: 3 | 5 | 6
+  rewardVault: PublicKey
+  openTime?: number // v6
+  endTime?: number // v6
+  owner?: PublicKey // v6
+  perSecond?: string | number // v6
+}
 
 /** computed by other info  */
 

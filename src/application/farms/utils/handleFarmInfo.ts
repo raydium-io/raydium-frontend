@@ -2,6 +2,9 @@ import {
   CurrencyAmount,
   Farm,
   FarmFetchMultipleInfoParams,
+  FarmState,
+  FarmStateV3,
+  FarmStateV5,
   Fraction,
   ONE,
   Price,
@@ -19,11 +22,15 @@ import toTotalPrice from '@/functions/format/toTotalPrice'
 
 import { SplToken } from '../../token/type'
 import { FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from '../type'
-import toPubString from '@/functions/format/toMintString'
+import toPubString, { toPub } from '@/functions/format/toMintString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { LiquidityStore } from '@/application/liquidity/useLiquidity'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { RAYMint } from '@/application/token/utils/wellknownToken.config'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { PublicKey } from '@solana/web3.js'
+import { unionArr } from '@/types/generics'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { official: boolean })[] | undefined> {
   const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
@@ -105,23 +112,47 @@ export function hydrateFarmInfo(
 
   const totalApr = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), undefined)
   const ammId = findAmmId(farmInfo.lpMint)
-  const rewards: HydratedFarmInfo['rewards'] = farmInfo.state.rewardInfos.map((rewardInfo, idx) => {
-    const pendingReward = pendingRewards?.[idx]
-    const apr = aprs[idx]
-    const token = rewardTokens[idx]
-    if (farmInfo.version === 6) {
-      const { rewardOpenTime, rewardEndTime } = rewardInfo
-      const openTime = rewardOpenTime.toNumber()
-      const endTime = rewardEndTime.toNumber()
-      const canBeRewarded =
-        (openTime ? currentIsAfter(openTime, { unit: 's' }) : true) && currentIsBefore(endTime, { unit: 's' }) /* v6 */
-      return { ...rewardInfo, apr, token, pendingReward, canBeRewarded }
-    } else {
-      const { perSlotReward } = rewardInfo
-      const canBeRewarded = isMeaningfulNumber(pendingReward) || isMeaningfulNumber(perSlotReward)
-      return { ...rewardInfo, apr, token, pendingReward, canBeRewarded }
-    }
-  })
+  const rewards: HydratedFarmInfo['rewards'] =
+    farmInfo.version === 6
+      ? shakeUndifindedItem(
+          farmInfo.state.rewardInfos.map((rewardInfo, idx) => {
+            const { rewardOpenTime, rewardEndTime } = rewardInfo
+            const openTime = rewardOpenTime.toNumber()
+            const endTime = rewardEndTime.toNumber()
+            // console.log('aprs.length: ', aprs.length)
+            if (!openTime && !endTime) return undefined // if reward is not any state, return undefined to delete it
+            const pendingReward = pendingRewards?.[idx]
+            const apr = aprs[idx]
+            const token = rewardTokens[idx]
+            const canBeRewarded =
+              (openTime ? currentIsAfter(openTime, { unit: 's' }) : true) &&
+              currentIsBefore(endTime, { unit: 's' }) /* v6 */
+            // console.log('farmPending: ', farmInfo.wrapped, openTime, endTime) // TODO: No v6 wrapped? what happened?😨
+            return {
+              ...rewardInfo,
+              apr,
+              token,
+              pendingReward,
+              canBeRewarded,
+              perSecond: rewardInfo.rewardPerSecond.toString()
+            }
+          })
+        )
+      : unionArr(farmInfo.state.rewardInfos).map((rewardInfo, idx) => {
+          const pendingReward = pendingRewards?.[idx]
+          const apr = aprs[idx]
+          const token = rewardTokens[idx]
+          const { perSlotReward } = rewardInfo
+
+          const canBeRewarded = isMeaningfulNumber(pendingReward) || isMeaningfulNumber(perSlotReward)
+          return {
+            ...rewardInfo,
+            apr,
+            token,
+            pendingReward,
+            canBeRewarded
+          }
+        })
   const userStakedLpAmount =
     lpToken && farmInfo.ledger?.deposited ? new TokenAmount(lpToken, farmInfo.ledger?.deposited) : undefined
 
@@ -189,7 +220,7 @@ function calculateFarmPoolAprs(
       return apr
     })
   } else {
-    const calcAprs = info.state.rewardInfos.map(({ perSlotReward }, idx) => {
+    const calcAprs = unionArr(info.state.rewardInfos).map(({ perSlotReward }, idx) => {
       const rewardToken = payload.rewardTokens[idx]
       if (!rewardToken) return undefined
       const rewardTokenPrice = payload.rewardTokenPrices[idx]

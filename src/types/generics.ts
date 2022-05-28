@@ -49,3 +49,15 @@ export type Fallback<T, FallbackT> = T extends undefined ? FallbackT : T
 export type Cover<O, T> = { [K in SKeyof<O> | SKeyof<T>]: Fallback<GetValue<T, K>, GetValue<O, K>> }
 
 export type UnionCover<O, T> = T extends T ? Cover<O, T> : never
+
+type MergeArr<Arr> = (Arr extends (infer T)[] ? T : never)[]
+
+/**
+ * typescript type helper function
+ * @example
+ * type A = { hello: string; version: 3 }[]
+ * type B = { hello: string; version: 5 }[]
+ * type OK = MergeArr<A | B> // ({ hello: string; version: 3 } | { hello: string; version: 5 })[]
+ * type Wrong = A | B // { hello: string; version: 3 }[] | { hello: string; version: 5 }[] // <= this type can't have auto type intelligense of array.map
+ */
+export const unionArr = <T>(arr: T) => arr as unknown as MergeArr<T>
