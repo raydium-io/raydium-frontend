@@ -183,7 +183,7 @@ function FarmTabBlock({ className }: { className?: string }) {
         'All',
         // 'Raydium',
         'Fusion',
-        'Ecosystem',
+        isMobile ? undefined : 'Ecosystem',
         'Inactive'
       ] as const)}
       onChange={(tab) => useFarms.setState({ currentTab: tab })}
@@ -488,9 +488,7 @@ function FarmCardDatabaseBody({
                   )}
                 </Collapse.Face>
                 <Collapse.Body>
-                  {isLoading ? null : (
-                    <FarmCardDatabaseBodyCollapseItemContent hydratedInfo={info as HydratedFarmInfo} />
-                  )}
+                  {isLoading ? null : <FarmCardDatabaseBodyCollapseItemContent farmInfo={info as HydratedFarmInfo} />}
                 </Collapse.Body>
               </Collapse>
             </List.Item>
@@ -604,8 +602,8 @@ function FarmCardDatabaseBodyCollapseItemFace({
               {isFarmJsonInfo(info)
                 ? '--'
                 : info.rewards.map(
-                    ({ token, pendingReward, canBeRewarded }) =>
-                      canBeRewarded && (
+                    ({ token, pendingReward, usedTohaveReward }) =>
+                      usedTohaveReward && (
                         <div key={toPubString(token?.mint)}>
                           {toString(pendingReward) || '0'} {token?.symbol}
                         </div>
@@ -629,8 +627,8 @@ function FarmCardDatabaseBodyCollapseItemFace({
                   <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeRpr)}</div>
                 )}
                 {info.rewards.map(
-                  ({ apr, token, canBeRewarded }, idx) =>
-                    canBeRewarded && (
+                  ({ apr, token, usedTohaveReward }, idx) =>
+                    usedTohaveReward && (
                       <div key={idx} className="whitespace-nowrap">
                         {token?.symbol} {toPercentString(apr)}
                       </div>
@@ -720,8 +718,8 @@ function FarmCardDatabaseBodyCollapseItemFace({
                       <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeRpr)}</div>
                     )}
                     {info.rewards.map(
-                      ({ apr, token, canBeRewarded }, idx) =>
-                        canBeRewarded && (
+                      ({ apr, token, usedTohaveReward }, idx) =>
+                        usedTohaveReward && (
                           <div key={idx} className="whitespace-nowrap">
                             {token?.symbol} {toPercentString(apr)}
                           </div>
@@ -764,23 +762,22 @@ function FarmCardDatabaseBodyCollapseItemFace({
   return isMobile ? mobileContent : pcCotent
 }
 
-function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInfo: HydratedFarmInfo }) {
+function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: HydratedFarmInfo }) {
   const lpPrices = usePools((s) => s.lpPrices)
   const prices = useToken((s) => s.tokenPrices)
   const isMobile = useAppSettings((s) => s.isMobile)
   const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
-  const { push } = useRouter()
   const connected = useWallet((s) => s.connected)
 
   const balances = useWallet((s) => s.balances)
-  const hasLp = isMeaningfulNumber(balances[toPubString(hydratedInfo.lpMint)])
+  const hasLp = isMeaningfulNumber(balances[toPubString(farmInfo.lpMint)])
   const hasPendingReward = useMemo(
     () =>
       gt(
-        hydratedInfo.rewards.reduce((acc, reward) => add(acc, reward.pendingReward ?? ZERO), new Fraction(ZERO)),
+        farmInfo.rewards.reduce((acc, reward) => add(acc, reward.pendingReward ?? ZERO), new Fraction(ZERO)),
         ZERO
       ),
-    [hydratedInfo]
+    [farmInfo]
   )
   return (
     <div
@@ -798,31 +795,31 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
             <div className="flex-grow">
               <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Deposited</div>
               <div className="text-white font-medium text-base mobile:text-xs">
-                {lpPrices[String(hydratedInfo.lpMint)] && hydratedInfo.userStakedLpAmount
-                  ? toUsdVolume(toTotalPrice(hydratedInfo.userStakedLpAmount, lpPrices[String(hydratedInfo.lpMint)]))
+                {lpPrices[String(farmInfo.lpMint)] && farmInfo.userStakedLpAmount
+                  ? toUsdVolume(toTotalPrice(farmInfo.userStakedLpAmount, lpPrices[String(farmInfo.lpMint)]))
                   : '--'}
               </div>
-              {hydratedInfo.userStakedLpAmount && (
+              {farmInfo.userStakedLpAmount && (
                 <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
-                  {formatNumber(toString(hydratedInfo.userStakedLpAmount), {
-                    fractionLength: hydratedInfo.userStakedLpAmount?.token.decimals
+                  {formatNumber(toString(farmInfo.userStakedLpAmount), {
+                    fractionLength: farmInfo.userStakedLpAmount?.token.decimals
                   })}{' '}
                   LP
                 </div>
               )}
             </div>
             <Row className="gap-3">
-              {hydratedInfo.userHasStaked ? (
+              {farmInfo.userHasStaked ? (
                 <>
                   <Button
                     className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
-                    disabled={(hydratedInfo.isClosedPool && !hydratedInfo.isUpcomingPool) || !hasLp}
+                    disabled={(farmInfo.isClosedPool && !farmInfo.isUpcomingPool) || !hasLp}
                     onClick={() => {
                       if (connected) {
                         useFarms.setState({
                           isStakeDialogOpen: true,
                           stakeDialogMode: 'deposit',
-                          stakeDialogInfo: hydratedInfo
+                          stakeDialogInfo: farmInfo
                         })
                       } else {
                         useAppSettings.setState({ isWalletSelectorShown: true })
@@ -841,7 +838,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
                           useFarms.setState({
                             isStakeDialogOpen: true,
                             stakeDialogMode: 'withdraw',
-                            stakeDialogInfo: hydratedInfo
+                            stakeDialogInfo: farmInfo
                           })
                         } else {
                           useAppSettings.setState({ isWalletSelectorShown: true })
@@ -869,7 +866,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
                     useFarms.setState({
                       isStakeDialogOpen: true,
                       stakeDialogMode: 'deposit',
-                      stakeDialogInfo: hydratedInfo
+                      stakeDialogInfo: farmInfo
                     })
                   }}
                 >
@@ -883,38 +880,58 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
             is={isMobile ? 'Col' : 'Row'}
             className="p-6 mobile:py-3 mobile:px-4 flex-grow ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl items-center gap-3"
           >
-            <Row className="flex-grow divide-x-1.5 w-full">
-              {hydratedInfo.rewards?.map(
-                (reward, idx) =>
-                  reward.canBeRewarded && (
-                    <div
-                      key={idx}
-                      className={`px-4 ${idx === 0 ? 'pl-0' : ''} ${
-                        idx === hydratedInfo.rewards.length - 1 ? 'pr-0' : ''
-                      } border-[rgba(171,196,255,.5)]`}
-                    >
-                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
-                        Pending rewards
-                      </div>
-                      <div className={`text-white font-medium text-base mobile:text-xs`}>
+            {farmInfo.version === 6 ? (
+              <div className="flex-grow w-full">
+                <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-5">
+                  Pending rewards and period
+                </div>
+                <Grid className="gap-board clip-insert-4 grid-cols-2">
+                  {farmInfo.rewards?.map((reward, idx) => (
+                    <div key={idx} className="p-4">
+                      <div className={`text-white font-medium text-sm mobile:text-xs mb-0.5`}>
                         {reward.pendingReward ? toString(reward.pendingReward) : 0} {reward.token?.symbol}
                       </div>
-                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-                        {prices?.[String(reward.token?.mint)] && reward?.pendingReward
-                          ? toUsdVolume(toTotalPrice(reward.pendingReward, prices[String(reward.token?.mint)]))
-                          : null}
+                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-xs mobile:text-2xs">
+                        {formatDate(reward.openTime, 'DD/MM/YY')} - {formatDate(reward.openTime, 'DD/MM/YY')}
                       </div>
                     </div>
-                  )
-              )}
-            </Row>
+                  ))}
+                </Grid>
+              </div>
+            ) : (
+              <Row className="flex-grow divide-x-1.5 w-full">
+                {farmInfo.rewards?.map(
+                  (reward, idx) =>
+                    reward.usedTohaveReward && (
+                      <div
+                        key={idx}
+                        className={`px-4 ${idx === 0 ? 'pl-0' : ''} ${
+                          idx === farmInfo.rewards.length - 1 ? 'pr-0' : ''
+                        } border-[rgba(171,196,255,.5)]`}
+                      >
+                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
+                          Pending rewards
+                        </div>
+                        <div className={`text-white font-medium text-base mobile:text-xs`}>
+                          {reward.pendingReward ? toString(reward.pendingReward) : 0} {reward.token?.symbol}
+                        </div>
+                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                          {prices?.[String(reward.token?.mint)] && reward?.pendingReward
+                            ? toUsdVolume(toTotalPrice(reward.pendingReward, prices[String(reward.token?.mint)]))
+                            : null}
+                        </div>
+                      </div>
+                    )
+                )}
+              </Row>
+            )}
             <Button
               // disable={Number(info.pendingReward?.numerator) <= 0}
               className="frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"
               onClick={() => {
-                txFarmHarvest(hydratedInfo, {
+                txFarmHarvest(farmInfo, {
                   isStaking: false,
-                  rewardAmounts: hydratedInfo.rewards
+                  rewardAmounts: farmInfo.rewards
                     .map(({ pendingReward }) => pendingReward)
                     .filter(isMeaningfulNumber) as TokenAmount[]
                 })
@@ -950,7 +967,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
                 heroIconName="plus"
                 className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
-                  routeTo('/liquidity/add', { queryProps: { ammId: hydratedInfo.ammId } })
+                  routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
                 }}
               />
               <Icon
@@ -958,7 +975,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
                 iconSrc="/icons/msic-swap-h.svg"
                 className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
-                  routeTo('/swap', { queryProps: { coin1: hydratedInfo.base, coin2: hydratedInfo.quote } })
+                  routeTo('/swap', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
                 }}
               />
             </Row>
@@ -970,7 +987,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
                   heroIconName="plus"
                   className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                   onClick={() => {
-                    routeTo('/liquidity/add', { queryProps: { ammId: hydratedInfo.ammId } })
+                    routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
                   }}
                 />
                 <Tooltip.Panel>Add Liquidity</Tooltip.Panel>
@@ -981,7 +998,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
                   iconSrc="/icons/msic-swap-h.svg"
                   className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                   onClick={() => {
-                    routeTo('/swap', { queryProps: { coin1: hydratedInfo.base, coin2: hydratedInfo.quote } })
+                    routeTo('/swap', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
                   }}
                 />
                 <Tooltip.Panel>Swap</Tooltip.Panel>
@@ -996,7 +1013,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ hydratedInfo }: { hydratedInf
         <Button
           className="frosted-glass-teal"
           onClick={() => {
-            routeTo('/farms/edit', { queryProps: { farmInfo: hydratedInfo } })
+            routeTo('/farms/edit', { queryProps: { farmInfo: farmInfo } })
           }}
         >
           Edit Farm

@@ -104,8 +104,8 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
         value={
           <div>
             {info.rewards.map(
-              ({ token, pendingReward, canBeRewarded }, idx) =>
-                canBeRewarded && (
+              ({ token, pendingReward, usedTohaveReward }, idx) =>
+                usedTohaveReward && (
                   <div key={idx}>
                     {toString(pendingReward ?? 0)} {token?.symbol}
                   </div>
@@ -156,8 +156,8 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
             value={
               <div>
                 {info.rewards.map(
-                  ({ token, pendingReward, canBeRewarded }, idx) =>
-                    canBeRewarded && (
+                  ({ token, pendingReward, usedTohaveReward }, idx) =>
+                    usedTohaveReward && (
                       <div key={idx}>
                         {toString(pendingReward ?? 0)} {token?.symbol ?? ''}
                       </div>
@@ -298,7 +298,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
         <Row className="flex-grow divide-x-1.5 w-full">
           {hydratedInfo.rewards?.map(
             (reward, idx) =>
-              reward.canBeRewarded && (
+              reward.usedTohaveReward && (
                 <div
                   key={idx}
                   className={`px-4 ${idx === 0 ? 'pl-0' : ''} ${

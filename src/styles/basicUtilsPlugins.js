@@ -175,6 +175,18 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
       '> *': {
         border: '1px solid #abc4ff1a'
       }
+    },
+    '.clip-insert-1': {
+      clipPath: 'inset(4px)',
+      margin: '-4px'
+    },
+    '.clip-insert-2': {
+      clipPath: 'inset(8px)',
+      margin: '-8px'
+    },
+    '.clip-insert-4': {
+      clipPath: 'inset(16px)',
+      margin: '-16px'
     }
   })
 })

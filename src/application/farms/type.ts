@@ -79,7 +79,7 @@ export type SdkParsedFarmInfo = UnionCover<
 >
 
 export type HydratedRewardInfo = {
-  canBeRewarded: boolean
+  usedTohaveReward: boolean
   apr: Percent | undefined // farm's rewards apr
   token: SplToken | undefined
   /** only when user have deposited and connected wallet */

@@ -133,18 +133,14 @@ export function hydrateFarmInfo(
             const pendingReward = pendingRewards?.[idx]
             const apr = aprs[idx]
             const token = rewardTokens[idx]
-            const canBeRewarded = Boolean(
-              (rewardStartTime ? currentIsAfter(rewardStartTime) : true) &&
-                rewardEndTime &&
-                currentIsBefore(rewardEndTime)
-            ) /* v6 */
+            const usedTohaveReward = Boolean(rewardEndTime)
 
             return {
               ...rewardInfo,
               apr,
               token,
               pendingReward,
-              canBeRewarded,
+              usedTohaveReward,
               perSecond: rewardInfo.rewardPerSecond.toString(),
               openTime: rewardStartTime,
               endTime: rewardEndTime,
@@ -160,13 +156,13 @@ export function hydrateFarmInfo(
           const token = rewardTokens[idx]
           const { perSlotReward } = rewardInfo
 
-          const canBeRewarded = isMeaningfulNumber(pendingReward) || isMeaningfulNumber(perSlotReward)
+          const usedTohaveReward = isMeaningfulNumber(pendingReward) || isMeaningfulNumber(perSlotReward)
           return {
             ...rewardInfo,
             apr,
             token,
             pendingReward,
-            canBeRewarded
+            usedTohaveReward
           }
         })
   const userStakedLpAmount =
