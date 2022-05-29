@@ -1,11 +1,11 @@
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
-import useConnection from '../../connection/useConnection'
-import { usePools } from '../../pools/usePools'
-import useToken from '../../token/useToken'
-import useWallet from '../../wallet/useWallet'
-import useFarms from '../useFarms'
-import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from '../utils/handleFarmInfo'
+import useConnection from '../connection/useConnection'
+import { usePools } from '../pools/usePools'
+import useToken from '../token/useToken'
+import useWallet from '../wallet/useWallet'
+import useFarms from './useFarms'
+import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
 

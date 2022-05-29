@@ -3,7 +3,7 @@ import create from 'zustand'
 import { inClient } from '@/functions/judgers/isSSR'
 
 import { FarmPoolJsonInfo, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
-import { fetchFarmJsonInfos } from './utils/handleFarmInfo'
+import { fetchFarmJsonInfos } from './handleFarmInfo'
 import useToken from '../token/useToken'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 
@@ -23,6 +23,7 @@ export type FarmStore = {
   refreshFarmInfos(): void
 
   onlySelfFarms: boolean
+  onlySelfCreatedFarms: boolean
   currentTab: 'All' | 'Upcoming' | 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive'
   searchText: string
 
@@ -47,6 +48,7 @@ const useFarms = create<FarmStore>((set) => ({
   },
 
   onlySelfFarms: false,
+  onlySelfCreatedFarms: false,
   currentTab: 'All',
   searchText: '',
 

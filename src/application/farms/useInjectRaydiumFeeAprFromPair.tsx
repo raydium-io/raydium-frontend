@@ -3,8 +3,8 @@ import { useEffect, useMemo } from 'react'
 import { usePools } from '@/application/pools/usePools'
 import { toPercent } from '@/functions/format/toPercent'
 
-import { HydratedFarmInfo } from '../type'
-import useFarms from '../useFarms'
+import { HydratedFarmInfo } from './type'
+import useFarms from './useFarms'
 
 export default function useInjectRaydiumFeeAprFromPair() {
   const pairs = usePools((s) => s.jsonInfos)

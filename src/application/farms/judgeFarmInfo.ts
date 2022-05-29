@@ -1,4 +1,4 @@
-import { FarmPoolJsonInfo, HydratedFarmInfo } from '../type'
+import { FarmPoolJsonInfo, HydratedFarmInfo } from './type'
 
 export function isFarmJsonInfo(info: HydratedFarmInfo | FarmPoolJsonInfo): info is FarmPoolJsonInfo {
   const isHydrated = (info as HydratedFarmInfo).jsonInfo !== undefined

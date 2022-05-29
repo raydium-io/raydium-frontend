@@ -51,7 +51,7 @@ import Popover from '@/components/Popover'
 import LoadingCircle from '@/components/LoadingCircle'
 import toPubString from '@/functions/format/toMintString'
 import { Badge } from '@/components/Badge'
-import { isFarmJsonInfo } from '@/application/farms/utils/judgeFarmInfo'
+import { isFarmJsonInfo } from '@/application/farms/judgeFarmInfo'
 import CoinAvatar from '@/components/CoinAvatar'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { formatDate } from '@/functions/date/dateFormat'
@@ -160,19 +160,19 @@ function FarmStakedOnlyBlock({ className }: { className?: string }) {
   )
 }
 
-// function FarmSlefCreateOnlyBlock({ className }: { className?: string }) {
-//   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
-//   return (
-//     <Row className="justify-self-end  mobile:justify-self-auto flex-wrap items-center">
-//       <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show farms by me</span>
-//       <Switcher
-//         className="ml-2 "
-//         defaultChecked={onlySelfFarms}
-//         onToggle={(isOnly) => useFarms.setState({ onlySelfFarms: isOnly })}
-//       />
-//     </Row>
-//   )
-// }
+function FarmSlefCreateOnlyBlock({ className }: { className?: string }) {
+  const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
+  return (
+    <Row className="justify-self-end  mobile:justify-self-auto flex-wrap items-center">
+      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show farms by me</span>
+      <Switcher
+        className="ml-2 "
+        defaultChecked={onlySelfFarms}
+        onToggle={(isOnly) => useFarms.setState({ onlySelfFarms: isOnly })}
+      />
+    </Row>
+  )
+}
 
 function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
   return (
@@ -264,6 +264,7 @@ function FarmCard() {
 
   const currentTab = useFarms((s) => s.currentTab)
   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
+  const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   const searchText = useFarms((s) => s.searchText)
   const lpTokens = useToken((s) => s.lpTokens)
 
