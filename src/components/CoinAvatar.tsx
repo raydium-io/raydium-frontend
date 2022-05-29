@@ -42,7 +42,7 @@ export default function CoinAvatar({
     iconSrc ??
     ((token as any)?.icons as string[] | undefined) ??
     ((token as any)?.icon as string | undefined) ??
-    '/coins/dollar.svg'
+    '/coins/unknown.svg'
   const hasOpacity = !noCoinIconBorder
   const iconSize =
     size === '2xl'

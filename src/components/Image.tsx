@@ -37,7 +37,7 @@ export default function Image({
   const srcSet = shakeUndifindedItem([src, fallbackSrc].flat())
   const srcFingerprint = srcSet.join(' ')
   const [currentUsedSrcIndex, setCurrentUsedSrcIndex] = useState(0)
-  const currentSrc = srcSet[currentUsedSrcIndex]
+  const currentSrc = srcSet[currentUsedSrcIndex] || fallbackSrc
   const alertText = alert ?? getFileNameOfURI(currentSrc ?? '')
 
   useEffect(() => {
@@ -55,7 +55,7 @@ export default function Image({
       height={height}
       ref={mergeRef(domRef, ref)}
       className={`Image ${src || srcSet.length ? '' : 'invisible'} ${className ?? ''}`}
-      src={srcSet[currentUsedSrcIndex]}
+      src={currentSrc}
       alt={alertText}
       style={style}
     />
