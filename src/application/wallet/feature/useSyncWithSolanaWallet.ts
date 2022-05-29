@@ -9,7 +9,6 @@ import { attachRecentBlockhash } from '@/application/txTools/attachRecentBlockha
 import useWallet from '../useWallet'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { isValidePublicKey } from '@/functions/judgers/dateType'
-import useNotification from '@/application/notification/useNotification'
 
 /**
  * **only in `_app.tsx`**

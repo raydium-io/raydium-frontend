@@ -46,15 +46,17 @@ import { useInitShadowKeypairs } from '@/application/wallet/feature/useInitShado
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
 import useStealDataFromFarm from '@/application/staking/feature/useStealDataFromFarm'
 import { useTokenGetterFnLoader } from '@/application/token/feature/useTokenGetterFnLoader'
-import { POPOVER_STACK_ID } from '@/components/Popover'
-import { DRAWER_STACK_ID } from '@/components/Drawer'
 
 import { PublicKey } from '@solana/web3.js'
 import toPubString from '@/functions/format/toMintString'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { inClient } from '@/functions/judgers/isSSR'
 import { createDOMElement } from '@/functions/dom/createDOMElement'
-import useFreshChainTimeOffset from '@/application/connection/useConnectionInitialization copy'
+import useFreshChainTimeOffset from '@/application/connection/useFreshChainTimeOffset'
+import useFarmResetSelfCreatedByOwner from '@/application/farms/useFarmResetSelfCreatedByOwner'
+
+import { POPOVER_STACK_ID } from '@/components/Popover'
+import { DRAWER_STACK_ID } from '@/components/Drawer'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -169,6 +171,7 @@ function ApplicationsInitializations() {
   /********************** farm **********************/
   useInjectRaydiumFeeAprFromPair() // auto inject apr to farm info from backend pair interface
   useFarmInfoFetcher()
+  useFarmResetSelfCreatedByOwner()
 
   /********************** staking **********************/
   useStealDataFromFarm() // auto inject apr to farm info from backend pair interface

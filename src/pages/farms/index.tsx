@@ -160,15 +160,15 @@ function FarmStakedOnlyBlock({ className }: { className?: string }) {
   )
 }
 
-function FarmSlefCreateOnlyBlock({ className }: { className?: string }) {
-  const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
+function FarmSlefCreatedOnlyBlock({ className }: { className?: string }) {
+  const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   return (
     <Row className="justify-self-end  mobile:justify-self-auto flex-wrap items-center">
       <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show farms by me</span>
       <Switcher
         className="ml-2 "
-        defaultChecked={onlySelfFarms}
-        onToggle={(isOnly) => useFarms.setState({ onlySelfFarms: isOnly })}
+        defaultChecked={onlySelfCreatedFarms}
+        onToggle={(isOnly) => useFarms.setState({ onlySelfCreatedFarms: isOnly })}
       />
     </Row>
   )
@@ -271,37 +271,48 @@ function FarmCard() {
   const [favouriteIds] = useFarmFavoriteIds()
 
   const isMobile = useAppSettings((s) => s.isMobile)
+  const owner = useWallet((s) => s.owner)
 
   const dataSource = useMemo(
     () =>
-      hydratedInfos
-        // TEMP current not includes stable coin's farm
-        .filter((i) => lpTokens[toPubString(i.lpMint)])
-        // .filter((info) => info.isDualFusionPool) // TEMP for test
-        .filter((i) => (isMobile ? i.version !== 6 : true))
-        .filter(
-          (i) =>
-            // currentTab === 'Upcoming'
-            //   ? i.isUpcomingPool
-            //   : // : currentTab === 'Raydium'
-            // ? i.isRaydiumPool && !i.isClosedPool
+      hydratedInfos.filter((i) => lpTokens[toPubString(i.lpMint)]).filter((i) => (isMobile ? i.version !== 6 : true)),
+    [lpTokens, hydratedInfos]
+  )
 
-            currentTab === 'Fusion'
-              ? i.isNormalFusionPool || i.isDualFusionPool
-              : currentTab === 'Inactive'
-              ? i.isClosedPool && !i.isStakePool
-              : currentTab === 'Ecosystem'
-              ? i.version === 6
-              : i.isUpcomingPool || (!i.isClosedPool && !i.isStakePool) // currentTab == 'all'
-        ) // Tab
+  const tabedDataSource = useMemo(
+    () =>
+      dataSource.filter(
+        (i) =>
+          // currentTab === 'Upcoming'
+          //   ? i.isUpcomingPool
+          //   : // : currentTab === 'Raydium'
+          // ? i.isRaydiumPool && !i.isClosedPool
+
+          currentTab === 'Fusion'
+            ? i.isNormalFusionPool || i.isDualFusionPool
+            : currentTab === 'Inactive'
+            ? i.isClosedPool && !i.isStakePool
+            : currentTab === 'Ecosystem'
+            ? i.version === 6
+            : i.isUpcomingPool || (!i.isClosedPool && !i.isStakePool) // currentTab == 'all'
+      ),
+    [currentTab, dataSource]
+  )
+
+  const haveSelfCreatedFarm = tabedDataSource.some((i) => isMintEqual(i.creator, owner))
+
+  const applyFiltersDataSource = useMemo(
+    () =>
+      tabedDataSource
         .filter((i) => (onlySelfFarms ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true)) // Switch
+        .filter((i) => (onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)) // Switch
         .filter((i) => {
           // Search
           if (!searchText) return true
           const searchKeyWords = searchText.split(/\s|-/)
           return searchKeyWords.every((keyWord) => i.name.toLowerCase().includes(keyWord.toLowerCase()))
         }),
-    [lpTokens, currentTab, onlySelfFarms, searchText, hydratedInfos]
+    [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
   )
 
   const {
@@ -309,7 +320,7 @@ function FarmCard() {
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
-  } = useSort(dataSource, {
+  } = useSort(applyFiltersDataSource, {
     defaultSort: {
       key: 'defaultKey',
       sortBy: [(i) => i.isUpcomingPool, (i) => i.isNewPool, (i) => favouriteIds?.includes(toPubString(i.id))]
@@ -347,6 +358,7 @@ function FarmCard() {
         </div>
       </div>
       <Row className="items-center gap-8">
+        {haveSelfCreatedFarm && <FarmSlefCreatedOnlyBlock />}
         <FarmStakedOnlyBlock />
         <FarmSearchBlock />
       </Row>
