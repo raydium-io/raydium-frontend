@@ -21,7 +21,7 @@ export interface ConnectionError {
   details?: Record<string, any>
 }
 
-type ConnectionStore = {
+export type ConnectionStore = {
   connection: Connection | undefined
   version?: string | number
 

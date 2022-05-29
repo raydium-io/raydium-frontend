@@ -18,34 +18,17 @@ export function createNewUIRewardInfo(): UIRewardInfo {
   }
 }
 
-/**
- * inner have onlineChainTimeOffset
- */
 export function parsedApiRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): UIRewardInfo {
-  const { chainTimeOffset } = useConnection.getState()
   const restAmount = reward.endTime
     ? currentIsBefore(reward.endTime, { unit: 's' })
-      ? mul(
-          reward.perSecond,
-          parseDurationAbsolute(getDuration(toString(mul(reward.endTime, 1000)), Date.now())).seconds
-        )
+      ? mul(reward.perSecond, parseDurationAbsolute(getDuration(reward.endTime, Date.now())).seconds)
       : 0
     : undefined
   const fullAmount =
     reward.endTime && reward.openTime
-      ? mul(
-          reward.perSecond,
-          parseDurationAbsolute(getDuration(toString(mul(reward.endTime, 1000)), toString(mul(reward.openTime, 1000))))
-            .seconds
-        )
+      ? mul(reward.perSecond, parseDurationAbsolute(getDuration(reward.endTime, reward.openTime)).seconds)
       : undefined
   const rewardVersion = !reward.endTime && !reward.openTime ? 'v3/v5' : 'v6'
-  const rewardStartTime = reward.openTime ? new Date(reward.openTime * 1000) : undefined // chain time
-  const rewardEndTime = reward.endTime ? new Date(reward.endTime * 1000) : undefined // chain time
-  const onlineCurrentDate = Date.now() + (chainTimeOffset ?? 0)
-  const isRewardBeforeStart = Boolean(rewardStartTime && isDateBefore(onlineCurrentDate, rewardStartTime))
-  const isRewardEnded = Boolean(rewardEndTime && isDateAfter(onlineCurrentDate, rewardEndTime))
-  const isRewarding = (!rewardStartTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
 
   return {
     id: toPubString(reward.rewardVault),
@@ -53,12 +36,12 @@ export function parsedApiRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): U
     token: reward.token,
     amount: fullAmount,
     restAmount,
-    endTime: reward.endTime ? new Date(reward.endTime * 1000) : undefined, // chain time
-    startTime: reward.openTime ? new Date(reward.openTime * 1000) : undefined, // chain time
+    endTime: reward.endTime, // chain time
+    startTime: reward.openTime, // chain time
     version: rewardVersion,
     apr: reward.apr,
-    isRewarding,
-    isRewardBeforeStart,
-    isRewardEnded
+    isRewarding: reward.isRewarding,
+    isRewardBeforeStart: reward.isRewardBeforeStart,
+    isRewardEnded: reward.isRewardEnded
   }
 }

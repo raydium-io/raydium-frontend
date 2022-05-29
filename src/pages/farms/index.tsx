@@ -54,6 +54,7 @@ import { Badge } from '@/components/Badge'
 import { isFarmJsonInfo } from '@/application/farms/utils/judgeFarmInfo'
 import CoinAvatar from '@/components/CoinAvatar'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { formatDate } from '@/functions/date/dateFormat'
 
 export default function FarmsPage() {
   return (
@@ -346,7 +347,7 @@ function FarmCard() {
       {!isMobile && (
         <Row
           type="grid-x"
-          className="mb-3 h-12  sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl gap-2 grid-cols-[auto,1.5fr,1fr,1fr,1fr,auto]"
+          className="mb-3 h-12  sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl gap-2 grid-cols-[auto,1.5fr,1.2fr,1fr,1fr,auto]"
         >
           <Row
             className="group w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
@@ -505,12 +506,30 @@ function FarmCardDatabaseBody({
   )
 }
 
-function FarmRewardToken({ reward }: { reward: HydratedRewardInfo }) {
+function FarmRewardBadge({ reward }: { reward: HydratedRewardInfo }) {
   return (
-    <Row className="border border-white">
-      <div>{toPubString(reward.token?.mint)}</div>
-      <CoinAvatar token={reward.token} />
-    </Row>
+    <Tooltip placement="bottom">
+      <Row
+        className={`border-1.5 border-[#abc4ff80] p-1 rounded-full items-center gap-2 ${
+          reward.isRewardEnded ? 'opacity-50' : ''
+        }`}
+      >
+        {isMeaningfulNumber(reward.pendingReward) && (
+          <div className="text-xs translate-y-0.125 pl-1">
+            {formatNumber(toString(reward.pendingReward), { fractionLength: reward.pendingReward.token.decimals })}
+          </div>
+        )}
+        <CoinAvatar size="sm" token={reward.token} />
+      </Row>
+      <Tooltip.Panel>
+        <div className="mb-1">
+          {reward.token?.symbol ?? '--'} Reward Period {reward.isRewardEnded ? 'ended' : ''}
+        </div>
+        <div className="opacity-50">
+          {formatDate(reward.openTime, 'DD/MM/YY')} - {formatDate(reward.openTime, 'DD/MM/YY')}
+        </div>
+      </Tooltip.Panel>
+    </Tooltip>
   )
 }
 
@@ -532,7 +551,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
   const pcCotent = (
     <Row
       type="grid-x"
-      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-2 grid-cols-[auto,1.5fr,1fr,1fr,1fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
+      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-2 grid-cols-[auto,1.5fr,1.2fr,1fr,1fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       } transition-all`}
     >
@@ -564,18 +583,17 @@ function FarmCardDatabaseBodyCollapseItemFace({
         <TextInfoItem
           name="Pending Rewards"
           value={
-            <div>
+            <Row className="flex-wrap gap-2 w-full pr-8">
               {isFarmJsonInfo(info)
                 ? '--'
-                : info.rewards.map((reward, idx) => {
-                    console.log('reward: ', toHumanReadable(reward), toPubString(info.id))
+                : info.rewards.map((reward) => {
                     return (
                       <Fragment key={toPubString(reward.rewardVault)}>
-                        <FarmRewardToken reward={reward} />
+                        <FarmRewardBadge reward={reward} />
                       </Fragment>
                     )
                   })}
-            </div>
+            </Row>
           }
         />
       ) : (
@@ -586,9 +604,9 @@ function FarmCardDatabaseBodyCollapseItemFace({
               {isFarmJsonInfo(info)
                 ? '--'
                 : info.rewards.map(
-                    ({ token, pendingReward, canBeRewarded }, idx) =>
+                    ({ token, pendingReward, canBeRewarded }) =>
                       canBeRewarded && (
-                        <div key={idx}>
+                        <div key={toPubString(token?.mint)}>
                           {toString(pendingReward) || '0'} {token?.symbol}
                         </div>
                       )

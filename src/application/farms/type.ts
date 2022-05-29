@@ -86,8 +86,11 @@ export type HydratedRewardInfo = {
   pendingReward: TokenAmount | undefined
   version: 3 | 5 | 6
   rewardVault: PublicKey
-  openTime?: number // v6
-  endTime?: number // v6
+  openTime?: Date // v6
+  endTime?: Date // v6
+  isRewarding?: boolean // v6
+  isRewardBeforeStart?: boolean // v6
+  isRewardEnded?: boolean // v6
   owner?: PublicKey // v6
   perSecond?: string | number // v6
 }

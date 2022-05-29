@@ -25,12 +25,14 @@ import { FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInf
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { LiquidityStore } from '@/application/liquidity/useLiquidity'
-import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
+import { currentIsAfter, currentIsBefore, isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { RAYMint } from '@/application/token/utils/wellknownToken.config'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import { PublicKey } from '@solana/web3.js'
+import { Connection, PublicKey } from '@solana/web3.js'
 import { unionArr } from '@/types/generics'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { AppSettingsStore } from '@/application/appSettings/useAppSettings'
+import { ConnectionStore } from '@/application/connection/useConnection'
 
 export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { official: boolean })[] | undefined> {
   const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
@@ -70,6 +72,7 @@ export function hydrateFarmInfo(
     lpPrices: PoolsStore['lpPrices']
     tokenPrices: TokenStore['tokenPrices']
     liquidityJsonInfos: LiquidityStore['jsonInfos']
+    chainTimeOffset: ConnectionStore['chainTimeOffset']
   }
 ): HydratedFarmInfo {
   const farmPoolType = judgeFarmType(farmInfo)
@@ -116,25 +119,38 @@ export function hydrateFarmInfo(
     farmInfo.version === 6
       ? shakeUndifindedItem(
           farmInfo.state.rewardInfos.map((rewardInfo, idx) => {
-            const { rewardOpenTime, rewardEndTime } = rewardInfo
-            const openTime = rewardOpenTime.toNumber()
-            const endTime = rewardEndTime.toNumber()
-            // console.log('aprs.length: ', aprs.length)
-            if (!openTime && !endTime) return undefined // if reward is not any state, return undefined to delete it
+            const { rewardOpenTime: openTime, rewardEndTime: endTime } = rewardInfo
+            // ------------ reward time -----------------
+            const rewardStartTime = openTime.toNumber() ? new Date(openTime.toNumber() * 1000) : undefined // chain time
+            const rewardEndTime = endTime.toNumber() ? new Date(endTime.toNumber() * 1000) : undefined // chain time
+            const onlineCurrentDate = Date.now() + (payload.chainTimeOffset ?? 0)
+            if (!rewardStartTime && !rewardEndTime) return undefined // if reward is not any state, return undefined to delete it
+
+            const isRewardBeforeStart = Boolean(rewardStartTime && isDateBefore(onlineCurrentDate, rewardStartTime))
+            const isRewardEnded = Boolean(rewardEndTime && isDateAfter(onlineCurrentDate, rewardEndTime))
+            const isRewarding = (!rewardStartTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
+
             const pendingReward = pendingRewards?.[idx]
             const apr = aprs[idx]
             const token = rewardTokens[idx]
-            const canBeRewarded =
-              (openTime ? currentIsAfter(openTime, { unit: 's' }) : true) &&
-              currentIsBefore(endTime, { unit: 's' }) /* v6 */
-            // console.log('farmPending: ', farmInfo.wrapped, openTime, endTime) // TODO: No v6 wrapped? what happened?😨
+            const canBeRewarded = Boolean(
+              (rewardStartTime ? currentIsAfter(rewardStartTime) : true) &&
+                rewardEndTime &&
+                currentIsBefore(rewardEndTime)
+            ) /* v6 */
+
             return {
               ...rewardInfo,
               apr,
               token,
               pendingReward,
               canBeRewarded,
-              perSecond: rewardInfo.rewardPerSecond.toString()
+              perSecond: rewardInfo.rewardPerSecond.toString(),
+              openTime: rewardStartTime,
+              endTime: rewardEndTime,
+              isRewardBeforeStart,
+              isRewardEnded,
+              isRewarding
             }
           })
         )

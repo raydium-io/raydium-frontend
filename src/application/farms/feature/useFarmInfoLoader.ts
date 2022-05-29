@@ -53,7 +53,7 @@ export default function useFarmInfoFetcher() {
   // hydrate action will depends on other state, so it will rerender many times
   useAsyncEffect(async () => {
     const hydratedInfos = sdkParsedInfos?.map((farmInfo) =>
-      hydrateFarmInfo(farmInfo, { getToken, getLpToken, lpPrices, tokenPrices, liquidityJsonInfos })
+      hydrateFarmInfo(farmInfo, { getToken, getLpToken, lpPrices, tokenPrices, liquidityJsonInfos, chainTimeOffset })
     )
     useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
   }, [
