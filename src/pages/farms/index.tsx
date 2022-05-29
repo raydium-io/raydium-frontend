@@ -55,6 +55,7 @@ import { isFarmJsonInfo } from '@/application/farms/utils/judgeFarmInfo'
 import CoinAvatar from '@/components/CoinAvatar'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { formatDate } from '@/functions/date/dateFormat'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 
 export default function FarmsPage() {
   return (
@@ -158,6 +159,20 @@ function FarmStakedOnlyBlock({ className }: { className?: string }) {
     </Row>
   )
 }
+
+// function FarmSlefCreateOnlyBlock({ className }: { className?: string }) {
+//   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
+//   return (
+//     <Row className="justify-self-end  mobile:justify-self-auto flex-wrap items-center">
+//       <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show farms by me</span>
+//       <Switcher
+//         className="ml-2 "
+//         defaultChecked={onlySelfFarms}
+//         onToggle={(isOnly) => useFarms.setState({ onlySelfFarms: isOnly })}
+//       />
+//     </Row>
+//   )
+// }
 
 function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
   return (
@@ -768,17 +783,10 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
   const isMobile = useAppSettings((s) => s.isMobile)
   const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
   const connected = useWallet((s) => s.connected)
-
+  const owner = useWallet((s) => s.owner)
   const balances = useWallet((s) => s.balances)
   const hasLp = isMeaningfulNumber(balances[toPubString(farmInfo.lpMint)])
-  const hasPendingReward = useMemo(
-    () =>
-      gt(
-        farmInfo.rewards.reduce((acc, reward) => add(acc, reward.pendingReward ?? ZERO), new Fraction(ZERO)),
-        ZERO
-      ),
-    [farmInfo]
-  )
+  const hasPendingReward = farmInfo.rewards.some(({ pendingReward }) => isMeaningfulNumber(pendingReward))
   return (
     <div
       className="rounded-b-3xl mobile:rounded-b-lg overflow-hidden"
@@ -1009,16 +1017,18 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
       </AutoBox>
 
       {/* farm edit button  */}
-      <Row className="bg-[#14104133] py-3 px-8 justify-end">
-        <Button
-          className="frosted-glass-teal"
-          onClick={() => {
-            routeTo('/farms/edit', { queryProps: { farmInfo: farmInfo } })
-          }}
-        >
-          Edit Farm
-        </Button>
-      </Row>
+      {isMintEqual(farmInfo.creator, owner) && (
+        <Row className="bg-[#14104133] py-3 px-8 justify-end">
+          <Button
+            className="frosted-glass-teal"
+            onClick={() => {
+              routeTo('/farms/edit', { queryProps: { farmInfo: farmInfo } })
+            }}
+          >
+            Edit Farm
+          </Button>
+        </Row>
+      )}
     </div>
   )
 }
@@ -1182,7 +1192,13 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
       <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
       {isStable && <Badge>Stable</Badge>}
+
       {info.isDualFusionPool && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
+      {info.version === 6 && info.rewards.length === 2 && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
+      {info.version === 6 && info.rewards.length === 3 && <Badge cssColor="#DA2EEF">Triple Yield</Badge>}
+      {info.version === 6 && info.rewards.length === 4 && <Badge cssColor="#DA2EEF">Quadruple Yield</Badge>}
+      {info.version === 6 && info.rewards.length === 5 && <Badge cssColor="#DA2EEF">Quintuple Yield</Badge>}
+
       {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
       {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
     </AutoBox>
