@@ -28,6 +28,8 @@ export type IdoStore = {
 
   /** only use it in acceleraytor/lottery page */
   currentIdoId?: string
+  // detail page
+  tempJoined: boolean
 
   currentTab: 'Upcoming Pools' | 'Closed Pools'
   searchText?: string
@@ -44,7 +46,11 @@ const useIdo = create<IdoStore>((set, get) => ({
   idoRawInfos: {},
   idoProjectInfos: {},
   idoSDKInfos: {},
+
+  // list
   currentTab: 'Closed Pools',
+  // detail
+  tempJoined: false,
 
   refreshIdo: (idoId?: string) => {
     if (inServer) return

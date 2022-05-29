@@ -14,6 +14,7 @@ import asyncMap from '@/functions/asyncMap'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { createSplToken } from '../token/feature/useTokenListsLoader'
 import { useRouter } from 'next/router'
+import { useEffect } from 'react'
 
 export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetting }) {
   const connection = useConnection((s) => s.connection)
@@ -25,7 +26,6 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
   const tokens = useToken((s) => s.tokens)
   const { pathname } = useRouter()
   const inIdoDetailPage = pathname.includes('/acceleraytor/detail')
-  const getToken = useToken((s) => s.getToken)
 
   const getIdoTokens = (rawInfo: BackendApiIdoListItem) => {
     const base = createSplToken({
@@ -42,6 +42,13 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
     })
     return { base, quote }
   }
+
+  // reset temp state
+  useEffect(() => {
+    if (!owner) return
+    useIdo.setState({ tempJoined: false })
+  }, [owner])
+
   // raw list info
   useAsyncEffect(async () => {
     if (!shouldEffectBeOn(options?.when)) return
