@@ -169,7 +169,7 @@ function TicketItem({
       {idoInfo?.isClosed && (
         <Icon
           size="smi"
-          className={ticket.isWinning ? 'text-[#39D0D8]' : 'hidden'}
+          className={ticket.isWinning ? 'text-[#39D0D8]' : 'invisible'}
           heroIconName={ticket.isWinning ? 'check-circle' : 'x-circle'}
         />
       )}
@@ -1010,7 +1010,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
           },
           {
             should: notJoined,
-            fallbackProps: { children: 'Joined' }
+            fallbackProps: { children: 'Deposited' }
           },
           {
             should: (idoInfo.depositedTickets?.length ?? 0) === 0,
