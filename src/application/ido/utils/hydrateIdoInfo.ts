@@ -124,9 +124,12 @@ export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
       toTokenAmount(updatedIdoInfo.quote, updatedIdoInfo.ledger.quoteDeposited)) ||
     undefined
 
-  const filled =
-    updatedIdoInfo.state &&
-    new Percent(updatedIdoInfo.state.raisedLotteries, updatedIdoInfo.state.maxWinLotteries).toFixed()
+  const filled = updatedIdoInfo.state // SDK
+    ? new Percent(updatedIdoInfo.state.raisedLotteries, updatedIdoInfo.state.maxWinLotteries).toFixed()
+    : updatedIdoInfo.raisedLotteries && updatedIdoInfo.maxWinLotteries // API
+    ? updatedIdoInfo.raisedLotteries / updatedIdoInfo.maxWinLotteries
+    : undefined
+
   return {
     ...updatedIdoInfo,
     winningTicketsTailNumber: getWinningTicketsTailNumbers(updatedIdoInfo),
