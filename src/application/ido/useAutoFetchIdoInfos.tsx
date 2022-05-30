@@ -46,7 +46,6 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
 
   // reset temp state
   useEffect(() => {
-    if (!owner) return
     useIdo.setState({ tempJoined: false })
   }, [owner])
 
@@ -107,11 +106,12 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
         ...s.idoHydratedInfos,
         ...objectMap(objectShakeNil(hydratedInfos), (newHydratedInfo, idoid) => ({
           ...s.idoHydratedInfos[idoid],
+          ledger: undefined, // when ever change owner , update ledger
           ...objectShakeNil(newHydratedInfo)
         }))
       }
     }))
-  }, [idoRefreshFactor])
+  }, [idoRefreshFactor, owner])
 
   // get SDKInfo, and merge with rawInfo
   useAsyncEffect(async () => {
