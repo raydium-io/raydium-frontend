@@ -950,7 +950,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
             ) : idoInfo.isEligible ? (
               `Once deposited ${
                 idoInfo.quote?.symbol ?? '--'
-              } can be claimed after lottery ends and tokens after 2022.03.10 14.00 UTC.`
+              } can be claimed after lottery ends and tokens after ${toUTC(idoInfo.startWithdrawTime)}.`
             ) : (
               <div>
                 <Link className="text-[#ABC4FF]" href="https://twitter.com/RaydiumProtocol">

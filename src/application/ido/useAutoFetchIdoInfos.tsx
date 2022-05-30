@@ -94,7 +94,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
     const publicKeyed = ToPubPropertyValue(rawList)
 
     // get sdk ledger/snapshot and render
-    const sdkInfos = await getSdkIdoList({ publicKeyed, connection, owner, options: { noIdoState: true } })
+    const sdkInfos = await getSdkIdoList({ publicKeyed, connection, owner })
     const hydratedInfos = objectMap(sdkInfos, (sdkInfo, idoid) => {
       const rawInfo = rawList.find(({ id }) => id === idoid)
       if (!rawInfo) return undefined
