@@ -334,7 +334,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
             })
           }}
         >
-          {isBaseClaimed ? `${info.base?.symbol ?? 'UNKNOWN'} Claimed` : `Withdraw ${info.base?.symbol ?? 'UNKNOWN'}`}
+          {isBaseClaimed ? `${info.base?.symbol ?? 'UNKNOWN'} Claimed` : `Claim ${info.base?.symbol ?? 'UNKNOWN'}`}
         </Button>
         <FadeIn>
           {gt(info.winningTickets?.length, 0) && eq(info.ledger?.baseWithdrawn, 0) && (
@@ -373,9 +373,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
             })
           }}
         >
-          {isQuoteClaimed
-            ? `${info.quote?.symbol ?? 'UNKNOWN'} Claimed`
-            : `Withdraw ${info.quote?.symbol ?? 'UNKNOWN'}`}
+          {isQuoteClaimed ? `${info.quote?.symbol ?? 'UNKNOWN'} Claimed` : `Claim ${info.quote?.symbol ?? 'UNKNOWN'}`}
         </Button>
         <FadeIn>
           {eq(info.ledger?.quoteWithdrawn, 0) && (
@@ -391,6 +389,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
 function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const getChainDate = useConnection((s) => s.getChainDate)
+  const refreshIdo = useIdo((s) => s.refreshIdo)
   return (
     <div className="p-6 mobile:p-3">
       {<IdoItemCardStakeChip info={info} />}
@@ -462,7 +461,14 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
                     <>
                       <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                       <div className="text-white font-medium">
-                        <IdoCountDownClock endTime={info.startTime} />
+                        <IdoCountDownClock
+                          endTime={info.startTime}
+                          onEnd={() => {
+                            setTimeout(() => {
+                              refreshIdo(info.id)
+                            }, 1000)
+                          }}
+                        />
                       </div>
                     </>
                   ) : (
@@ -482,7 +488,14 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
                     <>
                       <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                       <div className="text-white font-medium">
-                        <IdoCountDownClock endTime={info.endTime} />
+                        <IdoCountDownClock
+                          endTime={info.endTime}
+                          onEnd={() => {
+                            setTimeout(() => {
+                              refreshIdo(info.id)
+                            }, 1000)
+                          }}
+                        />
                       </div>
                     </>
                   ) : (

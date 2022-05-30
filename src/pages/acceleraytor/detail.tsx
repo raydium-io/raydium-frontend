@@ -47,6 +47,8 @@ import AutoBox from '@/components/AutoBox'
 import Tooltip from '@/components/Tooltip'
 import LoadingCircle from '@/components/LoadingCircle'
 import useConnection from '@/application/connection/useConnection'
+import txEmpty from '@/application/txTools/txEmpty'
+import { recursivelyDo } from '@/functions/recursivelyDo'
 
 // paser url to patch idoid
 function useUrlParser() {
@@ -277,7 +279,8 @@ function WinningTicketPanel({ className }: { className?: string }) {
                           txIdoClaim({
                             idoInfo: idoInfo,
                             side: 'base',
-                            onTxFinally: () => {
+                            onTxSuccess: () => {
+                              setIsQuoteClaimed(true)
                               refreshIdo(idoInfo.id)
                             }
                           })
@@ -285,7 +288,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                       >
                         {isBaseClaimed
                           ? `${idoInfo.base?.symbol ?? 'UNKNOWN'} Claimed`
-                          : `Withdraw ${idoInfo.base?.symbol ?? 'UNKNOWN'}`}
+                          : `Claim ${idoInfo.base?.symbol ?? 'UNKNOWN'}`}
                       </Button>
                       <FadeIn>
                         {gt(idoInfo.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) && (
@@ -317,7 +320,8 @@ function WinningTicketPanel({ className }: { className?: string }) {
                           txIdoClaim({
                             idoInfo: idoInfo,
                             side: 'quote',
-                            onTxFinally: () => {
+                            onTxSuccess: () => {
+                              setIsQuoteClaimed(true)
                               refreshIdo(idoInfo.id)
                             }
                           })
@@ -325,7 +329,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                       >
                         {isQuoteClaimed
                           ? `${idoInfo.quote?.symbol ?? 'UNKNOWN'} Claimed`
-                          : `Withdraw ${idoInfo.quote?.symbol ?? 'UNKNOWN'}`}
+                          : `Claim ${idoInfo.quote?.symbol ?? 'UNKNOWN'}`}
                       </Button>
                       <FadeIn>
                         {eq(idoInfo.ledger.quoteWithdrawn, 0) && (
@@ -886,8 +890,19 @@ function LotteryInputPanel({ className }: { className?: string }) {
         idoInfo,
         ticketAmount: toBN(ticketAmount),
         onTxSuccess: () => {
-          refreshIdo(idoInfo.id)
           useIdo.setState({ tempJoined: true })
+          recursivelyDo(
+            () => {
+              refreshIdo(idoInfo.id)
+              return {
+                ticketCount: idoInfo.depositedTicketCount
+              }
+            },
+            {
+              retrySpeed: 'slow',
+              stopWhen: (curr, prev) => Boolean(prev && curr.ticketCount !== prev.ticketCount)
+            }
+          )
         }
       })
       // eslint-disable-next-line no-empty
