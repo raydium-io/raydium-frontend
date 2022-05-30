@@ -902,12 +902,12 @@ function LotteryInputPanel({ className }: { className?: string }) {
               console.info('refresh idoInfo by txIdoPurchase')
               refreshIdo(idoInfo.id)
               return {
-                ticketCount: idoInfo.depositedTicketCount
+                ticketCount: idoInfo.depositedTickets?.length
               }
             },
             {
               retrySpeed: 'slow',
-              stopWhen: (curr) => isMeaningfulNumber(curr.ticketCount)
+              stopWhen: ({ ticketCount }) => isMeaningfulNumber(ticketCount)
             }
           )
         }
