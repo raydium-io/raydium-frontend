@@ -5,7 +5,9 @@ import Row from '@/components/Row'
 
 import parseDuration from '../functions/date/parseDuration'
 import { TimeStamp } from '@/functions/date/interface'
+import useConnection from '@/application/connection/useConnection'
 
+/** !!! use Chain time  */
 export default function IdoCountDownClock({
   singleValueMode,
   labelClassName = '',
@@ -19,11 +21,12 @@ export default function IdoCountDownClock({
   labelClassName?: string
   play?: boolean
   className?: string
-  endTime?: TimeStamp
+  endTime: TimeStamp
   onEnd?: () => void
 }) {
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const endDate = new Date(endTime ?? Date.now())
+  const getChainDate = useConnection((s) => s.getChainDate)
+  const [currentDate, setCurrentDate] = useState(getChainDate())
+  const endDate = new Date(endTime)
   const duration = parseDuration(endDate.getTime() - currentDate.getTime())
   const labels = {
     days: duration.days <= 1 ? 'Day' : 'Days',
@@ -43,17 +46,17 @@ export default function IdoCountDownClock({
     if (isValueNegative) return
     if (showSecondsNumber) {
       const timeId = globalThis.setInterval(() => {
-        if (play) setCurrentDate(new Date())
+        if (play) setCurrentDate(getChainDate())
       }, 1000)
       return () => clearInterval(timeId)
     } else if (showMinutesNumber) {
       const timeId = globalThis.setInterval(() => {
-        if (play) setCurrentDate(new Date())
+        if (play) setCurrentDate(getChainDate())
       }, 1000 * 60)
       return () => clearInterval(timeId)
     } else if (showHourNumber) {
       const timeId = globalThis.setInterval(() => {
-        if (play) setCurrentDate(new Date())
+        if (play) setCurrentDate(getChainDate())
       }, 1000 * 60 * 60)
       return () => clearInterval(timeId)
     }

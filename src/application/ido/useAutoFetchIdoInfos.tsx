@@ -25,6 +25,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
   const idoRefreshFactor = useIdo((s) => s.idoRefreshFactor)
   const tokens = useToken((s) => s.tokens)
   const { pathname } = useRouter()
+  const getChainDate = useConnection((s) => s.getChainDate)
   const inIdoDetailPage = pathname.includes('/acceleraytor/detail')
 
   const getIdoTokens = (rawInfo: BackendApiIdoListItem) => {

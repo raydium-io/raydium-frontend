@@ -51,6 +51,7 @@ import { DRAWER_STACK_ID } from '@/components/Drawer'
 
 import { PublicKey } from '@solana/web3.js'
 import toPubString from '@/functions/format/toMintString'
+import useFreshChainTimeOffset from '@/application/connection/useFreshChainTimeOffset'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -116,6 +117,7 @@ function ApplicationsInitializations() {
   /********************** connection **********************/
   useUserCustomizedEndpointInitLoad()
   useConnectionInitialization()
+  useFreshChainTimeOffset()
 
   /********************** message boards **********************/
   useMessageBoardFileLoader() // load `raydium-message-board.json`

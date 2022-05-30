@@ -26,6 +26,8 @@ type ConnectionStore = {
   version?: string | number
 
   availableEndPoints: Endpoint[]
+
+  chainTimeOffset?: number
   /**
    * for ui
    * maybe user customized
@@ -56,6 +58,7 @@ type ConnectionStore = {
   deleteRpc: (endPointUrl: Endpoint['url']) => Promise<boolean | undefined>
 
   extractConnectionName: (url: string) => string
+  getChainDate: () => Date
 }
 export const LOCALSTORAGE_KEY_USER_RPC = 'USER_RPC'
 /** zustand store hooks */
@@ -156,6 +159,10 @@ const useConnection = create<ConnectionStore>((set, get) => ({
     } catch {
       return '--'
     }
+  },
+
+  getChainDate() {
+    return new Date(Date.now() + (get().chainTimeOffset ?? 0))
   }
 }))
 

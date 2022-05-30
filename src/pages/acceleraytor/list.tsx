@@ -15,7 +15,7 @@ import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import Tabs from '@/components/Tabs'
 import { toUTC } from '@/functions/date/dateFormat'
-import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
+import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { eq, gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
@@ -34,6 +34,8 @@ import { twMerge } from 'tailwind-merge'
 import Progress from '@/components/Progress'
 import toPercentNumber from '@/functions/format/toPercentNumber'
 import Input from '@/components/Input'
+import useConnection from '@/application/connection/useConnection'
+import { TimeStamp } from '@/functions/date/interface'
 
 export default function AcceleRaytor() {
   const infos = useIdo((s) => s.idoHydratedInfos)
@@ -183,7 +185,8 @@ function IdoSearchBlock({ className }: { className?: string }) {
 
 function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-
+  const getChainDate = useConnection((s) => s.getChainDate)
+  const isCurrentAfter = (time: TimeStamp) => isDateAfter(getChainDate(), time)
   return (
     <div
       className={`py-6 px-8 mobile:py-4 mobile:px-5 bg-[#141041]  rounded-t-3xl mobile:rounded-t-lg  ${
@@ -225,7 +228,7 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
           )}
         </Row>
       </AutoBox>
-      {currentIsAfter(info.endTime) && (
+      {isDateAfter(getChainDate(), info.endTime) && (
         <Icon
           iconSrc="/icons/acceleraytor-list-collapse-open.svg"
           className="mx-auto -mt-3 -mb-3 translate-y-3 mobile:mt-3 mobile:mb-0 clickable hover:brightness-110 "
@@ -387,6 +390,7 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
 }
 function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
+  const getChainDate = useConnection((s) => s.getChainDate)
   return (
     <div className="p-6 mobile:p-3">
       {<IdoItemCardStakeChip info={info} />}
@@ -454,18 +458,16 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
               fieldName="Pool open"
               fieldValue={
                 <Row className="items-baseline gap-1">
-                  {currentIsBefore(Number(info.startTime)) ? (
+                  {isDateBefore(getChainDate(), info.startTime) ? (
                     <>
                       <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                       <div className="text-white font-medium">
-                        <IdoCountDownClock endTime={Number(info.startTime)} />
+                        <IdoCountDownClock endTime={info.startTime} />
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="text-white font-medium">
-                        {toUTC(Number(info.startTime), { hideUTCBadge: true })}
-                      </div>
+                      <div className="text-white font-medium">{toUTC(info.startTime, { hideUTCBadge: true })}</div>
                       <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
                     </>
                   )}
@@ -476,18 +478,16 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
               fieldName="Pool close"
               fieldValue={
                 <Row className="items-baseline gap-1">
-                  {currentIsBefore(Number(info.endTime)) ? (
+                  {isDateBefore(getChainDate(), info.endTime) ? (
                     <>
                       <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                       <div className="text-white font-medium">
-                        <IdoCountDownClock endTime={Number(info.endTime)} />
+                        <IdoCountDownClock endTime={info.endTime} />
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="text-white font-medium">
-                        {toUTC(Number(info.endTime), { hideUTCBadge: true })}
-                      </div>
+                      <div className="text-white font-medium">{toUTC(info.endTime, { hideUTCBadge: true })}</div>
                       <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
                     </>
                   )}
@@ -504,8 +504,8 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
 function IdoItemCardStakeChip({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
-  const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
-  if (isMobile || currentIsAfter(info.stakeTimeEnd)) return null
+  const getChainDate = useConnection((s) => s.getChainDate)
+  if (isMobile || isDateAfter(getChainDate(), info.stakeTimeEnd)) return null
   return (
     <Row className={`AlertText items-center bg-[#abc4ff1a] p-3 rounded-xl mb-6`}>
       <Icon className="flex-none text-[#ABC4FF80] mr-2" size="sm" heroIconName="exclamation-circle" />
@@ -525,7 +525,7 @@ function IdoItemCardStakeChip({ info }: { info: HydratedIdoInfo }) {
             }
           }
         ]}
-        disabled={!currentIsBefore(info.stakeTimeEnd)}
+        disabled={!isDateBefore(getChainDate(), info.stakeTimeEnd)}
         onClick={() => {
           useStaking.setState({
             isStakeDialogOpen: true,
@@ -542,9 +542,9 @@ function IdoItemCardContentButtonGroup({ className, info }: { className?: string
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
-
+  const getChainDate = useConnection((s) => s.getChainDate)
   return info.isUpcoming ? (
-    isMobile && currentIsBefore(info.stakeTimeEnd) ? (
+    isMobile && isDateBefore(getChainDate(), info.stakeTimeEnd) ? (
       <Col
         className={twMerge(
           'justify-between bg-[#14104180] px-6 py-3 mr-4 mobile:pt-0 mobile:pb-2 mobile:px-4 mobile:-mx-4 mobile:-mb-4 rounded-xl mobile:rounded-none',
@@ -578,7 +578,7 @@ function IdoItemCardContentButtonGroup({ className, info }: { className?: string
                 }
               }
             ]}
-            disabled={!currentIsBefore(info.stakeTimeEnd)}
+            disabled={!isDateBefore(getChainDate(), info.stakeTimeEnd)}
             onClick={() => {
               useStaking.setState({
                 isStakeDialogOpen: true,

@@ -12,7 +12,7 @@ import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { toUTC } from '@/functions/date/dateFormat'
-import { currentIsBefore } from '@/functions/date/judges'
+import { isDateBefore } from '@/functions/date/judges'
 import formatNumber from '@/functions/format/formatNumber'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -46,6 +46,7 @@ import { useForceUpdate } from '@/hooks/useForceUpdate'
 import AutoBox from '@/components/AutoBox'
 import Tooltip from '@/components/Tooltip'
 import LoadingCircle from '@/components/LoadingCircle'
+import useConnection from '@/application/connection/useConnection'
 
 // paser url to patch idoid
 function useUrlParser() {
@@ -371,6 +372,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
   const connected = useWallet((s) => s.connected)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const getChainDate = useConnection((s) => s.getChainDate)
 
   if (!idoInfo) return null
 
@@ -499,18 +501,16 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
             fieldName="Pool open"
             fieldValue={
               <Row className="items-baseline gap-1">
-                {currentIsBefore(Number(idoInfo.startTime)) ? (
+                {isDateBefore(getChainDate(), idoInfo.startTime) ? (
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
-                      <IdoCountDownClock endTime={Number(idoInfo.startTime)} />
+                      <IdoCountDownClock endTime={idoInfo.startTime} />
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="text-white font-medium">
-                      {toUTC(Number(idoInfo.startTime), { hideUTCBadge: true })}
-                    </div>
+                    <div className="text-white font-medium">{toUTC(idoInfo.startTime, { hideUTCBadge: true })}</div>
                     <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
                   </>
                 )}
@@ -521,7 +521,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
             fieldName="Pool close"
             fieldValue={
               <Row className="items-baseline gap-1">
-                {currentIsBefore(Number(idoInfo.endTime)) ? (
+                {isDateBefore(getChainDate(), idoInfo.endTime) ? (
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
@@ -588,10 +588,10 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                       }
                     },
                     {
-                      should: currentIsBefore(idoInfo.stakeTimeEnd)
+                      should: isDateBefore(getChainDate(), idoInfo.stakeTimeEnd)
                     }
                   ]}
-                  disabled={!currentIsBefore(idoInfo.stakeTimeEnd)}
+                  disabled={!isDateBefore(getChainDate(), idoInfo.stakeTimeEnd)}
                   onClick={() => {
                     useStaking.setState({
                       isStakeDialogOpen: true,
@@ -613,7 +613,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
               fieldName="RAY staking deadline"
               fieldValue={
                 <Row className="items-baseline gap-1">
-                  {currentIsBefore(idoInfo.stakeTimeEnd) ? (
+                  {isDateBefore(getChainDate(), idoInfo.stakeTimeEnd) ? (
                     <>
                       <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                       <div className="text-white font-medium">
