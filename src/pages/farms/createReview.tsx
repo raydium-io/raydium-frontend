@@ -9,12 +9,11 @@ import assert from '@/functions/assert'
 import tryCatch from '@/functions/tryCatch'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import { RewardSummery } from '@/pageComponents/createFarm/RewardCreateSummary'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 export default function CreateFarmReviewPage() {
   const getToken = useToken((s) => s.getToken)
   const { poolId, rewards } = useCreateFarms()
-
   const canCreateFarm = useMemo(
     () =>
       tryCatch(
@@ -63,7 +62,11 @@ export default function CreateFarmReviewPage() {
             size="lg"
             disabled={!canCreateFarm}
             onClick={() => {
-              txCreateNewFarm()
+              txCreateNewFarm({
+                onTxSuccess: () => {
+                  routeTo('/farms/create')
+                }
+              })
             }}
           >
             Create Farm

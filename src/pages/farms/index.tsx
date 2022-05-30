@@ -552,7 +552,7 @@ function FarmRewardBadge({ reward }: { reward: HydratedRewardInfo }) {
           {reward.token?.symbol ?? '--'} Reward Period {reward.isRewardEnded ? 'ended' : ''}
         </div>
         <div className="opacity-50">
-          {formatDate(reward.openTime, 'DD/MM/YY')} - {formatDate(reward.openTime, 'DD/MM/YY')}
+          {formatDate(reward.openTime, 'YYYY-MM-DD')} - {formatDate(reward.openTime, 'YYYY-MM-DD')}
         </div>
       </Tooltip.Panel>
     </Tooltip>
@@ -903,17 +903,23 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
           >
             {farmInfo.version === 6 ? (
               <div className="flex-grow w-full">
-                <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-5">
+                <div
+                  className={`text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs ${
+                    farmInfo.rewards.length > 2 ? 'mb-5' : 'mb-1'
+                  }`}
+                >
                   Pending rewards and period
                 </div>
-                <Grid className="gap-board clip-insert-4 grid-cols-2">
+                <Grid
+                  className={`gap-board clip-insert-4 ${farmInfo.rewards.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
+                >
                   {farmInfo.rewards?.map((reward, idx) => (
                     <div key={idx} className="p-4">
                       <div className={`text-white font-medium text-sm mobile:text-xs mb-0.5`}>
                         {reward.pendingReward ? toString(reward.pendingReward) : 0} {reward.token?.symbol}
                       </div>
                       <div className="text-[rgba(171,196,255,0.5)] font-medium text-xs mobile:text-2xs">
-                        {formatDate(reward.openTime, 'DD/MM/YY')} - {formatDate(reward.openTime, 'DD/MM/YY')}
+                        {formatDate(reward.openTime, 'YYYY-MM-DD')} - {formatDate(reward.openTime, 'YYYY-MM-DD')}
                       </div>
                     </div>
                   ))}

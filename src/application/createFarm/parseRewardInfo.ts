@@ -31,17 +31,13 @@ export function parsedApiRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): U
   const rewardVersion = !reward.endTime && !reward.openTime ? 'v3/v5' : 'v6'
 
   return {
+    ...reward,
     id: toPubString(reward.rewardVault),
     type: 'exist reward info',
-    token: reward.token,
     amount: fullAmount,
     restAmount,
     endTime: reward.endTime, // chain time
     startTime: reward.openTime, // chain time
-    version: rewardVersion,
-    apr: reward.apr,
-    isRewarding: reward.isRewarding,
-    isRewardBeforeStart: reward.isRewardBeforeStart,
-    isRewardEnded: reward.isRewardEnded
+    version: rewardVersion
   }
 }

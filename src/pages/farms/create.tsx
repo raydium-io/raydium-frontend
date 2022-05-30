@@ -22,6 +22,9 @@ import { RewardSummery } from '../../pageComponents/createFarm/RewardCreateSumma
 import toPubString from '@/functions/format/toMintString'
 import { RAYMint } from '@/application/token/utils/wellknownToken.config'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
+import { formatDate, offsetDateTime, toUTC } from '@/functions/date/dateFormat'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
+import useConnection from '@/application/connection/useConnection'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -101,7 +104,9 @@ function RewardFormCard({ children }: { children?: ReactNode }) {
 
 export default function CreateFarmPage() {
   const rewards = useCreateFarms((s) => s.rewards)
+  const poolId = useCreateFarms((s) => s.poolId)
   const [activeIndex, setActiveIndex] = useState(0)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className={`self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
@@ -119,9 +124,16 @@ export default function CreateFarmPage() {
             title={
               <>
                 <div className="font-medium text-lg text-white leading-8 mb-1">Farming Reward</div>
-                <div className="font-medium text-sm leading-snug text-[#abc4ff80]">
+                <div className="font-medium text-sm leading-snug text-[#abc4ff80] mb-2">
                   <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards
                   cannot be recovered. You will be able to add more rewards to the farm.
+                </div>
+                <Row className="text-sm">
+                  <div className="text-[#abc4ff] mr-2">Date on block chain: </div>
+                  <TimeClock className="text-[#abc4ff80]" offset={chainTimeOffset} />
+                </Row>
+                <div className="font-medium text-sm leading-snug text-[#abc4ff80]">
+                  Saying it's on-chain time, and there could be slight delay depending on the speed of the network
                 </div>
               </>
             }
@@ -210,4 +222,9 @@ export default function CreateFarmPage() {
       </div>
     </PageLayout>
   )
+}
+
+function TimeClock({ offset, className }: { /* different of current date */ offset?: number; className?: string }) {
+  useForceUpdate({ loop: 1000 * 15 })
+  return <div className={className}>{toUTC(offsetDateTime(Date.now(), { milliseconds: offset }))}</div>
 }

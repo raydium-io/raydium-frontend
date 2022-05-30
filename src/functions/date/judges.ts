@@ -1,4 +1,4 @@
-import { isNumber } from '../judgers/dateType'
+import { isNumber, isObject } from '../judgers/dateType'
 import { TimeStamp } from './interface'
 
 export function currentIsAfter(timestamp: TimeStamp, options?: { unit?: 'ms' | 's' }): boolean {
@@ -18,8 +18,17 @@ export function isDateAfter(timestampA: TimeStamp, timestampB: TimeStamp, option
   return new Date(timestampA).getTime() > new Date(timestampB).getTime()
 }
 
-export function isDate(timestamp: TimeStamp): boolean {
-  return timestamp instanceof Date
+export function assertDate(testDate: TimeStamp, options: { before?: TimeStamp; after?: TimeStamp; unit?: 'ms' | 's' }) {
+  if (options.before && !isDateBefore(testDate, options.before, options)) {
+    throw new Error(`date ${testDate} is not before ${options.before}`)
+  }
+  if (options.after && !isDateAfter(testDate, options.after, options)) {
+    throw new Error(`date ${testDate} is not after ${options.after}`)
+  }
+}
+
+export function isDate(timestamp: unknown): timestamp is Date {
+  return isObject(timestamp) && timestamp instanceof Date
 }
 
 export function isTimeStampEqual(

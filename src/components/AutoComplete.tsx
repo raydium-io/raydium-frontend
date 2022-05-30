@@ -166,7 +166,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
             restProps.inputProps?.onUserInput
           )}
           onBlur={(...args) => {
-            if (filtered?.length == 1) {
+            if (filtered?.length && filtered.length >= 1) {
               setCurrentCandidateIdx(0)
               applySelectedIndex(0)
             } else {

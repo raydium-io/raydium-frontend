@@ -23,9 +23,3 @@ export type UIRewardInfo = {
   isRewarding?: boolean // exist working farm
 }
 // actually it also use to edit farm
-
-export type CreateFarmStore = {
-  poolId?: string
-  rewards: UIRewardInfo[]
-  cannotAddNewReward?: boolean // only creater can add token info entry
-}

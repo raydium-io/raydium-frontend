@@ -2,7 +2,7 @@ import { Farm, FarmCreateInstructionParamsV6 } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 
-import handleMultiTx from '@/application/txTools/handleMultiTx'
+import handleMultiTx, { TxAddOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import useCreateFarms from './useCreateFarm'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
@@ -11,10 +11,9 @@ import toBN from '@/functions/numberish/toBN'
 import { toPub } from '@/functions/format/toMintString'
 import useWallet from '../wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import useToken from '../token/useToken'
 import { padZero } from '@/functions/numberish/handleZero'
 
-export default async function txCreateNewFarm() {
+export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const piecesCollector = createTransactionCollector()
     const { rewards: uiRewardInfos } = useCreateFarms.getState()
@@ -66,6 +65,7 @@ export default async function txCreateNewFarm() {
     piecesCollector.addInstruction(...createFarmInstruction.instructions)
     piecesCollector.addSigner(createFarmInstruction.newAccount)
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
+      ...txAddOptions,
       txHistoryInfo: {
         title: 'Create Farm'
       }

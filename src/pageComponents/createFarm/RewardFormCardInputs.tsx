@@ -8,7 +8,8 @@ import Row from '@/components/Row'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
-import parseDuration, { parseDurationAbsolute } from '@/functions/date/parseDuration'
+import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import { isExist } from '@/functions/judgers/nil'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
@@ -37,8 +38,17 @@ const MIN_DURATION = 7 * 24 * 60 * 60 * 1000
 const MAX_DURATION_TEXT = '90D'
 const MIN_DURATION_TEXT = '7D'
 
-export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
+export type RewardFormCardInputsParams = {
+  mode?: 'edit-in-rewarding' | 'edit-after-rewarding'
+  rewardIndex: number
+}
+
+export function RewardFormCardInputs({
+  mode, // all open
+  rewardIndex
+}: RewardFormCardInputsParams) {
   const rewards = useCreateFarms((s) => s.rewards)
+
   const reward = rewards[rewardIndex]
   const getToken = useToken((s) => s.getToken)
   if (!reward) return null
@@ -50,14 +60,19 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
   const estimatedValue =
     reward.amount && durationTime ? div(reward.amount, parseDurationAbsolute(durationTime).days) : undefined
 
+  const disableCoinInput = mode === 'edit-in-rewarding'
+  const disableDurationInput = false
+  const disableStartTimeInput = mode === 'edit-in-rewarding'
+  const disableEndTimeInput = false
+  const disableEstimatedInput = mode === 'edit-in-rewarding'
   return (
     <Grid className="gap-4">
       <CoinInputBoxWithTokenSelector
-        disabled
         className={`rounded-md`}
         haveHalfButton
         topLeftLabel="Assert"
         disableTokenMints={shakeUndifindedItem(rewards.map((r) => r.token?.mint))}
+        disabled={disableCoinInput}
         value={toString(reward.amount)}
         token={reward.token}
         onSelectCoin={(token) => {
@@ -83,6 +98,7 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
           value={getStringFromDuration(durationTime)}
           // TODO: maxValue (for end time is setted and start can't before now)
           pattern={[/^(?:(\d+)D?)? ?(?:(\d+)H?)?$/i]}
+          disabled={disableDurationInput}
           onBlur={(v, { setSelf }) => {
             const duration = getDurationFromString(v)
             if (duration.totalDuration > MAX_DURATION) {
@@ -112,6 +128,11 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
                     })
                   }
 
+                  // set amount (only edit-in-rewarding)
+                  if (mode === 'edit-in-rewarding') {
+                    draft[rewardIndex].amount = mul(estimatedValue, parseDurationAbsolute(totalDuration).days)
+                  }
+
                   // set start time
                   if (haveEndTime && !haveStartTime) {
                     const calculatedStartTime = offsetDateTime(draft[rewardIndex].endTime, {
@@ -133,8 +154,8 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
           inputProps={{
             inputClassName: 'text-sm font-medium text-white'
           }}
-          // disabled
           value={reward.startTime}
+          disabled={disableStartTimeInput}
           disableDateBeforeCurrent
           isValidDate={(date) => {
             if (!reward.endTime) return true
@@ -176,6 +197,7 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
             inputClassName: 'text-sm font-medium text-white'
           }}
           value={reward.endTime}
+          disabled={disableEndTimeInput}
           disableDateBeforeCurrent
           isValidDate={(date) => {
             if (!reward.startTime) return true
@@ -198,6 +220,14 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
                   draft[rewardIndex].startTime = offsetDateTime(selectedDate, { milliseconds: -durationTime })
                 }
 
+                // set amount (only edit-in-rewarding)
+                if (mode === 'edit-in-rewarding') {
+                  draft[rewardIndex].amount = mul(
+                    estimatedValue,
+                    parseDurationAbsolute(selectedDate.getTime() - draft[rewardIndex].startTime!.getTime()).days
+                  )
+                }
+
                 // set duration days
                 if (haveStartTime) {
                   const durationDays = parseDurationAbsolute(
@@ -212,6 +242,7 @@ export function RewardFormCardInputs({ rewardIndex }: { rewardIndex: number }) {
       </Row>
 
       <InputBox
+        disabled={disableEstimatedInput}
         decimalMode
         decimalCount={reward.token?.decimals ?? 6}
         valueFloating

@@ -1,5 +1,5 @@
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
-import { CreateFarmStore, UIRewardInfo } from '@/application/createFarm/type'
+import { UIRewardInfo } from '@/application/createFarm/type'
 import useToken from '@/application/token/useToken'
 import CoinAvatar from '@/components/CoinAvatar'
 import Icon from '@/components/Icon'
@@ -11,7 +11,6 @@ import formatNumber from '@/functions/format/formatNumber'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useWallet from '@/application/wallet/useWallet'
-import { isMintEqual } from '@/functions/judgers/areEqual'
 
 /**
  * mode: list show
@@ -63,8 +62,6 @@ export function RewardSummery({
       ]}
       // className="backdrop-brightness-"
       rowClassName={({ index, itemData: reward }) => {
-        const canRewardEdit = isMintEqual(reward.creator, owner)
-        if (!canRewardEdit) return `not-clickable`
         if (mode === 'selectable') {
           return `${activeIndex === index ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
         }
@@ -127,49 +124,24 @@ export function RewardSummery({
         }
       }}
       renderRowEntry={({ contentNode, destorySelf, index: idx, itemData: reward }) => {
-        const canEdit = isMintEqual(reward.creator, owner)
-        const controlsNode = canEdit ? (
-          mode === 'selectable' ? (
-            <Row className="gap-2">
-              <Icon
-                size="smi"
-                heroIconName="pencil"
-                className="clickable clickable-opacity-effect text-[#abc4ff]"
-                onClick={() => {
-                  onActiveIndexChange?.(idx)
-                }}
-              />
-              <Icon
-                size="smi"
-                heroIconName="trash"
-                className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
-                onClick={() => rewards.length > 1 && destorySelf()}
-              />
-            </Row>
-          ) : mode === 'edit' ? (
-            <Row className="gap-2">
-              <Icon
-                size="smi"
-                heroIconName="plus-circle"
-                className="clickable clickable-opacity-effect text-[#abc4ff]"
-                onClick={() => {
-                  onClickIncreaseReward?.({ reward, rewardIndex: idx })
-                }}
-              />
-              <Icon
-                size="smi"
-                heroIconName="trash"
-                className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
-                onClick={() => {
-                  if (rewards.length > 1) {
-                    destorySelf()
-                    onDeleteReward?.({ reward, rewardIndex: idx })
-                  }
-                }}
-              />
-            </Row>
-          ) : null
-        ) : null
+        const controlsNode = (
+          <Row className="gap-2">
+            <Icon
+              size="smi"
+              heroIconName="pencil"
+              className="clickable clickable-opacity-effect text-[#abc4ff]"
+              onClick={() => {
+                onActiveIndexChange?.(idx)
+              }}
+            />
+            <Icon
+              size="smi"
+              heroIconName="trash"
+              className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
+              onClick={() => rewards.length > 1 && destorySelf()}
+            />
+          </Row>
+        )
 
         return (
           <>

@@ -106,7 +106,7 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
     '.not-clickable-with-disallowed, .no-clicable-transform-effect': {
       '&:active': { transform: 'none' }
     },
-    '.not-clickable': {
+    '.not-selectable, .not-clickable': {
       pointerEvents: 'none',
       opacity: '0.3',
       '&:active': { all: 'none' },

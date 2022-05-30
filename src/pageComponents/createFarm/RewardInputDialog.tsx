@@ -4,17 +4,16 @@ import { twMerge } from 'tailwind-merge'
 
 import Card from '../../components/Card'
 import Dialog from '../../components/Dialog'
-import { RewardFormCardInputs } from './RewardFormCardInputs'
+import { RewardFormCardInputs, RewardFormCardInputsParams } from './RewardFormCardInputs'
 
 export default function RewardEditInputDialog({
   open,
   onClose,
-  rewardIndex
+  ...rewardFormCardInputsParams
 }: {
   open: boolean
   onClose(): void
-  rewardIndex?: number
-}) {
+} & RewardFormCardInputsParams) {
   return (
     <Dialog open={Boolean(open)} onClose={onClose}>
       <Card
@@ -41,7 +40,7 @@ export default function RewardEditInputDialog({
             </li>
           </ol>
         </div>
-        {rewardIndex != null && <RewardFormCardInputs rewardIndex={rewardIndex} />}
+        {<RewardFormCardInputs {...rewardFormCardInputsParams} />}
       </Card>
     </Dialog>
   )

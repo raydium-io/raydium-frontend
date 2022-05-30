@@ -1,8 +1,8 @@
-import { CreateFarmStore } from './type'
 import { HydratedFarmInfo } from '../farms/type'
 import useWallet from '../wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { parsedApiRewardInfoToUiRewardInfo } from './parseRewardInfo'
+import { CreateFarmStore } from './useCreateFarm'
 
 export function parsedApiFarmInfo(farmInfo: HydratedFarmInfo) {
   const poolId = farmInfo.ammId

@@ -2,7 +2,7 @@ import router from 'next/router'
 
 import { ParsedUrlQuery } from 'querystring'
 
-import { objectShakeFalsy } from '@/functions/objectMethods'
+import { objectShakeFalsy, objectShakeNil } from '@/functions/objectMethods'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { HexAddress, MayFunction } from '@/types/constants'
 
@@ -146,7 +146,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       })
       .then(() => {
         const { isFarmCreator, poolId, uiRewardsInfos } = parsedApiFarmInfo(farmInfo)
-        useCreateFarms.setState({ poolId, rewards: uiRewardsInfos, cannotAddNewReward: !isFarmCreator })
+        useCreateFarms.setState(objectShakeNil({ poolId, rewards: uiRewardsInfos, cannotAddNewReward: !isFarmCreator }))
       })
   } else {
     router.push({ pathname: toPage, query: options?.queryProps })
