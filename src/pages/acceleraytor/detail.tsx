@@ -197,6 +197,11 @@ function WinningTicketPanel({ className }: { className?: string }) {
     setIsQuoteClaimed(false)
   }, [owner])
 
+  useEffect(() => {
+    if (isMeaningfulNumber(idoInfo?.ledger?.baseWithdrawn)) setIsBaseClaimed(true)
+    if (isMeaningfulNumber(idoInfo?.ledger?.quoteWithdrawn)) setIsQuoteClaimed(true)
+  }, [idoInfo])
+
   return (
     <FadeIn ignoreEnterTransition /* no need. inside has FadeIn already */>
       {idoInfo?.canWithdrawBase || idoInfo?.isClosed || idoInfo?.depositedTickets?.length ? (
@@ -893,6 +898,8 @@ function LotteryInputPanel({ className }: { className?: string }) {
           useIdo.setState({ tempJoined: true })
           recursivelyDo(
             () => {
+              // eslint-disable-next-line no-console
+              console.info('refresh idoInfo by txIdoPurchase')
               refreshIdo(idoInfo.id)
               return {
                 ticketCount: idoInfo.depositedTicketCount
@@ -900,7 +907,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
             },
             {
               retrySpeed: 'slow',
-              stopWhen: (curr, prev) => Boolean(prev && curr.ticketCount !== prev.ticketCount)
+              stopWhen: (curr) => isMeaningfulNumber(curr.ticketCount)
             }
           )
         }
@@ -1003,6 +1010,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
           value={toString(quoteTokenAmount)}
           disabled
           haveCoinIcon
+          hideMaxButton
         />
       </div>
 

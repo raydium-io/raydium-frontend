@@ -16,7 +16,7 @@ import Row from '@/components/Row'
 import Tabs from '@/components/Tabs'
 import { toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
-import { eq, gt } from '@/functions/numberish/compare'
+import { eq, gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import Image from '@/components/Image'
@@ -224,7 +224,7 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
           ) : info.isOpen ? (
             <FaceButtonGroupJoin info={info} />
           ) : (
-            <FaceButtonGroupClaim info={info} />
+            <FaceButtonGroupClaim idoInfo={info} />
           )}
         </Row>
       </AutoBox>
@@ -274,7 +274,7 @@ function FaceButtonGroupJoin({ info }: { info: HydratedIdoInfo }) {
     </Button>
   )
 }
-function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
+function FaceButtonGroupClaim({ idoInfo }: { idoInfo: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
   const owner = useWallet((s) => s.owner)
@@ -288,6 +288,11 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
     setIsBaseClaimed(false)
     setIsQuoteClaimed(false)
   }, [owner])
+
+  useEffect(() => {
+    if (isMeaningfulNumber(idoInfo?.ledger?.baseWithdrawn)) setIsBaseClaimed(true)
+    if (isMeaningfulNumber(idoInfo?.ledger?.quoteWithdrawn)) setIsQuoteClaimed(true)
+  }, [idoInfo])
 
   return (
     <>
@@ -303,18 +308,18 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
                 onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
               }
             },
-            { should: info.ledger && gt(info?.winningTickets?.length, 0) && eq(info.ledger.baseWithdrawn, 0) },
+            { should: idoInfo.ledger && gt(idoInfo?.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
             {
-              should: info.canWithdrawBase,
+              should: idoInfo.canWithdrawBase,
               fallbackProps: {
                 children: (
                   <div>
-                    Withdraw {info.base?.symbol ?? 'UNKNOWN'} in{' '}
+                    Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'} in{' '}
                     <IdoCountDownClock
                       className="justify-center"
                       singleValueMode
                       labelClassName="text-base"
-                      endTime={Number(info.startWithdrawTime)}
+                      endTime={Number(idoInfo.startWithdrawTime)}
                       onEnd={forceUpdate}
                     />
                   </div>
@@ -325,21 +330,23 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
           onClick={({ ev }) => {
             ev.stopPropagation()
             txIdoClaim({
-              idoInfo: info,
+              idoInfo: idoInfo,
               side: 'base',
               onTxSuccess: () => {
                 setIsBaseClaimed(true)
-                refreshIdo(info.id)
+                refreshIdo(idoInfo.id)
               }
             })
           }}
         >
-          {isBaseClaimed ? `${info.base?.symbol ?? 'UNKNOWN'} Claimed` : `Claim ${info.base?.symbol ?? 'UNKNOWN'}`}
+          {isBaseClaimed
+            ? `${idoInfo.base?.symbol ?? 'UNKNOWN'} Claimed`
+            : `Claim ${idoInfo.base?.symbol ?? 'UNKNOWN'}`}
         </Button>
         <FadeIn>
-          {gt(info.winningTickets?.length, 0) && eq(info.ledger?.baseWithdrawn, 0) && (
+          {gt(idoInfo.winningTickets?.length, 0) && eq(idoInfo.ledger?.baseWithdrawn, 0) && (
             <div className="text-xs mt-1 font-semibold text-[#ABC4FF80]">
-              {info.winningTickets?.length} winning tickets
+              {idoInfo.winningTickets?.length} winning tickets
             </div>
           )}
         </FadeIn>
@@ -351,8 +358,8 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
           validators={[
             { should: !isQuoteClaimed },
             { should: connected },
-            { should: eq(info.ledger?.quoteWithdrawn, 0) },
-            { should: info.isClosed },
+            { should: eq(idoInfo.ledger?.quoteWithdrawn, 0) },
+            { should: idoInfo.isClosed },
             {
               should: connected,
               forceActive: true,
@@ -364,21 +371,23 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
           onClick={({ ev }) => {
             ev.stopPropagation()
             txIdoClaim({
-              idoInfo: info,
+              idoInfo: idoInfo,
               side: 'quote',
               onTxSuccess: () => {
                 setIsQuoteClaimed(true)
-                refreshIdo(info.id)
+                refreshIdo(idoInfo.id)
               }
             })
           }}
         >
-          {isQuoteClaimed ? `${info.quote?.symbol ?? 'UNKNOWN'} Claimed` : `Claim ${info.quote?.symbol ?? 'UNKNOWN'}`}
+          {isQuoteClaimed
+            ? `${idoInfo.quote?.symbol ?? 'UNKNOWN'} Claimed`
+            : `Claim ${idoInfo.quote?.symbol ?? 'UNKNOWN'}`}
         </Button>
         <FadeIn>
-          {eq(info.ledger?.quoteWithdrawn, 0) && (
+          {eq(idoInfo.ledger?.quoteWithdrawn, 0) && (
             <div className="text-xs mt-1 font-semibold text-[#ABC4FF80]">
-              {(info.depositedTickets?.length ?? 0) - (info.winningTickets?.length ?? 0)} non-winning tickets
+              {(idoInfo.depositedTickets?.length ?? 0) - (idoInfo.winningTickets?.length ?? 0)} non-winning tickets
             </div>
           )}
         </FadeIn>

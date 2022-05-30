@@ -59,6 +59,7 @@ export interface CoinInputBoxProps {
   onTryToTokenSelect?(): void
   // return valid info
   onInputAmountClampInBalanceChange?(info: { outOfMax: boolean; negative: boolean }): void
+  onBlur?(input: string | undefined): void
 
   // -------- customized ----------
   // customize component appearance
@@ -73,6 +74,7 @@ export interface CoinInputBoxProps {
   // sometimes, U don't need price predictor, for it's not a token (may be it's lottery ticket or some pure amount input)
   hidePricePredictor?: boolean
   haveHalfButton?: boolean
+  hideMaxButton?: boolean
   haveCoinIcon?: boolean
   showTokenSelectIcon?: boolean
 }
@@ -96,6 +98,7 @@ export default function CoinInputBox({
   onTryToTokenSelect,
   onInputAmountClampInBalanceChange,
   onEnter,
+  onBlur,
 
   topLeftLabel,
   topRightLabel,
@@ -103,6 +106,7 @@ export default function CoinInputBox({
   maxValue: forceMaxValue,
   hideTokenPart,
   hidePricePredictor,
+  hideMaxButton,
   haveHalfButton,
   haveCoinIcon,
   showTokenSelectIcon
@@ -260,15 +264,17 @@ export default function CoinInputBox({
         )}
         <Row className="justify-between flex-grow-2">
           <Row className="gap-px items-center mr-2">
-            <Button
-              disabled={disabledInput}
-              className="py-0.5 px-1.5 rounded text-[rgba(171,196,255,.5)] font-bold bg-[#1B1659] bg-opacity-80 text-xs mobile:text-2xs transition"
-              onClick={() => {
-                fillAmountWithBalance(1)
-              }}
-            >
-              Max
-            </Button>
+            {!hideMaxButton && (
+              <Button
+                disabled={disabledInput}
+                className="py-0.5 px-1.5 rounded text-[rgba(171,196,255,.5)] font-bold bg-[#1B1659] bg-opacity-80 text-xs mobile:text-2xs transition"
+                onClick={() => {
+                  fillAmountWithBalance(1)
+                }}
+              >
+                Max
+              </Button>
+            )}
             {haveHalfButton && (
               <Button
                 disabled={disabledInput}
@@ -291,6 +297,7 @@ export default function CoinInputBox({
             onUserInput={setInputedAmount}
             onEnter={onEnter}
             inputClassName="text-right mobile:text-sm font-medium text-white"
+            onBlur={onBlur}
             inputHTMLProps={{
               onFocus: () => (isOutsideValueLocked.current = true),
               onBlur: () => (isOutsideValueLocked.current = false)

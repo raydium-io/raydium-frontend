@@ -230,10 +230,6 @@ export default function Input(props: InputProps) {
             onUserInput?.(ev.target.value, inputRef.current!)
             lockOutsideValue()
           }}
-          onBlur={() => {
-            unlockOutsideValue()
-            onBlur?.(String(selfValue), { el: inputRef.current!, control: inputComponentHandler })
-          }}
           onKeyDown={(ev) => {
             if (ev.key === 'Enter') {
               onEnter?.((ev.target as HTMLInputElement).value, {
@@ -245,6 +241,11 @@ export default function Input(props: InputProps) {
           aria-label={labelText}
           aria-required={required}
           {...inputHTMLProps}
+          onBlur={(ev) => {
+            unlockOutsideValue()
+            onBlur?.(String(selfValue), { el: inputRef.current!, control: inputComponentHandler })
+            inputHTMLProps?.onBlur?.(ev)
+          }}
         />
       </div>
       {suffix && <div className="flex-initial ml-2">{shrinkToValue(suffix, [inputComponentHandler])}</div>}
