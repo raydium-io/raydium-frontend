@@ -345,7 +345,11 @@ function WinningTicketPanel({ className }: { className?: string }) {
           <FadeIn>
             {isMeaningfulNumber(idoInfo.depositedTickets?.length) && (
               <Col className="bg-[#141041] py-5 px-6">
-                <div className="text-xl mobile:text-sm font-semibold  text-white">You have deposited successfully</div>
+                {!idoInfo.isClosed && (
+                  <div className="text-xl mobile:text-sm font-semibold  text-white">
+                    You have deposited successfully
+                  </div>
+                )}
                 <div className="text-sm mb-5 font-semibold  text-[#ABC4FF] opacity-50">Your ticket numbers</div>
                 <Grid
                   className="gap-board -mx-5"
