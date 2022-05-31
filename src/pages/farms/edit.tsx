@@ -25,7 +25,7 @@ import { offset } from '@solana/buffer-layout'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import Button from '@/components/Button'
 import { Farm } from '@raydium-io/raydium-sdk'
-import txUpdateEdited from '@/application/createFarm/txUpdateEdited'
+import txUpdateEdited from '@/application/createFarm/txUpdateFarm'
 
 export default function FarmEditPage() {
   const { rewards, cannotAddNewReward } = useCreateFarms()
