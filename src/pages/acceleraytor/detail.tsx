@@ -246,7 +246,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                 </div>
               </Col>
               <FadeIn>
-                {idoInfo?.ledger && (
+                {idoInfo.ledger && idoInfo?.depositedTickets?.length && (
                   <Row className="gap-8 mobile:gap-6 mobile:w-full mobile:grid mobile:grid-cols-2">
                     <Col className="items-center">
                       <Button
@@ -336,7 +336,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                           : `Claim ${idoInfo.quote?.symbol ?? 'UNKNOWN'}`}
                       </Button>
                       <FadeIn>
-                        {eq(idoInfo.ledger.quoteWithdrawn, 0) && (
+                        {eq(idoInfo.ledger?.quoteWithdrawn, 0) && (
                           <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
                             {(idoInfo.depositedTickets?.length ?? 0) - (idoInfo.winningTickets?.length ?? 0)}{' '}
                             non-winning tickets

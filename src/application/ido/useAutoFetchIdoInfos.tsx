@@ -104,11 +104,12 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
       idoSDKInfos: sdkInfos,
       idoHydratedInfos: {
         ...s.idoHydratedInfos,
-        ...objectMap(objectShakeNil(hydratedInfos), (newHydratedInfo, idoid) => ({
-          ...s.idoHydratedInfos[idoid],
-          ledger: undefined, // when ever change owner , update ledger
-          ...objectShakeNil(newHydratedInfo)
-        }))
+        ...objectMap(objectShakeNil(hydratedInfos), (newHydratedInfo, idoid) => {
+          return {
+            ...s.idoHydratedInfos[idoid],
+            ...newHydratedInfo
+          }
+        })
       }
     }))
   }, [idoRefreshFactor, owner])
@@ -136,7 +137,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
         ...s.idoHydratedInfos,
         ...objectMap(objectShakeNil(hydratedInfos), (newHydratedInfo, idoid) => ({
           ...s.idoHydratedInfos[idoid],
-          ...objectShakeNil(newHydratedInfo)
+          ...newHydratedInfo
         }))
       }
     }))
@@ -156,7 +157,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
           ...s.idoHydratedInfos,
           ...objectMap(objectShakeNil(hydratedInfos), (newHydratedInfo, idoid) => ({
             ...s.idoHydratedInfos[idoid],
-            ...objectShakeNil(newHydratedInfo)
+            ...newHydratedInfo
           }))
         }
       }))
