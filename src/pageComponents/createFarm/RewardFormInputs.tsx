@@ -1,3 +1,4 @@
+import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useToken from '@/application/token/useToken'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
@@ -49,22 +50,22 @@ export function RewardFormCardInputs({
 }: RewardFormCardInputsParams) {
   const rewards = useCreateFarms((s) => s.rewards)
 
-  const reward = rewards[rewardIndex]
-  const getToken = useToken((s) => s.getToken)
-  if (!reward) return null
+  const reward = rewards[rewardIndex] as UIRewardInfo | undefined
 
   const [durationTime, setDurationTime] = useStateWithSuperPreferential(
-    reward.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
+    reward?.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
   )
 
   const estimatedValue =
-    reward.amount && durationTime ? div(reward.amount, parseDurationAbsolute(durationTime).days) : undefined
+    reward?.amount && durationTime ? div(reward.amount, parseDurationAbsolute(durationTime).days) : undefined
 
   const disableCoinInput = mode === 'edit-in-rewarding'
   const disableDurationInput = false
   const disableStartTimeInput = mode === 'edit-in-rewarding'
   const disableEndTimeInput = false
   const disableEstimatedInput = mode === 'edit-in-rewarding'
+
+  if (!reward) return null
   return (
     <Grid className="gap-4">
       <CoinInputBoxWithTokenSelector
@@ -157,7 +158,7 @@ export function RewardFormCardInputs({
           inputProps={{
             inputClassName: 'text-sm font-medium text-white'
           }}
-          value={ reward.startTime}
+          value={reward.startTime}
           disabled={disableStartTimeInput}
           disableDateBeforeCurrent
           isValidDate={(date) => {

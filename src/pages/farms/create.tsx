@@ -6,7 +6,7 @@ import Button from '@/components/Button'
 import Card from '@/components/Card'
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
-import FadeInStable, { FadeIn } from '@/components/FadeIn'
+import FadeInStable from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Link from '@/components/Link'
@@ -16,15 +16,14 @@ import { currentIsBefore, isDateBefore } from '@/functions/date/judges'
 import { listToJSMap } from '@/functions/format/listToMap'
 import produce from 'immer'
 import { ReactNode, useState } from 'react'
-import { RewardFormCardInputs } from '../../pageComponents/createFarm/RewardFormCardInputs'
 import { PoolIdInputBlock } from '../../pageComponents/createFarm/PoolIdInputBlock'
-import { RewardSummery } from '../../pageComponents/createFarm/RewardCreateSummary'
 import toPubString from '@/functions/format/toMintString'
 import { RAYMint } from '@/application/token/utils/wellknownToken.config'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import { formatDate, offsetDateTime, toUTC } from '@/functions/date/dateFormat'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import useConnection from '@/application/connection/useConnection'
+import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -94,7 +93,7 @@ function FormStep({
   )
 }
 
-function RewardFormCard({ children }: { children?: ReactNode }) {
+export function RewardFormCard({ children }: { children?: ReactNode }) {
   return (
     <Card className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]" size="lg">
       {children}
@@ -104,8 +103,6 @@ function RewardFormCard({ children }: { children?: ReactNode }) {
 
 export default function CreateFarmPage() {
   const rewards = useCreateFarms((s) => s.rewards)
-  const poolId = useCreateFarms((s) => s.poolId)
-  const [activeIndex, setActiveIndex] = useState(0)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   return (
     <PageLayout metaTitle="Farms - Raydium">
@@ -138,18 +135,7 @@ export default function CreateFarmPage() {
               </>
             }
           >
-            <div className="mb-8">
-              <RewardSummery mode="selectable" activeIndex={activeIndex} onActiveIndexChange={setActiveIndex} />
-            </div>
-            <Grid className="grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-8">
-              <FadeIn>
-                {rewards[activeIndex] && (
-                  <RewardFormCard>
-                    <RewardFormCardInputs rewardIndex={activeIndex} />
-                  </RewardFormCard>
-                )}
-              </FadeIn>
-            </Grid>
+            <NewRewardIndicatorAndForm />
             <Button
               type="text"
               disabled={rewards.length >= 5}

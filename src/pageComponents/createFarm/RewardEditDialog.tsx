@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge'
 
 import Card from '../../components/Card'
 import Dialog from '../../components/Dialog'
-import { RewardFormCardInputs, RewardFormCardInputsParams } from './RewardFormCardInputs'
+import { RewardFormCardInputs, RewardFormCardInputsParams } from './RewardFormInputs'
 
 export default function RewardEditInputDialog({
   open,

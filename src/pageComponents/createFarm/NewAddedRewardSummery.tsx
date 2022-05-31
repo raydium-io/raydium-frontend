@@ -1,6 +1,4 @@
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
-import { UIRewardInfo } from '@/application/createFarm/type'
-import useToken from '@/application/token/useToken'
 import CoinAvatar from '@/components/CoinAvatar'
 import Icon from '@/components/Icon'
 import ListTable from '@/components/ListTable'
@@ -10,33 +8,24 @@ import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/d
 import formatNumber from '@/functions/format/formatNumber'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import useWallet from '@/application/wallet/useWallet'
 
 /**
  * mode: list show
  * mode: list show (item select)
  * mode: edit
  */
-export function RewardSummery({
+export function NewAddedRewardSummery({
   mode,
   activeIndex,
-  onActiveIndexChange,
-  onClickIncreaseReward,
-  onDeleteReward
+  onActiveChange
 }: {
   mode: 'normal' | 'selectable' | 'edit'
 
   // --------- when selectable ------------
   activeIndex?: number
-  onActiveIndexChange?(index: number): void
-
-  // --------- when edit ------------
-  onClickIncreaseReward?(payload: { reward: UIRewardInfo; rewardIndex: number }): void
-  onDeleteReward?(payload: { reward: UIRewardInfo; rewardIndex: number }): void
+  onActiveChange?(index: number): void
 }) {
-  const owner = useWallet((s) => s.owner)
   const rewards = useCreateFarms((s) => s.rewards)
-  const getToken = useToken((s) => s.getToken)
   return (
     <ListTable
       list={rewards}
@@ -68,7 +57,7 @@ export function RewardSummery({
         return ''
       }}
       onClickRow={({ index }) => {
-        onActiveIndexChange?.(index)
+        onActiveChange?.(index)
       }}
       renderRowItem={({ item: reward, label, key }) => {
         if (label === 'Asset') {
@@ -131,7 +120,7 @@ export function RewardSummery({
               heroIconName="pencil"
               className="clickable clickable-opacity-effect text-[#abc4ff]"
               onClick={() => {
-                onActiveIndexChange?.(idx)
+                onActiveChange?.(idx)
               }}
             />
             <Icon

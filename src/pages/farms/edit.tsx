@@ -4,7 +4,7 @@ import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
-import RewardEditInputDialog from '@/pageComponents/createFarm/RewardInputDialog'
+import RewardEditInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
 import produce from 'immer'
 import { useState } from 'react'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
@@ -20,12 +20,10 @@ import formatNumber from '@/functions/format/formatNumber'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useConnection from '@/application/connection/useConnection'
-import { isDateAfter, isDateBefore } from '@/functions/date/judges'
-import { offset } from '@solana/buffer-layout'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { isDateAfter } from '@/functions/date/judges'
 import Button from '@/components/Button'
-import { Farm } from '@raydium-io/raydium-sdk'
 import txUpdateEdited from '@/application/createFarm/txUpdateFarm'
+import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 
 export default function FarmEditPage() {
   const { rewards, cannotAddNewReward } = useCreateFarms()
@@ -57,32 +55,25 @@ export default function FarmEditPage() {
               // Farm.makeWithdrawFarmRewardInstruction() //TODO: imply it!
             }}
           />
-          <Row
-            className={`items-center my-2 text-sm clickable ${
-              !canAddRewardInfo ? 'not-clickable-with-disallowed' : ''
-            }`}
-            onClick={() => {
-              if (!canAddRewardInfo) return
-              useCreateFarms.setState({
-                rewards: produce(rewards, (draft) => {
-                  draft.push(createNewUIRewardInfo())
-                })
-              })
-            }}
-          >
-            <Icon className="text-[#abc4ff]" heroIconName="plus-circle" size="sm" />
-            <div className="ml-1.5 text-[#abc4ff] font-medium">Add another reward token</div>
-            <div className="ml-1.5 text-[#abc4ff80] font-medium">({5 - rewards.length} more)</div>
-          </Row>
         </div>
 
-        <Button
+        <NewRewardIndicatorAndForm className="mb-16" />
+
+        <Row
+          className={`items-center my-2 text-sm clickable ${canAddRewardInfo ? '' : 'not-clickable-with-disallowed'}`}
           onClick={() => {
-            txUpdateEdited({ rewardId: rewards[0].id })
+            if (!canAddRewardInfo) return
+            useCreateFarms.setState({
+              rewards: produce(rewards, (draft) => {
+                draft.push(createNewUIRewardInfo())
+              })
+            })
           }}
         >
-          Submit
-        </Button>
+          <Icon className="text-[#abc4ff]" heroIconName="plus-circle" size="sm" />
+          <div className="ml-1.5 text-[#abc4ff] font-medium">Add another reward token</div>
+          <div className="ml-1.5 text-[#abc4ff80] font-medium">({5 - rewards.length} more)</div>
+        </Row>
 
         <Card className={`p-6 rounded-3xl ring-1 ring-inset ring-[#abc4ff1a] bg-[#1B1659] relative`}>
           <div className="absolute -left-4 top-5 -translate-x-full">

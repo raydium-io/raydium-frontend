@@ -8,7 +8,7 @@ import Row from '@/components/Row'
 import assert from '@/functions/assert'
 import tryCatch from '@/functions/tryCatch'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
-import { RewardSummery } from '@/pageComponents/createFarm/RewardCreateSummary'
+import { NewAddedRewardSummery } from '@/pageComponents/createFarm/NewAddedRewardSummery'
 import { useMemo } from 'react'
 
 export default function EditReview() {
@@ -49,7 +49,7 @@ export default function EditReview() {
 
         <div className="mb-6">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Farm rewards</div>
-          <RewardSummery mode="normal" />
+          <NewAddedRewardSummery mode="normal" />
         </div>
 
         <div className="font-medium text-sm text-center leading-snug text-[#abc4ff80] mb-8">

@@ -13,7 +13,7 @@ const genTempUIRewardId = () => lastTempUIRewardId++
 export function createNewUIRewardInfo(): UIRewardInfo {
   return {
     id: genTempUIRewardId(),
-    type: 'new added reward info',
+    type: 'new added',
     version: 'v6'
   }
 }
@@ -33,7 +33,7 @@ export function parsedApiRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): U
   return {
     ...reward,
     id: toPubString(reward.rewardVault),
-    type: 'exist reward info',
+    type: 'existed reward',
     amount: fullAmount,
     restAmount,
     endTime: reward.endTime, // chain time
