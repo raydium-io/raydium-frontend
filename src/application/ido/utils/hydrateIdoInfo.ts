@@ -1,4 +1,4 @@
-import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
+import { currentIsAfter, currentIsBefore, isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { Percent } from '@raydium-io/raydium-sdk'
 
@@ -7,6 +7,9 @@ import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, getMin, mul } from '@/functions/numberish/operations'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import { objectShakeFalsy } from '@/functions/objectMethods'
+import toBN from '@/functions/numberish/toBN'
+import useConnection from '@/application/connection/useConnection'
+import { padZero } from '@/functions/numberish/handleZero'
 
 function getDepositedTickets(idoInfo: SdkIdoInfo): TicketInfo[] {
   if (!idoInfo.ledger) return []
@@ -70,21 +73,25 @@ function fromSToMs(s: undefined | number) {
  *  computed from raw idoInfo
  */
 export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
+  const { getChainDate } = useConnection.getState()
   //updatedIdoInfo
   const updatedIdoInfo = Object.assign(
     { ...idoInfo } as SdkIdoInfo,
     objectShakeFalsy({
       maxWinLotteries: idoInfo.state?.maxWinLotteries.toNumber(),
-      raisedLotteries: fromSToMs(idoInfo.state?.raisedLotteries.toNumber()),
       startTime: fromSToMs(idoInfo.state?.startTime.toNumber()),
       endTime: fromSToMs(idoInfo.state?.endTime.toNumber()),
-      startWithdrawTime: fromSToMs(idoInfo.state?.startWithdrawTime.toNumber())
+      startWithdrawTime: fromSToMs(idoInfo.state?.startWithdrawTime.toNumber()),
+      raise: idoInfo.state?.baseSupply
+        ? toBN(div(idoInfo.state.baseSupply, padZero(1, idoInfo.baseDecimals))).toNumber()
+        : undefined
     } as Partial<SdkIdoInfo>)
   )
-  const isUpcoming = currentIsBefore(updatedIdoInfo.startTime)
-  const isOpen = currentIsAfter(updatedIdoInfo.startTime) && currentIsBefore(updatedIdoInfo.endTime)
-  const isClosed = currentIsAfter(updatedIdoInfo.endTime)
-  const canWithdrawBase = currentIsAfter(updatedIdoInfo.startWithdrawTime)
+  const isUpcoming = isDateBefore(getChainDate(), updatedIdoInfo.startTime)
+  const isOpen =
+    isDateAfter(getChainDate(), updatedIdoInfo.startTime) && isDateBefore(getChainDate(), updatedIdoInfo.endTime)
+  const isClosed = isDateAfter(getChainDate(), updatedIdoInfo.endTime)
+  const canWithdrawBase = isDateAfter(getChainDate(), updatedIdoInfo.startWithdrawTime)
 
   const depositedTickets = getDepositedTickets(updatedIdoInfo).map((ticketInfo) => ({
     ...ticketInfo,
@@ -120,9 +127,12 @@ export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
       toTokenAmount(updatedIdoInfo.quote, updatedIdoInfo.ledger.quoteDeposited)) ||
     undefined
 
-  const filled =
-    updatedIdoInfo.state &&
-    new Percent(updatedIdoInfo.state.raisedLotteries, updatedIdoInfo.state.maxWinLotteries).toFixed()
+  const filled = updatedIdoInfo.state // SDK
+    ? new Percent(updatedIdoInfo.state.raisedLotteries, updatedIdoInfo.state.maxWinLotteries).toFixed()
+    : updatedIdoInfo.raisedLotteries && updatedIdoInfo.maxWinLotteries // API
+    ? updatedIdoInfo.raisedLotteries / updatedIdoInfo.maxWinLotteries
+    : undefined
+
   return {
     ...updatedIdoInfo,
     winningTicketsTailNumber: getWinningTicketsTailNumbers(updatedIdoInfo),

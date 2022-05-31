@@ -2,12 +2,15 @@ import { Spl, WSOL } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { Ido, Snapshot } from '../sdk'
-import { SdkIdoInfo } from '../type'
+import { HydratedIdoInfo } from '../type'
 import handleMultiTx, { TxAddOptions, TxShadowOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
+import { toString } from '@/functions/numberish/toString'
+import { div } from '@/functions/numberish/operations'
+import { padZero } from '@/functions/numberish/handleZero'
 
 export default async function txIdoClaim(
-  options: { idoInfo: SdkIdoInfo; side: 'base' | 'quote' } & TxAddOptions & TxShadowOptions
+  options: { idoInfo: HydratedIdoInfo; side: 'base' | 'quote' } & TxAddOptions & TxShadowOptions
 ) {
   const { idoInfo, side, forceKeyPairs, ...restTxAddOptions } = options
   return handleMultiTx(
@@ -85,13 +88,17 @@ export default async function txIdoClaim(
         })
       )
       transactionCollector.add(await piecesCollection.spawnTransaction(), {
+        ...restTxAddOptions,
         txHistoryInfo: {
-          ...restTxAddOptions,
-          title: 'ido Claim',
+          title: 'AccelerRaytor Claim',
           description:
             side === 'base'
-              ? `Claim ${idoInfo.ledger?.baseWithdrawn} ${idoInfo.base.symbol ?? '--'}`
-              : `Claim ${idoInfo.ledger?.quoteWithdrawn} ${idoInfo.quote.symbol ?? '--'}`
+              ? `Claim ${toString(idoInfo.userAllocation)} ${idoInfo.base.symbol ?? '--'}`
+              : `Claim ${
+                  idoInfo.quote && idoInfo.ledger
+                    ? toString(div(idoInfo.ledger?.quoteDeposited, padZero(1, idoInfo.quote?.decimals ?? 0)))
+                    : ''
+                } ${idoInfo.quote.symbol ?? '--'}`
         }
       })
     },

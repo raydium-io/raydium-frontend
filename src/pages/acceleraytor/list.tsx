@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useRef } from 'react'
+import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedIdoInfo } from '@/application/ido/type'
@@ -15,8 +15,8 @@ import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import Tabs from '@/components/Tabs'
 import { toUTC } from '@/functions/date/dateFormat'
-import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
-import { eq, gt } from '@/functions/numberish/compare'
+import { isDateAfter, isDateBefore } from '@/functions/date/judges'
+import { eq, gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import txIdoClaim from '@/application/ido/utils/txIdoClaim'
 import Image from '@/components/Image'
@@ -34,6 +34,8 @@ import { twMerge } from 'tailwind-merge'
 import Progress from '@/components/Progress'
 import toPercentNumber from '@/functions/format/toPercentNumber'
 import Input from '@/components/Input'
+import useConnection from '@/application/connection/useConnection'
+import { TimeStamp } from '@/functions/date/interface'
 
 export default function AcceleRaytor() {
   const infos = useIdo((s) => s.idoHydratedInfos)
@@ -183,7 +185,8 @@ function IdoSearchBlock({ className }: { className?: string }) {
 
 function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-
+  const getChainDate = useConnection((s) => s.getChainDate)
+  const isCurrentAfter = (time: TimeStamp) => isDateAfter(getChainDate(), time)
   return (
     <div
       className={`py-6 px-8 mobile:py-4 mobile:px-5 bg-[#141041]  rounded-t-3xl mobile:rounded-t-lg  ${
@@ -209,6 +212,7 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
                 className="w-[180px] mobile:w-full"
                 labelClassName="text-sm font-bold"
                 value={toPercentNumber(info.filled)}
+                labelFormat={(v) => `Filled: ${toPercentString(v, { fixed: 0 })}`}
               />
             </Row>
           )}
@@ -220,11 +224,11 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
           ) : info.isOpen ? (
             <FaceButtonGroupJoin info={info} />
           ) : (
-            <FaceButtonGroupClaim info={info} />
+            <FaceButtonGroupClaim idoInfo={info} />
           )}
         </Row>
       </AutoBox>
-      {currentIsAfter(info.endTime) && (
+      {isDateAfter(getChainDate(), info.endTime) && (
         <Icon
           iconSrc="/icons/acceleraytor-list-collapse-open.svg"
           className="mx-auto -mt-3 -mb-3 translate-y-3 mobile:mt-3 mobile:mb-0 clickable hover:brightness-110 "
@@ -270,39 +274,55 @@ function FaceButtonGroupJoin({ info }: { info: HydratedIdoInfo }) {
     </Button>
   )
 }
-function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
+function FaceButtonGroupClaim({ idoInfo }: { idoInfo: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
+  const owner = useWallet((s) => s.owner)
   const refreshIdo = useIdo((s) => s.refreshIdo)
   const [, forceUpdate] = useForceUpdate()
+
+  const [isBaseClaimed, setIsBaseClaimed] = useState(false)
+  const [isQuoteClaimed, setIsQuoteClaimed] = useState(false)
+
+  useEffect(() => {
+    setIsBaseClaimed(false)
+    setIsQuoteClaimed(false)
+  }, [owner])
+
+  useEffect(() => {
+    if (isMeaningfulNumber(idoInfo?.ledger?.baseWithdrawn)) setIsBaseClaimed(true)
+    if (isMeaningfulNumber(idoInfo?.ledger?.quoteWithdrawn)) setIsQuoteClaimed(true)
+  }, [idoInfo])
+
   return (
     <>
       <Col className="items-center mobile:grow">
         <Button
           size={isMobile ? 'xs' : 'md'}
-          className="frosted-glass-teal mobile:self-stretch min-w-[160px] mobile:min-w-[50%]"
+          className="frosted-glass-teal mobile:self-stretch w-[160px] mobile:w-[100%] whitespace-normal"
           validators={[
+            { should: !isBaseClaimed },
             {
               should: connected,
               fallbackProps: {
                 onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
               }
             },
-            { should: info.ledger && gt(info?.winningTickets?.length, 0) && eq(info.ledger.baseWithdrawn, 0) },
+            { should: idoInfo.ledger && gt(idoInfo?.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
             {
-              should: info.canWithdrawBase,
+              should: idoInfo.canWithdrawBase,
               fallbackProps: {
                 children: (
-                  <Row>
-                    Withdraw {info.base?.symbol ?? 'UNKNOWN'} in{' '}
+                  <div>
+                    Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'} in{' '}
                     <IdoCountDownClock
-                      className="ml-1"
+                      className="justify-center"
                       singleValueMode
                       labelClassName="text-base"
-                      endTime={Number(info.startWithdrawTime)}
+                      endTime={Number(idoInfo.startWithdrawTime)}
                       onEnd={forceUpdate}
                     />
-                  </Row>
+                  </div>
                 )
               }
             }
@@ -310,20 +330,23 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
           onClick={({ ev }) => {
             ev.stopPropagation()
             txIdoClaim({
-              idoInfo: info,
+              idoInfo: idoInfo,
               side: 'base',
               onTxSuccess: () => {
-                refreshIdo(info.id)
+                setIsBaseClaimed(true)
+                refreshIdo(idoInfo.id)
               }
             })
           }}
         >
-          Withdraw {info.base?.symbol ?? 'UNKNOWN'}
+          {isBaseClaimed
+            ? `${idoInfo.base?.symbol ?? 'UNKNOWN'} Claimed`
+            : `Claim ${idoInfo.base?.symbol ?? 'UNKNOWN'}`}
         </Button>
         <FadeIn>
-          {gt(info.winningTickets?.length, 0) && eq(info.ledger?.baseWithdrawn, 0) && (
+          {gt(idoInfo.winningTickets?.length, 0) && eq(idoInfo.ledger?.baseWithdrawn, 0) && (
             <div className="text-xs mt-1 font-semibold text-[#ABC4FF80]">
-              {info.winningTickets?.length} winning tickets
+              {idoInfo.winningTickets?.length} winning tickets
             </div>
           )}
         </FadeIn>
@@ -331,11 +354,12 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
       <Col className="items-center mobile:grow">
         <Button
           size={isMobile ? 'xs' : 'md'}
-          className="frosted-glass-teal mobile:self-stretch"
+          className="frosted-glass-teal mobile:self-stretch w-[160px] mobile:w-[100%] whitespace-normal"
           validators={[
+            { should: !isQuoteClaimed },
             { should: connected },
-            { should: eq(info.ledger?.quoteWithdrawn, 0) },
-            { should: info.isClosed },
+            { should: eq(idoInfo.ledger?.quoteWithdrawn, 0) },
+            { should: idoInfo.isClosed },
             {
               should: connected,
               forceActive: true,
@@ -347,20 +371,23 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
           onClick={({ ev }) => {
             ev.stopPropagation()
             txIdoClaim({
-              idoInfo: info,
+              idoInfo: idoInfo,
               side: 'quote',
               onTxSuccess: () => {
-                refreshIdo(info.id)
+                setIsQuoteClaimed(true)
+                refreshIdo(idoInfo.id)
               }
             })
           }}
         >
-          Withdraw {info.quote?.symbol ?? 'UNKNOWN'}
+          {isQuoteClaimed
+            ? `${idoInfo.quote?.symbol ?? 'UNKNOWN'} Claimed`
+            : `Claim ${idoInfo.quote?.symbol ?? 'UNKNOWN'}`}
         </Button>
         <FadeIn>
-          {eq(info.ledger?.quoteWithdrawn, 0) && (
+          {eq(idoInfo.ledger?.quoteWithdrawn, 0) && (
             <div className="text-xs mt-1 font-semibold text-[#ABC4FF80]">
-              {(info.depositedTickets?.length ?? 0) - (info.winningTickets?.length ?? 0)} non-winning tickets
+              {(idoInfo.depositedTickets?.length ?? 0) - (idoInfo.winningTickets?.length ?? 0)} non-winning tickets
             </div>
           )}
         </FadeIn>
@@ -370,6 +397,8 @@ function FaceButtonGroupClaim({ info }: { info: HydratedIdoInfo }) {
 }
 function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
+  const getChainDate = useConnection((s) => s.getChainDate)
+  const refreshIdo = useIdo((s) => s.refreshIdo)
   return (
     <div className="p-6 mobile:p-3">
       {<IdoItemCardStakeChip info={info} />}
@@ -437,18 +466,23 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
               fieldName="Pool open"
               fieldValue={
                 <Row className="items-baseline gap-1">
-                  {currentIsBefore(Number(info.startTime)) ? (
+                  {isDateBefore(getChainDate(), info.startTime) ? (
                     <>
                       <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                       <div className="text-white font-medium">
-                        <IdoCountDownClock endTime={Number(info.startTime)} />
+                        <IdoCountDownClock
+                          endTime={info.startTime}
+                          onEnd={() => {
+                            setTimeout(() => {
+                              refreshIdo(info.id)
+                            }, 1000)
+                          }}
+                        />
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="text-white font-medium">
-                        {toUTC(Number(info.startTime), { hideUTCBadge: true })}
-                      </div>
+                      <div className="text-white font-medium">{toUTC(info.startTime, { hideUTCBadge: true })}</div>
                       <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
                     </>
                   )}
@@ -459,18 +493,23 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
               fieldName="Pool close"
               fieldValue={
                 <Row className="items-baseline gap-1">
-                  {currentIsBefore(Number(info.endTime)) ? (
+                  {isDateBefore(getChainDate(), info.endTime) ? (
                     <>
                       <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                       <div className="text-white font-medium">
-                        <IdoCountDownClock endTime={Number(info.endTime)} />
+                        <IdoCountDownClock
+                          endTime={info.endTime}
+                          onEnd={() => {
+                            setTimeout(() => {
+                              refreshIdo(info.id)
+                            }, 1000)
+                          }}
+                        />
                       </div>
                     </>
                   ) : (
                     <>
-                      <div className="text-white font-medium">
-                        {toUTC(Number(info.endTime), { hideUTCBadge: true })}
-                      </div>
+                      <div className="text-white font-medium">{toUTC(info.endTime, { hideUTCBadge: true })}</div>
                       <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
                     </>
                   )}
@@ -487,8 +526,8 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
 function IdoItemCardStakeChip({ info }: { info: HydratedIdoInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
-  const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
-  if (isMobile || currentIsAfter(info.stakeTimeEnd)) return null
+  const getChainDate = useConnection((s) => s.getChainDate)
+  if (isMobile || isDateAfter(getChainDate(), info.stakeTimeEnd)) return null
   return (
     <Row className={`AlertText items-center bg-[#abc4ff1a] p-3 rounded-xl mb-6`}>
       <Icon className="flex-none text-[#ABC4FF80] mr-2" size="sm" heroIconName="exclamation-circle" />
@@ -508,7 +547,7 @@ function IdoItemCardStakeChip({ info }: { info: HydratedIdoInfo }) {
             }
           }
         ]}
-        disabled={!currentIsBefore(info.stakeTimeEnd)}
+        disabled={!isDateBefore(getChainDate(), info.stakeTimeEnd)}
         onClick={() => {
           useStaking.setState({
             isStakeDialogOpen: true,
@@ -525,9 +564,9 @@ function IdoItemCardContentButtonGroup({ className, info }: { className?: string
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
-
+  const getChainDate = useConnection((s) => s.getChainDate)
   return info.isUpcoming ? (
-    isMobile && currentIsBefore(info.stakeTimeEnd) ? (
+    isMobile && isDateBefore(getChainDate(), info.stakeTimeEnd) ? (
       <Col
         className={twMerge(
           'justify-between bg-[#14104180] px-6 py-3 mr-4 mobile:pt-0 mobile:pb-2 mobile:px-4 mobile:-mx-4 mobile:-mb-4 rounded-xl mobile:rounded-none',
@@ -561,7 +600,7 @@ function IdoItemCardContentButtonGroup({ className, info }: { className?: string
                 }
               }
             ]}
-            disabled={!currentIsBefore(info.stakeTimeEnd)}
+            disabled={!isDateBefore(getChainDate(), info.stakeTimeEnd)}
             onClick={() => {
               useStaking.setState({
                 isStakeDialogOpen: true,

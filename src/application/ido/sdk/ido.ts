@@ -480,6 +480,6 @@ export class Ido {
       }
     }
 
-    return Object.values(info)
+    return info
   }
 }

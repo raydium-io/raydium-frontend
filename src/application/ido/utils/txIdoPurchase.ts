@@ -6,22 +6,24 @@ import BN from 'bn.js'
 import { SubscribeSignatureCallbacks } from '@/application/txTools/subscribeTx'
 
 import { Ido, Snapshot } from '../sdk'
-import { SdkIdoInfo } from '../type'
+import { HydratedIdoInfo } from '../type'
 import handleMultiTx, { TxAddOptions, TxShadowOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import assert from '@/functions/assert'
 import { Numberish } from '@/types/constants'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
+import { mul } from '@/functions/numberish/operations'
+import { HydratedFarmInfo } from '@/application/farms/type'
 
 export default async function txIdoPurchase({
   idoInfo,
-  amount,
+  ticketAmount,
   forceKeyPairs,
   ...restTxAddOptions
 }: {
-  idoInfo: SdkIdoInfo
-  amount: Numberish
+  idoInfo: HydratedIdoInfo
+  ticketAmount: Numberish
 } & TxAddOptions &
   TxShadowOptions) {
   assert(idoInfo.state, 'opps sdk fail to load')
@@ -30,7 +32,7 @@ export default async function txIdoPurchase({
       if (!idoInfo.base || !idoInfo.quote) return
       const piecesCollector = createTransactionCollector()
 
-      const lamports = idoInfo.state!.perLotteryQuoteAmount.mul(toBN(amount))
+      const lamports = idoInfo.state!.perLotteryQuoteAmount.mul(toBN(ticketAmount))
 
       const baseTokenAccount = await Spl.getAssociatedTokenAccount({ mint: idoInfo.base.mint, owner })
       let quoteTokenAccount = await Spl.getAssociatedTokenAccount({ mint: idoInfo.quote.mint, owner })
@@ -108,7 +110,7 @@ export default async function txIdoPurchase({
               snapshotAccount,
               owner
             },
-            amount: toBN(amount)
+            amount: toBN(ticketAmount)
           })
         )
       } catch (e) {
@@ -118,8 +120,8 @@ export default async function txIdoPurchase({
       transactionCollector.add(await piecesCollector.spawnTransaction(), {
         ...restTxAddOptions,
         txHistoryInfo: {
-          title: `Ido Purchase`,
-          description: `Purchase for ${idoInfo.baseSymbol} (${toString(amount)} tickets)`
+          title: `AccelerRaytor Deposit`,
+          description: `Deposit ${mul(ticketAmount, idoInfo.ticketPrice)} ${idoInfo.baseSymbol}`
         }
       })
     },

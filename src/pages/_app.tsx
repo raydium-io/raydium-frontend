@@ -52,11 +52,11 @@ import toPubString from '@/functions/format/toMintString'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { inClient } from '@/functions/judgers/isSSR'
 import { createDOMElement } from '@/functions/dom/createDOMElement'
-import useFreshChainTimeOffset from '@/application/connection/useFreshChainTimeOffset'
 import useFarmResetSelfCreatedByOwner from '@/application/farms/useFarmResetSelfCreatedByOwner'
 
 import { POPOVER_STACK_ID } from '@/components/Popover'
 import { DRAWER_STACK_ID } from '@/components/Drawer'
+import useFreshChainTimeOffset from '@/application/connection/useFreshChainTimeOffset'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()

@@ -28,7 +28,7 @@ export type ConnectionStore = {
   availableEndPoints: Endpoint[]
 
   // for online chain time is later than UTC
-  chainTimeOffset?: number // UTCTime + onlineChainTimeOffset = onLineTime // TODO: imply it
+  chainTimeOffset?: number // UTCTime + onlineChainTimeOffset = onLineTime 
 
   /**
    * for ui
@@ -60,6 +60,7 @@ export type ConnectionStore = {
   deleteRpc: (endPointUrl: Endpoint['url']) => Promise<boolean | undefined>
 
   extractConnectionName: (url: string) => string
+  getChainDate: () => Date
 }
 export const LOCALSTORAGE_KEY_USER_RPC = 'USER_RPC'
 /** zustand store hooks */
@@ -160,6 +161,10 @@ const useConnection = create<ConnectionStore>((set, get) => ({
     } catch {
       return '--'
     }
+  },
+
+  getChainDate() {
+    return new Date(Date.now() + (get().chainTimeOffset ?? 0))
   }
 }))
 

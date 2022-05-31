@@ -1,6 +1,8 @@
 import useConnection from './useConnection'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { mul, sub } from '@/functions/numberish/operations'
+import { Connection } from '@solana/web3.js'
+import { useEffect } from 'react'
 
 /**
  * **only in `_app.tsx`**
@@ -9,13 +11,22 @@ import { mul, sub } from '@/functions/numberish/operations'
  */
 export default function useFreshChainTimeOffset() {
   const connection = useConnection((s) => s.connection)
-  useAsyncEffect(async () => {
-    if (!connection) return
-    const chainTime = await connection.getBlockTime(await connection.getSlot())
-    if (!chainTime) return
-    const offset = Number(sub(mul(chainTime, 1000), Date.now()).toFixed(0))
-    useConnection.setState({
-      chainTimeOffset: offset
-    })
+  useEffect(() => {
+    updateChinTimeOffset(connection)
+    const timeId = setInterval(() => {
+      updateChinTimeOffset(connection)
+    }, 1000 * 60 * 5)
+    return () => clearInterval(timeId)
   }, [connection])
+}
+
+async function updateChinTimeOffset(connection: Connection | undefined) {
+  if (!connection) return
+  const chainTime = await connection.getBlockTime(await connection.getSlot())
+  if (!chainTime) return
+  const offset = Number(sub(mul(chainTime, 1000), Date.now()).toFixed(0))
+  useConnection.setState({
+    chainTimeOffset: offset,
+    getChainDate: () => new Date(Date.now() + (offset ?? 0))
+  })
 }

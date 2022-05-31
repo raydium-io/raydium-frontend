@@ -12,7 +12,7 @@ import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { toUTC } from '@/functions/date/dateFormat'
-import { currentIsBefore } from '@/functions/date/judges'
+import { isDateBefore } from '@/functions/date/judges'
 import formatNumber from '@/functions/format/formatNumber'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -46,6 +46,8 @@ import { useForceUpdate } from '@/hooks/useForceUpdate'
 import AutoBox from '@/components/AutoBox'
 import Tooltip from '@/components/Tooltip'
 import LoadingCircle from '@/components/LoadingCircle'
+import useConnection from '@/application/connection/useConnection'
+import { recursivelyDo } from '@/functions/recursivelyDo'
 
 // paser url to patch idoid
 function useUrlParser() {
@@ -169,7 +171,7 @@ function TicketItem({
       {idoInfo?.isClosed && (
         <Icon
           size="smi"
-          className={ticket.isWinning ? 'text-[#39D0D8]' : 'text-[#ABC4FF]'}
+          className={ticket.isWinning ? 'text-[#39D0D8]' : 'invisible'}
           heroIconName={ticket.isWinning ? 'check-circle' : 'x-circle'}
         />
       )}
@@ -179,11 +181,26 @@ function TicketItem({
 
 function WinningTicketPanel({ className }: { className?: string }) {
   const connected = useWallet((s) => s.connected)
+  const owner = useWallet((s) => s.owner)
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const isMobile = useAppSettings((s) => s.isMobile)
   const refreshIdo = useIdo((s) => s.refreshIdo)
 
   const [, forceUpdate] = useForceUpdate()
+
+  const [isBaseClaimed, setIsBaseClaimed] = useState(false)
+  const [isQuoteClaimed, setIsQuoteClaimed] = useState(false)
+
+  useEffect(() => {
+    setIsBaseClaimed(false)
+    setIsQuoteClaimed(false)
+  }, [owner])
+
+  useEffect(() => {
+    if (isMeaningfulNumber(idoInfo?.ledger?.baseWithdrawn)) setIsBaseClaimed(true)
+    if (isMeaningfulNumber(idoInfo?.ledger?.quoteWithdrawn)) setIsQuoteClaimed(true)
+  }, [idoInfo])
+
   return (
     <FadeIn ignoreEnterTransition /* no need. inside has FadeIn already */>
       {idoInfo?.canWithdrawBase || idoInfo?.isClosed || idoInfo?.depositedTickets?.length ? (
@@ -228,107 +245,119 @@ function WinningTicketPanel({ className }: { className?: string }) {
                   }
                 </div>
               </Col>
+              <FadeIn>
+                {idoInfo.ledger && idoInfo?.depositedTickets?.length && (
+                  <Row className="gap-8 mobile:gap-6 mobile:w-full mobile:grid mobile:grid-cols-2">
+                    <Col className="items-center">
+                      <Button
+                        size={isMobile ? 'sm' : 'md'}
+                        className="frosted-glass-teal mobile:w-full"
+                        validators={[
+                          { should: !isBaseClaimed },
+                          {
+                            should: connected,
+                            fallbackProps: {
+                              onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                            }
+                          },
+                          { should: gt(idoInfo.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
+                          {
+                            should: idoInfo.canWithdrawBase,
+                            fallbackProps: {
+                              children: (
+                                <Row>
+                                  Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'} in{' '}
+                                  <IdoCountDownClock
+                                    className="ml-1"
+                                    singleValueMode
+                                    labelClassName="text-base"
+                                    endTime={Number(idoInfo.startWithdrawTime)}
+                                    onEnd={forceUpdate}
+                                  />
+                                </Row>
+                              )
+                            }
+                          }
+                        ]}
+                        onClick={() => {
+                          txIdoClaim({
+                            idoInfo: idoInfo,
+                            side: 'base',
+                            onTxSuccess: () => {
+                              setIsQuoteClaimed(true)
+                              refreshIdo(idoInfo.id)
+                            }
+                          })
+                        }}
+                      >
+                        {isBaseClaimed
+                          ? `${idoInfo.base?.symbol ?? 'UNKNOWN'} Claimed`
+                          : `Claim ${idoInfo.base?.symbol ?? 'UNKNOWN'}`}
+                      </Button>
+                      <FadeIn>
+                        {gt(idoInfo.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) && (
+                          <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
+                            {idoInfo.winningTickets?.length} winning tickets
+                          </div>
+                        )}
+                      </FadeIn>
+                    </Col>
 
-              {idoInfo?.ledger ? (
-                <Row className="gap-8 mobile:gap-6 mobile:w-full mobile:grid mobile:grid-cols-2">
-                  <Col className="items-center">
-                    <Button
-                      size={isMobile ? 'sm' : 'md'}
-                      className="frosted-glass-teal mobile:w-full"
-                      validators={[
-                        {
-                          should: connected,
-                          fallbackProps: {
-                            onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                    <Col className="items-center">
+                      <Button
+                        size={isMobile ? 'sm' : 'md'}
+                        className="frosted-glass-teal mobile:w-full"
+                        validators={[
+                          { should: !isQuoteClaimed },
+                          { should: connected },
+                          { should: eq(idoInfo.ledger.quoteWithdrawn, 0) },
+                          { should: idoInfo.isClosed },
+                          {
+                            should: connected,
+                            forceActive: true,
+                            fallbackProps: {
+                              onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                            }
                           }
-                        },
-                        { should: gt(idoInfo.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) },
-                        {
-                          should: idoInfo.canWithdrawBase,
-                          fallbackProps: {
-                            children: (
-                              <Row>
-                                Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'} in{' '}
-                                <IdoCountDownClock
-                                  className="ml-1"
-                                  singleValueMode
-                                  labelClassName="text-base"
-                                  endTime={Number(idoInfo.startWithdrawTime)}
-                                  onEnd={forceUpdate}
-                                />
-                              </Row>
-                            )
-                          }
-                        }
-                      ]}
-                      onClick={() => {
-                        txIdoClaim({
-                          idoInfo: idoInfo,
-                          side: 'base',
-                          onTxFinally: () => {
-                            refreshIdo(idoInfo.id)
-                          }
-                        })
-                      }}
-                    >
-                      Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'}
-                    </Button>
-                    <FadeIn>
-                      {gt(idoInfo.winningTickets?.length, 0) && eq(idoInfo.ledger.baseWithdrawn, 0) && (
-                        <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
-                          {idoInfo.winningTickets?.length} winning tickets
-                        </div>
-                      )}
-                    </FadeIn>
-                  </Col>
-
-                  <Col className="items-center">
-                    <Button
-                      size={isMobile ? 'sm' : 'md'}
-                      className="frosted-glass-teal mobile:w-full"
-                      validators={[
-                        { should: connected },
-                        { should: eq(idoInfo.ledger.quoteWithdrawn, 0) },
-                        { should: idoInfo.isClosed },
-                        {
-                          should: connected,
-                          forceActive: true,
-                          fallbackProps: {
-                            onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
-                          }
-                        }
-                      ]}
-                      onClick={() => {
-                        txIdoClaim({
-                          idoInfo: idoInfo,
-                          side: 'quote',
-                          onTxFinally: () => {
-                            refreshIdo(idoInfo.id)
-                          }
-                        })
-                      }}
-                    >
-                      Withdraw {idoInfo.quote?.symbol ?? 'UNKNOWN'}
-                    </Button>
-                    <FadeIn>
-                      {eq(idoInfo.ledger.quoteWithdrawn, 0) && (
-                        <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
-                          {(idoInfo.depositedTickets?.length ?? 0) - (idoInfo.winningTickets?.length ?? 0)} non-winning
-                          tickets
-                        </div>
-                      )}
-                    </FadeIn>
-                  </Col>
-                </Row>
-              ) : (
-                <div></div>
-              )}
+                        ]}
+                        onClick={() => {
+                          txIdoClaim({
+                            idoInfo: idoInfo,
+                            side: 'quote',
+                            onTxSuccess: () => {
+                              setIsQuoteClaimed(true)
+                              refreshIdo(idoInfo.id)
+                            }
+                          })
+                        }}
+                      >
+                        {isQuoteClaimed
+                          ? `${idoInfo.quote?.symbol ?? 'UNKNOWN'} Claimed`
+                          : `Claim ${idoInfo.quote?.symbol ?? 'UNKNOWN'}`}
+                      </Button>
+                      <FadeIn>
+                        {eq(idoInfo.ledger?.quoteWithdrawn, 0) && (
+                          <div className="text-xs mt-1 font-semibold text-[#ABC4FF] opacity-50">
+                            {(idoInfo.depositedTickets?.length ?? 0) - (idoInfo.winningTickets?.length ?? 0)}{' '}
+                            non-winning tickets
+                          </div>
+                        )}
+                      </FadeIn>
+                    </Col>
+                  </Row>
+                )}
+              </FadeIn>
             </Row>
           )}
 
           <FadeIn>
             {isMeaningfulNumber(idoInfo.depositedTickets?.length) && (
               <Col className="bg-[#141041] py-5 px-6">
+                {!idoInfo.isClosed && (
+                  <div className="text-xl mobile:text-sm font-semibold  text-white">
+                    You have deposited successfully
+                  </div>
+                )}
                 <div className="text-sm mb-5 font-semibold  text-[#ABC4FF] opacity-50">Your ticket numbers</div>
                 <Grid
                   className="gap-board -mx-5"
@@ -355,6 +384,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
   const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
   const connected = useWallet((s) => s.connected)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const getChainDate = useConnection((s) => s.getChainDate)
 
   if (!idoInfo) return null
 
@@ -483,18 +513,16 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
             fieldName="Pool open"
             fieldValue={
               <Row className="items-baseline gap-1">
-                {currentIsBefore(Number(idoInfo.startTime)) ? (
+                {isDateBefore(getChainDate(), idoInfo.startTime) ? (
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
-                      <IdoCountDownClock endTime={Number(idoInfo.startTime)} />
+                      <IdoCountDownClock endTime={idoInfo.startTime} />
                     </div>
                   </>
                 ) : (
                   <>
-                    <div className="text-white font-medium">
-                      {toUTC(Number(idoInfo.startTime), { hideUTCBadge: true })}
-                    </div>
+                    <div className="text-white font-medium">{toUTC(idoInfo.startTime, { hideUTCBadge: true })}</div>
                     <div className="text-[#ABC4FF80] font-medium text-xs">{'UTC'}</div>
                   </>
                 )}
@@ -505,7 +533,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
             fieldName="Pool close"
             fieldValue={
               <Row className="items-baseline gap-1">
-                {currentIsBefore(Number(idoInfo.endTime)) ? (
+                {isDateBefore(getChainDate(), idoInfo.endTime) ? (
                   <>
                     <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                     <div className="text-white font-medium">
@@ -572,10 +600,10 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                       }
                     },
                     {
-                      should: currentIsBefore(idoInfo.stakeTimeEnd)
+                      should: isDateBefore(getChainDate(), idoInfo.stakeTimeEnd)
                     }
                   ]}
-                  disabled={!currentIsBefore(idoInfo.stakeTimeEnd)}
+                  disabled={!isDateBefore(getChainDate(), idoInfo.stakeTimeEnd)}
                   onClick={() => {
                     useStaking.setState({
                       isStakeDialogOpen: true,
@@ -597,7 +625,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
               fieldName="RAY staking deadline"
               fieldValue={
                 <Row className="items-baseline gap-1">
-                  {currentIsBefore(idoInfo.stakeTimeEnd) ? (
+                  {isDateBefore(getChainDate(), idoInfo.stakeTimeEnd) ? (
                     <>
                       <div className="text-[#ABC4FF80] font-medium text-xs">in</div>
                       <div className="text-white font-medium">
@@ -842,8 +870,9 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
 }
 
 function LotteryInputPanel({ className }: { className?: string }) {
+  const tempJoined = useIdo((s) => s.tempJoined)
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
-  const { connected, balances, checkWalletHasEnoughBalance } = useWallet()
+  const { connected, balances, checkWalletHasEnoughBalance, owner } = useWallet()
   const refreshIdo = useIdo((s) => s.refreshIdo)
   const refreshSelf = () => refreshIdo(idoInfo?.id)
 
@@ -863,9 +892,23 @@ function LotteryInputPanel({ className }: { className?: string }) {
     try {
       await txIdoPurchase({
         idoInfo,
-        amount: toBN(ticketAmount),
-        onTxFinally: () => {
-          refreshIdo(idoInfo.id)
+        ticketAmount: toBN(ticketAmount),
+        onTxSuccess: () => {
+          useIdo.setState({ tempJoined: true })
+          recursivelyDo(
+            () => {
+              // eslint-disable-next-line no-console
+              console.info('refresh idoInfo by txIdoPurchase')
+              refreshIdo(idoInfo.id)
+              return {
+                ticketCount: idoInfo.depositedTickets?.length
+              }
+            },
+            {
+              retrySpeed: 'slow',
+              stopWhen: ({ ticketCount }) => isMeaningfulNumber(ticketCount)
+            }
+          )
         }
       })
       // eslint-disable-next-line no-empty
@@ -911,6 +954,8 @@ function LotteryInputPanel({ className }: { className?: string }) {
     </Row>
   )
 
+  const joined = Boolean(owner && isMeaningfulNumber(idoInfo.ledger?.quoteDeposited))
+  const notJoined = !joined
   return (
     <CyberpunkStyleCard
       className="flex flex-col mobile:rounded-2xl p-6 mobile:px-4 space-y-5"
@@ -919,7 +964,6 @@ function LotteryInputPanel({ className }: { className?: string }) {
       <div className="font-semibold text-base text-white">
         {idoInfo.isUpcoming ? renderPoolUpcoming : idoInfo.isOpen ? renderPoolOpen : renderPoolClosed}
       </div>
-
       <FadeIn>
         {connected && (idoInfo.isUpcoming || (idoInfo.isOpen && idoInfo.isEligible != null)) && (
           <AlertText
@@ -931,7 +975,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
             ) : idoInfo.isEligible ? (
               `Once deposited ${
                 idoInfo.quote?.symbol ?? '--'
-              } can be claimed after lottery ends and tokens after 2022.03.10 14.00 UTC.`
+              } can be claimed after lottery ends and tokens after ${toUTC(idoInfo.startWithdrawTime)}.`
             ) : (
               <div>
                 <Link className="text-[#ABC4FF]" href="https://twitter.com/RaydiumProtocol">
@@ -947,8 +991,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
           </AlertText>
         )}
       </FadeIn>
-
-      <div className="space-y-3">
+      <div className={`space-y-3 ${tempJoined || !notJoined ? 'not-clickable' : ''}`}>
         <CoinInputBox
           className="px-4"
           topLeftLabel="Tickets"
@@ -966,9 +1009,9 @@ function LotteryInputPanel({ className }: { className?: string }) {
           disabled
           noDisableStyle
           haveCoinIcon
+          hideMaxButton
         />
       </div>
-
       <Button
         className="block w-full frosted-glass-teal"
         validators={[
@@ -993,8 +1036,8 @@ function LotteryInputPanel({ className }: { className?: string }) {
             fallbackProps: { children: 'Upcoming Pool' }
           },
           {
-            should: !idoInfo.ledger?.quoteDeposited || eq(idoInfo.ledger.quoteDeposited, 0),
-            fallbackProps: { children: 'Joined' }
+            should: notJoined,
+            fallbackProps: { children: 'Deposited' }
           },
           {
             should: (idoInfo.depositedTickets?.length ?? 0) === 0,
