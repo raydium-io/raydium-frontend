@@ -47,7 +47,6 @@ import AutoBox from '@/components/AutoBox'
 import Tooltip from '@/components/Tooltip'
 import LoadingCircle from '@/components/LoadingCircle'
 import useConnection from '@/application/connection/useConnection'
-import txEmpty from '@/application/txTools/txEmpty'
 import { recursivelyDo } from '@/functions/recursivelyDo'
 
 // paser url to patch idoid
@@ -873,7 +872,7 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
 function LotteryInputPanel({ className }: { className?: string }) {
   const tempJoined = useIdo((s) => s.tempJoined)
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
-  const { connected, balances, checkWalletHasEnoughBalance } = useWallet()
+  const { connected, balances, checkWalletHasEnoughBalance, owner } = useWallet()
   const refreshIdo = useIdo((s) => s.refreshIdo)
   const refreshSelf = () => refreshIdo(idoInfo?.id)
 
@@ -955,7 +954,8 @@ function LotteryInputPanel({ className }: { className?: string }) {
     </Row>
   )
 
-  const notJoined = !idoInfo.ledger?.quoteDeposited || eq(idoInfo.ledger.quoteDeposited, 0)
+  const joined = Boolean(owner && isMeaningfulNumber(idoInfo.ledger?.quoteDeposited))
+  const notJoined = !joined
   return (
     <CyberpunkStyleCard
       className="flex flex-col mobile:rounded-2xl p-6 mobile:px-4 space-y-5"
@@ -964,7 +964,6 @@ function LotteryInputPanel({ className }: { className?: string }) {
       <div className="font-semibold text-base text-white">
         {idoInfo.isUpcoming ? renderPoolUpcoming : idoInfo.isOpen ? renderPoolOpen : renderPoolClosed}
       </div>
-
       <FadeIn>
         {connected && (idoInfo.isUpcoming || (idoInfo.isOpen && idoInfo.isEligible != null)) && (
           <AlertText
@@ -992,7 +991,6 @@ function LotteryInputPanel({ className }: { className?: string }) {
           </AlertText>
         )}
       </FadeIn>
-
       <div className={`space-y-3 ${tempJoined || !notJoined ? 'not-clickable' : ''}`}>
         <CoinInputBox
           className="px-4"
@@ -1013,7 +1011,6 @@ function LotteryInputPanel({ className }: { className?: string }) {
           hideMaxButton
         />
       </div>
-
       <Button
         className="block w-full frosted-glass-teal"
         validators={[
