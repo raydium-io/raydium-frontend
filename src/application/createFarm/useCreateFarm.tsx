@@ -12,7 +12,7 @@ export type CreateFarmStore = {
 }
 
 const useCreateFarms = create<CreateFarmStore>((set) => ({
-  rewards: [{ ...createNewUIRewardInfo(), tokenMint: toPubString(RAYMint) }]
+  rewards: [{ ...createNewUIRewardInfo() }]
 }))
 
 export default useCreateFarms

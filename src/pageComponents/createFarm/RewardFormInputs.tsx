@@ -41,16 +41,16 @@ const MIN_DURATION_TEXT = '7D'
 
 export type RewardFormCardInputsParams = {
   mode?: 'edit-in-rewarding' | 'edit-after-rewarding'
-  rewardIndex: number
+  reward: UIRewardInfo
 }
 
 export function RewardFormCardInputs({
   mode, // all open
-  rewardIndex
+  reward: targetReward
 }: RewardFormCardInputsParams) {
   const rewards = useCreateFarms((s) => s.rewards)
-
-  const reward = rewards[rewardIndex] as UIRewardInfo | undefined
+  const rewardIndex = rewards.findIndex(({ id }) => id === targetReward.id)
+  const reward = rewards[rewardIndex] // usdate fresh data
 
   const [durationTime, setDurationTime] = useStateWithSuperPreferential(
     reward?.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
@@ -79,14 +79,14 @@ export function RewardFormCardInputs({
         onSelectCoin={(token) => {
           useCreateFarms.setState({
             rewards: produce(rewards, (draft) => {
-              draft[rewardIndex].token = token
+              if (rewardIndex >= 0) draft[rewardIndex].token = token
             })
           })
         }}
         onUserInput={(amount) => {
           useCreateFarms.setState({
             rewards: produce(rewards, (draft) => {
-              draft[rewardIndex].amount = amount
+              if (rewardIndex >= 0) draft[rewardIndex].amount = amount
             })
           })
         }}
@@ -258,7 +258,7 @@ export function RewardFormCardInputs({
           if (!durationTime) return
           useCreateFarms.setState({
             rewards: produce(rewards, (draft) => {
-              draft[rewardIndex].amount = mul(parseDurationAbsolute(durationTime).days, v)
+              if (rewardIndex > 0) draft[rewardIndex].amount = mul(parseDurationAbsolute(durationTime).days, v)
             })
           })
         }}

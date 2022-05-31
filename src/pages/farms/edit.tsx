@@ -29,7 +29,7 @@ export default function FarmEditPage() {
   const { rewards, cannotAddNewReward } = useCreateFarms()
   const [isRewardEditDialogOpen, setIsRewardEditDialogOpen] = useState(false)
   const [rewardEditDialogMode, setRewardEditDialogMode] = useState<'edit-in-rewarding' | 'edit-after-rewarding'>()
-  const [focusRewardIndex, setFocusRewardIndex] = useState<number>()
+  const [focusReward, setFocusReward] = useState<UIRewardInfo>()
   const canAddRewardInfo = !cannotAddNewReward && rewards.length < 5
   return (
     <PageLayout metaTitle="Farms - Raydium">
@@ -45,11 +45,11 @@ export default function FarmEditPage() {
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Farm rewards</div>
           <RewardEditSummery
             mode="edit"
-            onClickIncreaseReward={({ rewardIndex, reward }) => {
+            onClickIncreaseReward={({ reward }) => {
               setRewardEditDialogMode(reward.isRewarding ? 'edit-in-rewarding' : 'edit-in-rewarding') // TODO: temp
               // setRewardEditDialogMode(reward.isRewarding ? 'edit-in-rewarding' : 'edit-after-rewarding')
               setIsRewardEditDialogOpen(true)
-              setFocusRewardIndex(rewardIndex)
+              setFocusReward(reward)
             }}
             onClaimReward={({ reward }) => {
               // Farm.makeWithdrawFarmRewardInstruction() //TODO: imply it!
@@ -98,11 +98,11 @@ export default function FarmEditPage() {
           </div>
         </Card>
 
-        {focusRewardIndex != null && (
+        {focusReward != null && (
           <RewardEditInputDialog
             open={isRewardEditDialogOpen}
             onClose={() => setIsRewardEditDialogOpen(false)}
-            rewardIndex={focusRewardIndex}
+            reward={focusReward}
             mode={rewardEditDialogMode}
           />
         )}

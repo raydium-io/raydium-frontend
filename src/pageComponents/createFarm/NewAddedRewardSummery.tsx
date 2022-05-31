@@ -1,3 +1,4 @@
+import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import CoinAvatar from '@/components/CoinAvatar'
 import Icon from '@/components/Icon'
@@ -14,16 +15,16 @@ import { toString } from '@/functions/numberish/toString'
  * mode: list show (item select)
  * mode: edit
  */
-export function NewAddedRewardSummery({
+export function NewAddedRewardSummary({
   mode,
-  activeIndex,
-  onActiveChange
+  activeReward,
+  onActiveRewardChange
 }: {
   mode: 'normal' | 'selectable' | 'edit'
 
   // --------- when selectable ------------
-  activeIndex?: number
-  onActiveChange?(index: number): void
+  activeReward?: UIRewardInfo
+  onActiveRewardChange?(reward: UIRewardInfo): void
 }) {
   const rewards = useCreateFarms((s) => s.rewards)
   return (
@@ -52,12 +53,12 @@ export function NewAddedRewardSummery({
       // className="backdrop-brightness-"
       rowClassName={({ index, itemData: reward }) => {
         if (mode === 'selectable') {
-          return `${activeIndex === index ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
+          return `${activeReward?.id === reward.id ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
         }
         return ''
       }}
-      onClickRow={({ index }) => {
-        onActiveChange?.(index)
+      onClickRow={({ index, itemData: reward }) => {
+        onActiveRewardChange?.(reward)
       }}
       renderRowItem={({ item: reward, label, key }) => {
         if (label === 'Asset') {
@@ -112,7 +113,7 @@ export function NewAddedRewardSummery({
           )
         }
       }}
-      renderRowEntry={({ contentNode, destorySelf, index: idx, itemData: reward }) => {
+      renderRowEntry={({ contentNode, destorySelf, itemData: reward }) => {
         const controlsNode = (
           <Row className="gap-2">
             <Icon
@@ -120,7 +121,7 @@ export function NewAddedRewardSummery({
               heroIconName="pencil"
               className="clickable clickable-opacity-effect text-[#abc4ff]"
               onClick={() => {
-                onActiveChange?.(idx)
+                onActiveRewardChange?.(reward)
               }}
             />
             <Icon
