@@ -6,7 +6,6 @@ import { objectShakeFalsy, objectShakeNil } from '@/functions/objectMethods'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { HexAddress, MayFunction } from '@/types/constants'
 
-import useAppSettings from './appSettings/useAppSettings'
 import useLiquidity from './liquidity/useLiquidity'
 import { useSwap } from './swap/useSwap'
 import { SplToken } from './token/type'
@@ -14,10 +13,10 @@ import useFarms from './farms/useFarms'
 import useIdo from './ido/useIdo'
 import useCreateFarms from './createFarm/useCreateFarm'
 import { HydratedFarmInfo } from './farms/type'
-import parseDuration from '@/functions/date/parseDuration'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import { parsedApiFarmInfo } from './createFarm/parsedApiFarmInfoToUIRewardsInfo'
+import toPubString from '@/functions/format/toMintString'
+import useWallet from './wallet/useWallet'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import { parsedApiRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
 
 export type PageRouteConfigs = {
   '/swap': {
@@ -137,6 +136,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       })
   } else if (toPage === '/farms/edit') {
     const farmInfo = (options!.queryProps as PageRouteConfigs['/farms/edit']['queryProps']).farmInfo
+    const { owner } = useWallet.getState()
     router
       .push({
         pathname: '/farms/edit',
@@ -145,8 +145,14 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         }
       })
       .then(() => {
-        const { isFarmCreator, poolId, uiRewardsInfos } = parsedApiFarmInfo(farmInfo)
-        useCreateFarms.setState(objectShakeNil({ poolId, rewards: uiRewardsInfos, cannotAddNewReward: !isFarmCreator }))
+        useCreateFarms.setState(
+          objectShakeNil({
+            farmId: toPubString(farmInfo.id),
+            poolId: farmInfo.ammId,
+            rewards: farmInfo.rewards.map((reward) => parsedApiRewardInfoToUiRewardInfo(reward)),
+            disableAddNewReward: !isMintEqual(farmInfo.creator, owner)
+          })
+        )
       })
   } else {
     router.push({ pathname: toPage, query: options?.queryProps })

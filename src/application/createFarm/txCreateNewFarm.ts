@@ -20,7 +20,7 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
     const { tokenAccounts } = useWallet.getState()
     const testStartTime = toBN(div(Date.now(), 1000)) // NOTE: test
     const testEndTime = toBN(div(Date.now() + 1000 * 60 * 60 * 1.2, 1000)) // NOTE: test
-    const rewards = uiRewardInfos.map((reward) => {
+    const rewards: FarmCreateInstructionParamsV6['rewardInfos'] = uiRewardInfos.map((reward) => {
       const rewardToken = reward.token
       assert(reward.startTime, 'reward start time is required')
       assert(reward.endTime, 'reward end time is required')
@@ -30,14 +30,13 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
       assert(rewardTokenAccount?.publicKey, `can't find reward ${rewardToken?.symbol}'s tokenAccount `)
       const durationTime = reward.endTime.getTime() - reward.startTime.getTime()
       const estimatedValue = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
-      const rewardInfo = {
+      return {
         rewardStartTime: testStartTime || toBN(div(reward.startTime.getTime(), 1000)),
         rewardEndTime: testEndTime || toBN(div(reward.endTime.getTime(), 1000)),
         rewardMint: rewardToken.mint,
         rewardPerSecond: toBN(mul(estimatedValue, padZero(1, rewardToken.decimals))),
         rewardOwnerAccount: rewardTokenAccount.publicKey
-      } as FarmCreateInstructionParamsV6['rewardInfos'][number]
-      return rewardInfo
+      }
     })
 
     const lockMint = '7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR' // NOTE: test

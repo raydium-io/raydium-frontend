@@ -23,6 +23,9 @@ import useConnection from '@/application/connection/useConnection'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { offset } from '@solana/buffer-layout'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import Button from '@/components/Button'
+import { Farm } from '@raydium-io/raydium-sdk'
+import txUpdateEdited from '@/application/createFarm/txUpdateEdited'
 
 export default function FarmEditPage() {
   const { rewards, cannotAddNewReward } = useCreateFarms()
@@ -72,6 +75,14 @@ export default function FarmEditPage() {
             <div className="ml-1.5 text-[#abc4ff80] font-medium">({5 - rewards.length} more)</div>
           </Row>
         </div>
+
+        <Button
+          onClick={() => {
+            txUpdateEdited({ rewardId: rewards[0].id })
+          }}
+        >
+          Submit
+        </Button>
 
         <Card className={`p-6 rounded-3xl ring-1 ring-inset ring-[#abc4ff1a] bg-[#1B1659] relative`}>
           <div className="absolute -left-4 top-5 -translate-x-full">
@@ -217,56 +228,54 @@ function RewardEditSummery({
           )
         }
       }}
-      renderRowEntry={({ contentNode, index: idx, itemData: reward }) => {
-        return (
-          <div
-            className={
-              isDateAfter(currentChainTime, offsetDateTime(reward.endTime, { hours: -0.5 })) ? '' : 'not-selectable'
-            }
-          >
-            {contentNode}
-            <div className="bg-[#abc4ff1a] rounded-md p-2 mb-4">
-              {!reward.isRewardEnded && (
-                <Col
-                  className="items-center clickable"
-                  onClick={() => {
-                    onClickIncreaseReward?.({ reward, rewardIndex: idx })
-                  }}
+      renderRowEntry={({ contentNode, index: idx, itemData: reward }) => (
+        <div
+          className={
+            isDateAfter(currentChainTime, offsetDateTime(reward.endTime, { hours: -0.5 })) ? '' : 'not-selectable'
+          }
+        >
+          {contentNode}
+          <div className="bg-[#abc4ff1a] rounded-md p-2 mb-4">
+            {!reward.isRewardEnded && (
+              <Col
+                className="items-center clickable"
+                onClick={() => {
+                  onClickIncreaseReward?.({ reward, rewardIndex: idx })
+                }}
+              >
+                <Row className="items-center gap-1">
+                  <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
+                  <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
+                </Row>
+                <div className="text-xs text-[#abc4ff80] font-medium">(no rate changed allowed)</div>
+              </Col>
+            )}
+
+            {reward.isRewardEnded && (
+              <Grid className="grid-cols-2 gap-board">
+                <Row
+                  className="items-center justify-center gap-1 clickable"
+                  onClick={() => onClickIncreaseReward?.({ reward, rewardIndex: idx })}
                 >
-                  <Row className="items-center gap-1">
-                    <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
-                    <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
-                  </Row>
-                  <div className="text-xs text-[#abc4ff80] font-medium">(no rate changed allowed)</div>
-                </Col>
-              )}
+                  <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
+                  <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
+                </Row>
 
-              {reward.isRewardEnded && (
-                <Grid className="grid-cols-2 gap-board">
-                  <Row
-                    className="items-center justify-center gap-1 clickable"
-                    onClick={() => onClickIncreaseReward?.({ reward, rewardIndex: idx })}
-                  >
-                    <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
-                    <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
-                  </Row>
-
-                  <Row
-                    className="items-center justify-center gap-1 clickable"
-                    onClick={() => onClaimReward?.({ reward, rewardIndex: idx })}
-                  >
-                    <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
-                    <Col>
-                      <div className="text-xs text-[#abc4ff] font-medium">Claim unemmitted rewards</div>
-                      <div className="text-xs text-[#abc4ff80] font-medium">1111 RAY</div> {/* TODO: imply it!! */}
-                    </Col>
-                  </Row>
-                </Grid>
-              )}
-            </div>
+                <Row
+                  className="items-center justify-center gap-1 clickable"
+                  onClick={() => onClaimReward?.({ reward, rewardIndex: idx })}
+                >
+                  <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
+                  <Col>
+                    <div className="text-xs text-[#abc4ff] font-medium">Claim unemmitted rewards</div>
+                    <div className="text-xs text-[#abc4ff80] font-medium">1111 RAY</div> {/* TODO: imply it!! */}
+                  </Col>
+                </Row>
+              </Grid>
+            )}
           </div>
-        )
-      }}
+        </div>
+      )}
       onListChange={(list) => {
         useCreateFarms.setState({
           rewards: list

@@ -97,7 +97,10 @@ export function RewardFormCardInputs({
           label="Day and Hours"
           value={getStringFromDuration(durationTime)}
           // TODO: maxValue (for end time is setted and start can't before now)
-          pattern={[/^(?:(\d+)D?)? ?(?:(\d+)H?)?$/i]}
+          pattern={[
+            /^(?:(\d+)D?)? ?(?:(\d+)H?)?$/i,
+            (s) => (s ? getDurationFromString(s).totalDuration <= MAX_DURATION : true)
+          ]}
           disabled={disableDurationInput}
           onBlur={(v, { setSelf }) => {
             const duration = getDurationFromString(v)
@@ -154,7 +157,7 @@ export function RewardFormCardInputs({
           inputProps={{
             inputClassName: 'text-sm font-medium text-white'
           }}
-          value={reward.startTime}
+          value={ reward.startTime}
           disabled={disableStartTimeInput}
           disableDateBeforeCurrent
           isValidDate={(date) => {
