@@ -12,5 +12,5 @@ export function useUserCustomizedEndpointInitLoad() {
         availableEndPoints: unifyByKey([...s.availableEndPoints, ...storagedEndpoints], (i) => i.url)
       }))
     }
-  }, [])
+  }, [storagedEndpoints?.length])
 }
