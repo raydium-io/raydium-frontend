@@ -8,7 +8,7 @@ import Row from '@/components/Row'
 import assert from '@/functions/assert'
 import tryCatch from '@/functions/tryCatch'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
-import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummery'
+import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
 import { useMemo } from 'react'
 
 export default function EditReview() {

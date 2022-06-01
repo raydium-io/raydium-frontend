@@ -3,7 +3,7 @@ import { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import { useState } from 'react'
 import { RewardFormCardInputs } from './RewardFormInputs'
-import { NewAddedRewardSummary } from './NewAddedRewardSummery'
+import { NewAddedRewardSummary } from './NewAddedRewardSummary'
 import { RewardFormCard } from '../../pages/farms/create'
 import { UIRewardInfo } from '@/application/createFarm/type'
 
