@@ -266,7 +266,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                             fallbackProps: {
                               children: (
                                 <Row>
-                                  Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'} in{' '}
+                                  Claim {idoInfo.base?.symbol ?? 'UNKNOWN'} in{' '}
                                   <IdoCountDownClock
                                     className="ml-1"
                                     singleValueMode
