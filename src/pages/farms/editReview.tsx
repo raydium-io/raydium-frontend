@@ -10,6 +10,8 @@ import tryCatch from '@/functions/tryCatch'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
 import { useMemo } from 'react'
+import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
+import { createNewUIRewardInfo, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 
 export default function EditReviewPage() {
   const getToken = useToken((s) => s.getToken)
@@ -32,13 +34,16 @@ export default function EditReviewPage() {
     [poolId, rewards, getToken]
   )
 
+  const newRewards = rewards.filter((r) => r.type === 'new added')
+  const editedRewards = rewards.filter((r) => hasRewardBeenEdited(r))
+
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(640px,90vw)]">
-        <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
+        <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Edit Farm</div>
 
         <div className="mb-8 text-xl mobile:text-lg font-semibold justify-self-start text-white">
-          Review farm details
+          Review edited farm details
         </div>
 
         <div className="mb-8">
@@ -47,9 +52,16 @@ export default function EditReviewPage() {
         </div>
 
         <div className="mb-6">
-          <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Farm rewards</div>
-          <NewAddedRewardSummary mode="normal" />
+          <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Exised farm rewards</div>
+          <ExistedEditRewardSummary canUserEdit={false} />
         </div>
+
+        {newRewards.length > 0 && (
+          <div className="mb-6">
+            <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">New farm rewards</div>
+            <NewAddedRewardSummary canUserEdit={false} />
+          </div>
+        )}
 
         <div className="font-medium text-sm text-center leading-snug text-[#abc4ff80] mb-8">
           <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards cannot
@@ -60,22 +72,23 @@ export default function EditReviewPage() {
           <Button
             className="frosted-glass-teal"
             size="lg"
-            disabled={!canCreateFarm}
+            validators={[{ should: newRewards.length > 0 || editedRewards.length > 0 }]}
             onClick={() => {
               txCreateNewFarm({
                 onTxSuccess: () => {
-                  routeTo('/farms/create')
+                  routeTo('/farms')
+                  useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
                 }
               })
             }}
           >
-            Create Farm
+            Edit Farm
           </Button>
           <Button
             className="frosted-glass-skygray"
             size="lg"
             onClick={() => {
-              routeTo('/farms/create')
+              routeTo('/farms/create') // TODO: should back
             }}
           >
             Edit

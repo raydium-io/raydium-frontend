@@ -16,7 +16,7 @@ import { HydratedFarmInfo } from './farms/type'
 import toPubString from '@/functions/format/toMintString'
 import useWallet from './wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { createNewUIRewardInfo, parsedApiRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
+import { createNewUIRewardInfo, parsedHydratedRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
 import CreateFarmPage from '@/pages/farms/create'
 
 export type PageRouteConfigs = {
@@ -163,7 +163,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
           objectShakeNil({
             farmId: toPubString(farmInfo.id),
             poolId: farmInfo.ammId,
-            rewards: farmInfo.rewards.map((reward) => parsedApiRewardInfoToUiRewardInfo(reward)),
+            rewards: farmInfo.rewards.map((reward) => parsedHydratedRewardInfoToUiRewardInfo(reward)),
             disableAddNewReward: !isMintEqual(farmInfo.creator, owner)
           })
         )

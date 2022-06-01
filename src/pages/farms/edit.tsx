@@ -10,7 +10,7 @@ import { useState } from 'react'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
-import { ExistedRewardEditSummary } from '../../pageComponents/createFarm/ExistedRewardEditSummary'
+import { ExistedEditRewardSummary } from '../../pageComponents/createFarm/ExistedRewardEditSummary'
 import Button from '@/components/Button'
 import { routeTo } from '@/application/routeTools'
 
@@ -32,7 +32,8 @@ export default function FarmEditPage() {
 
         <div className="mb-4">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Farm rewards</div>
-          <ExistedRewardEditSummary
+          <ExistedEditRewardSummary
+            canUserEdit
             onClickIncreaseReward={({ reward }) => {
               setRewardEditDialogMode(reward.isRewarding ? 'edit-in-rewarding' : 'edit-in-rewarding') // TODO: temp
               // setRewardEditDialogMode(reward.isRewarding ? 'edit-in-rewarding' : 'edit-after-rewarding')

@@ -19,7 +19,7 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
     <div className={className}>
       <div className={activeReward ? 'mb-8' : 'mb-2'}>
         <NewAddedRewardSummary
-          mode="selectable"
+          canUserEdit
           activeReward={activeReward}
           onActiveRewardChange={(r) => setActiveRewardId(r.id)}
         />

@@ -16,11 +16,11 @@ import { toString } from '@/functions/numberish/toString'
  * mode: edit
  */
 export function NewAddedRewardSummary({
-  mode,
+  canUserEdit,
   activeReward,
   onActiveRewardChange
 }: {
-  mode: 'normal' | 'selectable' | 'edit'
+  canUserEdit: boolean
 
   // --------- when selectable ------------
   activeReward?: UIRewardInfo
@@ -54,7 +54,7 @@ export function NewAddedRewardSummary({
       ]}
       // className="backdrop-brightness-"
       rowClassName={({ itemData: reward }) => {
-        if (mode === 'selectable') {
+        if (canUserEdit) {
           return `${activeReward?.id === reward.id ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
         }
         return ''
@@ -138,7 +138,9 @@ export function NewAddedRewardSummary({
         return (
           <>
             {contentNode}
-            <div className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full">{controlsNode}</div>
+            {canUserEdit && (
+              <div className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full">{controlsNode}</div>
+            )}
           </>
         )
       }}

@@ -21,5 +21,7 @@ export type UIRewardInfo = {
   isRewardEnded?: boolean // for farm edit
   isRewardBeforeStart?: boolean // for farm edit
   isRewarding?: boolean // exist working farm
+
+  originData?: Omit<UIRewardInfo, 'originData'> // only edit have this
 }
 // actually it also use to edit farm

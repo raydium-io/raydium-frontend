@@ -2,6 +2,7 @@ import { currentIsBefore } from '@/functions/date/judges'
 import { parseDurationAbsolute, getDuration } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import { mul } from '@/functions/numberish/operations'
+import { toString } from '@/functions/numberish/toString'
 import { HydratedRewardInfo } from '../farms/type'
 import { UIRewardInfo } from './type'
 
@@ -15,7 +16,7 @@ export function createNewUIRewardInfo(): UIRewardInfo {
   }
 }
 
-export function parsedApiRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): UIRewardInfo {
+export function parsedHydratedRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): UIRewardInfo {
   const restAmount =
     reward.endTime && reward.token && reward.perSecond != null
       ? currentIsBefore(reward.endTime, { unit: 's' })
@@ -28,7 +29,7 @@ export function parsedApiRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): U
       : undefined
   const rewardVersion = !reward.endTime && !reward.openTime ? 'v3/v5' : 'v6'
 
-  return {
+  const uiRewardInfoCore = {
     ...reward,
     id: toPubString(reward.rewardVault),
     type: 'existed reward',
@@ -37,5 +38,23 @@ export function parsedApiRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): U
     endTime: reward.endTime, // chain time
     startTime: reward.openTime, // chain time
     version: rewardVersion
-  }
+  } as const
+  return { ...uiRewardInfoCore, originData: uiRewardInfoCore }
+}
+
+function getSignature(reward: Omit<UIRewardInfo, 'originData'>): string {
+  return [
+    toPubString(reward.token?.mint),
+    toString(reward.amount),
+    toString(reward.restAmount),
+    reward.endTime?.toString(),
+    reward.startTime?.toString()
+  ].join(', ')
+}
+
+export function hasRewardBeenEdited(reward: UIRewardInfo) {
+  if (!reward.originData) return false
+  const editedSignature = getSignature(reward)
+  const originSignature = getSignature(reward.originData)
+  return editedSignature !== originSignature
 }
