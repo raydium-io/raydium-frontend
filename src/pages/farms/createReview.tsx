@@ -9,7 +9,7 @@ import assert from '@/functions/assert'
 import tryCatch from '@/functions/tryCatch'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 export default function CreateFarmReviewPage() {
   const getToken = useToken((s) => s.getToken)

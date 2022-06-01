@@ -11,10 +11,9 @@ import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
 import { useMemo } from 'react'
 
-export default function EditReview() {
+export default function EditReviewPage() {
   const getToken = useToken((s) => s.getToken)
   const { poolId, rewards } = useCreateFarms()
-
   const canCreateFarm = useMemo(
     () =>
       tryCatch(
@@ -63,7 +62,11 @@ export default function EditReview() {
             size="lg"
             disabled={!canCreateFarm}
             onClick={() => {
-              txCreateNewFarm()
+              txCreateNewFarm({
+                onTxSuccess: () => {
+                  routeTo('/farms/create')
+                }
+              })
             }}
           >
             Create Farm

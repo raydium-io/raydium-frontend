@@ -11,6 +11,8 @@ import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { ExistedRewardEditSummary } from '../../pageComponents/createFarm/ExistedRewardEditSummary'
+import Button from '@/components/Button'
+import { routeTo } from '@/application/routeTools'
 
 export default function FarmEditPage() {
   const { rewards, cannotAddNewReward } = useCreateFarms()
@@ -62,6 +64,15 @@ export default function FarmEditPage() {
           <div className="ml-1.5 text-[#abc4ff] font-medium">Add another reward token</div>
           <div className="ml-1.5 text-[#abc4ff80] font-medium">({5 - rewards.length} more)</div>
         </Row>
+
+        <Button
+          className="block frosted-glass-teal mx-auto mt-4 mb-12"
+          onClick={() => {
+            routeTo('/farms/editReview')
+          }}
+        >
+          Review changes
+        </Button>
 
         <Card className={`p-6 rounded-3xl ring-1 ring-inset ring-[#abc4ff1a] bg-[#1B1659] relative`}>
           <div className="absolute -left-4 top-5 -translate-x-full">

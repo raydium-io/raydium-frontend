@@ -68,6 +68,9 @@ export type PageRouteConfigs = {
       farmInfo: HydratedFarmInfo
     }
   }
+  '/farms/editReview': {
+    queryProps?: any
+  }
 }
 
 export type PageRouteName = keyof PageRouteConfigs

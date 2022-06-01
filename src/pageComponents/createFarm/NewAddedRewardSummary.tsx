@@ -87,7 +87,7 @@ export function NewAddedRewardSummary({
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
           if (!reward.startTime || !reward.endTime) return
           const duration = parseDuration(getDuration(reward.endTime, reward.startTime))
-          return duration.hours ? `${duration.days}D ${duration.hours} H` : `${duration.days}D`
+          return duration.hours ? `${duration.days}D ${duration.hours}H` : `${duration.days}D`
         }
 
         if (label === 'Period (yy-mm-dd)') {
