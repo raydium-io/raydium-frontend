@@ -74,7 +74,7 @@ export default function IdoCountDownClock({
       return (
         <Row className={twMerge('items-baseline', className)}>
           <div>{'>'}24</div>
-          <div className={twMerge('ml-1 text-xs', labelClassName)}>{labels['hours']}</div>
+          <div className={twMerge('text-xs', labelClassName)}>{labels['hours']}</div>
         </Row>
       )
     if (duration.hours >= 1 || duration.minutes >= 1)
@@ -83,12 +83,12 @@ export default function IdoCountDownClock({
           {duration.hours >= 1 && (
             <Row>
               <div>{24 * duration['days'] + duration['hours']}</div>
-              <div className={twMerge('ml-1 text-xs', labelClassName)}>{labels['hours']}</div>
+              <div className={twMerge('text-xs', labelClassName)}>{labels['hours']}</div>
             </Row>
           )}
           <Row>
             <div>{duration['minutes']}</div>
-            <div className={twMerge('ml-1 text-xs', labelClassName)}>{labels['minutes']}</div>
+            <div className={twMerge('text-xs', labelClassName)}>{labels['minutes']}</div>
           </Row>
         </Row>
       )
@@ -100,7 +100,7 @@ export default function IdoCountDownClock({
             60 * duration['minutes'] +
             duration['seconds']}
         </div>
-        <div className={twMerge('ml-1 text-xs', labelClassName)}>{labels['seconds']}</div>
+        <div className={twMerge('text-xs', labelClassName)}>{labels['seconds']}</div>
       </Row>
     )
   }
