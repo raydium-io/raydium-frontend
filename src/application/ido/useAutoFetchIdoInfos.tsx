@@ -64,6 +64,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
         ...s.idoHydratedInfos,
         ...objectMap(hydratedInfos, (newHydratedInfo, idoid) => ({
           ...s.idoHydratedInfos[idoid],
+          ledger: undefined,
           ...newHydratedInfo
         }))
       }
@@ -80,6 +81,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
       idoProjectInfos: { ...s.idoProjectInfos, [currentIdoId]: projectInfo },
       idoHydratedInfos: {
         ...s.idoHydratedInfos,
+
         [currentIdoId]: { ...s.idoHydratedInfos[currentIdoId], ...projectInfo }
       }
     }))
@@ -107,6 +109,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
         ...objectMap(objectShakeNil(hydratedInfos), (newHydratedInfo, idoid) => {
           return {
             ...s.idoHydratedInfos[idoid],
+            ledger: undefined,
             ...newHydratedInfo
           }
         })
@@ -137,6 +140,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
         ...s.idoHydratedInfos,
         ...objectMap(objectShakeNil(hydratedInfos), (newHydratedInfo, idoid) => ({
           ...s.idoHydratedInfos[idoid],
+          ledger: undefined,
           ...newHydratedInfo
         }))
       }
@@ -157,6 +161,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
           ...s.idoHydratedInfos,
           ...objectMap(objectShakeNil(hydratedInfos), (newHydratedInfo, idoid) => ({
             ...s.idoHydratedInfos[idoid],
+            ledger: undefined,
             ...newHydratedInfo
           }))
         }
