@@ -2,19 +2,16 @@
  * depends on <List>
  */
 
-import { isNumber, isObject, isString } from '@/functions/judgers/dateType'
+import { isNumber, isObject } from '@/functions/judgers/dateType'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayArray, MayFunction } from '@/types/constants'
 import { SKeyof } from '@/types/generics'
 import { ReactNode, Fragment, useRef, CSSProperties } from 'react'
 import Card from './Card'
 import Col from './Col'
-import Row from './Row'
 import useListDataManager from '../hooks/useListDataManager'
-import Icon from './Icon'
 import Grid from './Grid'
 import { twMerge } from 'tailwind-merge'
-import useConnection from '@/application/connection/useConnection'
 
 interface ListTableHeader<D> {
   key?: MayArray<SKeyof<D>>

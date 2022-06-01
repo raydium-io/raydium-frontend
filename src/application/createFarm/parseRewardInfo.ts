@@ -1,11 +1,8 @@
-import { offsetDateTime } from '@/functions/date/dateFormat'
-import { currentIsBefore, isDateAfter, isDateBefore } from '@/functions/date/judges'
+import { currentIsBefore } from '@/functions/date/judges'
 import { parseDurationAbsolute, getDuration } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import { mul } from '@/functions/numberish/operations'
-import { toString } from '@/functions/numberish/toString'
-import useConnection from '../connection/useConnection'
-import { APIRewardInfo, HydratedRewardInfo } from '../farms/type'
+import { HydratedRewardInfo } from '../farms/type'
 import { UIRewardInfo } from './type'
 
 let lastTempUIRewardId = 1

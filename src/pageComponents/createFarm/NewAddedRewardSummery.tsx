@@ -27,9 +27,11 @@ export function NewAddedRewardSummary({
   onActiveRewardChange?(reward: UIRewardInfo): void
 }) {
   const rewards = useCreateFarms((s) => s.rewards)
+  const editableRewards = rewards.filter((r) => r.type === 'existed reward')
+  const newReards = rewards.filter((r) => r.type === 'new added')
   return (
     <ListTable
-      list={rewards}
+      list={newReards}
       labelMapper={[
         {
           label: 'Asset',
@@ -51,16 +53,16 @@ export function NewAddedRewardSummary({
         }
       ]}
       // className="backdrop-brightness-"
-      rowClassName={({ index, itemData: reward }) => {
+      rowClassName={({ itemData: reward }) => {
         if (mode === 'selectable') {
           return `${activeReward?.id === reward.id ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
         }
         return ''
       }}
-      onClickRow={({ index, itemData: reward }) => {
+      onClickRow={({ itemData: reward }) => {
         onActiveRewardChange?.(reward)
       }}
-      renderRowItem={({ item: reward, label, key }) => {
+      renderRowItem={({ item: reward, label }) => {
         if (label === 'Asset') {
           return reward.token ? (
             <Row className="gap-1 items-center">
@@ -113,7 +115,7 @@ export function NewAddedRewardSummary({
           )
         }
       }}
-      renderRowEntry={({ contentNode, destorySelf, itemData: reward }) => {
+      renderRowEntry={({ contentNode, destorySelf, itemData }) => {
         const controlsNode = (
           <Row className="gap-2">
             <Icon
@@ -121,14 +123,14 @@ export function NewAddedRewardSummary({
               heroIconName="pencil"
               className="clickable clickable-opacity-effect text-[#abc4ff]"
               onClick={() => {
-                onActiveRewardChange?.(reward)
+                onActiveRewardChange?.(itemData)
               }}
             />
             <Icon
               size="smi"
               heroIconName="trash"
               className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
-              onClick={() => rewards.length > 1 && destorySelf()}
+              onClick={() => rewards.length > 1 && destorySelf()} // delete is wrong
             />
           </Row>
         )
@@ -140,9 +142,9 @@ export function NewAddedRewardSummary({
           </>
         )
       }}
-      onListChange={(list) => {
+      onListChange={(newRewards) => {
         useCreateFarms.setState({
-          rewards: list
+          rewards: editableRewards.concat(newRewards)
         })
       }}
     />

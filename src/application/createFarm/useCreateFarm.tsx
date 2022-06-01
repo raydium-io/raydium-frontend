@@ -1,6 +1,4 @@
-import toPubString from '@/functions/format/toMintString'
 import create from 'zustand'
-import { RAYMint } from '../token/utils/wellknownToken.config'
 import { createNewUIRewardInfo } from './parseRewardInfo'
 import { UIRewardInfo } from './type'
 

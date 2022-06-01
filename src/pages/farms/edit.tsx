@@ -9,7 +9,6 @@ import produce from 'immer'
 import { useState } from 'react'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
-import useToken from '@/application/token/useToken'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
@@ -21,8 +20,6 @@ import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useConnection from '@/application/connection/useConnection'
 import { isDateAfter } from '@/functions/date/judges'
-import Button from '@/components/Button'
-import txUpdateEdited from '@/application/createFarm/txUpdateFarm'
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 
 export default function FarmEditPage() {
@@ -41,10 +38,9 @@ export default function FarmEditPage() {
           <PoolInfoSummary />
         </div>
 
-        <div className="mb-6">
+        <div className="mb-4">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Farm rewards</div>
           <RewardEditSummery
-            mode="edit"
             onClickIncreaseReward={({ reward }) => {
               setRewardEditDialogMode(reward.isRewarding ? 'edit-in-rewarding' : 'edit-in-rewarding') // TODO: temp
               // setRewardEditDialogMode(reward.isRewarding ? 'edit-in-rewarding' : 'edit-after-rewarding')
@@ -57,10 +53,12 @@ export default function FarmEditPage() {
           />
         </div>
 
-        <NewRewardIndicatorAndForm className="mb-16" />
+        <NewRewardIndicatorAndForm className="mt-8 mb-4" />
 
         <Row
-          className={`items-center my-2 text-sm clickable ${canAddRewardInfo ? '' : 'not-clickable-with-disallowed'}`}
+          className={`items-center my-2 mb-12 text-sm clickable ${
+            canAddRewardInfo ? '' : 'not-clickable-with-disallowed'
+          }`}
           onClick={() => {
             if (!canAddRewardInfo) return
             useCreateFarms.setState({
@@ -112,29 +110,20 @@ export default function FarmEditPage() {
 }
 
 function RewardEditSummery({
-  mode,
-  activeIndex,
-  onActiveIndexChange,
   onClickIncreaseReward,
   onClaimReward
 }: {
-  mode: 'normal' | 'selectable' | 'edit'
-
-  // --------- when selectable ------------
-  activeIndex?: number
-  onActiveIndexChange?(index: number): void
-
   // --------- when edit ------------
-  onClickIncreaseReward?(payload: { reward: UIRewardInfo; rewardIndex: number }): void
-  onClaimReward?(payload: { reward: UIRewardInfo; rewardIndex: number }): void
+  onClickIncreaseReward?(payload: { reward: UIRewardInfo }): void
+  onClaimReward?(payload: { reward: UIRewardInfo }): void
 }) {
   const rewards = useCreateFarms((s) => s.rewards)
-  const getToken = useToken((s) => s.getToken)
+  const editableRewards = rewards.filter((r) => r.type === 'existed reward')
   const currentChainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const currentChainTime = Date.now() + (currentChainTimeOffset ?? 0)
   return (
     <ListTable
-      list={rewards}
+      list={editableRewards}
       labelMapper={[
         {
           label: 'Asset',
@@ -155,17 +144,6 @@ function RewardEditSummery({
           label: 'Est. daily rewards'
         }
       ]}
-      // className="backdrop-brightness-"
-      rowClassName={({ index }) => {
-        // if (!reward.canEdit) return `not-clickable`
-        if (mode === 'selectable') {
-          return `${activeIndex === index ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
-        }
-        return ''
-      }}
-      onClickRow={({ index }) => {
-        onActiveIndexChange?.(index)
-      }}
       renderRowItem={({ item: reward, label }) => {
         if (label === 'Asset') {
           return reward.token ? (
@@ -219,7 +197,7 @@ function RewardEditSummery({
           )
         }
       }}
-      renderRowEntry={({ contentNode, index: idx, itemData: reward }) => (
+      renderRowEntry={({ contentNode, itemData: reward }) => (
         <div
           className={
             isDateAfter(currentChainTime, offsetDateTime(reward.endTime, { hours: -0.5 })) ? '' : 'not-selectable'
@@ -231,7 +209,7 @@ function RewardEditSummery({
               <Col
                 className="items-center clickable"
                 onClick={() => {
-                  onClickIncreaseReward?.({ reward, rewardIndex: idx })
+                  onClickIncreaseReward?.({ reward })
                 }}
               >
                 <Row className="items-center gap-1">
@@ -246,7 +224,7 @@ function RewardEditSummery({
               <Grid className="grid-cols-2 gap-board">
                 <Row
                   className="items-center justify-center gap-1 clickable"
-                  onClick={() => onClickIncreaseReward?.({ reward, rewardIndex: idx })}
+                  onClick={() => onClickIncreaseReward?.({ reward })}
                 >
                   <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
                   <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
@@ -254,7 +232,7 @@ function RewardEditSummery({
 
                 <Row
                   className="items-center justify-center gap-1 clickable"
-                  onClick={() => onClaimReward?.({ reward, rewardIndex: idx })}
+                  onClick={() => onClaimReward?.({ reward })}
                 >
                   <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
                   <Col>

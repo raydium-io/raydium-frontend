@@ -16,7 +16,8 @@ import { HydratedFarmInfo } from './farms/type'
 import toPubString from '@/functions/format/toMintString'
 import useWallet from './wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { parsedApiRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
+import { createNewUIRewardInfo, parsedApiRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
+import CreateFarmPage from '@/pages/farms/create'
 
 export type PageRouteConfigs = {
   '/swap': {
@@ -132,6 +133,16 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         /** jump to target page */
         useIdo.setState({
           currentIdoId: options?.queryProps?.idoId
+        })
+      })
+  } else if (toPage === '/farms/create') {
+    router
+      .push({
+        pathname: '/farms/create'
+      })
+      .then(() => {
+        useCreateFarms.setState({
+          rewards: [{ ...createNewUIRewardInfo() }]
         })
       })
   } else if (toPage === '/farms/edit') {
