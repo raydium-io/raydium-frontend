@@ -991,7 +991,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
           </AlertText>
         )}
       </FadeIn>
-      <div className={`space-y-3 ${tempJoined || !notJoined ? 'not-clickable' : ''}`}>
+      <div className={`space-y-3 ${tempJoined || !notJoined || idoInfo.isClosed ? 'not-clickable' : ''}`}>
         <CoinInputBox
           className="px-4"
           topLeftLabel="Tickets"
