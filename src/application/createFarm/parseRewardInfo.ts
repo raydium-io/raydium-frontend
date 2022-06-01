@@ -16,13 +16,14 @@ export function createNewUIRewardInfo(): UIRewardInfo {
 }
 
 export function parsedApiRewardInfoToUiRewardInfo(reward: HydratedRewardInfo): UIRewardInfo {
-  const restAmount = reward.endTime
-    ? currentIsBefore(reward.endTime, { unit: 's' })
-      ? mul(reward.perSecond, parseDurationAbsolute(getDuration(reward.endTime, Date.now())).seconds)
-      : 0
-    : undefined
+  const restAmount =
+    reward.endTime && reward.token && reward.perSecond != null
+      ? currentIsBefore(reward.endTime, { unit: 's' })
+        ? mul(reward.perSecond, parseDurationAbsolute(getDuration(reward.endTime, Date.now())).seconds)
+        : 0
+      : undefined
   const fullAmount =
-    reward.endTime && reward.openTime
+    reward.endTime && reward.openTime && reward.token && reward.perSecond != null
       ? mul(reward.perSecond, parseDurationAbsolute(getDuration(reward.endTime, reward.openTime)).seconds)
       : undefined
   const rewardVersion = !reward.endTime && !reward.openTime ? 'v3/v5' : 'v6'

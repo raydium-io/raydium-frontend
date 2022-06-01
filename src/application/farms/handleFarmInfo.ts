@@ -2,9 +2,6 @@ import {
   CurrencyAmount,
   Farm,
   FarmFetchMultipleInfoParams,
-  FarmState,
-  FarmStateV3,
-  FarmStateV5,
   Fraction,
   ONE,
   Price,
@@ -22,17 +19,16 @@ import toTotalPrice from '@/functions/format/toTotalPrice'
 
 import { SplToken } from '../token/type'
 import { FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
-import toPubString, { toPub } from '@/functions/format/toMintString'
+import toPubString from '@/functions/format/toMintString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { LiquidityStore } from '@/application/liquidity/useLiquidity'
 import { currentIsAfter, currentIsBefore, isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { RAYMint } from '@/application/token/utils/wellknownToken.config'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import { Connection, PublicKey } from '@solana/web3.js'
 import { unionArr } from '@/types/generics'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import { AppSettingsStore } from '@/application/appSettings/useAppSettings'
 import { ConnectionStore } from '@/application/connection/useConnection'
+import { toString } from '@/functions/numberish/toString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { official: boolean })[] | undefined> {
   const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
@@ -119,7 +115,7 @@ export function hydrateFarmInfo(
     farmInfo.version === 6
       ? shakeUndifindedItem(
           farmInfo.state.rewardInfos.map((rewardInfo, idx) => {
-            const { rewardOpenTime: openTime, rewardEndTime: endTime } = rewardInfo
+            const { rewardOpenTime: openTime, rewardEndTime: endTime, rewardPerSecond } = rewardInfo
             // ------------ reward time -----------------
             const rewardStartTime = openTime.toNumber() ? new Date(openTime.toNumber() * 1000) : undefined // chain time
             const rewardEndTime = endTime.toNumber() ? new Date(endTime.toNumber() * 1000) : undefined // chain time
@@ -141,7 +137,7 @@ export function hydrateFarmInfo(
               token,
               pendingReward,
               usedTohaveReward,
-              perSecond: rewardInfo.rewardPerSecond.toString(),
+              perSecond: token && toString(toTokenAmount(token, rewardPerSecond)),
               openTime: rewardStartTime,
               endTime: rewardEndTime,
               isRewardBeforeStart,
