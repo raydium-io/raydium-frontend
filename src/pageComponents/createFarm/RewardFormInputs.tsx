@@ -1,6 +1,5 @@
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
-import useToken from '@/application/token/useToken'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import DateInput from '@/components/DateInput'
 import Grid from '@/components/Grid'
@@ -8,10 +7,8 @@ import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { offsetDateTime } from '@/functions/date/dateFormat'
-import { isDateAfter, isDateBefore } from '@/functions/date/judges'
-import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import toPubString from '@/functions/format/toMintString'
+import { isDateAfter } from '@/functions/date/judges'
+import parseDuration, { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { isExist } from '@/functions/judgers/nil'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
@@ -40,14 +37,10 @@ const MAX_DURATION_TEXT = '90D'
 const MIN_DURATION_TEXT = '7D'
 
 export type RewardFormCardInputsParams = {
-  mode?: 'edit-in-rewarding' | 'edit-after-rewarding'
   reward: UIRewardInfo
 }
 
-export function RewardFormCardInputs({
-  mode, // all open
-  reward: targetReward
-}: RewardFormCardInputsParams) {
+export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInputsParams) {
   const rewards = useCreateFarms((s) => s.rewards)
   const rewardIndex = rewards.findIndex(({ id }) => id === targetReward.id)
   const reward = rewards[rewardIndex] // usdate fresh data
@@ -59,11 +52,11 @@ export function RewardFormCardInputs({
   const estimatedValue =
     reward?.amount && durationTime ? div(reward.amount, parseDurationAbsolute(durationTime).days) : undefined
 
-  const disableCoinInput = mode === 'edit-in-rewarding'
+  const disableCoinInput = reward.isRwardingBeforeEnd72h
   const disableDurationInput = false
-  const disableStartTimeInput = mode === 'edit-in-rewarding'
+  const disableStartTimeInput = reward.isRwardingBeforeEnd72h
   const disableEndTimeInput = false
-  const disableEstimatedInput = mode === 'edit-in-rewarding'
+  const disableEstimatedInput = reward.isRwardingBeforeEnd72h
 
   if (!reward) return null
   return (
@@ -133,7 +126,7 @@ export function RewardFormCardInputs({
                   }
 
                   // set amount (only edit-in-rewarding)
-                  if (mode === 'edit-in-rewarding') {
+                  if (reward.isRwardingBeforeEnd72h) {
                     draft[rewardIndex].amount = mul(estimatedValue, parseDurationAbsolute(totalDuration).days)
                   }
 
@@ -225,7 +218,7 @@ export function RewardFormCardInputs({
                 }
 
                 // set amount (only edit-in-rewarding)
-                if (mode === 'edit-in-rewarding') {
+                if (reward.isRwardingBeforeEnd72h) {
                   draft[rewardIndex].amount = mul(
                     estimatedValue,
                     parseDurationAbsolute(selectedDate.getTime() - draft[rewardIndex].startTime!.getTime()).days

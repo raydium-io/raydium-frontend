@@ -4,7 +4,7 @@ import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
-import RewardEditInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
+import RewardInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
 import produce from 'immer'
 import { useState } from 'react'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
@@ -16,8 +16,7 @@ import { routeTo } from '@/application/routeTools'
 
 export default function FarmEditPage() {
   const { rewards, cannotAddNewReward } = useCreateFarms()
-  const [isRewardEditDialogOpen, setIsRewardEditDialogOpen] = useState(false)
-  const [rewardEditDialogMode, setRewardEditDialogMode] = useState<'edit-in-rewarding' | 'edit-after-rewarding'>()
+  const [isRewardInputDialogOpen, setIsRewardInputDialogOpen] = useState(false)
   const [focusReward, setFocusReward] = useState<UIRewardInfo>()
   const canAddRewardInfo = !cannotAddNewReward && rewards.length < 5
   return (
@@ -35,9 +34,7 @@ export default function FarmEditPage() {
           <ExistedEditRewardSummary
             canUserEdit
             onClickIncreaseReward={({ reward }) => {
-              setRewardEditDialogMode(reward.isRewarding ? 'edit-in-rewarding' : 'edit-in-rewarding') // TODO: temp
-              // setRewardEditDialogMode(reward.isRewarding ? 'edit-in-rewarding' : 'edit-after-rewarding')
-              setIsRewardEditDialogOpen(true)
+              setIsRewardInputDialogOpen(true)
               setFocusReward(reward)
             }}
             onClaimReward={({ reward }) => {
@@ -86,7 +83,7 @@ export default function FarmEditPage() {
             <div className="font-medium text-sm text-[#ABC4FF80] mb-4">
               <ol className="list-decimal ml-4 space-y-4">
                 <li>
-                  You can add additional rewards to the farm 24 hrs prior to rewards ending, but this can only be done
+                  You can add additional rewards to the farm 72 hrs prior to rewards ending, but this can only be done
                   if rate of rewards for that specific reward token doesn't change.
                 </li>
                 <li>
@@ -99,11 +96,10 @@ export default function FarmEditPage() {
         </Card>
 
         {focusReward != null && (
-          <RewardEditInputDialog
-            open={isRewardEditDialogOpen}
-            onClose={() => setIsRewardEditDialogOpen(false)}
+          <RewardInputDialog
             reward={focusReward}
-            mode={rewardEditDialogMode}
+            open={isRewardInputDialogOpen}
+            onClose={() => setIsRewardInputDialogOpen(false)}
           />
         )}
       </div>
