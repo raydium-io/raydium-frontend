@@ -8,7 +8,7 @@ type ResourceUrl = string
 type TryFetchOptions = RequestInit & {
   /** this will ignore cache. force to send request. the result will refresh the  */
   ignoreCache?: boolean
-  /** if cache is fresh, use cache. */
+  /** if cache is fresh, use cache. default 1000ms */
   cacheFreshTime?: number
 }
 type JFetchOptions = {
@@ -19,7 +19,7 @@ type JFetchOptions = {
 } & TryFetchOptions
 
 // TODO: should have concept of out of date
-const resultCache = new Map<ResourceUrl, { rawText: string; reponseTime: number }>()
+const resultCache = new Map<ResourceUrl, { rawText: Promise<string | undefined>; reponseTime: number }>()
 
 /**
  * same interface as original fetch, but, customized version have cache
@@ -28,12 +28,8 @@ export default async function jFetch<Shape = any>(
   input: RequestInfo,
   options?: JFetchOptions
 ): Promise<Shape | undefined> {
-  const key = typeof input === 'string' ? input : input.url
   const rawText = await tryFetch(input, options)
-  if (key.includes('raydium.io') && !rawText) {
-    // eslint-disable-next-line no-debugger
-    debugger // TEMPly let it done
-  }
+  if (!rawText) return undefined
 
   const renamedText = await (options?.beforeJson?.(rawText) ?? rawText)
   if (!renamedText) return undefined
@@ -51,16 +47,27 @@ export default async function jFetch<Shape = any>(
  */
 // TODO: unexceptedly cache useless all response, even ignoreCache
 export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): Promise<string | undefined> {
+  const key = typeof input === 'string' ? input : input.url
+
+  const useStrongCache = resultCache.has(key) && Date.now() - resultCache.get(key)!.reponseTime < 2000
+  if (useStrongCache) {
+    return resultCache.get(key)!.rawText
+  }
+
   try {
-    const key = typeof input === 'string' ? input : input.url
     const canUseCache =
       resultCache.has(key) &&
       !options?.ignoreCache &&
-      (options?.cacheFreshTime ? Date.now() - resultCache.get(key)!.reponseTime < options.cacheFreshTime : true)
-
+      (options?.cacheFreshTime
+        ? Date.now() - resultCache.get(key)!.reponseTime < (options.cacheFreshTime ?? 2000)
+        : false)
     if (!canUseCache) {
       const response = fetch(input, options)
-      if (!(await response).ok) return undefined
+      resultCache.set(key, { rawText: response.then((r) => r.clone()).then((r) => r.text()), reponseTime: Date.now() })
+      if (!(await response).ok) {
+        resultCache.set(key, { rawText: Promise.resolve(undefined), reponseTime: Date.now() })
+        return undefined
+      }
 
       const rawText = await response
         .then((r) => r.text())
@@ -68,12 +75,13 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
           console.error(e)
         })
       assert(isString(rawText))
-      resultCache.set(key, { rawText, reponseTime: Date.now() })
+      resultCache.set(key, { rawText: Promise.resolve(rawText), reponseTime: Date.now() })
       return rawText
     } else {
       return resultCache.get(key)?.rawText
     }
   } catch (e) {
+    resultCache.set(key, { rawText: Promise.resolve(undefined), reponseTime: Date.now() })
     return Promise.resolve(undefined)
   }
 }

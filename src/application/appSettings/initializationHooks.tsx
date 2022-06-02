@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 
 import * as Sentry from '@sentry/nextjs'
 
@@ -61,10 +61,9 @@ export function useSlippageTolerenceSyncer() {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
   const [localStoredSlippage, setLocalStoredSlippage] = useLocalStorageItem<string>('SLIPPAGE')
-
   useRecordedEffect(
     ([prevSlippageTolerance, prevLocalStoredSlippaged]) => {
-      const slippageHasLoaded = prevLocalStoredSlippaged == null && localStoredSlippage !== null
+      const slippageHasLoaded = prevSlippageTolerance == null && slippageTolerance !== null
       if (slippageHasLoaded && !eq(slippageTolerance, localStoredSlippage)) {
         useAppSettings.setState({
           slippageTolerance: localStoredSlippage ?? 0.01

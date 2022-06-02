@@ -314,7 +314,7 @@ function FaceButtonGroupClaim({ idoInfo }: { idoInfo: HydratedIdoInfo }) {
               fallbackProps: {
                 children: (
                   <div>
-                    Withdraw {idoInfo.base?.symbol ?? 'UNKNOWN'} in{' '}
+                    Claim {idoInfo.base?.symbol ?? 'UNKNOWN'} in{' '}
                     <IdoCountDownClock
                       className="justify-center"
                       singleValueMode

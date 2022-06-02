@@ -197,7 +197,9 @@ export default function CoinInputBox({
         }
       )
     }
-    const newAmount = toString(mul(maxBalance, percent))
+    const newAmount = toString(mul(maxBalance, percent), {
+      decimalLength: isTokenAmount(maxValue) ? `auto ${maxValue.token.decimals}` : undefined
+    })
     isOutsideValueLocked.current = false
     onUserInput?.(newAmount) // set both outside and inside
     setInputedAmount(newAmount) // set both outside and inside

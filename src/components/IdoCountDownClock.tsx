@@ -29,10 +29,10 @@ export default function IdoCountDownClock({
   const endDate = new Date(endTime)
   const duration = parseDuration(endDate.getTime() - currentDate.getTime())
   const labels = {
-    days: duration.days <= 1 ? 'Day' : 'Days',
-    hours: duration.hours <= 1 ? 'Hour' : 'Hours',
-    minutes: duration.minutes <= 1 ? 'Minute' : 'Minutes',
-    seconds: duration.seconds <= 1 ? 'Second' : 'Seconds'
+    days: singleValueMode ? 'd' : duration.days <= 1 ? 'Day' : 'Days',
+    hours: singleValueMode ? 'h' : duration.hours <= 1 ? 'Hour' : 'Hours',
+    minutes: singleValueMode ? 'm' : duration.minutes <= 1 ? 'Minute' : 'Minutes',
+    seconds: singleValueMode ? 's' : duration.seconds <= 1 ? 'Second' : 'Seconds'
   }
 
   const isValueNegative = duration.full < 0
@@ -73,22 +73,23 @@ export default function IdoCountDownClock({
     if (duration.days >= 1)
       return (
         <Row className={twMerge('items-baseline', className)}>
-          <div>{duration['days']}</div>
-          <div className={twMerge('ml-1 text-xs', labelClassName)}>{labels['days']}</div>
+          <div>{'>'}24</div>
+          <div className={twMerge('text-xs', labelClassName)}>{labels['hours']}</div>
         </Row>
       )
-    if (duration.hours >= 1)
+    if (duration.hours >= 1 || duration.minutes >= 1)
       return (
-        <Row className={twMerge('items-baseline', className)}>
-          <div>{24 * duration['days'] + duration['hours']}</div>
-          <div className={twMerge('ml-1 text-xs', labelClassName)}>{labels['hours']}</div>
-        </Row>
-      )
-    if (duration.minutes >= 1)
-      return (
-        <Row className={twMerge('items-baseline', className)}>
-          <div>{24 * 60 * duration['days'] + 60 * duration['hours'] + duration['minutes']}</div>
-          <div className={twMerge('ml-1 text-xs', labelClassName)}>{labels['minutes']}</div>
+        <Row className={twMerge('items-baseline gap-1', className)}>
+          {duration.hours >= 1 && (
+            <Row>
+              <div>{24 * duration['days'] + duration['hours']}</div>
+              <div className={twMerge('text-xs', labelClassName)}>{labels['hours']}</div>
+            </Row>
+          )}
+          <Row>
+            <div>{duration['minutes']}</div>
+            <div className={twMerge('text-xs', labelClassName)}>{labels['minutes']}</div>
+          </Row>
         </Row>
       )
     return (
@@ -99,7 +100,7 @@ export default function IdoCountDownClock({
             60 * duration['minutes'] +
             duration['seconds']}
         </div>
-        <div className={twMerge('ml-1 text-xs', labelClassName)}>{labels['seconds']}</div>
+        <div className={twMerge('text-xs', labelClassName)}>{labels['seconds']}</div>
       </Row>
     )
   }

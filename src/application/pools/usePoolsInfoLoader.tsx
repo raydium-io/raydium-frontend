@@ -20,6 +20,7 @@ import { usePools } from './usePools'
 import useLiquidity from '../liquidity/useLiquidity'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 export default function usePoolsInfoLoader() {
   const jsonInfo = usePools((s) => s.jsonInfos, shallow)
@@ -79,66 +80,75 @@ export default function usePoolsInfoLoader() {
   }, [lpPrices])
 
   useEffect(() => {
-    const hydratedInfos = jsonInfo.map<HydratedPoolItemInfo>((pair) => {
-      const lpMint = pair.lpMint
-      const lp = getLpToken(lpMint)
-      const base = lp?.base
-      const quote = lp?.quote
+    const hydratedInfos = shakeUndifindedItem(
+      jsonInfo.map((pair) => {
+        try {
+          const lpMint = pair.lpMint
+          const lp = getLpToken(lpMint)
+          const base = lp?.base
+          const quote = lp?.quote
 
-      // console.log(lp?.symbol, lp)
-      const tokenAmountBase = base
-        ? toTokenAmount(base, pair.tokenAmountCoin, { alreadyDecimaled: true }) ?? null
-        : null
-      const tokenAmountQuote = quote
-        ? toTokenAmount(quote, pair.tokenAmountPc, { alreadyDecimaled: true }) ?? null
-        : null
-      const tokenAmountLp = lp ? toTokenAmount(lp, pair.tokenAmountLp, { alreadyDecimaled: true }) ?? null : null
+          // console.log(lp?.symbol, lp)
+          const tokenAmountBase = base
+            ? toTokenAmount(base, pair.tokenAmountCoin, { alreadyDecimaled: true }) ?? null
+            : null
+          const tokenAmountQuote = quote
+            ? toTokenAmount(quote, pair.tokenAmountPc, { alreadyDecimaled: true }) ?? null
+            : null
+          const tokenAmountLp = lp ? toTokenAmount(lp, pair.tokenAmountLp, { alreadyDecimaled: true }) ?? null : null
 
-      const lpBalance: TokenAmount | undefined = balances[String(lpMint)]
-      const calcLpUserLedgerInfoResult = computeUserLedgerInfo(
-        { tokenAmountBase, tokenAmountQuote, tokenAmountLp },
-        { lpToken: lp, baseToken: base, quoteToken: quote, lpBalance }
-      )
+          const lpBalance: TokenAmount | undefined = balances[String(lpMint)]
+          const calcLpUserLedgerInfoResult = computeUserLedgerInfo(
+            { tokenAmountBase, tokenAmountQuote, tokenAmountLp },
+            { lpToken: lp, baseToken: base, quoteToken: quote, lpBalance }
+          )
 
-      return {
-        ...pair,
-        ...{
-          fee7d: toUsdCurrency(pair.fee7d),
-          fee7dQuote: toUsdCurrency(pair.fee7dQuote),
-          fee24h: toUsdCurrency(pair.fee24h),
-          fee24hQuote: toUsdCurrency(pair.fee24hQuote),
-          fee30d: toUsdCurrency(pair.fee30d),
-          fee30dQuote: toUsdCurrency(pair.fee30dQuote),
+          return {
+            ...pair,
+            ...{
+              fee7d: toUsdCurrency(pair.fee7d),
+              fee7dQuote: toUsdCurrency(pair.fee7dQuote),
+              fee24h: toUsdCurrency(pair.fee24h),
+              fee24hQuote: toUsdCurrency(pair.fee24hQuote),
+              fee30d: toUsdCurrency(pair.fee30d),
+              fee30dQuote: toUsdCurrency(pair.fee30dQuote),
 
-          volume24h: toUsdCurrency(pair.volume24h),
-          volume24hQuote: toUsdCurrency(pair.volume24hQuote),
-          volume7d: toUsdCurrency(pair.volume7d),
-          volume7dQuote: toUsdCurrency(pair.volume7dQuote),
-          volume30d: toUsdCurrency(pair.volume30d),
-          volume30dQuote: toUsdCurrency(pair.volume30dQuote),
+              volume24h: toUsdCurrency(pair.volume24h),
+              volume24hQuote: toUsdCurrency(pair.volume24hQuote),
+              volume7d: toUsdCurrency(pair.volume7d),
+              volume7dQuote: toUsdCurrency(pair.volume7dQuote),
+              volume30d: toUsdCurrency(pair.volume30d),
+              volume30dQuote: toUsdCurrency(pair.volume30dQuote),
 
-          tokenAmountBase,
-          tokenAmountQuote,
-          tokenAmountLp,
+              tokenAmountBase,
+              tokenAmountQuote,
+              tokenAmountLp,
 
-          liquidity: toUsdCurrency(pair.liquidity),
-          lpPrice: lp && pair.lpPrice ? toTokenPrice(lp, pair.lpPrice) : null,
+              liquidity: toUsdCurrency(pair.liquidity),
+              lpPrice: lp && pair.lpPrice ? toTokenPrice(lp, pair.lpPrice) : null,
 
-          // customized
-          lp,
-          base,
-          quote,
+              // customized
+              lp,
+              base,
+              quote,
 
-          basePooled: calcLpUserLedgerInfoResult?.basePooled,
-          quotePooled: calcLpUserLedgerInfoResult?.quotePooled,
-          sharePercent: calcLpUserLedgerInfoResult?.sharePercent,
+              basePooled: calcLpUserLedgerInfoResult?.basePooled,
+              quotePooled: calcLpUserLedgerInfoResult?.quotePooled,
+              sharePercent: calcLpUserLedgerInfoResult?.sharePercent,
 
-          price: base ? toTokenPrice(base, pair.price) : null,
+              price: base ? toTokenPrice(base, pair.price) : null,
 
-          isStablePool: Boolean(lp && liquidityJsonInfos?.find((i) => i.lpMint === toPubString(lp.mint))?.version === 5)
+              isStablePool: Boolean(
+                lp && liquidityJsonInfos?.find((i) => i.lpMint === toPubString(lp.mint))?.version === 5
+              )
+            }
+          }
+        } catch (e) {
+          console.error(e)
+          return undefined
         }
-      }
-    })
+      })
+    )
     usePools.setState({ hydratedInfos, loading: hydratedInfos.length === 0 })
   }, [jsonInfo, getToken, balances, lpTokens, tokens, liquidityJsonInfosMap])
 }
