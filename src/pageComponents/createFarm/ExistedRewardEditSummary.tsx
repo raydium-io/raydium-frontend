@@ -15,6 +15,7 @@ import useConnection from '@/application/connection/useConnection'
 import { isDateAfter } from '@/functions/date/judges'
 import { Badge } from '@/components/Badge'
 import { hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export function ExistedEditRewardSummary({
   canUserEdit,
@@ -36,7 +37,7 @@ export function ExistedEditRewardSummary({
       labelMapper={[
         {
           label: 'Asset',
-          cssGridItemWidth: '.6fr'
+          cssGridItemWidth: '.9fr'
         },
         {
           label: 'Amount'
@@ -113,63 +114,65 @@ export function ExistedEditRewardSummary({
           )
         }
       }}
-      renderRowEntry={({ contentNode, itemData: reward }) => (
-        <div
-          className={
-            isDateAfter(currentChainTime, offsetDateTime(reward.originData?.endTime, { hours: -0.5 }))
-              ? ''
-              : 'not-selectable'
-          }
-        >
-          {contentNode}
-          {canUserEdit && (
-            <div className="bg-[#abc4ff1a] rounded-md p-2 mb-4">
-              {reward.originData?.isRewarding && (
-                <Col
-                  className="items-center clickable"
-                  onClick={() => {
-                    onClickIncreaseReward?.({ reward })
-                  }}
-                >
-                  <Row className="items-center gap-1">
-                    <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
-                    <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
-                  </Row>
-                  <div className="text-xs text-[#abc4ff80] font-medium">(no rate changed allowed)</div>
-                </Col>
-              )}
-
-              {reward.originData?.isRewardEnded && (
-                <Grid className="grid-cols-2 gap-board">
-                  <Row
-                    className="items-center justify-center gap-1 clickable"
-                    onClick={() => onClickIncreaseReward?.({ reward })}
+      renderRowEntry={({ contentNode, itemData: reward }) => {
+        return (
+          <div
+            className={
+              isDateAfter(currentChainTime, offsetDateTime(reward.originData?.endTime, { hours: -0.5 }))
+                ? ''
+                : 'not-selectable'
+            }
+          >
+            {contentNode}
+            {canUserEdit && (reward.originData?.isRwardingBeforeEnd72h || reward.originData?.isRewardEnded) && (
+              <div className="bg-[#abc4ff1a] rounded-md p-2 mb-4">
+                {reward.originData?.isRwardingBeforeEnd72h && (
+                  <Col
+                    className="items-center clickable"
+                    onClick={() => {
+                      onClickIncreaseReward?.({ reward })
+                    }}
                   >
-                    <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
-                    <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
-                  </Row>
+                    <Row className="items-center gap-1">
+                      <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
+                      <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
+                    </Row>
+                    <div className="text-xs text-[#abc4ff80] font-medium">(no rate changed allowed)</div>
+                  </Col>
+                )}
 
-                  <Row
-                    className="items-center justify-center gap-1 clickable"
-                    onClick={() => onClaimReward?.({ reward })}
-                  >
-                    <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
-                    <Col>
-                      <div className="text-xs text-[#abc4ff] font-medium">Claim unemmitted rewards</div>
-                      <div className="text-xs text-[#abc4ff80] font-medium">1111 RAY</div> {/* TODO: imply it!! */}
-                    </Col>
-                  </Row>
-                </Grid>
-              )}
-            </div>
-          )}
-          {hasRewardBeenEdited(reward) && (
-            <Badge className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full" cssColor="#39d0d8">
-              Edited
-            </Badge>
-          )}
-        </div>
-      )}
+                {reward.originData?.isRewardEnded && (
+                  <Grid className="grid-cols-2 gap-board">
+                    <Row
+                      className="items-center justify-center gap-1 clickable"
+                      onClick={() => onClickIncreaseReward?.({ reward })}
+                    >
+                      <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
+                      <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
+                    </Row>
+
+                    <Row
+                      className="items-center justify-center gap-1 clickable"
+                      onClick={() => onClaimReward?.({ reward })}
+                    >
+                      <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
+                      <Col>
+                        <div className="text-xs text-[#abc4ff] font-medium">Claim unemmitted rewards</div>
+                        <div className="text-xs text-[#abc4ff80] font-medium">1111 RAY</div> {/* TODO: imply it!! */}
+                      </Col>
+                    </Row>
+                  </Grid>
+                )}
+              </div>
+            )}
+            {hasRewardBeenEdited(reward) && (
+              <Badge className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full" cssColor="#39d0d8">
+                Edited
+              </Badge>
+            )}
+          </div>
+        )
+      }}
       onListChange={(list) => {
         useCreateFarms.setState({
           rewards: list

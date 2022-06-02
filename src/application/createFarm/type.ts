@@ -21,6 +21,7 @@ export type UIRewardInfo = {
   isRewardEnded?: boolean // for farm edit
   isRewardBeforeStart?: boolean // for farm edit
   isRewarding?: boolean // exist working farm
+  isRwardingBeforeEnd72h?: boolean // exist working farm // TODO: Dev
 
   originData?: Omit<UIRewardInfo, 'originData'> // only edit have this
 }

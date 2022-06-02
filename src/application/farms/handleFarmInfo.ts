@@ -29,6 +29,7 @@ import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { ConnectionStore } from '@/application/connection/useConnection'
 import { toString } from '@/functions/numberish/toString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { offsetDateTime } from '@/functions/date/dateFormat'
 
 export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { official: boolean })[] | undefined> {
   const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
@@ -117,14 +118,20 @@ export function hydrateFarmInfo(
           farmInfo.state.rewardInfos.map((rewardInfo, idx) => {
             const { rewardOpenTime: openTime, rewardEndTime: endTime, rewardPerSecond } = rewardInfo
             // ------------ reward time -----------------
-            const rewardStartTime = openTime.toNumber() ? new Date(openTime.toNumber() * 1000) : undefined // chain time
-            const rewardEndTime = endTime.toNumber() ? new Date(endTime.toNumber() * 1000) : undefined // chain time
+            const rewardStartTime = openTime.toNumber()
+              ? new Date(openTime.toNumber() * 1000 + (payload.chainTimeOffset ?? 0))
+              : undefined // chain time
+            const rewardEndTime = endTime.toNumber()
+              ? new Date(endTime.toNumber() * 1000 + (payload.chainTimeOffset ?? 0))
+              : undefined // chain time
             const onlineCurrentDate = Date.now() + (payload.chainTimeOffset ?? 0)
             if (!rewardStartTime && !rewardEndTime) return undefined // if reward is not any state, return undefined to delete it
 
             const isRewardBeforeStart = Boolean(rewardStartTime && isDateBefore(onlineCurrentDate, rewardStartTime))
             const isRewardEnded = Boolean(rewardEndTime && isDateAfter(onlineCurrentDate, rewardEndTime))
             const isRewarding = (!rewardStartTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
+            const isRwardingBeforeEnd72h =
+              isRewarding && isDateAfter(onlineCurrentDate, offsetDateTime(rewardEndTime, { hours: -72 }))
 
             const pendingReward = pendingRewards?.[idx]
             const apr = aprs[idx]
@@ -142,7 +149,8 @@ export function hydrateFarmInfo(
               endTime: rewardEndTime,
               isRewardBeforeStart,
               isRewardEnded,
-              isRewarding
+              isRewarding,
+              isRwardingBeforeEnd72h
             }
           })
         )

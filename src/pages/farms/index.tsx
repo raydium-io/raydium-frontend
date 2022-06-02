@@ -54,7 +54,7 @@ import { Badge } from '@/components/Badge'
 import { isFarmJsonInfo } from '@/application/farms/judgeFarmInfo'
 import CoinAvatar from '@/components/CoinAvatar'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import { formatDate } from '@/functions/date/dateFormat'
+import { formatDate, toUTC } from '@/functions/date/dateFormat'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 
 export default function FarmsPage() {
@@ -537,7 +537,7 @@ function FarmRewardBadge({ reward }: { reward: HydratedRewardInfo }) {
     <Tooltip placement="bottom">
       <Row
         className={`border-1.5 border-[#abc4ff80] p-1 rounded-full items-center gap-2 ${
-          reward.isRewardEnded ? 'opacity-50' : ''
+          reward.isRewarding ? '' : 'opacity-50'
         }`}
       >
         {isMeaningfulNumber(reward.pendingReward) && (
@@ -552,7 +552,7 @@ function FarmRewardBadge({ reward }: { reward: HydratedRewardInfo }) {
           {reward.token?.symbol ?? '--'} Reward Period {reward.isRewardEnded ? 'ended' : ''}
         </div>
         <div className="opacity-50">
-          {formatDate(reward.openTime, 'YYYY-MM-DD')} - {formatDate(reward.openTime, 'YYYY-MM-DD')}
+          {toUTC(reward.openTime)} ~ {toUTC(reward.openTime)}
         </div>
       </Tooltip.Panel>
     </Tooltip>
@@ -908,7 +908,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                     farmInfo.rewards.length > 2 ? 'mb-5' : 'mb-1'
                   }`}
                 >
-                  Pending rewards and period
+                  Pending rewards
                 </div>
                 <Grid
                   className={`gap-board clip-insert-4 ${farmInfo.rewards.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
@@ -918,8 +918,10 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                       <div className={`text-white font-medium text-sm mobile:text-xs mb-0.5`}>
                         {reward.pendingReward ? toString(reward.pendingReward) : 0} {reward.token?.symbol}
                       </div>
-                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-xs mobile:text-2xs">
-                        {formatDate(reward.openTime, 'YYYY-MM-DD')} - {formatDate(reward.openTime, 'YYYY-MM-DD')}
+                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                        {prices?.[String(reward.token?.mint)] && isMeaningfulNumber(reward?.pendingReward)
+                          ? toUsdVolume(toTotalPrice(reward.pendingReward, prices[String(reward.token?.mint)]))
+                          : null}
                       </div>
                     </div>
                   ))}

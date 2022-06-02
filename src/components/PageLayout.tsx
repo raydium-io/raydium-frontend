@@ -41,6 +41,8 @@ import { useAppVersion } from '@/application/appVersion/useAppVersion'
 import { refreshWindow } from '@/application/appVersion/forceWindowRefresh'
 import Card from './Card'
 import Dialog from './Dialog'
+import { toUTC } from '@/functions/date/dateFormat'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
 
 /**
  * for easier to code and read
@@ -438,9 +440,14 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             </div>
           </Col>
 
-          <div className="text-sm m-2 opacity-20 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
+          <div className="text-sm m-2 opacity-40 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
             <div>current: {currentVersion}</div>
             <div>lastest: {lastestVersion}</div>
+            {isInLocalhost && (
+              <div>
+                blockchain time: <BlockTimeClock />
+              </div>
+            )}
           </div>
         </Col>
       </Col>
@@ -448,6 +455,11 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
   )
 }
 
+function BlockTimeClock() {
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  useForceUpdate({ loop: 1000 })
+  return <div>{chainTimeOffset != null ? toUTC(Date.now() + chainTimeOffset, { showSeconds: true }) : undefined}</div>
+}
 function LinkItem({
   children,
   href,

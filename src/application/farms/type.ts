@@ -91,6 +91,7 @@ export type HydratedRewardInfo = {
   isRewarding?: boolean // v6
   isRewardBeforeStart?: boolean // v6
   isRewardEnded?: boolean // v6
+  isRwardingBeforeEnd72h?: boolean // v6
   owner?: PublicKey // v6
   perSecond?: string | number // v6
 }
