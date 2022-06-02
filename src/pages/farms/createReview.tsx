@@ -1,6 +1,6 @@
 import txCreateNewFarm from '@/application/createFarm/txCreateNewFarm'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
-import { routeTo } from '@/application/routeTools'
+import { routeBack, routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import Button from '@/components/Button'
 import PageLayout from '@/components/PageLayout'
@@ -10,6 +10,8 @@ import tryCatch from '@/functions/tryCatch'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
 import { useMemo } from 'react'
+import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
+import useFarms from '@/application/farms/useFarms'
 
 export default function CreateFarmReviewPage() {
   const getToken = useToken((s) => s.getToken)
@@ -64,20 +66,18 @@ export default function CreateFarmReviewPage() {
             onClick={() => {
               txCreateNewFarm({
                 onTxSuccess: () => {
-                  routeTo('/farms/create')
+                  setTimeout(() => {
+                    routeTo('/farms')
+                    useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
+                    useFarms.getState().refreshFarmInfos()
+                  }, 1000)
                 }
               })
             }}
           >
             Create Farm
           </Button>
-          <Button
-            className="frosted-glass-skygray"
-            size="lg"
-            onClick={() => {
-              routeTo('/farms/create')
-            }}
-          >
+          <Button className="frosted-glass-skygray" size="lg" onClick={routeBack}>
             Edit
           </Button>
         </Row>

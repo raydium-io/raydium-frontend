@@ -1,6 +1,6 @@
 import txCreateNewFarm from '@/application/createFarm/txCreateNewFarm'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
-import { routeTo } from '@/application/routeTools'
+import { routeBack, routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import Button from '@/components/Button'
 import PageLayout from '@/components/PageLayout'
@@ -12,6 +12,8 @@ import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewar
 import { useMemo } from 'react'
 import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
 import { createNewUIRewardInfo, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
+import txUpdateEdited from '@/application/createFarm/txUpdateFarm'
+import useFarms from '@/application/farms/useFarms'
 
 export default function EditReviewPage() {
   const getToken = useToken((s) => s.getToken)
@@ -74,23 +76,20 @@ export default function EditReviewPage() {
             size="lg"
             validators={[{ should: newRewards.length > 0 || editedRewards.length > 0 }]}
             onClick={() => {
-              txCreateNewFarm({
+              txUpdateEdited({
                 onTxSuccess: () => {
-                  routeTo('/farms')
-                  useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
+                  setTimeout(() => {
+                    routeTo('/farms')
+                    useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
+                    useFarms.getState().refreshFarmInfos()
+                  }, 1000)
                 }
               })
             }}
           >
             Edit Farm
           </Button>
-          <Button
-            className="frosted-glass-skygray"
-            size="lg"
-            onClick={() => {
-              routeTo('/farms/create') // TODO: should back
-            }}
-          >
+          <Button className="frosted-glass-skygray" size="lg" onClick={routeBack}>
             Edit
           </Button>
         </Row>

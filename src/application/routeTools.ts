@@ -173,3 +173,5 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
   }
   return
 }
+
+export const routeBack = () => router.back()
