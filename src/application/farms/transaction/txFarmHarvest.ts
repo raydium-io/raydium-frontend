@@ -37,15 +37,16 @@ export default async function txFarmHarvest(
       )
     )
 
-    // ------------- add deposit transaction --------------
+    // ------------- add farm deposit transaction --------------
     const poolKeys = jsonInfo2PoolKeys(jsonFarmInfo)
     const ledgerAddress = await Farm.getAssociatedLedgerAccount({
       programId: poolKeys.programId,
       poolId: poolKeys.id,
       owner
     })
+
     // ------------- create ledger --------------
-    if (!info.ledger) {
+    if (!info.ledger && jsonFarmInfo.version < 6 /* start from v6, no need init ledger any more */) {
       const instruction = await Farm.makeCreateAssociatedLedgerAccountInstruction({
         poolKeys,
         userKeys: { owner, ledger: ledgerAddress }
