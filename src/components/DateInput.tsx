@@ -11,8 +11,7 @@ import Popover from './Popover'
 import './DatePicker.css'
 import { twMerge } from 'tailwind-merge'
 import { currentIsAfter } from '@/functions/date/judges'
-import mergeRef from '@/functions/react/mergeRef'
-import { mergeFunction } from '@/functions/merge'
+import useConnection from '@/application/connection/useConnection'
 
 export type DateInputProps = {
   className?: string
@@ -85,7 +84,8 @@ function DateInputBody({
   inputProps
 }: DateInputBodyProps) {
   const [currentDate, setCurrentDate] = useState<Date | undefined>(defaultValue)
-  const currentTimezoneOffset = currentDate?.getTimezoneOffset()
+  const currentTimezoneOffset = currentDate?.getTimezoneOffset() ?? 0
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
 
   useEffect(() => {
     setCurrentDate(value)
@@ -101,7 +101,7 @@ function DateInputBody({
             'bg-[#141041] font-medium text-lg text-white rounded-lg py-2 cursor-text',
             inputProps?.className
           )}
-          value={currentDate ? toUTC(currentDate, { showSeconds: true }) : undefined}
+          value={currentDate ? toUTC(offsetDateTime(currentDate, { milliseconds: chainTimeOffset }), {}) : undefined}
           onUserInput={(text) => {
             if (!text) {
               setCurrentDate(undefined)
@@ -117,8 +117,8 @@ function DateInputBody({
           weekTitle={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
           monthLabel={['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']}
           date={
-            currentDate && currentTimezoneOffset
-              ? offsetDateTime(currentDate, { minutes: currentTimezoneOffset })
+            currentDate
+              ? offsetDateTime(currentDate, { minutes: currentTimezoneOffset, milliseconds: +chainTimeOffset })
               : currentDate
           }
           disabledDate={(date) =>
@@ -128,11 +128,14 @@ function DateInputBody({
             ].some((fn) => fn?.(date))
           }
           todayButton="today"
+          today={offsetDateTime(Date.now(), {
+            minutes: currentTimezoneOffset,
+            milliseconds: chainTimeOffset
+          })}
           onChange={(selectedDate) => {
-            const newDate =
-              selectedDate && currentTimezoneOffset
-                ? offsetDateTime(selectedDate, { minutes: -currentTimezoneOffset })
-                : selectedDate
+            const newDate = selectedDate
+              ? offsetDateTime(selectedDate, { minutes: -currentTimezoneOffset, milliseconds: -chainTimeOffset })
+              : selectedDate
             setCurrentDate(newDate)
             onDateChange?.(newDate)
           }}

@@ -90,7 +90,6 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
           className="grow-2 rounded-md text-sm font-medium text-white px-4"
           label="Day and Hours"
           value={getStringFromDuration(durationTime)}
-          // TODO: maxValue (for end time is setted and start can't before now)
           pattern={[
             /^(?:(\d+)D?)? ?(?:(\d+)H?)?$/i,
             (s) => (s ? getDurationFromString(s).totalDuration <= MAX_DURATION : true)
