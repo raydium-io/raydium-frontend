@@ -40,6 +40,9 @@ export type AutoCompleteProps<T extends AutoCompleteCandidateItem | undefined> =
 } & (InputProps & { inputProps?: InputProps })
 
 export default function AutoComplete<T extends AutoCompleteCandidateItem | undefined>({
+  value,
+  defaultValue,
+
   candidates,
   renderCandidateItem,
   renderCandidatePanelCard,
@@ -53,6 +56,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
   const inputWrapperRef = useRef<HTMLElement>(null)
   const inputComponentRef = useRef<InputComponentHandler>(null)
   const [inputWidth, setInputWidth] = useState<number>()
+
   useEffect(() => {
     const resizeObserver = new ResizeObserver(() => {
       setInputWidth(inputWrapperRef.current?.clientWidth)
@@ -64,14 +68,14 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
   }, [])
 
   // handle candidates
-  const [searchText, setSearchText] = useState<string>()
+  const [searchText, setSearchText] = useState(defaultValue ?? value)
   const [selectedCandidateIdx, setCurrentCandidateIdx] = useState<number>()
   const filtered = candidates
     ?.filter((candidate) => {
       if (!candidate) return false
       if (!searchText) return true
 
-      const lowercasedSearchText = searchText?.toLowerCase()
+      const lowercasedSearchText = String(searchText)?.toLowerCase()
       const candidateText =
         (isString(candidate)
           ? candidate
@@ -112,8 +116,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
               className="clickable border-[#abc4ff1a]" /* divide-[#abc4ff1a] is not very stable */
               onClick={() => {
                 setSearchText(isString(candidate) ? candidate : candidate.label ?? candidate.id)
-                setCurrentCandidateIdx(idx)
-                applySelectedIndex(idx)
+                applySelectedIndex(idx) // TODO: get rid of index for index is not good for HotReload
                 popoverComponentRef.current?.off()
               }}
             >
@@ -141,6 +144,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
           domRef={mergeRef(inputWrapperRef, restProps.domRef, restProps.inputProps?.domRef)}
           componentRef={inputComponentRef}
           value={searchText}
+          defaultValue={searchText}
           suffix={(handler) =>
             handler.text ? (
               <Icon
@@ -170,7 +174,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
               setCurrentCandidateIdx(0)
               applySelectedIndex(0)
             } else {
-              onBlurMatchCandiateFailed?.({ text: searchText })
+              onBlurMatchCandiateFailed?.({ text: String(searchText) })
             }
 
             restProps.onBlur?.(...args)

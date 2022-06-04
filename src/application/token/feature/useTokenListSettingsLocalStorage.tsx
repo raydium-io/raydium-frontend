@@ -37,7 +37,6 @@ export default function useTokenListSettingsLocalStorage() {
   const userAddedTokens = useToken((s) => s.userAddedTokens)
 
   useEffect(() => {
-    // console.log('33: ', tokenListSettings['Solana Token List'].isOn)
     setLocalItem('TOKEN_LIST_USER_ADDED_TOKENS', Array.from(userAddedTokens.values())) // add token / remove token
     setLocalItem(
       'TOKEN_LIST_SWITCH_SETTINGS',

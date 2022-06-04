@@ -65,12 +65,7 @@ export default function EditReviewPage() {
           </div>
         )}
 
-        <div className="font-medium text-sm text-center leading-snug text-[#abc4ff80] mb-8">
-          <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards cannot
-          be recovered. You will be able to add more rewards to the farm.
-        </div>
-
-        <Row className="gap-5 justify-center">
+        <Row className="gap-5 mt-12 justify-center">
           <Button
             className="frosted-glass-teal"
             size="lg"

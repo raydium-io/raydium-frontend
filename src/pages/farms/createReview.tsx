@@ -1,39 +1,16 @@
 import txCreateNewFarm from '@/application/createFarm/txCreateNewFarm'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { routeBack, routeTo } from '@/application/routeTools'
-import useToken from '@/application/token/useToken'
 import Button from '@/components/Button'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import assert from '@/functions/assert'
-import tryCatch from '@/functions/tryCatch'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
-import { useMemo } from 'react'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import useFarms from '@/application/farms/useFarms'
+import Col from '@/components/Col'
 
 export default function CreateFarmReviewPage() {
-  const getToken = useToken((s) => s.getToken)
-  const { poolId, rewards } = useCreateFarms()
-  const canCreateFarm = useMemo(
-    () =>
-      tryCatch(
-        () => {
-          assert(poolId, 'poolId is not defined')
-          rewards.forEach((reward) => {
-            assert(reward.amount, 'reward amount is not defined')
-            assert(reward.token, 'reward token is not defined')
-            assert(reward.startTime, 'reward start time is not defined')
-            assert(reward.endTime, 'reward end time is not defined')
-          })
-          return true
-        },
-        () => false
-      ),
-    [poolId, rewards, getToken]
-  )
-
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(640px,90vw)]">
@@ -58,25 +35,35 @@ export default function CreateFarmReviewPage() {
           be recovered. You will be able to add more rewards to the farm.
         </div>
 
-        <Row className="gap-5 justify-center">
-          <Button
-            className="frosted-glass-teal"
-            size="lg"
-            disabled={!canCreateFarm}
-            onClick={() => {
-              txCreateNewFarm({
-                onTxSuccess: () => {
-                  setTimeout(() => {
-                    routeTo('/farms')
-                    useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
-                    useFarms.getState().refreshFarmInfos()
-                  }, 1000)
-                }
-              })
-            }}
-          >
-            Create Farm
-          </Button>
+        <Row className="gap-5 justify-center items-start">
+          <Col className="items-center">
+            <Button
+              className="frosted-glass-teal px-18 self-stretch"
+              size="lg"
+              onClick={() => {
+                txCreateNewFarm({
+                  onTxSuccess: () => {
+                    setTimeout(() => {
+                      routeTo('/farms')
+                      useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
+                      useFarms.getState().refreshFarmInfos()
+                    }, 1000)
+                  }
+                })
+              }}
+            >
+              Create Farm
+            </Button>
+            <Col className="mt-4 text-sm font-medium items-center">
+              <div>
+                <span className="text-[#abc4ff80]">Fee:</span> <span className="text-[#abc4ff]">300 RAY</span>
+              </div>
+              <div>
+                <span className="text-[#abc4ff80]">Est. transaction fee:</span>{' '}
+                <span className="text-[#abc4ff]">0.002 SOL</span>
+              </div>
+            </Col>
+          </Col>
           <Button className="frosted-glass-skygray" size="lg" onClick={routeBack}>
             Edit
           </Button>

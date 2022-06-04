@@ -43,7 +43,7 @@ export type RewardFormCardInputsParams = {
 export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInputsParams) {
   const rewards = useCreateFarms((s) => s.rewards)
   const rewardIndex = rewards.findIndex(({ id }) => id === targetReward.id)
-  const reward = rewards[rewardIndex] // usdate fresh data
+  const reward = rewards[rewardIndex] as UIRewardInfo | undefined // usdate fresh data
 
   const [durationTime, setDurationTime] = useStateWithSuperPreferential(
     reward?.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
@@ -52,11 +52,11 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
   const estimatedValue =
     reward?.amount && durationTime ? div(reward.amount, parseDurationAbsolute(durationTime).days) : undefined
 
-  const disableCoinInput = reward.isRwardingBeforeEnd72h
+  const disableCoinInput = reward?.isRwardingBeforeEnd72h
   const disableDurationInput = false
-  const disableStartTimeInput = reward.isRwardingBeforeEnd72h
+  const disableStartTimeInput = reward?.isRwardingBeforeEnd72h
   const disableEndTimeInput = false
-  const disableEstimatedInput = reward.isRwardingBeforeEnd72h
+  const disableEstimatedInput = reward?.isRwardingBeforeEnd72h
 
   if (!reward) return null
   return (
