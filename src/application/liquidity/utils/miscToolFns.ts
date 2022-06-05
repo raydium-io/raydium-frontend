@@ -48,7 +48,8 @@ export function findTokenMintByAmmId(ammId: string): { base: string; quote: stri
 export async function findTokenMintByMarketId(marketId: string): Promise<{ base: string; quote: string } | undefined> {
   const { connection } = useConnection.getState()
   const marketBufferInfo = await connection?.getAccountInfo(new PublicKey(marketId))
-  if (!marketBufferInfo?.data) return undefined
+  const isValidMarketInfo = marketBufferInfo?.data.length === 388 || marketBufferInfo?.data.length === 1476
+  if (!isValidMarketInfo) return undefined
   const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
   return { base: String(baseMint), quote: String(quoteMint) }
 }
