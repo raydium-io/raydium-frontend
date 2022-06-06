@@ -19,7 +19,7 @@ import toTotalPrice from '@/functions/format/toTotalPrice'
 
 import { SplToken } from '../token/type'
 import { FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
-import toPubString from '@/functions/format/toMintString'
+import toPubString, { toPub } from '@/functions/format/toMintString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { LiquidityStore } from '@/application/liquidity/useLiquidity'
 import { currentIsAfter, currentIsBefore, isDateAfter, isDateBefore } from '@/functions/date/judges'
@@ -140,7 +140,8 @@ export function hydrateFarmInfo(
 
             return {
               ...rewardInfo,
-              apr,
+              owner: farmInfo.rewardInfos[idx].owner,
+              apr: apr,
               token,
               pendingReward,
               usedTohaveReward,

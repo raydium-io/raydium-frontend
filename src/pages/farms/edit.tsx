@@ -13,6 +13,7 @@ import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewReward
 import { ExistedEditRewardSummary } from '../../pageComponents/createFarm/ExistedRewardEditSummary'
 import Button from '@/components/Button'
 import { routeTo } from '@/application/routeTools'
+import txClaimReward from '@/application/createFarm/txClaimReward'
 
 export default function FarmEditPage() {
   const { rewards, cannotAddNewReward } = useCreateFarms()
@@ -38,7 +39,7 @@ export default function FarmEditPage() {
               setFocusReward(reward)
             }}
             onClaimReward={({ reward }) => {
-              // Farm.makeWithdrawFarmRewardInstruction() //TODO: imply it!
+              txClaimReward({ reward })
             }}
           />
         </div>

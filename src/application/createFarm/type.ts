@@ -4,7 +4,7 @@ import { SplToken } from '../token/type'
 
 export type UIRewardInfo = {
   id: string | number // for farm edit it will be
-  creator?: HexAddress // creator wallet address
+  owner?: HexAddress // creator wallet address
   type: 'new added' | 'existed reward'
   version?: 'v3/v5' | 'v6' // if not detected, that's v6
 

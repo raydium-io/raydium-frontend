@@ -145,7 +145,7 @@ export function ExistedEditRewardSummary({
                 )}
 
                 {reward.originData?.isRewardEnded && (
-                  <Grid className="grid-cols-2 gap-board">
+                  <Grid className="grid-cols-2 gap-board min-h-[36px]">
                     <Row
                       className="items-center justify-center gap-1 clickable"
                       onClick={() => onClickIncreaseReward?.({ reward })}
@@ -161,7 +161,7 @@ export function ExistedEditRewardSummary({
                       <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
                       <Col>
                         <div className="text-xs text-[#abc4ff] font-medium">Claim unemmitted rewards</div>
-                        <div className="text-xs text-[#abc4ff80] font-medium">1111 RAY</div> {/* TODO: imply it!! */}
+                        {/* <div className="text-xs text-[#abc4ff80] font-medium">1111 RAY</div> TODO: imply it!! */}
                       </Col>
                     </Row>
                   </Grid>

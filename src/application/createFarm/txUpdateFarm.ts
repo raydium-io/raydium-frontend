@@ -60,7 +60,7 @@ function createRewardRestartInstruction({
   farmInfo: HydratedFarmInfo
 }): TransactionInstruction {
   const { tokenAccounts, owner } = useWallet.getState()
-  assert(isMintEqual(owner, reward.creator), `reward is not created by walletOwner`)
+  assert(isMintEqual(owner, reward.owner), `reward is not created by walletOwner`)
   const testRestartTime = div(Date.now() + 3000, 1000) // NOTE: test
   const testEndTime = div(Date.now() + 1000 * 60 * 60 * 1.2, 1000) // NOTE: test
   const rewardTokenAccount = tokenAccounts.find((t) => isMintEqual(reward.token?.mint, t.mint))
@@ -68,7 +68,7 @@ function createRewardRestartInstruction({
   assert(reward.endTime, `reward must have endTime`)
   assert(reward.startTime, `reward must have startTime`)
   assert(reward.amount, `reward must have amount`)
-  assert(reward.creator, 'reward must have creator')
+  assert(reward.owner, 'reward must have creator')
 
   const durationTime = reward.endTime.getTime() - reward.startTime.getTime()
   const perSecond = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
@@ -80,7 +80,7 @@ function createRewardRestartInstruction({
     rewardEndTime: toBN(testEndTime).toNumber(),
     rewardPerSecond: toBN(perSecond),
     // rewardPerSecond: toBN(mul(perSecond, padZero('1', reward.token?.decimals ?? 6))),
-    rewardOwner: toPub(reward.creator),
+    rewardOwner: toPub(reward.owner),
     rewardOwnerAccount: rewardTokenAccount.publicKey
   })
 
