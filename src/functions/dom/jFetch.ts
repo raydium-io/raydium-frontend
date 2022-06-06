@@ -63,7 +63,13 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
         : false)
     if (!canUseCache) {
       const response = fetch(input, options)
-      resultCache.set(key, { rawText: response.then((r) => r.clone()).then((r) => r.text()), reponseTime: Date.now() })
+      resultCache.set(key, {
+        rawText: response
+          .then((r) => r.clone())
+          .then((r) => r.text())
+          .catch(() => undefined),
+        reponseTime: Date.now()
+      })
       if (!(await response).ok) {
         resultCache.set(key, { rawText: Promise.resolve(undefined), reponseTime: Date.now() })
         return undefined
@@ -73,6 +79,7 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
         .then((r) => r.text())
         .catch((e) => {
           console.error(e)
+          return undefined
         })
       assert(isString(rawText))
       resultCache.set(key, { rawText: Promise.resolve(rawText), reponseTime: Date.now() })

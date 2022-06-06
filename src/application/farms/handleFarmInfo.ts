@@ -18,7 +18,7 @@ import jFetch from '@/functions/dom/jFetch'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 
 import { SplToken } from '../token/type'
-import { FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
+import { APIRewardInfo, FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { LiquidityStore } from '@/application/liquidity/useLiquidity'
@@ -30,6 +30,11 @@ import { ConnectionStore } from '@/application/connection/useConnection'
 import { toString } from '@/functions/numberish/toString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { offsetDateTime } from '@/functions/date/dateFormat'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
+
+function getMaxOpenTime(i: APIRewardInfo[]) {
+  return Math.max(...i.map((r) => r.openTime))
+}
 
 export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { official: boolean })[] | undefined> {
   const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
@@ -37,7 +42,9 @@ export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { offici
   })
   if (!result) return undefined
   const officials = result.official.map((i) => ({ ...i, official: true }))
-  const unOfficial = result.unOfficial?.map((i) => ({ ...i, official: false }))
+  const unOfficial = result.unOfficial
+    ?.map((i) => ({ ...i, official: false }))
+    .sort((a, b) => -getMaxOpenTime(a.rewardInfos) + getMaxOpenTime(b.rewardInfos))
   return [...officials, ...(unOfficial ?? [])]
 }
 
@@ -135,12 +142,12 @@ export function hydrateFarmInfo(
 
             const pendingReward = pendingRewards?.[idx]
             const apr = aprs[idx]
-            const token = rewardTokens[idx]
+            const token = payload.getToken(toPubString(rewardInfo.rewardMint ?? farmInfo.rewardInfos[idx]?.rewardMint))
             const usedTohaveReward = Boolean(rewardEndTime)
 
             return {
               ...rewardInfo,
-              owner: farmInfo.rewardInfos[idx].owner,
+              owner: farmInfo.rewardInfos[idx]?.owner,
               apr: apr,
               token,
               pendingReward,

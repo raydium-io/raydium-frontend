@@ -6,7 +6,7 @@ import handleMultiTx, { TxAddOptions } from '@/application/txTools/handleMultiTx
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import useCreateFarms from './useCreateFarm'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
-import { div, mul } from '@/functions/numberish/operations'
+import { div, getMax, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import useWallet from '../wallet/useWallet'
@@ -18,6 +18,8 @@ import { TransactionInstruction } from '@solana/web3.js'
 import { hasRewardBeenEdited } from './parseRewardInfo'
 import { padZero } from '@/functions/numberish/handleZero'
 import asyncMap from '@/functions/asyncMap'
+import useConnection from '../connection/useConnection'
+import { offsetDateTime } from '@/functions/date/dateFormat'
 
 export default async function txUpdateEdited({ ...txAddOptions }: TxAddOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -96,12 +98,14 @@ async function createNewRewardInstruction({
   farmInfo: HydratedFarmInfo
 }): Promise<TransactionInstruction> {
   const { tokenAccounts, owner } = useWallet.getState()
+  const { chainTimeOffset = 0 } = useConnection.getState()
 
-  const testStartTime = toBN(div(Date.now(), 1000)) // NOTE: test
-  const testEndTime = toBN(div(Date.now() + 1000 * 60 * 60 * 1.2, 1000)) // NOTE: test
+  const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()
+
+  const testStartTime = Date.now() // NOTE: test
+  const testEndTime = Date.now() + 1000 * 60 * 60 * 1.5 // NOTE: test
 
   assert(owner, 'wallet not connected')
-
   const rewardToken = reward.token
   assert(reward.startTime, 'reward start time is required')
   assert(reward.endTime, 'reward end time is required')
@@ -112,8 +116,8 @@ async function createNewRewardInstruction({
   const durationTime = reward.endTime.getTime() - reward.startTime.getTime()
   const estimatedValue = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
   const paramReward: FarmCreateInstructionParamsV6['rewardInfos'][number] = {
-    rewardStartTime: testStartTime || toBN(div(reward.startTime.getTime(), 1000)),
-    rewardEndTime: testEndTime || toBN(div(reward.endTime.getTime(), 1000)),
+    rewardStartTime: toBN(div(getMax(testStartTime || reward.startTime.getTime(), currentBlockChainDate), 1000)),
+    rewardEndTime: toBN(div(getMax(testEndTime || reward.endTime.getTime(), currentBlockChainDate), 1000)),
     rewardMint: rewardToken.mint,
     rewardPerSecond: toBN(mul(estimatedValue, padZero(1, rewardToken.decimals))),
     rewardOwnerAccount: rewardTokenAccount.publicKey

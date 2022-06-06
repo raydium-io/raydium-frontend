@@ -536,7 +536,7 @@ function FarmRewardBadge({ reward }: { reward: HydratedRewardInfo }) {
   return (
     <Tooltip placement="bottom">
       <Row
-        className={`border-1.5 border-[#abc4ff80] p-1 rounded-full items-center gap-2 ${
+        className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 ${
           reward.isRewarding ? '' : 'opacity-50'
         }`}
       >

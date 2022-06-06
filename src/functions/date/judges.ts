@@ -17,6 +17,9 @@ export function isDateBefore(timestampA: TimeStamp, timestampB: TimeStamp, optio
 export function isDateAfter(timestampA: TimeStamp, timestampB: TimeStamp, options?: { unit?: 'ms' | 's' }): boolean {
   return new Date(timestampA).getTime() > new Date(timestampB).getTime()
 }
+export function isDateEqual(timestampA: TimeStamp, timestampB: TimeStamp, options?: { unit?: 'ms' | 's' }): boolean {
+  return new Date(timestampA).getTime() === new Date(timestampB).getTime()
+}
 
 export function assertDate(testDate: TimeStamp, options: { before?: TimeStamp; after?: TimeStamp; unit?: 'ms' | 's' }) {
   if (options.before && !isDateBefore(testDate, options.before, options)) {

@@ -41,6 +41,7 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
 
     const lockMint = '7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR' // NOTE: test
     const lpMint = 'G54x5tuRV12WyNkSjfNnq3jyzfcPF9EgB8c9jTzsQKVW' // NOTE: test
+
     const lockMintTokenAccount = tokenAccounts.find((t) => isMintEqual(t.mint, lockMint))
     assert(lockMintTokenAccount?.publicKey, 'lockMintTokenAccount not found')
 

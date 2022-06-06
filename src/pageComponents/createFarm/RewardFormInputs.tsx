@@ -1,3 +1,4 @@
+import useConnection from '@/application/connection/useConnection'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
@@ -60,6 +61,8 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
   const disableEndTimeInput = false
   const disableEstimatedInput = reward?.isRwardingBeforeEnd72h
 
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
+  const currentBlockChainDate = new Date(Date.now() + chainTimeOffset)
   if (!reward) return null
   return (
     <Grid className="gap-4">
@@ -203,11 +206,11 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
           isValidDate={(date) => {
             const isRwardingBeforeEnd72h = reward.isRewarding && reward.startTime
             if (isRwardingBeforeEnd72h) {
-              const duration = date.getTime() - reward.startTime!.getTime()
-              return MIN_DURATION < duration && duration < MAX_DURATION
+              const duration = Math.round(parseDurationAbsolute(date.getTime() - reward.startTime!.getTime()).days)
+              return MIN_DURATION_DAY <= duration && duration <= MAX_DURATION_DAY
             } else {
-              const duration = date.getTime() - Date.now()
-              return duration > MIN_DURATION
+              const duration = Math.round(parseDurationAbsolute(date.getTime() - currentBlockChainDate.getTime()).days)
+              return duration >= MIN_DURATION_DAY
             }
           }}
           onDateChange={(selectedDate) => {

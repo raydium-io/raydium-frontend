@@ -10,7 +10,7 @@ import Popover from './Popover'
 
 import './DatePicker.css'
 import { twMerge } from 'tailwind-merge'
-import { currentIsAfter } from '@/functions/date/judges'
+import { currentIsAfter, isDateAfter, isDateBefore, isDateEqual } from '@/functions/date/judges'
 import useConnection from '@/application/connection/useConnection'
 
 export type DateInputProps = {
@@ -91,6 +91,11 @@ function DateInputBody({
     setCurrentDate(value)
   }, [value])
 
+  const today = offsetDateTime(Date.now(), {
+    minutes: currentTimezoneOffset,
+    milliseconds: chainTimeOffset
+  })
+
   return (
     <Popover placement="top" className={className} cornerOffset={20} triggerBy={['focus', 'click']}>
       <Popover.Button>
@@ -123,15 +128,15 @@ function DateInputBody({
           }
           disabledDate={(date) =>
             [
-              (date) => (isValidDate ? !isValidDate(date) : false),
-              disableDateBeforeCurrent ? currentIsAfter : undefined
+              (date: Date) => (isValidDate ? !isValidDate(date) : false),
+              disableDateBeforeCurrent
+                ? (date: Date) =>
+                    isDateBefore(date, offsetDateTime(today, { hours: -1 } /* focus user can select today */))
+                : undefined
             ].some((fn) => fn?.(date))
           }
           todayButton="today"
-          today={offsetDateTime(Date.now(), {
-            minutes: currentTimezoneOffset,
-            milliseconds: chainTimeOffset
-          })}
+          today={today}
           onChange={(selectedDate) => {
             const newDate = selectedDate
               ? offsetDateTime(selectedDate, { minutes: -currentTimezoneOffset, milliseconds: -chainTimeOffset })
