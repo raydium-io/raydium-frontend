@@ -21,7 +21,7 @@ export default function FarmEditPage() {
   const canAddRewardInfo = !cannotAddNewReward && rewards.length < 5
   return (
     <PageLayout metaTitle="Farms - Raydium">
-      <div className="self-center w-[min(640px,90vw)]">
+      <div className="self-center w-[min(720px,90vw)]">
         <div className="mb-10 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Edit Farm</div>
 
         <div className="mb-8">

@@ -31,10 +31,12 @@ function useStateWithSuperPreferential<T>(
   return [isExist(superValue) ? superValue : value, (isExist(superValue) ? doNothing : setValue) as any]
 }
 
-const MAX_DURATION = 90 * 24 * 60 * 60 * 1000
-const MIN_DURATION = 7 * 24 * 60 * 60 * 1000
-const MAX_DURATION_TEXT = '90D'
-const MIN_DURATION_TEXT = '7D'
+const MAX_DURATION_DAY = 90
+const MIN_DURATION_DAY = 7
+const MAX_DURATION = MAX_DURATION_DAY * 24 * 60 * 60 * 1000
+const MIN_DURATION = MIN_DURATION_DAY * 24 * 60 * 60 * 1000
+const MAX_DURATION_TEXT = `${MAX_DURATION_DAY}D`
+const MIN_DURATION_TEXT = `${MIN_DURATION_DAY}D`
 
 export type RewardFormCardInputsParams = {
   reward: UIRewardInfo
@@ -153,18 +155,13 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
           value={reward.startTime}
           disabled={disableStartTimeInput}
           disableDateBeforeCurrent
-          isValidDate={(date) => {
-            if (!reward.endTime) return true
-            const duration = reward.endTime.getTime() - date.getTime()
-            return MIN_DURATION < duration && duration < MAX_DURATION
-          }}
           onDateChange={(selectedDate) => {
             if (!selectedDate) return
             return useCreateFarms.setState({
               rewards: produce(rewards, (draft) => {
                 if (!draft[rewardIndex]) return
 
-                const haveEndTime = Boolean(reward.endTime)
+                const haveEndTime = Boolean(draft[rewardIndex].endTime)
 
                 // set start time
                 draft[rewardIndex].startTime = selectedDate
@@ -179,7 +176,15 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
                   const durationDays = parseDurationAbsolute(
                     draft[rewardIndex].endTime!.getTime() - selectedDate.getTime()
                   ).days
-                  setDurationTime(durationDays)
+                  if (durationDays < MIN_DURATION_DAY) {
+                    draft[rewardIndex].endTime = offsetDateTime(selectedDate, { days: MIN_DURATION_DAY })
+                    setDurationTime(MIN_DURATION)
+                  } else if (durationDays > MAX_DURATION_DAY) {
+                    draft[rewardIndex].endTime = offsetDateTime(selectedDate, { days: MAX_DURATION_DAY })
+                    setDurationTime(MAX_DURATION)
+                  } else {
+                    setDurationTime(durationDays)
+                  }
                 }
               })
             })
@@ -196,9 +201,14 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
           disabled={disableEndTimeInput}
           disableDateBeforeCurrent
           isValidDate={(date) => {
-            if (!reward.startTime) return true
-            const duration = date.getTime() - reward.startTime.getTime()
-            return MIN_DURATION < duration && duration < MAX_DURATION
+            const isRwardingBeforeEnd72h = reward.isRewarding && reward.startTime
+            if (isRwardingBeforeEnd72h) {
+              const duration = date.getTime() - reward.startTime!.getTime()
+              return MIN_DURATION < duration && duration < MAX_DURATION
+            } else {
+              const duration = date.getTime() - Date.now()
+              return duration > MIN_DURATION
+            }
           }}
           onDateChange={(selectedDate) => {
             if (!selectedDate) return
@@ -206,7 +216,7 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
               rewards: produce(rewards, (draft) => {
                 if (!draft[rewardIndex]) return
 
-                const haveStartTime = Boolean(reward.startTime)
+                const haveStartTime = Boolean(draft[rewardIndex].startTime)
 
                 // set end time
                 draft[rewardIndex].endTime = selectedDate
@@ -229,7 +239,15 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
                   const durationDays = parseDurationAbsolute(
                     selectedDate.getTime() - draft[rewardIndex].startTime!.getTime()
                   ).days
-                  setDurationTime(durationDays)
+                  if (durationDays < MIN_DURATION_DAY) {
+                    draft[rewardIndex].startTime = offsetDateTime(selectedDate, { days: -MIN_DURATION_DAY })
+                    setDurationTime(MIN_DURATION)
+                  } else if (durationDays > MAX_DURATION_DAY) {
+                    draft[rewardIndex].startTime = offsetDateTime(selectedDate, { days: -MAX_DURATION_DAY })
+                    setDurationTime(MAX_DURATION)
+                  } else {
+                    setDurationTime(durationDays)
+                  }
                 }
               })
             })

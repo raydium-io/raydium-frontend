@@ -41,7 +41,7 @@ export default function EditReviewPage() {
 
   return (
     <PageLayout metaTitle="Farms - Raydium">
-      <div className="self-center w-[min(640px,90vw)]">
+      <div className="self-center w-[min(720px,90vw)]">
         <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Edit Farm</div>
 
         <div className="mb-8 text-xl mobile:text-lg font-semibold justify-self-start text-white">

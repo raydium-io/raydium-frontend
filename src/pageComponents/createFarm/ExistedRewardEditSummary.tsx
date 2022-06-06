@@ -15,7 +15,7 @@ import useConnection from '@/application/connection/useConnection'
 import { isDateAfter } from '@/functions/date/judges'
 import { Badge } from '@/components/Badge'
 import { hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import toPercentString from '@/functions/format/toPercentString'
 
 export function ExistedEditRewardSummary({
   canUserEdit,
@@ -51,7 +51,7 @@ export function ExistedEditRewardSummary({
           cssGridItemWidth: '1.5fr'
         },
         {
-          label: 'Est. daily rewards'
+          label: 'Rate'
         }
       ]}
       renderRowItem={({ item: reward, label }) => {
@@ -100,7 +100,7 @@ export function ExistedEditRewardSummary({
           )
         }
 
-        if (label === 'Est. daily rewards') {
+        if (label === 'Rate') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
           const durationTime =
             reward.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
@@ -109,7 +109,10 @@ export function ExistedEditRewardSummary({
           if (!estimatedValue) return
           return (
             <div className="text-xs">
-              {toString(estimatedValue)} {reward.token?.symbol}
+              <div>
+                {toString(estimatedValue)} {reward.token?.symbol}/day
+              </div>
+              <div>{reward.apr ? toPercentString(reward.apr) : '--'} APR</div>
             </div>
           )
         }
