@@ -32,7 +32,9 @@ export default function CreateFarmReviewPage() {
 
         <div className="font-medium text-sm text-center leading-snug text-[#abc4ff80] mb-8">
           <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards cannot
-          be recovered. You will be able to add more rewards to the farm.
+          be recovered. You will be able to add more rewards to the farm. When creating 'Ecosystem' farm, you should pay
+          300 RAY as creation fee, which will flow into our Raydium treasury. Adding reward tokens and add more reward
+          tokens should have a duration period of at least 7 days and no more than 90 days.
         </div>
 
         <Row className="gap-5 justify-center items-start">

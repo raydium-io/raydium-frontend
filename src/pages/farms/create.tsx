@@ -120,7 +120,10 @@ export default function CreateFarmPage() {
                 <div className="font-medium text-lg text-white leading-8 mb-1">Farming Reward</div>
                 <div className="font-medium text-sm leading-snug text-[#abc4ff80] mb-2">
                   <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards
-                  cannot be recovered. You will be able to add more rewards to the farm.
+                  cannot be recovered. You will be able to add more rewards to the farm. When creating 'Ecosystem' farm,
+                  you should pay 300 RAY as creation fee, which will flow into our Raydium treasury. Adding reward
+                  tokens and add more reward tokens should have a duration period of at least 7 days and no more than 90
+                  days.
                 </div>
                 <Row className="text-sm">
                   <div className="text-[#abc4ff] mr-2">Date on block chain: </div>
