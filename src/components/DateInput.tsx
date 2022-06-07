@@ -1,16 +1,16 @@
-import React, { ComponentProps, Ref, RefObject, useEffect, useState } from 'react'
+import React, { ComponentProps, RefObject, useEffect, useState } from 'react'
 
 import _DatePicker from '@uiw/react-date-picker'
 
 import Input, { InputProps } from '@/components/Input'
-import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
+import { DateParam, offsetDateTime, toUTC } from '@/functions/date/dateFormat'
 
 import InputBox from './InputBox'
 import Popover from './Popover'
 
 import './DatePicker.css'
 import { twMerge } from 'tailwind-merge'
-import { currentIsAfter, isDateAfter, isDateBefore, isDateEqual } from '@/functions/date/judges'
+import { isDateBefore } from '@/functions/date/judges'
 import useConnection from '@/application/connection/useConnection'
 
 export type DateInputProps = {
@@ -35,6 +35,7 @@ export default function DateInput({
   labelClassName,
   inputProps,
   disableDateBeforeCurrent,
+
   isValidDate,
   onDateChange,
   ...otherProps
@@ -83,18 +84,27 @@ function DateInputBody({
   onDateChange,
   inputProps
 }: DateInputBodyProps) {
-  const [currentDate, setCurrentDate] = useState<Date | undefined>(defaultValue)
+  const [currentDate, setCurrentFakeDate] = useState<Date | undefined>(defaultValue)
   const currentTimezoneOffset = currentDate?.getTimezoneOffset() ?? 0
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
 
+  function toChainTime(date: DateParam) {
+    return offsetDateTime(date, { milliseconds: chainTimeOffset })
+  }
+
+  function toFakeUTCByLocalDate(date: DateParam) {
+    return offsetDateTime(date, { minutes: currentTimezoneOffset })
+  }
+
+  function deFakeUTCByLocalDate(date: DateParam) {
+    return offsetDateTime(date, { minutes: -currentTimezoneOffset })
+  }
+
   useEffect(() => {
-    setCurrentDate(value)
+    setCurrentFakeDate(value)
   }, [value])
 
-  const today = offsetDateTime(Date.now(), {
-    minutes: currentTimezoneOffset,
-    milliseconds: chainTimeOffset
-  })
+  const today = toFakeUTCByLocalDate(toChainTime(new Date()))
 
   return (
     <Popover placement="top" className={className} cornerOffset={20} triggerBy={['focus', 'click']}>
@@ -106,10 +116,10 @@ function DateInputBody({
             'bg-[#141041] font-medium text-lg text-white rounded-lg py-2 cursor-text',
             inputProps?.className
           )}
-          value={currentDate ? toUTC(offsetDateTime(currentDate, { milliseconds: chainTimeOffset }), {}) : undefined}
+          value={currentDate ? toUTC(currentDate) : undefined}
           onUserInput={(text) => {
             if (!text) {
-              setCurrentDate(undefined)
+              setCurrentFakeDate(undefined)
               onDateChange?.(undefined)
             }
           }}
@@ -117,15 +127,11 @@ function DateInputBody({
       </Popover.Button>
       <Popover.Panel>
         <DatePicker
-          showTime
+          showTime={Boolean(currentDate)}
           weekday={['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']}
           weekTitle={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
           monthLabel={['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']}
-          date={
-            currentDate
-              ? offsetDateTime(currentDate, { minutes: currentTimezoneOffset, milliseconds: +chainTimeOffset })
-              : currentDate
-          }
+          date={currentDate ? toFakeUTCByLocalDate(toChainTime(currentDate)) : currentDate}
           disabledDate={(date) =>
             [
               (date: Date) => (isValidDate ? !isValidDate(date) : false),
@@ -137,11 +143,9 @@ function DateInputBody({
           }
           todayButton="today"
           today={today}
-          onChange={(selectedDate) => {
-            const newDate = selectedDate
-              ? offsetDateTime(selectedDate, { minutes: -currentTimezoneOffset, milliseconds: -chainTimeOffset })
-              : selectedDate
-            setCurrentDate(newDate)
+          onChange={(selectedFakeDate) => {
+            const newDate = selectedFakeDate ? deFakeUTCByLocalDate(selectedFakeDate) : selectedFakeDate
+            setCurrentFakeDate(newDate)
             onDateChange?.(newDate)
           }}
           lang="en"

@@ -1,4 +1,6 @@
+import { timeStamp } from 'console'
 import { TimeStamp } from './interface'
+import parseDuration, { parseDurationAbsolute } from './parseDuration'
 
 /**
  * @example
@@ -117,16 +119,10 @@ export function offsetDateTime(
     (offset.milliseconds ? offset.milliseconds : 0)
   return getDate(offsetedTimestamp)
 }
-// export function setDateTimeToZero(
-//   baseDate: DateParam,
-// ) {
-//   const timestamp = getTime(baseDate)
-//   const offsetedTimestamp =
-//     timestamp +
-//     (offset.days ? offset.days * 24 * 60 * 60 * 1000 : 0) +
-//     (offset.hours ? offset.hours * 60 * 60 * 1000 : 0) +
-//     (offset.minutes ? offset.minutes * 60 * 1000 : 0) +
-//     (offset.seconds ? offset.seconds * 1000 : 0) +
-//     (offset.milliseconds ? offset.milliseconds : 0)
-//   return getDate(offsetedTimestamp)
-// }
+
+export function setDateTimeToZero(baseDate: DateParam) {
+  const timestamp = getTime(baseDate)
+  const { hours, minutes, seconds, milliseconds } = parseDuration(timestamp)
+  const offsetedTimestamp = timestamp - hours * 60 * 60 * 1000 - minutes * 60 * 1000 - seconds * 1000 - milliseconds
+  return getDate(offsetedTimestamp)
+}
