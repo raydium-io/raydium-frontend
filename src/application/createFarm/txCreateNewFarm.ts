@@ -20,8 +20,8 @@ import { offsetDateTime } from '@/functions/date/dateFormat'
 export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const { stakeDialogInfo: stakingHydratedInfo } = useStaking.getState()
-    const haveStateOver300Ray = gte(stakingHydratedInfo?.userStakedLpAmount, 300)
-    assert(haveStateOver300Ray, 'Must stake at least 300 Ray')
+    const haveStakeOver300Ray = gte(stakingHydratedInfo?.userStakedLpAmount, 300)
+    assert(haveStakeOver300Ray, 'Must stake at least 300 Ray')
 
     const { chainTimeOffset = 0 } = useConnection.getState()
     const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()

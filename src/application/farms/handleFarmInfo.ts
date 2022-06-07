@@ -180,19 +180,6 @@ export function hydrateFarmInfo(
         })
   const userStakedLpAmount =
     lpToken && farmInfo.ledger?.deposited ? new TokenAmount(lpToken, farmInfo.ledger?.deposited) : undefined
-
-  // console.log(
-  //   'farmInfo.lpVault.amount: ',
-  //   name,
-  //   lpToken && toString(new TokenAmount(lpToken, farmInfo.lpVault.amount)),
-  //   lpPrice && toString(lpPrice),
-  //   lpToken?.decimals,
-  //   tvl?.toExact(),
-  //   toString(toFraction(lpPrice)),
-  //   aprs,
-  //   rewardTokens,
-  //   farmInfo.rewardMints.map((rewardMint) => payload.tokenPrices?.[String(rewardMint)]) ?? []
-  // )
   return {
     ...farmInfo,
     lp: lpToken,

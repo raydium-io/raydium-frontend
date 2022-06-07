@@ -1,7 +1,6 @@
 import React, { Fragment, ReactNode, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
 
-import { Fraction, option, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
+import { TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -42,7 +41,6 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
-import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useSort from '@/hooks/useSort'
 
@@ -53,9 +51,10 @@ import toPubString from '@/functions/format/toMintString'
 import { Badge } from '@/components/Badge'
 import { isFarmJsonInfo } from '@/application/farms/judgeFarmInfo'
 import CoinAvatar from '@/components/CoinAvatar'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import { formatDate, toUTC } from '@/functions/date/dateFormat'
+import { toUTC } from '@/functions/date/dateFormat'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import useStaking from '@/application/staking/useStaking'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function FarmsPage() {
   return (
@@ -175,9 +174,14 @@ function FarmSlefCreatedOnlyBlock({ className }: { className?: string }) {
 }
 
 function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
+  const owner = useWallet((s) => s.owner)
+  const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
+  const haveStakeOver300Ray = gte(stakingHydratedInfo?.userStakedLpAmount, 300)
   return (
     <Row
-      className="justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center clickable"
+      className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center clickable ${
+        owner && haveStakeOver300Ray ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      } transition`}
       onClick={() => {
         routeTo('/farms/create')
       }}
