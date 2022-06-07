@@ -7,19 +7,23 @@ import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import RewardInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
 import produce from 'immer'
 import { useState } from 'react'
-import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
+import { createNewUIRewardInfo, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { ExistedEditRewardSummary } from '../../pageComponents/createFarm/ExistedRewardEditSummary'
 import Button from '@/components/Button'
 import { routeTo } from '@/application/routeTools'
 import txClaimReward from '@/application/createFarm/txClaimReward'
+import { isDateBefore } from '@/functions/date/judges'
 
 export default function FarmEditPage() {
-  const { rewards, cannotAddNewReward } = useCreateFarms()
+  const { rewards: allRewards, cannotAddNewReward } = useCreateFarms()
   const [isRewardInputDialogOpen, setIsRewardInputDialogOpen] = useState(false)
   const [focusReward, setFocusReward] = useState<UIRewardInfo>()
-  const canAddRewardInfo = !cannotAddNewReward && rewards.length < 5
+  const canAddRewardInfo = !cannotAddNewReward && allRewards.length < 5
+  const newAddedRewards = allRewards.filter((r) => r.type === 'new added')
+  const editableRewards = allRewards.filter((r) => r.type === 'existed reward')
+  const editedRewards = editableRewards.filter((r) => hasRewardBeenEdited(r))
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(720px,90vw)]">
@@ -53,7 +57,7 @@ export default function FarmEditPage() {
           onClick={() => {
             if (!canAddRewardInfo) return
             useCreateFarms.setState({
-              rewards: produce(rewards, (draft) => {
+              rewards: produce(allRewards, (draft) => {
                 draft.push(createNewUIRewardInfo())
               })
             })
@@ -61,11 +65,40 @@ export default function FarmEditPage() {
         >
           <Icon className="text-[#abc4ff]" heroIconName="plus-circle" size="sm" />
           <div className="ml-1.5 text-[#abc4ff] font-medium">Add another reward token</div>
-          <div className="ml-1.5 text-[#abc4ff80] font-medium">({5 - rewards.length} more)</div>
+          <div className="ml-1.5 text-[#abc4ff80] font-medium">({5 - allRewards.length} more)</div>
         </Row>
 
         <Button
           className="block frosted-glass-teal mx-auto mt-4 mb-12"
+          validators={[
+            {
+              should: newAddedRewards.length || editedRewards.length
+            },
+            {
+              should: newAddedRewards.every((r) => r.token),
+              fallbackProps: {
+                children: 'Choose reward token' // NOTE: should ask manager about the text content
+              }
+            },
+            {
+              should: newAddedRewards.every((r) => r.amount),
+              fallbackProps: {
+                children: 'Input reward amount' // NOTE: should ask manager about the text content
+              }
+            },
+            {
+              should: newAddedRewards.every((r) => r.startTime && r.endTime),
+              fallbackProps: {
+                children: 'Set StartTime and EndTime' // NOTE: should ask manager about the text content
+              }
+            },
+            {
+              should: newAddedRewards.every((r) => r.startTime && r.endTime && isDateBefore(r.startTime, r.endTime)),
+              fallbackProps: {
+                children: 'StartTime must before EndTime' // NOTE: should ask manager about the text content
+              }
+            }
+          ]}
           onClick={() => {
             routeTo('/farms/editReview')
           }}

@@ -18,6 +18,8 @@ import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import useConnection from '@/application/connection/useConnection'
 import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
+import { isDateBefore } from '@/functions/date/judges'
+import useAppSettings from '@/application/appSettings/useAppSettings'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -97,6 +99,7 @@ export function RewardFormCard({ children }: { children?: ReactNode }) {
 
 export default function CreateFarmPage() {
   const rewards = useCreateFarms((s) => s.rewards)
+  const poolId = useCreateFarms((s) => s.poolId)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   return (
     <PageLayout metaTitle="Farms - Raydium">
@@ -156,46 +159,38 @@ export default function CreateFarmPage() {
           onClick={() => {
             routeTo('/farms/createReview')
           }}
-          // validators={[
-          //   {
-          //     should: poolId,
-          //     fallbackProps: {
-          //       children: 'Select pool' // NOTE: should ask manager about the text content
-          //     }
-          //   },
-          //   {
-          //     should: rewards.every((r) => r.token),
-          //     fallbackProps: {
-          //       children: 'Choose reward token' // NOTE: should ask manager about the text content
-          //     }
-          //   },
-          //   {
-          //     should: rewards.every((r) => r.amount),
-          //     fallbackProps: {
-          //       children: 'Input reward amount' // NOTE: should ask manager about the text content
-          //     }
-          //   },
-          //   {
-          //     should: rewards.every((r) => r.startTime && r.endTime),
-          //     fallbackProps: {
-          //       children: 'Set StartTime and EndTime' // NOTE: should ask manager about the text content
-          //     }
-          //   },
-          //   {
-          //     should: rewards.every((r) => r.startTime && r.endTime && isDateBefore(r.startTime, r.endTime)),
-          //     fallbackProps: {
-          //       children: 'StartTime must before EndTime' // NOTE: should ask manager about the text content
-          //     }
-          //   },
-          //   {
-          //     should: connected,
-          //     forceActive: true,
-          //     fallbackProps: {
-          //       onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-          //       children: 'Connect Wallet'
-          //     }
-          //   }
-          // ]}
+          validators={[
+            {
+              should: poolId,
+              fallbackProps: {
+                children: 'Select pool' // NOTE: should ask manager about the text content
+              }
+            },
+            {
+              should: rewards.every((r) => r.token),
+              fallbackProps: {
+                children: 'Choose reward token' // NOTE: should ask manager about the text content
+              }
+            },
+            {
+              should: rewards.every((r) => r.amount),
+              fallbackProps: {
+                children: 'Input reward amount' // NOTE: should ask manager about the text content
+              }
+            },
+            {
+              should: rewards.every((r) => r.startTime && r.endTime),
+              fallbackProps: {
+                children: 'Set StartTime and EndTime' // NOTE: should ask manager about the text content
+              }
+            },
+            {
+              should: rewards.every((r) => r.startTime && r.endTime && isDateBefore(r.startTime, r.endTime)),
+              fallbackProps: {
+                children: 'StartTime must before EndTime' // NOTE: should ask manager about the text content
+              }
+            }
+          ]}
         >
           Review Farm
         </Button>
