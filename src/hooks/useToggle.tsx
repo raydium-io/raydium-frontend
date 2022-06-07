@@ -49,7 +49,6 @@ export default function useToggle(
     _setIsOn(...params)
   }
   const cancelDelayAction = useCallback(() => {
-    // @ts-expect-error clearTimeout is not type-safe between browser and nodejs
     globalThis.clearTimeout(delayActionId)
   }, [delayActionId])
   const on = useCallback(() => {
@@ -152,7 +151,6 @@ export function useToggleRef(
     isOn.current = shrinkToValue(status)
   }
   const cancelDelayAction = useCallback(() => {
-    // @ts-expect-error clearTimeout is not type-safe between browser and nodejs
     globalThis.clearTimeout(delayActionId.current)
   }, [delayActionId])
   const on = useCallback(() => {
