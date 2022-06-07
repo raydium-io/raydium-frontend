@@ -6,20 +6,34 @@ import handleMultiTx, { TxAddOptions } from '@/application/txTools/handleMultiTx
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import useCreateFarms from './useCreateFarm'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
-import { div, mul } from '@/functions/numberish/operations'
+import { div, getMax, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toPub } from '@/functions/format/toMintString'
 import useWallet from '../wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { padZero } from '@/functions/numberish/handleZero'
+import useStaking from '../staking/useStaking'
+import { gte } from '@/functions/numberish/compare'
+import useConnection from '../connection/useConnection'
+import { offsetDateTime } from '@/functions/date/dateFormat'
 
 export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
-    const piecesCollector = createTransactionCollector()
+    const { stakeDialogInfo: stakingHydratedInfo } = useStaking.getState()
+    const haveStateOver300Ray = gte(stakingHydratedInfo?.userStakedLpAmount, 300)
+    assert(haveStateOver300Ray, 'Must stake at least 300 Ray')
+
+    const { chainTimeOffset = 0 } = useConnection.getState()
+    const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()
+
     const { rewards: uiRewardInfos } = useCreateFarms.getState()
     const { tokenAccounts } = useWallet.getState()
-    const testStartTime = toBN(div(Date.now(), 1000)) // NOTE: test
-    const testEndTime = toBN(div(Date.now() + 1000 * 60 * 60 * 1.2, 1000)) // NOTE: test
+
+    const piecesCollector = createTransactionCollector()
+
+    const testStartTime = Date.now() // NOTE: test
+    const testEndTime = Date.now() + 1000 * 60 * 60 * 1.2 // NOTE: test
+
     const rewards: FarmCreateInstructionParamsV6['rewardInfos'] = uiRewardInfos.map((reward) => {
       const rewardToken = reward.token
       assert(reward.startTime, 'reward start time is required')
@@ -30,11 +44,12 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
       assert(rewardTokenAccount?.publicKey, `can't find reward ${rewardToken?.symbol}'s tokenAccount `)
       const durationTime = reward.endTime.getTime() - reward.startTime.getTime()
       const estimatedValue = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
+      const perSecondReward = toBN(mul(estimatedValue, padZero(1, rewardToken.decimals)))
       return {
-        rewardStartTime: testStartTime || toBN(div(reward.startTime.getTime(), 1000)),
-        rewardEndTime: testEndTime || toBN(div(reward.endTime.getTime(), 1000)),
+        rewardStartTime: toBN(div(getMax(testStartTime || reward.startTime.getTime(), currentBlockChainDate), 1000)),
+        rewardEndTime: toBN(div(getMax(testEndTime || reward.endTime.getTime(), currentBlockChainDate), 1000)),
         rewardMint: rewardToken.mint,
-        rewardPerSecond: toBN(mul(estimatedValue, padZero(1, rewardToken.decimals))),
+        rewardPerSecond: perSecondReward,
         rewardOwnerAccount: rewardTokenAccount.publicKey
       }
     })
@@ -56,7 +71,7 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
       owner,
       payer: owner,
       lockInfo: {
-        lockMint: toPub(lockMint), // TODO test
+        lockMint: toPub(lockMint),
         userLockAccount: lockMintTokenAccount.publicKey
       }
     })

@@ -20,6 +20,8 @@ import { padZero } from '@/functions/numberish/handleZero'
 import asyncMap from '@/functions/asyncMap'
 import useConnection from '../connection/useConnection'
 import { offsetDateTime } from '@/functions/date/dateFormat'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 export default async function txUpdateEdited({ ...txAddOptions }: TxAddOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -63,25 +65,30 @@ function createRewardRestartInstruction({
 }): TransactionInstruction {
   const { tokenAccounts, owner } = useWallet.getState()
   assert(isMintEqual(owner, reward.owner), `reward is not created by walletOwner`)
-  const testRestartTime = div(Date.now() + 3000, 1000) // NOTE: test
-  const testEndTime = div(Date.now() + 1000 * 60 * 60 * 1.2, 1000) // NOTE: test
+
+  const { chainTimeOffset = 0 } = useConnection.getState()
+  const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()
+
+  const testRestartTime = Date.now() // NOTE: test
+  const testEndTime = Date.now() + 1000 * 60 * 60 * 1.2 // NOTE: test
+
   const rewardTokenAccount = tokenAccounts.find((t) => isMintEqual(reward.token?.mint, t.mint))
   assert(rewardTokenAccount?.publicKey, `can't find reward ${reward.token?.symbol}'s tokenAccount`)
   assert(reward.endTime, `reward must have endTime`)
   assert(reward.startTime, `reward must have startTime`)
   assert(reward.amount, `reward must have amount`)
   assert(reward.owner, 'reward must have creator')
-
   const durationTime = reward.endTime.getTime() - reward.startTime.getTime()
   const perSecond = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
 
   const createFarmInstruction = Farm.makeRestartFarmInstruction({
     poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
     rewardVault: toPub(String(reward.id)),
-    rewardRestartTime: toBN(testRestartTime).toNumber(),
-    rewardEndTime: toBN(testEndTime).toNumber(),
-    rewardPerSecond: toBN(perSecond),
-    // rewardPerSecond: toBN(mul(perSecond, padZero('1', reward.token?.decimals ?? 6))),
+    rewardRestartTime: toBN(
+      div(getMax(testRestartTime || reward.startTime.getTime(), currentBlockChainDate), 1000)
+    ).toNumber(),
+    rewardEndTime: toBN(div(getMax(testEndTime || reward.endTime.getTime(), currentBlockChainDate), 1000)).toNumber(),
+    rewardPerSecond: toBN(mul(perSecond, padZero('1', reward.token?.decimals ?? 6))),
     rewardOwner: toPub(reward.owner),
     rewardOwnerAccount: rewardTokenAccount.publicKey
   })
@@ -98,8 +105,8 @@ async function createNewRewardInstruction({
   farmInfo: HydratedFarmInfo
 }): Promise<TransactionInstruction> {
   const { tokenAccounts, owner } = useWallet.getState()
-  const { chainTimeOffset = 0 } = useConnection.getState()
 
+  const { chainTimeOffset = 0 } = useConnection.getState()
   const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()
 
   const testStartTime = Date.now() // NOTE: test

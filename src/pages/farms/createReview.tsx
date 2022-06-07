@@ -27,7 +27,7 @@ export default function CreateFarmReviewPage() {
 
         <div className="mb-6">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Farm rewards</div>
-          <NewAddedRewardSummary canUserEdit />
+          <NewAddedRewardSummary canUserEdit={false} />
         </div>
 
         <div className="font-medium text-sm text-center leading-snug text-[#abc4ff80] mb-8">

@@ -112,22 +112,17 @@ export function ExistedEditRewardSummary({
               <div>
                 {toString(estimatedValue)} {reward.token?.symbol}/day
               </div>
-              <div>{reward.apr ? toPercentString(reward.apr) : '--'} APR</div>
+              {reward.apr && <div>{toPercentString(reward.apr)} APR</div>}
             </div>
           )
         }
       }}
       renderRowEntry={({ contentNode, itemData: reward }) => {
+        const isRewardEditable = reward.originData?.isRwardingBeforeEnd72h || reward.originData?.isRewardEnded
         return (
-          <div
-            className={
-              isDateAfter(currentChainTime, offsetDateTime(reward.originData?.endTime, { hours: -0.5 }))
-                ? ''
-                : 'not-selectable'
-            }
-          >
+          <div className={isRewardEditable ? '' : 'not-selectable'}>
             {contentNode}
-            {canUserEdit && (reward.originData?.isRwardingBeforeEnd72h || reward.originData?.isRewardEnded) && (
+            {canUserEdit && isRewardEditable && (
               <div className="bg-[#abc4ff1a] rounded-md p-2 mb-4">
                 {reward.originData?.isRwardingBeforeEnd72h && (
                   <Col

@@ -138,7 +138,8 @@ export function hydrateFarmInfo(
             const isRewardEnded = Boolean(rewardEndTime && isDateAfter(onlineCurrentDate, rewardEndTime))
             const isRewarding = (!rewardStartTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
             const isRwardingBeforeEnd72h =
-              isRewarding && isDateAfter(onlineCurrentDate, offsetDateTime(rewardEndTime, { hours: -72 }))
+              isRewarding &&
+              isDateAfter(onlineCurrentDate, offsetDateTime(rewardEndTime, { hours: -1 /* NOTE - test */ /* -72 */ }))
 
             const pendingReward = pendingRewards?.[idx]
             const apr = aprs[idx]
