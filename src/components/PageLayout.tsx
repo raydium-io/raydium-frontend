@@ -440,25 +440,35 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             </div>
           </Col>
 
-          <div className="text-sm m-2 opacity-40 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
-            <div>current: {currentVersion}</div>
-            <div>lastest: {lastestVersion}</div>
-            {isInLocalhost && (
+          <Tooltip>
+            <div className="text-sm m-2 leading-relaxed opacity-50 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
+              <div>V {currentVersion.slice(1)}</div>
               <div>
-                blockchain time: <BlockTimeClock />
+                <BlockTimeClock />
               </div>
-            )}
-          </div>
+            </div>
+            <Tooltip.Panel>
+              <div className="text-xs m-2 leading-relaxed font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
+                <div>current: {currentVersion}</div>
+                <div>lastest: {lastestVersion}</div>
+                <div>block time: {<BlockTimeClock showSeconds />}</div>
+              </div>
+            </Tooltip.Panel>
+          </Tooltip>
         </Col>
       </Col>
     </>
   )
 }
 
-function BlockTimeClock() {
+function BlockTimeClock({ showSeconds, hideUTCBadge }: { showSeconds?: boolean; hideUTCBadge?: boolean }) {
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   useForceUpdate({ loop: 1000 })
-  return <div>{chainTimeOffset != null ? toUTC(Date.now() + chainTimeOffset, { showSeconds: true }) : undefined}</div>
+  return (
+    <div className="inline-block">
+      {chainTimeOffset != null ? toUTC(Date.now() + chainTimeOffset, { showSeconds, hideUTCBadge }) : undefined}
+    </div>
+  )
 }
 function LinkItem({
   children,
