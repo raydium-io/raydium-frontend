@@ -30,7 +30,8 @@ export default async function txClaimReward({ reward, ...txAddOptions }: { rewar
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       ...txAddOptions,
       txHistoryInfo: {
-        title: '[Dev] Claim reward'
+        title: 'Claim reward',
+        description: '(click to see details)'
       }
     })
   })

@@ -82,7 +82,8 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       ...txAddOptions,
       txHistoryInfo: {
-        title: 'Create Farm'
+        title: 'Create Farm',
+        description: `(click to see details)`
       }
     })
   })

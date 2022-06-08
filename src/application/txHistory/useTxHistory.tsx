@@ -3,7 +3,6 @@ import create from 'zustand'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { DateInfo, HexAddress, MayFunction } from '@/types/constants'
 
-import useNotification from '../notification/useNotification'
 import useWallet from '../wallet/useWallet'
 
 export interface TxHistoryInfo {

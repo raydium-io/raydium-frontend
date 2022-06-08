@@ -50,7 +50,8 @@ export default async function txUpdateEdited({ ...txAddOptions }: TxAddOptions) 
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       ...txAddOptions,
       txHistoryInfo: {
-        title: '[Dev] Edit Farm'
+        title: 'Edit Farm',
+        description: '(click to see details)'
       }
     })
   })
