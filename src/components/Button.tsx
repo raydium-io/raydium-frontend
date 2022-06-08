@@ -4,8 +4,7 @@ import { twMerge } from 'tailwind-merge'
 
 import { isArray } from '@/functions/judgers/dateType'
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import { useClick } from '@/hooks/useClick'
-import { AnyFn, BooleanLike, MayFunction } from '@/types/constants'
+import { BooleanLike, MayFunction } from '@/types/constants'
 import { MayArray } from '@/types/generics'
 import Row from './Row'
 
@@ -53,6 +52,7 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
   }
   const { type = 'solid', className = '', size, children, onClick, componentRef, suffix, prefix } = mergedProps
 
+  const haveFallbackClick = Boolean(failedValidator?.fallbackProps?.onClick)
   const isActive = failedValidator?.forceActive || (!failedValidator && !mergedProps.disabled)
   const disable = !isActive
 
@@ -70,15 +70,16 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
       ref={ref}
       onClick={(ev) => {
         if (disable) ev.stopPropagation()
+        if (haveFallbackClick) onClick?.({ ev })
         if (!disable) onClick?.({ ev })
       }}
       className={twMerge(
         'Button select-none',
         type === 'text'
-          ? textButtonTailwind({ size, disable })
+          ? textButtonTailwind({ size, disable, haveFallbackClick })
           : type === 'outline'
-          ? outlineButtonTailwind({ size, disable })
-          : solidButtonTailwind({ size, disable }),
+          ? outlineButtonTailwind({ size, disable, haveFallbackClick })
+          : solidButtonTailwind({ size, disable, haveFallbackClick }),
         className
       )}
     >
@@ -98,8 +99,9 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
 /** base inner <Button> style  */
 function solidButtonTailwind({
   size = 'default',
-  disable
-}: { size?: 'xs' | 'md' | 'sm' | 'lg' | 'default'; disable?: boolean } = {}) {
+  disable,
+  haveFallbackClick
+}: { size?: 'xs' | 'md' | 'sm' | 'lg' | 'default'; disable?: boolean; haveFallbackClick?: boolean } = {}) {
   return `${
     size === 'lg'
       ? 'px-6 py-3.5 rounded-xl font-bold'
@@ -110,7 +112,9 @@ function solidButtonTailwind({
       : 'px-4 py-2.5  rounded-xl font-medium'
   } whitespace-nowrap appearance-none inline-block ${
     disable
-      ? 'bg-formkit-thumb-disable text-formkit-thumb-text-disabled opacity-50 cursor-not-allowed'
+      ? `bg-formkit-thumb-disable text-formkit-thumb-text-disabled opacity-50 ${
+          haveFallbackClick ? '' : 'cursor-not-allowed'
+        }`
       : 'bg-formkit-thumb text-formkit-thumb-text-normal clickable clickable-filter-effect'
   }`
 }
@@ -118,8 +122,9 @@ function solidButtonTailwind({
 /** extra inner <Button> style */
 function outlineButtonTailwind({
   size = 'default',
-  disable
-}: { size?: 'xs' | 'md' | 'sm' | 'lg' | 'default'; disable?: boolean } = {}) {
+  disable,
+  haveFallbackClick
+}: { size?: 'xs' | 'md' | 'sm' | 'lg' | 'default'; disable?: boolean; haveFallbackClick?: boolean } = {}) {
   return `${
     size === 'lg'
       ? 'py-4 px-4 rounded-xl'
@@ -129,15 +134,16 @@ function outlineButtonTailwind({
       ? 'px-4 py-2 text-xs rounded-xl'
       : 'px-4 py-2.5  rounded-xl'
   } whitespace-nowrap appearance-none inline-block ring-1.5 ring-inset ring-current ${
-    disable ? 'opacity-30 cursor-not-allowed' : 'clickable clickable-filter-effect'
+    disable ? `opacity-50 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable clickable-filter-effect'
   }`
 }
 
 /** extra inner <Button> style */
 function textButtonTailwind({
   size = 'default',
-  disable
-}: { size?: 'xs' | 'md' | 'sm' | 'lg' | 'default'; disable?: boolean } = {}) {
+  disable,
+  haveFallbackClick
+}: { size?: 'xs' | 'md' | 'sm' | 'lg' | 'default'; disable?: boolean; haveFallbackClick?: boolean } = {}) {
   return `${
     size === 'lg'
       ? 'py-4 px-4 rounded-xl'
@@ -147,6 +153,6 @@ function textButtonTailwind({
       ? 'px-4 py-2 text-xs rounded-xl'
       : 'px-4 py-2.5  rounded-xl'
   } whitespace-nowrap appearance-none inline-block text-white ${
-    disable ? 'opacity-30 cursor-not-allowed' : 'clickable clickable-filter-effect'
+    disable ? `opacity-50 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable clickable-filter-effect'
   }`
 }

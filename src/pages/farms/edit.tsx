@@ -77,19 +77,19 @@ export default function FarmEditPage() {
             {
               should: newAddedRewards.every((r) => r.token),
               fallbackProps: {
-                children: 'Choose reward token' // NOTE: should ask manager about the text content
+                children: 'Confirm reward token' // NOTE: should ask manager about the text content
               }
             },
             {
               should: newAddedRewards.every((r) => r.amount),
               fallbackProps: {
-                children: 'Input reward amount' // NOTE: should ask manager about the text content
+                children: 'Input token amount' // NOTE: should ask manager about the text content
               }
             },
             {
               should: newAddedRewards.every((r) => r.startTime && r.endTime),
               fallbackProps: {
-                children: 'Set StartTime and EndTime' // NOTE: should ask manager about the text content
+                children: 'Confirm emission time setup' // NOTE: should ask manager about the text content
               }
             }
           ]}

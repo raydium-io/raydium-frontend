@@ -11,8 +11,8 @@ import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import produce from 'immer'
-import { ReactNode, useState } from 'react'
-import { PoolIdInputBlock } from '../../pageComponents/createFarm/PoolIdInputBlock'
+import { ReactNode, useRef, useState } from 'react'
+import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
@@ -101,6 +101,9 @@ export default function CreateFarmPage() {
   const rewards = useCreateFarms((s) => s.rewards)
   const poolId = useCreateFarms((s) => s.poolId)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+
+  const PoolIdInputBlockRef = useRef<PoolIdInputBlockHandle>()
+
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className={`self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
@@ -110,7 +113,7 @@ export default function CreateFarmPage() {
 
         <div className="space-y-4">
           <FormStep stepNumber={1} title="Select Pool" haveNavline>
-            <PoolIdInputBlock />
+            <PoolIdInputBlock componentRef={PoolIdInputBlockRef} />
           </FormStep>
 
           <FormStep
@@ -167,31 +170,27 @@ export default function CreateFarmPage() {
               {
                 should: poolId,
                 fallbackProps: {
-                  children: 'Select pool' // NOTE: should ask manager about the text content
+                  onClick: () => {
+                    PoolIdInputBlockRef.current?.validate?.()
+                  }
                 }
               },
               {
                 should: rewards.every((r) => r.token),
                 fallbackProps: {
-                  children: 'Choose reward token' // NOTE: should ask manager about the text content
+                  children: 'Confirm reward token' // NOTE: should ask manager about the text content
                 }
               },
               {
                 should: rewards.every((r) => r.amount),
                 fallbackProps: {
-                  children: 'Input reward amount' // NOTE: should ask manager about the text content
+                  children: 'Input token amount' // NOTE: should ask manager about the text content
                 }
               },
               {
                 should: rewards.every((r) => r.startTime && r.endTime),
                 fallbackProps: {
-                  children: 'Set StartTime and EndTime' // NOTE: should ask manager about the text content
-                }
-              },
-              {
-                should: rewards.every((r) => r.startTime && r.endTime && isDateBefore(r.startTime, r.endTime)),
-                fallbackProps: {
-                  children: 'StartTime must before EndTime' // NOTE: should ask manager about the text content
+                  children: 'Confirm emission time setup' // NOTE: should ask manager about the text content
                 }
               }
             ]}

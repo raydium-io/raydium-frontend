@@ -145,20 +145,20 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
           componentRef={inputComponentRef}
           value={searchText}
           defaultValue={searchText}
-          suffix={(handler) =>
-            handler.text ? (
+          suffix={(innerhandler) =>
+            innerhandler.text ? (
               <Icon
                 heroIconName="x"
                 size={isMobile ? 'sm' : 'smi'}
                 className={`text-[rgba(196,214,255,0.5)] transition clickable ${
-                  handler.text ? 'opacity-100' : 'opacity-0 pointer-events-none'
+                  innerhandler.text ? 'opacity-100' : 'opacity-0 pointer-events-none'
                 }`}
                 onClick={() => {
-                  handler.setInputText('', { isUserInput: true })
+                  innerhandler.setInputText('', { isUserInput: true })
                 }}
               />
             ) : (
-              shrinkToValue(restProps.inputProps?.suffix ?? restProps.suffix, [handler])
+              shrinkToValue(restProps.inputProps?.suffix ?? restProps.suffix, [innerhandler])
             )
           }
           onUserInput={mergeFunction(
@@ -170,7 +170,8 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
             restProps.inputProps?.onUserInput
           )}
           onBlur={(...args) => {
-            if (filtered?.length && filtered.length >= 1) {
+            const haveMultiCandidate = filtered?.length && filtered.length >= 1
+            if (haveMultiCandidate && searchText) {
               setCurrentCandidateIdx(0)
               applySelectedIndex(0)
             } else {

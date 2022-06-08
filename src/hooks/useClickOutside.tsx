@@ -6,9 +6,13 @@ import { ElementRefs, getElementsFromRef } from '@/functions/react/getElementsFr
 export interface UseClickOutsideOptions {
   disable?: boolean
   onClickOutSide?: () => void
+  onBlurToOutside?: () => void
 }
 
-export function useClickOutside(refs: ElementRefs, { disable, onClickOutSide }: UseClickOutsideOptions = {}) {
+export function useClickOutside(
+  refs: ElementRefs,
+  { disable, onClickOutSide, onBlurToOutside }: UseClickOutsideOptions = {}
+) {
   useEffect(() => {
     if (disable) return
     const handleClickOutside = (ev: Event) => {
@@ -19,8 +23,10 @@ export function useClickOutside(refs: ElementRefs, { disable, onClickOutSide }: 
       onClickOutSide?.()
     }
     window.document?.addEventListener('click', handleClickOutside, { capture: true })
+    onBlurToOutside && getElementsFromRef(refs).forEach((el) => el.addEventListener('focusout', onBlurToOutside))
     return () => {
       window.document?.removeEventListener('click', handleClickOutside, { capture: true })
+      onBlurToOutside && getElementsFromRef(refs).forEach((el) => el.removeEventListener('focusout', onBlurToOutside))
     }
   }, [refs, disable, onClickOutSide])
 }

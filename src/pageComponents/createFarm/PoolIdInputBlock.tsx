@@ -11,9 +11,15 @@ import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import listToMap from '@/functions/format/listToMap'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { useMemo, useState } from 'react'
+import { useClickOutside } from '@/hooks/useClickOutside'
+import { RefObject, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
-export function PoolIdInputBlock() {
+export interface PoolIdInputBlockHandle {
+  validate?: () => void
+  turnOffValidation?: () => void
+}
+
+export function PoolIdInputBlock({ componentRef }: { componentRef?: RefObject<any> }) {
   const poolId = useCreateFarms((s) => s.poolId)
   const pairInfos = usePools((s) => s.hydratedInfos)
   const liquidityPoolJsons = useLiquidity((s) => s.jsonInfos)
@@ -34,10 +40,32 @@ export function PoolIdInputBlock() {
       } as AutoCompleteCandidateItem)
     )
 
+  // state for validate
   const [inputValue, setInputValue] = useState<string>()
-  const [isInputing, setIsInputing] = useState(false)
+  const [isInputing, setIsInputing] = useState(true) // true for don't pop valid result immediately
+  const inputCardRef = useRef<HTMLElement>(null)
+
+  const validate = () => {
+    setIsInputing(false)
+  }
+  const turnOffValidation = () => {
+    setIsInputing(true)
+  }
+  useClickOutside(inputCardRef, {
+    onBlurToOutside: validate
+  })
+
+  useImperativeHandle(componentRef, () => ({
+    validate,
+    turnOffValidation
+  }))
+
   return (
-    <Card className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a]" size="lg">
+    <Card
+      className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a]"
+      size="lg"
+      domRef={inputCardRef}
+    >
       <AutoComplete
         candidates={candidates}
         value={selectedPool?.id}
@@ -66,10 +94,10 @@ export function PoolIdInputBlock() {
           useCreateFarms.setState({ poolId: selected.id })
         }}
         onBlurMatchCandiateFailed={({ text: candidatedPoolId }) => {
-          const matchedPoolId = liquidityPoolJsons.find((i) => i.id === candidatedPoolId)?.id
-          useCreateFarms.setState({ poolId: matchedPoolId })
+          useCreateFarms.setState({ poolId: candidatedPoolId })
         }}
         onDangerousValueChange={(v) => {
+          if (!v) useCreateFarms.setState({ poolId: undefined })
           setInputValue(v)
         }}
         onUserInput={() => {
@@ -80,7 +108,7 @@ export function PoolIdInputBlock() {
         }}
       />
 
-      <FadeInStable show={inputValue && !isInputing}>
+      <FadeInStable show={!isInputing}>
         <Row className="items-center px-4 pt-2 gap-2">
           {selectedPool ? (
             <>
@@ -97,7 +125,9 @@ export function PoolIdInputBlock() {
           ) : (
             <>
               <Icon size="smi" heroIconName="x-circle" className="text-[#DA2EEF]" />
-              <div className="text-[#DA2EEF] text-xs font-medium">Can't find pool</div>
+              <div className="text-[#DA2EEF] text-sm font-medium">
+                {inputValue ? "Can't find pool" : 'You need to select one pool'}
+              </div>
             </>
           )}
         </Row>
