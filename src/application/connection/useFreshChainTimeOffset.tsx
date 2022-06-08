@@ -1,5 +1,4 @@
 import useConnection from './useConnection'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { mul, sub } from '@/functions/numberish/operations'
 import { Connection } from '@solana/web3.js'
 import { useEffect } from 'react'

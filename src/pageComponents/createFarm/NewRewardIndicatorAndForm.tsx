@@ -1,7 +1,7 @@
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { RewardFormCardInputs } from './RewardFormInputs'
 import { NewAddedRewardSummary } from './NewAddedRewardSummary'
 import { RewardFormCard } from '../../pages/farms/create'
@@ -13,7 +13,11 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
 
   const [activeRewardId, setActiveRewardId] = useState<string | number | undefined>(newReards[0]?.id)
   const activeReward = newReards.find((r) => r.id === activeRewardId)
-  // TODO: use reward id not idex
+  useEffect(() => {
+    if (!activeReward && newReards.length >= 1) {
+      setActiveRewardId(newReards[0].id)
+    }
+  }, [newReards])
   if (!newReards.length) return null
   return (
     <div className={className}>

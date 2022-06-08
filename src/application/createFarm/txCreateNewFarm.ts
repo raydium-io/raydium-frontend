@@ -21,7 +21,7 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const { stakeDialogInfo: stakingHydratedInfo } = useStaking.getState()
     const haveStakeOver300Ray = gte(stakingHydratedInfo?.userStakedLpAmount, 300)
-    assert(haveStakeOver300Ray, 'Must stake at least 300 Ray')
+    // assert(haveStakeOver300Ray, 'Must stake at least 300 Ray')  // FIXME - temp for test
 
     const { chainTimeOffset = 0 } = useConnection.getState()
     const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()

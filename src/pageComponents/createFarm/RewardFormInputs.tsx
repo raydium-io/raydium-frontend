@@ -271,7 +271,7 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
           if (!durationTime) return
           useCreateFarms.setState({
             rewards: produce(rewards, (draft) => {
-              if (rewardIndex > 0) draft[rewardIndex].amount = mul(parseDurationAbsolute(durationTime).days, v)
+              if (rewardIndex >= 0) draft[rewardIndex].amount = mul(parseDurationAbsolute(durationTime).days, v)
             })
           })
         }}
