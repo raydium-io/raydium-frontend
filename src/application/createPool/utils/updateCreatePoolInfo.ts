@@ -4,7 +4,7 @@ import { PublicKey } from '@solana/web3.js'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import { usePools } from '@/application/pools/usePools'
-import { WSOLMint } from '@/application/token/utils/quantumSOL'
+import { WSOLMint } from '@/application/token/quantumSOL'
 import {
   ANAMint,
   ETHMint,
@@ -17,7 +17,7 @@ import {
   USDCMint,
   USDHMint,
   USDTMint
-} from '@/application/token/utils/wellknownToken.config'
+} from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'

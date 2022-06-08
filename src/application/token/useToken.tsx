@@ -17,8 +17,8 @@ import {
   QuantumSOLVersionWSOL,
   SOLUrlMint,
   WSOLMint
-} from './utils/quantumSOL'
-import { RAYMint } from './utils/wellknownToken.config'
+} from './quantumSOL'
+import { RAYMint } from './wellknownToken.config'
 import toPubString from '@/functions/format/toMintString'
 
 export type TokenStore = {

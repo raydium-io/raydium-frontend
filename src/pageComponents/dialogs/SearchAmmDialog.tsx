@@ -10,7 +10,7 @@ import Row from '@/components/Row'
 import useToken from '@/application/token/useToken'
 import assert from '@/functions/assert'
 import { isValidePublicKey } from '@/functions/judgers/dateType'
-import { findTokenMintByAmmId, findTokenMintByMarketId } from '@/application/liquidity/utils/miscToolFns'
+import { findTokenMintByAmmId, findTokenMintByMarketId } from '@/application/liquidity/miscToolFns'
 import useNotification from '@/application/notification/useNotification'
 import InputBox from '../../components/InputBox'
 

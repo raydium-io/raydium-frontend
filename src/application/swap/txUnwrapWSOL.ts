@@ -4,7 +4,7 @@ import { createTransactionCollector } from '../txTools/createTransaction'
 import handleMultiTx from '../txTools/handleMultiTx'
 import useWallet from '../wallet/useWallet'
 
-import { WSOL, WSOLMint } from '../token/utils/quantumSOL'
+import { WSOL, WSOLMint } from '../token/quantumSOL'
 import toPubString from '@/functions/format/toMintString'
 import { Numberish } from '@/types/constants'
 import { PublicKey } from '@solana/web3.js'

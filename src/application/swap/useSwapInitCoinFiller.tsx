@@ -1,11 +1,11 @@
 import { useEffect } from 'react'
 
 import useToken from '@/application/token/useToken'
-import { RAYMint } from '@/application/token/utils/wellknownToken.config'
+import { RAYMint } from '@/application/token/wellknownToken.config'
 
 import { useSwap } from './useSwap'
 import toPubString from '@/functions/format/toMintString'
-import { QuantumSOLVersionSOL } from '../token/utils/quantumSOL'
+import { QuantumSOLVersionSOL } from '../token/quantumSOL'
 
 export default function useSwapInitCoinFiller() {
   const getToken = useToken((s) => s.getToken)

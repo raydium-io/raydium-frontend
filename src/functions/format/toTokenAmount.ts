@@ -8,7 +8,7 @@ import {
   QuantumSOLToken,
   toQuantumSolAmount,
   WSOLMint
-} from '@/application/token/utils/quantumSOL'
+} from '@/application/token/quantumSOL'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import toBN from '@/functions/numberish/toBN'
 import { Numberish } from '@/types/constants'

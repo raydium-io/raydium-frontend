@@ -22,8 +22,8 @@ import {
   isQuantumSOLVersionSOL,
   isQuantumSOLVersionWSOL,
   toUITokenAmount
-} from '@/application/token/utils/quantumSOL'
-import { USDCMint, USDTMint } from '@/application/token/utils/wellknownToken.config'
+} from '@/application/token/quantumSOL'
+import { USDCMint, USDTMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'

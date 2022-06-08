@@ -6,7 +6,7 @@ import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import txFarmHarvest from '@/application/farms/transaction/txFarmHarvest'
+import txFarmHarvest from '@/application/farms/txFarmHarvest'
 import { HydratedFarmInfo } from '@/application/farms/type'
 import useFarms from '@/application/farms/useFarms'
 import useStaking from '@/application/staking/useStaking'

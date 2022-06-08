@@ -11,7 +11,7 @@ import handleMultiTx from '../txTools/handleMultiTx'
 import useWallet from '../wallet/useWallet'
 
 import { useSwap } from './useSwap'
-import { deUITokenAmount, toUITokenAmount } from '../token/utils/quantumSOL'
+import { deUITokenAmount, toUITokenAmount } from '../token/quantumSOL'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 export default function txSwap() {

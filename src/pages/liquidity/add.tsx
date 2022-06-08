@@ -7,11 +7,11 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useFarms from '@/application/farms/useFarms'
-import useLiquidityAmmSelector from '@/application/liquidity/feature/useLiquidityAmmSelector'
-import useLiquidityAmountCalculator from '@/application/liquidity/feature/useLiquidityAmountCalculator'
-import useLiquidityInitCoinFiller from '@/application/liquidity/feature/useLiquidityInitCoinFiller'
-import useLiquidityUrlParser from '@/application/liquidity/feature/useLiquidityUrlParser'
-import txAddLiquidity from '@/application/liquidity/transaction/txAddLiquidity'
+import useLiquidityAmmSelector from '@/application/liquidity/useLiquidityAmmSelector'
+import useLiquidityAmountCalculator from '@/application/liquidity/useLiquidityAmountCalculator'
+import useLiquidityInitCoinFiller from '@/application/liquidity/useLiquidityInitCoinFiller'
+import useLiquidityUrlParser from '@/application/liquidity/useLiquidityUrlParser'
+import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
@@ -20,7 +20,7 @@ import {
   SOLDecimals,
   isQuantumSOLVersionSOL,
   isQuantumSOLVersionWSOL
-} from '@/application/token/utils/quantumSOL'
+} from '@/application/token/quantumSOL'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'

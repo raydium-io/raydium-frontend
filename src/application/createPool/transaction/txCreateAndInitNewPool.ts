@@ -12,7 +12,7 @@ import toBN from '@/functions/numberish/toBN'
 
 import useCreatePool from '../useCreatePool'
 import { recordCreatedPool } from '../utils/recordCreatedPool'
-import { deUITokenAmount, WSOLMint } from '@/application/token/utils/quantumSOL'
+import { deUITokenAmount, WSOLMint } from '@/application/token/quantumSOL'
 import toPubString from '@/functions/format/toMintString'
 import { getMax } from '@/functions/numberish/operations'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'

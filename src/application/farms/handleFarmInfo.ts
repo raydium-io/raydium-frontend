@@ -11,7 +11,7 @@ import {
 
 import BN from 'bn.js'
 
-import { findAmmId } from '@/application/liquidity/utils/miscToolFns'
+import { findAmmId } from '@/application/liquidity/miscToolFns'
 import { PoolsStore } from '@/application/pools/usePools'
 import { TokenStore } from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
@@ -23,7 +23,7 @@ import toPubString, { toPub } from '@/functions/format/toMintString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { LiquidityStore } from '@/application/liquidity/useLiquidity'
 import { currentIsAfter, currentIsBefore, isDateAfter, isDateBefore } from '@/functions/date/judges'
-import { RAYMint } from '@/application/token/utils/wellknownToken.config'
+import { RAYMint } from '@/application/token/wellknownToken.config'
 import { unionArr } from '@/types/generics'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { ConnectionStore } from '@/application/connection/useConnection'

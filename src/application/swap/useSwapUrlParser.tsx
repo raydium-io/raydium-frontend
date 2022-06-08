@@ -19,7 +19,7 @@ import {
   QuantumSOLVersionSOL,
   QuantumSOLVersionWSOL,
   WSOLMint
-} from '../token/utils/quantumSOL'
+} from '../token/quantumSOL'
 import toPubString from '@/functions/format/toMintString'
 
 function isSolAndWsol(query1: string, query2: string): boolean {

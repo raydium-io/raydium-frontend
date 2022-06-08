@@ -21,10 +21,8 @@ import subscribeTx from './subscribeTx'
 import { noTailingPeriod } from '../../functions/format/noTailingPeriod'
 import useAppSettings from '../appSettings/useAppSettings'
 import { mergeFunction } from '@/functions/merge'
-import tryCatch from '@/functions/tryCatch'
-import toPubString from '@/functions/format/toMintString'
 import { getRecentBlockhash } from './attachRecentBlockhash'
-import { getRichWalletTokenAccounts } from '../wallet/feature/useTokenAccountsRefresher'
+import { getRichWalletTokenAccounts } from '../wallet/useTokenAccountsRefresher'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {

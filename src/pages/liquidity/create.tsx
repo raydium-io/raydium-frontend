@@ -29,7 +29,7 @@ import copyToClipboard from '@/functions/dom/copyToClipboard'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import useToggle from '@/hooks/useToggle'
-import { createSplToken } from '@/application/token/feature/useTokenListsLoader'
+import { createSplToken } from '@/application/token/useTokenListsLoader'
 import { toString } from '@/functions/numberish/toString'
 
 /**

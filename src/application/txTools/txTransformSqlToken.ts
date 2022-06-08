@@ -6,7 +6,7 @@ import { createTransactionCollector } from '@/application/txTools/createTransact
 import { PublicKeyish } from '@/types/constants'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toString } from '@/functions/numberish/toString'
-import { getRichWalletTokenAccounts } from '../wallet/feature/useTokenAccountsRefresher'
+import { getRichWalletTokenAccounts } from '../wallet/useTokenAccountsRefresher'
 
 export default async function txTransferToken(
   options: {

@@ -3,7 +3,7 @@ import { CurrencyAmount, Spl } from '@raydium-io/raydium-sdk'
 import { createTransactionCollector } from '../txTools/createTransaction'
 import handleMultiTx from '../txTools/handleMultiTx'
 
-import { deUITokenAmount, QuantumSOLVersionSOL, WSOLMint } from '../token/utils/quantumSOL'
+import { deUITokenAmount, QuantumSOLVersionSOL, WSOLMint } from '../token/quantumSOL'
 import { Numberish } from '@/types/constants'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { PublicKey } from '@solana/web3.js'
