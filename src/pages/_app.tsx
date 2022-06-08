@@ -14,7 +14,6 @@ import {
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
 import { useUserCustomizedEndpointInitLoad } from '@/application/connection/useUserCustomizedEndpointInitLoad'
 import useFarmInfoFetcher from '@/application/farms/useFarmInfoLoader'
-import useInjectRaydiumFeeAprFromPair from '@/application/farms/useInjectRaydiumFeeAprFromPair'
 import useAutoFetchIdoInfos from '@/application/ido/useAutoFetchIdoInfos'
 import useLiquidityInfoLoader from '@/application/liquidity/feature/useLiquidityInfoLoader'
 import useMessageBoardFileLoader from '@/application/messageBoard/useMessageBoardFileLoader'
@@ -169,7 +168,6 @@ function ApplicationsInitializations() {
   usePoolsInfoLoader()
 
   /********************** farm **********************/
-  useInjectRaydiumFeeAprFromPair() // auto inject apr to farm info from backend pair interface
   useFarmInfoFetcher()
   useFarmResetSelfCreatedByOwner()
 

@@ -31,6 +31,7 @@ import { toString } from '@/functions/numberish/toString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { toPercent } from '@/functions/format/toPercent'
 
 function getMaxOpenTime(i: APIRewardInfo[]) {
   return Math.max(...i.map((r) => r.openTime))
@@ -71,6 +72,7 @@ export async function mergeSdkFarmInfo(
 export function hydrateFarmInfo(
   farmInfo: SdkParsedFarmInfo,
   payload: {
+    aprs: Record<string, number> // from api:pairs
     getToken: TokenStore['getToken']
     getLpToken: TokenStore['getLpToken']
     lpPrices: PoolsStore['lpPrices']
@@ -117,8 +119,9 @@ export function hydrateFarmInfo(
     rewardTokenPrices: farmInfo.rewardInfos.map(({ rewardMint }) => payload.tokenPrices?.[String(rewardMint)]) ?? []
   })
 
-  const totalApr = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), undefined)
   const ammId = findAmmId(farmInfo.lpMint)
+  const raydiumFeeRpr = ammId ? toPercent(payload.aprs[ammId], { alreadyDecimaled: true }) : undefined
+  const totalApr = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), raydiumFeeRpr)
   const rewards: HydratedFarmInfo['rewards'] =
     farmInfo.version === 6
       ? shakeUndifindedItem(
@@ -203,7 +206,7 @@ export function hydrateFarmInfo(
     rewards,
     userStakedLpAmount,
     stakedLpAmount,
-    raydiumFeeRpr: undefined
+    raydiumFeeRpr
   }
 }
 

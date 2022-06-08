@@ -8,10 +8,12 @@ import useFarms from './useFarms'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
+import { useMemo } from 'react'
 
 export default function useFarmInfoFetcher() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
+  const pairs = usePools((s) => s.jsonInfos)
   const getToken = useToken((s) => s.getToken)
   const getLpToken = useToken((s) => s.getLpToken)
   const lpTokens = useToken((s) => s.lpTokens)
@@ -21,6 +23,8 @@ export default function useFarmInfoFetcher() {
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const owner = useWallet((s) => s.owner)
   const lpPrices = usePools((s) => s.lpPrices)
+
+  const aprs = useMemo(() => Object.fromEntries(pairs.map((i) => [i.ammId, i.apr7d])), [pairs])
 
   // auto fetch json farm info when init
   useAsyncEffect(async () => {
@@ -53,10 +57,11 @@ export default function useFarmInfoFetcher() {
   // hydrate action will depends on other state, so it will rerender many times
   useAsyncEffect(async () => {
     const hydratedInfos = sdkParsedInfos?.map((farmInfo) =>
-      hydrateFarmInfo(farmInfo, { getToken, getLpToken, lpPrices, tokenPrices, liquidityJsonInfos, chainTimeOffset })
+      hydrateFarmInfo(farmInfo, { getToken, getLpToken, lpPrices, tokenPrices, liquidityJsonInfos, chainTimeOffset, aprs })
     )
     useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
   }, [
+    aprs,
     sdkParsedInfos,
     getToken,
     lpPrices,
