@@ -118,19 +118,12 @@ export default function CreateFarmPage() {
             title={
               <>
                 <div className="font-medium text-lg text-white leading-8 mb-1">Farming Reward</div>
-                <div className="font-medium text-sm leading-snug text-[#abc4ff80] mb-2">
-                  <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards
-                  cannot be recovered. You will be able to add more rewards to the farm. When creating 'Ecosystem' farm,
-                  you should pay 300 RAY as creation fee, which will flow into our Raydium treasury. Adding reward
-                  tokens and add more reward tokens should have a duration period of at least 7 days and no more than 90
-                  days.
-                </div>
                 <Row className="text-sm">
                   <div className="text-[#abc4ff] mr-2">Date on block chain: </div>
                   <TimeClock className="text-[#abc4ff80]" offset={chainTimeOffset} />
                 </Row>
                 <div className="font-medium text-sm leading-snug text-[#abc4ff80]">
-                  Saying it's on-chain time, and there could be slight delay depending on the speed of the network
+                  It's on-chain time, so there could be slightly delay depending on the network status of Solana
                 </div>
               </>
             }
@@ -156,47 +149,56 @@ export default function CreateFarmPage() {
           </FormStep>
         </div>
 
-        <Button
-          className="frosted-glass-teal ml-12 "
-          size="lg"
-          onClick={() => {
-            routeTo('/farms/createReview')
-          }}
-          validators={[
-            {
-              should: poolId,
-              fallbackProps: {
-                children: 'Select pool' // NOTE: should ask manager about the text content
+        <Col className="items-center ml-12">
+          <div className="font-medium text-sm text-justify leading-snug text-[#abc4ff80] mb-8">
+            <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards
+            cannot be recovered. You will be able to add more rewards to the farm. When creating 'Ecosystem' farm, you
+            should pay 300 RAY as creation fee, which will flow into our Raydium treasury. Adding reward tokens and add
+            more reward tokens should have a duration period of at least 7 days and no more than 90 days.
+          </div>
+
+          <Button
+            className="frosted-glass-teal"
+            size="lg"
+            onClick={() => {
+              routeTo('/farms/createReview')
+            }}
+            validators={[
+              {
+                should: poolId,
+                fallbackProps: {
+                  children: 'Select pool' // NOTE: should ask manager about the text content
+                }
+              },
+              {
+                should: rewards.every((r) => r.token),
+                fallbackProps: {
+                  children: 'Choose reward token' // NOTE: should ask manager about the text content
+                }
+              },
+              {
+                should: rewards.every((r) => r.amount),
+                fallbackProps: {
+                  children: 'Input reward amount' // NOTE: should ask manager about the text content
+                }
+              },
+              {
+                should: rewards.every((r) => r.startTime && r.endTime),
+                fallbackProps: {
+                  children: 'Set StartTime and EndTime' // NOTE: should ask manager about the text content
+                }
+              },
+              {
+                should: rewards.every((r) => r.startTime && r.endTime && isDateBefore(r.startTime, r.endTime)),
+                fallbackProps: {
+                  children: 'StartTime must before EndTime' // NOTE: should ask manager about the text content
+                }
               }
-            },
-            {
-              should: rewards.every((r) => r.token),
-              fallbackProps: {
-                children: 'Choose reward token' // NOTE: should ask manager about the text content
-              }
-            },
-            {
-              should: rewards.every((r) => r.amount),
-              fallbackProps: {
-                children: 'Input reward amount' // NOTE: should ask manager about the text content
-              }
-            },
-            {
-              should: rewards.every((r) => r.startTime && r.endTime),
-              fallbackProps: {
-                children: 'Set StartTime and EndTime' // NOTE: should ask manager about the text content
-              }
-            },
-            {
-              should: rewards.every((r) => r.startTime && r.endTime && isDateBefore(r.startTime, r.endTime)),
-              fallbackProps: {
-                children: 'StartTime must before EndTime' // NOTE: should ask manager about the text content
-              }
-            }
-          ]}
-        >
-          Review Farm
-        </Button>
+            ]}
+          >
+            Review Farm
+          </Button>
+        </Col>
       </div>
     </PageLayout>
   )

@@ -30,7 +30,7 @@ export default function CreateFarmReviewPage() {
           <NewAddedRewardSummary canUserEdit={false} />
         </div>
 
-        <div className="font-medium text-sm text-center leading-snug text-[#abc4ff80] mb-8">
+        <div className="font-medium text-sm text-justify leading-snug text-[#abc4ff80] mb-8">
           <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards cannot
           be recovered. You will be able to add more rewards to the farm. When creating 'Ecosystem' farm, you should pay
           300 RAY as creation fee, which will flow into our Raydium treasury. Adding reward tokens and add more reward

@@ -441,7 +441,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
           </Col>
 
           <Tooltip>
-            <div className="text-sm m-2 leading-relaxed opacity-50 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
+            <div className="text-sm m-2 mb-0 leading-relaxed opacity-50 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
               <div>V {currentVersion.slice(1)}</div>
               <div>
                 <BlockTimeClock />

@@ -91,12 +91,6 @@ export default function FarmEditPage() {
               fallbackProps: {
                 children: 'Set StartTime and EndTime' // NOTE: should ask manager about the text content
               }
-            },
-            {
-              should: newAddedRewards.every((r) => r.startTime && r.endTime && isDateBefore(r.startTime, r.endTime)),
-              fallbackProps: {
-                children: 'StartTime must before EndTime' // NOTE: should ask manager about the text content
-              }
             }
           ]}
           onClick={() => {
