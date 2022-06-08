@@ -9,6 +9,7 @@ import useWallet from '../../wallet/useWallet'
 import useFarms from '../useFarms'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from '../utils/handleFarmInfo'
 import useLiquidity from '@/application/liquidity/useLiquidity'
+import { Connection } from '@solana/web3.js'
 
 export default function useFarmInfoFetcher() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
@@ -52,9 +53,28 @@ export default function useFarmInfoFetcher() {
   // auto hydrate
   // hydrate action will depends on other state, so it will rerender many times
   useAsyncEffect(async () => {
+    const blockSlotCountForSecond = await getSlotCountForSecond(connection)
     const hydratedInfos = sdkParsedInfos?.map((farmInfo) =>
-      hydrateFarmInfo(farmInfo, { getToken, getLpToken, lpPrices, tokenPrices, liquidityJsonInfos })
+      hydrateFarmInfo(farmInfo, {
+        getToken,
+        getLpToken,
+        lpPrices,
+        tokenPrices,
+        liquidityJsonInfos,
+        blockSlotCountForSecond
+      })
     )
     useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
-  }, [sdkParsedInfos, getToken, lpPrices, tokenPrices, getLpToken, lpTokens, liquidityJsonInfos])
+  }, [sdkParsedInfos, getToken, lpPrices, tokenPrices, getLpToken, lpTokens, liquidityJsonInfos, connection])
+}
+
+/**
+ * to calc apr use true onChain block slot count
+ */
+export async function getSlotCountForSecond(connection: Connection | undefined): Promise<number> {
+  // if (!connection) return 2
+  // const performanceList = await connection.getRecentPerformanceSamples(100)
+  // const slotList = performanceList.map((item) => item.numSlots)
+  // return slotList.reduce((a, b) => a + b, 0) / slotList.length / 60
+  return 2
 }

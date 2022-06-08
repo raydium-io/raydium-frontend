@@ -23,6 +23,7 @@ import { FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInf
 import toPubString from '@/functions/format/toMintString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { LiquidityStore } from '@/application/liquidity/useLiquidity'
+import { Connection } from '@solana/web3.js'
 
 export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefined> {
   return jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm/mainnet.json', {
@@ -45,9 +46,16 @@ export async function mergeSdkFarmInfo(
   return result
 }
 
+export async function getSlotCountForSecond(connection: Connection | undefined): Promise<number> {
+  if (!connection) return 1
+  const performanceList = await connection.getRecentPerformanceSamples(100)
+  const slotList = performanceList.map((item) => item.numSlots)
+  return slotList.reduce((a, b) => a + b) / slotList.length / 60
+}
 export function hydrateFarmInfo(
   farmInfo: SdkParsedFarmInfo,
   payload: {
+    blockSlotCountForSecond: number
     getToken: TokenStore['getToken']
     getLpToken: TokenStore['getLpToken']
     lpPrices: PoolsStore['lpPrices']
@@ -91,7 +99,8 @@ export function hydrateFarmInfo(
   const aprs = calculateFarmPoolAprs(farmInfo, {
     tvl,
     rewardTokens: rewardTokens,
-    rewardTokenPrices: farmInfo.rewardMints.map((rewardMint) => payload.tokenPrices?.[String(rewardMint)]) ?? []
+    rewardTokenPrices: farmInfo.rewardMints.map((rewardMint) => payload.tokenPrices?.[String(rewardMint)]) ?? [],
+    blockSlotCountForSecond: payload.blockSlotCountForSecond
   })
 
   const totalApr = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), undefined)
@@ -150,6 +159,7 @@ export function hydrateFarmInfo(
 function calculateFarmPoolAprs(
   info: SdkParsedFarmInfo,
   payload: {
+    blockSlotCountForSecond: number
     tvl: CurrencyAmount | undefined
     rewardTokens: (SplToken | undefined)[]
     rewardTokenPrices: (Price | undefined)[]
@@ -163,7 +173,7 @@ function calculateFarmPoolAprs(
     const rewardtotalPricePerYear = toTotalPrice(
       new Fraction(perSlotReward, ONE)
         .div(TEN.pow(new BN(rewardToken.decimals || 1)))
-        .mul(new BN(2 * 60 * 60 * 24 * 365)),
+        .mul(new BN(payload.blockSlotCountForSecond * 60 * 60 * 24 * 365)),
       rewardTokenPrice
     )
     if (!payload.tvl) return undefined
