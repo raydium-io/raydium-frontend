@@ -15,7 +15,17 @@ import { loadTransaction } from '@/application/txTools/createTransaction'
 export default function txAddLiquidity({ ammId: targetAmmId }: { ammId?: PublicKeyish } = {}) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
     const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
-    const { coin1, coin2, coin1Amount, coin2Amount, focusSide, jsonInfos, currentJsonInfo } = useLiquidity.getState()
+    const {
+      coin1,
+      coin2,
+      coin1Amount,
+      coin2Amount,
+      focusSide,
+      jsonInfos,
+      currentJsonInfo,
+      unslippagedCoin1Amount,
+      unslippagedCoin2Amount
+    } = useLiquidity.getState()
 
     const targetJsonInfo = targetAmmId
       ? jsonInfos.find(({ id: ammId }) => ammId === String(targetAmmId))
@@ -31,8 +41,21 @@ export default function txAddLiquidity({ ammId: targetAmmId }: { ammId?: PublicK
     const coin1TokenAmount = toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })
     const coin2TokenAmount = toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })
 
-    assert(checkWalletHasEnoughBalance(coin1TokenAmount), `not enough ${coin1.symbol}`)
-    assert(checkWalletHasEnoughBalance(coin2TokenAmount), `not enough ${coin2.symbol}`)
+    const unslippagedCoin1TokenAmount = toTokenAmount(coin1, unslippagedCoin1Amount ?? coin1Amount, {
+      alreadyDecimaled: true
+    })
+    const unslippagedCoin2TokenAmount = toTokenAmount(coin2, unslippagedCoin2Amount ?? coin2Amount, {
+      alreadyDecimaled: true
+    })
+
+    assert(
+      checkWalletHasEnoughBalance(focusSide === 'coin1' ? coin1TokenAmount : unslippagedCoin1TokenAmount),
+      `not enough ${coin1.symbol}`
+    )
+    assert(
+      checkWalletHasEnoughBalance(focusSide === 'coin2' ? coin2TokenAmount : unslippagedCoin2TokenAmount),
+      `not enough ${coin2.symbol}`
+    )
     const { transaction, signers } = await Liquidity.makeAddLiquidityTransaction({
       connection,
       poolKeys: jsonInfo2PoolKeys(targetJsonInfo),
