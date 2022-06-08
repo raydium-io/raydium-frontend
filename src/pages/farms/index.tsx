@@ -885,7 +885,8 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                         onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
                       }
                     },
-                    { should: hasLp }
+                    { should: hasLp },
+                    { should: !farmInfo.isClosedPool }
                   ]}
                   onClick={() => {
                     useFarms.setState({
