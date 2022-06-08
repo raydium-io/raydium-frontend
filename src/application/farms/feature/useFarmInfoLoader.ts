@@ -10,6 +10,8 @@ import useFarms from '../useFarms'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from '../utils/handleFarmInfo'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { Connection } from '@solana/web3.js'
+import jFetch from '@/functions/dom/jFetch'
+import { Endpoint } from '@/application/connection/fetchRPCConfig'
 
 export default function useFarmInfoFetcher() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
@@ -19,7 +21,7 @@ export default function useFarmInfoFetcher() {
   const lpTokens = useToken((s) => s.lpTokens)
   const tokenPrices = useToken((s) => s.tokenPrices)
 
-  const { connection } = useConnection()
+  const { connection, currentEndPoint } = useConnection()
   const owner = useWallet((s) => s.owner)
   const lpPrices = usePools((s) => s.lpPrices)
 
@@ -53,7 +55,7 @@ export default function useFarmInfoFetcher() {
   // auto hydrate
   // hydrate action will depends on other state, so it will rerender many times
   useAsyncEffect(async () => {
-    const blockSlotCountForSecond = await getSlotCountForSecond(connection)
+    const blockSlotCountForSecond = await getSlotCountForSecond(currentEndPoint)
     const hydratedInfos = sdkParsedInfos?.map((farmInfo) =>
       hydrateFarmInfo(farmInfo, {
         getToken,
@@ -71,10 +73,30 @@ export default function useFarmInfoFetcher() {
 /**
  * to calc apr use true onChain block slot count
  */
-export async function getSlotCountForSecond(connection: Connection | undefined): Promise<number> {
-  // if (!connection) return 2
-  // const performanceList = await connection.getRecentPerformanceSamples(100)
-  // const slotList = performanceList.map((item) => item.numSlots)
-  // return slotList.reduce((a, b) => a + b, 0) / slotList.length / 60
-  return 2
+export async function getSlotCountForSecond(currentEndPoint: Endpoint | undefined): Promise<number> {
+  if (!currentEndPoint) return 2
+  const result = await jFetch<{
+    result: {
+      numSlots: number
+      numTransactions: number
+      samplePeriodSecs: number
+      slot: number
+    }[]
+  }>(currentEndPoint.url, {
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      id: 'getRecentPerformanceSamples',
+      jsonrpc: '2.0',
+      method: 'getRecentPerformanceSamples',
+      params: [100]
+    })
+  })
+  if (!result) return 2
+
+  const performanceList = result.result
+  const slotList = performanceList.map((item) => item.numSlots)
+  return slotList.reduce((a, b) => a + b, 0) / slotList.length / 60
 }
