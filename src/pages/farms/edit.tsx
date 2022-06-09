@@ -15,12 +15,18 @@ import Button from '@/components/Button'
 import { routeTo } from '@/application/routeTools'
 import txClaimReward from '@/application/createFarm/txClaimReward'
 import { isDateBefore } from '@/functions/date/judges'
+import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import useWallet from '@/application/wallet/useWallet'
+import toPubString from '@/functions/format/toMintString'
+import { parseDurationAbsolute } from '@/functions/date/parseDuration'
+import { div } from '@/functions/numberish/operations'
 
 export default function FarmEditPage() {
   const { rewards: allRewards, cannotAddNewReward } = useCreateFarms()
   const [isRewardInputDialogOpen, setIsRewardInputDialogOpen] = useState(false)
   const [focusReward, setFocusReward] = useState<UIRewardInfo>()
   const canAddRewardInfo = !cannotAddNewReward && allRewards.length < 5
+  const balances = useWallet((s) => s.balances)
   const newAddedRewards = allRewards.filter((r) => r.type === 'new added')
   const editableRewards = allRewards.filter((r) => r.type === 'existed reward')
   const editedRewards = editableRewards.filter((r) => hasRewardBeenEdited(r))
@@ -80,16 +86,53 @@ export default function FarmEditPage() {
                 children: 'Confirm reward token'
               }
             },
-            {
-              should: newAddedRewards.every((r) => r.amount),
+            ...newAddedRewards.map((reward) => ({
+              should: reward.amount,
               fallbackProps: {
-                children: 'Input token amount'
+                children: `Enter ${reward.token?.symbol ?? '--'} token amount`
+              }
+            })),
+            ...newAddedRewards.map((reward) => {
+              const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
+              return {
+                should: haveBalance,
+                fallbackProps: {
+                  children: `Insufficient ${reward.token?.symbol} balance`
+                }
+              }
+            }),
+            {
+              should: newAddedRewards.every((r) => r),
+              fallbackProps: {
+                children: 'Insufficient'
               }
             },
             {
               should: newAddedRewards.every((r) => r.startTime && r.endTime),
               fallbackProps: {
                 children: 'Confirm emission time setup'
+              }
+            },
+            {
+              should: newAddedRewards.every((r) => isMeaningfulNumber(r.amount)),
+              fallbackProps: {
+                children: 'not eligible token amount'
+              }
+            },
+            {
+              should: newAddedRewards.every((reward) => {
+                const durationTime =
+                  reward?.endTime && reward.startTime
+                    ? reward.endTime.getTime() - reward.startTime.getTime()
+                    : undefined
+                const estimatedValue =
+                  reward?.amount && durationTime
+                    ? div(reward.amount, parseDurationAbsolute(durationTime).days)
+                    : undefined
+                return isMeaningfulNumber(estimatedValue)
+              }),
+              fallbackProps: {
+                children: 'not eligible token amount'
               }
             }
           ]}
