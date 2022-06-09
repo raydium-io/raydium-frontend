@@ -42,8 +42,9 @@ export function parsedHydratedRewardInfoToUiRewardInfo(reward: HydratedRewardInf
   return { ...uiRewardInfoCore, originData: uiRewardInfoCore }
 }
 
-function getSignature(reward: Omit<UIRewardInfo, 'originData'>): string {
+export function getRewardSignature(reward: Omit<UIRewardInfo, 'originData'>): string {
   return [
+    reward.id,
     toPubString(reward.token?.mint),
     toString(reward.amount),
     toString(reward.restAmount),
@@ -54,7 +55,7 @@ function getSignature(reward: Omit<UIRewardInfo, 'originData'>): string {
 
 export function hasRewardBeenEdited(reward: UIRewardInfo) {
   if (!reward.originData) return false
-  const editedSignature = getSignature(reward)
-  const originSignature = getSignature(reward.originData)
+  const editedSignature = getRewardSignature(reward)
+  const originSignature = getRewardSignature(reward.originData)
   return editedSignature !== originSignature
 }

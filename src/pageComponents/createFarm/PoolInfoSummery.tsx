@@ -32,6 +32,7 @@ export function PoolInfoSummary() {
           pool
         }
       ]}
+      getItemKey={(r) => r.id}
       labelMapper={[
         {
           label: 'Pool',

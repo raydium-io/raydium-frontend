@@ -1,3 +1,4 @@
+import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import CoinAvatar from '@/components/CoinAvatar'
@@ -32,6 +33,7 @@ export function NewAddedRewardSummary({
   return (
     <ListTable
       list={newReards}
+      getItemKey={(r) => getRewardSignature(r)}
       labelMapper={[
         {
           label: 'Asset',

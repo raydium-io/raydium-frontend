@@ -13,11 +13,11 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
 
   const [activeRewardId, setActiveRewardId] = useState<string | number | undefined>(newReards[0]?.id)
   const activeReward = newReards.find((r) => r.id === activeRewardId)
-  useEffect(() => {
-    if (!activeReward && newReards.length >= 1) {
-      setActiveRewardId(newReards[0].id)
-    }
-  }, [newReards])
+  // useEffect(() => {
+  //   if (!activeReward && newReards.length >= 1) {
+  //     setActiveRewardId(newReards[0].id)
+  //   }
+  // }, [newReards])
   if (!newReards.length) return null
   return (
     <div className={className}>

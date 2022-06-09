@@ -14,7 +14,7 @@ import { toString } from '@/functions/numberish/toString'
 import useConnection from '@/application/connection/useConnection'
 import { isDateAfter } from '@/functions/date/judges'
 import { Badge } from '@/components/Badge'
-import { hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
+import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import toPercentString from '@/functions/format/toPercentString'
 
 export function ExistedEditRewardSummary({
@@ -29,11 +29,10 @@ export function ExistedEditRewardSummary({
 }) {
   const rewards = useCreateFarms((s) => s.rewards)
   const editableRewards = rewards.filter((r) => r.type === 'existed reward')
-  const currentChainTimeOffset = useConnection((s) => s.chainTimeOffset)
-  const currentChainTime = Date.now() + (currentChainTimeOffset ?? 0)
   return (
     <ListTable
       list={editableRewards}
+      getItemKey={(r) => getRewardSignature(r)}
       labelMapper={[
         {
           label: 'Asset',

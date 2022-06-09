@@ -30,9 +30,7 @@ import { ConnectionStore } from '@/application/connection/useConnection'
 import { toString } from '@/functions/numberish/toString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { offsetDateTime } from '@/functions/date/dateFormat'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { toPercent } from '@/functions/format/toPercent'
-import { Endpoint } from '../connection/fetchRPCConfig'
 
 function getMaxOpenTime(i: APIRewardInfo[]) {
   return Math.max(...i.map((r) => r.openTime))

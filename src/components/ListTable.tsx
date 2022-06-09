@@ -28,6 +28,7 @@ type ListTableMap<T> = {
 type ListTableProps<T> = {
   // --------- core ---------
   list: T[]
+  getItemKey: (item: T, idx: number) => string | number | undefined
   labelMapper?: MayFunction<ListTableMap<T>[], [properties?: SKeyof<T>[], items?: T]>
 
   // --------- classNames ---------
@@ -77,13 +78,14 @@ export default function ListTable<T>({
   onClickRow,
 
   list,
+  getItemKey,
   renderRowItem,
   renderRowEntry,
   renderPropertyLabel,
   labelMapper = (Object.keys(list[0]) as SKeyof<T>[]).map((key) => ({ key, label: key })),
   onListChange
 }: ListTableProps<T>) {
-  const { wrapped, controls } = useListDataManager(list, { onListChange })
+  const { wrapped, controls } = useListDataManager(list, getItemKey, { onListChange })
 
   const headerRefs = useRef<ListTableHeader<T>[]>([]) // for itemWidth
   const parsedShowedPropertyNames = shrinkToValue(labelMapper, [Object.keys(list[0] ?? {}), list[0]])

@@ -20,6 +20,11 @@ import useConnection from '@/application/connection/useConnection'
 import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { isDateBefore } from '@/functions/date/judges'
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { parseDurationAbsolute } from '@/functions/date/parseDuration'
+import { div } from '@/functions/numberish/operations'
+import useWallet from '@/application/wallet/useWallet'
+import toPubString from '@/functions/format/toMintString'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -100,6 +105,7 @@ export function RewardFormCard({ children }: { children?: ReactNode }) {
 export default function CreateFarmPage() {
   const rewards = useCreateFarms((s) => s.rewards)
   const poolId = useCreateFarms((s) => s.poolId)
+  const balances = useWallet((s) => s.balances)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
 
   const PoolIdInputBlockRef = useRef<PoolIdInputBlockHandle>()
@@ -187,10 +193,47 @@ export default function CreateFarmPage() {
                   children: 'Input token amount'
                 }
               },
+              ...rewards.map((reward) => {
+                const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
+                return {
+                  should: haveBalance,
+                  fallbackProps: {
+                    children: `Insufficient ${reward.token?.symbol} balance`
+                  }
+                }
+              }),
+              {
+                should: rewards.every((r) => r),
+                fallbackProps: {
+                  children: 'Insufficient'
+                }
+              },
               {
                 should: rewards.every((r) => r.startTime && r.endTime),
                 fallbackProps: {
                   children: 'Confirm emission time setup'
+                }
+              },
+              {
+                should: rewards.every((r) => isMeaningfulNumber(r.amount)),
+                fallbackProps: {
+                  children: 'not eligible token amount'
+                }
+              },
+              {
+                should: rewards.every((reward) => {
+                  const durationTime =
+                    reward?.endTime && reward.startTime
+                      ? reward.endTime.getTime() - reward.startTime.getTime()
+                      : undefined
+                  const estimatedValue =
+                    reward?.amount && durationTime
+                      ? div(reward.amount, parseDurationAbsolute(durationTime).days)
+                      : undefined
+                  return isMeaningfulNumber(estimatedValue)
+                }),
+                fallbackProps: {
+                  children: 'not eligible token amount'
                 }
               }
             ]}
