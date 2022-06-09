@@ -13,3 +13,9 @@ const useCreateFarms = create<CreateFarmStore>((set) => ({
 }))
 
 export default useCreateFarms
+
+export function cleanStoreEmptyRewards() {
+  useCreateFarms.setState((state) => ({
+    rewards: state.rewards.filter((r) => r.amount)
+  }))
+}

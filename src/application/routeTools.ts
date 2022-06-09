@@ -79,7 +79,7 @@ export type PageRouteName = keyof PageRouteConfigs
 export function routeTo<ToPage extends keyof PageRouteConfigs>(
   toPage: ToPage,
   opts?: MayFunction<PageRouteConfigs[ToPage], [{ currentPageQuery: ParsedUrlQuery }]>
-): void {
+) {
   const options = shrinkToValue(opts, [{ currentPageQuery: router.query }])
   if (toPage === '/swap') {
     const coin1 =
@@ -89,7 +89,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       options?.queryProps?.coin2 ??
       (router.pathname.includes('/liquidity/add') ? useLiquidity.getState().coin2 : undefined)
     const isSwapDirectionReversed = useSwap.getState().directionReversed
-    router.push({ pathname: '/swap' }).then(() => {
+    return router.push({ pathname: '/swap' }).then(() => {
       const targetState = objectShakeFalsy(isSwapDirectionReversed ? { coin2: coin1, coin1: coin2 } : { coin1, coin2 })
       useSwap.setState(targetState)
     })
@@ -104,7 +104,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
     const upCoin = isSwapDirectionReversed ? coin2 : coin1
     const downCoin = isSwapDirectionReversed ? coin1 : coin2
     const mode = options?.queryProps?.mode
-    router.push({ pathname: '/liquidity/add' }).then(() => {
+    return router.push({ pathname: '/liquidity/add' }).then(() => {
       /** jump to target page */
       useLiquidity.setState(
         objectShakeFalsy({
@@ -116,7 +116,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       )
     })
   } else if (toPage === '/farms') {
-    router.push({ pathname: '/farms' }).then(() => {
+    return router.push({ pathname: '/farms' }).then(() => {
       /** jump to target page */
       useFarms.setState(
         objectShakeFalsy({
@@ -125,7 +125,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       )
     })
   } else if (toPage === '/acceleraytor/detail') {
-    router
+    return router
       .push({
         pathname: '/acceleraytor/detail',
         query: {
@@ -139,7 +139,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         })
       })
   } else if (toPage === '/farms/create') {
-    router
+    return router
       .push({
         pathname: '/farms/create'
       })
@@ -151,7 +151,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
   } else if (toPage === '/farms/edit') {
     const farmInfo = (options!.queryProps as PageRouteConfigs['/farms/edit']['queryProps']).farmInfo
     const { owner } = useWallet.getState()
-    router
+    return router
       .push({
         pathname: '/farms/edit',
         query: {
@@ -169,7 +169,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         )
       })
   } else {
-    router.push({ pathname: toPage, query: options?.queryProps })
+    return router.push({ pathname: toPage, query: options?.queryProps })
   }
   return
 }

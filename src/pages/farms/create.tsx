@@ -1,4 +1,4 @@
-import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
 import { routeTo } from '@/application/routeTools'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -104,6 +104,9 @@ export function RewardFormCard({ children }: { children?: ReactNode }) {
 
 export default function CreateFarmPage() {
   const rewards = useCreateFarms((s) => s.rewards)
+  const meaningFullRewards = rewards.filter(
+    (r) => r.amount != null || r.startTime != null || r.endTime != null || r.token != null
+  )
   const poolId = useCreateFarms((s) => s.poolId)
   const balances = useWallet((s) => s.balances)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
@@ -169,10 +172,10 @@ export default function CreateFarmPage() {
           <Button
             className="frosted-glass-teal"
             size="lg"
-            onClick={() => {
-              routeTo('/farms/createReview')
-            }}
             validators={[
+              {
+                should: meaningFullRewards.length > 0
+              },
               {
                 should: poolId,
                 fallbackProps: {
@@ -182,18 +185,18 @@ export default function CreateFarmPage() {
                 }
               },
               {
-                should: rewards.every((r) => r.token),
+                should: meaningFullRewards.every((r) => r.token),
                 fallbackProps: {
                   children: 'Confirm reward token'
                 }
               },
-              ...rewards.map((reward) => ({
+              ...meaningFullRewards.map((reward) => ({
                 should: reward.amount,
                 fallbackProps: {
                   children: `Enter ${reward.token?.symbol ?? '--'} token amount`
                 }
               })),
-              ...rewards.map((reward) => {
+              ...meaningFullRewards.map((reward) => {
                 const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
                 return {
                   should: haveBalance,
@@ -203,25 +206,25 @@ export default function CreateFarmPage() {
                 }
               }),
               {
-                should: rewards.every((r) => r),
+                should: meaningFullRewards.every((r) => r),
                 fallbackProps: {
                   children: 'Insufficient'
                 }
               },
               {
-                should: rewards.every((r) => r.startTime && r.endTime),
+                should: meaningFullRewards.every((r) => r.startTime && r.endTime),
                 fallbackProps: {
                   children: 'Confirm emission time setup'
                 }
               },
               {
-                should: rewards.every((r) => isMeaningfulNumber(r.amount)),
+                should: meaningFullRewards.every((r) => isMeaningfulNumber(r.amount)),
                 fallbackProps: {
                   children: 'not eligible token amount'
                 }
               },
               {
-                should: rewards.every((reward) => {
+                should: meaningFullRewards.every((reward) => {
                   const durationTime =
                     reward?.endTime && reward.startTime
                       ? reward.endTime.getTime() - reward.startTime.getTime()
@@ -237,6 +240,11 @@ export default function CreateFarmPage() {
                 }
               }
             ]}
+            onClick={() => {
+              routeTo('/farms/createReview', {})?.then(() => {
+                cleanStoreEmptyRewards()
+              })
+            }}
           >
             Review Farm
           </Button>

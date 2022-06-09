@@ -1,4 +1,4 @@
-import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
 import Card from '@/components/Card'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
@@ -27,9 +27,13 @@ export default function FarmEditPage() {
   const [focusReward, setFocusReward] = useState<UIRewardInfo>()
   const canAddRewardInfo = !cannotAddNewReward && allRewards.length < 5
   const balances = useWallet((s) => s.balances)
-  const newAddedRewards = allRewards.filter((r) => r.type === 'new added')
   const editableRewards = allRewards.filter((r) => r.type === 'existed reward')
   const editedRewards = editableRewards.filter((r) => hasRewardBeenEdited(r))
+
+  const newAddedRewards = allRewards.filter((r) => r.type === 'new added')
+  const meaningFullRewards = newAddedRewards.filter(
+    (r) => r.amount != null || r.startTime != null || r.endTime != null || r.token != null
+  )
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(720px,90vw)]">
@@ -78,21 +82,21 @@ export default function FarmEditPage() {
           className="block frosted-glass-teal mx-auto mt-4 mb-12"
           validators={[
             {
-              should: newAddedRewards.length || editedRewards.length
+              should: meaningFullRewards.length || editedRewards.length
             },
             {
-              should: newAddedRewards.every((r) => r.token),
+              should: meaningFullRewards.every((r) => r.token),
               fallbackProps: {
                 children: 'Confirm reward token'
               }
             },
-            ...newAddedRewards.map((reward) => ({
+            ...meaningFullRewards.map((reward) => ({
               should: reward.amount,
               fallbackProps: {
                 children: `Enter ${reward.token?.symbol ?? '--'} token amount`
               }
             })),
-            ...newAddedRewards.map((reward) => {
+            ...meaningFullRewards.map((reward) => {
               const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
               return {
                 should: haveBalance,
@@ -102,25 +106,25 @@ export default function FarmEditPage() {
               }
             }),
             {
-              should: newAddedRewards.every((r) => r),
+              should: meaningFullRewards.every((r) => r),
               fallbackProps: {
                 children: 'Insufficient'
               }
             },
             {
-              should: newAddedRewards.every((r) => r.startTime && r.endTime),
+              should: meaningFullRewards.every((r) => r.startTime && r.endTime),
               fallbackProps: {
                 children: 'Confirm emission time setup'
               }
             },
             {
-              should: newAddedRewards.every((r) => isMeaningfulNumber(r.amount)),
+              should: meaningFullRewards.every((r) => isMeaningfulNumber(r.amount)),
               fallbackProps: {
                 children: 'not eligible token amount'
               }
             },
             {
-              should: newAddedRewards.every((reward) => {
+              should: meaningFullRewards.every((reward) => {
                 const durationTime =
                   reward?.endTime && reward.startTime
                     ? reward.endTime.getTime() - reward.startTime.getTime()
@@ -137,7 +141,9 @@ export default function FarmEditPage() {
             }
           ]}
           onClick={() => {
-            routeTo('/farms/editReview')
+            routeTo('/farms/editReview')?.then(() => {
+              cleanStoreEmptyRewards()
+            })
           }}
         >
           Review changes
