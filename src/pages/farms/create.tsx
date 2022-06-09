@@ -187,12 +187,12 @@ export default function CreateFarmPage() {
                   children: 'Confirm reward token'
                 }
               },
-              {
-                should: rewards.every((r) => r.amount),
+              ...rewards.map((reward) => ({
+                should: reward.amount,
                 fallbackProps: {
-                  children: 'Input token amount'
+                  children: `Enter ${reward.token?.symbol ?? '--'} token amount`
                 }
-              },
+              })),
               ...rewards.map((reward) => {
                 const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
                 return {
