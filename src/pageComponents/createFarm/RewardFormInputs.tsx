@@ -204,13 +204,13 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
           disabled={disableEndTimeInput}
           disableDateBeforeCurrent
           isValidDate={(date) => {
-            const isStartTimeAfterCurrent = reward.startTime && isDateAfter(reward.startTime, currentBlockChainDate)
-            if (isStartTimeAfterCurrent) {
+            const isStartTimeBeforeCurrent = reward.startTime && isDateBefore(reward.startTime, currentBlockChainDate)
+            if (reward.isRewardEnded && isStartTimeBeforeCurrent) {
+              const duration = Math.round(parseDurationAbsolute(date.getTime() - currentBlockChainDate.getTime()).days)
+              return MIN_DURATION_DAY <= duration
+            } else {
               const duration = Math.round(parseDurationAbsolute(date.getTime() - reward.startTime!.getTime()).days)
               return MIN_DURATION_DAY <= duration && duration <= MAX_DURATION_DAY
-            } else {
-              const duration = Math.round(parseDurationAbsolute(date.getTime() - currentBlockChainDate.getTime()).days)
-              return duration >= MIN_DURATION_DAY
             }
           }}
           onDateChange={(selectedDate) => {
