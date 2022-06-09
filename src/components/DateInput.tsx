@@ -16,6 +16,8 @@ import useConnection from '@/application/connection/useConnection'
 export type DateInputProps = {
   className?: string
   label?: string
+  /** if not true, user can't input  */
+  canUserInput?: boolean
   labelClassName?: string
   inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
   disableDateBeforeCurrent?: boolean
@@ -32,6 +34,7 @@ export default function DateInput({
 
   className,
   label,
+  canUserInput,
   labelClassName,
   inputProps,
   disableDateBeforeCurrent,
@@ -50,6 +53,7 @@ export default function DateInput({
         <DateInputBody
           inputRef={inputRef}
           inputProps={inputProps}
+          canUserInput={canUserInput}
           onDateChange={onDateChange}
           disableDateBeforeCurrent={disableDateBeforeCurrent}
           isValidDate={isValidDate}
@@ -68,6 +72,7 @@ type DateInputBodyProps = {
   className?: string
   inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
   disableDateBeforeCurrent?: boolean
+  canUserInput?: boolean
   onDateChange?(selectedDate: Date | undefined): void
 }
 
@@ -80,6 +85,7 @@ function DateInputBody({
   defaultValue,
   className,
   disableDateBeforeCurrent,
+  canUserInput,
   isValidDate,
   onDateChange,
   inputProps
@@ -112,6 +118,7 @@ function DateInputBody({
         <Input
           {...inputProps}
           inputDomRef={inputRef}
+          disableUserInput={!canUserInput}
           className={twMerge(
             'bg-[#141041] font-medium text-lg text-white rounded-lg py-2 cursor-text',
             inputProps?.className

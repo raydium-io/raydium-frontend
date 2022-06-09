@@ -57,7 +57,8 @@ export interface InputProps {
   placeholder?: string | number
 
   disabled?: boolean
-
+  /** half disable (progammly input still can input,and looks like still can input, but user's input will be ignore) */
+  disableUserInput?: boolean
   /** must all condition passed (one by one) */
   validators?: MayArray<{
     /** expression must return true to pass this validator */
@@ -156,6 +157,7 @@ export default function Input(props: InputProps) {
     placeholder,
 
     disabled,
+    disableUserInput,
     validators,
 
     defaultValue,
@@ -251,6 +253,9 @@ export default function Input(props: InputProps) {
           disabled={disabled}
           onChange={(ev) => {
             const inputText = ev.target.value
+
+            // half disable (not disable in type)
+            if (disableUserInput) return
 
             // refuse unallowed input
             if (pattern && [pattern].flat().some((p) => (isRegExp(p) ? !p.test(inputText) : !p(inputText)))) return
