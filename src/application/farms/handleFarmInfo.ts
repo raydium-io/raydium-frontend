@@ -32,6 +32,7 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { toPercent } from '@/functions/format/toPercent'
+import { Endpoint } from '../connection/fetchRPCConfig'
 
 function getMaxOpenTime(i: APIRewardInfo[]) {
   return Math.max(...i.map((r) => r.openTime))
@@ -72,6 +73,7 @@ export async function mergeSdkFarmInfo(
 export function hydrateFarmInfo(
   farmInfo: SdkParsedFarmInfo,
   payload: {
+    blockSlotCountForSecond: number
     aprs: Record<string, number> // from api:pairs
     getToken: TokenStore['getToken']
     getLpToken: TokenStore['getLpToken']
@@ -116,7 +118,8 @@ export function hydrateFarmInfo(
   const aprs = calculateFarmPoolAprs(farmInfo, {
     tvl,
     rewardTokens: rewardTokens,
-    rewardTokenPrices: farmInfo.rewardInfos.map(({ rewardMint }) => payload.tokenPrices?.[String(rewardMint)]) ?? []
+    rewardTokenPrices: farmInfo.rewardInfos.map(({ rewardMint }) => payload.tokenPrices?.[String(rewardMint)]) ?? [],
+    blockSlotCountForSecond: payload.blockSlotCountForSecond
   })
 
   const ammId = findAmmId(farmInfo.lpMint)
@@ -213,6 +216,7 @@ export function hydrateFarmInfo(
 function calculateFarmPoolAprs(
   info: SdkParsedFarmInfo,
   payload: {
+    blockSlotCountForSecond: number
     tvl: CurrencyAmount | undefined
     rewardTokens: (SplToken | undefined)[]
     rewardTokenPrices: (Price | undefined)[]
@@ -243,7 +247,7 @@ function calculateFarmPoolAprs(
       const rewardtotalPricePerYear = toTotalPrice(
         new Fraction(perSlotReward, ONE)
           .div(TEN.pow(new BN(rewardToken.decimals || 1)))
-          .mul(new BN(2 * 60 * 60 * 24 * 365)),
+          .mul(new BN(payload.blockSlotCountForSecond * 60 * 60 * 24 * 365)),
         rewardTokenPrice
       )
       if (!payload.tvl) return undefined

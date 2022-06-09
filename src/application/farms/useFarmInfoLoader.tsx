@@ -9,6 +9,9 @@ import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleF
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
 import { useMemo } from 'react'
+import { Connection } from '@solana/web3.js'
+import jFetch from '@/functions/dom/jFetch'
+import { Endpoint } from '@/application/connection/fetchRPCConfig'
 
 export default function useFarmInfoFetcher() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
@@ -21,6 +24,7 @@ export default function useFarmInfoFetcher() {
 
   const connection = useConnection((s) => s.connection)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const currentEndPoint = useConnection((s) => s.currentEndPoint)
   const owner = useWallet((s) => s.owner)
   const lpPrices = usePools((s) => s.lpPrices)
 
@@ -56,9 +60,22 @@ export default function useFarmInfoFetcher() {
   // auto hydrate
   // hydrate action will depends on other state, so it will rerender many times
   useAsyncEffect(async () => {
+    const blockSlotCountForSecond = await getSlotCountForSecond(currentEndPoint)
     const hydratedInfos = sdkParsedInfos?.map((farmInfo) =>
-      hydrateFarmInfo(farmInfo, { getToken, getLpToken, lpPrices, tokenPrices, liquidityJsonInfos, chainTimeOffset, aprs })
+      hydrateFarmInfo(farmInfo, {
+        getToken,
+        getLpToken,
+        lpPrices,
+        tokenPrices,
+        liquidityJsonInfos,
+        blockSlotCountForSecond,
+        chainTimeOffset,
+        aprs
+      })
     )
+
+    useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
+
     useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
   }, [
     aprs,
@@ -69,6 +86,37 @@ export default function useFarmInfoFetcher() {
     getLpToken,
     lpTokens,
     liquidityJsonInfos,
-    chainTimeOffset // when connection is ready, should get connection's chain time
+    chainTimeOffset // when connection is ready, should get connection's chain time)
   ])
+}
+
+/**
+ * to calc apr use true onChain block slot count
+ */
+export async function getSlotCountForSecond(currentEndPoint: Endpoint | undefined): Promise<number> {
+  if (!currentEndPoint) return 2
+  const result = await jFetch<{
+    result: {
+      numSlots: number
+      numTransactions: number
+      samplePeriodSecs: number
+      slot: number
+    }[]
+  }>(currentEndPoint.url, {
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      id: 'getRecentPerformanceSamples',
+      jsonrpc: '2.0',
+      method: 'getRecentPerformanceSamples',
+      params: [100]
+    })
+  })
+  if (!result) return 2
+
+  const performanceList = result.result
+  const slotList = performanceList.map((item) => item.numSlots)
+  return slotList.reduce((a, b) => a + b, 0) / slotList.length / 60
 }
