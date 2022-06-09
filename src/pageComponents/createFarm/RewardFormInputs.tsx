@@ -209,7 +209,9 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
               const duration = Math.round(parseDurationAbsolute(date.getTime() - currentBlockChainDate.getTime()).days)
               return MIN_DURATION_DAY <= duration
             } else {
-              const duration = Math.round(parseDurationAbsolute(date.getTime() - reward.startTime!.getTime()).days)
+              const duration = Math.round(
+                parseDurationAbsolute(date.getTime() - (reward.startTime ?? currentBlockChainDate).getTime()).days
+              )
               return MIN_DURATION_DAY <= duration && duration <= MAX_DURATION_DAY
             }
           }}
