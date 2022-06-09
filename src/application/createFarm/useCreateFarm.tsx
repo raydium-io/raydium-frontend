@@ -1,5 +1,4 @@
 import create from 'zustand'
-import { createNewUIRewardInfo } from './parseRewardInfo'
 import { UIRewardInfo } from './type'
 
 export type CreateFarmStore = {
@@ -10,7 +9,7 @@ export type CreateFarmStore = {
 }
 
 const useCreateFarms = create<CreateFarmStore>((set) => ({
-  rewards: [{ ...createNewUIRewardInfo() }]
+  rewards: []
 }))
 
 export default useCreateFarms
