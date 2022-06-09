@@ -8,7 +8,7 @@ import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { offsetDateTime } from '@/functions/date/dateFormat'
-import { isDateAfter } from '@/functions/date/judges'
+import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import parseDuration, { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { isExist } from '@/functions/judgers/nil'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
@@ -204,8 +204,8 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
           disabled={disableEndTimeInput}
           disableDateBeforeCurrent
           isValidDate={(date) => {
-            const isRwardingBeforeEnd72h = reward.isRewarding && reward.startTime
-            if (isRwardingBeforeEnd72h) {
+            const isStartTimeAfterCurrent = reward.startTime && isDateAfter(reward.startTime, currentBlockChainDate)
+            if (isStartTimeAfterCurrent) {
               const duration = Math.round(parseDurationAbsolute(date.getTime() - reward.startTime!.getTime()).days)
               return MIN_DURATION_DAY <= duration && duration <= MAX_DURATION_DAY
             } else {
