@@ -48,6 +48,22 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
     }
   })
 
+  // self-pointer-events-none
+  addUtilities({
+    '.self-pointer-events-none': {
+      pointerEvents: 'none',
+      '*': {
+        pointerEvents: 'auto'
+      }
+    },
+    '.pointer-events-none-entirely': {
+      pointerEvents: 'none',
+      '*': {
+        pointerEvents: 'none'
+      }
+    }
+  })
+
   addUtilities({
     '.clickable': {
       cursor: 'pointer',
@@ -108,6 +124,7 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
     },
     '.not-selectable, .not-clickable': {
       pointerEvents: 'none',
+      cursor: 'default',
       opacity: '0.3',
       '&:active': { all: 'none' },
       '&:hover': { all: 'none' }
@@ -141,22 +158,6 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
       gridTemplateColums: '1fr',
       textAlign: 'center',
       justifyContent: 'center'
-    }
-  })
-
-  // self-pointer-events-none
-  addUtilities({
-    '.self-pointer-events-none': {
-      pointerEvents: 'none',
-      '*': {
-        pointerEvents: 'auto'
-      }
-    },
-    '.pointer-events-none-entirely': {
-      pointerEvents: 'none',
-      '*': {
-        pointerEvents: 'none'
-      }
     }
   })
 

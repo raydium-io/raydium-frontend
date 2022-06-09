@@ -205,10 +205,11 @@ function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin, dis
                 return (
                   <Row
                     key={toPubString(isQuantumSOL(mintish) ? mintish.mint : mintish)}
-                    className={`gap-1 py-1 px-2 mobile:py-1.5 mobile:px-2.5 rounded ring-1 ring-inset ring-[rgba(171,196,255,.3)] items-center flex-wrap clickable clickable-filter-effect ${
-                      token?.mint && isTokenDisabled(token.mint) ? 'opacity-30 pointer-events-none' : ''
+                    className={`gap-1 py-1 px-2 mobile:py-1.5 mobile:px-2.5 rounded ring-1 ring-inset ring-[rgba(171,196,255,.3)] items-center flex-wrap ${
+                      token?.mint && isTokenDisabled(token.mint) ? 'not-clickable' : 'clickable clickable-filter-effect'
                     }`}
                     onClick={() => {
+                      if (token && isTokenDisabled(token?.mint)) return
                       closeAndClean()
                       if (token && onSelectCoin) onSelectCoin(token)
                     }}
