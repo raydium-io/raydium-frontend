@@ -293,12 +293,12 @@ function FarmCard() {
           // ? i.isRaydiumPool && !i.isClosedPool
 
           currentTab === 'Fusion'
-            ? i.isNormalFusionPool || i.isDualFusionPool
+            ? (i.isNormalFusionPool || i.isDualFusionPool) && i.version !== 6
             : currentTab === 'Inactive'
-            ? i.isClosedPool && !i.isStakePool
+            ? i.isClosedPool && !i.isStakePool && i.version !== 6
             : currentTab === 'Ecosystem'
             ? i.version === 6
-            : i.isUpcomingPool || (!i.isClosedPool && !i.isStakePool) // currentTab == 'all'
+            : (i.isUpcomingPool || (!i.isClosedPool && !i.isStakePool)) && i.version !== 6 // currentTab == 'all'
       ),
     [currentTab, dataSource]
   )
