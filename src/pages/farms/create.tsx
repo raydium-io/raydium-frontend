@@ -110,6 +110,7 @@ export default function CreateFarmPage() {
   const poolId = useCreateFarms((s) => s.poolId)
   const balances = useWallet((s) => s.balances)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const walletConnected = useWallet((s) => s.connected)
 
   const PoolIdInputBlockRef = useRef<PoolIdInputBlockHandle>()
 
@@ -192,6 +193,14 @@ export default function CreateFarmPage() {
                   onClick: () => {
                     PoolIdInputBlockRef.current?.validate?.()
                   }
+                }
+              },
+              {
+                should: walletConnected,
+                forceActive: true,
+                fallbackProps: {
+                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                  children: 'Connect Wallet'
                 }
               },
               {
