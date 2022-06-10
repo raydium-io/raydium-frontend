@@ -1,13 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { ZERO } from '@raydium-io/raydium-sdk'
 
 import { isBigInt, isBN, isBoolean, isFraction, isNumber, isString } from '@/functions/judgers/dateType'
-import { EnumStr, Numberish } from '@/types/constants'
+import { EnumStr } from '@/types/constants'
 import { ExactPartial, MayArray } from '@/types/generics'
-import { mergeFunction } from '@/functions/merge'
-import compare from '@/functions/numberish/compare'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { isNullish } from '@/functions/judgers/nil'
 
 type SortMode = 'decrease' | 'increase' | 'none'
 
@@ -18,7 +16,10 @@ type SortConfigItem<D extends Record<string, any>[]> = {
   mode: SortMode
   sortModeQueue: SortModeArr
 
-  /** return Numberish / string / boolean*/
+  /**
+   * return Numberish / string / boolean
+   * if it's a array, means, if compare same in first rule(sortBy), whatch the next one, and on, and on
+   */
   sortBy: MayArray<(item: D[number]) => any> // for item may be tedius, so use rule //TODO: accept array
 }
 
@@ -33,6 +34,8 @@ export default function useSort<D extends Record<string, any>[]>(
   sourceDataList: D,
   options?: {
     defaultSort?: SimplifiedSortConfig<D>
+    // /** always at sort bottom */
+    // sortBottom?: MayArray<(item: D[number]) => any>
   }
 ) {
   function parseSortConfig(
@@ -107,7 +110,18 @@ export default function useSort<D extends Record<string, any>[]>(
       if (!pickFunctions.length) return 0
 
       const compareFactor = pickFunctions.slice(1).reduce(
-        (acc, item) => (acc(a, b) === 0 ? (a, b) => compareForSort(item(a), item(b)) : acc),
+        (acc, item) =>
+          acc(a, b) === 0
+            ? (a, b) => {
+                const sortValueA = item(a)
+                const sortValueB = item(b)
+
+                // nullish first exclude (whenever compare undefined should be the last one)
+                if (isNullish(a) && !isNullish(b)) return mode === 'decrease' ? 1 : -1
+                if (isNullish(b) && !isNullish(a)) return mode === 'decrease' ? -1 : 1
+                return compareForSort(sortValueA, sortValueB)
+              }
+            : acc,
         (a: D[number], b: D[number]) => compareForSort(pickFunctions[0](a), pickFunctions[0](b))
       )
       return (mode === 'decrease' ? -1 : 1) * compareFactor(a, b)
@@ -118,6 +132,11 @@ export default function useSort<D extends Record<string, any>[]>(
 }
 
 function compareForSort(a: unknown, b: unknown): number {
+  // nullish first exclude
+  if (isNullish(a) && !isNullish(b)) return -1
+  if (isNullish(b) && !isNullish(a)) return 1
+  if (isNullish(a) && isNullish(b)) return 0
+
   if (isBN(a) && isBN(b)) {
     const sub = a.sub(b)
     return sub.lt(ZERO) ? -1 : sub.gt(ZERO) ? 1 : 0
