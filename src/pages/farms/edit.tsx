@@ -20,13 +20,15 @@ import useWallet from '@/application/wallet/useWallet'
 import toPubString from '@/functions/format/toMintString'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { div } from '@/functions/numberish/operations'
+import useAppSettings from '@/application/appSettings/useAppSettings'
 
 export default function FarmEditPage() {
+  const walletConnected = useWallet((s) => s.connected)
+  const balances = useWallet((s) => s.balances)
   const { rewards: allRewards, cannotAddNewReward } = useCreateFarms()
   const [isRewardInputDialogOpen, setIsRewardInputDialogOpen] = useState(false)
   const [focusReward, setFocusReward] = useState<UIRewardInfo>()
   const canAddRewardInfo = !cannotAddNewReward && allRewards.length < 5
-  const balances = useWallet((s) => s.balances)
   const editableRewards = allRewards.filter((r) => r.type === 'existed reward')
   const editedRewards = editableRewards.filter((r) => hasRewardBeenEdited(r))
 
@@ -83,6 +85,14 @@ export default function FarmEditPage() {
           validators={[
             {
               should: meaningFullRewards.length || editedRewards.length
+            },
+            {
+              should: walletConnected,
+              forceActive: true,
+              fallbackProps: {
+                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                children: 'Connect Wallet'
+              }
             },
             {
               should: meaningFullRewards.every((r) => r.token),
