@@ -75,14 +75,13 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
       if (!candidate) return false
       if (!searchText) return true
 
-      const lowercasedSearchText = String(searchText)?.toLowerCase()
+      const searchKeyWords = String(searchText).trim().toLowerCase().split(/\s|-/)
       const candidateText =
         (isString(candidate)
           ? candidate
           : candidate.searchText ?? candidate.label + ' ' + candidate.id
         )?.toLowerCase() ?? ''
-
-      return candidateText.includes(lowercasedSearchText)
+      return searchKeyWords.every((keyword) => candidateText.includes(keyword))
     })
     .slice(0, 20)
 
