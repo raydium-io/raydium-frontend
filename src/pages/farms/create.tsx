@@ -11,7 +11,7 @@ import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import produce from 'immer'
-import { ReactNode, useRef, useState } from 'react'
+import { ReactNode, useEffect, useRef, useState } from 'react'
 import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
@@ -113,6 +113,16 @@ export default function CreateFarmPage() {
   const walletConnected = useWallet((s) => s.connected)
 
   const PoolIdInputBlockRef = useRef<PoolIdInputBlockHandle>()
+
+  useEffect(() => {
+    if (rewards.length <= 0) {
+      useCreateFarms.setState({
+        rewards: produce(rewards, (draft) => {
+          draft.push(createNewUIRewardInfo())
+        })
+      })
+    }
+  }, [])
 
   return (
     <PageLayout metaTitle="Farms - Raydium">
