@@ -3,6 +3,7 @@ import React, {
   InputHTMLAttributes,
   ReactNode,
   RefObject,
+  startTransition,
   useEffect,
   useImperativeHandle,
   useRef,
@@ -252,37 +253,41 @@ export default function Input(props: InputProps) {
           placeholder={placeholder ? String(placeholder) : undefined}
           disabled={disabled}
           onChange={(ev) => {
-            const inputText = ev.target.value
+            // for onChange is frequest but hight prority action. startTransition so react can abort it
+            startTransition(() => {
+              const inputText = ev.target.value
 
-            // half disable (not disable in type)
-            if (disableUserInput) return
+              // half disable (not disable in type)
+              if (disableUserInput) return
 
-            // refuse unallowed input
-            if (pattern && [pattern].flat().some((p) => (isRegExp(p) ? !p.test(inputText) : !p(inputText)))) return
+              // refuse unallowed input
+              if (pattern && [pattern].flat().some((p) => (isRegExp(p) ? !p.test(inputText) : !p(inputText)))) return
 
-            // update validator infos
-            if (validators) {
-              // all validators must be true
-              for (const validator of [validators].flat()) {
-                const passed = Boolean(
-                  shrinkToValue(validator.should, [
-                    inputText,
-                    { el: inputRef.current!, control: inputComponentHandler }
-                  ])
-                )
-                if (passed) {
-                  setFallbackProps(validator.validProps ?? {})
-                  validator.onValid?.(inputText, { el: inputRef.current!, control: inputComponentHandler })
-                }
-                if (!passed) {
-                  setFallbackProps(validator.invalidProps ?? {})
-                  validator.onInvalid?.(inputText, { el: inputRef.current!, control: inputComponentHandler })
+              // update validator infos
+              if (validators) {
+                // all validators must be true
+                for (const validator of [validators].flat()) {
+                  const passed = Boolean(
+                    shrinkToValue(validator.should, [
+                      inputText,
+                      { el: inputRef.current!, control: inputComponentHandler }
+                    ])
+                  )
+                  if (passed) {
+                    setFallbackProps(validator.validProps ?? {})
+                    validator.onValid?.(inputText, { el: inputRef.current!, control: inputComponentHandler })
+                  }
+                  if (!passed) {
+                    setFallbackProps(validator.invalidProps ?? {})
+                    validator.onInvalid?.(inputText, { el: inputRef.current!, control: inputComponentHandler })
+                  }
                 }
               }
-            }
-            setSelfValue(inputText)
-            onUserInput?.(ev.target.value, inputRef.current!)
-            lockOutsideValue()
+
+              setSelfValue(inputText)
+              onUserInput?.(ev.target.value, inputRef.current!)
+              lockOutsideValue()
+            })
           }}
           aria-label={labelText}
           aria-required={required}
