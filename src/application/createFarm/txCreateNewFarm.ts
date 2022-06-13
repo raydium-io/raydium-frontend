@@ -12,17 +12,12 @@ import { toPub } from '@/functions/format/toMintString'
 import useWallet from '../wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { padZero } from '@/functions/numberish/handleZero'
-import useStaking from '../staking/useStaking'
-import { gte } from '@/functions/numberish/compare'
 import useConnection from '../connection/useConnection'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 
 export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const { tokenAccountRawInfos } = useWallet.getState() // TODO: should add tokenAccountRawInfos to `handleMultiTx()`'s baseUtils
-    const { stakeDialogInfo: stakingHydratedInfo } = useStaking.getState()
-    const haveStakeOver300Ray = gte(stakingHydratedInfo?.userStakedLpAmount, 300)
-    // assert(haveStakeOver300Ray, 'Must stake at least 300 Ray')  // FIXME - temp for test
 
     const { chainTimeOffset = 0 } = useConnection.getState()
     const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()

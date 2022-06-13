@@ -75,12 +75,12 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
       }}
       className={twMerge(
         'Button select-none',
+        className,
         type === 'text'
           ? textButtonTailwind({ size, disable, haveFallbackClick })
           : type === 'outline'
           ? outlineButtonTailwind({ size, disable, haveFallbackClick })
-          : solidButtonTailwind({ size, disable, haveFallbackClick }),
-        className
+          : solidButtonTailwind({ size, disable, haveFallbackClick })
       )}
     >
       {suffix || prefix ? (

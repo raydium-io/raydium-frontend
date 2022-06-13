@@ -9,8 +9,16 @@ import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewar
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import useFarms from '@/application/farms/useFarms'
 import Col from '@/components/Col'
+import useWallet from '@/application/wallet/useWallet'
+import { gte } from '@/functions/numberish/compare'
+import { toString } from '@/functions/numberish/toString'
+import toPubString from '@/functions/format/toMintString'
+import { RAYMint } from '@/application/token/wellknownToken.config'
 
 export default function CreateFarmReviewPage() {
+  const balances = useWallet((s) => s.balances)
+  const userRayBalance = balances[toPubString(RAYMint)]
+  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(720px,90vw)]">
@@ -37,11 +45,18 @@ export default function CreateFarmReviewPage() {
           tokens should have a duration period of at least 7 days and no more than 90 days.
         </div>
 
+        {!haveStakeOver300Ray && (
+          <div className="text-[#DA2EEF] font-medium text-center my-4">
+            Creating a farm requires a one-time 300 RAY fee. Your RAY balance: {toString(userRayBalance) || 0} RAY
+          </div>
+        )}
+
         <Row className="gap-5 justify-center items-start">
           <Col className="items-center">
             <Button
               className="frosted-glass-teal px-18 self-stretch"
               size="lg"
+              validators={[{ should: haveStakeOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
               onClick={() => {
                 txCreateNewFarm({
                   onTxSuccess: () => {

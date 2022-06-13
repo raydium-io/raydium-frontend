@@ -53,6 +53,7 @@ import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import useSort from '@/hooks/useSort'
 import { toggleSetItem } from '../../functions/setMethods'
+import { RAYMint } from '@/application/token/wellknownToken.config'
 
 export default function FarmsPage() {
   return (
@@ -173,8 +174,9 @@ function FarmSlefCreatedOnlyBlock({ className }: { className?: string }) {
 
 function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
   const owner = useWallet((s) => s.owner)
-  const stakingHydratedInfo = useStaking((s) => s.stakeDialogInfo)
-  const haveStakeOver300Ray = true /* gte(stakingHydratedInfo?.userStakedLpAmount, 300) */ // FIXME - temp for test
+  const balances = useWallet((s) => s.balances)
+  const userRayBalance = balances[toPubString(RAYMint)]
+  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
   return (
     <Row
       className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center clickable ${
