@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
 
 import { PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
@@ -77,7 +77,7 @@ function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin, dis
     : sourceTokens
 
   // by user's search text
-  const searchedTokens = useMemo(
+  const originalSearchedTokens = useMemo(
     () =>
       searchText
         ? firstFullMatched(
@@ -95,15 +95,13 @@ function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin, dis
         : sortedTokens,
     [searchText, sortedTokens, balances]
   )
+  const searchedTokens = useDeferredValue(originalSearchedTokens)
 
   function firstFullMatched(tokens: SplToken[], searchText: string): SplToken[] {
     const fullMatched = tokens.filter((token) => token.symbol?.toLowerCase() === searchText.toLowerCase())
     const fullMatchedMint = fullMatched.map((m) => toPubString(m.mint))
     return [...fullMatched, ...tokens.filter(({ mint }) => !fullMatchedMint.includes(toPubString(mint)))]
   }
-
-  // flag for can start user add mode
-  const haveSearchResult = useMemo(() => searchedTokens.length > 0, [searchedTokens])
 
   async function getOnlineTokenInfo(mint: string) {
     try {
@@ -117,6 +115,9 @@ function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin, dis
       return false
     }
   }
+  // flag for can start user add mode
+  const haveSearchResult = searchedTokens.length > 0
+
   const onlineTokenMintInfo = useAsyncValue(
     !haveSearchResult && searchText ? getOnlineTokenInfo(searchText) : undefined,
     undefined,
@@ -127,6 +128,43 @@ function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin, dis
   const [selectedTokenIdx, setSelectedTokenIdx] = useState(0)
 
   const userCustomizedTokenSymbol = useRef('')
+
+  const cachedTokenList = useMemo(
+    // cache for react useDeferredValue
+    // "If you want to prevent a child component from re-rendering during an urgent update, you must also memoize that component with React.memo or React.useMemo:" ---- React official doc
+    () => (
+      <ListFast
+        className="flex-grow flex flex-col px-4 mobile:px-2 mx-2 gap-2 overflow-auto my-2"
+        sourceData={searchedTokens}
+        getKey={(token, idx) => (isQuantumSOL(token) ? token.symbol : toPubString(token?.mint)) ?? idx}
+        renderItem={(token, idx) => (
+          <div>
+            <Row
+              className={`${
+                selectedTokenIdx === idx
+                  ? 'clickable no-clicable-transform-effect clickable-mask-offset-2 before:bg-[rgba(0,0,0,0.2)]'
+                  : ''
+              }`}
+              onHoverChange={({ is: hoverStatus }) => {
+                if (hoverStatus === 'start') {
+                  setSelectedTokenIdx(idx)
+                }
+              }}
+            >
+              <TokenSelectorDialogTokenItem
+                onClick={() => {
+                  closeAndClean()
+                  onSelectCoin?.(token)
+                }}
+                token={token}
+              />
+            </Row>
+          </div>
+        )}
+      />
+    ),
+    [searchedTokens, selectedTokenIdx, onSelectCoin, closeAndClean, setSelectedTokenIdx]
+  )
 
   return (
     <Card
@@ -230,35 +268,7 @@ function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin, dis
               <Row className="text-xs font-medium text-[rgba(171,196,255,.5)] items-center gap-1">Balance</Row>
             </Row>
             {haveSearchResult ? (
-              <ListFast
-                className="flex-grow flex flex-col px-4 mobile:px-2 mx-2 gap-2 overflow-auto my-2"
-                sourceData={searchedTokens}
-                getKey={(token, idx) => (isQuantumSOL(token) ? token.symbol : toPubString(token?.mint)) ?? idx}
-                renderItem={(token, idx) => (
-                  <div>
-                    <Row
-                      className={`${
-                        selectedTokenIdx === idx
-                          ? 'clickable no-clicable-transform-effect clickable-mask-offset-2 before:bg-[rgba(0,0,0,0.2)]'
-                          : ''
-                      }`}
-                      onHoverChange={({ is: hoverStatus }) => {
-                        if (hoverStatus === 'start') {
-                          setSelectedTokenIdx(idx)
-                        }
-                      }}
-                    >
-                      <TokenSelectorDialogTokenItem
-                        onClick={() => {
-                          closeAndClean()
-                          onSelectCoin?.(token)
-                        }}
-                        token={token}
-                      />
-                    </Row>
-                  </div>
-                )}
-              />
+              cachedTokenList
             ) : onlineTokenMintInfo ? (
               <Col className="p-8  gap-4">
                 <InputBox
