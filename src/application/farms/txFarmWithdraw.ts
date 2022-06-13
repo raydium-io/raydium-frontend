@@ -1,4 +1,4 @@
-import { Farm, TokenAmount, jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
+import { Farm, TokenAmount, jsonInfo2PoolKeys, Spl } from '@raydium-io/raydium-sdk'
 
 import createAssociatedTokenAccountIfNotExist from '@/application/txTools/createAssociatedTokenAccountIfNotExist'
 import {
@@ -11,6 +11,8 @@ import handleMultiTx from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import { HydratedFarmInfo } from './type'
 import useFarms from './useFarms'
+import { WSOLMint } from '../token/quantumSOL'
+import toPubString from '@/functions/format/toMintString'
 
 export default async function txFarmWithdraw(
   info: HydratedFarmInfo,
@@ -31,10 +33,19 @@ export default async function txFarmWithdraw(
 
     // ------------- add rewards token transaction --------------
     const rewardTokenAccountsPublicKeys = await Promise.all(
-      jsonFarmInfo!.rewardInfos.map(
-        async ({ rewardMint }) =>
-          await createAssociatedTokenAccountIfNotExist({ collector: piecesCollector, mint: rewardMint })
-      )
+      jsonFarmInfo!.rewardInfos.map(async ({ rewardMint }) => {
+        const targetTokenAccoutPublicKey = await createAssociatedTokenAccountIfNotExist({
+          collector: piecesCollector,
+          mint: rewardMint
+        })
+        // farm only reward SOL
+        if (rewardMint === toPubString(WSOLMint)) {
+          piecesCollector.addEndInstruction(
+            Spl.makeCloseAccountInstruction({ owner, payer: owner, tokenAccount: targetTokenAccoutPublicKey })
+          )
+        }
+        return targetTokenAccoutPublicKey
+      })
     )
 
     // ------------- add farm deposit transaction --------------
