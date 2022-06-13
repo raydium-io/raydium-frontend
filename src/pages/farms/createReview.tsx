@@ -54,7 +54,7 @@ export default function CreateFarmReviewPage() {
         <Row className="gap-5 justify-center items-start">
           <Col className="items-center">
             <Button
-              className="frosted-glass-teal px-18 self-stretch"
+              className="frosted-glass-teal px-16 self-stretch"
               size="lg"
               validators={[{ should: haveStakeOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
               onClick={() => {
