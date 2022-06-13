@@ -50,7 +50,7 @@ function WarningBoard({ className }: { className: string }) {
 
           <Row className="gap-4">
             <Link href="https://raydium.gitbook.io/raydium/exchange-trade-and-swap/raydium-farms">
-              <Button className="frosted-glass-teal px-8">Detail Guide</Button>
+              <Button className="frosted-glass-teal px-8">Detailed Guide</Button>
             </Link>
 
             <Button
@@ -142,11 +142,11 @@ export default function CreateFarmPage() {
               <>
                 <div className="font-medium text-lg text-white leading-8 mb-1">Farming Reward</div>
                 <Row className="text-sm">
-                  <div className="text-[#abc4ff] mr-2">Date on block chain: </div>
+                  <div className="text-[#abc4ff] mr-2">Cluster time: </div>
                   <TimeClock className="text-[#abc4ff80]" offset={chainTimeOffset} />
                 </Row>
                 <div className="font-medium text-sm leading-snug text-[#abc4ff80]">
-                  It's on-chain time, so there could be slightly delay depending on the network status of Solana
+                  This is Solana's current on-chain time, there could be a delay depending on Solana's network status
                 </div>
               </>
             }
@@ -174,10 +174,10 @@ export default function CreateFarmPage() {
 
         <Col className="items-center ml-12">
           <div className="font-medium text-sm text-justify leading-snug text-[#abc4ff80] mb-8">
-            <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards
-            cannot be recovered. You will be able to add more rewards to the farm. When creating 'Ecosystem' farm, you
-            should pay 300 RAY as creation fee, which will flow into our Raydium treasury. Adding reward tokens and add
-            more reward tokens should have a duration period of at least 7 days and no more than 90 days.
+            <span className="text-[#DA2EEF]">Please note: </span>Rewards allocated to farms are final and unused rewards
+            cannot be claimed. However, you can add additional rewards to the farm. 300 RAY is collected as an Ecosystem
+            farm creation fee, which will be deposited into the Raydium treasury. Token rewards should have a minimum
+            duration period of at least 7 days and last no more than 90 days.
           </div>
 
           <Button
