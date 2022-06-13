@@ -6,5 +6,6 @@ export function isFarmJsonInfo(info: HydratedFarmInfo | FarmPoolJsonInfo): info 
 }
 
 export function isFarmHydratedInfo(info: HydratedFarmInfo | FarmPoolJsonInfo): info is HydratedFarmInfo {
-  return !isFarmJsonInfo(info)
+  const isHydrated = (info as HydratedFarmInfo).jsonInfo !== undefined
+  return isHydrated
 }
