@@ -1,9 +1,6 @@
 import create from 'zustand'
 
-import { inClient } from '@/functions/judgers/isSSR'
-
 import { FarmPoolJsonInfo, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
-import { fetchFarmJsonInfos } from './handleFarmInfo'
 import useToken from '../token/useToken'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 

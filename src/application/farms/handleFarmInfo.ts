@@ -55,7 +55,7 @@ export async function mergeSdkFarmInfo(
     jsonInfos: FarmPoolJsonInfo[]
   }
 ): Promise<SdkParsedFarmInfo[]> {
-  const rawInfos = await Farm.fetchMultipleInfo(options)
+  const rawInfos = await Farm.fetchMultipleInfoAndUpdate(options)
   const result = options.pools.map(
     (pool, idx) =>
       ({
@@ -163,7 +163,8 @@ export function hydrateFarmInfo(
               isRewardBeforeStart,
               isRewardEnded,
               isRewarding,
-              isRwardingBeforeEnd72h
+              isRwardingBeforeEnd72h,
+              version: 6
             }
           })
         )
@@ -179,7 +180,8 @@ export function hydrateFarmInfo(
             apr,
             token,
             pendingReward,
-            usedTohaveReward
+            usedTohaveReward,
+            version: farmInfo.version
           }
         })
   const userStakedLpAmount =

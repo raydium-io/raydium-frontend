@@ -14,7 +14,7 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import useFarms from '../farms/useFarms'
 import { HydratedFarmInfo } from '../farms/type'
 import { UIRewardInfo } from './type'
-import { TransactionInstruction } from '@solana/web3.js'
+import { Connection, TransactionInstruction } from '@solana/web3.js'
 import { hasRewardBeenEdited } from './parseRewardInfo'
 import { padZero } from '@/functions/numberish/handleZero'
 import asyncMap from '@/functions/asyncMap'
@@ -22,6 +22,8 @@ import useConnection from '../connection/useConnection'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { SOLMint } from '../token/wellknownToken.config'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 
 export default async function txUpdateEdited({ ...txAddOptions }: TxAddOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -37,15 +39,18 @@ export default async function txUpdateEdited({ ...txAddOptions }: TxAddOptions) 
     const createNewRewards = uiRewardInfos.filter((r) => r.type === 'new added')
 
     // ---------- restart ----------
-
-    piecesCollector.addInstruction(
-      ...restartRewards.map((r) => createRewardRestartInstruction({ reward: r, farmInfo }))
-    )
+    await asyncMap(restartRewards, async (r) => {
+      const { instructions, newAccounts } = await createRewardRestartInstruction({ reward: r, farmInfo, connection })
+      piecesCollector.addInstruction(...instructions)
+      piecesCollector.addSigner(...newAccounts)
+    })
 
     // ---------- create new ----------
-    piecesCollector.addEndInstruction(
-      ...(await asyncMap(createNewRewards, async (r) => createNewRewardInstruction({ reward: r, farmInfo })))
-    )
+    await asyncMap(createNewRewards, async (r) => {
+      const { instructions, newAccounts } = await createNewRewardInstruction({ reward: r, farmInfo, connection })
+      piecesCollector.addInstruction(...instructions)
+      piecesCollector.addSigner(...newAccounts)
+    })
 
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       ...txAddOptions,
@@ -57,15 +62,17 @@ export default async function txUpdateEdited({ ...txAddOptions }: TxAddOptions) 
   })
 }
 
-function createRewardRestartInstruction({
+async function createRewardRestartInstruction({
+  connection,
   reward,
   farmInfo
 }: {
+  connection: Connection
   reward: UIRewardInfo
   farmInfo: HydratedFarmInfo
-}): TransactionInstruction {
-  const { tokenAccounts, owner } = useWallet.getState()
-  assert(isMintEqual(owner, reward.owner), `reward is not created by walletOwner`)
+}) {
+  const { owner, tokenAccountRawInfos } = useWallet.getState()
+  assert(owner && isMintEqual(owner, reward.owner), `reward is not created by walletOwner`)
 
   const { chainTimeOffset = 0 } = useConnection.getState()
   const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()
@@ -73,8 +80,7 @@ function createRewardRestartInstruction({
   const testRestartTime = Date.now() // NOTE: test
   const testEndTime = Date.now() + 1000 * 60 * 60 * 1.2 // NOTE: test
 
-  const rewardTokenAccount = tokenAccounts.find((t) => isMintEqual(reward.token?.mint, t.mint))
-  assert(rewardTokenAccount?.publicKey, `can't find reward ${reward.token?.symbol}'s tokenAccount`)
+  assert(reward.token, 'reward must have token')
   assert(reward.endTime, `reward must have endTime`)
   assert(reward.startTime, `reward must have startTime`)
   assert(reward.amount, `reward must have amount`)
@@ -82,30 +88,34 @@ function createRewardRestartInstruction({
   const durationTime = reward.endTime.getTime() - reward.startTime.getTime()
   const perSecond = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
 
-  const createFarmInstruction = Farm.makeRestartFarmInstruction({
+  return Farm.makeRestartFarmInstruction({
     poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
-    rewardVault: toPub(String(reward.id)),
-    rewardRestartTime: toBN(
-      div(getMax(testRestartTime || reward.startTime.getTime(), currentBlockChainDate), 1000)
-    ).toNumber(),
-    rewardEndTime: toBN(div(getMax(testEndTime || reward.endTime.getTime(), currentBlockChainDate), 1000)).toNumber(),
-    rewardPerSecond: toBN(mul(perSecond, padZero('1', reward.token?.decimals ?? 6))),
-    rewardOwner: toPub(reward.owner),
-    rewardOwnerAccount: rewardTokenAccount.publicKey
+    connection,
+    userKeys: {
+      owner,
+      tokenAccounts: tokenAccountRawInfos
+    },
+    newRewardInfo: {
+      rewardMint: isQuantumSOLVersionSOL(reward.token) ? SOLMint : reward.token?.mint,
+      rewardOpenTime: toBN(
+        div(getMax(testRestartTime || reward.startTime.getTime(), currentBlockChainDate), 1000)
+      ).toNumber(),
+      rewardEndTime: toBN(div(getMax(testEndTime || reward.endTime.getTime(), currentBlockChainDate), 1000)).toNumber(),
+      rewardPerSecond: toBN(mul(perSecond, padZero('1', reward.token?.decimals ?? 6)))
+    }
   })
-
-  assert(createFarmInstruction, 'createFarm valid failed')
-  return createFarmInstruction
 }
 
-async function createNewRewardInstruction({
+function createNewRewardInstruction({
+  connection,
   reward,
   farmInfo
 }: {
+  connection: Connection
   reward: UIRewardInfo
   farmInfo: HydratedFarmInfo
-}): Promise<TransactionInstruction> {
-  const { tokenAccounts, owner } = useWallet.getState()
+}) {
+  const { owner, tokenAccountRawInfos } = useWallet.getState()
 
   const { chainTimeOffset = 0 } = useConnection.getState()
   const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()
@@ -119,22 +129,22 @@ async function createNewRewardInstruction({
   assert(reward.endTime, 'reward end time is required')
   assert(reward.amount, 'reward amount is required')
   assert(rewardToken, `can't find selected reward token`)
-  const rewardTokenAccount = tokenAccounts.find((t) => isMintEqual(rewardToken.mint, t.mint))
-  assert(rewardTokenAccount?.publicKey, `can't find reward ${rewardToken?.symbol}'s tokenAccount `)
   const durationTime = reward.endTime.getTime() - reward.startTime.getTime()
   const estimatedValue = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
   const paramReward: FarmCreateInstructionParamsV6['rewardInfos'][number] = {
-    rewardStartTime: toBN(div(getMax(testStartTime || reward.startTime.getTime(), currentBlockChainDate), 1000)),
+    rewardOpenTime: toBN(div(getMax(testStartTime || reward.startTime.getTime(), currentBlockChainDate), 1000)),
     rewardEndTime: toBN(div(getMax(testEndTime || reward.endTime.getTime(), currentBlockChainDate), 1000)),
     rewardMint: rewardToken.mint,
-    rewardPerSecond: toBN(mul(estimatedValue, padZero(1, rewardToken.decimals))),
-    rewardOwnerAccount: rewardTokenAccount.publicKey
+    rewardPerSecond: toBN(mul(estimatedValue, padZero(1, rewardToken.decimals)))
   }
 
-  const createFarmInstruction = await Farm.makeFarmCreatorAddRewardTokenInstruction({
+  return Farm.makeFarmCreatorAddRewardTokenInstruction({
     poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
-    owner,
+    connection,
+    userKeys: {
+      owner,
+      tokenAccounts: tokenAccountRawInfos
+    },
     newRewardInfo: paramReward
   })
-  return createFarmInstruction
 }
