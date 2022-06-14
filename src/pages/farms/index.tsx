@@ -545,9 +545,11 @@ function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; rew
           reward.isRewarding ? '' : 'opacity-50'
         }`}
       >
-        {isMeaningfulNumber(reward.pendingReward) && (
+        {isMeaningfulNumber(reward.userPendingReward) && (
           <div className="text-xs translate-y-0.125 pl-1">
-            {formatNumber(toString(reward.pendingReward), { fractionLength: reward.pendingReward.token.decimals })}
+            {formatNumber(toString(reward.userPendingReward), {
+              fractionLength: reward.userPendingReward.token.decimals
+            })}
           </div>
         )}
         <CoinAvatar size="sm" token={reward.token} />
@@ -635,10 +637,10 @@ function FarmCardDatabaseBodyCollapseItemFace({
               {isFarmJsonInfo(info)
                 ? '--'
                 : info.rewards.map(
-                    ({ token, pendingReward, usedTohaveReward }) =>
-                      usedTohaveReward && (
+                    ({ token, userPendingReward, userHavedReward }) =>
+                      userHavedReward && (
                         <div key={toPubString(token?.mint)}>
-                          {toString(pendingReward) || '0'} {token?.symbol}
+                          {toString(userPendingReward) || '0'} {token?.symbol}
                         </div>
                       )
                   )}
@@ -660,8 +662,8 @@ function FarmCardDatabaseBodyCollapseItemFace({
                   <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeRpr)}</div>
                 )}
                 {info.rewards.map(
-                  ({ apr, token, usedTohaveReward }, idx) =>
-                    usedTohaveReward && (
+                  ({ apr, token, userHavedReward }, idx) =>
+                    userHavedReward && (
                       <div key={idx} className="whitespace-nowrap">
                         {token?.symbol} {toPercentString(apr)}
                       </div>
@@ -751,8 +753,8 @@ function FarmCardDatabaseBodyCollapseItemFace({
                       <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeRpr)}</div>
                     )}
                     {info.rewards.map(
-                      ({ apr, token, usedTohaveReward }, idx) =>
-                        usedTohaveReward && (
+                      ({ apr, token, userHavedReward }, idx) =>
+                        userHavedReward && (
                           <div key={idx} className="whitespace-nowrap">
                             {token?.symbol} {toPercentString(apr)}
                           </div>
@@ -804,7 +806,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
   const owner = useWallet((s) => s.owner)
   const balances = useWallet((s) => s.balances)
   const hasLp = isMeaningfulNumber(balances[toPubString(farmInfo.lpMint)])
-  const hasPendingReward = farmInfo.rewards.some(({ pendingReward }) => isMeaningfulNumber(pendingReward))
+  const hasPendingReward = farmInfo.rewards.some(({ userPendingReward }) => isMeaningfulNumber(userPendingReward))
   return (
     <div
       className="rounded-b-3xl mobile:rounded-b-lg overflow-hidden"
@@ -922,11 +924,11 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                   {farmInfo.rewards?.map((reward, idx) => (
                     <div key={idx} className="p-4">
                       <div className={`text-white font-medium text-sm mobile:text-xs mb-0.5`}>
-                        {reward.pendingReward ? toString(reward.pendingReward) : 0} {reward.token?.symbol}
+                        {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
                       </div>
                       <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-                        {prices?.[String(reward.token?.mint)] && isMeaningfulNumber(reward?.pendingReward)
-                          ? toUsdVolume(toTotalPrice(reward.pendingReward, prices[String(reward.token?.mint)]))
+                        {prices?.[String(reward.token?.mint)] && isMeaningfulNumber(reward?.userPendingReward)
+                          ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
                           : null}
                       </div>
                     </div>
@@ -937,7 +939,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
               <Row className="flex-grow divide-x-1.5 w-full">
                 {farmInfo.rewards?.map(
                   (reward, idx) =>
-                    reward.usedTohaveReward && (
+                    reward.userHavedReward && (
                       <div
                         key={idx}
                         className={`px-4 ${idx === 0 ? 'pl-0' : ''} ${
@@ -948,11 +950,11 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                           Pending rewards
                         </div>
                         <div className={`text-white font-medium text-base mobile:text-xs`}>
-                          {reward.pendingReward ? toString(reward.pendingReward) : 0} {reward.token?.symbol}
+                          {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
                         </div>
                         <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-                          {prices?.[String(reward.token?.mint)] && reward?.pendingReward
-                            ? toUsdVolume(toTotalPrice(reward.pendingReward, prices[String(reward.token?.mint)]))
+                          {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
+                            ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
                             : null}
                         </div>
                       </div>
@@ -967,7 +969,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                 txFarmHarvest(farmInfo, {
                   isStaking: false,
                   rewardAmounts: farmInfo.rewards
-                    .map(({ pendingReward }) => pendingReward)
+                    .map(({ userPendingReward }) => userPendingReward)
                     .filter(isMeaningfulNumber) as TokenAmount[]
                 })
               }}

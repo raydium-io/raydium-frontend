@@ -1,5 +1,5 @@
 import { HexAddress, Numberish } from '@/types/constants'
-import { Percent } from '@raydium-io/raydium-sdk'
+import { Percent, TokenAmount } from '@raydium-io/raydium-sdk'
 import { SplToken } from '../token/type'
 
 export type UIRewardInfo = {
@@ -22,6 +22,7 @@ export type UIRewardInfo = {
   isRewardBeforeStart?: boolean // for farm edit
   isRewarding?: boolean // exist working farm
   isRwardingBeforeEnd72h?: boolean // exist working farm // TODO: Dev
+  claimableRewards?: TokenAmount // only existed reward may have this
 
   originData?: Omit<UIRewardInfo, 'originData'> // only edit have this
 }

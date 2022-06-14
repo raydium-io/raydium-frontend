@@ -7,6 +7,7 @@ import CoinAvatarPair from '@/components/CoinAvatarPair'
 import ListTable from '@/components/ListTable'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
+import toPercentString from '@/functions/format/toPercentString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 
 export function PoolInfoSummary() {
@@ -38,9 +39,8 @@ export function PoolInfoSummary() {
           label: 'Pool',
           cssGridItemWidth: '2fr'
         },
-        {
-          label: 'TVL'
-        }
+        { label: 'TVL' },
+        { label: 'APR' }
       ]}
       renderRowItem={({ item, label }) => {
         if (label === 'Pool') {
@@ -62,6 +62,10 @@ export function PoolInfoSummary() {
         }
         if (label === 'TVL') {
           return item.pool?.liquidity ? toUsdVolume(item.pool.liquidity, { decimalPlace: 0 }) : '--'
+        }
+
+        if (label === 'APR') {
+          return item.pool.apr30d ? toPercentString(item.pool.apr30d, { alreadyPercented: true }) : '--'
         }
       }}
     />

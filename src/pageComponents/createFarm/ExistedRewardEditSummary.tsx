@@ -6,16 +6,18 @@ import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import ListTable from '@/components/ListTable'
-import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
+import { toUTC } from '@/functions/date/dateFormat'
 import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import useConnection from '@/application/connection/useConnection'
-import { isDateAfter } from '@/functions/date/judges'
 import { Badge } from '@/components/Badge'
 import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import toPercentString from '@/functions/format/toPercentString'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { TxResponseInfos } from '@/application/txTools/handleMultiTx'
+import produce from 'immer'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 export function ExistedEditRewardSummary({
   canUserEdit,
@@ -25,7 +27,7 @@ export function ExistedEditRewardSummary({
   canUserEdit: boolean
   // --------- when edit ------------
   onClickIncreaseReward?(payload: { reward: UIRewardInfo }): void
-  onClaimReward?(payload: { reward: UIRewardInfo }): void
+  onClaimReward?(payload: { reward: UIRewardInfo; onTxSuccess?: () => void }): void
 }) {
   const rewards = useCreateFarms((s) => s.rewards)
   const editableRewards = rewards.filter((r) => r.type === 'existed reward')
@@ -149,13 +151,46 @@ export function ExistedEditRewardSummary({
                     </Row>
 
                     <Row
-                      className="items-center justify-center gap-1 clickable"
-                      onClick={() => onClaimReward?.({ reward })}
+                      className={`items-center justify-center gap-1 clickable ${
+                        isMeaningfulNumber(toString(reward.originData.claimableRewards)) ? '' : 'not-clickable'
+                      }`}
+                      onClick={
+                        () =>
+                          setTimeout(() => {
+                            useCreateFarms.setState((s) =>
+                              produce(s, (draft) => {
+                                const target = draft.rewards.find((r) => r.id === reward.id)
+                                if (target?.originData) {
+                                  target.originData.claimableRewards = target?.token && toTokenAmount(target?.token, 0)
+                                }
+                              })
+                            )
+                          }, 500) // disable in UI
+                        // onClaimReward?.({
+                        //   reward,
+                        //   onTxSuccess: () => {
+                        //     setTimeout(() => {
+                        //       useCreateFarms.setState((s) =>
+                        //         produce(s, (draft) => {
+                        //           const target = draft.rewards.find((r) => r.id === reward.id)
+                        //           if (target?.originData) {
+                        //             target.originData.claimableRewards =
+                        //               target?.token && toTokenAmount(target?.token, 0)
+                        //           }
+                        //         })
+                        //       )
+                        //     }, 500) // disable in UI
+                        //   }
+                        // })
+                      }
                     >
                       <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
                       <Col>
                         <div className="text-xs text-[#abc4ff] font-medium">Claim unemmitted rewards</div>
-                        {/* <div className="text-xs text-[#abc4ff80] font-medium">1111 RAY</div> TODO: imply it!! */}
+                        <div className="text-xs text-[#abc4ff80] font-medium">
+                          {toString(reward.originData.claimableRewards)}{' '}
+                          {reward.originData.claimableRewards?.token.symbol ?? 'UNKNOWN'}
+                        </div>
                       </Col>
                     </Row>
                   </Grid>
