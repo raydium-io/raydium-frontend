@@ -20,7 +20,7 @@ export default async function txFarmWithdraw(
     const piecesCollector = createTransactionCollector()
     assert(owner, 'require connected wallet')
 
-    const jsonFarmInfo = useFarms.getState().jsonInfos.find(({ lpMint }) => String(lpMint) === String(info.lpMint))
+    const jsonFarmInfo = useFarms.getState().jsonInfos.find(({ id }) => String(id) === String(info.id))
     assert(jsonFarmInfo, 'Farm pool not found')
 
     // ------------- add lp token transaction --------------
