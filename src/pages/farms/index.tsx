@@ -186,8 +186,8 @@ function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
         routeTo('/farms/create')
       }}
     >
-      <Icon heroIconName="plus-circle" className="text-[#abc4ff80]" size="sm" />
-      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Create Farm</span>
+      <Icon heroIconName="plus-circle" className="text-[#abc4ff]" size="sm" />
+      <span className="text-[#abc4ff] font-medium text-sm mobile:text-xs">Create Farm</span>
     </Row>
   )
 }

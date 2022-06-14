@@ -12,7 +12,7 @@ import { UIRewardInfo } from '@/application/createFarm/type'
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { ExistedEditRewardSummary } from '../../pageComponents/createFarm/ExistedRewardEditSummary'
 import Button from '@/components/Button'
-import { routeTo } from '@/application/routeTools'
+import { routeBack, routeTo } from '@/application/routeTools'
 import txClaimReward from '@/application/createFarm/txClaimReward'
 import { isDateBefore } from '@/functions/date/judges'
 import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
@@ -21,6 +21,22 @@ import toPubString from '@/functions/format/toMintString'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { div } from '@/functions/numberish/operations'
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import { twMerge } from 'tailwind-merge'
+
+function NavButtons({ className }: { className?: string }) {
+  return (
+    <Row className={twMerge('items-center justify-between', className)}>
+      <Button
+        type="text"
+        className="text-sm text-[#ABC4FF] opacity-50 px-0"
+        prefix={<Icon heroIconName="chevron-left" size="sm" />}
+        onClick={() => routeBack()}
+      >
+        Back to all farm pools
+      </Button>
+    </Row>
+  )
+}
 
 export default function FarmEditPage() {
   const walletConnected = useWallet((s) => s.connected)
@@ -37,7 +53,8 @@ export default function FarmEditPage() {
     (r) => r.amount != null || r.startTime != null || r.endTime != null || r.token != null
   )
   return (
-    <PageLayout metaTitle="Farms - Raydium">
+    <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
+      <NavButtons />
       <div className="self-center w-[min(720px,90vw)]">
         <div className="mb-10 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Edit Farm</div>
 
