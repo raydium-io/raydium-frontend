@@ -15,7 +15,6 @@ import { Badge } from '@/components/Badge'
 import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import toPercentString from '@/functions/format/toPercentString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
-import { TxResponseInfos } from '@/application/txTools/handleMultiTx'
 import produce from 'immer'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
@@ -154,34 +153,24 @@ export function ExistedEditRewardSummary({
                       className={`items-center justify-center gap-1 clickable ${
                         isMeaningfulNumber(toString(reward.originData.claimableRewards)) ? '' : 'not-clickable'
                       }`}
-                      onClick={
-                        () =>
-                          setTimeout(() => {
-                            useCreateFarms.setState((s) =>
-                              produce(s, (draft) => {
-                                const target = draft.rewards.find((r) => r.id === reward.id)
-                                if (target?.originData) {
-                                  target.originData.claimableRewards = target?.token && toTokenAmount(target?.token, 0)
-                                }
-                              })
-                            )
-                          }, 500) // disable in UI
-                        // onClaimReward?.({
-                        //   reward,
-                        //   onTxSuccess: () => {
-                        //     setTimeout(() => {
-                        //       useCreateFarms.setState((s) =>
-                        //         produce(s, (draft) => {
-                        //           const target = draft.rewards.find((r) => r.id === reward.id)
-                        //           if (target?.originData) {
-                        //             target.originData.claimableRewards =
-                        //               target?.token && toTokenAmount(target?.token, 0)
-                        //           }
-                        //         })
-                        //       )
-                        //     }, 500) // disable in UI
-                        //   }
-                        // })
+                      onClick={() =>
+                        onClaimReward?.({
+                          reward,
+                          onTxSuccess: () => {
+                            setTimeout(() => {
+                              useCreateFarms.setState((s) =>
+                                produce(s, (draft) => {
+                                  const target = draft.rewards.find((r) => r.id === reward.id)
+                                  if (target?.originData) {
+                                    target.originData.claimableRewards =
+                                      target?.token && toTokenAmount(target?.token, 0)
+                                  }
+                                  if (target) target.claimableRewards = target?.token && toTokenAmount(target?.token, 0)
+                                })
+                              )
+                            }, 300) // disable in UI
+                          }
+                        })
                       }
                     >
                       <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
