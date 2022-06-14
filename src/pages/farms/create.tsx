@@ -1,5 +1,5 @@
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
-import { routeTo } from '@/application/routeTools'
+import { routeBack, routeTo } from '@/application/routeTools'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import Col from '@/components/Col'
@@ -25,6 +25,7 @@ import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { div } from '@/functions/numberish/operations'
 import useWallet from '@/application/wallet/useWallet'
 import toPubString from '@/functions/format/toMintString'
+import { twMerge } from 'tailwind-merge'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -32,6 +33,31 @@ function StepBadge(props: { n: number }) {
     <CyberpunkStyleCard wrapperClassName="w-8 h-8" className="grid place-content-center bg-[#2f2c78]">
       <div className="font-semibold text-white">{props.n}</div>
     </CyberpunkStyleCard>
+  )
+}
+
+function NavButtons({ className }: { className?: string }) {
+  return (
+    <Row className={twMerge('items-center justify-between', className)}>
+      <Button
+        type="text"
+        className="text-sm text-[#ABC4FF] opacity-50 px-0"
+        prefix={<Icon heroIconName="chevron-left" size="sm" />}
+        onClick={() => routeBack()}
+      >
+        Back to all farm pools
+      </Button>
+
+      {/* <Link
+        className={`rounded-none font-medium text-sm text-[#ABC4FF] opacity-50 flex gap-1 items-center ${
+          idoInfo?.projectDetailLink ? 'opacity-50' : 'opacity-0'
+        } transition`}
+        href={idoInfo?.projectDetailLink}
+      >
+        <Icon size="sm" inline heroIconName="information-circle" />
+        Read full details
+      </Link> */}
+    </Row>
   )
 }
 
@@ -125,7 +151,9 @@ export default function CreateFarmPage() {
   }, [])
 
   return (
-    <PageLayout metaTitle="Farms - Raydium">
+    <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
+      <NavButtons className="mb-8" />
+
       <div className={`self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
         <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
 
