@@ -33,7 +33,7 @@ import { offsetDateTime } from '@/functions/date/dateFormat'
 import { toPercent } from '@/functions/format/toPercent'
 
 function getMaxOpenTime(i: APIRewardInfo[]) {
-  return Math.max(...i.map((r) => r.openTime))
+  return Math.max(...i.map((r) => r.rewardOpenTime))
 }
 
 export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { official: boolean })[] | undefined> {
@@ -129,18 +129,18 @@ export function hydrateFarmInfo(
           farmInfo.state.rewardInfos.map((rewardInfo, idx) => {
             const { rewardOpenTime: openTime, rewardEndTime: endTime, rewardPerSecond } = rewardInfo
             // ------------ reward time -----------------
-            const rewardStartTime = openTime.toNumber()
+            const rewardOpenTime = openTime.toNumber()
               ? new Date(openTime.toNumber() * 1000 + (payload.chainTimeOffset ?? 0))
               : undefined // chain time
             const rewardEndTime = endTime.toNumber()
               ? new Date(endTime.toNumber() * 1000 + (payload.chainTimeOffset ?? 0))
               : undefined // chain time
             const onlineCurrentDate = Date.now() + (payload.chainTimeOffset ?? 0)
-            if (!rewardStartTime && !rewardEndTime) return undefined // if reward is not any state, return undefined to delete it
+            if (!rewardOpenTime && !rewardEndTime) return undefined // if reward is not any state, return undefined to delete it
 
-            const isRewardBeforeStart = Boolean(rewardStartTime && isDateBefore(onlineCurrentDate, rewardStartTime))
+            const isRewardBeforeStart = Boolean(rewardOpenTime && isDateBefore(onlineCurrentDate, rewardOpenTime))
             const isRewardEnded = Boolean(rewardEndTime && isDateAfter(onlineCurrentDate, rewardEndTime))
-            const isRewarding = (!rewardStartTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
+            const isRewarding = (!rewardOpenTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
             const isRwardingBeforeEnd72h =
               isRewarding &&
               isDateAfter(onlineCurrentDate, offsetDateTime(rewardEndTime, { hours: -1 /* NOTE - test */ /* -72 */ }))
@@ -152,13 +152,13 @@ export function hydrateFarmInfo(
 
             return {
               ...rewardInfo,
-              owner: farmInfo.rewardInfos[idx]?.owner,
+              owner: farmInfo.rewardInfos[idx]?.rewardSender,
               apr: apr,
               token,
               pendingReward,
               usedTohaveReward,
               perSecond: token && toString(toTokenAmount(token, rewardPerSecond)),
-              openTime: rewardStartTime,
+              openTime: rewardOpenTime,
               endTime: rewardEndTime,
               isRewardBeforeStart,
               isRewardEnded,

@@ -253,12 +253,6 @@ export default function CreateFarmPage() {
                 }
               }),
               {
-                should: meaningFullRewards.every((r) => r),
-                fallbackProps: {
-                  children: 'Insufficient'
-                }
-              },
-              {
                 should: meaningFullRewards.every((r) => r.startTime && r.endTime),
                 fallbackProps: {
                   children: 'Confirm emission time setup'

@@ -9,7 +9,6 @@ import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleF
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
 import { useMemo } from 'react'
-import { Connection } from '@solana/web3.js'
 import jFetch from '@/functions/dom/jFetch'
 import { Endpoint } from '@/application/connection/fetchRPCConfig'
 

@@ -20,10 +20,10 @@ import { UnionCover } from '@/types/generics'
 export interface APIRewardInfo {
   rewardMint: string
   rewardVault: string
-  openTime: number
-  endTime: number
-  perSecond: string | number
-  owner?: string
+  rewardOpenTime: number
+  rewardEndTime: number
+  rewardPerSecond: string | number
+  rewardSender?: string
 }
 
 export interface FarmPoolJsonInfo {

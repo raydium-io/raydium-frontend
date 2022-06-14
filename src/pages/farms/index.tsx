@@ -1,10 +1,11 @@
-import React, { Fragment, ReactNode, useMemo, useRef, useState } from 'react'
+import { Fragment, ReactNode, useMemo, useRef, useState } from 'react'
 
 import { TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import { isFarmJsonInfo } from '@/application/farms/judgeFarmInfo'
 import txFarmDeposit from '@/application/farms/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/txFarmHarvest'
 import txFarmWithdraw from '@/application/farms/txFarmWithdraw'
@@ -12,11 +13,14 @@ import { FarmPoolJsonInfo, HydratedFarmInfo, HydratedRewardInfo } from '@/applic
 import useFarms, { useFarmFavoriteIds } from '@/application/farms/useFarms'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
+import useStaking from '@/application/staking/useStaking'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
+import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
@@ -26,7 +30,9 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import List from '@/components/List'
+import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
+import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
@@ -35,26 +41,18 @@ import Switcher from '@/components/Switcher'
 import Tabs from '@/components/Tabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
+import { toUTC } from '@/functions/date/dateFormat'
 import formatNumber from '@/functions/format/formatNumber'
+import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import useSort from '@/hooks/useSort'
-
 import { toggleSetItem } from '../../functions/setMethods'
-import Popover from '@/components/Popover'
-import LoadingCircle from '@/components/LoadingCircle'
-import toPubString from '@/functions/format/toMintString'
-import { Badge } from '@/components/Badge'
-import { isFarmJsonInfo } from '@/application/farms/judgeFarmInfo'
-import CoinAvatar from '@/components/CoinAvatar'
-import { toUTC } from '@/functions/date/dateFormat'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import useStaking from '@/application/staking/useStaking'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function FarmsPage() {
   return (
@@ -536,7 +534,8 @@ function FarmCardDatabaseBody({
   )
 }
 
-function FarmRewardBadge({ reward }: { reward: HydratedRewardInfo }) {
+// currently only SDKRewardInfo
+function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; reward: HydratedRewardInfo }) {
   return (
     <Tooltip placement="bottom">
       <Row
@@ -556,7 +555,7 @@ function FarmRewardBadge({ reward }: { reward: HydratedRewardInfo }) {
           {reward.token?.symbol ?? '--'} Reward Period {reward.isRewardEnded ? 'ended' : ''}
         </div>
         <div className="opacity-50">
-          {toUTC(reward.openTime)} ~ {toUTC(reward.openTime)}
+          {toUTC(reward.openTime)} ~ {toUTC(reward.endTime)}
         </div>
       </Tooltip.Panel>
     </Tooltip>
@@ -619,7 +618,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
                 : info.rewards.map((reward) => {
                     return (
                       <Fragment key={toPubString(reward.rewardVault)}>
-                        <FarmRewardBadge reward={reward} />
+                        <FarmRewardBadge farmInfo={info} reward={reward} />
                       </Fragment>
                     )
                   })}
