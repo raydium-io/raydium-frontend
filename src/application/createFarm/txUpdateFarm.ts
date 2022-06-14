@@ -97,10 +97,8 @@ async function createRewardRestartInstruction({
     },
     newRewardInfo: {
       rewardMint: isQuantumSOLVersionSOL(reward.token) ? SOLMint : reward.token?.mint,
-      rewardOpenTime: toBN(
-        div(getMax(testRestartTime || reward.startTime.getTime(), currentBlockChainDate), 1000)
-      ).toNumber(),
-      rewardEndTime: toBN(div(getMax(testEndTime || reward.endTime.getTime(), currentBlockChainDate), 1000)).toNumber(),
+      rewardOpenTime: toBN(div(getMax(reward.startTime.getTime(), currentBlockChainDate), 1000)).toNumber(),
+      rewardEndTime: toBN(div(getMax(reward.endTime.getTime(), currentBlockChainDate), 1000)).toNumber(),
       rewardPerSecond: toBN(mul(perSecond, padZero('1', reward.token?.decimals ?? 6)))
     }
   })
@@ -132,8 +130,8 @@ function createNewRewardInstruction({
   const durationTime = reward.endTime.getTime() - reward.startTime.getTime()
   const estimatedValue = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
   const paramReward: FarmCreateInstructionParamsV6['rewardInfos'][number] = {
-    rewardOpenTime: toBN(div(getMax(testStartTime || reward.startTime.getTime(), currentBlockChainDate), 1000)),
-    rewardEndTime: toBN(div(getMax(testEndTime || reward.endTime.getTime(), currentBlockChainDate), 1000)),
+    rewardOpenTime: toBN(div(getMax(reward.startTime.getTime(), currentBlockChainDate), 1000)),
+    rewardEndTime: toBN(div(getMax(reward.endTime.getTime(), currentBlockChainDate), 1000)),
     rewardMint: rewardToken.mint,
     rewardPerSecond: toBN(mul(estimatedValue, padZero(1, rewardToken.decimals)))
   }

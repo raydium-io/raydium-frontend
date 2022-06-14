@@ -40,8 +40,8 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
       const estimatedValue = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
       const perSecondReward = toBN(mul(estimatedValue, padZero(1, rewardToken.decimals)))
       return {
-        rewardOpenTime: toBN(div(getMax(testStartTime || reward.startTime.getTime(), currentBlockChainDate), 1000)),
-        rewardEndTime: toBN(div(getMax(testEndTime || reward.endTime.getTime(), currentBlockChainDate), 1000)),
+        rewardOpenTime: toBN(div(getMax(reward.startTime.getTime(), currentBlockChainDate), 1000)),
+        rewardEndTime: toBN(div(getMax(reward.endTime.getTime(), currentBlockChainDate), 1000)),
         rewardMint: rewardToken.mint,
         rewardPerSecond: perSecondReward
       }

@@ -33,7 +33,7 @@ function useStateWithSuperPreferential<T>(
 }
 
 const MAX_DURATION_DAY = 90
-const MIN_DURATION_DAY = 7
+const MIN_DURATION_DAY = 0 /* FIXME: for Test */
 const MAX_DURATION = MAX_DURATION_DAY * 24 * 60 * 60 * 1000
 const MIN_DURATION = MIN_DURATION_DAY * 24 * 60 * 60 * 1000
 const MAX_DURATION_TEXT = `${MAX_DURATION_DAY}D`
