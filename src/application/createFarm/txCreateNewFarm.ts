@@ -14,13 +14,14 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { padZero } from '@/functions/numberish/handleZero'
 import useConnection from '../connection/useConnection'
 import { offsetDateTime } from '@/functions/date/dateFormat'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const { tokenAccountRawInfos } = useWallet.getState() // TODO: should add tokenAccountRawInfos to `handleMultiTx()`'s baseUtils
 
     const { chainTimeOffset = 0 } = useConnection.getState()
-    const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()
+    const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 0 /* force */ }).getTime()
 
     const { rewards: uiRewardInfos } = useCreateFarms.getState()
     const { tokenAccounts } = useWallet.getState()

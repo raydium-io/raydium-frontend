@@ -75,7 +75,7 @@ async function createRewardRestartInstruction({
   assert(owner && isMintEqual(owner, reward.owner), `reward is not created by walletOwner`)
 
   const { chainTimeOffset = 0 } = useConnection.getState()
-  const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()
+  const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 0 /* force */ }).getTime()
 
   const testRestartTime = Date.now() // NOTE: test
   const testEndTime = Date.now() + 1000 * 60 * 60 * 1.2 // NOTE: test
@@ -116,7 +116,7 @@ function createNewRewardInstruction({
   const { owner, tokenAccountRawInfos } = useWallet.getState()
 
   const { chainTimeOffset = 0 } = useConnection.getState()
-  const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()
+  const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 0 /* force */ }).getTime()
 
   const testStartTime = Date.now() // NOTE: test
   const testEndTime = Date.now() + 1000 * 60 * 60 * 1.5 // NOTE: test
