@@ -3,14 +3,14 @@ import React, { ComponentProps, RefObject, useEffect, useState } from 'react'
 import _DatePicker from '@uiw/react-date-picker'
 
 import Input, { InputProps } from '@/components/Input'
-import { DateParam, offsetDateTime, toUTC } from '@/functions/date/dateFormat'
+import { DateParam, offsetDateTime, setDateTimeSecondToZero, toUTC } from '@/functions/date/dateFormat'
 
 import InputBox from './InputBox'
 import Popover from './Popover'
 
 import './DatePicker.css'
 import { twMerge } from 'tailwind-merge'
-import { isDateBefore } from '@/functions/date/judges'
+import { isDateBefore, isDateEqual } from '@/functions/date/judges'
 import useConnection from '@/application/connection/useConnection'
 
 export type DateInputProps = {
@@ -95,7 +95,8 @@ function DateInputBody({
   onDateChange,
   inputProps
 }: DateInputBodyProps) {
-  const [currentDate, setCurrentFakeDate] = useState<Date | undefined>(defaultValue)
+  const [currentDate, setCurrentFakeDate] = useState<Date | undefined>(defaultValue) // maybe 11:11:52
+
   const currentTimezoneOffset = currentDate?.getTimezoneOffset() ?? 0
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
 
@@ -112,6 +113,7 @@ function DateInputBody({
   }
 
   useEffect(() => {
+    if (!canEditSeconds && value && isDateEqual(value, setDateTimeSecondToZero(currentDate))) return
     setCurrentFakeDate(value)
   }, [value])
 
@@ -159,7 +161,7 @@ function DateInputBody({
           onChange={(selectedFakeDate) => {
             const newDate = selectedFakeDate ? deFakeUTCByLocalDate(selectedFakeDate) : selectedFakeDate
             setCurrentFakeDate(newDate)
-            onDateChange?.(newDate)
+            onDateChange?.(canEditSeconds ? newDate : setDateTimeSecondToZero(newDate))
           }}
           lang="en"
         />

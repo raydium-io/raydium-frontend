@@ -7,7 +7,7 @@ import Grid from '@/components/Grid'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import { offsetDateTime, setDateTimeSecondToZero } from '@/functions/date/dateFormat'
+import { offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import parseDuration, { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { isExist } from '@/functions/judgers/nil'
@@ -124,11 +124,9 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
 
                   // set end time
                   if (haveStartTime) {
-                    draft[rewardIndex].endTime = setDateTimeSecondToZero(
-                      offsetDateTime(draft[rewardIndex].startTime, {
-                        milliseconds: totalDuration
-                      })
-                    )
+                    draft[rewardIndex].endTime = offsetDateTime(draft[rewardIndex].startTime, {
+                      milliseconds: totalDuration
+                    })
                   }
 
                   // set amount (only edit-in-rewarding)
@@ -138,11 +136,9 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
 
                   // set start time
                   if (haveEndTime && !haveStartTime) {
-                    const calculatedStartTime = setDateTimeSecondToZero(
-                      offsetDateTime(draft[rewardIndex].endTime, {
-                        milliseconds: -totalDuration
-                      })
-                    )
+                    const calculatedStartTime = offsetDateTime(draft[rewardIndex].endTime, {
+                      milliseconds: -totalDuration
+                    })
                     if (isDateAfter(calculatedStartTime, Date.now())) {
                       draft[rewardIndex].startTime = calculatedStartTime
                     }
@@ -173,15 +169,13 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
                 // set end time
                 if (durationTime) {
                   const diffStartTime = prevStartTime ? currentStartTime - prevStartTime : 0
-                  draft[rewardIndex].endTime = setDateTimeSecondToZero(
-                    offsetDateTime(selectedDate, {
-                      milliseconds: durationTime + diffStartTime
-                    })
-                  )
+                  draft[rewardIndex].endTime = offsetDateTime(selectedDate, {
+                    milliseconds: durationTime + diffStartTime
+                  })
                 }
 
                 // set start time
-                draft[rewardIndex].startTime = setDateTimeSecondToZero(selectedDate)
+                draft[rewardIndex].startTime = selectedDate
               })
             })
           }}
@@ -216,13 +210,11 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
                 const haveStartTime = Boolean(draft[rewardIndex].startTime)
 
                 // set end time
-                draft[rewardIndex].endTime = setDateTimeSecondToZero(selectedDate)
+                draft[rewardIndex].endTime = selectedDate
 
                 // set start time
                 if (durationTime && !haveStartTime) {
-                  draft[rewardIndex].startTime = setDateTimeSecondToZero(
-                    offsetDateTime(selectedDate, { milliseconds: -durationTime })
-                  )
+                  draft[rewardIndex].startTime = offsetDateTime(selectedDate, { milliseconds: -durationTime })
                 }
 
                 // set amount (only edit-in-rewarding)
@@ -239,12 +231,12 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
                     selectedDate.getTime() - draft[rewardIndex].startTime!.getTime()
                   ).days
                   if (durationDays < MIN_DURATION_DAY) {
-                    draft[rewardIndex].startTime = offsetDateTime(setDateTimeSecondToZero(selectedDate), {
+                    draft[rewardIndex].startTime = offsetDateTime(selectedDate, {
                       days: -MIN_DURATION_DAY
                     })
                     setDurationTime(MIN_DURATION)
                   } else if (durationDays > MAX_DURATION_DAY) {
-                    draft[rewardIndex].startTime = offsetDateTime(setDateTimeSecondToZero(selectedDate), {
+                    draft[rewardIndex].startTime = offsetDateTime(selectedDate, {
                       days: -MAX_DURATION_DAY
                     })
                     setDurationTime(MAX_DURATION)
