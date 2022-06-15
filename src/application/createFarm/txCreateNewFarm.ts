@@ -13,7 +13,7 @@ import useWallet from '../wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { padZero } from '@/functions/numberish/handleZero'
 import useConnection from '../connection/useConnection'
-import { offsetDateTime } from '@/functions/date/dateFormat'
+import { offsetDateTime, setDateTimeSecondToZero } from '@/functions/date/dateFormat'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
