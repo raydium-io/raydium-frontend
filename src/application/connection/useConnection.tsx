@@ -7,7 +7,7 @@ import assert from '@/functions/assert'
 import useNotification from '../notification/useNotification'
 
 import { Endpoint, UserCustomizedEndpoint } from './fetchRPCConfig'
-import { setLocalItem } from '@/functions/dom/jStorage'
+import { setLocalItem, setSessionItem } from '@/functions/dom/jStorage'
 import { inServer } from '@/functions/judgers/isSSR'
 import { unifyByKey } from '@/functions/arrayMethods'
 
@@ -28,7 +28,7 @@ export type ConnectionStore = {
   availableEndPoints: Endpoint[]
 
   // for online chain time is later than UTC
-  chainTimeOffset?: number // UTCTime + onlineChainTimeOffset = onLineTime 
+  chainTimeOffset?: number // UTCTime + onlineChainTimeOffset = onLineTime
 
   /**
    * for ui
@@ -63,6 +63,7 @@ export type ConnectionStore = {
   getChainDate: () => Date
 }
 export const LOCALSTORAGE_KEY_USER_RPC = 'USER_RPC'
+export const SESSION_STORAGE_USER_SELECTED_RPC = 'user-selected-rpc'
 /** zustand store hooks */
 const useConnection = create<ConnectionStore>((set, get) => ({
   connection: undefined,
@@ -104,11 +105,15 @@ const useConnection = create<ConnectionStore>((set, get) => ({
         const { logSuccess } = useNotification.getState()
         logSuccess('RPC Switch Success ', `new rpc: ${newEndPoint.name}`)
 
+        // record selection to senssionStorage
+        setSessionItem(SESSION_STORAGE_USER_SELECTED_RPC, newEndPoint)
+
         const isUserAdded = !get()
           .availableEndPoints.map((i) => i.url)
           .includes(newEndPoint.url)
 
         if (isUserAdded) {
+          // record userAdded to localStorage
           setLocalItem(LOCALSTORAGE_KEY_USER_RPC, (v) =>
             unifyByKey(
               [{ ...newEndPoint, isUserCustomized: true } as UserCustomizedEndpoint, ...(v ?? [])],

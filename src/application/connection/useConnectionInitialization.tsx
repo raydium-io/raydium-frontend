@@ -2,10 +2,11 @@ import { useEffect } from 'react'
 
 import { Connection } from '@solana/web3.js'
 
-import useConnection from './useConnection'
+import useConnection, { SESSION_STORAGE_USER_SELECTED_RPC } from './useConnection'
 import caculateEndpointUrlByRpcConfig from './caculateEndpointUrlByRpcConfig'
 import { unifyByKey } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
+import { getSessionItem } from '@/functions/dom/jStorage'
 
 export interface Endpoint {
   name?: string
@@ -42,6 +43,7 @@ const devRpcConfig: Omit<Config, 'success'> = {
 export default function useConnectionInitialization() {
   useEffect(() => {
     useConnection.setState({ isLoading: true })
+
     jFetch<Config>('https://api.raydium.io/v2/main/rpcs')
       .then(async (data) => {
         if (!data) return
@@ -53,12 +55,15 @@ export default function useConnectionInitialization() {
         }
 
         const selectedEndpointUrl = await caculateEndpointUrlByRpcConfig(data)
-        const connection = new Connection(selectedEndpointUrl, 'confirmed')
+        const userSelectedRpc = getSessionItem<Endpoint>(SESSION_STORAGE_USER_SELECTED_RPC)
+
+        const connection = new Connection(userSelectedRpc?.url ?? selectedEndpointUrl, 'confirmed')
 
         useConnection.setState((s) => ({
           availableEndPoints: unifyByKey([...data.rpcs, ...(s.availableEndPoints ?? [])], (i) => i.url),
           autoChoosedEndPoint: data.rpcs.find(({ url }) => url === selectedEndpointUrl),
-          currentEndPoint: s.currentEndPoint ?? data.rpcs.find(({ url }) => url === selectedEndpointUrl),
+          currentEndPoint:
+            s.currentEndPoint ?? userSelectedRpc ?? data.rpcs.find(({ url }) => url === selectedEndpointUrl),
           connection,
           isLoading: false
         }))
