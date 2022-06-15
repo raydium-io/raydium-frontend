@@ -21,6 +21,7 @@ export type DateInputProps = {
   labelClassName?: string
   inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
   disableDateBeforeCurrent?: boolean
+  canEditSeconds?: boolean
   isValidDate?: (date: Date) => boolean
   onDateChange?(selectedDate: Date | undefined): void
 } & Omit<InputProps, 'value' | 'defaultValue'> & {
@@ -38,6 +39,7 @@ export default function DateInput({
   labelClassName,
   inputProps,
   disableDateBeforeCurrent,
+  canEditSeconds,
 
   isValidDate,
   onDateChange,
@@ -56,6 +58,7 @@ export default function DateInput({
           canUserInput={canUserInput}
           onDateChange={onDateChange}
           disableDateBeforeCurrent={disableDateBeforeCurrent}
+          canEditSeconds={canEditSeconds}
           isValidDate={isValidDate}
           defaultValue={defaultValue}
           value={value}
@@ -72,6 +75,7 @@ type DateInputBodyProps = {
   className?: string
   inputProps?: Omit<InputProps, 'defaultValue' | 'value'>
   disableDateBeforeCurrent?: boolean
+  canEditSeconds?: boolean
   canUserInput?: boolean
   onDateChange?(selectedDate: Date | undefined): void
 }
@@ -85,6 +89,7 @@ function DateInputBody({
   defaultValue,
   className,
   disableDateBeforeCurrent,
+  canEditSeconds,
   canUserInput,
   isValidDate,
   onDateChange,
@@ -134,6 +139,7 @@ function DateInputBody({
       </Popover.Button>
       <Popover.Panel>
         <DatePicker
+          className={canEditSeconds ? '' : 'hide-seconds-editor'}
           showTime={Boolean(currentDate)}
           weekday={['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']}
           weekTitle={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}

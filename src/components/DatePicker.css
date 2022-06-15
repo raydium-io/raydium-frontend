@@ -297,6 +297,10 @@
   padding-right: 0 !important;
   padding-bottom: 162px !important;
 }
+
+.hide-seconds-editor .w-timepicker-spinner:nth-child(3) {
+  display: none;
+}
 .w-timepicker-spinner > ul > li + li {
   margin-top: 0 !important;
 }
@@ -327,4 +331,9 @@
 }
 .w-timepicker-spinner + .w-timepicker-spinner ul {
   border-left: 0px solid transparent;
+}
+
+.hide-seconds-editor .w-datepicker-time-btn {
+  width: 47px;
+  overflow: hidden;
 }

@@ -155,6 +155,7 @@ function PanelContent({ close }: { close(): void }) {
       <DateInput
         className="mb-5"
         label="Start time (Optional):"
+        canEditSeconds
         onDateChange={(selectedDate) => useCreatePool.setState({ startTime: selectedDate })}
       />
 
