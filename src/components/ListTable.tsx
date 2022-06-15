@@ -12,6 +12,7 @@ import Col from './Col'
 import useListDataManager from '../hooks/useListDataManager'
 import Grid from './Grid'
 import { twMerge } from 'tailwind-merge'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 interface ListTableHeader<D> {
   key?: MayArray<SKeyof<D>>

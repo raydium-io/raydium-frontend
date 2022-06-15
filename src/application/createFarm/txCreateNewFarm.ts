@@ -12,16 +12,12 @@ import { toPub } from '@/functions/format/toMintString'
 import useWallet from '../wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { padZero } from '@/functions/numberish/handleZero'
-import useStaking from '../staking/useStaking'
-import { gte } from '@/functions/numberish/compare'
 import useConnection from '../connection/useConnection'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 
 export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
-    const { stakeDialogInfo: stakingHydratedInfo } = useStaking.getState()
-    const haveStakeOver300Ray = gte(stakingHydratedInfo?.userStakedLpAmount, 300)
-    // assert(haveStakeOver300Ray, 'Must stake at least 300 Ray')  // FIXME - temp for test
+    const { tokenAccountRawInfos } = useWallet.getState() // TODO: should add tokenAccountRawInfos to `handleMultiTx()`'s baseUtils
 
     const { chainTimeOffset = 0 } = useConnection.getState()
     const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 5 /* force */ }).getTime()
@@ -40,17 +36,14 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
       assert(reward.endTime, 'reward end time is required')
       assert(reward.amount, 'reward amount is required')
       assert(rewardToken, `can't find selected reward token`)
-      const rewardTokenAccount = tokenAccounts.find((t) => isMintEqual(rewardToken.mint, t.mint))
-      assert(rewardTokenAccount?.publicKey, `can't find reward ${rewardToken?.symbol}'s tokenAccount `)
       const durationTime = reward.endTime.getTime() - reward.startTime.getTime()
       const estimatedValue = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
       const perSecondReward = toBN(mul(estimatedValue, padZero(1, rewardToken.decimals)))
       return {
-        rewardStartTime: toBN(div(getMax(testStartTime || reward.startTime.getTime(), currentBlockChainDate), 1000)),
-        rewardEndTime: toBN(div(getMax(testEndTime || reward.endTime.getTime(), currentBlockChainDate), 1000)),
+        rewardOpenTime: toBN(div(getMax(reward.startTime.getTime(), currentBlockChainDate), 1000)),
+        rewardEndTime: toBN(div(getMax(reward.endTime.getTime(), currentBlockChainDate), 1000)),
         rewardMint: rewardToken.mint,
-        rewardPerSecond: perSecondReward,
-        rewardOwnerAccount: rewardTokenAccount.publicKey
+        rewardPerSecond: perSecondReward
       }
     })
 
@@ -63,22 +56,21 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
     const createFarmInstruction = await Farm.makeCreateFarmInstruction({
       poolInfo: {
         lpMint: toPub(lpMint),
+        lockMint: toPub(lockMint),
         version: 6,
         rewardInfos: rewards,
         programId: Farm.getProgramId(6)
       },
       connection,
-      owner,
-      payer: owner,
-      lockInfo: {
-        lockMint: toPub(lockMint),
-        userLockAccount: lockMintTokenAccount.publicKey
+      userKeys: {
+        owner,
+        tokenAccounts: tokenAccountRawInfos
       }
     })
 
     assert(createFarmInstruction, 'createFarm valid failed')
     piecesCollector.addInstruction(...createFarmInstruction.instructions)
-    piecesCollector.addSigner(createFarmInstruction.newAccount)
+    piecesCollector.addSigner(...createFarmInstruction.newAccounts)
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       ...txAddOptions,
       txHistoryInfo: {

@@ -71,9 +71,7 @@ export default function FarmEditPage() {
               setIsRewardInputDialogOpen(true)
               setFocusReward(reward)
             }}
-            onClaimReward={({ reward }) => {
-              txClaimReward({ reward })
-            }}
+            onClaimReward={({ reward, onTxSuccess }) => txClaimReward({ reward, onTxSuccess })}
           />
         </div>
 

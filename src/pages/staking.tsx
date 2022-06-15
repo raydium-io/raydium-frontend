@@ -104,10 +104,10 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
         value={
           <div>
             {info.rewards.map(
-              ({ token, pendingReward, usedTohaveReward }, idx) =>
-                usedTohaveReward && (
+              ({ token, userPendingReward, userHavedReward }, idx) =>
+                userHavedReward && (
                   <div key={idx}>
-                    {toString(pendingReward ?? 0)} {token?.symbol}
+                    {toString(userPendingReward ?? 0)} {token?.symbol}
                   </div>
                 )
             )}
@@ -156,10 +156,10 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
             value={
               <div>
                 {info.rewards.map(
-                  ({ token, pendingReward, usedTohaveReward }, idx) =>
-                    usedTohaveReward && (
+                  ({ token, userPendingReward, userHavedReward }, idx) =>
+                    userHavedReward && (
                       <div key={idx}>
-                        {toString(pendingReward ?? 0)} {token?.symbol ?? ''}
+                        {toString(userPendingReward ?? 0)} {token?.symbol ?? ''}
                       </div>
                     )
                 )}
@@ -210,7 +210,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
   const hasPendingReward = useMemo(
     () =>
       gt(
-        hydratedInfo.rewards.reduce((acc, reward) => add(acc, reward.pendingReward ?? ZERO), new Fraction(ZERO)),
+        hydratedInfo.rewards.reduce((acc, reward) => add(acc, reward.userPendingReward ?? ZERO), new Fraction(ZERO)),
         ZERO
       ),
     [hydratedInfo]
@@ -298,7 +298,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
         <Row className="flex-grow divide-x-1.5 w-full">
           {hydratedInfo.rewards?.map(
             (reward, idx) =>
-              reward.usedTohaveReward && (
+              reward.userHavedReward && (
                 <div
                   key={idx}
                   className={`px-4 ${idx === 0 ? 'pl-0' : ''} ${
@@ -309,11 +309,11 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
                     Pending rewards
                   </div>
                   <div className="text-white font-medium text-base mobile:text-xs">
-                    {toString(reward.pendingReward ?? 0)} {reward.token?.symbol}
+                    {toString(reward.userPendingReward ?? 0)} {reward.token?.symbol}
                   </div>
                   <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-                    {prices?.[String(reward.token?.mint)] && reward?.pendingReward
-                      ? toUsdVolume(toTotalPrice(reward.pendingReward, prices[String(reward.token?.mint)]))
+                    {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
+                      ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
                       : '--'}
                   </div>
                 </div>
@@ -327,7 +327,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
             txFarmHarvest(hydratedInfo, {
               isStaking: true,
               rewardAmounts: hydratedInfo.rewards
-                .map(({ pendingReward }) => pendingReward)
+                .map(({ userPendingReward }) => userPendingReward)
                 .filter(isMeaningfulNumber) as TokenAmount[]
             })
           }}

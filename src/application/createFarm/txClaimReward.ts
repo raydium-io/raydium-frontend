@@ -1,20 +1,21 @@
 import { Farm, jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
+import { Connection, Signer, TransactionInstruction } from '@solana/web3.js'
 
-import assert from '@/functions/assert'
-
-import handleMultiTx, { TxAddOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import useCreateFarms from './useCreateFarm'
-import toPubString, { toPub } from '@/functions/format/toMintString'
-import useWallet from '../wallet/useWallet'
+import handleMultiTx, { TxAddOptions } from '@/application/txTools/handleMultiTx'
+import assert from '@/functions/assert'
+import toPubString from '@/functions/format/toMintString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import useFarms from '../farms/useFarms'
 import { HydratedFarmInfo } from '../farms/type'
+import useFarms from '../farms/useFarms'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
+import { SOLMint } from '../token/wellknownToken.config'
+import useWallet from '../wallet/useWallet'
 import { UIRewardInfo } from './type'
-import { TransactionInstruction } from '@solana/web3.js'
+import useCreateFarms from './useCreateFarm'
 
 export default async function txClaimReward({ reward, ...txAddOptions }: { reward: UIRewardInfo } & TxAddOptions) {
-  return handleMultiTx(async ({ transactionCollector }) => {
+  return handleMultiTx(async ({ transactionCollector, baseUtils: { connection } }) => {
     const piecesCollector = createTransactionCollector()
 
     // ---------- generate basic info ----------
@@ -25,7 +26,9 @@ export default async function txClaimReward({ reward, ...txAddOptions }: { rewar
     assert(farmInfo, "can't find target farm")
 
     // ---------- restart ----------
-    piecesCollector.addInstruction(createClaimRewardInstruction({ reward, farmInfo }))
+    const { instructions, newAccounts } = await createClaimRewardInstruction({ reward, farmInfo, connection })
+    piecesCollector.addInstruction(...instructions)
+    piecesCollector.addSigner(...newAccounts)
 
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       ...txAddOptions,
@@ -37,24 +40,31 @@ export default async function txClaimReward({ reward, ...txAddOptions }: { rewar
   })
 }
 
-function createClaimRewardInstruction({
+async function createClaimRewardInstruction({
+  connection,
   reward,
   farmInfo
 }: {
+  connection: Connection
   reward: UIRewardInfo
   farmInfo: HydratedFarmInfo
-}): TransactionInstruction {
-  const { tokenAccounts, owner } = useWallet.getState()
+}): Promise<{
+  newAccounts: Signer[]
+  instructions: TransactionInstruction[]
+}> {
+  const { owner, tokenAccountRawInfos } = useWallet.getState()
   assert(owner, `wallet not connected`)
   assert(isMintEqual(owner, reward.owner), `reward is not created by walletOwner`)
-  const rewardTokenAccount = tokenAccounts.find((t) => isMintEqual(reward.token?.mint, t.mint))
-  assert(rewardTokenAccount?.publicKey, `can't find reward ${reward.token?.symbol}'s tokenAccount`)
+  assert(reward.token, `reward token haven't set`)
 
-  const withdrawFarmInstruction = Farm.makeWithdrawFarmRewardInstruction({
-    owner,
+  const withdrawFarmInstruction = Farm.makeCreatorWithdrawFarmRewardInstruction({
+    connection,
     poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
-    rewardVault: toPub(String(reward.id)),
-    userVault: rewardTokenAccount.publicKey
+    userKeys: {
+      tokenAccounts: tokenAccountRawInfos,
+      owner
+    },
+    withdrawMint: isQuantumSOLVersionSOL(reward.token) ? SOLMint : reward.token?.mint
   })
 
   assert(withdrawFarmInstruction, 'withdraw farm valid failed')

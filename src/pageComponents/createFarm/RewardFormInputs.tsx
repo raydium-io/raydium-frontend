@@ -33,7 +33,7 @@ function useStateWithSuperPreferential<T>(
 }
 
 const MAX_DURATION_DAY = 90
-const MIN_DURATION_DAY = 7
+const MIN_DURATION_DAY = 0 /* FIXME: for Test */
 const MAX_DURATION = MAX_DURATION_DAY * 24 * 60 * 60 * 1000
 const MIN_DURATION = MIN_DURATION_DAY * 24 * 60 * 60 * 1000
 const MAX_DURATION_TEXT = `${MAX_DURATION_DAY}D`
@@ -69,7 +69,7 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
       <CoinInputBoxWithTokenSelector
         className={`rounded-md`}
         haveHalfButton
-        topLeftLabel="Assert"
+        topLeftLabel="Reward Token"
         disableTokenMints={shakeUndifindedItem(rewards.map((r) => r.token?.mint))}
         disabled={disableCoinInput}
         value={toString(reward.amount)}
@@ -93,7 +93,7 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
       <Row className="gap-4">
         <InputBox
           className="grow-2 rounded-md text-sm font-medium text-white px-4"
-          label="Day and Hours"
+          label="Total Duration"
           value={getStringFromDuration(durationTime)}
           pattern={[
             /^(?:(\d+)D?)? ?(?:(\d+)H?)?$/i,
@@ -151,7 +151,7 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
 
         <DateInput
           className="grow rounded-md px-4"
-          label="Farming Start"
+          label="Farming Starts"
           inputProps={{
             inputClassName: 'text-sm font-medium text-white'
           }}

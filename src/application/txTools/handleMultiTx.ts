@@ -138,7 +138,7 @@ export type TransactionCollector = {
 }
 
 // TODO: should also export addTxSuccessListener() and addTxErrorListener() and addTxFinallyListener()
-type FinalInfos = {
+export type TxResponseInfos = {
   allSuccess: boolean
   txids: string[]
   // errorAt?: number // only if `allSuccess` is false
@@ -155,7 +155,10 @@ export type TxShadowOptions = {
  * 1. provide tools for a tx action
  * 2. auto handle txError and txSuccess
  */
-export default async function handleMultiTx(txAction: MultiTxAction, options?: TxShadowOptions): Promise<FinalInfos> {
+export default async function handleMultiTx(
+  txAction: MultiTxAction,
+  options?: TxShadowOptions
+): Promise<TxResponseInfos> {
   return new Promise((resolve, reject) =>
     (async () => {
       const callbackCollection: TxOptionsCollection = {
@@ -260,7 +263,7 @@ async function sendMultiTransactionAndLogAndRecord(options: {
     // only if have been shadow open
     signerkeyPair?: TxKeypairDetective
   }
-}): Promise<FinalInfos> {
+}): Promise<TxResponseInfos> {
   const { logError, logTxid } = useNotification.getState()
   return new Promise((resolve, reject) =>
     (async () => {

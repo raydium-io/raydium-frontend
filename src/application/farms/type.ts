@@ -79,11 +79,11 @@ export type SdkParsedFarmInfo = UnionCover<
 >
 
 export type HydratedRewardInfo = {
-  usedTohaveReward: boolean
+  userHavedReward: boolean
   apr: Percent | undefined // farm's rewards apr
   token: SplToken | undefined
   /** only when user have deposited and connected wallet */
-  pendingReward: TokenAmount | undefined
+  userPendingReward: TokenAmount | undefined
   version: 3 | 5 | 6
   rewardVault: PublicKey
   openTime?: Date // v6
@@ -92,6 +92,8 @@ export type HydratedRewardInfo = {
   isRewardBeforeStart?: boolean // v6
   isRewardEnded?: boolean // v6
   isRwardingBeforeEnd72h?: boolean // v6
+
+  claimableRewards?: TokenAmount // v6
   owner?: string // v6
   perSecond?: string | number // v6
 }

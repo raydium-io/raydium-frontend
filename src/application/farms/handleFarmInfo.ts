@@ -31,6 +31,7 @@ import { toString } from '@/functions/numberish/toString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { toPercent } from '@/functions/format/toPercent'
+import { sub } from '@/functions/numberish/operations'
 
 function getMaxOpenTime(i: APIRewardInfo[]) {
   return Math.max(...i.map((r) => r.rewardOpenTime))
@@ -55,7 +56,7 @@ export async function mergeSdkFarmInfo(
     jsonInfos: FarmPoolJsonInfo[]
   }
 ): Promise<SdkParsedFarmInfo[]> {
-  const rawInfos = await Farm.fetchMultipleInfo(options)
+  const rawInfos = await Farm.fetchMultipleInfoAndUpdate(options)
   const result = options.pools.map(
     (pool, idx) =>
       ({
@@ -138,16 +139,18 @@ export function hydrateFarmInfo(
             const onlineCurrentDate = Date.now() + (payload.chainTimeOffset ?? 0)
             if (!rewardOpenTime && !rewardEndTime) return undefined // if reward is not any state, return undefined to delete it
 
+            const token = payload.getToken(toPubString(rewardInfo.rewardMint ?? farmInfo.rewardInfos[idx]?.rewardMint))
             const isRewardBeforeStart = Boolean(rewardOpenTime && isDateBefore(onlineCurrentDate, rewardOpenTime))
             const isRewardEnded = Boolean(rewardEndTime && isDateAfter(onlineCurrentDate, rewardEndTime))
             const isRewarding = (!rewardOpenTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
             const isRwardingBeforeEnd72h =
               isRewarding &&
               isDateAfter(onlineCurrentDate, offsetDateTime(rewardEndTime, { hours: -1 /* NOTE - test */ /* -72 */ }))
+            const claimableRewards =
+              token && toTokenAmount(token, sub(rewardInfo.totalReward, rewardInfo.totalRewardEmissioned))
 
             const pendingReward = pendingRewards?.[idx]
             const apr = aprs[idx]
-            const token = payload.getToken(toPubString(rewardInfo.rewardMint ?? farmInfo.rewardInfos[idx]?.rewardMint))
             const usedTohaveReward = Boolean(rewardEndTime)
 
             return {
@@ -155,15 +158,17 @@ export function hydrateFarmInfo(
               owner: farmInfo.rewardInfos[idx]?.rewardSender,
               apr: apr,
               token,
-              pendingReward,
-              usedTohaveReward,
+              userPendingReward: pendingReward,
+              userHavedReward: usedTohaveReward,
               perSecond: token && toString(toTokenAmount(token, rewardPerSecond)),
               openTime: rewardOpenTime,
               endTime: rewardEndTime,
               isRewardBeforeStart,
               isRewardEnded,
               isRewarding,
-              isRwardingBeforeEnd72h
+              isRwardingBeforeEnd72h,
+              claimableRewards,
+              version: 6
             }
           })
         )
@@ -178,8 +183,9 @@ export function hydrateFarmInfo(
             ...rewardInfo,
             apr,
             token,
-            pendingReward,
-            usedTohaveReward
+            userPendingReward: pendingReward,
+            userHavedReward: usedTohaveReward,
+            version: farmInfo.version
           }
         })
   const userStakedLpAmount =

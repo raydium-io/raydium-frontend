@@ -1,6 +1,8 @@
 import assert from '@/functions/assert'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { PublicKeyish, Spl } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
+import { WSOLMint } from '../token/quantumSOL'
 
 import useWallet from '../wallet/useWallet'
 import { TransactionPiecesCollector } from './createTransaction'
@@ -8,6 +10,7 @@ import { TransactionPiecesCollector } from './createTransaction'
 export default async function createAssociatedTokenAccountIfNotExist(payload: {
   collector: TransactionPiecesCollector
   mint: PublicKeyish
+  autoUnwrapWSOLToSOL?: boolean
 }): Promise<PublicKey> {
   const mint = new PublicKey(payload.mint)
   const { owner, whetherTokenAccountIsExist, findTokenAccount } = useWallet.getState()
@@ -28,5 +31,11 @@ export default async function createAssociatedTokenAccountIfNotExist(payload: {
   // add this instruction
   payload.collector.addInstruction(instruction)
 
+  /* ----------------------------- auto close WSOL ---------------------------- */
+  if (payload.autoUnwrapWSOLToSOL && isMintEqual(ataAddress, WSOLMint)) {
+    payload.collector.addEndInstruction(
+      Spl.makeCloseAccountInstruction({ owner, payer: owner, tokenAccount: ataAddress })
+    )
+  }
   return ataAddress
 }

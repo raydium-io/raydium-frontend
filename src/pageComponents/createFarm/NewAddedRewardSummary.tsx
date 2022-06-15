@@ -36,14 +36,14 @@ export function NewAddedRewardSummary({
       getItemKey={(r) => getRewardSignature(r)}
       labelMapper={[
         {
-          label: 'Asset',
+          label: 'Reward Token',
           cssGridItemWidth: '.6fr'
         },
         {
           label: 'Amount'
         },
         {
-          label: 'Day and Hours',
+          label: 'Total Duration',
           cssGridItemWidth: '.6fr'
         },
         {
@@ -65,7 +65,7 @@ export function NewAddedRewardSummary({
         onActiveRewardChange?.(reward)
       }}
       renderRowItem={({ item: reward, label }) => {
-        if (label === 'Asset') {
+        if (label === 'Reward Token') {
           return reward.token ? (
             <Row className="gap-1 items-center">
               <CoinAvatar token={reward.token} size="sm" />
@@ -85,7 +85,7 @@ export function NewAddedRewardSummary({
           ) : undefined
         }
 
-        if (label === 'Day and Hours') {
+        if (label === 'Total Duration') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
           if (!reward.startTime || !reward.endTime) return
           const duration = parseDuration(getDuration(reward.endTime, reward.startTime))

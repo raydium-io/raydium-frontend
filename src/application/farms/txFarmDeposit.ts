@@ -1,16 +1,16 @@
 import { Farm, jsonInfo2PoolKeys, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import createAssociatedTokenAccountIfNotExist from '@/application/txTools/createAssociatedTokenAccountIfNotExist'
+import { createTransactionCollector } from '@/application/txTools/createTransaction'
+import handleMultiTx from '@/application/txTools/handleMultiTx'
 import {
   addWalletAccountChangeListener,
   removeWalletAccountChangeListener
 } from '@/application/wallet/useWalletAccountChangeListeners'
 import assert from '@/functions/assert'
-
+import asyncMap from '@/functions/asyncMap'
 import { HydratedFarmInfo } from './type'
 import useFarms from './useFarms'
-import handleMultiTx from '@/application/txTools/handleMultiTx'
-import { createTransactionCollector } from '@/application/txTools/createTransaction'
 
 export default async function txFarmDeposit(
   info: HydratedFarmInfo,
@@ -30,11 +30,12 @@ export default async function txFarmDeposit(
     })
 
     // ------------- add rewards token transaction --------------
-    const rewardTokenAccountsPublicKeys = await Promise.all(
-      jsonFarmInfo!.rewardInfos.map(
-        async ({ rewardMint }) =>
-          await createAssociatedTokenAccountIfNotExist({ collector: piecesCollector, mint: rewardMint })
-      )
+    const rewardTokenAccountsPublicKeys = await asyncMap(jsonFarmInfo.rewardInfos, ({ rewardMint }) =>
+      createAssociatedTokenAccountIfNotExist({
+        collector: piecesCollector,
+        mint: rewardMint,
+        autoUnwrapWSOLToSOL: true
+      })
     )
 
     // ------------- add farm deposit transaction --------------
