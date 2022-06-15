@@ -52,6 +52,7 @@ import LoadingCircle from '@/components/LoadingCircle'
 import toPubString from '@/functions/format/toMintString'
 import { Badge } from '@/components/Badge'
 import { isFarmJsonInfo } from '@/application/farms/utils/judgeFarmInfo'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function FarmsPage() {
   return (
@@ -927,8 +928,7 @@ function FarmStakeLpDialog() {
   const stakeDialogMode = useFarms((s) => s.stakeDialogMode)
 
   const [amount, setAmount] = useState<string>()
-
-  const userHasLp = useMemo(
+  const userHasLpAccount = useMemo(
     () =>
       Boolean(stakeDialogFarmInfo?.lpMint) &&
       tokenAccounts.some(({ mint }) => String(mint) === String(stakeDialogFarmInfo?.lpMint)),
@@ -1011,8 +1011,8 @@ function FarmStakeLpDialog() {
                 { should: isAvailableInput },
                 { should: amount },
                 {
-                  should: userHasLp,
-                  fallbackProps: { children: stakeDialogMode === 'withdraw' ? 'No Unstakable LP' : 'No Stakable LP' }
+                  should: stakeDialogMode == 'withdraw' ? true : userHasLpAccount,
+                  fallbackProps: { children: 'No Stakable LP' }
                 }
               ]}
               onClick={() => {
