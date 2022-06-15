@@ -148,7 +148,6 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
             }
           }}
         />
-
         <DateInput
           className="grow rounded-md px-4"
           label="Farming Starts"
@@ -164,36 +163,23 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
               rewards: produce(rewards, (draft) => {
                 if (!draft[rewardIndex]) return
 
-                const haveEndTime = Boolean(draft[rewardIndex].endTime)
+                const prevStartTime = draft[rewardIndex].startTime?.getTime()
+                const currentStartTime = selectedDate.getTime()
+
+                // set end time
+                if (durationTime) {
+                  const diffStartTime = prevStartTime ? currentStartTime - prevStartTime : 0
+                  draft[rewardIndex].endTime = offsetDateTime(selectedDate, {
+                    milliseconds: durationTime + diffStartTime
+                  })
+                }
 
                 // set start time
                 draft[rewardIndex].startTime = selectedDate
-
-                // set end time
-                if (durationTime && !haveEndTime) {
-                  draft[rewardIndex].endTime = offsetDateTime(selectedDate, { milliseconds: durationTime })
-                }
-
-                // set duration days
-                if (haveEndTime) {
-                  const durationDays = parseDurationAbsolute(
-                    draft[rewardIndex].endTime!.getTime() - selectedDate.getTime()
-                  ).days
-                  if (durationDays < MIN_DURATION_DAY) {
-                    draft[rewardIndex].endTime = offsetDateTime(selectedDate, { days: MIN_DURATION_DAY })
-                    setDurationTime(MIN_DURATION)
-                  } else if (durationDays > MAX_DURATION_DAY) {
-                    draft[rewardIndex].endTime = offsetDateTime(selectedDate, { days: MAX_DURATION_DAY })
-                    setDurationTime(MAX_DURATION)
-                  } else {
-                    setDurationTime(durationDays)
-                  }
-                }
               })
             })
           }}
         />
-
         <DateInput
           className="shrink-0 grow rounded-md px-4"
           label="Farming Ends"
