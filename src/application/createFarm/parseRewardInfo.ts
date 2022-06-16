@@ -4,6 +4,7 @@ import toPubString from '@/functions/format/toMintString'
 import { mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { HydratedRewardInfo } from '../farms/type'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { UIRewardInfo } from './type'
 
 let lastTempUIRewardId = 1
@@ -45,7 +46,7 @@ export function parsedHydratedRewardInfoToUiRewardInfo(reward: HydratedRewardInf
 export function getRewardSignature(reward: Omit<UIRewardInfo, 'originData'>): string {
   return [
     reward.id,
-    toPubString(reward.token?.mint),
+    isQuantumSOLVersionSOL(reward.token) ? 'sol' : toPubString(reward.token?.mint), // TODO: SplToken's toSignature() (not imply yet)
     toString(reward.amount),
     toString(reward.restAmount),
     reward.endTime?.toString(),

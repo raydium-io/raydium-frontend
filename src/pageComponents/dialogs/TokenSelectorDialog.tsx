@@ -1,13 +1,14 @@
-import React, { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
-
-import { PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
-import { PublicKey } from '@solana/web3.js'
-
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
+import {
+  isQuantumSOL,
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  QuantumSOLVersionSOL
+} from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { SupportedTokenListSettingName } from '@/application/token/useToken'
-import { isQuantumSOL, QuantumSOLVersionSOL } from '@/application/token/quantumSOL'
+import { createSplToken } from '@/application/token/useTokenListsLoader'
 import { RAYMint, USDCMint, USDTMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
@@ -19,21 +20,28 @@ import Image from '@/components/Image'
 import Input from '@/components/Input'
 import InputBox from '@/components/InputBox'
 import List from '@/components/List'
+import ListFast from '@/components/ListFast'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import Switcher from '@/components/Switcher'
 import toPubString from '@/functions/format/toMintString'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
-import { createSplToken } from '@/application/token/useTokenListsLoader'
-import ListFast from '../../components/ListFast'
-import { isMintEqual } from '@/functions/judgers/areEqual'
+import { PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
+import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
 
 export type TokenSelectorProps = {
   open: boolean
   close: () => void
   onSelectCoin?: (token: SplToken) => unknown
-  disableTokenMints?: PublicKeyish[]
+  disableTokens?: (SplToken | PublicKeyish)[]
+  /**
+   * if it select WSOL it can also select SOL, if it select SOL, can also select WSOL\
+   * usually used with `disableTokens`
+   */
+  canSelectQuantumSOL?: boolean
 }
 
 export default function TokenSelectorDialog(props: TokenSelectorProps) {
@@ -50,7 +58,13 @@ export default function TokenSelectorDialog(props: TokenSelectorProps) {
   )
 }
 
-function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin, disableTokenMints }: TokenSelectorProps) {
+function TokenSelectorDialogContent({
+  open,
+  close: closePanel,
+  onSelectCoin,
+  disableTokens,
+  canSelectQuantumSOL
+}: TokenSelectorProps) {
   const tokenListSettings = useToken((s) => s.tokenListSettings)
   const getToken = useToken((s) => s.getToken)
 
@@ -67,14 +81,21 @@ function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin, dis
     closePanel?.()
   }, [])
 
-  function isTokenDisabled(mint: PublicKey): boolean {
-    return disableTokenMints ? disableTokenMints.some((disableMint) => isMintEqual(disableMint, mint)) : false
+  function isTokenDisabled(candidateToken: SplToken): boolean {
+    return disableTokens
+      ? disableTokens.some((disableToken) => {
+          if (canSelectQuantumSOL && isQuantumSOL(disableToken)) {
+            if (isQuantumSOLVersionSOL(disableToken) && isQuantumSOLVersionSOL(candidateToken)) return true
+            if (isQuantumSOLVersionWSOL(disableToken) && isQuantumSOLVersionWSOL(candidateToken)) return true
+            return false
+          }
+          return isMintEqual(disableToken, candidateToken)
+        })
+      : false
   }
 
   const sourceTokens = useToken((s) => s.allSelectableTokens)
-  const sortedTokens = disableTokenMints?.length
-    ? sourceTokens.filter(({ mint }) => !isTokenDisabled(mint))
-    : sourceTokens
+  const sortedTokens = disableTokens?.length ? sourceTokens.filter((token) => !isTokenDisabled(token)) : sourceTokens
 
   // by user's search text
   const originalSearchedTokens = useMemo(
@@ -244,10 +265,10 @@ function TokenSelectorDialogContent({ open, close: closePanel, onSelectCoin, dis
                   <Row
                     key={toPubString(isQuantumSOL(mintish) ? mintish.mint : mintish)}
                     className={`gap-1 py-1 px-2 mobile:py-1.5 mobile:px-2.5 rounded ring-1 ring-inset ring-[rgba(171,196,255,.3)] items-center flex-wrap ${
-                      token?.mint && isTokenDisabled(token.mint) ? 'not-clickable' : 'clickable clickable-filter-effect'
+                      token?.mint && isTokenDisabled(token) ? 'not-clickable' : 'clickable clickable-filter-effect'
                     }`}
                     onClick={() => {
-                      if (token && isTokenDisabled(token?.mint)) return
+                      if (token && isTokenDisabled(token)) return
                       closeAndClean()
                       if (token && onSelectCoin) onSelectCoin(token)
                     }}

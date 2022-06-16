@@ -70,7 +70,8 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
         className={`rounded-md`}
         haveHalfButton
         topLeftLabel="Reward Token"
-        disableTokenMints={shakeUndifindedItem(rewards.map((r) => r.token?.mint))}
+        disableTokens={shakeUndifindedItem(rewards.map((r) => r.token))}
+        canSelectQuantumSOL={Boolean(reward.token)}
         disabled={disableCoinInput}
         value={toString(reward.amount)}
         token={reward.token}
