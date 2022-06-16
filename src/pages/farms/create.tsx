@@ -220,7 +220,8 @@ export default function CreateFarmPage() {
                 fallbackProps: {
                   onClick: () => {
                     PoolIdInputBlockRef.current?.validate?.()
-                  }
+                  },
+                  children: 'Select A Pool'
                 }
               },
               {
@@ -261,7 +262,7 @@ export default function CreateFarmPage() {
               {
                 should: meaningFullRewards.every((r) => isMeaningfulNumber(r.amount)),
                 fallbackProps: {
-                  children: 'not eligible token amount'
+                  children: 'Not eligible token amount'
                 }
               },
               {
@@ -277,7 +278,7 @@ export default function CreateFarmPage() {
                   return isMeaningfulNumber(estimatedValue)
                 }),
                 fallbackProps: {
-                  children: 'not eligible token amount'
+                  children: 'Not eligible token amount'
                 }
               }
             ]}
