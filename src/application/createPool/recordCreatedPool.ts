@@ -3,8 +3,8 @@ import { unifyByKey } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
 import { setLocalItem } from '@/functions/dom/jStorage'
 
-import { CreatedPoolRecord } from '../type'
-import useCreatePool from '../useCreatePool'
+import { CreatedPoolRecord } from './type'
+import useCreatePool from './useCreatePool'
 
 export function recordCreatedPool() {
   const { lpMint, marketId, ammId, baseMint, quoteMint, baseDecimals, quoteDecimals } = useCreatePool.getState()

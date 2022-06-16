@@ -22,7 +22,7 @@ import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 
-import useCreatePool from '../useCreatePool'
+import useCreatePool from './useCreatePool'
 
 export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }): Promise<{ isSuccess: boolean }> {
   try {
