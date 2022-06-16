@@ -87,6 +87,7 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
         disabled={disableCoinInput}
         value={toString(reward.amount)}
         token={reward.token}
+        disabledTokenSelect={reward.isRewardBeforeStart || reward.isRewarding || reward.isRewardEnded}
         onSelectCoin={(token) => {
           useCreateFarms.setState({
             rewards: produce(rewards, (draft) => {

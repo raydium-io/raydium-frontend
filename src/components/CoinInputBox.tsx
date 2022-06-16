@@ -268,7 +268,9 @@ export default function CoinInputBox({
               <div className="text-[rgb(171,196,255)] font-medium text-base flex-grow mobile:text-sm whitespace-nowrap">
                 {token?.symbol ?? '--'}
               </div>
-              {showTokenSelectIcon && <Icon size="xs" heroIconName="chevron-down" className="text-[#ABC4FF]" />}
+              {showTokenSelectIcon && !disabledTokenSelect && (
+                <Icon size="xs" heroIconName="chevron-down" className="text-[#ABC4FF]" />
+              )}
             </Row>
             {/* divider */}
             <div className="my-1 mx-4 mobile:my-0 mobile:mx-2 border-r border-[rgba(171,196,255,0.5)] self-stretch" />

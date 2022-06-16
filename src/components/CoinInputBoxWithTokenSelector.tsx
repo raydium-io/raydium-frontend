@@ -18,7 +18,7 @@ export default function CoinInputBoxWithTokenSelector({ tokenSelectorProps, ...p
       <CoinInputBox
         {...props}
         haveCoinIcon
-        showTokenSelectIcon
+        showTokenSelectIcon={!props.disabledTokenSelect}
         onTryToTokenSelect={() => {
           turnOnCoinSelector()
           props.onTryToTokenSelect?.()
