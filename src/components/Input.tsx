@@ -260,7 +260,7 @@ export default function Input(props: InputProps) {
             inputClassName ?? ''
           }`} // start html input with only 2rem, if need width please define it in parent div
           placeholder={placeholder ? String(placeholder) : undefined}
-          disabled={disabled}
+          disabled={disabled || disableUserInput}
           onChange={(ev) => {
             // for onChange is frequest but hight prority action. startTransition so react can abort it
             startTransition(() => {
