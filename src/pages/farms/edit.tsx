@@ -1,27 +1,27 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
+import { createNewUIRewardInfo, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
+import txClaimReward from '@/application/createFarm/txClaimReward'
+import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
+import { routeBack, routeTo } from '@/application/routeTools'
+import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
+import Button from '@/components/Button'
 import Card from '@/components/Card'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
+import { parseDurationAbsolute } from '@/functions/date/parseDuration'
+import toPubString from '@/functions/format/toMintString'
+import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { div } from '@/functions/numberish/operations'
+import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import RewardInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
 import produce from 'immer'
 import { useState } from 'react'
-import { createNewUIRewardInfo, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
-import { UIRewardInfo } from '@/application/createFarm/type'
-import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
-import { ExistedEditRewardSummary } from '../../pageComponents/createFarm/ExistedRewardEditSummary'
-import Button from '@/components/Button'
-import { routeBack, routeTo } from '@/application/routeTools'
-import txClaimReward from '@/application/createFarm/txClaimReward'
-import { isDateBefore } from '@/functions/date/judges'
-import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
-import useWallet from '@/application/wallet/useWallet'
-import toPubString from '@/functions/format/toMintString'
-import { parseDurationAbsolute } from '@/functions/date/parseDuration'
-import { div } from '@/functions/numberish/operations'
-import useAppSettings from '@/application/appSettings/useAppSettings'
 import { twMerge } from 'tailwind-merge'
+import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
 
 function NavButtons({ className }: { className?: string }) {
   return (
@@ -41,7 +41,7 @@ function NavButtons({ className }: { className?: string }) {
 export default function FarmEditPage() {
   const walletConnected = useWallet((s) => s.connected)
   const balances = useWallet((s) => s.balances)
-  const { rewards: allRewards, cannotAddNewReward } = useCreateFarms()
+  const { rewards: allRewards, cannotAddNewReward, farmId } = useCreateFarms()
   const [isRewardInputDialogOpen, setIsRewardInputDialogOpen] = useState(false)
   const [focusReward, setFocusReward] = useState<UIRewardInfo>()
   const canAddRewardInfo = !cannotAddNewReward && allRewards.length < 5
@@ -56,7 +56,24 @@ export default function FarmEditPage() {
     <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
       <NavButtons />
       <div className="self-center w-[min(720px,90vw)]">
-        <div className="mb-10 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Edit Farm</div>
+        <Row className="mb-10 justify-self-start items-baseline gap-2">
+          <div className="text-2xl mobile:text-lg font-semibold text-white">Edit Farm</div>
+          {farmId && (
+            <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">
+              <div className="inline-block ml-1">
+                <AddressItem
+                  className="flex-nowrap whitespace-nowrap"
+                  canCopy
+                  iconClassName="hidden"
+                  textClassName="text-sm mobile:text-xs font-semibold text-[#abc4ff80] whitespace-nowrap"
+                  showDigitCount={6}
+                >
+                  {farmId}
+                </AddressItem>
+              </div>
+            </div>
+          )}
+        </Row>
 
         <div className="mb-8">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Pool</div>

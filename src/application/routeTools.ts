@@ -17,7 +17,6 @@ import toPubString from '@/functions/format/toMintString'
 import useWallet from './wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { createNewUIRewardInfo, parsedHydratedRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
-import CreateFarmPage from '@/pages/farms/create'
 
 export type PageRouteConfigs = {
   '/swap': {

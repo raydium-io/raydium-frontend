@@ -14,10 +14,11 @@ import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRew
 import { createNewUIRewardInfo, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import txUpdateEdited from '@/application/createFarm/txUpdateFarm'
 import useFarms from '@/application/farms/useFarms'
+import { AddressItem } from '@/components/AddressItem'
 
 export default function EditReviewPage() {
   const getToken = useToken((s) => s.getToken)
-  const { poolId, rewards } = useCreateFarms()
+  const { poolId, rewards, farmId } = useCreateFarms()
   const canCreateFarm = useMemo(
     () =>
       tryCatch(
@@ -42,7 +43,24 @@ export default function EditReviewPage() {
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(720px,90vw)]">
-        <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Edit Farm</div>
+        <Row className="mb-8 justify-self-start items-baseline gap-2">
+          <div className="text-2xl mobile:text-lg font-semibold text-white">Edit Farm</div>
+          {farmId && (
+            <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">
+              <div className="inline-block ml-1">
+                <AddressItem
+                  className="flex-nowrap whitespace-nowrap"
+                  canCopy
+                  iconClassName="hidden"
+                  textClassName="text-sm mobile:text-xs font-semibold text-[#abc4ff80] whitespace-nowrap"
+                  showDigitCount={6}
+                >
+                  {farmId}
+                </AddressItem>
+              </div>
+            </div>
+          )}
+        </Row>
 
         <div className="mb-8 text-xl mobile:text-lg font-semibold justify-self-start text-white">
           Review edited farm details

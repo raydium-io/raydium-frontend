@@ -1,8 +1,6 @@
 import React, { ReactNode, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
-import { Token } from '@raydium-io/raydium-sdk'
-
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
