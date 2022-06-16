@@ -2,11 +2,10 @@ import { useEffect } from 'react'
 
 import { Token, WSOL } from '@raydium-io/raydium-sdk'
 
-import { shakeUndifindedItem, unifyItem } from '@/functions/arrayMethods'
 import { asyncMapAllSettled } from '@/functions/asyncMap'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
-import toPubString, { recordPubString } from '@/functions/format/toMintString'
+import toPubString from '@/functions/format/toMintString'
 import { HexAddress, PublicKeyish, SrcAddress } from '@/types/constants'
 
 import { objectMap, replaceValue } from '../../functions/objectMethods'
@@ -24,11 +23,16 @@ import useToken, {
 } from './useToken'
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
 import { isRaydiumDevTokenListName, isRaydiumMainnetTokenListName, rawTokenListConfigs } from './rawTokenLists.config'
+import { SOLMint } from './wellknownToken.config'
 
 export default function useTokenListsLoader() {
   useEffect(() => {
     loadTokens()
   }, [])
+}
+
+function deleteFetchedNativeSOLToken(tokenJsons: TokenJson[]) {
+  return tokenJsons.filter((tj) => tj.mint !== toPubString(SOLMint))
 }
 
 // function uniqueItems<T>(items: T[], mapper?: (old: S)=>):T
@@ -51,8 +55,8 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
     const response = await jFetch<RaydiumTokenListJsonInfo | RaydiumDevTokenListJsonInfo>(raw.url)
     if (isRaydiumMainnetTokenListName(response)) {
       unOfficialMints.push(...response.unOfficial.map(({ mint }) => mint))
-      officialMints.push(...response.official.map(({ mint }) => mint))
-      tokens.push(...response.official, ...response.unOfficial)
+      officialMints.push(...deleteFetchedNativeSOLToken(response.official).map(({ mint }) => mint))
+      tokens.push(...deleteFetchedNativeSOLToken(response.official), ...response.unOfficial)
       blacklist.push(...response.blacklist)
     }
     if (isRaydiumDevTokenListName(response)) {
