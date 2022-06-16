@@ -19,13 +19,15 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
   if (!newRewards.length) return null
   return (
     <div className={className}>
-      <div className={activeReward ? 'mb-8' : 'mb-2'}>
-        <NewAddedRewardSummary
-          canUserEdit
-          activeReward={activeReward}
-          onActiveRewardChange={(r) => setActiveRewardId(r.id)}
-        />
-      </div>
+      {newRewards.length >= 2 && (
+        <div className={`${activeReward ? 'pb-8' : 'pb-2'}`}>
+          <NewAddedRewardSummary
+            canUserEdit
+            activeReward={activeReward}
+            onActiveRewardChange={(r) => setActiveRewardId(r.id)}
+          />
+        </div>
+      )}
       <Grid className="grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-8">
         <FadeIn>
           {activeReward && (
