@@ -174,15 +174,9 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
               rewards: produce(rewards, (draft) => {
                 if (!draft[rewardIndex]) return
 
-                const prevStartTime = draft[rewardIndex].startTime?.getTime()
-                const currentStartTime = selectedDate.getTime()
-
                 // set end time
                 if (durationTime) {
-                  const diffStartTime = prevStartTime ? currentStartTime - prevStartTime : 0
-                  draft[rewardIndex].endTime = offsetDateTime(selectedDate, {
-                    milliseconds: durationTime + diffStartTime
-                  })
+                  draft[rewardIndex].endTime = offsetDateTime(selectedDate, { milliseconds: durationTime })
                 }
 
                 // set start time
