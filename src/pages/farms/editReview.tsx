@@ -1,20 +1,19 @@
-import txCreateNewFarm from '@/application/createFarm/txCreateNewFarm'
+import { createNewUIRewardInfo, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
+import txUpdateEdited from '@/application/createFarm/txUpdateFarm'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import useFarms from '@/application/farms/useFarms'
 import { routeBack, routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
+import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import assert from '@/functions/assert'
 import tryCatch from '@/functions/tryCatch'
-import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
-import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
-import { useMemo } from 'react'
 import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
-import { createNewUIRewardInfo, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
-import txUpdateEdited from '@/application/createFarm/txUpdateFarm'
-import useFarms from '@/application/farms/useFarms'
-import { AddressItem } from '@/components/AddressItem'
+import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
+import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
+import { useMemo } from 'react'
 
 export default function EditReviewPage() {
   const getToken = useToken((s) => s.getToken)
@@ -47,6 +46,7 @@ export default function EditReviewPage() {
           <div className="text-2xl mobile:text-lg font-semibold text-white">Edit Farm</div>
           {farmId && (
             <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">
+              farm ID:
               <div className="inline-block ml-1">
                 <AddressItem
                   className="flex-nowrap whitespace-nowrap"

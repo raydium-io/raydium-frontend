@@ -13,8 +13,8 @@ import { FarmPoolJsonInfo, HydratedFarmInfo, HydratedRewardInfo } from '@/applic
 import useFarms, { useFarmFavoriteIds } from '@/application/farms/useFarms'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
-import useStaking from '@/application/staking/useStaking'
 import useToken from '@/application/token/useToken'
+import { RAYMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
 import { Badge } from '@/components/Badge'
@@ -51,9 +51,8 @@ import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
+import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
-import { toggleSetItem } from '../../functions/setMethods'
-import { RAYMint } from '@/application/token/wellknownToken.config'
 
 export default function FarmsPage() {
   return (

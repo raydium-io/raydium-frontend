@@ -15,13 +15,13 @@ import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
+import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import RewardInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
 import produce from 'immer'
 import { useState } from 'react'
 import { twMerge } from 'tailwind-merge'
-import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
 
 function NavButtons({ className }: { className?: string }) {
   return (
@@ -60,6 +60,7 @@ export default function FarmEditPage() {
           <div className="text-2xl mobile:text-lg font-semibold text-white">Edit Farm</div>
           {farmId && (
             <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">
+              farm ID:
               <div className="inline-block ml-1">
                 <AddressItem
                   className="flex-nowrap whitespace-nowrap"
