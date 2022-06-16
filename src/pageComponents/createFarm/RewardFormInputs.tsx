@@ -15,6 +15,7 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { MayFunction } from '@/types/constants'
 import produce from 'immer'
 import { useState } from 'react'
@@ -28,6 +29,17 @@ function useStateWithSuperPreferential<T>(
 ): [value: T, setState: React.Dispatch<React.SetStateAction<T>>] {
   const superValue = shrinkToValue(superPreferential)
   const [value, setValue] = useState(superValue)
+
+  // if superValue comes to undefined, clear the state
+  useRecordedEffect(
+    ([prevSuperValue]) => {
+      if (prevSuperValue != null && superValue == null) {
+        setValue(superValue) // clear the state
+      }
+    },
+    [superValue]
+  )
+
   const doNothing = () => {}
   return [isExist(superValue) ? superValue : value, (isExist(superValue) ? doNothing : setValue) as any]
 }
