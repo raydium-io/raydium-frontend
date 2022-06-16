@@ -1,6 +1,4 @@
 import { isNumberish } from '@/functions/judgers/dateType'
-import { gt } from '@/functions/numberish/compare'
-import { abs, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { Numberish } from '@/types/constants'
@@ -33,11 +31,6 @@ export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultVa
 
   value?: Numberish
   defaultValue?: Numberish
-  /**
-   * if newValue - oldValue is between floatingValue, input will not update
-   * if value is true, it will use default floatingValue:value/10000
-   */
-  valueFloating?: Numberish | boolean
   onUserInput?: (
     n: number | /* if value is too big */ string | undefined,
     payload: { canSafelyCovertToNumber: boolean }
@@ -48,8 +41,6 @@ export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultVa
 export default function DecimalInput({
   defaultValue,
   value,
-  valueFloating,
-
   decimalCount = 3,
   minN = 0,
   maxN,
@@ -59,12 +50,7 @@ export default function DecimalInput({
 }: DecimalInputProps) {
   const [innerValue, setInnerValue] = useState(defaultValue)
   useIsomorphicLayoutEffect(() => {
-    if (valueFloating && value && innerValue) {
-      const diff = abs(sub(value, innerValue))
-      if (gt(diff, valueFloating === true ? div(innerValue, 10000) : valueFloating)) setInnerValue(value)
-    } else {
-      setInnerValue(value)
-    }
+    setInnerValue(value)
   }, [value])
   return (
     <Input

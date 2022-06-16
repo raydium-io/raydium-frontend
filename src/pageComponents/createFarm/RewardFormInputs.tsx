@@ -59,14 +59,11 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
   const rewards = useCreateFarms((s) => s.rewards)
   const rewardIndex = rewards.findIndex(({ id }) => id === targetReward.id)
   const reward = rewards[rewardIndex] as UIRewardInfo | undefined // usdate fresh data
-
   const [durationTime, setDurationTime] = useStateWithSuperPreferential(
     reward?.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
   )
-
   const estimatedValue =
     reward?.amount && durationTime ? div(reward.amount, parseDurationAbsolute(durationTime).days) : undefined
-
   const disableCoinInput = reward?.isRwardingBeforeEnd72h
   const disableDurationInput = false
   const disableStartTimeInput = reward?.isRwardingBeforeEnd72h
@@ -85,7 +82,7 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
         disableTokens={shakeUndifindedItem(rewards.map((r) => r.token))}
         canSelectQuantumSOL={Boolean(reward.token)}
         disabled={disableCoinInput}
-        value={toString(reward.amount)}
+        value={toString(reward.amount, { decimalLength: reward.token?.decimals ?? 6 })}
         token={reward.token}
         disabledTokenSelect={reward.isRewardBeforeStart || reward.isRewarding || reward.isRewardEnded}
         onSelectCoin={(token) => {
@@ -268,7 +265,6 @@ export function RewardFormCardInputs({ reward: targetReward }: RewardFormCardInp
         disabled={disableEstimatedInput}
         decimalMode
         decimalCount={reward.token?.decimals ?? 6}
-        valueFloating
         className="rounded-md px-4 font-medium text-sm"
         inputClassName="text-white"
         label="Estimated rewards / day"
