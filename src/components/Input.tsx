@@ -154,13 +154,12 @@ export default function Input(props: InputProps) {
     required,
     labelText,
 
-    pattern,
-
     placeholder,
 
     disabled,
     disableUserInput,
     validators,
+    pattern,
 
     defaultValue,
     value,
@@ -256,6 +255,7 @@ export default function Input(props: InputProps) {
           id={id}
           type={type}
           ref={mergeRef(inputRef, inputDomRef)}
+          value={pattern || validators ? selfValue : undefined} // !!! NOTE: if it has pattern validators, input must be controlled component
           className={`${noCSSInputDefaultWidth ? 'w-0 grow' : 'w-full'} bg-transparent border-none outline-none block ${
             inputClassName ?? ''
           }`} // start html input with only 2rem, if need width please define it in parent div
@@ -346,4 +346,24 @@ export default function Input(props: InputProps) {
       {suffix && <div className="flex-initial ml-2">{shrinkToValue(suffix, [inputComponentHandler])}</div>}
     </Row>
   )
+}
+
+const ControlledInput = (
+  props: React.DetailedHTMLProps<React.InputHTMLAttributes<HTMLInputElement>, HTMLInputElement>
+) => {
+  const { value, onChange, ...rest } = props
+  const [cursor, setCursor] = useState(null)
+  const ref = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const input = ref.current
+    if (input) input.setSelectionRange(cursor, cursor)
+  }, [ref, cursor, value])
+
+  const handleChange = (e) => {
+    setCursor(e.target.selectionStart)
+    onChange && onChange(e)
+  }
+
+  return <input ref={ref} value={value} onChange={handleChange} {...rest} />
 }
