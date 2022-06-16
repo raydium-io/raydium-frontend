@@ -18,7 +18,7 @@ import { RAYMint } from '@/application/token/wellknownToken.config'
 export default function CreateFarmReviewPage() {
   const balances = useWallet((s) => s.balances)
   const userRayBalance = balances[toPubString(RAYMint)]
-  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
+  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 300 /* FIXME : for Test, true is 300  */)
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(720px,90vw)]">
@@ -39,10 +39,10 @@ export default function CreateFarmReviewPage() {
         </div>
 
         <div className="font-medium text-sm text-justify leading-snug text-[#abc4ff80] mb-8">
-          <span className="text-[#DA2EEF]">Please note:</span> All rewards provided are final and unused rewards cannot
-          be recovered. You will be able to add more rewards to the farm. When creating 'Ecosystem' farm, you should pay
-          300 RAY as creation fee, which will flow into our Raydium treasury. Adding reward tokens and add more reward
-          tokens should have a duration period of at least 7 days and no more than 90 days.
+          <span className="text-[#DA2EEF]">Please note:</span> Rewards allocated to farms cannot be withdrawn after
+          farming starts. Newly created farms generally appear on Raydium 10-30 minutes after creation, depending on
+          Solana network status. A one-time fee of 300 RAY is required to create a farm, which will be deposited into
+          the Raydium treasury.
         </div>
 
         {!haveStakeOver300Ray && (
