@@ -48,8 +48,13 @@ export function PoolIdInputBlock({
 
   // state for validate
   const [inputValue, setInputValue] = useState<string>()
-  const [isInputing, setIsInputing] = useState(true) // true for don't pop valid result immediately
+  const [isInit, setIsInit] = useState(() => !inputValue)
+  const [isInputing, setIsInputing] = useState(false) // true for don't pop valid result immediately
   const inputCardRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    inputValue && setIsInit(false)
+  }, [inputValue])
 
   useEffect(() => {
     const result = Boolean(selectedPool && inputValue)
@@ -112,6 +117,7 @@ export function PoolIdInputBlock({
           setInputValue(v)
         }}
         onUserInput={() => {
+          setIsInit(false)
           setIsInputing(true)
         }}
         onBlur={() => {
@@ -119,7 +125,7 @@ export function PoolIdInputBlock({
         }}
       />
 
-      <FadeInStable show={!isInputing}>
+      <FadeInStable show={!isInputing && !isInit}>
         <Row className="items-center px-4 pt-2 gap-2">
           {selectedPool ? (
             <>
