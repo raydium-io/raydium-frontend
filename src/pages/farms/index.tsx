@@ -178,11 +178,11 @@ function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
   const haveStakeOver300Ray = gte(userRayBalance ?? 0, 300 /* FIXME : for Test, true is 300  */)
   return (
     <Row
-      className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center clickable ${
-        owner && haveStakeOver300Ray ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center  ${
+        owner && haveStakeOver300Ray ? 'opacity-100 pointer-events-auto clickable' : 'opacity-30 cursor-not-allowed'
       } transition`}
       onClick={() => {
-        routeTo('/farms/create')
+        owner && haveStakeOver300Ray && routeTo('/farms/create')
       }}
     >
       <Icon heroIconName="plus-circle" className="text-[#abc4ff]" size="sm" />
