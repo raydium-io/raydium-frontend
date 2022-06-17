@@ -20,12 +20,13 @@ import useConnection from '@/application/connection/useConnection'
 import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { isDateBefore } from '@/functions/date/judges'
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
-import { parseDurationAbsolute } from '@/functions/date/parseDuration'
+import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
+import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { div } from '@/functions/numberish/operations'
 import useWallet from '@/application/wallet/useWallet'
 import toPubString from '@/functions/format/toMintString'
 import { twMerge } from 'tailwind-merge'
+import { MAX_DURATION, MIN_DURATION } from '@/pageComponents/createFarm/RewardFormInputs'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -150,6 +151,7 @@ export default function CreateFarmPage() {
     }
   }, [])
 
+  const [poolIdValid, setPoolIdValid] = useState(false)
   return (
     <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
       <NavButtons className="mb-8" />
@@ -161,7 +163,7 @@ export default function CreateFarmPage() {
 
         <div className="space-y-4">
           <FormStep stepNumber={1} title="Select Pool" haveNavline>
-            <PoolIdInputBlock componentRef={PoolIdInputBlockRef} />
+            <PoolIdInputBlock componentRef={PoolIdInputBlockRef} onInputValidate={setPoolIdValid} />
           </FormStep>
 
           <FormStep
@@ -221,15 +223,16 @@ export default function CreateFarmPage() {
                   onClick: () => {
                     PoolIdInputBlockRef.current?.validate?.()
                   },
-                  children: 'Select A Pool'
+                  children: 'Select a pool'
                 }
               },
+              { should: poolIdValid, fallbackProps: { children: 'Insufficient pool id' } },
               {
                 should: walletConnected,
                 forceActive: true,
                 fallbackProps: {
                   onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                  children: 'Connect Wallet'
+                  children: 'Connect wallet'
                 }
               },
               {
@@ -257,6 +260,15 @@ export default function CreateFarmPage() {
                 should: meaningFullRewards.every((r) => r.startTime && r.endTime),
                 fallbackProps: {
                   children: 'Confirm emission time setup'
+                }
+              },
+              {
+                should: meaningFullRewards.every((r) => {
+                  const duration = getDuration(r.endTime!, r.startTime!)
+                  return gte(duration, MIN_DURATION) && lte(duration, MAX_DURATION)
+                }),
+                fallbackProps: {
+                  children: 'Insufficient duration'
                 }
               },
               {

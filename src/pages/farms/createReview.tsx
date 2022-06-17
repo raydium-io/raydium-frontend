@@ -18,7 +18,7 @@ import { RAYMint } from '@/application/token/wellknownToken.config'
 export default function CreateFarmReviewPage() {
   const balances = useWallet((s) => s.balances)
   const userRayBalance = balances[toPubString(RAYMint)]
-  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
+  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 300 /* FIXME : for Test, true is 300  */)
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(720px,90vw)]">

@@ -12,14 +12,20 @@ import Row from '@/components/Row'
 import listToMap from '@/functions/format/listToMap'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { useClickOutside } from '@/hooks/useClickOutside'
-import { RefObject, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
 export interface PoolIdInputBlockHandle {
   validate?: () => void
   turnOffValidation?: () => void
 }
 
-export function PoolIdInputBlock({ componentRef }: { componentRef?: RefObject<any> }) {
+export function PoolIdInputBlock({
+  componentRef,
+  onInputValidate
+}: {
+  componentRef?: RefObject<any>
+  onInputValidate?: (result: boolean) => void
+}) {
   const poolId = useCreateFarms((s) => s.poolId)
   const pairInfos = usePools((s) => s.hydratedInfos)
   const liquidityPoolJsons = useLiquidity((s) => s.jsonInfos)
@@ -45,6 +51,11 @@ export function PoolIdInputBlock({ componentRef }: { componentRef?: RefObject<an
   const [isInputing, setIsInputing] = useState(true) // true for don't pop valid result immediately
   const inputCardRef = useRef<HTMLElement>(null)
 
+  useEffect(() => {
+    const result = Boolean(selectedPool && inputValue)
+    onInputValidate?.(result)
+  }, [inputValue])
+
   const validate = () => {
     setIsInputing(false)
   }
@@ -55,7 +66,7 @@ export function PoolIdInputBlock({ componentRef }: { componentRef?: RefObject<an
     onBlurToOutside: validate
   })
 
-  useImperativeHandle(componentRef, () => ({
+  useImperativeHandle<any, PoolIdInputBlockHandle>(componentRef, () => ({
     validate,
     turnOffValidation
   }))

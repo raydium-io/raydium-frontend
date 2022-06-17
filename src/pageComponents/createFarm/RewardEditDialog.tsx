@@ -1,10 +1,12 @@
-import React from 'react'
+import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import produce from 'immer'
+import React, { useRef } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
 import Card from '../../components/Card'
 import Dialog from '../../components/Dialog'
-import { RewardFormCardInputs, RewardFormCardInputsParams } from './RewardFormInputs'
+import { RewardCardInputsHandler, RewardFormCardInputs, RewardFormCardInputsParams } from './RewardFormInputs'
 
 export default function RewardInputDialog({
   reward,
@@ -14,8 +16,23 @@ export default function RewardInputDialog({
   open: boolean
   onClose(): void
 } & RewardFormCardInputsParams) {
+  const rewardInputsRef = useRef<RewardCardInputsHandler>()
   return (
-    <Dialog open={Boolean(open)} onClose={onClose}>
+    <Dialog
+      open={Boolean(open)}
+      onClose={() => {
+        if (!rewardInputsRef.current?.isValid) {
+          useCreateFarms.setState((s) => ({
+            rewards: produce(s.rewards, (draft) => {
+              const rewardIndex = draft.findIndex((r) => r.id === reward.id)
+              if (rewardIndex < 0) return
+              draft[rewardIndex] = { ...draft[rewardIndex], ...draft[rewardIndex].originData } // if input not valid cover origin data
+            })
+          }))
+        }
+        onClose()
+      }}
+    >
       <Card
         className={twMerge(
           `p-8 rounded-3xl w-[min(670px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card`
@@ -42,7 +59,7 @@ export default function RewardInputDialog({
             </ol>
           </div>
         )}
-        {<RewardFormCardInputs reward={reward} />}
+        {<RewardFormCardInputs reward={reward} componentRef={rewardInputsRef} />}
       </Card>
     </Dialog>
   )
