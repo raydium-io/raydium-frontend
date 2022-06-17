@@ -80,6 +80,7 @@ async function createRewardRestartInstruction({
 
   assert(reward.token, 'reward must have token')
   assert(reward.endTime, `reward must have endTime`)
+  assert(reward.originData?.endTime, `reward's originData must have endTime`)
   assert(reward.startTime, `reward must have startTime`)
   assert(reward.amount, `reward must have amount`)
   assert(reward.owner, 'reward must have creator')
@@ -95,7 +96,7 @@ async function createRewardRestartInstruction({
     },
     newRewardInfo: {
       rewardMint: isQuantumSOLVersionSOL(reward.token) ? SOLMint : reward.token?.mint,
-      rewardOpenTime: toBN(div(getMax(reward.startTime.getTime(), currentBlockChainDate), 1000)).toNumber(),
+      rewardOpenTime: toBN(div(reward.originData.endTime.getTime(), 1000)).toNumber(),
       rewardEndTime: toBN(div(getMax(reward.endTime.getTime(), currentBlockChainDate), 1000)).toNumber(),
       rewardPerSecond: toBN(mul(perSecond, padZero('1', reward.token?.decimals ?? 6)))
     }

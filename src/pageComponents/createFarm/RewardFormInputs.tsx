@@ -48,7 +48,9 @@ function useStateWithSuperPreferential<T>(
 }
 
 const MAX_DURATION_DAY = 90
-const MIN_DURATION_DAY = 7 /* FIXME: for Test */
+const MIN_DURATION_DAY = 0 /* FIXME: for Test */
+const MAX_DURATION_HOUR = 24 * MAX_DURATION_DAY
+const MIN_DURATION_HOUR = 24 * MIN_DURATION_DAY
 export const MAX_DURATION = MAX_DURATION_DAY * 24 * 60 * 60 * 1000
 export const MIN_DURATION = MIN_DURATION_DAY * 24 * 60 * 60 * 1000
 const MAX_DURATION_TEXT = `${MAX_DURATION_DAY}D`
@@ -135,8 +137,8 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
               step: 1
             }}
             pattern={/^\d{0,5}$/}
-            placeholder={`${MIN_DURATION_DAY} - ${MAX_DURATION_DAY}`}
-            value={getDayFromDuration(durationTime)}
+            placeholder={`${1} - ${2}`}
+            value={getHoursFromDuration(durationTime)}
             disabled={disableDurationInput}
             onBlur={(v, { setSelf }) => {
               // const duration = getDurationFromString(v)
@@ -149,7 +151,7 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
               // }
               setIsInputDuration(false)
             }}
-            suffix={<div className="font-medium text-sm text-[#abc4ff80]">Days</div>}
+            suffix={<div className="font-medium text-sm text-[#abc4ff80]">Hours</div>}
             onUserInput={(v) => {
               if (!v) return
               setIsInputDuration(true)
@@ -309,7 +311,7 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
         className="rounded-md px-4 font-medium text-sm"
         inputClassName="text-white"
         label="Estimated rewards / day"
-        value={toString(estimatedValue, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })}
+        value={estimatedValue && toString(estimatedValue, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })}
         onUserInput={(v) => {
           if (!durationTime) return
           useCreateFarms.setState({
@@ -328,12 +330,13 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
   )
 }
 function getDurationFromString(v: string) {
-  const [, day, hour] = v.match(/(?:(\d+)D?) ?(?:(\d+)H?)?/i) ?? [] // noneed days and hours, but no need to change through
+  const [, hour] = v.match(/(?:(\d+)?)/i) ?? [] // noneed days and hours, but no need to change through
+  const day = 0
   const dayNumber = isFinite(Number(day)) ? Number(day) : undefined
   const hourNumber = isFinite(Number(hour)) ? Number(hour) : undefined
   const totalDuration = (dayNumber ?? 0) * 24 * 60 * 60 * 1000 + (hourNumber ?? 0) * 60 * 60 * 1000
   return { day: dayNumber, hour: hourNumber, totalDuration }
 }
-function getDayFromDuration(duration: number | undefined) {
-  return duration ? Math.round(parseDurationAbsolute(duration).days) : duration
+function getHoursFromDuration(duration: number | undefined) {
+  return duration ? Math.round(parseDurationAbsolute(duration).hours) : duration
 }
