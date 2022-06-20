@@ -877,6 +877,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                 <Button
                   className="frosted-glass-teal mobile:py-2 mobile:text-xs"
                   validators={[
+                    { should: !farmInfo.isClosedPool },
                     {
                       should: connected,
                       forceActive: true,
@@ -893,8 +894,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                         onClick: () =>
                           routeTo('/liquidity/add', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
                       }
-                    },
-                    { should: !farmInfo.isClosedPool }
+                    }
                   ]}
                   onClick={() => {
                     useFarms.setState({
