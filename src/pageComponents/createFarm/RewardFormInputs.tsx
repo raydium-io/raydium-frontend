@@ -88,11 +88,16 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
 
   const [isInputDuration, setIsInputDuration] = useState(false)
 
-  const isDurationValid = Boolean(durationDays && MIN_DURATION_DAY <= durationDays && durationDays <= MAX_DURATION_DAY)
+  const isStartTimeAfterCurrent = Boolean(
+    reward && reward.startTime && isDateAfter(reward.startTime, currentBlockChainDate)
+  )
+  const isDurationValid = Boolean(
+    durationDays != null && MIN_DURATION_DAY <= durationDays && durationDays <= MAX_DURATION_DAY
+  )
   const haveBalance = Boolean(reward && gte(balances[toPubString(reward.token?.mint)], reward.amount))
   const isAmountValid = haveBalance
   useImperativeHandle<any, RewardCardInputsHandler>(componentRef, () => ({
-    isValid: isDurationValid && isAmountValid
+    isValid: isDurationValid && isAmountValid && (reward?.isRwardingBeforeEnd72h || isStartTimeAfterCurrent)
   }))
 
   if (!reward) return null

@@ -20,7 +20,8 @@ export default function RewardInputDialog({
   return (
     <Dialog
       open={Boolean(open)}
-      onClose={() => {
+      onClose={onClose}
+      onCloseImmediately={() => {
         if (!rewardInputsRef.current?.isValid) {
           useCreateFarms.setState((s) => ({
             rewards: produce(s.rewards, (draft) => {
@@ -30,7 +31,6 @@ export default function RewardInputDialog({
             })
           }))
         }
-        onClose()
       }}
     >
       <Card
