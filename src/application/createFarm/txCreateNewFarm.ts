@@ -49,6 +49,8 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
     })
 
     const lockMint = '7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR' // NOTE: test
+    const lockVault = 'H2StJuXebaAnSQHvbYGeokbgC1EKB6tBvY2iB2PxoUqS' // NOTE: test
+
     const lpMint = 'G54x5tuRV12WyNkSjfNnq3jyzfcPF9EgB8c9jTzsQKVW' // NOTE: test
 
     const lockMintTokenAccount = tokenAccounts.find((t) => isMintEqual(t.mint, lockMint))
@@ -57,7 +59,10 @@ export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
     const createFarmInstruction = await Farm.makeCreateFarmInstruction({
       poolInfo: {
         lpMint: toPub(lpMint),
-        lockMint: toPub(lockMint),
+        lockInfo: {
+          lockMint: toPub(lockMint),
+          lockVault: toPub(lockVault)
+        },
         version: 6,
         rewardInfos: rewards,
         programId: Farm.getProgramId(6)

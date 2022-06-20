@@ -401,13 +401,13 @@
     bs58 "^4.0.1"
     eventemitter3 "^4.0.7"
 
-"@raydium-io/raydium-sdk@^1.1.0-beta.3":
-  version "1.1.0-beta.3"
-  resolved "https://registry.yarnpkg.com/@raydium-io/raydium-sdk/-/raydium-sdk-1.1.0-beta.3.tgz#675a8dca7be579a85035a7a24e059e674b07975e"
-  integrity sha512-jdO5Sm8S0KhAPPkCu6U2IIMddBtlkW6zzHoORJNMQ17hkPCnih97lR3OSvXd7ln+8ekSqBgxtVK1Vz4LWklniA==
+"@raydium-io/raydium-sdk@^1.1.0-beta.4":
+  version "1.1.0-beta.4"
+  resolved "https://registry.yarnpkg.com/@raydium-io/raydium-sdk/-/raydium-sdk-1.1.0-beta.4.tgz#09806b63a6a137a3a1e12b33a1cd73ed3415738d"
+  integrity sha512-Aq16zRhhZhP6OTkKi1f6WlNV4TPg6A8EgI1oVZzM1p493K6EQQcAqVoLqP3mF9XKbqeWGuXCTpaKUsxev4CQLQ==
   dependencies:
     "@colors/colors" "^1.5.0"
-    "@solana/buffer-layout" "^3.0.0"
+    "@solana/buffer-layout" "^4.0.0"
     "@solana/spl-token" "^0.1.8"
     big.js "^6.1.1"
     decimal.js-light "^2.5.1"
@@ -542,13 +542,6 @@
   version "0.14.0"
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
-
-"@solana/buffer-layout@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@solana/buffer-layout/-/buffer-layout-3.0.0.tgz#b9353caeb9a1589cb77a1b145bcb1a9a93114326"
-  integrity sha512-MVdgAKKL39tEs0l8je0hKaXLQFb7Rdfb0Xg2LjFZd8Lfdazkg6xiS98uAZrEKvaoF3i4M95ei9RydkGIDMeo3w==
-  dependencies:
-    buffer "~6.0.3"
 
 "@solana/buffer-layout@^4.0.0":
   version "4.0.0"
