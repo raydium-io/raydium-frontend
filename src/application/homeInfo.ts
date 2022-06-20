@@ -39,8 +39,7 @@ export function useHomeInfo() {
     fetchInfo()
     intervalId.current = setInterval(fetchInfo, 1000 * 60)
     return () => {
-      //@ts-expect-error force
-      clearInterval(intervalId.current)
+      clearInterval(intervalId.current as any)
     }
   }, [pathname])
 
