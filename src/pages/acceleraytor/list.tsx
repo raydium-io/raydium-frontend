@@ -36,6 +36,7 @@ import toPercentNumber from '@/functions/format/toPercentNumber'
 import Input from '@/components/Input'
 import useConnection from '@/application/connection/useConnection'
 import { TimeStamp } from '@/functions/date/interface'
+import { getIdoItemSignature } from '@/application/ido/toItemSignature'
 
 export default function AcceleRaytor() {
   const infos = useIdo((s) => s.idoHydratedInfos)
@@ -80,7 +81,9 @@ function IdoList() {
     currentTab === 'Upcoming Pools'
       ? upcomingPools
       : closedPools.filter((pool) =>
-          (pool.baseSymbol + pool.projectName).toLowerCase().includes((searchText ?? '').trim().toLowerCase())
+          getIdoItemSignature(pool)
+            .toLowerCase()
+            .includes((searchText ?? '').trim().toLowerCase())
         )
   return (
     <>
@@ -175,7 +178,7 @@ function IdoSearchBlock({ className }: { className?: string }) {
           }}
         />
       }
-      placeholder="Search by token"
+      placeholder="Search All"
       onUserInput={(searchText) => {
         useIdo.setState({ searchText })
       }}

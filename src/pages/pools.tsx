@@ -37,7 +37,9 @@ import Card from '@/components/Card'
 import LoadingCircle from '@/components/LoadingCircle'
 import { Badge } from '@/components/Badge'
 import { LpToken } from '@/application/token/type'
-import { addItem, removeItem } from '@/functions/arrayMethods'
+import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
+import toPubString from '@/functions/format/toMintString'
+import { getPoolItemSignature } from '@/application/pools/toItemSignature'
 
 /**
  * store:
@@ -134,7 +136,7 @@ function PoolSearchBlock({ className }: { className?: string }) {
           }}
         />
       }
-      placeholder="Search by token"
+      placeholder="Search All"
       onUserInput={(searchText) => {
         usePools.setState({ searchText })
       }}
@@ -237,6 +239,7 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
     </div>
   )
 }
+
 function PoolCard() {
   const balances = useWallet((s) => s.balances)
   const unZeroBalances = objectFilter(balances, (tokenAmount) => gt(tokenAmount, 0))
@@ -260,7 +263,9 @@ function PoolCard() {
           // Search
           if (!searchText) return true
           const searchKeyWords = searchText.split(/\s|-/)
-          return searchKeyWords.every((keyWord) => i.name.toLowerCase().includes(keyWord.toLowerCase()))
+          return searchKeyWords.every((keyWord) =>
+            getPoolItemSignature(i).toLowerCase().includes(keyWord.toLowerCase())
+          )
         }),
     [onlySelfPools, searchText, hydratedInfos]
   )

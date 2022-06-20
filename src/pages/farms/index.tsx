@@ -53,6 +53,7 @@ import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
+import { getFarmItemSignature } from '@/application/farms/toItemSignature'
 
 export default function FarmsPage() {
   return (
@@ -135,7 +136,7 @@ function FarmSearchBlock({ className }: { className?: string }) {
           }}
         />
       }
-      placeholder="Search by token"
+      placeholder="Search All"
       onUserInput={(searchText) => {
         useFarms.setState({ searchText })
       }}
@@ -311,7 +312,9 @@ function FarmCard() {
           // Search
           if (!searchText) return true
           const searchKeyWords = searchText.split(/\s|-/)
-          return searchKeyWords.every((keyWord) => i.name.toLowerCase().includes(keyWord.toLowerCase()))
+          return searchKeyWords.every((keyWord) =>
+            getFarmItemSignature(i).toLowerCase().includes(keyWord.toLowerCase())
+          )
         }),
     [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
   )
