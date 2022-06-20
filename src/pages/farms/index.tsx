@@ -890,7 +890,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                       should: hasLp,
                       forceActive: true,
                       fallbackProps: {
-                        children: 'Stake Lp',
+                        children: 'Add Liquidity',
                         onClick: () =>
                           routeTo('/liquidity/add', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
                       }
