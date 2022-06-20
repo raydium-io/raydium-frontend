@@ -11,6 +11,7 @@ import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import listToMap from '@/functions/format/listToMap'
 import toUsdVolume from '@/functions/format/toUsdVolume'
+import { isValidePublicKey } from '@/functions/judgers/dateType'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
@@ -114,6 +115,7 @@ export function PoolIdInputBlock({
         }}
         onDangerousValueChange={(v) => {
           if (!v) useCreateFarms.setState({ poolId: undefined })
+          if (isValidePublicKey(v)) useCreateFarms.setState({ poolId: v })
           setInputValue(v)
         }}
         onUserInput={() => {
