@@ -50,7 +50,7 @@ export function AddressItem({
               isCopied ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
             } transition flex items-center justify-center`}
           >
-            copied
+            Copied
           </div>
         </div>
       }

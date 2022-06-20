@@ -46,7 +46,7 @@ export default function EditReviewPage() {
           <div className="text-2xl mobile:text-lg font-semibold text-white">Edit Farm</div>
           {farmId && (
             <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">
-              farm ID:
+              Farm ID:
               <div className="inline-block ml-1">
                 <AddressItem
                   className="flex-nowrap whitespace-nowrap"
