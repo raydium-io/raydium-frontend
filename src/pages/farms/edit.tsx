@@ -139,6 +139,12 @@ export default function FarmEditPage() {
                 children: `Enter ${reward.token?.symbol ?? '--'} token amount`
               }
             })),
+            ...meaningFullRewards.map((reward) => ({
+              should: isMeaningfulNumber(reward.amount),
+              fallbackProps: {
+                children: `Insufficient ${reward.token?.symbol ?? '--'} token amount`
+              }
+            })),
             ...meaningFullRewards.map((reward) => {
               const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
               return {
@@ -155,12 +161,6 @@ export default function FarmEditPage() {
               }
             },
             {
-              should: meaningFullRewards.every((r) => isMeaningfulNumber(r.amount)),
-              fallbackProps: {
-                children: 'not eligible token amount'
-              }
-            },
-            {
               should: meaningFullRewards.every((reward) => {
                 const durationTime =
                   reward?.endTime && reward.startTime
@@ -173,7 +173,7 @@ export default function FarmEditPage() {
                 return isMeaningfulNumber(estimatedValue)
               }),
               fallbackProps: {
-                children: 'not eligible token amount'
+                children: 'Insufficient estimated value'
               }
             }
           ]}
