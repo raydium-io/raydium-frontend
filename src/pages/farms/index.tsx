@@ -885,7 +885,15 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                         onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
                       }
                     },
-                    { should: hasLp },
+                    {
+                      should: hasLp,
+                      forceActive: true,
+                      fallbackProps: {
+                        children: 'Stake Lp',
+                        onClick: () =>
+                          routeTo('/liquidity/add', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
+                      }
+                    },
                     { should: !farmInfo.isClosedPool }
                   ]}
                   onClick={() => {
