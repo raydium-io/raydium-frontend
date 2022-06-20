@@ -2,7 +2,7 @@ import { Farm, jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
 import { Connection, Signer, TransactionInstruction } from '@solana/web3.js'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import handleMultiTx, { TxAddOptions } from '@/application/txTools/handleMultiTx'
+import handleMultiTx, { AddSingleTxOptions } from '@/application/txTools/handleMultiTx'
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
@@ -14,7 +14,10 @@ import useWallet from '../wallet/useWallet'
 import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
 
-export default async function txClaimReward({ reward, ...txAddOptions }: { reward: UIRewardInfo } & TxAddOptions) {
+export default async function txClaimReward({
+  reward,
+  ...txAddOptions
+}: { reward: UIRewardInfo } & AddSingleTxOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection } }) => {
     const piecesCollector = createTransactionCollector()
 

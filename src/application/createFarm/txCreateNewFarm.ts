@@ -2,7 +2,7 @@ import { Farm, FarmCreateInstructionParamsV6 } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 
-import handleMultiTx, { TxAddOptions } from '@/application/txTools/handleMultiTx'
+import handleMultiTx, { AddSingleTxOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import useCreateFarms from './useCreateFarm'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
@@ -16,7 +16,7 @@ import useConnection from '../connection/useConnection'
 import { offsetDateTime, setDateTimeSecondToZero } from '@/functions/date/dateFormat'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
-export default async function txCreateNewFarm(txAddOptions?: TxAddOptions) {
+export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const { tokenAccountRawInfos } = useWallet.getState() // TODO: should add tokenAccountRawInfos to `handleMultiTx()`'s baseUtils
 

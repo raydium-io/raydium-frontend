@@ -1,7 +1,7 @@
 import { Spl, TokenAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import handleMultiTx, { TxAddOptions, TxShadowOptions } from '@/application/txTools/handleMultiTx'
+import handleMultiTx, { AddSingleTxOptions, TxShadowOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import { PublicKeyish } from '@/types/constants'
 import toPubString, { toPub } from '@/functions/format/toMintString'
@@ -18,7 +18,7 @@ export default async function txTransferToken(
     from?: PublicKeyish // source
 
     tokenAmount: TokenAmount
-  } & TxAddOptions &
+  } & AddSingleTxOptions &
     TxShadowOptions
 ) {
   return handleMultiTx(

@@ -5,7 +5,7 @@ import BN from 'bn.js'
 
 import { SubscribeSignatureCallbacks } from '@/application/txTools/subscribeTx'
 
-import handleMultiTx, { TxAddOptions, TxShadowOptions } from '@/application/txTools/handleMultiTx'
+import handleMultiTx, { AddSingleTxOptions, TxShadowOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import assert from '@/functions/assert'
 import { Numberish } from '@/types/constants'
@@ -24,7 +24,7 @@ export default async function txIdoPurchase({
 }: {
   idoInfo: HydratedIdoInfo
   ticketAmount: Numberish
-} & TxAddOptions &
+} & AddSingleTxOptions &
   TxShadowOptions) {
   assert(idoInfo.state, 'opps sdk fail to load')
   return handleMultiTx(

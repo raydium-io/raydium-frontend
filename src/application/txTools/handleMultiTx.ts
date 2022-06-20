@@ -23,6 +23,7 @@ import useAppSettings from '../appSettings/useAppSettings'
 import { mergeFunction } from '@/functions/merge'
 import { getRecentBlockhash } from './attachRecentBlockhash'
 import { getRichWalletTokenAccounts } from '../wallet/useTokenAccountsRefresher'
+import { shrinkToValue } from '@/functions/shrinkToValue'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -110,6 +111,8 @@ type TxKeypairDetective = {
 
 type TxOptionsCollection = {
   txHistoryInfo: (Pick<TxHistoryInfo, 'title' | 'description'> | undefined)[]
+  /** if provided, error notification should respect this config */
+  txErrorNotificationDescription: (string | ((error: Error) => string))[]
   txSuccess: (TxSuccessCallback | undefined)[]
   txError: (TxErrorCallback | undefined)[]
   txFinally: (TxFinallyCallback | undefined)[]
@@ -120,8 +123,10 @@ type TxOptionsCollection = {
   txAnyError: (AnyErrorCallback | undefined)[]
 }
 
-export interface TxAddOptions {
+export interface AddSingleTxOptions {
   txHistoryInfo?: Pick<TxHistoryInfo, 'title' | 'description'>
+  /** if provided, error notification should respect this config */
+  txErrorNotificationDescription?: string | ((error: Error) => string)
   onTxSuccess?: TxSuccessCallback
   onTxError?: TxErrorCallback
   onTxFinally?: TxFinallyCallback
@@ -134,7 +139,7 @@ export type TransactionCollector = {
   /**@deprecated for can't control */
   addSets(...transactions: Transaction[]): void
 
-  add(transactions: Transaction, options?: TxAddOptions): void
+  add(transaction: Transaction, options?: AddSingleTxOptions): void
 }
 
 // TODO: should also export addTxSuccessListener() and addTxErrorListener() and addTxFinallyListener()
@@ -163,6 +168,7 @@ export default async function handleMultiTx(
     (async () => {
       const callbackCollection: TxOptionsCollection = {
         txHistoryInfo: [],
+        txErrorNotificationDescription: [],
         txSuccess: [],
         txError: [],
         txFinally: [],
@@ -234,8 +240,14 @@ export default async function handleMultiTx(
       } catch (error) {
         const { logError } = useNotification.getState()
         console.warn(error)
-        const errorTitle = (callbackCollection.txHistoryInfo?.[0]?.title ?? '') + ' Error'
-        const errorDescription = error instanceof Error ? noTailingPeriod(error.message) : String(error)
+        const errorTitle = (callbackCollection.txHistoryInfo[0]?.title ?? '') + ' Error' // assume first instruction's txHistoryInfo is same as the second one
+
+        const systemErrorDescription = error instanceof Error ? noTailingPeriod(error.message) : String(error)
+        const userErrorDescription = shrinkToValue(callbackCollection.txErrorNotificationDescription[0], [error]) as
+          | string
+          | undefined
+        const errorDescription = userErrorDescription || systemErrorDescription
+
         logError(errorTitle, errorDescription)
         resolve({
           allSuccess: false,
