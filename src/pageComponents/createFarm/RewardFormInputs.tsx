@@ -1,4 +1,5 @@
 import useConnection from '@/application/connection/useConnection'
+import { hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useWallet from '@/application/wallet/useWallet'
@@ -70,6 +71,7 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
   const rewards = useCreateFarms((s) => s.rewards)
   const rewardIndex = rewards.findIndex(({ id }) => id === targetReward.id)
   const reward = rewards[rewardIndex] as UIRewardInfo | undefined // usdate fresh data
+
   const [durationTime, setDurationTime] = useStateWithSuperPreferential(
     reward?.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
   )
@@ -101,6 +103,16 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
   }))
 
   if (!reward) return null
+
+  const isUnedited72hReward = Boolean(reward && reward.isRwardingBeforeEnd72h && !hasRewardBeenEdited(reward))
+  const rewardTokenAmount = isUnedited72hReward
+    ? ''
+    : toString(reward.amount, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })
+  const rewardDuration = isUnedited72hReward ? undefined : getHoursFromDuration(durationTime)
+  const rewardStartTime = isUnedited72hReward ? reward.endTime : reward.startTime
+  const rewardEndTime = isUnedited72hReward ? undefined : reward.endTime
+  const rewardEstimatedValue =
+    estimatedValue && toString(estimatedValue, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })
   return (
     <Grid className="gap-4">
       <CoinInputBoxWithTokenSelector
@@ -110,7 +122,7 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
         disableTokens={shakeUndifindedItem(rewards.map((r) => r.token))}
         canSelectQuantumSOL={Boolean(reward.token)}
         disabled={disableCoinInput}
-        value={toString(reward.amount, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })}
+        value={rewardTokenAmount}
         token={reward.token}
         disabledTokenSelect={reward.isRewardBeforeStart || reward.isRewarding || reward.isRewardEnded}
         onSelectCoin={(token) => {
@@ -128,7 +140,6 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
           })
         }}
       />
-
       <div>
         <Row className="gap-4">
           <InputBox
@@ -143,7 +154,7 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
             }}
             pattern={/^\d{0,5}$/}
             placeholder={`${1} - ${2}`}
-            value={getHoursFromDuration(durationTime)}
+            value={rewardDuration}
             disabled={disableDurationInput}
             onBlur={(v, { setSelf }) => {
               // const duration = getDurationFromString(v)
@@ -167,14 +178,15 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
                   rewards: produce(rewards, (draft) => {
                     if (!draft[rewardIndex]) return
 
-                    const haveStartTime = Boolean(reward.startTime)
-                    const haveEndTime = Boolean(reward.endTime)
+                    const haveStartTime = Boolean(rewardStartTime)
+                    const haveEndTime = Boolean(rewardEndTime)
 
                     // set end time
                     if (haveStartTime) {
-                      draft[rewardIndex].endTime = offsetDateTime(draft[rewardIndex].startTime, {
+                      draft[rewardIndex].endTime = offsetDateTime(rewardStartTime, {
                         milliseconds: totalDuration
                       })
+                      draft[rewardIndex].startTime = rewardStartTime
                     }
 
                     // set amount (only edit-in-rewarding)
@@ -202,7 +214,7 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
             inputProps={{
               inputClassName: 'text-sm font-medium text-white'
             }}
-            value={reward.startTime}
+            value={rewardStartTime}
             disabled={disableStartTimeInput}
             disableDateBeforeCurrent
             onDateChange={(selectedDate) => {
@@ -229,12 +241,12 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
             inputProps={{
               inputClassName: 'text-sm font-medium text-white'
             }}
-            value={reward.endTime}
+            value={rewardEndTime}
             disabled={disableEndTimeInput}
             showTime={false}
             disableDateBeforeCurrent
             isValidDate={(date) => {
-              const isStartTimeBeforeCurrent = reward.startTime && isDateBefore(reward.startTime, currentBlockChainDate)
+              const isStartTimeBeforeCurrent = rewardStartTime && isDateBefore(rewardStartTime, currentBlockChainDate)
               if (reward.isRewardEnded && isStartTimeBeforeCurrent) {
                 const duration = Math.round(
                   parseDurationAbsolute(date.getTime() - currentBlockChainDate.getTime()).days
@@ -242,7 +254,7 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
                 return MIN_DURATION_DAY <= duration
               } else {
                 const duration = Math.round(
-                  parseDurationAbsolute(date.getTime() - (reward.startTime ?? currentBlockChainDate).getTime()).days
+                  parseDurationAbsolute(date.getTime() - (rewardStartTime ?? currentBlockChainDate).getTime()).days
                 )
                 return MIN_DURATION_DAY <= duration && duration <= MAX_DURATION_DAY
               }
@@ -253,7 +265,7 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
                 rewards: produce(rewards, (draft) => {
                   if (!draft[rewardIndex]) return
 
-                  const haveStartTime = Boolean(draft[rewardIndex].startTime)
+                  const haveStartTime = Boolean(rewardStartTime)
 
                   // set end time
                   draft[rewardIndex].endTime = selectedDate
@@ -267,15 +279,13 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
                   if (reward.isRwardingBeforeEnd72h) {
                     draft[rewardIndex].amount = mul(
                       estimatedValue,
-                      parseDurationAbsolute(selectedDate.getTime() - draft[rewardIndex].startTime!.getTime()).days
+                      parseDurationAbsolute(selectedDate.getTime() - rewardStartTime!.getTime()).days
                     )
                   }
 
                   // set duration days
                   if (haveStartTime) {
-                    const durationDays = parseDurationAbsolute(
-                      selectedDate.getTime() - draft[rewardIndex].startTime!.getTime()
-                    ).days
+                    const durationDays = parseDurationAbsolute(selectedDate.getTime() - rewardStartTime!.getTime()).days
                     if (durationDays < MIN_DURATION_DAY) {
                       draft[rewardIndex].startTime = offsetDateTime(selectedDate, {
                         days: -MIN_DURATION_DAY
@@ -308,7 +318,6 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
         </FadeInStable>
         <div> </div>
       </div>
-
       <InputBox
         disabled={disableEstimatedInput}
         decimalMode
@@ -316,7 +325,7 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
         className="rounded-md px-4 font-medium text-sm"
         inputClassName="text-white"
         label="Estimated rewards / day"
-        value={estimatedValue && toString(estimatedValue, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })}
+        value={rewardEstimatedValue}
         onUserInput={(v) => {
           if (!durationTime) return
           useCreateFarms.setState({

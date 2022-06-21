@@ -96,7 +96,7 @@ async function createRewardRestartInstruction({
     },
     newRewardInfo: {
       rewardMint: isQuantumSOLVersionSOL(reward.token) ? SOLMint : reward.token?.mint,
-      rewardOpenTime: toBN(div(reward.originData.endTime.getTime(), 1000)).toNumber(),
+      rewardOpenTime: toBN(div(reward.startTime.getTime(), 1000)).toNumber(),
       rewardEndTime: toBN(div(getMax(reward.endTime.getTime(), currentBlockChainDate), 1000)).toNumber(),
       rewardPerSecond: toBN(mul(perSecond, padZero('1', reward.token?.decimals ?? 6)))
     }

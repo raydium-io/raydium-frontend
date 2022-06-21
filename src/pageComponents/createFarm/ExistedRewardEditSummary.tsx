@@ -54,7 +54,11 @@ export function ExistedEditRewardSummary({
           label: 'Rate'
         }
       ]}
-      renderRowItem={({ item: reward, label }) => {
+      renderRowItem={({ item: parsedRewardInfo, label }) => {
+        const reward =
+          parsedRewardInfo.originData && hasRewardBeenEdited(parsedRewardInfo)
+            ? parsedRewardInfo
+            : parsedRewardInfo.originData!
         if (label === 'Reward Token') {
           return reward.token ? (
             <div>
