@@ -35,6 +35,7 @@ function useInfiniteScrollDirector(
   }, [ref, onScroll])
 }
 
+/** future version of `<List>` (use: css content-visibility) */
 export default function ListFast<T>({
   increaseRenderCount = 30,
   initRenderCount = 30,
