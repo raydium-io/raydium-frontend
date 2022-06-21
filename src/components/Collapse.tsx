@@ -1,4 +1,4 @@
-import React, { CSSProperties, ReactNode, RefObject, useMemo, useRef } from 'react'
+import { CSSProperties, ReactNode, RefObject, useMemo, useRef } from 'react'
 
 import { Transition } from '@headlessui/react'
 
@@ -8,7 +8,7 @@ import { pickReactChildProps } from '@/functions/react/pickChild'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
-import useToggle, { useToggleRef } from '@/hooks/useToggle'
+import useToggle from '@/hooks/useToggle'
 
 type CollapseController = {
   open: () => void
