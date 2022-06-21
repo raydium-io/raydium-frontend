@@ -1,5 +1,9 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
+import useConnection from '@/application/connection/useConnection'
+import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
 import { routeBack, routeTo } from '@/application/routeTools'
+import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import Col from '@/components/Col'
@@ -10,23 +14,18 @@ import Icon from '@/components/Icon'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
+import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
+import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
+import toPubString from '@/functions/format/toMintString'
+import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
+import { div } from '@/functions/numberish/operations'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
+import { MAX_DURATION, MIN_DURATION } from '@/pageComponents/createFarm/RewardFormInputs'
 import produce from 'immer'
 import { ReactNode, useEffect, useRef, useState } from 'react'
-import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
-import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
-import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
-import { useForceUpdate } from '@/hooks/useForceUpdate'
-import useConnection from '@/application/connection/useConnection'
-import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
-import { isDateBefore } from '@/functions/date/judges'
-import useAppSettings from '@/application/appSettings/useAppSettings'
-import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
-import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
-import { div } from '@/functions/numberish/operations'
-import useWallet from '@/application/wallet/useWallet'
-import toPubString from '@/functions/format/toMintString'
 import { twMerge } from 'tailwind-merge'
-import { MAX_DURATION, MIN_DURATION } from '@/pageComponents/createFarm/RewardFormInputs'
+import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
+import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -138,6 +137,7 @@ export default function CreateFarmPage() {
   const balances = useWallet((s) => s.balances)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const walletConnected = useWallet((s) => s.connected)
+  const owner = useWallet((s) => s.owner)
 
   const PoolIdInputBlockRef = useRef<PoolIdInputBlockHandle>()
 
@@ -297,6 +297,9 @@ export default function CreateFarmPage() {
             onClick={() => {
               routeTo('/farms/createReview', {})?.then(() => {
                 cleanStoreEmptyRewards()
+                useCreateFarms.setState({
+                  isRoutedByCreateOrEdit: true
+                })
               })
             }}
           >

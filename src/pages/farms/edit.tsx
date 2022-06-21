@@ -1,8 +1,13 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { createNewUIRewardInfo, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
+import {
+  createNewUIRewardInfo,
+  hasRewardBeenEdited,
+  parsedHydratedRewardInfoToUiRewardInfo
+} from '@/application/createFarm/parseRewardInfo'
 import txClaimReward from '@/application/createFarm/txClaimReward'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
+import useFarms from '@/application/farms/useFarms'
 import { routeBack, routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
@@ -13,14 +18,18 @@ import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import { isValidePublicKey } from '@/functions/judgers/dateType'
 import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
+import { objectShakeNil } from '@/functions/objectMethods'
 import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import RewardInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
 import produce from 'immer'
-import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 function NavButtons({ className }: { className?: string }) {
@@ -38,6 +47,27 @@ function NavButtons({ className }: { className?: string }) {
   )
 }
 
+export function useCreateFarmUrlParser() {
+  const { query } = useRouter()
+  const owner = useWallet((s) => s.owner)
+  const farms = useFarms((s) => s.hydratedInfos)
+  useEffect(() => {
+    const farmId = String(query?.farmId)
+    if (isValidePublicKey(farmId)) {
+      const farmInfo = farms.find((f) => toPubString(f.id) === farmId)
+      if (!farmInfo) return
+      useCreateFarms.setState(
+        objectShakeNil({
+          farmId: toPubString(farmInfo.id),
+          poolId: farmInfo.ammId,
+          rewards: farmInfo.rewards.map((reward) => parsedHydratedRewardInfoToUiRewardInfo(reward)),
+          disableAddNewReward: !isMintEqual(farmInfo.creator, owner)
+        })
+      )
+    }
+  }, [query?.farmId, farms, owner])
+}
+
 export default function FarmEditPage() {
   const walletConnected = useWallet((s) => s.connected)
   const balances = useWallet((s) => s.balances)
@@ -52,6 +82,7 @@ export default function FarmEditPage() {
   const meaningFullRewards = newAddedRewards.filter(
     (r) => r.amount != null || r.startTime != null || r.endTime != null || r.token != null
   )
+  useCreateFarmUrlParser()
   return (
     <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
       <NavButtons />
@@ -180,6 +211,9 @@ export default function FarmEditPage() {
           onClick={() => {
             routeTo('/farms/editReview')?.then(() => {
               cleanStoreEmptyRewards()
+              useCreateFarms.setState({
+                isRoutedByCreateOrEdit: true
+              })
             })
           }}
         >

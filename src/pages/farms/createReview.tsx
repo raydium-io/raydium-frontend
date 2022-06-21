@@ -1,24 +1,32 @@
+import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import txCreateNewFarm from '@/application/createFarm/txCreateNewFarm'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import useFarms from '@/application/farms/useFarms'
 import { routeBack, routeTo } from '@/application/routeTools'
+import { RAYMint } from '@/application/token/wellknownToken.config'
+import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
+import Col from '@/components/Col'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
-import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
-import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
-import useFarms from '@/application/farms/useFarms'
-import Col from '@/components/Col'
-import useWallet from '@/application/wallet/useWallet'
+import toPubString from '@/functions/format/toMintString'
 import { gte } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
-import toPubString from '@/functions/format/toMintString'
-import { RAYMint } from '@/application/token/wellknownToken.config'
+import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
+import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
+import { useEffect } from 'react'
+
+function useAvailableCheck() {
+  useEffect(() => {
+    if (!useCreateFarms.getState().isRoutedByCreateOrEdit) routeTo('/farms')
+  }, [])
+}
 
 export default function CreateFarmReviewPage() {
   const balances = useWallet((s) => s.balances)
   const userRayBalance = balances[toPubString(RAYMint)]
   const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
+  useAvailableCheck()
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(720px,90vw)]">
@@ -64,6 +72,7 @@ export default function CreateFarmReviewPage() {
                       routeTo('/farms')
                       useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
                       useFarms.getState().refreshFarmInfos()
+                      useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
                     }, 1000)
                   }
                 })

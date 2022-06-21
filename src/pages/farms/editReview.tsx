@@ -13,7 +13,13 @@ import tryCatch from '@/functions/tryCatch'
 import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
+
+function useAvailableCheck() {
+  useEffect(() => {
+    if (!useCreateFarms.getState().isRoutedByCreateOrEdit) routeTo('/farms')
+  }, [])
+}
 
 export default function EditReviewPage() {
   const getToken = useToken((s) => s.getToken)
@@ -38,6 +44,8 @@ export default function EditReviewPage() {
 
   const newRewards = rewards.filter((r) => r.type === 'new added')
   const editedRewards = rewards.filter((r) => hasRewardBeenEdited(r))
+
+  useAvailableCheck()
 
   return (
     <PageLayout metaTitle="Farms - Raydium">
@@ -95,6 +103,7 @@ export default function EditReviewPage() {
                     routeTo('/farms')
                     useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
                     useFarms.getState().refreshFarmInfos()
+                    useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
                   }, 1000)
                 }
               })
