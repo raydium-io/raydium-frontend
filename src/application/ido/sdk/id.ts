@@ -2,7 +2,7 @@ import { IdoVersion, SnapshotVersion } from './type'
 
 /* ================= ido ================= */
 // lottery
-export const IDO_PROGRAM_ID_V3 = 'DropEU8AvevN3UrXWXTMuz3rqnMczQVNjq3kcSdW2SQi'
+const IDO_PROGRAM_ID_V3 = 'DropEU8AvevN3UrXWXTMuz3rqnMczQVNjq3kcSdW2SQi'
 
 // ido program id => ido version
 export const IDO_PROGRAMID_TO_VERSION: {
@@ -19,7 +19,7 @@ export const IDO_VERSION_TO_PROGRAMID: { [key in IdoVersion]?: string } & {
 }
 
 /* ================= snapshot ================= */
-export const IDO_SNAPSHOT_PROGRAM_ID_V1 = '4kCccBVdQpsonm2jL2TRV1noMdarsWR2mhwwkxUTqW3W'
+const IDO_SNAPSHOT_PROGRAM_ID_V1 = '4kCccBVdQpsonm2jL2TRV1noMdarsWR2mhwwkxUTqW3W'
 
 // snapshot program id => snapshot version
 export const SNAPSHOT_PROGRAMID_TO_VERSION: {
