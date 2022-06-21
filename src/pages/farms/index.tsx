@@ -162,7 +162,7 @@ function FarmSlefCreatedOnlyBlock({ className }: { className?: string }) {
   const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   return (
     <Row className="justify-self-end  mobile:justify-self-auto flex-wrap items-center">
-      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show farms by me</span>
+      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show created</span>
       <Switcher
         className="ml-2 "
         defaultChecked={onlySelfCreatedFarms}
