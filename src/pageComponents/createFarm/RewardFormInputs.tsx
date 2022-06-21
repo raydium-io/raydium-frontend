@@ -22,7 +22,7 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { MayFunction } from '@/types/constants'
 import produce from 'immer'
-import { RefObject, useImperativeHandle, useState } from 'react'
+import { RefObject, startTransition, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
 /**
  * if super preferential is not provide(undefined|null) it is normal useState
@@ -72,9 +72,30 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
   const rewardIndex = rewards.findIndex(({ id }) => id === targetReward.id)
   const reward = rewards[rewardIndex] as UIRewardInfo | undefined // usdate fresh data
 
+  const isUnedited72hReward = Boolean(reward && reward.isRwardingBeforeEnd72h && !hasRewardBeenEdited(reward))
+  const isUneditedEndedReward = Boolean(reward && reward.isRewardEnded && !hasRewardBeenEdited(reward))
+
   const [durationTime, setDurationTime] = useStateWithSuperPreferential(
     reward?.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
   )
+
+  const isInit = useRef(true)
+  // clean data
+  if (isUneditedEndedReward && isInit.current) {
+    isInit.current = false
+    setDurationTime(undefined)
+    startTransition(() => {
+      useCreateFarms.setState({
+        rewards: produce(rewards, (draft) => {
+          if (!draft[rewardIndex]) return
+
+          draft[rewardIndex].startTime = undefined
+          draft[rewardIndex].endTime = undefined
+          draft[rewardIndex].amount = undefined
+        })
+      })
+    })
+  }
   const durationDays = durationTime ? Math.round(parseDurationAbsolute(durationTime).days) : undefined
 
   const estimatedValue =
@@ -98,13 +119,9 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
   )
   const haveBalance = Boolean(reward && gte(balances[toPubString(reward.token?.mint)], reward.amount))
   const isAmountValid = haveBalance
-  useImperativeHandle<any, RewardCardInputsHandler>(componentRef, () => ({
-    isValid: isDurationValid && isAmountValid && (reward?.isRwardingBeforeEnd72h || isStartTimeAfterCurrent)
-  }))
 
   if (!reward) return null
 
-  const isUnedited72hReward = Boolean(reward && reward.isRwardingBeforeEnd72h && !hasRewardBeenEdited(reward))
   const rewardTokenAmount = isUnedited72hReward
     ? ''
     : toString(reward.amount, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })
@@ -113,6 +130,8 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
   const rewardEndTime = isUnedited72hReward ? undefined : reward.endTime
   const rewardEstimatedValue =
     estimatedValue && toString(estimatedValue, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })
+  const isValid = isDurationValid && isAmountValid && (reward?.isRwardingBeforeEnd72h || isStartTimeAfterCurrent)
+  useImperativeHandle<any, RewardCardInputsHandler>(componentRef, () => ({ isValid }))
   return (
     <Grid className="gap-4">
       <CoinInputBoxWithTokenSelector
