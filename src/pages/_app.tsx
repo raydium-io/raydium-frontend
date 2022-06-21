@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 
@@ -59,6 +59,10 @@ import useFreshChainTimeOffset from '@/application/connection/useFreshChainTimeO
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
+
+  useEffect(() => {
+    const worker = new Worker(new URL('../application/_workers/ass.ts', import.meta.url))
+  }, [])
 
   /* add popup stack */
   useIsomorphicLayoutEffect(() => {
