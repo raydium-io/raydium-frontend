@@ -70,6 +70,7 @@ export function useCreateFarmUrlParser() {
 
 export default function FarmEditPage() {
   const walletConnected = useWallet((s) => s.connected)
+  const owner = useWallet((s) => s.owner)
   const balances = useWallet((s) => s.balances)
   const { rewards: allRewards, cannotAddNewReward, farmId } = useCreateFarms()
   const [isRewardInputDialogOpen, setIsRewardInputDialogOpen] = useState(false)
@@ -157,6 +158,9 @@ export default function FarmEditPage() {
                 onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
                 children: 'Connect Wallet'
               }
+            },
+            {
+              should: meaningFullRewards.some((reward) => isMintEqual(owner, reward.owner))
             },
             {
               should: meaningFullRewards.every((r) => r.token),
