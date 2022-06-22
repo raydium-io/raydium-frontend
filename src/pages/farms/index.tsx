@@ -56,6 +56,7 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 
+
 export default function FarmsPage() {
   return (
     <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
@@ -1091,8 +1092,7 @@ function FarmStakeLpDialog() {
   const stakeDialogMode = useFarms((s) => s.stakeDialogMode)
 
   const [amount, setAmount] = useState<string>()
-
-  const userHasLp = useMemo(
+  const userHasLpAccount = useMemo(
     () =>
       Boolean(stakeDialogFarmInfo?.lpMint) &&
       tokenAccounts.some(({ mint }) => String(mint) === String(stakeDialogFarmInfo?.lpMint)),
@@ -1175,8 +1175,8 @@ function FarmStakeLpDialog() {
                 { should: isAvailableInput },
                 { should: amount },
                 {
-                  should: userHasLp,
-                  fallbackProps: { children: stakeDialogMode === 'withdraw' ? 'No Unstakable LP' : 'No Stakable LP' }
+                  should: stakeDialogMode == 'withdraw' ? true : userHasLpAccount,
+                  fallbackProps: { children: 'No Stakable LP' }
                 }
               ]}
               onClick={() => {
