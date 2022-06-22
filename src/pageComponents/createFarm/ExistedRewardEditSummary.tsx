@@ -143,7 +143,7 @@ export function ExistedEditRewardSummary({
                   </Col>
                 )}
 
-                {reward.originData?.isRewardEnded && (
+                {canUserEdit && reward.originData?.isRewardEnded && (
                   <Grid className="grid-cols-2 gap-board min-h-[36px]">
                     <Row
                       className="items-center justify-center gap-1 clickable"
