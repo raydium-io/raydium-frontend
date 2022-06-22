@@ -1237,7 +1237,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
     >
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
       <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
-      {info.version === 6 && info.isClosedPool && <Badge cssColor="#DA2EEF">Closed</Badge>}
+      {info.version === 6 && info.isClosedPool && <Badge cssColor="#DA2EEF">Inactive</Badge>}
       {isStable && <Badge>Stable</Badge>}
       {info.isDualFusionPool && info.version !== 6 && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
       {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
