@@ -510,7 +510,6 @@ function FarmCardDatabaseBody({
                 <Collapse.Face>
                   {(open) => (
                     <FarmCardDatabaseBodyCollapseItemFace
-                      className={isHydratedFarmInfo(info) && info.isClosedPool ? 'opacity-50' : ''}
                       open={open}
                       info={info}
                       isFavourite={favouriteIds?.includes(toPubString(info.id))}
@@ -1238,14 +1237,9 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
     >
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
       <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
+      {info.version === 6 && info.isClosedPool && <Badge cssColor="#DA2EEF">Closed</Badge>}
       {isStable && <Badge>Stable</Badge>}
-
-      {info.isDualFusionPool && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
-      {info.version === 6 && info.rewards.length === 2 && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
-      {info.version === 6 && info.rewards.length === 3 && <Badge cssColor="#DA2EEF">Triple Yield</Badge>}
-      {info.version === 6 && info.rewards.length === 4 && <Badge cssColor="#DA2EEF">Quadruple Yield</Badge>}
-      {info.version === 6 && info.rewards.length === 5 && <Badge cssColor="#DA2EEF">Quintuple Yield</Badge>}
-
+      {info.isDualFusionPool && info.version !== 6 && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
       {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
       {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
     </AutoBox>
