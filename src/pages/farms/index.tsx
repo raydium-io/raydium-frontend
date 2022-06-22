@@ -146,6 +146,8 @@ function FarmSearchBlock({ className }: { className?: string }) {
 
 function FarmStakedOnlyBlock({ className }: { className?: string }) {
   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
+  const connected = useWallet((s) => s.connected)
+  if (!connected) return null
   return (
     <Row className="justify-self-end  mobile:justify-self-auto flex-wrap items-center">
       <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show Staked</span>

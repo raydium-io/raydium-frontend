@@ -70,6 +70,8 @@ function PoolHeader() {
 
 function PoolStakedOnlyBlock() {
   const onlySelfPools = usePools((s) => s.onlySelfPools)
+  const connected = useWallet((s) => s.connected)
+  if (!connected) return null
   return (
     <Row className="justify-self-end mobile:justify-self-auto items-center">
       <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show Staked</span>
