@@ -22,6 +22,8 @@ export default function RewardInputDialog({
       open={Boolean(open)}
       onClose={() => {
         onClose()
+      }}
+      onCloseImmediately={() => {
         if (!rewardInputsRef.current?.isValid) {
           useCreateFarms.setState((s) => ({
             rewards: produce(s.rewards, (draft) => {

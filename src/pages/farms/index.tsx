@@ -54,6 +54,7 @@ import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
+import useCreateFarms from '@/application/createFarm/useCreateFarm'
 
 export default function FarmsPage() {
   return (
@@ -329,7 +330,7 @@ function FarmCard() {
   } = useSort(applyFiltersDataSource, {
     defaultSort: {
       key: 'defaultKey',
-      sortBy: [(i) => i.isUpcomingPool, (i) => i.isNewPool, (i) => favouriteIds?.includes(toPubString(i.id))]
+      sortBy: [(i) => i.isUpcomingPool, /* (i) => i.isNewPool, */ (i) => favouriteIds?.includes(toPubString(i.id))]
     }
   })
 
@@ -1062,6 +1063,9 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
           <Button
             className="frosted-glass-teal"
             onClick={() => {
+              useCreateFarms.setState({
+                isRoutedByCreateOrEdit: true
+              })
               routeTo('/farms/edit', { queryProps: { farmInfo: farmInfo } })
             }}
           >

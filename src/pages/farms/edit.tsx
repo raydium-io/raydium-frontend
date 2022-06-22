@@ -32,6 +32,12 @@ import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
+function useAvailableCheck() {
+  useEffect(() => {
+    if (!useCreateFarms.getState().isRoutedByCreateOrEdit) routeTo('/farms')
+  }, [])
+}
+
 function NavButtons({ className }: { className?: string }) {
   return (
     <Row className={twMerge('items-center justify-between', className)}>
@@ -69,6 +75,8 @@ export function useCreateFarmUrlParser() {
 }
 
 export default function FarmEditPage() {
+  useAvailableCheck()
+
   const walletConnected = useWallet((s) => s.connected)
   const owner = useWallet((s) => s.owner)
   const balances = useWallet((s) => s.balances)
@@ -158,9 +166,6 @@ export default function FarmEditPage() {
                 onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
                 children: 'Connect Wallet'
               }
-            },
-            {
-              should: meaningFullRewards.some((reward) => isMintEqual(owner, reward.owner))
             },
             {
               should: meaningFullRewards.every((r) => r.token),
