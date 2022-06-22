@@ -12,6 +12,8 @@ export type PoolsStore = {
   jsonInfos: JsonPairItemInfo[]
   hydratedInfos: HydratedPoolItemInfo[]
   lpPrices: Record<HexAddress, Price>
+  tvl?: string | number // /api.raydium.io/v2/main/info
+  volume24h?: string | number // /api.raydium.io/v2/main/info
 
   /** UI States */
   searchText: string

@@ -38,6 +38,8 @@ import LoadingCircle from '@/components/LoadingCircle'
 import { Badge } from '@/components/Badge'
 import { LpToken } from '@/application/token/type'
 import { addItem, removeItem } from '@/functions/arrayMethods'
+import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
+import formatNumber from '@/functions/format/formatNumber'
 
 /**
  * store:
@@ -46,6 +48,7 @@ import { addItem, removeItem } from '@/functions/arrayMethods'
  * {@link useDatabase `useDatabase`} detail data is from liquidity
  */
 export default function PoolsPage() {
+  usePoolSummeryInfoLoader()
   return (
     <PageLayout contentButtonPaddingShorter mobileBarTitle="Pools" metaTitle="Pools - Raydium">
       <PoolHeader />
@@ -55,12 +58,31 @@ export default function PoolsPage() {
 }
 
 function PoolHeader() {
+  const tvl = usePools((s) => s.tvl)
+  const volume24h = usePools((s) => s.volume24h)
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <div></div>
+    <Row className="mx-auto my-1 text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
+      <div className="whitespace-nowrap">
+        TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
+      </div>
+      <div className="whitespace-nowrap">
+        VOLUME24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
+      </div>
+    </Row>
   ) : (
     <Grid className="grid-cols-[1fr,1fr] mobile:grid-cols-2 grid-flow-row-dense items-baseline gap-y-8 pb-8">
-      <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white">Pools</div>
+      <Row className="justify-self-start gap-8">
+        <div className="text-2xl mobile:text-lg text-white font-semibold">Pools</div>
+        <Row className="title text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
+          <div className="whitespace-nowrap">
+            TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
+          </div>
+          <div className="whitespace-nowrap">
+            VOLUME24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
+          </div>
+        </Row>
+      </Row>
       <Row className="justify-self-end items-center">
         <PoolStakedOnlyBlock />
       </Row>
