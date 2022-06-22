@@ -28,9 +28,6 @@ export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions)
 
     const piecesCollector = createTransactionCollector()
 
-    const testStartTime = Date.now() // NOTE: test
-    const testEndTime = Date.now() + 1000 * 60 * 60 * 1.2 // NOTE: test
-
     const rewards: FarmCreateInstructionParamsV6['rewardInfos'] = uiRewardInfos.map((reward) => {
       const rewardToken = reward.token
       assert(reward.startTime, 'reward start time is required')
@@ -50,7 +47,6 @@ export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions)
 
     const lockMint = '7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR' // NOTE: test
     const lockVault = 'H2StJuXebaAnSQHvbYGeokbgC1EKB6tBvY2iB2PxoUqS' // NOTE: test
-
     const lpMint = 'G54x5tuRV12WyNkSjfNnq3jyzfcPF9EgB8c9jTzsQKVW' // NOTE: test
 
     const lockMintTokenAccount = tokenAccounts.find((t) => isMintEqual(t.mint, lockMint))
