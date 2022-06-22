@@ -11,7 +11,8 @@ import { RewardCardInputsHandler, RewardFormCardInputs, RewardFormCardInputsPara
 export default function RewardInputDialog({
   reward,
   open,
-  onClose
+  onClose,
+  ...restInputsProps
 }: {
   open: boolean
   onClose(): void
@@ -61,7 +62,7 @@ export default function RewardInputDialog({
             </ol>
           </div>
         )}
-        {<RewardFormCardInputs reward={reward} componentRef={rewardInputsRef} />}
+        {<RewardFormCardInputs reward={reward} {...restInputsProps} componentRef={rewardInputsRef} />}
       </Card>
     </Dialog>
   )

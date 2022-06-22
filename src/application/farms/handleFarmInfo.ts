@@ -62,7 +62,6 @@ export async function mergeSdkFarmInfo(
         jsonInfo: payload.jsonInfos[idx]
       } as unknown as SdkParsedFarmInfo)
   )
-
   return result
 }
 
@@ -141,9 +140,11 @@ export function hydrateFarmInfo(
             const isRewardBeforeStart = Boolean(rewardOpenTime && isDateBefore(onlineCurrentDate, rewardOpenTime))
             const isRewardEnded = Boolean(rewardEndTime && isDateAfter(onlineCurrentDate, rewardEndTime))
             const isRewarding = (!rewardOpenTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
-            const isRwardingBeforeEnd72h =
-              isRewarding &&
-              isDateAfter(onlineCurrentDate, offsetDateTime(rewardEndTime, { hours: -0.5 /* NOTE - test */ /* -72 */ }))
+            const isRwardingBeforeEnd72h = isRewarding
+            isDateAfter(
+              onlineCurrentDate,
+              offsetDateTime(rewardEndTime, { seconds: -(farmInfo.jsonInfo.rewardPeriodExtend ?? 72 * 60 * 60) })
+            )
             const claimableRewards =
               token && toTokenAmount(token, sub(rewardInfo.totalReward, rewardInfo.totalRewardEmissioned))
 
@@ -151,9 +152,12 @@ export function hydrateFarmInfo(
             const apr = aprs[idx]
             const usedTohaveReward = Boolean(rewardEndTime)
 
+            const jsonRewardInfo = farmInfo.rewardInfos[idx]
+
             return {
+              ...jsonRewardInfo,
               ...rewardInfo,
-              owner: farmInfo.rewardInfos[idx]?.rewardSender,
+              owner: jsonRewardInfo?.rewardSender,
               apr: apr,
               token,
               userPendingReward: pendingReward,

@@ -5,14 +5,14 @@ import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useWallet from '@/application/wallet/useWallet'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import DateInput from '@/components/DateInput'
-import FadeInStable, { FadeIn } from '@/components/FadeIn'
+import FadeInStable from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
-import parseDuration, { parseDurationAbsolute } from '@/functions/date/parseDuration'
+import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import { isExist } from '@/functions/judgers/nil'
 import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
@@ -22,7 +22,7 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { MayFunction } from '@/types/constants'
 import produce from 'immer'
-import { RefObject, startTransition, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { RefObject, startTransition, useImperativeHandle, useRef, useState } from 'react'
 
 /**
  * if super preferential is not provide(undefined|null) it is normal useState
@@ -48,21 +48,35 @@ function useStateWithSuperPreferential<T>(
   return [isExist(superValue) ? superValue : value, (isExist(superValue) ? doNothing : setValue) as any]
 }
 
-const MAX_DURATION_DAY = 90
-const MIN_DURATION_DAY = 0 /* FIXME: for Test */
-export const MAX_DURATION = MAX_DURATION_DAY * 24 * 60 * 60 * 1000
-export const MIN_DURATION = MIN_DURATION_DAY * 24 * 60 * 60 * 1000
+export const MAX_DURATION_SECOND = 2 * 60 * 60 // test
+export const MIN_DURATION_SECOND = 1 * 60 * 60 // test
+// const MAX_DURATION_DAY = 90
+// const MIN_DURATION_DAY = 7
+// export const MAX_DURATION_SECOND = MAX_DURATION_DAY * 24 * 60 * 60
+// export const MIN_DURATION_SECOND = MIN_DURATION_DAY * 24 * 60 * 60
+export const MAX_DURATION = MAX_DURATION_SECOND * 1000
+export const MIN_DURATION = MIN_DURATION_SECOND * 1000
+
+const HOUR_SECONDS = 60 * 60
+const DAY_SECONDS = 24 * 60 * 60
 
 export type RewardFormCardInputsParams = {
   reward: UIRewardInfo
   componentRef?: RefObject<any>
+  maxDurationSeconds?: number /* only edit mode  seconds */
+  minDurationSeconds?: number /* only edit mode  seconds */
 }
 
 export type RewardCardInputsHandler = {
   isValid: boolean
 }
 
-export function RewardFormCardInputs({ reward: targetReward, componentRef }: RewardFormCardInputsParams) {
+export function RewardFormCardInputs({
+  reward: targetReward,
+  minDurationSeconds = MIN_DURATION_SECOND,
+  maxDurationSeconds = MAX_DURATION_SECOND,
+  componentRef
+}: RewardFormCardInputsParams) {
   const balances = useWallet((s) => s.balances)
   const rewards = useCreateFarms((s) => s.rewards)
   const rewardIndex = rewards.findIndex(({ id }) => id === targetReward.id)
@@ -76,7 +90,8 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
   )
 
   const isInit = useRef(true)
-  // clean data
+
+  // clear data
   if (isUneditedEndedReward && isInit.current) {
     isInit.current = false
     setDurationTime(undefined)
@@ -92,8 +107,11 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
       })
     })
   }
-  const durationDays = durationTime ? Math.round(parseDurationAbsolute(durationTime).days) : undefined
 
+  // NOTE: only 'days' or 'hours'
+  const durationBoundaryUnit = parseDurationAbsolute(maxDurationSeconds * 1000).days > 1 ? 'days' : 'hours'
+  const minDurationValue = minDurationSeconds / (durationBoundaryUnit === 'hours' ? HOUR_SECONDS : DAY_SECONDS)
+  const maxDurationValue = maxDurationSeconds / (durationBoundaryUnit === 'hours' ? HOUR_SECONDS : DAY_SECONDS)
   const estimatedValue =
     reward?.amount && durationTime ? div(reward.amount, parseDurationAbsolute(durationTime).days) : undefined
   const disableCoinInput = reward?.isRwardingBeforeEnd72h
@@ -111,7 +129,7 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
     reward && reward.startTime && isDateAfter(reward.startTime, currentBlockChainDate)
   )
   const isDurationValid = Boolean(
-    durationDays != null && MIN_DURATION_DAY <= durationDays && durationDays <= MAX_DURATION_DAY
+    durationTime != null && minDurationSeconds * 1e3 <= durationTime && durationTime <= maxDurationSeconds * 1e3
   )
   const haveBalance = Boolean(reward && gte(balances[toPubString(reward.token?.mint)], reward.amount))
   const isAmountValid = haveBalance
@@ -119,9 +137,11 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
   const rewardTokenAmount = isUnedited72hReward
     ? ''
     : reward && toString(reward.amount, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })
-  const rewardDuration = isUnedited72hReward ? undefined : getHoursFromDuration(durationTime)
-  const rewardStartTime = isUnedited72hReward ? reward?.endTime : reward?.startTime
-  const rewardEndTime = isUnedited72hReward ? undefined : reward?.endTime
+  const rewardDuration = isUnedited72hReward
+    ? undefined /*  for extends existed reward */
+    : getDurationValueFromMilliseconds(durationTime, durationBoundaryUnit)
+  const rewardStartTime = isUnedited72hReward ? reward?.endTime /*  for extends existed reward */ : reward?.startTime
+  const rewardEndTime = isUnedited72hReward ? undefined /*  for extends existed reward */ : reward?.endTime
   const rewardEstimatedValue =
     estimatedValue && toString(estimatedValue, { decimalLength: `auto ${reward?.token?.decimals ?? 6}` })
   const isValid = isDurationValid && isAmountValid && (reward?.isRwardingBeforeEnd72h || isStartTimeAfterCurrent)
@@ -167,25 +187,21 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
               step: 1
             }}
             pattern={/^\d{0,5}$/}
-            placeholder={`${1} - ${2}`}
+            placeholder={`${minDurationValue} - ${maxDurationValue}`}
             value={rewardDuration}
             disabled={disableDurationInput}
             onBlur={(v) => {
-              // const duration = getDurationFromString(v)
-              // if (duration.totalDuration > MAX_DURATION) {
-              //   setSelf(MAX_DURATION_TEXT)
-              //   setDurationTime(MAX_DURATION)
-              // } else if (duration.totalDuration < MIN_DURATION) {
-              //   setSelf(MIN_DURATION_TEXT)
-              //   setDurationTime(MIN_DURATION)
-              // }
               setIsInputDuration(false)
             }}
-            suffix={<div className="font-medium text-sm text-[#abc4ff80]">Hours</div>}
+            suffix={
+              <div className="font-medium text-sm text-[#abc4ff80]">
+                {durationBoundaryUnit === 'hours' ? 'Hours' : 'Days'}
+              </div>
+            }
             onUserInput={(v) => {
               if (!v) return
               setIsInputDuration(true)
-              const { totalDuration } = getDurationFromString(v)
+              const totalDuration = getDurationFromString(v, durationBoundaryUnit)
               setDurationTime(isMeaningfulNumber(totalDuration) ? totalDuration : undefined)
               if (totalDuration > 0) {
                 useCreateFarms.setState({
@@ -263,14 +279,14 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
               const isStartTimeBeforeCurrent = rewardStartTime && isDateBefore(rewardStartTime, currentBlockChainDate)
               if (reward.isRewardEnded && isStartTimeBeforeCurrent) {
                 const duration = Math.round(
-                  parseDurationAbsolute(date.getTime() - currentBlockChainDate.getTime()).days
+                  parseDurationAbsolute(date.getTime() - currentBlockChainDate.getTime()).seconds
                 )
-                return MIN_DURATION_DAY <= duration
+                return minDurationSeconds <= duration
               } else {
                 const duration = Math.round(
-                  parseDurationAbsolute(date.getTime() - (rewardStartTime ?? currentBlockChainDate).getTime()).days
+                  parseDurationAbsolute(date.getTime() - (rewardStartTime ?? currentBlockChainDate).getTime()).seconds
                 )
-                return MIN_DURATION_DAY <= duration && duration <= MAX_DURATION_DAY
+                return minDurationSeconds <= duration && duration <= maxDurationSeconds
               }
             }}
             onDateChange={(selectedDate) => {
@@ -299,19 +315,21 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
 
                   // set duration days
                   if (haveStartTime) {
-                    const durationDays = parseDurationAbsolute(selectedDate.getTime() - rewardStartTime!.getTime()).days
-                    if (durationDays < MIN_DURATION_DAY) {
+                    const durationSeconds = parseDurationAbsolute(
+                      selectedDate.getTime() - rewardStartTime!.getTime()
+                    ).seconds
+                    if (durationSeconds < minDurationSeconds) {
                       draft[rewardIndex].startTime = offsetDateTime(selectedDate, {
-                        days: -MIN_DURATION_DAY
+                        seconds: -minDurationSeconds
                       })
-                      setDurationTime(MIN_DURATION)
-                    } else if (durationDays > MAX_DURATION_DAY) {
+                      setDurationTime(minDurationSeconds)
+                    } else if (durationSeconds > maxDurationSeconds) {
                       draft[rewardIndex].startTime = offsetDateTime(selectedDate, {
-                        days: -MAX_DURATION_DAY
+                        seconds: -maxDurationSeconds
                       })
-                      setDurationTime(MAX_DURATION)
+                      setDurationTime(maxDurationSeconds)
                     } else {
-                      setDurationTime(durationDays)
+                      setDurationTime(durationSeconds)
                     }
                   }
                 })
@@ -319,14 +337,14 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
             }}
           />
         </Row>
-        <FadeInStable show={!isInputDuration && durationDays != null}>
-          {durationDays! > MAX_DURATION_DAY ? (
+        <FadeInStable show={!isInputDuration && durationTime != null}>
+          {durationTime! > maxDurationSeconds * 1e3 ? (
             <div className="text-[#DA2EEF] text-sm font-medium pt-2 pl-2">
-              Period is longer than max duration of {MAX_DURATION_DAY} days
+              Period is longer than max duration of {maxDurationValue} {durationBoundaryUnit}
             </div>
-          ) : durationDays! < MIN_DURATION_DAY ? (
+          ) : durationTime! < minDurationSeconds * 1e3 ? (
             <div className="text-[#DA2EEF] text-sm font-medium pt-2 pl-2">
-              Period is shorter than min duration of {MIN_DURATION_DAY} days
+              Period is shorter than min duration of {minDurationValue} {durationBoundaryUnit}
             </div>
           ) : null}
         </FadeInStable>
@@ -357,14 +375,15 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
     </Grid>
   )
 }
-function getDurationFromString(v: string) {
-  const [, hour] = v.match(/(?:(\d+)?)/i) ?? [] // noneed days and hours, but no need to change through
-  const day = 0
-  const dayNumber = isFinite(Number(day)) ? Number(day) : undefined
-  const hourNumber = isFinite(Number(hour)) ? Number(hour) : undefined
+function getDurationFromString(v: string, unit: 'hours' | 'days') {
+  const value = v.trim() // noneed days and hours, but no need to change through
+  const valueNumber = isFinite(Number(value)) ? Number(value) : undefined
+  const dayNumber = unit === 'days' ? valueNumber : undefined
+  const hourNumber = unit === 'hours' ? valueNumber : undefined
   const totalDuration = (dayNumber ?? 0) * 24 * 60 * 60 * 1000 + (hourNumber ?? 0) * 60 * 60 * 1000
-  return { day: dayNumber, hour: hourNumber, totalDuration }
+  return totalDuration
 }
-function getHoursFromDuration(duration: number | undefined) {
-  return duration ? Math.round(parseDurationAbsolute(duration).hours) : duration
+
+function getDurationValueFromMilliseconds(duration: number | undefined, unit: 'hours' | 'days') {
+  return duration ? Math.round(parseDurationAbsolute(duration)[unit]) : duration
 }

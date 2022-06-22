@@ -19,13 +19,16 @@ import produce from 'immer'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import useWallet from '@/application/wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { HydratedFarmInfo } from '@/application/farms/type'
 
 export function ExistedEditRewardSummary({
   canUserEdit,
+  hydratedFarmInfo,
   onClickIncreaseReward,
   onClaimReward
 }: {
   canUserEdit: boolean
+  hydratedFarmInfo?: HydratedFarmInfo // only if when user can edit
   // --------- when edit ------------
   onClickIncreaseReward?(payload: { reward: UIRewardInfo }): void
   onClaimReward?(payload: { reward: UIRewardInfo; onTxSuccess?: () => void }): void

@@ -7,6 +7,7 @@ import {
 import txClaimReward from '@/application/createFarm/txClaimReward'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
+import { hydrateFarmInfo } from '@/application/farms/handleFarmInfo'
 import useFarms from '@/application/farms/useFarms'
 import { routeBack, routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
@@ -27,6 +28,7 @@ import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRew
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import RewardInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
+import { MAX_DURATION_SECOND, MIN_DURATION, MIN_DURATION_SECOND } from '@/pageComponents/createFarm/RewardFormInputs'
 import produce from 'immer'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
@@ -81,16 +83,17 @@ export default function FarmEditPage() {
   const owner = useWallet((s) => s.owner)
   const balances = useWallet((s) => s.balances)
   const { rewards: allRewards, cannotAddNewReward, farmId } = useCreateFarms()
+  const hydratedFarmInfos = useFarms((s) => s.hydratedInfos)
   const [isRewardInputDialogOpen, setIsRewardInputDialogOpen] = useState(false)
   const [focusReward, setFocusReward] = useState<UIRewardInfo>()
   const canAddRewardInfo = !cannotAddNewReward && allRewards.length < 5
   const editableRewards = allRewards.filter((r) => r.type === 'existed reward')
   const editedRewards = editableRewards.filter((r) => hasRewardBeenEdited(r))
-
   const newAddedRewards = allRewards.filter((r) => r.type === 'new added')
   const meaningFullRewards = newAddedRewards.filter(
     (r) => r.amount != null || r.startTime != null || r.endTime != null || r.token != null
   )
+  const hydratedFarmInfo = hydratedFarmInfos.find((i) => isMintEqual(i.id, farmId))
   useCreateFarmUrlParser()
   return (
     <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
@@ -255,6 +258,8 @@ export default function FarmEditPage() {
         {focusReward != null && (
           <RewardInputDialog
             reward={focusReward}
+            minDurationSeconds={hydratedFarmInfo?.jsonInfo.rewardPeriodMin}
+            maxDurationSeconds={hydratedFarmInfo?.jsonInfo.rewardPeriodMax}
             open={isRewardInputDialogOpen}
             onClose={() => setIsRewardInputDialogOpen(false)}
           />

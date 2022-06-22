@@ -29,20 +29,19 @@ export interface APIRewardInfo {
 export interface FarmPoolJsonInfo {
   id: string
   lpMint: string
-  // rewardMints: string[]
+  lpVault: string
 
   version: number
   programId: string
 
   authority: string
-  lpVault: string
-  // rewardVaults: string[]
-  lockMint?: HexAddress
-  lockVault?: HexAddress
-  lockAmount?: string | number
   creator?: HexAddress
   rewardInfos: APIRewardInfo[]
   upcoming: boolean
+
+  rewardPeriodMin?: number // v6 '7-90 days's     7 * 24 * 60 * 60 seconds
+  rewardPeriodMax?: number // v6 '7-90 days's     90 * 24 * 60 * 60 seconds
+  rewardPeriodExtend?: number // v6 'end before 72h's    72 * 60 * 60 seconds
 }
 
 export type FarmPoolsJsonFile = {
@@ -88,10 +87,15 @@ export type HydratedRewardInfo = {
   rewardVault: PublicKey
   openTime?: Date // v6
   endTime?: Date // v6
+
   isRewarding?: boolean // v6
   isRewardBeforeStart?: boolean // v6
   isRewardEnded?: boolean // v6
   isRwardingBeforeEnd72h?: boolean // v6
+
+  rewardPeriodMin?: number // v6 '7-90 days's     7 * 24 * 60 * 60 seconds
+  rewardPeriodMax?: number // v6 '7-90 days's     90 * 24 * 60 * 60 seconds
+  rewardPeriodExtend?: number // v6 'end before 72h's    72 * 60 * 60 seconds
 
   claimableRewards?: TokenAmount // v6
   owner?: string // v6
