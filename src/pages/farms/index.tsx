@@ -506,11 +506,11 @@ function FarmCardDatabaseBody({
                 onToggle={() => {
                   useFarms.setState((s) => ({ expandedItemIds: toggleSetItem(s.expandedItemIds, String(info.id)) }))
                 }}
-                className={isHydratedFarmInfo(info) && info.isClosedPool ? 'opacity-50' : ''}
               >
                 <Collapse.Face>
                   {(open) => (
                     <FarmCardDatabaseBodyCollapseItemFace
+                      className={isHydratedFarmInfo(info) && info.isClosedPool ? 'opacity-50' : ''}
                       open={open}
                       info={info}
                       isFavourite={favouriteIds?.includes(toPubString(info.id))}
@@ -572,12 +572,14 @@ function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; rew
 
 function FarmCardDatabaseBodyCollapseItemFace({
   open,
+  className,
   info,
   isFavourite,
   onUnFavorite,
   onStartFavorite
 }: {
   open: boolean
+  className?: string
   info: HydratedFarmInfo | FarmPoolJsonInfo
   isFavourite?: boolean
   onUnFavorite?: (farmId: string) => void
@@ -588,9 +590,12 @@ function FarmCardDatabaseBodyCollapseItemFace({
   const pcCotent = (
     <Row
       type="grid-x"
-      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-2 grid-cols-[auto,1.5fr,1.2fr,1fr,1fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
-        open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
-      } transition-all`}
+      className={twMerge(
+        `py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-2 grid-cols-[auto,1.5fr,1.2fr,1fr,1fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
+          open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
+        } transition-all`,
+        className
+      )}
     >
       <div className="w-12 self-center ml-6 mr-2">
         {isFavourite ? (

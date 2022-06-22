@@ -17,6 +17,8 @@ import toPercentString from '@/functions/format/toPercentString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import produce from 'immer'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import useWallet from '@/application/wallet/useWallet'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 
 export function ExistedEditRewardSummary({
   canUserEdit,
@@ -30,6 +32,7 @@ export function ExistedEditRewardSummary({
 }) {
   const rewards = useCreateFarms((s) => s.rewards)
   const editableRewards = rewards.filter((r) => r.type === 'existed reward')
+  const owner = useWallet((s) => s.owner)
   return (
     <ListTable
       list={editableRewards}
@@ -123,6 +126,7 @@ export function ExistedEditRewardSummary({
       }}
       renderRowEntry={({ contentNode, itemData: reward }) => {
         const isRewardEditable = reward.originData?.isRwardingBeforeEnd72h || reward.originData?.isRewardEnded
+        const isRewardOwner = owner && isMintEqual(owner, reward.owner)
         return (
           <div className={isRewardEditable ? '' : 'not-selectable'}>
             {contentNode}
@@ -143,10 +147,10 @@ export function ExistedEditRewardSummary({
                   </Col>
                 )}
 
-                {canUserEdit && reward.originData?.isRewardEnded && (
+                {reward.originData?.isRewardEnded && (
                   <Grid className="grid-cols-2 gap-board min-h-[36px]">
                     <Row
-                      className="items-center justify-center gap-1 clickable"
+                      className={`items-center justify-center gap-1 clickable ${isRewardOwner ? '' : 'not-clickable'}`}
                       onClick={() => onClickIncreaseReward?.({ reward })}
                     >
                       <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
@@ -155,7 +159,9 @@ export function ExistedEditRewardSummary({
 
                     <Row
                       className={`items-center justify-center gap-1 clickable ${
-                        isMeaningfulNumber(toString(reward.originData.claimableRewards)) ? '' : 'not-clickable'
+                        isRewardOwner && isMeaningfulNumber(toString(reward.originData.claimableRewards))
+                          ? ''
+                          : 'not-clickable'
                       }`}
                       onClick={() =>
                         onClaimReward?.({
