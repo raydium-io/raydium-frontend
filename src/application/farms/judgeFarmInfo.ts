@@ -1,11 +1,11 @@
 import { FarmPoolJsonInfo, HydratedFarmInfo } from './type'
 
-export function isFarmJsonInfo(info: HydratedFarmInfo | FarmPoolJsonInfo): info is FarmPoolJsonInfo {
+export function isJsonFarmInfo(info: HydratedFarmInfo | FarmPoolJsonInfo): info is FarmPoolJsonInfo {
   const isHydrated = (info as HydratedFarmInfo).jsonInfo !== undefined
   return !isHydrated
 }
 
-export function isFarmHydratedInfo(info: HydratedFarmInfo | FarmPoolJsonInfo): info is HydratedFarmInfo {
+export function isHydratedFarmInfo(info: HydratedFarmInfo | FarmPoolJsonInfo): info is HydratedFarmInfo {
   const isHydrated = (info as HydratedFarmInfo).jsonInfo !== undefined
   return isHydrated
 }

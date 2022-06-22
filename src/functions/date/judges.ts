@@ -1,4 +1,5 @@
 import { isNumber, isObject } from '../judgers/dateType'
+import { getTime } from './dateFormat'
 import { TimeStamp } from './interface'
 
 export function currentIsAfter(timestamp: TimeStamp, options?: { unit?: 'ms' | 's' }): boolean {
@@ -10,15 +11,22 @@ export function currentIsAfter(timestamp: TimeStamp, options?: { unit?: 'ms' | '
 export function currentIsBefore(timestamp: TimeStamp, options?: { unit?: 'ms' | 's' }): boolean {
   return !currentIsAfter(timestamp, options)
 }
+/** A must be milliseconds */
 export function isDateBefore(timestampA: TimeStamp, timestampB: TimeStamp, options?: { unit?: 'ms' | 's' }): boolean {
-  return new Date(timestampA).getTime() <= new Date(timestampB).getTime()
+  const realTimestampB = isNumber(timestampB) ? timestampB * (options?.unit === 's' ? 1000 : 1) : timestampB
+  return new Date(timestampA).getTime() <= realTimestampB
 }
 
+/** A must be milliseconds */
 export function isDateAfter(timestampA: TimeStamp, timestampB: TimeStamp, options?: { unit?: 'ms' | 's' }): boolean {
-  return new Date(timestampA).getTime() > new Date(timestampB).getTime()
+  const realTimestampB = isNumber(timestampB) ? timestampB * (options?.unit === 's' ? 1000 : 1) : timestampB
+  return new Date(timestampA).getTime() > realTimestampB
 }
+
+/** A must be milliseconds */
 export function isDateEqual(timestampA: TimeStamp, timestampB: TimeStamp, options?: { unit?: 'ms' | 's' }): boolean {
-  return new Date(timestampA).getTime() === new Date(timestampB).getTime()
+  const realTimestampB = isNumber(timestampB) ? timestampB * (options?.unit === 's' ? 1000 : 1) : timestampB
+  return new Date(timestampA).getTime() === realTimestampB
 }
 
 export function assertDate(testDate: TimeStamp, options: { before?: TimeStamp; after?: TimeStamp; unit?: 'ms' | 's' }) {

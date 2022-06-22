@@ -5,7 +5,8 @@ import { TokenAmount } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { isFarmJsonInfo } from '@/application/farms/judgeFarmInfo'
+import { isHydratedFarmInfo, isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
+import { getFarmItemSignature } from '@/application/farms/toItemSignature'
 import txFarmDeposit from '@/application/farms/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/txFarmHarvest'
 import txFarmWithdraw from '@/application/farms/txFarmWithdraw'
@@ -53,7 +54,6 @@ import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
-import { getFarmItemSignature } from '@/application/farms/toItemSignature'
 
 export default function FarmsPage() {
   return (
@@ -505,6 +505,7 @@ function FarmCardDatabaseBody({
                 onToggle={() => {
                   useFarms.setState((s) => ({ expandedItemIds: toggleSetItem(s.expandedItemIds, String(info.id)) }))
                 }}
+                className={isHydratedFarmInfo(info) && info.isClosedPool ? 'opacity-50' : ''}
               >
                 <Collapse.Face>
                   {(open) => (
@@ -544,7 +545,7 @@ function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; rew
     <Tooltip placement="bottom">
       <Row
         className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 ${
-          reward.isRewarding ? '' : 'opacity-50'
+          reward.isRewarding ? '' : 'opacity-70'
         }`}
       >
         {isMeaningfulNumber(reward.userPendingReward) && (
@@ -619,7 +620,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
           name="Pending Rewards"
           value={
             <Row className="flex-wrap gap-2 w-full pr-8">
-              {isFarmJsonInfo(info)
+              {isJsonFarmInfo(info)
                 ? '--'
                 : info.rewards.map((reward) => {
                     return (
@@ -636,7 +637,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
           name="Pending Rewards"
           value={
             <div>
-              {isFarmJsonInfo(info)
+              {isJsonFarmInfo(info)
                 ? '--'
                 : info.rewards.map(
                     ({ token, userPendingReward, userHavedReward }) =>
@@ -654,7 +655,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name="Total APR"
         value={
-          isFarmJsonInfo(info) ? (
+          isJsonFarmInfo(info) ? (
             '--'
           ) : (
             <Tooltip placement="right">
@@ -678,9 +679,9 @@ function FarmCardDatabaseBodyCollapseItemFace({
       />
       <TextInfoItem
         name="TVL"
-        value={isFarmJsonInfo(info) ? '--' : info.tvl ? `~${toUsdVolume(info.tvl, { decimalPlace: 0 })}` : '--'}
+        value={isJsonFarmInfo(info) ? '--' : info.tvl ? `~${toUsdVolume(info.tvl, { decimalPlace: 0 })}` : '--'}
         subValue={
-          isFarmJsonInfo(info)
+          isJsonFarmInfo(info)
             ? '--'
             : info.stakedLpAmount && `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} LP`
         }
@@ -729,14 +730,14 @@ function FarmCardDatabaseBodyCollapseItemFace({
           <TextInfoItem
             name="TVL"
             value={
-              isFarmJsonInfo(info)
+              isJsonFarmInfo(info)
                 ? '--'
                 : info.tvl
                 ? `≈${toUsdVolume(info.tvl, { autoSuffix: true, decimalPlace: 0 })}`
                 : '--'
             }
             subValue={
-              isFarmJsonInfo(info)
+              isJsonFarmInfo(info)
                 ? '--'
                 : info.stakedLpAmount && `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} LP`
             }
@@ -745,7 +746,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
           <TextInfoItem
             name="Total APR"
             value={
-              isFarmJsonInfo(info) ? (
+              isJsonFarmInfo(info) ? (
                 '--'
               ) : (
                 <Tooltip placement="right">
@@ -1196,9 +1197,9 @@ function FarmStakeLpDialog() {
 function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | FarmPoolJsonInfo; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const getLpToken = useToken((s) => s.getLpToken)
-  const isStable = isFarmJsonInfo(info) ? false : info.isStablePool
+  const isStable = isJsonFarmInfo(info) ? false : info.isStablePool
 
-  if (isFarmJsonInfo(info)) {
+  if (isJsonFarmInfo(info)) {
     const lpToken = getLpToken(info.lpMint)
     const name = lpToken ? `${lpToken.base.symbol ?? '--'} - ${lpToken.quote.symbol ?? '--'}` : '--' // TODO: rule of get farm name should be a issolate function
     return (
@@ -1206,14 +1207,12 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
         is={isMobile ? 'Col' : 'Row'}
         className={twMerge('flex-wrap items-center mobile:items-start', className)}
       >
-        {
-          <CoinAvatarPair
-            className="justify-self-center mr-2"
-            size={isMobile ? 'sm' : 'md'}
-            token1={lpToken?.base}
-            token2={lpToken?.quote}
-          />
-        }
+        <CoinAvatarPair
+          className="justify-self-center mr-2"
+          size={isMobile ? 'sm' : 'md'}
+          token1={lpToken?.base}
+          token2={lpToken?.quote}
+        />
         {lpToken ? (
           <div>
             <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
@@ -1226,7 +1225,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
   return (
     <AutoBox
       is={isMobile ? 'Col' : 'Row'}
-      className={twMerge('flex-wrap items-center mobile:items-start gap-x-2', className)}
+      className={twMerge('flex-wrap items-center mobile:items-start gap-x-2 gap-y-1', className)}
     >
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
       <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
