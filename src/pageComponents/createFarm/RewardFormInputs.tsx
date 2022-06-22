@@ -50,12 +50,8 @@ function useStateWithSuperPreferential<T>(
 
 const MAX_DURATION_DAY = 90
 const MIN_DURATION_DAY = 0 /* FIXME: for Test */
-const MAX_DURATION_HOUR = 24 * MAX_DURATION_DAY
-const MIN_DURATION_HOUR = 24 * MIN_DURATION_DAY
 export const MAX_DURATION = MAX_DURATION_DAY * 24 * 60 * 60 * 1000
 export const MIN_DURATION = MIN_DURATION_DAY * 24 * 60 * 60 * 1000
-const MAX_DURATION_TEXT = `${MAX_DURATION_DAY}D`
-const MIN_DURATION_TEXT = `${MIN_DURATION_DAY}D`
 
 export type RewardFormCardInputsParams = {
   reward: UIRewardInfo
@@ -120,18 +116,17 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
   const haveBalance = Boolean(reward && gte(balances[toPubString(reward.token?.mint)], reward.amount))
   const isAmountValid = haveBalance
 
-  if (!reward) return null
-
   const rewardTokenAmount = isUnedited72hReward
     ? ''
-    : toString(reward.amount, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })
+    : reward && toString(reward.amount, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })
   const rewardDuration = isUnedited72hReward ? undefined : getHoursFromDuration(durationTime)
-  const rewardStartTime = isUnedited72hReward ? reward.endTime : reward.startTime
-  const rewardEndTime = isUnedited72hReward ? undefined : reward.endTime
+  const rewardStartTime = isUnedited72hReward ? reward?.endTime : reward?.startTime
+  const rewardEndTime = isUnedited72hReward ? undefined : reward?.endTime
   const rewardEstimatedValue =
-    estimatedValue && toString(estimatedValue, { decimalLength: `auto ${reward.token?.decimals ?? 6}` })
+    estimatedValue && toString(estimatedValue, { decimalLength: `auto ${reward?.token?.decimals ?? 6}` })
   const isValid = isDurationValid && isAmountValid && (reward?.isRwardingBeforeEnd72h || isStartTimeAfterCurrent)
   useImperativeHandle<any, RewardCardInputsHandler>(componentRef, () => ({ isValid }))
+  if (!reward) return null
   return (
     <Grid className="gap-4">
       <CoinInputBoxWithTokenSelector
@@ -175,7 +170,7 @@ export function RewardFormCardInputs({ reward: targetReward, componentRef }: Rew
             placeholder={`${1} - ${2}`}
             value={rewardDuration}
             disabled={disableDurationInput}
-            onBlur={(v, { setSelf }) => {
+            onBlur={(v) => {
               // const duration = getDurationFromString(v)
               // if (duration.totalDuration > MAX_DURATION) {
               //   setSelf(MAX_DURATION_TEXT)
