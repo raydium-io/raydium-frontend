@@ -135,7 +135,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
     </>
   )
   return (
-    <Popover placement="bottom" componentRef={popoverComponentRef}>
+    <Popover placement="bottom" componentRef={popoverComponentRef} closeDelay={100}>
       <Popover.Button>
         <Input
           {...restProps}
@@ -169,14 +169,13 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
             restProps.inputProps?.onUserInput
           )}
           onBlur={(...args) => {
-            const haveMultiCandidate = filtered?.length && filtered.length >= 1
-            if (haveMultiCandidate && searchText) {
+            const haveOnlyMultiCandidate = filtered?.length === 1
+            if (haveOnlyMultiCandidate) {
               setCurrentCandidateIdx(0)
               applySelectedIndex(0)
             } else {
               onBlurMatchCandiateFailed?.({ text: String(searchText) })
             }
-
             restProps.onBlur?.(...args)
             restProps.inputProps?.onBlur?.(...args)
           }}
