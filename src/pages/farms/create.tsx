@@ -298,7 +298,9 @@ export default function CreateFarmPage() {
               useCreateFarms.setState({
                 isRoutedByCreateOrEdit: true
               })
-              routeTo('/farms/createReview', {})?.then(() => {})
+              routeTo('/farms/createReview', {})?.then(() => {
+                cleanStoreEmptyRewards()
+              })
             }}
           >
             Review Farm
