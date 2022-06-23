@@ -295,12 +295,10 @@ export default function CreateFarmPage() {
               }
             ]}
             onClick={() => {
-              routeTo('/farms/createReview', {})?.then(() => {
-                cleanStoreEmptyRewards()
-                useCreateFarms.setState({
-                  isRoutedByCreateOrEdit: true
-                })
+              useCreateFarms.setState({
+                isRoutedByCreateOrEdit: true
               })
+              routeTo('/farms/createReview', {})?.then(() => {})
             }}
           >
             Review Farm

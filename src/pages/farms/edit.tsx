@@ -221,11 +221,11 @@ export default function FarmEditPage() {
             }
           ]}
           onClick={() => {
+            useCreateFarms.setState({
+              isRoutedByCreateOrEdit: true
+            })
             routeTo('/farms/editReview')?.then(() => {
               cleanStoreEmptyRewards()
-              useCreateFarms.setState({
-                isRoutedByCreateOrEdit: true
-              })
             })
           }}
         >
