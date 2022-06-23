@@ -45,11 +45,11 @@ export function PoolIdInputBlock({
         label: pool.id,
         // searchText: `${tokens[pool.baseMint]?.symbol} ${tokens[pool.quoteMint]?.symbol} ${pool.id}`
         searchText: [
-          { text: pool.baseMint, entirely: true },
+          { text: pool.id, entirely: true },
+          { text: pool.baseMint, entirely: true }, // Input Auto complete result sort setting
           { text: pool.quoteMint, entirely: true },
           tokens[pool.baseMint]?.symbol,
-          tokens[pool.quoteMint]?.symbol,
-          { text: pool.id, entirely: true }
+          tokens[pool.quoteMint]?.symbol
         ]
       } as AutoCompleteCandidateItem)
     )
