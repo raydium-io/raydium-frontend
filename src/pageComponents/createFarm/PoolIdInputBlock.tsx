@@ -43,7 +43,14 @@ export function PoolIdInputBlock({
     .map((pool) =>
       Object.assign(pool, {
         label: pool.id,
-        searchText: `${tokens[pool.baseMint]?.symbol} ${tokens[pool.quoteMint]?.symbol} ${pool.id}`
+        // searchText: `${tokens[pool.baseMint]?.symbol} ${tokens[pool.quoteMint]?.symbol} ${pool.id}`
+        searchText: [
+          { text: pool.baseMint, entirely: true },
+          { text: pool.quoteMint, entirely: true },
+          tokens[pool.baseMint]?.symbol,
+          tokens[pool.quoteMint]?.symbol,
+          { text: pool.id, entirely: true }
+        ]
       } as AutoCompleteCandidateItem)
     )
 

@@ -10,7 +10,8 @@ import Card from './Card'
 import Icon from './Icon'
 import Input, { InputComponentHandler, InputProps } from './Input'
 import Popover, { PopoverHandles } from './Popover'
-import { useSearch } from '../hooks/useSearch'
+import { SearchConfigItem, useSearch } from '../hooks/useSearch'
+import { MayArray } from '@/types/constants'
 
 export type AutoCompleteCandidateItem =
   | string
@@ -22,7 +23,8 @@ export type AutoCompleteCandidateItem =
        */
       label: string
 
-      searchText?: string
+      searchText?: MayArray<SearchConfigItem>
+
       /** for React list key */
       id?: string
     }
