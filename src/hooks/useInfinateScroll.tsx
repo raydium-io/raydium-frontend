@@ -1,6 +1,6 @@
 import hasProperty from '@/functions/judgers/compare'
 import { isBoolean, isNumber, isObject, isString } from '@/functions/judgers/dateType'
-import { ReactNode, RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import { RefObject, useState } from 'react'
 import { useRecordedEffect } from './useRecordedEffect'
 import { useScrollDegreeDetector } from './useScrollDegreeDetector'
 
@@ -11,7 +11,7 @@ import { useScrollDegreeDetector } from './useScrollDegreeDetector'
  * @param options options about infinite scroll
  * @returns render item count (component apply infinite scroll should only render "count" item)
  */
-export function useInfinateScrollRef<T>(
+export function useInfinateScroll<T>(
   ref: RefObject<HTMLElement | null | undefined>,
   options: {
     items: T[]

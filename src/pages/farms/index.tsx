@@ -330,7 +330,7 @@ function FarmCard() {
   } = useSort(applyFiltersDataSource, {
     defaultSort: {
       key: 'defaultKey',
-      sortBy: [(i) => i.isUpcomingPool, /* (i) => i.isNewPool, */ (i) => favouriteIds?.includes(toPubString(i.id))]
+      sortCompare: [(i) => i.isUpcomingPool, /* (i) => i.isNewPool, */ (i) => favouriteIds?.includes(toPubString(i.id))]
     }
   })
 
@@ -347,7 +347,7 @@ function FarmCard() {
             newSortKey
               ? setSortConfig({
                   key: newSortKey,
-                  sortBy:
+                  sortCompare:
                     newSortKey === 'favorite' ? (i) => favouriteIds?.includes(toPubString(i.id)) : (i) => i[newSortKey]
                 })
               : clearSortConfig()
@@ -390,7 +390,7 @@ function FarmCard() {
               setSortConfig({
                 key: 'favorite',
                 sortModeQueue: ['decrease', 'none'],
-                sortBy: (i) => favouriteIds?.includes(toPubString(i.id))
+                sortCompare: (i) => favouriteIds?.includes(toPubString(i.id))
               })
             }}
           >
@@ -411,7 +411,7 @@ function FarmCard() {
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
-                sortBy: (i) => i.name
+                sortCompare: (i) => i.name
               })
             }}
           >
@@ -436,7 +436,7 @@ function FarmCard() {
           {/* table head column: Total APR */}
           <Row
             className="pl-2 font-medium items-center text-[#ABC4FF] text-sm cursor-pointer gap-1  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'totalApr', sortBy: (i) => i.totalApr })}
+            onClick={() => setSortConfig({ key: 'totalApr', sortCompare: (i) => i.totalApr })}
           >
             Total APR
             <Tooltip>
@@ -459,7 +459,7 @@ function FarmCard() {
           {/* table head column: TVL */}
           <Row
             className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'tvl', sortBy: (i) => i.tvl })}
+            onClick={() => setSortConfig({ key: 'tvl', sortCompare: (i) => i.tvl })}
           >
             TVL
             <Icon

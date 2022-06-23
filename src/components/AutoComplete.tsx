@@ -4,12 +4,13 @@ import { inClient } from '@/functions/judgers/isSSR'
 import { mergeFunction } from '@/functions/merge'
 import mergeRef from '@/functions/react/mergeRef'
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import { useInfinateScrollRef } from '@/hooks/useInfinateScrollRef'
+import { useInfinateScroll } from '@/hooks/useInfinateScroll'
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import Card from './Card'
 import Icon from './Icon'
 import Input, { InputComponentHandler, InputProps } from './Input'
 import Popover, { PopoverHandles } from './Popover'
+import { useSearch } from '../hooks/useSearch'
 
 export type AutoCompleteCandidateItem =
   | string
@@ -26,8 +27,8 @@ export type AutoCompleteCandidateItem =
       id?: string
     }
 
-export type AutoCompleteProps<T extends AutoCompleteCandidateItem | undefined> = {
-  candidates?: T[]
+export type AutoCompleteProps<T extends AutoCompleteCandidateItem> = {
+  candidates: T[]
   renderCandidateItem?: (payloads: {
     candidate: T
     idx: number
@@ -40,7 +41,7 @@ export type AutoCompleteProps<T extends AutoCompleteCandidateItem | undefined> =
   onBlurMatchCandiateFailed?: (payloads: { text: string | undefined }) => void
 } & (InputProps & { inputProps?: InputProps })
 
-export default function AutoComplete<T extends AutoCompleteCandidateItem | undefined>({
+export default function AutoComplete<T extends AutoCompleteCandidateItem>({
   value,
   defaultValue,
 
@@ -68,24 +69,17 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
     }
   }, [])
 
-  // handle candidates
-  const [searchText, setSearchText] = useState(defaultValue ?? value)
   const [selectedCandidateIdx, setCurrentCandidateIdx] = useState<number>()
-  const searched =
-    candidates?.filter((candidate) => {
-      if (!candidate) return false
-      if (!searchText) return true
 
-      const searchKeyWords = String(searchText).trim().toLowerCase().split(/\s|-/)
-      const candidateText =
-        (isString(candidate)
-          ? candidate
-          : candidate.searchText ?? candidate.label + ' ' + candidate.id
-        )?.toLowerCase() ?? ''
-      return searchKeyWords.every((keyword) => candidateText.includes(keyword))
-    }) ?? []
-  const popoverScrollUlRef = useRef<HTMLDivElement>(null)
-  const renderCount = useInfinateScrollRef(popoverScrollUlRef, { items: searched })
+  const { searched, searchText, setSearchText } = useSearch(candidates ?? [], {
+    defaultSearchText: defaultValue ?? value,
+    getBeSearchedConfig: (candidate) =>
+      isString(candidate) ? candidate : candidate.searchText ?? candidate.label + ' ' + candidate.id
+  })
+
+  const popoverScrollDivRef = useRef<HTMLDivElement>(null)
+  const renderCount = useInfinateScroll(popoverScrollDivRef, { items: searched })
+
   const filtered = searched.slice(0, renderCount)
 
   // update seletedIdx when filtered result change
@@ -210,7 +204,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
             className="flex flex-col py-3 border-1.5 border-[#abc4ff80] bg-[#141041] shadow-cyberpunk-card"
             size="md"
           >
-            <div className="divide-y divide-[#abc4ff1a] max-h-[40vh] px-2 overflow-auto" ref={popoverScrollUlRef}>
+            <div className="divide-y divide-[#abc4ff1a] max-h-[40vh] px-2 overflow-auto" ref={popoverScrollDivRef}>
               {autoCompleteItemsContent}
             </div>
           </Card>
@@ -220,7 +214,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
   )
 }
 
-function createLabelNode<T extends AutoCompleteCandidateItem | undefined>({
+function createLabelNode<T extends AutoCompleteCandidateItem>({
   candidate,
   idx,
   candidates,
