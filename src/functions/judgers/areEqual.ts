@@ -3,7 +3,7 @@ import { PublicKey } from '@solana/web3.js'
 
 import { SplToken, Token } from '@/application/token/type'
 
-import { isObject } from './dateType'
+import { isObject, isUndefined } from './dateType'
 
 export function areEqual(v1: any, v2: any) {
   return v1 === v2
@@ -43,4 +43,9 @@ export function isMintEqual(p1: Token | PublicKeyish | undefined, p2: Token | Pu
   const publicKeyish2 = p2 instanceof Token ? p2.mint : p2
   if (p1 instanceof PublicKey && p2 instanceof PublicKey) return p1.equals(p2)
   return String(publicKeyish1) === String(publicKeyish2)
+}
+
+export function isStringInsensitivelyEqual(s1: string | undefined, s2: string | undefined) {
+  if (isUndefined(s1) || isUndefined(s2)) return false
+  return s1.toLowerCase() === s2.toLowerCase()
 }
