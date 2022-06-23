@@ -1,4 +1,4 @@
-import { Price, PublicKeyish, Token } from '@raydium-io/raydium-sdk'
+import { Price, PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import create from 'zustand'
 
@@ -7,7 +7,7 @@ import { HexAddress, SrcAddress } from '@/types/constants'
 
 import useWallet from '../wallet/useWallet'
 
-import { HydratedTokenJsonInfo, LpToken, SplToken, TokenJson, TokenList } from './type'
+import { LpToken, SplToken, TokenJson } from './type'
 import {
   isQuantumSOL,
   isQuantumSOLVersionSOL,

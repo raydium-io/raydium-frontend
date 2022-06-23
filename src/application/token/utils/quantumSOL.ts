@@ -41,6 +41,7 @@ export const quantumSOLHydratedTokenJsonInfo: QuantumSOLJsonInfo = {
   mint: toPubString(WSOLMint),
   decimals: SOLDecimals,
   symbol: 'SOL', // QSOL
+  id: 'sol',
   name: 'solana',
   icon: `https://img.raydium.io/icon/So11111111111111111111111111111111111111112.png`,
   extensions: {
@@ -66,6 +67,7 @@ export const quantumSOLVersionSOLTokenJsonInfo: QuantumSOLJsonInfo = {
   decimals: SOLDecimals,
   collapseTo: 'sol',
   symbol: 'SOL',
+  id: 'sol',
   name: 'solana',
   icon: `https://img.raydium.io/icon/So11111111111111111111111111111111111111112.png`,
   extensions: {
@@ -91,6 +93,7 @@ export const quantumSOLVersionWSOLTokenJsonInfo: QuantumSOLJsonInfo = {
   decimals: SOLDecimals,
   collapseTo: 'wsol',
   symbol: 'WSOL',
+  id: toPubString(WSOLMint),
   name: 'Wrapped SOL',
   icon: `https://img.raydium.io/icon/So11111111111111111111111111111111111111112.png`,
   extensions: {

@@ -80,7 +80,7 @@ export function createSplToken(
 ): SplToken {
   const { mint, symbol, name = symbol, decimals, ...rest } = info
   // TODO: recordPubString(token.mint)
-  const splToken = Object.assign(new Token(mint, decimals, symbol, name), { icon: '', extensions: {} }, rest)
+  const splToken = Object.assign(new Token(mint, decimals, symbol, name), { icon: '', extensions: {}, id: mint }, rest)
   if (customTokenIcons?.[mint]) {
     splToken.icon = customTokenIcons[mint] ?? ''
   }
