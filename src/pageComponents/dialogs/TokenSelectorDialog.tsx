@@ -107,7 +107,7 @@ function TokenSelectorDialogContent({
                 .split(' ')
                 .every(
                   (keyWord) =>
-                    toPubString(token.mint).startsWith(keyWord) ||
+                    toPubString(token.id).startsWith(keyWord) ||
                     new RegExp(`^.*${keyWord.toLowerCase()}.*$`).test(token.symbol?.toLowerCase() ?? '')
                 )
             ),
