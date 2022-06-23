@@ -79,7 +79,7 @@ function PoolHeader() {
             TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
           </div>
           <div className="whitespace-nowrap">
-            VOLUME24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
+            Volume24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
           </div>
         </Row>
       </Row>
