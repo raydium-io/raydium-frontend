@@ -23,27 +23,18 @@ export function useSearch<T>(
   }
 ): { searched: T[]; searchText: string | undefined; setSearchText: Dispatch<SetStateAction<string | undefined>> } {
   const { defaultSearchText, getBeSearchedConfig = extractItemBeSearchedText /* resultSorter */ } = options ?? {}
-  // handle candidates
   const [searchText, setSearchText] = useState(defaultSearchText != null ? String(defaultSearchText) : undefined)
-
   if (!searchText) return { searched: items, searchText, setSearchText }
-
-  const matchedInfos = items
-    .map((item) => getMatchedInfos<T>(item, searchText, getBeSearchedConfig))
-    .filter((m) => m.matched)
-
-  const sortedMatchedInfos = sortMatchedInfos<T>(matchedInfos)
+  const allMatchedStatusInfos = shakeUndifindedItem(
+    items.map((item) => getMatchedInfos<T>(item, searchText, getBeSearchedConfig))
+  )
+  const meaningfulMatchedInfos = allMatchedStatusInfos.filter((m) => m?.matched)
+  const sortedMatchedInfos = sortByMatchedInfos<T>(meaningfulMatchedInfos)
   const shaked = shakeUndifindedItem(sortedMatchedInfos.map((m) => m.item))
-
-  // const sorted = searched.sort((candidateA, candidateB)=>{})
   return { searched: shaked, searchText, setSearchText }
 }
 
-function getMatchedInfos<T>(
-  item: T,
-  searchText: string,
-  getBeSearchedConfig: (item: T) => MayArray<SearchConfigItem>
-): MatchedInfo<T> {
+function getMatchedInfos<T>(item: T, searchText: string, getBeSearchedConfig: (item: T) => MayArray<SearchConfigItem>) {
   const searchKeyWords = String(searchText).trim().split(/\s|-/)
   const searchConfigs = [getBeSearchedConfig(item)]
     .flat()
@@ -62,18 +53,18 @@ function extractItemBeSearchedText(item: unknown): SearchConfigItemObj[] {
   return [{ text: '' }]
 }
 
-type MatchedInfo<T> = {
+type MatchedStatus<T> = {
   item: T
   matched: boolean
-  configs: SearchConfigItemObj[]
+  allConfigs: SearchConfigItemObj[]
   matchedConfigs: {
-    entirelyMatched: boolean
+    isEntirelyMatched: boolean
 
     config: SearchConfigItemObj
     configIdx: number
 
     searchedKeywordText: string
-    searchedKeywordIndx: number
+    searchedKeywordIdx: number
   }[]
 }
 
@@ -82,66 +73,69 @@ function patchSearchInfos<T>(options: {
   item: T
   searchKeyWords: string[]
   searchConfigs: SearchConfigItemObj[]
-}): MatchedInfo<T> {
-  const matchInfos: MatchedInfo<T> = {
+}): MatchedStatus<T> | undefined {
+  const matchInfos: MatchedStatus<T> = {
     item: options.item,
-    configs: options.searchConfigs,
+    allConfigs: options.searchConfigs,
     matched: false,
     matchedConfigs: []
   }
   for (const [keywordIdx, keyword] of options.searchKeyWords.entries()) {
+    let keywardHasMatched = false
     for (const [configIdx, config] of options.searchConfigs.entries()) {
       const configIsEntirely = config.entirely
       const matchEntirely = isStringInsensitivelyEqual(config.text, keyword)
       const matchPartial = isStringInsensitivelyContain(config.text, keyword)
       if ((matchEntirely && configIsEntirely) || (matchPartial && !configIsEntirely)) {
+        keywardHasMatched = true
         matchInfos.matched = true
         matchInfos.matchedConfigs.push({
           config,
           configIdx,
-          entirelyMatched: matchEntirely,
-          searchedKeywordIndx: keywordIdx,
+          isEntirelyMatched: matchEntirely,
+          searchedKeywordIdx: keywordIdx,
           searchedKeywordText: keyword
         })
       }
     }
+
+    if (!keywardHasMatched) return // if some keyword don't match anything, means this item is not right candidate
   }
   return matchInfos
 }
 
-function sortMatchedInfos<T>(matchedInfos: MatchedInfo<T>[]) {
-  return matchedInfos.sort((matchedInfoA, matchedInfoB) => {
-    const aEntirelyMatchedConfigs = matchedInfoA.matchedConfigs.filter((c) => c.entirelyMatched)
-    const bEntirelyMatchedConfigs = matchedInfoB.matchedConfigs.filter((c) => c.entirelyMatched)
-
-    // entire first !!!
-    if (aEntirelyMatchedConfigs.length && !bEntirelyMatchedConfigs.length) return -1
-    if (bEntirelyMatchedConfigs.length && !aEntirelyMatchedConfigs.length) return 1
-    if (aEntirelyMatchedConfigs.length && bEntirelyMatchedConfigs.length) {
-      const aEntirelyConfigLowestIdx = Math.min(...aEntirelyMatchedConfigs.map((c) => c.configIdx))
-      const bEntirelyConfigLowestIdx = Math.min(...bEntirelyMatchedConfigs.map((c) => c.configIdx))
-      return aEntirelyConfigLowestIdx - bEntirelyConfigLowestIdx
-    }
-
-    const aPartialMatchedConfigs = matchedInfoA.matchedConfigs.filter((c) => !c.entirelyMatched)
-    const bPartialMatchedConfigs = matchedInfoB.matchedConfigs.filter((c) => !c.entirelyMatched)
-
-    const aPartialConfigLowestIdx = Math.min(...aPartialMatchedConfigs.map((c) => c.configIdx))
-    const bPartialConfigLowestIdx = Math.min(...bPartialMatchedConfigs.map((c) => c.configIdx))
-    return aPartialConfigLowestIdx - bPartialConfigLowestIdx
-  })
+function sortByMatchedInfos<T>(matchedInfos: MatchedStatus<T>[]) {
+  return [...matchedInfos].sort(
+    (matchedInfoA, matchedInfoB) => toMatchedStatusSignature(matchedInfoB) - toMatchedStatusSignature(matchedInfoA)
+  )
 }
 
 /**
+ * so user can compare just use return number
  *
- * @example =>[0, 1, 2, 0, 2, 1]
+ * matchedInfo => [0, 1, 2, 0, 2, 1] =>  [ 2 * 4 + 2 * 2, 1 * 5 + 1 * 1] (index is weight) =>
+ * 2 - entirely mathched
+ * 1 - partialy matched
  *
+ * @returns item's weight number
  */
-// function toMatchedConfigSequence<T>(matchedInfo: MatchedInfo<T>): number[] {
+function toMatchedStatusSignature<T>(matchedInfo: MatchedStatus<T>): number {
+  const originalConfigs = matchedInfo.allConfigs
+  const entriesSequence = Array.from({ length: originalConfigs.length }, () => 0)
+  const partialSequence = Array.from({ length: originalConfigs.length }, () => 0)
+  matchedInfo.matchedConfigs.forEach(({ configIdx, isEntirelyMatched }) => {
+    if (isEntirelyMatched) {
+      entriesSequence[configIdx] = 2 // [0, 0, 2, 0, 2, 0]
+    } else {
+      partialSequence[configIdx] = 1 // [0, 1, 0, 0, 2, 1]
+    }
+  })
+  const calcCharateristicN = (sequence: number[]) =>
+    sequence.reduce((acc, currentValue, currentIdx) => acc + currentValue * (sequence.length - currentIdx), 0)
 
-//   const sequence = []
-//   matchedInfo.configs.forEach(config=>{
-//     sequence[config.]
-//   })
-//   return
-// }
+  const characteristicSequence = calcCharateristicN([
+    calcCharateristicN(entriesSequence), // 2 * 4 + 2 * 2
+    calcCharateristicN(partialSequence) //  1 * 5 + 1 * 1
+  ])
+  return characteristicSequence
+}
