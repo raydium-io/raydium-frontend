@@ -1,6 +1,6 @@
 import { RefObject, useCallback, useEffect, useRef } from 'react'
 
-export function useScrollMotionDetector(
+export function useScrollDegreeDetector(
   ref: RefObject<HTMLElement | null | undefined>,
   options?: {
     onReachBottom?: () => void
@@ -8,7 +8,8 @@ export function useScrollMotionDetector(
   }
 ) {
   const isReachedBottom = useRef(false)
-  const onScroll = useCallback(() => {
+
+  const onScroll = () => {
     if (!ref.current) return
     const { scrollHeight, scrollTop, clientHeight } = ref.current
     const isNearlyReachBottom = scrollTop + clientHeight + (options?.reachBottomMargin ?? 0) >= scrollHeight
@@ -21,7 +22,7 @@ export function useScrollMotionDetector(
     if (!isNearlyReachBottom && isReachedBottom.current) {
       isReachedBottom.current = false
     }
-  }, [ref, options])
+  }
 
   useEffect(() => {
     onScroll()

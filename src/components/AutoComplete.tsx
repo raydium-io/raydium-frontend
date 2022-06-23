@@ -4,6 +4,7 @@ import { inClient } from '@/functions/judgers/isSSR'
 import { mergeFunction } from '@/functions/merge'
 import mergeRef from '@/functions/react/mergeRef'
 import { shrinkToValue } from '@/functions/shrinkToValue'
+import { useInfinateScrollRef } from '@/hooks/useInfinateScrollRef'
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import Card from './Card'
 import Icon from './Icon'
@@ -70,8 +71,8 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
   // handle candidates
   const [searchText, setSearchText] = useState(defaultValue ?? value)
   const [selectedCandidateIdx, setCurrentCandidateIdx] = useState<number>()
-  const filtered = candidates
-    ?.filter((candidate) => {
+  const searched =
+    candidates?.filter((candidate) => {
       if (!candidate) return false
       if (!searchText) return true
 
@@ -82,8 +83,10 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
           : candidate.searchText ?? candidate.label + ' ' + candidate.id
         )?.toLowerCase() ?? ''
       return searchKeyWords.every((keyword) => candidateText.includes(keyword))
-    })
-    .slice(0, 20)
+    }) ?? []
+  const popoverScrollUlRef = useRef<HTMLDivElement>(null)
+  const renderCount = useInfinateScrollRef(popoverScrollUlRef, { items: searched })
+  const filtered = searched.slice(0, renderCount)
 
   // update seletedIdx when filtered result change
   useEffect(() => {
@@ -105,6 +108,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
 
   // have to open popover manually in some case
   const popoverComponentRef = useRef<PopoverHandles>(null)
+
   const autoCompleteItemsContent = (
     <>
       {filtered?.length ? (
@@ -206,7 +210,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
             className="flex flex-col py-3 border-1.5 border-[#abc4ff80] bg-[#141041] shadow-cyberpunk-card"
             size="md"
           >
-            <div className="divide-y divide-[#abc4ff1a] max-h-[40vh] px-2 overflow-auto">
+            <div className="divide-y divide-[#abc4ff1a] max-h-[40vh] px-2 overflow-auto" ref={popoverScrollUlRef}>
               {autoCompleteItemsContent}
             </div>
           </Card>

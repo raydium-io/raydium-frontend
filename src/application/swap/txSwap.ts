@@ -1,4 +1,4 @@
-import { Trade } from '@raydium-io/raydium-sdk'
+import { TokenAmount, Trade } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
@@ -13,6 +13,7 @@ import useWallet from '../wallet/useWallet'
 import { useSwap } from './useSwap'
 import { deUITokenAmount, toUITokenAmount } from '../token/quantumSOL'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function txSwap() {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
