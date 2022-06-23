@@ -15,11 +15,11 @@ import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
 import linkTo from '@/functions/dom/linkTo'
 import useDevice from '@/hooks/useDevice'
-import { useDocumentScrollDetector } from '@/hooks/useScrollDetector'
+import { useDocumentScrollActionDetector } from '@/hooks/useScrollActionDetector'
 import useDocumentMetaTitle from '@/hooks/useDocumentMetaTitle'
 
 function HomePageContainer({ children }: { children?: ReactNode }) {
-  useDocumentScrollDetector()
+  useDocumentScrollActionDetector()
   useDocumentMetaTitle('Raydium')
   return (
     <div

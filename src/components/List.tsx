@@ -7,7 +7,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
 import Col from './Col'
 import { FadeIn } from './FadeIn'
-import { useInfiniteScrollDirector } from '../hooks/useInfiniteScrollDirector'
+import { useScrollMotionDetector } from '../hooks/useScrollingDirector'
 
 export default function List({
   increaseRenderCount = 30,
@@ -46,7 +46,7 @@ export default function List({
 
   const listRef = useRef<HTMLDivElement>(null)
 
-  useInfiniteScrollDirector(listRef, {
+  useScrollMotionDetector(listRef, {
     onReachBottom: () => {
       setRenderItemLength((n) => (n >= allListItems.length ? allListItems.length : n + increaseRenderCount))
     },

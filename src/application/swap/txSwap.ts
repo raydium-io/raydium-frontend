@@ -60,6 +60,7 @@ export default function txSwap() {
       amountIn: deUITokenAmount(upCoinTokenAmount), // TODO: currently  only fixed upper side
       amountOut: deUITokenAmount(toTokenAmount(downCoin, minReceived, { alreadyDecimaled: true }))
     })
+
     const signedTransactions = shakeUndifindedItem(
       await asyncMap([setupTransaction, tradeTransaction], (merged) => {
         if (!merged) return

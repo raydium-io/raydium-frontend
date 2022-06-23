@@ -1,6 +1,6 @@
 import { RefObject, useCallback, useEffect, useRef } from 'react'
 
-export function useInfiniteScrollDirector(
+export function useScrollMotionDetector(
   ref: RefObject<HTMLElement | null | undefined>,
   options?: {
     onReachBottom?: () => void

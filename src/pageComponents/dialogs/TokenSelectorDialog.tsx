@@ -25,12 +25,12 @@ import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import Switcher from '@/components/Switcher'
 import toPubString from '@/functions/format/toMintString'
-import { isMintEqual } from '@/functions/judgers/areEqual'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
 import { PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -120,8 +120,20 @@ function TokenSelectorDialogContent({
 
   function firstFullMatched(tokens: SplToken[], searchText: string): SplToken[] {
     const fullMatched = tokens.filter((token) => token.symbol?.toLowerCase() === searchText.toLowerCase())
-    const fullMatchedMint = fullMatched.map((m) => toPubString(m.mint))
-    return [...fullMatched, ...tokens.filter(({ mint }) => !fullMatchedMint.includes(toPubString(mint)))]
+    return [
+      ...fullMatched,
+      ...tokens.filter(
+        (t) =>
+          !fullMatched.some(
+            (f) =>
+              isMintEqual(f.mint, t.mint) &&
+              isStringInsensitivelyEqual(
+                f.symbol,
+                t.symbol
+              ) /* check mint and symbol to avoid QuantumSOL(sol and wsol has same mint) */
+          )
+      )
+    ]
   }
 
   async function getOnlineTokenInfo(mint: string) {

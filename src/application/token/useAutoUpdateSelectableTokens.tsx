@@ -27,9 +27,11 @@ export default function useAutoUpdateSelectableTokens() {
       (tokenListName) => tokenListName === USER_ADDED_TOKEN_LIST_NAME
     )
 
-    return unifyByKey([...verboseTokens, ...(havUserAddedTokens ? userAddedTokens.values() : [])], (i) =>
-      toPubString(i.mint)
-    ).filter((token) => {
+    const verboseTokensMints = verboseTokens.map((t) => toPubString(t.mint))
+    const filteredUserAddedTokens = (havUserAddedTokens ? [...userAddedTokens.values()] : []).filter(
+      (i) => !verboseTokensMints.includes(toPubString(i.mint))
+    )
+    return [...verboseTokens, ...filteredUserAddedTokens].filter((token) => {
       const isUserFlagged =
         tokenListSettings[USER_ADDED_TOKEN_LIST_NAME] && userFlaggedTokenMints.has(String(token.mint))
       const isOnByTokenList = activeTokenListNames.some((tokenListName) =>

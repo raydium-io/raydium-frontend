@@ -3,8 +3,8 @@ import { PublicKey } from '@solana/web3.js'
 
 import { SplToken, Token } from '@/application/token/type'
 
-import { isObject } from './dateType'
 import toPubString from '../format/toMintString'
+import { isObject, isUndefined } from './dateType'
 
 export function areEqual(v1: any, v2: any) {
   return v1 === v2
@@ -44,4 +44,9 @@ export function isMintEqual(p1: Token | PublicKeyish | undefined, p2: Token | Pu
 
 export function areEqualToken(token1?: SplToken | Token, token2?: SplToken | Token) {
   return isMintEqual(token1?.mint, token2?.mint)
+}
+
+export function isStringInsensitivelyEqual(s1: string | undefined, s2: string | undefined) {
+  if (isUndefined(s1) || isUndefined(s2)) return false
+  return s1.toLowerCase() === s2.toLowerCase()
 }
