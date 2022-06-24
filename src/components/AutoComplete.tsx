@@ -23,7 +23,7 @@ export type AutoCompleteCandidateItem<Item = any> =
        */
       label: string
 
-      searchText?: UseSearchOptions<Item>['getBeSearched']
+      searchText?: UseSearchOptions<Item>['searchTarget']
 
       /** for React list key */
       id?: string
@@ -75,7 +75,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem<T>>({
 
   const { searched, searchText, setSearchText } = useSearch(candidates ?? [], {
     defaultSearchText: defaultValue ?? value,
-    getBeSearched: (candidate) =>
+    searchTarget: (candidate) =>
       isString(candidate)
         ? candidate
         : shrinkToValue(candidate.searchText, [candidate]) ?? candidate.label + ' ' + candidate.id

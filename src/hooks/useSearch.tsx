@@ -16,18 +16,18 @@ export type SearchConfigItem = SearchConfigItemObj | string
 export type UseSearchOptions<T> = {
   defaultSearchText?: string | number
   /** TODO: if return a array, match first searchedText result will palce first, match second searchedText result will palce second */
-  getBeSearched?: MayFunction<MayArray<SearchConfigItem>, [item: T]>
+  searchTarget?: MayFunction<MayArray<SearchConfigItem>, [item: T]>
 }
 
 export function useSearch<T>(
   items: T[],
   options?: UseSearchOptions<T>
 ): { searched: T[]; searchText: string | undefined; setSearchText: Dispatch<SetStateAction<string | undefined>> } {
-  const { defaultSearchText, getBeSearched /* resultSorter */ } = options ?? {}
+  const { defaultSearchText, searchTarget /* resultSorter */ } = options ?? {}
   const [searchText, setSearchText] = useState(defaultSearchText != null ? String(defaultSearchText) : undefined)
   if (!searchText) return { searched: items, searchText, setSearchText }
   const allMatchedStatusInfos = shakeUndifindedItem(
-    items.map((item) => getMatchedInfos(item, searchText, getBeSearched ?? extractItemBeSearchedText(item)))
+    items.map((item) => getMatchedInfos(item, searchText, searchTarget ?? extractItemBeSearchedText(item)))
   )
   const meaningfulMatchedInfos = allMatchedStatusInfos.filter((m) => m?.matched)
   const sortedMatchedInfos = sortByMatchedInfos<T>(meaningfulMatchedInfos)
@@ -49,10 +49,10 @@ function extractItemBeSearchedText(item: unknown): SearchConfigItemObj[] {
 function getMatchedInfos<T>(
   item: T,
   searchText: string,
-  getBeSearched: NonNullable<UseSearchOptions<T>['getBeSearched']>
+  searchTarget: NonNullable<UseSearchOptions<T>['searchTarget']>
 ) {
   const searchKeyWords = String(searchText).trim().split(/\s|-/)
-  const searchConfigs = [shrinkToValue(getBeSearched, [item])]
+  const searchConfigs = [shrinkToValue(searchTarget, [item])]
     .flat()
     .map((c) => (isString(c) ? { text: c } : c) as SearchConfigItemObj)
   return patchSearchInfos({ item, searchKeyWords, searchConfigs })
