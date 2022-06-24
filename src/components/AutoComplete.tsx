@@ -7,7 +7,8 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useElementStateRef } from '@/hooks/useElementStateRef'
 import { useInfinateScroll } from '@/hooks/useInfinateScroll'
 import { ReactNode, useEffect, useRef, useState } from 'react'
-import { useSearch, UseSearchOptions } from '../hooks/useSearch'
+import { useSearch } from '../hooks/useSearch'
+import { SearchOptions } from '../functions/searchItems'
 import Card from './Card'
 import Icon from './Icon'
 import Input, { InputComponentHandler, InputProps } from './Input'
@@ -23,7 +24,7 @@ export type AutoCompleteCandidateItem<Item = any> =
        */
       label: string
 
-      searchText?: UseSearchOptions<Item>['searchTarget']
+      searchText?: SearchOptions<Item>['matchConfigs']
 
       /** for React list key */
       id?: string
@@ -75,7 +76,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem<T>>({
 
   const { searched, searchText, setSearchText } = useSearch(candidates ?? [], {
     defaultSearchText: defaultValue ?? value,
-    searchTarget: (candidate) =>
+    matchConfigs: (candidate) =>
       isString(candidate)
         ? candidate
         : shrinkToValue(candidate.searchText, [candidate]) ?? candidate.label + ' ' + candidate.id

@@ -41,6 +41,7 @@ import { objectFilter } from '@/functions/objectMethods'
 import useSort from '@/hooks/useSort'
 import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
 import formatNumber from '@/functions/format/formatNumber'
+import { useSearch } from '@/hooks/useSearch'
 
 /**
  * store:
@@ -292,6 +293,8 @@ function PoolCard() {
         }),
     [onlySelfPools, searchText, hydratedInfos]
   )
+
+  const searched = useSearch(dataSource, {})
 
   const {
     sortedData,
