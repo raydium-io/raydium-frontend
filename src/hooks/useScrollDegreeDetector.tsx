@@ -1,8 +1,6 @@
 import { RefObject, useEffect, useRef } from 'react'
 
 export type UseScrollDegreeDetectorOptions = {
-  /** sometimes,  ref will be attach not very quick (like in <Popover> , panel's ref won't be attached, untill element created) */
-  rebindEveryRerender?: boolean
   onReachBottom?: () => void
   reachBottomMargin?: number
 }
@@ -28,12 +26,9 @@ export function useScrollDegreeDetector(
     }
   }
 
-  useEffect(
-    () => {
-      onScroll()
-      ref.current?.addEventListener('scroll', onScroll, { passive: true })
-      return () => ref.current?.removeEventListener('scroll', onScroll)
-    },
-    options?.rebindEveryRerender ? undefined : []
-  )
+  useEffect(() => {
+    onScroll()
+    ref.current?.addEventListener('scroll', onScroll, { passive: true })
+    return () => ref.current?.removeEventListener('scroll', onScroll)
+  }, [ref])
 }

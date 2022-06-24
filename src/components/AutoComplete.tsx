@@ -4,7 +4,7 @@ import { inClient } from '@/functions/judgers/isSSR'
 import { mergeFunction } from '@/functions/merge'
 import mergeRef from '@/functions/react/mergeRef'
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import { useForceUpdatedRef } from '@/hooks/useForceUpdatedRef'
+import { useElementStateRef } from '@/hooks/useElementStateRef'
 import { useInfinateScroll } from '@/hooks/useInfinateScroll'
 import { ReactNode, useEffect, useRef, useState } from 'react'
 import { useSearch, UseSearchOptions } from '../hooks/useSearch'
@@ -81,11 +81,8 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem<T>>({
         : shrinkToValue(candidate.searchText, [candidate]) ?? candidate.label + ' ' + candidate.id
   })
 
-  const popoverScrollDivRef = useForceUpdatedRef<HTMLDivElement>()
-  const renderItemCount = useInfinateScroll(popoverScrollDivRef, {
-    items: searched,
-    rebindEveryRerender: true
-  })
+  const popoverScrollDivRef = useElementStateRef<HTMLDivElement>()
+  const renderItemCount = useInfinateScroll(popoverScrollDivRef, { items: searched })
 
   const filtered = searched.slice(0, renderItemCount)
 
