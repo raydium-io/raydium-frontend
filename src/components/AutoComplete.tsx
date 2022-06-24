@@ -82,7 +82,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem<T>>({
   })
 
   const popoverScrollDivRef = useRef<HTMLDivElement>(null)
-  const renderCount = useInfinateScroll(popoverScrollDivRef, { items: searched })
+  const renderCount = useInfinateScroll(popoverScrollDivRef, { items: searched, rebindEveryRerender: true })
 
   const filtered = searched.slice(0, renderCount)
 

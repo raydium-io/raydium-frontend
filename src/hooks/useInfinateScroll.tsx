@@ -22,6 +22,8 @@ export function useInfinateScroll<T>(
     initRenderCount?: number /* default 30 */
     reachBottomMargin?: number /* default 50 */
     onReachBottom?: () => void
+    /** some times ref will be attach not very quick (like in <Popover> , panel's ref won't be attached, untill element created) */
+    rebindEveryRerender?: boolean
   }
 ): number {
   const {
@@ -36,6 +38,7 @@ export function useInfinateScroll<T>(
   const [renderItemLength, setRenderItemLength] = useState(initRenderCount)
 
   useScrollDegreeDetector(ref, {
+    rebindEveryRerender: options.rebindEveryRerender,
     onReachBottom: () => {
       setRenderItemLength((n) => (n >= items.length ? items.length : n + increaseRenderCount))
       onReachBottom?.()
