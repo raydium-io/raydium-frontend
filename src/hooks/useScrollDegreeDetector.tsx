@@ -1,7 +1,7 @@
-import { RefObject, useCallback, useEffect, useRef } from 'react'
+import { RefObject, useEffect, useRef } from 'react'
 
 export type UseScrollDegreeDetectorOptions = {
-  /** some times ref will be attach not very quick (like in <Popover> , panel's ref won't be attached, untill element created) */
+  /** sometimes,  ref will be attach not very quick (like in <Popover> , panel's ref won't be attached, untill element created) */
   rebindEveryRerender?: boolean
   onReachBottom?: () => void
   reachBottomMargin?: number

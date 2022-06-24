@@ -1,8 +1,23 @@
 import hasProperty from '@/functions/judgers/compare'
 import { isBoolean, isNumber, isObject, isString } from '@/functions/judgers/dateType'
 import { RefObject, useState } from 'react'
+import useCallbackRef from './useCallbackRef'
+import { useForceUpdate } from './useForceUpdate'
 import { useRecordedEffect } from './useRecordedEffect'
 import { useScrollDegreeDetector } from './useScrollDegreeDetector'
+
+type UseInfinateScrollOptions<T> = {
+  items: T[]
+  /** to compare old and new */
+  getItemId?: (item: T) => string
+  renderAllAtOnce?: boolean
+  increaseRenderCount?: number /* default 30 */
+  initRenderCount?: number /* default 30 */
+  reachBottomMargin?: number /* default 50 */
+  onReachBottom?: () => void
+  /** some times ref will be attach not very quick (like in <Popover> , panel's ref won't be attached, untill element created) */
+  rebindEveryRerender?: boolean
+}
 
 /**
  * with it , scrollable `<div>` can easily render infinite items
@@ -13,18 +28,7 @@ import { useScrollDegreeDetector } from './useScrollDegreeDetector'
  */
 export function useInfinateScroll<T>(
   ref: RefObject<HTMLElement | null | undefined>,
-  options: {
-    items: T[]
-    /** to compare old and new */
-    getItemId?: (item: T) => string
-    renderAllAtOnce?: boolean
-    increaseRenderCount?: number /* default 30 */
-    initRenderCount?: number /* default 30 */
-    reachBottomMargin?: number /* default 50 */
-    onReachBottom?: () => void
-    /** some times ref will be attach not very quick (like in <Popover> , panel's ref won't be attached, untill element created) */
-    rebindEveryRerender?: boolean
-  }
+  options: UseInfinateScrollOptions<T>
 ): number {
   const {
     increaseRenderCount = 30,

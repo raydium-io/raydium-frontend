@@ -4,14 +4,14 @@ import { inClient } from '@/functions/judgers/isSSR'
 import { mergeFunction } from '@/functions/merge'
 import mergeRef from '@/functions/react/mergeRef'
 import { shrinkToValue } from '@/functions/shrinkToValue'
+import { useForceUpdatedRef } from '@/hooks/useForceUpdatedRef'
 import { useInfinateScroll } from '@/hooks/useInfinateScroll'
 import { ReactNode, useEffect, useRef, useState } from 'react'
+import { useSearch, UseSearchOptions } from '../hooks/useSearch'
 import Card from './Card'
 import Icon from './Icon'
 import Input, { InputComponentHandler, InputProps } from './Input'
 import Popover, { PopoverHandles } from './Popover'
-import { SearchConfigItem, useSearch, UseSearchOptions } from '../hooks/useSearch'
-import { MayArray } from '@/types/constants'
 
 export type AutoCompleteCandidateItem<Item = any> =
   | string
@@ -81,10 +81,13 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem<T>>({
         : shrinkToValue(candidate.searchText, [candidate]) ?? candidate.label + ' ' + candidate.id
   })
 
-  const popoverScrollDivRef = useRef<HTMLDivElement>(null)
-  const renderCount = useInfinateScroll(popoverScrollDivRef, { items: searched, rebindEveryRerender: true })
+  const popoverScrollDivRef = useForceUpdatedRef<HTMLDivElement>()
+  const renderItemCount = useInfinateScroll(popoverScrollDivRef, {
+    items: searched,
+    rebindEveryRerender: true
+  })
 
-  const filtered = searched.slice(0, renderCount)
+  const filtered = searched.slice(0, renderItemCount)
 
   // update seletedIdx when filtered result change
   useEffect(() => {
@@ -208,7 +211,10 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem<T>>({
             className="flex flex-col py-3 border-1.5 border-[#abc4ff80] bg-[#141041] shadow-cyberpunk-card"
             size="md"
           >
-            <div className="divide-y divide-[#abc4ff1a] max-h-[40vh] px-2 overflow-auto" ref={popoverScrollDivRef}>
+            <div
+              className="divide-y divide-[#abc4ff1a] max-h-[40vh] px-2 overflow-auto"
+              ref={popoverScrollDivRef as any}
+            >
               {autoCompleteItemsContent}
             </div>
           </Card>
