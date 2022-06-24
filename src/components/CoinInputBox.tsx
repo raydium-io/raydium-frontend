@@ -171,13 +171,13 @@ export default function CoinInputBox({
   }, [inputedAmount, price])
 
   // input must satisfied validPattern
-  const validPattern = useMemo(() => new RegExp(`^(\\d*)(\\.\\d{0,${token?.decimals ?? 0}})?$`), [token])
+  const validPattern = useMemo(() => new RegExp(`^(\\d*)(\\.\\d{0,${token?.decimals ?? 6}})?$`), [token])
 
   // if switch selected token, may doesn't satisfied pattern. just extract satisfied part.
   useEffect(() => {
     const satisfied = validPattern.test(inputedAmount ?? '')
     if (!satisfied) {
-      const matched = inputedAmount?.match(`^(\\d*)(\\.\\d{0,${token?.decimals ?? 0}})?(\\d*)$`)
+      const matched = inputedAmount?.match(`^(\\d*)(\\.\\d{0,${token?.decimals ?? 6}})?(\\d*)$`)
       const [, validInt = '', validDecimal = ''] = matched ?? []
       const sliced = validInt + validDecimal
       setInputedAmount(sliced)
