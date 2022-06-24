@@ -1,7 +1,14 @@
 import { Dispatch, SetStateAction, useState } from 'react'
 import { SearchOptions, searchItems } from '../functions/searchItems'
 
-export function useSearch<T>(
+/**
+ *  if component is controlled, just use {@link searchItems}
+ *
+ * @param items
+ * @param options
+ * @returns
+ */
+export function useSearchText<T>(
   items: T[],
   options?: SearchOptions<T> & {
     defaultSearchText?: string | number /* for uncontrolled component */

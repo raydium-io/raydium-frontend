@@ -6,16 +6,17 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayArray, MayFunction } from '@/types/constants'
 
 type SearchConfigItemObj = {
-  text: string
+  text: string | undefined
   entirely?: boolean
 }
 
-export type SearchConfigItem = SearchConfigItemObj | string
+export type SearchConfigItem = SearchConfigItemObj | string | undefined
 
 export type SearchOptions<T> = {
   text?: string /* for controlled component */
   matchConfigs?: MayFunction<MayArray<SearchConfigItem>, [item: T]>
 }
+
 /**
  * pure js fn/
  * core of "search" feature
@@ -31,6 +32,7 @@ export function searchItems<T>(items: T[], options?: SearchOptions<T>): T[] {
   const shaked = shakeUndifindedItem(sortedMatchedInfos.map((m) => m.item))
   return shaked
 }
+
 function extractItemBeSearchedText(item: unknown): SearchConfigItemObj[] {
   if (isString(item) || isNumber(item)) return [{ text: String(item) } as SearchConfigItemObj]
   if (isObject(item)) {
@@ -41,13 +43,17 @@ function extractItemBeSearchedText(item: unknown): SearchConfigItemObj[] {
   }
   return [{ text: '' }]
 }
+
 function getMatchedInfos<T>(item: T, searchText: string, searchTarget: NonNullable<SearchOptions<T>['matchConfigs']>) {
   const searchKeyWords = String(searchText).trim().split(/\s|-/)
-  const searchConfigs = [shrinkToValue(searchTarget, [item])]
-    .flat()
-    .map((c) => (isString(c) ? { text: c } : c) as SearchConfigItemObj)
+  const searchConfigs = shakeUndifindedItem(
+    [shrinkToValue(searchTarget, [item])]
+      .flat()
+      .map((c) => (isString(c) ? { text: c } : c) as SearchConfigItemObj | undefined)
+  )
   return patchSearchInfos({ item, searchKeyWords, searchConfigs })
 }
+
 type MatchedStatus<T> = {
   item: T
   matched: boolean
@@ -62,6 +68,7 @@ type MatchedStatus<T> = {
     searchedKeywordIdx: number
   }[]
 }
+
 /** it produce matched search config infos */
 function patchSearchInfos<T>(options: {
   item: T
@@ -97,11 +104,13 @@ function patchSearchInfos<T>(options: {
   }
   return matchInfos
 }
+
 function sortByMatchedInfos<T>(matchedInfos: MatchedStatus<T>[]) {
   return [...matchedInfos].sort(
     (matchedInfoA, matchedInfoB) => toMatchedStatusSignature(matchedInfoB) - toMatchedStatusSignature(matchedInfoA)
   )
 }
+
 /**
  * so user can compare just use return number
  *

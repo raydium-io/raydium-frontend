@@ -5,9 +5,9 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useFarms from '@/application/farms/useFarms'
 import { isHydratedPoolItemInfo } from '@/application/pools/is'
-import { getPoolItemSignature } from '@/application/pools/toItemSignature'
 import { HydratedPoolItemInfo } from '@/application/pools/type'
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
+import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
 import { routeTo } from '@/application/routeTools'
 import { LpToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
@@ -32,16 +32,16 @@ import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem } from '@/functions/arrayMethods'
+import formatNumber from '@/functions/format/formatNumber'
+import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter } from '@/functions/objectMethods'
+import { searchItems } from '@/functions/searchItems'
 import useSort from '@/hooks/useSort'
-import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
-import formatNumber from '@/functions/format/formatNumber'
-import { useSearch } from '@/hooks/useSearch'
 
 /**
  * store:
@@ -282,26 +282,33 @@ function PoolCard() {
     () =>
       hydratedInfos
         .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
-        .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)) // Switch
-        .filter((i) => {
-          // Search
-          if (!searchText) return true
-          const searchKeyWords = searchText.split(/\s|-/)
-          return searchKeyWords.every((keyWord) =>
-            getPoolItemSignature(i).toLowerCase().includes(keyWord.toLowerCase())
-          )
-        }),
+        .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)), // Switch
     [onlySelfPools, searchText, hydratedInfos]
   )
 
-  const searched = useSearch(dataSource, {})
+  const searched = useMemo(
+    () =>
+      searchItems(dataSource, {
+        text: searchText,
+        matchConfigs: (i) => [
+          { text: i.ammId, entirely: true },
+          { text: i.market, entirely: true }, // Input Auto complete result sort setting
+          { text: i.lpMint, entirely: true },
+          { text: toPubString(i.base?.mint), entirely: true },
+          { text: toPubString(i.quote?.mint), entirely: true },
+          i.base?.symbol,
+          i.quote?.symbol
+        ]
+      }),
+    [dataSource, searchText]
+  )
 
   const {
     sortedData,
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
-  } = useSort(dataSource, {
+  } = useSort(searched, {
     defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity] }
   })
 
