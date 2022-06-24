@@ -13,6 +13,7 @@ import listToMap from '@/functions/format/listToMap'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isValidePublicKey } from '@/functions/judgers/dateType'
 import { useClickOutside } from '@/hooks/useClickOutside'
+import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
 import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
 export interface PoolIdInputBlockHandle {
@@ -44,14 +45,14 @@ export function PoolIdInputBlock({
       Object.assign({ ...pool }, {
         label: pool.id,
         // searchText: `${tokens[pool.baseMint]?.symbol} ${tokens[pool.quoteMint]?.symbol} ${pool.id}`
-        searchText: [
-          { text: pool.id, entirely: true },
-          { text: pool.baseMint, entirely: true }, // Input Auto complete result sort setting
-          { text: pool.quoteMint, entirely: true },
-          tokens[pool.baseMint]?.symbol,
-          tokens[pool.quoteMint]?.symbol
+        searchText: (i) => [
+          { text: i.id, entirely: true },
+          { text: i.baseMint, entirely: true }, // Input Auto complete result sort setting
+          { text: i.quoteMint, entirely: true },
+          tokens[i.baseMint]?.symbol,
+          tokens[i.quoteMint]?.symbol
         ]
-      } as AutoCompleteCandidateItem)
+      } as AutoCompleteCandidateItem<LiquidityPoolJsonInfo>)
     )
 
   // state for validate

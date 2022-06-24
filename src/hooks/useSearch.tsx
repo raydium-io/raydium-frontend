@@ -2,7 +2,8 @@ import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { isStringInsensitivelyContain, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
 import { isNumber, isObject, isString } from '@/functions/judgers/dateType'
 import { objectMap, omit } from '@/functions/objectMethods'
-import { MayArray } from '@/types/constants'
+import { shrinkToValue } from '@/functions/shrinkToValue'
+import { MayArray, MayFunction } from '@/types/constants'
 import { Dispatch, SetStateAction, useState } from 'react'
 
 type SearchConfigItemObj = {
@@ -12,34 +13,26 @@ type SearchConfigItemObj = {
 
 export type SearchConfigItem = SearchConfigItemObj | string
 
+export type UseSearchOptions<T> = {
+  defaultSearchText?: string | number
+  /** TODO: if return a array, match first searchedText result will palce first, match second searchedText result will palce second */
+  getBeSearched?: MayFunction<MayArray<SearchConfigItem>, [item: T]>
+}
+
 export function useSearch<T>(
   items: T[],
-  options?: {
-    defaultSearchText?: string | number
-    /** TODO: if return a array, match first searchedText result will palce first, match second searchedText result will palce second */
-    getBeSearched?: (item: T) => MayArray<SearchConfigItem>
-    // TODO: imply sorter
-    // resultSorter?: MayArray<(searchText: string, item: T, itemBeSearchedText: SearchConfigItemObj[]) => any>
-  }
+  options?: UseSearchOptions<T>
 ): { searched: T[]; searchText: string | undefined; setSearchText: Dispatch<SetStateAction<string | undefined>> } {
-  const { defaultSearchText, getBeSearched = extractItemBeSearchedText /* resultSorter */ } = options ?? {}
+  const { defaultSearchText, getBeSearched /* resultSorter */ } = options ?? {}
   const [searchText, setSearchText] = useState(defaultSearchText != null ? String(defaultSearchText) : undefined)
   if (!searchText) return { searched: items, searchText, setSearchText }
   const allMatchedStatusInfos = shakeUndifindedItem(
-    items.map((item) => getMatchedInfos<T>(item, searchText, getBeSearched))
+    items.map((item) => getMatchedInfos(item, searchText, getBeSearched ?? extractItemBeSearchedText(item)))
   )
   const meaningfulMatchedInfos = allMatchedStatusInfos.filter((m) => m?.matched)
   const sortedMatchedInfos = sortByMatchedInfos<T>(meaningfulMatchedInfos)
   const shaked = shakeUndifindedItem(sortedMatchedInfos.map((m) => m.item))
   return { searched: shaked, searchText, setSearchText }
-}
-
-function getMatchedInfos<T>(item: T, searchText: string, getBeSearchedConfig: (item: T) => MayArray<SearchConfigItem>) {
-  const searchKeyWords = String(searchText).trim().split(/\s|-/)
-  const searchConfigs = [getBeSearchedConfig(item)]
-    .flat()
-    .map((c) => (isString(c) ? { text: c } : { ...c, text: c.text }) as SearchConfigItemObj)
-  return patchSearchInfos({ item, searchKeyWords, searchConfigs })
 }
 
 function extractItemBeSearchedText(item: unknown): SearchConfigItemObj[] {
@@ -51,6 +44,18 @@ function extractItemBeSearchedText(item: unknown): SearchConfigItemObj[] {
     return shakeUndifindedItem(Object.values(obj))
   }
   return [{ text: '' }]
+}
+
+function getMatchedInfos<T>(
+  item: T,
+  searchText: string,
+  getBeSearched: NonNullable<UseSearchOptions<T>['getBeSearched']>
+) {
+  const searchKeyWords = String(searchText).trim().split(/\s|-/)
+  const searchConfigs = [shrinkToValue(getBeSearched, [item])]
+    .flat()
+    .map((c) => (isString(c) ? { text: c } : c) as SearchConfigItemObj)
+  return patchSearchInfos({ item, searchKeyWords, searchConfigs })
 }
 
 type MatchedStatus<T> = {
@@ -124,6 +129,7 @@ function toMatchedStatusSignature<T>(matchedInfo: MatchedStatus<T>): number {
   const originalConfigs = matchedInfo.allConfigs
   const entriesSequence = Array.from({ length: originalConfigs.length }, () => 0)
   const partialSequence = Array.from({ length: originalConfigs.length }, () => 0)
+
   matchedInfo.matchedConfigs.forEach(({ configIdx, isEntirelyMatched }) => {
     if (isEntirelyMatched) {
       entriesSequence[configIdx] = 2 // [0, 0, 2, 0, 2, 0]
@@ -131,6 +137,7 @@ function toMatchedStatusSignature<T>(matchedInfo: MatchedStatus<T>): number {
       partialSequence[configIdx] = 1 // [0, 1, 0, 0, 2, 1]
     }
   })
+
   const calcCharateristicN = (sequence: number[]) =>
     sequence.reduce((acc, currentValue, currentIdx) => acc + currentValue * (sequence.length - currentIdx), 0)
 

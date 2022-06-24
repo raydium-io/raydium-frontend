@@ -10,10 +10,10 @@ import Card from './Card'
 import Icon from './Icon'
 import Input, { InputComponentHandler, InputProps } from './Input'
 import Popover, { PopoverHandles } from './Popover'
-import { SearchConfigItem, useSearch } from '../hooks/useSearch'
+import { SearchConfigItem, useSearch, UseSearchOptions } from '../hooks/useSearch'
 import { MayArray } from '@/types/constants'
 
-export type AutoCompleteCandidateItem =
+export type AutoCompleteCandidateItem<Item = any> =
   | string
   | {
       /**
@@ -23,13 +23,13 @@ export type AutoCompleteCandidateItem =
        */
       label: string
 
-      searchText?: MayArray<SearchConfigItem>
+      searchText?: UseSearchOptions<Item>['getBeSearched']
 
       /** for React list key */
       id?: string
     }
 
-export type AutoCompleteProps<T extends AutoCompleteCandidateItem> = {
+export type AutoCompleteProps<T extends AutoCompleteCandidateItem<T>> = {
   candidates: T[]
   renderCandidateItem?: (payloads: {
     candidate: T
@@ -43,7 +43,7 @@ export type AutoCompleteProps<T extends AutoCompleteCandidateItem> = {
   onBlurMatchCandiateFailed?: (payloads: { text: string | undefined }) => void
 } & (InputProps & { inputProps?: InputProps })
 
-export default function AutoComplete<T extends AutoCompleteCandidateItem>({
+export default function AutoComplete<T extends AutoCompleteCandidateItem<T>>({
   value,
   defaultValue,
 
@@ -76,7 +76,9 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem>({
   const { searched, searchText, setSearchText } = useSearch(candidates ?? [], {
     defaultSearchText: defaultValue ?? value,
     getBeSearched: (candidate) =>
-      isString(candidate) ? candidate : candidate.searchText ?? candidate.label + ' ' + candidate.id
+      isString(candidate)
+        ? candidate
+        : shrinkToValue(candidate.searchText, [candidate]) ?? candidate.label + ' ' + candidate.id
   })
 
   const popoverScrollDivRef = useRef<HTMLDivElement>(null)
@@ -216,7 +218,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem>({
   )
 }
 
-function createLabelNode<T extends AutoCompleteCandidateItem>({
+function createLabelNode<T extends AutoCompleteCandidateItem<T>>({
   candidate,
   idx,
   candidates,
