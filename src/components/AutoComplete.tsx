@@ -133,7 +133,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem<T>>({
           ) : null
         )
       ) : (
-        <div className="text-center text-[#abc4ff80] font-medium">(no searched result)</div>
+        <div className="text-center text-[#abc4ff80] font-medium">There's no pool matched, please try again!</div>
       )}
     </>
   )
