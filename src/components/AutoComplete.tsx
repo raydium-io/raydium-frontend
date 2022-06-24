@@ -75,7 +75,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem>({
 
   const { searched, searchText, setSearchText } = useSearch(candidates ?? [], {
     defaultSearchText: defaultValue ?? value,
-    getBeSearchedConfig: (candidate) =>
+    getBeSearched: (candidate) =>
       isString(candidate) ? candidate : candidate.searchText ?? candidate.label + ' ' + candidate.id
   })
 

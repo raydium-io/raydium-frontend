@@ -41,7 +41,7 @@ export function PoolIdInputBlock({
   const candidates = liquidityPoolJsons
     .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
     .map((pool) =>
-      Object.assign(pool, {
+      Object.assign({ ...pool }, {
         label: pool.id,
         // searchText: `${tokens[pool.baseMint]?.symbol} ${tokens[pool.quoteMint]?.symbol} ${pool.id}`
         searchText: [

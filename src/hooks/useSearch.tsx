@@ -17,16 +17,16 @@ export function useSearch<T>(
   options?: {
     defaultSearchText?: string | number
     /** TODO: if return a array, match first searchedText result will palce first, match second searchedText result will palce second */
-    getBeSearchedConfig?: (item: T) => MayArray<SearchConfigItem>
+    getBeSearched?: (item: T) => MayArray<SearchConfigItem>
     // TODO: imply sorter
     // resultSorter?: MayArray<(searchText: string, item: T, itemBeSearchedText: SearchConfigItemObj[]) => any>
   }
 ): { searched: T[]; searchText: string | undefined; setSearchText: Dispatch<SetStateAction<string | undefined>> } {
-  const { defaultSearchText, getBeSearchedConfig = extractItemBeSearchedText /* resultSorter */ } = options ?? {}
+  const { defaultSearchText, getBeSearched = extractItemBeSearchedText /* resultSorter */ } = options ?? {}
   const [searchText, setSearchText] = useState(defaultSearchText != null ? String(defaultSearchText) : undefined)
   if (!searchText) return { searched: items, searchText, setSearchText }
   const allMatchedStatusInfos = shakeUndifindedItem(
-    items.map((item) => getMatchedInfos<T>(item, searchText, getBeSearchedConfig))
+    items.map((item) => getMatchedInfos<T>(item, searchText, getBeSearched))
   )
   const meaningfulMatchedInfos = allMatchedStatusInfos.filter((m) => m?.matched)
   const sortedMatchedInfos = sortByMatchedInfos<T>(meaningfulMatchedInfos)
@@ -116,6 +116,7 @@ function sortByMatchedInfos<T>(matchedInfos: MatchedStatus<T>[]) {
  * matchedInfo => [0, 1, 2, 0, 2, 1] =>  [ 2 * 4 + 2 * 2, 1 * 5 + 1 * 1] (index is weight) =>
  * 2 - entirely mathched
  * 1 - partialy matched
+ * 0 - not matched
  *
  * @returns item's weight number
  */
