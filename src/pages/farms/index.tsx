@@ -5,8 +5,7 @@ import { TokenAmount } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { isHydratedFarmInfo, isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
-import { getFarmItemSignature } from '@/application/farms/toItemSignature'
+import { isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
 import txFarmDeposit from '@/application/farms/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/txFarmHarvest'
 import txFarmWithdraw from '@/application/farms/txFarmWithdraw'
@@ -55,6 +54,7 @@ import { toString } from '@/functions/numberish/toString'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { searchItems } from '@/functions/searchItems'
 
 export default function FarmsPage() {
   return (
@@ -310,16 +310,26 @@ function FarmCard() {
     () =>
       tabedDataSource
         .filter((i) => (onlySelfFarms ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true)) // Switch
-        .filter((i) => (onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)) // Switch
-        .filter((i) => {
-          // Search
-          if (!searchText) return true
-          const searchKeyWords = searchText.split(/\s|-/)
-          return searchKeyWords.every((keyWord) =>
-            getFarmItemSignature(i).toLowerCase().includes(keyWord.toLowerCase())
-          )
-        }),
+        .filter((i) => (onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)), // Switch
     [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
+  )
+
+  const applySearchedDataSource = useMemo(
+    () =>
+      searchItems(applyFiltersDataSource, {
+        text: searchText,
+        matchConfigs: (i) => [
+          { text: toPubString(i.id), entirely: true },
+          { text: i.ammId, entirely: true }, // Input Auto complete result sort setting
+          { text: toPubString(i.base?.mint), entirely: true },
+          { text: toPubString(i.quote?.mint), entirely: true },
+          i.base?.symbol,
+          i.quote?.symbol,
+          i.base?.name,
+          i.quote?.name
+        ]
+      }),
+    [applyFiltersDataSource, searchText]
   )
 
   const {
@@ -327,7 +337,7 @@ function FarmCard() {
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
-  } = useSort(applyFiltersDataSource, {
+  } = useSort(applySearchedDataSource, {
     defaultSort: {
       key: 'defaultKey',
       sortCompare: [(i) => i.isUpcomingPool, /* (i) => i.isNewPool, */ (i) => favouriteIds?.includes(toPubString(i.id))]
