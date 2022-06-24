@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 /**
  * !!! only for DOM element (props:ref on `<div>`)\
@@ -8,12 +8,17 @@ import { useState } from 'react'
  */
 export function useElementStateRef<T>() {
   const [element, setElement] = useState<T | null>(null)
-  return {
-    get current() {
-      return element
-    },
-    set current(newElement: T | null) {
-      setElement(newElement)
-    }
-  }
+  const fakeRef = useMemo(
+    () => ({
+      get current() {
+        return element
+      },
+      set current(newElement: T | null) {
+        setElement(newElement)
+      }
+    }),
+    [element]
+  )
+
+  return fakeRef
 }
