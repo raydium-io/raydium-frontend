@@ -244,6 +244,7 @@ export function RewardFormCardInputs({
             inputProps={{
               inputClassName: 'text-sm font-medium text-white'
             }}
+            showTime={{ format: 'HH:mm' }}
             value={rewardStartTime}
             disabled={disableStartTimeInput}
             disableDateBeforeCurrent
@@ -254,10 +255,9 @@ export function RewardFormCardInputs({
                   if (!draft[rewardIndex]) return
 
                   // set end time
-                  if (durationTime) {
-                    const value = offsetDateTime(selectedDate, { milliseconds: durationTime })
-                    draft[rewardIndex].endTime = value
-                  }
+                  draft[rewardIndex].endTime = durationTime
+                    ? offsetDateTime(selectedDate, { milliseconds: durationTime })
+                    : undefined
 
                   // set start time
                   draft[rewardIndex].startTime = selectedDate
@@ -273,68 +273,7 @@ export function RewardFormCardInputs({
             }}
             value={rewardEndTime}
             disabled={disableEndTimeInput}
-            showTime={false}
             disableDateBeforeCurrent
-            isValidDate={(date) => {
-              const isStartTimeBeforeCurrent = rewardStartTime && isDateBefore(rewardStartTime, currentBlockChainDate)
-              if (reward.isRewardEnded && isStartTimeBeforeCurrent) {
-                const duration = Math.round(
-                  parseDurationAbsolute(date.getTime() - currentBlockChainDate.getTime()).seconds
-                )
-                return minDurationSeconds <= duration
-              } else {
-                const duration = Math.round(
-                  parseDurationAbsolute(date.getTime() - (rewardStartTime ?? currentBlockChainDate).getTime()).seconds
-                )
-                return minDurationSeconds <= duration && duration <= maxDurationSeconds
-              }
-            }}
-            onDateChange={(selectedDate) => {
-              if (!selectedDate) return
-              return useCreateFarms.setState({
-                rewards: produce(rewards, (draft) => {
-                  if (!draft[rewardIndex]) return
-
-                  const haveStartTime = Boolean(rewardStartTime)
-
-                  // set end time
-                  draft[rewardIndex].endTime = selectedDate
-
-                  // set start time
-                  if (durationTime && !haveStartTime) {
-                    draft[rewardIndex].startTime = offsetDateTime(selectedDate, { milliseconds: -durationTime })
-                  }
-
-                  // set amount (only edit-in-rewarding)
-                  if (reward.isRwardingBeforeEnd72h) {
-                    draft[rewardIndex].amount = mul(
-                      estimatedValue,
-                      parseDurationAbsolute(selectedDate.getTime() - rewardStartTime!.getTime()).days
-                    )
-                  }
-
-                  // set duration days
-                  if (haveStartTime) {
-                    const durationSeconds = parseDurationAbsolute(
-                      selectedDate.getTime() - rewardStartTime!.getTime()
-                    ).seconds
-                    if (durationSeconds < minDurationSeconds) {
-                      draft[rewardIndex].startTime = offsetDateTime(selectedDate, {
-                        seconds: -minDurationSeconds
-                      })
-                      setDurationTime(minDurationSeconds)
-                    } else if (durationSeconds > maxDurationSeconds) {
-                      draft[rewardIndex].startTime = offsetDateTime(selectedDate, {
-                        seconds: -maxDurationSeconds
-                      })
-                      setDurationTime(maxDurationSeconds)
-                    } else {
-                      setDurationTime(durationSeconds)
-                    }
-                  }
-                })
-              })
-            }}
           />
         </Row>
         <FadeInStable show={!isInputDuration && durationTime != null}>

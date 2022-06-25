@@ -332,9 +332,3 @@
 .w-timepicker-spinner + .w-timepicker-spinner ul {
   border-left: 0px solid transparent;
 }
-
-.hide-seconds-editor .w-datepicker-time-btn {
-  font-feature-settings: 'ss04', 'tnum' 0, 'tnum' 1; /* Space Grotesk's mono settings */
-  width: 47px;
-  overflow: hidden;
-}
