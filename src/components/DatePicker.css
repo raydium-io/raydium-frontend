@@ -332,3 +332,7 @@
 .w-timepicker-spinner + .w-timepicker-spinner ul {
   border-left: 0px solid transparent;
 }
+
+.hide-seconds-editor .w-datepicker-time-btn {
+  font-size: 16px;
+}

@@ -244,7 +244,7 @@ export function RewardFormCardInputs({
             inputProps={{
               inputClassName: 'text-sm font-medium text-white'
             }}
-            showTime={{ format: 'HH:mm' }}
+            showTime={{ format: 'Select date: HH:mm' }}
             value={rewardStartTime}
             disabled={disableStartTimeInput}
             disableDateBeforeCurrent
