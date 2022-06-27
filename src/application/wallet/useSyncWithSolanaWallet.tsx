@@ -78,7 +78,7 @@ export function useSyncWithSolanaWallet() {
   useEffect(() => {
     useWallet.setState({
       signAllTransactions: async (transactions: Transaction[]) => {
-        await attachRecentBlockhash(...transactions)
+        await attachRecentBlockhash(transactions)
         return (
           (await _signAllTransactions?.(transactions).catch((err) => {
             throw err

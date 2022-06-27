@@ -16,6 +16,7 @@ import { gte } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
+import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 
 function useAvailableCheck() {
@@ -26,8 +27,11 @@ function useAvailableCheck() {
 
 export default function CreateFarmReviewPage() {
   const balances = useWallet((s) => s.balances)
-  const [blockHash, setBlockHash] = useState<string>() // hacking: same block hash can only success once
-  const connection = useConnection((s) => s.connection)
+  const { pathname } = useRouter()
+  const [key, setKey] = useState(String(Date.now())) // hacking: same block hash can only success once
+  useEffect(() => {
+    setKey(String(Date.now()))
+  }, [pathname])
   const userRayBalance = balances[toPubString(RAYMint)]
   const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
   useAvailableCheck()
@@ -70,14 +74,6 @@ export default function CreateFarmReviewPage() {
               size="lg"
               validators={[{ should: haveStakeOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
               onClick={async () => {
-                if (!connection) return
-                const recentBlockHash =
-                  blockHash ||
-                  (await getRecentBlockhash(connection).then((hash) => {
-                    setBlockHash(hash)
-                    return hash
-                  }))
-
                 txCreateNewFarm(
                   {
                     onTxSuccess: () => {
@@ -89,7 +85,7 @@ export default function CreateFarmReviewPage() {
                       }, 1000)
                     }
                   },
-                  recentBlockHash
+                  key
                 )
               }}
             >

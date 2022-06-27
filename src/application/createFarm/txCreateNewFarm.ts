@@ -15,7 +15,7 @@ import { padZero } from '@/functions/numberish/handleZero'
 import useConnection from '../connection/useConnection'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 
-export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions, forceBlockHash?: string) {
+export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions, txKey?: string) {
   return handleMultiTx(
     async ({ transactionCollector, baseUtils: { owner, connection } }) => {
       const { tokenAccountRawInfos } = useWallet.getState() // TODO: should add tokenAccountRawInfos to `handleMultiTx()`'s baseUtils
@@ -73,6 +73,6 @@ export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions,
         }
       })
     },
-    { forceBlockHash }
+    { txKey: txKey }
   )
 }

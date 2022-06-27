@@ -154,8 +154,10 @@ export type TxResponseInfos = {
 export type HandleMultiTxOptions = {
   /** if add this, handleTx's shadow mode will open,  */
   forceKeyPairs?: TxKeypairDetective
-  /** same block hash will success only once  */
-  forceBlockHash?: string
+  /**
+   * same key will success only once
+   */
+  txKey?: string
 }
 
 /**
@@ -237,7 +239,7 @@ export default async function handleMultiTx(
             connection,
             signAllTransactions,
             signerkeyPair: options?.forceKeyPairs,
-            forceBlockHash: options?.forceBlockHash
+            txKey: options?.txKey
           }
         })
         resolve(finalInfos)
@@ -264,6 +266,17 @@ export default async function handleMultiTx(
   )
 }
 
+const txSerializeCache = new Map<string, Buffer>()
+
+function getSerializedTx(transaction: Transaction, key?: string) {
+  if (key && txSerializeCache.has(key)) {
+    return txSerializeCache.get(key)!
+  } else {
+    const serialized = transaction.serialize()
+    if (key) txSerializeCache.set(key, serialized)
+    return serialized
+  }
+}
 /**
  * duty:
  * 1. provide txid and txCallback collectors for a tx action
@@ -278,8 +291,8 @@ async function sendMultiTransactionAndLogAndRecord(options: {
     connection: Connection
     // only if have been shadow open
     signerkeyPair?: TxKeypairDetective
-    /** if provide , don't `getRecentBlockhash()` any more */
-    forceBlockHash?: string
+    /** if provide, can't send twice */
+    txKey?: string
   }
 }): Promise<TxResponseInfos> {
   const { logError, logTxid } = useNotification.getState()
@@ -312,8 +325,7 @@ async function sendMultiTransactionAndLogAndRecord(options: {
             const txid = await (async () => {
               if (options.payload.signerkeyPair?.ownerKeypair) {
                 // if have signer detected, no need signAllTransactions
-                transaction.recentBlockhash =
-                  options.payload.forceBlockHash || (await getRecentBlockhash(options.payload.connection))
+                transaction.recentBlockhash = await getRecentBlockhash(options.payload.connection)
                 transaction.feePayer =
                   options.payload.signerkeyPair.payerKeypair?.publicKey ??
                   options.payload.signerkeyPair.ownerKeypair.publicKey
@@ -322,7 +334,9 @@ async function sendMultiTransactionAndLogAndRecord(options: {
                   options.payload.signerkeyPair.payerKeypair ?? options.payload.signerkeyPair.ownerKeypair
                 ])
               } else {
-                return await options.payload.connection.sendRawTransaction(transaction.serialize(), {
+                console.log('options.payload.txKey: ', options.payload.txKey)
+                const tx = getSerializedTx(transaction, options.payload.txKey)
+                return await options.payload.connection.sendRawTransaction(tx, {
                   skipPreflight: true
                 })
               }
