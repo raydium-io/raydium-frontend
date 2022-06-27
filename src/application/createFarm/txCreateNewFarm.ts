@@ -13,7 +13,7 @@ import useWallet from '../wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { padZero } from '@/functions/numberish/handleZero'
 import useConnection from '../connection/useConnection'
-import { offsetDateTime } from '@/functions/date/dateFormat'
+import { offsetDateTime, setDateTimeSecondToZero } from '@/functions/date/dateFormat'
 
 export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions, txKey?: string) {
   return handleMultiTx(
@@ -30,12 +30,14 @@ export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions,
         assert(reward.endTime, 'reward end time is required')
         assert(reward.amount, 'reward amount is required')
         assert(rewardToken, `can't find selected reward token`)
-        const durationTime = reward.endTime.getTime() - reward.startTime.getTime()
+        const startTimestamp = setDateTimeSecondToZero(reward.startTime).getTime()
+        const endTimestamp = setDateTimeSecondToZero(reward.endTime).getTime()
+        const durationTime = endTimestamp - startTimestamp
         const estimatedValue = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
         const perSecondReward = toBN(mul(estimatedValue, padZero(1, rewardToken.decimals)))
         return {
-          rewardOpenTime: toBN(div(getMax(reward.startTime.getTime(), currentBlockChainDate), 1000)),
-          rewardEndTime: toBN(div(getMax(reward.endTime.getTime(), currentBlockChainDate), 1000)),
+          rewardOpenTime: toBN(div(getMax(startTimestamp, currentBlockChainDate), 1000)),
+          rewardEndTime: toBN(div(getMax(endTimestamp, currentBlockChainDate), 1000)),
           rewardMint: rewardToken.mint,
           rewardPerSecond: perSecondReward
         }
