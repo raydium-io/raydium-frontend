@@ -71,7 +71,7 @@ export default function EditReviewPage() {
         </Row>
 
         <div className="mb-8 text-xl mobile:text-lg font-semibold justify-self-start text-white">
-          Review edited farm details
+          Review farm details
         </div>
 
         <div className="mb-8">
@@ -80,7 +80,7 @@ export default function EditReviewPage() {
         </div>
 
         <div className="mb-6">
-          <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Exised farm rewards</div>
+          <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Existing farm rewards</div>
           <ExistedEditRewardSummary canUserEdit={false} />
         </div>
 
@@ -109,7 +109,7 @@ export default function EditReviewPage() {
               })
             }}
           >
-            Edit Farm
+            Confirm Farm Changes
           </Button>
           <Button className="frosted-glass-skygray" size="lg" onClick={routeBack}>
             Edit
