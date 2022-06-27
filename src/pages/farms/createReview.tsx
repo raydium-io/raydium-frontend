@@ -1,9 +1,11 @@
+import useConnection from '@/application/connection/useConnection'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import txCreateNewFarm from '@/application/createFarm/txCreateNewFarm'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useFarms from '@/application/farms/useFarms'
 import { routeBack, routeTo } from '@/application/routeTools'
 import { RAYMint } from '@/application/token/wellknownToken.config'
+import { getRecentBlockhash } from '@/application/txTools/attachRecentBlockhash'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Col from '@/components/Col'
@@ -14,7 +16,7 @@ import { gte } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 function useAvailableCheck() {
   useEffect(() => {
@@ -24,6 +26,8 @@ function useAvailableCheck() {
 
 export default function CreateFarmReviewPage() {
   const balances = useWallet((s) => s.balances)
+  const [blockHash, setBlockHash] = useState<string>() // hacking: same block hash can only success once
+  const connection = useConnection((s) => s.connection)
   const userRayBalance = balances[toPubString(RAYMint)]
   const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
   useAvailableCheck()
@@ -65,17 +69,28 @@ export default function CreateFarmReviewPage() {
               className="frosted-glass-teal px-16 self-stretch"
               size="lg"
               validators={[{ should: haveStakeOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
-              onClick={() => {
-                txCreateNewFarm({
-                  onTxSuccess: () => {
-                    setTimeout(() => {
-                      routeTo('/farms')
-                      useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
-                      useFarms.getState().refreshFarmInfos()
-                      useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
-                    }, 1000)
-                  }
-                })
+              onClick={async () => {
+                if (!connection) return
+                const recentBlockHash =
+                  blockHash ||
+                  (await getRecentBlockhash(connection).then((hash) => {
+                    setBlockHash(hash)
+                    return hash
+                  }))
+
+                txCreateNewFarm(
+                  {
+                    onTxSuccess: () => {
+                      setTimeout(() => {
+                        routeTo('/farms')
+                        useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
+                        useFarms.getState().refreshFarmInfos()
+                        useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
+                      }, 1000)
+                    }
+                  },
+                  recentBlockHash
+                )
               }}
             >
               Create Farm

@@ -24,6 +24,7 @@ import { mergeFunction } from '@/functions/merge'
 import { getRecentBlockhash } from './attachRecentBlockhash'
 import { getRichWalletTokenAccounts } from '../wallet/useTokenAccountsRefresher'
 import { shrinkToValue } from '@/functions/shrinkToValue'
+import PageLayout from '@/components/PageLayout'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -150,9 +151,11 @@ export type TxResponseInfos = {
   // txList: (TxSuccessInfo | TxErrorInfo)[]
 }
 
-export type TxShadowOptions = {
+export type HandleMultiTxOptions = {
   /** if add this, handleTx's shadow mode will open,  */
   forceKeyPairs?: TxKeypairDetective
+  /** same block hash will success only once  */
+  forceBlockHash?: string
 }
 
 /**
@@ -162,7 +165,7 @@ export type TxShadowOptions = {
  */
 export default async function handleMultiTx(
   txAction: MultiTxAction,
-  options?: TxShadowOptions
+  options?: HandleMultiTxOptions
 ): Promise<TxResponseInfos> {
   return new Promise((resolve, reject) =>
     (async () => {
@@ -233,7 +236,8 @@ export default async function handleMultiTx(
           payload: {
             connection,
             signAllTransactions,
-            signerkeyPair: options?.forceKeyPairs
+            signerkeyPair: options?.forceKeyPairs,
+            forceBlockHash: options?.forceBlockHash
           }
         })
         resolve(finalInfos)
@@ -274,6 +278,8 @@ async function sendMultiTransactionAndLogAndRecord(options: {
     connection: Connection
     // only if have been shadow open
     signerkeyPair?: TxKeypairDetective
+    /** if provide , don't `getRecentBlockhash()` any more */
+    forceBlockHash?: string
   }
 }): Promise<TxResponseInfos> {
   const { logError, logTxid } = useNotification.getState()
@@ -306,7 +312,8 @@ async function sendMultiTransactionAndLogAndRecord(options: {
             const txid = await (async () => {
               if (options.payload.signerkeyPair?.ownerKeypair) {
                 // if have signer detected, no need signAllTransactions
-                transaction.recentBlockhash = await getRecentBlockhash(options.payload.connection)
+                transaction.recentBlockhash =
+                  options.payload.forceBlockHash || (await getRecentBlockhash(options.payload.connection))
                 transaction.feePayer =
                   options.payload.signerkeyPair.payerKeypair?.publicKey ??
                   options.payload.signerkeyPair.ownerKeypair.publicKey
