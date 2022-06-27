@@ -221,12 +221,12 @@ export default function Input(props: InputProps) {
   // don't bind value through React for it will be a controlled element
   useEffect(() => {
     assert(inputRef.current, '[Dev bug] input ref is not ready!')
-
     const inputDomValue = inputRef.current.value
     if (String(selfValue) !== inputDomValue) {
       inputRef.current.value = String(selfValue)
     }
   }, [selfValue])
+
   return (
     <Row
       className={twMerge(`Input ${disabled ? 'cursor-not-allowed' : 'cursor-text'} items-center`, className)}
