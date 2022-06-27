@@ -334,7 +334,6 @@ async function sendMultiTransactionAndLogAndRecord(options: {
                   options.payload.signerkeyPair.payerKeypair ?? options.payload.signerkeyPair.ownerKeypair
                 ])
               } else {
-                console.log('options.payload.txKey: ', options.payload.txKey)
                 const tx = getSerializedTx(transaction, options.payload.txKey)
                 return await options.payload.connection.sendRawTransaction(tx, {
                   skipPreflight: true
