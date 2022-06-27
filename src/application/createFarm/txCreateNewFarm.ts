@@ -2,25 +2,22 @@ import { Farm, FarmCreateInstructionParamsV6 } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 
-import handleMultiTx, { AddSingleTxOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import useCreateFarms from './useCreateFarm'
+import handleMultiTx, { AddSingleTxOptions } from '@/application/txTools/handleMultiTx'
+import { setDateTimeSecondToZero } from '@/functions/date/dateFormat'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
-import { div, getMax, mul } from '@/functions/numberish/operations'
-import toBN from '@/functions/numberish/toBN'
 import { toPub } from '@/functions/format/toMintString'
-import useWallet from '../wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { padZero } from '@/functions/numberish/handleZero'
-import useConnection from '../connection/useConnection'
-import { offsetDateTime, setDateTimeSecondToZero } from '@/functions/date/dateFormat'
+import { div, mul } from '@/functions/numberish/operations'
+import toBN from '@/functions/numberish/toBN'
+import useWallet from '../wallet/useWallet'
+import useCreateFarms from './useCreateFarm'
 
 export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions, txKey?: string) {
   return handleMultiTx(
     async ({ transactionCollector, baseUtils: { owner, connection } }) => {
       const { tokenAccountRawInfos } = useWallet.getState() // TODO: should add tokenAccountRawInfos to `handleMultiTx()`'s baseUtils
-      const { chainTimeOffset = 0 } = useConnection.getState()
-      const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 0 /* force */ }).getTime()
       const { rewards: uiRewardInfos } = useCreateFarms.getState()
       const { tokenAccounts } = useWallet.getState()
       const piecesCollector = createTransactionCollector()
@@ -36,8 +33,8 @@ export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions,
         const estimatedValue = div(reward.amount, parseDurationAbsolute(durationTime).seconds)
         const perSecondReward = toBN(mul(estimatedValue, padZero(1, rewardToken.decimals)))
         return {
-          rewardOpenTime: toBN(div(getMax(startTimestamp, currentBlockChainDate), 1000)),
-          rewardEndTime: toBN(div(getMax(endTimestamp, currentBlockChainDate), 1000)),
+          rewardOpenTime: toBN(div(startTimestamp, 1000)),
+          rewardEndTime: toBN(div(endTimestamp, 1000)),
           rewardMint: rewardToken.mint,
           rewardPerSecond: perSecondReward
         }
