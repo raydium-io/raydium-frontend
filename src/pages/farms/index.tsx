@@ -55,8 +55,10 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { searchItems } from '@/functions/searchItems'
+import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
 
 export default function FarmsPage() {
+  useFarmUrlParser()
   return (
     <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
       <FarmHeader />

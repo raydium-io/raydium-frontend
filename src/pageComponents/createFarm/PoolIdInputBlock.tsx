@@ -11,7 +11,7 @@ import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import listToMap from '@/functions/format/listToMap'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { isPubKey, isValidePublicKey } from '@/functions/judgers/dateType'
+import { isPubKey, isValidPublicKey } from '@/functions/judgers/dateType'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
 import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
@@ -121,11 +121,11 @@ export function PoolIdInputBlock({
           useCreateFarms.setState({ poolId: selected.id })
         }}
         onBlurMatchCandiateFailed={({ text: candidatedPoolId }) => {
-          useCreateFarms.setState({ poolId: isValidePublicKey(candidatedPoolId) ? candidatedPoolId : undefined })
+          useCreateFarms.setState({ poolId: isValidPublicKey(candidatedPoolId) ? candidatedPoolId : undefined })
         }}
         onDangerousValueChange={(v) => {
           if (!v) useCreateFarms.setState({ poolId: undefined })
-          if (isValidePublicKey(v)) useCreateFarms.setState({ poolId: v })
+          if (isValidPublicKey(v)) useCreateFarms.setState({ poolId: v })
           setInputValue(v)
         }}
         onUserInput={() => {

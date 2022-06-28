@@ -889,7 +889,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 onClick={() => {
                   useFarms.setState((s) => ({
                     searchText: info.name.split('-').join(' '),
-                    expandedItemIds: addSetItem(s.expandedItemIds, String(correspondingFarm?.id))
+                    expandedItemIds: addItem(s.expandedItemIds, String(correspondingFarm?.id))
                   }))
                   routeTo('/farms')
                 }}
@@ -936,12 +936,6 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
       </Row>
     </AutoBox>
   )
-}
-
-function addSetItem<T>(set: Set<T>, item: T): Set<T> {
-  const newSet = new Set(set)
-  newSet.add(item)
-  return newSet
 }
 
 function CoinAvatarInfoItem({ info, className }: { info: HydratedPoolItemInfo | undefined; className?: string }) {

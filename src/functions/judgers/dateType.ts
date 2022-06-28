@@ -6,6 +6,9 @@ import BN from 'bn.js'
 import { AnyFn, Numberish, Primitive, StringNumber } from '@/types/constants'
 
 export const isArray = Array.isArray
+export const isSet = (v: unknown): v is Set<unknown> => {
+  return v instanceof Set
+}
 export function isFunction(value: unknown): value is AnyFn {
   return typeof value === 'function'
 }
@@ -120,9 +123,9 @@ export function isPubKey(val: unknown): val is PublicKey {
   return val instanceof PublicKey
 }
 
-export function isValidePublicKey(val: string | undefined): val is string
-export function isValidePublicKey(val: PublicKey | undefined): val is PublicKey
-export function isValidePublicKey(val: string | PublicKey | undefined): val is string {
+export function isValidPublicKey(val: string | undefined): val is string
+export function isValidPublicKey(val: PublicKey | undefined): val is PublicKey
+export function isValidPublicKey(val: string | PublicKey | undefined): val is string {
   if (!val) return false
   if (val instanceof PublicKey) return true
   try {
