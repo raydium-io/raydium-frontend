@@ -6,7 +6,7 @@ import { createTransactionCollector } from '@/application/txTools/createTransact
 import handleMultiTx, { AddSingleTxOptions } from '@/application/txTools/handleMultiTx'
 import { setDateTimeSecondToZero } from '@/functions/date/dateFormat'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
-import { toPub } from '@/functions/format/toMintString'
+import toPubString, { toPub } from '@/functions/format/toMintString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { padZero } from '@/functions/numberish/handleZero'
 import { div, mul } from '@/functions/numberish/operations'
@@ -14,7 +14,10 @@ import toBN from '@/functions/numberish/toBN'
 import useWallet from '../wallet/useWallet'
 import useCreateFarms from './useCreateFarm'
 
-export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions, txKey?: string) {
+export default async function txCreateNewFarm(
+  { onReceiveFarmId, ...txAddOptions }: AddSingleTxOptions & { onReceiveFarmId?: (farmId: string) => void },
+  txKey?: string
+) {
   return handleMultiTx(
     async ({ transactionCollector, baseUtils: { owner, connection } }) => {
       const { tokenAccountRawInfos } = useWallet.getState() // TODO: should add tokenAccountRawInfos to `handleMultiTx()`'s baseUtils
@@ -61,14 +64,16 @@ export default async function txCreateNewFarm(txAddOptions?: AddSingleTxOptions,
           tokenAccounts: tokenAccountRawInfos
         }
       })
+      const createdFarmId = toPubString(createFarmInstruction.newAccounts[0].publicKey)
+      onReceiveFarmId?.(createdFarmId)
       assert(createFarmInstruction, 'createFarm valid failed')
       piecesCollector.addInstruction(...createFarmInstruction.instructions)
       piecesCollector.addSigner(...createFarmInstruction.newAccounts)
       transactionCollector.add(await piecesCollector.spawnTransaction(), {
         ...txAddOptions,
         txHistoryInfo: {
-          title: 'Create Farm',
-          description: `(click to see details)`
+          title: 'Create new Farm',
+          description: `farmId: ${createdFarmId.slice(0, 4)}...${createdFarmId.slice(-4)}`
         }
       })
     },

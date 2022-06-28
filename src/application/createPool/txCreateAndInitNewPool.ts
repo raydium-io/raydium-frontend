@@ -96,7 +96,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
 
       transactionCollector.add(await loadTransaction({ transaction: sdkTransaction1, signers: sdkSigners1 }), {
         txHistoryInfo: {
-          title: 'Create a new pool',
+          title: 'Create new Pool',
           description: `pool's ammId: ${ammId.slice(0, 4)}...${ammId.slice(-4)}`
         }
       })

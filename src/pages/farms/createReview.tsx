@@ -4,9 +4,11 @@ import txCreateNewFarm from '@/application/createFarm/txCreateNewFarm'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useFarms from '@/application/farms/useFarms'
 import { routeBack, routeTo } from '@/application/routeTools'
+import useToken from '@/application/token/useToken'
 import { RAYMint } from '@/application/token/wellknownToken.config'
 import { getRecentBlockhash } from '@/application/txTools/attachRecentBlockhash'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
 import Col from '@/components/Col'
 import PageLayout from '@/components/PageLayout'
@@ -14,10 +16,12 @@ import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
 import { gte } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
+import useToggle from '@/hooks/useToggle'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { Router, useRouter } from 'next/router'
+import { ReactNode, useEffect, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 
 function useAvailableCheck() {
   useEffect(() => {
@@ -26,12 +30,15 @@ function useAvailableCheck() {
 }
 
 export default function CreateFarmReviewPage() {
+  const [created, { on: turnOnCreated, off: turnOffCreated }] = useToggle(false)
+  const [createdFarmId, setCreatedFarmId] = useState<string>()
   const balances = useWallet((s) => s.balances)
   const { pathname } = useRouter()
   const [key, setKey] = useState(String(Date.now())) // hacking: same block hash can only success once
   useEffect(() => {
     setKey(String(Date.now()))
   }, [pathname])
+
   const userRayBalance = balances[toPubString(RAYMint)]
   const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
   useAvailableCheck()
@@ -67,44 +74,69 @@ export default function CreateFarmReviewPage() {
           </div>
         )}
 
-        <Row className="gap-5 justify-center items-start">
-          <Col className="items-center">
+        {created ? (
+          <Col>
+            <Row className="w-full gap-2 justify-center my-8">
+              <Row className="items-center text-sm font-medium text-[#ABC4FF] mobile:text-2xs">
+                <div className="mr-1">Your Farm ID: </div>
+              </Row>
+              <AddressItem canCopy showDigitCount={'all'} className="text-white font-medium">
+                {createdFarmId}
+              </AddressItem>
+            </Row>
             <Button
-              className="frosted-glass-teal px-16 self-stretch"
+              className="frosted-glass-skygray"
               size="lg"
-              validators={[{ should: haveStakeOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
-              onClick={async () => {
-                txCreateNewFarm(
-                  {
-                    onTxSuccess: () => {
-                      setTimeout(() => {
-                        routeTo('/farms')
-                        useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
-                        useFarms.getState().refreshFarmInfos()
-                        useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
-                      }, 1000)
-                    }
-                  },
-                  key
-                )
+              onClick={() => {
+                useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
+                useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
+                routeTo('/farms')
+                setTimeout(() => {
+                  turnOffCreated()
+                }, 1000)
               }}
             >
-              Create Farm
+              Back to All Farms
             </Button>
-            <Col className="mt-4 text-sm font-medium items-center">
-              <div>
-                <span className="text-[#abc4ff80]">Fee:</span> <span className="text-[#abc4ff]">300 RAY</span>
-              </div>
-              <div>
-                <span className="text-[#abc4ff80]">Est. transaction fee:</span>{' '}
-                <span className="text-[#abc4ff]">0.002 SOL</span>
-              </div>
-            </Col>
           </Col>
-          <Button className="frosted-glass-skygray" size="lg" onClick={routeBack}>
-            Edit
-          </Button>
-        </Row>
+        ) : (
+          <Row className="gap-5 justify-center items-start">
+            <Col className="items-center">
+              <Button
+                className="frosted-glass-teal px-16 self-stretch"
+                size="lg"
+                validators={[{ should: haveStakeOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
+                onClick={async () => {
+                  txCreateNewFarm(
+                    {
+                      onReceiveFarmId(farmId) {
+                        setCreatedFarmId(farmId)
+                      },
+                      onTxSuccess: () => {
+                        turnOnCreated()
+                      }
+                    },
+                    key
+                  )
+                }}
+              >
+                Create Farm
+              </Button>
+              <Col className="mt-4 text-sm font-medium items-center">
+                <div>
+                  <span className="text-[#abc4ff80]">Fee:</span> <span className="text-[#abc4ff]">300 RAY</span>
+                </div>
+                <div>
+                  <span className="text-[#abc4ff80]">Est. transaction fee:</span>{' '}
+                  <span className="text-[#abc4ff]">0.002 SOL</span>
+                </div>
+              </Col>
+            </Col>
+            <Button className="frosted-glass-skygray" size="lg" onClick={routeBack}>
+              Edit
+            </Button>
+          </Row>
+        )}
       </div>
     </PageLayout>
   )
