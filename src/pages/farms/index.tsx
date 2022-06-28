@@ -55,8 +55,11 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { searchItems } from '@/functions/searchItems'
+import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
+import copyToClipboard from '@/functions/dom/copyToClipboard'
 
 export default function FarmsPage() {
+  useFarmUrlParser()
   return (
     <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
       <FarmHeader />
@@ -1027,6 +1030,14 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
             <Row className="gap-5">
               <Icon
                 size="sm"
+                heroIconName="link"
+                className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                onClick={() => {
+                  copyToClipboard(new URL(`/farms/?farmid=${toPubString(farmInfo.id)}`).toString())
+                }}
+              />
+              <Icon
+                size="sm"
                 heroIconName="plus"
                 className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
@@ -1044,6 +1055,19 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
             </Row>
           ) : (
             <>
+              <Tooltip>
+                <Icon
+                  size="smi"
+                  heroIconName="link"
+                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                  onClick={() => {
+                    copyToClipboard(
+                      new URL(`farms/?farmid=${toPubString(farmInfo.id)}`, window.location.origin).toString()
+                    )
+                  }}
+                />
+                <Tooltip.Panel>Copy Farm ID</Tooltip.Panel>
+              </Tooltip>
               <Tooltip>
                 <Icon
                   size="smi"

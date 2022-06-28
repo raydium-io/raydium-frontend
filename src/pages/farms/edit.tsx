@@ -20,7 +20,7 @@ import Row from '@/components/Row'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { isValidePublicKey } from '@/functions/judgers/dateType'
+import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { objectShakeNil } from '@/functions/objectMethods'
@@ -61,7 +61,7 @@ export function useCreateFarmUrlParser() {
   const farms = useFarms((s) => s.hydratedInfos)
   useEffect(() => {
     const farmId = String(query?.farmId)
-    if (isValidePublicKey(farmId)) {
+    if (isValidPublicKey(farmId)) {
       const farmInfo = farms.find((f) => toPubString(f.id) === farmId)
       if (!farmInfo) return
       useCreateFarms.setState(

@@ -11,6 +11,7 @@ export type FarmStore = {
   hydratedInfos: HydratedFarmInfo[] // TODO: switch to Object key value pair, for faster extracting
   /**
    * front-end customized farm id list
+   * expanded collapse items
    */
   expandedItemIds: Set<string>
   haveUpcomingFarms: boolean
