@@ -134,9 +134,13 @@ function toMatchedStatusSignature<T>(matchedInfo: MatchedStatus<T>): number {
     }
   })
 
-  const calcCharateristicN = (sequence: number[]) =>
-    sequence.reduce((acc, currentValue, currentIdx) => acc + currentValue * (sequence.length - currentIdx), 0)
-
+  const calcCharateristicN = (sequence: number[]) => {
+    const max = Math.max(...sequence)
+    return sequence.reduce(
+      (acc, currentValue, currentIdx) => acc + currentValue * (max + 1) ** (sequence.length - currentIdx),
+      0
+    )
+  }
   const characteristicSequence = calcCharateristicN([
     calcCharateristicN(entriesSequence),
     calcCharateristicN(partialSequence) //  1 * 5 + 1 * 1
