@@ -113,7 +113,7 @@ function FormStep({
         <div className={`grow my-4 border-r-1.5 ${haveNavline ? 'border-[#abc4ff1a]' : 'border-transparent'} `} />
       </Col>
       <Col className="grow">
-        <div className="font-medium text-lg text-white leading-8 ml-3 mb-5">{title}</div>
+        <div className="ml-3 mb-5">{title}</div>
         <Grid className="mb-16">{children}</Grid>
       </Col>
     </Grid>
@@ -162,7 +162,24 @@ export default function CreateFarmPage() {
         <WarningBoard className="pb-16 w-full" />
 
         <div className="space-y-4">
-          <FormStep stepNumber={1} title="Select Pool" haveNavline>
+          <FormStep
+            stepNumber={1}
+            title={
+              <Row className="justify-between">
+                <div className="font-medium text-lg text-white leading-8">Select Pool</div>
+                <Row
+                  className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
+                  onClick={() => {
+                    routeTo('/liquidity/create')
+                  }}
+                >
+                  <Icon heroIconName="plus-circle" className="text-[#abc4ff]" size="sm" />
+                  <span className="text-[#abc4ff] font-medium text-sm mobile:text-xs">Create Pool</span>
+                </Row>
+              </Row>
+            }
+            haveNavline
+          >
             <PoolIdInputBlock componentRef={PoolIdInputBlockRef} onInputValidate={setPoolIdValid} />
           </FormStep>
 
