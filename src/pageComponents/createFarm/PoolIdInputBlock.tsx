@@ -121,7 +121,7 @@ export function PoolIdInputBlock({
           useCreateFarms.setState({ poolId: selected.id })
         }}
         onBlurMatchCandiateFailed={({ text: candidatedPoolId }) => {
-          useCreateFarms.setState({ poolId: candidatedPoolId })
+          useCreateFarms.setState({ poolId: undefined })
         }}
         onDangerousValueChange={(v) => {
           if (!v) useCreateFarms.setState({ poolId: undefined })
