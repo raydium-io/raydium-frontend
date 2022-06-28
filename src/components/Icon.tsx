@@ -33,7 +33,8 @@ import {
   DotsHorizontalIcon,
   XCircleIcon,
   PlusCircleIcon,
-  PencilIcon
+  PencilIcon,
+  LinkIcon
 } from '@heroicons/react/outline'
 import { ArrowCircleRightIcon } from '@heroicons/react/outline'
 
@@ -70,6 +71,7 @@ export type AppHeroIconName =
   | 'arrow-circle-right' // solid
   | 'plus-circle'
   | 'pencil'
+  | 'link'
   | ' '
 
 export interface IconProps {
@@ -171,6 +173,8 @@ export default function Icon({
         ? PlusCircleIcon
         : heroIconName === 'pencil'
         ? PencilIcon
+        : heroIconName === 'link'
+        ? LinkIcon
         : heroIconName === ' '
         ? ({ className }: { className?: string }) => <div className={className} />
         : Fragment
