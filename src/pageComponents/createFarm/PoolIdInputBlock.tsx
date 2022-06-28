@@ -11,7 +11,7 @@ import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import listToMap from '@/functions/format/listToMap'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { isValidePublicKey } from '@/functions/judgers/dateType'
+import { isPubKey, isValidePublicKey } from '@/functions/judgers/dateType'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
 import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
@@ -40,7 +40,7 @@ export function PoolIdInputBlock({
   const selectedPoolPairInfo = pairInfos.find((i) => i.ammId === poolId)
 
   const candidates = liquidityPoolJsons
-    .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
+    // .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
     .map((pool) =>
       Object.assign({ ...pool }, {
         label: pool.id,
@@ -104,7 +104,7 @@ export function PoolIdInputBlock({
           <Row className={`py-3 px-4 items-center gap-2 ${isSelected ? 'backdrop-brightness-50' : ''}`}>
             <CoinAvatarPair token1={tokens[candidate.baseMint]} token2={tokens[candidate.quoteMint]} />
             <div className="text-[#abc4ff] font-medium">
-              {tokens[candidate.baseMint]?.symbol}-{tokens[candidate.quoteMint]?.symbol}
+              {tokens[candidate.baseMint]?.symbol ?? 'UNKNOWN'}-{tokens[candidate.quoteMint]?.symbol ?? 'UNKNOWN'}
             </div>
             {pairInfoMap[candidate.id] ? (
               <div className="text-[#abc4ff80] text-sm font-medium">
@@ -121,7 +121,7 @@ export function PoolIdInputBlock({
           useCreateFarms.setState({ poolId: selected.id })
         }}
         onBlurMatchCandiateFailed={({ text: candidatedPoolId }) => {
-          useCreateFarms.setState({ poolId: undefined })
+          useCreateFarms.setState({ poolId: isValidePublicKey(candidatedPoolId) ? candidatedPoolId : undefined })
         }}
         onDangerousValueChange={(v) => {
           if (!v) useCreateFarms.setState({ poolId: undefined })
@@ -143,7 +143,8 @@ export function PoolIdInputBlock({
             <>
               <CoinAvatarPair token1={tokens[selectedPool.baseMint]} token2={tokens[selectedPool.quoteMint]} />
               <div className="text-[#abc4ff] text-base font-medium">
-                {tokens[selectedPool.baseMint]?.symbol} - {tokens[selectedPool.quoteMint]?.symbol}
+                {tokens[selectedPool.baseMint]?.symbol ?? 'UNKNOWN'} -{' '}
+                {tokens[selectedPool.quoteMint]?.symbol ?? 'UNKNOWN'}
               </div>
               {selectedPoolPairInfo ? (
                 <div className="text-[#abc4ff80] text-sm ml-auto font-medium">
