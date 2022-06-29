@@ -24,7 +24,7 @@ import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { objectShakeNil } from '@/functions/objectMethods'
-import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
+import { EditableRewardSummary } from '@/pageComponents/createFarm/EditableRewardSummary'
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import RewardInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
@@ -125,7 +125,7 @@ export default function FarmEditPage() {
 
         <div className="mb-4">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Farm rewards</div>
-          <ExistedEditRewardSummary
+          <EditableRewardSummary
             canUserEdit
             onClickIncreaseReward={({ reward }) => {
               setIsRewardInputDialogOpen(true)

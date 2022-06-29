@@ -6,7 +6,7 @@ import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import ListTable from '@/components/ListTable'
-import { toUTC } from '@/functions/date/dateFormat'
+import { getTime, toUTC } from '@/functions/date/dateFormat'
 import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
 import { div } from '@/functions/numberish/operations'
@@ -14,14 +14,16 @@ import { toString } from '@/functions/numberish/toString'
 import { Badge } from '@/components/Badge'
 import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import toPercentString from '@/functions/format/toPercentString'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import produce from 'immer'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import useWallet from '@/application/wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { HydratedFarmInfo } from '@/application/farms/type'
+import { TimeStamp } from '@/functions/date/interface'
+import { Numberish } from '@/types/constants'
 
-export function ExistedEditRewardSummary({
+export function EditableRewardSummary({
   canUserEdit,
   hydratedFarmInfo,
   onClickIncreaseReward,
@@ -60,14 +62,11 @@ export function ExistedEditRewardSummary({
           label: 'Rate'
         }
       ]}
-      renderRowItem={({ item: parsedRewardInfo, label }) => {
-        const reward =
-          parsedRewardInfo.originData && hasRewardBeenEdited(parsedRewardInfo)
-            ? parsedRewardInfo
-            : parsedRewardInfo.originData!
+      renderRowItem={({ item: reward, label }) => {
+        const hasBeenEdited = hasRewardBeenEdited(reward)
         if (label === 'Reward Token') {
           return reward.token ? (
-            <div>
+            <Col className="h-full justify-center">
               <Row className="gap-1 items-center">
                 <CoinAvatar token={reward.token} size="sm" />
                 <div>{reward.token?.symbol ?? 'UNKNOWN'}</div>
@@ -77,7 +76,7 @@ export function ExistedEditRewardSummary({
                 {reward.isRewardBeforeStart && <Badge cssColor="#abc4ff">Upcoming</Badge>}
                 {reward.isRewarding && <Badge cssColor={'#39d0d8'}>Ongoing</Badge>}
               </Row>
-            </div>
+            </Col>
           ) : (
             '--'
           )
@@ -85,45 +84,105 @@ export function ExistedEditRewardSummary({
 
         if (label === 'Amount') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
-          return reward.amount ? (
-            <div className="break-all">
-              {formatNumber(reward.amount, { fractionLength: reward.token?.decimals ?? 6 })}
-            </div>
-          ) : undefined
+          return (
+            <Grid className={`gap-4 ${hasBeenEdited ? 'grid-rows-2' : ''} h-full`}>
+              {reward.originData?.amount ? (
+                <Col className="grow break-all justify-center">
+                  {formatNumber(reward.originData.amount, { fractionLength: reward.token?.decimals ?? 6 })}
+                </Col>
+              ) : undefined}
+              {hasBeenEdited ? (
+                <Col className="grow break-all justify-center text-[#39d0d8]">
+                  {formatNumber(reward.amount, { fractionLength: reward.token?.decimals ?? 6 })}
+                </Col>
+              ) : undefined}
+            </Grid>
+          )
         }
 
         if (label === 'Total Duration') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
-          if (!reward.startTime || !reward.endTime) return
-          const duration = parseDuration(getDuration(reward.endTime, reward.startTime))
-          return duration.hours ? `${duration.days}D ${duration.hours}H` : `${duration.days}D`
+
+          const getDurationText = (startTime: TimeStamp, endTime: TimeStamp) => {
+            const duration = parseDuration(getDuration(endTime, startTime))
+            return duration.hours ? `${duration.days}D ${duration.hours}H` : `${duration.days}D`
+          }
+
+          return (
+            <Grid className={`gap-4 ${hasBeenEdited ? 'grid-rows-2' : ''} h-full`}>
+              {reward.originData?.startTime && reward.originData.endTime ? (
+                <Col className="grow break-all justify-center">
+                  {getDurationText(reward.originData.startTime, reward.originData.endTime)}
+                </Col>
+              ) : undefined}
+              {hasBeenEdited && reward.startTime && reward.endTime ? (
+                <Col className="grow break-all justify-center text-[#39d0d8]">
+                  {getDurationText(reward.startTime, reward.endTime)}
+                </Col>
+              ) : undefined}
+            </Grid>
+          )
         }
 
         if (label === 'Period (yy-mm-dd)') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
           if (!reward.startTime || !reward.endTime) return
           return (
-            <div>
-              <div>{toUTC(reward.startTime)}</div>
-              <div>{toUTC(reward.endTime)}</div>
-            </div>
+            <Grid className={`gap-4 ${hasBeenEdited ? 'grid-rows-2' : ''} h-full`}>
+              {reward.originData?.startTime && reward.originData.endTime ? (
+                <Col className="grow justify-center">
+                  <div>{toUTC(reward.originData.startTime)}</div>
+                  <div>{toUTC(reward.originData.endTime)}</div>
+                </Col>
+              ) : undefined}
+              {hasBeenEdited ? (
+                <Col className="grow justify-center text-[#39d0d8]">
+                  <div>{toUTC(reward.startTime)}</div>
+                  <div>{toUTC(reward.endTime)}</div>
+                </Col>
+              ) : undefined}
+            </Grid>
           )
         }
 
         if (label === 'Rate') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
-          const durationTime =
-            reward.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
-          const estimatedValue =
-            reward.amount && durationTime ? div(reward.amount, parseDurationAbsolute(durationTime).days) : undefined
-          if (!estimatedValue) return
+
+          const getEstimatedValue = (amount: Numberish, startTime: TimeStamp, endTime: TimeStamp) => {
+            const durationTime = endTime && startTime ? getTime(endTime) - getTime(startTime) : undefined
+            const estimatedValue =
+              amount && durationTime ? div(amount, parseDurationAbsolute(durationTime).days) : undefined
+            return estimatedValue
+          }
+
+          const originEstimatedValue =
+            reward.originData?.amount && reward.originData.startTime && reward.originData.endTime
+              ? getEstimatedValue(reward.originData.amount, reward.originData.startTime, reward.originData.endTime)
+              : undefined
+          const editedEstimatedValue =
+            hasBeenEdited && reward.amount && reward.startTime && reward.endTime
+              ? getEstimatedValue(reward.amount, reward.startTime, reward.endTime)
+              : undefined
+          const showEditedEstimated = editedEstimatedValue && !eq(originEstimatedValue, editedEstimatedValue)
           return (
-            <div className="text-xs">
-              <div>
-                {toString(estimatedValue)} {reward.token?.symbol}/day
-              </div>
-              {reward.apr && <div>{toPercentString(reward.apr)} APR</div>}
-            </div>
+            <Grid className={`gap-4 ${showEditedEstimated ? 'grid-rows-2' : ''} h-full`}>
+              {originEstimatedValue && (
+                <Col className="grow justify-center text-xs">
+                  <div>
+                    {toString(originEstimatedValue)} {reward.originData?.token?.symbol}/day
+                  </div>
+                  {reward.originData?.apr && <div>{toPercentString(reward.originData.apr)} APR</div>}
+                </Col>
+              )}
+              {showEditedEstimated && (
+                <Col className="grow justify-center text-xs text-[#39d0d8]">
+                  <div>
+                    {toString(editedEstimatedValue)} {reward?.token?.symbol}/day
+                  </div>
+                  {reward?.apr && <div>{toPercentString(reward.apr)} APR</div>}
+                </Col>
+              )}
+            </Grid>
           )
         }
       }}
@@ -201,7 +260,7 @@ export function ExistedEditRewardSummary({
             )}
             {hasRewardBeenEdited(reward) && (
               <Badge className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full" cssColor="#39d0d8">
-                Edited
+                Added
               </Badge>
             )}
           </div>

@@ -10,7 +10,7 @@ import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import assert from '@/functions/assert'
 import tryCatch from '@/functions/tryCatch'
-import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
+import { EditableRewardSummary } from '@/pageComponents/createFarm/EditableRewardSummary'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import { useEffect, useMemo } from 'react'
@@ -81,7 +81,7 @@ export default function EditReviewPage() {
 
         <div className="mb-6">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Existing farm rewards</div>
-          <ExistedEditRewardSummary canUserEdit={false} />
+          <EditableRewardSummary canUserEdit={false} />
         </div>
 
         {newRewards.length > 0 && (
