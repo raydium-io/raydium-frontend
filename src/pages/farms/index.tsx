@@ -564,7 +564,7 @@ function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; rew
         {isMeaningfulNumber(reward.userPendingReward) && (
           <div className="text-xs translate-y-0.125 pl-1">
             {formatNumber(toString(reward.userPendingReward), {
-              fractionLength: reward.userPendingReward.token.decimals
+              fractionLength: 3
             })}
           </div>
         )}
@@ -575,7 +575,7 @@ function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; rew
           {reward.token?.symbol ?? '--'} Reward Period {reward.isRewardEnded ? 'ended' : ''}
         </div>
         <div className="opacity-50">
-          {toUTC(reward.openTime)} ~ {toUTC(reward.endTime)}
+          {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
         </div>
       </Tooltip.Panel>
     </Tooltip>
