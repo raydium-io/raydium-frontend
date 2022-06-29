@@ -4,6 +4,7 @@ import { usePools } from '@/application/pools/usePools'
 import useToken from '@/application/token/useToken'
 import { AddressItem } from '@/components/AddressItem'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
+import Col from '@/components/Col'
 import ListTable from '@/components/ListTable'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
@@ -61,11 +62,19 @@ export function PoolInfoSummary() {
           )
         }
         if (label === 'TVL') {
-          return item.pool?.liquidity ? toUsdVolume(item.pool.liquidity, { decimalPlace: 0 }) : '--'
+          return (
+            <Col className="justify-center h-full">
+              {item.pool?.liquidity ? toUsdVolume(item.pool.liquidity, { decimalPlace: 0 }) : '--'}
+            </Col>
+          )
         }
 
         if (label === 'APR') {
-          return item.pool.apr30d ? toPercentString(item.pool.apr30d, { alreadyPercented: true }) : '--'
+          return (
+            <Col className="justify-center h-full">
+              {item.pool.apr30d ? toPercentString(item.pool.apr30d, { alreadyPercented: true }) : '--'}
+            </Col>
+          )
         }
       }}
     />

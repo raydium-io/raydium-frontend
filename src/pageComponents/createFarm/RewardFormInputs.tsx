@@ -7,6 +7,7 @@ import {
   MAX_DURATION_SECOND,
   MAX_OFFSET_AFTER_NOW_SECOND
 } from '@/application/farms/handleFarmInfo'
+import { SplToken } from '@/application/token/type'
 import useWallet from '@/application/wallet/useWallet'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import DateInput from '@/components/DateInput'
@@ -25,7 +26,7 @@ import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-import { MayFunction } from '@/types/constants'
+import { MayFunction, Numberish } from '@/types/constants'
 import produce from 'immer'
 import { RefObject, startTransition, useImperativeHandle, useRef, useState } from 'react'
 
@@ -59,16 +60,19 @@ const DAY_SECONDS = 24 * 60 * 60
 export type RewardFormCardInputsParams = {
   reward: UIRewardInfo
   componentRef?: RefObject<any>
+  syncDataWithZustandStore?: boolean
   maxDurationSeconds?: number /* only edit mode  seconds */
   minDurationSeconds?: number /* only edit mode  seconds */
 }
 
 export type RewardCardInputsHandler = {
   isValid: boolean
+  tempReward: RefObject<UIRewardInfo>
 }
 
 export function RewardFormCardInputs({
   reward: targetReward,
+  syncDataWithZustandStore,
   minDurationSeconds = MIN_DURATION_SECOND,
   maxDurationSeconds = MAX_DURATION_SECOND,
   componentRef
@@ -77,6 +81,63 @@ export function RewardFormCardInputs({
   const rewards = useCreateFarms((s) => s.rewards)
   const rewardIndex = rewards.findIndex(({ id }) => id === targetReward.id)
   const reward = rewards[rewardIndex] as UIRewardInfo | undefined // usdate fresh data
+
+  //#region ------------------- reward center -------------------
+  // to cache the result, have to store a temp
+  const tempReward = useRef(produce(targetReward, () => {}))
+  const selectRewardToken = (token: SplToken | undefined) => {
+    tempReward.current = produce(tempReward.current, (draft) => {
+      draft.token = token
+    })
+    if (syncDataWithZustandStore) {
+      useCreateFarms.setState({
+        rewards: produce(rewards, (draft) => {
+          if (rewardIndex >= 0) draft[rewardIndex].token = token
+        })
+      })
+    }
+  }
+  const getSelectRewardToken = () => tempReward.current.token
+  const setRewardAmount = (amount: Numberish | undefined) => {
+    tempReward.current = produce(tempReward.current, (draft) => {
+      draft.amount = amount
+    })
+    if (syncDataWithZustandStore) {
+      useCreateFarms.setState({
+        rewards: produce(rewards, (draft) => {
+          if (rewardIndex >= 0) draft[rewardIndex].amount = amount
+        })
+      })
+    }
+  }
+  const getRewardAmount = () => tempReward.current.amount
+  const setRewardEndTime = (date: Date | undefined) => {
+    tempReward.current = produce(tempReward.current, (draft) => {
+      draft.endTime = date
+    })
+    if (syncDataWithZustandStore) {
+      useCreateFarms.setState({
+        rewards: produce(rewards, (draft) => {
+          if (rewardIndex >= 0) draft[rewardIndex].endTime = date
+        })
+      })
+    }
+  }
+  const getRewardEndTime = () => tempReward.current.endTime
+  const setRewardStartTime = (date: Date | undefined) => {
+    tempReward.current = produce(tempReward.current, (draft) => {
+      draft.startTime = date
+    })
+    if (syncDataWithZustandStore) {
+      useCreateFarms.setState({
+        rewards: produce(rewards, (draft) => {
+          if (rewardIndex >= 0) draft[rewardIndex].startTime = date
+        })
+      })
+    }
+  }
+  const getRewardStartTime = () => tempReward.current.startTime
+  //#endregion
 
   const isUnedited72hReward = Boolean(reward && reward.isRwardingBeforeEnd72h && !hasRewardBeenEdited(reward))
   const isUneditedEndedReward = Boolean(reward && reward.isRewardEnded && !hasRewardBeenEdited(reward))
@@ -92,15 +153,9 @@ export function RewardFormCardInputs({
     isInit.current = false
     setDurationTime(undefined)
     startTransition(() => {
-      useCreateFarms.setState({
-        rewards: produce(rewards, (draft) => {
-          if (!draft[rewardIndex]) return
-
-          draft[rewardIndex].startTime = undefined
-          draft[rewardIndex].endTime = undefined
-          draft[rewardIndex].amount = undefined
-        })
-      })
+      setRewardStartTime(undefined)
+      setRewardEndTime(undefined)
+      setRewardAmount(undefined)
     })
   }
 
@@ -141,7 +196,7 @@ export function RewardFormCardInputs({
   const rewardEstimatedValue =
     estimatedValue && toString(estimatedValue, { decimalLength: `auto ${reward?.token?.decimals ?? 6}` })
   const isValid = isDurationValid && isAmountValid && (reward?.isRwardingBeforeEnd72h || isStartTimeAfterCurrent)
-  useImperativeHandle<any, RewardCardInputsHandler>(componentRef, () => ({ isValid }))
+  useImperativeHandle<any, RewardCardInputsHandler>(componentRef, () => ({ isValid, tempReward }))
   if (!reward) return null
   return (
     <Grid className="gap-4">
@@ -155,20 +210,8 @@ export function RewardFormCardInputs({
         value={rewardTokenAmount}
         token={reward.token}
         disabledTokenSelect={reward.isRewardBeforeStart || reward.isRewarding || reward.isRewardEnded}
-        onSelectCoin={(token) => {
-          useCreateFarms.setState({
-            rewards: produce(rewards, (draft) => {
-              if (rewardIndex >= 0) draft[rewardIndex].token = token
-            })
-          })
-        }}
-        onUserInput={(amount) => {
-          useCreateFarms.setState({
-            rewards: produce(rewards, (draft) => {
-              if (rewardIndex >= 0) draft[rewardIndex].amount = amount
-            })
-          })
-        }}
+        onSelectCoin={selectRewardToken}
+        onUserInput={setRewardAmount}
       />
       <div>
         <Row className="gap-4">
@@ -200,37 +243,33 @@ export function RewardFormCardInputs({
               const totalDuration = getDurationFromString(v, durationBoundaryUnit)
               setDurationTime(isMeaningfulNumber(totalDuration) ? totalDuration : undefined)
               if (totalDuration > 0) {
-                useCreateFarms.setState({
-                  rewards: produce(rewards, (draft) => {
-                    if (!draft[rewardIndex]) return
+                const haveStartTime = Boolean(rewardStartTime)
+                const haveEndTime = Boolean(rewardEndTime)
 
-                    const haveStartTime = Boolean(rewardStartTime)
-                    const haveEndTime = Boolean(rewardEndTime)
+                // set end time
+                if (haveStartTime) {
+                  setRewardEndTime(
+                    offsetDateTime(rewardStartTime, {
+                      milliseconds: totalDuration
+                    })
+                  )
+                  setRewardStartTime(rewardStartTime)
+                }
 
-                    // set end time
-                    if (haveStartTime) {
-                      draft[rewardIndex].endTime = offsetDateTime(rewardStartTime, {
-                        milliseconds: totalDuration
-                      })
-                      draft[rewardIndex].startTime = rewardStartTime
-                    }
+                // set amount (only edit-in-rewarding)
+                if (reward.isRwardingBeforeEnd72h) {
+                  setRewardAmount(mul(estimatedValue, parseDurationAbsolute(totalDuration).days))
+                }
 
-                    // set amount (only edit-in-rewarding)
-                    if (reward.isRwardingBeforeEnd72h) {
-                      draft[rewardIndex].amount = mul(estimatedValue, parseDurationAbsolute(totalDuration).days)
-                    }
-
-                    // set start time
-                    if (haveEndTime && !haveStartTime) {
-                      const calculatedStartTime = offsetDateTime(draft[rewardIndex].endTime, {
-                        milliseconds: -totalDuration
-                      })
-                      if (isDateAfter(calculatedStartTime, Date.now())) {
-                        draft[rewardIndex].startTime = calculatedStartTime
-                      }
-                    }
+                // set start time
+                if (haveEndTime && !haveStartTime) {
+                  const calculatedStartTime = offsetDateTime(getRewardEndTime(), {
+                    milliseconds: -totalDuration
                   })
-                })
+                  if (isDateAfter(calculatedStartTime, Date.now())) {
+                    setRewardStartTime(calculatedStartTime)
+                  }
+                }
               }
             }}
           />
@@ -294,49 +333,47 @@ export function RewardFormCardInputs({
             }}
             onDateChange={(selectedDate) => {
               if (!selectedDate) return
-              return useCreateFarms.setState({
-                rewards: produce(rewards, (draft) => {
-                  if (!draft[rewardIndex]) return
 
-                  const haveStartTime = Boolean(rewardStartTime)
+              const haveStartTime = Boolean(rewardStartTime)
 
-                  // set end time
-                  draft[rewardIndex].endTime = selectedDate
+              // set end time
+              setRewardEndTime(selectedDate)
 
-                  // set start time
-                  if (durationTime && !haveStartTime) {
-                    draft[rewardIndex].startTime = offsetDateTime(selectedDate, { milliseconds: -durationTime })
-                  }
+              // set start time
+              if (durationTime && !haveStartTime) {
+                setRewardStartTime(offsetDateTime(selectedDate, { milliseconds: -durationTime }))
+              }
 
-                  // set amount (only edit-in-rewarding)
-                  if (reward.isRwardingBeforeEnd72h) {
-                    draft[rewardIndex].amount = mul(
-                      estimatedValue,
-                      parseDurationAbsolute(selectedDate.getTime() - rewardStartTime!.getTime()).days
-                    )
-                  }
+              // set amount (only edit-in-rewarding)
+              if (reward.isRwardingBeforeEnd72h) {
+                setRewardAmount(
+                  mul(estimatedValue, parseDurationAbsolute(selectedDate.getTime() - rewardStartTime!.getTime()).days)
+                )
+              }
 
-                  // set duration days
-                  if (haveStartTime) {
-                    const durationSeconds = parseDurationAbsolute(
-                      selectedDate.getTime() - rewardStartTime!.getTime()
-                    ).seconds
-                    if (durationSeconds < minDurationSeconds) {
-                      draft[rewardIndex].startTime = offsetDateTime(selectedDate, {
-                        seconds: -minDurationSeconds
-                      })
-                      setDurationTime(minDurationSeconds)
-                    } else if (durationSeconds > maxDurationSeconds) {
-                      draft[rewardIndex].startTime = offsetDateTime(selectedDate, {
-                        seconds: -maxDurationSeconds
-                      })
-                      setDurationTime(maxDurationSeconds)
-                    } else {
-                      setDurationTime(durationSeconds)
-                    }
-                  }
-                })
-              })
+              // set duration days
+              if (haveStartTime) {
+                const durationSeconds = parseDurationAbsolute(
+                  selectedDate.getTime() - rewardStartTime!.getTime()
+                ).seconds
+                if (durationSeconds < minDurationSeconds) {
+                  setRewardStartTime(
+                    offsetDateTime(selectedDate, {
+                      seconds: -minDurationSeconds
+                    })
+                  )
+                  setDurationTime(minDurationSeconds)
+                } else if (durationSeconds > maxDurationSeconds) {
+                  setRewardStartTime(
+                    offsetDateTime(selectedDate, {
+                      seconds: -maxDurationSeconds
+                    })
+                  )
+                  setDurationTime(maxDurationSeconds)
+                } else {
+                  setDurationTime(durationSeconds)
+                }
+              }
             }}
           />
         </Row>
