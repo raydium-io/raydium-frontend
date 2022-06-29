@@ -20,7 +20,7 @@ import asyncMap from '@/functions/asyncMap'
 import { setLocalItem } from '@/functions/dom/jStorage'
 import { addItem } from '@/functions/arrayMethods'
 
-const userCreatedFarmKey = 'USER_CREATED_FARMS'
+export const userCreatedFarmKey = 'USER_CREATED_FARMS'
 
 export default async function txCreateNewFarm(
   { onReceiveFarmId, ...txAddOptions }: AddSingleTxOptions & { onReceiveFarmId?: (farmId: string) => void },
@@ -80,10 +80,12 @@ export default async function txCreateNewFarm(
         const { poolId, farmId } = useCreateFarms.getState()
         const { jsonInfos } = usePools.getState()
         if (!poolId) return
+        if (!farmId) return
         const poolJsonInfo = jsonInfos.find((j) => j.ammId === poolId)
         if (!poolJsonInfo) return
         const version = 6
-        const lpMint = poolJsonInfo.lpMint
+        const lpMint = 'G54x5tuRV12WyNkSjfNnq3jyzfcPF9EgB8c9jTzsQKVW' // NOTE: test
+        // const lpMint = poolJsonInfo.lpMint
         const programId = Farm.getProgramId(6)
         const authority = toPubString(
           (await Farm.getAssociatedAuthority({ programId, poolId: toPub(poolId) })).publicKey
@@ -91,11 +93,12 @@ export default async function txCreateNewFarm(
         const lpVault = toPubString(
           await Farm.getAssociatedLedgerPoolAccount({
             programId,
-            poolId: toPub(poolId),
+            poolId: toPub(farmId),
             mint: toPub(lpMint),
             type: 'lpVault'
           })
         )
+
         const farmItem = {
           id: farmId,
           lpMint,
@@ -141,7 +144,7 @@ export default async function txCreateNewFarm(
           description: `farmId: ${createdFarmId.slice(0, 4)}...${createdFarmId.slice(-4)}`
         },
         onTxSuccess(...args) {
-          recordNewCreatedFarmItem()
+          recordNewCreatedFarmItem() // test
           txAddOptions.onTxSuccess?.(...args)
         }
       })

@@ -1,3 +1,4 @@
+import listToMap from './format/listToMap'
 import { isArray, isSet } from './judgers/dateType'
 
 export function hasSameItems<T>(arr1: T[], arr2: any[]): arr2 is T[] {
@@ -45,8 +46,11 @@ export function shakeFalsyItem<T>(arr: readonly T[]): NonNullable<T>[] {
   return arr.filter(Boolean) as NonNullable<T>[]
 }
 
+// todo use js object to speed up the fn
 export function unifyByKey<T>(objList: T[], getKey: (item: T) => string): T[] {
-  const mapKey = objList.map(getKey)
-  const unifyMap = unifyItem(mapKey)
-  return shakeUndifindedItem(unifyMap.map((key) => objList.find((item) => getKey(item) === key)))
+  const objMap = listToMap(objList, getKey)
+  return shakeUndifindedItem(Object.values(objMap))
+  // const keys = objList.map(getKey)
+  // const unifyKeys = unifyItem(keys)
+  // return shakeUndifindedItem(unifyKeys.map((key) => objList.find((item) => getKey(item) === key)))
 }

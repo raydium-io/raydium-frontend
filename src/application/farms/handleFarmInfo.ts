@@ -4,10 +4,11 @@ import { LiquidityStore } from '@/application/liquidity/useLiquidity'
 import { PoolsStore } from '@/application/pools/usePools'
 import { TokenStore } from '@/application/token/useToken'
 import { RAYMint } from '@/application/token/wellknownToken.config'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { shakeUndifindedItem, unifyByKey } from '@/functions/arrayMethods'
 import { DateParam, offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import jFetch from '@/functions/dom/jFetch'
+import { getLocalItem } from '@/functions/dom/jStorage'
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -27,6 +28,7 @@ import {
   TokenAmount
 } from '@raydium-io/raydium-sdk'
 import BN from 'bn.js'
+import { userCreatedFarmKey } from '../createFarm/txCreateNewFarm'
 import { SplToken } from '../token/type'
 import { APIRewardInfo, FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
 
@@ -46,18 +48,22 @@ export const MIN_DURATION = MIN_DURATION_SECOND * 1000
 export const EXTEND_BEFORE_END_SECOND = 0.5 * 60 * 60 // test
 export const EXTEND_BEFORE_END = EXTEND_BEFORE_END_SECOND * 1000
 
-export async function fetchFarmJsonInfos(): Promise<
-  (FarmPoolJsonInfo & { official: boolean; local: boolean })[] | undefined
-> {
+export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefined> {
   const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
     ignoreCache: true
   })
   if (!result) return undefined
+  const userCreated = getLocalItem<Omit<FarmPoolJsonInfo, 'official' | 'local'>[]>(userCreatedFarmKey)?.map((s) => ({
+    ...s,
+    official: false,
+    local: true
+  }))
   const officials = result.official.map((i) => ({ ...i, official: true, local: false }))
-  const unOfficial = result.unOfficial
-    ?.map((i) => ({ ...i, official: false, local: false }))
-    .sort((a, b) => -getMaxOpenTime(a.rewardInfos) + getMaxOpenTime(b.rewardInfos))
-  return [...officials, ...(unOfficial ?? [])]
+  const unOfficial = result.unOfficial?.map((i) => ({ ...i, official: false, local: false }))
+
+  return [...officials, ...unifyByKey([...(unOfficial ?? []), ...(userCreated ?? [])], (i) => i.id)].sort(
+    (a, b) => -getMaxOpenTime(a.rewardInfos) + getMaxOpenTime(b.rewardInfos)
+  )
 }
 
 /** and state info  */
@@ -206,6 +212,7 @@ export function hydrateFarmInfo(
         })
   const userStakedLpAmount =
     lpToken && farmInfo.ledger?.deposited ? new TokenAmount(lpToken, farmInfo.ledger?.deposited) : undefined
+
   return {
     ...farmInfo,
     lp: lpToken,

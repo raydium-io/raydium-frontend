@@ -603,7 +603,9 @@ function FarmCardDatabaseBodyCollapseItemFace({
     <Row
       type="grid-x"
       className={twMerge(
-        `py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-2 grid-cols-[auto,1.5fr,1.2fr,1fr,1fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
+        `py-5 mobile:py-4 mobile:px-5 ${
+          info.local ? 'border-2 border-[#DA2EEF]' : ''
+        } bg-[#141041] items-stretch gap-2 grid-cols-[auto,1.5fr,1.2fr,1fr,1fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
           open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
         } transition-all`,
         className

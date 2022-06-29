@@ -85,16 +85,16 @@ export default function CreateFarmReviewPage() {
               className="frosted-glass-skygray"
               size="lg"
               onClick={() => {
-                useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
-                useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
                 routeTo('/farms')
                 refreshFarmInfos()
                 setTimeout(() => {
+                  useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
+                  useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
                   turnOffCreated()
                 }, 1000)
               }}
             >
-              Back to All Farms
+              Back to all farm pools
             </Button>
           </Col>
         ) : (
