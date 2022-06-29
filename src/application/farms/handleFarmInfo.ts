@@ -63,9 +63,10 @@ export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefin
   const officials = result.official.map((i) => ({ ...i, official: true, local: false }))
   const unOfficial = result.unOfficial?.map((i) => ({ ...i, official: false, local: false }))
 
-  return [...officials, ...(unOfficial ?? [])].sort(
-    (a, b) => -getMaxOpenTime(a.rewardInfos) + getMaxOpenTime(b.rewardInfos)
-  )
+  return [...officials, ...(unOfficial ?? [])]
+  // return [...officials, ...(unOfficial ?? [])].sort(
+  //   (a, b) => -getMaxOpenTime(a.rewardInfos) + getMaxOpenTime(b.rewardInfos)
+  // )
 }
 
 /** and state info  */
@@ -106,7 +107,7 @@ export function hydrateFarmInfo(
   const isDualFusionPool = farmPoolType === 'dual fusion pool'
   const isNormalFusionPool = farmPoolType === 'normal fusion pool'
   const isClosedPool = farmPoolType === 'closed pool'
-  const isUpcomingPool = farmInfo.upcoming && isClosedPool
+  const isUpcomingPool = farmInfo.version !== 6 ? farmInfo.upcoming && isClosedPool : farmInfo.upcoming
   const isNewPool = farmInfo.version !== 6 && farmInfo.upcoming && !isClosedPool // NOTE: Rudy says!!!
   const isStablePool = payload.liquidityJsonInfos?.find((i) => i.lpMint === toPubString(farmInfo.lpMint))?.version === 5
 
