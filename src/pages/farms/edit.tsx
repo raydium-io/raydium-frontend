@@ -5,9 +5,11 @@ import {
   parsedHydratedRewardInfoToUiRewardInfo
 } from '@/application/createFarm/parseRewardInfo'
 import txClaimReward from '@/application/createFarm/txClaimReward'
+import { userCreatedFarmKey } from '@/application/createFarm/txCreateNewFarm'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
 import { hydrateFarmInfo } from '@/application/farms/handleFarmInfo'
+import { HydratedFarmInfo } from '@/application/farms/type'
 import useFarms from '@/application/farms/useFarms'
 import { routeBack, routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
@@ -54,29 +56,33 @@ function NavButtons({ className }: { className?: string }) {
   )
 }
 
-export function useCreateFarmUrlParser() {
+export function useEditFarmUrlParser() {
   const { query } = useRouter()
   const owner = useWallet((s) => s.owner)
   const farms = useFarms((s) => s.hydratedInfos)
+  function updateCreateFarmInfo(farmInfo: HydratedFarmInfo) {
+    useCreateFarms.setState(
+      objectShakeNil({
+        farmId: toPubString(farmInfo.id),
+        poolId: farmInfo.ammId,
+        rewards: farmInfo.rewards.map((reward) => parsedHydratedRewardInfoToUiRewardInfo(reward)),
+        disableAddNewReward: !isMintEqual(farmInfo.creator, owner)
+      })
+    )
+  }
   useEffect(() => {
     const farmId = String(query?.farmId)
-    if (isValidPublicKey(farmId)) {
-      const farmInfo = farms.find((f) => toPubString(f.id) === farmId)
-      if (!farmInfo) return
-      useCreateFarms.setState(
-        objectShakeNil({
-          farmId: toPubString(farmInfo.id),
-          poolId: farmInfo.ammId,
-          rewards: farmInfo.rewards.map((reward) => parsedHydratedRewardInfoToUiRewardInfo(reward)),
-          disableAddNewReward: !isMintEqual(farmInfo.creator, owner)
-        })
-      )
-    }
+    if (!isValidPublicKey(farmId)) return
+    const dataAlreadyExist = useCreateFarms.getState().farmId === farmId
+    if (dataAlreadyExist) return
+    const farmInfo = farms.find((f) => toPubString(f.id) === farmId)
+    if (farmInfo) updateCreateFarmInfo(farmInfo)
   }, [query?.farmId, farms, owner])
 }
 
 export default function FarmEditPage() {
   useAvailableCheck()
+  useEditFarmUrlParser()
 
   const walletConnected = useWallet((s) => s.connected)
   const owner = useWallet((s) => s.owner)
@@ -93,7 +99,6 @@ export default function FarmEditPage() {
     (r) => r.amount != null || r.startTime != null || r.endTime != null || r.token != null
   )
   const hydratedFarmInfo = hydratedFarmInfos.find((i) => isMintEqual(i.id, farmId))
-  useCreateFarmUrlParser()
   return (
     <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
       <NavButtons />
