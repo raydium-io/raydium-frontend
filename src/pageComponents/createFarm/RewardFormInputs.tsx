@@ -2,6 +2,7 @@ import useConnection from '@/application/connection/useConnection'
 import { hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { MIN_DURATION_SECOND, MAX_DURATION_SECOND } from '@/application/farms/handleFarmInfo'
 import useWallet from '@/application/wallet/useWallet'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import DateInput from '@/components/DateInput'
@@ -47,15 +48,6 @@ function useStateWithSuperPreferential<T>(
   const doNothing = () => {}
   return [isExist(superValue) ? superValue : value, (isExist(superValue) ? doNothing : setValue) as any]
 }
-
-export const MAX_DURATION_SECOND = 2 * 60 * 60 // test
-export const MIN_DURATION_SECOND = 1 * 60 * 60 // test
-// const MAX_DURATION_DAY = 90
-// const MIN_DURATION_DAY = 7
-// export const MAX_DURATION_SECOND = MAX_DURATION_DAY * 24 * 60 * 60
-// export const MIN_DURATION_SECOND = MIN_DURATION_DAY * 24 * 60 * 60
-export const MAX_DURATION = MAX_DURATION_SECOND * 1000
-export const MIN_DURATION = MIN_DURATION_SECOND * 1000
 
 const HOUR_SECONDS = 60 * 60
 const DAY_SECONDS = 24 * 60 * 60

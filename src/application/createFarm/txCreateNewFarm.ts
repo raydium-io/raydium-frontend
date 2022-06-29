@@ -1,4 +1,4 @@
-import { Farm, FarmCreateInstructionParamsV6 } from '@raydium-io/raydium-sdk'
+import { Farm, FarmCreateInstructionParamsV6, FarmPoolJsonInfoV6 } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 
@@ -13,6 +13,14 @@ import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import useWallet from '../wallet/useWallet'
 import useCreateFarms from './useCreateFarm'
+import { usePools } from '../pools/usePools'
+import { EXTEND_BEFORE_END_SECOND, MAX_DURATION_SECOND, MIN_DURATION_SECOND } from '../farms/handleFarmInfo'
+import { FarmPoolJsonInfo } from '../farms/type'
+import asyncMap from '@/functions/asyncMap'
+import { setLocalItem } from '@/functions/dom/jStorage'
+import { addItem } from '@/functions/arrayMethods'
+
+const userCreatedFarmKey = 'USER_CREATED_FARMS'
 
 export default async function txCreateNewFarm(
   { onReceiveFarmId, ...txAddOptions }: AddSingleTxOptions & { onReceiveFarmId?: (farmId: string) => void },
@@ -66,6 +74,63 @@ export default async function txCreateNewFarm(
       })
       const createdFarmId = toPubString(createFarmInstruction.newAccounts[0].publicKey)
       onReceiveFarmId?.(createdFarmId)
+
+      // should record result
+      async function recordNewCreatedFarmItem() {
+        const { poolId, farmId } = useCreateFarms.getState()
+        const { jsonInfos } = usePools.getState()
+        if (!poolId) return
+        const poolJsonInfo = jsonInfos.find((j) => j.ammId === poolId)
+        if (!poolJsonInfo) return
+        const version = 6
+        const lpMint = poolJsonInfo.lpMint
+        const programId = Farm.getProgramId(6)
+        const authority = toPubString(
+          (await Farm.getAssociatedAuthority({ programId, poolId: toPub(poolId) })).publicKey
+        )
+        const lpVault = toPubString(
+          await Farm.getAssociatedLedgerPoolAccount({
+            programId,
+            poolId: toPub(poolId),
+            mint: toPub(lpMint),
+            type: 'lpVault'
+          })
+        )
+        const farmItem = {
+          id: farmId,
+          lpMint,
+          version,
+          programId: toPubString(programId),
+          authority,
+          lpVault,
+          rewardPeriodMax: MAX_DURATION_SECOND,
+          rewardPeriodMin: MIN_DURATION_SECOND,
+          rewardPeriodExtend: EXTEND_BEFORE_END_SECOND,
+          upcoming: true,
+          creator: toPubString(owner),
+          rewardInfos: await asyncMap(rewards, async (reward) => {
+            const rewardVault = toPubString(
+              await Farm.getAssociatedLedgerPoolAccount({
+                programId,
+                poolId: toPub(poolId),
+                mint: toPub(reward.rewardMint),
+                type: 'rewardVault'
+              })
+            )
+            return {
+              ...reward,
+              rewardMint: toPubString(reward.rewardMint),
+              rewardOpenTime: toBN(reward.rewardOpenTime).toNumber(),
+              rewardEndTime: toBN(reward.rewardEndTime).toNumber(),
+              rewardPerSecond: toBN(reward.rewardPerSecond).toNumber(),
+              rewardVault,
+              rewardSender: toPubString(owner)
+            }
+          })
+        } as FarmPoolJsonInfo
+        setLocalItem<FarmPoolJsonInfo[]>(userCreatedFarmKey, (s) => addItem(s ?? [], farmItem))
+      }
+
       assert(createFarmInstruction, 'createFarm valid failed')
       piecesCollector.addInstruction(...createFarmInstruction.instructions)
       piecesCollector.addSigner(...createFarmInstruction.newAccounts)
@@ -74,6 +139,10 @@ export default async function txCreateNewFarm(
         txHistoryInfo: {
           title: 'Create new Farm',
           description: `farmId: ${createdFarmId.slice(0, 4)}...${createdFarmId.slice(-4)}`
+        },
+        onTxSuccess(...args) {
+          recordNewCreatedFarmItem()
+          txAddOptions.onTxSuccess?.(...args)
         }
       })
     },

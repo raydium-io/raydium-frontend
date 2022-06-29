@@ -34,14 +34,28 @@ function getMaxOpenTime(i: APIRewardInfo[]) {
   return Math.max(...i.map((r) => r.rewardOpenTime))
 }
 
-export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { official: boolean })[] | undefined> {
+export const MAX_DURATION_SECOND = 2 * 60 * 60 // test
+export const MIN_DURATION_SECOND = 1 * 60 * 60 // test
+// const MAX_DURATION_DAY = 90
+// const MIN_DURATION_DAY = 7
+// export const MAX_DURATION_SECOND = MAX_DURATION_DAY * 24 * 60 * 60
+// export const MIN_DURATION_SECOND = MIN_DURATION_DAY * 24 * 60 * 60
+export const MAX_DURATION = MAX_DURATION_SECOND * 1000
+export const MIN_DURATION = MIN_DURATION_SECOND * 1000
+
+export const EXTEND_BEFORE_END_SECOND = 0.5 * 60 * 60 // test
+export const EXTEND_BEFORE_END = EXTEND_BEFORE_END_SECOND * 1000
+
+export async function fetchFarmJsonInfos(): Promise<
+  (FarmPoolJsonInfo & { official: boolean; local: boolean })[] | undefined
+> {
   const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
     ignoreCache: true
   })
   if (!result) return undefined
-  const officials = result.official.map((i) => ({ ...i, official: true }))
+  const officials = result.official.map((i) => ({ ...i, official: true, local: false }))
   const unOfficial = result.unOfficial
-    ?.map((i) => ({ ...i, official: false }))
+    ?.map((i) => ({ ...i, official: false, local: false }))
     .sort((a, b) => -getMaxOpenTime(a.rewardInfos) + getMaxOpenTime(b.rewardInfos))
   return [...officials, ...(unOfficial ?? [])]
 }

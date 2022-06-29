@@ -28,7 +28,6 @@ import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRew
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import RewardInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
-import { MAX_DURATION_SECOND, MIN_DURATION, MIN_DURATION_SECOND } from '@/pageComponents/createFarm/RewardFormInputs'
 import produce from 'immer'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'

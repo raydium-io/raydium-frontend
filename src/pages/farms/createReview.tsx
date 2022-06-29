@@ -1,12 +1,9 @@
-import useConnection from '@/application/connection/useConnection'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import txCreateNewFarm from '@/application/createFarm/txCreateNewFarm'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useFarms from '@/application/farms/useFarms'
 import { routeBack, routeTo } from '@/application/routeTools'
-import useToken from '@/application/token/useToken'
 import { RAYMint } from '@/application/token/wellknownToken.config'
-import { getRecentBlockhash } from '@/application/txTools/attachRecentBlockhash'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
@@ -19,9 +16,8 @@ import { toString } from '@/functions/numberish/toString'
 import useToggle from '@/hooks/useToggle'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
-import { Router, useRouter } from 'next/router'
-import { ReactNode, useEffect, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 
 function useAvailableCheck() {
   useEffect(() => {
@@ -31,9 +27,9 @@ function useAvailableCheck() {
 
 export default function CreateFarmReviewPage() {
   const [created, { on: turnOnCreated, off: turnOffCreated }] = useToggle(false)
-  const [createdFarmId, setCreatedFarmId] = useState<string>()
   const balances = useWallet((s) => s.balances)
   const { pathname } = useRouter()
+  const refreshFarmInfos = useFarms((s) => s.refreshFarmInfos)
   const [key, setKey] = useState(String(Date.now())) // hacking: same block hash can only success once
   useEffect(() => {
     setKey(String(Date.now()))
@@ -42,6 +38,7 @@ export default function CreateFarmReviewPage() {
   const userRayBalance = balances[toPubString(RAYMint)]
   const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
   useAvailableCheck()
+
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(720px,90vw)]">
@@ -81,7 +78,7 @@ export default function CreateFarmReviewPage() {
                 <div className="mr-1">Your Farm ID: </div>
               </Row>
               <AddressItem canCopy showDigitCount={'all'} className="text-white font-medium">
-                {createdFarmId}
+                {useCreateFarms.getState().farmId}
               </AddressItem>
             </Row>
             <Button
@@ -91,6 +88,7 @@ export default function CreateFarmReviewPage() {
                 useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
                 useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
                 routeTo('/farms')
+                refreshFarmInfos()
                 setTimeout(() => {
                   turnOffCreated()
                 }, 1000)
@@ -110,7 +108,7 @@ export default function CreateFarmReviewPage() {
                   txCreateNewFarm(
                     {
                       onReceiveFarmId(farmId) {
-                        setCreatedFarmId(farmId)
+                        useCreateFarms.setState({ farmId })
                       },
                       onTxSuccess: () => {
                         turnOnCreated()
