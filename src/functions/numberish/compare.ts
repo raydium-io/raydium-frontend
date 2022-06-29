@@ -37,7 +37,7 @@ export function eq(a: Numberish | undefined, b: Numberish | undefined): boolean 
   if (a == null || b == null) return false
   const fa = toFraction(a)
   const fb = toFraction(b)
-  return toBN(fa.sub(fb).numerator).eq(ZERO)
+  return toBN(fa.sub(fb)).eq(ZERO)
 }
 
 export function isMeaningfulNumber(n: Numberish | undefined): n is Numberish {
