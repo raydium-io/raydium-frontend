@@ -186,7 +186,7 @@ export function EditableRewardSummary({
           )
         }
       }}
-      renderRowEntry={({ contentNode, itemData: reward }) => {
+      renderRowEntry={({ contentNode, itemData: reward, changeSelf }) => {
         const isRewardEditable = reward.originData?.isRwardingBeforeEnd72h || reward.originData?.isRewardEnded
         const isRewardOwner = owner && isMintEqual(owner, reward.owner)
         return (
@@ -259,7 +259,14 @@ export function EditableRewardSummary({
               </div>
             )}
             {hasRewardBeenEdited(reward) && (
-              <Badge className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full" cssColor="#39d0d8">
+              <Badge
+                className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full cursor-pointer"
+                cssColor="#39d0d8"
+                onClick={() => {
+                  changeSelf({ ...reward, ...reward.originData })
+                }}
+                hoverChildren="Reset"
+              >
                 Added
               </Badge>
             )}
