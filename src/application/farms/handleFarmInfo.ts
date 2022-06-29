@@ -28,7 +28,6 @@ import {
   TokenAmount
 } from '@raydium-io/raydium-sdk'
 import BN from 'bn.js'
-import { userCreatedFarmKey } from '../createFarm/txCreateNewFarm'
 import { SplToken } from '../token/type'
 import { APIRewardInfo, FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
 
@@ -56,15 +55,15 @@ export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefin
     ignoreCache: true
   })
   if (!result) return undefined
-  const userCreated = getLocalItem<Omit<FarmPoolJsonInfo, 'official' | 'local'>[]>(userCreatedFarmKey)?.map((s) => ({
-    ...s,
-    official: false,
-    local: true
-  }))
+  // const userCreated = getLocalItem<Omit<FarmPoolJsonInfo, 'official' | 'local'>[]>(userCreatedFarmKey)?.map((s) => ({
+  //   ...s,
+  //   official: false,
+  //   local: true
+  // })) // RUDY says no need
   const officials = result.official.map((i) => ({ ...i, official: true, local: false }))
   const unOfficial = result.unOfficial?.map((i) => ({ ...i, official: false, local: false }))
 
-  return [...officials, ...unifyByKey([...(unOfficial ?? []), ...(userCreated ?? [])], (i) => i.id)].sort(
+  return [...officials, ...(unOfficial ?? [])].sort(
     (a, b) => -getMaxOpenTime(a.rewardInfos) + getMaxOpenTime(b.rewardInfos)
   )
 }
