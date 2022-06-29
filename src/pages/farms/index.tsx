@@ -313,7 +313,7 @@ function FarmCard() {
     () =>
       tabedDataSource
         .filter((i) => (onlySelfFarms ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true)) // Switch
-        .filter((i) => (onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)), // Switch
+        .filter((i) => (i.version === 6 && onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)), // Switch
     [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
   )
 
