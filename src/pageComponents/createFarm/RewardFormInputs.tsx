@@ -2,7 +2,11 @@ import useConnection from '@/application/connection/useConnection'
 import { hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
-import { MIN_DURATION_SECOND, MAX_DURATION_SECOND } from '@/application/farms/handleFarmInfo'
+import {
+  MIN_DURATION_SECOND,
+  MAX_DURATION_SECOND,
+  MAX_OFFSET_AFTER_NOW_SECOND
+} from '@/application/farms/handleFarmInfo'
 import useWallet from '@/application/wallet/useWallet'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import DateInput from '@/components/DateInput'
@@ -240,6 +244,13 @@ export function RewardFormCardInputs({
             value={rewardStartTime}
             disabled={disableStartTimeInput}
             disableDateBeforeCurrent
+            isValidDate={(date) => {
+              const isValid = isDateBefore(
+                date,
+                offsetDateTime(currentBlockChainDate, { seconds: MAX_OFFSET_AFTER_NOW_SECOND })
+              )
+              return isValid
+            }}
             onDateChange={(selectedDate) => {
               if (!selectedDate) return
               return useCreateFarms.setState({
