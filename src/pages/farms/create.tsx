@@ -137,7 +137,6 @@ export default function CreateFarmPage() {
   const balances = useWallet((s) => s.balances)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const walletConnected = useWallet((s) => s.connected)
-  const owner = useWallet((s) => s.owner)
 
   const PoolIdInputBlockRef = useRef<PoolIdInputBlockHandle>()
 
