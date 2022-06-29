@@ -29,6 +29,7 @@ export type UIRewardInfo = {
   rewardPeriodExtend?: number // only may edited farms // v6 'end before 72h's    72 * 60 * 60 seconds
 
   claimableRewards?: TokenAmount // only existed reward may have this
+  perSecond?: string | number // only existed reward may have this
 
   originData?: Omit<UIRewardInfo, 'originData'> // only edit have this
 }

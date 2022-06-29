@@ -163,11 +163,12 @@ export function hydrateFarmInfo(
             const isRewardBeforeStart = Boolean(rewardOpenTime && isDateBefore(onlineCurrentDate, rewardOpenTime))
             const isRewardEnded = Boolean(rewardEndTime && isDateAfter(onlineCurrentDate, rewardEndTime))
             const isRewarding = (!rewardOpenTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
-            const isRwardingBeforeEnd72h = isRewarding
-            isDateAfter(
-              onlineCurrentDate,
-              offsetDateTime(rewardEndTime, { seconds: -(farmInfo.jsonInfo.rewardPeriodExtend ?? 72 * 60 * 60) })
-            )
+            const isRwardingBeforeEnd72h =
+              isRewarding &&
+              isDateAfter(
+                onlineCurrentDate,
+                offsetDateTime(rewardEndTime, { seconds: -(farmInfo.jsonInfo.rewardPeriodExtend ?? 72 * 60 * 60) })
+              )
             const claimableRewards =
               token && toTokenAmount(token, sub(rewardInfo.totalReward, rewardInfo.totalRewardEmissioned))
 

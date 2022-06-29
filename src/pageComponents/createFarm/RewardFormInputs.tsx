@@ -27,6 +27,7 @@ import { toString } from '@/functions/numberish/toString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { MayFunction, Numberish } from '@/types/constants'
+import { TokenAccount, TokenAmount } from '@raydium-io/raydium-sdk'
 import produce from 'immer'
 import { RefObject, startTransition, useEffect, useImperativeHandle, useRef, useState } from 'react'
 
@@ -63,11 +64,13 @@ export type RewardFormCardInputsParams = {
   syncDataWithZustandStore?: boolean
   maxDurationSeconds?: number /* only edit mode  seconds */
   minDurationSeconds?: number /* only edit mode  seconds */
+
+  onRewardChange?: (reward: UIRewardInfo) => void
 }
 
 export type RewardCardInputsHandler = {
-  isValid: boolean
   tempReward: UIRewardInfo
+  isValid: boolean
 }
 
 export function RewardFormCardInputs({
@@ -75,7 +78,9 @@ export function RewardFormCardInputs({
   syncDataWithZustandStore,
   minDurationSeconds = MIN_DURATION_SECOND,
   maxDurationSeconds = MAX_DURATION_SECOND,
-  componentRef
+  componentRef,
+
+  onRewardChange
 }: RewardFormCardInputsParams) {
   const balances = useWallet((s) => s.balances)
   const rewards = useCreateFarms((s) => s.rewards)
@@ -84,9 +89,13 @@ export function RewardFormCardInputs({
 
   //#region ------------------- reward center -------------------
   // to cache the result, have to store a temp
+  const isUnedited72hReward = Boolean(reward && reward.isRwardingBeforeEnd72h && !hasRewardBeenEdited(reward))
+  const isUneditedEndedReward = reward?.isRewardEnded && !hasRewardBeenEdited(targetReward)
   const [tempReward, setTempReward] = useState(() =>
-    reward?.isRewardEnded && !hasRewardBeenEdited(targetReward)
+    isUneditedEndedReward
       ? { ...targetReward, amount: undefined, startTime: undefined, endTime: undefined }
+      : isUnedited72hReward
+      ? { ...targetReward, amount: undefined, startTime: targetReward.originData?.endTime, endTime: undefined }
       : targetReward
   )
 
@@ -146,8 +155,6 @@ export function RewardFormCardInputs({
 
   //#endregion
 
-  const isUnedited72hReward = Boolean(reward && reward.isRwardingBeforeEnd72h && !hasRewardBeenEdited(reward))
-
   const [durationTime, setDurationTime] = useStateWithSuperPreferential(
     tempReward.endTime && tempReward.startTime ? getTime(tempReward.endTime) - getTime(tempReward.startTime) : undefined
   )
@@ -157,7 +164,11 @@ export function RewardFormCardInputs({
   const minDurationValue = minDurationSeconds / (durationBoundaryUnit === 'hours' ? HOUR_SECONDS : DAY_SECONDS)
   const maxDurationValue = maxDurationSeconds / (durationBoundaryUnit === 'hours' ? HOUR_SECONDS : DAY_SECONDS)
   const estimatedValue =
-    tempReward.amount && durationTime ? div(tempReward.amount, parseDurationAbsolute(durationTime).days) : undefined
+    isUnedited72hReward && tempReward.originData
+      ? mul(tempReward.originData.perSecond, 24 * 60 * 60)
+      : tempReward.amount && durationTime
+      ? div(tempReward.amount, parseDurationAbsolute(durationTime).days)
+      : undefined
   const disableCoinInput = reward?.isRwardingBeforeEnd72h
   const disableDurationInput = false
   const disableStartTimeInput = reward?.isRwardingBeforeEnd72h
@@ -178,20 +189,23 @@ export function RewardFormCardInputs({
   const haveBalance = Boolean(tempReward && gte(balances[toPubString(tempReward.token?.mint)], tempReward.amount))
   const isAmountValid = haveBalance
 
-  const rewardTokenAmount = isUnedited72hReward
-    ? ''
-    : tempReward && toString(tempReward.amount, { decimalLength: `auto ${tempReward.token?.decimals ?? 6}` })
-  const rewardDuration = isUnedited72hReward
-    ? undefined /*  for extends existed reward */
-    : getDurationValueFromMilliseconds(durationTime, durationBoundaryUnit)
-  const rewardStartTime = isUnedited72hReward
-    ? tempReward?.endTime /*  for extends existed reward */
-    : tempReward?.startTime
-  const rewardEndTime = isUnedited72hReward ? undefined /*  for extends existed reward */ : tempReward?.endTime
+  const rewardTokenAmount =
+    tempReward && toString(tempReward.amount, { decimalLength: `auto ${tempReward.token?.decimals ?? 6}` })
+  const rewardDuration = getDurationValueFromMilliseconds(durationTime, durationBoundaryUnit)
+  const rewardStartTime = tempReward.startTime
+  const rewardEndTime = tempReward.endTime
   const rewardEstimatedValue =
     estimatedValue && toString(estimatedValue, { decimalLength: `auto ${tempReward?.token?.decimals ?? 6}` })
   const isValid = isDurationValid && isAmountValid && (tempReward?.isRwardingBeforeEnd72h || isStartTimeAfterCurrent)
   useImperativeHandle<any, RewardCardInputsHandler>(componentRef, () => ({ isValid, tempReward }))
+
+  //#region ------------------- data change callback -------------------
+
+  useEffect(() => {
+    onRewardChange?.(tempReward)
+  }, [estimatedValue])
+
+  //#endregion
   if (!reward) return null
   return (
     <Grid className="gap-4">

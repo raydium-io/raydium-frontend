@@ -35,23 +35,7 @@ export default function RewardInputDialog({
     return false
   }
   return (
-    <Dialog
-      open={Boolean(open)}
-      onClose={() => {
-        onClose()
-      }}
-      // onCloseImmediately={() => {
-      //   if (!rewardInputsRef.current?.isValid) {
-      //     useCreateFarms.setState((s) => ({
-      //       rewards: produce(s.rewards, (draft) => {
-      //         const rewardIndex = draft.findIndex((r) => r.id === reward.id)
-      //         if (rewardIndex < 0) return
-      //         draft[rewardIndex] = { ...draft[rewardIndex], ...draft[rewardIndex].originData } // if input not valid cover origin data
-      //       })
-      //     }))
-      //   }
-      // }}
-    >
+    <Dialog open={Boolean(open)} onClose={onClose}>
       {({ close }) => (
         <Card
           className={twMerge(
