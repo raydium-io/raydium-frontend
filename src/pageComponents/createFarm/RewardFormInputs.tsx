@@ -84,7 +84,11 @@ export function RewardFormCardInputs({
 
   //#region ------------------- reward center -------------------
   // to cache the result, have to store a temp
-  const [tempReward, setTempReward] = useState(() => targetReward)
+  const [tempReward, setTempReward] = useState(() =>
+    reward?.isRewardEnded && !hasRewardBeenEdited(targetReward)
+      ? { ...targetReward, amount: undefined, startTime: undefined, endTime: undefined }
+      : targetReward
+  )
 
   const selectRewardToken = (token: SplToken | undefined) => {
     setTempReward(
@@ -114,11 +118,11 @@ export function RewardFormCardInputs({
       })
     }
   }
-  const setRewardTime = (date: { start?: Date | null; end?: Date | null }) => {
+  const setRewardTime = (date: { start?: Date; end?: Date }) => {
     setTempReward((s) =>
       produce(s, (draft) => {
-        if (date.end !== undefined) draft.endTime = date.end ?? undefined
-        if (date.start !== undefined) draft.startTime = date.start ?? undefined
+        if (date.end) draft.endTime = date.end
+        if (date.start) draft.startTime = date.start
       })
     )
     if (syncDataWithZustandStore) {
@@ -126,20 +130,12 @@ export function RewardFormCardInputs({
         useCreateFarms.setState({
           rewards: produce(rewards, (draft) => {
             // immer can't be composed atom
-            if (date.start !== undefined) draft[rewardIndex].startTime = date.start ?? undefined
-            if (date.end !== undefined) draft[rewardIndex].endTime = date.end ?? undefined
+            if (date.start) draft[rewardIndex].startTime = date.start
+            if (date.end) draft[rewardIndex].endTime = date.end
           })
         })
       })
     }
-  }
-
-  function clearData() {
-    setDurationTime(undefined)
-    startTransition(() => {
-      setRewardTime({ start: null, end: null })
-      setRewardAmount(undefined)
-    })
   }
 
   useEffect(() => {
@@ -151,19 +147,10 @@ export function RewardFormCardInputs({
   //#endregion
 
   const isUnedited72hReward = Boolean(reward && reward.isRwardingBeforeEnd72h && !hasRewardBeenEdited(reward))
-  const isUneditedEndedReward = Boolean(reward && reward.isRewardEnded && !hasRewardBeenEdited(reward))
 
   const [durationTime, setDurationTime] = useStateWithSuperPreferential(
     tempReward.endTime && tempReward.startTime ? getTime(tempReward.endTime) - getTime(tempReward.startTime) : undefined
   )
-
-  const isInit = useRef(true)
-
-  // clear data
-  if (isUneditedEndedReward && isInit.current) {
-    isInit.current = false
-    clearData()
-  }
 
   // NOTE: only 'days' or 'hours'
   const durationBoundaryUnit = parseDurationAbsolute(maxDurationSeconds * 1000).days > 1 ? 'days' : 'hours'
