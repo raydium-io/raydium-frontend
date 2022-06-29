@@ -1,8 +1,14 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { MAX_DURATION, MIN_DURATION } from '@/application/farms/handleFarmInfo'
+import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Row from '@/components/Row'
+import { getDuration } from '@/functions/date/parseDuration'
+import toPubString from '@/functions/format/toMintString'
+import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import produce from 'immer'
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -20,6 +26,8 @@ export default function RewardInputDialog({
   onClose(): void
 } & RewardFormCardInputsParams) {
   const rewardInputsRef = useRef<RewardCardInputsHandler>()
+  const balances = useWallet((s) => s.balances)
+  const walletConnected = useWallet((s) => s.connected)
 
   const save = () => {
     if (rewardInputsRef.current?.isValid && rewardInputsRef.current?.tempReward) {
@@ -34,6 +42,9 @@ export default function RewardInputDialog({
     }
     return false
   }
+
+  const [editedReward, setEditedReward] = useState(reward)
+  const haveBalance = gte(balances[toPubString(editedReward.token?.mint)], editedReward.amount)
   return (
     <Dialog open={Boolean(open)} onClose={onClose}>
       {({ close }) => (
@@ -63,12 +74,67 @@ export default function RewardInputDialog({
               </ol>
             </div>
           )}
-          {<RewardFormCardInputs reward={reward} {...restInputsProps} componentRef={rewardInputsRef} />}
+          {
+            <RewardFormCardInputs
+              reward={reward}
+              {...restInputsProps}
+              componentRef={rewardInputsRef}
+              onRewardChange={setEditedReward}
+            />
+          }
 
           <Row className="mt-6 justify-between">
             <Button
               className="frosted-glass-teal"
               size="lg"
+              validators={[
+                {
+                  should: walletConnected,
+                  forceActive: true,
+                  fallbackProps: {
+                    onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                    children: 'Connect wallet'
+                  }
+                },
+                {
+                  should: editedReward.token,
+                  fallbackProps: {
+                    children: 'Confirm reward token'
+                  }
+                },
+                {
+                  should: editedReward.amount,
+                  fallbackProps: {
+                    children: `Enter ${editedReward.token?.symbol ?? '--'} token amount`
+                  }
+                },
+                {
+                  should: isMeaningfulNumber(editedReward.amount),
+                  fallbackProps: {
+                    children: `Insufficient ${editedReward.token?.symbol ?? '--'} token amount`
+                  }
+                },
+                {
+                  should: haveBalance,
+                  fallbackProps: {
+                    children: `Insufficient ${editedReward.token?.symbol} balance`
+                  }
+                },
+                {
+                  should: editedReward.startTime && editedReward.endTime,
+                  fallbackProps: {
+                    children: 'Confirm emission time setup'
+                  }
+                },
+                {
+                  should:
+                    gte(getDuration(editedReward.endTime!, editedReward.startTime!), MIN_DURATION) &&
+                    lte(getDuration(editedReward.endTime!, editedReward.startTime!), MAX_DURATION),
+                  fallbackProps: {
+                    children: 'Insufficient duration'
+                  }
+                }
+              ]}
               onClick={() => {
                 const isOk = save()
                 if (isOk) close()

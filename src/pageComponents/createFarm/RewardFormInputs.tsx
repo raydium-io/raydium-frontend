@@ -203,7 +203,7 @@ export function RewardFormCardInputs({
 
   useEffect(() => {
     onRewardChange?.(tempReward)
-  }, [estimatedValue])
+  }, [tempReward])
 
   //#endregion
   if (!reward) return null
