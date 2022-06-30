@@ -136,6 +136,7 @@ export function hydrateFarmInfo(
 
   const aprs = calculateFarmPoolAprs(farmInfo, {
     tvl,
+    currentBlockChainDate: payload.currentBlockChainDate,
     rewardTokens: rewardTokens,
     rewardTokenPrices: farmInfo.rewardInfos.map(({ rewardMint }) => payload.tokenPrices?.[String(rewardMint)]) ?? [],
     blockSlotCountForSecond: payload.blockSlotCountForSecond
@@ -247,6 +248,7 @@ export function hydrateFarmInfo(
 function calculateFarmPoolAprs(
   info: SdkParsedFarmInfo,
   payload: {
+    currentBlockChainDate: Date
     blockSlotCountForSecond: number
     tvl: CurrencyAmount | undefined
     rewardTokens: (SplToken | undefined)[]
@@ -254,7 +256,12 @@ function calculateFarmPoolAprs(
   }
 ) {
   if (info.version === 6) {
-    return info.state.rewardInfos.map(({ rewardPerSecond }, idx) => {
+    return info.state.rewardInfos.map(({ rewardPerSecond, rewardOpenTime }, idx) => {
+      // don't calculate upcoming reward
+      if (isDateBefore(payload.currentBlockChainDate, rewardOpenTime.toNumber(), { unit: 's' })) {
+        return
+      }
+
       const rewardToken = payload.rewardTokens[idx]
       if (!rewardToken) return undefined
       const rewardTokenPrice = payload.rewardTokenPrices[idx]
@@ -267,6 +274,7 @@ function calculateFarmPoolAprs(
       )
       if (!payload.tvl) return undefined
       const apr = rewardtotalPricePerYear.div(payload.tvl ?? ONE)
+
       return apr
     })
   } else {

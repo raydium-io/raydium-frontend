@@ -1070,7 +1070,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                     copyToClipboard(
                       new URL(`farms/?farmid=${toPubString(farmInfo.id)}`, window.location.origin).toString()
                     ).then(() => {
-                      logSuccess('Copied Success', <div>Farm ID: {toPubString(farmInfo.id)}</div>)
+                      logSuccess('Farm Link Copied', <div>Farm ID: {toPubString(farmInfo.id)}</div>)
                     })
                   }}
                 />

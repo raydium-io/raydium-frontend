@@ -16,16 +16,18 @@ import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
+import { isDateAfter } from '@/functions/date/judges'
 import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import { eq, gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import produce from 'immer'
-import { ReactNode, useEffect, useRef, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
+import { useChainDate } from '../../hooks/useChainDate'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -150,6 +152,9 @@ export default function CreateFarmPage() {
     }
   }, [])
 
+  const chainDate = useChainDate()
+  // avoid input re-render if chain Date change
+  const cachedInputs = useMemo(() => <NewRewardIndicatorAndForm />, [])
   const [poolIdValid, setPoolIdValid] = useState(false)
   return (
     <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
@@ -197,7 +202,7 @@ export default function CreateFarmPage() {
               </>
             }
           >
-            <NewRewardIndicatorAndForm />
+            {cachedInputs}
             <Button
               type="text"
               disabled={rewards.length >= 5}
@@ -282,6 +287,12 @@ export default function CreateFarmPage() {
                 should: meaningFullRewards.every((r) => r.startTime && r.endTime),
                 fallbackProps: {
                   children: 'Confirm emission time setup'
+                }
+              },
+              {
+                should: meaningFullRewards.every((r) => r.startTime && isDateAfter(r.startTime, chainDate)),
+                fallbackProps: {
+                  children: 'Insufficient start time'
                 }
               },
               {

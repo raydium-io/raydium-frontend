@@ -3,7 +3,7 @@ import React, { ComponentProps, RefObject, useEffect, useState } from 'react'
 import _DatePicker from '@uiw/react-date-picker'
 
 import Input, { InputProps } from '@/components/Input'
-import { DateParam, offsetDateTime, setDateTimeSecondToZero, toUTC } from '@/functions/date/dateFormat'
+import { DateParam, offsetDateTime, setDateTime, setDateTimeSecondToZero, toUTC } from '@/functions/date/dateFormat'
 
 import InputBox from './InputBox'
 import Popover from './Popover'
@@ -12,6 +12,7 @@ import './DatePicker.css'
 import { twMerge } from 'tailwind-merge'
 import { isDateBefore, isDateEqual } from '@/functions/date/judges'
 import useConnection from '@/application/connection/useConnection'
+import { isObject } from '@/functions/judgers/dateType'
 
 export type DateInputProps = {
   className?: string
@@ -132,6 +133,23 @@ function DateInputBody({
 
   const today = toFakeUTCByLocalDate(toChainTime(new Date()))
 
+  const parsedShowTime = isObject(showTime)
+    ? {
+        ...showTime
+        // disabledHours(hour: number, type, date: Date) {
+        //   const currentDate = setDateTime(date, { hours: hour })
+        //   return isDateBefore(toFakeUTCByLocalDate(currentDate), today)
+        // },
+        // disabledMinutes(minutes: number, type, date: Date) {
+        //   const currentDate = setDateTime(date, { minutes })
+        //   return isDateBefore(toFakeUTCByLocalDate(currentDate), today)
+        // },
+        // disabledSeconds(seconds: number, type, date: Date) {
+        //   const currentDate = setDateTime(date, { seconds })
+        //   return isDateBefore(toFakeUTCByLocalDate(currentDate), today)
+        // }
+      }
+    : showTime
   return (
     <Popover placement="top" className={className} cornerOffset={20} triggerBy={['focus', 'click']}>
       <Popover.Button>
@@ -155,7 +173,7 @@ function DateInputBody({
       <Popover.Panel>
         <DatePicker
           className={canEditSeconds ? '' : 'hide-seconds-editor'}
-          showTime={showTime && currentDate ? showTime : false}
+          showTime={showTime && currentDate ? (parsedShowTime as any) : false}
           weekday={['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']}
           weekTitle={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
           monthLabel={['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']}

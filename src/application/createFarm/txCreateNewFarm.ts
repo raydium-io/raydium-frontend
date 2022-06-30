@@ -19,6 +19,9 @@ import { FarmPoolJsonInfo } from '../farms/type'
 import asyncMap from '@/functions/asyncMap'
 import { setLocalItem } from '@/functions/dom/jStorage'
 import { addItem } from '@/functions/arrayMethods'
+import useLiquidity from '../liquidity/useLiquidity'
+import { WSOLMint } from '../token/quantumSOL'
+import { SOLMint } from '../token/wellknownToken.config'
 
 export const userCreatedFarmKey = 'USER_CREATED_FARMS'
 
@@ -28,19 +31,24 @@ export default async function txCreateNewFarm(
 ) {
   return handleMultiTx(
     async ({ transactionCollector, baseUtils: { owner, connection } }) => {
-      const { tokenAccountRawInfos } = useWallet.getState() // TODO: should add tokenAccountRawInfos to `handleMultiTx()`'s baseUtils
       const { rewards: uiRewardInfos } = useCreateFarms.getState()
-      const { tokenAccounts } = useWallet.getState()
+      const { tokenAccounts, tokenAccountRawInfos } = useWallet.getState()
       const piecesCollector = createTransactionCollector()
       const { poolId } = useCreateFarms.getState()
-      const { jsonInfos } = usePools.getState()
-      const poolJsonInfo = jsonInfos.find((j) => j.ammId === poolId)
-      if (!poolJsonInfo) return
+      const { jsonInfos } = useLiquidity.getState()
+      const poolJsonInfo = jsonInfos.find((j) => j.id === poolId)
+
+      const tokenAccountMints = tokenAccounts.map((ta) => toPubString(ta.mint))
+      assert(poolJsonInfo, 'pool json info not founded')
       const rewards: FarmCreateInstructionParamsV6['rewardInfos'] = uiRewardInfos.map((reward) => {
         const rewardToken = reward.token
         assert(reward.startTime, 'reward start time is required')
         assert(reward.endTime, 'reward end time is required')
         assert(reward.amount, 'reward amount is required')
+        if (!isMintEqual(reward.token?.mint, WSOLMint)) {
+          const userHaveToken = tokenAccountMints.includes(toPubString(reward.token?.mint))
+          assert(userHaveToken, "token not existed in user's wallet")
+        }
         assert(rewardToken, `can't find selected reward token`)
         const startTimestamp = setDateTimeSecondToZero(reward.startTime).getTime()
         const endTimestamp = setDateTimeSecondToZero(reward.endTime).getTime()
@@ -50,7 +58,7 @@ export default async function txCreateNewFarm(
         return {
           rewardOpenTime: toBN(div(startTimestamp, 1000)),
           rewardEndTime: toBN(div(endTimestamp, 1000)),
-          rewardMint: rewardToken.mint,
+          rewardMint: rewardToken.id === 'sol' ? SOLMint : rewardToken.mint, // NOTE: start from RUDY, sol's mint is 11111111111111
           rewardPerSecond: perSecondReward
         }
       })
@@ -88,8 +96,8 @@ export default async function txCreateNewFarm(
         const poolJsonInfo = jsonInfos.find((j) => j.ammId === poolId)
         if (!poolJsonInfo) return
         const version = 6
-        const lpMint = 'G54x5tuRV12WyNkSjfNnq3jyzfcPF9EgB8c9jTzsQKVW' // NOTE: test
-        // const lpMint = poolJsonInfo.lpMint
+        // const lpMint = 'G54x5tuRV12WyNkSjfNnq3jyzfcPF9EgB8c9jTzsQKVW' // NOTE: test
+        const lpMint = poolJsonInfo.lpMint
         const programId = Farm.getProgramId(6)
         const authority = toPubString(
           (await Farm.getAssociatedAuthority({ programId, poolId: toPub(poolId) })).publicKey

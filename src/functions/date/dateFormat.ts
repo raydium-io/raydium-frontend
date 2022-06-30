@@ -124,12 +124,29 @@ export function offsetDateTime(
   return getDate(offsetedTimestamp)
 }
 
+export function setDateTime(
+  baseDate: DateParam,
+  options: {
+    hours?: number
+    minutes?: number
+    seconds?: number
+    milliseconds?: number
+  }
+) {
+  const timestamp = getTime(baseDate)
+  const { hours, minutes, seconds, milliseconds } = parseDuration(timestamp)
+  const mergedOptions = { hours, minutes, seconds, milliseconds, ...options }
+  const zeroedTimestamp = setDateTimeToZero(timestamp)
+  return offsetDateTime(zeroedTimestamp, mergedOptions)
+}
+
 export function setDateTimeToZero(baseDate: DateParam) {
   const timestamp = getTime(baseDate)
   const { hours, minutes, seconds, milliseconds } = parseDuration(timestamp)
   const offsetedTimestamp = timestamp - hours * 60 * 60 * 1000 - minutes * 60 * 1000 - seconds * 1000 - milliseconds
   return getDate(offsetedTimestamp)
 }
+
 export function setDateTimeSecondToZero(baseDate: DateParam) {
   const timestamp = getTime(baseDate)
   const { hours, minutes, seconds, milliseconds } = parseDuration(timestamp)

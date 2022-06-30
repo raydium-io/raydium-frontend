@@ -164,7 +164,7 @@ export function RewardFormCardInputs({
   const minDurationValue = minDurationSeconds / (durationBoundaryUnit === 'hours' ? HOUR_SECONDS : DAY_SECONDS)
   const maxDurationValue = maxDurationSeconds / (durationBoundaryUnit === 'hours' ? HOUR_SECONDS : DAY_SECONDS)
   const estimatedValue =
-    isUnedited72hReward && tempReward.originData
+    isUnedited72hReward && tempReward.originData?.perSecond
       ? mul(tempReward.originData.perSecond, 24 * 60 * 60)
       : tempReward.amount && durationTime
       ? div(tempReward.amount, parseDurationAbsolute(durationTime).days)
@@ -207,6 +207,7 @@ export function RewardFormCardInputs({
 
   //#endregion
   if (!reward) return null
+  const needShowAlert = !isInputDuration && durationTime != null
   return (
     <Grid className="gap-4">
       <CoinInputBoxWithTokenSelector
@@ -288,7 +289,7 @@ export function RewardFormCardInputs({
             inputProps={{
               inputClassName: 'text-sm font-medium text-white'
             }}
-            showTime={{ format: 'Select time: HH:mm' }}
+            showTime={{ format: 'Select time: HH:mm UTC' }}
             value={rewardStartTime}
             disabled={disableStartTimeInput}
             disableDateBeforeCurrent
@@ -305,7 +306,7 @@ export function RewardFormCardInputs({
               // set end time
               // set start time
               setRewardTime({
-                start: durationTime ? selectedDate : undefined,
+                start: selectedDate,
                 end: durationTime ? offsetDateTime(selectedDate, { milliseconds: durationTime }) : undefined
               })
             }}
@@ -382,17 +383,19 @@ export function RewardFormCardInputs({
             }}
           />
         </Row>
-        <FadeInStable show={!isInputDuration && durationTime != null}>
-          {durationTime! > maxDurationSeconds * 1e3 ? (
-            <div className="text-[#DA2EEF] text-sm font-medium pt-2 pl-2">
-              Period is longer than max duration of {maxDurationValue} {durationBoundaryUnit}
-            </div>
-          ) : durationTime! < minDurationSeconds * 1e3 ? (
-            <div className="text-[#DA2EEF] text-sm font-medium pt-2 pl-2">
-              Period is shorter than min duration of {minDurationValue} {durationBoundaryUnit}
-            </div>
-          ) : null}
-        </FadeInStable>
+        {needShowAlert && (
+          <div>
+            {durationTime! > maxDurationSeconds * 1e3 ? (
+              <div className="text-[#DA2EEF] text-sm font-medium pt-2 pl-2">
+                Period is longer than max duration of {maxDurationValue} {durationBoundaryUnit}
+              </div>
+            ) : durationTime! < minDurationSeconds * 1e3 ? (
+              <div className="text-[#DA2EEF] text-sm font-medium pt-2 pl-2">
+                Period is shorter than min duration of {minDurationValue} {durationBoundaryUnit}
+              </div>
+            ) : null}
+          </div>
+        )}
       </div>
       <InputBox
         disabled={disableEstimatedInput}

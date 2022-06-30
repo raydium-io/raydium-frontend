@@ -206,7 +206,6 @@ export default async function handleMultiTx(
         const { signAllTransactions, owner } = useWallet.getState()
         const connection = useConnection.getState().connection
         assert(connection, 'no rpc connection')
-
         if (options?.forceKeyPairs?.ownerKeypair) {
           // have force key pair info, no need to check wallet connect
           const shadowWalletOwner = options.forceKeyPairs.ownerKeypair.publicKey
