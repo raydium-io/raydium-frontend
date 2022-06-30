@@ -22,6 +22,7 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { HydratedFarmInfo } from '@/application/farms/type'
 import { TimeStamp } from '@/functions/date/interface'
 import { Numberish } from '@/types/constants'
+import Tooltip from '@/components/Tooltip'
 
 export function EditableRewardSummary({
   canUserEdit,
@@ -254,7 +255,19 @@ export function EditableRewardSummary({
                     >
                       <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
                       <Col>
-                        <div className="text-xs text-[#abc4ff] font-medium">Claim unemmitted rewards</div>
+                        <Row className="text-xs text-[#abc4ff] font-medium">
+                          <div>Claim unemmitted rewards</div>
+                          <Tooltip>
+                            <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+                            <Tooltip.Panel>
+                              <div className="max-w-[300px]">
+                                Rewards are only emitted when LP tokens are staked in the farm. If there is a period
+                                when no LP tokens are staked, unemmitted rewards can be claimed here once farming period
+                                ends
+                              </div>
+                            </Tooltip.Panel>
+                          </Tooltip>
+                        </Row>
                         <div className="text-xs text-[#abc4ff80] font-medium">
                           {toString(reward.originData.claimableRewards)}{' '}
                           {reward.originData.claimableRewards?.token.symbol ?? 'UNKNOWN'}

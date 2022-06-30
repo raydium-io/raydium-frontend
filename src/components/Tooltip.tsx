@@ -10,6 +10,7 @@ import Popover, { PopoverPlacement, PopoverProps } from './Popover'
 
 export interface TooltipProps {
   className?: string
+  panelClassName?: string
   children?: ReactNode
   /** usually it's for debug */
   forceOpen?: boolean
@@ -21,6 +22,7 @@ export interface TooltipProps {
 // TODO: it should be an pre-config version of <Popover>
 export default function Tooltip({
   className,
+  panelClassName,
   children,
   forceOpen,
   placement = 'top',
@@ -61,7 +63,9 @@ export default function Tooltip({
                     }
               }
             />
-            <Card className="TooltipPanel  p-4 bg-[#0C0926] rounded text-xs text-white">{content}</Card>
+            <Card className={twMerge('TooltipPanel p-4 bg-[#0C0926] rounded text-xs text-white', panelClassName)}>
+              {content}
+            </Card>
           </div>
         )}
       </Popover.Panel>
