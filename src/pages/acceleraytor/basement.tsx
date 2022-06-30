@@ -14,7 +14,6 @@ import asyncMap from '@/functions/asyncMap'
 import { getWalletBalance } from '@/application/txTools/getWalletBalance'
 import useToken from '@/application/token/useToken'
 import useConnection from '@/application/connection/useConnection'
-import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { HydratedIdoInfo } from '@/application/ido/type'
 import txIdoClaim from '@/application/ido/txIdoClaim'
@@ -24,8 +23,10 @@ import txTransferToken from '@/application/txTools/txTransformSqlToken'
 import { isTokenAmount } from '@/functions/judgers/dateType'
 import assert from 'assert'
 import { gt } from '@/functions/numberish/compare'
+import useAutoFetchIdoInfos from '@/application/ido/useAutoFetchIdoInfos'
 
 export default function BasementPage() {
+  useAutoFetchIdoInfos()
   return (
     <PageLayout mobileBarTitle="Staking" metaTitle="Staking - Raydium" contentButtonPaddingShorter>
       <IdoPanel />

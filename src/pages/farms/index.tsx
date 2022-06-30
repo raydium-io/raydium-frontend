@@ -58,9 +58,11 @@ import { searchItems } from '@/functions/searchItems'
 import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import useNotification from '@/application/notification/useNotification'
+import useFarmResetSelfCreatedByOwner from '@/application/farms/useFarmResetSelfCreatedByOwner'
 
 export default function FarmsPage() {
   useFarmUrlParser()
+  useFarmResetSelfCreatedByOwner()
   return (
     <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
       <FarmHeader />

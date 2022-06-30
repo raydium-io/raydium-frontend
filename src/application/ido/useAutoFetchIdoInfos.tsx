@@ -16,7 +16,7 @@ import { createSplToken } from '../token/useTokenListsLoader'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 
-export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetting }) {
+export default function useAutoFetchIdoInfos() {
   const connection = useConnection((s) => s.connection)
   const owner = useWallet((s) => s.owner)
   const shadowKeypairs = useWallet((s) => s.shadowKeypairs)
@@ -51,7 +51,6 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
 
   // raw list info
   useAsyncEffect(async () => {
-    if (!shouldEffectBeOn(options?.when)) return
     const rawList = await fetchRawIdoListJson()
     const hydrated = rawList.map((raw) => {
       const { base, quote } = getIdoTokens(raw)
@@ -69,11 +68,10 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
         }))
       }
     }))
-  }, [tokens, options?.when])
+  }, [tokens])
 
   // inject project info
   useAsyncEffect(async () => {
-    if (!shouldEffectBeOn(options?.when)) return
     if (!currentIdoId) return
     const projectInfo = await fetchRawIdoProjectInfoJson({ idoId: currentIdoId })
     if (!projectInfo) return // some error occurs
@@ -85,7 +83,7 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
         [currentIdoId]: { ...s.idoHydratedInfos[currentIdoId], ...projectInfo }
       }
     }))
-  }, [currentIdoId, options?.when])
+  }, [currentIdoId])
 
   // refresh SDK info
   useAsyncEffect(async () => {
@@ -119,7 +117,6 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
 
   // get SDKInfo, and merge with rawInfo
   useAsyncEffect(async () => {
-    if (!shouldEffectBeOn(options?.when)) return
     if (!connection) return
     const rawList = Object.values(
       (inIdoDetailPage && currentIdoId ? pick(idoRawInfos, [currentIdoId]) : idoRawInfos) ?? {}
@@ -167,10 +164,9 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
         }
       }))
     }, 1000)
-  }, [idoRawInfos, currentIdoId, connection, options?.when, owner, inIdoDetailPage])
+  }, [idoRawInfos, currentIdoId, connection, owner, inIdoDetailPage])
 
   useAsyncEffect(async () => {
-    if (!shouldEffectBeOn(options?.when)) return
     if (!shadowKeypairs?.length) return
     if (!connection) return
     const rawList = Object.values(idoRawInfos ?? {}).slice(0, 3)
@@ -187,5 +183,5 @@ export default function useAutoFetchIdoInfos(options?: { when?: EffectCheckSetti
     })
     const shadowIdoHydratedInfos: NonNullable<IdoStore['shadowIdoHydratedInfos']> = Object.fromEntries(structured)
     useIdo.setState({ shadowIdoHydratedInfos })
-  }, [idoRawInfos, connection, shadowKeypairs, options?.when])
+  }, [idoRawInfos, connection, shadowKeypairs])
 }

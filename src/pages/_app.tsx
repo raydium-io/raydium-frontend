@@ -13,8 +13,7 @@ import {
 } from '@/application/appSettings/initializationHooks'
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
 import { useUserCustomizedEndpointInitLoad } from '@/application/connection/useUserCustomizedEndpointInitLoad'
-import useFarmInfoFetcher from '@/application/farms/useFarmInfoLoader'
-import useAutoFetchIdoInfos from '@/application/ido/useAutoFetchIdoInfos'
+import useFarmInfoLoader from '@/application/farms/useFarmInfoLoader'
 import useLiquidityInfoLoader from '@/application/liquidity/useLiquidityInfoLoader'
 import useMessageBoardFileLoader from '@/application/messageBoard/useMessageBoardFileLoader'
 import useMessageBoardReadedIdRecorder from '@/application/messageBoard/useMessageBoardReadedIdRecorder'
@@ -124,13 +123,8 @@ function ClientInitialization() {
 }
 
 function ApplicationsInitializations() {
-  const { pathname } = useRouter()
   useSlippageTolerenceValidator()
   useSlippageTolerenceSyncer()
-  // TODO: it may load too much data in init action. should improve this in 0.0.2
-
-  // load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo)
-  useLiquidityInfoLoader()
 
   /********************** appVersion **********************/
   useAppInitVersionPostHeartBeat()
@@ -168,12 +162,14 @@ function ApplicationsInitializations() {
   useTokenListSettingsLocalStorage()
   useTokenGetterFnLoader()
 
-  /********************** pariInfo(pools) **********************/
+  /* ----- load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo) ----- */
+  useLiquidityInfoLoader()
+
+  /********************** pair Info (pools) **********************/
   usePoolsInfoLoader()
 
   /********************** farm **********************/
-  useFarmInfoFetcher()
-  useFarmResetSelfCreatedByOwner()
+  useFarmInfoLoader()
 
   /********************** staking **********************/
   useStealDataFromFarm() // auto inject apr to farm info from backend pair interface
@@ -181,14 +177,5 @@ function ApplicationsInitializations() {
   /********************** txHistory **********************/
   useInitRefreshTransactionStatus()
   useSyncTxHistoryWithLocalStorage()
-
-  /********************** acceleraytor **********************/
-  // useAutoFetchIdoInfo({
-  //   when: pathname.toLowerCase().includes('/acceleraytor') || pathname.toLowerCase().includes('/basement')
-  // })
-
-  useAutoFetchIdoInfos({
-    when: pathname.toLowerCase().includes('/acceleraytor') || pathname.toLowerCase().includes('/basement')
-  })
   return null
 }

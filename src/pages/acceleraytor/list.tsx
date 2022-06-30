@@ -38,8 +38,10 @@ import useConnection from '@/application/connection/useConnection'
 import { TimeStamp } from '@/functions/date/interface'
 import { searchItems } from '@/functions/searchItems'
 import toPubString from '@/functions/format/toMintString'
+import useAutoFetchIdoInfos from '@/application/ido/useAutoFetchIdoInfos'
 
 export default function AcceleRaytor() {
+  useAutoFetchIdoInfos()
   const infos = useIdo((s) => s.idoHydratedInfos)
   return (
     <PageLayout mobileBarTitle="AcceleRaytor" metaTitle="AcceleRaytor - Raydium">

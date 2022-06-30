@@ -13,7 +13,7 @@ import useWallet from '../wallet/useWallet'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useFarms from './useFarms'
 
-export default function useFarmInfoFetcher() {
+export default function useFarmInfoLoader() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
   const pairs = usePools((s) => s.jsonInfos)
