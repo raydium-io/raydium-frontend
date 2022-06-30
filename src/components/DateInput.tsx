@@ -111,7 +111,7 @@ function DateInputBody({
 }: DateInputBodyProps) {
   const [currentDate, setCurrentFakeDate] = useState<Date | undefined>(defaultValue) // maybe 11:11:52
 
-  const currentTimezoneOffset = currentDate?.getTimezoneOffset() ?? new Date().getTimezoneOffset() ?? 0
+  const currentTimezoneOffset = currentDate?.getTimezoneOffset() ?? 0
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
 
   function toChainTime(date: DateParam) {
@@ -173,7 +173,7 @@ function DateInputBody({
       <Popover.Panel>
         <DatePicker
           className={canEditSeconds ? '' : 'hide-seconds-editor'}
-          showTime={showTime && currentDate ? parsedShowTime as any : false}
+          showTime={showTime && currentDate ? (parsedShowTime as any) : false}
           weekday={['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']}
           weekTitle={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
           monthLabel={['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']}
