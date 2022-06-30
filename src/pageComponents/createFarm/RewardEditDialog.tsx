@@ -10,7 +10,7 @@ import toPubString from '@/functions/format/toMintString'
 import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { useChainDate } from '@/hooks/useChainDate'
 import produce from 'immer'
-import React, { useRef, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -48,6 +48,19 @@ export default function RewardInputDialog({
   const [editedReward, setEditedReward] = useState(reward)
   const haveBalance = gte(balances[toPubString(editedReward.token?.mint)], editedReward.amount)
   const chainDate = useChainDate()
+
+  // avoid input re-render if chain Date change
+  const cachedInputs = useMemo(
+    () => (
+      <RewardFormCardInputs
+        reward={reward}
+        {...restInputsProps}
+        componentRef={rewardInputsRef}
+        onRewardChange={setEditedReward}
+      />
+    ),
+    [reward, restInputsProps, rewardInputsRef, setEditedReward]
+  )
   return (
     <Dialog open={Boolean(open)} onClose={onClose}>
       {({ close }) => (
@@ -77,14 +90,7 @@ export default function RewardInputDialog({
               </ol>
             </div>
           )}
-          {
-            <RewardFormCardInputs
-              reward={reward}
-              {...restInputsProps}
-              componentRef={rewardInputsRef}
-              onRewardChange={setEditedReward}
-            />
-          }
+          {cachedInputs}
 
           <Row className="mt-6 justify-between">
             <Button
