@@ -189,12 +189,13 @@ export function EditableRewardSummary({
       renderRowEntry={({ contentNode, itemData: reward, changeSelf }) => {
         const isRewardEditable = reward.originData?.isRwardingBeforeEnd72h || reward.originData?.isRewardEnded
         const isRewardOwner = owner && isMintEqual(owner, reward.owner)
+        const isRewardEdited = hasRewardBeenEdited(reward)
         return (
           <div className={isRewardEditable ? '' : 'not-selectable'}>
             {contentNode}
             {canUserEdit && isRewardEditable && (
-              <div className="bg-[#abc4ff1a] rounded-md p-2 mb-4">
-                {reward.originData?.isRwardingBeforeEnd72h && (
+              <div className="bg-[#abc4ff1a] rounded-md p-2 mb-4 empty:hidden">
+                {reward.originData?.isRwardingBeforeEnd72h && !isRewardEdited && (
                   <Col
                     className="items-center clickable"
                     onClick={() => {
@@ -210,14 +211,20 @@ export function EditableRewardSummary({
                 )}
 
                 {reward.originData?.isRewardEnded && (
-                  <Grid className="grid-cols-2 gap-board min-h-[36px]">
-                    <Row
-                      className={`items-center justify-center gap-1 clickable ${isRewardOwner ? '' : 'not-clickable'}`}
-                      onClick={() => onClickIncreaseReward?.({ reward })}
-                    >
-                      <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
-                      <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
-                    </Row>
+                  <Grid
+                    className={`${isRewardEdited ? 'grid-cols-1' : 'grid-cols-2'} gap-board min-h-[36px] empty:hidden`}
+                  >
+                    {!isRewardEdited && (
+                      <Row
+                        className={`items-center justify-center gap-1 clickable ${
+                          isRewardOwner ? '' : 'not-clickable'
+                        }`}
+                        onClick={() => onClickIncreaseReward?.({ reward })}
+                      >
+                        <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
+                        <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
+                      </Row>
+                    )}
 
                     <Row
                       className={`items-center justify-center gap-1 clickable ${
@@ -260,14 +267,15 @@ export function EditableRewardSummary({
             )}
             {hasRewardBeenEdited(reward) && (
               <Badge
-                className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full cursor-pointer"
+                className={`absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full ${
+                  canUserEdit ? 'cursor-pointer' : ''
+                }`}
                 cssColor="#39d0d8"
                 onClick={() => {
-                  changeSelf({ ...reward, ...reward.originData })
+                  canUserEdit && changeSelf({ ...reward, ...reward.originData })
                 }}
-                hoverChildren="Reset"
               >
-                Added
+                {canUserEdit ? 'Reset' : 'Added'}
               </Badge>
             )}
           </div>
