@@ -262,27 +262,27 @@ export default function CreateFarmPage() {
                   children: 'Confirm reward token'
                 }
               },
-              // ...meaningFullRewards.map((reward) => ({
-              //   should: reward.amount,
-              //   fallbackProps: {
-              //     children: `Enter ${reward.token?.symbol ?? '--'} token amount`
-              //   }
-              // })),
-              // ...meaningFullRewards.map((reward) => ({
-              //   should: isMeaningfulNumber(reward.amount),
-              //   fallbackProps: {
-              //     children: `Insufficient ${reward.token?.symbol ?? '--'} token amount`
-              //   }
-              // })),
-              // ...meaningFullRewards.map((reward) => {
-              //   const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
-              //   return {
-              //     should: haveBalance,
-              //     fallbackProps: {
-              //       children: `Insufficient ${reward.token?.symbol} balance`
-              //     }
-              //   }
-              // }),
+              ...meaningFullRewards.map((reward) => ({
+                should: reward.amount,
+                fallbackProps: {
+                  children: `Enter ${reward.token?.symbol ?? '--'} token amount`
+                }
+              })),
+              ...meaningFullRewards.map((reward) => ({
+                should: isMeaningfulNumber(reward.amount),
+                fallbackProps: {
+                  children: `Insufficient ${reward.token?.symbol ?? '--'} token amount`
+                }
+              })),
+              ...meaningFullRewards.map((reward) => {
+                const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
+                return {
+                  should: haveBalance,
+                  fallbackProps: {
+                    children: `Insufficient ${reward.token?.symbol} balance`
+                  }
+                }
+              }),
               {
                 should: meaningFullRewards.every((r) => r.startTime && r.endTime),
                 fallbackProps: {

@@ -21,6 +21,7 @@ import { setLocalItem } from '@/functions/dom/jStorage'
 import { addItem } from '@/functions/arrayMethods'
 import useLiquidity from '../liquidity/useLiquidity'
 import { WSOLMint } from '../token/quantumSOL'
+import { SOLMint } from '../token/wellknownToken.config'
 
 export const userCreatedFarmKey = 'USER_CREATED_FARMS'
 
@@ -57,7 +58,7 @@ export default async function txCreateNewFarm(
         return {
           rewardOpenTime: toBN(div(startTimestamp, 1000)),
           rewardEndTime: toBN(div(endTimestamp, 1000)),
-          rewardMint: rewardToken.mint,
+          rewardMint: rewardToken.id === 'sol' ? SOLMint : rewardToken.mint, // NOTE: start from RUDY, sol's mint is 11111111111111
           rewardPerSecond: perSecondReward
         }
       })
@@ -95,8 +96,8 @@ export default async function txCreateNewFarm(
         const poolJsonInfo = jsonInfos.find((j) => j.ammId === poolId)
         if (!poolJsonInfo) return
         const version = 6
-        const lpMint = 'G54x5tuRV12WyNkSjfNnq3jyzfcPF9EgB8c9jTzsQKVW' // NOTE: test
-        // const lpMint = poolJsonInfo.lpMint
+        // const lpMint = 'G54x5tuRV12WyNkSjfNnq3jyzfcPF9EgB8c9jTzsQKVW' // NOTE: test
+        const lpMint = poolJsonInfo.lpMint
         const programId = Farm.getProgramId(6)
         const authority = toPubString(
           (await Farm.getAssociatedAuthority({ programId, poolId: toPub(poolId) })).publicKey
