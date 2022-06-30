@@ -4,9 +4,11 @@ import { MAX_DURATION, MIN_DURATION } from '@/application/farms/handleFarmInfo'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Row from '@/components/Row'
+import { isDateAfter } from '@/functions/date/judges'
 import { getDuration } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
+import { useChainDate } from '@/hooks/useChainDate'
 import produce from 'immer'
 import React, { useRef, useState } from 'react'
 
@@ -45,6 +47,7 @@ export default function RewardInputDialog({
 
   const [editedReward, setEditedReward] = useState(reward)
   const haveBalance = gte(balances[toPubString(editedReward.token?.mint)], editedReward.amount)
+  const chainDate = useChainDate()
   return (
     <Dialog open={Boolean(open)} onClose={onClose}>
       {({ close }) => (
@@ -127,6 +130,12 @@ export default function RewardInputDialog({
                   }
                 },
                 {
+                  should: editedReward.startTime && isDateAfter(editedReward.startTime, chainDate),
+                  fallbackProps: {
+                    children: 'Insufficient start time'
+                  }
+                },
+                {
                   should:
                     gte(getDuration(editedReward.endTime!, editedReward.startTime!), MIN_DURATION) &&
                     lte(getDuration(editedReward.endTime!, editedReward.startTime!), MAX_DURATION),
@@ -136,8 +145,8 @@ export default function RewardInputDialog({
                 }
               ]}
               onClick={() => {
-                save()
-                close()
+                const isOk = save()
+                if (isOk) close()
               }}
             >
               Save
