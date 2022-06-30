@@ -305,7 +305,7 @@ export function RewardFormCardInputs({
               // set end time
               // set start time
               setRewardTime({
-                start: durationTime ? selectedDate : undefined,
+                start: selectedDate,
                 end: durationTime ? offsetDateTime(selectedDate, { milliseconds: durationTime }) : undefined
               })
             }}
