@@ -65,11 +65,11 @@ export default function CreateFarmReviewPage() {
           the Raydium treasury.
         </div>
 
-        {!haveStakeOver300Ray && (
+        {
           <div className="text-[#DA2EEF] font-medium text-center my-4">
             Creating a farm requires a one-time 300 RAY fee. Your RAY balance: {toString(userRayBalance) || 0} RAY
           </div>
-        )}
+        }
 
         {created ? (
           <Col>
