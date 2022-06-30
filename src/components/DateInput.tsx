@@ -135,19 +135,19 @@ function DateInputBody({
 
   const parsedShowTime = isObject(showTime)
     ? {
-        ...showTime,
-        disabledHours(hour: number, type, date: Date) {
-          const currentDate = setDateTime(date, { hours: hour })
-          return isDateBefore(toFakeUTCByLocalDate(currentDate), today)
-        },
-        disabledMinutes(minutes: number, type, date: Date) {
-          const currentDate = setDateTime(date, { minutes })
-          return isDateBefore(toFakeUTCByLocalDate(currentDate), today)
-        },
-        disabledSeconds(seconds: number, type, date: Date) {
-          const currentDate = setDateTime(date, { seconds })
-          return isDateBefore(toFakeUTCByLocalDate(currentDate), today)
-        }
+        ...showTime
+        // disabledHours(hour: number, type, date: Date) {
+        //   const currentDate = setDateTime(date, { hours: hour })
+        //   return isDateBefore(toFakeUTCByLocalDate(currentDate), today)
+        // },
+        // disabledMinutes(minutes: number, type, date: Date) {
+        //   const currentDate = setDateTime(date, { minutes })
+        //   return isDateBefore(toFakeUTCByLocalDate(currentDate), today)
+        // },
+        // disabledSeconds(seconds: number, type, date: Date) {
+        //   const currentDate = setDateTime(date, { seconds })
+        //   return isDateBefore(toFakeUTCByLocalDate(currentDate), today)
+        // }
       }
     : showTime
   return (
