@@ -57,6 +57,7 @@ import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { searchItems } from '@/functions/searchItems'
 import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
+import useNotification from '@/application/notification/useNotification'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -830,6 +831,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
   const balances = useWallet((s) => s.balances)
   const hasLp = isMeaningfulNumber(balances[toPubString(farmInfo.lpMint)])
   const hasPendingReward = farmInfo.rewards.some(({ userPendingReward }) => isMeaningfulNumber(userPendingReward))
+  const logSuccess = useNotification((s) => s.logSuccess)
   return (
     <div
       className="rounded-b-3xl mobile:rounded-b-lg overflow-hidden"
@@ -1065,7 +1067,9 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                   onClick={() => {
                     copyToClipboard(
                       new URL(`farms/?farmid=${toPubString(farmInfo.id)}`, window.location.origin).toString()
-                    )
+                    ).then(() => {
+                      logSuccess('Copied Success', <div>Farm ID: {toPubString(farmInfo.id)}</div>)
+                    })
                   }}
                 />
                 <Tooltip.Panel>Copy Farm ID</Tooltip.Panel>
