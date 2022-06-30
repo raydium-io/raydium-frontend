@@ -136,8 +136,8 @@ export default function RewardInputDialog({
                 }
               ]}
               onClick={() => {
-                const isOk = save()
-                if (isOk) close()
+                save()
+                close()
               }}
             >
               Save
