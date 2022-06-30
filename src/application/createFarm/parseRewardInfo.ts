@@ -57,6 +57,10 @@ export function getRewardSignature(reward: Omit<UIRewardInfo, 'originData'>): st
 
 export function hasRewardBeenEdited(reward: UIRewardInfo) {
   if (!reward.originData) return false
+
+  const clearedData = !reward.startTime && !reward.endTime && !reward.amount
+  if (clearedData) return false
+
   const editedSignature = getRewardSignature(reward)
   const originSignature = getRewardSignature(reward.originData)
   return editedSignature !== originSignature

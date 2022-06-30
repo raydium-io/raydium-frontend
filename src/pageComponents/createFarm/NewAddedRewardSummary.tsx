@@ -1,15 +1,22 @@
 import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { Badge } from '@/components/Badge'
 import CoinAvatar from '@/components/CoinAvatar'
+import Col from '@/components/Col'
+import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import ListTable from '@/components/ListTable'
 import Row from '@/components/Row'
-import { toUTC } from '@/functions/date/dateFormat'
+import { getTime, toUTC } from '@/functions/date/dateFormat'
+import { TimeStamp } from '@/functions/date/interface'
 import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
+import toPercentString from '@/functions/format/toPercentString'
+import { eq } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import { Numberish } from '@/types/constants'
 
 /**
  * mode: list show
@@ -67,10 +74,19 @@ export function NewAddedRewardSummary({
       renderRowItem={({ item: reward, label }) => {
         if (label === 'Reward Token') {
           return reward.token ? (
-            <Row className="gap-1 items-center">
-              <CoinAvatar token={reward.token} size="sm" />
-              <div>{reward.token?.symbol ?? 'UNKNOWN'}</div>
-            </Row>
+            <Col className="h-full justify-center gap-1">
+              <Row className="gap-1 items-center">
+                <CoinAvatar token={reward.token} size="sm" />
+                <div>{reward.token?.symbol ?? 'UNKNOWN'}</div>
+              </Row>
+              {(reward.isRewardEnded || reward.isRewardBeforeStart || reward.isRewarding) && (
+                <Row className="gap-1 flex-wrap">
+                  {reward.isRewardEnded && <Badge cssColor="#da2Eef">Ended</Badge>}
+                  {reward.isRewardBeforeStart && <Badge cssColor="#abc4ff">Upcoming</Badge>}
+                  {reward.isRewarding && <Badge cssColor={'#39d0d8'}>Ongoing</Badge>}
+                </Row>
+              )}
+            </Col>
           ) : (
             '--'
           )
@@ -78,42 +94,73 @@ export function NewAddedRewardSummary({
 
         if (label === 'Amount') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
-          return reward.amount ? (
-            <div className="break-all">
-              {formatNumber(reward.amount, { fractionLength: reward.token?.decimals ?? 6 })}
-            </div>
-          ) : undefined
+          return (
+            <Grid className={`gap-4 h-full`}>
+              {reward?.amount ? (
+                <Col className="grow break-all justify-center">
+                  {formatNumber(reward.amount, { fractionLength: reward.token?.decimals ?? 6 })}
+                </Col>
+              ) : undefined}
+            </Grid>
+          )
         }
 
         if (label === 'Total Duration') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
-          if (!reward.startTime || !reward.endTime) return
-          const duration = parseDuration(getDuration(reward.endTime, reward.startTime))
-          return duration.hours ? `${duration.days}D ${duration.hours}H` : `${duration.days}D`
+
+          const getDurationText = (startTime: TimeStamp, endTime: TimeStamp) => {
+            const duration = parseDuration(getDuration(endTime, startTime))
+            return duration.hours ? `${duration.days}D ${duration.hours}H` : `${duration.days}D`
+          }
+
+          return (
+            <Grid className={`gap-4 h-full`}>
+              {reward?.startTime && reward.endTime ? (
+                <Col className="grow break-all justify-center">{getDurationText(reward.startTime, reward.endTime)}</Col>
+              ) : undefined}
+            </Grid>
+          )
         }
 
         if (label === 'Period (yy-mm-dd)') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
           if (!reward.startTime || !reward.endTime) return
           return (
-            <div>
-              <div>{toUTC(reward.startTime)}</div>
-              <div>{toUTC(reward.endTime)}</div>
-            </div>
+            <Grid className={`gap-4 h-full`}>
+              {reward?.startTime && reward.endTime ? (
+                <Col className="grow justify-center">
+                  <div>{toUTC(reward.startTime)}</div>
+                  <div>{toUTC(reward.endTime)}</div>
+                </Col>
+              ) : undefined}
+            </Grid>
           )
         }
 
         if (label === 'Est. daily rewards') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
-          const durationTime =
-            reward.endTime && reward.startTime ? reward.endTime.getTime() - reward.startTime.getTime() : undefined
-          const estimatedValue =
-            reward.amount && durationTime ? div(reward.amount, parseDurationAbsolute(durationTime).days) : undefined
-          if (!estimatedValue) return
+
+          const getEstimatedValue = (amount: Numberish, startTime: TimeStamp, endTime: TimeStamp) => {
+            const durationTime = endTime && startTime ? getTime(endTime) - getTime(startTime) : undefined
+            const estimatedValue =
+              amount && durationTime ? div(amount, parseDurationAbsolute(durationTime).days) : undefined
+            return estimatedValue
+          }
+
+          const originEstimatedValue =
+            reward?.amount && reward.startTime && reward.endTime
+              ? getEstimatedValue(reward.amount, reward.startTime, reward.endTime)
+              : undefined
           return (
-            <div className="text-xs">
-              {toString(estimatedValue)} {reward.token?.symbol}
-            </div>
+            <Grid className={`gap-4 h-full`}>
+              {originEstimatedValue && (
+                <Col className="grow justify-center text-xs">
+                  <div>
+                    {toString(originEstimatedValue)} {reward?.token?.symbol}/day
+                  </div>
+                </Col>
+              )}
+            </Grid>
           )
         }
       }}

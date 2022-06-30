@@ -1,8 +1,16 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { createNewUIRewardInfo, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
+import {
+  createNewUIRewardInfo,
+  hasRewardBeenEdited,
+  parsedHydratedRewardInfoToUiRewardInfo
+} from '@/application/createFarm/parseRewardInfo'
 import txClaimReward from '@/application/createFarm/txClaimReward'
+import { userCreatedFarmKey } from '@/application/createFarm/txCreateNewFarm'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
+import { hydrateFarmInfo } from '@/application/farms/handleFarmInfo'
+import { HydratedFarmInfo } from '@/application/farms/type'
+import useFarms from '@/application/farms/useFarms'
 import { routeBack, routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
@@ -13,15 +21,25 @@ import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
-import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
+import { objectShakeNil } from '@/functions/objectMethods'
+import { EditableRewardSummary } from '@/pageComponents/createFarm/EditableRewardSummary'
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import RewardInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
 import produce from 'immer'
-import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
+
+function useAvailableCheck() {
+  useEffect(() => {
+    if (!useCreateFarms.getState().isRoutedByCreateOrEdit) routeTo('/farms')
+  }, [])
+}
 
 function NavButtons({ className }: { className?: string }) {
   return (
@@ -38,20 +56,49 @@ function NavButtons({ className }: { className?: string }) {
   )
 }
 
+export function useEditFarmUrlParser() {
+  const { query } = useRouter()
+  const owner = useWallet((s) => s.owner)
+  const farms = useFarms((s) => s.hydratedInfos)
+  function updateCreateFarmInfo(farmInfo: HydratedFarmInfo) {
+    useCreateFarms.setState(
+      objectShakeNil({
+        farmId: toPubString(farmInfo.id),
+        poolId: farmInfo.ammId,
+        rewards: farmInfo.rewards.map((reward) => parsedHydratedRewardInfoToUiRewardInfo(reward)),
+        disableAddNewReward: !isMintEqual(farmInfo.creator, owner)
+      })
+    )
+  }
+  useEffect(() => {
+    const farmId = String(query?.farmId)
+    if (!isValidPublicKey(farmId)) return
+    const dataAlreadyExist = useCreateFarms.getState().farmId === farmId
+    if (dataAlreadyExist) return
+    const farmInfo = farms.find((f) => toPubString(f.id) === farmId)
+    if (farmInfo) updateCreateFarmInfo(farmInfo)
+  }, [query?.farmId, farms, owner])
+}
+
 export default function FarmEditPage() {
+  useAvailableCheck()
+  useEditFarmUrlParser()
+
   const walletConnected = useWallet((s) => s.connected)
+  const owner = useWallet((s) => s.owner)
   const balances = useWallet((s) => s.balances)
   const { rewards: allRewards, cannotAddNewReward, farmId } = useCreateFarms()
+  const hydratedFarmInfos = useFarms((s) => s.hydratedInfos)
   const [isRewardInputDialogOpen, setIsRewardInputDialogOpen] = useState(false)
   const [focusReward, setFocusReward] = useState<UIRewardInfo>()
   const canAddRewardInfo = !cannotAddNewReward && allRewards.length < 5
   const editableRewards = allRewards.filter((r) => r.type === 'existed reward')
   const editedRewards = editableRewards.filter((r) => hasRewardBeenEdited(r))
-
   const newAddedRewards = allRewards.filter((r) => r.type === 'new added')
   const meaningFullRewards = newAddedRewards.filter(
     (r) => r.amount != null || r.startTime != null || r.endTime != null || r.token != null
   )
+  const hydratedFarmInfo = hydratedFarmInfos.find((i) => isMintEqual(i.id, farmId))
   return (
     <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
       <NavButtons />
@@ -83,7 +130,7 @@ export default function FarmEditPage() {
 
         <div className="mb-4">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Farm rewards</div>
-          <ExistedEditRewardSummary
+          <EditableRewardSummary
             canUserEdit
             onClickIncreaseReward={({ reward }) => {
               setIsRewardInputDialogOpen(true)
@@ -139,6 +186,12 @@ export default function FarmEditPage() {
                 children: `Enter ${reward.token?.symbol ?? '--'} token amount`
               }
             })),
+            ...meaningFullRewards.map((reward) => ({
+              should: isMeaningfulNumber(reward.amount),
+              fallbackProps: {
+                children: `Insufficient ${reward.token?.symbol ?? '--'} token amount`
+              }
+            })),
             ...meaningFullRewards.map((reward) => {
               const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
               return {
@@ -155,12 +208,6 @@ export default function FarmEditPage() {
               }
             },
             {
-              should: meaningFullRewards.every((r) => isMeaningfulNumber(r.amount)),
-              fallbackProps: {
-                children: 'not eligible token amount'
-              }
-            },
-            {
               should: meaningFullRewards.every((reward) => {
                 const durationTime =
                   reward?.endTime && reward.startTime
@@ -173,11 +220,14 @@ export default function FarmEditPage() {
                 return isMeaningfulNumber(estimatedValue)
               }),
               fallbackProps: {
-                children: 'not eligible token amount'
+                children: 'Insufficient estimated value'
               }
             }
           ]}
           onClick={() => {
+            useCreateFarms.setState({
+              isRoutedByCreateOrEdit: true
+            })
             routeTo('/farms/editReview')?.then(() => {
               cleanStoreEmptyRewards()
             })
@@ -212,6 +262,8 @@ export default function FarmEditPage() {
         {focusReward != null && (
           <RewardInputDialog
             reward={focusReward}
+            minDurationSeconds={hydratedFarmInfo?.jsonInfo.rewardPeriodMin}
+            maxDurationSeconds={hydratedFarmInfo?.jsonInfo.rewardPeriodMax}
             open={isRewardInputDialogOpen}
             onClose={() => setIsRewardInputDialogOpen(false)}
           />

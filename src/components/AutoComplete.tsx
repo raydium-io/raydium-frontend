@@ -4,13 +4,17 @@ import { inClient } from '@/functions/judgers/isSSR'
 import { mergeFunction } from '@/functions/merge'
 import mergeRef from '@/functions/react/mergeRef'
 import { shrinkToValue } from '@/functions/shrinkToValue'
+import { useElementStateRef } from '@/hooks/useElementStateRef'
+import { useInfinateScroll } from '@/hooks/useInfinateScroll'
 import { ReactNode, useEffect, useRef, useState } from 'react'
+import { useSearchText } from '../hooks/useSearchText'
+import { SearchOptions } from '../functions/searchItems'
 import Card from './Card'
 import Icon from './Icon'
 import Input, { InputComponentHandler, InputProps } from './Input'
 import Popover, { PopoverHandles } from './Popover'
 
-export type AutoCompleteCandidateItem =
+export type AutoCompleteCandidateItem<Item = any> =
   | string
   | {
       /**
@@ -20,13 +24,14 @@ export type AutoCompleteCandidateItem =
        */
       label: string
 
-      searchText?: string
+      searchText?: SearchOptions<Item>['matchConfigs']
+
       /** for React list key */
       id?: string
     }
 
-export type AutoCompleteProps<T extends AutoCompleteCandidateItem | undefined> = {
-  candidates?: T[]
+export type AutoCompleteProps<T extends AutoCompleteCandidateItem<T>> = {
+  candidates: T[]
   renderCandidateItem?: (payloads: {
     candidate: T
     idx: number
@@ -39,7 +44,7 @@ export type AutoCompleteProps<T extends AutoCompleteCandidateItem | undefined> =
   onBlurMatchCandiateFailed?: (payloads: { text: string | undefined }) => void
 } & (InputProps & { inputProps?: InputProps })
 
-export default function AutoComplete<T extends AutoCompleteCandidateItem | undefined>({
+export default function AutoComplete<T extends AutoCompleteCandidateItem<T>>({
   value,
   defaultValue,
 
@@ -67,23 +72,20 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
     }
   }, [])
 
-  // handle candidates
-  const [searchText, setSearchText] = useState(defaultValue ?? value)
   const [selectedCandidateIdx, setCurrentCandidateIdx] = useState<number>()
-  const filtered = candidates
-    ?.filter((candidate) => {
-      if (!candidate) return false
-      if (!searchText) return true
 
-      const searchKeyWords = String(searchText).trim().toLowerCase().split(/\s|-/)
-      const candidateText =
-        (isString(candidate)
-          ? candidate
-          : candidate.searchText ?? candidate.label + ' ' + candidate.id
-        )?.toLowerCase() ?? ''
-      return searchKeyWords.every((keyword) => candidateText.includes(keyword))
-    })
-    .slice(0, 20)
+  const { searched, searchText, setSearchText } = useSearchText(candidates ?? [], {
+    defaultSearchText: defaultValue ?? value,
+    matchConfigs: (candidate) =>
+      isString(candidate)
+        ? candidate
+        : shrinkToValue(candidate.searchText, [candidate]) ?? candidate.label + ' ' + candidate.id
+  })
+
+  const popoverScrollDivRef = useElementStateRef<HTMLDivElement>()
+  const renderItemCount = useInfinateScroll(popoverScrollDivRef, { items: searched })
+
+  const filtered = searched.slice(0, renderItemCount)
 
   // update seletedIdx when filtered result change
   useEffect(() => {
@@ -105,6 +107,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
 
   // have to open popover manually in some case
   const popoverComponentRef = useRef<PopoverHandles>(null)
+
   const autoCompleteItemsContent = (
     <>
       {filtered?.length ? (
@@ -130,12 +133,12 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
           ) : null
         )
       ) : (
-        <div className="text-center text-[#abc4ff80] font-medium">(no searched result)</div>
+        <div className="text-center text-[#abc4ff80] font-medium">There's no pool matched, please try again!</div>
       )}
     </>
   )
   return (
-    <Popover placement="bottom" componentRef={popoverComponentRef}>
+    <Popover placement="bottom" componentRef={popoverComponentRef} closeDelay={100}>
       <Popover.Button>
         <Input
           {...restProps}
@@ -169,14 +172,13 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
             restProps.inputProps?.onUserInput
           )}
           onBlur={(...args) => {
-            const haveMultiCandidate = filtered?.length && filtered.length >= 1
-            if (haveMultiCandidate && searchText) {
+            const haveOnlyMultiCandidate = filtered?.length === 1
+            if (haveOnlyMultiCandidate) {
               setCurrentCandidateIdx(0)
               applySelectedIndex(0)
             } else {
               onBlurMatchCandiateFailed?.({ text: String(searchText) })
             }
-
             restProps.onBlur?.(...args)
             restProps.inputProps?.onBlur?.(...args)
           }}
@@ -207,7 +209,10 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
             className="flex flex-col py-3 border-1.5 border-[#abc4ff80] bg-[#141041] shadow-cyberpunk-card"
             size="md"
           >
-            <div className="divide-y divide-[#abc4ff1a] max-h-[40vh] px-2 overflow-auto">
+            <div
+              className="divide-y divide-[#abc4ff1a] max-h-[40vh] px-2 overflow-auto"
+              ref={popoverScrollDivRef as any}
+            >
               {autoCompleteItemsContent}
             </div>
           </Card>
@@ -217,7 +222,7 @@ export default function AutoComplete<T extends AutoCompleteCandidateItem | undef
   )
 }
 
-function createLabelNode<T extends AutoCompleteCandidateItem | undefined>({
+function createLabelNode<T extends AutoCompleteCandidateItem<T>>({
   candidate,
   idx,
   candidates,

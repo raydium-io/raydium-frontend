@@ -115,7 +115,7 @@ export default function ListTable<T>({
           )?.[1]
         const headerElement = headerRefs.current.find(({ label: headerLabel }) => headerLabel === label)?.el
         return (
-          <div key={label} style={{ width: headerElement?.clientWidth }}>
+          <div key={label} style={{ width: headerElement?.clientWidth, alignSelf: 'stretch' }}>
             {renderRowItem
               ? renderRowItem({
                   item: data,

@@ -1,3 +1,22 @@
+import { ConnectionStore } from '@/application/connection/useConnection'
+import { findAmmId } from '@/application/liquidity/miscToolFns'
+import { LiquidityStore } from '@/application/liquidity/useLiquidity'
+import { PoolsStore } from '@/application/pools/usePools'
+import { TokenStore } from '@/application/token/useToken'
+import { RAYMint } from '@/application/token/wellknownToken.config'
+import { shakeUndifindedItem, unifyByKey } from '@/functions/arrayMethods'
+import { DateParam, offsetDateTime } from '@/functions/date/dateFormat'
+import { isDateAfter, isDateBefore } from '@/functions/date/judges'
+import jFetch from '@/functions/dom/jFetch'
+import { getLocalItem } from '@/functions/dom/jStorage'
+import toPubString from '@/functions/format/toMintString'
+import { toPercent } from '@/functions/format/toPercent'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import toTotalPrice from '@/functions/format/toTotalPrice'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { sub } from '@/functions/numberish/operations'
+import { toString } from '@/functions/numberish/toString'
+import { unionArr } from '@/types/generics'
 import {
   CurrencyAmount,
   Farm,
@@ -8,45 +27,46 @@ import {
   TEN,
   TokenAmount
 } from '@raydium-io/raydium-sdk'
-
 import BN from 'bn.js'
-
-import { findAmmId } from '@/application/liquidity/miscToolFns'
-import { PoolsStore } from '@/application/pools/usePools'
-import { TokenStore } from '@/application/token/useToken'
-import jFetch from '@/functions/dom/jFetch'
-import toTotalPrice from '@/functions/format/toTotalPrice'
-
 import { SplToken } from '../token/type'
 import { APIRewardInfo, FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
-import toPubString, { toPub } from '@/functions/format/toMintString'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
-import { LiquidityStore } from '@/application/liquidity/useLiquidity'
-import { currentIsAfter, currentIsBefore, isDateAfter, isDateBefore } from '@/functions/date/judges'
-import { RAYMint } from '@/application/token/wellknownToken.config'
-import { unionArr } from '@/types/generics'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import { ConnectionStore } from '@/application/connection/useConnection'
-import { toString } from '@/functions/numberish/toString'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { offsetDateTime } from '@/functions/date/dateFormat'
-import { toPercent } from '@/functions/format/toPercent'
-import { sub } from '@/functions/numberish/operations'
 
 function getMaxOpenTime(i: APIRewardInfo[]) {
   return Math.max(...i.map((r) => r.rewardOpenTime))
 }
 
-export async function fetchFarmJsonInfos(): Promise<(FarmPoolJsonInfo & { official: boolean })[] | undefined> {
+export const MAX_DURATION_SECOND = 2 * 60 * 60 // test
+export const MIN_DURATION_SECOND = 1 * 60 * 60 // test
+// const MAX_DURATION_DAY = 90
+// const MIN_DURATION_DAY = 7
+// export const MAX_DURATION_SECOND = MAX_DURATION_DAY * 24 * 60 * 60
+// export const MIN_DURATION_SECOND = MIN_DURATION_DAY * 24 * 60 * 60
+export const MAX_DURATION = MAX_DURATION_SECOND * 1000
+export const MIN_DURATION = MIN_DURATION_SECOND * 1000
+
+export const MAX_OFFSET_AFTER_NOW_SECOND = 7 * 24 * 60 * 60
+export const MAX_OFFSET_AFTER_NOW = MAX_OFFSET_AFTER_NOW_SECOND * 1000
+
+export const EXTEND_BEFORE_END_SECOND = 0.5 * 60 * 60 // test
+export const EXTEND_BEFORE_END = EXTEND_BEFORE_END_SECOND * 1000
+
+export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefined> {
   const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
     ignoreCache: true
   })
   if (!result) return undefined
-  const officials = result.official.map((i) => ({ ...i, official: true }))
-  const unOfficial = result.unOfficial
-    ?.map((i) => ({ ...i, official: false }))
-    .sort((a, b) => -getMaxOpenTime(a.rewardInfos) + getMaxOpenTime(b.rewardInfos))
+  // const userCreated = getLocalItem<Omit<FarmPoolJsonInfo, 'official' | 'local'>[]>(userCreatedFarmKey)?.map((s) => ({
+  //   ...s,
+  //   official: false,
+  //   local: true
+  // })) // RUDY says no need
+  const officials = result.official.map((i) => ({ ...i, official: true, local: false }))
+  const unOfficial = result.unOfficial?.map((i) => ({ ...i, official: false, local: false }))
+
   return [...officials, ...(unOfficial ?? [])]
+  // return [...officials, ...(unOfficial ?? [])].sort(
+  //   (a, b) => -getMaxOpenTime(a.rewardInfos) + getMaxOpenTime(b.rewardInfos)
+  // )
 }
 
 /** and state info  */
@@ -65,7 +85,6 @@ export async function mergeSdkFarmInfo(
         jsonInfo: payload.jsonInfos[idx]
       } as unknown as SdkParsedFarmInfo)
   )
-
   return result
 }
 
@@ -79,16 +98,17 @@ export function hydrateFarmInfo(
     lpPrices: PoolsStore['lpPrices']
     tokenPrices: TokenStore['tokenPrices']
     liquidityJsonInfos: LiquidityStore['jsonInfos']
+    currentBlockChainDate: Date
     chainTimeOffset: ConnectionStore['chainTimeOffset']
   }
 ): HydratedFarmInfo {
-  const farmPoolType = judgeFarmType(farmInfo)
+  const farmPoolType = judgeFarmType(farmInfo, payload.currentBlockChainDate)
   const isStakePool = whetherIsStakeFarmPool(farmInfo)
   const isDualFusionPool = farmPoolType === 'dual fusion pool'
   const isNormalFusionPool = farmPoolType === 'normal fusion pool'
   const isClosedPool = farmPoolType === 'closed pool'
-  const isUpcomingPool = (farmInfo.upcoming && isClosedPool) || farmPoolType === 'upcoming pool'
-  const isNewPool = farmInfo.upcoming && !isClosedPool
+  const isUpcomingPool = farmInfo.version !== 6 ? farmInfo.upcoming && isClosedPool : farmInfo.upcoming
+  const isNewPool = farmInfo.version !== 6 && farmInfo.upcoming && !isClosedPool // NOTE: Rudy says!!!
   const isStablePool = payload.liquidityJsonInfos?.find((i) => i.lpMint === toPubString(farmInfo.lpMint))?.version === 5
 
   const lpToken = isStakePool ? payload.getToken(farmInfo.lpMint) : payload.getLpToken(farmInfo.lpMint)
@@ -145,7 +165,10 @@ export function hydrateFarmInfo(
             const isRewarding = (!rewardOpenTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
             const isRwardingBeforeEnd72h =
               isRewarding &&
-              isDateAfter(onlineCurrentDate, offsetDateTime(rewardEndTime, { hours: -1 /* NOTE - test */ /* -72 */ }))
+              isDateAfter(
+                onlineCurrentDate,
+                offsetDateTime(rewardEndTime, { seconds: -(farmInfo.jsonInfo.rewardPeriodExtend ?? 72 * 60 * 60) })
+              )
             const claimableRewards =
               token && toTokenAmount(token, sub(rewardInfo.totalReward, rewardInfo.totalRewardEmissioned))
 
@@ -153,9 +176,12 @@ export function hydrateFarmInfo(
             const apr = aprs[idx]
             const usedTohaveReward = Boolean(rewardEndTime)
 
+            const jsonRewardInfo = farmInfo.rewardInfos[idx]
+
             return {
+              ...jsonRewardInfo,
               ...rewardInfo,
-              owner: farmInfo.rewardInfos[idx]?.rewardSender,
+              owner: jsonRewardInfo?.rewardSender,
               apr: apr,
               token,
               userPendingReward: pendingReward,
@@ -190,6 +216,7 @@ export function hydrateFarmInfo(
         })
   const userStakedLpAmount =
     lpToken && farmInfo.ledger?.deposited ? new TokenAmount(lpToken, farmInfo.ledger?.deposited) : undefined
+
   return {
     ...farmInfo,
     lp: lpToken,
@@ -263,13 +290,14 @@ function calculateFarmPoolAprs(
 }
 
 function judgeFarmType(
-  info: SdkParsedFarmInfo
+  info: SdkParsedFarmInfo,
+  currentTime: DateParam = Date.now()
 ): 'closed pool' | 'normal fusion pool' | 'dual fusion pool' | undefined | 'upcoming pool' {
   if (info.version === 6) {
     const rewardInfos = info.state.rewardInfos
-    if (rewardInfos.every(({ rewardOpenTime }) => currentIsBefore(rewardOpenTime.toNumber(), { unit: 's' })))
+    if (rewardInfos.every(({ rewardOpenTime }) => isDateBefore(currentTime, rewardOpenTime.toNumber(), { unit: 's' })))
       return 'upcoming pool'
-    if (rewardInfos.every(({ rewardEndTime }) => currentIsAfter(rewardEndTime.toNumber(), { unit: 's' })))
+    if (rewardInfos.every(({ rewardEndTime }) => isDateAfter(currentTime, rewardEndTime.toNumber(), { unit: 's' })))
       return 'closed pool'
   } else {
     const perSlotRewards = info.state.rewardInfos.map(({ perSlotReward }) => perSlotReward)

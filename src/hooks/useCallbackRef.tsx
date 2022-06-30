@@ -2,15 +2,17 @@ import { createRef, MutableRefObject, useRef } from 'react'
 
 import { isExist, isNullish } from '@/functions/judgers/nil'
 
-/**
- * @return proxied { current: xxx }
- */
-export default function useCallbackRef<T = unknown>(options?: {
+export type UseCallbackRefOptions<T> = {
   defaultValue?: T
   onAttach?: (current: T) => void
   onDetach?: () => void
   onChange?: (current: T, prev: T) => void
-}): MutableRefObject<T> {
+}
+
+/**
+ * @return proxied { current: xxx }
+ */
+export default function useCallbackRef<T = unknown>(options?: UseCallbackRefOptions<T>): MutableRefObject<T> {
   const originalRef = useRef<T>(options?.defaultValue ?? null)
   const proxied = useRef(
     new Proxy(originalRef, {

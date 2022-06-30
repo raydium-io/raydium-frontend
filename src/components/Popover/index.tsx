@@ -204,14 +204,7 @@ export default function Popover({
             <div
               className={`absolute z-popover transform ${popupOrigins[placement]}`}
               style={
-                locationInfo
-                  ? {
-                      left: locationInfo.panelLeft,
-                      top: locationInfo.panelTop
-                    }
-                  : {
-                      visibility: 'hidden'
-                    }
+                locationInfo ? { left: locationInfo.panelLeft, top: locationInfo.panelTop } : { visibility: 'hidden' }
               }
             >
               {popoverContent}

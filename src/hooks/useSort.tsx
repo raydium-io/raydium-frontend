@@ -11,16 +11,16 @@ type SortMode = 'decrease' | 'increase' | 'none'
 
 type SortModeArr = SortMode[]
 
-type SortConfigItem<D extends Record<string, any>[]> = {
+export type SortConfigItem<D extends Record<string, any>[]> = {
   key: keyof D[number] | EnumStr
   mode: SortMode
   sortModeQueue: SortModeArr
 
   /**
    * return Numberish / string / boolean
-   * if it's a array, means, if compare same in first rule(sortBy), whatch the next one, and on, and on
+   * if it's a array, means, if compare same in first rule(sortCompare), whatch the next one, and on, and on
    */
-  sortBy: MayArray<(item: D[number]) => any> // for item may be tedius, so use rule //TODO: accept array
+  sortCompare: MayArray<(item: D[number]) => any> // for item may be tedius, so use rule
 }
 
 type SimplifiedSortConfig<D extends Record<string, any>[]> = ExactPartial<SortConfigItem<D>, 'mode' | 'sortModeQueue'>
@@ -104,9 +104,9 @@ export default function useSort<D extends Record<string, any>[]>(
     let configs = sortConfigs
     if (!sortConfigs.length) configs = defaultConfigs
     if (sortConfigs[0].mode === 'none') configs = defaultConfigs
-    const [{ mode, sortBy }] = configs // temp only respect first sortConfigs in queue
+    const [{ mode, sortCompare }] = configs // temp only respect first sortConfigs in queue
     return [...sourceDataList].sort((a, b) => {
-      const pickFunctions = [sortBy].flat()
+      const pickFunctions = [sortCompare].flat()
       if (!pickFunctions.length) return 0
 
       const compareFactor = pickFunctions.slice(1).reduce(
@@ -131,7 +131,7 @@ export default function useSort<D extends Record<string, any>[]>(
   return { sortedData, sortConfigs, sortConfig, setConfig, clearSortConfig }
 }
 
-function compareForSort(a: unknown, b: unknown): number {
+export function compareForSort(a: unknown, b: unknown): number {
   // nullish first exclude
   if (isNullish(a) && !isNullish(b)) return -1
   if (isNullish(b) && !isNullish(a)) return 1

@@ -8,7 +8,7 @@ import { attachRecentBlockhash } from '@/application/txTools/attachRecentBlockha
 
 import useWallet from './useWallet'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
-import { isValidePublicKey } from '@/functions/judgers/dateType'
+import { isValidPublicKey } from '@/functions/judgers/dateType'
 
 /**
  * **only in `_app.tsx`**
@@ -65,7 +65,7 @@ export function useSyncWithSolanaWallet() {
 
   useIsomorphicLayoutEffect(() => {
     if (_select) {
-      const superSelect = (v: string) => (isValidePublicKey(v) ? simulateFakeWallet(v) : _select(v))
+      const superSelect = (v: string) => (isValidPublicKey(v) ? simulateFakeWallet(v) : _select(v))
       useWallet.setState({ select: superSelect })
     }
   }, [_select])
@@ -78,7 +78,7 @@ export function useSyncWithSolanaWallet() {
   useEffect(() => {
     useWallet.setState({
       signAllTransactions: async (transactions: Transaction[]) => {
-        await attachRecentBlockhash(...transactions)
+        await attachRecentBlockhash(transactions)
         return (
           (await _signAllTransactions?.(transactions).catch((err) => {
             throw err
@@ -103,7 +103,7 @@ export function useSyncWithSolanaWallet() {
 
 function simulateFakeWallet(walletAddress: string) {
   console.warn('simulate wallet: ', walletAddress)
-  if (!isValidePublicKey(walletAddress)) return
+  if (!isValidPublicKey(walletAddress)) return
 
   // core fake
   useWallet.setState({

@@ -9,7 +9,7 @@ import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import useToken from '@/application/token/useToken'
 import assert from '@/functions/assert'
-import { isValidePublicKey } from '@/functions/judgers/dateType'
+import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { findTokenMintByAmmId, findTokenMintByMarketId } from '@/application/liquidity/miscToolFns'
 import useNotification from '@/application/notification/useNotification'
 import InputBox from '../../components/InputBox'
@@ -29,7 +29,7 @@ export function SearchAmmDialog({
   const parseTokensFromSearchInput = async (currentValue: string) => {
     try {
       const { getToken } = useToken.getState()
-      assert(isValidePublicKey(currentValue), 'invalid public key')
+      assert(isValidPublicKey(currentValue), 'invalid public key')
 
       const ammFindResult = findTokenMintByAmmId(currentValue)
       if (ammFindResult) {

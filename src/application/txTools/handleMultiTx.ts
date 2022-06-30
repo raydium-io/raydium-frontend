@@ -24,6 +24,7 @@ import { mergeFunction } from '@/functions/merge'
 import { getRecentBlockhash } from './attachRecentBlockhash'
 import { getRichWalletTokenAccounts } from '../wallet/useTokenAccountsRefresher'
 import { shrinkToValue } from '@/functions/shrinkToValue'
+import PageLayout from '@/components/PageLayout'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -150,9 +151,13 @@ export type TxResponseInfos = {
   // txList: (TxSuccessInfo | TxErrorInfo)[]
 }
 
-export type TxShadowOptions = {
+export type HandleMultiTxOptions = {
   /** if add this, handleTx's shadow mode will open,  */
   forceKeyPairs?: TxKeypairDetective
+  /**
+   * same key will success only once
+   */
+  txKey?: string
 }
 
 /**
@@ -162,7 +167,7 @@ export type TxShadowOptions = {
  */
 export default async function handleMultiTx(
   txAction: MultiTxAction,
-  options?: TxShadowOptions
+  options?: HandleMultiTxOptions
 ): Promise<TxResponseInfos> {
   return new Promise((resolve, reject) =>
     (async () => {
@@ -233,7 +238,8 @@ export default async function handleMultiTx(
           payload: {
             connection,
             signAllTransactions,
-            signerkeyPair: options?.forceKeyPairs
+            signerkeyPair: options?.forceKeyPairs,
+            txKey: options?.txKey
           }
         })
         resolve(finalInfos)
@@ -260,6 +266,17 @@ export default async function handleMultiTx(
   )
 }
 
+const txSerializeCache = new Map<string, Buffer>()
+
+function getSerializedTx(transaction: Transaction, key?: string) {
+  if (key && txSerializeCache.has(key)) {
+    return txSerializeCache.get(key)!
+  } else {
+    const serialized = transaction.serialize()
+    if (key) txSerializeCache.set(key, serialized)
+    return serialized
+  }
+}
 /**
  * duty:
  * 1. provide txid and txCallback collectors for a tx action
@@ -274,6 +291,8 @@ async function sendMultiTransactionAndLogAndRecord(options: {
     connection: Connection
     // only if have been shadow open
     signerkeyPair?: TxKeypairDetective
+    /** if provide, can't send twice */
+    txKey?: string
   }
 }): Promise<TxResponseInfos> {
   const { logError, logTxid } = useNotification.getState()
@@ -315,7 +334,8 @@ async function sendMultiTransactionAndLogAndRecord(options: {
                   options.payload.signerkeyPair.payerKeypair ?? options.payload.signerkeyPair.ownerKeypair
                 ])
               } else {
-                return await options.payload.connection.sendRawTransaction(transaction.serialize(), {
+                const tx = getSerializedTx(transaction, options.payload.txKey)
+                return await options.payload.connection.sendRawTransaction(tx, {
                   skipPreflight: true
                 })
               }

@@ -1,16 +1,17 @@
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
+import { Endpoint } from '@/application/connection/fetchRPCConfig'
+import useLiquidity from '@/application/liquidity/useLiquidity'
+import { offsetDateTime } from '@/functions/date/dateFormat'
+import jFetch from '@/functions/dom/jFetch'
+import { jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
+import { useMemo } from 'react'
 import useConnection from '../connection/useConnection'
 import { usePools } from '../pools/usePools'
 import useToken from '../token/useToken'
 import useWallet from '../wallet/useWallet'
-import useFarms from './useFarms'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
-import useLiquidity from '@/application/liquidity/useLiquidity'
-import { jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
-import { useMemo } from 'react'
-import jFetch from '@/functions/dom/jFetch'
-import { Endpoint } from '@/application/connection/fetchRPCConfig'
+import useFarms from './useFarms'
 
 export default function useFarmInfoFetcher() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
@@ -20,9 +21,10 @@ export default function useFarmInfoFetcher() {
   const getLpToken = useToken((s) => s.getLpToken)
   const lpTokens = useToken((s) => s.lpTokens)
   const tokenPrices = useToken((s) => s.tokenPrices)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
+  const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 0 /* force */ })
 
   const connection = useConnection((s) => s.connection)
-  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const currentEndPoint = useConnection((s) => s.currentEndPoint)
   const owner = useWallet((s) => s.owner)
   const lpPrices = usePools((s) => s.lpPrices)
@@ -68,8 +70,9 @@ export default function useFarmInfoFetcher() {
         tokenPrices,
         liquidityJsonInfos,
         blockSlotCountForSecond,
-        chainTimeOffset,
-        aprs
+        aprs,
+        currentBlockChainDate, // same as chainTimeOffset
+        chainTimeOffset // same as currentBlockChainDate
       })
     )
 

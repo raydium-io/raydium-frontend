@@ -13,7 +13,7 @@ export type TransactionPiecesCollector = {
   addInstruction: (...instructions: TransactionInstruction[]) => void
   addEndInstruction: (...instructions: TransactionInstruction[]) => void
   addSigner: (...signers: Signer[]) => void
-  spawnTransaction: () => Promise<Transaction>
+  spawnTransaction: (options?: { forceBlockHash?: string }) => Promise<Transaction>
 }
 
 export const createTransactionCollector = (defaultRawTransaction?: Transaction): TransactionPiecesCollector => {
@@ -36,21 +36,25 @@ export const createTransactionCollector = (defaultRawTransaction?: Transaction):
     addSigner(...signers: Signer[]) {
       innerSigners.push(...signers)
     },
-    async spawnTransaction(): Promise<Transaction> {
+    async spawnTransaction(options?: { forceBlockHash?: string }): Promise<Transaction> {
       const rawTransaction = innerTransaction || (defaultRawTransaction ?? new Transaction())
       if (frontInstructions.length || endInstructions.length) {
         rawTransaction.add(...frontInstructions, ...endInstructions.reverse())
       }
-      return partialSignTransacion(rawTransaction, innerSigners)
+      return partialSignTransacion(rawTransaction, innerSigners, options)
     }
   }
 
   return collector
 }
 
-const partialSignTransacion = async (transaction: Transaction, signers?: Signer[]): Promise<Transaction> => {
+const partialSignTransacion = async (
+  transaction: Transaction,
+  signers?: Signer[],
+  options?: { forceBlockHash?: string }
+): Promise<Transaction> => {
   if (signers?.length) {
-    await attachRecentBlockhash(transaction)
+    await attachRecentBlockhash([transaction], options)
     transaction.partialSign(...signers)
     return transaction
   }

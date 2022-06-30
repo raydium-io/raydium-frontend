@@ -6,12 +6,17 @@ import useConnection from '../connection/useConnection'
 import useWallet from '../wallet/useWallet'
 
 /** @see https://giters.com/solana-labs/wallet-adapter/issues/226 it's just a temporary fix */
-export async function attachRecentBlockhash(...transactions: Transaction[]) {
+export async function attachRecentBlockhash(transactions: Transaction[], options?: { forceBlockHash?: string }) {
   const { connection } = useConnection.getState()
   const { owner } = useWallet.getState()
   assert(connection, 'connection is not ready, maybe RPC is collapsed now')
   assert(owner, 'please connect a wallet')
   for await (const transaction of transactions) {
+    if (options?.forceBlockHash) {
+      // if provide forceBlockHash , don't re get any more
+      transaction.recentBlockhash = options?.forceBlockHash
+    }
+
     if (!transaction.recentBlockhash) {
       // recentBlockhash may already attached by sdk
       transaction.recentBlockhash = await getRecentBlockhash(connection)

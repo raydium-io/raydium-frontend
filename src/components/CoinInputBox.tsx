@@ -32,6 +32,7 @@ import Row from './Row'
 import toPubString from '@/functions/format/toMintString'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
+import DecimalInput from './DecimalInput'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -171,13 +172,13 @@ export default function CoinInputBox({
   }, [inputedAmount, price])
 
   // input must satisfied validPattern
-  const validPattern = useMemo(() => new RegExp(`^(\\d*)(\\.\\d{0,${token?.decimals ?? 0}})?$`), [token])
+  const validPattern = useMemo(() => new RegExp(`^(\\d*)(\\.\\d{0,${token?.decimals ?? 6}})?$`), [token])
 
   // if switch selected token, may doesn't satisfied pattern. just extract satisfied part.
   useEffect(() => {
     const satisfied = validPattern.test(inputedAmount ?? '')
     if (!satisfied) {
-      const matched = inputedAmount?.match(`^(\\d*)(\\.\\d{0,${token?.decimals ?? 0}})?(\\d*)$`)
+      const matched = inputedAmount?.match(`^(\\d*)(\\.\\d{0,${token?.decimals ?? 6}})?(\\d*)$`)
       const [, validInt = '', validDecimal = ''] = matched ?? []
       const sliced = validInt + validDecimal
       setInputedAmount(sliced)
@@ -301,14 +302,14 @@ export default function CoinInputBox({
               </Button>
             )}
           </Row>
-          <Input
+          <DecimalInput
             className="font-medium text-lg text-white flex-grow w-full"
             disabled={disabledInput}
             type="number"
-            pattern={validPattern}
+            decimalCount={token?.decimals}
             componentRef={inputRef}
             value={inputedAmount}
-            onUserInput={setInputedAmount}
+            onUserInput={(t) => setInputedAmount(String(t || ''))}
             onEnter={onEnter}
             inputClassName="text-right mobile:text-sm font-medium text-white"
             onBlur={(input) => {

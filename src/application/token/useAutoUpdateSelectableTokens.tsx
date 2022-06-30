@@ -1,4 +1,6 @@
 import useWallet from '@/application/wallet/useWallet'
+import { unifyByKey } from '@/functions/arrayMethods'
+import toPubString from '@/functions/format/toMintString'
 import { useMemo } from 'react'
 
 import useToken, { USER_ADDED_TOKEN_LIST_NAME } from './useToken'
@@ -25,7 +27,11 @@ export default function useAutoUpdateSelectableTokens() {
       (tokenListName) => tokenListName === USER_ADDED_TOKEN_LIST_NAME
     )
 
-    return [...verboseTokens, ...(havUserAddedTokens ? userAddedTokens.values() : [])].filter((token) => {
+    const verboseTokensMints = verboseTokens.map((t) => toPubString(t.mint))
+    const filteredUserAddedTokens = (havUserAddedTokens ? [...userAddedTokens.values()] : []).filter(
+      (i) => !verboseTokensMints.includes(toPubString(i.mint))
+    )
+    return [...verboseTokens, ...filteredUserAddedTokens].filter((token) => {
       const isUserFlagged =
         tokenListSettings[USER_ADDED_TOKEN_LIST_NAME] && userFlaggedTokenMints.has(String(token.mint))
       const isOnByTokenList = activeTokenListNames.some((tokenListName) =>

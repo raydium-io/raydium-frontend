@@ -27,7 +27,7 @@ interface UseScrollListenerOptions {
  *   }
  * })
  */
-export default function useScroll(
+export default function useScrollEvent(
   ref: RefObject<HTMLElement | null>,
   { disable = false, init = false, onScroll }: UseScrollListenerOptions
 ) {

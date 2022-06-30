@@ -15,11 +15,11 @@ import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
 import linkTo from '@/functions/dom/linkTo'
 import useDevice from '@/hooks/useDevice'
-import { useDocumentScrollDetector } from '@/hooks/useScrollDetector'
+import { useDocumentScrollActionDetector } from '@/hooks/useScrollActionDetector'
 import useDocumentMetaTitle from '@/hooks/useDocumentMetaTitle'
 
 function HomePageContainer({ children }: { children?: ReactNode }) {
-  useDocumentScrollDetector()
+  useDocumentScrollActionDetector()
   useDocumentMetaTitle('Raydium')
   return (
     <div
@@ -62,7 +62,7 @@ function HomePageSection0() {
   const { tvl, totalvolume } = useHomeInfo()
   return (
     <section className="grid-child-center grid-cover-container mb-16 relative">
-      <Image src="/backgroundImages/home-bg-element-1.webp" className="w-[744px] mobile:w-[394px]" />
+      <Image src="/backgroundImages/home-bg-element-1.png" className="w-[744px] mobile:w-[394px]" />
       <div className="grid-cover-content children-center">
         <div className="font-light text-[64px] mobile:text-[30px] text-white mb-4 mt-14 mobile:mt-9 leading-[60px] mobile:leading-[32px]">
           An avenue for <br />
@@ -119,6 +119,7 @@ function HomePageSection0() {
                   fractionLength={0}
                   eachLoopDuration={400}
                   totalDuration={8 * 60 * 1000}
+                  maxDeltaPercent={0.2}
                   currentValue={tvl}
                   initValue={tvl ? 0.999 * tvl : undefined}
                 />
@@ -136,6 +137,7 @@ function HomePageSection0() {
                   fractionLength={0}
                   eachLoopDuration={200}
                   totalDuration={8 * 60 * 1000}
+                  maxDeltaPercent={0.2}
                   currentValue={totalvolume}
                   initValue={totalvolume ? 0.999 * totalvolume : undefined}
                 />
@@ -166,8 +168,8 @@ function HomePageSection1() {
         className="absolute inset-0 opacity-30"
         style={{
           background: 'linear-gradient(245.22deg, #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%)',
-          maskImage: "url('/backgroundImages/home-bg-element-2.webp')",
-          WebkitMaskImage: "url('/backgroundImages/home-bg-element-2.webp')",
+          maskImage: "url('/backgroundImages/home-bg-element-2.png')",
+          WebkitMaskImage: "url('/backgroundImages/home-bg-element-2.png')",
           maskSize: 'cover',
           WebkitMaskSize: 'cover'
         }}
@@ -262,8 +264,8 @@ function HomePageSection2() {
         style={{
           background:
             isMobile || isTablet
-              ? "url('/backgroundImages/home-bg-element-4.webp') 0% 0% / 100% 100%"
-              : "url('/backgroundImages/home-bg-element-3.webp') 0% 0% / 100% 100%"
+              ? "url('/backgroundImages/home-bg-element-4.png') 0% 0% / 100% 100%"
+              : "url('/backgroundImages/home-bg-element-3.png') 0% 0% / 100% 100%"
         }}
       />
       <div className="max-w-[1220px] px-14 tablet:px-4 mt-28 mx-16 tablet:mx-4 mb-44">

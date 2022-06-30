@@ -6,9 +6,10 @@ import { twMerge } from 'tailwind-merge'
 
 import formatNumber, { FormatOptions } from '@/functions/format/formatNumber'
 import { gt, lt } from '@/functions/numberish/compare'
-import { add, div, sub } from '@/functions/numberish/operations'
+import { add, clamp, div, mul, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 interface NumberJellyProps extends FormatOptions {
   className?: string
@@ -29,6 +30,11 @@ interface NumberJellyProps extends FormatOptions {
    */
   eachLoopDuration?: number // (ms)
 
+  /**
+   * if delta is too big, that not appropriate
+   */
+  maxDeltaPercent?: number // (0-1)
+
   /** you can also add it throw `currentValue` */
   children?: Numberish
 }
@@ -44,8 +50,8 @@ export default function NumberJelly({
   initValue,
 
   totalDuration = 600,
-
   eachLoopDuration = 50,
+  maxDeltaPercent,
 
   groupSeparator = ',',
   groupSize = 3,
@@ -57,6 +63,21 @@ export default function NumberJelly({
   const domRef = useRef<HTMLDivElement>(null)
 
   const format = (n: string) => String(formatter(n))
+
+  //#region ------------------- currentValue(prevData for targetNumber) is too big for targetNumber -------------------
+  function clampByPercent(n: Numberish, deltaPercent: number, baseN: Numberish /** set as boundary */) {
+    return clamp(mul(baseN, -1 - 1 * deltaPercent), n, mul(baseN, 1 + 1 * deltaPercent))
+  }
+  if (maxDeltaPercent != null) {
+    const delta = sub(targetNumber, currentNumber.current)
+    const deltaPercent = div(delta, targetNumber)
+    const isTooBig = lt(deltaPercent, maxDeltaPercent * -1) || gt(deltaPercent, maxDeltaPercent) // or too small
+
+    if (isTooBig) {
+      currentNumber.current = clampByPercent(currentNumber.current, maxDeltaPercent, targetNumber)
+    }
+  }
+  //#endregion
 
   useEffect(() => {
     const loopStep = div(sub(targetNumber, currentNumber.current), totalDuration / eachLoopDuration)

@@ -334,7 +334,5 @@
 }
 
 .hide-seconds-editor .w-datepicker-time-btn {
-  font-feature-settings: 'ss04', 'tnum' 0, 'tnum' 1; /* Space Grotesk's mono settings */
-  width: 47px;
-  overflow: hidden;
+  font-size: 16px;
 }

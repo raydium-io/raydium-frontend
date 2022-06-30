@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -7,11 +7,15 @@ import useFarms from '@/application/farms/useFarms'
 import { isHydratedPoolItemInfo } from '@/application/pools/is'
 import { HydratedPoolItemInfo } from '@/application/pools/type'
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
+import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
 import { routeTo } from '@/application/routeTools'
+import { LpToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
+import { Badge } from '@/components/Badge'
 import Button from '@/components/Button'
+import Card from '@/components/Card'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
@@ -19,27 +23,25 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import List from '@/components/List'
+import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
+import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
+import { addItem, removeItem } from '@/functions/arrayMethods'
+import formatNumber from '@/functions/format/formatNumber'
+import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter } from '@/functions/objectMethods'
+import { searchItems } from '@/functions/searchItems'
 import useSort from '@/hooks/useSort'
-import Popover from '@/components/Popover'
-import Card from '@/components/Card'
-import LoadingCircle from '@/components/LoadingCircle'
-import { Badge } from '@/components/Badge'
-import { LpToken } from '@/application/token/type'
-import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
-import toPubString from '@/functions/format/toMintString'
-import { getPoolItemSignature } from '@/application/pools/toItemSignature'
 
 /**
  * store:
@@ -48,6 +50,7 @@ import { getPoolItemSignature } from '@/application/pools/toItemSignature'
  * {@link useDatabase `useDatabase`} detail data is from liquidity
  */
 export default function PoolsPage() {
+  usePoolSummeryInfoLoader()
   return (
     <PageLayout contentButtonPaddingShorter mobileBarTitle="Pools" metaTitle="Pools - Raydium">
       <PoolHeader />
@@ -57,19 +60,48 @@ export default function PoolsPage() {
 }
 
 function PoolHeader() {
+  const tvl = usePools((s) => s.tvl)
+  const volume24h = usePools((s) => s.volume24h)
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <div></div>
+    <Row className="mx-auto my-1 text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
+      <div className="whitespace-nowrap">
+        TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
+      </div>
+      <div className="whitespace-nowrap">
+        Volume24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
+      </div>
+    </Row>
   ) : (
-    <Grid className="grid-cols-[1fr,1fr] mobile:grid-cols-2 grid-flow-row-dense items-baseline gap-y-8 pb-8">
-      <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white">Pools</div>
-      <Row className="justify-self-end items-center">{/* <PoolStakedOnlyBlock /> */}</Row>
+    <Grid className="grid-cols-[1fr,1fr] mobile:grid-cols-2 grid-flow-row-dense items-center gap-y-8 pb-8">
+      <Row className="justify-self-start gap-8">
+        <div className="text-2xl mobile:text-lg text-white font-semibold">Pools</div>
+        <Row className="title text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
+          <div className="whitespace-nowrap">
+            TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
+          </div>
+          <div className="whitespace-nowrap">
+            Volume24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
+          </div>
+        </Row>
+      </Row>
+      <Row
+        className={`justify-self-end self-center gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
+        onClick={() => {
+          routeTo('/liquidity/create')
+        }}
+      >
+        <Icon heroIconName="plus-circle" className="text-[#abc4ff]" size="sm" />
+        <span className="text-[#abc4ff] font-medium text-sm mobile:text-xs">Create Pool</span>
+      </Row>
     </Grid>
   )
 }
 
 function PoolStakedOnlyBlock() {
   const onlySelfPools = usePools((s) => s.onlySelfPools)
+  const connected = useWallet((s) => s.connected)
+  if (!connected) return null
   return (
     <Row className="justify-self-end mobile:justify-self-auto items-center">
       <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show Staked</span>
@@ -258,16 +290,27 @@ function PoolCard() {
     () =>
       hydratedInfos
         .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
-        .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)) // Switch
-        .filter((i) => {
-          // Search
-          if (!searchText) return true
-          const searchKeyWords = searchText.split(/\s|-/)
-          return searchKeyWords.every((keyWord) =>
-            getPoolItemSignature(i).toLowerCase().includes(keyWord.toLowerCase())
-          )
-        }),
+        .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)), // Switch
     [onlySelfPools, searchText, hydratedInfos]
+  )
+
+  const searched = useMemo(
+    () =>
+      searchItems(dataSource, {
+        text: searchText,
+        matchConfigs: (i) => [
+          { text: i.ammId, entirely: true },
+          { text: i.market, entirely: true }, // Input Auto complete result sort setting
+          { text: i.lpMint, entirely: true },
+          { text: toPubString(i.base?.mint), entirely: true },
+          { text: toPubString(i.quote?.mint), entirely: true },
+          i.base?.symbol,
+          i.quote?.symbol,
+          i.base?.name,
+          i.quote?.name
+        ]
+      }),
+    [dataSource, searchText]
   )
 
   const {
@@ -275,8 +318,8 @@ function PoolCard() {
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
-  } = useSort(dataSource, {
-    defaultSort: { key: 'defaultKey', sortBy: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity] }
+  } = useSort(searched, {
+    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity] }
   })
 
   const TableHeaderBlock = useCallback(
@@ -291,7 +334,7 @@ function PoolCard() {
             setSortConfig({
               key: 'favorite',
               sortModeQueue: ['decrease', 'none'],
-              sortBy: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity]
+              sortCompare: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity]
             })
           }}
         >
@@ -317,7 +360,7 @@ function PoolCard() {
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
-                sortBy: (i) => i.name
+                sortCompare: (i) => i.name
               })
             }}
           >
@@ -340,7 +383,7 @@ function PoolCard() {
         <Row
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: 'liquidity', sortBy: (i) => i.liquidity })
+            setSortConfig({ key: 'liquidity', sortCompare: (i) => i.liquidity })
           }}
         >
           Liquidity
@@ -362,7 +405,7 @@ function PoolCard() {
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
-            setSortConfig({ key, sortBy: (i) => i[key] })
+            setSortConfig({ key, sortCompare: (i) => i[key] })
           }}
         >
           Volume {timeBasis}
@@ -384,7 +427,7 @@ function PoolCard() {
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             const key = timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d'
-            setSortConfig({ key, sortBy: (i) => i[key] })
+            setSortConfig({ key, sortCompare: (i) => i[key] })
           }}
         >
           Fees {timeBasis}
@@ -406,7 +449,7 @@ function PoolCard() {
           className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             const key = timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d'
-            setSortConfig({ key, sortBy: (i) => i[key] })
+            setSortConfig({ key, sortCompare: (i) => i[key] })
           }}
         >
           APR {timeBasis}
@@ -446,7 +489,7 @@ function PoolCard() {
             newSortKey
               ? setSortConfig({
                   key: newSortKey,
-                  sortBy: newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.ammId) : (i) => i[newSortKey]
+                  sortCompare: newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.ammId) : (i) => i[newSortKey]
                 })
               : clearSortConfig()
           }}
@@ -846,7 +889,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 onClick={() => {
                   useFarms.setState((s) => ({
                     searchText: info.name.split('-').join(' '),
-                    expandedItemIds: addSetItem(s.expandedItemIds, String(correspondingFarm?.id))
+                    expandedItemIds: addItem(s.expandedItemIds, String(correspondingFarm?.id))
                   }))
                   routeTo('/farms')
                 }}
@@ -893,12 +936,6 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
       </Row>
     </AutoBox>
   )
-}
-
-function addSetItem<T>(set: Set<T>, item: T): Set<T> {
-  const newSet = new Set(set)
-  newSet.add(item)
-  return newSet
 }
 
 function CoinAvatarInfoItem({ info, className }: { info: HydratedPoolItemInfo | undefined; className?: string }) {

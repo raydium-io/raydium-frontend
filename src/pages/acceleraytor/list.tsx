@@ -36,7 +36,8 @@ import toPercentNumber from '@/functions/format/toPercentNumber'
 import Input from '@/components/Input'
 import useConnection from '@/application/connection/useConnection'
 import { TimeStamp } from '@/functions/date/interface'
-import { getIdoItemSignature } from '@/application/ido/toItemSignature'
+import { searchItems } from '@/functions/searchItems'
+import toPubString from '@/functions/format/toMintString'
 
 export default function AcceleRaytor() {
   const infos = useIdo((s) => s.idoHydratedInfos)
@@ -77,14 +78,26 @@ function IdoList() {
     useIdo.setState({ currentTab: 'Upcoming Pools' })
     hasSetUpcomingTab.current = true
   }
-  const upcomingOrClosedPoolItems =
-    currentTab === 'Upcoming Pools'
-      ? upcomingPools
-      : closedPools.filter((pool) =>
-          getIdoItemSignature(pool)
-            .toLowerCase()
-            .includes((searchText ?? '').trim().toLowerCase())
-        )
+  const tabedPoolItems = currentTab === 'Upcoming Pools' ? upcomingPools : closedPools
+
+  const upcomingOrClosedPoolItems = useMemo(
+    () =>
+      searchItems(tabedPoolItems, {
+        text: searchText,
+        matchConfigs: (i) => [
+          { text: i.id, entirely: true },
+          { text: toPubString(i.base?.mint), entirely: true },
+          { text: toPubString(i.quote?.mint), entirely: true },
+          i.projectName,
+          i.base?.symbol,
+          i.quote?.symbol,
+          i.base?.name,
+          i.quote?.name
+        ]
+      }),
+    [tabedPoolItems, searchText]
+  )
+
   return (
     <>
       {openPools.length > 0 && (

@@ -32,7 +32,7 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
         <FadeIn>
           {activeReward && (
             <RewardFormCard>
-              <RewardFormCardInputs reward={activeReward} />
+              <RewardFormCardInputs syncDataWithZustandStore reward={activeReward} />
             </RewardFormCard>
           )}
         </FadeIn>

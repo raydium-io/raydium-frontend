@@ -15,6 +15,8 @@ export interface TokenJson {
 
 export type SplToken = Token & {
   icon: SrcAddress
+  /** 'sol' or mint. for `<TokenSelector>` */
+  id: string
   extensions: {
     [key in 'coingeckoId' | 'website' | 'whitepaper']?: string
   }
@@ -25,12 +27,16 @@ export type LpToken = Token & {
   base: SplToken
   quote: SplToken
   icon: SrcAddress
+  /** mint. for `<TokenSelector>`*/
+  id: string
   extensions: {
     [key in 'coingeckoId' | 'website' | 'whitepaper']?: string
   }
 }
 
 export interface HydratedTokenJsonInfo {
+  /** 'sol' or mint. for `<TokenSelector>` */
+  id: string
   mint: string
   symbol: string
   decimals: number

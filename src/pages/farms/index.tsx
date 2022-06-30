@@ -5,7 +5,7 @@ import { TokenAmount } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { isFarmJsonInfo } from '@/application/farms/judgeFarmInfo'
+import { isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
 import txFarmDeposit from '@/application/farms/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/txFarmHarvest'
 import txFarmWithdraw from '@/application/farms/txFarmWithdraw'
@@ -53,9 +53,14 @@ import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
-import { getFarmItemSignature } from '@/application/farms/toItemSignature'
+import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { searchItems } from '@/functions/searchItems'
+import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
+import copyToClipboard from '@/functions/dom/copyToClipboard'
+import useNotification from '@/application/notification/useNotification'
 
 export default function FarmsPage() {
+  useFarmUrlParser()
   return (
     <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
       <FarmHeader />
@@ -146,6 +151,8 @@ function FarmSearchBlock({ className }: { className?: string }) {
 
 function FarmStakedOnlyBlock({ className }: { className?: string }) {
   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
+  const connected = useWallet((s) => s.connected)
+  if (!connected) return null
   return (
     <Row className="justify-self-end  mobile:justify-self-auto flex-wrap items-center">
       <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show Staked</span>
@@ -162,7 +169,7 @@ function FarmSlefCreatedOnlyBlock({ className }: { className?: string }) {
   const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   return (
     <Row className="justify-self-end  mobile:justify-self-auto flex-wrap items-center">
-      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show farms by me</span>
+      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show Created</span>
       <Switcher
         className="ml-2 "
         defaultChecked={onlySelfCreatedFarms}
@@ -307,16 +314,26 @@ function FarmCard() {
     () =>
       tabedDataSource
         .filter((i) => (onlySelfFarms ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true)) // Switch
-        .filter((i) => (onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)) // Switch
-        .filter((i) => {
-          // Search
-          if (!searchText) return true
-          const searchKeyWords = searchText.split(/\s|-/)
-          return searchKeyWords.every((keyWord) =>
-            getFarmItemSignature(i).toLowerCase().includes(keyWord.toLowerCase())
-          )
-        }),
+        .filter((i) => (i.version === 6 && onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)), // Switch
     [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
+  )
+
+  const applySearchedDataSource = useMemo(
+    () =>
+      searchItems(applyFiltersDataSource, {
+        text: searchText,
+        matchConfigs: (i) => [
+          { text: toPubString(i.id), entirely: true },
+          { text: i.ammId, entirely: true }, // Input Auto complete result sort setting
+          { text: toPubString(i.base?.mint), entirely: true },
+          { text: toPubString(i.quote?.mint), entirely: true },
+          i.base?.symbol,
+          i.quote?.symbol,
+          i.base?.name,
+          i.quote?.name
+        ]
+      }),
+    [applyFiltersDataSource, searchText]
   )
 
   const {
@@ -324,10 +341,10 @@ function FarmCard() {
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
-  } = useSort(applyFiltersDataSource, {
+  } = useSort(applySearchedDataSource, {
     defaultSort: {
       key: 'defaultKey',
-      sortBy: [(i) => i.isUpcomingPool, (i) => i.isNewPool, (i) => favouriteIds?.includes(toPubString(i.id))]
+      sortCompare: [(i) => i.isUpcomingPool, /* (i) => i.isNewPool, */ (i) => favouriteIds?.includes(toPubString(i.id))]
     }
   })
 
@@ -344,7 +361,7 @@ function FarmCard() {
             newSortKey
               ? setSortConfig({
                   key: newSortKey,
-                  sortBy:
+                  sortCompare:
                     newSortKey === 'favorite' ? (i) => favouriteIds?.includes(toPubString(i.id)) : (i) => i[newSortKey]
                 })
               : clearSortConfig()
@@ -387,7 +404,7 @@ function FarmCard() {
               setSortConfig({
                 key: 'favorite',
                 sortModeQueue: ['decrease', 'none'],
-                sortBy: (i) => favouriteIds?.includes(toPubString(i.id))
+                sortCompare: (i) => favouriteIds?.includes(toPubString(i.id))
               })
             }}
           >
@@ -403,12 +420,12 @@ function FarmCard() {
           </Row>
           {/* table head column: Farm */}
           <Row
-            className=" font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
+            className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
             onClick={() => {
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
-                sortBy: (i) => i.name
+                sortCompare: (i) => i.name
               })
             }}
           >
@@ -433,7 +450,7 @@ function FarmCard() {
           {/* table head column: Total APR */}
           <Row
             className="pl-2 font-medium items-center text-[#ABC4FF] text-sm cursor-pointer gap-1  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'totalApr', sortBy: (i) => i.totalApr })}
+            onClick={() => setSortConfig({ key: 'totalApr', sortCompare: (i) => i.totalApr })}
           >
             Total APR
             <Tooltip>
@@ -456,7 +473,7 @@ function FarmCard() {
           {/* table head column: TVL */}
           <Row
             className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'tvl', sortBy: (i) => i.tvl })}
+            onClick={() => setSortConfig({ key: 'tvl', sortCompare: (i) => i.tvl })}
           >
             TVL
             <Icon
@@ -542,13 +559,13 @@ function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; rew
     <Tooltip placement="bottom">
       <Row
         className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 ${
-          reward.isRewarding ? '' : 'opacity-50'
+          reward.isRewarding ? '' : 'opacity-70'
         }`}
       >
         {isMeaningfulNumber(reward.userPendingReward) && (
           <div className="text-xs translate-y-0.125 pl-1">
             {formatNumber(toString(reward.userPendingReward), {
-              fractionLength: reward.userPendingReward.token.decimals
+              fractionLength: 3
             })}
           </div>
         )}
@@ -559,7 +576,7 @@ function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; rew
           {reward.token?.symbol ?? '--'} Reward Period {reward.isRewardEnded ? 'ended' : ''}
         </div>
         <div className="opacity-50">
-          {toUTC(reward.openTime)} ~ {toUTC(reward.endTime)}
+          {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
         </div>
       </Tooltip.Panel>
     </Tooltip>
@@ -568,12 +585,14 @@ function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; rew
 
 function FarmCardDatabaseBodyCollapseItemFace({
   open,
+  className,
   info,
   isFavourite,
   onUnFavorite,
   onStartFavorite
 }: {
   open: boolean
+  className?: string
   info: HydratedFarmInfo | FarmPoolJsonInfo
   isFavourite?: boolean
   onUnFavorite?: (farmId: string) => void
@@ -584,9 +603,14 @@ function FarmCardDatabaseBodyCollapseItemFace({
   const pcCotent = (
     <Row
       type="grid-x"
-      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-stretch gap-2 grid-cols-[auto,1.5fr,1.2fr,1fr,1fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
-        open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
-      } transition-all`}
+      className={twMerge(
+        `py-5 mobile:py-4 mobile:px-5 ${
+          info.local ? 'border-2 border-[#DA2EEF]' : ''
+        } bg-[#141041] items-stretch gap-2 grid-cols-[auto,1.5fr,1.2fr,1fr,1fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
+          open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
+        } transition-all`,
+        className
+      )}
     >
       <div className="w-12 self-center ml-6 mr-2">
         {isFavourite ? (
@@ -617,7 +641,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
           name="Pending Rewards"
           value={
             <Row className="flex-wrap gap-2 w-full pr-8">
-              {isFarmJsonInfo(info)
+              {isJsonFarmInfo(info)
                 ? '--'
                 : info.rewards.map((reward) => {
                     return (
@@ -634,7 +658,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
           name="Pending Rewards"
           value={
             <div>
-              {isFarmJsonInfo(info)
+              {isJsonFarmInfo(info)
                 ? '--'
                 : info.rewards.map(
                     ({ token, userPendingReward, userHavedReward }) =>
@@ -652,7 +676,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name="Total APR"
         value={
-          isFarmJsonInfo(info) ? (
+          isJsonFarmInfo(info) ? (
             '--'
           ) : (
             <Tooltip placement="right">
@@ -676,9 +700,9 @@ function FarmCardDatabaseBodyCollapseItemFace({
       />
       <TextInfoItem
         name="TVL"
-        value={isFarmJsonInfo(info) ? '--' : info.tvl ? `~${toUsdVolume(info.tvl, { decimalPlace: 0 })}` : '--'}
+        value={isJsonFarmInfo(info) ? '--' : info.tvl ? `~${toUsdVolume(info.tvl, { decimalPlace: 0 })}` : '--'}
         subValue={
-          isFarmJsonInfo(info)
+          isJsonFarmInfo(info)
             ? '--'
             : info.stakedLpAmount && `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} LP`
         }
@@ -727,14 +751,14 @@ function FarmCardDatabaseBodyCollapseItemFace({
           <TextInfoItem
             name="TVL"
             value={
-              isFarmJsonInfo(info)
+              isJsonFarmInfo(info)
                 ? '--'
                 : info.tvl
                 ? `≈${toUsdVolume(info.tvl, { autoSuffix: true, decimalPlace: 0 })}`
                 : '--'
             }
             subValue={
-              isFarmJsonInfo(info)
+              isJsonFarmInfo(info)
                 ? '--'
                 : info.stakedLpAmount && `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} LP`
             }
@@ -743,7 +767,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
           <TextInfoItem
             name="Total APR"
             value={
-              isFarmJsonInfo(info) ? (
+              isJsonFarmInfo(info) ? (
                 '--'
               ) : (
                 <Tooltip placement="right">
@@ -807,6 +831,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
   const balances = useWallet((s) => s.balances)
   const hasLp = isMeaningfulNumber(balances[toPubString(farmInfo.lpMint)])
   const hasPendingReward = farmInfo.rewards.some(({ userPendingReward }) => isMeaningfulNumber(userPendingReward))
+  const logSuccess = useNotification((s) => s.logSuccess)
   return (
     <div
       className="rounded-b-3xl mobile:rounded-b-lg overflow-hidden"
@@ -1009,6 +1034,14 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
             <Row className="gap-5">
               <Icon
                 size="sm"
+                heroIconName="link"
+                className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                onClick={() => {
+                  copyToClipboard(new URL(`/farms/?farmid=${toPubString(farmInfo.id)}`).toString())
+                }}
+              />
+              <Icon
+                size="sm"
                 heroIconName="plus"
                 className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
@@ -1026,6 +1059,21 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
             </Row>
           ) : (
             <>
+              <Tooltip>
+                <Icon
+                  size="smi"
+                  heroIconName="link"
+                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                  onClick={() => {
+                    copyToClipboard(
+                      new URL(`farms/?farmid=${toPubString(farmInfo.id)}`, window.location.origin).toString()
+                    ).then(() => {
+                      logSuccess('Copied Success', <div>Farm ID: {toPubString(farmInfo.id)}</div>)
+                    })
+                  }}
+                />
+                <Tooltip.Panel>Copy Farm ID</Tooltip.Panel>
+              </Tooltip>
               <Tooltip>
                 <Icon
                   size="smi"
@@ -1059,6 +1107,9 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
           <Button
             className="frosted-glass-teal"
             onClick={() => {
+              useCreateFarms.setState({
+                isRoutedByCreateOrEdit: true
+              })
               routeTo('/farms/edit', { queryProps: { farmInfo: farmInfo } })
             }}
           >
@@ -1080,8 +1131,7 @@ function FarmStakeLpDialog() {
   const stakeDialogMode = useFarms((s) => s.stakeDialogMode)
 
   const [amount, setAmount] = useState<string>()
-
-  const userHasLp = useMemo(
+  const userHasLpAccount = useMemo(
     () =>
       Boolean(stakeDialogFarmInfo?.lpMint) &&
       tokenAccounts.some(({ mint }) => String(mint) === String(stakeDialogFarmInfo?.lpMint)),
@@ -1164,8 +1214,8 @@ function FarmStakeLpDialog() {
                 { should: isAvailableInput },
                 { should: amount },
                 {
-                  should: userHasLp,
-                  fallbackProps: { children: stakeDialogMode === 'withdraw' ? 'No Unstakable LP' : 'No Stakable LP' }
+                  should: stakeDialogMode == 'withdraw' ? true : userHasLpAccount,
+                  fallbackProps: { children: 'No Stakable LP' }
                 }
               ]}
               onClick={() => {
@@ -1194,9 +1244,9 @@ function FarmStakeLpDialog() {
 function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | FarmPoolJsonInfo; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const getLpToken = useToken((s) => s.getLpToken)
-  const isStable = isFarmJsonInfo(info) ? false : info.isStablePool
+  const isStable = isJsonFarmInfo(info) ? false : info.isStablePool
 
-  if (isFarmJsonInfo(info)) {
+  if (isJsonFarmInfo(info)) {
     const lpToken = getLpToken(info.lpMint)
     const name = lpToken ? `${lpToken.base.symbol ?? '--'} - ${lpToken.quote.symbol ?? '--'}` : '--' // TODO: rule of get farm name should be a issolate function
     return (
@@ -1204,14 +1254,12 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
         is={isMobile ? 'Col' : 'Row'}
         className={twMerge('flex-wrap items-center mobile:items-start', className)}
       >
-        {
-          <CoinAvatarPair
-            className="justify-self-center mr-2"
-            size={isMobile ? 'sm' : 'md'}
-            token1={lpToken?.base}
-            token2={lpToken?.quote}
-          />
-        }
+        <CoinAvatarPair
+          className="justify-self-center mr-2"
+          size={isMobile ? 'sm' : 'md'}
+          token1={lpToken?.base}
+          token2={lpToken?.quote}
+        />
         {lpToken ? (
           <div>
             <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
@@ -1224,18 +1272,13 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
   return (
     <AutoBox
       is={isMobile ? 'Col' : 'Row'}
-      className={twMerge('flex-wrap items-center mobile:items-start gap-x-2', className)}
+      className={twMerge('flex-wrap items-center mobile:items-start gap-x-2 gap-y-1', className)}
     >
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
       <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
+      {info.version === 6 && info.isClosedPool && <Badge cssColor="#DA2EEF">Inactive</Badge>}
       {isStable && <Badge>Stable</Badge>}
-
-      {info.isDualFusionPool && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
-      {info.version === 6 && info.rewards.length === 2 && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
-      {info.version === 6 && info.rewards.length === 3 && <Badge cssColor="#DA2EEF">Triple Yield</Badge>}
-      {info.version === 6 && info.rewards.length === 4 && <Badge cssColor="#DA2EEF">Quadruple Yield</Badge>}
-      {info.version === 6 && info.rewards.length === 5 && <Badge cssColor="#DA2EEF">Quintuple Yield</Badge>}
-
+      {info.isDualFusionPool && info.version !== 6 && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
       {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
       {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
     </AutoBox>

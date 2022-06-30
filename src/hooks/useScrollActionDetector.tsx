@@ -5,7 +5,7 @@ import isClientSide from '@/functions/judgers/isSSR'
 /**
  * auto-add --is-scrolling, which will be used by frosted-glass
  */
-export function useDocumentScrollDetector() {
+export function useDocumentScrollActionDetector() {
   useEffect(() => {
     if (!('document' in globalThis)) return
     let timeoutId
@@ -23,7 +23,7 @@ export function useDocumentScrollDetector() {
   }, [])
 }
 
-export default function useScrollDetector(
+export default function useScrollActionDetector(
   /** if not specified , it will be document by default  */
   elRef: RefObject<HTMLElement | null>
 ) {

@@ -24,7 +24,11 @@ export type DateInputProps = {
   canEditSeconds?: boolean
   isValidDate?: (date: Date) => boolean
   onDateChange?(selectedDate: Date | undefined): void
-  showTime?: boolean
+  showTime?:
+    | {
+        format: string
+      }
+    | boolean
 } & Omit<InputProps, 'value' | 'defaultValue'> & {
     value?: Date
     defaultValue?: Date
@@ -81,7 +85,11 @@ type DateInputBodyProps = {
   canEditSeconds?: boolean
   canUserInput?: boolean
   onDateChange?(selectedDate: Date | undefined): void
-  showTime?: boolean
+  showTime?:
+    | {
+        format: string
+      }
+    | boolean
 }
 
 /**
@@ -147,11 +155,11 @@ function DateInputBody({
       <Popover.Panel>
         <DatePicker
           className={canEditSeconds ? '' : 'hide-seconds-editor'}
-          showTime={showTime == null ? Boolean(currentDate) : showTime}
+          showTime={showTime && currentDate ? showTime : false}
           weekday={['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']}
           weekTitle={['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']}
           monthLabel={['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']}
-          date={currentDate ? toFakeUTCByLocalDate(toChainTime(currentDate)) : currentDate}
+          date={currentDate ? toFakeUTCByLocalDate(currentDate) : currentDate}
           disabledDate={(date) =>
             [
               (date: Date) => (isValidDate ? !isValidDate(date) : false),

@@ -155,6 +155,7 @@ function PanelContent({ close }: { close(): void }) {
         label="Start time (Optional):"
         canEditSeconds
         onDateChange={(selectedDate) => useCreatePool.setState({ startTime: selectedDate })}
+        showTime={{ format: 'HH:mm:ss' }}
       />
 
       <Button

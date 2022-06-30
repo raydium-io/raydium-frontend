@@ -10,10 +10,16 @@ import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import assert from '@/functions/assert'
 import tryCatch from '@/functions/tryCatch'
-import { ExistedEditRewardSummary } from '@/pageComponents/createFarm/ExistedRewardEditSummary'
+import { EditableRewardSummary } from '@/pageComponents/createFarm/EditableRewardSummary'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
+
+function useAvailableCheck() {
+  useEffect(() => {
+    if (!useCreateFarms.getState().isRoutedByCreateOrEdit) routeTo('/farms')
+  }, [])
+}
 
 export default function EditReviewPage() {
   const getToken = useToken((s) => s.getToken)
@@ -39,6 +45,8 @@ export default function EditReviewPage() {
   const newRewards = rewards.filter((r) => r.type === 'new added')
   const editedRewards = rewards.filter((r) => hasRewardBeenEdited(r))
 
+  useAvailableCheck()
+
   return (
     <PageLayout metaTitle="Farms - Raydium">
       <div className="self-center w-[min(720px,90vw)]">
@@ -63,7 +71,7 @@ export default function EditReviewPage() {
         </Row>
 
         <div className="mb-8 text-xl mobile:text-lg font-semibold justify-self-start text-white">
-          Review edited farm details
+          Review farm details
         </div>
 
         <div className="mb-8">
@@ -72,8 +80,8 @@ export default function EditReviewPage() {
         </div>
 
         <div className="mb-6">
-          <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Exised farm rewards</div>
-          <ExistedEditRewardSummary canUserEdit={false} />
+          <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Existing farm rewards</div>
+          <EditableRewardSummary canUserEdit={false} />
         </div>
 
         {newRewards.length > 0 && (
@@ -95,12 +103,13 @@ export default function EditReviewPage() {
                     routeTo('/farms')
                     useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
                     useFarms.getState().refreshFarmInfos()
+                    useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
                   }, 1000)
                 }
               })
             }}
           >
-            Edit Farm
+            Confirm Farm Changes
           </Button>
           <Button className="frosted-glass-skygray" size="lg" onClick={routeBack}>
             Edit

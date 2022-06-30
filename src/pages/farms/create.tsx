@@ -1,5 +1,10 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
+import useConnection from '@/application/connection/useConnection'
+import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
+import { MAX_DURATION, MIN_DURATION } from '@/application/farms/handleFarmInfo'
 import { routeBack, routeTo } from '@/application/routeTools'
+import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import Col from '@/components/Col'
@@ -10,23 +15,17 @@ import Icon from '@/components/Icon'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
+import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
+import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
+import toPubString from '@/functions/format/toMintString'
+import { eq, gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
+import { div } from '@/functions/numberish/operations'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
 import produce from 'immer'
 import { ReactNode, useEffect, useRef, useState } from 'react'
-import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
-import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
-import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
-import { useForceUpdate } from '@/hooks/useForceUpdate'
-import useConnection from '@/application/connection/useConnection'
-import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
-import { isDateBefore } from '@/functions/date/judges'
-import useAppSettings from '@/application/appSettings/useAppSettings'
-import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
-import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
-import { div } from '@/functions/numberish/operations'
-import useWallet from '@/application/wallet/useWallet'
-import toPubString from '@/functions/format/toMintString'
 import { twMerge } from 'tailwind-merge'
-import { MAX_DURATION, MIN_DURATION } from '@/pageComponents/createFarm/RewardFormInputs'
+import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
+import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -114,7 +113,7 @@ function FormStep({
         <div className={`grow my-4 border-r-1.5 ${haveNavline ? 'border-[#abc4ff1a]' : 'border-transparent'} `} />
       </Col>
       <Col className="grow">
-        <div className="font-medium text-lg text-white leading-8 ml-3 mb-5">{title}</div>
+        <div className="ml-3 mb-5">{title}</div>
         <Grid className="mb-16">{children}</Grid>
       </Col>
     </Grid>
@@ -162,7 +161,24 @@ export default function CreateFarmPage() {
         <WarningBoard className="pb-16 w-full" />
 
         <div className="space-y-4">
-          <FormStep stepNumber={1} title="Select Pool" haveNavline>
+          <FormStep
+            stepNumber={1}
+            title={
+              <Row className="justify-between">
+                <div className="font-medium text-lg text-white leading-8">Select Pool</div>
+                <Row
+                  className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
+                  onClick={() => {
+                    routeTo('/liquidity/create')
+                  }}
+                >
+                  <Icon heroIconName="plus-circle" className="text-[#abc4ff]" size="sm" />
+                  <span className="text-[#abc4ff] font-medium text-sm mobile:text-xs">Create Pool</span>
+                </Row>
+              </Row>
+            }
+            haveNavline
+          >
             <PoolIdInputBlock componentRef={PoolIdInputBlockRef} onInputValidate={setPoolIdValid} />
           </FormStep>
 
@@ -247,6 +263,12 @@ export default function CreateFarmPage() {
                   children: `Enter ${reward.token?.symbol ?? '--'} token amount`
                 }
               })),
+              ...meaningFullRewards.map((reward) => ({
+                should: isMeaningfulNumber(reward.amount),
+                fallbackProps: {
+                  children: `Insufficient ${reward.token?.symbol ?? '--'} token amount`
+                }
+              })),
               ...meaningFullRewards.map((reward) => {
                 const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
                 return {
@@ -272,12 +294,6 @@ export default function CreateFarmPage() {
                 }
               },
               {
-                should: meaningFullRewards.every((r) => isMeaningfulNumber(r.amount)),
-                fallbackProps: {
-                  children: 'Not eligible token amount'
-                }
-              },
-              {
                 should: meaningFullRewards.every((reward) => {
                   const durationTime =
                     reward?.endTime && reward.startTime
@@ -290,11 +306,14 @@ export default function CreateFarmPage() {
                   return isMeaningfulNumber(estimatedValue)
                 }),
                 fallbackProps: {
-                  children: 'Not eligible token amount'
+                  children: 'Insufficient estimated value'
                 }
               }
             ]}
             onClick={() => {
+              useCreateFarms.setState({
+                isRoutedByCreateOrEdit: true
+              })
               routeTo('/farms/createReview', {})?.then(() => {
                 cleanStoreEmptyRewards()
               })
