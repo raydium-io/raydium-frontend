@@ -19,6 +19,7 @@ import Card from '@/components/Card'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
+import { isDateBefore } from '@/functions/date/judges'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
@@ -26,13 +27,14 @@ import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { objectShakeNil } from '@/functions/objectMethods'
+import { useChainDate } from '@/hooks/useChainDate'
 import { EditableRewardSummary } from '@/pageComponents/createFarm/EditableRewardSummary'
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import RewardInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
 import produce from 'immer'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 function useAvailableCheck() {
@@ -99,6 +101,8 @@ export default function FarmEditPage() {
     (r) => r.amount != null || r.startTime != null || r.endTime != null || r.token != null
   )
   const hydratedFarmInfo = hydratedFarmInfos.find((i) => isMintEqual(i.id, farmId))
+  const chainDate = useChainDate()
+  const cachedInputs = useMemo(() => <NewRewardIndicatorAndForm className="mt-8 mb-4" />, [])
   return (
     <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
       <NavButtons />
@@ -140,7 +144,7 @@ export default function FarmEditPage() {
           />
         </div>
 
-        <NewRewardIndicatorAndForm className="mt-8 mb-4" />
+        {cachedInputs}
 
         <Row
           className={`items-center my-2 mb-12 text-sm clickable ${
@@ -205,6 +209,12 @@ export default function FarmEditPage() {
               should: meaningFullRewards.every((r) => r.startTime && r.endTime),
               fallbackProps: {
                 children: 'Confirm emission time setup'
+              }
+            },
+            {
+              should: meaningFullRewards.every((r) => r.startTime && isDateBefore(chainDate, r.startTime)),
+              fallbackProps: {
+                children: 'Insufficient start time'
               }
             },
             {

@@ -4,7 +4,7 @@ import { MAX_DURATION, MIN_DURATION } from '@/application/farms/handleFarmInfo'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Row from '@/components/Row'
-import { isDateAfter } from '@/functions/date/judges'
+import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { getDuration } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
@@ -59,7 +59,7 @@ export default function RewardInputDialog({
         onRewardChange={setEditedReward}
       />
     ),
-    [reward, restInputsProps, rewardInputsRef, setEditedReward]
+    [reward, rewardInputsRef]
   )
   return (
     <Dialog open={Boolean(open)} onClose={onClose}>
@@ -136,7 +136,7 @@ export default function RewardInputDialog({
                   }
                 },
                 {
-                  should: editedReward.startTime && isDateAfter(editedReward.startTime, chainDate),
+                  should: editedReward.startTime && isDateBefore(chainDate, editedReward.startTime),
                   fallbackProps: {
                     children: 'Insufficient start time'
                   }

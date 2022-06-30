@@ -90,7 +90,7 @@ export function RewardFormCardInputs({
   //#region ------------------- reward center -------------------
   // to cache the result, have to store a temp
   const isUnedited72hReward = Boolean(reward && reward.isRwardingBeforeEnd72h && !hasRewardBeenEdited(reward))
-  const isUneditedEndedReward = reward?.isRewardEnded && !hasRewardBeenEdited(targetReward)
+  const isUneditedEndedReward = Boolean(reward?.isRewardEnded && !hasRewardBeenEdited(targetReward))
   const [tempReward, setTempReward] = useState(() =>
     isUneditedEndedReward
       ? { ...targetReward, amount: undefined, startTime: undefined, endTime: undefined }
