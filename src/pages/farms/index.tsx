@@ -1072,7 +1072,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                     })
                   }}
                 />
-                <Tooltip.Panel>Copy Farm ID</Tooltip.Panel>
+                <Tooltip.Panel>Copy Farm Link</Tooltip.Panel>
               </Tooltip>
               <Tooltip>
                 <Icon
