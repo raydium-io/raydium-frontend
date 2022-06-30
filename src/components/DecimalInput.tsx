@@ -73,7 +73,8 @@ export default function DecimalInput({
       (ev) => {
         const key = ev.key
         const isPureDecimal = key.length > 1 /* is control KEY like ArrowLeft */ || letterRegex.test(key)
-        if (!isPureDecimal) {
+        const isControlKey = ev.ctrlKey || ev.altKey
+        if (!isPureDecimal && !isControlKey) {
           ev.preventDefault()
         }
       },
