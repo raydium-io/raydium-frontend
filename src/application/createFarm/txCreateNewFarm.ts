@@ -32,6 +32,10 @@ export default async function txCreateNewFarm(
       const { rewards: uiRewardInfos } = useCreateFarms.getState()
       const { tokenAccounts } = useWallet.getState()
       const piecesCollector = createTransactionCollector()
+      const { poolId } = useCreateFarms.getState()
+      const { jsonInfos } = usePools.getState()
+      const poolJsonInfo = jsonInfos.find((j) => j.ammId === poolId)
+      if (!poolJsonInfo) return
       const rewards: FarmCreateInstructionParamsV6['rewardInfos'] = uiRewardInfos.map((reward) => {
         const rewardToken = reward.token
         assert(reward.startTime, 'reward start time is required')
@@ -52,7 +56,7 @@ export default async function txCreateNewFarm(
       })
       const lockMint = '7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR' // NOTE: test
       const lockVault = 'H2StJuXebaAnSQHvbYGeokbgC1EKB6tBvY2iB2PxoUqS' // NOTE: test
-      const lpMint = 'G54x5tuRV12WyNkSjfNnq3jyzfcPF9EgB8c9jTzsQKVW' // NOTE: test
+      const lpMint = poolJsonInfo.lpMint
       const lockMintTokenAccount = tokenAccounts.find((t) => isMintEqual(t.mint, lockMint))
       assert(lockMintTokenAccount?.publicKey, 'lockMintTokenAccount not found')
       const createFarmInstruction = await Farm.makeCreateFarmInstruction({
