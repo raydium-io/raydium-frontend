@@ -55,10 +55,6 @@ import '../styles/index.css'
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
 
-  useEffect(() => {
-    const worker = new Worker(new URL('../application/_workers/ass.ts', import.meta.url))
-  }, [])
-
   /* add popup stack */
   useIsomorphicLayoutEffect(() => {
     if (inClient) {
