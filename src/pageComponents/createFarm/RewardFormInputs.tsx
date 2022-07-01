@@ -228,7 +228,7 @@ export function RewardFormCardInputs({
         disableTokens={shakeUndifindedItem(rewards.map((r) => r.token))}
         canSelectQuantumSOL={Boolean(tempReward.token)}
         disabled={disableCoinInput}
-        value={rewardTokenAmount}
+        value={rewardTokenAmount ?? ''} // pass '' to clear the input
         token={tempReward.token}
         disabledTokenSelect={reward.isRewardBeforeStart || reward.isRewarding || reward.isRewardEnded}
         onSelectCoin={selectRewardToken}
@@ -276,7 +276,7 @@ export function RewardFormCardInputs({
                   })
                 }
 
-                // set amount (only  edit-in-rewarding)
+                // set amount (only edit-in-rewarding)
                 if (reward.isRwardingBeforeEnd72h) {
                   setRewardAmount(mul(estimatedValue, parseDurationAbsolute(totalDuration).days))
                 }
