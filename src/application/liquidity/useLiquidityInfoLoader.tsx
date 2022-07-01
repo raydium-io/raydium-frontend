@@ -58,7 +58,6 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
     const userExhibitionLiquidityIds = jsonInfos
       .filter((jsonInfo) => allLpBalanceMint.includes(jsonInfo.lpMint))
       .map((jsonInfo) => jsonInfo.id)
-
     useLiquidity.setState({ userExhibitionLiquidityIds })
   }, [disabled, jsonInfos, rawBalances, isLpToken, refreshCount])
 

@@ -168,10 +168,10 @@ function ApplicationsInitializations() {
   usePoolsInfoLoader()
 
   /********************** farm **********************/
-  useFarmInfoLoader()
+  // useFarmInfoLoader()
 
   /********************** staking **********************/
-  useStealDataFromFarm() // auto inject apr to farm info from backend pair interface
+  // useStealDataFromFarm() // auto inject apr to farm info from backend pair interface
 
   /********************** txHistory **********************/
   useInitRefreshTransactionStatus()

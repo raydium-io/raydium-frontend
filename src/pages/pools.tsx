@@ -5,7 +5,7 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useFarms from '@/application/farms/useFarms'
 import { isHydratedPoolItemInfo } from '@/application/pools/is'
-import { HydratedPoolItemInfo } from '@/application/pools/type'
+import { HydratedPairItemInfo } from '@/application/pools/type'
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
 import { routeTo } from '@/application/routeTools'
@@ -522,7 +522,7 @@ function PoolCard() {
   )
 }
 
-function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedPoolItemInfo[] }) {
+function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedPairItemInfo[] }) {
   const loading = usePools((s) => s.loading)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
   return sortedData.length ? (
@@ -567,7 +567,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
   onStartFavorite
 }: {
   open: boolean
-  info: HydratedPoolItemInfo
+  info: HydratedPairItemInfo
   isFavourite?: boolean
   onUnFavorite?: (ammId: string) => void
   onStartFavorite?: (ammId: string) => void
@@ -761,7 +761,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
   return isMobile ? mobileContent : pcCotent
 }
 
-function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedPoolItemInfo }) {
+function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedPairItemInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const balances = useWallet((s) => s.balances)
   const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
@@ -938,7 +938,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
   )
 }
 
-function CoinAvatarInfoItem({ info, className }: { info: HydratedPoolItemInfo | undefined; className?: string }) {
+function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | undefined; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const lowLiquidityAlertText = `This pool has relatively low liquidity. Always check the quoted price and that the pool has sufficient liquidity before trading.`
 
