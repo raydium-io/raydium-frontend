@@ -259,14 +259,13 @@ export function RewardFormCardInputs({
                 // set end time
                 if (haveStartTime) {
                   setRewardTime({
-                    start: rewardStartTime,
                     end: offsetDateTime(rewardStartTime, {
                       milliseconds: totalDuration
                     })
                   })
                 }
 
-                // set amount (only edit-in-rewarding)
+                // set amount (only  edit-in-rewarding)
                 if (reward.isRwardingBeforeEnd72h) {
                   setRewardAmount(mul(estimatedValue, parseDurationAbsolute(totalDuration).days))
                 }
@@ -363,11 +362,15 @@ export function RewardFormCardInputs({
                   selectedDate.getTime() - rewardStartTime!.getTime()
                 ).seconds
                 if (durationSeconds < minDurationSeconds) {
-                  setRewardTime({
-                    start: offsetDateTime(selectedDate, {
-                      seconds: -minDurationSeconds
+                  if (reward.isRwardingBeforeEnd72h) {
+                    setRewardTime({
+                      end: offsetDateTime(rewardStartTime, { seconds: minDurationSeconds })
                     })
-                  })
+                  } else {
+                    setRewardTime({
+                      start: offsetDateTime(selectedDate, { seconds: -minDurationSeconds })
+                    })
+                  }
                   setDurationTime(minDurationSeconds)
                 } else if (durationSeconds > maxDurationSeconds) {
                   setRewardTime({
