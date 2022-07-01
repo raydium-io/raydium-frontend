@@ -869,6 +869,26 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                   <Button
                     className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
                     disabled={(farmInfo.isClosedPool && !farmInfo.isUpcomingPool) || !hasLp}
+                    validators={[
+                      { should: !farmInfo.isClosedPool },
+                      {
+                        should: connected,
+                        forceActive: true,
+                        fallbackProps: {
+                          children: 'Connect Wallet',
+                          onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                        }
+                      },
+                      {
+                        should: hasLp,
+                        forceActive: true,
+                        fallbackProps: {
+                          children: 'Add Liquidity',
+                          onClick: () =>
+                            routeTo('/liquidity/add', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
+                        }
+                      }
+                    ]}
                     onClick={() => {
                       if (connected) {
                         useFarms.setState({
@@ -1039,7 +1059,14 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                 heroIconName="link"
                 className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
-                  copyToClipboard(new URL(`/farms/?farmid=${toPubString(farmInfo.id)}`).toString())
+                  copyToClipboard(
+                    new URL(
+                      `farms/?tab=${useFarms.getState().currentTab}&farmid=${toPubString(farmInfo.id)}`,
+                      window.location.origin
+                    ).toString()
+                  ).then(() => {
+                    logSuccess('Copy Farm Link', <div>Farm ID: {toPubString(farmInfo.id)}</div>)
+                  })
                 }}
               />
               <Icon
@@ -1068,13 +1095,16 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                   className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                   onClick={() => {
                     copyToClipboard(
-                      new URL(`farms/?farmid=${toPubString(farmInfo.id)}`, window.location.origin).toString()
+                      new URL(
+                        `farms/?tab=${useFarms.getState().currentTab}&farmid=${toPubString(farmInfo.id)}`,
+                        window.location.origin
+                      ).toString()
                     ).then(() => {
-                      logSuccess('Farm Link Copied', <div>Farm ID: {toPubString(farmInfo.id)}</div>)
+                      logSuccess('Copy Farm Link', <div>Farm ID: {toPubString(farmInfo.id)}</div>)
                     })
                   }}
                 />
-                <Tooltip.Panel>Copy Farm ID</Tooltip.Panel>
+                <Tooltip.Panel>Copy Farm Link</Tooltip.Panel>
               </Tooltip>
               <Tooltip>
                 <Icon

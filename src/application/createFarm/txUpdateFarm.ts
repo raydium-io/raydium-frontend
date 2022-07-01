@@ -21,6 +21,7 @@ import useWallet from '../wallet/useWallet'
 import { hasRewardBeenEdited } from './parseRewardInfo'
 import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -125,7 +126,7 @@ function createNewRewardInstruction({
   const paramReward: FarmCreateInstructionParamsV6['rewardInfos'][number] = {
     rewardOpenTime: toBN(div(startTimestamp, 1000)),
     rewardEndTime: toBN(div(endTimestamp, 1000)),
-    rewardMint: rewardToken.mint,
+    rewardMint: isQuantumSOLVersionSOL(rewardToken) ? SOLMint : rewardToken.mint, // NOTE: start from RUDY, sol's mint is 11111111111111
     rewardPerSecond: toBN(mul(estimatedValue, padZero(1, rewardToken.decimals)))
   }
 

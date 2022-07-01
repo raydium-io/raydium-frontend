@@ -90,7 +90,7 @@ export function RewardFormCardInputs({
   //#region ------------------- reward center -------------------
   // to cache the result, have to store a temp
   const isUnedited72hReward = Boolean(reward && reward.isRwardingBeforeEnd72h && !hasRewardBeenEdited(reward))
-  const isUneditedEndedReward = reward?.isRewardEnded && !hasRewardBeenEdited(targetReward)
+  const isUneditedEndedReward = Boolean(reward?.isRewardEnded && !hasRewardBeenEdited(targetReward))
   const [tempReward, setTempReward] = useState(() =>
     isUneditedEndedReward
       ? { ...targetReward, amount: undefined, startTime: undefined, endTime: undefined }
@@ -98,6 +98,17 @@ export function RewardFormCardInputs({
       ? { ...targetReward, amount: undefined, startTime: targetReward.originData?.endTime, endTime: undefined }
       : targetReward
   )
+
+  useEffect(() => {
+    if (
+      reward &&
+      !reward?.isRewardEnded &&
+      !reward?.isRewarding &&
+      getRewardSignature(reward) !== getRewardSignature(tempReward)
+    ) {
+      setTempReward(reward)
+    }
+  }, [reward])
 
   const selectRewardToken = (token: SplToken | undefined) => {
     setTempReward(
@@ -217,7 +228,7 @@ export function RewardFormCardInputs({
         disableTokens={shakeUndifindedItem(rewards.map((r) => r.token))}
         canSelectQuantumSOL={Boolean(tempReward.token)}
         disabled={disableCoinInput}
-        value={rewardTokenAmount}
+        value={rewardTokenAmount ?? ''} // pass '' to clear the input
         token={tempReward.token}
         disabledTokenSelect={reward.isRewardBeforeStart || reward.isRewarding || reward.isRewardEnded}
         onSelectCoin={selectRewardToken}
@@ -259,7 +270,6 @@ export function RewardFormCardInputs({
                 // set end time
                 if (haveStartTime) {
                   setRewardTime({
-                    start: rewardStartTime,
                     end: offsetDateTime(rewardStartTime, {
                       milliseconds: totalDuration
                     })
@@ -303,8 +313,8 @@ export function RewardFormCardInputs({
             onDateChange={(selectedDate) => {
               if (!selectedDate) return
 
-              // set end time
               // set start time
+              // set end time (if exist durationTime)
               setRewardTime({
                 start: selectedDate,
                 end: durationTime ? offsetDateTime(selectedDate, { milliseconds: durationTime }) : undefined
@@ -341,7 +351,7 @@ export function RewardFormCardInputs({
               const haveStartTime = Boolean(rewardStartTime)
 
               // set end time
-              // set start time
+              // set start time (if exist durationTime)
               setRewardTime({
                 end: selectedDate,
                 start:
@@ -363,11 +373,15 @@ export function RewardFormCardInputs({
                   selectedDate.getTime() - rewardStartTime!.getTime()
                 ).seconds
                 if (durationSeconds < minDurationSeconds) {
-                  setRewardTime({
-                    start: offsetDateTime(selectedDate, {
-                      seconds: -minDurationSeconds
+                  if (reward.isRwardingBeforeEnd72h) {
+                    setRewardTime({
+                      end: offsetDateTime(rewardStartTime, { seconds: minDurationSeconds })
                     })
-                  })
+                  } else {
+                    setRewardTime({
+                      start: offsetDateTime(selectedDate, { seconds: -minDurationSeconds })
+                    })
+                  }
                   setDurationTime(minDurationSeconds)
                 } else if (durationSeconds > maxDurationSeconds) {
                   setRewardTime({
