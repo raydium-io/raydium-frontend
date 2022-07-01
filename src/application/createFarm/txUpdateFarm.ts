@@ -21,6 +21,7 @@ import useWallet from '../wallet/useWallet'
 import { hasRewardBeenEdited } from './parseRewardInfo'
 import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
