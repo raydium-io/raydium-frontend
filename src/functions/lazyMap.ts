@@ -20,10 +20,10 @@ export function lazyMap<T, U>(setting: LazyMapSettings<T, U>) {
   const canUseRequestIdleCallback = Boolean(window.requestIdleCallback) // Safari no't support `window.requestIdleCallback()`, so have to check first
   if (canUseRequestIdleCallback) {
     const idleId = window.requestIdleCallback(() => {
-      // console.time('lazy map')
+      // console.time(`lazy map (${setting.sourceKey})`)
       const result = setting.source.map(setting.loopFn)
       setting.onListChange(result)
-      // console.timeEnd('lazy map')
+      // console.timeEnd(`lazy map (${setting.sourceKey})`)
     })
 
     // cancel the last idle callback, and record new setting

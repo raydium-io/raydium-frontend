@@ -1,8 +1,8 @@
-import React, { useEffect } from 'react'
+import { PublicKey } from '@solana/web3.js'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
-
 import NextNProgress from 'nextjs-progressbar'
+import { useEffect } from 'react'
 
 import {
   useDeviceInfoSyc,
@@ -11,50 +11,46 @@ import {
   useSlippageTolerenceValidator,
   useThemeModeSync
 } from '@/application/appSettings/initializationHooks'
+import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
+import useFreshChainTimeOffset from '@/application/connection/useFreshChainTimeOffset'
 import { useUserCustomizedEndpointInitLoad } from '@/application/connection/useUserCustomizedEndpointInitLoad'
 import useFarmInfoLoader from '@/application/farms/useFarmInfoLoader'
 import useLiquidityInfoLoader from '@/application/liquidity/useLiquidityInfoLoader'
 import useMessageBoardFileLoader from '@/application/messageBoard/useMessageBoardFileLoader'
 import useMessageBoardReadedIdRecorder from '@/application/messageBoard/useMessageBoardReadedIdRecorder'
 import usePoolsInfoLoader from '@/application/pools/usePoolsInfoLoader'
+import useStealDataFromFarm from '@/application/staking/useStealDataFromFarm'
 import { useAutoSyncUserAddedTokens } from '@/application/token/useAutoSyncUserAddedTokens'
 import useAutoUpdateSelectableTokens from '@/application/token/useAutoUpdateSelectableTokens'
 import { useLpTokenMethodsLoad } from '@/application/token/useLpTokenMethodsLoad'
 import useLpTokensLoader from '@/application/token/useLpTokensLoader'
 import useTokenMintAutoRecord from '@/application/token/useTokenFlaggedMintAutoRecorder'
+import { useTokenGetterFnLoader } from '@/application/token/useTokenGetterFnLoader'
 import useTokenListSettingsLocalStorage from '@/application/token/useTokenListSettingsLocalStorage'
 import useTokenListsLoader from '@/application/token/useTokenListsLoader'
 import useTokenPriceRefresher from '@/application/token/useTokenPriceRefresher'
 import useInitRefreshTransactionStatus from '@/application/txHistory/useInitRefreshTransactionStatus'
 import useSyncTxHistoryWithLocalStorage from '@/application/txHistory/useSyncTxHistoryWithLocalStorage'
 import useInitBalanceRefresher from '@/application/wallet/useBalanceRefresher'
+import { useInitShadowKeypairs } from '@/application/wallet/useInitShadowKeypairs'
 import { useSyncWithSolanaWallet } from '@/application/wallet/useSyncWithSolanaWallet'
 import useTokenAccountsRefresher from '@/application/wallet/useTokenAccountsRefresher'
 import { useWalletAccountChangeListeners } from '@/application/wallet/useWalletAccountChangeListeners'
+import { useWalletConnectNotifaction } from '@/application/wallet/useWalletConnectNotifaction'
+import { DRAWER_STACK_ID } from '@/components/Drawer'
+import NotificationSystemStack from '@/components/NotificationSystemStack'
+import { POPOVER_STACK_ID } from '@/components/Popover'
+import { SolanaWalletProviders } from '@/components/SolanaWallets/SolanaWallets'
+import { createDOMElement } from '@/functions/dom/createDOMElement'
+import toPubString from '@/functions/format/toMintString'
+import { inClient } from '@/functions/judgers/isSSR'
+import useHandleWindowTopError from '@/hooks/useHandleWindowTopError'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionDialog'
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
-import NotificationSystemStack from '@/components/NotificationSystemStack'
-import { SolanaWalletProviders } from '@/components/SolanaWallets/SolanaWallets'
-import useHandleWindowTopError from '@/hooks/useHandleWindowTopError'
 
 import '../styles/index.css'
-import { useWalletConnectNotifaction } from '@/application/wallet/useWalletConnectNotifaction'
-import { useInitShadowKeypairs } from '@/application/wallet/useInitShadowKeypairs'
-import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
-import useStealDataFromFarm from '@/application/staking/useStealDataFromFarm'
-import { useTokenGetterFnLoader } from '@/application/token/useTokenGetterFnLoader'
-
-import { PublicKey } from '@solana/web3.js'
-import toPubString from '@/functions/format/toMintString'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
-import { inClient } from '@/functions/judgers/isSSR'
-import { createDOMElement } from '@/functions/dom/createDOMElement'
-import useFarmResetSelfCreatedByOwner from '@/application/farms/useFarmResetSelfCreatedByOwner'
-
-import { POPOVER_STACK_ID } from '@/components/Popover'
-import { DRAWER_STACK_ID } from '@/components/Drawer'
-import useFreshChainTimeOffset from '@/application/connection/useFreshChainTimeOffset'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -168,10 +164,10 @@ function ApplicationsInitializations() {
   usePoolsInfoLoader()
 
   /********************** farm **********************/
-  // useFarmInfoLoader()
+  useFarmInfoLoader()
 
   /********************** staking **********************/
-  // useStealDataFromFarm() // auto inject apr to farm info from backend pair interface
+  useStealDataFromFarm() // auto inject apr to farm info from backend pair interface
 
   /********************** txHistory **********************/
   useInitRefreshTransactionStatus()

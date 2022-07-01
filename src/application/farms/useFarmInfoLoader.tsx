@@ -13,6 +13,7 @@ import useWallet from '../wallet/useWallet'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useFarms from './useFarms'
 import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { lazyMap } from '@/functions/lazyMap'
 
 export default function useFarmInfoLoader() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
@@ -63,21 +64,25 @@ export default function useFarmInfoLoader() {
   // hydrate action will depends on other state, so it will rerender many times
   useEffectWithTransition(async () => {
     const blockSlotCountForSecond = await getSlotCountForSecond(currentEndPoint)
-    const hydratedInfos = sdkParsedInfos?.map((farmInfo) =>
-      hydrateFarmInfo(farmInfo, {
-        getToken,
-        getLpToken,
-        lpPrices,
-        tokenPrices,
-        liquidityJsonInfos,
-        blockSlotCountForSecond,
-        aprs,
-        currentBlockChainDate, // same as chainTimeOffset
-        chainTimeOffset // same as currentBlockChainDate
-      })
-    )
-
-    useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
+    lazyMap({
+      source: sdkParsedInfos,
+      sourceKey: 'hydrate farm info',
+      loopFn: (farmInfo) =>
+        hydrateFarmInfo(farmInfo, {
+          getToken,
+          getLpToken,
+          lpPrices,
+          tokenPrices,
+          liquidityJsonInfos,
+          blockSlotCountForSecond,
+          aprs,
+          currentBlockChainDate, // same as chainTimeOffset
+          chainTimeOffset // same as currentBlockChainDate
+        }),
+      onListChange: (hydratedInfos) => {
+        useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
+      }
+    })
   }, [
     aprs,
     sdkParsedInfos,
