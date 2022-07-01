@@ -867,6 +867,26 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                   <Button
                     className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
                     disabled={(farmInfo.isClosedPool && !farmInfo.isUpcomingPool) || !hasLp}
+                    validators={[
+                      { should: !farmInfo.isClosedPool },
+                      {
+                        should: connected,
+                        forceActive: true,
+                        fallbackProps: {
+                          children: 'Connect Wallet',
+                          onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                        }
+                      },
+                      {
+                        should: hasLp,
+                        forceActive: true,
+                        fallbackProps: {
+                          children: 'Add Liquidity',
+                          onClick: () =>
+                            routeTo('/liquidity/add', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
+                        }
+                      }
+                    ]}
                     onClick={() => {
                       if (connected) {
                         useFarms.setState({
