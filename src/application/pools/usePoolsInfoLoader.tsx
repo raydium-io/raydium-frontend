@@ -18,6 +18,7 @@ import useLiquidity from '../liquidity/useLiquidity'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
 import { hydratedPairInfo } from './hydratedPairInfo'
+import { lazyMap } from '@/functions/lazyMap'
 
 export default function usePoolsInfoLoader() {
   const jsonInfo = usePools((s) => s.jsonInfos, shallow)
@@ -75,15 +76,18 @@ export default function usePoolsInfoLoader() {
   }, [lpPrices])
 
   useEffectWithTransition(() => {
-    // console.time('hydrated pair json')
-    const hydratedInfos = jsonInfo.map((pair) =>
-      hydratedPairInfo(pair, {
-        lpToken: getLpToken(pair.lpMint),
-        lpBalance: balances[String(pair.lpMint)],
-        isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint)
-      })
-    )
-    usePools.setState({ hydratedInfos, loading: hydratedInfos.length === 0 })
-    // console.timeEnd('hydrated pair json')
+    lazyMap({
+      source: jsonInfo,
+      sourceKey: 'pair jsonInfo',
+      loopFn: (pair) =>
+        hydratedPairInfo(pair, {
+          lpToken: getLpToken(pair.lpMint),
+          lpBalance: balances[String(pair.lpMint)],
+          isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint)
+        }),
+      onListChange: (hydratedInfos) => {
+        usePools.setState({ hydratedInfos, loading: hydratedInfos.length === 0 })
+      }
+    })
   }, [jsonInfo, getToken, balances, lpTokens, tokens, stableLiquidityJsonInfoLpMints])
 }
