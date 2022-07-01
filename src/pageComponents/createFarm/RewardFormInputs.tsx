@@ -99,6 +99,17 @@ export function RewardFormCardInputs({
       : targetReward
   )
 
+  useEffect(() => {
+    if (
+      reward &&
+      !reward?.isRewardEnded &&
+      !reward?.isRewarding &&
+      getRewardSignature(reward) !== getRewardSignature(tempReward)
+    ) {
+      setTempReward(reward)
+    }
+  }, [reward])
+
   const selectRewardToken = (token: SplToken | undefined) => {
     setTempReward(
       produce(tempReward, (draft) => {
@@ -302,8 +313,8 @@ export function RewardFormCardInputs({
             onDateChange={(selectedDate) => {
               if (!selectedDate) return
 
-              // set end time
               // set start time
+              // set end time (if exist durationTime)
               setRewardTime({
                 start: selectedDate,
                 end: durationTime ? offsetDateTime(selectedDate, { milliseconds: durationTime }) : undefined
@@ -340,7 +351,7 @@ export function RewardFormCardInputs({
               const haveStartTime = Boolean(rewardStartTime)
 
               // set end time
-              // set start time
+              // set start time (if exist durationTime)
               setRewardTime({
                 end: selectedDate,
                 start:
