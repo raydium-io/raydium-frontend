@@ -12,6 +12,7 @@ import useToken from '../token/useToken'
 import useWallet from '../wallet/useWallet'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useFarms from './useFarms'
+import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 
 export default function useFarmInfoLoader() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
@@ -32,18 +33,18 @@ export default function useFarmInfoLoader() {
   const aprs = useMemo(() => Object.fromEntries(pairs.map((i) => [i.ammId, i.apr7d])), [pairs])
 
   // auto fetch json farm info when init
-  useAsyncEffect(async () => {
+  useEffectWithTransition(async () => {
     const farmJsonInfos = await fetchFarmJsonInfos()
     if (farmJsonInfos) useFarms.setState({ jsonInfos: farmJsonInfos })
   }, [farmRefreshCount])
 
   // auto fetch json farm info when init
-  useAsyncEffect(async () => {
+  useEffectWithTransition(async () => {
     useFarms.setState({ haveUpcomingFarms: jsonInfos.some((info) => info.upcoming) })
   }, [jsonInfos])
 
   // auto sdkParse
-  useAsyncEffect(async () => {
+  useEffectWithTransition(async () => {
     if (!jsonInfos || !connection) return
     if (!jsonInfos?.length) return
     const sdkParsedInfos = await mergeSdkFarmInfo(
@@ -60,7 +61,7 @@ export default function useFarmInfoLoader() {
 
   // auto hydrate
   // hydrate action will depends on other state, so it will rerender many times
-  useAsyncEffect(async () => {
+  useEffectWithTransition(async () => {
     const blockSlotCountForSecond = await getSlotCountForSecond(currentEndPoint)
     const hydratedInfos = sdkParsedInfos?.map((farmInfo) =>
       hydrateFarmInfo(farmInfo, {
@@ -75,8 +76,6 @@ export default function useFarmInfoLoader() {
         chainTimeOffset // same as currentBlockChainDate
       })
     )
-
-    useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
 
     useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
   }, [

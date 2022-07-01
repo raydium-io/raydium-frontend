@@ -15,6 +15,7 @@ import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { areShallowEqual } from '@/functions/judgers/areEqual'
+import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 
 /**
  * will load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -30,7 +31,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   const rawBalances = useWallet((s) => s.rawBalances)
 
   /** fetch json info list  */
-  useAsyncEffect(async () => {
+  useEffectWithTransition(async () => {
     if (disabled) return
     const response = await jFetch<LiquidityPoolsJsonFile>('https://api.raydium.io/v2/sdk/liquidity/mainnet.json', {
       ignoreCache: true
@@ -45,7 +46,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   }, [disabled])
 
   /** get userExhibitionLiquidityIds */
-  useAsyncEffect(async () => {
+  useEffectWithTransition(async () => {
     // when refresh, it will refresh twice. one for rawBalance, one for liquidityRefreshCount
     if (disabled) return
     if (!jsonInfos) return
@@ -83,7 +84,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   )
 
   /** sdkParsed infos (only wallet's LP) ➡  hydrated infos (only wallet's LP)*/
-  useAsyncEffect(async () => {
+  useEffectWithTransition(async () => {
     if (disabled) return
     const hydratedInfos = sdkParsedInfos.map((liquidityInfo) => {
       const lpBalance = rawBalances[String(liquidityInfo.lpMint)]
@@ -93,7 +94,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   }, [disabled, sdkParsedInfos, rawBalances, getToken, getLpToken])
 
   /** CURRENT jsonInfo ➡ current sdkParsedInfo  */
-  useAsyncEffect(async () => {
+  useEffectWithTransition(async () => {
     if (disabled) return
     if (connection && currentJsonInfo) {
       useLiquidity.setState({
@@ -105,7 +106,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   }, [disabled, currentJsonInfo, connection, refreshCount])
 
   /** CURRENT sdkParsedInfo ➡ current hydratedInfo  */
-  useAsyncEffect(async () => {
+  useEffectWithTransition(async () => {
     if (disabled) return
     if (connection && currentSdkParsedInfo) {
       const lpBalance = rawBalances[String(currentSdkParsedInfo.lpMint)]

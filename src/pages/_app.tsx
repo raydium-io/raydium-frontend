@@ -143,7 +143,6 @@ function ApplicationsInitializations() {
 
   // experimental features. will not let user see
   useInitShadowKeypairs()
-
   useSyncWithSolanaWallet()
   useWalletConnectNotifaction()
   useTokenAccountsRefresher()

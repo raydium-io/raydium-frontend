@@ -24,9 +24,10 @@ import useToken, {
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
 import { isRaydiumDevTokenListName, isRaydiumMainnetTokenListName, rawTokenListConfigs } from './rawTokenLists.config'
 import { SOLMint } from './wellknownToken.config'
+import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 
 export default function useTokenListsLoader() {
-  useEffect(() => {
+  useEffectWithTransition(() => {
     loadTokens()
   }, [])
 }

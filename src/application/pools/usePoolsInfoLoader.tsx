@@ -21,6 +21,7 @@ import useLiquidity from '../liquidity/useLiquidity'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 
 export default function usePoolsInfoLoader() {
   const jsonInfo = usePools((s) => s.jsonInfos, shallow)
@@ -50,12 +51,12 @@ export default function usePoolsInfoLoader() {
     usePools.setState({ jsonInfos: filtered })
   }
 
-  useEffect(() => {
+  useEffectWithTransition(() => {
     fetchPairs()
   }, [refreshCount])
 
   // TODO: currently also fetch info when it's not
-  useEffect(() => {
+  useEffectWithTransition(() => {
     if (!pathname.includes('/pools/') && !pathname.includes('/liquidity/')) return
     const timeoutId = setInterval(usePools.getState().refreshPools, 15 * 60 * 1000)
     return () => clearInterval(timeoutId)
@@ -79,7 +80,7 @@ export default function usePoolsInfoLoader() {
     usePools.setState({ lpPrices })
   }, [lpPrices])
 
-  useEffect(() => {
+  useEffectWithTransition(() => {
     const hydratedInfos = shakeUndifindedItem(
       jsonInfo.map((pair) => {
         try {
