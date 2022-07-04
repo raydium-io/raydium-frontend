@@ -141,6 +141,7 @@ export default function FarmEditPage() {
               setFocusReward(reward)
             }}
             onClaimReward={({ reward, onTxSuccess }) => txClaimReward({ reward, onTxSuccess })}
+            onClaimAllReward={({ rewards, onTxSuccess }) => txClaimReward({ reward: rewards, onTxSuccess })}
           />
         </div>
 

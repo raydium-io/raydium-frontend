@@ -1,18 +1,16 @@
-import useAsyncEffect from '@/hooks/useAsyncEffect'
-
 import { Endpoint } from '@/application/connection/fetchRPCConfig'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import jFetch from '@/functions/dom/jFetch'
-import { jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useMemo } from 'react'
 import useConnection from '../connection/useConnection'
 import { usePools } from '../pools/usePools'
 import useToken from '../token/useToken'
+import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useFarms from './useFarms'
-import { omit } from '@/functions/objectMethods'
 
 export default function useFarmInfoFetcher() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
@@ -50,7 +48,7 @@ export default function useFarmInfoFetcher() {
     const sdkParsedInfos = await mergeSdkFarmInfo(
       {
         connection,
-        pools: jsonInfos.map((info) => jsonInfo2PoolKeys(omit(info, 'category'))),
+        pools: jsonInfos.map(jsonInfo2PoolKeys),
         owner,
         config: { commitment: 'confirmed' }
       },

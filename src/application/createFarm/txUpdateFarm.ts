@@ -1,4 +1,4 @@
-import { Farm, FarmCreateInstructionParamsV6, jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
+import { Farm, FarmCreateInstructionParamsV6 } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 
@@ -22,6 +22,7 @@ import { hasRewardBeenEdited } from './parseRewardInfo'
 import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 
 export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {

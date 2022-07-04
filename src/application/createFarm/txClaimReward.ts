@@ -1,4 +1,4 @@
-import { Farm, jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
+import { Farm } from '@raydium-io/raydium-sdk'
 import { Connection, Signer, TransactionInstruction } from '@solana/web3.js'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
@@ -13,11 +13,14 @@ import { SOLMint } from '../token/wellknownToken.config'
 import useWallet from '../wallet/useWallet'
 import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
+import { MayArray } from '@/types/constants'
+import { asyncForEach } from '@/functions/asyncMap'
+import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 
 export default async function txClaimReward({
   reward,
   ...txAddOptions
-}: { reward: UIRewardInfo } & AddSingleTxOptions) {
+}: { reward: MayArray<UIRewardInfo> } & AddSingleTxOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection } }) => {
     const piecesCollector = createTransactionCollector()
 
@@ -28,10 +31,12 @@ export default async function txClaimReward({
     const farmInfo = hydratedInfos.find((f) => toPubString(f.id) === targetFarmId)
     assert(farmInfo, "can't find target farm")
 
-    // ---------- restart ----------
-    const { instructions, newAccounts } = await createClaimRewardInstruction({ reward, farmInfo, connection })
-    piecesCollector.addInstruction(...instructions)
-    piecesCollector.addSigner(...newAccounts)
+    // ---------- claim reward ----------
+    await asyncForEach([reward].flat(), async (reward) => {
+      const { instructions, newAccounts } = await createClaimRewardInstruction({ reward, farmInfo, connection })
+      piecesCollector.addInstruction(...instructions)
+      piecesCollector.addSigner(...newAccounts)
+    })
 
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       ...txAddOptions,

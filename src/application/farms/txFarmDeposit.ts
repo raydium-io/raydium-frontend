@@ -1,4 +1,4 @@
-import { Farm, jsonInfo2PoolKeys, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Farm, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import createAssociatedTokenAccountIfNotExist from '@/application/txTools/createAssociatedTokenAccountIfNotExist'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
@@ -11,6 +11,7 @@ import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
 import { HydratedFarmInfo } from './type'
 import useFarms from './useFarms'
+import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 
 export default async function txFarmDeposit(
   info: HydratedFarmInfo,
