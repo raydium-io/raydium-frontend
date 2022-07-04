@@ -209,7 +209,7 @@ function FarmTabBlock({ className }: { className?: string }) {
           <Row className="items-center">
             <div>Ecosystem</div>
             <Tooltip>
-              <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+              <Icon className="ml-1" size="xs" heroIconName="question-mark-circle" />
               <Tooltip.Panel className="max-w-[300px]">
                 Ecosystem Farms allow any project or user to create a farm in a decentralized manner to incentivize
                 liquidity providers. Rewards are locked for the duration on the farm. However, creator liquidity is not
