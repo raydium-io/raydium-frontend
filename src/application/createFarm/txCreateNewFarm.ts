@@ -152,8 +152,8 @@ export default async function txCreateNewFarm(
       transactionCollector.add(await piecesCollector.spawnTransaction(), {
         ...txAddOptions,
         txHistoryInfo: {
-          title: 'Create new Farm',
-          description: `farmId: ${createdFarmId.slice(0, 4)}...${createdFarmId.slice(-4)}`
+          title: 'Create New Farm',
+          description: `Farm ID: ${createdFarmId.slice(0, 4)}...${createdFarmId.slice(-4)}`
         },
         onTxSuccess(...args) {
           recordNewCreatedFarmItem() // test

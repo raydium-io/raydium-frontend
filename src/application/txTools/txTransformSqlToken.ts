@@ -55,7 +55,7 @@ export default async function txTransferToken(
       )
       transactionCollector.add(await piecesCollection.spawnTransaction(), {
         txHistoryInfo: {
-          title: 'Token transfer',
+          title: 'Token Transfer',
           description: `${toString(options.tokenAmount)} ${options.tokenAmount.token.symbol} from ${toPubString(
             from
           )} to ${toPubString(to)}`

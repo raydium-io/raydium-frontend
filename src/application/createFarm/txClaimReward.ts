@@ -41,8 +41,8 @@ export default async function txClaimReward({
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       ...txAddOptions,
       txHistoryInfo: {
-        title: 'Claim reward',
-        description: '(click to see details)'
+        title: 'Claim Reward',
+        description: '(Click to see details)'
       }
     })
   })

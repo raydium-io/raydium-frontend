@@ -5,12 +5,15 @@ import { TokenAmount } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { isHydratedFarmInfo, isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
 import txFarmDeposit from '@/application/farms/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/txFarmHarvest'
 import txFarmWithdraw from '@/application/farms/txFarmWithdraw'
 import { FarmPoolJsonInfo, HydratedFarmInfo, HydratedRewardInfo } from '@/application/farms/type'
 import useFarms, { useFarmFavoriteIds } from '@/application/farms/useFarms'
+import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
+import useNotification from '@/application/notification/useNotification'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
@@ -42,6 +45,7 @@ import Tabs from '@/components/Tabs'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
+import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
@@ -51,13 +55,9 @@ import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
+import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
-import useCreateFarms from '@/application/createFarm/useCreateFarm'
-import { searchItems } from '@/functions/searchItems'
-import copyToClipboard from '@/functions/dom/copyToClipboard'
-import useNotification from '@/application/notification/useNotification'
-import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -321,19 +321,16 @@ function FarmCard() {
 
   const tabedDataSource = useMemo(
     () =>
-      (dataSource as (FarmPoolJsonInfo | HydratedFarmInfo)[]).filter(
-        (i) =>
-          currentTab === 'Fusion'
-            ? i.category === 'fusion'
-            : currentTab === 'Inactive'
-            ? isHydratedFarmInfo(i)
-              ? i.isClosedPool && (i.category === 'ecosystem' || i.category === 'fusion' || i.category === 'raydium')
-              : false
-            : currentTab === 'Ecosystem'
-            ? i.category === 'ecosystem'
-            : isHydratedFarmInfo(i)
-            ? !i.isClosedPool && (i.category === 'ecosystem' || i.category === 'fusion' || i.category === 'raydium')
-            : i.category === 'ecosystem' || i.category === 'fusion' || i.category === 'raydium' // currentTab == 'Raydium'
+      (dataSource as (FarmPoolJsonInfo | HydratedFarmInfo)[]).filter((i) =>
+        currentTab === 'Fusion'
+          ? i.category === 'fusion' && (isHydratedFarmInfo(i) ? !i.isClosedPool : true)
+          : currentTab === 'Inactive'
+          ? isHydratedFarmInfo(i)
+            ? i.isClosedPool && (i.category === 'ecosystem' || i.category === 'fusion' || i.category === 'raydium')
+            : false
+          : currentTab === 'Ecosystem'
+          ? i.category === 'ecosystem'
+          : i.category === 'raydium' && (isHydratedFarmInfo(i) ? !i.isClosedPool : true)
       ),
     [currentTab, dataSource]
   )

@@ -55,7 +55,7 @@ export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOpt
       ...txAddOptions,
       txHistoryInfo: {
         title: 'Edit Farm',
-        description: '(click to see details)'
+        description: '(Click to see details)'
       }
     })
   })
