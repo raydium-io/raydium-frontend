@@ -9,11 +9,21 @@ export interface RadioGroupProps<T extends string> {
   className?: string
   style?: CSSProperties
   // TODO: itemClassName\itemStyle\value\label should be merged into a obj
+  // /** @deprecated use props:items instead */
   itemClassName?: string | ((checked: boolean) => string)
+  // /** @deprecated use props:items instead */
   itemStyle?: CSSProperties | ((checked: boolean, itemIndex: number, values: readonly T[]) => CSSProperties)
   currentValue?: T
+  // /** @deprecated use props:items instead */
   values: readonly T[]
+  // /** @deprecated use props:items instead */
   labels?: readonly MayFunction<ReactNode, [checked: boolean, itemIndex: number, values: readonly T[]]>[]
+  // items: {
+  //   className?: MayFunction<string, [checked: boolean]>
+  //   style?: MayFunction<CSSProperties, [check: boolean,  itemIndex: number, values: readonly T[]]>
+  //   value:  T
+  //   label?: MayFunction<ReactNode, [checked:boolean, itemIndex:number, value]
+  // }[]
   /** this callback may be invoke in init if user input URL has a hash   */
   onChange?: (currentValue: T) => any
 }
