@@ -202,6 +202,24 @@ function FarmTabBlock({ className }: { className?: string }) {
     <Tabs
       currentValue={currentTab}
       values={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'Inactive'] as const)}
+      labels={shakeFalsyItem([
+        'Raydium',
+        'Fusion',
+        isMobile ? undefined : (
+          <Row className="items-center">
+            <div>Ecosystem</div>
+            <Tooltip>
+              <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+              <Tooltip.Panel className="max-w-[300px]">
+                Ecosystem Farms allow any project or user to create a farm in a decentralized manner to incentivize
+                liquidity providers. Rewards are locked for the duration on the farm. However, creator liquidity is not
+                locked.
+              </Tooltip.Panel>
+            </Tooltip>
+          </Row>
+        ),
+        'Inactive'
+      ] as const)}
       onChange={(tab) => useFarms.setState({ currentTab: tab })}
       className={twMerge('justify-self-center mobile:col-span-full', className)}
       itemClassName={isMobile ? 'w-[80px] h-[30px]' : ''}
@@ -260,22 +278,16 @@ function FarmRefreshCircleBlock({ className }: { className?: string }) {
 
 function FarmCard() {
   const jsonInfos = useFarms((s) => s.jsonInfos)
-
   const hydratedInfos = useFarms((s) => s.hydratedInfos)
-
   const currentTab = useFarms((s) => s.currentTab)
   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
   const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   const searchText = useFarms((s) => s.searchText)
   const lpTokens = useToken((s) => s.lpTokens)
-
   const [favouriteIds] = useFarmFavoriteIds()
-
   const isMobile = useAppSettings((s) => s.isMobile)
   const owner = useWallet((s) => s.owner)
-
   const isLoading = useFarms((s) => s.isLoading)
-
   const dataSource = useMemo(() => {
     const hydratedInfo = hydratedInfos
       .filter((i) => lpTokens[toPubString(i.lpMint)])
@@ -352,6 +364,16 @@ function FarmCard() {
     }
   })
 
+  const farmCardTitleInfo =
+    currentTab === 'Ecosystem'
+      ? { title: 'Ecosystem Farms', description: 'Stake and earn Solana Ecosystem token rewards' }
+      : currentTab === 'Fusion'
+      ? { title: 'Fusion Farms', description: 'Stake LP tokens and earn project token rewards' }
+      : {
+          title: 'Raydium Farms',
+          description: 'Stake LP tokens and earn token rewards'
+        }
+
   // NOTE: filter widgets
   const innerFarmDatabaseWidgets = isMobile ? (
     <div>
@@ -375,10 +397,8 @@ function FarmCard() {
   ) : (
     <Row className="justify-between flex-wrap gap-8 items-center mb-4">
       <div>
-        <div className="font-medium text-white text-lg">All Farms</div>
-        <div className="font-medium text-[rgba(196,214,255,.5)] text-base ">
-          Stake your LP tokens and earn token rewards
-        </div>
+        <div className="font-medium text-white text-lg">{farmCardTitleInfo.title}</div>
+        <div className="font-medium text-[rgba(196,214,255,.5)] text-base ">{farmCardTitleInfo.description}</div>
       </div>
       <Row className="items-center gap-8">
         {haveSelfCreatedFarm && <FarmSlefCreatedOnlyBlock />}

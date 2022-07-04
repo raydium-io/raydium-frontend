@@ -78,8 +78,16 @@ export default function Tooltip({
  *
  * it is in same level of
  */
-export function TooltipPanel({ $isRenderByMain, children }: { $isRenderByMain?: boolean; children?: ReactNode }) {
+export function TooltipPanel({
+  $isRenderByMain,
+  children,
+  className
+}: {
+  $isRenderByMain?: boolean
+  children?: ReactNode
+  className?: string
+}) {
   if (!$isRenderByMain) return null
-  return <>{children}</>
+  return <div className={className}>{children}</div>
 }
 Tooltip.Panel = TooltipPanel
