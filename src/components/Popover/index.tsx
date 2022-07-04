@@ -40,6 +40,12 @@ export type PopoverPlacement =
   | 'bottom-left'
   | 'bottom-right'
 
+export type PopoverHandles = {
+  isPanelShowed: boolean
+  open(): void
+  close(): void
+} & PopoverTriggerControls
+
 export interface PopoverProps {
   triggerBy?: PopoverTiggerBy
   /** after delay time, `<Popover>` will be trigger */
@@ -49,6 +55,8 @@ export interface PopoverProps {
   children?: ReactNode
   /** usually it's for debug */
   forceOpen?: boolean
+  /** only affact init render */
+  defaultOpen?: boolean
   canOpen?: boolean
   componentRef?: RefObject<any>
   placement?: PopoverPlacement
@@ -116,10 +124,6 @@ const PopoverStackPortal = ({ children }) => {
     : null
 }
 
-export type PopoverHandles = {
-  isPanelShowed: boolean
-} & PopoverTriggerControls
-
 export default function Popover({
   className,
   children,
@@ -129,6 +133,7 @@ export default function Popover({
   triggerDelay,
   closeDelay,
   canOpen = true,
+  defaultOpen,
   componentRef,
   cornerOffset,
   popoverGap,
@@ -146,6 +151,7 @@ export default function Popover({
   // TODO: buttonRef can be HTMLDivElement not just RefObject<HTMLDivElement>
   const { isPanelShowed, controls } = usePopoverTrigger(buttonRef, panelRef, {
     disabled: !canOpen,
+    defaultOpen,
     triggerDelay,
     closeDelay,
     triggerBy
@@ -158,7 +164,10 @@ export default function Popover({
     viewportBoundaryInset
   })
 
-  useImperativeHandle(componentRef, () => ({ ...controls, isPanelShowed } as PopoverHandles))
+  useImperativeHandle(
+    componentRef,
+    () => ({ ...controls, isPanelShowed, open: controls.on, close: controls.off } as PopoverHandles)
+  )
 
   useIsomorphicLayoutEffect(() => {
     if (isPanelShowed && isPanelRefReady) {

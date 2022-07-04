@@ -1,4 +1,4 @@
-import { Fragment, ReactNode, useMemo, useRef, useState } from 'react'
+import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 
 import { TokenAmount } from '@raydium-io/raydium-sdk'
 
@@ -39,7 +39,7 @@ import Row from '@/components/Row'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tabs from '@/components/Tabs'
-import Tooltip from '@/components/Tooltip'
+import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
 import formatNumber from '@/functions/format/formatNumber'
@@ -57,8 +57,10 @@ import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { searchItems } from '@/functions/searchItems'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import useNotification from '@/application/notification/useNotification'
+import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
 
 export default function FarmsPage() {
+  useFarmUrlParser()
   return (
     <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
       <FarmHeader />
@@ -118,6 +120,21 @@ function ToolsButton({ className }: { className?: string }) {
 function FarmSearchBlock({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const storeSearchText = useFarms((s) => s.searchText)
+
+  const tooltipComponentRef = useRef<TooltipHandle>(null)
+  const [haveInitSearchText, setHaveInitSearchText] = useState(false)
+  const haveInited = useRef(false)
+  useEffect(() => {
+    if (haveInited.current) return
+    setTimeout(() => {
+      // poopup immediately is strange
+      haveInited.current = true
+      if (storeSearchText) {
+        setHaveInitSearchText(true)
+        tooltipComponentRef.current?.open()
+      }
+    }, 600)
+  }, [storeSearchText])
   return (
     <Input
       value={storeSearchText}
@@ -128,16 +145,20 @@ function FarmSearchBlock({ className }: { className?: string }) {
       inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
       prefix={<Icon heroIconName="search" size={isMobile ? 'sm' : 'smi'} className="text-[rgba(196,214,255,0.5)]" />}
       suffix={
-        <Icon
-          heroIconName="x"
-          size={isMobile ? 'xs' : 'sm'}
-          className={`text-[rgba(196,214,255,0.5)] transition clickable ${
-            storeSearchText ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-          onClick={() => {
-            useFarms.setState({ searchText: '' })
-          }}
-        />
+        <Tooltip disable={!haveInitSearchText} componentRef={tooltipComponentRef}>
+          {/* TODO: Tooltip should accept 5 minutes */}
+          <Icon
+            heroIconName="x"
+            size={isMobile ? 'xs' : 'sm'}
+            className={`text-[rgba(196,214,255,0.5)] transition clickable ${
+              storeSearchText ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+            onClick={() => {
+              useFarms.setState({ searchText: '' })
+            }}
+          />
+          <Tooltip.Panel>click here to view all farm pools</Tooltip.Panel>
+        </Tooltip>
       }
       placeholder="Search All"
       onUserInput={(searchText) => {

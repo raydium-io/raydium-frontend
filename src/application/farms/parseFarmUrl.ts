@@ -1,11 +1,8 @@
-import router from 'next/router'
 import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { inClient } from '@/functions/judgers/isSSR'
 
 export function getURLFarmTab(): 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive' | undefined {
-  // TODO: maybe it's(`inClient`) not right way of SSR
-  if (inClient) return undefined
-  const query = router.query
+  const query = getURLQuery()
   const urlTab = String(query.tab ?? '') || undefined
   const parsed =
     urlTab === 'Fusion'
@@ -19,8 +16,21 @@ export function getURLFarmTab(): 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive'
 }
 
 export function getURLFarmId(): string | undefined {
-  if (inClient) return undefined
-  const query = router.query
+  const query = getURLQuery()
   const urlFarmId = String(query.farmId ?? query.farmid ?? '') || undefined
   return isValidPublicKey(urlFarmId) ? urlFarmId : undefined
+}
+
+export function getURLQuery(): Record<string, string | undefined> {
+  if (!inClient) return {}
+  const searchText = window.location.search
+  const searchQuery = searchText
+    ? Object.fromEntries(
+        searchText
+          .slice(1)
+          .split('&')
+          .map((pair: string) => pair.split('='))
+      )
+    : {}
+  return searchQuery
 }

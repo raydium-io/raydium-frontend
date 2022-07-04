@@ -18,6 +18,7 @@ export function usePopoverTrigger(
   buttonRef: RefObject<HTMLElement | undefined | null>,
   panelRef: RefObject<HTMLElement | undefined | null>,
   options?: {
+    defaultOpen?: boolean
     disabled?: boolean
     triggerDelay?: number
     closeDelay?: number
@@ -28,8 +29,8 @@ export function usePopoverTrigger(
   const { closeDelay = 600, triggerBy = 'click', triggerDelay, disabled } = options ?? {}
 
   // TODO: useToggleRef should be toggleWrapper(useSignalState())
-  const [isPanelShowed, setisPanelShowed] = useState(false)
-  const [isPanelShowedRef, { toggle, on, delayOff, off }] = useToggleRef(false, {
+  const [isPanelShowed, setisPanelShowed] = useState(Boolean(options?.defaultOpen))
+  const [isPanelShowedRef, { toggle, on, delayOff, off }] = useToggleRef(Boolean(options?.defaultOpen), {
     delay: closeDelay,
     onChange: (isOn) => {
       setisPanelShowed(isOn)
