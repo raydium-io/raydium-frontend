@@ -5,6 +5,7 @@ import useToken from '../token/useToken'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 
 export type FarmStore = {
+  /** detect if hydratedInfo is ready */
   isLoading: boolean
   jsonInfos: FarmPoolJsonInfo[] // TODO: switch to Object key value pair, for faster extracting
   sdkParsedInfos: SdkParsedFarmInfo[] // TODO: switch to Object key value pair, for faster extracting

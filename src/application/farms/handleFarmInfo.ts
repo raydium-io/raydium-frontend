@@ -72,6 +72,7 @@ export async function mergeSdkFarmInfo(
   const result = options.pools.map(
     (pool, idx) =>
       ({
+        ...payload.jsonInfos[idx],
         ...pool,
         ...rawInfos[String(pool.id)],
         jsonInfo: payload.jsonInfos[idx]

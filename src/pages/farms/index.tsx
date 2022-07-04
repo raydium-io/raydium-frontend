@@ -5,7 +5,7 @@ import { TokenAmount } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
+import { isHydratedFarmInfo, isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
 import txFarmDeposit from '@/application/farms/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/txFarmHarvest'
 import txFarmWithdraw from '@/application/farms/txFarmWithdraw'
@@ -267,7 +267,7 @@ function FarmRefreshCircleBlock({ className }: { className?: string }) {
 }
 
 function FarmCard() {
-  const jsonInfo = useFarms((s) => s.jsonInfos)
+  const jsonInfos = useFarms((s) => s.jsonInfos)
 
   const hydratedInfos = useFarms((s) => s.hydratedInfos)
 
@@ -282,28 +282,33 @@ function FarmCard() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const owner = useWallet((s) => s.owner)
 
-  const dataSource = useMemo(
-    () =>
-      hydratedInfos.filter((i) => lpTokens[toPubString(i.lpMint)]).filter((i) => (isMobile ? i.version !== 6 : true)),
-    [lpTokens, hydratedInfos]
-  )
+  const isLoading = useFarms((s) => s.isLoading)
+
+  const dataSource = useMemo(() => {
+    const hydratedInfo = hydratedInfos
+      .filter((i) => lpTokens[toPubString(i.lpMint)])
+      .filter((i) => (isMobile ? i.version !== 6 : true))
+    const jsonInfo = jsonInfos
+      .filter((i) => lpTokens[toPubString(i.lpMint)])
+      .filter((i) => (isMobile ? i.version !== 6 : true))
+    return isLoading ? jsonInfo : hydratedInfo
+  }, [lpTokens, isLoading, hydratedInfos, jsonInfos])
 
   const tabedDataSource = useMemo(
     () =>
-      dataSource.filter(
+      (dataSource as (FarmPoolJsonInfo | HydratedFarmInfo)[]).filter(
         (i) =>
-          // currentTab === 'Upcoming'
-          //   ? i.isUpcomingPool
-          //   : // : currentTab === 'Raydium'
-          // ? i.isRaydiumPool && !i.isClosedPool
-
           currentTab === 'Fusion'
-            ? (i.isNormalFusionPool || i.isDualFusionPool) && i.version !== 6
+            ? i.category === 'fusion'
             : currentTab === 'Inactive'
-            ? i.isClosedPool && !i.isStakePool && i.version !== 6
+            ? isHydratedFarmInfo(i)
+              ? i.isClosedPool && (i.category === 'ecosystem' || i.category === 'fusion' || i.category === 'raydium')
+              : false
             : currentTab === 'Ecosystem'
-            ? i.version === 6
-            : (i.isUpcomingPool || (!i.isClosedPool && !i.isStakePool)) && i.version !== 6 // currentTab == 'all'
+            ? i.category === 'ecosystem'
+            : isHydratedFarmInfo(i)
+            ? !i.isClosedPool && (i.category === 'ecosystem' || i.category === 'fusion' || i.category === 'raydium')
+            : true // currentTab == 'all'
       ),
     [currentTab, dataSource]
   )
@@ -313,7 +318,9 @@ function FarmCard() {
   const applyFiltersDataSource = useMemo(
     () =>
       tabedDataSource
-        .filter((i) => (onlySelfFarms ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true)) // Switch
+        .filter((i) =>
+          onlySelfFarms && isHydratedFarmInfo(i) ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true
+        ) // Switch
         .filter((i) => (i.version === 6 && onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)), // Switch
     [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
   )
@@ -322,16 +329,19 @@ function FarmCard() {
     () =>
       searchItems(applyFiltersDataSource, {
         text: searchText,
-        matchConfigs: (i) => [
-          { text: toPubString(i.id), entirely: true },
-          { text: i.ammId, entirely: true }, // Input Auto complete result sort setting
-          { text: toPubString(i.base?.mint), entirely: true },
-          { text: toPubString(i.quote?.mint), entirely: true },
-          i.base?.symbol,
-          i.quote?.symbol,
-          i.base?.name,
-          i.quote?.name
-        ]
+        matchConfigs: (i) =>
+          isHydratedFarmInfo(i)
+            ? [
+                { text: toPubString(i.id), entirely: true },
+                { text: i.ammId, entirely: true }, // Input Auto complete result sort setting
+                { text: toPubString(i.base?.mint), entirely: true },
+                { text: toPubString(i.quote?.mint), entirely: true },
+                i.base?.symbol,
+                i.quote?.symbol,
+                i.base?.name,
+                i.quote?.name
+              ]
+            : [{ text: toPubString(i.id), entirely: true }]
       }),
     [applyFiltersDataSource, searchText]
   )
@@ -344,11 +354,11 @@ function FarmCard() {
   } = useSort(applySearchedDataSource, {
     defaultSort: {
       key: 'defaultKey',
-      sortCompare: [(i) => i.isUpcomingPool, /* (i) => i.isNewPool, */ (i) => favouriteIds?.includes(toPubString(i.id))]
+      sortCompare: [
+        /* (i) => i.isUpcomingPool, */ /* (i) => i.isNewPool, */ (i) => favouriteIds?.includes(toPubString(i.id))
+      ]
     }
   })
-
-  const isLoading = useFarms((s) => s.isLoading)
 
   // NOTE: filter widgets
   const innerFarmDatabaseWidgets = isMobile ? (
@@ -425,7 +435,7 @@ function FarmCard() {
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
-                sortCompare: (i) => i.name
+                sortCompare: (i) => (isHydratedFarmInfo(i) ? i.name : undefined)
               })
             }}
           >
@@ -450,7 +460,9 @@ function FarmCard() {
           {/* table head column: Total APR */}
           <Row
             className="pl-2 font-medium items-center text-[#ABC4FF] text-sm cursor-pointer gap-1  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'totalApr', sortCompare: (i) => i.totalApr })}
+            onClick={() =>
+              setSortConfig({ key: 'totalApr', sortCompare: (i) => (isHydratedFarmInfo(i) ? i.totalApr : undefined) })
+            }
           >
             Total APR
             <Tooltip>
@@ -473,7 +485,9 @@ function FarmCard() {
           {/* table head column: TVL */}
           <Row
             className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'tvl', sortCompare: (i) => i.tvl })}
+            onClick={() =>
+              setSortConfig({ key: 'tvl', sortCompare: (i) => (isHydratedFarmInfo(i) ? i.tvl : undefined) })
+            }
           >
             TVL
             <Icon
@@ -492,26 +506,23 @@ function FarmCard() {
         </Row>
       )}
 
-      <FarmCardDatabaseBody isLoading={isLoading} sortedHydratedFarmInfos={sortedData} jsonInfos={jsonInfo} />
+      <FarmCardDatabaseBody isLoading={isLoading} infos={sortedData} />
     </CyberpunkStyleCard>
   )
 }
 
 function FarmCardDatabaseBody({
   isLoading,
-  sortedHydratedFarmInfos,
-  jsonInfos
+  infos
 }: {
   isLoading: boolean
-  sortedHydratedFarmInfos: HydratedFarmInfo[]
-  jsonInfos: FarmPoolJsonInfo[]
+  infos: (FarmPoolJsonInfo | HydratedFarmInfo)[]
 }) {
   const expandedItemIds = useFarms((s) => s.expandedItemIds)
   const [favouriteIds, setFavouriteIds] = useFarmFavoriteIds()
-  const infos = isLoading ? jsonInfos : sortedHydratedFarmInfos
   return (
     <>
-      {sortedHydratedFarmInfos.length || jsonInfos.length ? (
+      {infos.length ? (
         <List className="gap-3 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
           {infos.map((info: FarmPoolJsonInfo | HydratedFarmInfo) => (
             <List.Item key={String(info.id)}>
