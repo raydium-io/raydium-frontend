@@ -555,11 +555,13 @@ function FarmCardDatabaseBody({
       {infos.length ? (
         <List className="gap-3 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
           {infos.map((info: FarmPoolJsonInfo | HydratedFarmInfo) => (
-            <List.Item key={String(info.id)}>
+            <List.Item key={toPubString(info.id)}>
               <Collapse
-                open={expandedItemIds.has(String(info.id))}
+                open={expandedItemIds.has(toPubString(info.id))}
                 onToggle={() => {
-                  useFarms.setState((s) => ({ expandedItemIds: toggleSetItem(s.expandedItemIds, String(info.id)) }))
+                  useFarms.setState((s) => ({
+                    expandedItemIds: toggleSetItem(s.expandedItemIds, toPubString(info.id))
+                  }))
                 }}
               >
                 <Collapse.Face>

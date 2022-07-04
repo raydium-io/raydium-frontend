@@ -1,20 +1,26 @@
 import { addItem } from '@/functions/arrayMethods'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import useInit from '@/hooks/useInit'
 import { getURLFarmId, getURLFarmTab } from './parseFarmUrl'
 import useFarms from './useFarms'
 
 export function useFarmUrlParser() {
-  useIsomorphicLayoutEffect(() => {
-    const urlFarmId = getURLFarmId()
-    if (urlFarmId) {
-      useFarms.setState((s) => ({ expandedItemIds: addItem(s.expandedItemIds, urlFarmId), searchText: urlFarmId }))
-    }
-  }, [])
+  useInit(
+    () => {
+      const urlFarmId = getURLFarmId()
+      if (urlFarmId) {
+        useFarms.setState((s) => ({ expandedItemIds: addItem(s.expandedItemIds, urlFarmId), searchText: urlFarmId }))
+      }
+    },
+    { effectMethod: 'isoLayoutEffect' }
+  )
 
-  useIsomorphicLayoutEffect(() => {
-    const urlTab = getURLFarmTab()
-    if (urlTab) {
-      useFarms.setState({ currentTab: urlTab })
-    }
-  }, [])
+  useInit(
+    () => {
+      const urlTab = getURLFarmTab()
+      if (urlTab) {
+        useFarms.setState({ currentTab: urlTab })
+      }
+    },
+    { effectMethod: 'isoLayoutEffect' }
+  )
 }
