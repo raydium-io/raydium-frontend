@@ -55,12 +55,10 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { searchItems } from '@/functions/searchItems'
-import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import useNotification from '@/application/notification/useNotification'
 
 export default function FarmsPage() {
-  useFarmUrlParser()
   return (
     <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
       <FarmHeader />
@@ -203,13 +201,7 @@ function FarmTabBlock({ className }: { className?: string }) {
   return (
     <Tabs
       currentValue={currentTab}
-      values={shakeFalsyItem([
-        'All',
-        // 'Raydium',
-        'Fusion',
-        isMobile ? undefined : 'Ecosystem',
-        'Inactive'
-      ] as const)}
+      values={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'Inactive'] as const)}
       onChange={(tab) => useFarms.setState({ currentTab: tab })}
       className={twMerge('justify-self-center mobile:col-span-full', className)}
       itemClassName={isMobile ? 'w-[80px] h-[30px]' : ''}
@@ -308,7 +300,7 @@ function FarmCard() {
             ? i.category === 'ecosystem'
             : isHydratedFarmInfo(i)
             ? !i.isClosedPool && (i.category === 'ecosystem' || i.category === 'fusion' || i.category === 'raydium')
-            : true // currentTab == 'all'
+            : i.category === 'ecosystem' || i.category === 'fusion' || i.category === 'raydium' // currentTab == 'Raydium'
       ),
     [currentTab, dataSource]
   )

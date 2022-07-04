@@ -26,7 +26,7 @@ export type FarmStore = {
 
   onlySelfFarms: boolean
   onlySelfCreatedFarms: boolean
-  currentTab: 'All' | 'Upcoming' | 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive'
+  currentTab: 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive'
   searchText: string
 
   stakeDialogMode: 'deposit' | 'withdraw'
@@ -51,7 +51,7 @@ const useFarms = create<FarmStore>((set) => ({
 
   onlySelfFarms: false,
   onlySelfCreatedFarms: false,
-  currentTab: inClient ? getURLFarmTab() || 'All' : 'All',
+  currentTab: inClient ? getURLFarmTab() || 'Raydium' : 'Raydium',
   searchText: inClient ? getURLFarmId() ?? '' : '',
 
   stakeDialogMode: 'deposit',

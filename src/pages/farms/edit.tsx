@@ -167,6 +167,7 @@ export default function FarmEditPage() {
 
         <Button
           className="block frosted-glass-teal mx-auto mt-4 mb-12"
+          size="lg"
           validators={[
             {
               should: meaningFullRewards.length || editedRewards.length
