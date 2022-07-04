@@ -51,22 +51,14 @@ export const EXTEND_BEFORE_END_SECOND = 0.5 * 60 * 60 // test
 export const EXTEND_BEFORE_END = EXTEND_BEFORE_END_SECOND * 1000
 
 export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefined> {
-  const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
-    ignoreCache: true
-  })
+  const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json')
   if (!result) return undefined
-  // const userCreated = getLocalItem<Omit<FarmPoolJsonInfo, 'official' | 'local'>[]>(userCreatedFarmKey)?.map((s) => ({
-  //   ...s,
-  //   official: false,
-  //   local: true
-  // })) // RUDY says no need
-  const officials = result.official.map((i) => ({ ...i, official: true, local: false }))
-  const unOfficial = result.unOfficial?.map((i) => ({ ...i, official: false, local: false }))
-
-  return [...officials, ...(unOfficial ?? [])]
-  // return [...officials, ...(unOfficial ?? [])].sort(
-  //   (a, b) => -getMaxOpenTime(a.rewardInfos) + getMaxOpenTime(b.rewardInfos)
-  // )
+  const stakeFarmInfoList = result.stake.map((i) => ({ ...i, category: 'stake' })) ?? []
+  const raydiumFarmInfoList = result.raydium.map((i) => ({ ...i, category: 'raydium' })) ?? []
+  const fusionFarmInfoList = result.fusion.map((i) => ({ ...i, category: 'fusion' })) ?? []
+  const ecosystemFarmInfoList = result.ecosystem.map((i) => ({ ...i, category: 'ecosystem' })) ?? []
+  // @ts-expect-error string literial type error. safe to ignore it
+  return [...stakeFarmInfoList, ...raydiumFarmInfoList, ...fusionFarmInfoList, ...ecosystemFarmInfoList]
 }
 
 /** and state info  */

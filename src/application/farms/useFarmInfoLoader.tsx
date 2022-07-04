@@ -12,6 +12,7 @@ import useToken from '../token/useToken'
 import useWallet from '../wallet/useWallet'
 import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useFarms from './useFarms'
+import { omit } from '@/functions/objectMethods'
 
 export default function useFarmInfoFetcher() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
@@ -49,7 +50,7 @@ export default function useFarmInfoFetcher() {
     const sdkParsedInfos = await mergeSdkFarmInfo(
       {
         connection,
-        pools: jsonInfos.map(jsonInfo2PoolKeys),
+        pools: jsonInfos.map((info) => jsonInfo2PoolKeys(omit(info, 'category'))),
         owner,
         config: { commitment: 'confirmed' }
       },
