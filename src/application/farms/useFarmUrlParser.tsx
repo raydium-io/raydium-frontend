@@ -1,16 +1,15 @@
 import { addItem } from '@/functions/arrayMethods'
 import { isValidPublicKey } from '@/functions/judgers/dateType'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
 import useFarms from './useFarms'
 
 export function useFarmUrlParser() {
-  const farmHydratedInfos = useFarms((s) => s.hydratedInfos)
   const { query } = useRouter()
   const urlFarmId = String(query.farmId ?? query.farmid ?? '') || undefined
   const urlTab = String(query.tab ?? '') || undefined
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (isValidPublicKey(urlFarmId)) {
       useFarms.setState((s) => ({ expandedItemIds: addItem(s.expandedItemIds, urlFarmId), searchText: urlFarmId }))
     }
@@ -27,5 +26,5 @@ export function useFarmUrlParser() {
           : 'All'
       useFarms.setState({ currentTab: parsed })
     }
-  }, [farmHydratedInfos, urlFarmId, urlTab])
+  }, [urlFarmId, urlTab])
 }

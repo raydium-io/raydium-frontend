@@ -4,6 +4,9 @@ import { FarmPoolJsonInfo, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
 import useToken from '../token/useToken'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 
+import { getURLFarmId, getURLFarmTab } from './parseFarmUrl'
+import isClientSide, { inClient } from '@/functions/judgers/isSSR'
+
 export type FarmStore = {
   /** detect if hydratedInfo is ready */
   isLoading: boolean
@@ -37,7 +40,7 @@ const useFarms = create<FarmStore>((set) => ({
   sdkParsedInfos: [],
   hydratedInfos: [],
 
-  expandedItemIds: new Set(),
+  expandedItemIds: inClient ? new Set([getURLFarmId() ?? '']) : new Set(),
   haveUpcomingFarms: false,
 
   farmRefreshCount: 0,
@@ -48,8 +51,8 @@ const useFarms = create<FarmStore>((set) => ({
 
   onlySelfFarms: false,
   onlySelfCreatedFarms: false,
-  currentTab: 'All',
-  searchText: '',
+  currentTab: inClient ? getURLFarmTab() || 'All' : 'All',
+  searchText: inClient ? getURLFarmId() ?? '' : '',
 
   stakeDialogMode: 'deposit',
   isStakeDialogOpen: false,
