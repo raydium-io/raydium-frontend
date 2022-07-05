@@ -308,9 +308,12 @@ export function EditableRewardSummary({
           )
         }}
         onListChange={(list) => {
-          useCreateFarms.setState({
-            rewards: list
-          })
+          useCreateFarms.setState((s) => ({
+            rewards: s.rewards.map((oldReward) => {
+              const editedItem = list.find((i) => i.id === oldReward.id)
+              return editedItem ? editedItem : oldReward
+            })
+          }))
         }}
       />
       {canUserEdit && rewards.filter((r) => r.isRewardEnded).length > 1 && (
