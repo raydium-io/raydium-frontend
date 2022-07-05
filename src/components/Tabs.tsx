@@ -6,41 +6,40 @@ import toPercentString from '@/functions/format/toPercentString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 
+import { addQuery, getURLQuery } from '@/functions/dom/getURLQueryEntries'
 import RadioGroup, { RadioGroupProps } from './RadioGroup'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface TabProps<T extends string = string> extends RadioGroupProps<T> {
-  affectUrlHash?: boolean
+  /** when set, means open affect url query search  */
+  urlSearchQueryKey?: string
 }
 
 /**
  * Just inherit from `<StyledRadioGroup>` with ability to affect UrlHash
  * @returns
  */
-export default function Tabs<T extends string = string>({ affectUrlHash, className, ...restProps }: TabProps<T>) {
+export default function Tabs<T extends string = string>({ urlSearchQueryKey, className, ...restProps }: TabProps<T>) {
   useIsomorphicLayoutEffect(() => {
-    if (!affectUrlHash) return
-    function onHashChange() {
-      const currentHashName = window.location.hash.replace('#', '') as T
-      restProps.onChange?.(currentHashName)
+    // apply from url
+    if (!urlSearchQueryKey) return
+    const initTabValue = getURLQuery(urlSearchQueryKey) as T | undefined
+    if (initTabValue && restProps.values.includes(initTabValue)) {
+      restProps.onChange?.(initTabValue)
     }
-    onHashChange() // affect url hash to props in init
-    // change url hash to props if user change hash
-    window.addEventListener('hashchange', onHashChange)
-    return () => window.removeEventListener('hashchange', onHashChange)
   }, [])
 
   useEffect(() => {
-    if (!affectUrlHash) return
+    if (!urlSearchQueryKey) return
     if (restProps.currentValue) {
-      // change url hash on props
-      window.location.hash = `#${restProps.currentValue}`
+      addQuery(urlSearchQueryKey, restProps.currentValue)
     }
   }, [restProps.currentValue])
 
   return (
     <RadioGroup
       {...restProps}
+      currentValue={restProps.currentValue}
       className={twMerge('rounded-full p-1 bg-cyberpunk-card-bg', className)}
       itemClassName={(checked) =>
         twMerge(

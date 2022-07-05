@@ -223,6 +223,7 @@ function FarmTabBlock({ className }: { className?: string }) {
     <Tabs
       currentValue={currentTab}
       values={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'Inactive'] as const)}
+      urlSearchQueryKey="tab"
       labels={shakeFalsyItem([
         'Raydium',
         'Fusion',
