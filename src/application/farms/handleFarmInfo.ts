@@ -249,9 +249,11 @@ function calculateFarmPoolAprs(
   }
 ) {
   if (info.version === 6) {
-    return info.state.rewardInfos.map(({ rewardPerSecond, rewardOpenTime }, idx) => {
-      // don't calculate upcoming reward
-      if (isDateBefore(payload.currentBlockChainDate, rewardOpenTime.toNumber(), { unit: 's' })) {
+    return info.state.rewardInfos.map(({ rewardPerSecond, rewardOpenTime, rewardEndTime }, idx) => {
+      // don't calculate upcoming reward || inactive reward
+      const isRewardBeforeStart = isDateBefore(payload.currentBlockChainDate, rewardOpenTime.toNumber(), { unit: 's' })
+      const isRewardAfterEnd = isDateAfter(payload.currentBlockChainDate, rewardEndTime.toNumber(), { unit: 's' })
+      if (isRewardBeforeStart || isRewardAfterEnd) {
         return
       }
 
