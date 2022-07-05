@@ -44,7 +44,8 @@ export function EditableRewardSummary({
   const owner = useWallet((s) => s.owner)
   const isCreator = rewards.every((reward) => isMintEqual(owner, reward.owner))
   const existSomeClaimableRewards = rewards.some(
-    (reward) => reward.originData && isMeaningfulNumber(toString(reward.originData.claimableRewards))
+    (reward) =>
+      reward.isRewardEnded && reward.originData && isMeaningfulNumber(toString(reward.originData.claimableRewards))
   )
   return (
     <Col>
