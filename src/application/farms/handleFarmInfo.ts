@@ -253,10 +253,7 @@ function calculateFarmPoolAprs(
       // don't calculate upcoming reward || inactive reward
       const isRewardBeforeStart = isDateBefore(payload.currentBlockChainDate, rewardOpenTime.toNumber(), { unit: 's' })
       const isRewardAfterEnd = isDateAfter(payload.currentBlockChainDate, rewardEndTime.toNumber(), { unit: 's' })
-      if (isRewardBeforeStart || isRewardAfterEnd) {
-        return
-      }
-
+      if (isRewardBeforeStart || isRewardAfterEnd) return undefined
       const rewardToken = payload.rewardTokens[idx]
       if (!rewardToken) return undefined
       const rewardTokenPrice = payload.rewardTokenPrices[idx]
