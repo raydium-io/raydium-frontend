@@ -39,7 +39,8 @@ import { twMerge } from 'tailwind-merge'
 
 function useAvailableCheck() {
   useEffect(() => {
-    if (!useCreateFarms.getState().isRoutedByCreateOrEdit) routeTo('/farms')
+    if (!useCreateFarms.getState().isRoutedByCreateOrEdit)
+      routeTo('/farms', { queryProps: { currentTab: 'Ecosystem' } })
   }, [])
 }
 

@@ -40,6 +40,7 @@ export type PageRouteConfigs = {
   '/farms': {
     queryProps?: {
       searchText?: string
+      currentTab?: 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive'
     }
   }
   '/pools': {
@@ -119,6 +120,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       /** jump to target page */
       useFarms.setState(
         objectShakeFalsy({
+          currentTab: options?.queryProps.currentTab,
           searchText: options?.queryProps?.searchText
         })
       )
