@@ -196,11 +196,12 @@ export function EditableRewardSummary({
           }
         }}
         renderRowEntry={({ contentNode, itemData: reward, changeSelf }) => {
+          const isRewardBeforeStart = reward.originData?.isRewardBeforeStart
           const isRewardEditable = reward.originData?.isRwardingBeforeEnd72h || reward.originData?.isRewardEnded
           const isRewardOwner = owner && isMintEqual(owner, reward.owner)
           const isRewardEdited = hasRewardBeenEdited(reward)
           return (
-            <div className={isRewardEditable ? '' : 'not-selectable'}>
+            <div className={isRewardBeforeStart ? 'not-selectable' : ''}>
               {contentNode}
               {canUserEdit && isRewardEditable && (
                 <div className="bg-[#abc4ff1a] rounded-md p-2 mb-4 empty:hidden">
@@ -311,7 +312,7 @@ export function EditableRewardSummary({
           })
         }}
       />
-      {rewards.length > 1 && (
+      {canUserEdit && rewards.filter((r) => r.isRewardEnded).length > 1 && (
         <Button
           className={`self-end frosted-glass-skygray my-4`}
           validators={[
