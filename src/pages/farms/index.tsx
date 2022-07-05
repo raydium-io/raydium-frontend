@@ -719,6 +719,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
 
       <TextInfoItem
         name="Total APR"
+        className="w-max"
         value={
           isJsonFarmInfo(info) ? (
             '--'
