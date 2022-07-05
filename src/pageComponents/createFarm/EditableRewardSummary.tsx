@@ -316,11 +316,7 @@ export function EditableRewardSummary({
       {canUserEdit && rewards.filter((r) => r.isRewardEnded).length > 1 && (
         <Button
           className={`self-end frosted-glass-skygray my-4`}
-          validators={[
-            {
-              should: isCreator && existSomeClaimableRewards
-            }
-          ]}
+          validators={[{ should: isCreator && existSomeClaimableRewards }]}
           size="lg"
           onClick={() => {
             const { rewards } = useCreateFarms.getState()

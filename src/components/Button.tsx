@@ -112,7 +112,7 @@ function solidButtonTailwind({
       : 'px-4 py-2.5  rounded-xl font-medium'
   } whitespace-nowrap appearance-none inline-block ${
     disable
-      ? `bg-formkit-thumb-disable text-formkit-thumb-text-disabled opacity-50 ${
+      ? `bg-formkit-thumb-disable text-formkit-thumb-text-disabled opacity-40 ${
           haveFallbackClick ? '' : 'cursor-not-allowed'
         }`
       : 'bg-formkit-thumb text-formkit-thumb-text-normal clickable clickable-filter-effect'
@@ -134,7 +134,7 @@ function outlineButtonTailwind({
       ? 'px-4 py-2 text-xs rounded-xl'
       : 'px-4 py-2.5  rounded-xl'
   } whitespace-nowrap appearance-none inline-block ring-1.5 ring-inset ring-current ${
-    disable ? `opacity-50 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable clickable-filter-effect'
+    disable ? `opacity-40 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable clickable-filter-effect'
   }`
 }
 
@@ -153,6 +153,6 @@ function textButtonTailwind({
       ? 'px-4 py-2 text-xs rounded-xl'
       : 'px-4 py-2.5  rounded-xl'
   } whitespace-nowrap appearance-none inline-block text-white ${
-    disable ? `opacity-50 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable clickable-filter-effect'
+    disable ? `opacity-40 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable clickable-filter-effect'
   }`
 }
