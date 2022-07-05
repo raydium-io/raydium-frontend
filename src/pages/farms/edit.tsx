@@ -87,8 +87,7 @@ export default function FarmEditPage() {
   useEditFarmUrlParser()
 
   const walletConnected = useWallet((s) => s.connected)
-  const owner = useWallet((s) => s.owner)
-  const balances = useWallet((s) => s.balances)
+  const getBalance = useWallet((s) => s.getBalance)
   const { rewards: allRewards, cannotAddNewReward, farmId } = useCreateFarms()
   const hydratedFarmInfos = useFarms((s) => s.hydratedInfos)
   const [isRewardInputDialogOpen, setIsRewardInputDialogOpen] = useState(false)
@@ -199,7 +198,7 @@ export default function FarmEditPage() {
               }
             })),
             ...meaningFullRewards.map((reward) => {
-              const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
+              const haveBalance = gte(getBalance(reward.token), reward.amount)
               return {
                 should: haveBalance,
                 fallbackProps: {

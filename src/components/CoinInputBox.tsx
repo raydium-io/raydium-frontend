@@ -15,7 +15,13 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import { usePools } from '@/application/pools/usePools'
 import { Token } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
-import { isQuantumSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
+import {
+  isQuantumSOL,
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  SOL_BASE_BALANCE,
+  WSOLMint
+} from '@/application/token/quantumSOL'
 import useWallet from '@/application/wallet/useWallet'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
@@ -33,6 +39,7 @@ import toPubString from '@/functions/format/toMintString'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
 import DecimalInput from './DecimalInput'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -61,6 +68,7 @@ export interface CoinInputBoxProps {
   onEnter?(input: string | undefined): void
 
   onTryToTokenSelect?(): void
+  onTryToSwitchSOLWSOL?(): void
   // return valid info
   onInputAmountClampInBalanceChange?(info: { outOfMax: boolean; negative: boolean }): void
   onBlur?(input: string | undefined): void
@@ -73,6 +81,12 @@ export interface CoinInputBoxProps {
   // sometimes, should show staked deposited lp, instead of wallet balance
   maxValue?: Numberish
 
+  /**
+   * in some business
+   * for example, farm created in SOL, but should can edited in WSOL
+   * corresponding `listener: onTryToSwitchSOLWSOL`
+   */
+  allowSOLWSOLSwitch?: boolean
   // used in acceleraytor (input tickets)
   hideTokenPart?: boolean
   // sometimes, U don't need price predictor, for it's not a token (may be it's lottery ticket or some pure amount input)
@@ -102,14 +116,16 @@ export default function CoinInputBox({
   token,
   onUserInput,
   onTryToTokenSelect,
+  onTryToSwitchSOLWSOL,
   onInputAmountClampInBalanceChange,
   onEnter,
   onBlur,
 
   topLeftLabel,
   topRightLabel,
-
   maxValue: forceMaxValue,
+
+  allowSOLWSOLSwitch,
   hideTokenPart,
   hidePricePredictor,
   hideMaxButton,
@@ -134,6 +150,7 @@ export default function CoinInputBox({
     if (isOutsideValueLocked.current) return
     setInputedAmount(value)
   }, [value])
+
   useEffect(() => {
     if (!isOutsideValueLocked.current) return
     if (inputedAmount !== value) {
@@ -219,6 +236,8 @@ export default function CoinInputBox({
       } as CoinInputBoxHandle)
   )
 
+  const canSwitchSOLWSOL = disabledTokenSelect && allowSOLWSOLSwitch && isMintEqual(token?.mint, WSOLMint)
+
   return (
     <Row
       className={twMerge(
@@ -256,13 +275,23 @@ export default function CoinInputBox({
           <>
             <Row
               className={`items-center gap-1.5 ${
-                showTokenSelectIcon && !disabledTokenSelect ? 'clickable clickable-mask-offset-2' : ''
+                (showTokenSelectIcon && !disabledTokenSelect) || canSwitchSOLWSOL
+                  ? 'clickable clickable-mask-offset-2'
+                  : ''
               }`}
               onClick={(ev) => {
                 ev.stopPropagation()
                 ev.preventDefault()
+                if (canSwitchSOLWSOL) onTryToSwitchSOLWSOL?.()
                 if (disabledTokenSelect) return
                 onTryToTokenSelect?.()
+              }}
+              htmlPorps={{
+                title: canSwitchSOLWSOL
+                  ? isQuantumSOLVersionSOL(token)
+                    ? 'switch to WSOL'
+                    : 'switch to SOL'
+                  : undefined
               }}
             >
               {haveCoinIcon && token && <CoinAvatar token={token} size={isMobile ? 'smi' : 'md'} />}

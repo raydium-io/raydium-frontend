@@ -136,7 +136,7 @@ export default function CreateFarmPage() {
     (r) => r.amount != null || r.startTime != null || r.endTime != null || r.token != null
   )
   const poolId = useCreateFarms((s) => s.poolId)
-  const balances = useWallet((s) => s.balances)
+  const getBalance = useWallet((s) => s.getBalance)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const walletConnected = useWallet((s) => s.connected)
 
@@ -275,7 +275,7 @@ export default function CreateFarmPage() {
                 }
               })),
               ...meaningFullRewards.map((reward) => {
-                const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
+                const haveBalance = gte(getBalance(reward.token), reward.amount)
                 return {
                   should: haveBalance,
                   fallbackProps: {

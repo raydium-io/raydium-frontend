@@ -88,6 +88,7 @@ export type WalletStore = {
 
   // it can consider QuantumSOL
   getBalance(target: Token | PublicKeyish | undefined): TokenAmount | QuantumSOLAmount | undefined
+
   // it can consider QuantumSOL
   getRawBalance(target: Token | PublicKeyish | undefined): BN | undefined
 
