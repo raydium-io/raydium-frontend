@@ -1,10 +1,11 @@
-import { useEffect } from 'react'
 import toPubString from '@/functions/format/toMintString'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { PublicKeyish } from '@/types/constants'
-import useToken from './useToken'
+import { useEffect } from 'react'
+import { QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
 import { SplToken } from './type'
-import { SOLUrlMint, QuantumSOLVersionSOL, WSOLMint, QuantumSOLVersionWSOL } from './quantumSOL'
-import { min } from 'bn.js'
+import useToken from './useToken'
+import { SOLMint } from './wellknownToken.config'
 
 export function useLpTokenMethodsLoad() {
   const lpTokens = useToken((s) => s.lpTokens)
@@ -14,10 +15,10 @@ export function useLpTokenMethodsLoad() {
   /** NOTE -  getToken place 2 */
   useEffect(() => {
     function getToken(mint: PublicKeyish | undefined, options?: { exact?: boolean }): SplToken | undefined {
-      if (String(mint) === SOLUrlMint) {
+      if (mint === SOLUrlMint || isMintEqual(mint, SOLMint) || (!options?.exact && isMintEqual(mint, WSOLMint))) {
         return QuantumSOLVersionSOL
       }
-      if (String(mint) === String(WSOLMint) && options?.exact) {
+      if (options?.exact && isMintEqual(mint, WSOLMint)) {
         return QuantumSOLVersionWSOL
       }
       return tokens[String(mint)] ?? lpTokens[toPubString(mint)] ?? userAddedTokens.get(toPubString(mint))

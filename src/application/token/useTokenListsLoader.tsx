@@ -8,21 +8,22 @@ import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { HexAddress, PublicKeyish, SrcAddress } from '@/types/constants'
 
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { objectMap, replaceValue } from '../../functions/objectMethods'
+import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
+import { isRaydiumDevTokenListName, isRaydiumMainnetTokenListName, rawTokenListConfigs } from './rawTokenLists.config'
 import {
   RaydiumDevTokenListJsonInfo,
   RaydiumTokenListJsonInfo,
   SplToken,
-  TokenListFetchConfigItem,
-  TokenJson
+  TokenJson,
+  TokenListFetchConfigItem
 } from './type'
 import useToken, {
   RAYDIUM_DEV_TOKEN_LIST_NAME,
   RAYDIUM_MAINNET_TOKEN_LIST_NAME,
   SOLANA_TOKEN_LIST_NAME
 } from './useToken'
-import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
-import { isRaydiumDevTokenListName, isRaydiumMainnetTokenListName, rawTokenListConfigs } from './rawTokenLists.config'
 import { SOLMint } from './wellknownToken.config'
 
 export default function useTokenListsLoader() {
@@ -173,10 +174,10 @@ async function loadTokens() {
   /** NOTE -  getToken place 1 */
   /** exact mode: 'so111111112' will be QSOL-WSOL 'sol' will be QSOL-SOL */
   function getToken(mint: PublicKeyish | undefined, options?: { exact?: boolean }): SplToken | undefined {
-    if (String(mint) === SOLUrlMint) {
+    if (mint === SOLUrlMint || isMintEqual(mint, SOLMint) || (!options?.exact && isMintEqual(mint, WSOLMint))) {
       return QuantumSOLVersionSOL
     }
-    if (String(mint) === String(WSOLMint) && options?.exact) {
+    if (options?.exact && isMintEqual(mint, WSOLMint)) {
       return QuantumSOLVersionWSOL
     }
     return tokens[String(mint)]
