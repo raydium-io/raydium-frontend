@@ -1,4 +1,5 @@
 import { inClient } from '@/functions/judgers/isSSR'
+import router from 'next/router'
 import { objectShakeNil } from '../objectMethods'
 import { shrinkToValue } from '../shrinkToValue'
 
@@ -20,13 +21,7 @@ export function applyURLQueryEntry(entry: Record<string, any>) {
   if (!inClient) return
   const parsedEntry = objectShakeNil(entry)
   if (!Object.keys(parsedEntry).length) return
-  globalThis.history.replaceState(
-    {},
-    '',
-    `?${Object.entries(entry)
-      .map(([key, value]) => `${key}=${value}`)
-      .join('&')}`
-  )
+  router.push({ query: objectShakeNil(entry) })
 }
 
 export function getURLQuery(key: string): string | undefined {
