@@ -18,6 +18,7 @@ import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewar
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import { setInterval } from '../../functions/timeout'
 
 function useAvailableCheck() {
   useEffect(() => {
@@ -110,8 +111,14 @@ export default function CreateFarmReviewPage() {
                       onReceiveFarmId(farmId) {
                         useCreateFarms.setState({ farmId })
                       },
-                      onTxSuccess: () => {
+                      onTxSentFinally: () => {
                         turnOnCreated()
+                        setInterval(
+                          () => {
+                            useFarms.getState().refreshFarmInfos()
+                          },
+                          { loopCount: 3, intervalTime: 1000 * 60 }
+                        )
                       }
                     },
                     key
