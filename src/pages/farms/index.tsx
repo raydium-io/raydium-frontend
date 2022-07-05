@@ -1371,7 +1371,7 @@ function TextInfoItem({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <Col className={twMerge('w-max', className)}>
+    <Col className={className}>
       {isMobile && <div className=" mb-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">{name}</div>}
       <Col className="flex-grow justify-center">
         <div className="text-base mobile:text-xs">{value || '--'}</div>
