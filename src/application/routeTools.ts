@@ -17,6 +17,7 @@ import toPubString from '@/functions/format/toMintString'
 import useWallet from './wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { createNewUIRewardInfo, parsedHydratedRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
+import { addQuery, cleanQuery } from '@/functions/dom/getURLQueryEntries'
 
 export type PageRouteConfigs = {
   '/swap': {
@@ -140,11 +141,15 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         })
       })
   } else if (toPage === '/farms/create') {
+    cleanQuery('farmid')
     return router
       .push({
         pathname: '/farms/create'
       })
       .then(() => {
+        useFarms.setState({
+          searchText: ''
+        })
         useCreateFarms.setState({
           rewards: [{ ...createNewUIRewardInfo() }]
         })

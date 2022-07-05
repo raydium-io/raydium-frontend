@@ -8,6 +8,7 @@ import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 
 import { addQuery, getURLQuery } from '@/functions/dom/getURLQueryEntries'
 import RadioGroup, { RadioGroupProps } from './RadioGroup'
+import useUpdate from '@/hooks/useUpdate'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface TabProps<T extends string = string> extends RadioGroupProps<T> {
@@ -29,7 +30,7 @@ export default function Tabs<T extends string = string>({ urlSearchQueryKey, cla
     }
   }, [])
 
-  useEffect(() => {
+  useUpdate(() => {
     if (!urlSearchQueryKey) return
     if (restProps.currentValue) {
       addQuery(urlSearchQueryKey, restProps.currentValue)

@@ -32,3 +32,7 @@ export function addQuery<T = unknown>(key: string, value: T | ((oldV: T | undefi
   const oldQueries = getURLQueryEntry() ?? {}
   applyURLQueryEntry({ ...oldQueries, [key]: shrinkToValue(value, [oldQueries[key] as T | undefined]) })
 }
+
+export function cleanQuery(key: string) {
+  return addQuery(key, undefined)
+}

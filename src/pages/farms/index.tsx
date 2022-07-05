@@ -58,6 +58,7 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
+import { addQuery } from '@/functions/dom/getURLQueryEntries'
 
 export default function FarmsPage() {
   useFarmUrlParser()
