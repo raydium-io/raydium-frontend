@@ -32,6 +32,7 @@ export default async function createAssociatedTokenAccountIfNotExist(payload: {
 
   /* ----------------------------- auto close WSOL ---------------------------- */
   if (payload.autoUnwrapWSOLToSOL && isMintEqual(mint, WSOLMint)) {
+    // console.log('close')
     payload.collector.addEndInstruction(
       Spl.makeCloseAccountInstruction({ owner, payer: owner, tokenAccount: tokenAccountAddress })
     )
