@@ -70,8 +70,8 @@ export default async function txCreateNewFarm(
           rewardPerSecond: perSecondReward
         }
       })
-      const lockMint = '7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR' // NOTE: test
-      const lockVault = 'H2StJuXebaAnSQHvbYGeokbgC1EKB6tBvY2iB2PxoUqS' // NOTE: test
+      const lockMint = '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R' // NOTE: test
+      const lockVault = 'FrspKwj8i3pNmKwXreTveC4fu7KL5ZbGeXdZBe2XViu1' // NOTE: test
       const lpMint = poolJsonInfo.lpMint
       const lockMintTokenAccount = tokenAccounts.find((t) => isMintEqual(t.mint, lockMint))
       assert(lockMintTokenAccount?.publicKey, 'lockMintTokenAccount not found')
