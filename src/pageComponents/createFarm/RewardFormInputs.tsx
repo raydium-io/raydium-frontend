@@ -260,7 +260,7 @@ export function RewardFormCardInputs({
         <Row className="gap-4">
           <InputBox
             className="grow-2 rounded-md text-sm font-medium text-white px-4"
-            inputClassName="placeholder:text-[#abc4ff40]"
+            inputClassName="placeholder:text-[#abc4ff50]"
             label="Total Duration"
             type="number"
             inputHTMLProps={{
@@ -319,7 +319,8 @@ export function RewardFormCardInputs({
             className="grow rounded-md px-4"
             label="Farming Starts"
             inputProps={{
-              inputClassName: 'text-sm font-medium text-white'
+              placeholder: 'Select date and time',
+              inputClassName: 'text-sm font-medium text-white placeholder:text-[#abc4ff50]'
             }}
             showTime={{ format: 'Select time: HH:mm UTC' }}
             value={rewardStartTime}
@@ -347,7 +348,8 @@ export function RewardFormCardInputs({
             className="shrink-0 grow rounded-md px-4"
             label="Farming Ends"
             inputProps={{
-              inputClassName: 'text-sm font-medium text-white'
+              placeholder: disableEndTimeInput ? undefined : 'Select date and time',
+              inputClassName: 'text-sm font-medium text-white placeholder:text-[#abc4ff50]'
             }}
             value={rewardEndTime}
             disabled={disableEndTimeInput}
