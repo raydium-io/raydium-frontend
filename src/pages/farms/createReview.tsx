@@ -38,7 +38,7 @@ export default function CreateFarmReviewPage() {
   }, [pathname])
 
   const userRayBalance = balances[toPubString(RAYMint)]
-  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
+  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 300)
   useAvailableCheck()
 
   return (

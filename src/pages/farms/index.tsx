@@ -203,7 +203,7 @@ function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
   const owner = useWallet((s) => s.owner)
   const balances = useWallet((s) => s.balances)
   const userRayBalance = balances[toPubString(RAYMint)]
-  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
+  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 300)
   return (
     <Row
       className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
