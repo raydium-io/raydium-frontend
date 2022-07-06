@@ -33,15 +33,18 @@ export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOpt
     const { hydratedInfos } = useFarms.getState()
     const { rewards: uiRewardInfos, farmId: targetFarmId } = useCreateFarms.getState()
 
-    // check input is valid
-    const { valid, reason } = validUiRewardInfo(uiRewardInfos)
-    assert(valid, reason)
-
     const farmInfo = hydratedInfos.find((f) => toPubString(f.id) === targetFarmId)
     assert(targetFarmId, 'target farm id is missing')
     assert(farmInfo, "can't find target farm")
     const restartRewards = uiRewardInfos.filter((r) => hasRewardBeenEdited(r) && r.type === 'existed reward')
     const createNewRewards = uiRewardInfos.filter((r) => r.type === 'new added')
+
+    // check input is valid
+    const { valid, reason } = validUiRewardInfo(restartRewards)
+    assert(valid, reason)
+
+    const { valid: createNewValid, reason: createNewReason } = validUiRewardInfo(createNewRewards)
+    assert(createNewValid, createNewReason)
 
     // ---------- restart ----------
     await asyncMap(restartRewards, async (r) => {
