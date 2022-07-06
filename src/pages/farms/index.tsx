@@ -1081,9 +1081,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                     children: 'Connect Wallet'
                   }
                 },
-                {
-                  should: hasPendingReward
-                }
+                { should: hasPendingReward }
               ]}
             >
               Harvest
