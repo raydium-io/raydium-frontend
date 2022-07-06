@@ -78,10 +78,10 @@ export default async function txFarmHarvest(
       onTxError: () => removeWalletAccountChangeListener(listenerId),
       onTxSentError: () => removeWalletAccountChangeListener(listenerId),
       txHistoryInfo: {
-        title: `Harvest ${options.rewardAmounts.map(({ token }) => token.symbol).join(' and ')}`,
+        title: `Harvest ${options.rewardAmounts.map(({ token }) => token.symbol).join(', ')}`,
         description: `Harvest ${options.rewardAmounts
           .map((amount) => `${amount.toExact()} ${amount.token.symbol}`)
-          .join(' and ')}`
+          .join(', ')}`
       }
     })
   })
