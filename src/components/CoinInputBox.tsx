@@ -81,6 +81,8 @@ export interface CoinInputBoxProps {
   // sometimes, should show staked deposited lp, instead of wallet balance
   maxValue?: Numberish
 
+  /** show: 0.0 */
+  hasPlaceholder?: boolean
   /**
    * in some business
    * for example, farm created in SOL, but should can edited in WSOL
@@ -125,6 +127,7 @@ export default function CoinInputBox({
   topRightLabel,
   maxValue: forceMaxValue,
 
+  hasPlaceholder,
   allowSOLWSOLSwitch,
   hideTokenPart,
   hidePricePredictor,
@@ -334,9 +337,9 @@ export default function CoinInputBox({
           <DecimalInput
             className="font-medium text-lg text-white flex-grow w-full"
             disabled={disabledInput}
-            type="number"
             decimalCount={token?.decimals}
             componentRef={inputRef}
+            placeholder={hasPlaceholder ? '0.0' : undefined}
             value={inputedAmount}
             onUserInput={(t) => setInputedAmount(String(t || ''))}
             onEnter={onEnter}

@@ -244,6 +244,7 @@ export function RewardFormCardInputs({
       <CoinInputBoxWithTokenSelector
         className={`rounded-md`}
         haveHalfButton
+        hasPlaceholder
         topLeftLabel="Reward Token"
         disableTokens={shakeUndifindedItem(rewards.map((r) => r.token))}
         canSelectQuantumSOL={Boolean(tempReward.token)}
