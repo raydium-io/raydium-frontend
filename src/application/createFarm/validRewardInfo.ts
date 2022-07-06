@@ -11,8 +11,8 @@ export function valid300Ray(): { valid: boolean; reason?: string } {
   const { getBalance, owner } = useWallet.getState()
   if (!owner) return { valid: false, reason: 'wallet not connected' }
   const userRayBalance = getBalance(RAYMint)
-  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0) /** Test */
-  if (!haveStakeOver300Ray) return { valid: false, reason: 'User must have 300 RAY' }
+  const haveOver300Ray = gte(userRayBalance ?? 0, 300) /** Test */
+  if (!haveOver300Ray) return { valid: false, reason: 'User must have 300 RAY' }
   return { valid: true }
 }
 

@@ -38,7 +38,7 @@ export default function CreateFarmReviewPage() {
   }, [pathname])
 
   const userRayBalance = balances[toPubString(RAYMint)]
-  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0) /** Test */
+  const haveOver300Ray = gte(userRayBalance ?? 0, 300) /** Test */
   useAvailableCheck()
 
   return (
@@ -105,7 +105,7 @@ export default function CreateFarmReviewPage() {
               <Button
                 className="frosted-glass-teal px-16 self-stretch"
                 size="lg"
-                validators={[{ should: haveStakeOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
+                validators={[{ should: haveOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
                 onClick={async () => {
                   txCreateNewFarm(
                     {
