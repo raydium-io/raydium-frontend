@@ -40,9 +40,6 @@ export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOpt
     const createNewRewards = uiRewardInfos.filter((r) => r.type === 'new added')
 
     // check input is valid
-    const { valid, reason } = validUiRewardInfo(restartRewards)
-    assert(valid, reason)
-
     const { valid: createNewValid, reason: createNewReason } = validUiRewardInfo(createNewRewards)
     assert(createNewValid, createNewReason)
 
