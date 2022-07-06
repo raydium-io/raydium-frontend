@@ -7,6 +7,7 @@ import {
   MAX_DURATION_SECOND,
   MAX_OFFSET_AFTER_NOW_SECOND
 } from '@/application/farms/handleFarmInfo'
+import { isQuantumSOLVersionSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useWallet from '@/application/wallet/useWallet'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
@@ -20,6 +21,7 @@ import { getTime, offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isExist } from '@/functions/judgers/nil'
 import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
@@ -82,7 +84,7 @@ export function RewardFormCardInputs({
 
   onRewardChange
 }: RewardFormCardInputsParams) {
-  const balances = useWallet((s) => s.balances)
+  const getBalance = useWallet((s) => s.getBalance)
   const rewards = useCreateFarms((s) => s.rewards)
   const rewardIndex = rewards.findIndex(({ id }) => id === targetReward.id)
   const reward = rewards[rewardIndex] as UIRewardInfo | undefined // usdate fresh data
@@ -120,6 +122,23 @@ export function RewardFormCardInputs({
       useCreateFarms.setState({
         rewards: produce(rewards, (draft) => {
           if (rewardIndex >= 0) draft[rewardIndex].token = token
+        })
+      })
+    }
+  }
+  const handleSwitchSOLWSOLRewardToken = () => {
+    setTempReward(
+      produce(tempReward, (draft) => {
+        draft.token = isQuantumSOLVersionSOL(draft.token) ? QuantumSOLVersionWSOL : QuantumSOLVersionSOL
+      })
+    )
+    if (syncDataWithZustandStore) {
+      useCreateFarms.setState({
+        rewards: produce(rewards, (draft) => {
+          if (rewardIndex >= 0)
+            draft[rewardIndex].token = isQuantumSOLVersionSOL(draft[rewardIndex].token)
+              ? QuantumSOLVersionWSOL
+              : QuantumSOLVersionSOL
         })
       })
     }
@@ -197,7 +216,8 @@ export function RewardFormCardInputs({
   const isDurationValid = Boolean(
     durationTime != null && minDurationSeconds * 1e3 <= durationTime && durationTime <= maxDurationSeconds * 1e3
   )
-  const haveBalance = Boolean(tempReward && gte(balances[toPubString(tempReward.token?.mint)], tempReward.amount))
+  // const walletBalance =  balances[toPubString(tempReward.token?.mint)]
+  const haveBalance = Boolean(tempReward.token && gte(getBalance(tempReward.token), tempReward.amount))
   const isAmountValid = haveBalance
 
   const rewardTokenAmount =
@@ -224,6 +244,7 @@ export function RewardFormCardInputs({
       <CoinInputBoxWithTokenSelector
         className={`rounded-md`}
         haveHalfButton
+        hasPlaceholder
         topLeftLabel="Reward Token"
         disableTokens={shakeUndifindedItem(rewards.map((r) => r.token))}
         canSelectQuantumSOL={Boolean(tempReward.token)}
@@ -233,12 +254,14 @@ export function RewardFormCardInputs({
         disabledTokenSelect={reward.isRewardBeforeStart || reward.isRewarding || reward.isRewardEnded}
         onSelectCoin={selectRewardToken}
         onUserInput={setRewardAmount}
+        allowSOLWSOLSwitch
+        onTryToSwitchSOLWSOL={handleSwitchSOLWSOLRewardToken}
       />
       <div>
         <Row className="gap-4">
           <InputBox
             className="grow-2 rounded-md text-sm font-medium text-white px-4"
-            inputClassName="placeholder:text-[#abc4ff40]"
+            inputClassName="placeholder:text-[#abc4ff50]"
             label="Total Duration"
             type="number"
             inputHTMLProps={{
@@ -297,7 +320,8 @@ export function RewardFormCardInputs({
             className="grow rounded-md px-4"
             label="Farming Starts"
             inputProps={{
-              inputClassName: 'text-sm font-medium text-white'
+              placeholder: 'Select date and time',
+              inputClassName: 'text-sm font-medium text-white placeholder:text-[#abc4ff50]'
             }}
             showTime={{ format: 'Select time: HH:mm UTC' }}
             value={rewardStartTime}
@@ -325,7 +349,8 @@ export function RewardFormCardInputs({
             className="shrink-0 grow rounded-md px-4"
             label="Farming Ends"
             inputProps={{
-              inputClassName: 'text-sm font-medium text-white'
+              placeholder: disableEndTimeInput ? undefined : 'Select date and time',
+              inputClassName: 'text-sm font-medium text-white placeholder:text-[#abc4ff50]'
             }}
             value={rewardEndTime}
             disabled={disableEndTimeInput}

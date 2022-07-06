@@ -10,15 +10,15 @@ import { useRecordedEffect } from './useRecordedEffect'
  * - 3 `React.useRef()`
  */
 export default function useUpdate<T extends any[]>(
-  effectFn: (prev: T | undefined[]) => ((...params: any) => void) | void,
+  effectFn: () => ((...params: any) => void) | void,
   dependenceList: T
 ) {
   const hasInited = useRef(false)
-  useRecordedEffect((prev) => {
+  useEffect(() => {
     if (!hasInited.current) {
       hasInited.current = true
     } else {
-      return effectFn(prev)
+      return effectFn()
     }
   }, dependenceList)
 }

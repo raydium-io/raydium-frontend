@@ -327,16 +327,15 @@ function TokenSelectorDialogContent({
                   className="frosted-glass-teal"
                   onClick={() => {
                     const { addUserAddedToken } = useToken.getState()
-                    addUserAddedToken(
-                      createSplToken({
-                        mint: searchText,
-                        symbol: userCustomizedTokenSymbol.current,
-                        decimals: onlineTokenMintInfo.decimals,
-                        icon: '',
-                        extensions: {},
-                        name: userCustomizedTokenSymbol.current
-                      })
-                    )
+                    const newToken = createSplToken({
+                      mint: searchText,
+                      symbol: userCustomizedTokenSymbol.current,
+                      decimals: onlineTokenMintInfo.decimals,
+                      icon: '',
+                      extensions: {},
+                      name: userCustomizedTokenSymbol.current
+                    })
+                    addUserAddedToken(newToken)
                   }}
                 >
                   Add User Token

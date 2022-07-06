@@ -4,6 +4,8 @@ import { PublicKeyish } from '@/types/constants'
 import { SplToken } from './type'
 import useToken from './useToken'
 import { QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import { SOLMint } from './wellknownToken.config'
 
 export function useTokenGetterFnLoader() {
   const tokens = useToken((s) => s.tokens)
@@ -14,10 +16,10 @@ export function useTokenGetterFnLoader() {
   useEffect(() => {
     /** exact mode: 'so111111112' will be QSOL-WSOL 'sol' will be QSOL-SOL */
     function getToken(mint: PublicKeyish | undefined, options?: { exact?: boolean }): SplToken | undefined {
-      if (String(mint) === SOLUrlMint) {
+      if (mint === SOLUrlMint || isMintEqual(mint, SOLMint) || (!options?.exact && isMintEqual(mint, WSOLMint))) {
         return QuantumSOLVersionSOL
       }
-      if (String(mint) === String(WSOLMint) && options?.exact) {
+      if (options?.exact && isMintEqual(mint, WSOLMint)) {
         return QuantumSOLVersionWSOL
       }
       return tokens[String(mint)] ?? userAddedTokens.get(toPubString(mint))

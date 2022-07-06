@@ -1,4 +1,4 @@
-import { Farm, jsonInfo2PoolKeys, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Farm, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import createAssociatedTokenAccountIfNotExist from '@/application/txTools/createAssociatedTokenAccountIfNotExist'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
@@ -9,6 +9,7 @@ import {
 } from '@/application/wallet/useWalletAccountChangeListeners'
 import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
+import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import { HydratedFarmInfo } from './type'
 import useFarms from './useFarms'
 
@@ -77,10 +78,10 @@ export default async function txFarmHarvest(
       onTxError: () => removeWalletAccountChangeListener(listenerId),
       onTxSentError: () => removeWalletAccountChangeListener(listenerId),
       txHistoryInfo: {
-        title: `Harvest ${options.rewardAmounts.map(({ token }) => token.symbol).join(' and ')}`,
+        title: `Harvest ${options.rewardAmounts.map(({ token }) => token.symbol).join(', ')}`,
         description: `Harvest ${options.rewardAmounts
           .map((amount) => `${amount.toExact()} ${amount.token.symbol}`)
-          .join(' and ')}`
+          .join(', ')}`
       }
     })
   })

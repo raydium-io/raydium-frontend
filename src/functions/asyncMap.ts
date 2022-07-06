@@ -28,3 +28,7 @@ export default async function asyncMap<T, U>(
 ): Promise<Awaited<U>[]> {
   return await Promise.all(arr.map(async (item, idx) => await mapFn(item, idx)))
 }
+
+export async function asyncForEach<T>(arr: T[], forEachCallback: (item: T, index: number) => void): Promise<void> {
+  await Promise.all(arr.map((item, idx) => forEachCallback(item, idx)))
+}

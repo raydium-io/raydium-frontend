@@ -27,7 +27,6 @@ export type PoolsStore = {
 }
 
 // FAQ: why it's a domain? because it must be a domain , or it's a design bug ———— do something useless.
-
 export const usePools = create<PoolsStore>((set, get) => ({
   loading: true,
   jsonInfos: [],

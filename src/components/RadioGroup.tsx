@@ -1,17 +1,29 @@
-import { CSSProperties } from 'react'
+import { CSSProperties, ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { RadioGroup as _RadioGroup } from '@headlessui/react'
+import { MayFunction } from '@/types/constants'
 
 export interface RadioGroupProps<T extends string> {
   className?: string
   style?: CSSProperties
+  // TODO: itemClassName\itemStyle\value\label should be merged into a obj
+  // /** @deprecated use props:items instead */
   itemClassName?: string | ((checked: boolean) => string)
+  // /** @deprecated use props:items instead */
   itemStyle?: CSSProperties | ((checked: boolean, itemIndex: number, values: readonly T[]) => CSSProperties)
   currentValue?: T
+  // /** @deprecated use props:items instead */
   values: readonly T[]
-  labels?: readonly string[]
+  // /** @deprecated use props:items instead */
+  labels?: readonly MayFunction<ReactNode, [checked: boolean, itemIndex: number, values: readonly T[]]>[]
+  // items: {
+  //   className?: MayFunction<string, [checked: boolean]>
+  //   style?: MayFunction<CSSProperties, [check: boolean,  itemIndex: number, values: readonly T[]]>
+  //   value:  T
+  //   label?: MayFunction<ReactNode, [checked:boolean, itemIndex:number, value]
+  // }[]
   /** this callback may be invoke in init if user input URL has a hash   */
   onChange?: (currentValue: T) => any
 }
@@ -44,7 +56,7 @@ export default function RadioGroup<T extends string>({
                 className={`grid grow place-items-center ${shrinkToValue(itemClassName, [checked])}`}
                 style={shrinkToValue(itemStyle, [checked, idx, vals])}
               >
-                {labels[idx]}
+                {shrinkToValue(labels[idx], [checked, idx, vals])}
               </div>
             )
           }

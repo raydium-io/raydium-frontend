@@ -49,7 +49,7 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
       new SafePalWalletAdapter({ endpoint }),
       new SlopeWalletAdapter({ endpoint }),
       new BitpieWalletAdapter({ endpoint }),
-      new GlowWalletAdapter({ endpoint }),
+      new GlowWalletAdapter(),
       new BitKeepWalletAdapter({ endpoint }),
       new ExodusWalletAdapter({ endpoint }),
       new CloverWalletAdapter(),

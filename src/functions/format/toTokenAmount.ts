@@ -20,7 +20,7 @@ import toFraction from '../numberish/toFraction'
 /**
  *
  * @param token
- * @param amount amount can already decimaled
+ * @param amount default amount is BN, (amount can already decimaled)
  * @returns
  */
 export function toTokenAmount(

@@ -43,13 +43,17 @@ export interface FarmPoolJsonInfo {
   rewardPeriodMax?: number // v6 '7-90 days's     90 * 24 * 60 * 60 seconds
   rewardPeriodExtend?: number // v6 'end before 72h's    72 * 60 * 60 seconds
 
-  official: boolean // jsonFile has
   local: boolean // only if it is in localstorage(create just by user)
+  category: 'stake' | 'raydium' | 'fusion' | 'ecosystem' // add by UI for unify the interface
 }
 
 export type FarmPoolsJsonFile = {
-  official: Omit<FarmPoolJsonInfo, 'official' | 'local'>[]
-  unOfficial?: Omit<FarmPoolJsonInfo, 'official' | 'local'>[]
+  name: string
+  version: unknown
+  stake: Omit<FarmPoolJsonInfo, 'category'>[]
+  raydium: Omit<FarmPoolJsonInfo, 'category'>[]
+  fusion: Omit<FarmPoolJsonInfo, 'category'>[]
+  ecosystem: Omit<FarmPoolJsonInfo, 'category'>[]
 }
 
 type SdkParsedFarmInfoBase = {

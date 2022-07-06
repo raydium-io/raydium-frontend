@@ -21,7 +21,8 @@ import { setLocalItem } from '@/functions/dom/jStorage'
 import { addItem } from '@/functions/arrayMethods'
 import useLiquidity from '../liquidity/useLiquidity'
 import { WSOLMint } from '../token/quantumSOL'
-import { SOLMint } from '../token/wellknownToken.config'
+import { RAYMint, SOLMint } from '../token/wellknownToken.config'
+import { valid300Ray, validUiRewardInfo } from './validRewardInfo'
 
 export const userCreatedFarmKey = 'USER_CREATED_FARMS'
 
@@ -32,6 +33,13 @@ export default async function txCreateNewFarm(
   return handleMultiTx(
     async ({ transactionCollector, baseUtils: { owner, connection } }) => {
       const { rewards: uiRewardInfos } = useCreateFarms.getState()
+
+      // check input is valid
+      const { valid: have300Ray, reason: have300RayValidText } = valid300Ray()
+      assert(have300Ray, have300RayValidText)
+      const { valid, reason } = validUiRewardInfo(uiRewardInfos)
+      assert(valid, reason)
+
       const { tokenAccounts, tokenAccountRawInfos } = useWallet.getState()
       const piecesCollector = createTransactionCollector()
       const { poolId } = useCreateFarms.getState()
@@ -62,8 +70,8 @@ export default async function txCreateNewFarm(
           rewardPerSecond: perSecondReward
         }
       })
-      const lockMint = '7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR' // NOTE: test
-      const lockVault = 'H2StJuXebaAnSQHvbYGeokbgC1EKB6tBvY2iB2PxoUqS' // NOTE: test
+      const lockMint = '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R' // NOTE: test
+      const lockVault = 'FrspKwj8i3pNmKwXreTveC4fu7KL5ZbGeXdZBe2XViu1' // NOTE: test
       const lpMint = poolJsonInfo.lpMint
       const lockMintTokenAccount = tokenAccounts.find((t) => isMintEqual(t.mint, lockMint))
       assert(lockMintTokenAccount?.publicKey, 'lockMintTokenAccount not found')
@@ -152,8 +160,8 @@ export default async function txCreateNewFarm(
       transactionCollector.add(await piecesCollector.spawnTransaction(), {
         ...txAddOptions,
         txHistoryInfo: {
-          title: 'Create new Farm',
-          description: `farmId: ${createdFarmId.slice(0, 4)}...${createdFarmId.slice(-4)}`
+          title: 'Create New Farm',
+          description: `Farm ID: ${createdFarmId.slice(0, 4)}...${createdFarmId.slice(-4)}`
         },
         onTxSuccess(...args) {
           recordNewCreatedFarmItem() // test

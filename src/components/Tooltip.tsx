@@ -1,4 +1,4 @@
-import React, { ComponentProps, ReactNode, useMemo } from 'react'
+import React, { ComponentProps, ReactNode, RefObject, useImperativeHandle, useMemo } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -8,25 +8,36 @@ import { pickReactChild } from '@/functions/react/pickChild'
 import Card from './Card'
 import Popover, { PopoverPlacement, PopoverProps } from './Popover'
 
+export type TooltipHandle = {
+  open(): void
+  close(): void
+}
+
 export interface TooltipProps {
+  componentRef?: RefObject<any>
   className?: string
   panelClassName?: string
   children?: ReactNode
   /** usually it's for debug */
   forceOpen?: boolean
+  /** if it's closed, can't open any more. Just like <Tooltip> has no use */
   disable?: boolean
   placement?: PopoverPlacement
   triggerBy?: PopoverProps['triggerBy']
+  defaultOpen?: PopoverProps['defaultOpen']
 }
 
 // TODO: it should be an pre-config version of <Popover>
 export default function Tooltip({
+  componentRef,
   className,
   panelClassName,
   children,
   forceOpen,
   placement = 'top',
-  triggerBy = 'hover'
+  triggerBy = 'hover',
+  disable,
+  defaultOpen
 }: TooltipProps) {
   const content = useMemo(
     () =>
@@ -37,9 +48,13 @@ export default function Tooltip({
       ),
     [children]
   )
+
   return (
     <Popover
+      componentRef={componentRef}
+      canOpen={!disable}
       placement={placement}
+      defaultOpen={defaultOpen}
       triggerBy={triggerBy}
       forceOpen={forceOpen}
       className={className}
@@ -78,8 +93,16 @@ export default function Tooltip({
  *
  * it is in same level of
  */
-export function TooltipPanel({ $isRenderByMain, children }: { $isRenderByMain?: boolean; children?: ReactNode }) {
+export function TooltipPanel({
+  $isRenderByMain,
+  children,
+  className
+}: {
+  $isRenderByMain?: boolean
+  children?: ReactNode
+  className?: string
+}) {
   if (!$isRenderByMain) return null
-  return <>{children}</>
+  return <div className={className}>{children}</div>
 }
 Tooltip.Panel = TooltipPanel

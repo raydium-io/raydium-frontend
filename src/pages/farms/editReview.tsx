@@ -17,7 +17,8 @@ import { useEffect, useMemo } from 'react'
 
 function useAvailableCheck() {
   useEffect(() => {
-    if (!useCreateFarms.getState().isRoutedByCreateOrEdit) routeTo('/farms')
+    if (!useCreateFarms.getState().isRoutedByCreateOrEdit)
+      routeTo('/farms', { queryProps: { currentTab: 'Ecosystem' } })
   }, [])
 }
 
@@ -100,7 +101,7 @@ export default function EditReviewPage() {
               txUpdateEdited({
                 onTxSuccess: () => {
                   setTimeout(() => {
-                    routeTo('/farms')
+                    routeTo('/farms', { queryProps: { currentTab: 'Ecosystem' } })
                     useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
                     useFarms.getState().refreshFarmInfos()
                     useCreateFarms.setState({ isRoutedByCreateOrEdit: false })

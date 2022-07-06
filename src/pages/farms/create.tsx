@@ -65,6 +65,7 @@ function NavButtons({ className }: { className?: string }) {
 
 function WarningBoard({ className }: { className: string }) {
   const [needWarning, setNeedWarning] = useState(true)
+  const detailedGuideHref = 'https://raydium.gitbook.io/raydium/exchange-trade-and-swap/creating-an-ecosystem-farm'
   return (
     <FadeInStable show={needWarning}>
       <Row className={className}>
@@ -77,7 +78,7 @@ function WarningBoard({ className }: { className: string }) {
           </div>
 
           <Row className="gap-4">
-            <Link href="https://raydium.gitbook.io/raydium/exchange-trade-and-swap/raydium-farms">
+            <Link href={detailedGuideHref}>
               <Button className="frosted-glass-teal px-8">Detailed Guide</Button>
             </Link>
 
@@ -136,7 +137,7 @@ export default function CreateFarmPage() {
     (r) => r.amount != null || r.startTime != null || r.endTime != null || r.token != null
   )
   const poolId = useCreateFarms((s) => s.poolId)
-  const balances = useWallet((s) => s.balances)
+  const getBalance = useWallet((s) => s.getBalance)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const walletConnected = useWallet((s) => s.connected)
 
@@ -158,7 +159,7 @@ export default function CreateFarmPage() {
   const [poolIdValid, setPoolIdValid] = useState(false)
   return (
     <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
-      <NavButtons className="mb-8" />
+      <NavButtons className="mb-8 sticky top-0" />
 
       <div className={`self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
         <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
@@ -275,7 +276,7 @@ export default function CreateFarmPage() {
                 }
               })),
               ...meaningFullRewards.map((reward) => {
-                const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
+                const haveBalance = gte(getBalance(reward.token), reward.amount)
                 return {
                   should: haveBalance,
                   fallbackProps: {

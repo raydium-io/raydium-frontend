@@ -5,8 +5,9 @@ import useToken from '../token/useToken'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 
 export type FarmStore = {
+  /** detect if hydratedInfo is ready */
   isLoading: boolean
-  jsonInfos: (FarmPoolJsonInfo & { official: boolean })[] // TODO: switch to Object key value pair, for faster extracting
+  jsonInfos: FarmPoolJsonInfo[] // TODO: switch to Object key value pair, for faster extracting
   sdkParsedInfos: SdkParsedFarmInfo[] // TODO: switch to Object key value pair, for faster extracting
   hydratedInfos: HydratedFarmInfo[] // TODO: switch to Object key value pair, for faster extracting
   /**
@@ -22,7 +23,7 @@ export type FarmStore = {
 
   onlySelfFarms: boolean
   onlySelfCreatedFarms: boolean
-  currentTab: 'All' | 'Upcoming' | 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive'
+  currentTab: 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive'
   searchText: string
 
   stakeDialogMode: 'deposit' | 'withdraw'
@@ -47,7 +48,7 @@ const useFarms = create<FarmStore>((set) => ({
 
   onlySelfFarms: false,
   onlySelfCreatedFarms: false,
-  currentTab: 'All',
+  currentTab: 'Raydium',
   searchText: '',
 
   stakeDialogMode: 'deposit',

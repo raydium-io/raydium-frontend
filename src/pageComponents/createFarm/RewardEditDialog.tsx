@@ -4,13 +4,12 @@ import { MAX_DURATION, MIN_DURATION } from '@/application/farms/handleFarmInfo'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Row from '@/components/Row'
-import { isDateAfter, isDateBefore } from '@/functions/date/judges'
+import { isDateBefore } from '@/functions/date/judges'
 import { getDuration } from '@/functions/date/parseDuration'
-import toPubString from '@/functions/format/toMintString'
 import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { useChainDate } from '@/hooks/useChainDate'
 import produce from 'immer'
-import React, { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -28,7 +27,7 @@ export default function RewardInputDialog({
   onClose(): void
 } & RewardFormCardInputsParams) {
   const rewardInputsRef = useRef<RewardCardInputsHandler>()
-  const balances = useWallet((s) => s.balances)
+  const getBalance = useWallet((s) => s.getBalance)
   const walletConnected = useWallet((s) => s.connected)
 
   const save = () => {
@@ -46,7 +45,8 @@ export default function RewardInputDialog({
   }
 
   const [editedReward, setEditedReward] = useState(reward)
-  const haveBalance = gte(balances[toPubString(editedReward.token?.mint)], editedReward.amount)
+
+  const haveBalance = Boolean(editedReward.token && gte(getBalance(editedReward.token), editedReward.amount))
   const chainDate = useChainDate()
 
   // avoid input re-render if chain Date change

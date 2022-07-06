@@ -1,4 +1,5 @@
 import { RefObject, useEffect, useRef } from 'react'
+import { useEvent } from './useEvent'
 
 export type UseScrollDegreeDetectorOptions = {
   onReachBottom?: () => void
@@ -11,7 +12,7 @@ export function useScrollDegreeDetector(
 ) {
   const isReachedBottom = useRef(false)
 
-  const onScroll = () => {
+  const onScroll = useEvent(() => {
     if (!ref.current) return
     const { scrollHeight, scrollTop, clientHeight } = ref.current
     const isNearlyReachBottom = scrollTop + clientHeight + (options?.reachBottomMargin ?? 0) >= scrollHeight
@@ -24,7 +25,7 @@ export function useScrollDegreeDetector(
     if (!isNearlyReachBottom && isReachedBottom.current) {
       isReachedBottom.current = false
     }
-  }
+  })
 
   useEffect(() => {
     onScroll()

@@ -35,38 +35,28 @@ function getMaxOpenTime(i: APIRewardInfo[]) {
   return Math.max(...i.map((r) => r.rewardOpenTime))
 }
 
-export const MAX_DURATION_SECOND = 2 * 60 * 60 // test
-export const MIN_DURATION_SECOND = 1 * 60 * 60 // test
-// const MAX_DURATION_DAY = 90
-// const MIN_DURATION_DAY = 7
-// export const MAX_DURATION_SECOND = MAX_DURATION_DAY * 24 * 60 * 60
-// export const MIN_DURATION_SECOND = MIN_DURATION_DAY * 24 * 60 * 60
+const MAX_DURATION_DAY = 90
+const MIN_DURATION_DAY = 7
+export const MAX_DURATION_SECOND = MAX_DURATION_DAY * 24 * 60 * 60
+export const MIN_DURATION_SECOND = MIN_DURATION_DAY * 24 * 60 * 60
 export const MAX_DURATION = MAX_DURATION_SECOND * 1000
 export const MIN_DURATION = MIN_DURATION_SECOND * 1000
 
 export const MAX_OFFSET_AFTER_NOW_SECOND = 7 * 24 * 60 * 60
 export const MAX_OFFSET_AFTER_NOW = MAX_OFFSET_AFTER_NOW_SECOND * 1000
 
-export const EXTEND_BEFORE_END_SECOND = 0.5 * 60 * 60 // test
+export const EXTEND_BEFORE_END_SECOND = 72 * 60 * 60 // test
 export const EXTEND_BEFORE_END = EXTEND_BEFORE_END_SECOND * 1000
 
 export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefined> {
-  const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
-    ignoreCache: true
-  })
+  const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json')
   if (!result) return undefined
-  // const userCreated = getLocalItem<Omit<FarmPoolJsonInfo, 'official' | 'local'>[]>(userCreatedFarmKey)?.map((s) => ({
-  //   ...s,
-  //   official: false,
-  //   local: true
-  // })) // RUDY says no need
-  const officials = result.official.map((i) => ({ ...i, official: true, local: false }))
-  const unOfficial = result.unOfficial?.map((i) => ({ ...i, official: false, local: false }))
-
-  return [...officials, ...(unOfficial ?? [])]
-  // return [...officials, ...(unOfficial ?? [])].sort(
-  //   (a, b) => -getMaxOpenTime(a.rewardInfos) + getMaxOpenTime(b.rewardInfos)
-  // )
+  const stakeFarmInfoList = result.stake.map((i) => ({ ...i, category: 'stake' })) ?? []
+  const raydiumFarmInfoList = result.raydium.map((i) => ({ ...i, category: 'raydium' })) ?? []
+  const fusionFarmInfoList = result.fusion.map((i) => ({ ...i, category: 'fusion' })) ?? []
+  const ecosystemFarmInfoList = result.ecosystem.map((i) => ({ ...i, category: 'ecosystem' })) ?? []
+  // @ts-expect-error string literial type error. safe to ignore it
+  return [...stakeFarmInfoList, ...raydiumFarmInfoList, ...fusionFarmInfoList, ...ecosystemFarmInfoList]
 }
 
 /** and state info  */
@@ -80,6 +70,7 @@ export async function mergeSdkFarmInfo(
   const result = options.pools.map(
     (pool, idx) =>
       ({
+        ...payload.jsonInfos[idx],
         ...pool,
         ...rawInfos[String(pool.id)],
         jsonInfo: payload.jsonInfos[idx]
@@ -106,7 +97,7 @@ export function hydrateFarmInfo(
   const isStakePool = whetherIsStakeFarmPool(farmInfo)
   const isDualFusionPool = farmPoolType === 'dual fusion pool'
   const isNormalFusionPool = farmPoolType === 'normal fusion pool'
-  const isClosedPool = farmPoolType === 'closed pool'
+  const isClosedPool = farmPoolType === 'closed pool' && !farmInfo.upcoming // NOTE: I don't know why, but Amanda says there is a bug.
   const isUpcomingPool = farmInfo.version !== 6 ? farmInfo.upcoming && isClosedPool : farmInfo.upcoming
   const isNewPool = farmInfo.version !== 6 && farmInfo.upcoming && !isClosedPool // NOTE: Rudy says!!!
   const isStablePool = payload.liquidityJsonInfos?.find((i) => i.lpMint === toPubString(farmInfo.lpMint))?.version === 5
@@ -256,12 +247,11 @@ function calculateFarmPoolAprs(
   }
 ) {
   if (info.version === 6) {
-    return info.state.rewardInfos.map(({ rewardPerSecond, rewardOpenTime }, idx) => {
-      // don't calculate upcoming reward
-      if (isDateBefore(payload.currentBlockChainDate, rewardOpenTime.toNumber(), { unit: 's' })) {
-        return
-      }
-
+    return info.state.rewardInfos.map(({ rewardPerSecond, rewardOpenTime, rewardEndTime }, idx) => {
+      // don't calculate upcoming reward || inactive reward
+      const isRewardBeforeStart = isDateBefore(payload.currentBlockChainDate, rewardOpenTime.toNumber(), { unit: 's' })
+      const isRewardAfterEnd = isDateAfter(payload.currentBlockChainDate, rewardEndTime.toNumber(), { unit: 's' })
+      if (isRewardBeforeStart || isRewardAfterEnd) return undefined
       const rewardToken = payload.rewardTokens[idx]
       if (!rewardToken) return undefined
       const rewardTokenPrice = payload.rewardTokenPrices[idx]

@@ -1,16 +1,20 @@
-import { Fragment, ReactNode, useMemo, useRef, useState } from 'react'
+import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 
 import { TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
+import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { isHydratedFarmInfo, isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
 import txFarmDeposit from '@/application/farms/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/txFarmHarvest'
 import txFarmWithdraw from '@/application/farms/txFarmWithdraw'
 import { FarmPoolJsonInfo, HydratedFarmInfo, HydratedRewardInfo } from '@/application/farms/type'
+import useFarmResetSelfCreatedByOwner from '@/application/farms/useFarmResetSelfCreatedByOwner'
 import useFarms, { useFarmFavoriteIds } from '@/application/farms/useFarms'
+import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
+import useNotification from '@/application/notification/useNotification'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
@@ -39,9 +43,10 @@ import Row from '@/components/Row'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tabs from '@/components/Tabs'
-import Tooltip from '@/components/Tooltip'
+import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
+import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
@@ -51,14 +56,9 @@ import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
+import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
-import useCreateFarms from '@/application/createFarm/useCreateFarm'
-import { searchItems } from '@/functions/searchItems'
-import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
-import copyToClipboard from '@/functions/dom/copyToClipboard'
-import useNotification from '@/application/notification/useNotification'
-import useFarmResetSelfCreatedByOwner from '@/application/farms/useFarmResetSelfCreatedByOwner'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -122,6 +122,21 @@ function ToolsButton({ className }: { className?: string }) {
 function FarmSearchBlock({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const storeSearchText = useFarms((s) => s.searchText)
+
+  const tooltipComponentRef = useRef<TooltipHandle>(null)
+  const [haveInitSearchText, setHaveInitSearchText] = useState(false)
+  const haveInited = useRef(false)
+  useEffect(() => {
+    if (haveInited.current) return
+    setTimeout(() => {
+      // poopup immediately is strange
+      haveInited.current = true
+      if (storeSearchText) {
+        setHaveInitSearchText(true)
+        tooltipComponentRef.current?.open()
+      }
+    }, 600)
+  }, [storeSearchText])
   return (
     <Input
       value={storeSearchText}
@@ -132,16 +147,20 @@ function FarmSearchBlock({ className }: { className?: string }) {
       inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
       prefix={<Icon heroIconName="search" size={isMobile ? 'sm' : 'smi'} className="text-[rgba(196,214,255,0.5)]" />}
       suffix={
-        <Icon
-          heroIconName="x"
-          size={isMobile ? 'xs' : 'sm'}
-          className={`text-[rgba(196,214,255,0.5)] transition clickable ${
-            storeSearchText ? 'opacity-100' : 'opacity-0 pointer-events-none'
-          }`}
-          onClick={() => {
-            useFarms.setState({ searchText: '' })
-          }}
-        />
+        <Tooltip disable={!haveInitSearchText} componentRef={tooltipComponentRef}>
+          {/* TODO: Tooltip should accept 5 minutes */}
+          <Icon
+            heroIconName="x"
+            size={isMobile ? 'xs' : 'sm'}
+            className={`text-[rgba(196,214,255,0.5)] transition clickable ${
+              storeSearchText ? 'opacity-100' : 'opacity-0 pointer-events-none'
+            }`}
+            onClick={() => {
+              useFarms.setState({ searchText: '' })
+            }}
+          />
+          <Tooltip.Panel>click here to view all farm pools</Tooltip.Panel>
+        </Tooltip>
       }
       placeholder="Search All"
       onUserInput={(searchText) => {
@@ -185,7 +204,7 @@ function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
   const owner = useWallet((s) => s.owner)
   const balances = useWallet((s) => s.balances)
   const userRayBalance = balances[toPubString(RAYMint)]
-  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
+  const haveOver300Ray = gte(userRayBalance ?? 0, 300)
   return (
     <Row
       className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
@@ -205,13 +224,9 @@ function FarmTabBlock({ className }: { className?: string }) {
   return (
     <Tabs
       currentValue={currentTab}
-      values={shakeFalsyItem([
-        'All',
-        // 'Raydium',
-        'Fusion',
-        isMobile ? undefined : 'Ecosystem',
-        'Inactive'
-      ] as const)}
+      urlSearchQueryKey="tab"
+      values={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'Inactive'] as const)}
+      labels={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'Inactive'] as const)}
       onChange={(tab) => useFarms.setState({ currentTab: tab })}
       className={twMerge('justify-self-center mobile:col-span-full', className)}
       itemClassName={isMobile ? 'w-[80px] h-[30px]' : ''}
@@ -269,43 +284,39 @@ function FarmRefreshCircleBlock({ className }: { className?: string }) {
 }
 
 function FarmCard() {
-  const jsonInfo = useFarms((s) => s.jsonInfos)
-
+  const jsonInfos = useFarms((s) => s.jsonInfos)
   const hydratedInfos = useFarms((s) => s.hydratedInfos)
-
   const currentTab = useFarms((s) => s.currentTab)
   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
   const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   const searchText = useFarms((s) => s.searchText)
   const lpTokens = useToken((s) => s.lpTokens)
-
   const [favouriteIds] = useFarmFavoriteIds()
-
   const isMobile = useAppSettings((s) => s.isMobile)
   const owner = useWallet((s) => s.owner)
-
-  const dataSource = useMemo(
-    () =>
-      hydratedInfos.filter((i) => lpTokens[toPubString(i.lpMint)]).filter((i) => (isMobile ? i.version !== 6 : true)),
-    [lpTokens, hydratedInfos]
-  )
+  const isLoading = useFarms((s) => s.isLoading)
+  const dataSource = useMemo(() => {
+    const hydratedInfo = hydratedInfos
+      .filter((i) => lpTokens[toPubString(i.lpMint)])
+      .filter((i) => (isMobile ? i.version !== 6 : true))
+    const jsonInfo = jsonInfos
+      .filter((i) => lpTokens[toPubString(i.lpMint)])
+      .filter((i) => (isMobile ? i.version !== 6 : true))
+    return isLoading ? jsonInfo : hydratedInfo
+  }, [lpTokens, isLoading, hydratedInfos, jsonInfos])
 
   const tabedDataSource = useMemo(
     () =>
-      dataSource.filter(
-        (i) =>
-          // currentTab === 'Upcoming'
-          //   ? i.isUpcomingPool
-          //   : // : currentTab === 'Raydium'
-          // ? i.isRaydiumPool && !i.isClosedPool
-
-          currentTab === 'Fusion'
-            ? (i.isNormalFusionPool || i.isDualFusionPool) && i.version !== 6
-            : currentTab === 'Inactive'
-            ? i.isClosedPool && !i.isStakePool && i.version !== 6
-            : currentTab === 'Ecosystem'
-            ? i.version === 6
-            : (i.isUpcomingPool || (!i.isClosedPool && !i.isStakePool)) && i.version !== 6 // currentTab == 'all'
+      (dataSource as (FarmPoolJsonInfo | HydratedFarmInfo)[]).filter((i) =>
+        currentTab === 'Fusion'
+          ? i.category === 'fusion' && (isHydratedFarmInfo(i) ? !i.isClosedPool : true)
+          : currentTab === 'Inactive'
+          ? isHydratedFarmInfo(i)
+            ? i.isClosedPool && (i.category === 'ecosystem' || i.category === 'fusion' || i.category === 'raydium')
+            : false
+          : currentTab === 'Ecosystem'
+          ? i.category === 'ecosystem'
+          : i.category === 'raydium' && (isHydratedFarmInfo(i) ? !i.isClosedPool : true)
       ),
     [currentTab, dataSource]
   )
@@ -315,7 +326,9 @@ function FarmCard() {
   const applyFiltersDataSource = useMemo(
     () =>
       tabedDataSource
-        .filter((i) => (onlySelfFarms ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true)) // Switch
+        .filter((i) =>
+          onlySelfFarms && isHydratedFarmInfo(i) ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true
+        ) // Switch
         .filter((i) => (i.version === 6 && onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)), // Switch
     [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
   )
@@ -324,16 +337,19 @@ function FarmCard() {
     () =>
       searchItems(applyFiltersDataSource, {
         text: searchText,
-        matchConfigs: (i) => [
-          { text: toPubString(i.id), entirely: true },
-          { text: i.ammId, entirely: true }, // Input Auto complete result sort setting
-          { text: toPubString(i.base?.mint), entirely: true },
-          { text: toPubString(i.quote?.mint), entirely: true },
-          i.base?.symbol,
-          i.quote?.symbol,
-          i.base?.name,
-          i.quote?.name
-        ]
+        matchConfigs: (i) =>
+          isHydratedFarmInfo(i)
+            ? [
+                { text: toPubString(i.id), entirely: true },
+                { text: i.ammId, entirely: true }, // Input Auto complete result sort setting
+                { text: toPubString(i.base?.mint), entirely: true },
+                { text: toPubString(i.quote?.mint), entirely: true },
+                i.base?.symbol,
+                i.quote?.symbol,
+                i.base?.name,
+                i.quote?.name
+              ]
+            : [{ text: toPubString(i.id), entirely: true }]
       }),
     [applyFiltersDataSource, searchText]
   )
@@ -346,11 +362,23 @@ function FarmCard() {
   } = useSort(applySearchedDataSource, {
     defaultSort: {
       key: 'defaultKey',
-      sortCompare: [(i) => i.isUpcomingPool, /* (i) => i.isNewPool, */ (i) => favouriteIds?.includes(toPubString(i.id))]
+      sortCompare: [
+        /* (i) => i.isUpcomingPool, */ /* (i) => i.isNewPool, */ (i) => favouriteIds?.includes(toPubString(i.id))
+      ]
     }
   })
 
-  const isLoading = useFarms((s) => s.isLoading)
+  const farmCardTitleInfo =
+    currentTab === 'Ecosystem'
+      ? {
+          title: 'Ecosystem Farms',
+          description: 'Stake and earn Solana Ecosystem token rewards',
+          tooltip:
+            'Ecosystem Farms allow any project or user to create a farm in a decentralized manner to incentivize liquidity providers. Rewards are locked for the duration on the farm. However, creator liquidity is not locked.'
+        }
+      : currentTab === 'Fusion'
+      ? { title: 'Fusion Farms', description: 'Stake LP tokens and earn project token rewards' }
+      : { title: 'Raydium Farms', description: 'Stake LP tokens and earn token rewards' }
 
   // NOTE: filter widgets
   const innerFarmDatabaseWidgets = isMobile ? (
@@ -375,10 +403,16 @@ function FarmCard() {
   ) : (
     <Row className="justify-between flex-wrap gap-8 items-center mb-4">
       <div>
-        <div className="font-medium text-white text-lg">All Farms</div>
-        <div className="font-medium text-[rgba(196,214,255,.5)] text-base ">
-          Stake your LP tokens and earn token rewards
-        </div>
+        <Row className="items-center">
+          <div className="font-medium text-white text-lg">{farmCardTitleInfo.title}</div>
+          {farmCardTitleInfo.tooltip && (
+            <Tooltip>
+              <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+              <Tooltip.Panel className="max-w-[300px]">{farmCardTitleInfo.tooltip}</Tooltip.Panel>
+            </Tooltip>
+          )}
+        </Row>
+        <div className="font-medium text-[rgba(196,214,255,.5)] text-base ">{farmCardTitleInfo.description}</div>
       </div>
       <Row className="items-center gap-8">
         {haveSelfCreatedFarm && <FarmSlefCreatedOnlyBlock />}
@@ -427,7 +461,7 @@ function FarmCard() {
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
-                sortCompare: (i) => i.name
+                sortCompare: (i) => (isHydratedFarmInfo(i) ? i.name : undefined)
               })
             }}
           >
@@ -452,7 +486,9 @@ function FarmCard() {
           {/* table head column: Total APR */}
           <Row
             className="pl-2 font-medium items-center text-[#ABC4FF] text-sm cursor-pointer gap-1  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'totalApr', sortCompare: (i) => i.totalApr })}
+            onClick={() =>
+              setSortConfig({ key: 'totalApr', sortCompare: (i) => (isHydratedFarmInfo(i) ? i.totalApr : undefined) })
+            }
           >
             Total APR
             <Tooltip>
@@ -475,7 +511,9 @@ function FarmCard() {
           {/* table head column: TVL */}
           <Row
             className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() => setSortConfig({ key: 'tvl', sortCompare: (i) => i.tvl })}
+            onClick={() =>
+              setSortConfig({ key: 'tvl', sortCompare: (i) => (isHydratedFarmInfo(i) ? i.tvl : undefined) })
+            }
           >
             TVL
             <Icon
@@ -494,33 +532,32 @@ function FarmCard() {
         </Row>
       )}
 
-      <FarmCardDatabaseBody isLoading={isLoading} sortedHydratedFarmInfos={sortedData} jsonInfos={jsonInfo} />
+      <FarmCardDatabaseBody isLoading={isLoading} infos={sortedData} />
     </CyberpunkStyleCard>
   )
 }
 
 function FarmCardDatabaseBody({
   isLoading,
-  sortedHydratedFarmInfos,
-  jsonInfos
+  infos
 }: {
   isLoading: boolean
-  sortedHydratedFarmInfos: HydratedFarmInfo[]
-  jsonInfos: FarmPoolJsonInfo[]
+  infos: (FarmPoolJsonInfo | HydratedFarmInfo)[]
 }) {
   const expandedItemIds = useFarms((s) => s.expandedItemIds)
   const [favouriteIds, setFavouriteIds] = useFarmFavoriteIds()
-  const infos = isLoading ? jsonInfos : sortedHydratedFarmInfos
   return (
     <>
-      {sortedHydratedFarmInfos.length || jsonInfos.length ? (
+      {infos.length ? (
         <List className="gap-3 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
           {infos.map((info: FarmPoolJsonInfo | HydratedFarmInfo) => (
-            <List.Item key={String(info.id)}>
+            <List.Item key={toPubString(info.id)}>
               <Collapse
-                open={expandedItemIds.has(String(info.id))}
+                open={expandedItemIds.has(toPubString(info.id))}
                 onToggle={() => {
-                  useFarms.setState((s) => ({ expandedItemIds: toggleSetItem(s.expandedItemIds, String(info.id)) }))
+                  useFarms.setState((s) => ({
+                    expandedItemIds: toggleSetItem(s.expandedItemIds, toPubString(info.id))
+                  }))
                 }}
               >
                 <Collapse.Face>
@@ -677,6 +714,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
 
       <TextInfoItem
         name="Total APR"
+        className="w-max"
         value={
           isJsonFarmInfo(info) ? (
             '--'
@@ -1037,9 +1075,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                     children: 'Connect Wallet'
                   }
                 },
-                {
-                  should: hasPendingReward
-                }
+                { should: hasPendingReward }
               ]}
             >
               Harvest
@@ -1330,7 +1366,7 @@ function TextInfoItem({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <Col className={twMerge('w-max', className)}>
+    <Col className={className}>
       {isMobile && <div className=" mb-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">{name}</div>}
       <Col className="flex-grow justify-center">
         <div className="text-base mobile:text-xs">{value || '--'}</div>

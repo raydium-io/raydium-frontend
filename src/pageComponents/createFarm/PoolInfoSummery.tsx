@@ -5,8 +5,10 @@ import useToken from '@/application/token/useToken'
 import { AddressItem } from '@/components/AddressItem'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
+import Icon from '@/components/Icon'
 import ListTable from '@/components/ListTable'
 import Row from '@/components/Row'
+import Tooltip from '@/components/Tooltip'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
@@ -41,7 +43,23 @@ export function PoolInfoSummary() {
           cssGridItemWidth: '2fr'
         },
         { label: 'TVL' },
-        { label: 'APR' }
+        {
+          label: 'APR',
+          renderLabel: () => (
+            <Row>
+              <div>APR</div>
+              <Tooltip>
+                <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+                <Tooltip.Panel>
+                  <div className="max-w-[300px]">
+                    APR based on trading fees earned by the pool in the past 30D. Farming reward APR will be calculated
+                    once the farm is live and users have staked.
+                  </div>
+                </Tooltip.Panel>
+              </Tooltip>
+            </Row>
+          )
+        }
       ]}
       renderRowItem={({ item, label }) => {
         if (label === 'Pool') {

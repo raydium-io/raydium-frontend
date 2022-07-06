@@ -39,7 +39,8 @@ import { twMerge } from 'tailwind-merge'
 
 function useAvailableCheck() {
   useEffect(() => {
-    if (!useCreateFarms.getState().isRoutedByCreateOrEdit) routeTo('/farms')
+    if (!useCreateFarms.getState().isRoutedByCreateOrEdit)
+      routeTo('/farms', { queryProps: { currentTab: 'Ecosystem' } })
   }, [])
 }
 
@@ -87,8 +88,7 @@ export default function FarmEditPage() {
   useEditFarmUrlParser()
 
   const walletConnected = useWallet((s) => s.connected)
-  const owner = useWallet((s) => s.owner)
-  const balances = useWallet((s) => s.balances)
+  const getBalance = useWallet((s) => s.getBalance)
   const { rewards: allRewards, cannotAddNewReward, farmId } = useCreateFarms()
   const hydratedFarmInfos = useFarms((s) => s.hydratedInfos)
   const [isRewardInputDialogOpen, setIsRewardInputDialogOpen] = useState(false)
@@ -105,7 +105,7 @@ export default function FarmEditPage() {
   const cachedInputs = useMemo(() => <NewRewardIndicatorAndForm className="mt-8 mb-4" />, [])
   return (
     <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
-      <NavButtons />
+      <NavButtons className="sticky top-0" />
       <div className="self-center w-[min(720px,90vw)]">
         <Row className="mb-10 justify-self-start items-baseline gap-2">
           <div className="text-2xl mobile:text-lg font-semibold text-white">Edit Farm</div>
@@ -141,6 +141,7 @@ export default function FarmEditPage() {
               setFocusReward(reward)
             }}
             onClaimReward={({ reward, onTxSuccess }) => txClaimReward({ reward, onTxSuccess })}
+            onClaimAllReward={({ rewards, onTxSuccess }) => txClaimReward({ reward: rewards, onTxSuccess })}
           />
         </div>
 
@@ -166,6 +167,7 @@ export default function FarmEditPage() {
 
         <Button
           className="block frosted-glass-teal mx-auto mt-4 mb-12"
+          size="lg"
           validators={[
             {
               should: meaningFullRewards.length || editedRewards.length
@@ -197,7 +199,7 @@ export default function FarmEditPage() {
               }
             })),
             ...meaningFullRewards.map((reward) => {
-              const haveBalance = gte(balances[toPubString(reward.token?.mint)], reward.amount)
+              const haveBalance = gte(getBalance(reward.token), reward.amount)
               return {
                 should: haveBalance,
                 fallbackProps: {

@@ -449,9 +449,9 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             </div>
             <Tooltip.Panel>
               <div className="text-xs m-2 leading-relaxed font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
-                <div>current: {currentVersion}</div>
-                <div>lastest: {lastestVersion}</div>
-                <div>block time: {<BlockTimeClock showSeconds />}</div>
+                <div>Current: {currentVersion}</div>
+                <div>Lastest: {lastestVersion}</div>
+                <div>Block time: {<BlockTimeClock showSeconds />}</div>
               </div>
             </Tooltip.Panel>
           </Tooltip>

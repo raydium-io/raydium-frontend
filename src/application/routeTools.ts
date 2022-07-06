@@ -17,6 +17,7 @@ import toPubString from '@/functions/format/toMintString'
 import useWallet from './wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { createNewUIRewardInfo, parsedHydratedRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
+import { addQuery, cleanQuery } from '@/functions/dom/getURLQueryEntries'
 
 export type PageRouteConfigs = {
   '/swap': {
@@ -40,6 +41,7 @@ export type PageRouteConfigs = {
   '/farms': {
     queryProps?: {
       searchText?: string
+      currentTab?: 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive'
     }
   }
   '/pools': {
@@ -119,6 +121,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       /** jump to target page */
       useFarms.setState(
         objectShakeFalsy({
+          currentTab: options?.queryProps.currentTab,
           searchText: options?.queryProps?.searchText
         })
       )
@@ -138,13 +141,20 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         })
       })
   } else if (toPage === '/farms/create') {
+    cleanQuery('farmid')
+    // clear zustand createFarm
+    useCreateFarms.setState({
+      farmId: undefined,
+      poolId: undefined,
+      rewards: [{ ...createNewUIRewardInfo() }]
+    })
     return router
       .push({
         pathname: '/farms/create'
       })
       .then(() => {
-        useCreateFarms.setState({
-          rewards: [{ ...createNewUIRewardInfo() }]
+        useFarms.setState({
+          searchText: ''
         })
       })
   } else if (toPage === '/farms/edit') {

@@ -1,4 +1,5 @@
 import { isNumberish } from '@/functions/judgers/dateType'
+import { padZero } from '@/functions/numberish/handleZero'
 import { toString } from '@/functions/numberish/toString'
 import mergeRef from '@/functions/react/mergeRef'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
@@ -89,7 +90,8 @@ export default function DecimalInput({
         pattern: canNegative ? regexps.canNegativeRegexpString : regexps.decimalRegexpString,
         inputMode: 'decimal',
         min: String(minN),
-        max: maxN ? String(maxN) : undefined
+        max: maxN ? String(maxN) : undefined,
+        step: String(1 / 10 ** decimalCount)
       }}
       {...restProps}
       domRef={mergeRef(inputDomRef, restProps.inputDomRef)}

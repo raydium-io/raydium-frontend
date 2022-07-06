@@ -1,4 +1,4 @@
-import { Farm, FarmCreateInstructionParamsV6, jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
+import { Farm, FarmCreateInstructionParamsV6 } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 
@@ -22,6 +22,8 @@ import { hasRewardBeenEdited } from './parseRewardInfo'
 import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
+import { validUiRewardInfo } from './validRewardInfo'
 
 export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -30,6 +32,11 @@ export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOpt
     // ---------- generate basic info ----------
     const { hydratedInfos } = useFarms.getState()
     const { rewards: uiRewardInfos, farmId: targetFarmId } = useCreateFarms.getState()
+
+    // check input is valid
+    const { valid, reason } = validUiRewardInfo(uiRewardInfos)
+    assert(valid, reason)
+
     const farmInfo = hydratedInfos.find((f) => toPubString(f.id) === targetFarmId)
     assert(targetFarmId, 'target farm id is missing')
     assert(farmInfo, "can't find target farm")
@@ -54,7 +61,7 @@ export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOpt
       ...txAddOptions,
       txHistoryInfo: {
         title: 'Edit Farm',
-        description: '(click to see details)'
+        description: '(Click to see details)'
       }
     })
   })
@@ -111,7 +118,7 @@ function createNewRewardInstruction({
 }) {
   const { owner, tokenAccountRawInfos } = useWallet.getState()
 
-  assert(owner, 'wallet not connected')
+  assert(owner, 'Wallet not connected')
   const rewardToken = reward.token
   assert(reward.startTime, 'reward start time is required')
   assert(reward.endTime, 'reward end time is required')

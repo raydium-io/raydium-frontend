@@ -1,4 +1,4 @@
-import { Farm, jsonInfo2PoolKeys } from '@raydium-io/raydium-sdk'
+import { Farm } from '@raydium-io/raydium-sdk'
 import { Connection, Signer, TransactionInstruction } from '@solana/web3.js'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
@@ -13,13 +13,21 @@ import { SOLMint } from '../token/wellknownToken.config'
 import useWallet from '../wallet/useWallet'
 import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
+import { MayArray } from '@/types/constants'
+import { asyncForEach } from '@/functions/asyncMap'
+import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
+import { validUiRewardInfo } from './validRewardInfo'
 
 export default async function txClaimReward({
   reward,
   ...txAddOptions
-}: { reward: UIRewardInfo } & AddSingleTxOptions) {
+}: { reward: MayArray<UIRewardInfo> } & AddSingleTxOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection } }) => {
     const piecesCollector = createTransactionCollector()
+
+    // check input is valid
+    const { valid, reason } = validUiRewardInfo([reward].flat())
+    assert(valid, reason)
 
     // ---------- generate basic info ----------
     const { hydratedInfos } = useFarms.getState()
@@ -28,16 +36,18 @@ export default async function txClaimReward({
     const farmInfo = hydratedInfos.find((f) => toPubString(f.id) === targetFarmId)
     assert(farmInfo, "can't find target farm")
 
-    // ---------- restart ----------
-    const { instructions, newAccounts } = await createClaimRewardInstruction({ reward, farmInfo, connection })
-    piecesCollector.addInstruction(...instructions)
-    piecesCollector.addSigner(...newAccounts)
+    // ---------- claim reward ----------
+    await asyncForEach([reward].flat(), async (reward) => {
+      const { instructions, newAccounts } = await createClaimRewardInstruction({ reward, farmInfo, connection })
+      piecesCollector.addInstruction(...instructions)
+      piecesCollector.addSigner(...newAccounts)
+    })
 
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       ...txAddOptions,
       txHistoryInfo: {
-        title: 'Claim reward',
-        description: '(click to see details)'
+        title: 'Claim Reward',
+        description: '(Click to see details)'
       }
     })
   })
@@ -56,7 +66,7 @@ async function createClaimRewardInstruction({
   instructions: TransactionInstruction[]
 }> {
   const { owner, tokenAccountRawInfos } = useWallet.getState()
-  assert(owner, `wallet not connected`)
+  assert(owner, `Wallet not connected`)
   assert(isMintEqual(owner, reward.owner), `reward is not created by walletOwner`)
   assert(reward.token, `reward token haven't set`)
 

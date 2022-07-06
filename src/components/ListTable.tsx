@@ -15,14 +15,15 @@ import { twMerge } from 'tailwind-merge'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 interface ListTableHeader<D> {
-  key?: MayArray<SKeyof<D>>
   label: string
+  renderLabel?: (list: D[]) => ReactNode
   el: HTMLElement | null
 }
 
 type ListTableMap<T> = {
   key?: MayArray<SKeyof<T>>
   label: string
+  renderLabel?: (list: T[]) => ReactNode
   cssGridItemWidth?: string // default '1fr'
 }
 
@@ -145,14 +146,14 @@ export default function ListTable<T>({
         className={twMerge('bg-[#141041] px-5 rounded-tr-inherit rounded-tl-inherit items-center', headerCardClassName)}
         style={gridTemplateStyle}
       >
-        {parsedShowedPropertyNames.map(({ key, label }, idx) => (
+        {parsedShowedPropertyNames.map(({ key, label, renderLabel }, idx) => (
           <Fragment key={idx}>
             {renderPropertyLabel?.({ key, label, wholeList: list }) ?? (
               <div
-                ref={(el) => (headerRefs.current[idx] = { label, el, key })}
+                ref={(el) => (headerRefs.current[idx] = { label, el })}
                 className="grow text-xs font-semibold text-[#abc4ff80] py-3"
               >
-                {label}
+                {renderLabel ? renderLabel(list) : label}
               </div>
             )}
           </Fragment>

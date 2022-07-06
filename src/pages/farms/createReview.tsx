@@ -18,10 +18,12 @@ import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewar
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
+import { setInterval } from '../../functions/timeout'
 
 function useAvailableCheck() {
   useEffect(() => {
-    if (!useCreateFarms.getState().isRoutedByCreateOrEdit) routeTo('/farms')
+    if (!useCreateFarms.getState().isRoutedByCreateOrEdit)
+      routeTo('/farms', { queryProps: { currentTab: 'Ecosystem' } })
   }, [])
 }
 
@@ -36,7 +38,7 @@ export default function CreateFarmReviewPage() {
   }, [pathname])
 
   const userRayBalance = balances[toPubString(RAYMint)]
-  const haveStakeOver300Ray = gte(userRayBalance ?? 0, 0 /* FIXME : for Test, true is 300  */)
+  const haveOver300Ray = gte(userRayBalance ?? 0, 300) /** Test */
   useAvailableCheck()
 
   return (
@@ -85,7 +87,7 @@ export default function CreateFarmReviewPage() {
               className="frosted-glass-skygray"
               size="lg"
               onClick={() => {
-                routeTo('/farms')
+                routeTo('/farms', { queryProps: { currentTab: 'Ecosystem' } })
                 refreshFarmInfos()
                 setTimeout(() => {
                   useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
@@ -103,15 +105,21 @@ export default function CreateFarmReviewPage() {
               <Button
                 className="frosted-glass-teal px-16 self-stretch"
                 size="lg"
-                validators={[{ should: haveStakeOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
+                validators={[{ should: haveOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
                 onClick={async () => {
                   txCreateNewFarm(
                     {
                       onReceiveFarmId(farmId) {
                         useCreateFarms.setState({ farmId })
                       },
-                      onTxSuccess: () => {
+                      onTxSentFinally: () => {
                         turnOnCreated()
+                        setInterval(
+                          () => {
+                            useFarms.getState().refreshFarmInfos()
+                          },
+                          { loopCount: 3, intervalTime: 1000 * 60 }
+                        )
                       }
                     },
                     key

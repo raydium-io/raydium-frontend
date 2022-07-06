@@ -95,7 +95,7 @@ export function StakingPageStakeLpDialog() {
                 { should: isAvailableInput },
                 { should: amount },
                 {
-                  should: userHasLp,
+                  should: stakeDialogMode === 'withdraw' ? true : userHasLp,
                   fallbackProps: { children: stakeDialogMode === 'withdraw' ? 'No Unstakable RAY' : 'No Stakable RAY' }
                 }
               ]}

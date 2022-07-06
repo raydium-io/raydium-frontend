@@ -28,7 +28,7 @@ export default function WalletWidget() {
 
   return (
     <PageLayoutPopoverDrawer
-      canOpen={connected}
+      canOpen={connected} // should use more common disable
       alwaysPopper
       popupPlacement="bottom-right"
       renderPopoverContent={({ close: closePanel }) => (
