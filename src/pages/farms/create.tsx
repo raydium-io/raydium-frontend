@@ -159,7 +159,7 @@ export default function CreateFarmPage() {
   const [poolIdValid, setPoolIdValid] = useState(false)
   return (
     <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
-      <NavButtons className="mb-8" />
+      <NavButtons className="mb-8 sticky top-0" />
 
       <div className={`self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
         <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
