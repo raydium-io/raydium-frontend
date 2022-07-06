@@ -23,6 +23,7 @@ import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
+import { validUiRewardInfo } from './validRewardInfo'
 
 export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -31,6 +32,11 @@ export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOpt
     // ---------- generate basic info ----------
     const { hydratedInfos } = useFarms.getState()
     const { rewards: uiRewardInfos, farmId: targetFarmId } = useCreateFarms.getState()
+
+    // check input is valid
+    const { valid, reason } = validUiRewardInfo(uiRewardInfos)
+    assert(valid, reason)
+
     const farmInfo = hydratedInfos.find((f) => toPubString(f.id) === targetFarmId)
     assert(targetFarmId, 'target farm id is missing')
     assert(farmInfo, "can't find target farm")

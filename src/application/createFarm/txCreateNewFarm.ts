@@ -22,6 +22,7 @@ import { addItem } from '@/functions/arrayMethods'
 import useLiquidity from '../liquidity/useLiquidity'
 import { WSOLMint } from '../token/quantumSOL'
 import { RAYMint, SOLMint } from '../token/wellknownToken.config'
+import { valid300Ray, validUiRewardInfo } from './validRewardInfo'
 
 export const userCreatedFarmKey = 'USER_CREATED_FARMS'
 
@@ -32,6 +33,13 @@ export default async function txCreateNewFarm(
   return handleMultiTx(
     async ({ transactionCollector, baseUtils: { owner, connection } }) => {
       const { rewards: uiRewardInfos } = useCreateFarms.getState()
+
+      // check input is valid
+      const { valid: have300Ray, reason: have300RayValidText } = valid300Ray()
+      assert(have300Ray, have300RayValidText)
+      const { valid, reason } = validUiRewardInfo(uiRewardInfos)
+      assert(valid, reason)
+
       const { tokenAccounts, tokenAccountRawInfos } = useWallet.getState()
       const piecesCollector = createTransactionCollector()
       const { poolId } = useCreateFarms.getState()

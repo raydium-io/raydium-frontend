@@ -13,6 +13,7 @@ import { HexAddress } from '@/types/constants'
 import { isQuantumSOL, QuantumSOLAmount, WSOLMint } from '../token/quantumSOL'
 
 import { ITokenAccount, TokenAccountRawInfo } from './type'
+import toPubString from '@/functions/format/toMintString'
 
 export type WalletStore = {
   // owner
@@ -124,9 +125,9 @@ const useWallet = create<WalletStore>((set, get) => ({
     if (isQuantumSOL(target) && target.collapseTo !== 'wsol') {
       return undefined
     } else {
-      const mint = isToken(target) ? String(target.mint) : String(target)
+      const mint = isToken(target) ? toPubString(target.mint) : toPubString(target)
       const tokenAccounts = get().tokenAccounts
-      return tokenAccounts.find((ta) => String(ta.mint) === mint)
+      return tokenAccounts.find((ta) => toPubString(ta.mint) === mint)
     }
   },
 
@@ -137,9 +138,9 @@ const useWallet = create<WalletStore>((set, get) => ({
   getBalance(target) {
     if (!target) return undefined
     if (isQuantumSOL(target) && target.collapseTo === 'wsol') {
-      return get().pureBalances[String(WSOLMint)]
+      return get().pureBalances[toPubString(WSOLMint)]
     } else {
-      const mint = isToken(target) ? String(target.mint) : String(target)
+      const mint = isToken(target) ? toPubString(target.mint) : toPubString(target)
       return get().balances[mint]
     }
   },
@@ -148,7 +149,7 @@ const useWallet = create<WalletStore>((set, get) => ({
     if (isQuantumSOL(target)) {
       return target.collapseTo === 'wsol' ? get().pureRawBalances[WSOL.mint] : get().solBalance
     } else {
-      const mint = isToken(target) ? String(target.mint) : String(target)
+      const mint = isToken(target) ? toPubString(target.mint) : toPubString(target)
       return get().rawBalances[mint]
     }
   },
@@ -161,10 +162,10 @@ const useWallet = create<WalletStore>((set, get) => ({
   },
 
   whetherTokenAccountIsExist(mint: PublicKeyish) {
-    return get().tokenAccounts.some(({ mint: existMint }) => String(existMint) === String(mint))
+    return get().tokenAccounts.some(({ mint: existMint }) => toPubString(existMint) === toPubString(mint))
   },
   findTokenAccount(mint: PublicKeyish) {
-    return get().tokenAccounts.find(({ mint: existMint }) => String(existMint) === String(mint))
+    return get().tokenAccounts.find(({ mint: existMint }) => toPubString(existMint) === toPubString(mint))
   },
   refreshCount: 0,
   async refreshWallet() {

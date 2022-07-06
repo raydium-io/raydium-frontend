@@ -16,6 +16,7 @@ import useCreateFarms from './useCreateFarm'
 import { MayArray } from '@/types/constants'
 import { asyncForEach } from '@/functions/asyncMap'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
+import { validUiRewardInfo } from './validRewardInfo'
 
 export default async function txClaimReward({
   reward,
@@ -23,6 +24,10 @@ export default async function txClaimReward({
 }: { reward: MayArray<UIRewardInfo> } & AddSingleTxOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection } }) => {
     const piecesCollector = createTransactionCollector()
+
+    // check input is valid
+    const { valid, reason } = validUiRewardInfo([reward].flat())
+    assert(valid, reason)
 
     // ---------- generate basic info ----------
     const { hydratedInfos } = useFarms.getState()
