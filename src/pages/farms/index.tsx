@@ -58,7 +58,6 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
-import { addQuery } from '@/functions/dom/getURLQueryEntries'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -600,7 +599,7 @@ function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; rew
           reward.isRewarding ? '' : 'opacity-70'
         }`}
       >
-        {isMeaningfulNumber(reward.userPendingReward) && (
+        {gt(reward.userPendingReward, 0) && (
           <div className="text-xs translate-y-0.125 pl-1">
             {formatNumber(toString(reward.userPendingReward), {
               fractionLength: 3
