@@ -65,6 +65,7 @@ function NavButtons({ className }: { className?: string }) {
 
 function WarningBoard({ className }: { className: string }) {
   const [needWarning, setNeedWarning] = useState(true)
+  const detailedGuideHref = 'https://raydium.gitbook.io/raydium/exchange-trade-and-swap/creating-an-ecosystem-farm'
   return (
     <FadeInStable show={needWarning}>
       <Row className={className}>
@@ -77,7 +78,7 @@ function WarningBoard({ className }: { className: string }) {
           </div>
 
           <Row className="gap-4">
-            <Link href="https://raydium.gitbook.io/raydium/exchange-trade-and-swap/raydium-farms">
+            <Link href={detailedGuideHref}>
               <Button className="frosted-glass-teal px-8">Detailed Guide</Button>
             </Link>
 
