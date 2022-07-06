@@ -142,6 +142,12 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       })
   } else if (toPage === '/farms/create') {
     cleanQuery('farmid')
+    // clear zustand createFarm
+    useCreateFarms.setState({
+      farmId: undefined,
+      poolId: undefined,
+      rewards: [{ ...createNewUIRewardInfo() }]
+    })
     return router
       .push({
         pathname: '/farms/create'
@@ -149,9 +155,6 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       .then(() => {
         useFarms.setState({
           searchText: ''
-        })
-        useCreateFarms.setState({
-          rewards: [{ ...createNewUIRewardInfo() }]
         })
       })
   } else if (toPage === '/farms/edit') {
