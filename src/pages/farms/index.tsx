@@ -1072,17 +1072,17 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                     .filter(isMeaningfulNumber) as TokenAmount[]
                 })
               }}
-              validators={[
-                {
-                  should: connected,
-                  forceActive: true,
-                  fallbackProps: {
-                    onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                    children: 'Connect Wallet'
-                  }
-                },
-                { should: hasPendingReward }
-              ]}
+              // validators={[
+              //   {
+              //     should: connected,
+              //     forceActive: true,
+              //     fallbackProps: {
+              //       onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+              //       children: 'Connect Wallet'
+              //     }
+              //   },
+              //   { should: hasPendingReward }
+              // ]}
             >
               Harvest
             </Button>
