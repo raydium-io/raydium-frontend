@@ -61,7 +61,7 @@ async function createClaimRewardInstruction({
   instructions: TransactionInstruction[]
 }> {
   const { owner, tokenAccountRawInfos } = useWallet.getState()
-  assert(owner, `wallet not connected`)
+  assert(owner, `Wallet not connected`)
   assert(isMintEqual(owner, reward.owner), `reward is not created by walletOwner`)
   assert(reward.token, `reward token haven't set`)
 

@@ -112,7 +112,7 @@ function createNewRewardInstruction({
 }) {
   const { owner, tokenAccountRawInfos } = useWallet.getState()
 
-  assert(owner, 'wallet not connected')
+  assert(owner, 'Wallet not connected')
   const rewardToken = reward.token
   assert(reward.startTime, 'reward start time is required')
   assert(reward.endTime, 'reward end time is required')

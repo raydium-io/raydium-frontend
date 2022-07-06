@@ -265,7 +265,7 @@ export default function CoinInputBox({
             fillAmountWithBalance(1)
           }}
         >
-          {topRightLabel ?? `Balance: ${toString(maxValue) || (connected ? '--' : '(wallet not connected)')}`}
+          {topRightLabel ?? `Balance: ${toString(maxValue) || (connected ? '--' : '(Wallet not connected)')}`}
         </div>
       </Row>
 
