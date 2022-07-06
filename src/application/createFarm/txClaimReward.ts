@@ -25,10 +25,6 @@ export default async function txClaimReward({
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection } }) => {
     const piecesCollector = createTransactionCollector()
 
-    // check input is valid
-    const { valid, reason } = validUiRewardInfo([reward].flat())
-    assert(valid, reason)
-
     // ---------- generate basic info ----------
     const { hydratedInfos } = useFarms.getState()
     const { farmId: targetFarmId } = useCreateFarms.getState()
