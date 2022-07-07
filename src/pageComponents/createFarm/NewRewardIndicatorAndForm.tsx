@@ -11,7 +11,8 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
   const newRewards = rewards.filter((r) => r.type === 'new added')
 
   const [activeRewardId, setActiveRewardId] = useState<string | number | undefined>(newRewards[0]?.id)
-  const activeReward = newRewards.find((r) => String(r.id) === String(activeRewardId))
+  const activeReward =
+    newRewards.find((r) => String(r.id) === String(activeRewardId)) ?? newRewards[newRewards.length - 1]
   useEffect(() => {
     const targetId = newRewards[newRewards.length - 1]?.id
     setActiveRewardId(targetId)
