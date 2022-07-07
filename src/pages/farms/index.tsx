@@ -59,9 +59,7 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
-import { Numberish } from '@/types/constants'
 import { isTokenAmount } from '@/functions/judgers/dateType'
-import { hydrateFarmInfo } from '@/application/farms/handleFarmInfo'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -300,13 +298,11 @@ function FarmCard() {
   const isLoading = useFarms((s) => s.isLoading)
   const dataSource = useMemo(() => {
     const hydratedInfo = hydratedInfos
-      .filter((i) => lpTokens[toPubString(i.lpMint)])
+      .filter((i) => (Object.keys(lpTokens).length > 0 ? lpTokens[toPubString(i.lpMint)] : true))
       .filter((i) => (isMobile ? i.version !== 6 : true))
-    const jsonInfo = jsonInfos
-      .filter((i) => lpTokens[toPubString(i.lpMint)])
-      .filter((i) => (isMobile ? i.version !== 6 : true))
-    return isLoading ? jsonInfo : hydratedInfo
-  }, [lpTokens, isLoading, hydratedInfos, jsonInfos])
+    const jsonInfo = jsonInfos.filter((i) => (isMobile ? i.version !== 6 : true))
+    return hydratedInfos.length > 0 ? hydratedInfo : jsonInfo
+  }, [lpTokens, hydratedInfos, jsonInfos])
 
   const tabedDataSource = useMemo(
     () =>
@@ -1343,7 +1339,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
   const isStable = isJsonFarmInfo(info) ? false : info.isStablePool
 
   if (isJsonFarmInfo(info)) {
-    const lpToken = getLpToken(info.lpMint)
+    const lpToken = getLpToken(info.lpMint) // TODO: may be token can cache?
     const name = lpToken ? `${lpToken.base.symbol ?? '--'} - ${lpToken.quote.symbol ?? '--'}` : '--' // TODO: rule of get farm name should be a issolate function
     return (
       <AutoBox
@@ -1358,7 +1354,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
         />
         {lpToken ? (
           <div>
-            <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
+            <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{'--'}</div>
           </div>
         ) : null}
       </AutoBox>
