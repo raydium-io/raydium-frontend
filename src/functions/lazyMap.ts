@@ -66,9 +66,11 @@ async function lazyMapCoreMap<T, U>(
   const wholeResult: U[] = []
   for (const blockList of groupBlockList(arr)) {
     await new Promise((resolve) => {
-      const newResultList = blockList.map(mapFn)
-      wholeResult.push(...newResultList)
-      resolve(undefined)
+      requestIdleCallback(() => {
+        const newResultList = blockList.map(mapFn)
+        wholeResult.push(...newResultList)
+        resolve(undefined)
+      })
     }) // forcely use microtask
   }
   return wholeResult
