@@ -2,7 +2,6 @@ import { PublicKey } from '@solana/web3.js'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 import NextNProgress from 'nextjs-progressbar'
-import { useEffect } from 'react'
 
 import {
   useDeviceInfoSyc,
