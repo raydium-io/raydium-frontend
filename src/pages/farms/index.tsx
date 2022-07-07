@@ -604,7 +604,7 @@ function FarmRewardBadge({
 }) {
   if (!reward) return null
   const isRewarding = isTokenAmount(reward) ? true : reward.isRewarding
-  const isRewardEnded = true
+  const isRewardEnded = isTokenAmount(reward) ? false : reward.isRewardEnded
   const isRewardBeforeStart = isTokenAmount(reward) ? false : reward.isRewardBeforeStart
   const pendingAmount = isTokenAmount(reward) ? reward : reward.userPendingReward
   return (
