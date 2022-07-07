@@ -75,8 +75,8 @@ export default function usePoolsInfoLoader() {
     usePools.setState({ lpPrices })
   }, [lpPrices])
 
-  useEffectWithTransition(() => {
-    lazyMap({
+  useEffectWithTransition(async () => {
+    const hydratedInfos = await lazyMap({
       source: jsonInfo,
       sourceKey: 'pair jsonInfo',
       loopFn: (pair) =>
@@ -84,10 +84,8 @@ export default function usePoolsInfoLoader() {
           lpToken: getLpToken(pair.lpMint),
           lpBalance: balances[String(pair.lpMint)],
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint)
-        }),
-      onListChange: (hydratedInfos) => {
-        usePools.setState({ hydratedInfos, loading: hydratedInfos.length === 0 })
-      }
+        })
     })
+    usePools.setState({ hydratedInfos, loading: hydratedInfos.length === 0 })
   }, [jsonInfo, getToken, balances, lpTokens, tokens, stableLiquidityJsonInfoLpMints])
 }
