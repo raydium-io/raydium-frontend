@@ -3,6 +3,7 @@ import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { lazyMap } from '@/functions/lazyMap'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { Token } from '@raydium-io/raydium-sdk'
 import { useEffect } from 'react'
 import { LpToken } from './type'
@@ -13,8 +14,8 @@ export default function useLpTokensLoader() {
   const tokens = useToken((s) => s.tokens)
   const getToken = useToken((s) => s.getToken)
 
-  useEffect(() => {
-    lazyMap({
+  useAsyncEffect(async () => {
+    const lpTokenItems = await lazyMap({
       source: ammJsonInfos,
       sourceKey: 'load lp token',
       loopFn: (ammJsonInfo) => {
@@ -37,11 +38,9 @@ export default function useLpTokensLoader() {
           }
         ) as LpToken
         return lpToken
-      },
-      onListChange: (lpTokenItems) => {
-        const lpTokens = listToMap(shakeUndifindedItem(lpTokenItems), (t) => toPubString(t.mint))
-        useToken.setState({ lpTokens, getLpToken: (mint) => lpTokens[toPubString(mint)] })
       }
     })
+    const lpTokens = listToMap(shakeUndifindedItem(lpTokenItems), (t) => toPubString(t.mint))
+    useToken.setState({ lpTokens, getLpToken: (mint) => lpTokens[toPubString(mint)] })
   }, [ammJsonInfos, tokens])
 }

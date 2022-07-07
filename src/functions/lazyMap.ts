@@ -1,14 +1,12 @@
 import { AnyFn } from '@/types/constants'
-import { resolve } from 'path'
 import { addItem } from './arrayMethods'
 
 const invokedRecord = new Map<string, (LazyMapSettings<any, any> & { idleId: number })[]>()
 
 type LazyMapSettings<T, U> = {
-  source: T[]
   sourceKey: string
+  source: T[]
   loopFn: (item: T, index: number, source: readonly T[]) => U
-  onListChange: (list: U[]) => void
 }
 
 /**
@@ -18,21 +16,23 @@ type LazyMapSettings<T, U> = {
  * @param settings.sourceKey flag for todo queue
  * @param settings.loopFn like js: array::map
  */
-export function lazyMap<T, U>(setting: LazyMapSettings<T, U>) {
-  const idleId = requestIdleCallback(async () => {
-    // console.time(`lazy map (${setting.sourceKey})`)
+export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
+  return new Promise((resolve) => {
+    const idleId = requestIdleCallback(async () => {
+      // console.time(`lazy map (${setting.sourceKey})`)
 
-    // const result = setting.source.map(setting.loopFn)
-    const result = await lazyMapCoreMap(setting.source, setting.loopFn)
-    setting.onListChange(result)
-    // console.timeEnd(`lazy map (${setting.sourceKey})`)
+      // const result = setting.source.map(setting.loopFn)
+      const result = await lazyMapCoreMap(setting.source, setting.loopFn)
+      resolve(result)
+      // console.timeEnd(`lazy map (${setting.sourceKey})`)
+    })
+
+    // cancel the last idle callback, and record new setting
+    const currentKeySettings = invokedRecord.get(setting.sourceKey) ?? []
+    const lastIdleId = currentKeySettings[currentKeySettings.length - 1]?.idleId
+    if (lastIdleId) cancelIdleCallback(lastIdleId)
+    invokedRecord.set(setting.sourceKey, addItem(invokedRecord.get(setting.sourceKey) ?? [], { ...setting, idleId }))
   })
-
-  // cancel the last idle callback, and record new setting
-  const currentKeySettings = invokedRecord.get(setting.sourceKey) ?? []
-  const lastIdleId = currentKeySettings[currentKeySettings.length - 1]?.idleId
-  if (lastIdleId) cancelIdleCallback(lastIdleId)
-  invokedRecord.set(setting.sourceKey, addItem(invokedRecord.get(setting.sourceKey) ?? [], { ...setting, idleId }))
 }
 
 function requestIdleCallback(fn: AnyFn): number {
@@ -66,9 +66,11 @@ async function lazyMapCoreMap<T, U>(
   const wholeResult: U[] = []
   for (const blockList of groupBlockList(arr)) {
     await new Promise((resolve) => {
-      const newResultList = blockList.map(mapFn)
-      wholeResult.push(...newResultList)
-      resolve(undefined)
+      requestIdleCallback(() => {
+        const newResultList = blockList.map(mapFn)
+        wholeResult.push(...newResultList)
+        resolve(undefined)
+      })
     }) // forcely use microtask
   }
   return wholeResult
