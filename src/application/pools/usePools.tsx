@@ -3,14 +3,14 @@ import create from 'zustand'
 import { HexAddress } from '@/types/constants'
 import { Price } from '@raydium-io/raydium-sdk'
 
-import { HydratedPoolItemInfo, JsonPairItemInfo } from './type'
+import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 
 // backEnd naming: Pools -> PairInfo
 export type PoolsStore = {
   loading: boolean
   jsonInfos: JsonPairItemInfo[]
-  hydratedInfos: HydratedPoolItemInfo[]
+  hydratedInfos: HydratedPairItemInfo[]
   lpPrices: Record<HexAddress, Price>
   tvl?: string | number // /api.raydium.io/v2/main/info
   volume24h?: string | number // /api.raydium.io/v2/main/info

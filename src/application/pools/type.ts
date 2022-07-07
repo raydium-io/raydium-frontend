@@ -33,7 +33,7 @@ export interface JsonPairItemInfo {
   volume30dQuote: number
 }
 
-export interface HydratedPoolItemInfo {
+export interface HydratedPairItemInfo {
   ammId: HexAddress
   apr24h: number
   apr7d: number

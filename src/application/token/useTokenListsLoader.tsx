@@ -25,9 +25,10 @@ import useToken, {
   SOLANA_TOKEN_LIST_NAME
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
+import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 
 export default function useTokenListsLoader() {
-  useEffect(() => {
+  useEffectWithTransition(() => {
     loadTokens()
   }, [])
 }

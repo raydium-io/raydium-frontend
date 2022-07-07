@@ -1,9 +1,8 @@
-import { isValidElement, ReactNode, useRef, useState } from 'react'
+import { ReactNode, useRef } from 'react'
 import { twMerge } from 'tailwind-merge'
 
+import useToggle from '@/hooks/useToggle'
 import { Transition } from '@headlessui/react'
-import { useToggleRef } from '@/hooks/useToggle'
-import { useForceUpdate } from '@/hooks/useForceUpdate'
 
 export default function FadeInStable({
   openDelay = 17,
@@ -20,12 +19,7 @@ export default function FadeInStable({
 }) {
   // const [nodeExist, { off: destory }] = useToggle(true)
   const contentRef = useRef<HTMLDivElement>(null)
-  const [, forceUpdate] = useForceUpdate()
-  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
-    delay: 200 + 20 /* transition time */,
-    onToggle: forceUpdate
-  })
-
+  const [isDuringTransition, { off: turnOffDuringTransition, on: turnOnDuringTransition }] = useToggle()
   return (
     <Transition
       show={Boolean(show)}
@@ -53,16 +47,13 @@ export default function FadeInStable({
             // So trick. But have to.🤯🤯🤯🤯
             contentRef.current?.clientHeight
             contentRef.current?.style.setProperty('height', `${height}px`)
-            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
-            transactionFlagDelayOff()
-
-            // clean unnecessary style
-            setTimeout(() => {
-              if (isDuringTransition.current) return
-              contentRef.current?.style.removeProperty('height')
-            }, 200 + 20 /* transition time */)
           }
         }, openDelay)
+        turnOnDuringTransition()
+      }}
+      afterEnter={() => {
+        contentRef.current?.style.removeProperty('height')
+        turnOffDuringTransition()
       }}
       beforeLeave={() => {
         if (ignoreLeaveTransition) return
@@ -76,26 +67,22 @@ export default function FadeInStable({
             // So trick. But have to.🤯🤯🤯🤯
             contentRef.current?.clientHeight
             contentRef.current?.style.setProperty('height', '0')
-
-            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
-            transactionFlagDelayOff()
-
-            // clean unnecessary style
-            setTimeout(() => {
-              if (isDuringTransition.current) return
-              contentRef.current?.style.removeProperty('height')
-              contentRef.current?.style.setProperty('position', 'absolute')
-              contentRef.current?.style.setProperty('visibility', 'hidden')
-            }, 200 + 20 /* transition time */)
           }
         })
+        turnOnDuringTransition()
+      }}
+      afterLeave={() => {
+        contentRef.current?.style.removeProperty('height')
+        contentRef.current?.style.setProperty('position', 'absolute')
+        contentRef.current?.style.setProperty('visibility', 'hidden')
+        turnOffDuringTransition()
       }}
     >
       {/* outer div can't set ref for it's being used by headless-ui <Transition/> */}
       <div
         ref={contentRef}
         className={twMerge(
-          `transition-all duration-200 ease overflow-hidden ${children || isDuringTransition.current ? '' : 'hidden'}`
+          `transition-all duration-200 ease overflow-hidden ${children || isDuringTransition ? '' : 'hidden'}`
         )}
       >
         {children}
@@ -122,11 +109,7 @@ export function FadeIn({
   const contentRef = useRef<HTMLDivElement>(null)
   const innerChildren = useRef<ReactNode>(children)
   if (children) innerChildren.current = children
-  const [, forceUpdate] = useForceUpdate()
-  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
-    delay: 200 + 20 /* transition time */,
-    onToggle: forceUpdate
-  })
+  const [isDuringTransition, { off: turnOffDuringTransition, on: turnOnDuringTransition }] = useToggle()
   return (
     <Transition
       appear
@@ -154,16 +137,13 @@ export function FadeIn({
             // So trick. But have to.🤯🤯🤯🤯
             contentRef.current?.clientHeight
             contentRef.current?.style.setProperty('height', `${height}px`)
-            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
-            transactionFlagDelayOff()
-
-            // // clean unnecessary style
-            setTimeout(() => {
-              if (isDuringTransition.current) return
-              contentRef.current?.style.removeProperty('height')
-            }, 200 + 20 /* transition time */)
           }
         }, openDelay)
+        turnOnDuringTransition()
+      }}
+      afterEnter={() => {
+        contentRef.current?.style.removeProperty('height')
+        turnOffDuringTransition()
       }}
       beforeLeave={() => {
         if (ignoreLeaveTransition) return
@@ -177,24 +157,18 @@ export function FadeIn({
             // So trick. But have to.🤯🤯🤯🤯
             contentRef.current?.clientHeight
             contentRef.current?.style.setProperty('height', '0')
-
-            transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
-            transactionFlagDelayOff()
-
-            // clean unnecessary style
-            setTimeout(() => {
-              if (isDuringTransition.current) return
-              contentRef.current?.style.removeProperty('height')
-            }, 200 + 20 /* transition time */)
           }
         })
+        turnOnDuringTransition()
+      }}
+      afterLeave={() => {
+        contentRef.current?.style.removeProperty('height')
+        turnOffDuringTransition()
       }}
     >
       <div
         ref={contentRef}
-        className={`transition-all duration-200 ease overflow-hidden ${
-          children || isDuringTransition.current ? '' : 'hidden'
-        }`}
+        className={`transition-all duration-200 ease overflow-hidden ${children || isDuringTransition ? '' : 'hidden'}`}
       >
         {innerChildren.current}
       </div>

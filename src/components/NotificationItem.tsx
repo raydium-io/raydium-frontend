@@ -100,12 +100,10 @@ export default function NotificationItem({ description, title, subtitle, type = 
           itemWrapperRef.current?.clientHeight
           itemWrapperRef.current?.style.setProperty('height', `${height}px`)
           itemWrapperRef.current?.style.removeProperty('visibility')
-
-          // clean unnecessary style
-          setTimeout(() => {
-            itemWrapperRef.current?.style.removeProperty('height')
-          }, 500 + 20 /* transition time */)
         })
+      }}
+      afterEnter={() => {
+        itemWrapperRef.current?.style.removeProperty('height')
       }}
       beforeLeave={() => {
         setTimeout(() => {
@@ -116,9 +114,9 @@ export default function NotificationItem({ description, title, subtitle, type = 
           itemWrapperRef.current?.clientHeight
           itemWrapperRef.current?.style.setProperty('height', '0')
         })
-
-        // clean unnecessary style
-        setTimeout(destory, 500 + 20 /* transition time */)
+      }}
+      afterLeave={() => {
+        destory()
       }}
     >
       {/* U have to gen another <div> to have the gap between <NotificationItem> */}

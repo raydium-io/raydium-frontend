@@ -1,15 +1,13 @@
-import React, { CSSProperties, Fragment, ReactNode, useEffect, useRef, useState } from 'react'
+import { CSSProperties, Fragment, ReactNode, useState } from 'react'
 
 import { Dialog as _Dialog, Transition } from '@headlessui/react'
 
 import { twMerge } from 'tailwind-merge'
 
-import { shrinkToValue } from '@/functions/shrinkToValue'
-import { MayFunction } from '@/types/generics'
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import { shrinkToValue } from '@/functions/shrinkToValue'
 import useTwoStateSyncer from '@/hooks/use2StateSyncer'
-import { useToggleRef } from '@/hooks/useToggle'
-import { useSignalState } from '@/hooks/useSignalState'
+import { MayFunction } from '@/types/generics'
 
 export interface DialogProps {
   open: boolean
@@ -40,30 +38,12 @@ export default function Dialog({
 }: DialogProps) {
   // for onCloseTransitionEnd
   // during leave transition, open is still true, but innerOpen is false, so transaction will happen without props:open has change (if open is false, React may destory this component immediately)
-  const [innerOpen, setInnerOpen, innerOpenSignal] = useSignalState(open)
+  const [innerOpen, setInnerOpen] = useState(open)
   const isMobile = useAppSettings((s) => s.isMobile)
 
-  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
-    delay: transitionSpeed === 'fast' ? 100 : 200 /* transition time */,
-    onOff: () => {
-      // seems headlessui/react 1.6 doesn't fired this certainly(because React 16 priority strategy), so i have to use setTimeout 👇 in <Dialog>'s onClose
-      if (!innerOpenSignal()) {
-        onClose?.()
-      }
-    }
-  })
+  const openDialog = () => setInnerOpen(true)
 
-  const openDialog = () => {
-    setInnerOpen(true)
-    transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
-    transactionFlagDelayOff()
-  }
-
-  const closeDialog = () => {
-    setInnerOpen(false)
-    transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
-    transactionFlagDelayOff()
-  }
+  const closeDialog = () => setInnerOpen(false)
 
   useTwoStateSyncer({
     state1: open,
@@ -75,17 +55,7 @@ export default function Dialog({
 
   if (!open) return null
   return (
-    <Transition
-      as={Fragment}
-      show={innerOpen}
-      appear
-      beforeLeave={onCloseImmediately}
-      // afterLeave={() => {
-      //   // seems headlessui/react 1.6 doesn't fired this certainly(because React 16 priority strategy), so i have to use setTimeout 👇 in <Dialog>'s onClose
-      //   console.log('onCloseTransitionEnd')
-      //   return onCloseTransitionEnd?.()
-      // }}
-    >
+    <Transition as={Fragment} show={innerOpen} appear beforeLeave={onCloseImmediately} afterLeave={onClose}>
       <_Dialog open={innerOpen} static as="div" className="fixed inset-0 z-model overflow-y-auto" onClose={closeDialog}>
         <div className="Dialog w-screen h-screen fixed">
           <Transition.Child

@@ -1,16 +1,14 @@
 import React, { Fragment, ReactNode, useEffect, useRef, useState } from 'react'
-import ReactDOM, { createPortal } from 'react-dom'
+import { createPortal } from 'react-dom'
 
 import { Transition } from '@headlessui/react'
 
 import { twMerge } from 'tailwind-merge'
 
-import { shrinkToValue } from '@/functions/shrinkToValue'
-import { MayFunction } from '@/types/constants'
 import { inClient } from '@/functions/judgers/isSSR'
+import { shrinkToValue } from '@/functions/shrinkToValue'
 import useTwoStateSyncer from '@/hooks/use2StateSyncer'
-import { useToggleRef } from '@/hooks/useToggle'
-import { useSignalState } from '@/hooks/useSignalState'
+import { MayFunction } from '@/types/constants'
 
 export const DRAWER_STACK_ID = 'drawer-stack'
 
@@ -84,31 +82,18 @@ export default function Drawer({
 
   // for onCloseTransitionEnd
   // during leave transition, open is still true, but innerOpen is false, so transaction will happen without props:open has change (if open is false, React may destory this component immediately)
-  const [innerOpen, setInnerOpen, innerOpenSignal] = useSignalState(open)
+  const [innerOpen, setInnerOpen] = useState(open)
+
   useEffect(() => {
     if (open) onOpen?.()
   }, [open])
 
-  const [isDuringTransition, { delayOff: transactionFlagDelayOff, on: transactionFlagOn }] = useToggleRef(false, {
-    delay: transitionSpeed === 'fast' ? 100 : 200 /* transition time */,
-    onOff: () => {
-      // seems headlessui/react 1.6 doesn't fired this certainly(because React 16 priority strategy), so i have to use setTimeout 👇 in <Dialog>'s onClose
-      if (!innerOpenSignal()) {
-        onClose?.()
-      }
-    }
-  })
-
   const openDrawer = () => {
     setInnerOpen(true)
-    transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
-    transactionFlagDelayOff()
   }
 
   const closeDrawer = () => {
     setInnerOpen(false)
-    transactionFlagOn() // to make sure 👇 setTimout would not remove something if transaction has canceled
-    transactionFlagDelayOff()
   }
 
   useTwoStateSyncer({
@@ -127,7 +112,7 @@ export default function Drawer({
         appear
         show={innerOpen}
         beforeLeave={onCloseImmediately}
-        // afterLeave={onCloseTransitionEnd}
+        afterLeave={onClose}
       >
         <Transition.Child
           as={Fragment}

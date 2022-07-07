@@ -11,6 +11,7 @@ import txFarmDeposit from '@/application/farms/txFarmDeposit'
 import txFarmHarvest from '@/application/farms/txFarmHarvest'
 import txFarmWithdraw from '@/application/farms/txFarmWithdraw'
 import { FarmPoolJsonInfo, HydratedFarmInfo, HydratedRewardInfo } from '@/application/farms/type'
+import useFarmResetSelfCreatedByOwner from '@/application/farms/useFarmResetSelfCreatedByOwner'
 import useFarms, { useFarmFavoriteIds } from '@/application/farms/useFarms'
 import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
 import useNotification from '@/application/notification/useNotification'
@@ -61,6 +62,7 @@ import useSort from '@/hooks/useSort'
 
 export default function FarmsPage() {
   useFarmUrlParser()
+  useFarmResetSelfCreatedByOwner()
   return (
     <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
       <FarmHeader />

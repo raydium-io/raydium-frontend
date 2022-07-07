@@ -48,6 +48,7 @@ import Tooltip from '@/components/Tooltip'
 import LoadingCircle from '@/components/LoadingCircle'
 import useConnection from '@/application/connection/useConnection'
 import { recursivelyDo } from '@/functions/recursivelyDo'
+import useAutoFetchIdoInfos from '@/application/ido/useAutoFetchIdoInfos'
 
 // paser url to patch idoid
 function useUrlParser() {
@@ -126,6 +127,7 @@ function PageGridTemplate({ children }: { children?: ReactNode }) {
 
 export default function LotteryDetailPageLayout() {
   useUrlParser()
+  useAutoFetchIdoInfos()
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   return (
     <PageLayout metaTitle="AcceleRaytor" mobileBarTitle="AcceleRaytor" contentYPaddingShorter>
