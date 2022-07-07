@@ -26,6 +26,7 @@ import useToken, {
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
 import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 
 export default function useTokenListsLoader() {
   useEffectWithTransition(() => {
@@ -61,7 +62,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
       tokens.push(...deleteFetchedNativeSOLToken(response.official), ...response.unOfficial)
       blacklist.push(...response.blacklist)
     }
-    if (isRaydiumDevTokenListName(response, raw.url)) {
+    if (isRaydiumDevTokenListName(response, raw.url) && (isInLocalhost || isInBonsaiTest)) {
       devMints.push(...response.tokens.map(({ mint }) => mint))
       tokens.push(...response.tokens)
     }
