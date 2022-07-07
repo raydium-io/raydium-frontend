@@ -53,9 +53,6 @@ export interface HydratedTokenJsonInfo {
 }
 
 export interface RaydiumTokenListJsonInfo {
-  name: string
-  timestamp: string
-  version: { major: number; minor: number; patch: number }
   official: TokenJson[]
   unOfficial: TokenJson[]
   blacklist: HexAddress[]

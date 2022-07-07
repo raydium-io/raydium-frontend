@@ -55,13 +55,13 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
   console.info('tokenList start fetching')
   await asyncMapAllSettled(rawListConfigs, async (raw) => {
     const response = await jFetch<RaydiumTokenListJsonInfo | RaydiumDevTokenListJsonInfo>(raw.url)
-    if (isRaydiumMainnetTokenListName(response)) {
+    if (isRaydiumMainnetTokenListName(response, raw.url)) {
       unOfficialMints.push(...response.unOfficial.map(({ mint }) => mint))
       officialMints.push(...deleteFetchedNativeSOLToken(response.official).map(({ mint }) => mint))
       tokens.push(...deleteFetchedNativeSOLToken(response.official), ...response.unOfficial)
       blacklist.push(...response.blacklist)
     }
-    if (isRaydiumDevTokenListName(response)) {
+    if (isRaydiumDevTokenListName(response, raw.url)) {
       devMints.push(...response.tokens.map(({ mint }) => mint))
       tokens.push(...response.tokens)
     }

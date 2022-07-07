@@ -61,6 +61,7 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
 import { Numberish } from '@/types/constants'
 import { isTokenAmount } from '@/functions/judgers/dateType'
+import { hydrateFarmInfo } from '@/application/farms/handleFarmInfo'
 
 export default function FarmsPage() {
   useFarmUrlParser()

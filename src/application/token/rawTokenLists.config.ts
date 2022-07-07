@@ -1,21 +1,23 @@
 import { RaydiumDevTokenListJsonInfo, RaydiumTokenListJsonInfo, TokenListFetchConfigItemWithMethods } from './type'
 import { RAYDIUM_DEV_TOKEN_LIST_NAME, RAYDIUM_MAINNET_TOKEN_LIST_NAME } from './useToken'
 
+const raydiumMainnetTokenListUrl = 'https://api.raydium.io/v2/sdk/token/raydium.mainnet.json'
+const customTokenListUrl = '/custom-token-list.json'
 export const rawTokenListConfigs = [
   {
-    url: 'https://api.raydium.io/v2/sdk/token/raydium.mainnet.json',
+    url: raydiumMainnetTokenListUrl,
     name: RAYDIUM_MAINNET_TOKEN_LIST_NAME
   },
   {
-    url: '/custom-token-list.json',
+    url: customTokenListUrl,
     name: RAYDIUM_DEV_TOKEN_LIST_NAME
   }
 ] as TokenListFetchConfigItemWithMethods[]
 
-export function isRaydiumMainnetTokenListName(response: any): response is RaydiumTokenListJsonInfo {
-  return response?.name === 'Raydium Mainnet Token List'
+export function isRaydiumMainnetTokenListName(response: any, url: string): response is RaydiumTokenListJsonInfo {
+  return url === raydiumMainnetTokenListUrl
 }
 
-export function isRaydiumDevTokenListName(response: any): response is RaydiumDevTokenListJsonInfo {
-  return response?.name === RAYDIUM_DEV_TOKEN_LIST_NAME
+export function isRaydiumDevTokenListName(response: any, url: string): response is RaydiumDevTokenListJsonInfo {
+  return url === customTokenListUrl
 }

@@ -80,7 +80,7 @@ export default function useFarmInfoLoader() {
         })
     })
 
-    useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length === 0 })
+    useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length <= 0 })
   }, [
     aprs,
     sdkParsedInfos,
