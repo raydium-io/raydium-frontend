@@ -594,11 +594,12 @@ function FarmCardDatabaseBody({
 
 // currently only SDKRewardInfo
 function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; reward: HydratedRewardInfo }) {
+  const isRewarding = reward.isRewarding
   return (
     <Tooltip placement="bottom">
       <Row
-        className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 ${
-          reward.isRewarding ? '' : 'opacity-70'
+        className={`ring-1.5 ring-inset p-1 rounded-full items-center gap-2 ${
+          isRewarding ? 'ring-[#abc4ff80]' : 'opacity-50 ring-transparent '
         }`}
       >
         {gt(reward.userPendingReward, 0) && (
@@ -608,7 +609,7 @@ function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; rew
             })}
           </div>
         )}
-        <CoinAvatar size="sm" token={reward.token} />
+        <CoinAvatar size={'smi'} token={reward.token} />
       </Row>
       <Tooltip.Panel>
         <div className="mb-1">
