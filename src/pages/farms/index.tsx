@@ -59,6 +59,8 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
+import { Numberish } from '@/types/constants'
+import { isTokenAmount } from '@/functions/judgers/dateType'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -593,32 +595,55 @@ function FarmCardDatabaseBody({
 }
 
 // currently only SDKRewardInfo
-function FarmRewardBadge({ farmInfo, reward }: { farmInfo: HydratedFarmInfo; reward: HydratedRewardInfo }) {
-  const isRewarding = reward.isRewarding
+function FarmRewardBadge({
+  farmInfo,
+  reward
+}: {
+  farmInfo: HydratedFarmInfo
+  reward: HydratedRewardInfo | TokenAmount | undefined
+}) {
+  if (!reward) return null
+  const isRewarding = isTokenAmount(reward) ? true : reward.isRewarding
+  const isRewardEnded = true
+  const isRewardBeforeStart = isTokenAmount(reward) ? false : reward.isRewardBeforeStart
+  const pendingAmount = isTokenAmount(reward) ? reward : reward.userPendingReward
   return (
-    <Tooltip placement="bottom">
+    <Tooltip placement="bottom" disable={Boolean(isTokenAmount(reward) || !reward.openTime || !reward.endTime)}>
       <Row
-        className={`ring-1.5 ring-inset p-1 rounded-full items-center gap-2 ${
-          isRewarding ? 'ring-[#abc4ff80]' : 'opacity-50 ring-transparent '
-        }`}
+        className={`ring-1.5 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
+          isRewarding ? '' : 'opacity-50'
+        } ${isRewardBeforeStart ? '' : ''}`}
       >
-        {gt(reward.userPendingReward, 0) && (
+        {gt(pendingAmount, 0) && (
           <div className="text-xs translate-y-0.125 pl-1">
-            {formatNumber(toString(reward.userPendingReward), {
+            {formatNumber(toString(pendingAmount), {
               fractionLength: 3
             })}
           </div>
         )}
-        <CoinAvatar size={'smi'} token={reward.token} />
+        <div className="relative">
+          <CoinAvatar size="smi" token={reward.token} className={isRewardBeforeStart ? 'blur-sm' : ''} />
+          {isRewardEnded && (
+            <div className="absolute h-[1.5px] w-full top-1/2 -translate-y-1/2 rotate-45 bg-[#abc4ff80] scale-x-125"></div>
+          )}
+          {isRewardBeforeStart && (
+            <div className="absolute top-1/2 -translate-y-1/2 opacity-70">
+              <Icon heroIconName="dots-horizontal" />
+            </div>
+          )}
+        </div>
       </Row>
-      <Tooltip.Panel>
-        <div className="mb-1">
-          {reward.token?.symbol ?? '--'} Reward Period {reward.isRewardEnded ? 'ended' : ''}
-        </div>
-        <div className="opacity-50">
-          {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
-        </div>
-      </Tooltip.Panel>
+      {!isTokenAmount(reward) && reward.openTime && reward.endTime && (
+        <Tooltip.Panel>
+          <div className="mb-1">
+            {reward.token?.symbol ?? '--'}{' '}
+            {isRewardEnded ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period'}
+          </div>
+          <div className="opacity-50">
+            {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
+          </div>
+        </Tooltip.Panel>
+      )}
     </Tooltip>
   )
 }
@@ -697,18 +722,19 @@ function FarmCardDatabaseBodyCollapseItemFace({
         <TextInfoItem
           name="Pending Rewards"
           value={
-            <div>
+            <Row className="flex-wrap gap-2 w-full pr-8">
               {isJsonFarmInfo(info)
                 ? '--'
                 : info.rewards.map(
                     ({ token, userPendingReward, userHavedReward }) =>
-                      userHavedReward && (
+                      userHavedReward &&
+                      token && (
                         <div key={toPubString(token?.mint)}>
-                          {toString(userPendingReward) || '0'} {token?.symbol}
+                          <FarmRewardBadge farmInfo={info} reward={userPendingReward ?? toTokenAmount(token, 0)} />
                         </div>
                       )
                   )}
-            </div>
+            </Row>
           }
         />
       )}
