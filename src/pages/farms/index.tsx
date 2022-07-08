@@ -611,7 +611,7 @@ function FarmRewardBadge({
           isRewarding ? '' : 'opacity-50'
         } ${isRewardBeforeStart ? '' : ''}`}
       >
-        {gt(pendingAmount, 0) && (
+        {gt(pendingAmount, 0.001) && (
           <div className="text-xs translate-y-0.125 pl-1">
             {formatNumber(toString(pendingAmount), {
               fractionLength: 3

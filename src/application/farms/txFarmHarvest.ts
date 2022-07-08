@@ -77,6 +77,11 @@ export default async function txFarmHarvest(
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       onTxError: () => removeWalletAccountChangeListener(listenerId),
       onTxSentError: () => removeWalletAccountChangeListener(listenerId),
+      onTxSuccess: () => {
+        setTimeout(() => {
+          useFarms.getState().refreshFarmInfos()
+        }, 300) // sometimes pending rewards is not very reliable, so invoke it manually
+      }, // wallet Account Change sometimes not stable
       txHistoryInfo: {
         title: `Harvest ${options.rewardAmounts.map(({ token }) => token.symbol).join(', ')}`,
         description: `Harvest ${options.rewardAmounts
