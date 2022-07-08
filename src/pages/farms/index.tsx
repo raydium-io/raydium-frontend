@@ -160,7 +160,7 @@ function FarmSearchBlock({ className }: { className?: string }) {
               useFarms.setState({ searchText: '' })
             }}
           />
-          <Tooltip.Panel>click here to view all farm pools</Tooltip.Panel>
+          <Tooltip.Panel>Click here to view all farm pools</Tooltip.Panel>
         </Tooltip>
       }
       placeholder="Search All"
