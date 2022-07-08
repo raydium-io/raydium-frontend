@@ -40,6 +40,7 @@ import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
 import DecimalInput from './DecimalInput'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { useSignalState } from '@/hooks/useSignalState'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -146,7 +147,7 @@ export default function CoinInputBox({
   const tokenPrices = useToken((s) => s.tokenPrices)
 
   const variousPrices = { ...lpPrices, ...tokenPrices }
-  const [inputedAmount, setInputedAmount] = useState<string>()
+  const [inputedAmount, setInputedAmount, inputAmountSignal] = useSignalState<string>() // setInputedAmount use to state , not sync, useSignalState can get sync value
 
   // sync outter's value and inner's inputedAmount
   useEffect(() => {
@@ -196,9 +197,9 @@ export default function CoinInputBox({
 
   // if switch selected token, may doesn't satisfied pattern. just extract satisfied part.
   useEffect(() => {
-    const satisfied = validPattern.test(inputedAmount ?? '')
+    const satisfied = validPattern.test(inputAmountSignal() ?? '') // use signal to get sync value
     if (!satisfied) {
-      const matched = inputedAmount?.match(`^(\\d*)(\\.\\d{0,${token?.decimals ?? 6}})?(\\d*)$`)
+      const matched = inputAmountSignal()?.match(`^(\\d*)(\\.\\d{0,${token?.decimals ?? 6}})?(\\d*)$`)
       const [, validInt = '', validDecimal = ''] = matched ?? []
       const sliced = validInt + validDecimal
       setInputedAmount(sliced)
@@ -221,9 +222,9 @@ export default function CoinInputBox({
     const newAmount = toString(mul(maxBalance, percent), {
       decimalLength: isTokenAmount(maxValue) ? `auto ${maxValue.token.decimals}` : undefined
     })
-    isOutsideValueLocked.current = false
     onUserInput?.(newAmount) // set both outside and inside
     setInputedAmount(newAmount) // set both outside and inside
+    isOutsideValueLocked.current = false
   }
 
   useImperativeHandle(
@@ -256,7 +257,7 @@ export default function CoinInputBox({
       }}
       onClick={focusInput}
     >
-      {/* from&balance */}
+      {/* from & balance */}
       <Row className="justify-between mb-2 mobile:mb-4">
         <div className="text-xs mobile:text-2xs text-[rgba(171,196,255,.5)]">{topLeftLabel}</div>
         <div
@@ -341,7 +342,9 @@ export default function CoinInputBox({
             componentRef={inputRef}
             placeholder={hasPlaceholder ? '0.0' : undefined}
             value={inputedAmount}
-            onUserInput={(t) => setInputedAmount(String(t || ''))}
+            onUserInput={(t) => {
+              setInputedAmount(String(t || ''))
+            }}
             onEnter={onEnter}
             inputClassName="text-right mobile:text-sm font-medium text-white"
             onBlur={(input) => {

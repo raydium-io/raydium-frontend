@@ -3,7 +3,8 @@ import { useCallback } from 'react'
 import { useRef, useState } from 'react'
 
 /**
- * @tested
+ * safely change useState to useSignalState
+ *
  * export state and state and signal in order
  *
  * so it extends build-in `setState()`
