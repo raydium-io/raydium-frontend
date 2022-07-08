@@ -14,7 +14,8 @@ import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
-import { sub } from '@/functions/numberish/operations'
+import { getMax, sub } from '@/functions/numberish/operations'
+import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import { unionArr } from '@/types/generics'
 import {
@@ -116,7 +117,7 @@ export function hydrateFarmInfo(
   const rewardTokens = farmInfo.rewardInfos.map(({ rewardMint: mint }) => payload.getToken(String(mint)))
 
   const pendingRewards = farmInfo.wrapped?.pendingRewards.map((reward, idx) =>
-    rewardTokens[idx] ? new TokenAmount(rewardTokens[idx]!, reward) : undefined
+    rewardTokens[idx] ? new TokenAmount(rewardTokens[idx]!, toBN(getMax(reward, 0))) : undefined
   )
 
   const lpPrice = (isStakePool ? payload.tokenPrices : payload.lpPrices)[toPubString(farmInfo.lpMint)]
