@@ -41,7 +41,7 @@ export type PageRouteConfigs = {
   '/farms': {
     queryProps?: {
       searchText?: string
-      currentTab?: 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive'
+      currentTab?: 'Raydium' | 'Fusion' | 'Ecosystem' | 'My Staked'
     }
   }
   '/pools': {

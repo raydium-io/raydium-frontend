@@ -23,7 +23,7 @@ export type FarmStore = {
 
   onlySelfFarms: boolean
   onlySelfCreatedFarms: boolean
-  currentTab: 'Raydium' | 'Fusion' | 'Ecosystem' | 'Inactive'
+  currentTab: 'Raydium' | 'Fusion' | 'Ecosystem' | 'My Staked'
   searchText: string
 
   stakeDialogMode: 'deposit' | 'withdraw'
