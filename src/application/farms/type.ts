@@ -31,6 +31,10 @@ export interface FarmPoolJsonInfo {
   lpMint: string
   lpVault: string
 
+  baseMint: string
+  quoteMint: string
+  name: string
+
   version: number
   programId: string
 

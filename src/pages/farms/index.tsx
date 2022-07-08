@@ -457,7 +457,7 @@ function FarmCard() {
           </Row>
           {/* table head column: Farm */}
           <Row
-            className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
+            className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
             onClick={() => {
               setSortConfig({
                 key: 'name',
@@ -1338,6 +1338,7 @@ function FarmStakeLpDialog() {
 function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | FarmPoolJsonInfo; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const getLpToken = useToken((s) => s.getLpToken)
+  const getToken = useToken((s) => s.getToken)
   const isStable = isJsonFarmInfo(info) ? false : info.isStablePool
 
   if (isJsonFarmInfo(info)) {
@@ -1351,14 +1352,16 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
         <CoinAvatarPair
           className="justify-self-center mr-2"
           size={isMobile ? 'sm' : 'md'}
-          token1={lpToken?.base}
-          token2={lpToken?.quote}
+          token1={getToken(info.baseMint)}
+          token2={getToken(info.quoteMint)}
         />
-        {lpToken ? (
-          <div>
-            <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{'--'}</div>
-          </div>
-        ) : null}
+        <div>
+          {getToken(info.baseMint) && (
+            <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{`${
+              getToken(info.baseMint)?.symbol ?? 'unknown'
+            }-${getToken(info.quoteMint)?.symbol ?? 'unknown'}`}</div>
+          )}
+        </div>
       </AutoBox>
     )
   }

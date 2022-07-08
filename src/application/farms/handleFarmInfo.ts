@@ -26,7 +26,8 @@ import {
   ONE,
   Price,
   TEN,
-  TokenAmount
+  TokenAmount,
+  ZERO
 } from '@raydium-io/raydium-sdk'
 import BN from 'bn.js'
 import { SplToken } from '../token/type'
@@ -104,8 +105,8 @@ export function hydrateFarmInfo(
   const isStablePool = payload.liquidityJsonInfos?.find((i) => i.lpMint === toPubString(farmInfo.lpMint))?.version === 5
 
   const lpToken = isStakePool ? payload.getToken(farmInfo.lpMint) : payload.getLpToken(farmInfo.lpMint)
-  const baseToken = isStakePool ? payload.getToken(farmInfo.lpMint) : payload.getLpToken(farmInfo.lpMint)?.base
-  const quoteToken = isStakePool ? payload.getToken(farmInfo.lpMint) : payload.getLpToken(farmInfo.lpMint)?.quote
+  const baseToken = isStakePool ? payload.getToken(farmInfo.lpMint) : payload.getToken(farmInfo.baseMint)
+  const quoteToken = isStakePool ? payload.getToken(farmInfo.lpMint) : payload.getToken(farmInfo.quoteMint)
 
   if (!baseToken?.symbol) {
     // console.log('farmInfo: ', farmInfo.jsonInfo)
@@ -114,7 +115,7 @@ export function hydrateFarmInfo(
     ? `${baseToken?.symbol ?? 'unknown'}`
     : `${baseToken?.symbol ?? 'unknown'}-${quoteToken?.symbol ?? 'unknown'}`
 
-  const rewardTokens = farmInfo.rewardInfos.map(({ rewardMint: mint }) => payload.getToken(String(mint)))
+  const rewardTokens = farmInfo.jsonInfo.rewardInfos.map(({ rewardMint: mint }) => payload.getToken(toPubString(mint)))
 
   const pendingRewards = farmInfo.wrapped?.pendingRewards.map((reward, idx) =>
     rewardTokens[idx] ? new TokenAmount(rewardTokens[idx]!, toBN(getMax(reward, 0))) : undefined
@@ -130,7 +131,8 @@ export function hydrateFarmInfo(
     tvl,
     currentBlockChainDate: payload.currentBlockChainDate,
     rewardTokens: rewardTokens,
-    rewardTokenPrices: farmInfo.rewardInfos.map(({ rewardMint }) => payload.tokenPrices?.[String(rewardMint)]) ?? [],
+    rewardTokenPrices:
+      farmInfo.rewardInfos.map(({ rewardMint }) => payload.tokenPrices?.[toPubString(rewardMint)]) ?? [],
     blockSlotCountForSecond: payload.blockSlotCountForSecond
   })
 
