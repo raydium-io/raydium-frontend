@@ -226,8 +226,8 @@ function FarmTabBlock({ className }: { className?: string }) {
     <Tabs
       currentValue={currentTab}
       urlSearchQueryKey="tab"
-      values={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'My Staked'] as const)}
-      labels={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'My Staked'] as const)}
+      values={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'Staked'] as const)}
+      labels={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'Staked'] as const)}
       onChange={(tab) => useFarms.setState({ currentTab: tab })}
       className={twMerge('justify-self-center mobile:col-span-full', className)}
       itemClassName={isMobile ? 'w-[80px] h-[30px]' : ''}
@@ -309,7 +309,7 @@ function FarmCard() {
       (dataSource as (FarmPoolJsonInfo | HydratedFarmInfo)[]).filter((i) =>
         currentTab === 'Fusion'
           ? i.category === 'fusion' && (isHydratedFarmInfo(i) ? !i.isClosedPool : true)
-          : currentTab === 'My Staked'
+          : currentTab === 'Staked'
           ? isHydratedFarmInfo(i)
             ? isMeaningfulNumber(i.ledger?.deposited)
             : false
@@ -377,6 +377,8 @@ function FarmCard() {
         }
       : currentTab === 'Fusion'
       ? { title: 'Fusion Farms', description: 'Stake LP tokens and earn project token rewards' }
+      : currentTab === 'Staked'
+      ? { title: 'Your Staked Farms', description: 'You are currently staked in these farms' }
       : { title: 'Raydium Farms', description: 'Stake LP tokens and earn token rewards' }
 
   // NOTE: filter widgets
