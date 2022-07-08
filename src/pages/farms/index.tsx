@@ -905,8 +905,8 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
     >
       <AutoBox is={isMobile ? 'Col' : 'Row'} className={`mobile:gap-3`}>
         <AutoBox
-          is={isMobile ? 'Col' : 'Row'}
-          className="gap-8 mobile:gap-3 flex-grow px-8 py-5 mobile:px-4 mobile:py-3"
+          is={isMobile ? 'Col' : 'Grid'}
+          className="grid-cols-[1fr,1.5fr] gap-8 mobile:gap-3 flex-grow px-8 py-5 mobile:px-4 mobile:py-3"
         >
           <Row className="p-6 mobile:py-3 mobile:px-4 flex-grow ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl items-center gap-3">
             <div className="flex-grow">
