@@ -12,7 +12,7 @@
  */
 function _parseString(str: string): string[] {
   return str
-    .replace(/[A-Z]/g, (e) => `-${e.toLowerCase()}`)
+    .replace(/[a-z][A-Z]/g, (e) => `${e[0]}-${e[1]}`)
     .replace(/_/g, '-')
     .toLowerCase()
     .replace(/\W+/g, ' ')
@@ -47,6 +47,14 @@ export function toPascalCase(str: string): string {
  */
 export function toKebabCase(str: string) {
   return _parseString(str).join('-')
+}
+
+/**
+ * @example
+ * 'hello_World' => 'hello world'
+ */
+export function toSentenceCase(str: string) {
+  return _parseString(str).join(' ')
 }
 
 /**
