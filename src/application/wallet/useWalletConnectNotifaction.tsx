@@ -12,7 +12,7 @@ export function useWalletConnectNotifaction() {
     adapter?.addListener('connect', (pubkey) => {
       logSuccess(
         `${adapter?.name} wallet connected`,
-        `wallet: ${toPubString(pubkey).slice(0, 4)}...${toPubString(pubkey).slice(-4)} `
+        `Wallet: ${toPubString(pubkey).slice(0, 4)}...${toPubString(pubkey).slice(-4)} `
       )
     })
 

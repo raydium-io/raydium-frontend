@@ -15,13 +15,16 @@ export default function useLpTokensLoader() {
   const getToken = useToken((s) => s.getToken)
 
   useAsyncEffect(async () => {
+    // console.time('inner') // too slow
     const lpTokenItems = await lazyMap({
       source: ammJsonInfos,
       sourceKey: 'load lp token',
       loopFn: (ammJsonInfo) => {
+        // console.time('info') // too slow
         const baseToken = getToken(ammJsonInfo.baseMint)
         const quoteToken = getToken(ammJsonInfo.quoteMint)
         if (!baseToken || !quoteToken) return // NOTE :  no unknown base/quote lpToken
+        // console.time('create lp')
         const lpToken = Object.assign(
           new Token(
             ammJsonInfo.lpMint,
@@ -37,9 +40,13 @@ export default function useLpTokensLoader() {
             extensions: {}
           }
         ) as LpToken
+        // console.timeEnd('create lp')
+        // console.count('info')
+        // console.timeEnd('info')
         return lpToken
       }
     })
+    // console.timeEnd('inner') // too slow
     const lpTokens = listToMap(shakeUndifindedItem(lpTokenItems), (t) => toPubString(t.mint))
     useToken.setState({ lpTokens, getLpToken: (mint) => lpTokens[toPubString(mint)] })
   }, [ammJsonInfos, tokens])
