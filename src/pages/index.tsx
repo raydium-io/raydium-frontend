@@ -119,7 +119,7 @@ function HomePageSection0() {
                   fractionLength={0}
                   eachLoopDuration={400}
                   totalDuration={8 * 60 * 1000}
-                  maxDeltaPercent={0.2}
+                  maxDeltaPercent={0.05}
                   currentValue={tvl}
                   initValue={tvl ? 0.999 * tvl : undefined}
                 />
@@ -137,7 +137,7 @@ function HomePageSection0() {
                   fractionLength={0}
                   eachLoopDuration={200}
                   totalDuration={8 * 60 * 1000}
-                  maxDeltaPercent={0.2}
+                  maxDeltaPercent={0.05}
                   currentValue={totalvolume}
                   initValue={totalvolume ? 0.999 * totalvolume : undefined}
                 />
