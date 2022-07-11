@@ -70,7 +70,7 @@ export type TokenStore = {
 
   // TODO: solana token mints
   // TODO: raydium token mints
-  userAddedTokens: Map<HexAddress /* mint */, SplToken>
+  userAddedTokens: Record<HexAddress /* mint */, SplToken>
   canFlaggedTokenMints: Set<HexAddress>
   userFlaggedTokenMints: Set<HexAddress /* mint */> // flagged must in user added
   sortTokens(tokens: SplToken[]): SplToken[]
@@ -139,10 +139,10 @@ export const useToken = create<TokenStore>((set, get) => ({
   tokenPrices: {},
   blacklist: [],
 
-  userAddedTokens: new Map(),
+  userAddedTokens: {},
   addUserAddedToken: (token: SplToken) => {
     set((s) => ({
-      userAddedTokens: s.userAddedTokens.set(toPubString(token.mint), token),
+      userAddedTokens: { ...s.userAddedTokens, [toPubString(token.mint)]: token },
       tokenListSettings: {
         ...s.tokenListSettings,
         [USER_ADDED_TOKEN_LIST_NAME]: {
@@ -152,6 +152,18 @@ export const useToken = create<TokenStore>((set, get) => ({
       }
     }))
   },
+  // deleteUserAddedToken: (token: SplToken) => {
+  //   set((s) => ({
+  //     userAddedTokens: { ...s.userAddedTokens, [toPubString(token.mint)]: token },
+  //     tokenListSettings: {
+  //       ...s.tokenListSettings,
+  //       [USER_ADDED_TOKEN_LIST_NAME]: {
+  //         ...s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME],
+  //         mints: (s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set()).add(toPubString(token.mint))
+  //       }
+  //     }
+  //   }))
+  // },
   canFlaggedTokenMints: new Set(),
   userFlaggedTokenMints: new Set(),
   toggleFlaggedToken(token: SplToken) {

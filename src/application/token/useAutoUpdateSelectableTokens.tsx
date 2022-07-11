@@ -28,7 +28,7 @@ export default function useAutoUpdateSelectableTokens() {
     )
 
     const verboseTokensMints = verboseTokens.map((t) => toPubString(t.mint))
-    const filteredUserAddedTokens = (havUserAddedTokens ? [...userAddedTokens.values()] : []).filter(
+    const filteredUserAddedTokens = (havUserAddedTokens ? Object.values(userAddedTokens) : []).filter(
       (i) => !verboseTokensMints.includes(toPubString(i.mint))
     )
     return [...verboseTokens, ...filteredUserAddedTokens].filter((token) => {

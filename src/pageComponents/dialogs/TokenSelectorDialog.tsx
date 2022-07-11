@@ -367,45 +367,15 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
           <div className="text-xs font-medium text-[rgba(171,196,255,.5)]">{token.name}</div>
         </Col>
         {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
-          userFlaggedTokenMints.has(toPubString(token.mint)) ? (
-            // <Icon
-            //   iconSrc="/icons/misc-star-filled.svg"
-            //   onClick={(ev) => {
-            //     toggleFlaggedToken(token)
-            //     ev.nativeEvent.stopPropagation()
-            //     ev.nativeEvent.preventDefault()
-            //   }}
-            //   className="text-base clickable p-2"
-            // />
-            <div
-              onClick={(ev) => {
-                toggleFlaggedToken(token)
-                ev.stopPropagation()
-              }}
-              className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
-            >
-              [Remove Token]
-            </div>
-          ) : (
-            // <Icon
-            //   iconSrc="/icons/misc-star-empty.svg"
-            //   onClick={(ev) => {
-            //     toggleFlaggedToken(token)
-            //     ev.nativeEvent.stopPropagation()
-            //     ev.nativeEvent.preventDefault()
-            //   }}
-            //   className="group-hover:visible pc:invisible mobile:visible clickable p-2"
-            // />
-            <div
-              onClick={(ev) => {
-                toggleFlaggedToken(token)
-                ev.stopPropagation()
-              }}
-              className="group-hover:visible invisible text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2"
-            >
-              [Add Token]
-            </div>
-          )
+          <div
+            onClick={(ev) => {
+              toggleFlaggedToken(token)
+              ev.stopPropagation()
+            }}
+            className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+          >
+            {userFlaggedTokenMints.has(toPubString(token.mint)) ? '[Remove Token]' : '[Add Token]'}
+          </div>
         ) : null}
       </Row>
       <div className="text-sm text-[#ABC4FF] justify-self-end">{getBalance(token)?.toExact?.()}</div>

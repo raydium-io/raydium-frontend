@@ -1,4 +1,4 @@
-import { listToJSMap } from '@/functions/format/listToMap'
+import listToMap, { listToJSMap } from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useEffect } from 'react'
@@ -18,10 +18,10 @@ export function useAutoSyncUserAddedTokens() {
     useLocalStorageItem<TokenJson[]>('USER_ADDED_TOKENS')
 
   useEffect(() => {
-    const userAddedTokensInJS = [...userAddedTokens.values()].map((splToken) => toSplTokenInfo(splToken))
+    const userAddedTokensInJS = Object.values(userAddedTokens).map((splToken) => toSplTokenInfo(splToken))
     if (!userAddedTokensInJS.length && userAddedTokensInLocalStorage?.length) {
       useToken.setState({
-        userAddedTokens: listToJSMap(
+        userAddedTokens: listToMap(
           userAddedTokensInLocalStorage.map((tokenInfo) => tokenInfo && createSplToken(tokenInfo)),
           (i) => toPubString(i.mint)
         )
