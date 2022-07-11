@@ -85,7 +85,7 @@ export function hydrateFarmInfo(
   farmInfo: SdkParsedFarmInfo,
   payload: {
     blockSlotCountForSecond: number
-    aprs: Record<string, number> // from api:pairs
+    aprs: Record<string, { apr30d: number; apr7d: number; apr24h: number }> // from api:pairs
     getToken: TokenStore['getToken']
     getLpToken: TokenStore['getLpToken']
     lpPrices: PoolsStore['lpPrices']
@@ -137,8 +137,12 @@ export function hydrateFarmInfo(
   })
 
   const ammId = findAmmId(farmInfo.lpMint)
-  const raydiumFeeRpr = ammId ? toPercent(payload.aprs[ammId], { alreadyDecimaled: true }) : undefined
+  const raydiumFeeRpr = ammId ? toPercent(payload.aprs[ammId]?.apr7d, { alreadyDecimaled: true }) : undefined
+  const raydiumFeeRpr30d = ammId ? toPercent(payload.aprs[ammId]?.apr30d, { alreadyDecimaled: true }) : undefined
+  const raydiumFeeRpr24h = ammId ? toPercent(payload.aprs[ammId]?.apr24h, { alreadyDecimaled: true }) : undefined
   const totalApr = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), raydiumFeeRpr)
+  const totalApr30d = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), raydiumFeeRpr30d)
+  const totalApr24h = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), raydiumFeeRpr24h)
   const rewards: HydratedFarmInfo['rewards'] =
     farmInfo.version === 6
       ? shakeUndifindedItem(
@@ -228,14 +232,19 @@ export function hydrateFarmInfo(
     isStablePool,
     isNewPool,
 
-    ammId,
     totalApr,
+    raydiumFeeRpr,
+    totalApr24h,
+    raydiumFeeRpr24h,
+    totalApr30d,
+    raydiumFeeRpr30d,
+
+    ammId,
     tvl,
     userHasStaked: isMeaningfulNumber(userStakedLpAmount),
     rewards,
     userStakedLpAmount,
-    stakedLpAmount,
-    raydiumFeeRpr
+    stakedLpAmount
   }
 }
 

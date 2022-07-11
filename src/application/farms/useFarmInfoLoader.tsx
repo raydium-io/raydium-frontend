@@ -30,7 +30,10 @@ export default function useFarmInfoLoader() {
   const owner = useWallet((s) => s.owner)
   const lpPrices = usePools((s) => s.lpPrices)
 
-  const aprs = useMemo(() => Object.fromEntries(pairs.map((i) => [i.ammId, i.apr7d])), [pairs])
+  const aprs = useMemo(
+    () => Object.fromEntries(pairs.map((i) => [i.ammId, { apr30d: i.apr30d, apr7d: i.apr7d, apr24h: i.apr24h }])),
+    [pairs]
+  )
 
   // auto fetch json farm info when init
   useEffectWithTransition(async () => {
