@@ -193,6 +193,7 @@ function PoolTimeBasisSelectorBox({ className }: { className?: string }) {
     <Select
       className={twMerge('z-20', className)}
       candidateValues={['24H', '7D', '30D']}
+      localStorageKey="ui-pool-select"
       defaultValue={timeBasis}
       prefix="Time Basis:"
       onChange={(newSortKey) => {
