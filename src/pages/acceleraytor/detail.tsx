@@ -617,7 +617,7 @@ function LotteryStateInfoPanel({ className }: { className?: string }) {
                 </Button>
 
                 <div className="text-xs text-center text-[#ABC4FF] mt-1">
-                  APR: {toPercentString(stakingHydratedInfo?.totalApr)}
+                  APR: {toPercentString(stakingHydratedInfo?.totalApr7d)}
                 </div>
               </Col>
             </AutoBox>
@@ -792,7 +792,7 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
                 </Button>
 
                 <div className="text-xs text-center text-[#ABC4FF] opacity-50 mt-1">
-                  APR: {toPercentString(stakingHydratedInfo?.totalApr)}
+                  APR: {toPercentString(stakingHydratedInfo?.totalApr7d)}
                 </div>
               </Col>
             </Col>

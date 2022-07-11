@@ -64,7 +64,7 @@ function PoolHeader() {
   const volume24h = usePools((s) => s.volume24h)
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <Row className="mx-auto my-1 text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
+    <Row className="mx-auto my-2 text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
       <div className="whitespace-nowrap">
         TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
       </div>
@@ -193,7 +193,7 @@ function PoolTimeBasisSelectorBox({ className }: { className?: string }) {
     <Select
       className={twMerge('z-20', className)}
       candidateValues={['24H', '7D', '30D']}
-      localStorageKey="ui-pool-select"
+      localStorageKey="ui-time-basis"
       defaultValue={timeBasis}
       prefix="Time Basis:"
       onChange={(newSortKey) => {

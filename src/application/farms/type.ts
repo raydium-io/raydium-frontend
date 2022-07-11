@@ -136,17 +136,17 @@ export type HydratedFarmInfo = SdkParsedFarmInfo & {
   isNewPool: boolean
 
   /** 7d */
-  totalApr: Percent | undefined
+  totalApr7d: Percent | undefined
   /** 7d; undefined means couldn't find this token by known tokenList */
-  raydiumFeeRpr: Percent | undefined // raydium fee for each transaction
+  raydiumFeeApr7d: Percent | undefined // raydium fee for each transaction
 
   totalApr30d: Percent | undefined
   /** undefined means couldn't find this token by known tokenList */
-  raydiumFeeRpr30d: Percent | undefined // raydium fee for each transaction
+  raydiumFeeApr30d: Percent | undefined // raydium fee for each transaction
 
   totalApr24h: Percent | undefined
   /** undefined means couldn't find this token by known tokenList */
-  raydiumFeeRpr24h: Percent | undefined // raydium fee for each transaction
+  raydiumFeeApr24h: Percent | undefined // raydium fee for each transaction
 
   tvl: CurrencyAmount | undefined
   userHasStaked: boolean

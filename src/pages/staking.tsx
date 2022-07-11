@@ -123,7 +123,7 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
         }
       />
 
-      <TextInfoItem name="APR" value={info.totalApr ? toPercentString(info.totalApr) : '0%'} />
+      <TextInfoItem name="APR" value={info.totalApr7d ? toPercentString(info.totalApr7d) : '0%'} />
 
       <TextInfoItem
         name="Total Staked"
@@ -168,7 +168,7 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
           />
 
           {/* {console.log(info)} */}
-          <TextInfoItem name="APR" value={info.totalApr ? toPercentString(info.totalApr) : '--'} />
+          <TextInfoItem name="APR" value={info.totalApr7d ? toPercentString(info.totalApr7d) : '--'} />
 
           <Grid className="w-6 h-6 place-items-center">
             <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />

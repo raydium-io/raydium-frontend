@@ -137,12 +137,12 @@ export function hydrateFarmInfo(
   })
 
   const ammId = findAmmId(farmInfo.lpMint)
-  const raydiumFeeRpr = ammId ? toPercent(payload.aprs[ammId]?.apr7d, { alreadyDecimaled: true }) : undefined
-  const raydiumFeeRpr30d = ammId ? toPercent(payload.aprs[ammId]?.apr30d, { alreadyDecimaled: true }) : undefined
-  const raydiumFeeRpr24h = ammId ? toPercent(payload.aprs[ammId]?.apr24h, { alreadyDecimaled: true }) : undefined
-  const totalApr = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), raydiumFeeRpr)
-  const totalApr30d = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), raydiumFeeRpr30d)
-  const totalApr24h = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), raydiumFeeRpr24h)
+  const raydiumFeeApr7d = ammId ? toPercent(payload.aprs[ammId]?.apr7d, { alreadyDecimaled: true }) : undefined
+  const raydiumFeeApr30d = ammId ? toPercent(payload.aprs[ammId]?.apr30d, { alreadyDecimaled: true }) : undefined
+  const raydiumFeeApr24h = ammId ? toPercent(payload.aprs[ammId]?.apr24h, { alreadyDecimaled: true }) : undefined
+  const totalApr7d = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), raydiumFeeApr7d)
+  const totalApr30d = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), raydiumFeeApr30d)
+  const totalApr24h = aprs.reduce((acc, cur) => (acc ? (cur ? acc.add(cur) : acc) : cur), raydiumFeeApr24h)
   const rewards: HydratedFarmInfo['rewards'] =
     farmInfo.version === 6
       ? shakeUndifindedItem(
@@ -232,12 +232,12 @@ export function hydrateFarmInfo(
     isStablePool,
     isNewPool,
 
-    totalApr,
-    raydiumFeeRpr,
+    totalApr7d,
+    raydiumFeeApr7d,
     totalApr24h,
-    raydiumFeeRpr24h,
+    raydiumFeeApr24h,
     totalApr30d,
-    raydiumFeeRpr30d,
+    raydiumFeeApr30d,
 
     ammId,
     tvl,
