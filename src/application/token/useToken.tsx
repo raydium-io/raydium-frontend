@@ -2,7 +2,7 @@ import { Price, PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import create from 'zustand'
 
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { addItem, removeItem, shakeUndifindedItem } from '@/functions/arrayMethods'
 import { HexAddress, SrcAddress } from '@/types/constants'
 
 import useWallet from '../wallet/useWallet'
@@ -20,6 +20,8 @@ import {
 } from './quantumSOL'
 import { RAYMint } from './wellknownToken.config'
 import toPubString from '@/functions/format/toMintString'
+import { objectShakeNil } from '@/functions/objectMethods'
+import produce from 'immer'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
@@ -77,6 +79,7 @@ export type TokenStore = {
   toggleFlaggedToken(token: SplToken): void
   allSelectableTokens: SplToken[]
   addUserAddedToken(options: SplToken): void
+  deleteUserAddedToken(options: SplToken): void
   tokenListSettings: {
     [N in SupportedTokenListSettingName]: {
       mints?: Set<HexAddress> // TODO
@@ -141,29 +144,27 @@ export const useToken = create<TokenStore>((set, get) => ({
 
   userAddedTokens: {},
   addUserAddedToken: (token: SplToken) => {
-    set((s) => ({
-      userAddedTokens: { ...s.userAddedTokens, [toPubString(token.mint)]: token },
-      tokenListSettings: {
-        ...s.tokenListSettings,
-        [USER_ADDED_TOKEN_LIST_NAME]: {
-          ...s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME],
-          mints: (s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set()).add(toPubString(token.mint))
-        }
-      }
-    }))
+    set((s) =>
+      produce(s, (draft) => {
+        draft.userAddedTokens[toPubString(token.mint)] = token
+        draft.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints = addItem(
+          s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set<string>(),
+          toPubString(token.mint)
+        )
+      })
+    )
   },
-  // deleteUserAddedToken: (token: SplToken) => {
-  //   set((s) => ({
-  //     userAddedTokens: { ...s.userAddedTokens, [toPubString(token.mint)]: token },
-  //     tokenListSettings: {
-  //       ...s.tokenListSettings,
-  //       [USER_ADDED_TOKEN_LIST_NAME]: {
-  //         ...s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME],
-  //         mints: (s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set()).add(toPubString(token.mint))
-  //       }
-  //     }
-  //   }))
-  // },
+  deleteUserAddedToken: (token: SplToken) => {
+    set((s) =>
+      produce(s, (draft) => {
+        delete draft.userAddedTokens[toPubString(token.mint)]
+        draft.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints = removeItem(
+          s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set<string>(),
+          toPubString(token.mint)
+        )
+      })
+    )
+  },
   canFlaggedTokenMints: new Set(),
   userFlaggedTokenMints: new Set(),
   toggleFlaggedToken(token: SplToken) {

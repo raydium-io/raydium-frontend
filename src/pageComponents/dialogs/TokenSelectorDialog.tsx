@@ -333,7 +333,7 @@ function TokenSelectorDialogContent({
                       decimals: onlineTokenMintInfo.decimals,
                       icon: '',
                       extensions: {},
-                      name: userCustomizedTokenSymbol.current
+                      name: userCustomizedTokenSymbol.current.slice(0, 10)
                     })
                     addUserAddedToken(newToken)
                   }}
@@ -356,7 +356,10 @@ function TokenSelectorDialogContent({
 function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onClick?(): void }) {
   const userFlaggedTokenMints = useToken((s) => s.userFlaggedTokenMints)
   const canFlaggedTokenMints = useToken((s) => s.canFlaggedTokenMints)
+  const userAddedTokens = useToken((s) => s.userAddedTokens)
+  const isUserAddedToken = Boolean(userAddedTokens[toPubString(token.mint)])
   const toggleFlaggedToken = useToken((s) => s.toggleFlaggedToken)
+  const deleteUserAddedToken = useToken((s) => s.deleteUserAddedToken)
   const getBalance = useWallet((s) => s.getBalance)
   return (
     <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2 ">
@@ -375,6 +378,17 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
           >
             {userFlaggedTokenMints.has(toPubString(token.mint)) ? '[Remove Token]' : '[Add Token]'}
+          </div>
+        ) : null}
+        {isUserAddedToken ? (
+          <div
+            onClick={(ev) => {
+              deleteUserAddedToken(token)
+              ev.stopPropagation()
+            }}
+            className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+          >
+            [Delete Token]
           </div>
         ) : null}
       </Row>
