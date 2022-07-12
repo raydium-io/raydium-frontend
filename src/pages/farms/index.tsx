@@ -509,11 +509,11 @@ function FarmCard() {
           </Row>
 
           {/* table head column: Pending Reward */}
-          <div className="pl-2 font-medium self-center text-[#ABC4FF] text-sm">Pending Reward</div>
+          <div className=" font-medium self-center text-[#ABC4FF] text-sm">Pending Reward</div>
 
           {/* table head column: Total APR */}
           <Row
-            className="pl-2 font-medium items-center text-[#ABC4FF] text-sm cursor-pointer gap-1  clickable clickable-filter-effect no-clicable-transform-effect"
+            className=" font-medium items-center text-[#ABC4FF] text-sm cursor-pointer gap-1  clickable clickable-filter-effect no-clicable-transform-effect"
             onClick={() => {
               const key = timeBasis === '24H' ? 'totalApr24h' : timeBasis === '7D' ? 'totalApr7d' : 'totalApr30d'
               setSortConfig({ key, sortCompare: (i) => (isHydratedFarmInfo(i) ? i[key] : undefined) })
@@ -541,7 +541,7 @@ function FarmCard() {
 
           {/* table head column: TVL */}
           <Row
-            className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
+            className=" font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
             onClick={() =>
               setSortConfig({ key: 'tvl', sortCompare: (i) => (isHydratedFarmInfo(i) ? i.tvl : undefined) })
             }
