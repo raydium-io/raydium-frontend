@@ -31,6 +31,7 @@ import { PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
+import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -136,18 +137,6 @@ function TokenSelectorDialogContent({
     ]
   }
 
-  async function getOnlineTokenInfo(mint: string) {
-    try {
-      const { connection } = useConnection.getState()
-      if (!connection) return false
-      const tokenAccount = await connection.getAccountInfo(new PublicKey(mint))
-      if (!tokenAccount) return false
-      if (tokenAccount.data.length !== SPL_MINT_LAYOUT.span) return false
-      return SPL_MINT_LAYOUT.decode(tokenAccount.data)
-    } catch {
-      return false
-    }
-  }
   // flag for can start user add mode
   const haveSearchResult = searchedTokens.length > 0
 
