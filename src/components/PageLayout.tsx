@@ -44,7 +44,12 @@ import Card from './Card'
 import Dialog from './Dialog'
 import { toUTC } from '@/functions/date/dateFormat'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
-import { IncomingThemeVariables, NotificationsButton } from '@dialectlabs/react-ui'
+import {
+  IncomingThemeVariables,
+  NotificationsButton,
+  DialectUiManagementProvider,
+  ThemeProvider
+} from '@dialectlabs/react-ui'
 import { PublicKey } from '@solana/web3.js'
 
 /**
@@ -333,14 +338,18 @@ function DialectNotificationsButton() {
   )
 
   return (
-    <NotificationsButton
-      wallet={wallet}
-      publicKey={RAYDIUM_MONITORING_PUBLIC_KEY}
-      variables={themeVariables}
-      network="mainnet"
-      theme="dark"
-      notifications={RAYDIUM_NOTIFICATION_TYPES}
-    />
+    <ThemeProvider theme="dark">
+      <DialectUiManagementProvider>
+        <NotificationsButton
+          wallet={wallet}
+          publicKey={RAYDIUM_MONITORING_PUBLIC_KEY}
+          variables={themeVariables}
+          network="mainnet"
+          theme="dark"
+          notifications={RAYDIUM_NOTIFICATION_TYPES}
+        />
+      </DialectUiManagementProvider>
+    </ThemeProvider>
   )
 }
 
