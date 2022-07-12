@@ -4,6 +4,7 @@ import { PublicKey } from '@solana/web3.js'
 import useConnection from '@/application/connection/useConnection'
 
 import useLiquidity from './useLiquidity'
+import toPubString from '@/functions/format/toMintString'
 
 export function findLiquidityPoolJson(options: {
   urlAmmId?: string
@@ -51,5 +52,5 @@ export async function findTokenMintByMarketId(marketId: string): Promise<{ base:
   const isValidMarketInfo = marketBufferInfo?.data.length === 388 || marketBufferInfo?.data.length === 1476
   if (!isValidMarketInfo) return undefined
   const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
-  return { base: String(baseMint), quote: String(quoteMint) }
+  return { base: toPubString(baseMint), quote: toPubString(quoteMint) }
 }

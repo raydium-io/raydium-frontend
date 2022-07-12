@@ -37,7 +37,10 @@ export default function useLiquidityAmmSelector() {
     const { findLiquidityInfoByTokenMint, ammId } = useLiquidity.getState()
 
     const computeResult = await findLiquidityInfoByTokenMint(coin1?.mint, coin2?.mint)
-    const resultPool = computeResult.best
+
+    const resultPool = ammId
+      ? computeResult.availables.find((p) => p.id === ammId) || computeResult.best
+      : computeResult.best
     if (resultPool) {
       // current is right, no need to sync again
       if (ammId === resultPool?.id) return
