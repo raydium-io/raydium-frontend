@@ -31,13 +31,17 @@ export function SearchAmmDialog({
       const { getToken } = useToken.getState()
       assert(isValidPublicKey(currentValue), 'invalid public key')
 
-      const ammFindResult = findTokenMintByAmmId(currentValue)
+      const ammFindResult = findTokenMintByAmmId(currentValue.trim())
       if (ammFindResult) {
-        useLiquidity.setState({ coin1: getToken(ammFindResult.base), coin2: getToken(ammFindResult.quote) })
+        useLiquidity.setState({
+          coin1: getToken(ammFindResult.base),
+          coin2: getToken(ammFindResult.quote),
+          ammId: currentValue.trim()
+        })
         return
       }
 
-      const marketFindResult = await findTokenMintByMarketId(currentValue)
+      const marketFindResult = await findTokenMintByMarketId(currentValue.trim())
       if (marketFindResult) {
         useLiquidity.setState({ coin1: getToken(marketFindResult.base), coin2: getToken(marketFindResult.quote) })
         return
