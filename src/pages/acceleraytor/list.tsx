@@ -92,9 +92,9 @@ function IdoList() {
           { text: toPubString(i.quote?.mint), entirely: true },
           i.projectName,
           i.base?.symbol,
-          i.quote?.symbol,
-          i.base?.name,
-          i.quote?.name
+          i.quote?.symbol
+          // i.base?.name,
+          // i.quote?.name
         ]
       }),
     [tabedPoolItems, searchText]

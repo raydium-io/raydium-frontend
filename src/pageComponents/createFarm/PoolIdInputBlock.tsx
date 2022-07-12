@@ -50,9 +50,9 @@ export function PoolIdInputBlock({
           { text: i.baseMint, entirely: true }, // Input Auto complete result sort setting
           { text: i.quoteMint, entirely: true },
           tokens[i.baseMint]?.symbol,
-          tokens[i.quoteMint]?.symbol,
-          tokens[i.baseMint]?.name,
-          tokens[i.quoteMint]?.name
+          tokens[i.quoteMint]?.symbol
+          // tokens[i.baseMint]?.name,
+          // tokens[i.quoteMint]?.name
         ]
       } as AutoCompleteCandidateItem<LiquidityPoolJsonInfo>)
     )

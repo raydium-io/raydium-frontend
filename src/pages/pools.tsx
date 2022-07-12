@@ -308,9 +308,9 @@ function PoolCard() {
           { text: toPubString(i.base?.mint), entirely: true },
           { text: toPubString(i.quote?.mint), entirely: true },
           i.base?.symbol,
-          i.quote?.symbol,
-          i.base?.name,
-          i.quote?.name
+          i.quote?.symbol
+          // i.base?.name,
+          // i.quote?.name
         ]
       }),
     [dataSource, searchText]

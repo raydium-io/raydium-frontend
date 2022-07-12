@@ -60,6 +60,7 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
 import { isTokenAmount } from '@/functions/judgers/dateType'
+import { toCamelCase, toSentenceCase } from '@/functions/changeCase'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -366,13 +367,13 @@ function FarmCard() {
           isHydratedFarmInfo(i)
             ? [
                 { text: toPubString(i.id), entirely: true },
-                { text: i.ammId, entirely: true }, // Input Auto complete result sort setting
+                { text: i.ammId, entirely: true },
                 { text: toPubString(i.base?.mint), entirely: true },
                 { text: toPubString(i.quote?.mint), entirely: true },
                 i.base?.symbol,
-                i.quote?.symbol,
-                i.base?.name,
-                i.quote?.name
+                i.quote?.symbol
+                // { text: toSentenceCase(i.base?.name ?? '').split(' '), entirely: true },
+                // { text: toSentenceCase(i.quote?.name ?? '').split(' '), entirely: true }
               ]
             : [{ text: toPubString(i.id), entirely: true }]
       }),
