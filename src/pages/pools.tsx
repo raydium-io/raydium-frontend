@@ -104,7 +104,9 @@ function PoolStakedOnlyBlock() {
   if (!connected) return null
   return (
     <Row className="justify-self-end mobile:justify-self-auto items-center">
-      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show Staked</span>
+      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs whitespace-nowrap">
+        Show Staked
+      </span>
       <Switcher
         className="ml-2"
         defaultChecked={onlySelfPools}
@@ -151,7 +153,7 @@ function PoolSearchBlock({ className }: { className?: string }) {
     <Input
       value={storeSearchText}
       className={twMerge(
-        'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1.5 ring-[rgba(196,214,255,0.5)] rounded-xl min-w-[7em]',
+        'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1.5 ring-[rgba(196,214,255,0.5)] rounded-xl min-w-[6em]',
         className
       )}
       inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
@@ -500,9 +502,9 @@ function PoolCard() {
     </div>
   ) : (
     <div>
-      <Row className={'justify-between pb-5 gap-16 items-end'}>
+      <Row className={'justify-between pb-5 gap-16 items-center'}>
         <PoolLabelBlock />
-        <Row className="gap-8 items-stretch">
+        <Row className="gap-6 items-stretch">
           <PoolStakedOnlyBlock />
           <PoolTimeBasisSelectorBox />
           <PoolSearchBlock />

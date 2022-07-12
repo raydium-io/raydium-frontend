@@ -143,7 +143,7 @@ function FarmSearchBlock({ className }: { className?: string }) {
     <Input
       value={storeSearchText}
       className={twMerge(
-        'px-2 py-2 mobile:py-1 gap-2  border-1.5 border-[rgba(196,214,255,0.5)] rounded-xl min-w-[7em]',
+        'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1.5 ring-[rgba(196,214,255,0.5)] rounded-xl min-w-[6em]',
         className
       )}
       inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
@@ -177,8 +177,10 @@ function FarmStakedOnlyBlock({ className }: { className?: string }) {
   const connected = useWallet((s) => s.connected)
   if (!connected) return null
   return (
-    <Row className="justify-self-end  mobile:justify-self-auto flex-wrap items-center">
-      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show Staked</span>
+    <Row className="justify-self-end  mobile:justify-self-auto items-center">
+      <span className="text-[rgba(196,214,255,0.5)] whitespace-nowrap font-medium text-sm mobile:text-xs">
+        Show Staked
+      </span>
       <Switcher
         className="ml-2 "
         defaultChecked={onlySelfFarms}
@@ -191,8 +193,10 @@ function FarmStakedOnlyBlock({ className }: { className?: string }) {
 function FarmSlefCreatedOnlyBlock({ className }: { className?: string }) {
   const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   return (
-    <Row className="justify-self-end  mobile:justify-self-auto flex-wrap items-center">
-      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Show Created</span>
+    <Row className="justify-self-end  mobile:justify-self-auto items-center">
+      <span className="text-[rgba(196,214,255,0.5)] whitespace-nowrap font-medium text-sm mobile:text-xs">
+        Show Created
+      </span>
       <Switcher
         className="ml-2 "
         defaultChecked={onlySelfCreatedFarms}
@@ -424,7 +428,7 @@ function FarmCard() {
       </Row>
     </div>
   ) : (
-    <Row className="justify-between flex-wrap gap-8 items-center mb-4">
+    <Row className="justify-between gap-16 items-center mb-4">
       <div>
         <Row className="items-center">
           <div className="font-medium text-white text-lg">{farmCardTitleInfo.title}</div>
@@ -437,7 +441,7 @@ function FarmCard() {
         </Row>
         <div className="font-medium text-[rgba(196,214,255,.5)] text-base ">{farmCardTitleInfo.description}</div>
       </div>
-      <Row className="items-center gap-8">
+      <Row className="items-stretch gap-6">
         {haveSelfCreatedFarm && <FarmSlefCreatedOnlyBlock />}
         <FarmStakedOnlyBlock />
         <FarmTimeBasisSelectorBox />
