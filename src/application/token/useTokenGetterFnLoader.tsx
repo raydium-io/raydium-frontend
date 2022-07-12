@@ -22,11 +22,11 @@ export function useTokenGetterFnLoader() {
       if (options?.exact && isMintEqual(mint, WSOLMint)) {
         return QuantumSOLVersionWSOL
       }
-      return tokens[String(mint)] ?? userAddedTokens.get(toPubString(mint))
+      return tokens[String(mint)] ?? userAddedTokens[toPubString(mint)]
     }
 
     function getPureToken(mint: PublicKeyish | undefined): SplToken | undefined {
-      return pureTokens[String(mint)] ?? userAddedTokens.get(toPubString(mint))
+      return pureTokens[String(mint)] ?? userAddedTokens[toPubString(mint)]
     }
 
     useToken.setState({

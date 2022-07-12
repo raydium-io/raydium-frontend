@@ -31,6 +31,7 @@ import { PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
+import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -136,18 +137,6 @@ function TokenSelectorDialogContent({
     ]
   }
 
-  async function getOnlineTokenInfo(mint: string) {
-    try {
-      const { connection } = useConnection.getState()
-      if (!connection) return false
-      const tokenAccount = await connection.getAccountInfo(new PublicKey(mint))
-      if (!tokenAccount) return false
-      if (tokenAccount.data.length !== SPL_MINT_LAYOUT.span) return false
-      return SPL_MINT_LAYOUT.decode(tokenAccount.data)
-    } catch {
-      return false
-    }
-  }
   // flag for can start user add mode
   const haveSearchResult = searchedTokens.length > 0
 
@@ -329,11 +318,11 @@ function TokenSelectorDialogContent({
                     const { addUserAddedToken } = useToken.getState()
                     const newToken = createSplToken({
                       mint: searchText,
-                      symbol: userCustomizedTokenSymbol.current,
+                      symbol: userCustomizedTokenSymbol.current.slice(0, 10),
                       decimals: onlineTokenMintInfo.decimals,
                       icon: '',
                       extensions: {},
-                      name: userCustomizedTokenSymbol.current
+                      name: userCustomizedTokenSymbol.current.slice(0, 10)
                     })
                     addUserAddedToken(newToken)
                   }}
@@ -356,7 +345,10 @@ function TokenSelectorDialogContent({
 function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onClick?(): void }) {
   const userFlaggedTokenMints = useToken((s) => s.userFlaggedTokenMints)
   const canFlaggedTokenMints = useToken((s) => s.canFlaggedTokenMints)
+  const userAddedTokens = useToken((s) => s.userAddedTokens)
+  const isUserAddedToken = Boolean(userAddedTokens[toPubString(token.mint)])
   const toggleFlaggedToken = useToken((s) => s.toggleFlaggedToken)
+  const deleteUserAddedToken = useToken((s) => s.deleteUserAddedToken)
   const getBalance = useWallet((s) => s.getBalance)
   return (
     <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2 ">
@@ -367,45 +359,26 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
           <div className="text-xs font-medium text-[rgba(171,196,255,.5)]">{token.name}</div>
         </Col>
         {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
-          userFlaggedTokenMints.has(toPubString(token.mint)) ? (
-            // <Icon
-            //   iconSrc="/icons/misc-star-filled.svg"
-            //   onClick={(ev) => {
-            //     toggleFlaggedToken(token)
-            //     ev.nativeEvent.stopPropagation()
-            //     ev.nativeEvent.preventDefault()
-            //   }}
-            //   className="text-base clickable p-2"
-            // />
-            <div
-              onClick={(ev) => {
-                toggleFlaggedToken(token)
-                ev.stopPropagation()
-              }}
-              className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
-            >
-              [Remove Token]
-            </div>
-          ) : (
-            // <Icon
-            //   iconSrc="/icons/misc-star-empty.svg"
-            //   onClick={(ev) => {
-            //     toggleFlaggedToken(token)
-            //     ev.nativeEvent.stopPropagation()
-            //     ev.nativeEvent.preventDefault()
-            //   }}
-            //   className="group-hover:visible pc:invisible mobile:visible clickable p-2"
-            // />
-            <div
-              onClick={(ev) => {
-                toggleFlaggedToken(token)
-                ev.stopPropagation()
-              }}
-              className="group-hover:visible invisible text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2"
-            >
-              [Add Token]
-            </div>
-          )
+          <div
+            onClick={(ev) => {
+              toggleFlaggedToken(token)
+              ev.stopPropagation()
+            }}
+            className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+          >
+            {userFlaggedTokenMints.has(toPubString(token.mint)) ? '[Remove Token]' : '[Add Token]'}
+          </div>
+        ) : null}
+        {isUserAddedToken ? (
+          <div
+            onClick={(ev) => {
+              deleteUserAddedToken(token)
+              ev.stopPropagation()
+            }}
+            className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+          >
+            [Delete Token]
+          </div>
         ) : null}
       </Row>
       <div className="text-sm text-[#ABC4FF] justify-self-end">{getBalance(token)?.toExact?.()}</div>

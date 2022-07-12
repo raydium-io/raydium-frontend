@@ -15,7 +15,7 @@ export default function useTokenListSettingsLocalStorage() {
     const tokenListSwitchSettings = getLocalItem<{ [mapName: string]: boolean }>('TOKEN_LIST_SWITCH_SETTINGS') ?? {}
 
     useToken.setState((s) => ({
-      userAddedTokens: new Map(userAddedTokens.map((t) => [toPubString(t.mint), createSplToken({ ...t })])),
+      userAddedTokens: Object.fromEntries(userAddedTokens.map((t) => [toPubString(t.mint), createSplToken({ ...t })])),
       tokenListSettings: {
         ...s.tokenListSettings,
         [SOLANA_TOKEN_LIST_NAME]: {
@@ -37,7 +37,7 @@ export default function useTokenListSettingsLocalStorage() {
   const userAddedTokens = useToken((s) => s.userAddedTokens)
 
   useEffect(() => {
-    setLocalItem('TOKEN_LIST_USER_ADDED_TOKENS', Array.from(userAddedTokens.values())) // add token / remove token
+    setLocalItem('TOKEN_LIST_USER_ADDED_TOKENS', Object.values(userAddedTokens)) // add token / remove token
     setLocalItem(
       'TOKEN_LIST_SWITCH_SETTINGS',
       objectMap(tokenListSettings, (i) => i.isOn)

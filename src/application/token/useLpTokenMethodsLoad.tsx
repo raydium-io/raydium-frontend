@@ -21,7 +21,7 @@ export function useLpTokenMethodsLoad() {
       if (options?.exact && isMintEqual(mint, WSOLMint)) {
         return QuantumSOLVersionWSOL
       }
-      return tokens[String(mint)] ?? lpTokens[toPubString(mint)] ?? userAddedTokens.get(toPubString(mint))
+      return tokens[String(mint)] ?? lpTokens[toPubString(mint)] ?? userAddedTokens[toPubString(mint)]
     }
     useToken.setState({ getToken })
   }, [lpTokens])
@@ -29,7 +29,7 @@ export function useLpTokenMethodsLoad() {
 
   useEffect(() => {
     function getPureToken(mint: PublicKeyish | undefined): SplToken | undefined {
-      return pureTokens[String(mint)] ?? lpTokens[toPubString(mint)] ?? userAddedTokens.get(toPubString(mint))
+      return pureTokens[String(mint)] ?? lpTokens[toPubString(mint)] ?? userAddedTokens[toPubString(mint)]
     }
 
     useToken.setState({ getPureToken })
