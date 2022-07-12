@@ -112,6 +112,7 @@ function ToolsButton({ className }: { className?: string }) {
               <Grid className="grid-cols-1 items-center gap-2">
                 <FarmStakedOnlyBlock />
                 <FarmRefreshCircleBlock />
+                <FarmTimeBasisSelectorBox />
               </Grid>
             </Card>
           </div>
@@ -236,19 +237,39 @@ function FarmTabBlock({ className }: { className?: string }) {
   )
 }
 
+function FarmTimeBasisSelectorBox({ className }: { className?: string }) {
+  const timeBasis = useFarms((s) => s.timeBasis)
+  return (
+    <Select
+      className={twMerge('z-20', className)}
+      candidateValues={['24H', '7D', '30D']}
+      localStorageKey="ui-time-basis"
+      defaultValue={timeBasis}
+      prefix="Time Basis:"
+      onChange={(newSortKey) => {
+        useFarms.setState({ timeBasis: newSortKey ?? '7D' })
+      }}
+    />
+  )
+}
+
 function FarmTableSorterBlock({
   className,
   onChange
 }: {
   className?: string
-  onChange?: (newKey: 'name' | 'totalApr' | 'tvl' | 'favorite' | undefined) => void
+  onChange?: (newKey: 'name' | `totalApr${'7d' | '30d' | '24h'}` | 'tvl' | 'favorite' | undefined) => void
 }) {
+  const timeBasis = useFarms((s) => s.timeBasis)
   return (
     <Select
       className={className}
       candidateValues={[
         { label: 'Farm', value: 'name' },
-        { label: 'APRS', value: 'totalApr' },
+        {
+          label: `APRS ${timeBasis}`,
+          value: timeBasis === '24H' ? 'totalApr24h' : timeBasis === '7D' ? 'totalApr7d' : 'totalApr30d'
+        },
         { label: 'TVL', value: 'tvl' },
         { label: 'Favorite', value: 'favorite' }
       ]}
@@ -297,6 +318,7 @@ function FarmCard() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const owner = useWallet((s) => s.owner)
   const isLoading = useFarms((s) => s.isLoading)
+  const timeBasis = useFarms((s) => s.timeBasis)
   const dataSource = useMemo(() => {
     const hydratedInfo = hydratedInfos
       .filter((i) => (Object.keys(lpTokens).length > 0 ? lpTokens[toPubString(i.lpMint)] : true))
@@ -419,6 +441,7 @@ function FarmCard() {
       <Row className="items-center gap-8">
         {haveSelfCreatedFarm && <FarmSlefCreatedOnlyBlock />}
         <FarmStakedOnlyBlock />
+        <FarmTimeBasisSelectorBox />
         <FarmSearchBlock />
       </Row>
     </Row>
@@ -488,20 +511,23 @@ function FarmCard() {
           {/* table head column: Total APR */}
           <Row
             className="pl-2 font-medium items-center text-[#ABC4FF] text-sm cursor-pointer gap-1  clickable clickable-filter-effect no-clicable-transform-effect"
-            onClick={() =>
-              setSortConfig({ key: 'totalApr', sortCompare: (i) => (isHydratedFarmInfo(i) ? i.totalApr : undefined) })
-            }
+            onClick={() => {
+              const key = timeBasis === '24H' ? 'totalApr24h' : timeBasis === '7D' ? 'totalApr7d' : 'totalApr30d'
+              setSortConfig({ key, sortCompare: (i) => (isHydratedFarmInfo(i) ? i[key] : undefined) })
+            }}
           >
-            Total APR
+            Total APR {timeBasis}
             <Tooltip>
               <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
-              <Tooltip.Panel>Estimated APR based on trading fees earned by the pool in the past 30D</Tooltip.Panel>
+              <Tooltip.Panel>
+                Estimated APR based on trading fees earned by the pool in the past {timeBasis}
+              </Tooltip.Panel>
             </Tooltip>
             <Icon
               className="ml-1"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'totalApr' && sortConfig.mode !== 'none'
+                sortConfig?.key.startsWith('totalApr') && sortConfig.mode !== 'none'
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
                     : '/icons/msic-sort-up.svg'
@@ -664,6 +690,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
   onStartFavorite?: (farmId: string) => void
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
+  const timeBasis = useFarms((s) => s.timeBasis)
 
   const pcCotent = (
     <Row
@@ -740,17 +767,51 @@ function FarmCardDatabaseBodyCollapseItemFace({
       )}
 
       <TextInfoItem
-        name="Total APR"
+        name={`Total APR ${timeBasis}`}
         className="w-max"
         value={
           isJsonFarmInfo(info) ? (
             '--'
+          ) : timeBasis === '24H' ? (
+            <Tooltip placement="right">
+              {info.totalApr24h ? toPercentString(info.totalApr24h) : '--'}
+              <Tooltip.Panel>
+                {info.raydiumFeeApr24h && (
+                  <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeApr24h)}</div>
+                )}
+                {info.rewards.map(
+                  ({ apr, token, userHavedReward }, idx) =>
+                    userHavedReward && (
+                      <div key={idx} className="whitespace-nowrap">
+                        {token?.symbol} {toPercentString(apr)}
+                      </div>
+                    )
+                )}
+              </Tooltip.Panel>
+            </Tooltip>
+          ) : timeBasis == '30D' ? (
+            <Tooltip placement="right">
+              {info.totalApr30d ? toPercentString(info.totalApr30d) : '--'}
+              <Tooltip.Panel>
+                {info.raydiumFeeApr30d && (
+                  <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeApr30d)}</div>
+                )}
+                {info.rewards.map(
+                  ({ apr, token, userHavedReward }, idx) =>
+                    userHavedReward && (
+                      <div key={idx} className="whitespace-nowrap">
+                        {token?.symbol} {toPercentString(apr)}
+                      </div>
+                    )
+                )}
+              </Tooltip.Panel>
+            </Tooltip>
           ) : (
             <Tooltip placement="right">
-              {info.totalApr ? toPercentString(info.totalApr) : '--'}
+              {info.totalApr7d ? toPercentString(info.totalApr7d) : '--'}
               <Tooltip.Panel>
-                {info.raydiumFeeRpr && (
-                  <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeRpr)}</div>
+                {info.raydiumFeeApr7d && (
+                  <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeApr7d)}</div>
                 )}
                 {info.rewards.map(
                   ({ apr, token, userHavedReward }, idx) =>
@@ -832,16 +893,16 @@ function FarmCardDatabaseBodyCollapseItemFace({
           />
 
           <TextInfoItem
-            name="Total APR"
+            name={`Total APR(${timeBasis})`}
             value={
               isJsonFarmInfo(info) ? (
                 '--'
               ) : (
                 <Tooltip placement="right">
-                  {info.totalApr ? toPercentString(info.totalApr) : '--'}
+                  {info.totalApr7d ? toPercentString(info.totalApr7d) : '--'}
                   <Tooltip.Panel>
-                    {info.raydiumFeeRpr && (
-                      <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeRpr)}</div>
+                    {info.raydiumFeeApr7d && (
+                      <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeApr7d)}</div>
                     )}
                     {info.rewards.map(
                       ({ apr, token, userHavedReward }, idx) =>

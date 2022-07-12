@@ -1,6 +1,7 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { isString } from '@/functions/judgers/dateType'
-import React, { ReactNode, useMemo } from 'react'
+import useLocalStorageItem from '@/hooks/useLocalStorage'
+import React, { ReactNode, useEffect, useMemo, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import Col from './Col'
 import Collapse from './Collapse'
@@ -15,16 +16,25 @@ export default function Select<T extends string>({
   candidateValues,
   defaultValue,
   prefix,
+  localStorageKey,
   onChange
 }: {
   className?: string
   candidateValues: (T | { label: string; value: T })[]
-  defaultValue?: string
+  defaultValue?: T
   prefix?: ReactNode
+  /** stable props */
+  localStorageKey?: string
   onChange?: (value: T | undefined /* emptify */) => void
 }) {
-  const [currentValue, setCurrentValue] = React.useState(defaultValue)
+  const [currentValue, setCurrentValue] = localStorageKey
+    ? useLocalStorageItem(localStorageKey, defaultValue)
+    : useState(defaultValue)
   const isMobile = useAppSettings((s) => s.isMobile)
+
+  useEffect(() => {
+    onChange?.(currentValue)
+  }, [currentValue])
 
   const parsedCandidates = useMemo(
     () => candidateValues.map((i) => (isString(i) ? { label: i, value: i } : i)),
@@ -89,9 +99,10 @@ export default function Select<T extends string>({
                     } items-center`}
                     onClick={() => {
                       const parsedValue = value === currentValue ? undefined : value
-                      setCurrentValue(parsedValue)
-                      onChange?.(parsedValue)
-                      controller.close()
+                      if (parsedValue) {
+                        setCurrentValue(parsedValue)
+                        controller.close()
+                      }
                     }}
                   >
                     {label}

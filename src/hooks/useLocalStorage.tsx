@@ -8,9 +8,10 @@ import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect '
 
 /** auto json stringify and json parse */
 export default function useLocalStorageItem<T>(
-  key: string
+  key: string,
+  defaultValue?: T
 ): [state: T | undefined, setState: (value: MayFunction<T, [old: T | undefined]>) => void] {
-  const [xStoredValue, setXStoredValue] = useXState<T | undefined>(`(localStorage)${key}`)
+  const [xStoredValue, setXStoredValue] = useXState<T | undefined>(`${key}`, defaultValue)
   useIsomorphicLayoutEffect(() => {
     const storedValue = getLocalItem(key)
     if (storedValue) {

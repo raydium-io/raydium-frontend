@@ -630,7 +630,7 @@ function IdoItemCardContentButtonGroup({ className, info }: { className?: string
           </Button>
 
           <div className="text-xs text-center text-[#ABC4FF80] my-1">
-            APR: {toPercentString(stakingHydratedInfo?.totalApr)}
+            APR: {toPercentString(stakingHydratedInfo?.totalApr7d)}
           </div>
         </Col>
       </Col>
