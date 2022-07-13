@@ -66,12 +66,12 @@ export default function NumberJelly({
 
   //#region ------------------- currentValue(prevData for targetNumber) is too big for targetNumber -------------------
   function clampByPercent(n: Numberish, deltaPercent: number, baseN: Numberish /** set as boundary */) {
-    return clamp(mul(baseN, -1 - 1 * deltaPercent), n, mul(baseN, 1 + 1 * deltaPercent))
+    return clamp(mul(baseN, 1 - 1 * deltaPercent), n, mul(baseN, 1 + 1 * deltaPercent))
   }
   if (maxDeltaPercent != null) {
     const delta = sub(targetNumber, currentNumber.current)
     const deltaPercent = div(delta, targetNumber)
-    const isTooBig = lt(deltaPercent, maxDeltaPercent * -1) || gt(deltaPercent, maxDeltaPercent) // or too small
+    const isTooBig = lt(deltaPercent, -maxDeltaPercent) || gt(deltaPercent, maxDeltaPercent) // or too small
 
     if (isTooBig) {
       currentNumber.current = clampByPercent(currentNumber.current, maxDeltaPercent, targetNumber)

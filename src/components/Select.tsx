@@ -27,19 +27,25 @@ export default function Select<T extends string>({
   localStorageKey?: string
   onChange?: (value: T | undefined /* emptify */) => void
 }) {
+  const parsedCandidates = useMemo(
+    () => candidateValues.map((i) => (isString(i) ? { label: i, value: i } : i)),
+    [candidateValues]
+  )
+
+  const parsedCandidateValues = parsedCandidates.map(({ value }) => value)
+
   const [currentValue, setCurrentValue] = localStorageKey
-    ? useLocalStorageItem(localStorageKey, defaultValue)
+    ? useLocalStorageItem(localStorageKey, {
+        defaultValue,
+        validateFn: (v) => Boolean(v) && parsedCandidateValues.includes(v!)
+      })
     : useState(defaultValue)
+
   const isMobile = useAppSettings((s) => s.isMobile)
 
   useEffect(() => {
     onChange?.(currentValue)
   }, [currentValue])
-
-  const parsedCandidates = useMemo(
-    () => candidateValues.map((i) => (isString(i) ? { label: i, value: i } : i)),
-    [candidateValues]
-  )
 
   const currentLable = useMemo(
     () => parsedCandidates.find(({ value }) => value === currentValue)?.label,
