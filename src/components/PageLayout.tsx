@@ -9,7 +9,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import useWallet from '@/application/wallet/useWallet'
-import { useWallet as useWalletAdapter } from '@solana/wallet-adapter-react'
+import { useWallet as useWalletAdapter, WalletContextState } from '@solana/wallet-adapter-react'
 import jFetch from '@/functions/dom/jFetch'
 import linkTo from '@/functions/dom/linkTo'
 import { eq } from '@/functions/numberish/compare'
@@ -47,8 +47,12 @@ import { useForceUpdate } from '@/hooks/useForceUpdate'
 import {
   IncomingThemeVariables,
   NotificationsButton,
-  DialectUiManagementProvider,
-  ThemeProvider
+  DialectContextProvider,
+  Config,
+  Backend,
+  DialectWalletAdapter,
+  DialectThemeProvider,
+  DialectUiManagementProvider
 } from '@dialectlabs/react-ui'
 import { PublicKey } from '@solana/web3.js'
 
@@ -298,10 +302,42 @@ const RAYDIUM_NOTIFICATION_TYPES = [
   }
 ]
 
+const walletToDialectWallet = (wallet: WalletContextState): DialectWalletAdapter => ({
+  publicKey: wallet.publicKey!,
+  connected: wallet.connected && !wallet.connecting && !wallet.disconnecting && Boolean(wallet.publicKey),
+  signMessage: wallet.signMessage,
+  signTransaction: wallet.signTransaction,
+  signAllTransactions: wallet.signAllTransactions,
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  //@ts-ignore
+  diffieHellman: wallet.wallet?.adapter?._wallet?.diffieHellman
+    ? async (pubKey) => {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        return wallet.wallet?.adapter?._wallet?.diffieHellman(pubKey)
+      }
+    : undefined
+})
+
 function DialectNotificationsButton() {
   // Using original wallet adapter, since Dialect requires the original WalletContextState
   const wallet = useWalletAdapter()
   const isMobile = useAppSettings((s) => s.isMobile)
+  const [dialectWalletAdapter, setDialectWalletAdapter] = useState<DialectWalletAdapter>(() =>
+    walletToDialectWallet(wallet)
+  )
+
+  useEffect(() => {
+    setDialectWalletAdapter(walletToDialectWallet(wallet))
+  }, [wallet])
+
+  const dialectConfig = useMemo(
+    (): Config => ({
+      backends: [Backend.DialectCloud, Backend.Solana],
+      environment: 'production'
+    }),
+    []
+  )
 
   const themeVariables: IncomingThemeVariables = useMemo(
     () => ({
@@ -338,18 +374,17 @@ function DialectNotificationsButton() {
   )
 
   return (
-    <ThemeProvider theme="dark">
-      <DialectUiManagementProvider>
-        <NotificationsButton
-          wallet={wallet}
-          publicKey={RAYDIUM_MONITORING_PUBLIC_KEY}
-          variables={themeVariables}
-          network="mainnet"
-          theme="dark"
-          notifications={RAYDIUM_NOTIFICATION_TYPES}
-        />
-      </DialectUiManagementProvider>
-    </ThemeProvider>
+    // @ts-ignore
+    <DialectContextProvider wallet={dialectWalletAdapter} config={dialectConfig} dapp={RAYDIUM_MONITORING_PUBLIC_KEY}>
+      <DialectThemeProvider theme={'dark'} variables={themeVariables}>
+        <DialectUiManagementProvider>
+          <NotificationsButton
+            dialectId="dialect-notifications"
+            notifications={[{ name: 'Welcome message', detail: 'On thread creation' }]}
+          />
+        </DialectUiManagementProvider>
+      </DialectThemeProvider>
+    </DialectContextProvider>
   )
 }
 
