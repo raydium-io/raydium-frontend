@@ -123,8 +123,7 @@ export default function useSwapUrlParser(): void {
       const coin1 = getToken(urlCoin1Mint)
       const coin2 = getToken(urlCoin2Mint)
 
-      if (coin1) useSwap.setState({ coin1: coin1 })
-      if (coin2) useSwap.setState({ coin2: coin2 })
+      useSwap.setState(objectShakeFalsy({ coin1, coin2: coin1 === coin2 ? undefined : coin2 }))
     }
 
     // parse amount

@@ -97,7 +97,7 @@ export default function useLiquidityUrlParser() {
         String(liquidityCoin1?.mint) !== String(coin1?.mint) ||
         String(liquidityCoin2?.mint) !== String(coin2?.mint)
       ) {
-        useLiquidity.setState(objectShakeFalsy({ coin1, coin2 }))
+        useLiquidity.setState(objectShakeFalsy({ coin1, coin2: coin1 === coin2 ? undefined : coin2 }))
       }
 
       if (matchedMarketJson) {
