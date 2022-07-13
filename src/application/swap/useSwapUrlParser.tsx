@@ -8,7 +8,7 @@ import { useSwap } from '@/application/swap/useSwap'
 import useToken from '@/application/token/useToken'
 import { hasSameItems } from '@/functions/arrayMethods'
 import { throttle } from '@/functions/debounce'
-import { areShallowEqual } from '@/functions/judgers/areEqual'
+import { areShallowEqual, isMintEqual } from '@/functions/judgers/areEqual'
 import { toString } from '@/functions/numberish/toString'
 import { objectShakeFalsy } from '@/functions/objectMethods'
 import { EnumStr } from '@/types/constants'
@@ -21,6 +21,7 @@ import {
   WSOLMint
 } from '../token/quantumSOL'
 import toPubString from '@/functions/format/toMintString'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 function isSolAndWsol(query1: string, query2: string): boolean {
   return query1 === 'sol' && query2 === toPubString(WSOLMint)
@@ -38,6 +39,7 @@ export default function useSwapUrlParser(): void {
   const swapFocusSide = useSwap((s) => s.focusSide)
   const swapDirectionReversed = useSwap((s) => s.directionReversed)
   const liquidityPoolJsonInfos = useLiquidity((s) => s.jsonInfos)
+  const findLiquidityInfoByTokenMint = useLiquidity((s) => s.findLiquidityInfoByTokenMint)
   const findLiquidityInfoByAmmId = useCallback(
     (ammid: string) => liquidityPoolJsonInfos.find((jsonInfo) => jsonInfo.id === ammid),
     [liquidityPoolJsonInfos]
@@ -64,7 +66,7 @@ export default function useSwapUrlParser(): void {
   }, [])
 
   // from url
-  useEffect(() => {
+  useAsyncEffect(async () => {
     // only get data from url when /swap page is route from other page
     if (!pathname.includes('/swap')) return
 
@@ -91,19 +93,16 @@ export default function useSwapUrlParser(): void {
     } else if (urlAmmId) {
       // from URL: according to user's ammId , match liquidity pool json info, extract it's base and quote as coin1 and coin2
       const { logWarning } = useNotification.getState()
-      const matchedMarketJson = findLiquidityInfoByAmmId(urlAmmId)
-      if (matchedMarketJson) {
-        const coin1 = urlCoin1Mint
-          ? getToken(urlCoin1Mint, { exact: true })
-          : urlCoin2Mint
-          ? getToken(matchedMarketJson?.quoteMint)
-          : getToken(matchedMarketJson?.baseMint)
-
-        const coin2 = urlCoin2Mint
-          ? getToken(urlCoin2Mint, { exact: true })
-          : urlCoin1Mint
-          ? getToken(matchedMarketJson?.baseMint)
-          : getToken(matchedMarketJson?.quoteMint)
+      const urlCoin1 = getToken(urlCoin1Mint)
+      const urlCoin2 = getToken(urlCoin2Mint)
+      const matchedLiquidityJsonInfo = urlAmmId
+        ? findLiquidityInfoByAmmId(urlAmmId)
+        : urlCoin1 && urlCoin2
+        ? (await findLiquidityInfoByTokenMint(urlCoin1.mint, urlCoin2.mint)).best
+        : undefined
+      if (matchedLiquidityJsonInfo) {
+        const coin1 = getToken(matchedLiquidityJsonInfo?.baseMint) ?? urlCoin1
+        const coin2 = getToken(matchedLiquidityJsonInfo?.quoteMint) ?? urlCoin2
 
         // sync to swap zustand store
         if (

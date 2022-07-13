@@ -74,23 +74,14 @@ export default function useLiquidityUrlParser() {
       const urlCoin1 = getToken(urlCoin1Mint)
       const urlCoin2 = getToken(urlCoin2Mint)
       // from URL: according to user's ammId (or coin1 & coin2) , match liquidity pool json info
-      const matchedMarketJson = urlAmmId
+      const matchedLiquidityJsonInfo = urlAmmId
         ? findLiquidityInfoByAmmId(urlAmmId)
         : urlCoin1 && urlCoin2
         ? (await findLiquidityInfoByTokenMint(urlCoin1.mint, urlCoin2.mint)).best
         : undefined
 
-      const coin1 = urlCoin1Mint
-        ? getToken(urlCoin1Mint, { exact: true })
-        : urlCoin2Mint
-        ? getToken(matchedMarketJson?.quoteMint)
-        : getToken(matchedMarketJson?.baseMint)
-
-      const coin2 = urlCoin2Mint
-        ? getToken(urlCoin2Mint, { exact: true })
-        : urlCoin1Mint
-        ? getToken(matchedMarketJson?.baseMint)
-        : getToken(matchedMarketJson?.quoteMint)
+      const coin1 = getToken(matchedLiquidityJsonInfo?.baseMint) ?? urlCoin1
+      const coin2 = getToken(matchedLiquidityJsonInfo?.quoteMint) ?? urlCoin2
 
       // sync to zustand store
       if (
@@ -100,10 +91,10 @@ export default function useLiquidityUrlParser() {
         useLiquidity.setState(objectShakeFalsy({ coin1, coin2: coin1 === coin2 ? undefined : coin2 }))
       }
 
-      if (matchedMarketJson) {
+      if (matchedLiquidityJsonInfo) {
         useLiquidity.setState({
-          currentJsonInfo: matchedMarketJson,
-          ammId: matchedMarketJson!.id
+          currentJsonInfo: matchedLiquidityJsonInfo,
+          ammId: matchedLiquidityJsonInfo.id
         })
       } else if (urlAmmId) {
         // may be just haven't load liquidityPoolJsonInfos yet
