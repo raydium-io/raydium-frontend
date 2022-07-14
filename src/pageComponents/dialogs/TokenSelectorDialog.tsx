@@ -318,11 +318,11 @@ function TokenSelectorDialogContent({
                     const { addUserAddedToken } = useToken.getState()
                     const newToken = createSplToken({
                       mint: searchText,
-                      symbol: userCustomizedTokenSymbol.current.slice(0, 10),
+                      symbol: userCustomizedTokenSymbol.current,
                       decimals: onlineTokenMintInfo.decimals,
                       icon: '',
                       extensions: {},
-                      name: userCustomizedTokenSymbol.current.slice(0, 10),
+                      name: userCustomizedTokenSymbol.current,
                       userAdded: true
                     })
                     addUserAddedToken(newToken)
