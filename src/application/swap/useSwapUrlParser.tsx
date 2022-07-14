@@ -1,6 +1,3 @@
-import { useCallback, useEffect, useRef } from 'react'
-import { useRouter } from 'next/router'
-
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import useNotification from '@/application/notification/useNotification'
@@ -8,22 +5,18 @@ import { useSwap } from '@/application/swap/useSwap'
 import useToken from '@/application/token/useToken'
 import { hasSameItems } from '@/functions/arrayMethods'
 import { throttle } from '@/functions/debounce'
-import { areShallowEqual, isMintEqual } from '@/functions/judgers/areEqual'
-import { toString } from '@/functions/numberish/toString'
-import { objectShakeFalsy } from '@/functions/objectMethods'
-import { EnumStr } from '@/types/constants'
-import { SplToken } from '../token/type'
-import {
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  QuantumSOLVersionSOL,
-  QuantumSOLVersionWSOL,
-  WSOLMint
-} from '../token/quantumSOL'
 import toPubString from '@/functions/format/toMintString'
+import { areShallowEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
+import { toString } from '@/functions/numberish/toString'
+import { objectShakeFalsy, omit } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
-import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
+import { EnumStr } from '@/types/constants'
+import { useRouter } from 'next/router'
+import { ParsedUrlQuery } from 'querystring'
+import { useCallback, useEffect, useRef } from 'react'
 import useConnection from '../connection/useConnection'
+import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
+import { QuantumSOLVersionSOL, QuantumSOLVersionWSOL, WSOLMint } from '../token/quantumSOL'
 
 function isSolAndWsol(query1: string, query2: string): boolean {
   return query1 === 'sol' && query2 === toPubString(WSOLMint)
@@ -80,15 +73,16 @@ export default function useSwapUrlParser(): void {
     // // eslint-disable-next-line no-console
     // console.info('debug: get swap info from url')
 
-    const urlAmmId = String(query.ammId ?? query.ammid ?? '')
-    const urlCoin1Mint = String(query.inputCurrency ?? '')
-    const urlCoin2Mint = String(query.outputCurrency ?? '')
-    const urlCoin1Symbol = String(query.inputSymbol ?? '')
-    const urlCoin2Symbol = String(query.outputSymbol ?? '')
-    const urlCoin1Amount = String(query.inputAmount ?? '')
-    const urlCoin2Amount = String(query.outputAmount ?? '')
-    // eslint-disable-next-line @typescript-eslint/ban-types
-    const urlFixedSide = String(query.fixed ?? '') as EnumStr | 'in' | 'out'
+    const {
+      ammId: urlAmmId,
+      inputCurrency: urlCoin1Mint,
+      outputCurrency: urlCoin2Mint,
+      inputSymbol: urlCoin1Symbol,
+      outputSymbol: urlCoin2Symbol,
+      inputAmount: urlCoin1Amount,
+      outputAmount: urlCoin2Amount,
+      fixed: urlFixedSide
+    } = getSwapInfoFromQuery(query)
 
     if (isSolAndWsol(urlCoin1Mint, urlCoin2Mint)) {
       // SPECIAL CASE: wrap (sol ⇢ wsol)
@@ -198,15 +192,7 @@ export default function useSwapUrlParser(): void {
     const upCoinAmount = swapDirectionReversed ? swapCoin2Amount : swapCoin1Amount
     const downCoinAmount = swapDirectionReversed ? swapCoin1Amount : swapCoin2Amount
 
-    const urlInfo = objectShakeFalsy({
-      inputCurrency: String(query.inputCurrency ?? ''),
-      inputSymbol: String(query.inputSymbol ?? ''),
-      outputCurrency: String(query.outputCurrency ?? ''),
-      outputSymbol: String(query.outputSymbol ?? ''),
-      inputAmount: String(query.inputAmount ?? ''),
-      outputAmount: String(query.outputAmount ?? ''),
-      fixed: String(query.fixed ?? '')
-    })
+    const urlInfo = omit(getSwapInfoFromQuery(query), ['ammId'])
 
     // attach state to url
     const dataInfo = objectShakeFalsy({
@@ -239,4 +225,38 @@ export default function useSwapUrlParser(): void {
     pathname
   ])
   //#endregion
+}
+
+function getSwapInfoFromQuery(query: ParsedUrlQuery): {
+  ammId: string
+  inputCurrency: string
+  inputSymbol: string
+  outputCurrency: string
+  outputSymbol: string
+  inputAmount: string
+  outputAmount: string
+  fixed: EnumStr | 'in' | 'out'
+} {
+  const notTouchableSymbols = ['ray', 'sol'] // url can't have red symbol
+  const rawObj = {
+    ammId: String(query.ammId ?? query.ammid ?? ''),
+    inputCurrency: String(query.inputCurrency ?? ''),
+    inputSymbol: String(query.inputSymbol ?? ''),
+    outputCurrency: String(query.outputCurrency ?? ''),
+    outputSymbol: String(query.outputSymbol ?? ''),
+    inputAmount: String(query.inputAmount ?? ''),
+    outputAmount: String(query.outputAmount ?? ''),
+    fixed: String(query.fixed ?? '')
+  }
+  if (notTouchableSymbols.some((symbol) => isStringInsensitivelyEqual(symbol, rawObj.inputSymbol))) {
+    rawObj.inputCurrency = ''
+    rawObj.inputAmount = ''
+    rawObj.inputSymbol = ''
+  }
+  if (notTouchableSymbols.some((symbol) => isStringInsensitivelyEqual(symbol, rawObj.outputSymbol))) {
+    rawObj.outputCurrency = ''
+    rawObj.outputAmount = ''
+    rawObj.outputSymbol = ''
+  }
+  return objectShakeFalsy(rawObj)
 }
