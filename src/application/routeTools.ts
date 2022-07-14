@@ -90,10 +90,9 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       options?.queryProps?.coin2 ??
       (router.pathname.includes('/liquidity/add') ? useLiquidity.getState().coin2 : undefined)
     const isSwapDirectionReversed = useSwap.getState().directionReversed
-    return router.push({ pathname: '/swap' }).then(() => {
-      const targetState = objectShakeFalsy(isSwapDirectionReversed ? { coin2: coin1, coin1: coin2 } : { coin1, coin2 })
-      useSwap.setState(targetState)
-    })
+    const targetState = objectShakeFalsy(isSwapDirectionReversed ? { coin2: coin1, coin1: coin2 } : { coin1, coin2 })
+    useSwap.setState(targetState)
+    router.push({ pathname: '/swap' })
   } else if (toPage === '/liquidity/add') {
     /** get info from queryProp */
     const ammId = options?.queryProps?.ammId
@@ -105,17 +104,15 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
     const upCoin = isSwapDirectionReversed ? coin2 : coin1
     const downCoin = isSwapDirectionReversed ? coin1 : coin2
     const mode = options?.queryProps?.mode
-    return router.push({ pathname: '/liquidity/add' }).then(() => {
-      /** jump to target page */
-      useLiquidity.setState(
-        objectShakeFalsy({
-          coin1: upCoin,
-          coin2: downCoin,
-          ammId,
-          isRemoveDialogOpen: mode === 'removeLiquidity'
-        })
-      )
-    })
+    useLiquidity.setState(
+      objectShakeFalsy({
+        coin1: upCoin,
+        coin2: downCoin,
+        ammId,
+        isRemoveDialogOpen: mode === 'removeLiquidity'
+      })
+    )
+    router.push({ pathname: '/liquidity/add' })
   } else if (toPage === '/farms') {
     return router.push({ pathname: '/farms' }).then(() => {
       /** jump to target page */

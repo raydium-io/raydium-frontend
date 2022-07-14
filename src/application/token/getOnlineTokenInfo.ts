@@ -3,6 +3,9 @@ import { PublicKeyish } from '@/types/constants'
 import { SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
 import useConnection from '../connection/useConnection'
 
+/**
+ * need connection
+ */
 export async function getOnlineTokenInfo(mintish: PublicKeyish) {
   try {
     const { connection } = useConnection.getState()
@@ -16,6 +19,9 @@ export async function getOnlineTokenInfo(mintish: PublicKeyish) {
   }
 }
 
+/**
+ * need connection
+ */
 export async function getOnlineTokenDecimals(mintish: PublicKeyish) {
   const { decimals } = (await getOnlineTokenInfo(mintish)) ?? {}
   return decimals

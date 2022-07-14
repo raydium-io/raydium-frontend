@@ -20,6 +20,7 @@ export type SplToken = Token & {
   extensions: {
     [key in 'coingeckoId' | 'website' | 'whitepaper']?: string
   }
+  userAdded?: boolean // only if token is added by user
 }
 
 export type LpToken = Token & {

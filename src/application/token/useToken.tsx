@@ -78,8 +78,8 @@ export type TokenStore = {
   sortTokens(tokens: SplToken[]): SplToken[]
   toggleFlaggedToken(token: SplToken): void
   allSelectableTokens: SplToken[]
-  addUserAddedToken(options: SplToken): void
-  deleteUserAddedToken(options: SplToken): void
+  addUserAddedToken(token: SplToken): void
+  deleteUserAddedToken(token: SplToken): void
   tokenListSettings: {
     [N in SupportedTokenListSettingName]: {
       mints?: Set<HexAddress> // TODO
@@ -146,7 +146,9 @@ export const useToken = create<TokenStore>((set, get) => ({
   addUserAddedToken: (token: SplToken) => {
     set((s) =>
       produce(s, (draft) => {
-        draft.userAddedTokens[toPubString(token.mint)] = token
+        if (!draft.userAddedTokens[toPubString(token.mint)]) {
+          draft.userAddedTokens[toPubString(token.mint)] = token
+        }
         draft.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints = addItem(
           s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set<string>(),
           toPubString(token.mint)

@@ -2,20 +2,25 @@ import { useEffect } from 'react'
 
 import { getLocalItem, setLocalItem } from '@/functions/dom/jStorage'
 
-import { SOLANA_TOKEN_LIST_NAME, USER_ADDED_TOKEN_LIST_NAME, useToken } from './useToken'
-import { objectMap } from '@/functions/objectMethods'
-import { SplTokenJsonInfo } from '@raydium-io/raydium-sdk'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
-import { createSplToken } from './useTokenListsLoader'
+import { objectMap, omit } from '@/functions/objectMethods'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
+import { SplTokenJsonInfo } from '@raydium-io/raydium-sdk'
+import useConnection from '../connection/useConnection'
+import { getTokenFromLocalStorage } from './getTokenFromLocalStorage'
+import { SOLANA_TOKEN_LIST_NAME, USER_ADDED_TOKEN_LIST_NAME, useToken } from './useToken'
 
 export default function useTokenListSettingsLocalStorage() {
+  const connection = useConnection((s) => s.connection)
+
   // whenever app start , get tokenListSettings from localStorage
-  useEffect(() => {
+  useAsyncEffect(async () => {
     const userAddedTokens = getLocalItem<SplTokenJsonInfo[]>('TOKEN_LIST_USER_ADDED_TOKENS') ?? []
     const tokenListSwitchSettings = getLocalItem<{ [mapName: string]: boolean }>('TOKEN_LIST_SWITCH_SETTINGS') ?? {}
 
     useToken.setState((s) => ({
-      userAddedTokens: Object.fromEntries(userAddedTokens.map((t) => [toPubString(t.mint), createSplToken({ ...t })])),
       tokenListSettings: {
         ...s.tokenListSettings,
         [SOLANA_TOKEN_LIST_NAME]: {
@@ -30,14 +35,36 @@ export default function useTokenListSettingsLocalStorage() {
         }
       }
     }))
-  }, [])
+
+    if (connection) {
+      const decimalsedUserAddedTokensInLocalStorage = shakeUndifindedItem(
+        await getTokenFromLocalStorage(userAddedTokens)
+      )
+      useToken.setState((s) => {
+        const added = {
+          ...s.userAddedTokens,
+          ...listToMap(decimalsedUserAddedTokensInLocalStorage, (i) => toPubString(i.mint))
+        }
+        return {
+          userAddedTokens: added
+        }
+      })
+    }
+  }, [connection])
 
   const tokenListSettings = useToken((s) => s.tokenListSettings)
   // whenever tokenListSettings changed, save it to localStorage
   const userAddedTokens = useToken((s) => s.userAddedTokens)
 
   useEffect(() => {
-    setLocalItem('TOKEN_LIST_USER_ADDED_TOKENS', Object.values(userAddedTokens)) // add token / remove token
+    if (!connection) return
+    setLocalItem(
+      'TOKEN_LIST_USER_ADDED_TOKENS',
+      Object.values(userAddedTokens).map((t) => omit(t, 'decimals'))
+    ) // add token / remove token
+  }, [connection, userAddedTokens])
+
+  useEffect(() => {
     setLocalItem(
       'TOKEN_LIST_SWITCH_SETTINGS',
       objectMap(tokenListSettings, (i) => i.isOn)

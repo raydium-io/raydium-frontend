@@ -78,7 +78,11 @@ async function fetchTokenIconInfoList() {
 }
 
 export function createSplToken(
-  info: Partial<TokenJson> & { mint: HexAddress; decimals: number },
+  info: Partial<TokenJson> & {
+    mint: HexAddress
+    decimals: number
+    userAdded?: boolean /* only if token is added by user */
+  },
   customTokenIcons?: Record<string, SrcAddress>
 ): SplToken {
   const { mint, symbol, name = symbol, decimals, ...rest } = info
@@ -91,6 +95,7 @@ export function createSplToken(
 }
 export function toSplTokenInfo(splToken: SplToken): TokenJson {
   return {
+    ...splToken,
     symbol: splToken.symbol ?? '',
     name: splToken.name ?? '',
     mint: toPubString(splToken.mint),

@@ -20,7 +20,6 @@ import useMessageBoardFileLoader from '@/application/messageBoard/useMessageBoar
 import useMessageBoardReadedIdRecorder from '@/application/messageBoard/useMessageBoardReadedIdRecorder'
 import usePoolsInfoLoader from '@/application/pools/usePoolsInfoLoader'
 import useStealDataFromFarm from '@/application/staking/useStealDataFromFarm'
-import { useAutoSyncUserAddedTokens } from '@/application/token/useAutoSyncUserAddedTokens'
 import useAutoUpdateSelectableTokens from '@/application/token/useAutoUpdateSelectableTokens'
 import { useLpTokenMethodsLoad } from '@/application/token/useLpTokenMethodsLoad'
 import useLpTokensLoader from '@/application/token/useLpTokensLoader'
@@ -143,7 +142,6 @@ function ApplicationsInitializations() {
   /********************** token **********************/
   // application initializations
   useAutoUpdateSelectableTokens()
-  useAutoSyncUserAddedTokens()
   useTokenListsLoader()
   useLpTokensLoader()
   useLpTokenMethodsLoad()

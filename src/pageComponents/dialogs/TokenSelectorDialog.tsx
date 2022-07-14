@@ -300,16 +300,16 @@ function TokenSelectorDialogContent({
                   }}
                   onEnter={(text) => {
                     const { addUserAddedToken } = useToken.getState()
-                    addUserAddedToken(
-                      createSplToken({
-                        mint: searchText,
-                        symbol: text,
-                        decimals: onlineTokenMintInfo.decimals,
-                        icon: '',
-                        extensions: {},
-                        name: text
-                      })
-                    )
+                    const newToken = createSplToken({
+                      mint: searchText,
+                      symbol: text,
+                      decimals: onlineTokenMintInfo.decimals,
+                      icon: '',
+                      extensions: {},
+                      name: text,
+                      userAdded: true
+                    })
+                    addUserAddedToken(newToken)
                   }}
                 />
                 <Button
@@ -318,11 +318,12 @@ function TokenSelectorDialogContent({
                     const { addUserAddedToken } = useToken.getState()
                     const newToken = createSplToken({
                       mint: searchText,
-                      symbol: userCustomizedTokenSymbol.current.slice(0, 10),
+                      symbol: userCustomizedTokenSymbol.current,
                       decimals: onlineTokenMintInfo.decimals,
                       icon: '',
                       extensions: {},
-                      name: userCustomizedTokenSymbol.current.slice(0, 10)
+                      name: userCustomizedTokenSymbol.current,
+                      userAdded: true
                     })
                     addUserAddedToken(newToken)
                   }}
@@ -355,8 +356,12 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
       <Row>
         <CoinAvatar token={token} className="mr-2" />
         <Col className="mr-2">
-          <div className="text-base font-normal text-[#ABC4FF]">{token.symbol}</div>
-          <div className="text-xs font-medium text-[rgba(171,196,255,.5)]">{token.name}</div>
+          <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
+            {token.symbol}
+          </div>
+          <div className="text-xs  max-w-[12em] overflow-hidden text-ellipsis whitespace-nowrap  font-medium text-[rgba(171,196,255,.5)]">
+            {token.name}
+          </div>
         </Col>
         {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
           <div

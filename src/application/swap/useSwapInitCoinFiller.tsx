@@ -13,7 +13,7 @@ export default function useSwapInitCoinFiller() {
   useEffect(() => {
     const { coin1, coin2 } = useSwap.getState()
     const query = getURLQueryEntry()
-    const queryHaveSetCoin = ['coin0', 'coin1', 'ammId'].some((i) => Object.keys(query).includes(i))
+    const queryHaveSetCoin = ['inputCurrency', 'outputCurrency'].some((i) => Object.keys(query).includes(i))
     if (!coin1 && toPubString(coin2?.mint) !== toPubString(QuantumSOLVersionSOL.mint) && !queryHaveSetCoin) {
       useSwap.setState({ coin1: QuantumSOLVersionSOL })
     }
