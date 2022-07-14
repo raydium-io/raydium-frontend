@@ -38,9 +38,7 @@ export default function usePoolsInfoLoader() {
 
   const fetchPairs = async () => {
     // console.time('load pair json')
-    const pairJsonInfo = await jFetch<JsonPairItemInfo[]>('https://api.raydium.io/v2/main/pairs', {
-      ignoreCache: true
-    })
+    const pairJsonInfo = await jFetch<JsonPairItemInfo[]>('https://api.raydium.io/v2/main/pairs')
     if (!pairJsonInfo) return
     usePools.setState({ jsonInfos: pairJsonInfo.filter(({ name }) => !name.includes('unknown')) })
     // console.timeEnd('load pair json')
