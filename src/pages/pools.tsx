@@ -384,7 +384,7 @@ function PoolCard() {
 
         {/* table head column: liquidity */}
         <Row
-          className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
+          className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             setSortConfig({ key: 'liquidity', sortCompare: (i) => i.liquidity })
           }}
@@ -405,7 +405,7 @@ function PoolCard() {
 
         {/* table head column: volume24h */}
         <Row
-          className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
+          className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
@@ -427,7 +427,7 @@ function PoolCard() {
 
         {/* table head column: fee7d */}
         <Row
-          className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
+          className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             const key = timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
@@ -449,7 +449,7 @@ function PoolCard() {
 
         {/* table head column: volume24h */}
         <Row
-          className="pl-2 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
+          className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             const key = timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
