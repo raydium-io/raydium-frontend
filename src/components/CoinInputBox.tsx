@@ -299,7 +299,7 @@ export default function CoinInputBox({
               }}
             >
               {haveCoinIcon && token && <CoinAvatar token={token} size={isMobile ? 'smi' : 'md'} />}
-              <div className="text-[rgb(171,196,255)] font-medium text-base flex-grow mobile:text-sm whitespace-nowrap">
+              <div className="text-[rgb(171,196,255)] max-w-[7em] min-w-[2em] overflow-hidden text-ellipsis font-medium text-base flex-grow mobile:text-sm whitespace-nowrap">
                 {token?.symbol ?? '--'}
               </div>
               {showTokenSelectIcon && !disabledTokenSelect && (

@@ -6,7 +6,7 @@ import { createSplToken } from './useTokenListsLoader'
 /**
  *
  * @param mint
- * @param symbol
+ * @param symbol symbol can be empty string, (means use the start of mint to be it's temp symbol)
  * @returns
  */
 export async function getUserTokenEvenNotExist(mint: string, symbol: string): Promise<SplToken | undefined> {
@@ -21,7 +21,12 @@ export async function getUserTokenEvenNotExist(mint: string, symbol: string): Pr
 
     const hasUserAddedTokensLoadedWhenGetOnlineTokenDecimals = userAddedTokens !== useToken.getState().userAddedTokens // userAddedTokens may loaded during await
     if (hasUserAddedTokensLoadedWhenGetOnlineTokenDecimals) return undefined
-    const newCreatedToken = createSplToken({ mint, decimals: tokenDecimals, symbol, userAdded: Boolean(symbol) })
+    const newCreatedToken = createSplToken({
+      mint,
+      decimals: tokenDecimals,
+      symbol: symbol || mint.slice(0, 8),
+      userAdded: Boolean(symbol)
+    })
 
     useToken.getState().addUserAddedToken(newCreatedToken)
     return newCreatedToken
