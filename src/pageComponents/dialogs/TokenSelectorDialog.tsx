@@ -300,16 +300,16 @@ function TokenSelectorDialogContent({
                   }}
                   onEnter={(text) => {
                     const { addUserAddedToken } = useToken.getState()
-                    addUserAddedToken(
-                      createSplToken({
-                        mint: searchText,
-                        symbol: text,
-                        decimals: onlineTokenMintInfo.decimals,
-                        icon: '',
-                        extensions: {},
-                        name: text
-                      })
-                    )
+                    const newToken = createSplToken({
+                      mint: searchText,
+                      symbol: text,
+                      decimals: onlineTokenMintInfo.decimals,
+                      icon: '',
+                      extensions: {},
+                      name: text,
+                      userAdded: true
+                    })
+                    addUserAddedToken(newToken)
                   }}
                 />
                 <Button
@@ -322,7 +322,8 @@ function TokenSelectorDialogContent({
                       decimals: onlineTokenMintInfo.decimals,
                       icon: '',
                       extensions: {},
-                      name: userCustomizedTokenSymbol.current.slice(0, 10)
+                      name: userCustomizedTokenSymbol.current.slice(0, 10),
+                      userAdded: true
                     })
                     addUserAddedToken(newToken)
                   }}

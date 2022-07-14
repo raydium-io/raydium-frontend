@@ -17,7 +17,7 @@ export default function useLocalStorageItem<T>(
   const [xStoredValue, setXStoredValue] = useXState<T | undefined>(`${key}`, options?.defaultValue)
   useIsomorphicLayoutEffect(() => {
     const storedValue = getLocalItem(key)
-    if (storedValue && (options?.validateFn?.(storedValue) ?? true)) {
+    if (options?.validateFn?.(storedValue) ?? true) {
       setXStoredValue(storedValue)
     }
   }, [])

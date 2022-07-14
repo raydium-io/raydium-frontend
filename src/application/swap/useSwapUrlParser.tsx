@@ -22,6 +22,8 @@ import {
 } from '../token/quantumSOL'
 import toPubString from '@/functions/format/toMintString'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
+import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
+import useConnection from '../connection/useConnection'
 
 function isSolAndWsol(query1: string, query2: string): boolean {
   return query1 === 'sol' && query2 === toPubString(WSOLMint)
@@ -45,6 +47,8 @@ export default function useSwapUrlParser(): void {
     [liquidityPoolJsonInfos]
   )
   const tokens = useToken((s) => s.tokens)
+  const userAddedTokens = useToken((s) => s.userAddedTokens)
+  const connection = useConnection((s) => s.connection)
   const getToken = useToken((s) => s.getToken)
   const toUrlMint = useToken((s) => s.toUrlMint)
   const inCleanUrlMode = useAppSettings((s) => s.inCleanUrlMode)
@@ -79,6 +83,8 @@ export default function useSwapUrlParser(): void {
     const urlAmmId = String(query.ammId ?? query.ammid ?? '')
     const urlCoin1Mint = String(query.inputCurrency ?? '')
     const urlCoin2Mint = String(query.outputCurrency ?? '')
+    const urlCoin1Symbol = String(query.inputSymbol ?? '')
+    const urlCoin2Symbol = String(query.outputSymbol ?? '')
     const urlCoin1Amount = String(query.inputAmount ?? '')
     const urlCoin2Amount = String(query.outputAmount ?? '')
     // eslint-disable-next-line @typescript-eslint/ban-types
@@ -93,8 +99,8 @@ export default function useSwapUrlParser(): void {
     } else if (urlAmmId) {
       // from URL: according to user's ammId , match liquidity pool json info, extract it's base and quote as coin1 and coin2
       const { logWarning } = useNotification.getState()
-      const urlCoin1 = getToken(urlCoin1Mint)
-      const urlCoin2 = getToken(urlCoin2Mint)
+      const urlCoin1 = await getUserTokenEvenNotExist(urlCoin1Mint, urlCoin1Symbol)
+      const urlCoin2 = await getUserTokenEvenNotExist(urlCoin2Mint, urlCoin2Symbol)
       const matchedLiquidityJsonInfo = urlAmmId
         ? findLiquidityInfoByAmmId(urlAmmId)
         : urlCoin1 && urlCoin2
@@ -119,10 +125,10 @@ export default function useSwapUrlParser(): void {
       }
     } else if (urlCoin1Mint || urlCoin2Mint) {
       // attach coin1 and coin2 to swap zustand store
-      const coin1 = getToken(urlCoin1Mint)
-      const coin2 = getToken(urlCoin2Mint)
+      const urlCoin1 = await getUserTokenEvenNotExist(urlCoin1Mint, urlCoin1Symbol)
+      const urlCoin2 = await getUserTokenEvenNotExist(urlCoin2Mint, urlCoin2Symbol)
 
-      useSwap.setState(objectShakeFalsy({ coin1, coin2: coin1 === coin2 ? undefined : coin2 }))
+      useSwap.setState(objectShakeFalsy({ coin1: urlCoin1, coin2: urlCoin1 === urlCoin2 ? undefined : urlCoin2 }))
     }
 
     // parse amount
@@ -150,7 +156,17 @@ export default function useSwapUrlParser(): void {
     if (liquidityPoolJsonInfos.length > 0 && Object.values(tokens).length > 0) {
       haveInit.current = true
     }
-  }, [pathname, query, getToken, tokens, replace, liquidityPoolJsonInfos, findLiquidityInfoByAmmId])
+  }, [
+    connection,
+    pathname,
+    query,
+    getToken,
+    tokens,
+    userAddedTokens,
+    replace,
+    liquidityPoolJsonInfos,
+    findLiquidityInfoByAmmId
+  ])
 
   //#region ------------------- sync zustand data to url -------------------
   const throttledUpdateUrl = useCallback(
@@ -175,6 +191,8 @@ export default function useSwapUrlParser(): void {
 
     const coin1Mint = swapCoin1 ? toUrlMint(swapCoin1) : ''
     const coin2Mint = swapCoin2 ? toUrlMint(swapCoin2) : ''
+    const coin1Symbol = swapCoin1?.userAdded ? swapCoin1.symbol : undefined
+    const coin2Symbol = swapCoin2?.userAdded ? swapCoin2.symbol : undefined
     const upCoinMint = swapDirectionReversed ? coin2Mint : coin1Mint
     const downCoinMint = swapDirectionReversed ? coin1Mint : coin2Mint
     const upCoinAmount = swapDirectionReversed ? swapCoin2Amount : swapCoin1Amount
@@ -182,7 +200,9 @@ export default function useSwapUrlParser(): void {
 
     const urlInfo = objectShakeFalsy({
       inputCurrency: String(query.inputCurrency ?? ''),
+      inputSymbol: String(query.inputSymbol ?? ''),
       outputCurrency: String(query.outputCurrency ?? ''),
+      outputSymbol: String(query.outputSymbol ?? ''),
       inputAmount: String(query.inputAmount ?? ''),
       outputAmount: String(query.outputAmount ?? ''),
       fixed: String(query.fixed ?? '')
@@ -191,7 +211,9 @@ export default function useSwapUrlParser(): void {
     // attach state to url
     const dataInfo = objectShakeFalsy({
       inputCurrency: upCoinMint,
+      inputSymbol: coin1Symbol,
       outputCurrency: downCoinMint,
+      outputSymbol: coin2Symbol,
       inputAmount: toString(upCoinAmount),
       outputAmount: toString(downCoinAmount),
       fixed: swapDirectionReversed

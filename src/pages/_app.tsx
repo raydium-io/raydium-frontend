@@ -143,7 +143,7 @@ function ApplicationsInitializations() {
   /********************** token **********************/
   // application initializations
   useAutoUpdateSelectableTokens()
-  useAutoSyncUserAddedTokens()
+  // useAutoSyncUserAddedTokens()
   useTokenListsLoader()
   useLpTokensLoader()
   useLpTokenMethodsLoad()

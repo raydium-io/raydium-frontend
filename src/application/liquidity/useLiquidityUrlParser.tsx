@@ -14,6 +14,9 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { EnumStr } from '@/types/constants'
 
 import useLiquidity from './useLiquidity'
+import { min } from 'bn.js'
+import useConnection from '../connection/useConnection'
+import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 
 export default function useLiquidityUrlParser() {
   const { query, pathname, replace } = useRouter()
@@ -32,6 +35,8 @@ export default function useLiquidityUrlParser() {
   )
   const findLiquidityInfoByTokenMint = useLiquidity((s) => s.findLiquidityInfoByTokenMint)
   const tokens = useToken((s) => s.tokens)
+  const userAddedTokens = useToken((s) => s.userAddedTokens)
+  const connection = useConnection((s) => s.connection)
   const getToken = useToken((s) => s.getToken)
   const toUrlMint = useToken((s) => s.toUrlMint)
   const inCleanUrlMode = useAppSettings((s) => s.inCleanUrlMode)
@@ -57,6 +62,8 @@ export default function useLiquidityUrlParser() {
     // only get data from url when /liquidity page is route from other page
     if (!pathname.includes('/liquidity/add')) return
 
+    if (!connection) return // parse must relay on connection
+
     // not in 'from url' period
     if (haveInit.current) return
 
@@ -64,15 +71,21 @@ export default function useLiquidityUrlParser() {
     const urlAmmId = String(query.ammId ?? query.ammid ?? '')
     const urlCoin1Mint = String(query.coin0 ?? '')
     const urlCoin2Mint = String(query.coin1 ?? '')
+    const urlCoin1Symbol = String(query.symbol0 ?? '')
+    const urlCoin2Symbol = String(query.symbol1 ?? '')
+
+    // add url's symbol
+
+    const urlCoin1 = await getUserTokenEvenNotExist(urlCoin1Mint, urlCoin1Symbol)
+    const urlCoin2 = await getUserTokenEvenNotExist(urlCoin2Mint, urlCoin2Symbol)
+
     const urlCoin1Amount = String(query.amount0 ?? '')
     const urlCoin2Amount = String(query.amount1 ?? '')
     // eslint-disable-next-line @typescript-eslint/ban-types
     const urlFixedSide = String(query.fixed ?? '') as EnumStr | 'coin0' | 'coin1'
     const mode = String(query.mode ?? '')
 
-    if (urlAmmId || (urlCoin1Mint && urlCoin2Mint)) {
-      const urlCoin1 = getToken(urlCoin1Mint)
-      const urlCoin2 = getToken(urlCoin2Mint)
+    if (urlAmmId || urlCoin1Mint || urlCoin2Mint) {
       // from URL: according to user's ammId (or coin1 & coin2) , match liquidity pool json info
       const matchedLiquidityJsonInfo = urlAmmId
         ? findLiquidityInfoByAmmId(urlAmmId)
@@ -128,10 +141,12 @@ export default function useLiquidityUrlParser() {
       useLiquidity.setState({ focusSide: correspondingFocusSide })
     }
   }, [
+    connection,
     pathname,
     query,
     getToken,
     tokens,
+    userAddedTokens,
     replace,
 
     liquidityCoin1,
@@ -163,10 +178,14 @@ export default function useLiquidityUrlParser() {
 
     const coin1Mint = liquidityCoin1 ? toUrlMint(liquidityCoin1) : ''
     const coin2Mint = liquidityCoin2 ? toUrlMint(liquidityCoin2) : ''
+    const coin1Symbol = liquidityCoin1?.userAdded ? liquidityCoin1.symbol : undefined
+    const coin2Symbol = liquidityCoin2?.userAdded ? liquidityCoin2.symbol : undefined
 
     const urlInfo = objectShakeFalsy({
       coin0: String(query.coin0 ?? ''),
+      symbol0: String(query.symbol0 ?? ''),
       coin1: String(query.coin1 ?? ''),
+      symbol1: String(query.symbol1 ?? ''),
       amount0: String(query.amount0 ?? ''),
       amount1: String(query.amount1 ?? ''),
       fixed: String(query.fixed ?? ''),
@@ -177,7 +196,9 @@ export default function useLiquidityUrlParser() {
     // attach state to url
     const dataInfo = objectShakeFalsy({
       coin0: coin1Mint,
+      symbol0: coin1Symbol,
       coin1: coin2Mint,
+      symbol1: coin2Symbol,
       amount0: liquidityCoin1Amount,
       amount1: liquidityCoin2Amount,
       fixed: liquidityFocusSide === 'coin1' ? 'coin0' : 'coin1',
