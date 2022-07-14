@@ -9,7 +9,7 @@ import { objectMap, omit } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { SplTokenJsonInfo } from '@raydium-io/raydium-sdk'
 import useConnection from '../connection/useConnection'
-import { getTokenFromLocalStorage } from './useAutoSyncUserAddedTokens'
+import { getTokenFromLocalStorage } from './getTokenFromLocalStorage'
 import { SOLANA_TOKEN_LIST_NAME, USER_ADDED_TOKEN_LIST_NAME, useToken } from './useToken'
 
 export default function useTokenListSettingsLocalStorage() {
