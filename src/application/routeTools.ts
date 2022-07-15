@@ -104,14 +104,12 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
     const upCoin = isSwapDirectionReversed ? coin2 : coin1
     const downCoin = isSwapDirectionReversed ? coin1 : coin2
     const mode = options?.queryProps?.mode
-    useLiquidity.setState(
-      objectShakeFalsy({
-        coin1: upCoin,
-        coin2: downCoin,
-        ammId,
-        isRemoveDialogOpen: mode === 'removeLiquidity'
-      })
-    )
+    useLiquidity.setState({
+      coin1: upCoin,
+      coin2: downCoin,
+      ammId,
+      isRemoveDialogOpen: mode === 'removeLiquidity'
+    })
     router.push({ pathname: '/liquidity/add' })
   } else if (toPage === '/farms') {
     return router.push({ pathname: '/farms' }).then(() => {
