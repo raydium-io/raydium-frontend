@@ -374,7 +374,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             {userFlaggedTokenMints.has(toPubString(token.mint)) ? '[Remove Token]' : '[Add Token]'}
           </div>
         ) : null}
-        {isUserAddedToken ? (
+        {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
           <div
             onClick={(ev) => {
               deleteUserAddedToken(token)
