@@ -11,7 +11,9 @@ import Col from '@/components/Col'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte } from '@/functions/numberish/compare'
+import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useToggle from '@/hooks/useToggle'
 import { NewAddedRewardSummary } from '@/pageComponents/createFarm/NewAddedRewardSummary'
@@ -30,6 +32,7 @@ function useAvailableCheck() {
 export default function CreateFarmReviewPage() {
   const [created, { on: turnOnCreated, off: turnOffCreated }] = useToggle(false)
   const balances = useWallet((s) => s.balances)
+  const rewards = useCreateFarms((s) => s.rewards)
   const { pathname } = useRouter()
   const refreshFarmInfos = useFarms((s) => s.refreshFarmInfos)
   const [key, setKey] = useState(String(Date.now())) // hacking: same block hash can only success once
@@ -37,8 +40,9 @@ export default function CreateFarmReviewPage() {
     setKey(String(Date.now()))
   }, [pathname])
 
+  const rewardRayAmount = rewards.find((r) => isMintEqual(r.token?.mint, RAYMint))?.amount
   const userRayBalance = balances[toPubString(RAYMint)]
-  const haveOver300Ray = gte(userRayBalance ?? 0, 300) /** Test */
+  const haveOver300Ray = gte(userRayBalance ?? 0, add(300, rewardRayAmount ?? 0)) /** Test */
   useAvailableCheck()
 
   return (
