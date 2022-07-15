@@ -346,7 +346,6 @@ function FarmCard() {
       ),
     [currentTab, dataSource]
   )
-
   const haveSelfCreatedFarm = tabedDataSource.some((i) => isMintEqual(i.creator, owner))
 
   const applyFiltersDataSource = useMemo(

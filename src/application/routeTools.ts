@@ -18,6 +18,7 @@ import useWallet from './wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { createNewUIRewardInfo, parsedHydratedRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
 import { addQuery, cleanQuery } from '@/functions/dom/getURLQueryEntries'
+import { addItem } from '@/functions/arrayMethods'
 
 export type PageRouteConfigs = {
   '/swap': {
@@ -42,6 +43,7 @@ export type PageRouteConfigs = {
     queryProps?: {
       searchText?: string
       currentTab?: 'Raydium' | 'Fusion' | 'Ecosystem' | 'Staked'
+      newExpandedItemId?: string
     }
   }
   '/pools': {
@@ -104,24 +106,28 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
     const upCoin = isSwapDirectionReversed ? coin2 : coin1
     const downCoin = isSwapDirectionReversed ? coin1 : coin2
     const mode = options?.queryProps?.mode
-    useLiquidity.setState(
-      objectShakeFalsy({
-        coin1: upCoin,
-        coin2: downCoin,
-        ammId,
-        isRemoveDialogOpen: mode === 'removeLiquidity'
-      })
-    )
+    useLiquidity.setState({
+      coin1: upCoin,
+      coin2: downCoin,
+      ammId,
+      isRemoveDialogOpen: mode === 'removeLiquidity'
+    })
     router.push({ pathname: '/liquidity/add' })
   } else if (toPage === '/farms') {
     return router.push({ pathname: '/farms' }).then(() => {
       /** jump to target page */
-      useFarms.setState(
+      useFarms.setState((s) =>
         objectShakeFalsy({
-          currentTab: options?.queryProps.currentTab,
-          searchText: options?.queryProps?.searchText
+          currentTab: options?.queryProps?.currentTab,
+          searchText: options?.queryProps?.searchText,
+          expandedItemIds: addItem(s.expandedItemIds, options?.queryProps?.newExpandedItemId)
         })
       )
+      if (options?.queryProps?.newExpandedItemId) {
+        useFarms.setState((s) => ({
+          expandedItemIds: addItem(s.expandedItemIds, options.queryProps.newExpandedItemId)
+        }))
+      }
     })
   } else if (toPage === '/acceleraytor/detail') {
     return router

@@ -18,12 +18,15 @@ export default function useLiquidityInitCoinFiller() {
       const isNotReady = Boolean(ammId && !coin1 && !coin2)
       if (isNotReady) return
       const queryHaveSetCoin = ['coin0', 'coin1', 'ammId'].some((i) => Object.keys(query).includes(i))
-      if (!coin1 && toPubString(coin2?.mint) !== toPubString(QuantumSOLVersionSOL.mint) && !queryHaveSetCoin) {
+      const needFillCoin1 =
+        !coin1 && !ammId && toPubString(coin2?.mint) !== toPubString(QuantumSOLVersionSOL.mint) && !queryHaveSetCoin
+      if (needFillCoin1) {
         useLiquidity.setState({ coin1: QuantumSOLVersionSOL })
       }
-      if (!coin2 && toPubString(coin1?.mint) !== toPubString(RAYMint) && !queryHaveSetCoin) {
+      const needFillCoin2 = !coin2 && !ammId && toPubString(coin1?.mint) !== toPubString(RAYMint) && !queryHaveSetCoin
+      if (needFillCoin2) {
         useLiquidity.setState({ coin2: getToken(RAYMint) })
       }
-    })
+    }, 100)
   }, [getToken])
 }

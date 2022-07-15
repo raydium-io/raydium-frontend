@@ -1,17 +1,22 @@
 import { isDateAfter } from '@/functions/date/judges'
 import { getDuration } from '@/functions/date/parseDuration'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
+import { add } from '@/functions/numberish/operations'
 import useConnection from '../connection/useConnection'
 import { MAX_DURATION, MIN_DURATION } from '../farms/handleFarmInfo'
 import { RAYMint } from '../token/wellknownToken.config'
 import useWallet from '../wallet/useWallet'
 import { UIRewardInfo } from './type'
+import useCreateFarms from './useCreateFarm'
 
 export function valid300Ray(): { valid: boolean; reason?: string } {
   const { getBalance, owner } = useWallet.getState()
   if (!owner) return { valid: false, reason: 'wallet not connected' }
-  const userRayBalance = getBalance(RAYMint)
-  const haveOver300Ray = gte(userRayBalance ?? 0, 300) /** Test */
+
+  const { rewards } = useCreateFarms.getState()
+  const rewardRayAmount = rewards.find((r) => isMintEqual(r.token?.mint, RAYMint))?.amount
+  const haveOver300Ray = gte(getBalance(RAYMint) ?? 0, add(300, rewardRayAmount ?? 0)) /** Test */
   if (!haveOver300Ray) return { valid: false, reason: 'User must have 300 RAY' }
   return { valid: true }
 }

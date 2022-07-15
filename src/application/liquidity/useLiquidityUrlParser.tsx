@@ -2,6 +2,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
 import useToken from '@/application/token/useToken'
 import { throttle } from '@/functions/debounce'
+import toPubString from '@/functions/format/toMintString'
 import { areShallowEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
 import { objectShakeFalsy } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
@@ -97,8 +98,10 @@ export default function useLiquidityUrlParser() {
 
       // sync to zustand store
       if (
-        String(liquidityCoin1?.mint) !== String(coin1?.mint) ||
-        String(liquidityCoin2?.mint) !== String(coin2?.mint)
+        toPubString(liquidityCoin1?.mint) + toPubString(liquidityCoin2?.mint) !==
+          toPubString(coin1?.mint) + toPubString(coin2?.mint) &&
+        toPubString(liquidityCoin1?.mint) + toPubString(liquidityCoin2?.mint) !==
+          toPubString(coin2?.mint) + toPubString(coin1?.mint)
       ) {
         useLiquidity.setState(objectShakeFalsy({ coin1, coin2: coin1 === coin2 ? undefined : coin2 }))
       }

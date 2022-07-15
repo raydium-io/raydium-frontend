@@ -31,7 +31,7 @@ import Row from '@/components/Row'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
-import { addItem, removeItem } from '@/functions/arrayMethods'
+import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
@@ -39,9 +39,11 @@ import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
-import { objectFilter } from '@/functions/objectMethods'
+import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import useSort from '@/hooks/useSort'
+import { capitalize } from '@/functions/changeCase'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 
 /**
  * store:
@@ -768,13 +770,13 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
   const isMobile = useAppSettings((s) => s.isMobile)
   const balances = useWallet((s) => s.balances)
   const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
-  const farmPoolsList = useFarms((s) => s.jsonInfos)
+  const farmPoolsList = useFarms((s) => s.hydratedInfos)
   const prices = usePools((s) => s.lpPrices)
 
   const hasLp = isMeaningfulNumber(balances[info.lpMint])
 
   const correspondingFarm = useMemo(
-    () => farmPoolsList.find((farmJsonInfo) => farmJsonInfo.lpMint === info.lpMint),
+    () => farmPoolsList.find((farmInfo) => isMintEqual(farmInfo.lpMint, info.lpMint) && !farmInfo.isClosedPool),
     [info]
   )
 
@@ -890,11 +892,14 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                   correspondingFarm ? 'clickable' : 'not-clickable'
                 }`}
                 onClick={() => {
-                  useFarms.setState((s) => ({
-                    searchText: info.name.split('-').join(' '),
-                    expandedItemIds: addItem(s.expandedItemIds, String(correspondingFarm?.id))
-                  }))
-                  routeTo('/farms')
+                  routeTo('/farms', {
+                    //@ts-expect-error no need to care about enum of this error
+                    queryProps: objectShakeFalsy({
+                      currentTab: correspondingFarm?.category ? capitalize(correspondingFarm?.category) : undefined,
+                      newExpandedItemId: toPubString(correspondingFarm?.id),
+                      searchText: String(correspondingFarm?.id)
+                    })
+                  })
                 }}
               />
               <Tooltip.Panel>Farm</Tooltip.Panel>
