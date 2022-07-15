@@ -139,11 +139,10 @@ function TokenSelectorDialogContent({
 
   // flag for can start user add mode
   const haveSearchResult = searchedTokens.length > 0
-
   const onlineTokenMintInfo = useAsyncValue(
     !haveSearchResult && searchText ? getOnlineTokenInfo(searchText) : undefined,
     undefined,
-    [searchText]
+    [searchText, haveSearchResult]
   )
 
   // some keyboard (arrow up/down / mouse hover) will change the selected index
