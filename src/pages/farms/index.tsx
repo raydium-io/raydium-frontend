@@ -1505,6 +1505,7 @@ function FarmCardTooltipPanelAddressItem({
           className="clickable text-[#ABC4FF]"
           onClick={() => {
             copyToClipboard(address)
+            event?.stopPropagation()
           }}
         />
         <Link href={`https://solscan.io/${type}/${address}`}>
