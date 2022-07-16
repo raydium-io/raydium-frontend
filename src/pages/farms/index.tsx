@@ -33,6 +33,7 @@ import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
+import Link from '@/components/Link'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
@@ -45,6 +46,7 @@ import Switcher from '@/components/Switcher'
 import Tabs from '@/components/Tabs'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
+import { toCamelCase, toSentenceCase } from '@/functions/changeCase'
 import { toUTC } from '@/functions/date/dateFormat'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
@@ -54,13 +56,12 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { isTokenAmount } from '@/functions/judgers/dateType'
 import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
-import { isTokenAmount } from '@/functions/judgers/dateType'
-import { toCamelCase, toSentenceCase } from '@/functions/changeCase'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -670,6 +671,13 @@ function FarmRewardBadge({
           </div>
           <div className="opacity-50">
             {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
+          </div>
+          <div className="opacity-50">
+            <FarmCardTooltipPanelAddressItem
+              label={reward.token?.symbol ?? '--'}
+              type="token"
+              address={reward.token?.mint.toString() ?? '--'}
+            />
           </div>
         </Tooltip.Panel>
       )}
@@ -1467,5 +1475,42 @@ function TextInfoItem({
         {subValue && <div className="text-sm mobile:text-2xs text-[rgba(171,196,255,0.5)]">{subValue}</div>}
       </Col>
     </Col>
+  )
+}
+
+function FarmCardTooltipPanelAddressItem({
+  className,
+  label,
+  address,
+  type = 'account'
+}: {
+  className?: string
+  label: string
+  address: string
+  type?: 'token' | 'account'
+}) {
+  return (
+    <Row className={twMerge('grid gap-2 items-center grid-cols-[5em,1fr,auto,auto]', className)}>
+      <div className="text-xs font-normal text-white">{label}</div>
+      <Row className="px-1 py-0.5 text-xs font-normal text-white bg-[#141041] rounded justify-center">
+        {/* setting text-overflow empty string will make effect in FireFox, not Chrome */}
+        <div className="self-end overflow-hidden tracking-wide">{address.slice(0, 5)}</div>
+        <div className="tracking-wide">...</div>
+        <div className="overflow-hidden tracking-wide">{address.slice(-5)}</div>
+      </Row>
+      <Row className="gap-1 items-center">
+        <Icon
+          size="sm"
+          heroIconName="clipboard-copy"
+          className="clickable text-[#ABC4FF]"
+          onClick={() => {
+            copyToClipboard(address)
+          }}
+        />
+        <Link href={`https://solscan.io/${type}/${address}`}>
+          <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
+        </Link>
+      </Row>
+    </Row>
   )
 }
