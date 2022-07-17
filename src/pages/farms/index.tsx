@@ -1115,18 +1115,20 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                 <Grid
                   className={`gap-board clip-insert-4 ${farmInfo.rewards.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
                 >
-                  {farmInfo.rewards?.map((reward, idx) => (
-                    <div key={idx} className="p-4">
-                      <div className={`text-white font-medium text-base mobile:text-xs mb-0.5`}>
-                        {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
+                  {farmInfo.rewards
+                    ?.filter((i) => i.perSecond != 0)
+                    .map((reward, idx) => (
+                      <div key={idx} className="p-4">
+                        <div className={`text-white font-medium text-base mobile:text-xs mb-0.5`}>
+                          {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
+                        </div>
+                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                          {prices?.[String(reward.token?.mint)] && isMeaningfulNumber(reward?.userPendingReward)
+                            ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
+                            : null}
+                        </div>
                       </div>
-                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-                        {prices?.[String(reward.token?.mint)] && isMeaningfulNumber(reward?.userPendingReward)
-                          ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
-                          : null}
-                      </div>
-                    </div>
-                  ))}
+                    ))}
                 </Grid>
               </div>
             ) : (
