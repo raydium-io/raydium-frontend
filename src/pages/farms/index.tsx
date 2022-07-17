@@ -746,13 +746,15 @@ function FarmCardDatabaseBodyCollapseItemFace({
             <Row className="flex-wrap gap-2 w-full pr-8">
               {isJsonFarmInfo(info)
                 ? '--'
-                : info.rewards.map((reward) => {
-                    return (
-                      <Fragment key={toPubString(reward.rewardVault)}>
-                        <FarmRewardBadge farmInfo={info} reward={reward} />
-                      </Fragment>
-                    )
-                  })}
+                : info.rewards
+                    .filter((i) => i.perSecond != 0)
+                    .map((reward) => {
+                      return (
+                        <Fragment key={toPubString(reward.rewardVault)}>
+                          <FarmRewardBadge farmInfo={info} reward={reward} />
+                        </Fragment>
+                      )
+                    })}
             </Row>
           }
         />
