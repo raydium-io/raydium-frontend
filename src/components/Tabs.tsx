@@ -4,11 +4,9 @@ import { twMerge } from 'tailwind-merge'
 
 import toPercentString from '@/functions/format/toPercentString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 
-import { addQuery, getURLQuery } from '@/functions/dom/getURLQueryEntries'
 import RadioGroup, { RadioGroupProps } from './RadioGroup'
-import useUpdate from '@/hooks/useUpdate'
+import { useUrlQuery } from '../hooks/useUrlQuery'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface TabProps<T extends string = string> extends RadioGroupProps<T> {
@@ -17,25 +15,17 @@ export interface TabProps<T extends string = string> extends RadioGroupProps<T> 
 }
 
 /**
+ * controlled component
  * Just inherit from `<StyledRadioGroup>` with ability to affect UrlHash
  * @returns
  */
 export default function Tabs<T extends string = string>({ urlSearchQueryKey, className, ...restProps }: TabProps<T>) {
-  useIsomorphicLayoutEffect(() => {
-    // apply from url
-    if (!urlSearchQueryKey) return
-    const initTabValue = getURLQuery(urlSearchQueryKey) as T | undefined
-    if (initTabValue && restProps.values.includes(initTabValue)) {
-      restProps.onChange?.(initTabValue)
-    }
-  }, [])
-
-  useUpdate(() => {
-    if (!urlSearchQueryKey) return
-    if (restProps.currentValue) {
-      addQuery(urlSearchQueryKey, restProps.currentValue)
-    }
-  }, [restProps.currentValue])
+  useUrlQuery<T>({
+    currentValue: restProps.currentValue,
+    values: restProps.values,
+    onChange: restProps.onChange,
+    queryKey: urlSearchQueryKey
+  })
 
   return (
     <RadioGroup

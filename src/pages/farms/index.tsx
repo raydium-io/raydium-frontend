@@ -62,6 +62,7 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
+import SelectableTabs from '@/components/SelectableTabs'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -77,12 +78,13 @@ export default function FarmsPage() {
 function FarmHeader() {
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <Row className="flex-wrap items-center justify-center px-2 py-1 mb-2">
+    <Row className="flex-wrap items-center justify-between  px-2 py-1 mb-2">
       {/* <div className="text-lg font-semibold justify-self-start text-white -mb-1">Farms</div> */}
       {/* <div className="font-medium text-[rgba(196,214,255,.5)] text-2xs">
           Stake your LP tokens and earn token rewards
         </div> */}
       <FarmTabBlock />
+      {/* <FarmCreateFarmEntryBlock className="mr-4" /> */}
       {/* <FarmStakedOnlyBlock /> */}
     </Row>
   ) : (
@@ -215,7 +217,10 @@ function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
   const haveOver300Ray = gte(userRayBalance ?? 0, 300)
   return (
     <Row
-      className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
+      className={twMerge(
+        `justify-self-end mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`,
+        className
+      )}
       onClick={() => {
         routeTo('/farms/create')
       }}
@@ -229,12 +234,21 @@ function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
 function FarmTabBlock({ className }: { className?: string }) {
   const currentTab = useFarms((s) => s.currentTab)
   const isMobile = useAppSettings((s) => s.isMobile)
-  return (
+  return isMobile ? (
+    <SelectableTabs
+      title="Farms"
+      currentValue={currentTab}
+      urlSearchQueryKey="tab"
+      values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}
+      onChange={(tab) => useFarms.setState({ currentTab: tab })}
+      className={className}
+      itemClassName={isMobile ? 'w-[80px] h-[30px]' : ''}
+    />
+  ) : (
     <Tabs
       currentValue={currentTab}
       urlSearchQueryKey="tab"
-      values={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'Staked'] as const)}
-      labels={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'Staked'] as const)}
+      values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}
       onChange={(tab) => useFarms.setState({ currentTab: tab })}
       className={twMerge('justify-self-center mobile:col-span-full', className)}
       itemClassName={isMobile ? 'w-[80px] h-[30px]' : ''}
