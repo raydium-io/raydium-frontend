@@ -25,12 +25,15 @@ import produce from 'immer'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
+
   tokenJsonInfos: Record<HexAddress, TokenJson>
 
   // has QuantumSOL
   tokens: Record<HexAddress, SplToken | QuantumSOLToken>
+
   // no QuantumSOL
   pureTokens: Record<HexAddress, SplToken>
+
   // has QuantumSOLVersionSOL and QuantumSOLVersionWSOL
   verboseTokens: (SplToken | QuantumSOLToken)[]
 
