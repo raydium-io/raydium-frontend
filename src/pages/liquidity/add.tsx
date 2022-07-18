@@ -59,6 +59,8 @@ import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialo
 import { Badge } from '@/components/Badge'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { SplToken } from '@/application/token/type'
+import { capitalize } from '@/functions/changeCase'
+import { objectShakeFalsy } from '@/functions/objectMethods'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -773,7 +775,7 @@ function UserLiquidityExhibition() {
   const userExhibitionLiquidityIds = useLiquidity((s) => s.userExhibitionLiquidityIds)
   const isRemoveDialogOpen = useLiquidity((s) => s.isRemoveDialogOpen)
   const scrollToInputBox = useLiquidity((s) => s.scrollToInputBox)
-  const farmPoolsList = useFarms((s) => s.jsonInfos)
+  const farmPoolsList = useFarms((s) => s.hydratedInfos)
   const getToken = useToken((s) => s.getToken)
 
   const balances = useWallet((s) => s.balances)
@@ -797,7 +799,7 @@ function UserLiquidityExhibition() {
         <List className={`flex flex-col gap-6 mobile:gap-5 ${exhibitionInfos.length ? 'mb-5' : ''}`}>
           {exhibitionInfos.map((info, idx) => {
             const correspondingFarm = farmPoolsList.find(
-              (farmJsonInfo) => farmJsonInfo.lpMint === toPubString(info.lpMint)
+              (farmInfo) => isMintEqual(farmInfo.lpMint, info.lpMint) && !farmInfo.isClosedPool
             )
             return (
               <List.Item key={idx}>
@@ -878,12 +880,14 @@ function UserLiquidityExhibition() {
                             }`}
                             onClick={() => {
                               routeTo('/farms', {
-                                queryProps: {
-                                  searchText: shakeFalsyItem([
-                                    String(info.baseToken?.symbol ?? ''),
-                                    String(info.quoteToken?.symbol ?? '')
-                                  ]).join(' ')
-                                }
+                                //@ts-expect-error no need to care about enum of this error
+                                queryProps: objectShakeFalsy({
+                                  currentTab: correspondingFarm?.category
+                                    ? capitalize(correspondingFarm?.category)
+                                    : undefined,
+                                  newExpandedItemId: toPubString(correspondingFarm?.id),
+                                  searchText: String(correspondingFarm?.id)
+                                })
                               })
                             }}
                           />
