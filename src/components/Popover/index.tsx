@@ -246,7 +246,14 @@ function PopoverPanel({
   if (!$isRenderByMain) return null
 
   return (
-    <div ref={domRef} className={className} style={style}>
+    <div
+      ref={domRef}
+      className={className}
+      style={style}
+      onClick={(ev) => {
+        ev.stopPropagation()
+      }}
+    >
       {children as ReactNode}
     </div>
   )
