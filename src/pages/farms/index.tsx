@@ -638,7 +638,7 @@ function FarmRewardBadge({
   const isRewardBeforeStart = isTokenAmount(reward) ? false : reward.isRewardBeforeStart
   const pendingAmount = isTokenAmount(reward) ? reward : reward.userPendingReward
   return (
-    <Tooltip placement="bottom" disable={Boolean(isTokenAmount(reward) || !reward.openTime || !reward.endTime)}>
+    <Tooltip placement="bottom">
       <Row
         className={`ring-1.5 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
           isRewarding ? '' : 'opacity-50'
@@ -663,24 +663,25 @@ function FarmRewardBadge({
           )}
         </div>
       </Row>
-      {!isTokenAmount(reward) && reward.openTime && reward.endTime && (
-        <Tooltip.Panel>
-          <div className="mb-1">
-            {reward.token?.symbol ?? '--'}{' '}
-            {isRewardEnded ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period'}
-          </div>
+      <Tooltip.Panel>
+        <div className="mb-1">
+          {reward.token?.symbol ?? '--'}{' '}
+          {!isTokenAmount(reward) &&
+            reward.openTime &&
+            reward.endTime &&
+            (isRewardEnded ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period')}
+        </div>
+        {!isTokenAmount(reward) && reward.openTime && reward.endTime && (
           <div className="opacity-50">
             {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
           </div>
-          <div className="opacity-50">
-            <FarmCardTooltipPanelAddressItem
-              label={reward.token?.symbol ?? '--'}
-              type="token"
-              address={reward.token?.mint.toString() ?? '--'}
-            />
-          </div>
-        </Tooltip.Panel>
-      )}
+        )}
+        <FarmCardTooltipPanelAddressItem
+          className="opacity-50 mt-2 contrast-75"
+          type="token"
+          address={reward.token?.mint.toString() ?? '--'}
+        />
+      </Tooltip.Panel>
     </Tooltip>
   )
 }
@@ -1484,36 +1485,32 @@ function TextInfoItem({
 
 function FarmCardTooltipPanelAddressItem({
   className,
-  label,
   address,
   type = 'account'
 }: {
   className?: string
-  label: string
   address: string
   type?: 'token' | 'account'
 }) {
   return (
-    <Row className={twMerge('grid gap-2 items-center grid-cols-[5em,1fr,auto,auto]', className)}>
-      <div className="text-xs font-normal text-white">{label}</div>
-      <Row className="px-1 py-0.5 text-xs font-normal text-white bg-[#141041] rounded justify-center">
+    <Row className={twMerge('grid w-full gap-2 items-center grid-cols-[1fr,auto]', className)}>
+      <Row className="text-xs font-normal text-white">
         {/* setting text-overflow empty string will make effect in FireFox, not Chrome */}
-        <div className="self-end overflow-hidden tracking-wide">{address.slice(0, 5)}</div>
+        <div className="self-end overflow-hidden tracking-wide">{address.slice(0, 6)}</div>
         <div className="tracking-wide">...</div>
-        <div className="overflow-hidden tracking-wide">{address.slice(-5)}</div>
+        <div className="overflow-hidden tracking-wide">{address.slice(-6)}</div>
       </Row>
       <Row className="gap-1 items-center">
         <Icon
           size="sm"
           heroIconName="clipboard-copy"
-          className="clickable text-[#ABC4FF]"
+          className="clickable text-[#abc4ff]"
           onClick={() => {
             copyToClipboard(address)
-            event?.stopPropagation()
           }}
         />
         <Link href={`https://solscan.io/${type}/${address}`}>
-          <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
+          <Icon size="sm" heroIconName="external-link" className="clickable text-[#abc4ff]" />
         </Link>
       </Row>
     </Row>
