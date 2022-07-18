@@ -125,8 +125,8 @@ function ToolsButton({ className }: { className?: string }) {
     <>
       <Popover placement="bottom-right">
         <Popover.Button>
-          <div className={twMerge('frosted-glass-teal rounded-full p-2 clickable justify-self-start', className)}>
-            <Icon className="w-3 h-3" iconClassName="w-3 h-3" heroIconName="dots-horizontal" />
+          <div className={twMerge('mx-1 rounded-full p-2 text-[#abc4ff] clickable justify-self-start', className)}>
+            <Icon className="w-4 h-4" iconClassName="w-4 h-4" heroIconName="dots-vertical" />
           </div>
         </Popover.Button>
         <Popover.Panel>
@@ -155,7 +155,7 @@ function PoolSearchBlock({ className }: { className?: string }) {
     <Input
       value={storeSearchText}
       className={twMerge(
-        'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1.5 ring-[rgba(196,214,255,0.5)] rounded-xl min-w-[6em]',
+        'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg min-w-[6em]',
         className
       )}
       inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
@@ -331,7 +331,7 @@ function PoolCard() {
     () => (
       <Row
         type="grid-x"
-        className="mb-3 h-12 justify-between sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,.8fr,auto]"
+        className="mb-3 h-12 justify-between sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl mobile:rounded-lg gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,.8fr,auto]"
       >
         <Row
           className="group w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
@@ -486,8 +486,8 @@ function PoolCard() {
   // NOTE: filter widgets
   const innerPoolDatabaseWidgets = isMobile ? (
     <div>
-      <Row className="mb-4 gap-3 mobile:mb-2 mobile:gap-2">
-        <PoolSearchBlock className="grow-2" />
+      <Row className="mb-4">
+        <PoolSearchBlock className="grow-2 mr-3" />
         <PoolTableSorterBox
           className="grow"
           onChange={(newSortKey) => {

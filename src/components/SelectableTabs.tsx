@@ -69,10 +69,13 @@ export default function SelectableTabs<T extends string>({
             {...restProps}
             vertical
             currentValue={restProps.currentValue}
-            className={twMerge('py-2 px-6 mobile:px-3 border-t-1.5 border-[#abc4ff50] bg-cyberpunk-card-bg', className)}
+            className={twMerge(
+              'border-t-1.5 border-[#abc4ff50] divide-y divide-[#abc4ff33] bg-cyberpunk-card-bg',
+              className
+            )}
             itemClassName={(checked) =>
               twMerge(
-                `text-sm font-medium whitespace-nowrap ${checked ? 'text-white' : 'text-[#ABC4FF]'}`,
+                `my-3 px-3  text-sm font-medium whitespace-nowrap ${checked ? 'text-white' : 'text-[#ABC4FF]'}`,
                 shrinkToValue(restProps.itemClassName, [checked])
               )
             }

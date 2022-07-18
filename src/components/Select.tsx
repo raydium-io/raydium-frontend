@@ -72,12 +72,12 @@ export default function Select<T extends string>({
   return (
     <div className={twMerge('relative', className)}>
       <div
-        className={`py-2 px-6 mobile:px-3 ring-inset ring-1.5 ring-[rgba(196,214,255,0.5)] h-full rounded-xl mobile:rounded-xl invisible`}
+        className={`py-2 px-6 mobile:px-3 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] h-full rounded-xl mobile:rounded-lg invisible`}
       >
         <FaceCotent />
       </div>
       <Collapse
-        className={`absolute z-10 top-0 left-0 ring-inset ring-1.5 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-xl w-full ${
+        className={`absolute z-10 top-0 left-0 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg w-full ${
           isOpen ? 'bg-cyberpunk-card-bg' : ''
         }`}
         onClose={() => setIsOpen(false)}

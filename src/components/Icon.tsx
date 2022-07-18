@@ -34,7 +34,8 @@ import {
   XCircleIcon,
   PlusCircleIcon,
   PencilIcon,
-  LinkIcon
+  LinkIcon,
+  DotsVerticalIcon
 } from '@heroicons/react/outline'
 import { ArrowCircleRightIcon } from '@heroicons/react/outline'
 
@@ -68,6 +69,7 @@ export type AppHeroIconName =
   | 'desktop-computer'
   | 'trash'
   | 'dots-horizontal'
+  | 'dots-vertical'
   | 'arrow-circle-right' // solid
   | 'plus-circle'
   | 'pencil'
@@ -167,6 +169,8 @@ export default function Icon({
         ? TrashIcon
         : heroIconName === 'dots-horizontal'
         ? DotsHorizontalIcon
+        : heroIconName === 'dots-vertical'
+        ? DotsVerticalIcon
         : heroIconName === 'arrow-circle-right'
         ? ArrowCircleRightIcon
         : heroIconName === 'plus-circle'
