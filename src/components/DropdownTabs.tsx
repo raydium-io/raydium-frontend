@@ -82,25 +82,26 @@ export default function DropdownTabs<T extends string>({
             : {}
         }
       >
-        <Row
-          className="min-w-[104px] items-center justify-center mobile:min-w-[80px] h-9 mobile:h-7"
-          onClick={onClickFace}
-        >
-          <div
-            className={`${
+        <Row className="min-w-[120px] items-stretch justify-between mobile:min-w-[108px] h-9 mobile:h-7">
+          <Row
+            onClick={onClickFace}
+            className={`grow-2 justify-center items-center ${
               isValueSelected ? 'text-white' : 'text-[#abc4ff]'
-            } text-sm mobile:text-xs font-medium whitespace-nowrap`}
+            } text-sm mobile:text-xs font-medium whitespace-nowrap active:backdrop-brightness-90`}
           >
             {collapseFaceValue}
-          </div>
+          </Row>
+
+          {/* short line */}
+          <div className="border-r border-[#abc4ff80] my-2 self-stretch"></div>
+          <Row onClick={onClickIcon} className="grow justify-center items-center active:backdrop-brightness-90">
+            <Icon
+              size={isMobile ? 'xs' : 'sm'}
+              className="text-[rgba(196,214,255,.5)]"
+              heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`}
+            />
+          </Row>
         </Row>
-        <div onClick={onClickIcon}>
-          <Icon
-            size={isMobile ? 'xs' : 'sm'}
-            className="justify-self-end mr-1.5 text-[rgba(196,214,255,.5)]"
-            heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`}
-          />
-        </div>
       </Row>
     </div>
   )
@@ -125,7 +126,7 @@ export default function DropdownTabs<T extends string>({
             <FaceContent
               open={open}
               onClickIcon={() => {
-                collapseRef.current?.open()
+                collapseRef.current?.toggle()
               }}
               onClickFace={() => {
                 restProps.onChange?.(collapseFaceValue)

@@ -1,7 +1,5 @@
-import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-
 import { TokenAmount } from '@raydium-io/raydium-sdk'
-
+import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -41,12 +39,12 @@ import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
+import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
-import RowTabs from '@/components/RowTabs'
+import Tabs from '@/components/Tabs'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
-import { toCamelCase, toSentenceCase } from '@/functions/changeCase'
 import { toUTC } from '@/functions/date/dateFormat'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
@@ -62,8 +60,6 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
-import DropdownTabs from '@/components/DropdownTabs'
-import Tabs from '@/components/Tabs'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -79,7 +75,7 @@ export default function FarmsPage() {
 function FarmHeader() {
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <Row className="flex-wrap items-center justify-between  px-2 py-1 mb-2">
+    <Row className="flex-wrap items-center justify-center  px-2 py-1 mb-2">
       {/* <div className="text-lg font-semibold justify-self-start text-white -mb-1">Farms</div> */}
       {/* <div className="font-medium text-[rgba(196,214,255,.5)] text-2xs">
           Stake your LP tokens and earn token rewards
