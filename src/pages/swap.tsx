@@ -41,7 +41,7 @@ import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
-import Tabs from '@/components/Tabs'
+import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
@@ -175,7 +175,7 @@ function useunOfficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
 function SwapHead() {
   return (
     <Row className="justify-center  mb-12 mobile:mb-2">
-      <Tabs
+      <RowTabs
         currentValue={'Swap'}
         values={['Swap', 'Liquidity']}
         onChange={(newTab) => {

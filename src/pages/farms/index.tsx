@@ -43,7 +43,7 @@ import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
-import Tabs from '@/components/Tabs'
+import RowTabs from '@/components/RowTabs'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { toCamelCase, toSentenceCase } from '@/functions/changeCase'
@@ -62,7 +62,8 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
-import SelectableTabs from '@/components/SelectableTabs'
+import DropdownTabs from '@/components/DropdownTabs'
+import Tabs from '@/components/Tabs'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -235,8 +236,9 @@ function FarmTabBlock({ className }: { className?: string }) {
   const currentTab = useFarms((s) => s.currentTab)
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <SelectableTabs
+    <Tabs
       title="Farms"
+      showOffset={3}
       currentValue={currentTab}
       urlSearchQueryKey="tab"
       values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}
@@ -244,7 +246,7 @@ function FarmTabBlock({ className }: { className?: string }) {
       className={className}
     />
   ) : (
-    <Tabs
+    <RowTabs
       currentValue={currentTab}
       urlSearchQueryKey="tab"
       values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}

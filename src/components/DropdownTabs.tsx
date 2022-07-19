@@ -10,7 +10,7 @@ import RadioGroup, { RadioGroupProps } from './RadioGroup'
 import Row from './Row'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface SelectableTabProps<T extends string = string> extends RadioGroupProps<T> {
+export interface DropdownTabProps<T extends string = string> extends RadioGroupProps<T> {
   title?: ReactNode
   /** when set, means open affect url query search  */
   urlSearchQueryKey?: string
@@ -19,12 +19,12 @@ export interface SelectableTabProps<T extends string = string> extends RadioGrou
 /**
  * controlled component
  */
-export default function SelectableTabs<T extends string>({
+export default function DropdownTabs<T extends string>({
   title,
   urlSearchQueryKey,
   className,
   ...restProps
-}: SelectableTabProps<T>) {
+}: DropdownTabProps<T>) {
   useUrlQuery<T>({
     currentValue: restProps.currentValue,
     values: restProps.values,

@@ -30,7 +30,7 @@ import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import { Badge } from '@/components/Badge'
-import Tabs from '@/components/Tabs'
+import RowTabs from '@/components/RowTabs'
 import { shakeFalsyItem } from '@/functions/arrayMethods'
 import { Markdown } from '@/components/Markdown'
 import CoinInputBox from '@/components/CoinInputBox'
@@ -858,7 +858,7 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
       className={twMerge('p-6 rounded-3xl border-1.5 border-[rgba(171,196,255,0.1)] bg-[#141041]', className)}
       size="lg"
     >
-      <Tabs
+      <RowTabs
         className="mb-6"
         currentValue={currentTab}
         values={shakeFalsyItem(['Project Details', 'How to join?'] as const)}
