@@ -2,8 +2,9 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import toPercentString from '@/functions/format/toPercentString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useUrlQuery } from '@/hooks/useUrlQuery'
+import { useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
-import Collapse from './Collapse'
+import Collapse, { CollapseHandler } from './Collapse'
 import Icon from './Icon'
 import RadioGroup, { RadioGroupProps } from './RadioGroup'
 import Row from './Row'
@@ -47,10 +48,23 @@ export default function DropdownTabs<T extends string>({
   const currentValueIndex =
     (isValueSelected ? restProps.values.findIndex((v) => v === restProps.currentValue) : 0) + offsetStartIndex
 
-  const faceContentValue = isValueSelected ? restProps.currentValue : restProps.values[0]
   //#endregion
 
-  const FaceContent = ({ open = false }) => (
+  const [collapseFaceValue, setCollapseFaceValue] = useState(() =>
+    isValueSelected ? restProps.currentValue! : restProps.values[0]
+  )
+
+  const collapseRef = useRef<CollapseHandler>(null)
+
+  const FaceContent = ({
+    open = false,
+    onClickIcon,
+    onClickFace
+  }: {
+    open?: boolean
+    onClickIcon?: () => void
+    onClickFace?: () => void
+  }) => (
     <div
       className={`rounded-[22px] mobile:rounded-[18px] p-1 ${
         ($transparentBg && !open) || open ? 'bg-transparent' : 'bg-cyberpunk-card-bg'
@@ -68,20 +82,25 @@ export default function DropdownTabs<T extends string>({
             : {}
         }
       >
-        <Row className="min-w-[104px] items-center justify-center mobile:min-w-[80px] h-9 mobile:h-7">
+        <Row
+          className="min-w-[104px] items-center justify-center mobile:min-w-[80px] h-9 mobile:h-7"
+          onClick={onClickFace}
+        >
           <div
             className={`${
               isValueSelected ? 'text-white' : 'text-[#abc4ff]'
             } text-sm mobile:text-xs font-medium whitespace-nowrap`}
           >
-            {faceContentValue}
+            {collapseFaceValue}
           </div>
         </Row>
-        <Icon
-          size={isMobile ? 'xs' : 'sm'}
-          className="justify-self-end mr-1.5 text-[rgba(196,214,255,.5)]"
-          heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`}
-        />
+        <div onClick={onClickIcon}>
+          <Icon
+            size={isMobile ? 'xs' : 'sm'}
+            className="justify-self-end mr-1.5 text-[rgba(196,214,255,.5)]"
+            heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`}
+          />
+        </div>
       </Row>
     </div>
   )
@@ -92,14 +111,28 @@ export default function DropdownTabs<T extends string>({
         <FaceContent />
       </div>
       <Collapse
+        componentRef={collapseRef}
         className={(open) =>
           `absolute z-dropdown top-0 left-0 w-full ${
             open ? 'bg-cyberpunk-card-bg' : 'bg-transparent'
           } rounded-[22px] mobile:rounded-[18px]`
         }
         closeByOutsideClick
+        disableOpenByClickFace
       >
-        <Collapse.Face>{(open) => <FaceContent open={open} />}</Collapse.Face>
+        <Collapse.Face>
+          {(open) => (
+            <FaceContent
+              open={open}
+              onClickIcon={() => {
+                collapseRef.current?.open()
+              }}
+              onClickFace={() => {
+                restProps.onChange?.(collapseFaceValue)
+              }}
+            />
+          )}
+        </Collapse.Face>
         <Collapse.Body>
           <RadioGroup
             {...restProps}
@@ -113,6 +146,11 @@ export default function DropdownTabs<T extends string>({
                 shrinkToValue(restProps.itemClassName, [checked])
               )
             }
+            onChange={(value) => {
+              setCollapseFaceValue(value)
+              restProps.onChange?.(value)
+              collapseRef.current?.close()
+            }}
           />
         </Collapse.Body>
       </Collapse>
