@@ -60,6 +60,7 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
+import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -898,13 +899,13 @@ function FarmCardDatabaseBodyCollapseItemFace({
               isJsonFarmInfo(info)
                 ? '--'
                 : info.tvl
-                ? `≈${toUsdVolume(info.tvl, { autoSuffix: true, decimalPlace: 0 })}`
+                ? `≈${toUsdVolume(info.tvl, { autoSuffix: true, decimalPlace: 1 })}`
                 : '--'
             }
             subValue={
               isJsonFarmInfo(info)
                 ? '--'
-                : info.stakedLpAmount && `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} LP`
+                : info.stakedLpAmount && `${autoSuffixNumberish(info.stakedLpAmount, { decimalPlace: 1 })} LP`
             }
           />
 

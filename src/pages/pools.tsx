@@ -704,7 +704,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             name="Liquidity"
             value={
               isHydratedPoolItemInfo(info)
-                ? toUsdVolume(info.liquidity, { autoSuffix: true, decimalPlace: 0 })
+                ? toUsdVolume(info.liquidity, { autoSuffix: true, decimalPlace: 1 })
                 : undefined
             }
           />
