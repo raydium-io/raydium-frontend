@@ -14,6 +14,8 @@ export interface DropdownTabProps<T extends string = string> extends RadioGroupP
   urlSearchQueryKey?: string
   /** only for <Tabs>  */
   $valuesLength?: number
+  /** only for <Tabs>  */
+  $transparentBg?: boolean
 }
 
 /**
@@ -21,6 +23,7 @@ export interface DropdownTabProps<T extends string = string> extends RadioGroupP
  */
 export default function DropdownTabs<T extends string>({
   $valuesLength,
+  $transparentBg,
   urlSearchQueryKey,
   className,
   ...restProps
@@ -36,14 +39,23 @@ export default function DropdownTabs<T extends string>({
 
   //#region ------------------- base on total value -------------------
   const isValueSelected = restProps.currentValue && restProps.values.includes(restProps.currentValue)
+
   const totalLength = $valuesLength ?? restProps.values.length
+
   const offsetStartIndex = $valuesLength ? $valuesLength - restProps.values.length : 0
+
   const currentValueIndex =
     (isValueSelected ? restProps.values.findIndex((v) => v === restProps.currentValue) : 0) + offsetStartIndex
+
+  const faceContentValue = isValueSelected ? restProps.currentValue : restProps.values[0]
   //#endregion
 
   const FaceContent = ({ open = false }) => (
-    <div className="rounded-full p-1 bg-cyberpunk-card-bg">
+    <div
+      className={`rounded-[22px] mobile:rounded-[18px] p-1 ${
+        ($transparentBg && !open) || open ? 'bg-transparent' : 'bg-cyberpunk-card-bg'
+      }`}
+    >
       <Row
         className="items-center rounded-full w-full"
         style={
@@ -62,7 +74,7 @@ export default function DropdownTabs<T extends string>({
               isValueSelected ? 'text-white' : 'text-[#abc4ff]'
             } text-sm mobile:text-xs font-medium whitespace-nowrap`}
           >
-            {isValueSelected ? restProps.currentValue : restProps.values[0]}
+            {faceContentValue}
           </div>
         </Row>
         <Icon
@@ -79,20 +91,25 @@ export default function DropdownTabs<T extends string>({
       <div className={`invisible`}>
         <FaceContent />
       </div>
-      <Collapse className={`absolute z-dropdown top-0 left-0 w-full`} closeByOutsideClick>
+      <Collapse
+        className={(open) =>
+          `absolute z-dropdown top-0 left-0 w-full ${
+            open ? 'bg-cyberpunk-card-bg' : 'bg-transparent'
+          } rounded-[22px] mobile:rounded-[18px]`
+        }
+        closeByOutsideClick
+      >
         <Collapse.Face>{(open) => <FaceContent open={open} />}</Collapse.Face>
         <Collapse.Body>
           <RadioGroup
             {...restProps}
             vertical
             currentValue={restProps.currentValue}
-            className={twMerge(
-              'border-t-1.5 border-[#abc4ff50] divide-y divide-[#abc4ff33] bg-cyberpunk-card-bg',
-              className
-            )}
             itemClassName={(checked) =>
               twMerge(
-                `my-3 px-3  text-sm font-medium whitespace-nowrap ${checked ? 'text-white' : 'text-[#ABC4FF]'}`,
+                `my-3 px-3 text-sm mobile:text-xs font-medium whitespace-nowrap ${
+                  checked ? 'text-white' : 'text-[#ABC4FF]'
+                }`,
                 shrinkToValue(restProps.itemClassName, [checked])
               )
             }

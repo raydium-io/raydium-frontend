@@ -11,9 +11,9 @@ export default function Tabs<T extends string>(props: TabsProps<T>) {
   const showTabValues = props.values.slice(0, props.showOffset)
   const dropdownTabValues = props.values.slice(props.showOffset)
   return (
-    <Row>
-      <RowTabs {...props} values={showTabValues} $valuesLength={props.values.length} />
-      <DropdownTabs {...props} values={dropdownTabValues} $valuesLength={props.values.length} />
+    <Row className="rounded-full bg-cyberpunk-card-bg">
+      <RowTabs {...props} values={showTabValues} $valuesLength={props.values.length} $transparentBg />
+      <DropdownTabs {...props} values={dropdownTabValues} $valuesLength={props.values.length} $transparentBg />
     </Row>
   )
 }

@@ -1,12 +1,8 @@
-import { useEffect } from 'react'
-
-import { twMerge } from 'tailwind-merge'
-
 import toPercentString from '@/functions/format/toPercentString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
-
-import RadioGroup, { RadioGroupProps } from './RadioGroup'
+import { twMerge } from 'tailwind-merge'
 import { useUrlQuery } from '../hooks/useUrlQuery'
+import RadioGroup, { RadioGroupProps } from './RadioGroup'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface RowTabProps<T extends string = string> extends RadioGroupProps<T> {
@@ -14,6 +10,8 @@ export interface RowTabProps<T extends string = string> extends RadioGroupProps<
   urlSearchQueryKey?: string
   /** only for <Tabs>  */
   $valuesLength?: number
+  /** only for <Tabs>  */
+  $transparentBg?: boolean
 }
 
 /**
@@ -23,6 +21,7 @@ export interface RowTabProps<T extends string = string> extends RadioGroupProps<
  */
 export default function RowTabs<T extends string = string>({
   $valuesLength,
+  $transparentBg,
   urlSearchQueryKey,
   className,
   ...restProps
@@ -46,7 +45,7 @@ export default function RowTabs<T extends string = string>({
     <RadioGroup
       {...restProps}
       currentValue={restProps.currentValue}
-      className={twMerge('rounded-full p-1 bg-cyberpunk-card-bg', className)}
+      className={twMerge('rounded-full p-1', $transparentBg ? 'bg-transparent' : 'bg-cyberpunk-card-bg', className)}
       itemClassName={(checked) =>
         twMerge(
           `grid min-w-[96px] mobile:min-w-[72px] h-9 mobile:h-7 rounded-full place-items-center text-sm mobile:text-xs font-medium  whitespace-nowrap ${
