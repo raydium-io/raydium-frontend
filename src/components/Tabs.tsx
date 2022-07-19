@@ -12,8 +12,8 @@ export default function Tabs<T extends string>(props: TabsProps<T>) {
   const dropdownTabValues = props.values.slice(props.showOffset)
   return (
     <Row>
-      <RowTabs {...props} values={showTabValues} />
-      <DropdownTabs {...props} values={dropdownTabValues} />
+      <RowTabs {...props} values={showTabValues} $valuesLength={props.values.length} />
+      <DropdownTabs {...props} values={dropdownTabValues} $valuesLength={props.values.length} />
     </Row>
   )
 }

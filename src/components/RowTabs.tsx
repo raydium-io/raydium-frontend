@@ -12,6 +12,8 @@ import { useUrlQuery } from '../hooks/useUrlQuery'
 export interface RowTabProps<T extends string = string> extends RadioGroupProps<T> {
   /** when set, means open affect url query search  */
   urlSearchQueryKey?: string
+  /** only for <Tabs>  */
+  $valuesLength?: number
 }
 
 /**
@@ -20,6 +22,7 @@ export interface RowTabProps<T extends string = string> extends RadioGroupProps<
  * @returns
  */
 export default function RowTabs<T extends string = string>({
+  $valuesLength,
   urlSearchQueryKey,
   className,
   ...restProps
@@ -31,6 +34,14 @@ export default function RowTabs<T extends string = string>({
     queryKey: urlSearchQueryKey
   })
 
+  //#region ------------------- base on total value -------------------
+  const isValueSelected = restProps.currentValue && restProps.values.includes(restProps.currentValue)
+  const totalLength = $valuesLength ?? restProps.values.length
+  const offsetStartIndex = 0
+  const currentValueIndex =
+    (isValueSelected ? restProps.values.findIndex((v) => v === restProps.currentValue) : 0) + offsetStartIndex
+  //#endregion
+
   return (
     <RadioGroup
       {...restProps}
@@ -38,18 +49,18 @@ export default function RowTabs<T extends string = string>({
       className={twMerge('rounded-full p-1 bg-cyberpunk-card-bg', className)}
       itemClassName={(checked) =>
         twMerge(
-          `grid min-w-[96px] mobile:min-w-[72px] px-4 h-9 mobile:h-7 rounded-full place-items-center text-sm mobile:text-xs font-medium  whitespace-nowrap ${
+          `grid min-w-[96px] mobile:min-w-[72px] h-9 mobile:h-7 rounded-full place-items-center text-sm mobile:text-xs font-medium  whitespace-nowrap ${
             checked ? 'text-white' : 'text-[#ABC4FF]'
           }`,
           shrinkToValue(restProps.itemClassName, [checked])
         )
       }
-      itemStyle={(checked, idx, values) =>
+      itemStyle={(checked) =>
         checked
           ? {
               background: 'linear-gradient(245.22deg, rgb(218, 46, 239), rgb(43, 106, 255), rgb(57, 208, 216))',
-              backgroundSize: `${values.length || 1}00% 100%`,
-              backgroundPosition: toPercentString((1 / (values.length - 1)) * idx)
+              backgroundSize: `${totalLength}00% 100%`,
+              backgroundPosition: toPercentString((1 / (totalLength - 1)) * currentValueIndex)
             }
           : {}
       }

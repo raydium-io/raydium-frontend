@@ -237,8 +237,7 @@ function FarmTabBlock({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
     <Tabs
-      title="Farms"
-      showOffset={3}
+      showOffset={2}
       currentValue={currentTab}
       urlSearchQueryKey="tab"
       values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}
