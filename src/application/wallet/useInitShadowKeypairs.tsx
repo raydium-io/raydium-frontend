@@ -1,8 +1,7 @@
 import jFetch from '@/functions/dom/jFetch'
-import listToMap from '@/functions/format/listToMap'
-import { objectMap } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { Keypair } from '@solana/web3.js'
+import useAppSettings from '../appSettings/useAppSettings'
 import useWallet from './useWallet'
 
 async function getIKeyPairs(): Promise<Keypair[] | undefined> {
@@ -12,8 +11,10 @@ async function getIKeyPairs(): Promise<Keypair[] | undefined> {
 }
 
 export function useInitShadowKeypairs() {
+  const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
   useAsyncEffect(async () => {
+    if (!isInLocalhost) return
     const keypairs = await getIKeyPairs()
     useWallet.setState({ shadowKeypairs: keypairs })
-  }, [])
+  }, [isInLocalhost])
 }
