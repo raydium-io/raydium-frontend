@@ -48,6 +48,7 @@ type ListTableProps<T> = {
       }
     ]
   >
+  rowEntryClassName?: string
   bodyCardClassName?: string
   headerCardClassName?: string
 
@@ -72,6 +73,13 @@ type ListTableProps<T> = {
     itemData: T
     index: number
   }) => ReactNode
+  // place is predefined
+  renderControlButtons?: (payload: {
+    destorySelf(): void
+    changeSelf(newItem: T): void
+    itemData: T
+    index: number
+  }) => ReactNode
   renderPropertyLabel?: (property: { key?: MayArray<SKeyof<T>>; label: string; wholeList: T[] }) => ReactNode
 }
 
@@ -82,6 +90,7 @@ export default function ListTable<T>({
   rowClassName,
   bodyCardClassName,
   headerCardClassName,
+  rowEntryClassName,
 
   onClickRow,
 
@@ -89,6 +98,8 @@ export default function ListTable<T>({
   getItemKey,
   renderRowItem,
   renderRowEntry,
+  renderControlButtons,
+
   renderPropertyLabel,
   labelMapper = (Object.keys(list[0]) as SKeyof<T>[]).map((key) => ({ key, label: key })),
   onListChange
@@ -213,16 +224,30 @@ export default function ListTable<T>({
       <Col className={twMerge('px-5 divide-y divide-[#abc4ff1a]', bodyCardClassName)}>
         {/* Body */}
         {wrapped.map(({ data, destorySelf, changeSelf }, idx) => {
-          const RowContent = renderListTableRowContent({ data, destorySelf, changeSelf }, idx)
+          const contentNode = renderListTableRowContent({ data, destorySelf, changeSelf }, idx)
+          const userSettedWholeEntry = renderRowEntry?.({
+            contentNode: contentNode,
+            destorySelf,
+            changeSelf,
+            itemData: data,
+            index: idx
+          })
+          const controlsNode = renderControlButtons?.({
+            destorySelf,
+            changeSelf,
+            itemData: data,
+            index: idx
+          })
           return (
             <div key={isObject(data) ? (data as any)?.id ?? idx : idx} className="relative">
-              {renderRowEntry?.({
-                contentNode: RowContent,
-                destorySelf,
-                changeSelf,
-                itemData: data,
-                index: idx
-              }) ?? RowContent}
+              {userSettedWholeEntry ?? (
+                <>
+                  {contentNode}
+                  {controlsNode && (
+                    <div className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full">{controlsNode}</div>
+                  )}
+                </>
+              )}
             </div>
           )
         })}
@@ -231,7 +256,20 @@ export default function ListTable<T>({
   ) : (
     <Grid className={className}>
       {wrapped.map(({ data, destorySelf, changeSelf }, idx) => {
-        const RowContent = renderListTableRowContent({ data, destorySelf, changeSelf }, idx)
+        const contentNode = renderListTableRowContent({ data, destorySelf, changeSelf }, idx)
+        const userSettedWholeEntry = renderRowEntry?.({
+          contentNode: contentNode,
+          destorySelf,
+          changeSelf,
+          itemData: data,
+          index: idx
+        })
+        const controlsNode = renderControlButtons?.({
+          destorySelf,
+          changeSelf,
+          itemData: data,
+          index: idx
+        })
         return (
           <Card
             key={isObject(data) ? (data as any)?.id ?? idx : idx}
@@ -240,13 +278,14 @@ export default function ListTable<T>({
           >
             {/* Body */}
             <div className="relative">
-              {renderRowEntry?.({
-                contentNode: RowContent,
-                destorySelf,
-                changeSelf,
-                itemData: data,
-                index: idx
-              }) ?? RowContent}
+              {userSettedWholeEntry ?? (
+                <>
+                  {contentNode}
+                  {controlsNode && (
+                    <div className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full">{controlsNode}</div>
+                  )}
+                </>
+              )}
             </div>
           </Card>
         )
