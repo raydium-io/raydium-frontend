@@ -180,7 +180,7 @@ export default function CreateFarmPage() {
   const [poolIdValid, setPoolIdValid] = useState(false)
   return (
     <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Create Farm" contentYPaddingShorter>
-      <NavButtons className="mb-8 mobile:mb-2 sticky top-0" />
+      <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:bg-[#0f0b2fcc]" />
 
       <div className={`pb-10 self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
         {!isMoblie && (
@@ -248,7 +248,7 @@ export default function CreateFarmPage() {
         </div>
 
         <Col className="items-center ml-12 mobile:ml-0">
-          <div className="font-medium text-sm text-justify leading-snug text-[#abc4ff80] mb-8">
+          <div className="font-medium text-sm mobile:text-xs text-justify leading-snug text-[#abc4ff80] mb-8">
             <span className="text-[#DA2EEF]">Please note: </span>Rewards allocated to farms are final and unused rewards
             cannot be claimed. However, you can add additional rewards to the farm. 300 RAY is collected as an Ecosystem
             farm creation fee, which will be deposited into the Raydium treasury. Token rewards should have a minimum
