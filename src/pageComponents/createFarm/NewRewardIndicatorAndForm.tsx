@@ -29,7 +29,7 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
           />
         </div>
       )}
-      <Grid className="grid-cols-[repeat(auto-fit,minmax(500px,1fr))] gap-8">
+      <Grid className="grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-8">
         <FadeIn>
           {activeReward && (
             <RewardFormCard>

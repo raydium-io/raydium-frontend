@@ -95,6 +95,8 @@ function FarmHeader() {
     </Col>
   )
 }
+
+/** only mobile */
 function ToolsButton({ className }: { className?: string }) {
   return (
     <>
@@ -114,6 +116,7 @@ function ToolsButton({ className }: { className?: string }) {
                 <FarmStakedOnlyBlock />
                 <FarmRefreshCircleBlock />
                 <FarmTimeBasisSelectorBox />
+                <FarmCreateFarmEntryBlock />
               </Grid>
             </Card>
           </div>
@@ -213,6 +216,7 @@ function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
   const balances = useWallet((s) => s.balances)
   const userRayBalance = balances[toPubString(RAYMint)]
   const haveOver300Ray = gte(userRayBalance ?? 0, 300)
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Row
       className={twMerge(

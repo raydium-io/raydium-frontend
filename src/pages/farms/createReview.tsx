@@ -104,7 +104,7 @@ export default function CreateFarmReviewPage() {
                 }, 1000)
               }}
             >
-              Back to all farm pools
+              Back to Farms
             </Button>
           </Col>
         ) : (

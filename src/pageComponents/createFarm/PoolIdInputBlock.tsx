@@ -1,3 +1,4 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { usePools } from '@/application/pools/usePools'
@@ -28,6 +29,7 @@ export function PoolIdInputBlock({
   componentRef?: RefObject<any>
   onInputValidate?: (result: boolean) => void
 }) {
+  const isMoblie = useAppSettings((s) => s.isMobile)
   const poolId = useCreateFarms((s) => s.poolId)
   const pairInfos = usePools((s) => s.hydratedInfos)
   const liquidityPoolJsons = useLiquidity((s) => s.jsonInfos)
@@ -89,8 +91,9 @@ export function PoolIdInputBlock({
 
   return (
     <Card
-      className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a]"
-      size="lg"
+      className={`p-4 mobile:p-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a] ${
+        isMoblie ? 'rounded-2xl' : 'rounded-3xl'
+      }`}
       domRef={inputCardRef}
     >
       <AutoComplete
