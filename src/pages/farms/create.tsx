@@ -120,7 +120,7 @@ function FormStep({
         <div className="grow">{title}</div>
       </Row>
       <Col className="grow">
-        <Grid className="mb-16">{children}</Grid>
+        <Grid className="mb-10">{children}</Grid>
       </Col>
     </Grid>
   ) : (
@@ -180,7 +180,7 @@ export default function CreateFarmPage() {
   const [poolIdValid, setPoolIdValid] = useState(false)
   return (
     <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Create Farm" contentYPaddingShorter>
-      <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:bg-[#0f0b2fcc]" />
+      <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:bg-[#0f0b2f]" />
 
       <div className={`pb-10 self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
         {!isMoblie && (

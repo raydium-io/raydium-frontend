@@ -1,3 +1,4 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
 import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
@@ -12,8 +13,6 @@ import { getTime, toUTC } from '@/functions/date/dateFormat'
 import { TimeStamp } from '@/functions/date/interface'
 import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
-import toPercentString from '@/functions/format/toPercentString'
-import { eq } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
@@ -34,11 +33,14 @@ export function NewAddedRewardSummary({
   activeReward?: UIRewardInfo
   onActiveRewardChange?(reward: UIRewardInfo): void
 }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
   const rewards = useCreateFarms((s) => s.rewards)
   const editableRewards = rewards.filter((r) => r.type === 'existed reward')
   const newReards = rewards.filter((r) => r.type === 'new added')
   return (
     <ListTable
+      type={isMobile ? 'item-card' : 'list-table'}
+      className={isMobile ? 'gap-4' : ''}
       list={newReards}
       getItemKey={(r) => getRewardSignature(r)}
       labelMapper={[
