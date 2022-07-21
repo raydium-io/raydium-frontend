@@ -169,24 +169,28 @@ export function NewAddedRewardSummary({
           )
         }
       }}
-      renderControlButtons={({ destorySelf, itemData: reward }) => (
-        <Row className="gap-2 mobile:gap-3">
-          <Icon
-            size="smi"
-            heroIconName="pencil"
-            className="clickable clickable-opacity-effect text-[#abc4ff]"
-            onClick={() => {
-              onTryEdit?.(reward, reward.id === activeReward?.id)
-            }}
-          />
-          <Icon
-            size="smi"
-            heroIconName="trash"
-            className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
-            onClick={() => rewards.length > 1 && destorySelf()} // delete is wrong
-          />
-        </Row>
-      )}
+      renderControlButtons={
+        canUserEdit
+          ? ({ destorySelf, itemData: reward }) => (
+              <Row className="gap-2 mobile:gap-3">
+                <Icon
+                  size="smi"
+                  heroIconName="pencil"
+                  className="clickable clickable-opacity-effect text-[#abc4ff]"
+                  onClick={() => {
+                    onTryEdit?.(reward, reward.id === activeReward?.id)
+                  }}
+                />
+                <Icon
+                  size="smi"
+                  heroIconName="trash"
+                  className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
+                  onClick={() => rewards.length > 1 && destorySelf()} // delete is wrong
+                />
+              </Row>
+            )
+          : undefined
+      }
       onListChange={(newRewards) => {
         useCreateFarms.setState({
           rewards: editableRewards.concat(newRewards)

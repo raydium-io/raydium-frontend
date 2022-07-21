@@ -181,7 +181,7 @@ export default function CreateFarmPage() {
   const cachedInputs = useMemo(() => <NewRewardIndicatorAndForm />, [])
   const [poolIdValid, setPoolIdValid] = useState(false)
   return (
-    <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Create Farm" contentYPaddingShorter>
+    <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Create Farm">
       <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:bg-[#0f0b2f]" />
 
       <div className={`pb-10 self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
@@ -258,8 +258,8 @@ export default function CreateFarmPage() {
           </div>
 
           <Button
-            className="frosted-glass-teal"
-            size="lg"
+            className="frosted-glass-teal mobile:w-full"
+            size={isMoblie ? 'sm' : 'lg'}
             validators={[
               {
                 should: meaningFullRewards.length > 0

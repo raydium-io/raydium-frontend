@@ -286,7 +286,7 @@ export default function ListTable<T>({
                 <Row>
                   {/* another btns */}
                   {/* <Row className="grow justify-start py-3 px-5">{controlsNode}</Row> */}
-                  <Row className="grow justify-end py-3 px-5">{controlsNode}</Row>
+                  {controlsNode && <Row className="grow justify-end py-3 px-5">{controlsNode}</Row>}
                 </Row>
               </>
             )}

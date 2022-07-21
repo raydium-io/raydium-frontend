@@ -1,3 +1,4 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { usePools } from '@/application/pools/usePools'
@@ -18,6 +19,7 @@ export function PoolInfoSummary() {
   const pairInfos = usePools((s) => s.hydratedInfos)
   const liquidityPoolJsons = useLiquidity((s) => s.jsonInfos)
   const tokens = useToken((s) => s.tokens)
+  const isMobile = useAppSettings((s) => s.isMobile)
 
   const selectedPool = liquidityPoolJsons.find((i) => toPubString(i.id) === poolId)
   const selectedPoolPairInfo = pairInfos.find((i) => i.ammId === poolId)
@@ -30,6 +32,7 @@ export function PoolInfoSummary() {
 
   return (
     <ListTable
+      type={isMobile ? 'item-card' : 'list-table'}
       list={[
         {
           id: poolId,
