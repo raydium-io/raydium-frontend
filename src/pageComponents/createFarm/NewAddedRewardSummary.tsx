@@ -25,20 +25,22 @@ import { Numberish } from '@/types/constants'
 export function NewAddedRewardSummary({
   canUserEdit,
   activeReward,
-  onActiveRewardChange
+  onTryEdit
 }: {
   canUserEdit: boolean
 
   // --------- when selectable ------------
   activeReward?: UIRewardInfo
-  onActiveRewardChange?(reward: UIRewardInfo): void
+  onTryEdit?(reward: UIRewardInfo, active: boolean): void
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const rewards = useCreateFarms((s) => s.rewards)
   const editableRewards = rewards.filter((r) => r.type === 'existed reward')
   const newReards = rewards.filter((r) => r.type === 'new added')
+  // console.log('newReards.includes(activeReward): ', activeReward && newReards.includes(activeReward))
   return (
     <ListTable
+      activeItem={activeReward}
       type={isMobile ? 'item-card' : 'list-table'}
       className={isMobile ? 'gap-4' : ''}
       list={newReards}
@@ -64,14 +66,15 @@ export function NewAddedRewardSummary({
         }
       ]}
       // className="backdrop-brightness-"
-      rowClassName={({ itemData: reward }) => {
-        if (canUserEdit) {
-          return `${activeReward?.id === reward.id ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
-        }
-        return ''
-      }}
-      onClickRow={({ itemData: reward }) => {
-        onActiveRewardChange?.(reward)
+      rowItemClassName={({ item: reward }) =>
+        canUserEdit
+          ? activeReward?.id === reward.id
+            ? 'backdrop-brightness-90 mobile:hidden'
+            : 'hover:backdrop-brightness-95'
+          : ''
+      }
+      onClickRow={({ item: reward }) => {
+        onTryEdit?.(reward, activeReward?.id === reward.id)
       }}
       renderRowItem={({ item: reward, label }) => {
         if (label === 'Reward Token') {
@@ -166,14 +169,14 @@ export function NewAddedRewardSummary({
           )
         }
       }}
-      renderControlButtons={({ destorySelf, itemData }) => (
+      renderControlButtons={({ destorySelf, itemData: reward }) => (
         <Row className="gap-2 mobile:gap-3">
           <Icon
             size="smi"
             heroIconName="pencil"
             className="clickable clickable-opacity-effect text-[#abc4ff]"
             onClick={() => {
-              onActiveRewardChange?.(itemData)
+              onTryEdit?.(reward, reward.id === activeReward?.id)
             }}
           />
           <Icon

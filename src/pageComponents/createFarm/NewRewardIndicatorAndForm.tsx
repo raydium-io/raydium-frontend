@@ -5,10 +5,12 @@ import { useEffect, useState } from 'react'
 import { RewardFormCardInputs } from './RewardFormInputs'
 import { NewAddedRewardSummary } from './NewAddedRewardSummary'
 import { RewardFormCard } from '../../pages/farms/create'
+import useAppSettings from '@/application/appSettings/useAppSettings'
 
 export function NewRewardIndicatorAndForm({ className }: { className?: string }) {
   const rewards = useCreateFarms((s) => s.rewards)
   const newRewards = rewards.filter((r) => r.type === 'new added')
+  const isMobile = useAppSettings((s) => s.isMobile)
 
   const [activeRewardId, setActiveRewardId] = useState<string | number | undefined>(newRewards[0]?.id)
   const activeReward =
@@ -25,7 +27,15 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
           <NewAddedRewardSummary
             canUserEdit
             activeReward={activeReward}
-            onActiveRewardChange={(r) => setActiveRewardId(r.id)}
+            onTryEdit={(r, isActive) => {
+              if (isMobile) {
+                if (!isActive) {
+                  showEditDialog()
+                }
+              } else {
+                setActiveRewardId(r.id)
+              }
+            }}
           />
         </div>
       )}
@@ -40,4 +50,7 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
       </Grid>
     </div>
   )
+}
+function showEditDialog() {
+  throw new Error('Function not implemented.')
 }

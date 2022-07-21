@@ -35,26 +35,18 @@ type ListTableProps<T> = {
 
   // --------- core ---------
   list: T[]
+  activeItem?: T // active item may have some special style
   getItemKey: (item: T, idx: number) => string | number | undefined
   labelMapper?: MayFunction<ListTableMap<T>[], [properties?: SKeyof<T>[], items?: T]>
 
   // --------- classNames ---------
   className?: string
-  rowClassName?: MayFunction<
-    string,
-    [
-      {
-        index: number
-        itemData: T
-      }
-    ]
-  >
-  rowEntryClassName?: string
-  bodyCardClassName?: string
-  headerCardClassName?: string
+  rowItemClassName?: MayFunction<string, [payload: { index: number; item: T }]>
+  rowsWrapperClassName?: string
+  headersWrapperClassName?: string
 
   // --------- callbacks ---------
-  onClickRow?: (payload: { index: number; itemData: T }) => void
+  onClickRow?: (payload: { index: number; item: T }) => void
   onListChange?: (newlist: T[]) => void
 
   // --------- render ---------
@@ -88,10 +80,9 @@ type ListTableProps<T> = {
 export default function ListTable<T>({
   type = 'list-table',
   className,
-  rowClassName,
-  bodyCardClassName,
-  headerCardClassName,
-  rowEntryClassName,
+  rowItemClassName,
+  rowsWrapperClassName,
+  headersWrapperClassName,
 
   list,
   labelMapper = (Object.keys(list[0]) as SKeyof<T>[]).map((key) => ({ key, label: key })),
@@ -121,11 +112,11 @@ export default function ListTable<T>({
       <Grid
         className={twMerge(
           'text-[#abc4ff] text-xs font-medium py-4 px-5 -mx-5 items-center',
-          shrinkToValue(rowClassName, [{ index: idx, itemData: data }])
+          shrinkToValue(rowItemClassName, [{ index: idx, item: data }])
         )}
         style={gridTemplateStyle}
         onClick={() => {
-          onClickRow?.({ index: idx, itemData: data })
+          onClickRow?.({ index: idx, item: data })
         }}
       >
         {parsedShowedPropertyNames.map(({ key, label }) => {
@@ -158,10 +149,10 @@ export default function ListTable<T>({
       <div
         className={twMerge(
           'bg-[#141041] p-3 divide-y divide-[#abc4ff1a]',
-          shrinkToValue(rowClassName, [{ index: idx, itemData: data }])
+          shrinkToValue(rowItemClassName, [{ index: idx, item: data }])
         )}
         onClick={() => {
-          onClickRow?.({ index: idx, itemData: data })
+          onClickRow?.({ index: idx, item: data })
         }}
       >
         {parsedShowedPropertyNames.map(({ key, label }) => {
@@ -207,7 +198,10 @@ export default function ListTable<T>({
     >
       {/* Header */}
       <Grid
-        className={twMerge('bg-[#141041] px-5 rounded-tr-inherit rounded-tl-inherit items-center', headerCardClassName)}
+        className={twMerge(
+          'bg-[#141041] px-5 rounded-tr-inherit rounded-tl-inherit items-center',
+          headersWrapperClassName
+        )}
         style={gridTemplateStyle}
       >
         {parsedShowedPropertyNames.map(({ key, label, renderLabel }, idx) => (
@@ -223,8 +217,9 @@ export default function ListTable<T>({
           </Fragment>
         ))}
       </Grid>
-      <Col className={twMerge('px-5 divide-y divide-[#abc4ff1a]', bodyCardClassName)}>
-        {/* Body */}
+
+      {/* Body */}
+      <Col className={twMerge('px-5 divide-y divide-[#abc4ff1a]', rowsWrapperClassName)}>
         {wrapped.map(({ data, destorySelf, changeSelf }, idx) => {
           const contentNode = renderListTableRowContent({ data, destorySelf, changeSelf }, idx)
           const userSettedWholeEntry = renderRowEntry?.({
@@ -256,7 +251,7 @@ export default function ListTable<T>({
       </Col>
     </Card>
   ) : (
-    <Grid className={className}>
+    <Grid className={twMerge(className, rowsWrapperClassName)}>
       {wrapped.map(({ data, destorySelf, changeSelf }, idx) => {
         const contentNode = renderListTableRowContent({ data, destorySelf, changeSelf }, idx)
         const userSettedWholeEntry = renderRowEntry?.({
@@ -276,7 +271,10 @@ export default function ListTable<T>({
         return (
           <Card
             key={isObject(data) ? (data as any)?.id ?? idx : idx}
-            className={'grid bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden'}
+            className={twMerge(
+              'grid bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden',
+              shrinkToValue(rowItemClassName, [{ item: data, index: idx }])
+            )}
             size="lg"
           >
             {/* Body */}
