@@ -56,16 +56,22 @@ export default function MyApp({ Component, pageProps }: AppProps) {
   /* add popup stack */
   useIsomorphicLayoutEffect(() => {
     if (inClient) {
+      const hasPopoverStack = Boolean(document.getElementById(POPOVER_STACK_ID))
+      if (hasPopoverStack) return
       const popoverStackElement = createDOMElement({
         classNames: ['fixed', 'z-popover', 'inset-0', 'self-pointer-events-none'],
         id: POPOVER_STACK_ID
       })
+      document.body.append(popoverStackElement)
+    }
+
+    if (inClient) {
+      const hasDrawerStack = Boolean(document.getElementById(DRAWER_STACK_ID))
+      if (hasDrawerStack) return
       const drawerStackElement = createDOMElement({
         classNames: ['fixed', 'z-drawer', 'inset-0', 'self-pointer-events-none'],
         id: DRAWER_STACK_ID
       })
-
-      document.body.append(popoverStackElement)
       document.body.append(drawerStackElement)
     }
   }, [])
