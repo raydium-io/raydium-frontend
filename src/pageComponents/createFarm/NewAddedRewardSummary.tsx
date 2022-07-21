@@ -66,7 +66,7 @@ export function NewAddedRewardSummary({
         }
       ]}
       // className="backdrop-brightness-"
-      rowItemClassName={({ item: reward }) =>
+      rowClassName={({ item: reward }) =>
         canUserEdit
           ? activeReward?.id === reward.id
             ? 'backdrop-brightness-90 mobile:hidden'

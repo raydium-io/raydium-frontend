@@ -41,7 +41,9 @@ type ListTableProps<T> = {
 
   // --------- classNames ---------
   className?: string
-  rowItemClassName?: MayFunction<string, [payload: { index: number; item: T }]>
+  // lable - value
+  itemClassName?: string
+  rowClassName?: MayFunction<string, [payload: { index: number; item: T }]>
   rowsWrapperClassName?: string
   headersWrapperClassName?: string
 
@@ -80,7 +82,9 @@ type ListTableProps<T> = {
 export default function ListTable<T>({
   type = 'list-table',
   className,
-  rowItemClassName,
+
+  itemClassName,
+  rowClassName,
   rowsWrapperClassName,
   headersWrapperClassName,
 
@@ -112,7 +116,7 @@ export default function ListTable<T>({
       <Grid
         className={twMerge(
           'text-[#abc4ff] text-xs font-medium py-4 px-5 -mx-5 items-center',
-          shrinkToValue(rowItemClassName, [{ index: idx, item: data }])
+          shrinkToValue(rowClassName, [{ index: idx, item: data }])
         )}
         style={gridTemplateStyle}
         onClick={() => {
@@ -127,7 +131,11 @@ export default function ListTable<T>({
             )?.[1]
           const headerElement = headerRefs.current.find(({ label: headerLabel }) => headerLabel === label)?.el
           return (
-            <div key={label} style={{ width: headerElement?.clientWidth, alignSelf: 'stretch' }}>
+            <div
+              key={label}
+              className={itemClassName}
+              style={{ width: headerElement?.clientWidth, alignSelf: 'stretch' }}
+            >
               {renderRowItem
                 ? renderRowItem({
                     item: data,
@@ -149,7 +157,7 @@ export default function ListTable<T>({
       <div
         className={twMerge(
           'bg-[#141041] p-3 divide-y divide-[#abc4ff1a]',
-          shrinkToValue(rowItemClassName, [{ index: idx, item: data }])
+          shrinkToValue(rowClassName, [{ index: idx, item: data }])
         )}
         onClick={() => {
           onClickRow?.({ index: idx, item: data })
@@ -176,7 +184,7 @@ export default function ListTable<T>({
             ? String(targetDataItemValue ?? '')
             : ''
           return (
-            <Grid key={label} className="grid-cols-2 py-3">
+            <Grid key={label} className={twMerge('grid-cols-2 py-3', itemClassName)}>
               {/* label */}
               <div className="grow text-xs font-semibold text-[#abc4ff80]">{label}</div>
 
@@ -273,7 +281,7 @@ export default function ListTable<T>({
             key={isObject(data) ? (data as any)?.id ?? idx : idx}
             className={twMerge(
               'grid bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden',
-              shrinkToValue(rowItemClassName, [{ item: data, index: idx }])
+              shrinkToValue(rowClassName, [{ item: data, index: idx }])
             )}
             size="lg"
           >

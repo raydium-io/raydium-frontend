@@ -33,12 +33,8 @@ export function PoolInfoSummary() {
   return (
     <ListTable
       type={isMobile ? 'item-card' : 'list-table'}
-      list={[
-        {
-          id: poolId,
-          pool
-        }
-      ]}
+      itemClassName={isMobile ? 'grid-cols-[1fr,2fr]' : undefined}
+      list={[{ id: poolId, pool }]}
       getItemKey={(r) => r.id}
       labelMapper={[
         {
