@@ -13,6 +13,7 @@ import useListDataManager from '../hooks/useListDataManager'
 import Grid from './Grid'
 import { twMerge } from 'tailwind-merge'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import Row from './Row'
 
 interface ListTableHeader<D> {
   label: string
@@ -92,16 +93,17 @@ export default function ListTable<T>({
   headerCardClassName,
   rowEntryClassName,
 
+  list,
+  labelMapper = (Object.keys(list[0]) as SKeyof<T>[]).map((key) => ({ key, label: key })),
+
   onClickRow,
 
-  list,
   getItemKey,
   renderRowItem,
   renderRowEntry,
   renderControlButtons,
 
   renderPropertyLabel,
-  labelMapper = (Object.keys(list[0]) as SKeyof<T>[]).map((key) => ({ key, label: key })),
   onListChange
 }: ListTableProps<T>) {
   const { wrapped, controls } = useListDataManager(list, getItemKey, { onListChange })
@@ -264,6 +266,7 @@ export default function ListTable<T>({
           itemData: data,
           index: idx
         })
+
         const controlsNode = renderControlButtons?.({
           destorySelf,
           changeSelf,
@@ -277,16 +280,18 @@ export default function ListTable<T>({
             size="lg"
           >
             {/* Body */}
-            <div className="relative">
-              {userSettedWholeEntry ?? (
-                <>
-                  {contentNode}
-                  {controlsNode && (
-                    <div className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full">{controlsNode}</div>
-                  )}
-                </>
-              )}
-            </div>
+            {userSettedWholeEntry ? (
+              <div className="relative">{userSettedWholeEntry}</div>
+            ) : (
+              <>
+                <div className="relative">{contentNode}</div>
+                <Row>
+                  {/* another btns */}
+                  {/* <Row className="grow justify-start py-3 px-5">{controlsNode}</Row> */}
+                  <Row className="grow justify-end py-3 px-5">{controlsNode}</Row>
+                </Row>
+              </>
+            )}
           </Card>
         )
       })}

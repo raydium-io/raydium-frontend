@@ -167,7 +167,7 @@ export function NewAddedRewardSummary({
         }
       }}
       renderControlButtons={({ destorySelf, itemData }) => (
-        <Row className="gap-2">
+        <Row className="gap-2 mobile:gap-3">
           <Icon
             size="smi"
             heroIconName="pencil"
