@@ -56,8 +56,13 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
         </FadeIn>
       </Grid>
 
-      {focusReward != null && (
-        <RewardInputDialog reward={focusReward} open={Boolean(focusReward)} onClose={() => setFocusReward(undefined)} />
+      {isMobile && focusReward != null && (
+        <RewardInputDialog
+          cardTitle="Edit rewards"
+          reward={focusReward}
+          open={Boolean(focusReward)}
+          onClose={() => setFocusReward(undefined)}
+        />
       )}
     </div>
   )

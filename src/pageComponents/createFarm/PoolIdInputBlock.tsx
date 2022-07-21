@@ -120,7 +120,7 @@ export function PoolIdInputBlock({
               {tokens[candidate.baseMint]?.symbol ?? 'UNKNOWN'}-{tokens[candidate.quoteMint]?.symbol ?? 'UNKNOWN'}
             </div>
             {pairInfoMap[candidate.id] ? (
-              <div className="text-[#abc4ff80] text-sm font-medium">
+              <div className="text-[#abc4ff80] text-sm font-medium mobile:text-end">
                 {toUsdVolume(pairInfoMap[candidate.id].liquidity, { decimalPlace: 0 })}
               </div>
             ) : null}
