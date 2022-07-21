@@ -3,6 +3,7 @@ import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { MAX_DURATION, MIN_DURATION } from '@/application/farms/handleFarmInfo'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
+import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import { isDateBefore } from '@/functions/date/judges'
 import { getDuration } from '@/functions/date/parseDuration'
@@ -62,11 +63,11 @@ export default function RewardInputDialog({
     [reward, rewardInputsRef]
   )
   return (
-    <Dialog open={Boolean(open)} onClose={onClose}>
+    <ResponsiveDialogDrawer open={Boolean(open)} onClose={onClose} placement="from-bottom">
       {({ close }) => (
         <Card
           className={twMerge(
-            `p-8 rounded-3xl w-[min(670px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card`
+            `p-8 mobile:p-4 rounded-3xl mobile:rounded-t-2xl mobile:rounded-b-none w-[min(670px,95vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card`
           )}
           size="lg"
         >
@@ -163,6 +164,6 @@ export default function RewardInputDialog({
           </Row>
         </Card>
       )}
-    </Dialog>
+    </ResponsiveDialogDrawer>
   )
 }
