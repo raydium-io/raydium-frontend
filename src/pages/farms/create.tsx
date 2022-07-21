@@ -18,8 +18,7 @@ import Row from '@/components/Row'
 import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter } from '@/functions/date/judges'
 import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
-import toPubString from '@/functions/format/toMintString'
-import { eq, gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
+import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import produce from 'immer'
@@ -32,8 +31,11 @@ import { useChainDate } from '../../hooks/useChainDate'
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
   return (
-    <CyberpunkStyleCard wrapperClassName="w-8 h-8 flex-none" className="grid place-content-center bg-[#2f2c78]">
-      <div className="font-semibold text-white">{props.n}</div>
+    <CyberpunkStyleCard
+      wrapperClassName="w-8 h-8 mobile:w-6 mobile:h-6 flex-none"
+      className="grid place-content-center bg-[#2f2c78]"
+    >
+      <div className="font-semibold text-white mobile:text-xs">{props.n}</div>
     </CyberpunkStyleCard>
   )
 }
