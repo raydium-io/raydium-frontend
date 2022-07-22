@@ -55,14 +55,17 @@ export default function useTokenListSettingsLocalStorage() {
   const tokenListSettings = useToken((s) => s.tokenListSettings)
   // whenever tokenListSettings changed, save it to localStorage
   const userAddedTokens = useToken((s) => s.userAddedTokens)
-
+  const tokens = useToken((s) => s.tokens)
   useEffect(() => {
     if (!connection) return
+    const tokenMints = Object.keys(tokens)
     setLocalItem(
       'TOKEN_LIST_USER_ADDED_TOKENS',
-      Object.values(userAddedTokens).map((t) => omit(t, 'decimals'))
+      Object.values(userAddedTokens)
+        .filter((t) => !tokenMints.includes(toPubString(t.mint))) // delete already in token list's old user added token
+        .map((t) => omit(t, 'decimals'))
     ) // add token / remove token
-  }, [connection, userAddedTokens])
+  }, [connection, userAddedTokens, tokens])
 
   useEffect(() => {
     setLocalItem(
