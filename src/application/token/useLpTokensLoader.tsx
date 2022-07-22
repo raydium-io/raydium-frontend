@@ -49,5 +49,5 @@ export default function useLpTokensLoader() {
     // console.timeEnd('inner') // too slow
     const lpTokens = listToMap(shakeUndifindedItem(lpTokenItems), (t) => toPubString(t.mint))
     useToken.setState({ lpTokens, getLpToken: (mint) => lpTokens[toPubString(mint)] })
-  }, [ammJsonInfos, tokens])
+  }, [ammJsonInfos, tokens, getToken])
 }

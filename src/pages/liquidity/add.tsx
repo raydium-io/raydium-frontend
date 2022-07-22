@@ -622,7 +622,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
           }
         />
         <LiquidityCardItem
-          fieldName={`LP supply`}
+          fieldName="LP supply"
           fieldValue={
             <Row className="items-center gap-2">
               {isStable && <Badge className="self-center">Stable</Badge>}
