@@ -191,47 +191,43 @@ function useLiquidityWarning() {
 
 function ConfirmRiskPanel({
   className,
-  isPanelOpen,
   temporarilyConfirm,
   permanentlyConfirm,
   onTemporarilyConfirm,
   onPermanentlyConfirm
 }: {
   className?: string
-  isPanelOpen?: boolean
   temporarilyConfirm?: boolean
   permanentlyConfirm?: boolean
   onTemporarilyConfirm?: (checkState: boolean) => void
   onPermanentlyConfirm?: (checkState: boolean) => void
 }) {
   return (
-    <FadeInStable show={isPanelOpen}>
-      <div className={twMerge('bg-[#141041] rounded-xl py-3 px-6 mobile:px-4', className)}>
-        <div className="text-sm">
-          I have read{' '}
-          <Link href="https://raydium.gitbook.io/raydium/exchange-trade-and-swap/liquidity-pools">
-            Raydium's Liquidity Guide
-          </Link>{' '}
-          and understand the risks involved with providing liquidity and impermanent loss.
-        </div>
-
-        <Checkbox
-          checkBoxSize="sm"
-          className="my-2 w-max"
-          checked={temporarilyConfirm}
-          onChange={onTemporarilyConfirm}
-          label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Confirm</div>}
-        />
-
-        <Checkbox
-          checkBoxSize="sm"
-          className="my-2 w-max"
-          checked={permanentlyConfirm}
-          onChange={onPermanentlyConfirm}
-          label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Do not warn again for this pool</div>}
-        />
+    <div className={twMerge('bg-[#141041] rounded-xl py-3 px-6 mobile:px-4', className)}>
+      <div className="text-sm">
+        I have read{' '}
+        <Link href="https://raydium.gitbook.io/raydium/exchange-trade-and-swap/liquidity-pools">
+          Raydium's Liquidity Guide
+        </Link>{' '}
+        and understand the risks involved with providing liquidity and impermanent loss.
       </div>
-    </FadeInStable>
+
+      <Checkbox
+        checkBoxSize="sm"
+        className="my-2 w-max"
+        checked={temporarilyConfirm}
+        onChange={onTemporarilyConfirm}
+        label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Confirm</div>}
+      />
+
+      <Checkbox
+        checkBoxSize="sm"
+        className="my-2 w-max"
+        checked={permanentlyConfirm}
+        onChange={onPermanentlyConfirm}
+        label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Do not warn again for this pool</div>}
+      />
+    </div>
   )
 }
 
@@ -384,19 +380,20 @@ function LiquidityCard() {
       </>
 
       {/* info panel */}
-      <FadeInStable show={hasFoundLiquidityPool}>
-        <LiquidityCardInfo className="mt-5" />
-      </FadeInStable>
+      <FadeIn>{hasFoundLiquidityPool && <LiquidityCardInfo className="mt-5" />}</FadeIn>
 
       {/* confirm panel */}
-      <ConfirmRiskPanel
-        className="mt-5"
-        isPanelOpen={needConfirmPanel && connected}
-        temporarilyConfirm={hasUserTemporaryConfirmed}
-        permanentlyConfirm={hasUserPermanentConfirmed}
-        onTemporarilyConfirm={toggleTemporarilyConfirm}
-        onPermanentlyConfirm={togglePermanentlyConfirm}
-      />
+      <FadeIn>
+        {needConfirmPanel && connected && (
+          <ConfirmRiskPanel
+            className="mt-5"
+            temporarilyConfirm={hasUserTemporaryConfirmed}
+            permanentlyConfirm={hasUserPermanentConfirmed}
+            onTemporarilyConfirm={toggleTemporarilyConfirm}
+            onPermanentlyConfirm={togglePermanentlyConfirm}
+          />
+        )}
+      </FadeIn>
 
       {/* supply button */}
       <Button
@@ -594,7 +591,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
         <FadeIn>
           {(coin1Amount || coin2Amount) && (
             <LiquidityCardItem
-              fieldName={`Max Amount`}
+              fieldName="Max Amount"
               fieldValue={`${formatNumber(focusSide === 'coin1' ? coin2Amount || '' : coin1Amount ?? '', {
                 fractionLength: 'auto'
               })} ${focusSide === 'coin1' ? coin2?.symbol ?? 'unknown' : coin1?.symbol ?? 'unknown'}`}
