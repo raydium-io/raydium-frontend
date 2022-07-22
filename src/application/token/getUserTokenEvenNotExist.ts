@@ -9,7 +9,7 @@ import { createSplToken } from './useTokenListsLoader'
  * @param symbol symbol can be empty string, (means use the start of mint to be it's temp symbol)
  * @returns
  */
-export async function getUserTokenEvenNotExist(mint: string, symbol: string): Promise<SplToken | undefined> {
+export async function getUserTokenEvenNotExist(mint: string, symbol?: string): Promise<SplToken | undefined> {
   const tokens = useToken.getState().tokens
   const userAddedTokens = useToken.getState().userAddedTokens
   const tokensHasLoaded = Object.keys(tokens).length > 0
@@ -24,8 +24,8 @@ export async function getUserTokenEvenNotExist(mint: string, symbol: string): Pr
     const newCreatedToken = createSplToken({
       mint,
       decimals: tokenDecimals,
-      symbol: symbol || mint.slice(0, 8),
-      userAdded: Boolean(symbol)
+      symbol: symbol || mint.slice(0, 6),
+      userAdded: true
     })
 
     useToken.getState().addUserAddedToken(newCreatedToken)

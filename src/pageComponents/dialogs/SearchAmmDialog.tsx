@@ -13,6 +13,7 @@ import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { findTokenMintByAmmId, findTokenMintByMarketId } from '@/application/liquidity/miscToolFns'
 import useNotification from '@/application/notification/useNotification'
 import InputBox from '../../components/InputBox'
+import { getUserTokenEvenNotExist } from '@/application/token/getUserTokenEvenNotExist'
 
 export function SearchAmmDialog({
   open,
@@ -29,13 +30,13 @@ export function SearchAmmDialog({
   const parseTokensFromSearchInput = async (currentValue: string) => {
     try {
       const { getToken } = useToken.getState()
-      assert(isValidPublicKey(currentValue), 'invalid public key')
+      assert(isValidPublicKey(currentValue.trim()), 'invalid public key')
 
       const ammFindResult = findTokenMintByAmmId(currentValue.trim())
       if (ammFindResult) {
         useLiquidity.setState({
-          coin1: getToken(ammFindResult.base),
-          coin2: getToken(ammFindResult.quote),
+          coin1: await getUserTokenEvenNotExist(ammFindResult.base),
+          coin2: await getUserTokenEvenNotExist(ammFindResult.quote),
           ammId: currentValue.trim()
         })
         return
