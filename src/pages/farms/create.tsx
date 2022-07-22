@@ -75,21 +75,26 @@ function WarningBoard({ className }: { className: string }) {
         {!isMoblie && (
           <Icon iconSrc="/icons/create-farm-exclamation-circle.svg" className="my-4" iconClassName="w-8 h-8" />
         )}
-        <Card className={`p-6 grow mx-4 mobile:mx-0 my-2 rounded-3xl ring-1 ring-inset ring-[#DA2EEF] bg-[#1B1659]`}>
-          <div className="font-medium text-base text-white mb-3">This tool is for advanced users!</div>
+        <Card
+          className={`p-6 mobile:p-4 grow mx-4 mobile:mx-0 my-2 rounded-3xl mobile:rounded-2xl ring-1 ring-inset ring-[#DA2EEF] bg-[#1B1659]`}
+        >
+          <div className="mobile:text-sm font-medium text-base text-white mb-3">This tool is for advanced users!</div>
 
-          <div className="font-medium text-sm text-[#ABC4FF80] mb-4">
+          <div className="font-medium text-sm mobile:text-xs text-[#ABC4FF80] mb-4">
             Before attempting to create a new farm, we suggest going through the detailed guide.
           </div>
 
           <Row className="gap-4">
             <Link href={detailedGuideHref}>
-              <Button className="frosted-glass-teal px-8">Detailed Guide</Button>
+              <Button className="frosted-glass-teal px-8" size={isMoblie ? 'sm' : 'md'}>
+                Detailed Guide
+              </Button>
             </Link>
 
             <Button
-              className="text-[#ABC4FF80]"
+              className="text-[#ABC4FF80] mobile:px-4"
               type="outline"
+              size={isMoblie ? 'sm' : 'md'}
               onClick={() => {
                 setNeedWarning(false)
               }}
@@ -189,7 +194,7 @@ export default function CreateFarmPage() {
           <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
         )}
 
-        <WarningBoard className="pb-16 w-full" />
+        <WarningBoard className="pb-16 mobile:pb-10 w-full" />
 
         <div className="space-y-4">
           <FormStep

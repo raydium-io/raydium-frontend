@@ -126,8 +126,9 @@ export function PoolIdInputBlock({
             ) : null}
             <AddressItem
               canCopy={false}
-              showDigitCount={isMoblie ? 12 : 8}
-              className="mobile:col-span-full text-[#abc4ff80] text-xs mobile:text-2xs"
+              showDigitCount={isMoblie ? 16 : 8}
+              className="mobile:col-span-full"
+              textClassName="text-[#abc4ff80] text-sm mobile:text-xs"
             >
               {candidate.id}
             </AddressItem>

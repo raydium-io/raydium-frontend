@@ -121,11 +121,11 @@ export default function CreateFarmReviewPage() {
         </div>
 
         {created ? (
-          <div className="text-[#39d0d8] font-medium text-center text-sm my-4">
+          <div className="text-[#39d0d8] font-medium text-center text-sm my-4 mobile:mx-4">
             Your farm has been created successfully and will be live on the UI shortly
           </div>
         ) : (
-          <div className="text-[#DA2EEF] font-medium text-center text-sm my-4">
+          <div className="text-[#DA2EEF] font-medium text-center text-sm my-4 mobile:mx-4">
             Creating a farm requires a one-time 300 RAY fee. Your RAY balance: {toString(userRayBalance) || 0} RAY
           </div>
         )}
