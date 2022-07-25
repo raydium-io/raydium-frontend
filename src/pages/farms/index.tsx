@@ -1130,7 +1130,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                     ?.filter((i) => i.perSecond != 0)
                     .map((reward, idx) => (
                       <div key={idx} className="p-4">
-                        <div className={`text-white font-medium text-base mobile:text-xs mb-0.5`}>
+                        <div className={`text-white font-medium text-base mobile:text-xs`}>
                           {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
                         </div>
                         <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
@@ -1156,7 +1156,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                         <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
                           Pending rewards
                         </div>
-                        <div className={`text-white font-medium text-base mobile:text-xs mb-0.5`}>
+                        <div className={`text-white font-medium text-base mobile:text-xs`}>
                           {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
                         </div>
                         <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
