@@ -61,6 +61,7 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
 import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
+import { hydrateFarmInfo } from '@/application/farms/handleFarmInfo'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -337,7 +338,9 @@ function FarmCard() {
   const owner = useWallet((s) => s.owner)
   const isLoading = useFarms((s) => s.isLoading)
   const timeBasis = useFarms((s) => s.timeBasis)
-  const dataSource = hydratedInfos.length ? hydratedInfos : jsonInfos
+  const dataSource = (
+    hydratedInfos.length ? hydratedInfos : (jsonInfos as (FarmPoolJsonInfo | HydratedFarmInfo)[])
+  ).filter((i) => !isMintEqual(i.lpMint, RAYMint))
 
   const tabedDataSource = useMemo(
     () =>
