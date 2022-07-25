@@ -759,15 +759,13 @@ function FarmCardDatabaseBodyCollapseItemFace({
             <Row className="flex-wrap gap-2 w-full pr-8">
               {isJsonFarmInfo(info)
                 ? '--'
-                : info.rewards
-                    .filter((i) => i.perSecond != 0)
-                    .map((reward) => {
-                      return (
-                        <Fragment key={toPubString(reward.rewardVault)}>
-                          <FarmRewardBadge farmInfo={info} reward={reward} />
-                        </Fragment>
-                      )
-                    })}
+                : info.rewards.map((reward) => {
+                    return (
+                      <Fragment key={toPubString(reward.rewardVault)}>
+                        <FarmRewardBadge farmInfo={info} reward={reward} />
+                      </Fragment>
+                    )
+                  })}
             </Row>
           }
         />
@@ -1133,20 +1131,18 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                     margin: '-17px'
                   }}
                 >
-                  {farmInfo.rewards
-                    ?.filter((i) => i.perSecond != 0)
-                    .map((reward, idx) => (
-                      <div key={idx} className="p-4">
-                        <div className={`text-white font-medium text-base mobile:text-xs`}>
-                          {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
-                        </div>
-                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
-                          {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
-                            ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
-                            : null}
-                        </div>
+                  {farmInfo.rewards.map((reward, idx) => (
+                    <div key={idx} className="p-4">
+                      <div className={`text-white font-medium text-base mobile:text-xs`}>
+                        {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
                       </div>
-                    ))}
+                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
+                        {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
+                          ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
+                          : null}
+                      </div>
+                    </div>
+                  ))}
                 </Grid>
               </div>
             ) : (
