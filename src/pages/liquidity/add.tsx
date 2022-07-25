@@ -695,7 +695,7 @@ function LiquidityCardItem({
           </Tooltip>
         )}
       </Row>
-      <div className="text-xs font-medium text-white">{fieldValue}</div>
+      <div className="text-xs font-medium text-white text-right">{fieldValue}</div>
     </Row>
   )
 }

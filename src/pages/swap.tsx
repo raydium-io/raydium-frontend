@@ -866,7 +866,7 @@ function SwapCardItem({
           </Tooltip>
         )}
       </Row>
-      <div className="text-xs font-medium text-white" style={{ color: fieldValueTextColor }}>
+      <div className="text-xs font-medium text-white text-right" style={{ color: fieldValueTextColor }}>
         {fieldValue}
       </div>
     </Row>
