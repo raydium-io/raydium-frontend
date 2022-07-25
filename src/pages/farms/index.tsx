@@ -339,7 +339,7 @@ function FarmCard() {
   const isLoading = useFarms((s) => s.isLoading)
   const timeBasis = useFarms((s) => s.timeBasis)
   const dataSource = (
-    hydratedInfos.length ? hydratedInfos : (jsonInfos as (FarmPoolJsonInfo | HydratedFarmInfo)[])
+    (hydratedInfos.length ? hydratedInfos : jsonInfos) as (FarmPoolJsonInfo | HydratedFarmInfo)[]
   ).filter((i) => !isMintEqual(i.lpMint, RAYMint))
 
   const tabedDataSource = useMemo(
