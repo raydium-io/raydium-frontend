@@ -111,6 +111,7 @@ export async function getSlotCountForSecond(currentEndPoint: Endpoint | undefine
     }[]
   }>(currentEndPoint.url, {
     method: 'post',
+    cacheFreshTime: 60 * 1000,
     headers: {
       'Content-Type': 'application/json'
     },
