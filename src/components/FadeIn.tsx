@@ -17,6 +17,8 @@ export default function FadeInStable({
   const contentRef = useRef<HTMLDivElement>(null)
   const innerChildren = useRef<ReactNode>(children)
   if (children) innerChildren.current = children // TODO: should cache child result for close transition
+  const inTransitionDuration = useRef(false) // flag for transition is start from transition cancel
+  const cachedElementHeight = useRef<number>() // for transition start may start from transition cancel, which height is not correct
   return (
     <Transition
       show={Boolean(show)}
@@ -37,35 +39,49 @@ export default function FadeInStable({
         }
 
         window.requestAnimationFrame(() => {
-          const height = contentRef.current?.clientHeight
           contentRef.current?.style.removeProperty('position')
           contentRef.current?.style.removeProperty('visibility')
 
-          // frequent ui action may cause element havn't attach to DOM yet, when occors, just ignore it.
-          contentRef.current?.style.setProperty('height', '0')
-          // get a layout property to manually to force the browser to layout the above code.
-          // So trick. But have to.🤯🤯🤯🤯
-          contentRef.current?.clientHeight
-          contentRef.current?.style.setProperty('height', `${height}px`)
+          if (inTransitionDuration.current) {
+            contentRef.current?.style.setProperty('height', `${cachedElementHeight.current}px`)
+          } else {
+            const height = contentRef.current?.clientHeight
+            cachedElementHeight.current = height
+
+            // frequent ui action may cause element havn't attach to DOM yet, when occors, just ignore it.
+            contentRef.current?.style.setProperty('height', '0')
+            /// Force bowser to paint the frame  🤯🤯🤯🤯
+            contentRef.current?.clientHeight
+            contentRef.current?.style.setProperty('height', `${height}px`)
+          }
+          inTransitionDuration.current = true
         })
       }}
       afterEnter={() => {
         contentRef.current?.style.removeProperty('height')
+        inTransitionDuration.current = false
       }}
       beforeLeave={() => {
         if (ignoreLeaveTransition) return
-        const height = contentRef.current?.clientHeight
-        contentRef.current?.style.setProperty('height', `${height}px`)
-        // get a layout property to manually to force the browser to layout the above code.
-        // So trick. But have to.🤯🤯🤯🤯
-        contentRef.current?.clientHeight
-        contentRef.current?.style.setProperty('height', '0')
+        if (inTransitionDuration.current) {
+          contentRef.current?.style.setProperty('height', `0`)
+        } else {
+          const height = contentRef.current?.clientHeight
+          cachedElementHeight.current = height
+
+          contentRef.current?.style.setProperty('height', `${height}px`)
+          // Force bowser to paint the frame  🤯🤯🤯🤯
+          contentRef.current?.clientHeight
+          contentRef.current?.style.setProperty('height', '0')
+        }
+        inTransitionDuration.current = true
       }}
       afterLeave={() => {
         contentRef.current?.style.removeProperty('height')
         contentRef.current?.style.setProperty('position', 'absolute')
         contentRef.current?.style.setProperty('visibility', 'hidden')
         innerChildren.current = null // clean from internal storage
+        inTransitionDuration.current = false
       }}
     >
       {/* outer div can't set ref for it's being used by headless-ui <Transition/> */}
