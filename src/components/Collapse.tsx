@@ -1,20 +1,42 @@
-import { CSSProperties, ReactNode, RefObject, useMemo, useRef } from 'react'
+import { CSSProperties, ReactNode, RefObject, useImperativeHandle, useMemo, useRef } from 'react'
+import { twMerge } from 'tailwind-merge'
 
 import { Transition } from '@headlessui/react'
-
-import { twMerge } from 'tailwind-merge'
 
 import { pickReactChildProps } from '@/functions/react/pickChild'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useClickOutside } from '@/hooks/useClickOutside'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import useToggle from '@/hooks/useToggle'
+import { MayFunction } from '@/types/constants'
 
 type CollapseController = {
   open: () => void
   close: () => void
   toggle: () => void
 }
+
+export type CollapseHandler = CollapseController
+
+export type CollapseProps = {
+  children?: ReactNode
+  className?: MayFunction<string, [open: boolean]>
+  style?: CSSProperties
+  /** only first render, !important, this and open can only set one */
+  defaultOpen?: boolean
+  /** it's change will cause ui change, !important, this and defaultOpen can only set one  */
+  open?: boolean
+  /** (maybe not have to this, cause writing of collapseFace and collapseBody can express this ) */
+  openDirection?: 'downwards' | 'upwards'
+  onOpen?(): void
+  onClose?(): void
+  onToggle?(): void
+  closeByOutsideClick?: boolean
+  /** usually this is used together with componentRef */
+  disableOpenByClickFace?: boolean
+  componentRef?: RefObject<any>
+}
+
 /**
  * default **uncontrolled** Kit
  * once set open, compnent becomes **controlled** Kit
@@ -29,22 +51,10 @@ export default function Collapse({
   onOpen,
   onClose,
   onToggle,
-  closeByOutsideClick
-}: {
-  children?: ReactNode
-  className?: string
-  style?: CSSProperties
-  /** only first render, !important, this and open can only set one */
-  defaultOpen?: boolean
-  /** it's change will cause ui change, !important, this and defaultOpen can only set one  */
-  open?: boolean
-  /** (maybe not have to this, cause writing of collapseFace and collapseBody can express this ) */
-  openDirection?: 'downwards' | 'upwards'
-  onOpen?(): void
-  onClose?(): void
-  onToggle?(): void
-  closeByOutsideClick?: boolean
-}) {
+  closeByOutsideClick,
+  disableOpenByClickFace,
+  componentRef
+}: CollapseProps) {
   const [innerOpen, { toggle, off, on, set }] = useToggle(open ?? defaultOpen, {
     onOff: onClose,
     onOn: onOpen,
@@ -71,11 +81,15 @@ export default function Collapse({
     [on, off]
   )
 
+  useImperativeHandle(componentRef, () => controller)
+
   return (
-    <div ref={collapseRef} className={`Collapse flex flex-col ${className}`} style={style}>
+    <div ref={collapseRef} className={`Collapse flex flex-col ${shrinkToValue(className, [innerOpen])}`} style={style}>
       <CollapseFace
         {...collapseFaceProps}
-        onClick={toggle}
+        onClick={() => {
+          if (!disableOpenByClickFace) toggle()
+        }}
         className={twMerge(
           `filter hover:brightness-90 cursor-pointer ${openDirection === 'downwards' ? '' : 'order-2'}`,
           collapseFaceProps?.className

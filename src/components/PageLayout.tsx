@@ -111,7 +111,9 @@ export default function PageLayout(props: {
         className={twMerge(
           `PageLayoutContent relative isolate flex-container grid-area-c bg-gradient-to-b from-[#0c0927] to-[#110d36] rounded-tl-3xl mobile:rounded-none p-12 ${
             props.contentButtonPaddingShorter ?? props.contentYPaddingShorter ? 'pb-4' : ''
-          } ${props.contentTopPaddingShorter ?? props.contentYPaddingShorter ? 'pt-5' : ''} mobile:py-2 mobile:px-3`,
+          } ${
+            props.contentTopPaddingShorter ?? props.contentYPaddingShorter ? 'pt-5' : ''
+          } mobile:py-2 mobile:px-3 mobile:pt-0 `,
           props.contentClassName
         )}
         style={{

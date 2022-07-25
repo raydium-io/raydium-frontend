@@ -1,3 +1,4 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
@@ -10,6 +11,7 @@ import {
 import { isQuantumSOLVersionSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useWallet from '@/application/wallet/useWallet'
+import AutoBox from '@/components/AutoBox'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import DateInput from '@/components/DateInput'
 import FadeInStable from '@/components/FadeIn'
@@ -84,6 +86,7 @@ export function RewardFormCardInputs({
 
   onRewardChange
 }: RewardFormCardInputsParams) {
+  const isMobile = useAppSettings((s) => s.isMobile)
   const getBalance = useWallet((s) => s.getBalance)
   const rewards = useCreateFarms((s) => s.rewards)
   const rewardIndex = rewards.findIndex(({ id }) => id === targetReward.id)
@@ -258,7 +261,7 @@ export function RewardFormCardInputs({
         onTryToSwitchSOLWSOL={handleSwitchSOLWSOLRewardToken}
       />
       <div>
-        <Row className="gap-4">
+        <AutoBox is={isMobile ? 'Col' : 'Row'} className="gap-4">
           <InputBox
             className="grow-2 rounded-md text-sm font-medium text-white px-4"
             inputClassName="placeholder:text-[#abc4ff50]"
@@ -421,7 +424,7 @@ export function RewardFormCardInputs({
               }
             }}
           />
-        </Row>
+        </AutoBox>
         {needShowAlert && (
           <div>
             {durationTime! > maxDurationSeconds * 1e3 ? (

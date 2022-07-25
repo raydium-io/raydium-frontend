@@ -84,7 +84,7 @@ export function EditableRewardSummary({
                 <Row className="gap-1 flex-wrap mt-1">
                   {reward.isRewardEnded && <Badge cssColor="#da2Eef">Ended</Badge>}
                   {reward.isRewardBeforeStart && <Badge cssColor="#abc4ff">Upcoming</Badge>}
-                  {reward.isRewarding && <Badge cssColor={'#39d0d8'}>Ongoing</Badge>}
+                  {reward.isRewarding && <Badge cssColor="#39d0d8">Ongoing</Badge>}
                 </Row>
               </Col>
             ) : (

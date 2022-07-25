@@ -53,7 +53,7 @@ function NavButtons({ className }: { className?: string }) {
         prefix={<Icon heroIconName="chevron-left" size="sm" />}
         onClick={() => routeBack()}
       >
-        Back to all farm pools
+        Back to Farms
       </Button>
     </Row>
   )
@@ -91,7 +91,6 @@ export default function FarmEditPage() {
   const getBalance = useWallet((s) => s.getBalance)
   const { rewards: allRewards, cannotAddNewReward, farmId } = useCreateFarms()
   const hydratedFarmInfos = useFarms((s) => s.hydratedInfos)
-  const [isRewardInputDialogOpen, setIsRewardInputDialogOpen] = useState(false)
   const [focusReward, setFocusReward] = useState<UIRewardInfo>()
   const canAddRewardInfo = !cannotAddNewReward && allRewards.length < 5
   const editableRewards = allRewards.filter((r) => r.type === 'existed reward')
@@ -137,7 +136,6 @@ export default function FarmEditPage() {
           <EditableRewardSummary
             canUserEdit
             onClickIncreaseReward={({ reward }) => {
-              setIsRewardInputDialogOpen(true)
               setFocusReward(reward)
             }}
             onClaimReward={({ reward, onTxSuccess }) => txClaimReward({ reward, onTxSuccess })}
@@ -161,8 +159,8 @@ export default function FarmEditPage() {
           }}
         >
           <Icon className="text-[#abc4ff]" heroIconName="plus-circle" size="sm" />
-          <div className="ml-1.5 text-[#abc4ff] font-medium">Add another reward token</div>
-          <div className="ml-1.5 text-[#abc4ff80] font-medium">({5 - allRewards.length} more)</div>
+          <div className="ml-1.5 text-[#abc4ff] font-medium mobile:text-sm">Add another reward token</div>
+          <div className="ml-1.5 text-[#abc4ff80] font-medium mobile:text-sm">({5 - allRewards.length} more)</div>
         </Row>
 
         <Button
@@ -273,11 +271,12 @@ export default function FarmEditPage() {
 
         {focusReward != null && (
           <RewardInputDialog
+            cardTitle="Add more rewards"
             reward={focusReward}
             minDurationSeconds={hydratedFarmInfo?.jsonInfo.rewardPeriodMin}
             maxDurationSeconds={hydratedFarmInfo?.jsonInfo.rewardPeriodMax}
-            open={isRewardInputDialogOpen}
-            onClose={() => setIsRewardInputDialogOpen(false)}
+            open={Boolean(focusReward)}
+            onClose={() => setFocusReward(undefined)}
           />
         )}
       </div>

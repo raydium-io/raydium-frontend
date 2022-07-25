@@ -1,6 +1,3 @@
-import React, { ReactNode } from 'react'
-import { useRouter } from 'next/router'
-
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { useHomeInfo } from '@/application/homeInfo'
 import Button from '@/components/Button'
@@ -14,9 +11,10 @@ import NumberJelly from '@/components/NumberJelly'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
 import linkTo from '@/functions/dom/linkTo'
-import useDevice from '@/hooks/useDevice'
-import { useDocumentScrollActionDetector } from '@/hooks/useScrollActionDetector'
 import useDocumentMetaTitle from '@/hooks/useDocumentMetaTitle'
+import { useDocumentScrollActionDetector } from '@/hooks/useScrollActionDetector'
+import { useRouter } from 'next/router'
+import { ReactNode } from 'react'
 
 function HomePageContainer({ children }: { children?: ReactNode }) {
   useDocumentScrollActionDetector()

@@ -9,6 +9,8 @@ export interface RadioGroupProps<T extends string> {
   className?: string
   style?: CSSProperties
   // TODO: itemClassName\itemStyle\value\label should be merged into a obj
+  // flex/flex-col
+  vertical?: boolean
   // /** @deprecated use props:items instead */
   itemClassName?: string | ((checked: boolean) => string)
   // /** @deprecated use props:items instead */
@@ -32,6 +34,7 @@ export interface RadioGroupProps<T extends string> {
 export default function RadioGroup<T extends string>({
   className,
   style,
+  vertical,
   itemClassName,
   itemStyle,
   values,
@@ -45,15 +48,17 @@ export default function RadioGroup<T extends string>({
     <_RadioGroup
       value={currentValue}
       onChange={onChange ?? (() => {})}
-      className={twMerge(`flex ${className ?? ''}`)}
+      className={twMerge(`${vertical ? 'flex-col' : 'flex'} ${className ?? ''}`)}
       style={style}
     >
       {values.map((value, idx, vals) => (
-        <_RadioGroup.Option value={value} key={idx} className="cursor-pointer flex grow">
+        <_RadioGroup.Option value={value} key={idx} className={`cursor-pointer flex grow`}>
           {({ checked }) =>
             value && (
               <div
-                className={`grid grow place-items-center ${shrinkToValue(itemClassName, [checked])}`}
+                className={`grid grow ${vertical ? '' : 'place-items-center'} ${shrinkToValue(itemClassName, [
+                  checked
+                ])}`}
                 style={shrinkToValue(itemStyle, [checked, idx, vals])}
               >
                 {shrinkToValue(labels[idx], [checked, idx, vals])}

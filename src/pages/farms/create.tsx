@@ -18,8 +18,7 @@ import Row from '@/components/Row'
 import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter } from '@/functions/date/judges'
 import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
-import toPubString from '@/functions/format/toMintString'
-import { eq, gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
+import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import produce from 'immer'
@@ -32,8 +31,11 @@ import { useChainDate } from '../../hooks/useChainDate'
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
   return (
-    <CyberpunkStyleCard wrapperClassName="w-8 h-8" className="grid place-content-center bg-[#2f2c78]">
-      <div className="font-semibold text-white">{props.n}</div>
+    <CyberpunkStyleCard
+      wrapperClassName="w-8 h-8 mobile:w-6 mobile:h-6 flex-none"
+      className="grid place-content-center bg-[#2f2c78]"
+    >
+      <div className="font-semibold text-white mobile:text-xs">{props.n}</div>
     </CyberpunkStyleCard>
   )
 }
@@ -47,7 +49,7 @@ function NavButtons({ className }: { className?: string }) {
         prefix={<Icon heroIconName="chevron-left" size="sm" />}
         onClick={() => routeBack()}
       >
-        Back to all farm pools
+        Back to Farms
       </Button>
 
       {/* <Link
@@ -65,26 +67,34 @@ function NavButtons({ className }: { className?: string }) {
 
 function WarningBoard({ className }: { className: string }) {
   const [needWarning, setNeedWarning] = useState(true)
+  const isMoblie = useAppSettings((s) => s.isMobile)
   const detailedGuideHref = 'https://raydium.gitbook.io/raydium/exchange-trade-and-swap/creating-an-ecosystem-farm'
   return (
     <FadeInStable show={needWarning}>
       <Row className={className}>
-        <Icon iconSrc="/icons/create-farm-exclamation-circle.svg" className="my-4" iconClassName="w-8 h-8" />
-        <Card className={`p-6 grow mx-4 my-2 rounded-3xl ring-1 ring-inset ring-[#DA2EEF] bg-[#1B1659]`}>
-          <div className="font-medium text-base text-white mb-3">This tool is for advanced users!</div>
+        {!isMoblie && (
+          <Icon iconSrc="/icons/create-farm-exclamation-circle.svg" className="my-4" iconClassName="w-8 h-8" />
+        )}
+        <Card
+          className={`p-6 mobile:p-4 grow mx-4 mobile:mx-0 my-2 rounded-3xl mobile:rounded-2xl ring-1 ring-inset ring-[#DA2EEF] bg-[#1B1659]`}
+        >
+          <div className="mobile:text-sm font-medium text-base text-white mb-3">This tool is for advanced users!</div>
 
-          <div className="font-medium text-sm text-[#ABC4FF80] mb-4">
+          <div className="font-medium text-sm mobile:text-xs text-[#ABC4FF80] mb-4">
             Before attempting to create a new farm, we suggest going through the detailed guide.
           </div>
 
           <Row className="gap-4">
             <Link href={detailedGuideHref}>
-              <Button className="frosted-glass-teal px-8">Detailed Guide</Button>
+              <Button className="frosted-glass-teal px-8" size={isMoblie ? 'sm' : 'md'}>
+                Detailed Guide
+              </Button>
             </Link>
 
             <Button
-              className="text-[#ABC4FF80]"
+              className="text-[#ABC4FF80] mobile:px-4"
               type="outline"
+              size={isMoblie ? 'sm' : 'md'}
               onClick={() => {
                 setNeedWarning(false)
               }}
@@ -109,7 +119,18 @@ function FormStep({
   haveNavline?: boolean
   children: ReactNode
 }) {
-  return (
+  const isMoblie = useAppSettings((s) => s.isMobile)
+  return isMoblie ? (
+    <Grid className="grid-cols-[1fr] gap-4">
+      <Row className="items-center gap-3">
+        <StepBadge n={stepNumber} />
+        <div className="grow">{title}</div>
+      </Row>
+      <Col className="grow">
+        <Grid className="mb-10">{children}</Grid>
+      </Col>
+    </Grid>
+  ) : (
     <Grid className="grid-cols-[auto,1fr] gap-4">
       <Col className="items-center">
         <StepBadge n={stepNumber} />
@@ -124,8 +145,14 @@ function FormStep({
 }
 
 export function RewardFormCard({ children }: { children?: ReactNode }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <Card className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]" size="lg">
+    <Card
+      className={`p-4 mobile:p-3 bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)] ${
+        isMobile ? 'rounded-2xl' : 'rounded-3xl'
+      }`}
+      size="lg"
+    >
       {children}
     </Card>
   )
@@ -140,6 +167,7 @@ export default function CreateFarmPage() {
   const getBalance = useWallet((s) => s.getBalance)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const walletConnected = useWallet((s) => s.connected)
+  const isMoblie = useAppSettings((s) => s.isMobile)
 
   const PoolIdInputBlockRef = useRef<PoolIdInputBlockHandle>()
 
@@ -158,20 +186,22 @@ export default function CreateFarmPage() {
   const cachedInputs = useMemo(() => <NewRewardIndicatorAndForm />, [])
   const [poolIdValid, setPoolIdValid] = useState(false)
   return (
-    <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
-      <NavButtons className="mb-8 sticky top-0" />
+    <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Create Farm">
+      <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:bg-[#0f0b2f]" />
 
-      <div className={`self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
-        <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
+      <div className={`pb-10 self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
+        {!isMoblie && (
+          <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
+        )}
 
-        <WarningBoard className="pb-16 w-full" />
+        <WarningBoard className="pb-16 mobile:pb-10 w-full" />
 
         <div className="space-y-4">
           <FormStep
             stepNumber={1}
             title={
-              <Row className="justify-between">
-                <div className="font-medium text-lg text-white leading-8">Select Pool</div>
+              <Row className="justify-between items-center">
+                <div className="font-medium text-lg mobile:text-base text-white leading-8">Select Pool</div>
                 <Row
                   className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
                   onClick={() => {
@@ -192,12 +222,12 @@ export default function CreateFarmPage() {
             stepNumber={2}
             title={
               <>
-                <div className="font-medium text-lg text-white leading-8 mb-1">Farming Reward</div>
-                <Row className="text-sm">
+                <div className="font-medium text-lg mobile:text-base text-white leading-8 mb-1">Farming Reward</div>
+                <Row className="text-sm mobile:text-xs">
                   <div className="text-[#abc4ff] mr-2">Cluster time: </div>
                   <TimeClock className="text-[#abc4ff80]" offset={chainTimeOffset} />
                 </Row>
-                <div className="font-medium text-sm leading-snug text-[#abc4ff80]">
+                <div className="font-medium text-sm mobile:text-xs leading-snug text-[#abc4ff80]">
                   This is Solana's current on-chain time, there could be a delay depending on Solana's network status
                 </div>
               </>
@@ -217,15 +247,15 @@ export default function CreateFarmPage() {
             >
               <Row className="items-center">
                 <Icon className="text-[#abc4ff]" heroIconName="plus-circle" size="sm" />
-                <div className="ml-1.5 text-[#abc4ff] font-medium">Add another reward token</div>
-                <div className="ml-1.5 text-[#abc4ff80] font-medium">({5 - rewards.length} more)</div>
+                <div className="ml-1.5 text-[#abc4ff] font-medium mobile:text-sm">Add another reward token</div>
+                <div className="ml-1.5 text-[#abc4ff80] font-medium mobile:text-sm">({5 - rewards.length} more)</div>
               </Row>
             </Button>
           </FormStep>
         </div>
 
-        <Col className="items-center ml-12">
-          <div className="font-medium text-sm text-justify leading-snug text-[#abc4ff80] mb-8">
+        <Col className="items-center ml-12 mobile:ml-0">
+          <div className="font-medium text-sm mobile:text-xs text-justify leading-snug text-[#abc4ff80] mb-8">
             <span className="text-[#DA2EEF]">Please note: </span>Rewards allocated to farms are final and unused rewards
             cannot be claimed. However, you can add additional rewards to the farm. 300 RAY is collected as an Ecosystem
             farm creation fee, which will be deposited into the Raydium treasury. Token rewards should have a minimum
@@ -233,8 +263,8 @@ export default function CreateFarmPage() {
           </div>
 
           <Button
-            className="frosted-glass-teal"
-            size="lg"
+            className="frosted-glass-teal mobile:w-full"
+            size={isMoblie ? 'sm' : 'lg'}
             validators={[
               {
                 should: meaningFullRewards.length > 0

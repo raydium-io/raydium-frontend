@@ -1,7 +1,5 @@
-import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-
 import { TokenAmount } from '@raydium-io/raydium-sdk'
-
+import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -41,12 +39,12 @@ import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
+import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tabs from '@/components/Tabs'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
-import { toCamelCase, toSentenceCase } from '@/functions/changeCase'
 import { toUTC } from '@/functions/date/dateFormat'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
@@ -62,6 +60,7 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
+import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -77,12 +76,13 @@ export default function FarmsPage() {
 function FarmHeader() {
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <Row className="flex-wrap items-center justify-center px-2 py-1 mb-2">
+    <Row className="flex-wrap items-center justify-center  px-2 py-1 mb-2">
       {/* <div className="text-lg font-semibold justify-self-start text-white -mb-1">Farms</div> */}
       {/* <div className="font-medium text-[rgba(196,214,255,.5)] text-2xs">
           Stake your LP tokens and earn token rewards
         </div> */}
       <FarmTabBlock />
+      {/* <FarmCreateFarmEntryBlock className="mr-4" /> */}
       {/* <FarmStakedOnlyBlock /> */}
     </Row>
   ) : (
@@ -95,13 +95,15 @@ function FarmHeader() {
     </Col>
   )
 }
+
+/** only mobile */
 function ToolsButton({ className }: { className?: string }) {
   return (
     <>
       <Popover placement="bottom-right">
         <Popover.Button>
-          <div className={twMerge('frosted-glass-teal rounded-full p-2 clickable justify-self-start', className)}>
-            <Icon className="w-3 h-3" iconClassName="w-3 h-3" heroIconName="dots-horizontal" />
+          <div className={twMerge('mx-1 rounded-full p-2 text-[#abc4ff] clickable justify-self-start', className)}>
+            <Icon className="w-4 h-4" iconClassName="w-4 h-4" heroIconName="dots-vertical" />
           </div>
         </Popover.Button>
         <Popover.Panel>
@@ -114,6 +116,7 @@ function ToolsButton({ className }: { className?: string }) {
                 <FarmStakedOnlyBlock />
                 <FarmRefreshCircleBlock />
                 <FarmTimeBasisSelectorBox />
+                {/* <FarmCreateFarmEntryBlock /> */} {/* TODO temp hide create farm entry in mobile */}
               </Grid>
             </Card>
           </div>
@@ -145,7 +148,7 @@ function FarmSearchBlock({ className }: { className?: string }) {
     <Input
       value={storeSearchText}
       className={twMerge(
-        'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1.5 ring-[rgba(196,214,255,0.5)] rounded-xl min-w-[6em]',
+        'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg min-w-[6em]',
         className
       )}
       inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
@@ -213,9 +216,13 @@ function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
   const balances = useWallet((s) => s.balances)
   const userRayBalance = balances[toPubString(RAYMint)]
   const haveOver300Ray = gte(userRayBalance ?? 0, 300)
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Row
-      className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
+      className={twMerge(
+        `justify-self-end mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`,
+        className
+      )}
       onClick={() => {
         routeTo('/farms/create')
       }}
@@ -229,15 +236,22 @@ function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
 function FarmTabBlock({ className }: { className?: string }) {
   const currentTab = useFarms((s) => s.currentTab)
   const isMobile = useAppSettings((s) => s.isMobile)
-  return (
-    <Tabs
+  return isMobile ? (
+    <RowTabs
+      // showOffset={2} // TODO: temp for mobile
       currentValue={currentTab}
       urlSearchQueryKey="tab"
-      values={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'Staked'] as const)}
-      labels={shakeFalsyItem(['Raydium', 'Fusion', isMobile ? undefined : 'Ecosystem', 'Staked'] as const)}
+      values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}
+      onChange={(tab) => useFarms.setState({ currentTab: tab })}
+      className={className}
+    />
+  ) : (
+    <RowTabs
+      currentValue={currentTab}
+      urlSearchQueryKey="tab"
+      values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}
       onChange={(tab) => useFarms.setState({ currentTab: tab })}
       className={twMerge('justify-self-center mobile:col-span-full', className)}
-      itemClassName={isMobile ? 'w-[80px] h-[30px]' : ''}
     />
   )
 }
@@ -318,19 +332,12 @@ function FarmCard() {
   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
   const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   const searchText = useFarms((s) => s.searchText)
-  const lpTokens = useToken((s) => s.lpTokens)
   const [favouriteIds] = useFarmFavoriteIds()
   const isMobile = useAppSettings((s) => s.isMobile)
   const owner = useWallet((s) => s.owner)
   const isLoading = useFarms((s) => s.isLoading)
   const timeBasis = useFarms((s) => s.timeBasis)
-  const dataSource = useMemo(() => {
-    const hydratedInfo = hydratedInfos
-      .filter((i) => (Object.keys(lpTokens).length > 0 ? lpTokens[toPubString(i.lpMint)] : true))
-      .filter((i) => (isMobile ? i.version !== 6 : true))
-    const jsonInfo = jsonInfos.filter((i) => (isMobile ? i.version !== 6 : true))
-    return hydratedInfos.length > 0 ? hydratedInfo : jsonInfo
-  }, [lpTokens, hydratedInfos, jsonInfos])
+  const dataSource = hydratedInfos.length ? hydratedInfos : jsonInfos
 
   const tabedDataSource = useMemo(
     () =>
@@ -411,8 +418,8 @@ function FarmCard() {
   // NOTE: filter widgets
   const innerFarmDatabaseWidgets = isMobile ? (
     <div>
-      <Row className="mb-2 gap-2">
-        <FarmSearchBlock className="grow-2" />
+      <Row className="mb-4">
+        <FarmSearchBlock className="grow-2 mr-3" />
         <FarmTableSorterBlock
           className="grow"
           onChange={(newSortKey) => {
@@ -461,7 +468,7 @@ function FarmCard() {
       {!isMobile && (
         <Row
           type="grid-x"
-          className="mb-3 h-12  sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl gap-2 grid-cols-[auto,1.5fr,1.2fr,1fr,1fr,auto]"
+          className="mb-3 h-12  sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl mobile:rounded-lg gap-2 grid-cols-[auto,1.5fr,1.2fr,1fr,1fr,auto]"
         >
           <Row
             className="group w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
@@ -640,7 +647,7 @@ function FarmRewardBadge({
   return (
     <Tooltip placement="bottom">
       <Row
-        className={`ring-1.5 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
+        className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
           isRewarding ? '' : 'opacity-50'
         } ${isRewardBeforeStart ? '' : ''}`}
       >
@@ -896,13 +903,13 @@ function FarmCardDatabaseBodyCollapseItemFace({
               isJsonFarmInfo(info)
                 ? '--'
                 : info.tvl
-                ? `≈${toUsdVolume(info.tvl, { autoSuffix: true, decimalPlace: 0 })}`
+                ? `≈${toUsdVolume(info.tvl, { autoSuffix: true, decimalPlace: 1 })}`
                 : '--'
             }
             subValue={
               isJsonFarmInfo(info)
                 ? '--'
-                : info.stakedLpAmount && `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} LP`
+                : info.stakedLpAmount && `${autoSuffixNumberish(info.stakedLpAmount, { decimalPlace: 1 })} LP`
             }
           />
 
@@ -986,7 +993,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
           is={isMobile ? 'Col' : 'Grid'}
           className="grid-cols-[1fr,1.5fr] gap-8 mobile:gap-3 flex-grow px-8 py-5 mobile:px-4 mobile:py-3"
         >
-          <Row className="p-6 mobile:py-3 mobile:px-4 flex-grow ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl items-center gap-3">
+          <Row className="p-6 mobile:py-3 mobile:px-4 flex-grow ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl items-center gap-3">
             <div className="flex-grow">
               <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Deposited</div>
               <div className="text-white font-medium text-base mobile:text-xs">
@@ -1047,7 +1054,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                     <Icon
                       size={isMobile ? 'sm' : 'smi'}
                       heroIconName="minus"
-                      className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                      className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                       onClick={() => {
                         if (connected) {
                           useFarms.setState({
@@ -1102,7 +1109,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
 
           <AutoBox
             is={isMobile ? 'Col' : 'Row'}
-            className="p-6 mobile:py-3 mobile:px-4 flex-grow ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl items-center gap-3"
+            className="p-6 mobile:py-3 mobile:px-4 flex-grow ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl items-center gap-3"
           >
             {farmInfo.version === 6 ? (
               <div className="flex-grow w-full">
@@ -1197,7 +1204,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
               <Icon
                 size="sm"
                 heroIconName="link"
-                className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
                   copyToClipboard(
                     new URL(
@@ -1212,7 +1219,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
               <Icon
                 size="sm"
                 heroIconName="plus"
-                className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
                   routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
                 }}
@@ -1220,7 +1227,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
               <Icon
                 size="sm"
                 iconSrc="/icons/msic-swap-h.svg"
-                className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
                   routeTo('/swap', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
                 }}
@@ -1232,7 +1239,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                 <Icon
                   size="smi"
                   heroIconName="link"
-                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                   onClick={() => {
                     copyToClipboard(
                       new URL(
@@ -1250,7 +1257,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                 <Icon
                   size="smi"
                   heroIconName="plus"
-                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                   onClick={() => {
                     routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
                   }}
@@ -1261,7 +1268,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                 <Icon
                   size="smi"
                   iconSrc="/icons/msic-swap-h.svg"
-                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                   onClick={() => {
                     routeTo('/swap', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
                   }}

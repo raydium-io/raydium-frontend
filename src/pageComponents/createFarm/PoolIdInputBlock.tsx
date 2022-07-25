@@ -1,12 +1,15 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { usePools } from '@/application/pools/usePools'
 import useToken from '@/application/token/useToken'
 import { AddressItem } from '@/components/AddressItem'
+import AutoBox from '@/components/AutoBox'
 import AutoComplete, { AutoCompleteCandidateItem } from '@/components/AutoComplete'
 import Card from '@/components/Card'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import FadeInStable from '@/components/FadeIn'
+import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import listToMap from '@/functions/format/listToMap'
@@ -28,6 +31,7 @@ export function PoolIdInputBlock({
   componentRef?: RefObject<any>
   onInputValidate?: (result: boolean) => void
 }) {
+  const isMoblie = useAppSettings((s) => s.isMobile)
   const poolId = useCreateFarms((s) => s.poolId)
   const pairInfos = usePools((s) => s.hydratedInfos)
   const liquidityPoolJsons = useLiquidity((s) => s.jsonInfos)
@@ -89,8 +93,9 @@ export function PoolIdInputBlock({
 
   return (
     <Card
-      className="p-4 mobile:px-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a]"
-      size="lg"
+      className={`p-4 mobile:p-2 bg-cyberpunk-card-bg border-1.5 border-[#abc4ff1a] ${
+        isMoblie ? 'rounded-2xl' : 'rounded-3xl'
+      }`}
       domRef={inputCardRef}
     >
       <AutoComplete
@@ -101,20 +106,33 @@ export function PoolIdInputBlock({
         suffix={<Icon heroIconName="search" className="text-[rgba(196,214,255,0.5)]" />}
         placeholder="Search for a pool or paste AMM ID"
         renderCandidateItem={({ candidate, isSelected }) => (
-          <Row className={`py-3 px-4 items-center gap-2 ${isSelected ? 'backdrop-brightness-50' : ''}`}>
-            <CoinAvatarPair token1={tokens[candidate.baseMint]} token2={tokens[candidate.quoteMint]} />
-            <div className="text-[#abc4ff] font-medium">
+          <Grid
+            className={`py-3 px-4 mobile:p-2 items-center grid-cols-[auto,auto,1fr,auto] mobile:grid-cols-[auto,1fr,1fr] gap-2 mobile:gap-1 ${
+              isSelected ? 'backdrop-brightness-50' : ''
+            }`}
+          >
+            <CoinAvatarPair
+              token1={tokens[candidate.baseMint]}
+              token2={tokens[candidate.quoteMint]}
+              size={isMoblie ? 'smi' : 'md'}
+            />
+            <div className="text-[#abc4ff] font-medium mobile:text-sm">
               {tokens[candidate.baseMint]?.symbol ?? 'UNKNOWN'}-{tokens[candidate.quoteMint]?.symbol ?? 'UNKNOWN'}
             </div>
             {pairInfoMap[candidate.id] ? (
-              <div className="text-[#abc4ff80] text-sm font-medium">
+              <div className="text-[#abc4ff80] text-sm font-medium mobile:text-end">
                 {toUsdVolume(pairInfoMap[candidate.id].liquidity, { decimalPlace: 0 })}
               </div>
             ) : null}
-            <AddressItem canCopy={false} showDigitCount={8} className="text-[#abc4ff80] text-xs ml-auto">
+            <AddressItem
+              canCopy={false}
+              showDigitCount={isMoblie ? 16 : 8}
+              className="mobile:col-span-full"
+              textClassName="text-[#abc4ff80] text-sm mobile:text-xs"
+            >
               {candidate.id}
             </AddressItem>
-          </Row>
+          </Grid>
         )}
         onSelectCandiateItem={({ selected }) => {
           setIsInputing(false)
@@ -141,13 +159,17 @@ export function PoolIdInputBlock({
         <Row className="items-center px-4 pt-2 gap-2">
           {selectedPool ? (
             <>
-              <CoinAvatarPair token1={tokens[selectedPool.baseMint]} token2={tokens[selectedPool.quoteMint]} />
-              <div className="text-[#abc4ff] text-base font-medium">
+              <CoinAvatarPair
+                token1={tokens[selectedPool.baseMint]}
+                token2={tokens[selectedPool.quoteMint]}
+                size={isMoblie ? 'smi' : 'md'}
+              />
+              <div className="text-[#abc4ff] text-base mobile:text-sm font-medium">
                 {tokens[selectedPool.baseMint]?.symbol ?? 'UNKNOWN'} -{' '}
                 {tokens[selectedPool.quoteMint]?.symbol ?? 'UNKNOWN'}
               </div>
               {selectedPoolPairInfo ? (
-                <div className="text-[#abc4ff80] text-sm ml-auto font-medium">
+                <div className="text-[#abc4ff80] text-sm mobile:text-xs ml-auto font-medium">
                   Liquidity: {toUsdVolume(selectedPoolPairInfo.liquidity, { decimalPlace: 0 })}
                 </div>
               ) : null}

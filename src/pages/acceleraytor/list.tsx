@@ -13,7 +13,7 @@ import Icon from '@/components/Icon'
 import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import Tabs from '@/components/Tabs'
+import RowTabs from '@/components/RowTabs'
 import { toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { eq, gt, isMeaningfulNumber } from '@/functions/numberish/compare'
@@ -123,7 +123,7 @@ function IdoList() {
           </Col>
         </>
       )}
-      <Tabs
+      <RowTabs
         currentValue={currentTab}
         values={['Upcoming Pools', 'Closed Pools']}
         onChange={(currentTab) => {

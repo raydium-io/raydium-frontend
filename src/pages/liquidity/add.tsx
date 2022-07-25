@@ -38,7 +38,7 @@ import List from '@/components/List'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
-import Tabs from '@/components/Tabs'
+import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem, unifyItem } from '@/functions/arrayMethods'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
@@ -96,7 +96,7 @@ function LiquidityEffect() {
 function LiquidityPageHead() {
   return (
     <Row className="mb-12 mobile:mb-2 self-center">
-      <Tabs
+      <RowTabs
         currentValue={'Liquidity'}
         values={['Swap', 'Liquidity']}
         onChange={(newTab) => {

@@ -1,3 +1,4 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
 import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
@@ -12,8 +13,6 @@ import { getTime, toUTC } from '@/functions/date/dateFormat'
 import { TimeStamp } from '@/functions/date/interface'
 import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
-import toPercentString from '@/functions/format/toPercentString'
-import { eq } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
@@ -26,19 +25,24 @@ import { Numberish } from '@/types/constants'
 export function NewAddedRewardSummary({
   canUserEdit,
   activeReward,
-  onActiveRewardChange
+  onTryEdit
 }: {
   canUserEdit: boolean
 
   // --------- when selectable ------------
   activeReward?: UIRewardInfo
-  onActiveRewardChange?(reward: UIRewardInfo): void
+  onTryEdit?(reward: UIRewardInfo, active: boolean): void
 }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
   const rewards = useCreateFarms((s) => s.rewards)
   const editableRewards = rewards.filter((r) => r.type === 'existed reward')
   const newReards = rewards.filter((r) => r.type === 'new added')
+  // console.log('newReards.includes(activeReward): ', activeReward && newReards.includes(activeReward))
   return (
     <ListTable
+      activeItem={activeReward}
+      type={isMobile ? 'item-card' : 'list-table'}
+      className={isMobile ? 'gap-4' : ''}
       list={newReards}
       getItemKey={(r) => getRewardSignature(r)}
       labelMapper={[
@@ -62,14 +66,15 @@ export function NewAddedRewardSummary({
         }
       ]}
       // className="backdrop-brightness-"
-      rowClassName={({ itemData: reward }) => {
-        if (canUserEdit) {
-          return `${activeReward?.id === reward.id ? 'backdrop-brightness-90' : 'hover:backdrop-brightness-95'}`
-        }
-        return ''
-      }}
-      onClickRow={({ itemData: reward }) => {
-        onActiveRewardChange?.(reward)
+      rowClassName={({ item: reward }) =>
+        canUserEdit
+          ? activeReward?.id === reward.id
+            ? 'backdrop-brightness-90 mobile:hidden'
+            : 'hover:backdrop-brightness-95'
+          : ''
+      }
+      onClickRow={({ item: reward }) => {
+        onTryEdit?.(reward, activeReward?.id === reward.id)
       }}
       renderRowItem={({ item: reward, label }) => {
         if (label === 'Reward Token') {
@@ -164,35 +169,28 @@ export function NewAddedRewardSummary({
           )
         }
       }}
-      renderRowEntry={({ contentNode, destorySelf, itemData }) => {
-        const controlsNode = (
-          <Row className="gap-2">
-            <Icon
-              size="smi"
-              heroIconName="pencil"
-              className="clickable clickable-opacity-effect text-[#abc4ff]"
-              onClick={() => {
-                onActiveRewardChange?.(itemData)
-              }}
-            />
-            <Icon
-              size="smi"
-              heroIconName="trash"
-              className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
-              onClick={() => rewards.length > 1 && destorySelf()} // delete is wrong
-            />
-          </Row>
-        )
-
-        return (
-          <>
-            {contentNode}
-            {canUserEdit && (
-              <div className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full">{controlsNode}</div>
-            )}
-          </>
-        )
-      }}
+      renderControlButtons={
+        canUserEdit
+          ? ({ destorySelf, itemData: reward }) => (
+              <Row className="gap-2 mobile:gap-3">
+                <Icon
+                  size="smi"
+                  heroIconName="pencil"
+                  className="clickable clickable-opacity-effect text-[#abc4ff]"
+                  onClick={() => {
+                    onTryEdit?.(reward, reward.id === activeReward?.id)
+                  }}
+                />
+                <Icon
+                  size="smi"
+                  heroIconName="trash"
+                  className={`clickable text-[#abc4ff] ${rewards.length > 1 ? 'hover:text-[#DA2EEF]' : 'hidden'}`}
+                  onClick={() => rewards.length > 1 && destorySelf()} // delete is wrong
+                />
+              </Row>
+            )
+          : undefined
+      }
       onListChange={(newRewards) => {
         useCreateFarms.setState({
           rewards: editableRewards.concat(newRewards)
