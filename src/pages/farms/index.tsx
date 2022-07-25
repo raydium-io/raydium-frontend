@@ -1124,7 +1124,12 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                   Pending rewards
                 </div>
                 <Grid
-                  className={`gap-board clip-insert-4 ${farmInfo.rewards.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
+                  className={`gap-board 
+                   ${farmInfo.rewards.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
+                  style={{
+                    clipPath: 'inset(17px)', // 1px for gap-board
+                    margin: '-17px'
+                  }}
                 >
                   {farmInfo.rewards
                     ?.filter((i) => i.perSecond != 0)
@@ -1133,7 +1138,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                         <div className={`text-white font-medium text-base mobile:text-xs`}>
                           {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
                         </div>
-                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
                           {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
                             ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
                             : null}
@@ -1159,7 +1164,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                         <div className={`text-white font-medium text-base mobile:text-xs`}>
                           {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
                         </div>
-                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
                           {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
                             ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
                             : null}
