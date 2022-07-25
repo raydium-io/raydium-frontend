@@ -1134,7 +1134,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                           {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
                         </div>
                         <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-                          {prices?.[String(reward.token?.mint)] && isMeaningfulNumber(reward?.userPendingReward)
+                          {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
                             ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
                             : null}
                         </div>
