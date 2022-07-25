@@ -94,7 +94,7 @@ export default function Swap() {
 }
 
 // to check if downCoin is unOfficial (not is raydium token list but in solana token list)
-function useunOfficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: () => void } {
+function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: () => void } {
   const directionReversed = useSwap((s) => s.directionReversed)
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
@@ -203,7 +203,7 @@ function SwapCard() {
   const routes = useSwap((s) => s.routes)
   const swapable = useSwap((s) => s.swapable)
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
-  const { hasConfirmed, popConfirm: popunOfficialConfirm } = useunOfficialTokenConfirmState()
+  const { hasConfirmed, popConfirm: popUnofficialConfirm } = useUnofficialTokenConfirmState()
   const { hasAcceptedPriceChange, swapButtonComponentRef, coinInputBox1ComponentRef, coinInputBox2ComponentRef } =
     useSwapContextStore()
 
@@ -411,7 +411,7 @@ function SwapCard() {
               should: hasConfirmed,
               forceActive: true,
               fallbackProps: {
-                onClick: popunOfficialConfirm,
+                onClick: popUnofficialConfirm,
                 children: 'Confirm unOfficial warning' // user may never see this
               }
             },
@@ -440,18 +440,21 @@ function SwapCard() {
               fallbackProps: { children: `Insufficient ${upCoin?.symbol ?? ''} balance` }
             },
             {
+              should: hasAcceptedPriceChange,
+              fallbackProps: { children: `Accept price change` }
+            },
+            {
               should: priceImpact && lte(priceImpact, 0.05),
               forceActive: true,
               fallbackProps: {
-                onClick: () => popPriceConfirm({ priceImpact })
+                onClick: ({ ev }) => {
+                  ev.stopPropagation()
+                  return popPriceConfirm({ priceImpact })
+                }
               }
-            },
-            {
-              should: hasAcceptedPriceChange,
-              fallbackProps: { children: `Accept price change` }
             }
           ]}
-          onClick={txSwap}
+          // onClick={txSwap}
         >
           Swap
         </Button>
