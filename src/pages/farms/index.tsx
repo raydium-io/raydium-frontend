@@ -914,7 +914,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
           />
 
           <TextInfoItem
-            name={`Total APR(${timeBasis})`}
+            name={`APR(${timeBasis})`}
             value={
               isJsonFarmInfo(info) ? (
                 '--'
