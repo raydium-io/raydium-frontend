@@ -181,7 +181,9 @@ function FarmSearchBlock({ className }: { className?: string }) {
 function FarmStakedOnlyBlock({ className }: { className?: string }) {
   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
   const connected = useWallet((s) => s.connected)
+  const currentTab = useFarms((s) => s.currentTab)
   if (!connected) return null
+  if (currentTab === 'Staked') return null // no staked switcher if it is staked
   return (
     <Row className="justify-self-end  mobile:justify-self-auto items-center">
       <span className="text-[rgba(196,214,255,0.5)] whitespace-nowrap font-medium text-sm mobile:text-xs">
