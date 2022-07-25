@@ -157,9 +157,9 @@ function useLiquidityWarning() {
     }
   }
   // box state
-  const [isPanelShown, setIsPanelShown] = useState(false)
-
-  const needPanelShown = !hasUserPermanentConfirmed && !hasUserTemporaryConfirmed && Boolean(currentJsonInfo)
+  const [isPanelShown, setIsPanelShown] = useState(
+    () => !hasUserPermanentConfirmed && !hasUserTemporaryConfirmed && Boolean(currentJsonInfo)
+  )
 
   useEffect(() => {
     if (!coin1 || !coin2) {
@@ -169,12 +169,6 @@ function useLiquidityWarning() {
       setIsPanelShown(noPermanent)
     }
   }, [coin1, coin2, currentJsonInfo])
-
-  useEffect(() => {
-    if (needPanelShown) {
-      setIsPanelShown(true)
-    }
-  }, [needPanelShown])
 
   const closePanel = () => setIsPanelShown(false)
 
@@ -378,7 +372,6 @@ function LiquidityCard() {
           token={coin2}
         />
       </>
-
       {/* info panel */}
       <FadeIn>{hasFoundLiquidityPool && <LiquidityCardInfo className="mt-5" />}</FadeIn>
 
@@ -394,7 +387,6 @@ function LiquidityCard() {
           />
         )}
       </FadeIn>
-
       {/* supply button */}
       <Button
         className="block frosted-glass-teal w-full mt-5"
@@ -446,10 +438,8 @@ function LiquidityCard() {
       >
         Add Liquidity
       </Button>
-
       {/* alert user if sol is not much */}
       <RemainSOLAlert />
-
       {/** coin selector panel */}
       <TokenSelectorDialog
         open={isCoinSelectorOn}
