@@ -12,6 +12,7 @@ import useToken from './useToken'
 export default function useLpTokensLoader() {
   const ammJsonInfos = useLiquidity((s) => s.jsonInfos)
   const tokens = useToken((s) => s.tokens)
+  const userAddedTokens = useToken((s) => s.userAddedTokens)
   const getToken = useToken((s) => s.getToken)
 
   useAsyncEffect(async () => {
@@ -21,8 +22,8 @@ export default function useLpTokensLoader() {
       sourceKey: 'load lp token',
       loopFn: (ammJsonInfo) => {
         // console.time('info') // too slow
-        const baseToken = getToken(ammJsonInfo.baseMint)
-        const quoteToken = getToken(ammJsonInfo.quoteMint)
+        const baseToken = getToken(ammJsonInfo.baseMint) ?? userAddedTokens[ammJsonInfo.baseMint] // depends on raw user Added tokens for avoid re-render
+        const quoteToken = getToken(ammJsonInfo.quoteMint) ?? userAddedTokens[ammJsonInfo.quoteMint]
         if (!baseToken || !quoteToken) return // NOTE :  no unknown base/quote lpToken
         // console.time('create lp')
         const lpToken = Object.assign(
@@ -49,5 +50,5 @@ export default function useLpTokensLoader() {
     // console.timeEnd('inner') // too slow
     const lpTokens = listToMap(shakeUndifindedItem(lpTokenItems), (t) => toPubString(t.mint))
     useToken.setState({ lpTokens, getLpToken: (mint) => lpTokens[toPubString(mint)] })
-  }, [ammJsonInfos, tokens, getToken])
+  }, [ammJsonInfos, tokens, userAddedTokens])
 }
