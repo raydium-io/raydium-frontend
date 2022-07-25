@@ -257,7 +257,7 @@ function SwapCard() {
       className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
     >
       {/* input twin */}
-      <div className="space-y-5 mt-5">
+      <div className="space-y-5 mt-5 mobile:mt-0">
         <CoinInputBox
           domRef={swapElementBox1}
           disabled={isApprovePanelShown}

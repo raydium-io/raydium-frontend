@@ -76,7 +76,7 @@ export default function FarmsPage() {
 function FarmHeader() {
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <Row className="flex-wrap items-center justify-center  px-2 py-1 mb-2 mobile:pt-3">
+    <Row className="flex-wrap items-center justify-center  px-2 py-1 mb-2">
       {/* <div className="text-lg font-semibold justify-self-start text-white -mb-1">Farms</div> */}
       {/* <div className="font-medium text-[rgba(196,214,255,.5)] text-2xs">
           Stake your LP tokens and earn token rewards

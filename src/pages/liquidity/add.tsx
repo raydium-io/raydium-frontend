@@ -293,12 +293,12 @@ function LiquidityCard() {
     <CyberpunkStyleCard
       domRef={cardRef}
       wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light"
-      className="py-8 pt-4 px-6 mobile:py-5"
+      className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
     >
       {/* input twin */}
       <>
         <CoinInputBox
-          className="mt-5"
+          className="mt-5 mobile:mt-0"
           disabled={isApprovePanelShown}
           noDisableStyle
           componentRef={coinInputBox1ComponentRef}
