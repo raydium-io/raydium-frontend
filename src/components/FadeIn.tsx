@@ -30,7 +30,11 @@ export default function FadeInStable({
       leaveFrom="opacity-100"
       leaveTo="opacity-0"
       beforeEnter={() => {
-        if (ignoreEnterTransition) return
+        if (ignoreEnterTransition) {
+          contentRef.current?.style.removeProperty('position')
+          contentRef.current?.style.removeProperty('visibility')
+          return
+        }
 
         window.requestAnimationFrame(() => {
           const height = contentRef.current?.clientHeight
