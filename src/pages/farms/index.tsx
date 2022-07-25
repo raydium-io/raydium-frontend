@@ -116,7 +116,7 @@ function ToolsButton({ className }: { className?: string }) {
                 <FarmStakedOnlyBlock />
                 <FarmRefreshCircleBlock />
                 <FarmTimeBasisSelectorBox />
-                <FarmCreateFarmEntryBlock />
+                {/* <FarmCreateFarmEntryBlock /> */} {/* TODO temp hide create farm entry in mobile */}
               </Grid>
             </Card>
           </div>
@@ -237,8 +237,8 @@ function FarmTabBlock({ className }: { className?: string }) {
   const currentTab = useFarms((s) => s.currentTab)
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <Tabs
-      showOffset={2}
+    <RowTabs
+      // showOffset={2} // TODO: temp for mobile
       currentValue={currentTab}
       urlSearchQueryKey="tab"
       values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}
