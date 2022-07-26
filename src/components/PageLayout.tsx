@@ -307,16 +307,7 @@ const walletToDialectWallet = (wallet: WalletContextState): DialectWalletAdapter
   connected: wallet.connected && !wallet.connecting && !wallet.disconnecting && Boolean(wallet.publicKey),
   signMessage: wallet.signMessage,
   signTransaction: wallet.signTransaction,
-  signAllTransactions: wallet.signAllTransactions,
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  //@ts-ignore
-  diffieHellman: wallet.wallet?.adapter?._wallet?.diffieHellman
-    ? async (pubKey) => {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        //@ts-ignore
-        return wallet.wallet?.adapter?._wallet?.diffieHellman(pubKey)
-      }
-    : undefined
+  signAllTransactions: wallet.signAllTransactions
 })
 
 function DialectNotificationsButton() {
@@ -333,8 +324,11 @@ function DialectNotificationsButton() {
 
   const dialectConfig = useMemo(
     (): Config => ({
-      backends: [Backend.DialectCloud, Backend.Solana],
-      environment: 'production'
+      backends: [Backend.DialectCloud],
+      environment: 'production',
+      dialectCloud: {
+        tokenStore: 'local-storage'
+      }
     }),
     []
   )
@@ -367,21 +361,18 @@ function DialectNotificationsButton() {
         modal: 'rounded-lg pc:!box-shadow-popup-white mobile:!box-shadow-none pt-1',
         modalWrapper: `fixed pc:h-[35rem] pc:w-[30rem] z-popover top-[5.5rem] right-auto -mr-4 mobile:mr-0 mobile:top-0 mobile:right-0 mobile:w-screen mobile:h-screen`,
         button:
-          'Button px-4 py-2.5 rounded-xl mobile:rounded-lg whitespace-nowrap appearance-none inline-block font-medium bg-formkit-thumb text-formkit-thumb-text-normal clickable clickable-filter-effect !frosted-glass-teal mobile:py-2 mobile:text-xs'
+          'Button px-4 py-2.5 rounded-xl mobile:rounded-lg whitespace-nowrap appearance-none inline-block font-medium bg-formkit-thumb text-formkit-thumb-text-normal clickable clickable-filter-effect !frosted-glass-teal mobile:py-2 mobile:text-xs',
+        section: 'dt-p-2 dt-rounded-2xl dt-border dt-border-outline-night'
       }
     }),
     [isMobile]
   )
 
   return (
-    // @ts-ignore
     <DialectContextProvider wallet={dialectWalletAdapter} config={dialectConfig} dapp={RAYDIUM_MONITORING_PUBLIC_KEY}>
       <DialectThemeProvider theme={'dark'} variables={themeVariables}>
         <DialectUiManagementProvider>
-          <NotificationsButton
-            dialectId="dialect-notifications"
-            notifications={[{ name: 'Welcome message', detail: 'On thread creation' }]}
-          />
+          <NotificationsButton dialectId="dialect-notifications" notifications={RAYDIUM_NOTIFICATION_TYPES} />
         </DialectUiManagementProvider>
       </DialectThemeProvider>
     </DialectContextProvider>
