@@ -215,6 +215,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
       ),
     [hydratedInfo]
   )
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   return (
     <AutoBox
       is={isMobile ? 'Col' : 'Row'}
@@ -323,6 +324,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
         <Button
           // disable={Number(info.pendingReward?.numerator) <= 0}
           className="frosted-glass frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"
+          isLoading={isApprovePanelShown}
           onClick={() => {
             txFarmHarvest(hydratedInfo, {
               isStaking: true,

@@ -984,6 +984,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
   const hasLp = isMeaningfulNumber(balances[toPubString(farmInfo.lpMint)])
   const hasPendingReward = farmInfo.rewards.some(({ userPendingReward }) => isMeaningfulNumber(userPendingReward))
   const logSuccess = useNotification((s) => s.logSuccess)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   return (
     <div
       className="rounded-b-3xl mobile:rounded-b-lg overflow-hidden"
@@ -1175,6 +1176,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
             <Button
               // disable={Number(info.pendingReward?.numerator) <= 0}
               className="frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"
+              isLoading={isApprovePanelShown}
               onClick={() => {
                 txFarmHarvest(farmInfo, {
                   isStaking: false,
@@ -1316,6 +1318,9 @@ function FarmStakeLpDialog() {
   const stakeDialogMode = useFarms((s) => s.stakeDialogMode)
 
   const [amount, setAmount] = useState<string>()
+
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+
   const userHasLpAccount = useMemo(
     () =>
       Boolean(stakeDialogFarmInfo?.lpMint) &&
@@ -1333,16 +1338,6 @@ function FarmStakeLpDialog() {
     if (!stakeDialogFarmInfo?.lp || !amount) return undefined
     return toTokenAmount(stakeDialogFarmInfo.lp, amount, { alreadyDecimaled: true })
   }, [stakeDialogFarmInfo, amount])
-  const isAvailableInput = useMemo(
-    () =>
-      Boolean(
-        userInputTokenAmount &&
-          gt(userInputTokenAmount, 0) &&
-          avaliableTokenAmount &&
-          gte(avaliableTokenAmount, userInputTokenAmount)
-      ),
-    [avaliableTokenAmount, userInputTokenAmount]
-  )
 
   // for keyboard navigation
   const coinInputBoxComponentRef = useRef<CoinInputBoxHandle>()
@@ -1393,11 +1388,16 @@ function FarmStakeLpDialog() {
             <Button
               className="frosted-glass-teal"
               componentRef={buttonComponentRef}
+              isLoading={isApprovePanelShown}
               validators={[
                 { should: connected },
                 { should: stakeDialogFarmInfo?.lp },
-                { should: isAvailableInput },
                 { should: amount },
+                { should: gt(userInputTokenAmount, 0) },
+                {
+                  should: gte(avaliableTokenAmount, userInputTokenAmount),
+                  fallbackProps: { children: 'Insufficient Lp Balance' }
+                },
                 {
                   should: stakeDialogMode == 'withdraw' ? true : userHasLpAccount,
                   fallbackProps: { children: 'No Stakable LP' }
@@ -1416,7 +1416,7 @@ function FarmStakeLpDialog() {
             >
               {stakeDialogMode === 'withdraw' ? 'Unstake LP' : 'Stake LP'}
             </Button>
-            <Button type="text" className="text-sm backdrop-filter-none" onClick={close}>
+            <Button type="text" disabled={isApprovePanelShown} className="text-sm backdrop-filter-none" onClick={close}>
               Cancel
             </Button>
           </Row>

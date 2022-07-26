@@ -297,6 +297,7 @@ function FaceButtonGroupClaim({ idoInfo }: { idoInfo: HydratedIdoInfo }) {
   const connected = useWallet((s) => s.connected)
   const owner = useWallet((s) => s.owner)
   const refreshIdo = useIdo((s) => s.refreshIdo)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const [, forceUpdate] = useForceUpdate()
 
   const [isBaseClaimed, setIsBaseClaimed] = useState(false)
@@ -318,6 +319,7 @@ function FaceButtonGroupClaim({ idoInfo }: { idoInfo: HydratedIdoInfo }) {
         <Button
           size={isMobile ? 'xs' : 'md'}
           className="frosted-glass-teal mobile:self-stretch w-[160px] mobile:w-[100%] whitespace-normal"
+          isLoading={isApprovePanelShown}
           validators={[
             { should: !isBaseClaimed },
             {
@@ -373,6 +375,7 @@ function FaceButtonGroupClaim({ idoInfo }: { idoInfo: HydratedIdoInfo }) {
         <Button
           size={isMobile ? 'xs' : 'md'}
           className="frosted-glass-teal mobile:self-stretch w-[160px] mobile:w-[100%] whitespace-normal"
+          isLoading={isApprovePanelShown}
           validators={[
             { should: !isQuoteClaimed },
             { should: connected },
