@@ -7,6 +7,8 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import { BooleanLike, MayFunction } from '@/types/constants'
 import { MayArray } from '@/types/generics'
 import Row from './Row'
+import LoadingCircle from './LoadingCircle'
+import LoadingCircleSmall from './LoadingCircleSmall'
 
 export interface ButtonHandle {
   click?: () => void
@@ -22,7 +24,7 @@ export interface ButtonProps {
   type?: 'solid' | 'outline' | 'text'
   /** unused tailwind style class string will be tree-shaked  */
   className?: string
-  isLoading?: boolean // TODO: imply it
+  isLoading?: boolean
   /** must all condition passed */
   validators?: MayArray<{
     /** must return true to pass this validator */
@@ -50,10 +52,20 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
     ...restProps,
     ...failedValidator?.fallbackProps
   }
-  const { type = 'solid', className = '', size, children, onClick, componentRef, suffix, prefix } = mergedProps
+  const {
+    type = 'solid',
+    className = '',
+    size,
+    children,
+    onClick,
+    componentRef,
+    suffix,
+    prefix,
+    isLoading
+  } = mergedProps
 
   const haveFallbackClick = Boolean(failedValidator?.fallbackProps?.onClick)
-  const isActive = failedValidator?.forceActive || (!failedValidator && !mergedProps.disabled)
+  const isActive = !isLoading && (failedValidator?.forceActive || (!failedValidator && !mergedProps.disabled))
 
   const ref = useRef<HTMLButtonElement>(null)
   useImperativeHandle(componentRef, () => ({
@@ -81,15 +93,12 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
         className
       )}
     >
-      {suffix || prefix ? (
-        <Row className="justify-center items-center gap-1">
-          {prefix}
-          <div>{children}</div>
-          {suffix}
-        </Row>
-      ) : (
-        children
-      )}
+      <Row className="justify-center items-center gap-2">
+        {isLoading && <LoadingCircleSmall className="w-4 h-4" />}
+        {prefix}
+        <div>{children}</div>
+        {suffix}
+      </Row>
     </button>
   )
 }
