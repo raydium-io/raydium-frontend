@@ -358,7 +358,7 @@ function DialectNotificationsButton() {
         },
         bellButton:
           'text-[#ABC4FF] opacity-60 hover:opacity-75 clickable clickable-filter-effect clickable-mask-offset-3a !bg-transparent',
-        modal: 'rounded-lg pc:!box-shadow-popup-white mobile:!box-shadow-none pt-1',
+        modal: 'rounded-lg pc:!box-shadow-popup-white mobile:!box-shadow-none pt-1 !shadow-cyberpunk-card',
         modalWrapper: `fixed pc:h-[35rem] pc:w-[30rem] z-popover top-[5.5rem] right-auto -mr-4 mobile:mr-0 mobile:top-0 mobile:right-0 mobile:w-screen mobile:h-screen`,
         button:
           'Button px-4 py-2.5 rounded-xl mobile:rounded-lg whitespace-nowrap appearance-none inline-block font-medium bg-formkit-thumb text-formkit-thumb-text-normal clickable clickable-filter-effect !frosted-glass-teal mobile:py-2 mobile:text-xs',
