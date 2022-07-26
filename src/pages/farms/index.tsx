@@ -984,6 +984,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
   const hasLp = isMeaningfulNumber(balances[toPubString(farmInfo.lpMint)])
   const hasPendingReward = farmInfo.rewards.some(({ userPendingReward }) => isMeaningfulNumber(userPendingReward))
   const logSuccess = useNotification((s) => s.logSuccess)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   return (
     <div
       className="rounded-b-3xl mobile:rounded-b-lg overflow-hidden"
@@ -1175,6 +1176,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
             <Button
               // disable={Number(info.pendingReward?.numerator) <= 0}
               className="frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"
+              isLoading={isApprovePanelShown}
               onClick={() => {
                 txFarmHarvest(farmInfo, {
                   isStaking: false,
@@ -1316,6 +1318,9 @@ function FarmStakeLpDialog() {
   const stakeDialogMode = useFarms((s) => s.stakeDialogMode)
 
   const [amount, setAmount] = useState<string>()
+
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+
   const userHasLpAccount = useMemo(
     () =>
       Boolean(stakeDialogFarmInfo?.lpMint) &&
@@ -1393,6 +1398,7 @@ function FarmStakeLpDialog() {
             <Button
               className="frosted-glass-teal"
               componentRef={buttonComponentRef}
+              isLoading={isApprovePanelShown}
               validators={[
                 { should: connected },
                 { should: stakeDialogFarmInfo?.lp },

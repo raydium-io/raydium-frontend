@@ -12,6 +12,7 @@ import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { toString } from '@/functions/numberish/toString'
+import useAppSettings from '@/application/appSettings/useAppSettings'
 
 export function StakingPageStakeLpDialog() {
   const connected = useWallet((s) => s.connected)
@@ -22,6 +23,7 @@ export function StakingPageStakeLpDialog() {
   const stakeDialogMode = useStaking((s) => s.stakeDialogMode)
   const isStakeDialogOpen = useStaking((s) => s.isStakeDialogOpen)
   const [amount, setAmount] = useState<string>()
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
   const userHasLp = useMemo(
     () =>
@@ -89,6 +91,7 @@ export function StakingPageStakeLpDialog() {
           <Row className="flex-col gap-1">
             <Button
               className="frosted-glass-teal"
+              isLoading={isApprovePanelShown}
               validators={[
                 { should: connected },
                 { should: stakeDialogInfo?.lp },

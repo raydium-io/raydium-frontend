@@ -47,6 +47,7 @@ function PanelContent({ close }: { close(): void }) {
   // const { currentStep, setCurrentStep } = usePageData()
   const currentStep = useCreatePool((s) => s.currentStep)
   const setCurrentStep = useCreatePool((s) => s.setCurrentStep)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
   const {
     marketId,
@@ -160,6 +161,7 @@ function PanelContent({ close }: { close(): void }) {
 
       <Button
         className="frosted-glass-teal w-full"
+        isLoading={isApprovePanelShown}
         validators={[{ should: Boolean(baseAmount && quoteAmount) }]}
         onClick={() => {
           txCreateAndInitNewPool({

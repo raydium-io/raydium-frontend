@@ -186,6 +186,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
   const owner = useWallet((s) => s.owner)
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
   const isMobile = useAppSettings((s) => s.isMobile)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const refreshIdo = useIdo((s) => s.refreshIdo)
 
   const [, forceUpdate] = useForceUpdate()
@@ -254,6 +255,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                       <Button
                         size={isMobile ? 'sm' : 'md'}
                         className="frosted-glass-teal mobile:w-full"
+                        isLoading={isApprovePanelShown}
                         validators={[
                           { should: !isBaseClaimed },
                           {
@@ -309,6 +311,7 @@ function WinningTicketPanel({ className }: { className?: string }) {
                       <Button
                         size={isMobile ? 'sm' : 'md'}
                         className="frosted-glass-teal mobile:w-full"
+                        isLoading={isApprovePanelShown}
                         validators={[
                           { should: !isQuoteClaimed },
                           { should: connected },
@@ -874,6 +877,7 @@ function LotteryProjectInfoPanel({ className }: { className?: string }) {
 function LotteryInputPanel({ className }: { className?: string }) {
   const tempJoined = useIdo((s) => s.tempJoined)
   const idoInfo = useIdo((s) => (s.currentIdoId ? s.idoHydratedInfos[s.currentIdoId] : undefined))
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const { connected, balances, checkWalletHasEnoughBalance, owner } = useWallet()
   const refreshIdo = useIdo((s) => s.refreshIdo)
   const refreshSelf = () => refreshIdo(idoInfo?.id)
@@ -1016,6 +1020,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
       </div>
       <Button
         className="block w-full frosted-glass-teal"
+        isLoading={isApprovePanelShown}
         validators={[
           {
             should: !idoInfo?.isClosed,

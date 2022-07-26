@@ -38,6 +38,7 @@ export default function CreateFarmReviewPage() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const refreshFarmInfos = useFarms((s) => s.refreshFarmInfos)
   const [key, setKey] = useState(String(Date.now())) // hacking: same block hash can only success once
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   useEffect(() => {
     setKey(String(Date.now()))
   }, [pathname])
@@ -50,6 +51,7 @@ export default function CreateFarmReviewPage() {
   const createFarmButton = (
     <Button
       className="frosted-glass-teal px-16 self-stretch mobile:w-full"
+      isLoading={isApprovePanelShown}
       size={isMobile ? 'sm' : 'lg'}
       validators={[{ should: haveOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
       onClick={async () => {

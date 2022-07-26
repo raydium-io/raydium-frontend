@@ -360,6 +360,7 @@ function SwapCard() {
         <Button
           className="w-full frosted-glass-teal mt-5"
           componentRef={swapButtonComponentRef}
+          isLoading={isApprovePanelShown}
           validators={[
             {
               should: walletConnected,
