@@ -376,17 +376,15 @@ function LiquidityCard() {
       <FadeIn>{hasFoundLiquidityPool && <LiquidityCardInfo className="mt-5" />}</FadeIn>
 
       {/* confirm panel */}
-      <FadeIn>
-        {needConfirmPanel && connected && (
-          <ConfirmRiskPanel
-            className="mt-5"
-            temporarilyConfirm={hasUserTemporaryConfirmed}
-            permanentlyConfirm={hasUserPermanentConfirmed}
-            onTemporarilyConfirm={toggleTemporarilyConfirm}
-            onPermanentlyConfirm={togglePermanentlyConfirm}
-          />
-        )}
-      </FadeIn>
+      {needConfirmPanel && connected && (
+        <ConfirmRiskPanel
+          className="mt-5"
+          temporarilyConfirm={hasUserTemporaryConfirmed}
+          permanentlyConfirm={hasUserPermanentConfirmed}
+          onTemporarilyConfirm={toggleTemporarilyConfirm}
+          onPermanentlyConfirm={togglePermanentlyConfirm}
+        />
+      )}
       {/* supply button */}
       <Button
         className="block frosted-glass-teal w-full mt-5"
