@@ -335,16 +335,18 @@ function LiquidityCard() {
                 useLiquidity.setState({ isSearchAmmDialogOpen: true })
               }}
             />
-            <RefreshCircle
-              run={!isApprovePanelShown}
-              refreshKey="liquidity/add"
-              popPlacement="right-bottom"
-              freshFunction={() => {
-                if (isApprovePanelShown) return
-                refreshLiquidity()
-                refreshTokenPrice()
-              }}
-            />
+            <div className={isApprovePanelShown ? 'not-clickable' : 'clickable'}>
+              <RefreshCircle
+                run={!isApprovePanelShown}
+                refreshKey="liquidity/add"
+                popPlacement="right-bottom"
+                freshFunction={() => {
+                  if (isApprovePanelShown) return
+                  refreshLiquidity()
+                  refreshTokenPrice()
+                }}
+              />
+            </div>
           </Row>
         </div>
 
