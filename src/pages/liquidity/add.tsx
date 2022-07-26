@@ -325,7 +325,9 @@ function LiquidityCard() {
             <Icon
               size="sm"
               heroIconName="search"
-              className="p-2 frosted-glass frosted-glass-teal rounded-full mr-4 clickable text-[#39D0D8] select-none"
+              className={`p-2 frosted-glass frosted-glass-teal rounded-full mr-4 clickable text-[#39D0D8] select-none ${
+                isApprovePanelShown ? 'not-clickable' : ''
+              }`}
               onClick={() => {
                 useLiquidity.setState({ isSearchAmmDialogOpen: true })
               }}
