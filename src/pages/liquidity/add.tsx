@@ -386,7 +386,7 @@ function LiquidityCard() {
       )}
       {/* supply button */}
       <Button
-        className="block frosted-glass-teal w-full mt-5"
+        className="frosted-glass-teal w-full mt-5"
         componentRef={liquidityButtonComponentRef}
         isLoading={isApprovePanelShown}
         validators={[
