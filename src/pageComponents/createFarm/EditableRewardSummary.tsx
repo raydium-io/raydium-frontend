@@ -200,80 +200,83 @@ export function EditableRewardSummary({
             )
           }
         }}
-        renderRowEntry={({ contentNode, itemData: reward, changeSelf }) => {
+        renderItemActionButtons={({ changeSelf, itemData: reward, index }) => {
           const isRewardBeforeStart = reward.originData?.isRewardBeforeStart
-          const isRewardEditable = reward.originData?.isRwardingBeforeEnd72h || reward.originData?.isRewardEnded
-          const isRewardOwner = owner && isMintEqual(owner, reward.owner)
-          const isRewardEdited = hasRewardBeenEdited(reward)
+          const isRewardEditable = true
+          const isRewardOwner = true
+          const isRewardEdited = false /* test: hasRewardBeenEdited(reward) */
+          const showEditBefore72h =
+            index % 2 == 0 /* test: reward.originData?.isRwardingBeforeEnd72h */ && !isRewardEdited
+          const showEditAfterEnded = index % 2 == 1 /* reward.originData?.isRewardEnded */
+          const canShow = showEditAfterEnded || showEditBefore72h
+          const hasButton =
+            (canUserEdit && canShow && isRewardEditable && !isRewardBeforeStart) || (isRewardEdited && isMobile)
+          if (!hasButton) return
           return (
-            <div className={isRewardBeforeStart ? 'not-selectable' : ''}>
-              {contentNode}
-              {canUserEdit && isRewardEditable && (
-                <div className="bg-[#abc4ff1a] rounded-md p-2 mb-4 empty:hidden">
-                  {reward.originData?.isRwardingBeforeEnd72h && !isRewardEdited && (
-                    <Col
-                      className="items-center clickable"
-                      onClick={() => {
-                        onClickIncreaseReward?.({ reward })
-                      }}
-                    >
-                      <Row className="items-center gap-1">
+            <div className="bg-[#abc4ff1a] mobile:bg-transparent rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
+              <Grid className={`grid-cols-auto-fit mobile:grid-cols-1 gap-board empty:hidden`}>
+                {showEditBefore72h && (
+                  <Button
+                    noComponentCss
+                    className="flex-col items-center clickable mobile:py-4"
+                    onClick={() => {
+                      onClickIncreaseReward?.({ reward })
+                    }}
+                  >
+                    <Row className="items-center gap-1">
+                      <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
+                      <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
+                    </Row>
+                    <div className="text-xs text-[#abc4ff80] font-medium">(no rate changed allowed)</div>
+                  </Button>
+                )}
+                {showEditAfterEnded && (
+                  <>
+                    {!isRewardEdited && (
+                      <Button
+                        noComponentCss
+                        className={`flex items-center justify-center gap-1 min-h-[36px] mobile:py-4 clickable ${
+                          isRewardOwner ? '' : 'not-clickable'
+                        }`}
+                        onClick={() => onClickIncreaseReward?.({ reward })}
+                      >
                         <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
                         <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
-                      </Row>
-                      <div className="text-xs text-[#abc4ff80] font-medium">(no rate changed allowed)</div>
-                    </Col>
-                  )}
+                      </Button>
+                    )}
 
-                  {reward.originData?.isRewardEnded && (
-                    <Grid
-                      className={`${
-                        isRewardEdited ? 'grid-cols-1' : 'grid-cols-2'
-                      } gap-board min-h-[36px] empty:hidden`}
+                    <Button
+                      noComponentCss
+                      className={`flex items-center justify-center gap-1 min-h-[36px] mobile:py-4 clickable ${
+                        isRewardOwner && isMeaningfulNumber(toString(reward.originData?.claimableRewards))
+                          ? ''
+                          : 'not-clickable'
+                      }`}
+                      onClick={() =>
+                        onClaimReward?.({
+                          reward,
+                          onTxSuccess: () => {
+                            setTimeout(() => {
+                              useCreateFarms.setState((s) =>
+                                produce(s, (draft) => {
+                                  const target = draft.rewards.find((r) => r.id === reward.id)
+                                  if (target?.originData) {
+                                    target.originData.claimableRewards =
+                                      target?.token && toTokenAmount(target?.token, 0)
+                                  }
+                                  if (target) target.claimableRewards = target?.token && toTokenAmount(target?.token, 0)
+                                })
+                              )
+                            }, 300) // disable in UI
+                          }
+                        })
+                      }
                     >
-                      {!isRewardEdited && (
-                        <Row
-                          className={`items-center justify-center gap-1 clickable ${
-                            isRewardOwner ? '' : 'not-clickable'
-                          }`}
-                          onClick={() => onClickIncreaseReward?.({ reward })}
-                        >
-                          <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
-                          <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
-                        </Row>
-                      )}
-
-                      <Row
-                        className={`items-center justify-center gap-1 clickable ${
-                          isRewardOwner && isMeaningfulNumber(toString(reward.originData.claimableRewards))
-                            ? ''
-                            : 'not-clickable'
-                        }`}
-                        onClick={() =>
-                          onClaimReward?.({
-                            reward,
-                            onTxSuccess: () => {
-                              setTimeout(() => {
-                                useCreateFarms.setState((s) =>
-                                  produce(s, (draft) => {
-                                    const target = draft.rewards.find((r) => r.id === reward.id)
-                                    if (target?.originData) {
-                                      target.originData.claimableRewards =
-                                        target?.token && toTokenAmount(target?.token, 0)
-                                    }
-                                    if (target)
-                                      target.claimableRewards = target?.token && toTokenAmount(target?.token, 0)
-                                  })
-                                )
-                              }, 300) // disable in UI
-                            }
-                          })
-                        }
-                      >
-                        <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
-                        <Col>
-                          <Row className="text-xs text-[#abc4ff] font-medium">
-                            <div>Claim unemmitted rewards</div>
+                      <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
+                      <Col>
+                        <Row className="text-xs text-[#abc4ff] font-medium">
+                          <div>Claim unemmitted rewards</div>
+                          {!isMobile && (
                             <Tooltip>
                               <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
                               <Tooltip.Panel>
@@ -284,31 +287,42 @@ export function EditableRewardSummary({
                                 </div>
                               </Tooltip.Panel>
                             </Tooltip>
-                          </Row>
-                          <div className="text-xs text-[#abc4ff80] font-medium">
-                            {toString(reward.originData.claimableRewards)}{' '}
-                            {reward.originData.claimableRewards?.token.symbol ?? 'UNKNOWN'}
-                          </div>
-                        </Col>
-                      </Row>
-                    </Grid>
-                  )}
-                </div>
-              )}
-              {hasRewardBeenEdited(reward) && (
-                <Badge
-                  className={`absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full ${
-                    canUserEdit ? 'cursor-pointer' : ''
-                  }`}
-                  cssColor="#39d0d8"
-                  onClick={() => {
-                    canUserEdit && changeSelf({ ...reward, ...reward.originData })
-                  }}
-                >
-                  {canUserEdit ? 'Reset' : 'Added'}
-                </Badge>
-              )}
+                          )}
+                        </Row>
+                        <div className="text-xs text-[#abc4ff80] font-medium">
+                          {toString(reward.originData?.claimableRewards)}{' '}
+                          {reward.originData?.claimableRewards?.token.symbol ?? 'UNKNOWN'}
+                        </div>
+                      </Col>
+                    </Button>
+                  </>
+                )}
+                {isRewardEdited && isMobile && (
+                  <Row
+                    className="items-center justify-center gap-1 min-h-[36px] mobile:py-4 clickable text-xs text-[#abc4ff] font-medium"
+                    onClick={() => canUserEdit && changeSelf({ ...reward, ...reward.originData })}
+                  >
+                    <Icon iconSrc="/icons/create-farm-undo.svg" size="xs" className="text-[#abc4ff80]" />
+                    Reset
+                  </Row>
+                )}
+              </Grid>
             </div>
+          )
+        }}
+        renderControlButtons={({ changeSelf, itemData: reward }) => {
+          const isRewardEdited = true /* hasRewardBeenEdited(reward) */
+          if (isMobile || !isRewardEdited) return null
+          return (
+            <Badge
+              className={canUserEdit ? 'cursor-pointer' : ''}
+              cssColor={canUserEdit ? '#abc4ff' : '#39d0d8'}
+              onClick={() => {
+                canUserEdit && changeSelf({ ...reward, ...reward.originData })
+              }}
+            >
+              {canUserEdit ? 'Reset' : 'Added'}
+            </Badge>
           )
         }}
         onListChange={(list) => {

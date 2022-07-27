@@ -16,6 +16,7 @@ export interface ButtonHandle {
 }
 export interface ButtonProps {
   size?: 'xs' | 'md' | 'sm' | 'lg'
+  noComponentCss?: boolean
   // used in "connect wallet" button, it's order is over props: disabled
   forceActive?: boolean
   /** a short cut for validator */
@@ -55,6 +56,7 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
   const {
     type = 'solid',
     className = '',
+    noComponentCss,
     size,
     children,
     onClick,
@@ -83,15 +85,19 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
         if (!isActive) ev.stopPropagation()
         if (isActive || haveFallbackClick) onClick?.({ ev })
       }}
-      className={twMerge(
-        'Button select-none',
-        type === 'text'
-          ? textButtonTailwind({ size, disable: !isActive, haveFallbackClick })
-          : type === 'outline'
-          ? outlineButtonTailwind({ size, disable: !isActive, haveFallbackClick })
-          : solidButtonTailwind({ size, disable: !isActive, haveFallbackClick }),
-        className
-      )}
+      className={
+        noComponentCss
+          ? className
+          : twMerge(
+              'Button select-none',
+              type === 'text'
+                ? textButtonTailwind({ size, disable: !isActive, haveFallbackClick })
+                : type === 'outline'
+                ? outlineButtonTailwind({ size, disable: !isActive, haveFallbackClick })
+                : solidButtonTailwind({ size, disable: !isActive, haveFallbackClick }),
+              className
+            )
+      }
     >
       <Row className="justify-center items-center gap-2">
         {isLoading && <LoadingCircleSmall className="w-4 h-4" />}
