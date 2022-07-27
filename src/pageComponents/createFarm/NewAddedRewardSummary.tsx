@@ -58,7 +58,7 @@ export function NewAddedRewardSummary({
           cssGridItemWidth: '.6fr'
         },
         {
-          label: 'Period (yy-mm-dd)',
+          label: 'Period',
           cssGridItemWidth: '1.5fr'
         },
         {
@@ -127,7 +127,7 @@ export function NewAddedRewardSummary({
           )
         }
 
-        if (label === 'Period (yy-mm-dd)') {
+        if (label === 'Period') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
           if (!reward.startTime || !reward.endTime) return
           return (

@@ -7,6 +7,7 @@ import { routeBack, routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
+import Col from '@/components/Col'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import assert from '@/functions/assert'
@@ -27,6 +28,7 @@ export default function EditReviewPage() {
   const getToken = useToken((s) => s.getToken)
   const { poolId, rewards, farmId } = useCreateFarms()
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const isMobile = useAppSettings((s) => s.isMobile)
   const canCreateFarm = useMemo(
     () =>
       tryCatch(
@@ -50,28 +52,59 @@ export default function EditReviewPage() {
 
   useAvailableCheck()
 
+  const confirmFarmButton = (
+    <Button
+      className="frosted-glass-teal"
+      isLoading={isApprovePanelShown}
+      size={isMobile ? 'sm' : 'lg'}
+      validators={[{ should: newRewards.length > 0 || editedRewards.length > 0 }]}
+      onClick={() => {
+        txUpdateEdited({
+          onTxSuccess: () => {
+            setTimeout(() => {
+              routeTo('/farms', { queryProps: { currentTab: 'Ecosystem' } })
+              useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
+              useFarms.getState().refreshFarmInfos()
+              useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
+            }, 1000)
+          }
+        })
+      }}
+    >
+      Confirm Farm Changes
+    </Button>
+  )
+
+  const editButton = (
+    <Button className="frosted-glass-skygray mobile:w-full" size={isMobile ? 'sm' : 'lg'} onClick={routeBack}>
+      Edit
+    </Button>
+  )
+
   return (
-    <PageLayout metaTitle="Farms - Raydium">
+    <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Edit Farm">
       <div className="self-center w-[min(720px,90vw)]">
-        <Row className="mb-8 justify-self-start items-baseline gap-2">
-          <div className="text-2xl mobile:text-lg font-semibold text-white">Edit Farm</div>
-          {farmId && (
-            <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">
-              Farm ID:
-              <div className="inline-block ml-1">
-                <AddressItem
-                  className="flex-nowrap whitespace-nowrap"
-                  canCopy
-                  iconClassName="hidden"
-                  textClassName="text-sm mobile:text-xs font-semibold text-[#abc4ff80] whitespace-nowrap"
-                  showDigitCount={6}
-                >
-                  {farmId}
-                </AddressItem>
+        {!isMobile && (
+          <Row className="mb-8 justify-self-start items-baseline gap-2">
+            <div className="text-2xl mobile:text-lg font-semibold text-white">Edit Farm</div>
+            {farmId && (
+              <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">
+                Farm ID:
+                <div className="inline-block ml-1">
+                  <AddressItem
+                    className="flex-nowrap whitespace-nowrap"
+                    canCopy
+                    iconClassName="hidden"
+                    textClassName="text-sm mobile:text-xs font-semibold text-[#abc4ff80] whitespace-nowrap"
+                    showDigitCount={6}
+                  >
+                    {farmId}
+                  </AddressItem>
+                </div>
               </div>
-            </div>
-          )}
-        </Row>
+            )}
+          </Row>
+        )}
 
         <div className="mb-8 text-xl mobile:text-lg font-semibold justify-self-start text-white">
           Review farm details
@@ -94,31 +127,17 @@ export default function EditReviewPage() {
           </div>
         )}
 
-        <Row className="gap-5 mt-12 justify-center">
-          <Button
-            className="frosted-glass-teal"
-            isLoading={isApprovePanelShown}
-            size="lg"
-            validators={[{ should: newRewards.length > 0 || editedRewards.length > 0 }]}
-            onClick={() => {
-              txUpdateEdited({
-                onTxSuccess: () => {
-                  setTimeout(() => {
-                    routeTo('/farms', { queryProps: { currentTab: 'Ecosystem' } })
-                    useCreateFarms.setState({ rewards: [createNewUIRewardInfo()] })
-                    useFarms.getState().refreshFarmInfos()
-                    useCreateFarms.setState({ isRoutedByCreateOrEdit: false })
-                  }, 1000)
-                }
-              })
-            }}
-          >
-            Confirm Farm Changes
-          </Button>
-          <Button className="frosted-glass-skygray" size="lg" onClick={routeBack}>
-            Edit
-          </Button>
-        </Row>
+        {isMobile ? (
+          <Col className="gap-3 mt-12 justify-center">
+            {confirmFarmButton}
+            {editButton}
+          </Col>
+        ) : (
+          <Row className="gap-5 mt-12 justify-center">
+            {confirmFarmButton}
+            {editButton}
+          </Row>
+        )}
       </div>
     </PageLayout>
   )

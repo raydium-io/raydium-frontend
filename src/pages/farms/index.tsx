@@ -117,7 +117,7 @@ function ToolsButton({ className }: { className?: string }) {
                 <FarmStakedOnlyBlock />
                 <FarmRefreshCircleBlock />
                 <FarmTimeBasisSelectorBox />
-                {/* <FarmCreateFarmEntryBlock /> */} {/* TODO temp hide create farm entry in mobile */}
+                <FarmCreateFarmEntryBlock /> {/* TODO temp hide create farm entry in mobile */}
               </Grid>
             </Card>
           </div>
@@ -1293,6 +1293,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
         <Row className="bg-[#14104133] py-3 px-8 justify-end">
           <Button
             className="frosted-glass-teal"
+            size={isMobile ? 'sm' : 'md'}
             onClick={() => {
               useCreateFarms.setState({
                 isRoutedByCreateOrEdit: true

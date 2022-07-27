@@ -24,6 +24,7 @@ import { TimeStamp } from '@/functions/date/interface'
 import { Numberish } from '@/types/constants'
 import Tooltip from '@/components/Tooltip'
 import Button from '@/components/Button'
+import useAppSettings from '@/application/appSettings/useAppSettings'
 
 export function EditableRewardSummary({
   canUserEdit,
@@ -40,6 +41,7 @@ export function EditableRewardSummary({
   onClaimAllReward?(payload: { rewards: UIRewardInfo[]; onTxSuccess?: () => void }): void
 }) {
   const rewards = useCreateFarms((s) => s.rewards)
+  const isMobile = useAppSettings((s) => s.isMobile)
   const editableRewards = rewards.filter((r) => r.type === 'existed reward')
   const owner = useWallet((s) => s.owner)
   const isCreator = rewards.every((reward) => isMintEqual(owner, reward.owner))
@@ -51,6 +53,8 @@ export function EditableRewardSummary({
     <Col>
       <ListTable
         list={editableRewards}
+        type={isMobile ? 'item-card' : 'list-table'}
+        className={isMobile ? 'gap-4' : ''}
         getItemKey={(r) => getRewardSignature(r)}
         labelMapper={[
           {
@@ -65,7 +69,7 @@ export function EditableRewardSummary({
             cssGridItemWidth: '.6fr'
           },
           {
-            label: 'Period (yy-mm-dd)',
+            label: 'Period',
             cssGridItemWidth: '1.5fr'
           },
           {
@@ -134,7 +138,7 @@ export function EditableRewardSummary({
             )
           }
 
-          if (label === 'Period (yy-mm-dd)') {
+          if (label === 'Period') {
             if (reward.isRewarding && reward.version === 'v3/v5') return '--'
             if (!reward.startTime || !reward.endTime) return
             return (
