@@ -252,9 +252,11 @@ export default function FarmEditPage() {
         <Card
           className={`p-6 mobile:p-4 rounded-3xl mobile:rounded-xl ring-1 ring-inset ring-[#abc4ff1a] bg-[#1B1659] relative`}
         >
-          <div className="absolute -left-4 top-5 -translate-x-full">
-            <Icon iconSrc="/icons/create-farm-info-circle.svg" iconClassName="w-7 h-7" />
-          </div>
+          {!isMobile && (
+            <div className="absolute -left-4 top-5 -translate-x-full">
+              <Icon iconSrc="/icons/create-farm-info-circle.svg" iconClassName="w-7 h-7" />
+            </div>
+          )}
 
           <div className="font-medium text-base mobile:text-sm text-[#abc4ff] mb-3">How to add more rewards?</div>
 

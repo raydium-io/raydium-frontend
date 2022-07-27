@@ -98,14 +98,16 @@ export function EditableRewardSummary({
 
           if (label === 'Amount') {
             if (reward.isRewarding && reward.version === 'v3/v5') return '--'
+            const showNewAmount = reward.amount && !eq(reward.amount, reward.originData?.amount)
+            const isCoveredByNewData = isMobile && showNewAmount
             return (
-              <Grid className={`gap-4 ${hasBeenEdited ? 'grid-rows-2' : ''} h-full`}>
-                {reward.originData?.amount ? (
+              <Grid className={`gap-4 h-full`}>
+                {reward.originData?.amount && !isCoveredByNewData ? (
                   <Col className="grow break-all justify-center">
                     {formatNumber(reward.originData.amount, { fractionLength: reward.token?.decimals ?? 6 })}
                   </Col>
                 ) : undefined}
-                {hasBeenEdited ? (
+                {showNewAmount ? (
                   <Col className="grow break-all justify-center text-[#39d0d8]">
                     {formatNumber(reward.amount, { fractionLength: reward.token?.decimals ?? 6 })}
                   </Col>
@@ -122,17 +124,20 @@ export function EditableRewardSummary({
               return duration.hours ? `${duration.days}D ${duration.hours}H` : `${duration.days}D`
             }
 
+            const originDuration =
+              reward.originData?.startTime &&
+              reward.originData.endTime &&
+              getDurationText(reward.originData.startTime, reward.originData.endTime)
+            const newDuration = reward.startTime && reward.endTime && getDurationText(reward.startTime, reward.endTime)
+            const showNewDuration = !eq(newDuration, originDuration)
+            const isCoveredByNewData = isMobile && showNewDuration
             return (
-              <Grid className={`gap-4 ${hasBeenEdited ? 'grid-rows-2' : ''} h-full`}>
-                {reward.originData?.startTime && reward.originData.endTime ? (
-                  <Col className="grow break-all justify-center">
-                    {getDurationText(reward.originData.startTime, reward.originData.endTime)}
-                  </Col>
+              <Grid className={`gap-4 h-full`}>
+                {reward.originData?.startTime && reward.originData.endTime && !isCoveredByNewData ? (
+                  <Col className="grow break-all justify-center">{originDuration}</Col>
                 ) : undefined}
-                {hasBeenEdited && reward.startTime && reward.endTime ? (
-                  <Col className="grow break-all justify-center text-[#39d0d8]">
-                    {getDurationText(reward.startTime, reward.endTime)}
-                  </Col>
+                {showNewDuration && reward.startTime && reward.endTime ? (
+                  <Col className="grow break-all justify-center text-[#39d0d8]">{newDuration}</Col>
                 ) : undefined}
               </Grid>
             )
@@ -141,15 +146,18 @@ export function EditableRewardSummary({
           if (label === 'Period') {
             if (reward.isRewarding && reward.version === 'v3/v5') return '--'
             if (!reward.startTime || !reward.endTime) return
+            const showNewDate =
+              reward.startTime && !eq(reward.startTime.getTime(), reward.originData?.startTime?.getTime())
+            const isCoveredByNewData = isMobile && showNewDate
             return (
-              <Grid className={`gap-4 ${hasBeenEdited ? 'grid-rows-2' : ''} h-full`}>
-                {reward.originData?.startTime && reward.originData.endTime ? (
+              <Grid className={`gap-4 h-full`}>
+                {reward.originData?.startTime && reward.originData.endTime && !isCoveredByNewData ? (
                   <Col className="grow justify-center">
                     <div>{toUTC(reward.originData.startTime)}</div>
                     <div>{toUTC(reward.originData.endTime)}</div>
                   </Col>
                 ) : undefined}
-                {hasBeenEdited ? (
+                {showNewDate ? (
                   <Col className="grow justify-center text-[#39d0d8]">
                     <div>{toUTC(reward.startTime)}</div>
                     <div>{toUTC(reward.endTime)}</div>
@@ -178,9 +186,10 @@ export function EditableRewardSummary({
                 ? getEstimatedValue(reward.amount, reward.startTime, reward.endTime)
                 : undefined
             const showEditedEstimated = editedEstimatedValue && !eq(originEstimatedValue, editedEstimatedValue)
+            const isCoveredByNewData = isMobile && showEditedEstimated
             return (
-              <Grid className={`gap-4 ${showEditedEstimated ? 'grid-rows-2' : ''} h-full`}>
-                {originEstimatedValue && (
+              <Grid className={`gap-4 h-full`}>
+                {originEstimatedValue && !isCoveredByNewData && (
                   <Col className="grow justify-center text-xs">
                     <div>
                       {toString(originEstimatedValue)} {reward.originData?.token?.symbol}/day
