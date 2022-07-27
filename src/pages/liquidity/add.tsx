@@ -955,7 +955,7 @@ function CreatePoolCardEntry() {
             }}
           >
             <Icon className="mr-2" heroIconName="plus" />
-            Create Pool
+            <div>Create Pool</div>
           </Button>
         </Row>
       </Card>
