@@ -1339,16 +1339,6 @@ function FarmStakeLpDialog() {
     if (!stakeDialogFarmInfo?.lp || !amount) return undefined
     return toTokenAmount(stakeDialogFarmInfo.lp, amount, { alreadyDecimaled: true })
   }, [stakeDialogFarmInfo, amount])
-  const isAvailableInput = useMemo(
-    () =>
-      Boolean(
-        userInputTokenAmount &&
-          gt(userInputTokenAmount, 0) &&
-          avaliableTokenAmount &&
-          gte(avaliableTokenAmount, userInputTokenAmount)
-      ),
-    [avaliableTokenAmount, userInputTokenAmount]
-  )
 
   // for keyboard navigation
   const coinInputBoxComponentRef = useRef<CoinInputBoxHandle>()
@@ -1403,8 +1393,12 @@ function FarmStakeLpDialog() {
               validators={[
                 { should: connected },
                 { should: stakeDialogFarmInfo?.lp },
-                { should: isAvailableInput },
                 { should: amount },
+                { should: gt(userInputTokenAmount, 0) },
+                {
+                  should: gte(avaliableTokenAmount, userInputTokenAmount),
+                  fallbackProps: { children: 'Insufficient Lp Balance' }
+                },
                 {
                   should: stakeDialogMode == 'withdraw' ? true : userHasLpAccount,
                   fallbackProps: { children: 'No Stakable LP' }
@@ -1423,7 +1417,7 @@ function FarmStakeLpDialog() {
             >
               {stakeDialogMode === 'withdraw' ? 'Unstake LP' : 'Stake LP'}
             </Button>
-            <Button type="text" className="text-sm backdrop-filter-none" onClick={close}>
+            <Button type="text" disabled={isApprovePanelShown} className="text-sm backdrop-filter-none" onClick={close}>
               Cancel
             </Button>
           </Row>

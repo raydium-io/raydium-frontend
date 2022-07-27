@@ -102,7 +102,7 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
       <Row className="justify-center items-center gap-2">
         {isLoading && <LoadingCircleSmall className="w-4 h-4" />}
         {prefix}
-        <div>{children}</div>
+        {children}
         {suffix}
       </Row>
     </button>

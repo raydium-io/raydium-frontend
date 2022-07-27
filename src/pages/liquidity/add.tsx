@@ -325,7 +325,9 @@ function LiquidityCard() {
             <Icon
               size="sm"
               heroIconName="search"
-              className="p-2 frosted-glass frosted-glass-teal rounded-full mr-4 clickable text-[#39D0D8] select-none"
+              className={`p-2 frosted-glass frosted-glass-teal rounded-full mr-4 clickable text-[#39D0D8] select-none ${
+                isApprovePanelShown ? 'not-clickable' : ''
+              }`}
               onClick={() => {
                 useLiquidity.setState({ isSearchAmmDialogOpen: true })
               }}
@@ -373,17 +375,15 @@ function LiquidityCard() {
       <FadeIn>{hasFoundLiquidityPool && <LiquidityCardInfo className="mt-5" />}</FadeIn>
 
       {/* confirm panel */}
-      <FadeIn>
-        {needConfirmPanel && connected && (
-          <ConfirmRiskPanel
-            className="mt-5"
-            temporarilyConfirm={hasUserTemporaryConfirmed}
-            permanentlyConfirm={hasUserPermanentConfirmed}
-            onTemporarilyConfirm={toggleTemporarilyConfirm}
-            onPermanentlyConfirm={togglePermanentlyConfirm}
-          />
-        )}
-      </FadeIn>
+      {needConfirmPanel && connected && (
+        <ConfirmRiskPanel
+          className="mt-5"
+          temporarilyConfirm={hasUserTemporaryConfirmed}
+          permanentlyConfirm={hasUserPermanentConfirmed}
+          onTemporarilyConfirm={toggleTemporarilyConfirm}
+          onPermanentlyConfirm={togglePermanentlyConfirm}
+        />
+      )}
       {/* supply button */}
       <Button
         className="block frosted-glass-teal w-full mt-5"
@@ -955,7 +955,7 @@ function CreatePoolCardEntry() {
             }}
           >
             <Icon className="mr-2" heroIconName="plus" />
-            Create Pool
+            <div>Create Pool</div>
           </Button>
         </Row>
       </Card>
