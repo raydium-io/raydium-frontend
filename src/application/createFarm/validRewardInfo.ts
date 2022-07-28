@@ -16,7 +16,7 @@ export function valid300Ray(): { valid: boolean; reason?: string } {
 
   const { rewards } = useCreateFarms.getState()
   const rewardRayAmount = rewards.find((r) => isMintEqual(r.token?.mint, RAYMint))?.amount
-  const haveOver300Ray = gte(getBalance(RAYMint) ?? 0, add(300, rewardRayAmount ?? 0)) /** Test */
+  const haveOver300Ray = gte(getBalance(RAYMint) ?? 0, add(0, rewardRayAmount ?? 0)) /** Test 300 RAY */
   if (!haveOver300Ray) return { valid: false, reason: 'User must have 300 RAY' }
   return { valid: true }
 }

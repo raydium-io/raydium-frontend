@@ -45,7 +45,7 @@ export default function CreateFarmReviewPage() {
 
   const rewardRayAmount = rewards.find((r) => isMintEqual(r.token?.mint, RAYMint))?.amount
   const userRayBalance = balances[toPubString(RAYMint)]
-  const haveOver300Ray = gte(userRayBalance ?? 0, add(300, rewardRayAmount ?? 0)) /** Test */
+  const haveOver300Ray = gte(userRayBalance ?? 0, add(0, rewardRayAmount ?? 0)) /** Test 300 RAY */
   useAvailableCheck()
 
   const createFarmButton = (

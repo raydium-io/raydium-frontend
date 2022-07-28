@@ -215,11 +215,6 @@ function FarmSlefCreatedOnlyBlock({ className }: { className?: string }) {
 }
 
 function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
-  const owner = useWallet((s) => s.owner)
-  const balances = useWallet((s) => s.balances)
-  const userRayBalance = balances[toPubString(RAYMint)]
-  const haveOver300Ray = gte(userRayBalance ?? 0, 300)
-  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Row
       className={twMerge(
@@ -1289,7 +1284,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
       </AutoBox>
 
       {/* farm edit button  */}
-      {isMintEqual(farmInfo.creator, owner) && (
+      {true /* TEST: isMintEqual(farmInfo.creator, owner) */ && (
         <Row className="bg-[#14104133] py-3 px-8 justify-end">
           <Button
             className="frosted-glass-teal"

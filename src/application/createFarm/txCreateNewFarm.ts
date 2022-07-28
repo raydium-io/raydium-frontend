@@ -21,7 +21,7 @@ import { setLocalItem } from '@/functions/dom/jStorage'
 import { addItem } from '@/functions/arrayMethods'
 import useLiquidity from '../liquidity/useLiquidity'
 import { WSOLMint } from '../token/quantumSOL'
-import { RAYMint, SOLMint } from '../token/wellknownToken.config'
+import { SOLMint } from '../token/wellknownToken.config'
 import { valid300Ray, validUiRewardInfo } from './validRewardInfo'
 
 export const userCreatedFarmKey = 'USER_CREATED_FARMS'

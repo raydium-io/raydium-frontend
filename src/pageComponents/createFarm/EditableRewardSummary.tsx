@@ -202,13 +202,11 @@ export function EditableRewardSummary({
         }}
         renderItemActionButtons={({ changeSelf, itemData: reward, index }) => {
           const isRewardBeforeStart = reward.originData?.isRewardBeforeStart
-          const isRewardEditable =
-            true /* reward.originData?.isRwardingBeforeEnd72h || reward.originData?.isRewardEnded */
-          const isRewardOwner = owner && isMintEqual(owner, reward.owner)
+          const isRewardEditable = reward.originData?.isRwardingBeforeEnd72h || reward.originData?.isRewardEnded
+          const isRewardOwner = true /* TEST:  owner && isMintEqual(owner, reward.owner) */
           const isRewardEdited = hasRewardBeenEdited(reward)
-          const showEditBefore72h =
-            index % 2 == 0 /* test: reward.originData?.isRwardingBeforeEnd72h */ && !isRewardEdited
-          const showEditAfterEnded = index % 2 == 1 /* reward.originData?.isRewardEnded */
+          const showEditBefore72h = reward.originData?.isRwardingBeforeEnd72h && !isRewardEdited
+          const showEditAfterEnded = reward.originData?.isRewardEnded
           const canShow = showEditAfterEnded || showEditBefore72h
           const hasButton =
             (canUserEdit && canShow && isRewardEditable && !isRewardBeforeStart) || (isRewardEdited && isMobile)
@@ -337,9 +335,9 @@ export function EditableRewardSummary({
       />
       {canUserEdit && rewards.filter((r) => r.isRewardEnded).length > 1 && (
         <Button
-          className={`self-end frosted-glass-skygray my-4`}
+          className={`self-end frosted-glass-skygray my-4 mobile:w-full`}
           validators={[{ should: isCreator && existSomeClaimableRewards }]}
-          size="lg"
+          size={isMobile ? 'sm' : 'lg'}
           onClick={() => {
             const { rewards } = useCreateFarms.getState()
             onClaimAllReward?.({
