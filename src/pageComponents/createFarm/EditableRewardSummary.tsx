@@ -208,8 +208,7 @@ export function EditableRewardSummary({
           const showEditBefore72h = reward.originData?.isRwardingBeforeEnd72h && !isRewardEdited
           const showEditAfterEnded = reward.originData?.isRewardEnded
           const canShow = showEditAfterEnded || showEditBefore72h
-          const hasButton =
-            (canUserEdit && canShow && isRewardEditable && !isRewardBeforeStart) || (isRewardEdited && isMobile)
+          const hasButton = canUserEdit && canShow && isRewardEditable && !isRewardBeforeStart
           if (!hasButton) return
           return (
             <div className="bg-[#abc4ff1a] mobile:bg-transparent rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
