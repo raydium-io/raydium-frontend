@@ -218,15 +218,15 @@ function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
   return (
     <Row
       className={twMerge(
-        `justify-self-end mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`,
+        `justify-self-end mobile:justify-self-auto gap-1 py-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`,
         className
       )}
       onClick={() => {
         routeTo('/farms/create')
       }}
     >
-      <Icon heroIconName="plus-circle" className="text-[#abc4ff]" size="sm" />
-      <span className="text-[#abc4ff] font-medium text-sm mobile:text-xs">Create Farm</span>
+      <Icon heroIconName="plus-circle" className="text-[#abc4ff] mobile:text-[#abc4ff80]" size="sm" />
+      <span className="text-[#abc4ff] mobile:text-[#abc4ff80] font-medium text-sm mobile:text-xs">Create Farm</span>
     </Row>
   )
 }
