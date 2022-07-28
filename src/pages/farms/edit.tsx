@@ -105,7 +105,7 @@ export default function FarmEditPage() {
   const cachedInputs = useMemo(() => <NewRewardIndicatorAndForm className="mt-8 mb-4" />, [])
   return (
     <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Edit Farm">
-      <NavButtons className="sticky top-0 -translate-y-2 z-10 mobile:bg-[#0f0b2f]" />
+      <NavButtons className="sticky top-0 mobile:-translate-y-2 z-10 mobile:bg-[#0f0b2f]" />
       <div className="self-center w-[min(720px,90vw)]">
         {!isMobile && (
           <Row className="mb-10 justify-self-start items-baseline gap-2">
