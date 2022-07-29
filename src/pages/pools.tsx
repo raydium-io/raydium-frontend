@@ -487,18 +487,20 @@ function PoolCard() {
   const innerPoolDatabaseWidgets = isMobile ? (
     <div>
       <Row className="mb-4">
-        <PoolSearchBlock className="grow-2 mr-3" />
-        <PoolTableSorterBox
-          className="grow"
-          onChange={(newSortKey) => {
-            newSortKey
-              ? setSortConfig({
-                  key: newSortKey,
-                  sortCompare: newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.ammId) : (i) => i[newSortKey]
-                })
-              : clearSortConfig()
-          }}
-        />
+        <Grid className="grow gap-3 grid-cols-auto-fit">
+          <PoolSearchBlock />
+          <PoolTableSorterBox
+            onChange={(newSortKey) => {
+              newSortKey
+                ? setSortConfig({
+                    key: newSortKey,
+                    sortCompare:
+                      newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.ammId) : (i) => i[newSortKey]
+                  })
+                : clearSortConfig()
+            }}
+          />
+        </Grid>
         <ToolsButton className="self-center" />
       </Row>
     </div>

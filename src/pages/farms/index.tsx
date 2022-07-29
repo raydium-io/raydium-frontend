@@ -424,19 +424,22 @@ function FarmCard() {
   const innerFarmDatabaseWidgets = isMobile ? (
     <div>
       <Row className="mb-4">
-        <FarmSearchBlock className="grow-2 mr-3" />
-        <FarmTableSorterBlock
-          className="grow"
-          onChange={(newSortKey) => {
-            newSortKey
-              ? setSortConfig({
-                  key: newSortKey,
-                  sortCompare:
-                    newSortKey === 'favorite' ? (i) => favouriteIds?.includes(toPubString(i.id)) : (i) => i[newSortKey]
-                })
-              : clearSortConfig()
-          }}
-        />
+        <Grid className="grow gap-3 grid-cols-auto-fit">
+          <FarmSearchBlock />
+          <FarmTableSorterBlock
+            onChange={(newSortKey) => {
+              newSortKey
+                ? setSortConfig({
+                    key: newSortKey,
+                    sortCompare:
+                      newSortKey === 'favorite'
+                        ? (i) => favouriteIds?.includes(toPubString(i.id))
+                        : (i) => i[newSortKey]
+                  })
+                : clearSortConfig()
+            }}
+          />
+        </Grid>
         <ToolsButton className="self-center" />
       </Row>
     </div>
