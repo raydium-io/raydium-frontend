@@ -102,7 +102,7 @@ export default function Drawer({
   return (
     <DrawerStackPortal>
       <Transition as={Fragment} appear show={innerOpen} beforeLeave={onCloseImmediately} afterLeave={onClose}>
-        <div className="Drawer w-screen h-screen fixed">
+        <div className="Drawer w-full h-full fixed">
           <Transition.Child
             as={Fragment}
             enter={`ease-out ${transitionSpeed === 'fast' ? 'duration-150' : 'duration-300'} transition`}
