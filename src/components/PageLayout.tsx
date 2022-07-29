@@ -419,7 +419,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             </LinkItem>
           </div>
 
-          <Col className="mobile:h-[180px] overflow-scroll no-native-scrollbar">
+          <Col className="overflow-scroll no-native-scrollbar">
             <div className="mx-8 border-b border-[rgba(57,208,216,0.16)] my-2 mobile:my-1"></div>
             <div className="flex-1 overflow-auto no-native-scrollbar mt-2">
               <RpcConnectionPanelSidebarWidget />
