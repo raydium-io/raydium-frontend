@@ -236,6 +236,7 @@ export default function CreateFarmPage() {
             {cachedInputs}
             <Button
               type="text"
+              className="w-max"
               disabled={rewards.length >= 5}
               onClick={() => {
                 useCreateFarms.setState({
