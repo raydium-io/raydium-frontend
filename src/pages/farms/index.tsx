@@ -62,6 +62,7 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
 import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 import { hydrateFarmInfo } from '@/application/farms/handleFarmInfo'
+import { AddressItem } from '@/components/AddressItem'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -653,7 +654,7 @@ function FarmRewardBadge({
   const isRewardBeforeStart = isTokenAmount(reward) ? false : reward.isRewardBeforeStart
   const pendingAmount = isTokenAmount(reward) ? reward : reward.userPendingReward
   return (
-    <Tooltip placement="bottom">
+    <Tooltip placement="bottom" forceOpen>
       <Row
         className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
           isRewarding ? '' : 'opacity-50'
@@ -691,11 +692,18 @@ function FarmRewardBadge({
             {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
           </div>
         )}
-        <FarmCardTooltipPanelAddressItem
-          className="opacity-50 mt-2 contrast-75"
-          type="token"
-          address={reward.token?.mint.toString() ?? '--'}
-        />
+        {reward.token?.mint && (
+          <AddressItem
+            showDigitCount={6}
+            addressType="token"
+            canCopy
+            canExternalLink
+            textClassName="text-xs"
+            className="w-full opacity-50 mt-2 contrast-75"
+          >
+            {toPubString(reward.token.mint)}
+          </AddressItem>
+        )}
       </Tooltip.Panel>
     </Tooltip>
   )
