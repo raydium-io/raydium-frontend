@@ -28,6 +28,7 @@ export function RemoveLiquidityDialog({
   const defaultHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
   const removeAmout = useLiquidity((s) => s.removeAmount)
   const walletConnected = useWallet((s) => s.connected)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
   const hydratedInfo = info ?? defaultHydratedInfo
 
@@ -81,6 +82,7 @@ export function RemoveLiquidityDialog({
           <Row className="flex-col gap-1">
             <Button
               className="frosted-glass frosted-glass-teal"
+              isLoading={isApprovePanelShown}
               componentRef={buttonComponentRef}
               validators={[
                 { should: gt(removeAmout, 0) },

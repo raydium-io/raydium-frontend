@@ -9,22 +9,25 @@ import useNotification from '@/application/notification/useNotification'
 import { routeTo } from '@/application/routeTools'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
+import txUnwrapAllWSOL, { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
+import txWrapSOL from '@/application/swap/txWrapSOL'
 import { useSwap } from '@/application/swap/useSwap'
 import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
-import { SplToken } from '@/application/token/type'
-import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
 import {
-  SOL_BASE_BALANCE,
-  SOLDecimals,
-  WSOLMint,
   isQuantumSOLVersionSOL,
   isQuantumSOLVersionWSOL,
-  toUITokenAmount
+  SOL_BASE_BALANCE,
+  SOLDecimals,
+  toUITokenAmount,
+  WSOLMint
 } from '@/application/token/quantumSOL'
+import { SplToken } from '@/application/token/type'
+import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
 import { USDCMint, USDTMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
+import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
 import { Checkbox } from '@/components/Checkbox'
@@ -33,7 +36,6 @@ import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
-import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import FadeInStable, { FadeIn } from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
@@ -49,6 +51,7 @@ import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { eq, gte, isMeaningfulNumber, isMeaninglessNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -57,13 +60,10 @@ import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import useToggle from '@/hooks/useToggle'
+import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
-import { Badge } from '@/components/Badge'
-import txUnwrapAllWSOL, { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import txWrapSOL from '@/application/swap/txWrapSOL'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -309,7 +309,7 @@ function SwapCard() {
               </div>
             )}
           </Row>
-          <div className="absolute right-0">
+          <div className={`absolute right-0 ${isApprovePanelShown ? 'not-clickable' : 'clickable'}`}>
             <RefreshCircle
               run={!isApprovePanelShown}
               refreshKey="swap"
@@ -360,6 +360,7 @@ function SwapCard() {
         <Button
           className="w-full frosted-glass-teal mt-5"
           componentRef={swapButtonComponentRef}
+          isLoading={isApprovePanelShown}
           validators={[
             {
               should: walletConnected,
@@ -394,6 +395,7 @@ function SwapCard() {
         <Button
           className="w-full frosted-glass-teal mt-5"
           componentRef={swapButtonComponentRef}
+          isLoading={isApprovePanelShown}
           validators={[
             {
               should: walletConnected,
@@ -454,7 +456,7 @@ function SwapCard() {
               }
             }
           ]}
-          // onClick={txSwap}
+          onClick={txSwap}
         >
           Swap
         </Button>
@@ -760,13 +762,13 @@ function SwapCardInfo({ className }: { className?: string }) {
       {maxSpent ? (
         <SwapCardItem
           fieldName="Maximum Spent"
-          fieldValue={`${maxSpent ?? ''} ${(focusSide === 'coin1' ? coin2 : coin1)?.symbol ?? '--'}`}
+          fieldValue={`${maxSpent ?? ''} ${upCoin?.symbol ?? '--'}`}
           tooltipContent="The max amount of tokens you will spend on this trade"
         />
       ) : (
         <SwapCardItem
           fieldName="Minimum Received"
-          fieldValue={`${minReceived ?? ''} ${(focusSide === 'coin1' ? coin2 : coin1)?.symbol ?? '--'}`}
+          fieldValue={`${minReceived ?? ''} ${downCoin?.symbol ?? '--'}`}
           tooltipContent="The least amount of tokens you will recieve on this trade"
         />
       )}

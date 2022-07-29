@@ -66,7 +66,7 @@ export default function txAddLiquidity({ ammId: targetAmmId }: { ammId?: PublicK
     })
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
-        title: 'Add liquidity',
+        title: 'Add Liquidity',
         description: `Add ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${coin2.symbol}`
       }
     })

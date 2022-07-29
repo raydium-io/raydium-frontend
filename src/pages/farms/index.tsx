@@ -759,15 +759,13 @@ function FarmCardDatabaseBodyCollapseItemFace({
             <Row className="flex-wrap gap-2 w-full pr-8">
               {isJsonFarmInfo(info)
                 ? '--'
-                : info.rewards
-                    .filter((i) => i.perSecond != 0)
-                    .map((reward) => {
-                      return (
-                        <Fragment key={toPubString(reward.rewardVault)}>
-                          <FarmRewardBadge farmInfo={info} reward={reward} />
-                        </Fragment>
-                      )
-                    })}
+                : info.rewards.map((reward) => {
+                    return (
+                      <Fragment key={toPubString(reward.rewardVault)}>
+                        <FarmRewardBadge farmInfo={info} reward={reward} />
+                      </Fragment>
+                    )
+                  })}
             </Row>
           }
         />
@@ -986,6 +984,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
   const hasLp = isMeaningfulNumber(balances[toPubString(farmInfo.lpMint)])
   const hasPendingReward = farmInfo.rewards.some(({ userPendingReward }) => isMeaningfulNumber(userPendingReward))
   const logSuccess = useNotification((s) => s.logSuccess)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   return (
     <div
       className="rounded-b-3xl mobile:rounded-b-lg overflow-hidden"
@@ -1133,20 +1132,18 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                     margin: '-17px'
                   }}
                 >
-                  {farmInfo.rewards
-                    ?.filter((i) => i.perSecond != 0)
-                    .map((reward, idx) => (
-                      <div key={idx} className="p-4">
-                        <div className={`text-white font-medium text-base mobile:text-xs`}>
-                          {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
-                        </div>
-                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
-                          {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
-                            ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
-                            : null}
-                        </div>
+                  {farmInfo.rewards.map((reward, idx) => (
+                    <div key={idx} className="p-4">
+                      <div className={`text-white font-medium text-base mobile:text-xs`}>
+                        {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
                       </div>
-                    ))}
+                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
+                        {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
+                          ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
+                          : null}
+                      </div>
+                    </div>
+                  ))}
                 </Grid>
               </div>
             ) : (
@@ -1179,6 +1176,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
             <Button
               // disable={Number(info.pendingReward?.numerator) <= 0}
               className="frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"
+              isLoading={isApprovePanelShown}
               onClick={() => {
                 txFarmHarvest(farmInfo, {
                   isStaking: false,
@@ -1320,6 +1318,9 @@ function FarmStakeLpDialog() {
   const stakeDialogMode = useFarms((s) => s.stakeDialogMode)
 
   const [amount, setAmount] = useState<string>()
+
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+
   const userHasLpAccount = useMemo(
     () =>
       Boolean(stakeDialogFarmInfo?.lpMint) &&
@@ -1337,16 +1338,6 @@ function FarmStakeLpDialog() {
     if (!stakeDialogFarmInfo?.lp || !amount) return undefined
     return toTokenAmount(stakeDialogFarmInfo.lp, amount, { alreadyDecimaled: true })
   }, [stakeDialogFarmInfo, amount])
-  const isAvailableInput = useMemo(
-    () =>
-      Boolean(
-        userInputTokenAmount &&
-          gt(userInputTokenAmount, 0) &&
-          avaliableTokenAmount &&
-          gte(avaliableTokenAmount, userInputTokenAmount)
-      ),
-    [avaliableTokenAmount, userInputTokenAmount]
-  )
 
   // for keyboard navigation
   const coinInputBoxComponentRef = useRef<CoinInputBoxHandle>()
@@ -1397,11 +1388,16 @@ function FarmStakeLpDialog() {
             <Button
               className="frosted-glass-teal"
               componentRef={buttonComponentRef}
+              isLoading={isApprovePanelShown}
               validators={[
                 { should: connected },
                 { should: stakeDialogFarmInfo?.lp },
-                { should: isAvailableInput },
                 { should: amount },
+                { should: gt(userInputTokenAmount, 0) },
+                {
+                  should: gte(avaliableTokenAmount, userInputTokenAmount),
+                  fallbackProps: { children: 'Insufficient Lp Balance' }
+                },
                 {
                   should: stakeDialogMode == 'withdraw' ? true : userHasLpAccount,
                   fallbackProps: { children: 'No Stakable LP' }
@@ -1420,7 +1416,7 @@ function FarmStakeLpDialog() {
             >
               {stakeDialogMode === 'withdraw' ? 'Unstake LP' : 'Stake LP'}
             </Button>
-            <Button type="text" className="text-sm backdrop-filter-none" onClick={close}>
+            <Button type="text" disabled={isApprovePanelShown} className="text-sm backdrop-filter-none" onClick={close}>
               Cancel
             </Button>
           </Row>

@@ -7,15 +7,14 @@ import handleMultiTx from '@/application/txTools/handleMultiTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { eq, gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import toBN from '@/functions/numberish/toBN'
 
-import useCreatePool from './useCreatePool'
-import { recordCreatedPool } from './recordCreatedPool'
 import { deUITokenAmount, WSOLMint } from '@/application/token/quantumSOL'
 import toPubString from '@/functions/format/toMintString'
 import { getMax } from '@/functions/numberish/operations'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { recordCreatedPool } from './recordCreatedPool'
+import useCreatePool from './useCreatePool'
 
 export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSuccess?: () => void }) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {

@@ -1,4 +1,4 @@
-import React, { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Percent } from '@raydium-io/raydium-sdk'
 
@@ -7,20 +7,15 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useFarms from '@/application/farms/useFarms'
+import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
+import useLiquidity from '@/application/liquidity/useLiquidity'
 import useLiquidityAmmSelector from '@/application/liquidity/useLiquidityAmmSelector'
 import useLiquidityAmountCalculator from '@/application/liquidity/useLiquidityAmountCalculator'
 import useLiquidityInitCoinFiller from '@/application/liquidity/useLiquidityInitCoinFiller'
 import useLiquidityUrlParser from '@/application/liquidity/useLiquidityUrlParser'
-import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
-import useLiquidity from '@/application/liquidity/useLiquidity'
 import { routeTo } from '@/application/routeTools'
+import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
 import useToken from '@/application/token/useToken'
-import {
-  SOL_BASE_BALANCE,
-  SOLDecimals,
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL
-} from '@/application/token/quantumSOL'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
@@ -29,8 +24,7 @@ import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
-import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
-import FadeInStable, { FadeIn } from '@/components/FadeIn'
+import { FadeIn } from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Link from '@/components/Link'
@@ -40,7 +34,7 @@ import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
-import { addItem, removeItem, shakeFalsyItem, unifyItem } from '@/functions/arrayMethods'
+import { addItem, unifyItem } from '@/functions/arrayMethods'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
@@ -51,16 +45,17 @@ import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useToggle from '@/hooks/useToggle'
+import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import { HexAddress } from '@/types/constants'
 
+import { SplToken } from '@/application/token/type'
+import { Badge } from '@/components/Badge'
+import { capitalize } from '@/functions/changeCase'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import { objectShakeFalsy } from '@/functions/objectMethods'
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
-import { Badge } from '@/components/Badge'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import { SplToken } from '@/application/token/type'
-import { capitalize } from '@/functions/changeCase'
-import { objectShakeFalsy } from '@/functions/objectMethods'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -330,21 +325,25 @@ function LiquidityCard() {
             <Icon
               size="sm"
               heroIconName="search"
-              className="p-2 frosted-glass frosted-glass-teal rounded-full mr-4 clickable text-[#39D0D8] select-none"
+              className={`p-2 frosted-glass frosted-glass-teal rounded-full mr-4 clickable text-[#39D0D8] select-none ${
+                isApprovePanelShown ? 'not-clickable' : ''
+              }`}
               onClick={() => {
                 useLiquidity.setState({ isSearchAmmDialogOpen: true })
               }}
             />
-            <RefreshCircle
-              run={!isApprovePanelShown}
-              refreshKey="liquidity/add"
-              popPlacement="right-bottom"
-              freshFunction={() => {
-                if (isApprovePanelShown) return
-                refreshLiquidity()
-                refreshTokenPrice()
-              }}
-            />
+            <div className={isApprovePanelShown ? 'not-clickable' : 'clickable'}>
+              <RefreshCircle
+                run={!isApprovePanelShown}
+                refreshKey="liquidity/add"
+                popPlacement="right-bottom"
+                freshFunction={() => {
+                  if (isApprovePanelShown) return
+                  refreshLiquidity()
+                  refreshTokenPrice()
+                }}
+              />
+            </div>
           </Row>
         </div>
 
@@ -376,21 +375,20 @@ function LiquidityCard() {
       <FadeIn>{hasFoundLiquidityPool && <LiquidityCardInfo className="mt-5" />}</FadeIn>
 
       {/* confirm panel */}
-      <FadeIn>
-        {needConfirmPanel && connected && (
-          <ConfirmRiskPanel
-            className="mt-5"
-            temporarilyConfirm={hasUserTemporaryConfirmed}
-            permanentlyConfirm={hasUserPermanentConfirmed}
-            onTemporarilyConfirm={toggleTemporarilyConfirm}
-            onPermanentlyConfirm={togglePermanentlyConfirm}
-          />
-        )}
-      </FadeIn>
+      {needConfirmPanel && connected && (
+        <ConfirmRiskPanel
+          className="mt-5"
+          temporarilyConfirm={hasUserTemporaryConfirmed}
+          permanentlyConfirm={hasUserPermanentConfirmed}
+          onTemporarilyConfirm={toggleTemporarilyConfirm}
+          onPermanentlyConfirm={togglePermanentlyConfirm}
+        />
+      )}
       {/* supply button */}
       <Button
         className="block frosted-glass-teal w-full mt-5"
         componentRef={liquidityButtonComponentRef}
+        isLoading={isApprovePanelShown}
         validators={[
           {
             should: hasFoundLiquidityPool,
@@ -957,7 +955,7 @@ function CreatePoolCardEntry() {
             }}
           >
             <Icon className="mr-2" heroIconName="plus" />
-            Create Pool
+            <div>Create Pool</div>
           </Button>
         </Row>
       </Card>
