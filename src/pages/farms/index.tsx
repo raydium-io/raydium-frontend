@@ -62,6 +62,7 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
 import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 import { hydrateFarmInfo } from '@/application/farms/handleFarmInfo'
+import { AddressItem } from '@/components/AddressItem'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -419,19 +420,22 @@ function FarmCard() {
   const innerFarmDatabaseWidgets = isMobile ? (
     <div>
       <Row className="mb-4">
-        <FarmSearchBlock className="grow-2 mr-3" />
-        <FarmTableSorterBlock
-          className="grow"
-          onChange={(newSortKey) => {
-            newSortKey
-              ? setSortConfig({
-                  key: newSortKey,
-                  sortCompare:
-                    newSortKey === 'favorite' ? (i) => favouriteIds?.includes(toPubString(i.id)) : (i) => i[newSortKey]
-                })
-              : clearSortConfig()
-          }}
-        />
+        <Grid className="grow gap-3 grid-cols-auto-fit">
+          <FarmSearchBlock />
+          <FarmTableSorterBlock
+            onChange={(newSortKey) => {
+              newSortKey
+                ? setSortConfig({
+                    key: newSortKey,
+                    sortCompare:
+                      newSortKey === 'favorite'
+                        ? (i) => favouriteIds?.includes(toPubString(i.id))
+                        : (i) => i[newSortKey]
+                  })
+                : clearSortConfig()
+            }}
+          />
+        </Grid>
         <ToolsButton className="self-center" />
       </Row>
     </div>
@@ -683,11 +687,18 @@ function FarmRewardBadge({
             {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
           </div>
         )}
-        <FarmCardTooltipPanelAddressItem
-          className="opacity-50 mt-2 contrast-75"
-          type="token"
-          address={reward.token?.mint.toString() ?? '--'}
-        />
+        {reward.token?.mint && (
+          <AddressItem
+            showDigitCount={6}
+            addressType="token"
+            canCopy
+            canExternalLink
+            textClassName="text-xs"
+            className="w-full opacity-50 mt-2 contrast-75"
+          >
+            {toPubString(reward.token.mint)}
+          </AddressItem>
+        )}
       </Tooltip.Panel>
     </Tooltip>
   )

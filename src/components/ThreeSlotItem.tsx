@@ -21,7 +21,7 @@ export function ThreeSlotItem({
   return (
     <Row className={twMerge('items-center', className)} onClick={onClick}>
       {prefix}
-      <div className={twMerge('text-sm whitespace-nowrap', textClassName)}>{text}</div>
+      <div className={twMerge('grow text-sm whitespace-nowrap', textClassName)}>{text}</div>
       {suffix}
     </Row>
   )
