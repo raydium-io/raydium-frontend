@@ -872,7 +872,7 @@ function UserLiquidityExhibition() {
                                       ? capitalize(correspondingFarm?.category)
                                       : undefined,
                                     newExpandedItemId: toPubString(correspondingFarm?.id),
-                                    searchText: String(correspondingFarm?.id)
+                                    searchText: [info.baseToken?.symbol, info.quoteToken?.symbol].join(' ')
                                   })
                                 })
                               }}
