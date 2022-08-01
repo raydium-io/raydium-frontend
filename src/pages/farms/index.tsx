@@ -654,7 +654,7 @@ function FarmRewardBadge({
   const isRewardBeforeStart = isTokenAmount(reward) ? false : reward.isRewardBeforeStart
   const pendingAmount = isTokenAmount(reward) ? reward : reward.userPendingReward
   return (
-    <Tooltip placement="bottom" forceOpen>
+    <Tooltip placement="bottom">
       <Row
         className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
           isRewarding ? '' : 'opacity-50'
