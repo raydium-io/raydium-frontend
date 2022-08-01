@@ -48,6 +48,7 @@ function MessageItem({
 }
 
 /** this should be used in ./Navbar.tsx */
+/** Currently unused in favour of Dialect notification center **/
 export default function MessageBoardWidget() {
   const readedIds = useMessageBoard((s) => s.readedIds)
   const messageBoardItems = useMessageBoard((s) => s.messageBoardItems)

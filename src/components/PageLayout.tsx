@@ -9,6 +9,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import useWallet from '@/application/wallet/useWallet'
+import { useWallet as useWalletAdapter, WalletContextState } from '@solana/wallet-adapter-react'
 import jFetch from '@/functions/dom/jFetch'
 import linkTo from '@/functions/dom/linkTo'
 import { eq } from '@/functions/numberish/compare'
@@ -43,6 +44,17 @@ import Card from './Card'
 import Dialog from './Dialog'
 import { toUTC } from '@/functions/date/dateFormat'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
+import {
+  IncomingThemeVariables,
+  NotificationsButton,
+  DialectContextProvider,
+  Config,
+  Backend,
+  DialectWalletAdapter,
+  DialectThemeProvider,
+  DialectUiManagementProvider
+} from '@dialectlabs/react-ui'
+import { PublicKey } from '@solana/web3.js'
 
 /**
  * for easier to code and read
@@ -273,6 +285,100 @@ function MigrateBubble() {
   )
 }
 
+const RAYDIUM_MONITORING_PUBLIC_KEY = new PublicKey('21NkpAe9wQAmdVUSpDqjttu5Czisg1KfktmEpn44maco')
+
+const RAYDIUM_NOTIFICATION_TYPES = [
+  {
+    name: 'Unstaked Ray Balances',
+    detail: 'On Change'
+  },
+  {
+    name: 'Unstaked LP tokens for pools',
+    detail: 'On Change'
+  },
+  {
+    name: 'New Farm launch',
+    detail: 'On Launch'
+  }
+]
+
+const walletToDialectWallet = (wallet: WalletContextState): DialectWalletAdapter => ({
+  publicKey: wallet.publicKey!,
+  connected: wallet.connected && !wallet.connecting && !wallet.disconnecting && Boolean(wallet.publicKey),
+  signMessage: wallet.signMessage,
+  signTransaction: wallet.signTransaction,
+  signAllTransactions: wallet.signAllTransactions
+})
+
+function DialectNotificationsButton() {
+  // Using original wallet adapter, since Dialect requires the original WalletContextState
+  const wallet = useWalletAdapter()
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const [dialectWalletAdapter, setDialectWalletAdapter] = useState<DialectWalletAdapter>(() =>
+    walletToDialectWallet(wallet)
+  )
+
+  useEffect(() => {
+    setDialectWalletAdapter(walletToDialectWallet(wallet))
+  }, [wallet])
+
+  const dialectConfig = useMemo(
+    (): Config => ({
+      backends: [Backend.DialectCloud],
+      environment: 'production',
+      dialectCloud: {
+        tokenStore: 'local-storage'
+      }
+    }),
+    []
+  )
+
+  const themeVariables: IncomingThemeVariables = useMemo(
+    () => ({
+      dark: {
+        icons: {
+          bell: ({ className }) => (
+            <Icon
+              size={isMobile ? 'smi' : 'md'}
+              heroIconName="bell"
+              className={twMerge(className, '!w-auto !h-auto')}
+            />
+          )
+        },
+        colors: {
+          bg: 'bg-popup-bg',
+          highlight: 'bg-[#FFFFFF]/5',
+          primary: 'text-primary'
+        },
+        textStyles: {
+          body: 'text-[#abc4ff] text-[0.9375rem]',
+          header: 'text-[0.9375rem]',
+          bigText: 'text-base',
+          small: 'text-sm text-[#ABC4FF]'
+        },
+        bellButton:
+          'text-[#ABC4FF] opacity-60 hover:opacity-75 clickable clickable-filter-effect clickable-mask-offset-3a !bg-transparent',
+        modal: 'rounded-lg pc:!box-shadow-popup-white mobile:!box-shadow-none pt-1 !shadow-cyberpunk-card',
+        modalWrapper: `fixed pc:h-[35rem] pc:w-[30rem] z-popover top-[5.5rem] right-auto -mr-4 mobile:mr-0 mobile:top-0 mobile:right-0 mobile:w-screen mobile:h-screen`,
+        button:
+          'Button px-4 py-2.5 rounded-xl mobile:rounded-lg whitespace-nowrap appearance-none inline-block font-medium bg-formkit-thumb text-formkit-thumb-text-normal clickable clickable-filter-effect !frosted-glass-teal mobile:py-2 mobile:text-xs',
+        section: 'dt-p-2 dt-rounded-2xl dt-border dt-border-outline-night'
+      }
+    }),
+    [isMobile]
+  )
+
+  return (
+    <DialectContextProvider wallet={dialectWalletAdapter} config={dialectConfig} dapp={RAYDIUM_MONITORING_PUBLIC_KEY}>
+      <DialectThemeProvider theme={'dark'} variables={themeVariables}>
+        <DialectUiManagementProvider>
+          <NotificationsButton dialectId="dialect-notifications" notifications={RAYDIUM_NOTIFICATION_TYPES} />
+        </DialectUiManagementProvider>
+      </DialectThemeProvider>
+    </DialectContextProvider>
+  )
+}
+
 function Navbar({
   barTitle,
   className,
@@ -293,7 +399,7 @@ function Navbar({
       </Link>
 
       <Row className="gap-8 items-center">
-        <MessageBoardWidget />
+        <DialectNotificationsButton />
         <WalletWidget />
       </Row>
     </Row>
@@ -315,7 +421,7 @@ function Navbar({
       )}
 
       <Row className="gap-4 items-center justify-self-end">
-        <MessageBoardWidget />
+        <DialectNotificationsButton />
         <WalletWidget />
       </Row>
     </Grid>

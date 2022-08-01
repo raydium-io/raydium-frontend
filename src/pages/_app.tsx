@@ -49,6 +49,7 @@ import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionD
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 
 import '../styles/index.css'
+import '@dialectlabs/react-ui/index.css'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()

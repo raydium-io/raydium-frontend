@@ -32,6 +32,7 @@
     "@solana/wallet-adapter-tokenpocket": "IMPORTANT: should delete it in future!!!! Install this package is for use it's v0.4.4, this package in @solana/wallet-adapter-wallets is still v0.4.2"
   },
   "dependencies": {
+    "@dialectlabs/react-ui": "^1.0.0-beta.22",
     "@headlessui/react": "^1.6.6",
     "@heroicons/react": "^1.0.6",
     "@raydium-io/raydium-sdk": "^1.1.0-beta.6",
