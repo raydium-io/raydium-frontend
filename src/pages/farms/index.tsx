@@ -42,7 +42,6 @@ import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
-import Tabs from '@/components/Tabs'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
@@ -61,7 +60,6 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
 import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
-import { hydrateFarmInfo } from '@/application/farms/handleFarmInfo'
 import { AddressItem } from '@/components/AddressItem'
 
 export default function FarmsPage() {
@@ -78,7 +76,9 @@ export default function FarmsPage() {
           { value: 'Staked', barLabel: 'Staked Farm' }
         ],
         currentValue: currentTab,
-        onChange: (value) => useFarms.setState({ currentTab: value as 'Raydium' | 'Fusion' | 'Ecosystem' | 'Staked' })
+        onChange: (value) => useFarms.setState({ currentTab: value as 'Raydium' | 'Fusion' | 'Ecosystem' | 'Staked' }),
+        urlSearchQueryKey: 'tab',
+        drawerTitle: 'FARMS'
       }}
       contentButtonPaddingShorter
       metaTitle="Farms - Raydium"

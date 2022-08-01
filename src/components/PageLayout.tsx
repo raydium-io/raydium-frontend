@@ -59,6 +59,7 @@ export default function PageLayout(props: {
         currentValue?: string
         onChange?: (value: string) => void
         urlSearchQueryKey?: string
+        drawerTitle?: string
       }
   metaTitle?: string
   children?: ReactNode
@@ -184,6 +185,7 @@ function RPCPerformanceBanner({ className }: { className?: string }) {
     </div>
   )
 }
+
 function VersionTooOldDialog() {
   const versionRefreshData = useAppVersion((s) => s.versionFresh)
   return (
@@ -295,6 +297,7 @@ function Navbar({
         currentValue?: string
         onChange?: (value: string) => void
         urlSearchQueryKey?: string
+        drawerTitle?: string
       }
   style?: CSSProperties
   // TODO: move it into useAppSetting()
@@ -314,7 +317,7 @@ function Navbar({
     </Row>
   )
   const mobileNavContent = (
-    <Grid className="grid-cols-[1fr,2fr,1fr] items-center">
+    <Grid className="grid-cols-[1fr,2fr,1fr] mobile:px-5 mobile:py-3  items-center bg-cyberpunk-card-bg cyberpunk-bg-light">
       <div className="frosted-glass-teal rounded-lg p-2 clickable justify-self-start" onClick={onOpenMenu}>
         <Icon className="w-4 h-4" iconClassName="w-4 h-4" iconSrc="/icons/msic-menu.svg" />
       </div>
@@ -332,6 +335,7 @@ function Navbar({
               barTitle.onChange?.(value)
             }}
             urlSearchQueryKey={barTitle.urlSearchQueryKey}
+            drawerTitle={barTitle.drawerTitle}
           />
         )
       ) : (
@@ -347,10 +351,7 @@ function Navbar({
     </Grid>
   )
   return (
-    <nav
-      className={twMerge('select-none text-white px-12 py-4 mobile:px-5 mobile:py-3 transition-all', className)}
-      style={style}
-    >
+    <nav className={twMerge('select-none text-white px-12 py-4 mobile:p-0 transition-all', className)} style={style}>
       {isMobile ? mobileNavContent : pcNavContent}
     </nav>
   )
@@ -366,12 +367,14 @@ function MobileDropdownTitle({
   titles,
   currentValue: defaultCurrentValue = titles[0].value,
   urlSearchQueryKey,
-  onChange
+  onChange,
+  drawerTitle
 }: {
   titles: DropdownTitleInfoItem[]
   currentValue?: string
   urlSearchQueryKey?: string
   onChange?: (titleValue: string) => void
+  drawerTitle?: string
 }) {
   const [currentValue, setCurrentValue] = useState(defaultCurrentValue)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -382,30 +385,39 @@ function MobileDropdownTitle({
     onChange: onChange,
     queryKey: urlSearchQueryKey
   })
+
   return (
     <>
-      <div onClick={() => setIsDropdownOpen(true)} className="py-1 font-medium px-3 bg-[#141041]">
-        {currentTitleInfoItem.barLabel}
-      </div>
+      <Row
+        onClick={() => setIsDropdownOpen(true)}
+        className="self-stretch gap-4 items-center justify-between font-medium px-3 bg-[#141041] rounded-lg"
+      >
+        {/* title */}
+        <div className="text-white whitespace-nowrap">{currentTitleInfoItem.barLabel}</div>
+
+        {/* icon */}
+        <Icon heroIconName="chevron-down" size="xs" className="text-[#abc4ff80]" />
+      </Row>
+
       <Drawer placement="from-bottom" open={isDropdownOpen} onClose={() => setIsDropdownOpen(false)}>
         {({ close }) => (
           <Card
-            className="flex flex-col max-h-[60vh] mobile:max-h-full mobile:rounded-tl-lg mobile:rounded-tr-lg  mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg "
+            className="flex flex-col max-h-[60vh] mobile:max-h-full mobile:rounded-tl-3xl mobile:rounded-tr-3xl  mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg "
             size="lg"
           >
-            <Row className="justify-between items-center p-8">
-              <div className="text-xl font-semibold text-white">FARMS</div>
-              <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={close} />
+            <Row className="justify-between items-center  py-2 pt-6 px-8">
+              <div className="text-xs text-[#abc4ff] pl-2">{drawerTitle}</div>
+              <Icon className="text-[#ABC4FF] cursor-pointer" size="smi" heroIconName="x" onClick={close} />
             </Row>
 
-            <Row type="grid-x" className="pb-2 px-2 divide-y divide-[rgba(171,196,255,0.2)]">
+            <Col className="pb-2 px-4 divide-y divide-[rgba(171,196,255,0.2)]">
               {titles.map(({ value, itemLabel = value }) => {
                 return (
                   <div
                     key={value}
-                    className={`py-3 px-8 font-medium ${
+                    className={`py-4 px-6 font-normal ${
                       value === currentValue ? 'text-white' : 'text-[rgba(171,196,255,0.5)] '
-                    } text-xs`}
+                    }`}
                     onClick={() => {
                       onChange?.(value)
                       setCurrentValue(value)
@@ -416,10 +428,7 @@ function MobileDropdownTitle({
                   </div>
                 )
               })}
-              <div className="font-medium text-[rgba(171,196,255,0.5)] text-xs">Transaction type</div>
-              <div className="font-medium text-[rgba(171,196,255,0.5)] text-xs">Details</div>
-              <div className="font-medium text-[rgba(171,196,255,0.5)] text-xs">Date and time</div>
-            </Row>
+            </Col>
           </Card>
         )}
       </Drawer>
