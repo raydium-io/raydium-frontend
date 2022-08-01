@@ -899,7 +899,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                     queryProps: objectShakeFalsy({
                       currentTab: correspondingFarm?.category ? capitalize(correspondingFarm?.category) : undefined,
                       newExpandedItemId: toPubString(correspondingFarm?.id),
-                      searchText: String(correspondingFarm?.id)
+                      searchText: [info.base?.symbol, info.quote?.symbol].join(' ')
                     })
                   })
                 }}

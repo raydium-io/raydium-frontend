@@ -90,14 +90,14 @@ export default function PageLayout(props: {
         overflow: 'hidden', // establish a BFC
         willChange: 'opacity'
       }}
-      className={`w-screen mobile:w-full h-screen mobile:h-full`}
+      className={`w-full mobile:w-full h-full mobile:h-full`}
     >
       <RPCPerformanceBanner className="grid-area-d" />
       {isMobile ? (
         <>
           <Navbar barTitle={props.mobileBarTitle} className="grid-area-a" onOpenMenu={() => setIsSideMenuOpen(true)} />
           <Drawer open={isSideMenuOpen} onClose={() => setIsSideMenuOpen(false)} onOpen={() => setIsSideMenuOpen(true)}>
-            {({ close }) => <SideMenu className="flex-container h-screen" onClickCloseBtn={close} />}
+            {({ close }) => <SideMenu className="flex-container h-full" onClickCloseBtn={close} />}
           </Drawer>
         </>
       ) : (
@@ -419,7 +419,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             </LinkItem>
           </div>
 
-          <Col className="mobile:h-[180px] overflow-scroll no-native-scrollbar">
+          <Col className="overflow-scroll no-native-scrollbar">
             <div className="mx-8 border-b border-[rgba(57,208,216,0.16)] my-2 mobile:my-1"></div>
             <div className="flex-1 overflow-auto no-native-scrollbar mt-2">
               <RpcConnectionPanelSidebarWidget />
@@ -686,7 +686,7 @@ function CommunityPopover() {
         <Item href="https://discord.gg/raydium" iconSrc="/icons/media-discord.svg" text="Discord" />
         <PageLayoutPopoverDrawer
           renderPopoverContent={({ close }) => (
-            <Col className="divide-y-1.5 divide-[rgba(171,196,255,0.2)]">
+            <Col className="divide-y-1.5 max-h-[60vh] overflow-auto divide-[rgba(171,196,255,0.2)]">
               <Item
                 href="https://t.me/raydiumprotocol"
                 iconSrc="/icons/media-telegram.svg"
