@@ -64,6 +64,7 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
+import { AddressItem } from '@/components/AddressItem'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -944,25 +945,15 @@ function SwapCardTooltipPanelAddressItem({
   return (
     <Row className={twMerge('grid gap-2 items-center grid-cols-[5em,1fr,auto,auto]', className)}>
       <div className="text-xs font-normal text-white">{label}</div>
-      <Row className="px-1 py-0.5 text-xs font-normal text-white bg-[#141041] rounded justify-center">
-        {/* setting text-overflow empty string will make effect in FireFox, not Chrome */}
-        <div className="self-end overflow-hidden tracking-wide">{address.slice(0, 5)}</div>
-        <div className="tracking-wide">...</div>
-        <div className="overflow-hidden tracking-wide">{address.slice(-5)}</div>
-      </Row>
-      <Row className="gap-1 items-center">
-        <Icon
-          size="sm"
-          heroIconName="clipboard-copy"
-          className="clickable text-[#ABC4FF]"
-          onClick={() => {
-            copyToClipboard(address)
-          }}
-        />
-        <Link href={`https://solscan.io/${type}/${address}`}>
-          <Icon size="sm" heroIconName="external-link" className="clickable text-[#ABC4FF]" />
-        </Link>
-      </Row>
+      <AddressItem
+        showDigitCount={5}
+        addressType={type}
+        canCopy
+        canExternalLink
+        textClassName="flex text-xs font-normal text-white bg-[#141041] rounded justify-center"
+      >
+        {address}
+      </AddressItem>
     </Row>
   )
 }

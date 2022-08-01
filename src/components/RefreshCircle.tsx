@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react'
+import React, { startTransition, useEffect, useRef } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -15,7 +15,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import { inServer } from '@/functions/judgers/isSSR'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 
-const REFRESH_DURATION = 60 * 1000
+const REFRESH_LOOP_DURATION = 60 * 1000
 
 export default function RefreshCircle({
   run = true,
@@ -23,7 +23,7 @@ export default function RefreshCircle({
   popPlacement,
   forceOpen,
   freshFunction,
-  freshDuration,
+  freshDuration = 1000,
   className,
   circleBodyClassName
 }: {
@@ -52,13 +52,15 @@ export default function RefreshCircle({
   const initPastPercent =
     refreshCircleLastTimestamp &&
     refreshCircleProcessPercent &&
-    (Date.now() - refreshCircleLastTimestamp) / REFRESH_DURATION + refreshCircleProcessPercent
+    (Date.now() - refreshCircleLastTimestamp) / REFRESH_LOOP_DURATION + refreshCircleProcessPercent
 
   // should before <IntervalCircle> has destoryed, so have to useIsomorphicLayoutEffect
   useIsomorphicLayoutEffect(() => {
     if (inServer) return
     if (initPastPercent && initPastPercent > 1) {
-      freshFunction?.()
+      startTransition(() => {
+        freshFunction?.()
+      })
     }
     return () => {
       useAppSettings.setState((s) => ({
@@ -75,7 +77,9 @@ export default function RefreshCircle({
 
   useEffect(() => {
     if (needFresh && documentVisible) {
-      freshFunction?.()
+      startTransition(() => {
+        freshFunction?.()
+      })
       off()
     }
   }, [needFresh, freshFunction, documentVisible])
@@ -85,7 +89,7 @@ export default function RefreshCircle({
       <IntervalCircle
         run={run}
         initPercent={initPastPercent && initPastPercent % 1}
-        duration={REFRESH_DURATION}
+        duration={REFRESH_LOOP_DURATION}
         componentRef={intervalCircleRef}
         className={twMerge('clickable clickable-filter-effect', circleBodyClassName)}
         onClick={() => {

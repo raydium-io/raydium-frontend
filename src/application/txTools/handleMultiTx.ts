@@ -25,6 +25,7 @@ import { getRecentBlockhash } from './attachRecentBlockhash'
 import { getRichWalletTokenAccounts } from '../wallet/useTokenAccountsRefresher'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import PageLayout from '@/components/PageLayout'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -222,6 +223,8 @@ export default async function handleMultiTx(
             baseUtils: { connection, owner, tokenAccounts, allTokenAccounts }
           })
         }
+        // eslint-disable-next-line no-console
+        console.info('tx transactions: ', toHumanReadable(innerTransactions))
         const finalInfos = await sendMultiTransactionAndLogAndRecord({
           transactions: innerTransactions,
           txHistoryInfo: callbackCollection.txHistoryInfo,
