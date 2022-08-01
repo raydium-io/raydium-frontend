@@ -67,8 +67,22 @@ import { AddressItem } from '@/components/AddressItem'
 export default function FarmsPage() {
   useFarmUrlParser()
   useFarmResetSelfCreatedByOwner()
+  const currentTab = useFarms((s) => s.currentTab)
   return (
-    <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
+    <PageLayout
+      mobileBarTitle={{
+        items: [
+          { value: 'Raydium', barLabel: 'Raydium Farm' },
+          { value: 'Fusion', barLabel: 'Fusion Farm' },
+          { value: 'Ecosystem', barLabel: 'Ecosystem Farm' },
+          { value: 'Staked', barLabel: 'Staked Farm' }
+        ],
+        currentValue: currentTab,
+        onChange: (value) => useFarms.setState({ currentTab: value as 'Raydium' | 'Fusion' | 'Ecosystem' | 'Staked' })
+      }}
+      contentButtonPaddingShorter
+      metaTitle="Farms - Raydium"
+    >
       <FarmHeader />
       <FarmCard />
     </PageLayout>
@@ -77,17 +91,7 @@ export default function FarmsPage() {
 
 function FarmHeader() {
   const isMobile = useAppSettings((s) => s.isMobile)
-  return isMobile ? (
-    <Row className="flex-wrap items-center justify-center  px-2 py-1 mb-2">
-      {/* <div className="text-lg font-semibold justify-self-start text-white -mb-1">Farms</div> */}
-      {/* <div className="font-medium text-[rgba(196,214,255,.5)] text-2xs">
-          Stake your LP tokens and earn token rewards
-        </div> */}
-      <FarmTabBlock />
-      {/* <FarmCreateFarmEntryBlock className="mr-4" /> */}
-      {/* <FarmStakedOnlyBlock /> */}
-    </Row>
-  ) : (
+  return isMobile ? null : (
     <Col>
       <Grid className="grid-cols-3 justify-between items-center pb-8 pt-0">
         <div className="text-2xl font-semibold justify-self-start text-white">Farms</div>
@@ -237,7 +241,6 @@ function FarmTabBlock({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
     <RowTabs
-      // showOffset={2} // TODO: temp for mobile
       currentValue={currentTab}
       urlSearchQueryKey="tab"
       values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}

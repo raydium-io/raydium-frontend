@@ -34,7 +34,6 @@ import WalletWidget from './navWidgets/WalletWidget'
 import PageLayoutPopoverDrawer from './PageLayoutPopoverDrawer'
 import Row from './Row'
 import Tooltip from './Tooltip'
-import LoadingCircle from './LoadingCircle'
 import { setCssVarible } from '@/functions/dom/cssVariable'
 import { inClient } from '@/functions/judgers/isSSR'
 import { useAppVersion } from '@/application/appVersion/useAppVersion'
@@ -43,6 +42,8 @@ import Card from './Card'
 import Dialog from './Dialog'
 import { toUTC } from '@/functions/date/dateFormat'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
+import { isString } from '@/functions/judgers/dateType'
+import { useUrlQuery } from '@/hooks/useUrlQuery'
 
 /**
  * for easier to code and read
@@ -51,7 +52,14 @@ import { useForceUpdate } from '@/hooks/useForceUpdate'
  */
 export default function PageLayout(props: {
   /** only mobile  */
-  mobileBarTitle?: string
+  mobileBarTitle?:
+    | string
+    | {
+        items: DropdownTitleInfoItem[]
+        currentValue?: string
+        onChange?: (value: string) => void
+        urlSearchQueryKey?: string
+      }
   metaTitle?: string
   children?: ReactNode
   className?: string
@@ -95,7 +103,7 @@ export default function PageLayout(props: {
       <RPCPerformanceBanner className="grid-area-d" />
       {isMobile ? (
         <>
-          <Navbar barTitle={props.mobileBarTitle} className="grid-area-a" onOpenMenu={() => setIsSideMenuOpen(true)} />
+          <Navbar className="grid-area-a" barTitle={props.mobileBarTitle} onOpenMenu={() => setIsSideMenuOpen(true)} />
           <Drawer open={isSideMenuOpen} onClose={() => setIsSideMenuOpen(false)} onOpen={() => setIsSideMenuOpen(true)}>
             {({ close }) => <SideMenu className="flex-container h-full" onClickCloseBtn={close} />}
           </Drawer>
@@ -280,7 +288,14 @@ function Navbar({
   onOpenMenu
 }: {
   className?: string
-  barTitle?: string
+  barTitle?:
+    | string
+    | {
+        items: DropdownTitleInfoItem[]
+        currentValue?: string
+        onChange?: (value: string) => void
+        urlSearchQueryKey?: string
+      }
   style?: CSSProperties
   // TODO: move it into useAppSetting()
   onOpenMenu?: () => void
@@ -299,15 +314,26 @@ function Navbar({
     </Row>
   )
   const mobileNavContent = (
-    <Grid className="grid-cols-3 items-center">
+    <Grid className="grid-cols-[1fr,2fr,1fr] items-center">
       <div className="frosted-glass-teal rounded-lg p-2 clickable justify-self-start" onClick={onOpenMenu}>
         <Icon className="w-4 h-4" iconClassName="w-4 h-4" iconSrc="/icons/msic-menu.svg" />
       </div>
 
       {barTitle ? (
-        <div onClick={onOpenMenu} className="text-lg font-semibold place-self-center text-white -mb-1">
-          {barTitle}
-        </div>
+        isString(barTitle) ? (
+          <div onClick={onOpenMenu} className="text-lg font-semibold place-self-center text-white -mb-1">
+            {barTitle}
+          </div>
+        ) : (
+          <MobileDropdownTitle
+            titles={barTitle.items}
+            currentValue={barTitle.currentValue}
+            onChange={(value) => {
+              barTitle.onChange?.(value)
+            }}
+            urlSearchQueryKey={barTitle.urlSearchQueryKey}
+          />
+        )
       ) : (
         <Link className="place-self-center" href="/">
           <Image className="cursor-pointer" src="/logo/logo-only-icon.svg" />
@@ -327,6 +353,77 @@ function Navbar({
     >
       {isMobile ? mobileNavContent : pcNavContent}
     </nav>
+  )
+}
+
+type DropdownTitleInfoItem = {
+  value: string
+  barLabel?: string
+  itemLabel?: string
+}
+
+function MobileDropdownTitle({
+  titles,
+  currentValue: defaultCurrentValue = titles[0].value,
+  urlSearchQueryKey,
+  onChange
+}: {
+  titles: DropdownTitleInfoItem[]
+  currentValue?: string
+  urlSearchQueryKey?: string
+  onChange?: (titleValue: string) => void
+}) {
+  const [currentValue, setCurrentValue] = useState(defaultCurrentValue)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const currentTitleInfoItem = titles.find(({ value }) => value === currentValue)!
+  useUrlQuery({
+    currentValue: currentValue,
+    values: titles.map((i) => i.value),
+    onChange: onChange,
+    queryKey: urlSearchQueryKey
+  })
+  return (
+    <>
+      <div onClick={() => setIsDropdownOpen(true)} className="py-1 font-medium px-3 bg-[#141041]">
+        {currentTitleInfoItem.barLabel}
+      </div>
+      <Drawer placement="from-bottom" open={isDropdownOpen} onClose={() => setIsDropdownOpen(false)}>
+        {({ close }) => (
+          <Card
+            className="flex flex-col max-h-[60vh] mobile:max-h-full mobile:rounded-tl-lg mobile:rounded-tr-lg  mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg "
+            size="lg"
+          >
+            <Row className="justify-between items-center p-8">
+              <div className="text-xl font-semibold text-white">FARMS</div>
+              <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={close} />
+            </Row>
+
+            <Row type="grid-x" className="pb-2 px-2 divide-y divide-[rgba(171,196,255,0.2)]">
+              {titles.map(({ value, itemLabel = value }) => {
+                return (
+                  <div
+                    key={value}
+                    className={`py-3 px-8 font-medium ${
+                      value === currentValue ? 'text-white' : 'text-[rgba(171,196,255,0.5)] '
+                    } text-xs`}
+                    onClick={() => {
+                      onChange?.(value)
+                      setCurrentValue(value)
+                      close()
+                    }}
+                  >
+                    {itemLabel}
+                  </div>
+                )
+              })}
+              <div className="font-medium text-[rgba(171,196,255,0.5)] text-xs">Transaction type</div>
+              <div className="font-medium text-[rgba(171,196,255,0.5)] text-xs">Details</div>
+              <div className="font-medium text-[rgba(171,196,255,0.5)] text-xs">Date and time</div>
+            </Row>
+          </Card>
+        )}
+      </Drawer>
+    </>
   )
 }
 
