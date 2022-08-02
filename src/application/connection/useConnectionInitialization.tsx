@@ -29,8 +29,8 @@ const devRpcConfig: Omit<Config, 'success'> = {
     // { url: 'https://solana-api.projectserum.com', weight: 100 }
     { name: 'beta-mainnet', url: 'https://api.mainnet-beta.solana.com/' },
     // { name: 'api.mainnet', url: 'https://api.mainnet.rpcpool.com/' }, // not support ws
-    { name: 'tt', url: 'https://solana-api.tt-prod.net' },
-    { name: 'apricot', url: 'https://apricot-main-67cd.mainnet.rpcpool.com/' }
+    { name: 'genesysgo-dao', url: 'https://ssc-dao.genesysgo.net/' }, // only for bonsai, local may be crashed
+    { name: 'tt', url: 'https://solana-api.tt-prod.net' }
   ],
   strategy: 'speed'
 }
