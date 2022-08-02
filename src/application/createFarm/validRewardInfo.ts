@@ -43,7 +43,7 @@ export function validUiRewardInfo(rewards: UIRewardInfo[]): { valid: boolean; re
     if (!reward.startTime || !reward.endTime) return { valid: false, reason: 'Confirm emission time setup' }
 
     const minBoundary = div(getDuration(reward.endTime, reward.startTime) / 1000, 10 ** reward.token.decimals)
-    if (lt(reward.amount, minBoundary)) return { valid: false, reason: `Emission too low` }
+    if (lt(reward.amount, minBoundary)) return { valid: false, reason: `Emission rewards is lower than min required` }
 
     // check starttime is valid
     if (!isDateAfter(reward.startTime, chainDate)) return { valid: false, reason: 'Insufficient start time' }

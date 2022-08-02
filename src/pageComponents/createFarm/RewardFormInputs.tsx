@@ -278,7 +278,9 @@ export function RewardFormCardInputs({
             onTryToSwitchSOLWSOL={handleSwitchSOLWSOLRewardToken}
           />
           {reward.amount && needShowAmountAlert && (
-            <div className="text-[#DA2EEF] text-right text-sm font-medium pt-2 px-2">Emission too low</div>
+            <div className="text-[#DA2EEF] text-right text-sm font-medium pt-2 px-2">
+              Emission rewards is lower than min required
+            </div>
           )}
         </>
       </Col>

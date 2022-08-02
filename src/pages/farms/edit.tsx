@@ -223,7 +223,7 @@ export default function FarmEditPage() {
               return {
                 should: gte(reward.amount, minBoundary),
                 fallbackProps: {
-                  children: `Emission too low`
+                  children: `Emission rewards is lower than min required`
                 }
               }
             }),
