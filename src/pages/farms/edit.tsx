@@ -216,10 +216,10 @@ export default function FarmEditPage() {
               }
             },
             ...meaningFullRewards.map((reward) => {
-              const minBoundary = div(
-                getDuration(reward.endTime!, reward.startTime!) / 1000,
-                10 ** reward.token!.decimals
-              )
+              const minBoundary =
+                reward.endTime && reward.startTime && reward.token
+                  ? div(getDuration(reward.endTime, reward.startTime) / 1000, 10 ** reward.token.decimals)
+                  : undefined
               return {
                 should: gte(reward.amount, minBoundary),
                 fallbackProps: {

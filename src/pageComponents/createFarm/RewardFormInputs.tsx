@@ -245,7 +245,10 @@ export function RewardFormCardInputs({
   if (!reward) return null
 
   const needShowAlert = !isInputDuration && durationTime != null
-  const minBoundary = div(getDuration(reward.endTime!, reward.startTime!) / 1000, 10 ** reward.token!.decimals)
+  const minBoundary =
+    reward.endTime && reward.startTime && reward.token
+      ? div(getDuration(reward.endTime, reward.startTime) / 1000, 10 ** reward.token.decimals)
+      : undefined
   const needShowAmountAlert = !isInputAmount && lt(reward.amount, minBoundary)
 
   return (
