@@ -27,7 +27,6 @@ import { twMerge } from 'tailwind-merge'
 import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 import { useChainDate } from '../../hooks/useChainDate'
-import { toString } from '@/functions/numberish/toString'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -188,7 +187,7 @@ export default function CreateFarmPage() {
   const [poolIdValid, setPoolIdValid] = useState(false)
   return (
     <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Create Farm">
-      <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:bg-[#0f0b2f]" />
+      <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f]" />
 
       <div className={`pb-10 self-center transition-all duration-500 w-[min(720px,70vw)] mobile:w-[90vw]`}>
         {!isMoblie && (
@@ -237,6 +236,7 @@ export default function CreateFarmPage() {
             {cachedInputs}
             <Button
               type="text"
+              className="w-max"
               disabled={rewards.length >= 5}
               onClick={() => {
                 useCreateFarms.setState({
@@ -336,18 +336,6 @@ export default function CreateFarmPage() {
                   children: 'Insufficient duration'
                 }
               },
-              ...meaningFullRewards.map((reward) => {
-                const minBoundary =
-                  reward.endTime && reward.startTime && reward.token
-                    ? div(getDuration(reward.endTime, reward.startTime) / 1000, 10 ** reward.token.decimals)
-                    : undefined
-                return {
-                  should: gte(reward.amount, minBoundary),
-                  fallbackProps: {
-                    children: `Emission rewards is lower than min required`
-                  }
-                }
-              }),
               {
                 should: meaningFullRewards.every((reward) => {
                   const durationTime =
