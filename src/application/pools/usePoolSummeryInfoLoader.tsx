@@ -13,8 +13,11 @@ type InfoResponse = {
 /** load tvl and volumn24h */
 export default function usePoolSummeryInfoLoader() {
   const refreshCount = usePools((s) => s.refreshCount)
+  const tvl = usePools((s) => s.tvl)
+  const volume24h = usePools((s) => s.volume24h)
 
   const fetchSummeryInfo = async () => {
+    if (tvl && volume24h) return // if it has store value, then use it rather than refetching
     const summeryInfo = await jFetch<InfoResponse>('https://api.raydium.io/v2/main/info', {
       ignoreCache: true
     })
