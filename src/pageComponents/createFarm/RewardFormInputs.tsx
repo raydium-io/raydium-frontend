@@ -13,6 +13,7 @@ import { SplToken } from '@/application/token/type'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
+import Col from '@/components/Col'
 import DateInput from '@/components/DateInput'
 import FadeInStable from '@/components/FadeIn'
 import Grid from '@/components/Grid'
@@ -21,11 +22,11 @@ import Row from '@/components/Row'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { getTime, offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
-import { parseDurationAbsolute } from '@/functions/date/parseDuration'
+import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isExist } from '@/functions/judgers/nil'
-import { gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
@@ -211,8 +212,6 @@ export function RewardFormCardInputs({
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
   const currentBlockChainDate = new Date(Date.now() + chainTimeOffset)
 
-  const [isInputDuration, setIsInputDuration] = useState(false)
-
   const isStartTimeAfterCurrent = Boolean(
     tempReward && tempReward.startTime && isDateAfter(tempReward.startTime, currentBlockChainDate)
   )
@@ -240,26 +239,51 @@ export function RewardFormCardInputs({
   }, [tempReward])
 
   //#endregion
+
+  const [isInputDuration, setIsInputDuration] = useState(false)
+  const [isInputAmount, setIsInputAmount] = useState(false)
   if (!reward) return null
+
   const needShowAlert = !isInputDuration && durationTime != null
+  const minBoundary =
+    reward.endTime && reward.startTime && reward.token
+      ? div(getDuration(reward.endTime, reward.startTime) / 1000, 10 ** reward.token.decimals)
+      : undefined
+  const needShowAmountAlert = !isInputAmount && lt(reward.amount, minBoundary)
+
   return (
     <Grid className="gap-4">
-      <CoinInputBoxWithTokenSelector
-        className={`rounded-md`}
-        haveHalfButton
-        hasPlaceholder
-        topLeftLabel="Reward Token"
-        disableTokens={shakeUndifindedItem(rewards.map((r) => r.token))}
-        canSelectQuantumSOL={Boolean(tempReward.token)}
-        disabled={disableCoinInput}
-        value={rewardTokenAmount ?? ''} // pass '' to clear the input
-        token={tempReward.token}
-        disabledTokenSelect={reward.isRewardBeforeStart || reward.isRewarding || reward.isRewardEnded}
-        onSelectCoin={selectRewardToken}
-        onUserInput={setRewardAmount}
-        allowSOLWSOLSwitch
-        onTryToSwitchSOLWSOL={handleSwitchSOLWSOLRewardToken}
-      />
+      <Col>
+        <>
+          <CoinInputBoxWithTokenSelector
+            className={`rounded-md`}
+            haveHalfButton
+            hasPlaceholder
+            topLeftLabel="Reward Token"
+            disableTokens={shakeUndifindedItem(rewards.map((r) => r.token))}
+            canSelectQuantumSOL={Boolean(tempReward.token)}
+            disabled={disableCoinInput}
+            value={rewardTokenAmount ?? ''} // pass '' to clear the input
+            token={tempReward.token}
+            disabledTokenSelect={reward.isRewardBeforeStart || reward.isRewarding || reward.isRewardEnded}
+            onSelectCoin={selectRewardToken}
+            onUserInput={(amount) => {
+              setRewardAmount(amount)
+              setIsInputAmount(true)
+            }}
+            onBlur={() => {
+              setIsInputAmount(false)
+            }}
+            allowSOLWSOLSwitch
+            onTryToSwitchSOLWSOL={handleSwitchSOLWSOLRewardToken}
+          />
+          {reward.amount && needShowAmountAlert && (
+            <div className="text-[#DA2EEF] text-right text-sm font-medium pt-2 px-2">
+              Emission rewards is lower than min required
+            </div>
+          )}
+        </>
+      </Col>
       <div>
         <AutoBox is={isMobile ? 'Col' : 'Row'} className="gap-4">
           <InputBox
@@ -319,6 +343,7 @@ export function RewardFormCardInputs({
               }
             }}
           />
+
           <DateInput
             className="grow rounded-md px-4"
             label="Farming Starts"
