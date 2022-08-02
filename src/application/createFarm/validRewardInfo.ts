@@ -1,8 +1,8 @@
 import { isDateAfter } from '@/functions/date/judges'
 import { getDuration } from '@/functions/date/parseDuration'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
-import { add } from '@/functions/numberish/operations'
+import { gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { add, div } from '@/functions/numberish/operations'
 import useConnection from '../connection/useConnection'
 import { MAX_DURATION, MIN_DURATION } from '../farms/handleFarmInfo'
 import { RAYMint } from '../token/wellknownToken.config'
@@ -41,6 +41,9 @@ export function validUiRewardInfo(rewards: UIRewardInfo[]): { valid: boolean; re
 
     // check if startTime and endTime is setted
     if (!reward.startTime || !reward.endTime) return { valid: false, reason: 'Confirm emission time setup' }
+
+    const minBoundary = div(getDuration(reward.endTime, reward.startTime) / 1000, 10 ** reward.token.decimals)
+    if (lt(reward.amount, minBoundary)) return { valid: false, reason: `Emission too low` }
 
     // check starttime is valid
     if (!isDateAfter(reward.startTime, chainDate)) return { valid: false, reason: 'Insufficient start time' }

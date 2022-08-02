@@ -27,6 +27,7 @@ import { twMerge } from 'tailwind-merge'
 import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 import { useChainDate } from '../../hooks/useChainDate'
+import { toString } from '@/functions/numberish/toString'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -335,6 +336,18 @@ export default function CreateFarmPage() {
                   children: 'Insufficient duration'
                 }
               },
+              ...meaningFullRewards.map((reward) => {
+                const minBoundary = div(
+                  getDuration(reward.endTime!, reward.startTime!) / 1000,
+                  10 ** reward.token!.decimals
+                )
+                return {
+                  should: gte(reward.amount, minBoundary),
+                  fallbackProps: {
+                    children: `Emission too low`
+                  }
+                }
+              }),
               {
                 should: meaningFullRewards.every((reward) => {
                   const durationTime =
