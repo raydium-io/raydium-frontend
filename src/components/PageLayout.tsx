@@ -243,14 +243,14 @@ function DisclaimerDialog() {
         {/* content */}
         <div className="grow text-sm leading-normal text-[#abc4ffb3] scrollbar-width-thin overflow-auto h-96 mobile:h-12 rounded p-4 my-6 mobile:my-4 bg-[#141041]">
           <p className="mb-3">
-            This website-hosted user interface (this “Interface”) is made available by the Raydium Holding Foundation.
+            This website-hosted user interface (this "Interface") is made available by the Raydium Holding Foundation.
           </p>
           <p className="mb-3">
             This Interface is an open source software portal to Raydium, a protocol which is a community-driven
             collection of blockchain-enabled smart contracts and tools maintained by the Raydium Holding Foundation.
           </p>
           <p className="mb-3">
-            THIS INTERFACE AND THE RAYDIUM PROTOCOL ARE PROVIDED “AS IS”, AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF
+            THIS INTERFACE AND THE RAYDIUM PROTOCOL ARE PROVIDED "AS IS", AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF
             ANY KIND. The Raydium Holding Foundation does not provide, own, or control Raydium. By using or accessing
             this Interface or Raydium, you agree that no developer or entity involved in creating, deploying or
             maintaining this Interface or Raydium will be liable for any claims or damages whatsoever associated with
