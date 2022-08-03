@@ -5,6 +5,7 @@ import NextNProgress from 'nextjs-progressbar'
 
 import {
   useDeviceInfoSyc,
+  useDisclaimerDataSyncer,
   useSentryConfigurator,
   useSlippageTolerenceSyncer,
   useSlippageTolerenceValidator,
@@ -114,6 +115,8 @@ function ClientInitialization() {
   useThemeModeSync()
 
   useDeviceInfoSyc()
+
+  useDisclaimerDataSyncer()
 
   return null
 }

@@ -19,6 +19,7 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { createNewUIRewardInfo, parsedHydratedRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
 import { addQuery, cleanQuery } from '@/functions/dom/getURLQueryEntries'
 import { addItem } from '@/functions/arrayMethods'
+import { inClient } from '@/functions/judgers/isSSR'
 
 export type PageRouteConfigs = {
   '/swap': {
@@ -78,12 +79,15 @@ export type PageRouteConfigs = {
 
 export type PageRouteName = keyof PageRouteConfigs
 
+let historicalRouterLength = 0
+
 // TODO: parse url query function (can have prevState of zustand store)
 export function routeTo<ToPage extends keyof PageRouteConfigs>(
   toPage: ToPage,
   opts?: MayFunction<PageRouteConfigs[ToPage], [{ currentPageQuery: ParsedUrlQuery }]>
 ) {
   const options = shrinkToValue(opts, [{ currentPageQuery: router.query }])
+  historicalRouterLength++
   if (toPage === '/swap') {
     const coin1 =
       options?.queryProps?.coin1 ??
@@ -187,3 +191,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
 }
 
 export const routeBack = () => router.back()
+
+export function getRouterStackLength() {
+  return historicalRouterLength
+}

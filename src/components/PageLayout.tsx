@@ -43,6 +43,9 @@ import Card from './Card'
 import Dialog from './Dialog'
 import { toUTC } from '@/functions/date/dateFormat'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
+import { setLocalItem } from '@/functions/dom/jStorage'
+import { Checkbox } from './Checkbox'
+import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
 
 /**
  * for easier to code and read
@@ -122,6 +125,7 @@ export default function PageLayout(props: {
         {/* do not check ata currently
         <MigrateBubble /> */}
         <VersionTooOldDialog />
+        <DisclaimerDialog />
         {props.children}
       </main>
     </div>
@@ -211,6 +215,93 @@ function VersionTooOldDialog() {
         </Card>
       )}
     </Dialog>
+  )
+}
+function DisclaimerDialog() {
+  const needPopDisclaimer = useAppSettings((s) => s.needPopDisclaimer)
+  const [userHaveClickedAgree, setUserHaveClickedAgree] = useState(false)
+  const confirmDisclaimer = () => {
+    useAppSettings.setState({ needPopDisclaimer: false })
+    setLocalItem<boolean>('USER_AGREE_DISCLAIMER', true)
+  }
+  return (
+    <ResponsiveDialogDrawer
+      maskNoBlur
+      placement="from-bottom"
+      open={Boolean(needPopDisclaimer)}
+      canClosedByMask={false}
+    >
+      <Card
+        className={twMerge(
+          `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] border-1.5 border-[rgba(171,196,255,0.2)]`
+        )}
+        size="lg"
+        style={{
+          background:
+            'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
+          boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
+        }}
+      >
+        {/* title */}
+        <div className="text-xl font-semibold text-white">Disclaimer</div>
+
+        {/* content */}
+        <div className="grow text-sm leading-normal text-[#abc4ffb3] scrollbar-width-thin overflow-auto h-96 mobile:h-12 rounded p-4 my-6 mobile:my-4 bg-[#141041]">
+          <p className="mb-3">
+            This website-hosted user interface (this "Interface") is an open source frontend software portal to the
+            Raydium protocol, a decentralized and community-driven collection of blockchain-enabled smart contracts and
+            tools (the "Raydium Protocol"). This Interface and the Raydium Protocol are made available by the Raydium
+            Holding Foundation, however all transactions conducted on the protocol are run by related permissionless
+            smart contracts. As the Interface is open-sourced and the Raydium Protocol and its related smart contracts
+            are accessible by any user, entity or third party, there are a number of third party web and mobile
+            user-interfaces that allow for interaction with the Raydium Protocol.
+          </p>
+          <p className="mb-3">
+            THIS INTERFACE AND THE RAYDIUM PROTOCOL ARE PROVIDED "AS IS", AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF
+            ANY KIND. The Raydium Holding Foundation does not provide, own, or control the Raydium Protocol or any
+            transactions conducted on the protocol or via related smart contracts. By using or accessing this Interface
+            or the Raydium Protocol and related smart contracts, you agree that no developer or entity involved in
+            creating, deploying or maintaining this Interface or the Raydium Protocol will be liable for any claims or
+            damages whatsoever associated with your use, inability to use, or your interaction with other users of, this
+            Interface or the Raydium Protocol, including any direct, indirect, incidental, special, exemplary, punitive
+            or consequential damages, or loss of profits, digital assets, tokens, or anything else of value.
+          </p>
+          <p className="mb-3">
+            The Raydium Protocol is not available to residents of Belarus, the Central African Republic, The Democratic
+            Republic of Congo, the Democratic People's Republic of Korea, the Crimea, Donetsk People's Republic, and
+            Luhansk People's Republic regions of Ukraine, Cuba, Iran, Libya, Somalia, Sudan, South Sudan, Syria, the
+            USA, Yemen, Zimbabwe and any other jurisdiction in which accessing or using the Raydium Protocol is
+            prohibited (the "Prohibited Jurisdictions").
+          </p>
+          <p className="mb-3">
+            By using or accessing this Interface, the Raydium Protocol, or related smart contracts, you represent that
+            you are not located in, incorporated or established in, or a citizen or resident of the Prohibited
+            Jurisdictions. You also represent that you are not subject to sanctions or otherwise designated on any list
+            of prohibited or restricted parties or excluded or denied persons, including but not limited to the lists
+            maintained by the United States' Department of Treasury's Office of Foreign Assets Control, the United
+            Nations Security Council, the European Union or its Member States, or any other government authority.
+          </p>
+        </div>
+
+        <Col className="">
+          <Checkbox
+            checkBoxSize="sm"
+            className="mt-2 mb-6 w-max"
+            checked={userHaveClickedAgree}
+            onChange={setUserHaveClickedAgree}
+            label={<div className="text-sm  text-white">I have read, understand and accept these terms.</div>}
+          />
+
+          <Button
+            disabled={!userHaveClickedAgree}
+            className={`text-[#ABC4FF]  frosted-glass-teal`}
+            onClick={confirmDisclaimer}
+          >
+            Agree and Continue
+          </Button>
+        </Col>
+      </Card>
+    </ResponsiveDialogDrawer>
   )
 }
 

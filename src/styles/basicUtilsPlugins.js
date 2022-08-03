@@ -7,9 +7,12 @@ exports.ibasic = plugin(({ addUtilities }) => {
         display: 'none'
       }
     },
-    'scrollbar-width-thin': {
+    '.scrollbar-width-thin': {
       '&::-webkit-scrollbar': {
         width: '4px'
+      },
+      '&::-webkit-scrollbar-thumb': {
+        background: '#ABC4FF80'
       }
     }
   })
