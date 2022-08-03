@@ -23,14 +23,14 @@ export default function DisclaimerPage() {
         <div className="text-center text-5xl mobile:text-2xl mb-8 mobile:mb-2">Disclaimer</div>
         <div>
           <div className="text-[#adc6ff] mobile:text-sm leading-relaxed mb-4">
-            This website-hosted user interface (this “Interface”) is made available by the Raydium Holding Foundation.
+            This website-hosted user interface (this "Interface") is made available by the Raydium Holding Foundation.
           </div>
           <div className="text-[#adc6ff] mobile:text-sm leading-relaxed mb-4">
             This Interface is an open source software portal to Raydium, a protocol which is a community-driven
             collection of blockchain-enabled smart contracts and tools maintained by the Raydium Holding Foundation.
           </div>
           <div className="text-[#adc6ff] mobile:text-sm leading-relaxed mb-4">
-            THIS INTERFACE AND THE RAYDIUM PROTOCOL ARE PROVIDED ”AS IS”, AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF
+            THIS INTERFACE AND THE RAYDIUM PROTOCOL ARE PROVIDED "AS IS", AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF
             ANY KIND. The Raydium Holding Foundation does not provide, own, or control Raydium. By using or accessing
             this Interface or Raydium, you agree that no developer or entity involved in creating, deploying or
             maintaining this Interface or Raydium will be liable for any claims or damages whatsoever associated with
