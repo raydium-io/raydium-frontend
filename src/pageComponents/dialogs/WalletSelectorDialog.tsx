@@ -118,15 +118,24 @@ function PanelContent({
   const [isAllWalletShown, setIsAllWalletShown] = useState(false)
   const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
   const isInBonsaiTest = useAppSettings((s) => s.isInBonsaiTest)
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Card
       className="flex flex-col max-h-screen  w-[586px] mobile:w-screen rounded-3xl mobile:rounded-none border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg shadow-cyberpunk-card"
       size="lg"
     >
-      <Row className="items-center justify-between px-8 py-8">
-        <div className="text-xl font-semibold text-white">Connect your wallet to Raydium</div>
+      <Row className="items-center justify-between p-8 mobile:p-4">
+        <div className="text-xl mobile:text-lg font-semibold text-white">Connect your wallet to Raydium</div>
         <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={close} />
       </Row>
+
+      {/* Disclaimer */}
+      <div className="grow text-sm leading-normal text-[#abc4ffb3]  rounded p-4 mb-6 mobile:mb-4 mx-8 mobile:mx-6 bg-[#141041]">
+        By connecting your wallet, you acknowledge that you have read, understand and accept the terms in the
+        <Link href="/docs/disclaimer" className="text-[#abc4ff] px-1.5" onClick={close}>
+          Disclaimer
+        </Link>
+      </div>
 
       <Grid
         className={`px-8 mobile:px-6 gap-x-6 gap-y-3 mobile:gap-2 ${
@@ -160,11 +169,11 @@ function PanelContent({
         className="m-4 text-[#abc4ff] justify-center items-center clickable"
         onClick={() => setIsAllWalletShown((b) => !b)}
       >
-        <div className="font-bold">Show uninstalled wallets</div>
+        <div className="font-bold mobile:text-sm">Show uninstalled wallets</div>
         <Icon className="mx-2" size="sm" heroIconName={isAllWalletShown ? 'chevron-up' : 'chevron-down'}></Icon>
       </Row>
 
-      <div className="py-4 text-center font-medium text-sm border-t-1.5 border-[rgba(171,196,255,0.2)]">
+      <div className="py-4 text-white text-center font-medium text-sm border-t-1.5 border-[rgba(171,196,255,0.2)]">
         New here?{' '}
         <Link href="https://raydium.gitbook.io/raydium/" className="text-[#abc4ff]">
           Get started on Raydium!
