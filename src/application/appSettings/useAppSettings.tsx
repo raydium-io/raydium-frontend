@@ -52,7 +52,7 @@ const useAppSettings = create<AppSettingsStore>(() => ({
   themeMode: 'light' as 'dark' | 'light',
 
   isBetaBubbleOn: true,
-  needPopDisclaimer: inClient ? !getLocalItem<boolean>('USER_AGREE_DISCLAIMER') : false,
+  needPopDisclaimer: false,
 
   isMobile: false,
   isTablet: false,

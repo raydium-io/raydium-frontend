@@ -17,6 +17,7 @@ import { toString } from '@/functions/numberish/toString'
 import Link from '@/components/Link'
 import { useAppVersion } from '../appVersion/useAppVersion'
 import { inClient, inServer, isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
+import { getLocalItem } from '@/functions/dom/jStorage'
 
 export function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -39,6 +40,14 @@ export function useDeviceInfoSyc() {
       inServer: inServer,
       isInBonsaiTest: isInBonsaiTest,
       isInLocalhost: isInLocalhost
+    })
+  }, [])
+}
+
+export function useDisclaimerDataSyncer() {
+  useIsomorphicLayoutEffect(() => {
+    useAppSettings.setState({
+      needPopDisclaimer: !getLocalItem<boolean>('USER_AGREE_DISCLAIMER')
     })
   }, [])
 }
