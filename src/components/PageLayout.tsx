@@ -45,6 +45,7 @@ import { toUTC } from '@/functions/date/dateFormat'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import { setLocalItem } from '@/functions/dom/jStorage'
 import { Checkbox } from './Checkbox'
+import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
 
 /**
  * for easier to code and read
@@ -224,9 +225,11 @@ function DisclaimerDialog() {
     setLocalItem<boolean>('USER_AGREE_DISCLAIMER', true)
   }
   return (
-    <Dialog open={needPopDisclaimer} canClosedByMask={false}>
+    <ResponsiveDialogDrawer placement="from-bottom" open={needPopDisclaimer} canClosedByMask={false}>
       <Card
-        className={twMerge(`p-8 rounded-3xl w-[min(552px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]`)}
+        className={twMerge(
+          `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-none mobile:h-screen w-[min(552px,100vw)] border-1.5 border-[rgba(171,196,255,0.2)]`
+        )}
         size="lg"
         style={{
           background:
@@ -238,7 +241,7 @@ function DisclaimerDialog() {
         <div className="text-xl font-semibold text-white">Disclaimer</div>
 
         {/* content */}
-        <div className="text-sm leading-normal text-[#abc4ffb3] overflow-auto h-96 rounded p-4 my-6 bg-[#141041]">
+        <div className="grow text-sm leading-normal text-[#abc4ffb3] overflow-auto h-96 mobile:h-36 rounded p-4 my-6 mobile:my-4 bg-[#141041]">
           <p className="mb-3">
             This website-hosted user interface (this “Interface”) is made available by the Raydium Holding Foundation.
           </p>
@@ -279,7 +282,7 @@ function DisclaimerDialog() {
           </Button>
         </Col>
       </Card>
-    </Dialog>
+    </ResponsiveDialogDrawer>
   )
 }
 
