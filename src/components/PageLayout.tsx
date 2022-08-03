@@ -225,7 +225,12 @@ function DisclaimerDialog() {
     setLocalItem<boolean>('USER_AGREE_DISCLAIMER', true)
   }
   return (
-    <ResponsiveDialogDrawer placement="from-bottom" open={Boolean(needPopDisclaimer)} canClosedByMask={false}>
+    <ResponsiveDialogDrawer
+      maskNoBlur
+      placement="from-bottom"
+      open={Boolean(needPopDisclaimer)}
+      canClosedByMask={false}
+    >
       <Card
         className={twMerge(
           `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] border-1.5 border-[rgba(171,196,255,0.2)]`
