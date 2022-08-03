@@ -2,6 +2,8 @@ import create from 'zustand'
 
 import { Numberish } from '@/types/constants'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
+import { inClient } from '@/functions/judgers/isSSR'
+import { getLocalItem } from '@/functions/dom/jStorage'
 
 // it is some global uiStates
 
@@ -11,6 +13,7 @@ export type AppSettingsStore = {
   themeMode: 'dark' | 'light'
 
   isBetaBubbleOn: boolean // temp for beta
+  needPopDisclaimer: boolean // need user agree
 
   /** detect device */
   isMobile: boolean
@@ -49,6 +52,7 @@ const useAppSettings = create<AppSettingsStore>(() => ({
   themeMode: 'light' as 'dark' | 'light',
 
   isBetaBubbleOn: true,
+  needPopDisclaimer: inClient ? !getLocalItem<boolean>('USER_AGREE_DISCLAIMER') : false,
 
   isMobile: false,
   isTablet: false,

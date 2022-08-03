@@ -43,6 +43,8 @@ import Card from './Card'
 import Dialog from './Dialog'
 import { toUTC } from '@/functions/date/dateFormat'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
+import { setLocalItem } from '@/functions/dom/jStorage'
+import { Checkbox } from './Checkbox'
 
 /**
  * for easier to code and read
@@ -122,6 +124,7 @@ export default function PageLayout(props: {
         {/* do not check ata currently
         <MigrateBubble /> */}
         <VersionTooOldDialog />
+        <DisclaimerDialog />
         {props.children}
       </main>
     </div>
@@ -210,6 +213,72 @@ function VersionTooOldDialog() {
           </Col>
         </Card>
       )}
+    </Dialog>
+  )
+}
+function DisclaimerDialog() {
+  const needPopDisclaimer = useAppSettings((s) => s.needPopDisclaimer)
+  const [userHaveClickedAgree, setUserHaveClickedAgree] = useState(false)
+  const confirmDisclaimer = () => {
+    useAppSettings.setState({ needPopDisclaimer: false })
+    setLocalItem<boolean>('USER_AGREE_DISCLAIMER', true)
+  }
+  return (
+    <Dialog open={needPopDisclaimer} canClosedByMask={false}>
+      <Card
+        className={twMerge(`p-8 rounded-3xl w-[min(552px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]`)}
+        size="lg"
+        style={{
+          background:
+            'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
+          boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
+        }}
+      >
+        {/* title */}
+        <div className="text-xl font-semibold text-white">Disclaimer</div>
+
+        {/* content */}
+        <div className="text-sm leading-normal text-[#abc4ffb3] overflow-auto h-96 rounded p-4 my-6 bg-[#141041]">
+          <p className="mb-3">
+            This website-hosted user interface (this “Interface”) is made available by the Raydium Holding Foundation.
+          </p>
+          <p className="mb-3">
+            This Interface is an open source software portal to Raydium, a protocol which is a community-driven
+            collection of blockchain-enabled smart contracts and tools maintained by the Raydium Holding Foundation.
+          </p>
+          <p className="mb-3">
+            THIS INTERFACE AND THE RAYDIUM PROTOCOL ARE PROVIDED “AS IS”, AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF
+            ANY KIND. The Raydium Holding Foundation does not provide, own, or control Raydium. By using or accessing
+            this Interface or Raydium, you agree that no developer or entity involved in creating, deploying or
+            maintaining this Interface or Raydium will be liable for any claims or damages whatsoever associated with
+            your use, inability to use, or your interaction with other users of, this Interface or Raydium, including
+            any direct, indirect, incidental, special, exemplary, punitive or consequential damages, or loss of profits,
+            cryptocurrencies, tokens, or anything else of value. The Raydium Protocol is not available to residents of
+            Belarus, the Central African Republic, The Democratic Republic of Congo, the Democratic People's Republic of
+            Korea, the Crimea, Donetsk People's Republic, and Luhansk People's Republic regions of Ukraine, Cuba, Iran,
+            Libya, Somalia, Sudan, South Sudan, Syria, the USA, Yemen, Zimbabwe and any other jurisdiction in which
+            accessing or using the Raydium Protocol is prohibited.
+          </p>
+        </div>
+
+        <Col className="">
+          <Checkbox
+            checkBoxSize="sm"
+            className="mt-2 mb-6 w-max"
+            checked={userHaveClickedAgree}
+            onChange={setUserHaveClickedAgree}
+            label={<div className="text-sm  text-white">Agree to terms</div>}
+          />
+
+          <Button
+            disabled={!userHaveClickedAgree}
+            className={`text-[#ABC4FF]  frosted-glass-teal`}
+            onClick={confirmDisclaimer}
+          >
+            Enter Raydium
+          </Button>
+        </Col>
+      </Card>
     </Dialog>
   )
 }
