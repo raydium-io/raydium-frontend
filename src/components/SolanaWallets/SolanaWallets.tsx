@@ -19,10 +19,10 @@ import {
   SolletExtensionWalletAdapter,
   SolletWalletAdapter,
   SolongWalletAdapter,
-  TorusWalletAdapter
+  TorusWalletAdapter,
+  TokenPocketWalletAdapter
 } from '@solana/wallet-adapter-wallets'
 import { clusterApiUrl } from '@solana/web3.js'
-import { TokenPocketWalletAdapter } from '@solana/wallet-adapter-tokenpocket'
 
 import useConnection from '@/application/connection/useConnection'
 
