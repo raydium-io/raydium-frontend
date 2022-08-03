@@ -19,7 +19,7 @@ export default function DisclaimerPage() {
         display: 'flow-root'
       }}
     >
-      <Card className="frosted-glass-lightsmoke rounded-3xl mobile:rounded-xl py-12 px-24 mobile:p-4">
+      <Card className="frosted-glass-lightsmoke rounded-3xl mobile:rounded-xl py-12 px-24 mobile:p-4 mx-auto max-w-6xl">
         <div className="text-center text-5xl mobile:text-2xl mb-8 mobile:mb-2">Disclaimer</div>
         <div>
           <div className="text-[#adc6ff] mobile:text-sm leading-relaxed mb-4">
