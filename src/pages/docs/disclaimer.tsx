@@ -1,7 +1,12 @@
+import useAppSettings from '@/application/appSettings/useAppSettings'
+import { getRouterStackLength, routeBack } from '@/application/routeTools'
+import Button from '@/components/Button'
 import Card from '@/components/Card'
+import Row from '@/components/Row'
 import React from 'react'
 
 export default function DisclaimerPage() {
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <div
       className="p-44 mobile:p-2"
@@ -14,7 +19,7 @@ export default function DisclaimerPage() {
         display: 'flow-root'
       }}
     >
-      <Card className="frosted-glass-lightsmoke rounded-xl py-24 px-24 mobile:p-4">
+      <Card className="frosted-glass-lightsmoke rounded-3xl mobile:rounded-xl py-12 px-24 mobile:p-4">
         <div className="text-center text-5xl mobile:text-2xl mb-8 mobile:mb-2">Disclaimer</div>
         <div>
           <div className="text-[#adc6ff] mobile:text-sm leading-relaxed mb-4">
@@ -36,11 +41,23 @@ export default function DisclaimerPage() {
           <div className="text-[#adc6ff] mobile:text-sm leading-relaxed mb-4">
             By using or accessing this Interface, you represent that you are not subject to sanctions or otherwise
             designated on any list of prohibited or restricted parties or excluded or denied persons, including but not
-            limited to the lists maintained by the United States’ Department of Treasury’s Office of Foreign Assets
+            limited to the lists maintained by the United States' Department of Treasury's Office of Foreign Assets
             Control, the United Nations Security Council, the European Union or its Member States, or any other
             government authority.
           </div>
         </div>
+
+        {getRouterStackLength() > 0 && (
+          <Row className="justify-center mt-24">
+            <Button
+              className="frosted-glass-teal w-[600px] mobile:w-full"
+              size={isMobile ? 'sm' : 'md'}
+              onClick={routeBack}
+            >
+              Confirm
+            </Button>
+          </Row>
+        )}
       </Card>
     </div>
   )

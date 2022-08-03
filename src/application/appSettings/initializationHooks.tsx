@@ -130,7 +130,7 @@ export function popWelcomeDialogFn(cb?: { onConfirm: () => void }) {
         <span className="text-[#39D0D8] font-bold">still under development</span>.
       </div>
       <div className="text-[#C4D6FF] mb-4 ">
-        You can still use <Link href="https://v1.raydium.io/swap">V1</Link> for Raydium’s full features.
+        You can still use <Link href="https://v1.raydium.io/swap">V1</Link> for Raydium's full features.
       </div>
       <div className="text-[#C4D6FF] mb-4 ">
         Help Raydium improve by reporting bugs <Link href="https://forms.gle/DvUS4YknduBgu2D7A">here</Link>, or in{' '}
