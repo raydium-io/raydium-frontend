@@ -118,7 +118,6 @@ function PanelContent({
   const [isAllWalletShown, setIsAllWalletShown] = useState(false)
   const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
   const isInBonsaiTest = useAppSettings((s) => s.isInBonsaiTest)
-  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Card
       className="flex flex-col max-h-screen  w-[586px] mobile:w-screen rounded-3xl mobile:rounded-none border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg shadow-cyberpunk-card"
@@ -130,7 +129,7 @@ function PanelContent({
       </Row>
 
       {/* Disclaimer */}
-      <div className="grow text-sm leading-normal text-[#abc4ffb3]  rounded p-4 mb-6 mobile:mb-4 mx-8 mobile:mx-6 bg-[#141041]">
+      <div className="grow text-sm mobile:text-xs leading-normal text-[#abc4ffb3] rounded p-4 mobile:p-2 mobile:px-4 mb-6 mobile:mb-4 mx-8 mobile:mx-6 bg-[#141041]">
         By connecting your wallet, you acknowledge that you have read, understand and accept the terms in the
         <Link href="/docs/disclaimer" className="text-[#abc4ff] px-1.5" onClick={close}>
           Disclaimer
