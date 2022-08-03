@@ -228,7 +228,7 @@ function DisclaimerDialog() {
     <ResponsiveDialogDrawer placement="from-bottom" open={needPopDisclaimer} canClosedByMask={false}>
       <Card
         className={twMerge(
-          `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-none mobile:h-screen w-[min(552px,100vw)] border-1.5 border-[rgba(171,196,255,0.2)]`
+          `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] border-1.5 border-[rgba(171,196,255,0.2)]`
         )}
         size="lg"
         style={{
@@ -241,7 +241,7 @@ function DisclaimerDialog() {
         <div className="text-xl font-semibold text-white">Disclaimer</div>
 
         {/* content */}
-        <div className="grow text-sm leading-normal text-[#abc4ffb3] overflow-auto h-96 mobile:h-36 rounded p-4 my-6 mobile:my-4 bg-[#141041]">
+        <div className="grow text-sm leading-normal text-[#abc4ffb3] scrollbar-width-thin overflow-auto h-96 mobile:h-12 rounded p-4 my-6 mobile:my-4 bg-[#141041]">
           <p className="mb-3">
             This website-hosted user interface (this “Interface”) is made available by the Raydium Holding Foundation.
           </p>
