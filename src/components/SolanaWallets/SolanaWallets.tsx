@@ -25,9 +25,11 @@ import { clusterApiUrl } from '@solana/web3.js'
 import { TokenPocketWalletAdapter } from '@solana/wallet-adapter-tokenpocket'
 
 import useConnection from '@/application/connection/useConnection'
+import useAppSettings from '@/application/appSettings/useAppSettings'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */
 export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
+  const needPopDisclaimer = useAppSettings((s) => s.needPopDisclaimer)
   // Set to 'devnet' | 'testnet' | 'mainnet-beta' or provide a custom RPC endpoint
   const { currentEndPoint } = useConnection()
   const { pathname } = useRouter()
@@ -64,7 +66,7 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={pathname !== '/'}>
+      <WalletProvider wallets={wallets} autoConnect={pathname !== '/' && needPopDisclaimer === false}>
         {children}
       </WalletProvider>
     </ConnectionProvider>
