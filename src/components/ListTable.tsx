@@ -1,18 +1,16 @@
 /**
  * depends on <List>
  */
-
 import { isNumber, isObject } from '@/functions/judgers/dateType'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayArray, MayFunction } from '@/types/constants'
 import { SKeyof } from '@/types/generics'
-import { ReactNode, Fragment, useRef, CSSProperties } from 'react'
+import { CSSProperties, Fragment, ReactNode, useRef } from 'react'
+import { twMerge } from 'tailwind-merge'
+import useListDataManager from '../hooks/useListDataManager'
 import Card from './Card'
 import Col from './Col'
-import useListDataManager from '../hooks/useListDataManager'
 import Grid from './Grid'
-import { twMerge } from 'tailwind-merge'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import Row from './Row'
 
 interface ListTableHeader<D> {
@@ -47,11 +45,11 @@ type ListTableProps<T> = {
   rowsWrapperClassName?: string
   headersWrapperClassName?: string
 
-  // --------- callbacks ---------
+  // --------- callback props ---------
   onClickRow?: (payload: { index: number; item: T }) => void
   onListChange?: (newlist: T[]) => void
 
-  // --------- render ---------
+  // --------- render props ---------
   renderRowItem?: (payload: {
     item: T
     index: number
@@ -61,6 +59,8 @@ type ListTableProps<T> = {
     header?: ListTableHeader<T>['el']
     allHeaders: ListTableHeader<T>[]
   }) => ReactNode
+
+  /**@deprecated just uses props:`renderControlButtons` and props:`renderItemActionButtons`  */
   renderRowEntry?: (payload: {
     contentNode: ReactNode
     destorySelf(): void
@@ -68,6 +68,7 @@ type ListTableProps<T> = {
     itemData: T
     index: number
   }) => ReactNode
+
   // place is predefined
   renderControlButtons?: (payload: {
     destorySelf(): void
@@ -75,6 +76,15 @@ type ListTableProps<T> = {
     itemData: T
     index: number
   }) => ReactNode
+
+  // place is predefined
+  renderItemActionButtons?: (payload: {
+    destorySelf(): void
+    changeSelf(newItem: T): void
+    itemData: T
+    index: number
+  }) => ReactNode
+
   renderPropertyLabel?: (property: { key?: MayArray<SKeyof<T>>; label: string; wholeList: T[] }) => ReactNode
 }
 
@@ -97,6 +107,7 @@ export default function ListTable<T>({
   renderRowItem,
   renderRowEntry,
   renderControlButtons,
+  renderItemActionButtons,
 
   renderPropertyLabel,
   onListChange
@@ -243,11 +254,18 @@ export default function ListTable<T>({
             itemData: data,
             index: idx
           })
+          const itemActionNode = renderItemActionButtons?.({
+            destorySelf,
+            changeSelf,
+            itemData: data,
+            index: idx
+          })
           return (
             <div key={isObject(data) ? (data as any)?.id ?? idx : idx} className="relative">
               {userSettedWholeEntry ?? (
                 <>
                   {contentNode}
+                  {itemActionNode}
                   {controlsNode && (
                     <div className="absolute -right-10 top-1/2 -translate-y-1/2 translate-x-full">{controlsNode}</div>
                   )}
@@ -269,8 +287,13 @@ export default function ListTable<T>({
           itemData: data,
           index: idx
         })
-
         const controlsNode = renderControlButtons?.({
+          destorySelf,
+          changeSelf,
+          itemData: data,
+          index: idx
+        })
+        const itemActionNode = renderItemActionButtons?.({
           destorySelf,
           changeSelf,
           itemData: data,
@@ -290,10 +313,12 @@ export default function ListTable<T>({
               <div className="relative">{userSettedWholeEntry}</div>
             ) : (
               <>
-                <div className="relative">{contentNode}</div>
+                <div className="relative">
+                  {contentNode}
+                  {itemActionNode}
+                </div>
                 <Row>
                   {/* another btns */}
-                  {/* <Row className="grow justify-start py-3 px-5">{controlsNode}</Row> */}
                   {controlsNode && <Row className="grow justify-end py-3 px-5">{controlsNode}</Row>}
                 </Row>
               </>

@@ -16,6 +16,7 @@ export interface ButtonHandle {
 }
 export interface ButtonProps {
   size?: 'xs' | 'md' | 'sm' | 'lg'
+  noComponentCss?: boolean
   // used in "connect wallet" button, it's order is over props: disabled
   forceActive?: boolean
   /** a short cut for validator */
@@ -55,6 +56,7 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
   const {
     type = 'solid',
     className = '',
+    noComponentCss,
     size,
     children,
     onClick,
@@ -83,22 +85,24 @@ export default function Button({ validators, ...restProps }: ButtonProps) {
         if (!isActive) ev.stopPropagation()
         if (isActive || haveFallbackClick) onClick?.({ ev })
       }}
-      className={twMerge(
-        'Button select-none',
-        type === 'text'
-          ? textButtonTailwind({ size, disable: !isActive, haveFallbackClick })
-          : type === 'outline'
-          ? outlineButtonTailwind({ size, disable: !isActive, haveFallbackClick })
-          : solidButtonTailwind({ size, disable: !isActive, haveFallbackClick }),
-        className
-      )}
+      className={
+        noComponentCss
+          ? className
+          : twMerge(
+              'Button select-none inline-flex justify-center items-center gap-2',
+              type === 'text'
+                ? textButtonTailwind({ size, disable: !isActive, haveFallbackClick })
+                : type === 'outline'
+                ? outlineButtonTailwind({ size, disable: !isActive, haveFallbackClick })
+                : solidButtonTailwind({ size, disable: !isActive, haveFallbackClick }),
+              className
+            )
+      }
     >
-      <Row className="justify-center items-center gap-2">
-        {isLoading && <LoadingCircleSmall className="w-4 h-4" />}
-        {prefix}
-        {children}
-        {suffix}
-      </Row>
+      {isLoading && <LoadingCircleSmall className="w-4 h-4" />}
+      {prefix}
+      {children}
+      {suffix}
     </button>
   )
 }
@@ -117,7 +121,7 @@ function solidButtonTailwind({
       : size === 'xs'
       ? 'px-4 py-2 text-xs rounded-xl font-medium'
       : 'px-4 py-2.5  rounded-xl font-medium'
-  } whitespace-nowrap appearance-none inline-block ${
+  } whitespace-nowrap appearance-none ${
     disable
       ? `bg-formkit-thumb-disable text-formkit-thumb-text-disabled opacity-40 ${
           haveFallbackClick ? '' : 'cursor-not-allowed'
@@ -140,7 +144,7 @@ function outlineButtonTailwind({
       : size === 'xs'
       ? 'px-4 py-2 text-xs rounded-xl'
       : 'px-4 py-2.5  rounded-xl'
-  } whitespace-nowrap appearance-none inline-block ring-1.5 ring-inset ring-current ${
+  } whitespace-nowrap appearance-none ring-1.5 ring-inset ring-current ${
     disable ? `opacity-40 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable clickable-filter-effect'
   }`
 }
@@ -159,7 +163,7 @@ function textButtonTailwind({
       : size === 'xs'
       ? 'px-4 py-2 text-xs rounded-xl'
       : 'px-4 py-2.5  rounded-xl'
-  } whitespace-nowrap appearance-none inline-block text-white ${
+  } whitespace-nowrap appearance-none text-white ${
     disable ? `opacity-40 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable clickable-filter-effect'
   }`
 }

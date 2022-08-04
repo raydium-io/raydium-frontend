@@ -259,7 +259,7 @@ export function RewardFormCardInputs({
             className={`rounded-md`}
             haveHalfButton
             hasPlaceholder
-            topLeftLabel="Reward Token"
+            topLeftLabel="Token"
             disableTokens={shakeUndifindedItem(rewards.map((r) => r.token))}
             canSelectQuantumSOL={Boolean(tempReward.token)}
             disabled={disableCoinInput}
@@ -289,7 +289,7 @@ export function RewardFormCardInputs({
           <InputBox
             className="grow-2 rounded-md text-sm font-medium text-white px-4"
             inputClassName="placeholder:text-[#abc4ff50]"
-            label="Total Duration"
+            label="Duration"
             type="number"
             inputHTMLProps={{
               min: 1,

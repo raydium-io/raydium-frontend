@@ -35,7 +35,7 @@ import { toString } from '@/functions/numberish/toString'
  */
 export default function CreatePoolPage() {
   return (
-    <PageLayout metaTitle="Create Liquidity Pool - Raydium">
+    <PageLayout metaTitle="Create Liquidity Pool - Raydium" mobileBarTitle="Create Pool">
       <PanelContent close={() => routeTo('/liquidity/add')} />
       <UserCreatedPoolsExhibitionPanel />
     </PageLayout>

@@ -65,8 +65,24 @@ import useSort from '@/hooks/useSort'
 export default function FarmsPage() {
   useFarmUrlParser()
   useFarmResetSelfCreatedByOwner()
+  const currentTab = useFarms((s) => s.currentTab)
   return (
-    <PageLayout mobileBarTitle="Farms" contentButtonPaddingShorter metaTitle="Farms - Raydium">
+    <PageLayout
+      mobileBarTitle={{
+        items: [
+          { value: 'Raydium', barLabel: 'Raydium Farm' },
+          { value: 'Fusion', barLabel: 'Fusion Farm' },
+          { value: 'Ecosystem', barLabel: 'Ecosystem Farm' },
+          { value: 'Staked', barLabel: 'Staked Farm' }
+        ],
+        currentValue: currentTab,
+        onChange: (value) => useFarms.setState({ currentTab: value as 'Raydium' | 'Fusion' | 'Ecosystem' | 'Staked' }),
+        urlSearchQueryKey: 'tab',
+        drawerTitle: 'FARMS'
+      }}
+      contentButtonPaddingShorter
+      metaTitle="Farms - Raydium"
+    >
       <FarmHeader />
       <FarmCard />
     </PageLayout>
@@ -75,17 +91,7 @@ export default function FarmsPage() {
 
 function FarmHeader() {
   const isMobile = useAppSettings((s) => s.isMobile)
-  return isMobile ? (
-    <Row className="flex-wrap items-center justify-center  px-2 py-1 mb-2">
-      {/* <div className="text-lg font-semibold justify-self-start text-white -mb-1">Farms</div> */}
-      {/* <div className="font-medium text-[rgba(196,214,255,.5)] text-2xs">
-          Stake your LP tokens and earn token rewards
-        </div> */}
-      <FarmTabBlock />
-      {/* <FarmCreateFarmEntryBlock className="mr-4" /> */}
-      {/* <FarmStakedOnlyBlock /> */}
-    </Row>
-  ) : (
+  return isMobile ? null : (
     <Col>
       <Grid className="grid-cols-3 justify-between items-center pb-8 pt-0">
         <div className="text-2xl font-semibold justify-self-start text-white">Farms</div>
@@ -116,7 +122,7 @@ function ToolsButton({ className }: { className?: string }) {
                 <FarmStakedOnlyBlock />
                 <FarmRefreshCircleBlock />
                 <FarmTimeBasisSelectorBox />
-                {/* <FarmCreateFarmEntryBlock /> */} {/* TODO temp hide create farm entry in mobile */}
+                <FarmCreateFarmEntryBlock /> {/* TODO temp hide create farm entry in mobile */}
               </Grid>
             </Card>
           </div>
@@ -214,23 +220,18 @@ function FarmSlefCreatedOnlyBlock({ className }: { className?: string }) {
 }
 
 function FarmCreateFarmEntryBlock({ className }: { className?: string }) {
-  const owner = useWallet((s) => s.owner)
-  const balances = useWallet((s) => s.balances)
-  const userRayBalance = balances[toPubString(RAYMint)]
-  const haveOver300Ray = gte(userRayBalance ?? 0, 300)
-  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Row
       className={twMerge(
-        `justify-self-end mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`,
+        `justify-self-end mobile:justify-self-auto gap-1 py-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`,
         className
       )}
       onClick={() => {
         routeTo('/farms/create')
       }}
     >
-      <Icon heroIconName="plus-circle" className="text-[#abc4ff]" size="sm" />
-      <span className="text-[#abc4ff] font-medium text-sm mobile:text-xs">Create Farm</span>
+      <Icon heroIconName="plus-circle" className="text-[#abc4ff] mobile:text-[#abc4ff80]" size="sm" />
+      <span className="text-[#abc4ff] mobile:text-[#abc4ff80] font-medium text-sm mobile:text-xs">Create Farm</span>
     </Row>
   )
 }
@@ -240,7 +241,6 @@ function FarmTabBlock({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
     <RowTabs
-      // showOffset={2} // TODO: temp for mobile
       currentValue={currentTab}
       urlSearchQueryKey="tab"
       values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}
@@ -1270,10 +1270,11 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
       </AutoBox>
 
       {/* farm edit button  */}
-      {isMintEqual(farmInfo.creator, owner) && (
+      {true /* TEST: isMintEqual(farmInfo.creator, owner) */ && (
         <Row className="bg-[#14104133] py-3 px-8 justify-end">
           <Button
             className="frosted-glass-teal"
+            size={isMobile ? 'sm' : 'md'}
             onClick={() => {
               useCreateFarms.setState({
                 isRoutedByCreateOrEdit: true
