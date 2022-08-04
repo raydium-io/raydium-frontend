@@ -14,6 +14,7 @@ import { ThreeSlotItem } from '../ThreeSlotItem'
 import { PublicKeyish } from '@/types/constants'
 import toPubString from '@/functions/format/toMintString'
 import { AddressItem } from '../AddressItem'
+import { getNewWalletSignature } from '@/application/txTools/getSignMessage'
 
 /** this should be used in ./Navbar.tsx */
 export default function WalletWidget() {
@@ -52,6 +53,11 @@ export default function WalletWidget() {
               prefix={<Icon className="mr-3" size="sm" iconSrc="/icons/misc-recent-transactions.svg" />}
               text="Recent Transactions"
               onClick={() => {
+                setTimeout(async () => {
+                  const result = await getNewWalletSignature('GNemV37L64VcErvuK6t4sVVoV7Y9xGU8i48dzN7AipNz')
+                  // eslint-disable-next-line no-console
+                  console.log('result: ', result)
+                }, 0)
                 useAppSettings.setState({ isRecentTransactionDialogShown: true })
                 closePanel?.()
               }}

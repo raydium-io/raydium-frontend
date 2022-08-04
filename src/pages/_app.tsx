@@ -50,6 +50,7 @@ import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionD
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 
 import '../styles/index.css'
+import { getNewWalletSignature } from '@/application/txTools/getSignMessage'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
