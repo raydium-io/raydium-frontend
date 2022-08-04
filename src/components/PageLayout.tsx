@@ -243,7 +243,7 @@ function DisclaimerDialog() {
     >
       <Card
         className={twMerge(
-          `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] border-1.5 border-[rgba(171,196,255,0.2)]`
+          `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)]`
         )}
         size="lg"
         style={{
@@ -296,7 +296,7 @@ function DisclaimerDialog() {
         <Col className="">
           <Checkbox
             checkBoxSize="sm"
-            className="mt-2 mb-6 w-max"
+            className="mt-2 mb-6"
             checked={userHaveClickedAgree}
             onChange={setUserHaveClickedAgree}
             label={<div className="text-sm  text-white">I have read, understand and accept these terms.</div>}
@@ -638,7 +638,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
           </Col>
 
           <Tooltip>
-            <div className="text-sm m-2 mb-0 leading-relaxed opacity-50 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
+            <div className="text-sm mobile:text-xs m-2 mb-0 leading-relaxed opacity-50 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
               <div>V {currentVersion.slice(1)}</div>
               <div>
                 <BlockTimeClock />
@@ -728,7 +728,7 @@ function OptionItem({
     <Link
       href={href}
       noTextStyle
-      className="block py-3 mobile:py-3 px-8 pl-6 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group"
+      className="block py-3 mobile:py-2 px-8 pl-6 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group"
     >
       <Row className="items-center w-full mobile:justify-center" onClick={onClick}>
         <Icon
