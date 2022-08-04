@@ -1140,18 +1140,20 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                   margin: '-17px'
                 }}
               >
-                {farmInfo.rewards.map((reward, idx) => (
-                  <div key={idx} className="p-4">
-                    <div className={`text-white font-medium text-base mobile:text-xs`}>
-                      {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
+                {farmInfo.rewards.map((reward, idx) =>
+                  farmInfo.version === 6 || reward.userHavedReward ? (
+                    <div key={idx} className="p-4">
+                      <div className={`text-white font-medium text-base mobile:text-xs`}>
+                        {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
+                      </div>
+                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
+                        {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
+                          ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
+                          : null}
+                      </div>
                     </div>
-                    <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
-                      {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
-                        ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
-                        : null}
-                    </div>
-                  </div>
-                ))}
+                  ) : undefined
+                )}
               </Grid>
             </div>
             <Button
