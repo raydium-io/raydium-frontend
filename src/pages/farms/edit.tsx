@@ -36,10 +36,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 function useAvailableCheck() {
-  useEffect(() => {
-    if (!useCreateFarms.getState().isRoutedByCreateOrEdit)
-      routeTo('/farms', { queryProps: { currentTab: 'Ecosystem' } })
-  }, [])
+  // useEffect(() => {
+  //   if (!useCreateFarms.getState().isRoutedByCreateOrEdit)
+  //     routeTo('/farms', { queryProps: { currentTab: 'Ecosystem' } })
+  // }, []) // temp for test easier
 }
 
 function NavButtons({ className }: { className?: string }) {
@@ -89,6 +89,7 @@ export default function FarmEditPage() {
   const getBalance = useWallet((s) => s.getBalance)
   const { rewards: allRewards, cannotAddNewReward, farmId } = useCreateFarms()
   const hydratedFarmInfos = useFarms((s) => s.hydratedInfos)
+  const isMobile = useAppSettings((s) => s.isMobile)
   const [focusReward, setFocusReward] = useState<UIRewardInfo>()
   const canAddRewardInfo = !cannotAddNewReward && allRewards.length < 5
   const editableRewards = allRewards.filter((r) => r.type === 'existed reward')
@@ -101,28 +102,30 @@ export default function FarmEditPage() {
   const chainDate = useChainDate()
   const cachedInputs = useMemo(() => <NewRewardIndicatorAndForm className="mt-8 mb-4" />, [])
   return (
-    <PageLayout metaTitle="Farms - Raydium" contentYPaddingShorter>
-      <NavButtons className="sticky top-0" />
+    <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Edit Farm">
+      <NavButtons className="sticky top-0 mobile:-translate-y-2 z-10 mobile:bg-[#0f0b2f]" />
       <div className="self-center w-[min(720px,90vw)]">
-        <Row className="mb-10 justify-self-start items-baseline gap-2">
-          <div className="text-2xl mobile:text-lg font-semibold text-white">Edit Farm</div>
-          {farmId && (
-            <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">
-              Farm ID:
-              <div className="inline-block ml-1">
-                <AddressItem
-                  className="flex-nowrap whitespace-nowrap"
-                  canCopy
-                  iconClassName="hidden"
-                  textClassName="text-sm mobile:text-xs font-semibold text-[#abc4ff80] whitespace-nowrap"
-                  showDigitCount={6}
-                >
-                  {farmId}
-                </AddressItem>
+        {!isMobile && (
+          <Row className="mb-10 justify-self-start items-baseline gap-2">
+            <div className="text-2xl mobile:text-lg font-semibold text-white">Edit Farm</div>
+            {farmId && (
+              <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">
+                Farm ID:
+                <div className="inline-block ml-1">
+                  <AddressItem
+                    className="flex-nowrap whitespace-nowrap"
+                    canCopy
+                    iconClassName="hidden"
+                    textClassName="text-sm mobile:text-xs font-semibold text-[#abc4ff80] whitespace-nowrap"
+                    showDigitCount={6}
+                  >
+                    {farmId}
+                  </AddressItem>
+                </div>
               </div>
-            </div>
-          )}
-        </Row>
+            )}
+          </Row>
+        )}
 
         <div className="mb-8">
           <div className="mb-3 text-[#abc4ff] text-sm font-medium justify-self-start">Pool</div>
@@ -162,8 +165,8 @@ export default function FarmEditPage() {
         </Row>
 
         <Button
-          className="block frosted-glass-teal mx-auto mt-4 mb-12"
-          size="lg"
+          className="frosted-glass-teal mx-auto mt-4 mb-12 mobile:w-full"
+          size={isMobile ? 'sm' : 'lg'}
           validators={[
             {
               should: meaningFullRewards.length || editedRewards.length
@@ -256,15 +259,19 @@ export default function FarmEditPage() {
           Review changes
         </Button>
 
-        <Card className={`p-6 rounded-3xl ring-1 ring-inset ring-[#abc4ff1a] bg-[#1B1659] relative`}>
-          <div className="absolute -left-4 top-5 -translate-x-full">
-            <Icon iconSrc="/icons/create-farm-info-circle.svg" iconClassName="w-7 h-7" />
-          </div>
+        <Card
+          className={`p-6 mobile:p-4 rounded-3xl mobile:rounded-xl ring-1 ring-inset ring-[#abc4ff1a] bg-[#1B1659] relative`}
+        >
+          {!isMobile && (
+            <div className="absolute -left-4 top-5 -translate-x-full">
+              <Icon iconSrc="/icons/create-farm-info-circle.svg" iconClassName="w-7 h-7" />
+            </div>
+          )}
 
-          <div className="font-medium text-base text-[#abc4ff] mb-3">How to add more rewards?</div>
+          <div className="font-medium text-base mobile:text-sm text-[#abc4ff] mb-3">How to add more rewards?</div>
 
           <div>
-            <div className="font-medium text-sm text-[#ABC4FF80] mb-4">
+            <div className="font-medium text-sm mobile:text-xs text-[#ABC4FF80] mb-4">
               <ol className="list-decimal ml-4 space-y-4">
                 <li>
                   You can add additional rewards to the farm 72 hrs prior to rewards ending, but this can only be done

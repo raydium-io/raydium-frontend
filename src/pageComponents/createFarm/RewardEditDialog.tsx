@@ -3,6 +3,8 @@ import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { MAX_DURATION, MIN_DURATION } from '@/application/farms/handleFarmInfo'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
+import Card from '@/components/Card'
+import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import { isDateBefore } from '@/functions/date/judges'
@@ -11,11 +13,7 @@ import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { useChainDate } from '@/hooks/useChainDate'
 import produce from 'immer'
 import { useMemo, useRef, useState } from 'react'
-
 import { twMerge } from 'tailwind-merge'
-
-import Card from '../../components/Card'
-import Dialog from '../../components/Dialog'
 import { RewardCardInputsHandler, RewardFormCardInputs, RewardFormCardInputsParams } from './RewardFormInputs'
 
 export default function RewardInputDialog({
@@ -70,15 +68,22 @@ export default function RewardInputDialog({
       {({ close }) => (
         <Card
           className={twMerge(
-            `p-8 mobile:p-4 rounded-3xl mobile:rounded-t-2xl mobile:rounded-b-none w-[min(670px,95vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card`
+            `relative p-8 max-h-[85vh] overflow-auto mobile:p-4 rounded-3xl mobile:rounded-t-2xl mobile:rounded-b-none w-[min(670px,95vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card`
           )}
           size="lg"
         >
-          <div className="font-semibold text-xl mobile:text-sm text-white mb-5">{cardTitle}</div>
+          {isMobile ? (
+            <Row className="sticky z-10 py-4 justify-between top-0 -translate-y-8 mobile:-translate-y-4 bg-[#172863]">
+              <div className="font-semibold text-xl mobile:text-base text-white ">{cardTitle}</div>
+              {isMobile && <Icon heroIconName="x" onClick={close} />}
+            </Row>
+          ) : (
+            <div className="font-semibold text-xl mobile:text-base text-white mb-5">{cardTitle}</div>
+          )}
 
           {reward.isRwardingBeforeEnd72h && (
-            <div className="border border-[rgba(171,196,255,0.2)] rounded-3xl p-6 mb-4">
-              <ol className="list-decimal ml-4 space-y-4 font-medium text-[#abc4ff80] text-sm">
+            <div className="border border-[rgba(171,196,255,0.2)] rounded-3xl mobile:rounded-xl p-6 mobile:p-4 mb-4">
+              <ol className="list-decimal ml-4 space-y-4 mobile:space-y-2 font-medium text-[#abc4ff80] text-sm mobile:text-xs">
                 <li>
                   You can add additional rewards to the farm 72 hrs prior to rewards ending, but this can only be done
                   if rate of rewards for this specific reward token doesn't change.

@@ -34,7 +34,6 @@ import WalletWidget from './navWidgets/WalletWidget'
 import PageLayoutPopoverDrawer from './PageLayoutPopoverDrawer'
 import Row from './Row'
 import Tooltip from './Tooltip'
-import LoadingCircle from './LoadingCircle'
 import { setCssVarible } from '@/functions/dom/cssVariable'
 import { inClient } from '@/functions/judgers/isSSR'
 import { useAppVersion } from '@/application/appVersion/useAppVersion'
@@ -46,6 +45,8 @@ import { useForceUpdate } from '@/hooks/useForceUpdate'
 import { setLocalItem } from '@/functions/dom/jStorage'
 import { Checkbox } from './Checkbox'
 import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
+import { isString } from '@/functions/judgers/dateType'
+import { useUrlQuery } from '@/hooks/useUrlQuery'
 
 /**
  * for easier to code and read
@@ -54,7 +55,15 @@ import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
  */
 export default function PageLayout(props: {
   /** only mobile  */
-  mobileBarTitle?: string
+  mobileBarTitle?:
+    | string
+    | {
+        items: DropdownTitleInfoItem[]
+        currentValue?: string
+        onChange?: (value: string) => void
+        urlSearchQueryKey?: string
+        drawerTitle?: string
+      }
   metaTitle?: string
   children?: ReactNode
   className?: string
@@ -98,7 +107,7 @@ export default function PageLayout(props: {
       <RPCPerformanceBanner className="grid-area-d" />
       {isMobile ? (
         <>
-          <Navbar barTitle={props.mobileBarTitle} className="grid-area-a" onOpenMenu={() => setIsSideMenuOpen(true)} />
+          <Navbar className="grid-area-a" barTitle={props.mobileBarTitle} onOpenMenu={() => setIsSideMenuOpen(true)} />
           <Drawer open={isSideMenuOpen} onClose={() => setIsSideMenuOpen(false)} onOpen={() => setIsSideMenuOpen(true)}>
             {({ close }) => <SideMenu className="flex-container h-full" onClickCloseBtn={close} />}
           </Drawer>
@@ -180,6 +189,7 @@ function RPCPerformanceBanner({ className }: { className?: string }) {
     </div>
   )
 }
+
 function VersionTooOldDialog() {
   const versionRefreshData = useAppVersion((s) => s.versionFresh)
   return (
@@ -233,7 +243,7 @@ function DisclaimerDialog() {
     >
       <Card
         className={twMerge(
-          `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] border-1.5 border-[rgba(171,196,255,0.2)]`
+          `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)]`
         )}
         size="lg"
         style={{
@@ -286,7 +296,7 @@ function DisclaimerDialog() {
         <Col className="">
           <Checkbox
             checkBoxSize="sm"
-            className="mt-2 mb-6 w-max"
+            className="mt-2 mb-6"
             checked={userHaveClickedAgree}
             onChange={setUserHaveClickedAgree}
             label={<div className="text-sm  text-white">I have read, understand and accept these terms.</div>}
@@ -371,7 +381,15 @@ function Navbar({
   onOpenMenu
 }: {
   className?: string
-  barTitle?: string
+  barTitle?:
+    | string
+    | {
+        items: DropdownTitleInfoItem[]
+        currentValue?: string
+        onChange?: (value: string) => void
+        urlSearchQueryKey?: string
+        drawerTitle?: string
+      }
   style?: CSSProperties
   // TODO: move it into useAppSetting()
   onOpenMenu?: () => void
@@ -390,15 +408,27 @@ function Navbar({
     </Row>
   )
   const mobileNavContent = (
-    <Grid className="grid-cols-3 items-center">
+    <Grid className="grid-cols-[1fr,2fr,1fr] mobile:px-5 mobile:py-3  items-center bg-cyberpunk-card-bg cyberpunk-bg-light">
       <div className="frosted-glass-teal rounded-lg p-2 clickable justify-self-start" onClick={onOpenMenu}>
         <Icon className="w-4 h-4" iconClassName="w-4 h-4" iconSrc="/icons/msic-menu.svg" />
       </div>
 
       {barTitle ? (
-        <div onClick={onOpenMenu} className="text-lg font-semibold place-self-center text-white -mb-1">
-          {barTitle}
-        </div>
+        isString(barTitle) ? (
+          <div onClick={onOpenMenu} className="text-lg font-semibold place-self-center text-white -mb-1">
+            {barTitle}
+          </div>
+        ) : (
+          <MobileDropdownTitle
+            titles={barTitle.items}
+            currentValue={barTitle.currentValue}
+            onChange={(value) => {
+              barTitle.onChange?.(value)
+            }}
+            urlSearchQueryKey={barTitle.urlSearchQueryKey}
+            drawerTitle={barTitle.drawerTitle}
+          />
+        )
       ) : (
         <Link className="place-self-center" href="/">
           <Image className="cursor-pointer" src="/logo/logo-only-icon.svg" />
@@ -412,12 +442,88 @@ function Navbar({
     </Grid>
   )
   return (
-    <nav
-      className={twMerge('select-none text-white px-12 py-4 mobile:px-5 mobile:py-3 transition-all', className)}
-      style={style}
-    >
+    <nav className={twMerge('select-none text-white px-12 py-4 mobile:p-0 transition-all', className)} style={style}>
       {isMobile ? mobileNavContent : pcNavContent}
     </nav>
+  )
+}
+
+type DropdownTitleInfoItem = {
+  value: string
+  barLabel?: string
+  itemLabel?: string
+}
+
+function MobileDropdownTitle({
+  titles,
+  currentValue: defaultCurrentValue = titles[0].value,
+  urlSearchQueryKey,
+  onChange,
+  drawerTitle
+}: {
+  titles: DropdownTitleInfoItem[]
+  currentValue?: string
+  urlSearchQueryKey?: string
+  onChange?: (titleValue: string) => void
+  drawerTitle?: string
+}) {
+  const [currentValue, setCurrentValue] = useState(defaultCurrentValue)
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const currentTitleInfoItem = titles.find(({ value }) => value === currentValue)!
+  useUrlQuery({
+    currentValue: currentValue,
+    values: titles.map((i) => i.value),
+    onChange: onChange,
+    queryKey: urlSearchQueryKey
+  })
+
+  return (
+    <>
+      <Row
+        onClick={() => setIsDropdownOpen(true)}
+        className="self-stretch gap-4 items-center justify-between font-medium px-3 bg-[#141041] rounded-lg"
+      >
+        {/* title */}
+        <div className="text-white whitespace-nowrap">{currentTitleInfoItem.barLabel}</div>
+
+        {/* icon */}
+        <Icon heroIconName="chevron-down" size="xs" className="text-[#abc4ff80]" />
+      </Row>
+
+      <Drawer placement="from-bottom" open={isDropdownOpen} onClose={() => setIsDropdownOpen(false)}>
+        {({ close }) => (
+          <Card
+            className="flex flex-col max-h-[60vh] mobile:max-h-full mobile:rounded-tl-3xl mobile:rounded-tr-3xl  mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg "
+            size="lg"
+          >
+            <Row className="justify-between items-center  py-2 pt-6 px-8">
+              <div className="text-xs text-[#abc4ff] pl-2">{drawerTitle}</div>
+              <Icon className="text-[#ABC4FF] cursor-pointer" size="smi" heroIconName="x" onClick={close} />
+            </Row>
+
+            <Col className="pb-2 px-4 divide-y divide-[rgba(171,196,255,0.2)]">
+              {titles.map(({ value, itemLabel = value }) => {
+                return (
+                  <div
+                    key={value}
+                    className={`py-4 px-6 font-normal ${
+                      value === currentValue ? 'text-white' : 'text-[rgba(171,196,255,0.5)] '
+                    }`}
+                    onClick={() => {
+                      onChange?.(value)
+                      setCurrentValue(value)
+                      close()
+                    }}
+                  >
+                    {itemLabel}
+                  </div>
+                )
+              })}
+            </Col>
+          </Card>
+        )}
+      </Drawer>
+    </>
   )
 }
 
@@ -532,7 +638,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
           </Col>
 
           <Tooltip>
-            <div className="text-sm m-2 mb-0 leading-relaxed opacity-50 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
+            <div className="text-sm mobile:text-xs m-2 mb-0 leading-relaxed opacity-50 hover:opacity-100 transition font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
               <div>V {currentVersion.slice(1)}</div>
               <div>
                 <BlockTimeClock />
@@ -622,7 +728,7 @@ function OptionItem({
     <Link
       href={href}
       noTextStyle
-      className="block py-3 mobile:py-3 px-8 pl-6 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group"
+      className="block py-3 mobile:py-2 px-8 pl-6 mobile:px-5 hover:bg-[rgba(57,208,216,0.1)] active:bg-[rgba(41,157,163,0.3)] cursor-pointer group"
     >
       <Row className="items-center w-full mobile:justify-center" onClick={onClick}>
         <Icon

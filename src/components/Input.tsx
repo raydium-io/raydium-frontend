@@ -256,9 +256,9 @@ export default function Input(props: InputProps) {
           type={type}
           ref={mergeRef(inputRef, inputDomRef)}
           value={pattern || validators ? selfValue : undefined} // !!! NOTE: if it has pattern validators, input must be controlled component
-          className={`${noCSSInputDefaultWidth ? 'w-0 grow' : 'w-full'} bg-transparent border-none outline-none block ${
-            inputClassName ?? ''
-          }`} // start html input with only 2rem, if need width please define it in parent div
+          className={`${
+            noCSSInputDefaultWidth ? 'w-0 grow' : 'w-full'
+          } overflow-hidden text-ellipsis bg-transparent border-none outline-none block ${inputClassName ?? ''}`} // start html input with only 2rem, if need width please define it in parent div
           placeholder={placeholder ? String(placeholder) : undefined}
           disabled={disabled || disableUserInput}
           onChange={(ev) => {

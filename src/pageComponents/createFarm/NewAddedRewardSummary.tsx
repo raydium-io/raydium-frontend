@@ -2,6 +2,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { isUiRewardInfoEmpty, validateUiRewardInfo } from '@/application/createFarm/validateRewardInfo'
 import { Badge } from '@/components/Badge'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
@@ -47,18 +48,18 @@ export function NewAddedRewardSummary({
       getItemKey={(r) => getRewardSignature(r)}
       labelMapper={[
         {
-          label: 'Reward Token',
+          label: 'Token',
           cssGridItemWidth: '.6fr'
         },
         {
           label: 'Amount'
         },
         {
-          label: 'Total Duration',
+          label: 'Duration',
           cssGridItemWidth: '.6fr'
         },
         {
-          label: 'Period (yy-mm-dd)',
+          label: 'Period',
           cssGridItemWidth: '1.5fr'
         },
         {
@@ -77,7 +78,10 @@ export function NewAddedRewardSummary({
         onTryEdit?.(reward, activeReward?.id === reward.id)
       }}
       renderRowItem={({ item: reward, label }) => {
-        if (label === 'Reward Token') {
+        const { valid, invalidRewardProperties } = validateUiRewardInfo(reward)
+        const isEmpty = isUiRewardInfoEmpty(reward)
+
+        if (label === 'Token') {
           return reward.token ? (
             <Col className="h-full justify-center gap-1">
               <Row className="gap-1 items-center">
@@ -93,7 +97,7 @@ export function NewAddedRewardSummary({
               )}
             </Col>
           ) : (
-            '--'
+            <div>--</div>
           )
         }
 
@@ -101,16 +105,26 @@ export function NewAddedRewardSummary({
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
           return (
             <Grid className={`gap-4 h-full`}>
-              {reward?.amount ? (
-                <Col className="grow break-all justify-center">
-                  {formatNumber(reward.amount, { fractionLength: reward.token?.decimals ?? 6 })}
+              {isEmpty ? undefined : (
+                <Col
+                  className={`grow break-all justify-center ${
+                    !valid &&
+                    !isEmpty &&
+                    (invalidRewardProperties.includes('token-amount') || invalidRewardProperties.includes('emission'))
+                      ? 'text-[#DA2EEF]'
+                      : ''
+                  }`}
+                >
+                  {reward.amount
+                    ? formatNumber(reward.amount, { fractionLength: reward.token?.decimals ?? 6 })
+                    : '(unset)'}
                 </Col>
-              ) : undefined}
+              )}
             </Grid>
           )
         }
 
-        if (label === 'Total Duration') {
+        if (label === 'Duration') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
 
           const getDurationText = (startTime: TimeStamp, endTime: TimeStamp) => {
@@ -120,24 +134,41 @@ export function NewAddedRewardSummary({
 
           return (
             <Grid className={`gap-4 h-full`}>
-              {reward?.startTime && reward.endTime ? (
-                <Col className="grow break-all justify-center">{getDurationText(reward.startTime, reward.endTime)}</Col>
-              ) : undefined}
+              {isEmpty ? undefined : (
+                <Col
+                  className={`grow break-all justify-center ${
+                    !valid && !isEmpty && invalidRewardProperties.includes('duration') ? 'text-[#DA2EEF]' : ''
+                  }`}
+                >
+                  {reward?.startTime && reward.endTime ? getDurationText(reward.startTime, reward.endTime) : '(unset)'}
+                </Col>
+              )}
             </Grid>
           )
         }
 
-        if (label === 'Period (yy-mm-dd)') {
+        if (label === 'Period') {
           if (reward.isRewarding && reward.version === 'v3/v5') return '--'
-          if (!reward.startTime || !reward.endTime) return
           return (
             <Grid className={`gap-4 h-full`}>
-              {reward?.startTime && reward.endTime ? (
-                <Col className="grow justify-center">
-                  <div>{toUTC(reward.startTime)}</div>
-                  <div>{toUTC(reward.endTime)}</div>
+              {isEmpty ? undefined : (
+                <Col className="grow whitespace-nowrap justify-center">
+                  <div
+                    className={
+                      !valid && !isEmpty && invalidRewardProperties.includes('start-time') ? 'text-[#DA2EEF]' : ''
+                    }
+                  >
+                    {reward.startTime ? toUTC(reward.startTime) : '(unset)'}
+                  </div>
+                  <div
+                    className={
+                      !valid && !isEmpty && invalidRewardProperties.includes('end-time') ? 'text-[#DA2EEF]' : ''
+                    }
+                  >
+                    {reward.startTime ? toUTC(reward.endTime) : ''}
+                  </div>
                 </Col>
-              ) : undefined}
+              )}
             </Grid>
           )
         }
@@ -156,13 +187,22 @@ export function NewAddedRewardSummary({
             reward?.amount && reward.startTime && reward.endTime
               ? getEstimatedValue(reward.amount, reward.startTime, reward.endTime)
               : undefined
+
           return (
             <Grid className={`gap-4 h-full`}>
-              {originEstimatedValue && (
-                <Col className="grow justify-center text-xs">
-                  <div>
-                    {toString(originEstimatedValue)} {reward?.token?.symbol}/day
-                  </div>
+              {isEmpty ? undefined : (
+                <Col
+                  className={`grow justify-center text-xs ${
+                    !valid && !isEmpty && invalidRewardProperties.includes('emission') ? 'text-[#DA2EEF]' : ''
+                  }`}
+                >
+                  {originEstimatedValue ? (
+                    <div>
+                      {toString(originEstimatedValue)} {reward?.token?.symbol}/day
+                    </div>
+                  ) : (
+                    '(unset)'
+                  )}
                 </Col>
               )}
             </Grid>
