@@ -108,7 +108,11 @@ export function NewAddedRewardSummary({
               {isEmpty ? undefined : (
                 <Col
                   className={`grow break-all justify-center ${
-                    !valid && !isEmpty && invalidRewardProperties.includes('token-amount') ? 'text-[#DA2EEF]' : ''
+                    !valid &&
+                    !isEmpty &&
+                    (invalidRewardProperties.includes('token-amount') || invalidRewardProperties.includes('emission'))
+                      ? 'text-[#DA2EEF]'
+                      : ''
                   }`}
                 >
                   {reward.amount
@@ -183,13 +187,22 @@ export function NewAddedRewardSummary({
             reward?.amount && reward.startTime && reward.endTime
               ? getEstimatedValue(reward.amount, reward.startTime, reward.endTime)
               : undefined
+
           return (
             <Grid className={`gap-4 h-full`}>
-              {originEstimatedValue && (
-                <Col className="grow justify-center text-xs">
-                  <div>
-                    {toString(originEstimatedValue)} {reward?.token?.symbol}/day
-                  </div>
+              {isEmpty ? undefined : (
+                <Col
+                  className={`grow justify-center text-xs ${
+                    !valid && !isEmpty && invalidRewardProperties.includes('emission') ? 'text-[#DA2EEF]' : ''
+                  }`}
+                >
+                  {originEstimatedValue ? (
+                    <div>
+                      {toString(originEstimatedValue)} {reward?.token?.symbol}/day
+                    </div>
+                  ) : (
+                    '(unset)'
+                  )}
                 </Col>
               )}
             </Grid>

@@ -81,7 +81,7 @@ export function validateUiRewardInfo(rewards: UIRewardInfo | UIRewardInfo[]): Va
     if (lt(reward.amount, minBoundary)) {
       result.valid = false
       result.reason = `Emission rewards is lower than min required`
-      result.invalidRewardProperties = [...result.invalidRewardProperties, 'token-amount']
+      result.invalidRewardProperties = [...result.invalidRewardProperties, 'emission']
     }
 
     // check starttime is valid
