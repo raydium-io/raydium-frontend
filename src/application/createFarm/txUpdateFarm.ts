@@ -77,7 +77,7 @@ async function createRewardRestartInstruction({
   farmInfo: HydratedFarmInfo
 }) {
   const { owner, tokenAccountRawInfos } = useWallet.getState()
-  assert(owner /* TEST: && isMintEqual(owner, reward.owner) */, `reward is not created by walletOwner`)
+  assert(owner && isMintEqual(owner, reward.owner), `reward is not created by walletOwner`)
 
   assert(reward.token, 'reward must have token')
   assert(reward.endTime, `reward must have endTime`)

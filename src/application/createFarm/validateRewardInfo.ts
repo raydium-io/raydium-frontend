@@ -1,6 +1,5 @@
 import { isDateAfter } from '@/functions/date/judges'
 import { getDuration } from '@/functions/date/parseDuration'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { add, div } from '@/functions/numberish/operations'
@@ -17,7 +16,7 @@ export function validate300Ray(): { valid: boolean; reason?: string } {
 
   const { rewards } = useCreateFarms.getState()
   const rewardRayAmount = rewards.find((r) => isMintEqual(r.token?.mint, RAYMint))?.amount
-  const haveOver300Ray = gte(getBalance(RAYMint) ?? 0, add(0, rewardRayAmount ?? 0)) /** Test 300 RAY */
+  const haveOver300Ray = gte(getBalance(RAYMint) ?? 0, add(0, rewardRayAmount ?? 300))
   if (!haveOver300Ray) return { valid: false, reason: 'User must have 300 RAY' }
   return { valid: true }
 }
