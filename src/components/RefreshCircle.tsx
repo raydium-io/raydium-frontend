@@ -15,7 +15,7 @@ import { inServer } from '@/functions/judgers/isSSR'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { useSignalState } from '@/hooks/useSignalState'
 
-const REFRESH_LOOP_DURATION = 4 * 1000
+const REFRESH_LOOP_DURATION = 60 * 1000
 
 export default function RefreshCircle({
   run = true,
