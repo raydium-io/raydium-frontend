@@ -203,7 +203,7 @@ export function EditableRewardSummary({
         renderItemActionButtons={({ changeSelf, itemData: reward, index }) => {
           const isRewardBeforeStart = reward.originData?.isRewardBeforeStart
           const isRewardEditable = reward.originData?.isRwardingBeforeEnd72h || reward.originData?.isRewardEnded
-          const isRewardOwner = true /* TEST:  owner && isMintEqual(owner, reward.owner) */
+          const isRewardOwner = owner && isMintEqual(owner, reward.owner)
           const isRewardEdited = hasRewardBeenEdited(reward)
           const showEditBefore72h = reward.originData?.isRwardingBeforeEnd72h && !isRewardEdited
           const showEditAfterEnded = reward.originData?.isRewardEnded

@@ -1270,7 +1270,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
       </AutoBox>
 
       {/* farm edit button  */}
-      {true /* TEST: isMintEqual(farmInfo.creator, owner) */ && (
+      {isMintEqual(farmInfo.creator, owner) && (
         <Row className="bg-[#14104133] py-3 px-8 justify-end">
           <Button
             className="frosted-glass-teal"
