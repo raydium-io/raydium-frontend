@@ -23,7 +23,7 @@ import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
-import { validUiRewardInfo } from './validRewardInfo'
+import { validateUiRewardInfo } from './validateRewardInfo'
 
 export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOptions) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -40,7 +40,7 @@ export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOpt
     const createNewRewards = uiRewardInfos.filter((r) => r.type === 'new added')
 
     // check input is valid
-    const { valid: createNewValid, reason: createNewReason } = validUiRewardInfo(createNewRewards)
+    const { valid: createNewValid, reason: createNewReason } = validateUiRewardInfo(createNewRewards)
     assert(createNewValid, createNewReason)
 
     // ---------- restart ----------

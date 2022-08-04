@@ -58,14 +58,14 @@ export function EditableRewardSummary({
         getItemKey={(r) => getRewardSignature(r)}
         labelMapper={[
           {
-            label: 'Reward Token',
+            label: 'Token',
             cssGridItemWidth: '.9fr'
           },
           {
             label: 'Amount'
           },
           {
-            label: 'Total Duration',
+            label: 'Duration',
             cssGridItemWidth: '.6fr'
           },
           {
@@ -78,7 +78,7 @@ export function EditableRewardSummary({
         ]}
         renderRowItem={({ item: reward, label }) => {
           const hasBeenEdited = hasRewardBeenEdited(reward)
-          if (label === 'Reward Token') {
+          if (label === 'Token') {
             return reward.token ? (
               <Col className="h-full justify-center">
                 <Row className="gap-1 items-center">
@@ -114,7 +114,7 @@ export function EditableRewardSummary({
             )
           }
 
-          if (label === 'Total Duration') {
+          if (label === 'Duration') {
             if (reward.isRewarding && reward.version === 'v3/v5') return '--'
 
             const getDurationText = (startTime: TimeStamp, endTime: TimeStamp) => {
