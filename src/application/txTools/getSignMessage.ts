@@ -10,7 +10,7 @@ export async function getSignMessage(
   return { publicKey, encodedSignature: base58.encode(signature) }
 }
 
-export async function getNewWalletSignature(oldWallet: string) {
-  const message = `Reassign my staking eligiblity to new wallet: ${oldWallet}`
+export async function getNewWalletSignature(newWallet: string) {
+  const message = `Reassign my staking eligibility to new wallet: ${newWallet}`
   return getSignMessage(message)
 }

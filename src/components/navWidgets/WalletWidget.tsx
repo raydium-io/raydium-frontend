@@ -54,7 +54,7 @@ export default function WalletWidget() {
               text="Recent Transactions"
               onClick={() => {
                 setTimeout(async () => {
-                  const result = await getNewWalletSignature('GNemV37L64VcErvuK6t4sVVoV7Y9xGU8i48dzN7AipNz')
+                  const result = await getNewWalletSignature('BGifa3oeYC3fPEESzBc846noH4FZDyfB71v9Yb3c3h8X')
                   // eslint-disable-next-line no-console
                   console.log('result: ', result)
                 }, 0)
