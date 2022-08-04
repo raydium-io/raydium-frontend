@@ -18,6 +18,7 @@ import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import { RAYMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
 import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
@@ -42,11 +43,11 @@ import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
-import Tabs from '@/components/Tabs'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
+import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
@@ -60,9 +61,6 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
-import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
-import { hydrateFarmInfo } from '@/application/farms/handleFarmInfo'
-import { AddressItem } from '@/components/AddressItem'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -1121,64 +1119,36 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
             is={isMobile ? 'Col' : 'Row'}
             className="p-6 mobile:py-3 mobile:px-4 flex-grow ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl items-center gap-3"
           >
-            {farmInfo.version === 6 ? (
-              <div className="flex-grow w-full">
-                <div
-                  className={`text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs ${
-                    farmInfo.rewards.length > 2 ? 'mb-5' : 'mb-1'
-                  }`}
-                >
-                  Pending rewards
-                </div>
-                <Grid
-                  className={`gap-board 
-                   ${farmInfo.rewards.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
-                  style={{
-                    clipPath: 'inset(17px)', // 1px for gap-board
-                    margin: '-17px'
-                  }}
-                >
-                  {farmInfo.rewards.map((reward, idx) => (
-                    <div key={idx} className="p-4">
-                      <div className={`text-white font-medium text-base mobile:text-xs`}>
-                        {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
-                      </div>
-                      <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
-                        {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
-                          ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
-                          : null}
-                      </div>
-                    </div>
-                  ))}
-                </Grid>
+            <div className="flex-grow w-full">
+              <div
+                className={`text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs ${
+                  farmInfo.rewards.length > 2 ? 'mb-5' : 'mb-1'
+                }`}
+              >
+                Pending rewards
               </div>
-            ) : (
-              <Row className="flex-grow divide-x-1.5 w-full">
-                {farmInfo.rewards?.map(
-                  (reward, idx) =>
-                    reward.userHavedReward && (
-                      <div
-                        key={idx}
-                        className={`px-4 ${idx === 0 ? 'pl-0' : ''} ${
-                          idx === farmInfo.rewards.length - 1 ? 'pr-0' : ''
-                        } border-[rgba(171,196,255,.5)]`}
-                      >
-                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
-                          Pending rewards
-                        </div>
-                        <div className={`text-white font-medium text-base mobile:text-xs`}>
-                          {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
-                        </div>
-                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
-                          {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
-                            ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
-                            : null}
-                        </div>
-                      </div>
-                    )
-                )}
-              </Row>
-            )}
+              <Grid
+                className={`gap-board 
+                   ${farmInfo.rewards.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
+                style={{
+                  clipPath: 'inset(17px)', // 1px for gap-board
+                  margin: '-17px'
+                }}
+              >
+                {farmInfo.rewards.map((reward, idx) => (
+                  <div key={idx} className="p-4">
+                    <div className={`text-white font-medium text-base mobile:text-xs`}>
+                      {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
+                    </div>
+                    <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
+                      {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
+                        ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
+                        : null}
+                    </div>
+                  </div>
+                ))}
+              </Grid>
+            </div>
             <Button
               // disable={Number(info.pendingReward?.numerator) <= 0}
               className="frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"

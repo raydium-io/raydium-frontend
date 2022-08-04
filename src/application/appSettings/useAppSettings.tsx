@@ -1,7 +1,6 @@
 import create from 'zustand'
 
 import { Numberish } from '@/types/constants'
-import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 
 // it is some global uiStates
 
@@ -11,6 +10,7 @@ export type AppSettingsStore = {
   themeMode: 'dark' | 'light'
 
   isBetaBubbleOn: boolean // temp for beta
+  needPopDisclaimer: boolean | undefined // need user agree
 
   /** detect device */
   isMobile: boolean
@@ -49,6 +49,7 @@ const useAppSettings = create<AppSettingsStore>(() => ({
   themeMode: 'light' as 'dark' | 'light',
 
   isBetaBubbleOn: true,
+  needPopDisclaimer: undefined,
 
   isMobile: false,
   isTablet: false,

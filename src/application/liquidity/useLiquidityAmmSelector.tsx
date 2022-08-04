@@ -33,6 +33,7 @@ export default function useLiquidityAmmSelector() {
 
   /** update `ammId` (to match `coin1` and `coin2`) */
   useAsyncEffect(async () => {
+    if (!coin1 || !coin2) return
     const { findLiquidityInfoByTokenMint, ammId } = useLiquidity.getState()
 
     const computeResult = await findLiquidityInfoByTokenMint(coin1?.mint, coin2?.mint)
@@ -59,6 +60,7 @@ export default function useLiquidityAmmSelector() {
 
   // update `currentJsonInfo` (to match `ammId`)
   useEffect(() => {
+    if (!ammId) return
     const { jsonInfos, currentJsonInfo } = useLiquidity.getState()
 
     const alreadyMatched = currentJsonInfo?.id === ammId
@@ -70,6 +72,7 @@ export default function useLiquidityAmmSelector() {
 
   // update `ammId` (to match `currentJsonInfo`)
   useEffect(() => {
+    if (!currentJsonInfo) return
     const { ammId: currentAmmId } = useLiquidity.getState()
 
     const alreadyMatched = currentJsonInfo?.id === currentAmmId

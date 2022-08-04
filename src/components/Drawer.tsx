@@ -47,6 +47,7 @@ export interface DrawerProps {
   transitionSpeed?: 'fast' | 'normal'
   // if content is scrollable, PLEASE open it!!!, for blur will make scroll super fuzzy
   maskNoBlur?: boolean
+  canClosedByMask?: boolean
   onOpen?: () => void
   /** fired before close transform effect is end */
   onCloseImmediately?: () => void
@@ -74,6 +75,7 @@ export default function Drawer({
   placement = 'from-left',
   transitionSpeed = 'normal',
   maskNoBlur,
+  canClosedByMask = true,
   onOpen,
   onCloseImmediately,
   onClose
@@ -115,8 +117,10 @@ export default function Drawer({
             <div
               className={`absolute inset-0 ${
                 maskNoBlur ? '' : 'backdrop-filter backdrop-blur'
-              } bg-[rgba(25,19,88,0.5)]`}
-              onClick={closeDrawer}
+              } bg-[rgba(25,19,88,0.5)] ${canClosedByMask ? '' : 'pointer-events-none'}`}
+              onClick={() => {
+                if (canClosedByMask) closeDrawer()
+              }}
             ></div>
           </Transition.Child>
           <Transition.Child

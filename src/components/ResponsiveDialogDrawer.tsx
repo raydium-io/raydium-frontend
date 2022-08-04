@@ -5,5 +5,5 @@ import Drawer, { DrawerProps } from './Drawer'
 
 export default function ResponsiveDialogDrawer(props: DrawerProps | DialogProps) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  return isMobile ? <Drawer {...props}>{props.children}</Drawer> : <Dialog {...props}>{props.children}</Dialog>
+  return isMobile ? <Drawer {...props} /> : <Dialog {...props} />
 }
