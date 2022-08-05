@@ -45,6 +45,7 @@ import { AddressItem } from '@/components/AddressItem'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import useConnection from '@/application/connection/useConnection'
 import FadeInStable from '@/components/FadeIn'
+import { capitalize } from '@/functions/changeCase'
 
 export default function StakingPage() {
   return (
@@ -157,13 +158,13 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
 
             // check connection
             if (!connection) {
-              logError('Connection Error', 'no connection')
+              logError('Connection Error', 'No connection')
               return
             }
 
             // check target staking Ray
             if (!(await checkStakingRay(newWallet, { connection }))) {
-              logError('Validation Error', 'new wallet must stake RAY')
+              logError('Validation Error', 'New wallet must stake RAY')
               return
             }
 
@@ -171,7 +172,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
             setIsSubmittingData(true)
             const signature = await getNewWalletSignature(newWallet)
             if (!signature?.encodedSignature) {
-              logError('Encode Error', 'fail to encode')
+              logError('Encode Error', 'Fail to encode')
               return
             }
 
@@ -180,9 +181,9 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
               signature: signature.encodedSignature
             })
             if (resultResponse?.success) {
-              logSuccess('Migrate Success', 'success to migrate skaking RAY to new safe wallet')
+              logSuccess('Migrate Success', 'Success to migrate skaking RAY to new safe wallet')
             } else {
-              logError('Migrate Error', resultResponse?.msg ?? '')
+              logError('Migrate Error', capitalize(resultResponse?.msg ?? ''))
             }
           } finally {
             setIsSubmittingData(false)
