@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useMemo, useState } from 'react'
+import React, { ReactNode, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 
 import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
@@ -35,8 +35,8 @@ import LoadingCircle from '@/components/LoadingCircle'
 import { StakingPageStakeLpDialog } from '../pageComponents/dialogs/StakingPageStakeLpDialog'
 import InputBox from '@/components/InputBox'
 import Card from '@/components/Card'
-import { getNewWalletSignature, getSignMessage } from '@/application/staking/getSignMessage'
-import { isPubKey, isValidPublicKey } from '@/functions/judgers/dateType'
+import { getNewWalletSignature } from '@/application/staking/getSignMessage'
+import { isValidPublicKey } from '@/functions/judgers/dateType'
 import useNotification from '@/application/notification/useNotification'
 import { checkStakingRay, getWalletMigrateHistory, setWalletMigrateTarget } from '@/application/staking/migrateWallet'
 import { HexAddress } from '@/types/constants'
@@ -44,7 +44,6 @@ import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { AddressItem } from '@/components/AddressItem'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import useConnection from '@/application/connection/useConnection'
-import FadeInStable from '@/components/FadeIn'
 import { capitalize } from '@/functions/changeCase'
 
 export default function StakingPage() {
@@ -53,7 +52,7 @@ export default function StakingPage() {
       <StakingHeader />
       <StakingCard />
 
-      <AdvancedTools className="mt-[15%]" />
+      <AdvancedTools className="mt-[10vh]" />
     </PageLayout>
   )
 }
