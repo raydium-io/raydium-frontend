@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo } from 'react'
+import React, { ReactNode, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 
 import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
@@ -33,12 +33,24 @@ import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import LoadingCircle from '@/components/LoadingCircle'
 import { StakingPageStakeLpDialog } from '../pageComponents/dialogs/StakingPageStakeLpDialog'
+import InputBox from '@/components/InputBox'
+import Card from '@/components/Card'
+import { getNewWalletSignature, getSignMessage } from '@/application/txTools/getSignMessage'
+import { isPubKey, isValidPublicKey } from '@/functions/judgers/dateType'
+import useNotification from '@/application/notification/useNotification'
+import { getWalletMigrateHistory, setWalletMigrateTarget } from '@/application/staking/migrateWallet'
+import { HexAddress } from '@/types/constants'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
+import { AddressItem } from '@/components/AddressItem'
 
 export default function StakingPage() {
   return (
     <PageLayout mobileBarTitle="Staking" metaTitle="Staking - Raydium" contentButtonPaddingShorter>
       <StakingHeader />
       <StakingCard />
+
+      <AdvancedToolHeader className="mt-[10%]" />
+      <AdvancedTools />
     </PageLayout>
   )
 }
@@ -57,6 +69,77 @@ function StakingHeader() {
         />
       </div>
     </Grid>
+  )
+}
+
+function AdvancedToolHeader({ className }: { className?: string }) {
+  return (
+    <Grid className={twMerge('grid-cols-[1fr,1fr] items-center gap-y-8 pb-4 pt-2', className)}>
+      <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white">Advanced Tool</div>
+    </Grid>
+  )
+}
+
+function AdvancedTools() {
+  const owner = useWallet((s) => s.owner)
+  const [targetWallet, setTargetWallet] = useState<string>()
+  const [isSubmittingData, setIsSubmittingData] = useState(false)
+  const [currentBindTargetWalletAddress, setCurrentBindTargetWalletAddress] = useState<HexAddress>()
+  const logError = useNotification((s) => s.logError)
+  const logSuccess = useNotification((s) => s.logSuccess)
+  useAsyncEffect(async () => {
+    const wallet = owner && (await getWalletMigrateHistory(owner))
+    setCurrentBindTargetWalletAddress(wallet)
+  }, [owner])
+  return (
+    <Card
+      className="max-w-[50%] p-8 mobile:p-4 flex flex-col rounded-3xl border-1.5 border-[rgba(171,196,255,0.2)] overflow-y-auto overflow-x-hidden bg-cyberpunk-card-bg shadow-cyberpunk-card"
+      size="lg"
+    >
+      <InputBox label="New Safe Wallet:" className="mb-5" onUserInput={setTargetWallet} />
+      <Row className="items-center justify-between">
+        <div>current bind:</div>
+        <AddressItem>{currentBindTargetWalletAddress}</AddressItem>
+      </Row>
+      <Button
+        className="frosted-glass-teal w-full"
+        isLoading={isSubmittingData}
+        validators={[
+          { should: targetWallet },
+          {
+            should: owner,
+            forceActive: true,
+            fallbackProps: {
+              onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+              children: 'Connect Wallet'
+            }
+          }
+        ]}
+        onClick={async () => {
+          const newWallet = targetWallet?.trim()
+          if (!newWallet) return
+          if (!isValidPublicKey(newWallet)) {
+            logError('Wallet not valid', 'fail to transform wallet address to valid publicKey')
+            return
+          }
+          const signature = await getNewWalletSignature(newWallet)
+          if (!signature?.encodedSignature) {
+            logError('Error', 'fail to encode')
+            return
+          }
+          const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
+            signature: signature.encodedSignature
+          })
+          if (resultResponse?.success) {
+            logSuccess('Success', 'success')
+          } else {
+            logSuccess('Error', resultResponse?.msg ?? '')
+          }
+        }}
+      >
+        migrate
+      </Button>
+    </Card>
   )
 }
 
