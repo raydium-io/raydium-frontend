@@ -52,7 +52,7 @@ export default function StakingPage() {
       <StakingHeader />
       <StakingCard />
 
-      <AdvancedTools className="mt-[10%]" />
+      <AdvancedTools className="mt-[15%]" />
     </PageLayout>
   )
 }
@@ -75,12 +75,28 @@ function StakingHeader() {
 }
 
 function AdvancedTools({ className }: { className?: string }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <div className={twMerge('gap-y-8 pb-4 pt-2', className)}>
-      <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white">Advanced Tool</div>
-      <Grid className="w-full">
-        <MigrateStakingWalletTool className="justify-self-center" />
-      </Grid>
+      <Collapse>
+        <Collapse.Face>
+          {(open) => (
+            <Row
+              className={`text-2xl mobile:text-lg font-semibold justify-self-start items-center gap-4 mobile:gap-2 text-white ${
+                open ? '' : 'hover:opacity-90 opacity-30 mobile:opacity-70'
+              }`}
+            >
+              <div>Advanced Tool</div>
+              <Icon heroIconName={open ? 'chevron-up' : 'chevron-down'} size={isMobile ? 'sm' : 'lg'}></Icon>
+            </Row>
+          )}
+        </Collapse.Face>
+        <Collapse.Body>
+          <Grid className="w-full pt-12 mobile:pt-4">
+            <MigrateStakingWalletTool className="justify-self-center" />
+          </Grid>
+        </Collapse.Body>
+      </Collapse>
     </div>
   )
 }
@@ -102,29 +118,26 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
   return (
     <Card
       className={twMerge(
-        'w-[min(452px,100%)] py-6 px-8 mobile:p-4 flex flex-col rounded-3xl mobile:rounded-lg border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card',
+        'w-[min(552px,100%)] py-6 px-8 mobile:p-4 flex flex-col rounded-3xl mobile:rounded-xl border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card',
         className
       )}
       size="lg"
     >
       <div className="text-lg mobile:text-sm font-semibold mb-4 mobile:mb-3">Migrate staking RAY to new wallet</div>
       <InputBox label="New Wallet:" className="mb-4 mobile:mb-3" onUserInput={setTargetWallet} />
-      <FadeInStable show={currentBindTargetWalletAddress}>
-        <Row className="items-center justify-between py-4 mobile:py-2">
+      {currentBindTargetWalletAddress && (
+        <Row className="items-center justify-between mb-4 mobile:mb-2">
           <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">current bind:</div>
-          <AddressItem showDigitCount={isMobile ? 12 : 6} textClassName="mobile:text-xs">
+          <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
             {currentBindTargetWalletAddress}
           </AddressItem>
         </Row>
-      </FadeInStable>
+      )}
       <Button
         className="frosted-glass-teal w-full"
         size={isMobile ? 'sm' : 'lg'}
         isLoading={isSubmittingData}
         validators={[
-          { should: targetWallet },
-          { should: isValidPublicKey(targetWallet) },
-          { should: !isMintEqual(targetWallet, currentBindTargetWalletAddress) },
           {
             should: owner,
             forceActive: true,
@@ -132,7 +145,10 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
               onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
               children: 'Connect Wallet'
             }
-          }
+          },
+          { should: targetWallet },
+          { should: isValidPublicKey(targetWallet) },
+          { should: !isMintEqual(targetWallet, currentBindTargetWalletAddress) }
         ]}
         onClick={async () => {
           try {
@@ -147,7 +163,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
 
             // check target staking Ray
             if (!(await checkStakingRay(newWallet, { connection }))) {
-              logError('Validation Error', 'target new safe wallet must stake RAY')
+              logError('Validation Error', 'new wallet must stake RAY')
               return
             }
 
