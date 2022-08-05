@@ -14,7 +14,7 @@ import { ThreeSlotItem } from '../ThreeSlotItem'
 import { PublicKeyish } from '@/types/constants'
 import toPubString from '@/functions/format/toMintString'
 import { AddressItem } from '../AddressItem'
-import { getNewWalletSignature } from '@/application/txTools/getSignMessage'
+import { getNewWalletSignature } from '@/application/staking/getSignMessage'
 
 /** this should be used in ./Navbar.tsx */
 export default function WalletWidget() {

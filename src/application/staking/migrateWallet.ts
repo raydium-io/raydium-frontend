@@ -1,6 +1,7 @@
 import jFetch from '@/functions/dom/jFetch'
-import toPubString from '@/functions/format/toMintString'
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import toPubString, { toPub } from '@/functions/format/toMintString'
+import { Farm, PublicKeyish } from '@raydium-io/raydium-sdk'
+import { Connection } from '@solana/web3.js'
 
 type WalletMigrateHistory = {
   success: boolean
@@ -30,4 +31,27 @@ export async function setWalletMigrateTarget(
     method: 'POST',
     body: JSON.stringify({ signature, oldWallet: toPubString(walletAddress), newWallet: toPubString(migrateTarget) })
   })
+}
+
+/**
+ * if wallet haven't stake RAY, it can't be stakeable
+ * @author Rudy
+ */
+export async function checkStakingRay(wallet: PublicKeyish, payloads: { connection: Connection }): Promise<boolean> {
+  const pda = await Farm.getAssociatedLedgerAccount({
+    programId: toPub('EhhTKczWMGQt46ynNeRX1WfeagwwJd7ufHvCDjRxjo5Q'),
+    poolId: toPub('4EwbZo8BZXP5313z5A2H11MRBP15M5n6YxfmkjXESKAW'),
+    owner: toPub(wallet)
+  })
+  const accountInfo = await payloads.connection.getAccountInfo(pda)
+
+  if (
+    accountInfo &&
+    accountInfo.data
+      .toJSON()
+      .data.slice(72, 80)
+      .find((i) => i > 0)
+  )
+    return true
+  return false
 }

@@ -35,13 +35,16 @@ import LoadingCircle from '@/components/LoadingCircle'
 import { StakingPageStakeLpDialog } from '../pageComponents/dialogs/StakingPageStakeLpDialog'
 import InputBox from '@/components/InputBox'
 import Card from '@/components/Card'
-import { getNewWalletSignature, getSignMessage } from '@/application/txTools/getSignMessage'
+import { getNewWalletSignature, getSignMessage } from '@/application/staking/getSignMessage'
 import { isPubKey, isValidPublicKey } from '@/functions/judgers/dateType'
 import useNotification from '@/application/notification/useNotification'
-import { getWalletMigrateHistory, setWalletMigrateTarget } from '@/application/staking/migrateWallet'
+import { checkStakingRay, getWalletMigrateHistory, setWalletMigrateTarget } from '@/application/staking/migrateWallet'
 import { HexAddress } from '@/types/constants'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { AddressItem } from '@/components/AddressItem'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import useConnection from '@/application/connection/useConnection'
+import FadeInStable from '@/components/FadeIn'
 
 export default function StakingPage() {
   return (
@@ -49,8 +52,7 @@ export default function StakingPage() {
       <StakingHeader />
       <StakingCard />
 
-      <AdvancedToolHeader className="mt-[10%]" />
-      <AdvancedTools />
+      <AdvancedTools className="mt-[10%]" />
     </PageLayout>
   )
 }
@@ -72,40 +74,57 @@ function StakingHeader() {
   )
 }
 
-function AdvancedToolHeader({ className }: { className?: string }) {
+function AdvancedTools({ className }: { className?: string }) {
   return (
-    <Grid className={twMerge('grid-cols-[1fr,1fr] items-center gap-y-8 pb-4 pt-2', className)}>
+    <div className={twMerge('gap-y-8 pb-4 pt-2', className)}>
       <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white">Advanced Tool</div>
-    </Grid>
+      <Grid className="w-full">
+        <MigrateStakingWalletTool className="justify-self-center" />
+      </Grid>
+    </div>
   )
 }
 
-function AdvancedTools() {
+function MigrateStakingWalletTool({ className }: { className?: string }) {
   const owner = useWallet((s) => s.owner)
   const [targetWallet, setTargetWallet] = useState<string>()
   const [isSubmittingData, setIsSubmittingData] = useState(false)
   const [currentBindTargetWalletAddress, setCurrentBindTargetWalletAddress] = useState<HexAddress>()
   const logError = useNotification((s) => s.logError)
   const logSuccess = useNotification((s) => s.logSuccess)
+  const connection = useConnection((s) => s.connection)
+  const isMobile = useAppSettings((s) => s.isMobile)
+
   useAsyncEffect(async () => {
     const wallet = owner && (await getWalletMigrateHistory(owner))
     setCurrentBindTargetWalletAddress(wallet)
   }, [owner])
   return (
     <Card
-      className="max-w-[50%] p-8 mobile:p-4 flex flex-col rounded-3xl border-1.5 border-[rgba(171,196,255,0.2)] overflow-y-auto overflow-x-hidden bg-cyberpunk-card-bg shadow-cyberpunk-card"
+      className={twMerge(
+        'w-[min(452px,100%)] py-6 px-8 mobile:p-4 flex flex-col rounded-3xl mobile:rounded-lg border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card',
+        className
+      )}
       size="lg"
     >
-      <InputBox label="New Safe Wallet:" className="mb-5" onUserInput={setTargetWallet} />
-      <Row className="items-center justify-between">
-        <div>current bind:</div>
-        <AddressItem>{currentBindTargetWalletAddress}</AddressItem>
-      </Row>
+      <div className="text-lg mobile:text-sm font-semibold mb-4 mobile:mb-3">Migrate staking RAY to new wallet</div>
+      <InputBox label="New Wallet:" className="mb-4 mobile:mb-3" onUserInput={setTargetWallet} />
+      <FadeInStable show={currentBindTargetWalletAddress}>
+        <Row className="items-center justify-between py-4 mobile:py-2">
+          <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">current bind:</div>
+          <AddressItem showDigitCount={isMobile ? 12 : 6} textClassName="mobile:text-xs">
+            {currentBindTargetWalletAddress}
+          </AddressItem>
+        </Row>
+      </FadeInStable>
       <Button
         className="frosted-glass-teal w-full"
+        size={isMobile ? 'sm' : 'lg'}
         isLoading={isSubmittingData}
         validators={[
           { should: targetWallet },
+          { should: isValidPublicKey(targetWallet) },
+          { should: !isMintEqual(targetWallet, currentBindTargetWalletAddress) },
           {
             should: owner,
             forceActive: true,
@@ -116,28 +135,45 @@ function AdvancedTools() {
           }
         ]}
         onClick={async () => {
-          const newWallet = targetWallet?.trim()
-          if (!newWallet) return
-          if (!isValidPublicKey(newWallet)) {
-            logError('Wallet not valid', 'fail to transform wallet address to valid publicKey')
-            return
-          }
-          const signature = await getNewWalletSignature(newWallet)
-          if (!signature?.encodedSignature) {
-            logError('Error', 'fail to encode')
-            return
-          }
-          const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
-            signature: signature.encodedSignature
-          })
-          if (resultResponse?.success) {
-            logSuccess('Success', 'success')
-          } else {
-            logSuccess('Error', resultResponse?.msg ?? '')
+          try {
+            const newWallet = targetWallet?.trim()
+            if (!newWallet) return
+
+            // check connection
+            if (!connection) {
+              logError('Connection Error', 'no connection')
+              return
+            }
+
+            // check target staking Ray
+            if (!(await checkStakingRay(newWallet, { connection }))) {
+              logError('Validation Error', 'target new safe wallet must stake RAY')
+              return
+            }
+
+            // encode sign message
+            setIsSubmittingData(true)
+            const signature = await getNewWalletSignature(newWallet)
+            if (!signature?.encodedSignature) {
+              logError('Encode Error', 'fail to encode')
+              return
+            }
+
+            // send migrate wallet
+            const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
+              signature: signature.encodedSignature
+            })
+            if (resultResponse?.success) {
+              logSuccess('Migrate Success', 'success to migrate skaking RAY to new safe wallet')
+            } else {
+              logError('Migrate Error', resultResponse?.msg ?? '')
+            }
+          } finally {
+            setIsSubmittingData(false)
           }
         }}
       >
-        migrate
+        Migrate
       </Button>
     </Card>
   )
