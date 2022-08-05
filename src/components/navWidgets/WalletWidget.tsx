@@ -53,11 +53,6 @@ export default function WalletWidget() {
               prefix={<Icon className="mr-3" size="sm" iconSrc="/icons/misc-recent-transactions.svg" />}
               text="Recent Transactions"
               onClick={() => {
-                setTimeout(async () => {
-                  const result = await getNewWalletSignature('BGifa3oeYC3fPEESzBc846noH4FZDyfB71v9Yb3c3h8X')
-                  // eslint-disable-next-line no-console
-                  console.log('result: ', result)
-                }, 0)
                 useAppSettings.setState({ isRecentTransactionDialogShown: true })
                 closePanel?.()
               }}
