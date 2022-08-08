@@ -28,7 +28,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import LoadingCircle from '@/components/LoadingCircle'
@@ -45,6 +45,11 @@ import { AddressItem } from '@/components/AddressItem'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import useConnection from '@/application/connection/useConnection'
 import { capitalize } from '@/functions/changeCase'
+import BN from 'bn.js'
+import FadeInStable from '@/components/FadeIn'
+import useAsyncValue from '@/hooks/useAsyncValue'
+import { RAYMint } from '@/application/token/wellknownToken.config'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
 
 export default function StakingPage() {
   return (
@@ -103,6 +108,7 @@ function AdvancedTools({ className }: { className?: string }) {
 
 function MigrateStakingWalletTool({ className }: { className?: string }) {
   const owner = useWallet((s) => s.owner)
+  const getToken = useToken((s) => s.getToken)
   const [targetWallet, setTargetWallet] = useState<string>()
   const [isSubmittingData, setIsSubmittingData] = useState(false)
   const [currentBindTargetWalletAddress, setCurrentBindTargetWalletAddress] = useState<HexAddress>()
@@ -110,11 +116,22 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
   const logSuccess = useNotification((s) => s.logSuccess)
   const connection = useConnection((s) => s.connection)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const rayToken = getToken(RAYMint)
 
   useAsyncEffect(async () => {
     const wallet = owner && (await getWalletMigrateHistory(owner))
     setCurrentBindTargetWalletAddress(wallet)
   }, [owner])
+
+  const targetWalletRay = useAsyncMemo(
+    async () =>
+      connection && targetWallet && isValidPublicKey(targetWallet)
+        ? await checkStakingRay(targetWallet, { connection })
+        : undefined,
+    [targetWallet, connection],
+    undefined
+  )
+
   return (
     <Card
       className={twMerge(
@@ -126,12 +143,25 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
       <div className="text-lg mobile:text-sm font-semibold mb-4 mobile:mb-3">Migrate staking RAY to new wallet</div>
       <InputBox label="New Wallet:" className="mb-4 mobile:mb-3" onUserInput={setTargetWallet} />
       {currentBindTargetWalletAddress && (
-        <Row className="items-center justify-between mb-4 mobile:mb-2">
-          <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">current bind:</div>
-          <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
-            {currentBindTargetWalletAddress}
-          </AddressItem>
-        </Row>
+        <div className="mb-4 mobile:mb-2">
+          <FadeInStable show={rayToken && targetWalletRay}>
+            <Row className="items-center justify-between py-1">
+              <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">new wallet RAY:</div>
+              <div className="text-sm mobile:text-xs">
+                <span className={gt(targetWalletRay, 0) ? '' : 'text-[#DA2EEF]'}>
+                  {toString(toTokenAmount(rayToken!, targetWalletRay))}
+                </span>{' '}
+                <span className="text-[#abc4ff80]">RAY</span>
+              </div>
+            </Row>
+          </FadeInStable>
+          <Row className="items-center justify-between">
+            <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">current bind:</div>
+            <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
+              {currentBindTargetWalletAddress}
+            </AddressItem>
+          </Row>
+        </div>
       )}
       <Button
         className="frosted-glass-teal w-full"
@@ -148,7 +178,14 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
           },
           { should: targetWallet },
           { should: isValidPublicKey(targetWallet) },
-          { should: !isMintEqual(targetWallet, currentBindTargetWalletAddress) }
+          { should: !isMintEqual(targetWallet, currentBindTargetWalletAddress), fallbackProps: { children: 'Binded' } },
+          {
+            // TODO: loading
+            should: targetWalletRay && gt(targetWalletRay, 0),
+            fallbackProps: {
+              children: 'New wallet must stake RAY'
+            }
+          }
         ]}
         onClick={async () => {
           try {
@@ -339,8 +376,6 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
 function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: HydratedFarmInfo }) {
   const prices = useToken((s) => s.tokenPrices)
   const isMobile = useAppSettings((s) => s.isMobile)
-  const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
-  const { push } = useRouter()
   const connected = useWallet((s) => s.connected)
   const hasPendingReward = useMemo(
     () =>

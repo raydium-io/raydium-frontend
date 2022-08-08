@@ -50,7 +50,7 @@ export default function InputBox({
     <Col
       onClick={focusInput}
       className={twMerge(
-        `bg-[#141041] rounded-xl mobile:rounded-lg py-2 px-4 mobile:py-1 mobile:px-2 cursor-text ${
+        `bg-[#141041] rounded-xl mobile:rounded-lg py-3 px-6 mobile:py-1.5 mobile:px-3 cursor-text ${
           disabled && !noDisableStyle ? 'pointer-events-none-entirely cursor-default opacity-50' : ''
         }`,
         className
@@ -65,7 +65,7 @@ export default function InputBox({
             noCSSInputDefaultWidth
             {...(restProps as DecimalInputProps)}
             {...(inputProps as DecimalInputProps)}
-            className={twMerge('w-full py-2 mobile:py-1 font-medium', inputProps?.className)}
+            className={twMerge('w-full font-medium', inputProps?.className)}
             componentRef={mergeRef(inputRef, inputProps?.componentRef)}
           />
         ) : (
@@ -73,7 +73,7 @@ export default function InputBox({
             noCSSInputDefaultWidth
             {...(restProps as InputProps)}
             {...(inputProps as InputProps)}
-            className={twMerge('w-full py-2 mobile:py-1 font-medium', inputProps?.className)}
+            className={twMerge('w-full font-medium', inputProps?.className)}
             componentRef={mergeRef(inputRef, inputProps?.componentRef)}
           />
         ))}
