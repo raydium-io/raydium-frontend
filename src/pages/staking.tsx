@@ -142,7 +142,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
     >
       <div className="text-lg mobile:text-sm font-semibold mb-4 mobile:mb-3">Migrate staking RAY to new wallet</div>
       <InputBox label="New Wallet:" className="mb-4 mobile:mb-3" onUserInput={setTargetWallet} />
-      {currentBindTargetWalletAddress && (
+      {(currentBindTargetWalletAddress || (rayToken && targetWalletRay)) && (
         <div className="mb-4 mobile:mb-2">
           <FadeInStable show={rayToken && targetWalletRay}>
             <Row className="items-center justify-between py-1">
