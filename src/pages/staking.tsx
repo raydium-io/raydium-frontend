@@ -118,10 +118,11 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const rayToken = getToken(RAYMint)
 
-  useAsyncEffect(async () => {
+  const getWalletBind = async () => {
     const wallet = owner && (await getWalletMigrateHistory(owner))
     setCurrentBindTargetWalletAddress(wallet)
-  }, [owner])
+  }
+  useAsyncEffect(getWalletBind, [owner])
 
   const targetWalletRay = useAsyncMemo(
     async () =>
@@ -141,12 +142,12 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
       size="lg"
     >
       <div className="text-lg mobile:text-sm font-semibold mb-4 mobile:mb-3">Migrate staking RAY to new wallet</div>
-      <InputBox label="New Wallet:" className="mb-4 mobile:mb-3" onUserInput={setTargetWallet} />
+      <InputBox label="New wallet:" className="mb-4 mobile:mb-3" onUserInput={setTargetWallet} />
       {(currentBindTargetWalletAddress || (rayToken && targetWalletRay)) && (
         <div className="mb-4 mobile:mb-2">
           <FadeInStable show={rayToken && targetWalletRay}>
             <Row className="items-center justify-between py-1">
-              <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">new wallet RAY:</div>
+              <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">New wallet RAY:</div>
               <div className="text-sm mobile:text-xs">
                 <span className={gt(targetWalletRay, 0) ? '' : 'text-[#DA2EEF]'}>
                   {toString(toTokenAmount(rayToken!, targetWalletRay))}
@@ -155,12 +156,14 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
               </div>
             </Row>
           </FadeInStable>
-          <Row className="items-center justify-between">
-            <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">current bind:</div>
-            <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
-              {currentBindTargetWalletAddress}
-            </AddressItem>
-          </Row>
+          {currentBindTargetWalletAddress && (
+            <Row className="items-center justify-between">
+              <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">Current bind:</div>
+              <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
+                {currentBindTargetWalletAddress}
+              </AddressItem>
+            </Row>
+          )}
         </div>
       )}
       <Button
@@ -223,6 +226,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
             }
           } finally {
             setIsSubmittingData(false)
+            getWalletBind()
           }
         }}
       >
