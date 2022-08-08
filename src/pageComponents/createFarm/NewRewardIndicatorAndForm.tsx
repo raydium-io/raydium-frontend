@@ -30,7 +30,7 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
   return (
     <div className={className}>
       {newRewards.length >= 2 && (
-        <div className={`${activeReward ? 'pb-8' : 'pb-2'}`}>
+        <div className={`${activeReward ? 'pb-8 mobile:pb-4' : 'pb-2'}`}>
           <NewAddedRewardSummary
             canUserEdit
             activeReward={activeReward}
@@ -46,7 +46,7 @@ export function NewRewardIndicatorAndForm({ className }: { className?: string })
           />
         </div>
       )}
-      <Grid className="grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-8">
+      <Grid className="grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-8 mobile:gap-4">
         <FadeIn>
           {activeReward && (
             <RewardFormCard>

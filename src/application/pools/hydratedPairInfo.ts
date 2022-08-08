@@ -47,7 +47,7 @@ export function hydratedPairInfo(
       tokenAmountBase,
       tokenAmountQuote,
       tokenAmountLp,
-      liquidity: toUsdCurrency(pair.liquidity),
+      liquidity: toUsdCurrency(Math.round(pair.liquidity)),
       lpPrice: lp && pair.lpPrice ? toTokenPrice(lp, pair.lpPrice) : null,
       // customized
       lp,
