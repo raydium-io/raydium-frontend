@@ -97,7 +97,7 @@ function AdvancedTools({ className }: { className?: string }) {
           )}
         </Collapse.Face>
         <Collapse.Body>
-          <Grid className="w-full pt-12 mobile:pt-4">
+          <Grid className="w-full pt-8 mobile:pt-4">
             <MigrateStakingWalletTool className="justify-self-center" />
           </Grid>
         </Collapse.Body>
@@ -121,6 +121,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
   const getWalletBind = async () => {
     const wallet = owner && (await getWalletMigrateHistory(owner))
     setCurrentBindTargetWalletAddress(wallet)
+    setTargetWallet('')
   }
   useAsyncEffect(getWalletBind, [owner])
 
@@ -142,30 +143,26 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
       size="lg"
     >
       <div className="text-lg mobile:text-sm font-semibold mb-4 mobile:mb-3">Migrate staking RAY to new wallet</div>
-      <InputBox label="New wallet:" className="mb-4 mobile:mb-3" onUserInput={setTargetWallet} />
-      {(currentBindTargetWalletAddress || (rayToken && targetWalletRay)) && (
-        <div className="mb-4 mobile:mb-2">
-          <FadeInStable show={rayToken && targetWalletRay}>
-            <Row className="items-center justify-between py-1">
-              <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">New wallet RAY:</div>
-              <div className="text-sm mobile:text-xs">
-                <span className={gt(targetWalletRay, 0) ? '' : 'text-[#DA2EEF]'}>
-                  {toString(toTokenAmount(rayToken!, targetWalletRay))}
-                </span>{' '}
-                <span className="text-[#abc4ff80]">RAY</span>
-              </div>
-            </Row>
-          </FadeInStable>
-          {currentBindTargetWalletAddress && (
-            <Row className="items-center justify-between">
-              <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">Current bind:</div>
-              <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
-                {currentBindTargetWalletAddress}
-              </AddressItem>
-            </Row>
-          )}
-        </div>
-      )}
+      <InputBox label="New wallet:" className="mb-4 mobile:mb-3" value={targetWallet} onUserInput={setTargetWallet} />
+      <div className="mb-3 mobile:mb-2">
+        <Row className="items-center justify-between py-1">
+          <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">New wallet RAY:</div>
+          <div className="text-sm mobile:text-xs">
+            <span className={lt(targetWalletRay, 0) ? 'text-[#DA2EEF]' : ''}>
+              {rayToken && targetWalletRay ? toString(toTokenAmount(rayToken!, targetWalletRay)) : '--'}
+            </span>{' '}
+            <span className="text-[#abc4ff80]">RAY</span>
+          </div>
+        </Row>
+        {currentBindTargetWalletAddress && (
+          <Row className="items-center justify-between">
+            <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">Current bind:</div>
+            <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
+              {currentBindTargetWalletAddress}
+            </AddressItem>
+          </Row>
+        )}
+      </div>
       <Button
         className="frosted-glass-teal w-full"
         size={isMobile ? 'sm' : 'lg'}
