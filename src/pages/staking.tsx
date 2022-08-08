@@ -217,7 +217,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
               signature: signature.encodedSignature
             })
             if (resultResponse?.success) {
-              logSuccess('Migrate Success', 'Success to migrate skaking RAY to new safe wallet')
+              logSuccess('Migrate Success', 'Success to migrate staking RAY to new safe wallet')
             } else {
               logError('Migrate Error', capitalize(resultResponse?.msg ?? ''))
             }
