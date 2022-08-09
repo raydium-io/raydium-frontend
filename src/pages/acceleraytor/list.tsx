@@ -247,10 +247,9 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
         </Row>
       </AutoBox>
       {isDateAfter(getChainDate(), info.endTime) && (
-        <Icon
-          iconSrc="/icons/acceleraytor-list-collapse-open.svg"
-          className="mx-auto -mt-3 -mb-3 translate-y-3 mobile:mt-3 mobile:mb-0 clickable hover:brightness-110 "
-        />
+        <div className="mx-auto w-max -mt-3 -mb-3 translate-y-3 mobile:mt-3 mobile:mb-0">
+          <Icon iconSrc="/icons/acceleraytor-list-collapse-open.svg" className="clickable hover:brightness-110 " />
+        </div>
       )}
     </div>
   )
@@ -423,7 +422,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   return (
     <div className="p-6 mobile:p-3">
       {<IdoItemCardStakeChip info={info} />}
-      <Row className="flex-wrap gap-6 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg items-center">
+      <Row className="flex-wrap gap-6 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg items-center">
         <div className={`relative w-[360px] mobile:w-full max-h-[192px] mobile:h-[106px] rounded-xl overflow-hidden`}>
           <Image
             src={info.projectPosters}
