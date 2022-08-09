@@ -15,6 +15,7 @@ export default function Image({
 
   src,
   fallbackSrc,
+  fallbackColor,
   alt: alert,
   onClick,
   domRef,
@@ -26,6 +27,8 @@ export default function Image({
   /** can accept multi srcs */
   src: string | string[]
   fallbackSrc?: string
+  // only when loading and no fallbackSrc
+  fallbackColor?: string
   alt?: string // for readability
   onClick?: () => void
   domRef?: RefObject<any>
@@ -57,7 +60,7 @@ export default function Image({
       className={`Image ${src || srcSet.length ? '' : 'invisible'} ${className ?? ''}`}
       src={currentSrc}
       alt={alertText}
-      style={style}
+      style={{ ...style, backgroundColor: fallbackColor }}
     />
   )
 }
