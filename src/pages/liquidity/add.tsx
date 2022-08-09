@@ -14,9 +14,12 @@ import useLiquidityAmountCalculator from '@/application/liquidity/useLiquidityAm
 import useLiquidityInitCoinFiller from '@/application/liquidity/useLiquidityInitCoinFiller'
 import useLiquidityUrlParser from '@/application/liquidity/useLiquidityUrlParser'
 import { routeTo } from '@/application/routeTools'
-import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
+import { SOL_BASE_BALANCE, SOLDecimals } from '@/application/token/quantumSOL'
+import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
+import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
@@ -35,28 +38,23 @@ import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, unifyItem } from '@/functions/arrayMethods'
-import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import { objectShakeFalsy } from '@/functions/objectMethods'
 import createContextStore from '@/functions/react/createContextStore'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useToggle from '@/hooks/useToggle'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import { HexAddress } from '@/types/constants'
 
-import { SplToken } from '@/application/token/type'
-import { Badge } from '@/components/Badge'
-import { capitalize } from '@/functions/changeCase'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import { objectShakeFalsy } from '@/functions/objectMethods'
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
-import { AddressItem } from '@/components/AddressItem'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -851,24 +849,20 @@ function UserLiquidityExhibition() {
                           <Tooltip>
                             <Icon
                               size="smi"
-                              iconSrc="/icons/pools-farm-entry.svg"
+                              iconSrc="/icons/pools-pool-entry.svg"
                               className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable-filter-effect ${
                                 correspondingFarm ? 'clickable' : 'not-clickable'
                               }`}
                               onClick={() => {
-                                routeTo('/farms', {
-                                  //@ts-expect-error no need to care about enum of this error
+                                routeTo('/pools', {
                                   queryProps: objectShakeFalsy({
-                                    currentTab: correspondingFarm?.category
-                                      ? capitalize(correspondingFarm?.category)
-                                      : undefined,
-                                    newExpandedItemId: toPubString(correspondingFarm?.id),
-                                    searchText: [info.baseToken?.symbol, info.quoteToken?.symbol].join(' ')
+                                    expandedPoolId: toPubString(info.lpMint),
+                                    searchText: toPubString(info.lpMint)
                                   })
                                 })
                               }}
                             />
-                            <Tooltip.Panel>Farm</Tooltip.Panel>
+                            <Tooltip.Panel>Pool</Tooltip.Panel>
                           </Tooltip>
                           <Tooltip>
                             <Icon
