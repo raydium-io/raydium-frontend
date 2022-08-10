@@ -1,6 +1,7 @@
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useCallback } from 'react'
 import { useRef, useState } from 'react'
+import { useEvent } from './useEvent'
 
 /**
  * safely change useState to useSignalState
@@ -45,15 +46,12 @@ export function useSignalState<T = undefined>(
 export function useSignalState<T = undefined>(defaultValue?: T | (() => T)) {
   const [state, _setState] = useState(defaultValue)
   const ref = useRef(state)
-  const setState = useCallback(
-    (stateDispatch) => {
-      const pevValue = ref.current
-      const newValue = shrinkToValue(stateDispatch, [pevValue])
-      ref.current = newValue
-      _setState(newValue)
-    },
-    [_setState]
-  )
+  const setState = useEvent((stateDispatch) => {
+    const pevValue = ref.current
+    const newValue = shrinkToValue(stateDispatch, [pevValue])
+    ref.current = newValue
+    _setState(newValue)
+  })
 
   const superState = () => ref.current
   superState.setState = setState

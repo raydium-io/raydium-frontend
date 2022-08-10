@@ -108,8 +108,8 @@ export default function RefreshCircle({
       <Tooltip.Panel>
         <div className="w-60">
           Displayed data will auto-refresh after{' '}
-          {Math.round(60 * (1 - (intervalCircleRef.current?.currentProgressPercent ?? 0)))} seconds. Click this circle
-          to update manually.
+          {Math.round((totalDuration / 1000) * (1 - (intervalCircleRef.current?.currentProgressPercent ?? 0)))} seconds.
+          Click this circle to update manually.
         </div>
       </Tooltip.Panel>
     </Tooltip>

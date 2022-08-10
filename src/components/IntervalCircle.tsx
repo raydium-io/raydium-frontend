@@ -1,4 +1,4 @@
-import React, { RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import React, { RefObject, startTransition, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import { useClick } from '@/hooks/useClick'
@@ -55,7 +55,9 @@ export default function IntervalCircle({
 
   useEffect(() => {
     if (progressPercent !== 0 && (Math.round(progressPercent * 100) / 100) % 1 === 0) {
-      onEnd?.()
+      startTransition(() => {
+        onEnd?.()
+      })
     }
   }, [onEnd, progressPercent])
 
