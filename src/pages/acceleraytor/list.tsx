@@ -423,10 +423,11 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
     <div className="p-6 mobile:p-3">
       {<IdoItemCardStakeChip info={info} />}
       <Row className="flex-wrap gap-6 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg items-center">
-        <div className={`relative w-[360px] mobile:w-full max-h-[192px] mobile:h-[106px] rounded-xl overflow-hidden`}>
+        <div className={`relative rounded-xl overflow-hidden mobile:w-full`}>
           <Image
             src={info.projectPosters}
-            className={`shrink-0 mobile:h-full mobile:w-full object-contain mobile:object-cover clickable`}
+            fallbackColor="#abc4ff1a"
+            className={`w-[360px] mobile:w-full h-[202.5px] /* 16/9 */ mobile:h-[106px] shrink-0 object-cover mobile:object-cover clickable`}
             onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
           />
           {!isMobile && (

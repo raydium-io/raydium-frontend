@@ -44,7 +44,7 @@ import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
-import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
+import { addItem, removeItem, shakeFalsyItem, shakeUndifindedItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
@@ -1134,24 +1134,32 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
               </div>
               <Grid
                 className={`gap-board 
-                   ${farmInfo.rewards.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}
+                   ${
+                     farmInfo.rewards.filter((i) => i.version === 6 || i.userHavedReward).length > 1
+                       ? 'grid-cols-2'
+                       : 'grid-cols-1'
+                   }`}
                 style={{
                   clipPath: 'inset(17px)', // 1px for gap-board
                   margin: '-17px'
                 }}
               >
-                {farmInfo.rewards.map((reward, idx) => (
-                  <div key={idx} className="p-4">
-                    <div className={`text-white font-medium text-base mobile:text-xs`}>
-                      {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
-                    </div>
-                    <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
-                      {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
-                        ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
-                        : null}
-                    </div>
-                  </div>
-                ))}
+                {shakeUndifindedItem(
+                  farmInfo.rewards.map((reward, idx) =>
+                    farmInfo.version === 6 || reward.userHavedReward ? (
+                      <div key={idx} className="p-4">
+                        <div className={`text-white font-medium text-base mobile:text-xs`}>
+                          {reward.userPendingReward ? toString(reward.userPendingReward) : 0} {reward.token?.symbol}
+                        </div>
+                        <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
+                          {prices?.[String(reward.token?.mint)] && reward?.userPendingReward
+                            ? toUsdVolume(toTotalPrice(reward.userPendingReward, prices[String(reward.token?.mint)]))
+                            : null}
+                        </div>
+                      </div>
+                    ) : undefined
+                  )
+                )}
               </Grid>
             </div>
             <Button
