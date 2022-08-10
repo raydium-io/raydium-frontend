@@ -23,7 +23,8 @@ export default function RefreshCircle({
   popPlacement,
   forceOpen,
   freshFunction,
-  freshDuration = 1000,
+  freshEach = 1000,
+  totalDuration = REFRESH_LOOP_DURATION,
   className,
   circleBodyClassName
 }: {
@@ -36,9 +37,10 @@ export default function RefreshCircle({
   circleBodyClassName?: string
   popPlacement?: PopoverPlacement
   freshFunction?: AnyFn
-  freshDuration?: number
+  freshEach?: number
+  totalDuration?: number
 }) {
-  useForceUpdate({ loop: freshDuration }) // update ui (refresh progress line)
+  useForceUpdate({ loop: freshEach }) // update ui (refresh progress line)
   const intervalCircleRef = useRef<IntervalCircleHandler>()
   const { documentVisible } = useDocumentVisibility()
   const [needFresh, setNeedFresh, needFreshSignal] = useSignalState(false)
@@ -54,7 +56,7 @@ export default function RefreshCircle({
   const initPastPercent =
     refreshCircleLastTimestamp &&
     refreshCircleProcessPercent &&
-    (Date.now() - refreshCircleLastTimestamp) / REFRESH_LOOP_DURATION + refreshCircleProcessPercent
+    (Date.now() - refreshCircleLastTimestamp) / totalDuration + refreshCircleProcessPercent
 
   // should before <IntervalCircle> has destoryed, so have to useIsomorphicLayoutEffect
   useIsomorphicLayoutEffect(() => {
@@ -91,7 +93,7 @@ export default function RefreshCircle({
       <IntervalCircle
         run={run}
         initPercent={initPastPercent && initPastPercent % 1}
-        duration={REFRESH_LOOP_DURATION}
+        duration={totalDuration}
         componentRef={intervalCircleRef}
         className={twMerge('clickable clickable-filter-effect', circleBodyClassName)}
         onClick={() => {
