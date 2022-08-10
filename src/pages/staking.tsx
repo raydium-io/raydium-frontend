@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useState } from 'react'
+import React, { ReactNode, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
 import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
@@ -28,28 +28,15 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import LoadingCircle from '@/components/LoadingCircle'
 import { StakingPageStakeLpDialog } from '../pageComponents/dialogs/StakingPageStakeLpDialog'
-import InputBox from '@/components/InputBox'
-import Card from '@/components/Card'
-import { getNewWalletSignature } from '@/application/staking/getSignMessage'
-import { isValidPublicKey } from '@/functions/judgers/dateType'
-import useNotification from '@/application/notification/useNotification'
-import { checkStakingRay, getWalletMigrateHistory, setWalletMigrateTarget } from '@/application/staking/migrateWallet'
-import { HexAddress } from '@/types/constants'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
-import { AddressItem } from '@/components/AddressItem'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import useConnection from '@/application/connection/useConnection'
-import { capitalize } from '@/functions/changeCase'
 import BN from 'bn.js'
 import FadeInStable from '@/components/FadeIn'
 import useAsyncValue from '@/hooks/useAsyncValue'
-import { RAYMint } from '@/application/token/wellknownToken.config'
-import useAsyncMemo from '@/hooks/useAsyncMemo'
+import { MigrateStakingHistory } from '../pageComponents/staking/MigrateStakingHistory'
 
 export default function StakingPage() {
   return (
@@ -57,7 +44,7 @@ export default function StakingPage() {
       <StakingHeader />
       <StakingCard />
 
-      <AdvancedTools className="mt-[10vh]" />
+      <MigrateStakingHistory className="mt-[10vh]" />
     </PageLayout>
   )
 }
@@ -76,160 +63,6 @@ function StakingHeader() {
         />
       </div>
     </Grid>
-  )
-}
-
-function AdvancedTools({ className }: { className?: string }) {
-  const isMobile = useAppSettings((s) => s.isMobile)
-  return (
-    <div className={twMerge('gap-y-8 pb-4 pt-2', className)}>
-      <Collapse>
-        <Collapse.Face>
-          {(open) => (
-            <Row
-              className={`text-2xl mobile:text-lg font-semibold justify-self-start items-center gap-4 mobile:gap-2 text-white ${
-                open ? '' : 'hover:opacity-90 opacity-30 mobile:opacity-70'
-              }`}
-            >
-              <div>Advanced Tool</div>
-              <Icon heroIconName={open ? 'chevron-up' : 'chevron-down'} size={isMobile ? 'sm' : 'lg'}></Icon>
-            </Row>
-          )}
-        </Collapse.Face>
-        <Collapse.Body>
-          <Grid className="w-full pt-8 mobile:pt-4">
-            <MigrateStakingWalletTool className="justify-self-center" />
-          </Grid>
-        </Collapse.Body>
-      </Collapse>
-    </div>
-  )
-}
-
-function MigrateStakingWalletTool({ className }: { className?: string }) {
-  const owner = useWallet((s) => s.owner)
-  const getToken = useToken((s) => s.getToken)
-  const [targetWallet, setTargetWallet] = useState<string>()
-  const [isSubmittingData, setIsSubmittingData] = useState(false)
-  const [currentBindTargetWalletAddress, setCurrentBindTargetWalletAddress] = useState<HexAddress>()
-  const logError = useNotification((s) => s.logError)
-  const logSuccess = useNotification((s) => s.logSuccess)
-  const connection = useConnection((s) => s.connection)
-  const isMobile = useAppSettings((s) => s.isMobile)
-  const rayToken = getToken(RAYMint)
-
-  const getWalletBind = async () => {
-    const wallet = owner && (await getWalletMigrateHistory(owner))
-    setCurrentBindTargetWalletAddress(wallet)
-    setTargetWallet('')
-  }
-  useAsyncEffect(getWalletBind, [owner])
-
-  const targetWalletRay = useAsyncMemo(
-    async () =>
-      connection && targetWallet && isValidPublicKey(targetWallet)
-        ? await checkStakingRay(targetWallet, { connection })
-        : undefined,
-    [targetWallet, connection],
-    undefined
-  )
-
-  return (
-    <Card
-      className={twMerge(
-        'w-[min(552px,100%)] py-6 px-8 mobile:p-4 flex flex-col rounded-3xl mobile:rounded-xl border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card',
-        className
-      )}
-      size="lg"
-    >
-      <div className="text-lg mobile:text-sm font-semibold mb-4 mobile:mb-3">Migrate staking RAY to new wallet</div>
-      <InputBox label="New wallet:" className="mb-4 mobile:mb-3" value={targetWallet} onUserInput={setTargetWallet} />
-      <div className="mb-3 mobile:mb-2">
-        <Row className="items-center justify-between py-1">
-          <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">New wallet RAY:</div>
-          <div className="text-sm mobile:text-xs">
-            <span className={lt(targetWalletRay, 0) ? 'text-[#DA2EEF]' : ''}>
-              {rayToken && targetWalletRay ? toString(toTokenAmount(rayToken!, targetWalletRay)) : '--'}
-            </span>{' '}
-            <span className="text-[#abc4ff80]">RAY</span>
-          </div>
-        </Row>
-        {currentBindTargetWalletAddress && (
-          <Row className="items-center justify-between">
-            <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">Current bind:</div>
-            <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
-              {currentBindTargetWalletAddress}
-            </AddressItem>
-          </Row>
-        )}
-      </div>
-      <Button
-        className="frosted-glass-teal w-full"
-        size={isMobile ? 'sm' : 'lg'}
-        isLoading={isSubmittingData}
-        validators={[
-          {
-            should: owner,
-            forceActive: true,
-            fallbackProps: {
-              onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-              children: 'Connect Wallet'
-            }
-          },
-          { should: targetWallet },
-          { should: isValidPublicKey(targetWallet) },
-          { should: !isMintEqual(targetWallet, currentBindTargetWalletAddress), fallbackProps: { children: 'Binded' } },
-          {
-            // TODO: loading
-            should: targetWalletRay && gt(targetWalletRay, 0),
-            fallbackProps: {
-              children: 'New wallet must stake RAY'
-            }
-          }
-        ]}
-        onClick={async () => {
-          try {
-            const newWallet = targetWallet?.trim()
-            if (!newWallet) return
-
-            // check connection
-            if (!connection) {
-              logError('Connection Error', 'No connection')
-              return
-            }
-
-            // check target staking Ray
-            if (!(await checkStakingRay(newWallet, { connection }))) {
-              logError('Validation Error', 'New wallet must stake RAY')
-              return
-            }
-
-            // encode sign message
-            setIsSubmittingData(true)
-            const signature = await getNewWalletSignature(newWallet)
-            if (!signature?.encodedSignature) {
-              logError('Encode Error', 'Fail to encode')
-              return
-            }
-
-            // send migrate wallet
-            const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
-              signature: signature.encodedSignature
-            })
-            if (resultResponse?.success) {
-              logSuccess('Migrate Success', 'Success to migrate staking RAY to new safe wallet')
-            } else {
-              logError('Migrate Error', capitalize(resultResponse?.msg ?? ''))
-            }
-          } finally {
-            setIsSubmittingData(false)
-            getWalletBind()
-          }
-        }}
-      >
-        Migrate
-      </Button>
-    </Card>
   )
 }
 
