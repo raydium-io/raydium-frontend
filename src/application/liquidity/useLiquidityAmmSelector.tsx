@@ -44,7 +44,6 @@ export default function useLiquidityAmmSelector() {
     if (resultPool) {
       // current is right, no need to sync again
       if (ammId === resultPool?.id) return
-
       useLiquidity.setState({
         ammId: resultPool?.id,
         currentJsonInfo: resultPool
@@ -72,6 +71,7 @@ export default function useLiquidityAmmSelector() {
 
   // update `ammId` (to match `currentJsonInfo`)
   useEffect(() => {
+    const { currentJsonInfo } = useLiquidity.getState()
     if (!currentJsonInfo) return
     const { ammId: currentAmmId } = useLiquidity.getState()
 
