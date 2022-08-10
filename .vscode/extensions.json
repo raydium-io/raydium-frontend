@@ -1,3 +1,10 @@
 {
-  "recommendations": ["esbenp.prettier-vscode"]
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    "planbcoding.vscode-react-refactor",
+    "pkief.material-icon-theme",
+    "eamodio.gitlens",
+    "dbaeumer.vscode-eslint"
+  ]
 }

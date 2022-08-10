@@ -5,7 +5,6 @@ import { twMerge } from 'tailwind-merge'
 import IntervalCircle, { IntervalCircleHandler } from '@/components/IntervalCircle'
 import Tooltip from '@/components/Tooltip'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
-import useToggle from '@/hooks/useToggle'
 import { AnyFn } from '@/types/constants'
 
 import { useDocumentVisibility } from '../hooks/useDocumentVisibility'
@@ -14,6 +13,7 @@ import { PopoverPlacement } from './Popover'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { inServer } from '@/functions/judgers/isSSR'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useSignalState } from '@/hooks/useSignalState'
 
 const REFRESH_LOOP_DURATION = 60 * 1000
 
@@ -41,7 +41,9 @@ export default function RefreshCircle({
   useForceUpdate({ loop: freshDuration }) // update ui (refresh progress line)
   const intervalCircleRef = useRef<IntervalCircleHandler>()
   const { documentVisible } = useDocumentVisibility()
-  const [needFresh, { on, off }] = useToggle()
+  const [needFresh, setNeedFresh, needFreshSignal] = useSignalState(false)
+  const on = () => setNeedFresh(true)
+  const off = () => setNeedFresh(false)
 
   // for SSR can't maintain interval trully, so it just a fake
   const refreshCircleLastTimestamp = useAppSettings.getState().refreshCircleLastTimestamp[refreshKey]?.endTimestamp as
@@ -76,7 +78,7 @@ export default function RefreshCircle({
   }, [])
 
   useEffect(() => {
-    if (needFresh && documentVisible) {
+    if (needFreshSignal() && documentVisible) {
       startTransition(() => {
         freshFunction?.()
       })

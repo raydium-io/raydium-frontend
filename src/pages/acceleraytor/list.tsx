@@ -247,10 +247,9 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
         </Row>
       </AutoBox>
       {isDateAfter(getChainDate(), info.endTime) && (
-        <Icon
-          iconSrc="/icons/acceleraytor-list-collapse-open.svg"
-          className="mx-auto -mt-3 -mb-3 translate-y-3 mobile:mt-3 mobile:mb-0 clickable hover:brightness-110 "
-        />
+        <div className="mx-auto w-max -mt-3 -mb-3 translate-y-3 mobile:mt-3 mobile:mb-0">
+          <Icon iconSrc="/icons/acceleraytor-list-collapse-open.svg" className="clickable hover:brightness-110 " />
+        </div>
       )}
     </div>
   )
@@ -423,11 +422,12 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
   return (
     <div className="p-6 mobile:p-3">
       {<IdoItemCardStakeChip info={info} />}
-      <Row className="flex-wrap gap-6 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg  bg-cyberpunk-card-bg items-center">
-        <div className={`relative w-[360px] mobile:w-full max-h-[192px] mobile:h-[106px] rounded-xl overflow-hidden`}>
+      <Row className="flex-wrap gap-6 mobile:gap-3 rounded-b-3xl mobile:rounded-b-lg items-center">
+        <div className={`relative rounded-xl overflow-hidden mobile:w-full`}>
           <Image
             src={info.projectPosters}
-            className={`shrink-0 mobile:h-full mobile:w-full object-contain mobile:object-cover clickable`}
+            fallbackColor="#abc4ff1a"
+            className={`w-[360px] mobile:w-full h-[202.5px] /* 16/9 */ mobile:h-[106px] shrink-0 object-cover mobile:object-cover clickable`}
             onClick={() => routeTo('/acceleraytor/detail', { queryProps: { idoId: info.id } })}
           />
           {!isMobile && (
