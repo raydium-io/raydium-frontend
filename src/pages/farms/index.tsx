@@ -61,6 +61,7 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useSort from '@/hooks/useSort'
+import useOnceEffect from '@/hooks/useOnceEffect'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -399,11 +400,31 @@ function FarmCard() {
   } = useSort(applySearchedDataSource, {
     defaultSort: {
       key: 'defaultKey',
-      sortCompare: [
-        /* (i) => i.isUpcomingPool, */ /* (i) => i.isNewPool, */ (i) => favouriteIds?.includes(toPubString(i.id))
-      ]
+      sortCompare: [(i) => favouriteIds?.includes(toPubString(i.id))]
     }
   })
+  // re-sort when favourite have loaded
+  useOnceEffect(
+    ({ runed }) => {
+      if (favouriteIds) {
+        setSortConfig({
+          key: 'init',
+          sortCompare: [(i) => favouriteIds?.includes(toPubString(i.id))],
+          mode: 'decrease'
+        })
+        runed()
+      }
+    },
+    [favouriteIds]
+  )
+  // re-sort when currentTab have changed
+  useEffect(() => {
+    setSortConfig({
+      key: 'init by currentTab',
+      sortCompare: [(i) => favouriteIds?.includes(toPubString(i.id))],
+      mode: 'decrease'
+    })
+  }, [currentTab])
 
   const farmCardTitleInfo =
     currentTab === 'Ecosystem'

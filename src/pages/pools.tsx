@@ -44,6 +44,7 @@ import { searchItems } from '@/functions/searchItems'
 import useSort from '@/hooks/useSort'
 import { capitalize } from '@/functions/changeCase'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import useOnceEffect from '@/hooks/useOnceEffect'
 
 /**
  * store:
@@ -326,6 +327,20 @@ function PoolCard() {
   } = useSort(searched, {
     defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity] }
   })
+  // re-sort when favourite have loaded
+  useOnceEffect(
+    ({ runed }) => {
+      if (favouriteIds) {
+        setSortConfig({
+          key: 'init',
+          sortCompare: [(i) => favouriteIds?.includes(toPubString(i.ammId)), (i) => i.liquidity],
+          mode: 'decrease'
+        })
+        runed()
+      }
+    },
+    [favouriteIds]
+  )
 
   const TableHeaderBlock = useCallback(
     () => (
