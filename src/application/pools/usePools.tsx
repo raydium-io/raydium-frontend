@@ -48,4 +48,4 @@ export const usePools = create<PoolsStore>((set, get) => ({
   }
 }))
 
-export const usePoolFavoriteIds = () => useLocalStorageItem<string[]>('FAVOURITE_POOL_IDS')
+export const usePoolFavoriteIds = () => useLocalStorageItem<string[], null>('FAVOURITE_POOL_IDS', { emptyValue: null })

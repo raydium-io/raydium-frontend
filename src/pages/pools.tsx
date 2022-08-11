@@ -330,7 +330,8 @@ function PoolCard() {
   // re-sort when favourite have loaded
   useOnceEffect(
     ({ runed }) => {
-      if (favouriteIds) {
+      if (favouriteIds !== undefined) runed()
+      if (favouriteIds != null) {
         setSortConfig({
           key: 'init',
           sortCompare: [(i) => favouriteIds?.includes(toPubString(i.ammId)), (i) => i.liquidity],

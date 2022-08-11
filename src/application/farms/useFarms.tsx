@@ -58,6 +58,6 @@ const useFarms = create<FarmStore>((set) => ({
   stakeDialogInfo: undefined
 }))
 
-export const useFarmFavoriteIds = () => useLocalStorageItem<string[]>('FAVOURITE_FARM_IDS')
+export const useFarmFavoriteIds = () => useLocalStorageItem<string[], null>('FAVOURITE_FARM_IDS', { emptyValue: null })
 
 export default useFarms
