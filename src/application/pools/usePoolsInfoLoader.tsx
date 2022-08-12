@@ -19,6 +19,7 @@ import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { lazyMap } from '@/functions/lazyMap'
+import useFarms from '../farms/useFarms'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -35,18 +36,17 @@ export default function usePoolsInfoLoader() {
   const balances = useWallet((s) => s.balances)
   const { pathname } = useRouter()
   const refreshCount = usePools((s) => s.refreshCount)
+  const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
 
   const fetchPairs = async () => {
-    // console.time('load pair json')
     const pairJsonInfo = await jFetch<JsonPairItemInfo[]>('https://api.raydium.io/v2/main/pairs')
     if (!pairJsonInfo) return
     usePools.setState({ jsonInfos: pairJsonInfo.filter(({ name }) => !name.includes('unknown')) })
-    // console.timeEnd('load pair json')
   }
 
   useEffectWithTransition(() => {
     fetchPairs()
-  }, [refreshCount])
+  }, [refreshCount, farmRefreshCount])
 
   // TODO: currently also fetch info when it's not
   useEffect(() => {
