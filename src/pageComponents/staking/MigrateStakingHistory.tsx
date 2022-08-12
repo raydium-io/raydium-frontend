@@ -36,7 +36,7 @@ export function MigrateStakingHistory({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <div className={twMerge('gap-y-8 pb-4 pt-2', className)}>
-      <Collapse open>
+      <Collapse>
         <Collapse.Face>
           {(open) => (
             <Row
