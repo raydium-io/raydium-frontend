@@ -13,9 +13,10 @@ import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { getMax, sub } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
+import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { unionArr } from '@/types/generics'
 import {
@@ -275,8 +276,8 @@ function calculateFarmPoolAprs(
         rewardTokenPrice
       )
       if (!payload.tvl) return undefined
-      const apr = rewardtotalPricePerYear.div(payload.tvl ?? ONE)
-
+      // if tvl is zero, apr should be zero
+      const apr = payload.tvl.isZero() ? toFraction(0) : rewardtotalPricePerYear.div(payload.tvl ?? ONE)
       return apr
     })
   } else {
@@ -292,7 +293,8 @@ function calculateFarmPoolAprs(
         rewardTokenPrice
       )
       if (!payload.tvl) return undefined
-      const apr = rewardtotalPricePerYear.div(payload.tvl ?? ONE)
+      // if tvl is zero, apr should be zero
+      const apr = payload.tvl.isZero() ? toFraction(0) : rewardtotalPricePerYear.div(payload.tvl ?? ONE)
       return apr
     })
     return calcAprs

@@ -19,9 +19,10 @@ import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { lazyMap } from '@/functions/lazyMap'
+import useFarms from '../farms/useFarms'
 
 export default function usePoolsInfoLoader() {
-  const jsonInfo = usePools((s) => s.jsonInfos, shallow)
+  const jsonInfos = usePools((s) => s.jsonInfos, shallow)
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
   const stableLiquidityJsonInfoLpMints = useMemo(
     () => unifyItem(liquidityJsonInfos.filter((j) => j.version === 5).map((j) => j.lpMint)),
@@ -35,18 +36,17 @@ export default function usePoolsInfoLoader() {
   const balances = useWallet((s) => s.balances)
   const { pathname } = useRouter()
   const refreshCount = usePools((s) => s.refreshCount)
+  const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
 
   const fetchPairs = async () => {
-    // console.time('load pair json')
     const pairJsonInfo = await jFetch<JsonPairItemInfo[]>('https://api.raydium.io/v2/main/pairs')
     if (!pairJsonInfo) return
     usePools.setState({ jsonInfos: pairJsonInfo.filter(({ name }) => !name.includes('unknown')) })
-    // console.timeEnd('load pair json')
   }
 
   useEffectWithTransition(() => {
     fetchPairs()
-  }, [refreshCount])
+  }, [refreshCount, farmRefreshCount])
 
   // TODO: currently also fetch info when it's not
   useEffect(() => {
@@ -58,7 +58,7 @@ export default function usePoolsInfoLoader() {
   const lpPrices = useMemo<Record<HexAddress, Price>>(
     () =>
       Object.fromEntries(
-        jsonInfo
+        jsonInfos
           .map((value) => {
             const token = lpTokens[value.lpMint]
             const price = token && value.lpPrice ? toTokenPrice(token, value.lpPrice, { alreadyDecimaled: true }) : null
@@ -66,7 +66,7 @@ export default function usePoolsInfoLoader() {
           })
           .filter(([lpMint, price]) => lpMint != null && price != null)
       ),
-    [jsonInfo, lpTokens]
+    [jsonInfos, lpTokens]
   )
 
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function usePoolsInfoLoader() {
 
   useEffectWithTransition(async () => {
     const hydratedInfos = await lazyMap({
-      source: jsonInfo,
+      source: jsonInfos,
       sourceKey: 'pair jsonInfo',
       loopFn: (pair) =>
         hydratedPairInfo(pair, {
@@ -85,5 +85,5 @@ export default function usePoolsInfoLoader() {
         })
     })
     usePools.setState({ hydratedInfos, loading: hydratedInfos.length === 0 })
-  }, [jsonInfo, getToken, balances, lpTokens, tokens, stableLiquidityJsonInfoLpMints])
+  }, [jsonInfos, getToken, balances, lpTokens, tokens, stableLiquidityJsonInfoLpMints])
 }

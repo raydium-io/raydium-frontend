@@ -10,7 +10,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { EnumStr } from '@/types/constants'
 import { useRouter } from 'next/router'
 import { ParsedUrlQuery } from 'querystring'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import useConnection from '../connection/useConnection'
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 import useLiquidity from './useLiquidity'
@@ -39,17 +39,18 @@ export default function useLiquidityUrlParser() {
   const inCleanUrlMode = useAppSettings((s) => s.inCleanUrlMode)
 
   // flag: 'get info from url' period  or  'affect info to url' period
-  const haveInit = useRef(false)
+  const [haveInit, setHaveInit] = useState(false)
 
   useEffect(() => {
     // when not /liquidity page, reset flag
     if (!pathname.includes('/liquidity/add')) {
-      haveInit.current = false
+      setHaveInit(false)
     }
   }, [pathname])
+
   useEffect(() => {
     // when refresh window, reset flag
-    const unload = () => (haveInit.current = false)
+    const unload = () => setHaveInit(false)
     globalThis?.addEventListener('beforeunload', unload)
     return () => globalThis?.removeEventListener('beforeunload', unload)
   }, [])
@@ -58,11 +59,9 @@ export default function useLiquidityUrlParser() {
   useAsyncEffect(async () => {
     // only get data from url when /liquidity page is route from other page
     if (!pathname.includes('/liquidity/add')) return
-
     if (!connection) return // parse must relay on connection
-
     // not in 'from url' period
-    if (haveInit.current) return
+    if (haveInit) return
 
     const { logWarning } = useNotification.getState()
 
@@ -119,7 +118,7 @@ export default function useLiquidityUrlParser() {
 
     // if not load enough data(no liquidity pools or no tokens), do not change flag
     if (liquidityPoolJsonInfos.length > 0 && Object.keys(tokens).length > 0) {
-      haveInit.current = true
+      setHaveInit(true)
     }
 
     // parse amount
@@ -143,6 +142,7 @@ export default function useLiquidityUrlParser() {
       useLiquidity.setState({ focusSide: correspondingFocusSide })
     }
   }, [
+    haveInit,
     connection,
     pathname,
     query,
@@ -173,7 +173,7 @@ export default function useLiquidityUrlParser() {
     if (!pathname.includes('/liquidity/add')) return
 
     // not in 'from url' period
-    if (!haveInit.current) return
+    if (!haveInit) return
 
     // no need to affact change to url if it's  clean-url-mode
     if (inCleanUrlMode) return
@@ -189,10 +189,12 @@ export default function useLiquidityUrlParser() {
     const dataInfo = objectShakeFalsy({
       coin0: coin1Mint,
       symbol0: coin1Symbol,
+      amount0: liquidityCoin1Amount,
+
       coin1: coin2Mint,
       symbol1: coin2Symbol,
-      amount0: liquidityCoin1Amount,
       amount1: liquidityCoin2Amount,
+
       fixed: liquidityFocusSide === 'coin1' ? 'coin0' : 'coin1',
       ammId: liquidityAmmId,
       mode: isRemoveDialogOpen ? 'removeLiquidity' : ''
@@ -201,6 +203,7 @@ export default function useLiquidityUrlParser() {
     const urlNeedUpdate = !areShallowEqual(urlInfo, dataInfo)
     if (urlNeedUpdate) throttledUpdateUrl(pathname, dataInfo)
   }, [
+    haveInit,
     inCleanUrlMode,
     liquidityCoin1,
     liquidityCoin2,

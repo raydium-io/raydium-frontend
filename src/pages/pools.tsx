@@ -44,6 +44,7 @@ import { searchItems } from '@/functions/searchItems'
 import useSort from '@/hooks/useSort'
 import { capitalize } from '@/functions/changeCase'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import useOnceEffect from '@/hooks/useOnceEffect'
 
 /**
  * store:
@@ -64,28 +65,33 @@ export default function PoolsPage() {
 function PoolHeader() {
   const tvl = usePools((s) => s.tvl)
   const volume24h = usePools((s) => s.volume24h)
+  const showTvlVolume24h = Boolean(tvl != null && volume24h != null)
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <Row className="mx-auto my-2 text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
-      <div className="whitespace-nowrap">
-        TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
-      </div>
-      <div className="whitespace-nowrap">
-        Volume24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
-      </div>
-    </Row>
+    showTvlVolume24h ? (
+      <Row className="mx-auto my-2 text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
+        <div className="whitespace-nowrap">
+          TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
+        </div>
+        <div className="whitespace-nowrap">
+          Volume24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
+        </div>
+      </Row>
+    ) : null
   ) : (
     <Grid className="grid-cols-[1fr,1fr] mobile:grid-cols-2 grid-flow-row-dense items-center gap-y-8 pb-8">
       <Row className="justify-self-start gap-8">
         <div className="text-2xl mobile:text-lg text-white font-semibold">Pools</div>
-        <Row className="title text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
-          <div className="whitespace-nowrap">
-            TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
-          </div>
-          <div className="whitespace-nowrap">
-            Volume24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
-          </div>
-        </Row>
+        {showTvlVolume24h && (
+          <Row className="title text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
+            <div className="whitespace-nowrap">
+              TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
+            </div>
+            <div className="whitespace-nowrap">
+              Volume24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
+            </div>
+          </Row>
+        )}
       </Row>
       <Row
         className={`justify-self-end self-center gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
@@ -326,6 +332,21 @@ function PoolCard() {
   } = useSort(searched, {
     defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity] }
   })
+  // re-sort when favourite have loaded
+  useOnceEffect(
+    ({ runed }) => {
+      if (favouriteIds !== undefined) runed()
+      if (favouriteIds != null) {
+        setSortConfig({
+          key: 'init',
+          sortCompare: [(i) => favouriteIds?.includes(toPubString(i.ammId)), (i) => i.liquidity],
+          mode: 'decrease'
+        })
+        runed()
+      }
+    },
+    [favouriteIds]
+  )
 
   const TableHeaderBlock = useCallback(
     () => (
@@ -531,12 +552,13 @@ function PoolCard() {
 
 function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedPairItemInfo[] }) {
   const loading = usePools((s) => s.loading)
+  const expandedPoolId = usePools((s) => s.expandedPoolId)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
   return sortedData.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
         <List.Item key={info.lpMint}>
-          <Collapse>
+          <Collapse open={expandedPoolId === info.lpMint ? true : false}>
             <Collapse.Face>
               {(open) => (
                 <PoolCardDatabaseBodyCollapseItemFace

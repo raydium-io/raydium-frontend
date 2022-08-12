@@ -1,10 +1,11 @@
-import create from 'zustand'
-
-import { HexAddress } from '@/types/constants'
 import { Price } from '@raydium-io/raydium-sdk'
 
-import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
+import create from 'zustand'
+
 import useLocalStorageItem from '@/hooks/useLocalStorage'
+import { HexAddress } from '@/types/constants'
+
+import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
 
 // backEnd naming: Pools -> PairInfo
 export type PoolsStore = {
@@ -20,6 +21,7 @@ export type PoolsStore = {
   timeBasis: '24H' | '7D' | '30D'
   currentTab: 'All' | 'Raydium' | 'Permissionless' // currently shouldn't show this to user.
   onlySelfPools: boolean
+  expandedPoolId?: string
 
   // just for trigger refresh
   refreshCount: number
@@ -48,4 +50,4 @@ export const usePools = create<PoolsStore>((set, get) => ({
   }
 }))
 
-export const usePoolFavoriteIds = () => useLocalStorageItem<string[]>('FAVOURITE_POOL_IDS')
+export const usePoolFavoriteIds = () => useLocalStorageItem<string[], null>('FAVOURITE_POOL_IDS', { emptyValue: null })
