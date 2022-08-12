@@ -40,6 +40,7 @@
     "@uiw/react-date-input": "^4.21.14",
     "@uiw/react-date-picker": "^4.21.14",
     "bn.js": "^5.2.1",
+    "bs58": "^5.0.0",
     "immer": "^9.0.15",
     "next": "^12.2.3",
     "nextjs-progressbar": "^0.0.14",

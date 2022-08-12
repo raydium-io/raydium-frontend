@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
-
 import jFetch from '@/functions/dom/jFetch'
 
+import useInit from '@/hooks/useInit'
+import useUpdate from '@/hooks/useUpdate'
 import { usePools } from './usePools'
 
 type InfoResponse = {
@@ -17,16 +17,18 @@ export default function usePoolSummeryInfoLoader() {
   const volume24h = usePools((s) => s.volume24h)
 
   const fetchSummeryInfo = async () => {
-    if (tvl && volume24h) return // if it has store value, then use it rather than refetching
-    const summeryInfo = await jFetch<InfoResponse>('https://api.raydium.io/v2/main/info', {
-      ignoreCache: true
-    })
+    const summeryInfo = await jFetch<InfoResponse>('https://api.raydium.io/v2/main/info')
     if (!summeryInfo) return
-
     usePools.setState({ tvl: summeryInfo.tvl, volume24h: summeryInfo.volume24h })
   }
 
-  useEffect(() => {
+  useInit(() => {
+    if (!tvl || !volume24h) {
+      fetchSummeryInfo()
+    }
+  })
+
+  useUpdate(() => {
     fetchSummeryInfo()
   }, [refreshCount])
 }

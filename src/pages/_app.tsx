@@ -141,7 +141,7 @@ function ApplicationsInitializations() {
   /********************** wallet **********************/
 
   // experimental features. will not let user see
-  useInitShadowKeypairs()
+  // useInitShadowKeypairs()
   useSyncWithSolanaWallet()
   useWalletConnectNotifaction()
   useTokenAccountsRefresher()

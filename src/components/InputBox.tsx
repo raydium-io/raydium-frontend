@@ -50,18 +50,14 @@ export default function InputBox({
     <Col
       onClick={focusInput}
       className={twMerge(
-        `bg-[#141041] rounded-xl py-3 px-6 cursor-text ${
+        `bg-[#141041] rounded-xl mobile:rounded-lg py-3 px-6 mobile:py-2 mobile:px-4 cursor-text ${
           disabled && !noDisableStyle ? 'pointer-events-none-entirely cursor-default opacity-50' : ''
         }`,
         className
       )}
     >
       {label && (
-        <div
-          className={twMerge(`text-xs mobile:text-2xs text-[#abc4ff80] font-medium mb-2 mobile:mb-1`, labelClassName)}
-        >
-          {label}
-        </div>
+        <div className={twMerge(`text-xs mobile:text-2xs text-[#abc4ff80] font-medium `, labelClassName)}>{label}</div>
       )}
       {shrinkToValue(renderInput, [inputRef]) ??
         (decimalMode ? (
@@ -69,7 +65,7 @@ export default function InputBox({
             noCSSInputDefaultWidth
             {...(restProps as DecimalInputProps)}
             {...(inputProps as DecimalInputProps)}
-            className={twMerge('w-full py-2 font-medium', inputProps?.className)}
+            className={twMerge('w-full py-1 mobile:py-1 font-medium', inputProps?.className)}
             componentRef={mergeRef(inputRef, inputProps?.componentRef)}
           />
         ) : (
@@ -77,7 +73,7 @@ export default function InputBox({
             noCSSInputDefaultWidth
             {...(restProps as InputProps)}
             {...(inputProps as InputProps)}
-            className={twMerge('w-full py-2 font-medium', inputProps?.className)}
+            className={twMerge('w-full py-1 mobile:py-1 font-medium', inputProps?.className)}
             componentRef={mergeRef(inputRef, inputProps?.componentRef)}
           />
         ))}

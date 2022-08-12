@@ -33,12 +33,18 @@ import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import LoadingCircle from '@/components/LoadingCircle'
 import { StakingPageStakeLpDialog } from '../pageComponents/dialogs/StakingPageStakeLpDialog'
+import BN from 'bn.js'
+import FadeInStable from '@/components/FadeIn'
+import useAsyncValue from '@/hooks/useAsyncValue'
+import { MigrateStakingHistory } from '../pageComponents/staking/MigrateStakingHistory'
 
 export default function StakingPage() {
   return (
     <PageLayout mobileBarTitle="Staking" metaTitle="Staking - Raydium" contentButtonPaddingShorter>
       <StakingHeader />
       <StakingCard />
+
+      <MigrateStakingHistory className="mt-[10vh]" />
     </PageLayout>
   )
 }
@@ -204,8 +210,6 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
 function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: HydratedFarmInfo }) {
   const prices = useToken((s) => s.tokenPrices)
   const isMobile = useAppSettings((s) => s.isMobile)
-  const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
-  const { push } = useRouter()
   const connected = useWallet((s) => s.connected)
   const hasPendingReward = useMemo(
     () =>
