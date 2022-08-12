@@ -159,7 +159,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
             forceActive: true,
             fallbackProps: {
               onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-              children: 'Connect Wallet'
+              children: 'Connect Old Wallet'
             }
           },
           { should: targetWallet },
