@@ -75,7 +75,7 @@ function MigrateStakingDescription({ className }: { className?: string }) {
 
       <div className="mb-2">
         This tool only migrates <span className="italic">staking snapshot history</span> to a new wallet, it{' '}
-        <span className="font-semibold">DOES NOT</span>
+        <span className="font-semibold mx-1">DOES NOT</span>
         unstake, stake or transfer <span className="font-semibold">ANY</span> funds
       </div>
 
@@ -197,7 +197,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
               validators={[
                 {
                   should: !currentBindTargetWalletAddress || isValidPublicKey(targetWallet),
-                  fallbackProps: { children: 'Wallet linked' }
+                  fallbackProps: { children: 'Wallet Linked' }
                 },
                 { should: targetWallet },
                 { should: isValidPublicKey(targetWallet) },
@@ -294,7 +294,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                   }
                 }}
               >
-                Reset Link
+                Unlink Wallet
               </Button>
             )}
           </Row>
