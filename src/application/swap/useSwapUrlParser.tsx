@@ -13,7 +13,7 @@ import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { EnumStr } from '@/types/constants'
 import { useRouter } from 'next/router'
 import { ParsedUrlQuery } from 'querystring'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import useConnection from '../connection/useConnection'
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 import { QuantumSOLVersionSOL, QuantumSOLVersionWSOL, WSOLMint } from '../token/quantumSOL'
@@ -47,17 +47,17 @@ export default function useSwapUrlParser(): void {
   const inCleanUrlMode = useAppSettings((s) => s.inCleanUrlMode)
 
   // flag: 'get info from url' period  or  'affect info to url' period
-  const haveInit = useRef(false)
+  const [haveInit, setHaveInit] = useState(false)
 
   useEffect(() => {
     // when not /swap page, reset flag
     if (!pathname.includes('/swap')) {
-      haveInit.current = false
+      setHaveInit(false)
     }
   }, [pathname])
   useEffect(() => {
     // when refresh window, reset flag
-    const unload = () => (haveInit.current = false)
+    const unload = () => setHaveInit(false)
     globalThis?.addEventListener('beforeunload', unload)
     return () => globalThis?.removeEventListener('beforeunload', unload)
   }, [])
@@ -68,7 +68,7 @@ export default function useSwapUrlParser(): void {
     if (!pathname.includes('/swap')) return
 
     // not in 'from url' period
-    if (haveInit.current) return
+    if (haveInit) return
 
     // // eslint-disable-next-line no-console
     // console.info('debug: get swap info from url')
@@ -148,9 +148,10 @@ export default function useSwapUrlParser(): void {
 
     // if not load enough data, do not change state
     if (liquidityPoolJsonInfos.length > 0 && Object.values(tokens).length > 0) {
-      haveInit.current = true
+      setHaveInit(true)
     }
   }, [
+    haveInit,
     connection,
     pathname,
     query,
@@ -175,10 +176,9 @@ export default function useSwapUrlParser(): void {
 
   useEffect(() => {
     if (!pathname.includes('/swap')) return
-    // console.log('haveInit.current: ', haveInit.current)
 
     // not in 'affect to url' period
-    if (!haveInit.current) return
+    if (!haveInit) return
 
     // no need to affact change to url if it's  clean-url-mode
     if (inCleanUrlMode) return
@@ -213,6 +213,7 @@ export default function useSwapUrlParser(): void {
     const urlNeedUpdate = !areShallowEqual(urlInfo, dataInfo)
     if (urlNeedUpdate) throttledUpdateUrl(pathname, dataInfo)
   }, [
+    haveInit,
     inCleanUrlMode,
     swapCoin1,
     swapCoin2,
