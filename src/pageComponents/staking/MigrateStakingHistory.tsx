@@ -191,7 +191,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
         <Col className="justify-center">
           <Row className="gap-8 mobile:gap-4">
             <Button
-              className="my-2 mx-auto px-8 frosted-glass-teal mobile:w-full"
+              className="my-2 mx-auto px-8 frosted-glass-teal min-w-[12em] mobile:w-full"
               size={isMobile ? 'sm' : 'md'}
               isLoading={isSubmittingData}
               validators={[
@@ -294,7 +294,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                   }
                 }}
               >
-                {'Reset Link'}
+                Reset Link
               </Button>
             )}
           </Row>
