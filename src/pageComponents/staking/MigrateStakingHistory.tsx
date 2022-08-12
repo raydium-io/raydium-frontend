@@ -27,6 +27,7 @@ import { RAYMint } from '@/application/token/wellknownToken.config'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import Tooltip from '@/components/Tooltip'
 import Link from '@/components/Link'
+import Col from '@/components/Col'
 
 export function MigrateStakingHistory({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -47,10 +48,10 @@ export function MigrateStakingHistory({ className }: { className?: string }) {
         </Collapse.Face>
         <Collapse.Body>
           <Grid className="w-full pt-8 mobile:pt-4">
-            <div className="justify-self-center">
+            <Col className="justify-self-center items-center">
               <MigrateStakingDescription />
               <MigrateStakingWalletTool />
-            </div>
+            </Col>
           </Grid>
         </Collapse.Body>
       </Collapse>
