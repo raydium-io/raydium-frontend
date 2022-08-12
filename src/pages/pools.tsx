@@ -65,28 +65,33 @@ export default function PoolsPage() {
 function PoolHeader() {
   const tvl = usePools((s) => s.tvl)
   const volume24h = usePools((s) => s.volume24h)
+  const showTvlVolume24h = Boolean(tvl != null && volume24h != null)
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <Row className="mx-auto my-2 text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
-      <div className="whitespace-nowrap">
-        TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
-      </div>
-      <div className="whitespace-nowrap">
-        Volume24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
-      </div>
-    </Row>
+    showTvlVolume24h ? (
+      <Row className="mx-auto my-2 text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
+        <div className="whitespace-nowrap">
+          TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
+        </div>
+        <div className="whitespace-nowrap">
+          Volume24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
+        </div>
+      </Row>
+    ) : null
   ) : (
     <Grid className="grid-cols-[1fr,1fr] mobile:grid-cols-2 grid-flow-row-dense items-center gap-y-8 pb-8">
       <Row className="justify-self-start gap-8">
         <div className="text-2xl mobile:text-lg text-white font-semibold">Pools</div>
-        <Row className="title text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
-          <div className="whitespace-nowrap">
-            TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
-          </div>
-          <div className="whitespace-nowrap">
-            Volume24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
-          </div>
-        </Row>
+        {showTvlVolume24h && (
+          <Row className="title text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
+            <div className="whitespace-nowrap">
+              TVL: <span className="font-medium text-[#abc4ff]">${formatNumber(tvl)}</span>
+            </div>
+            <div className="whitespace-nowrap">
+              Volume24H: <span className="font-medium text-[#abc4ff]">${formatNumber(volume24h)}</span>
+            </div>
+          </Row>
+        )}
       </Row>
       <Row
         className={`justify-self-end self-center gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
