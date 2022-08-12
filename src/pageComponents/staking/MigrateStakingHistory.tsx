@@ -26,6 +26,7 @@ import { capitalize } from '@/functions/changeCase'
 import { RAYMint } from '@/application/token/wellknownToken.config'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import Tooltip from '@/components/Tooltip'
+import Link from '@/components/Link'
 
 export function MigrateStakingHistory({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -59,12 +60,16 @@ export function MigrateStakingHistory({ className }: { className?: string }) {
 function MigrateStakingDescription({ className }: { className?: string }) {
   return (
     <Card
-      className="w-[min(552px,100%)] py-6 px-8 mobile:p-4 text-sm mobile:text-xs rounded-2xl mobile:rounded-xl bg-[#ABC4FF40] mb-4"
+      className="w-[min(552px,100%)] py-6 px-8 mobile:p-4 text-sm mobile:text-xs rounded-2xl mobile:rounded-xl text-[#abc4ff] bg-[#ABC4FF40] mb-4"
       size="lg"
     >
-      <div>This tool links RAY staking history from an old wallet to a new wallet.</div>
+      <div className="mb-2">
+        This tool links RAY staking history from an old wallet to a new wallet and is available until{' '}
+        <span className="font-semibold">August 19, 10:00 UTC.</span>
+      </div>
       <div>
-        It will be available until <span className="font-semibold">August 25, 10:00 UTC</span>. Read more here.
+        Migrating staking history is optional, read full details{' '}
+        <Link href="https://docs.raydium.io/raydium/updates/staking-history-tool">here</Link> before proceeding.
       </div>
     </Card>
   )
