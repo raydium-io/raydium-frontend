@@ -1,25 +1,27 @@
 import router from 'next/router'
 
+import { PublicKey } from '@solana/web3.js'
+
 import { ParsedUrlQuery } from 'querystring'
 
+import { addItem } from '@/functions/arrayMethods'
+import { cleanQuery } from '@/functions/dom/getURLQueryEntries'
+import toPubString from '@/functions/format/toMintString'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { objectShakeFalsy, objectShakeNil } from '@/functions/objectMethods'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { HexAddress, MayFunction } from '@/types/constants'
 
-import useLiquidity from './liquidity/useLiquidity'
-import { useSwap } from './swap/useSwap'
-import { SplToken } from './token/type'
-import useFarms from './farms/useFarms'
-import useIdo from './ido/useIdo'
+import { createNewUIRewardInfo, parsedHydratedRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
 import useCreateFarms from './createFarm/useCreateFarm'
 import { HydratedFarmInfo } from './farms/type'
-import toPubString from '@/functions/format/toMintString'
+import useFarms from './farms/useFarms'
+import useIdo from './ido/useIdo'
+import useLiquidity from './liquidity/useLiquidity'
+import { usePools } from './pools/usePools'
+import { useSwap } from './swap/useSwap'
+import { SplToken } from './token/type'
 import useWallet from './wallet/useWallet'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import { createNewUIRewardInfo, parsedHydratedRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
-import { addQuery, cleanQuery } from '@/functions/dom/getURLQueryEntries'
-import { addItem } from '@/functions/arrayMethods'
-import { inClient } from '@/functions/judgers/isSSR'
 
 export type PageRouteConfigs = {
   '/swap': {
@@ -48,7 +50,10 @@ export type PageRouteConfigs = {
     }
   }
   '/pools': {
-    queryProps?: any
+    queryProps?: {
+      expandedPoolId?: string
+      searchText?: string
+    }
   }
   '/staking': {
     queryProps?: any
@@ -184,6 +189,15 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
           })
         )
       })
+  } else if (toPage === '/pools') {
+    return router.push({ pathname: '/pools' }).then(() => {
+      usePools.setState(
+        objectShakeFalsy({
+          searchText: options?.queryProps?.searchText,
+          expandedPoolId: options?.queryProps?.expandedPoolId
+        })
+      )
+    })
   } else {
     return router.push({ pathname: toPage, query: options?.queryProps })
   }

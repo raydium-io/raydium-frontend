@@ -547,12 +547,13 @@ function PoolCard() {
 
 function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedPairItemInfo[] }) {
   const loading = usePools((s) => s.loading)
+  const expandedPoolId = usePools((s) => s.expandedPoolId)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
   return sortedData.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
         <List.Item key={info.lpMint}>
-          <Collapse>
+          <Collapse open={expandedPoolId === info.lpMint ? true : false}>
             <Collapse.Face>
               {(open) => (
                 <PoolCardDatabaseBodyCollapseItemFace
