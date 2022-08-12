@@ -28,12 +28,15 @@ import useAsyncMemo from '@/hooks/useAsyncMemo'
 import Tooltip from '@/components/Tooltip'
 import Link from '@/components/Link'
 import Col from '@/components/Col'
+import toPubString from '@/functions/format/toMintString'
+import FadeInStable from '@/components/FadeIn'
+import Input from '@/components/Input'
 
 export function MigrateStakingHistory({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <div className={twMerge('gap-y-8 pb-4 pt-2', className)}>
-      <Collapse>
+      <Collapse open>
         <Collapse.Face>
           {(open) => (
             <Row
@@ -58,23 +61,34 @@ export function MigrateStakingHistory({ className }: { className?: string }) {
     </div>
   )
 }
+
 function MigrateStakingDescription({ className }: { className?: string }) {
   return (
     <Card
-      className="w-[min(552px,100%)] py-6 px-8 mobile:p-4 text-sm mobile:text-xs rounded-2xl mobile:rounded-xl text-[#abc4ff] bg-[#ABC4FF40] mb-4"
+      className="w-[min(552px,100%)] py-6 px-8 mobile:p-4 text-sm mobile:text-xs rounded-2xl mobile:rounded-xl text-[#abc4ff80] bg-[#ABC4FF20] mb-4"
       size="lg"
     >
       <div className="mb-2">
         This tool links RAY staking history from an old wallet to a new wallet and is available until{' '}
         <span className="font-semibold">August 19, 10:00 UTC.</span>
       </div>
-      <div>
-        Migrating staking history is optional, read full details{' '}
-        <Link href="https://docs.raydium.io/raydium/updates/staking-history-tool">here</Link> before proceeding.
+
+      <div className="mb-2">Migration is optional.</div>
+
+      <div className="mb-2">
+        This tool only migrates <span className="italic">staking snapshot history</span> to a new wallet, it{' '}
+        <span className="font-semibold">DOES NOT</span>
+        unstake, stake or transfer <span className="font-semibold">ANY</span> funds
+      </div>
+
+      <div className="mb-2">
+        Read <Link href="https://docs.raydium.io/raydium/updates/staking-history-tool">full details here</Link> before
+        proceeding.
       </div>
     </Card>
   )
 }
+
 function MigrateStakingWalletTool({ className }: { className?: string }) {
   const owner = useWallet((s) => s.owner)
   const getToken = useToken((s) => s.getToken)
@@ -96,7 +110,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
 
   const targetWalletRay = useAsyncMemo(
     async () =>
-      connection && targetWallet && isValidPublicKey(targetWallet)
+      connection && targetWallet?.trim() && isValidPublicKey(targetWallet.trim())
         ? await checkStakingRay(targetWallet, { connection })
         : undefined,
     [targetWallet, connection],
@@ -106,118 +120,144 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
   return (
     <Card
       className={twMerge(
-        'w-[min(552px,100%)] py-6 px-8 mobile:p-4 flex flex-col rounded-3xl mobile:rounded-xl border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card',
+        'w-[min(552px,100%)] py-6 px-8 space-y-8 mobile:p-4 flex flex-col rounded-3xl mobile:rounded-xl border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card',
         className
       )}
       size="lg"
     >
       <Row className="mb-4 mobile:mb-3">
         <div className="text-lg mobile:text-sm font-semibold">Migrate RAY staking history to new wallet</div>
-        {/* <Tooltip>
-          <Icon className="ml-1 cursor-help" size={isMobile ? 'smi' : 'md'} heroIconName="question-mark-circle" />
-          <Tooltip.Panel>
-            <div className="max-w-[300px]">
-              Rewards are only emitted when LP tokens are staked in the farm. If there is a period when no LP tokens are
-              staked, unemmitted rewards can be claimed here once farming period ends
-            </div>
-          </Tooltip.Panel>
-        </Tooltip> */}
       </Row>
-      <InputBox
-        label="New wallet address:"
-        labelClassName="text-sm mobile:text-xs"
-        className="mb-4 mobile:mb-3"
-        value={targetWallet}
-        onUserInput={setTargetWallet}
-      />
-      <div className="mb-3 mobile:mb-2">
-        <Row className="items-center justify-between py-1">
-          <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">New wallet RAY staked:</div>
-          <div className="text-sm mobile:text-xs">
-            <span className={lt(targetWalletRay, 0) ? 'text-[#DA2EEF]' : ''}>
-              {rayToken && targetWalletRay ? toString(toTokenAmount(rayToken!, targetWalletRay)) : '--'}
-            </span>{' '}
-            <span className="text-[#abc4ff80]">RAY</span>
-          </div>
-        </Row>
-        {currentBindTargetWalletAddress && (
-          <Row className="items-center justify-between">
-            <div className="text-sm mobile:text-xs font-semibold text-[#abc4ff80]">Linked wallet:</div>
-            <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
-              {currentBindTargetWalletAddress}
-            </AddressItem>
+
+      <Row className="text-[#abc4ff] text-sm">
+        1. Stake RAY using <span className="font-semibold mx-1">NEW</span> wallet
+      </Row>
+
+      <div>
+        <Row className="text-[#abc4ff] text-sm mb-1">2. Input new Wallet</Row>
+        <div>
+          <Row className="items-center justify-between px-4 py-1 gap-8">
+            <div className="text-sm mobile:text-xs text-[#abc4ff80]">New wallet:</div>
+            <div className="rounded-lg bg-[#141041] py-2 px-4 ">
+              <Input
+                value={targetWallet}
+                className="mobile:text-sm"
+                onUserInput={(v) => setTargetWallet(v.trim())}
+              ></Input>
+            </div>
           </Row>
-        )}
+          <FadeInStable show={rayToken && targetWalletRay}>
+            <Row className="items-center justify-between px-4 py-1">
+              <div className="text-sm mobile:text-xs text-[#abc4ff80]">New wallet RAY staked:</div>
+              <div className="text-sm mobile:text-xs">
+                <span className={lt(targetWalletRay, 0) ? 'text-[#DA2EEF]' : ''}>
+                  {rayToken && targetWalletRay ? toString(toTokenAmount(rayToken!, targetWalletRay)) : '--'}
+                </span>
+                <span className="text-[#abc4ff80] ml-1">RAY</span>
+              </div>
+            </Row>
+          </FadeInStable>
+        </div>
       </div>
-      <Button
-        className="frosted-glass-teal w-full"
-        size={isMobile ? 'sm' : 'lg'}
-        isLoading={isSubmittingData}
-        validators={[
-          {
-            should: owner,
-            forceActive: true,
-            fallbackProps: {
-              onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-              children: 'Connect Old Wallet'
-            }
-          },
-          { should: targetWallet },
-          { should: isValidPublicKey(targetWallet) },
-          {
-            should: !isMintEqual(targetWallet, currentBindTargetWalletAddress),
-            fallbackProps: { children: 'Wallet already linked' }
-          },
-          {
-            // TODO: loading
-            should: targetWalletRay && gt(targetWalletRay, 0),
-            fallbackProps: {
-              children: 'New wallet must stake RAY'
-            }
-          }
-        ]}
-        onClick={async () => {
-          try {
-            const newWallet = targetWallet?.trim()
-            if (!newWallet) return
 
-            // check connection
-            if (!connection) {
-              logError('Connection Error', 'No connection')
-              return
-            }
+      <div>
+        <Row className="text-[#abc4ff] text-sm">3. Connect old wallet</Row>
+        <div>
+          {owner ? (
+            <Row className="items-center justify-between px-4 py-1">
+              <div className="text-sm mobile:text-xs text-[#abc4ff80]">Old wallet:</div>
+              <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
+                {toPubString(owner)}
+              </AddressItem>
+            </Row>
+          ) : (
+            <Row className="items-center justify-between px-4 py-1">
+              <Button
+                className="my-2 mx-auto px-8 frosted-glass-teal mobile:w-full"
+                onClick={() => useAppSettings.setState({ isWalletSelectorShown: true })}
+              >
+                Connect Old Wallet
+              </Button>
+            </Row>
+          )}
+        </div>
+      </div>
 
-            // check target staking Ray
-            if (!(await checkStakingRay(newWallet, { connection }))) {
-              logError('Validation Error', 'New wallet must stake RAY')
-              return
-            }
+      <div>
+        <div className="text-[#abc4ff] text-sm">4. Migrate</div>
+        <Col className="justify-center">
+          <Button
+            className="my-2 mx-auto px-8 frosted-glass-teal mobile:w-full"
+            size={isMobile ? 'sm' : 'md'}
+            isLoading={isSubmittingData}
+            validators={[
+              { should: targetWallet },
+              { should: isValidPublicKey(targetWallet) },
+              {
+                should: !isMintEqual(targetWallet, currentBindTargetWalletAddress),
+                fallbackProps: { children: 'Wallet already linked' }
+              },
+              {
+                // TODO: loading
+                should: targetWalletRay && gt(targetWalletRay, 0),
+                fallbackProps: {
+                  children: 'New wallet must stake RAY'
+                }
+              }
+            ]}
+            onClick={async () => {
+              try {
+                const newWallet = targetWallet?.trim()
+                if (!newWallet) return
 
-            // encode sign message
-            setIsSubmittingData(true)
-            const signature = await getNewWalletSignature(newWallet)
-            if (!signature?.encodedSignature) {
-              logError('Encode Error', 'Fail to encode')
-              return
-            }
+                // check connection
+                if (!connection) {
+                  logError('Connection Error', 'No connection')
+                  return
+                }
 
-            // send migrate wallet
-            const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
-              signature: signature.encodedSignature
-            })
-            if (resultResponse?.success) {
-              logSuccess('Migration Success', 'RAY staking successfully linked to new wallet')
-            } else {
-              logError('Migration Error', capitalize(resultResponse?.msg ?? ''))
-            }
-          } finally {
-            setIsSubmittingData(false)
-            getWalletBind()
-          }
-        }}
-      >
-        Migrate
-      </Button>
+                // check target staking Ray
+                if (!(await checkStakingRay(newWallet, { connection }))) {
+                  logError('Validation Error', 'New wallet must stake RAY')
+                  return
+                }
+
+                // encode sign message
+                setIsSubmittingData(true)
+                const signature = await getNewWalletSignature(newWallet)
+                if (!signature?.encodedSignature) {
+                  logError('Encode Error', 'Fail to encode')
+                  return
+                }
+
+                // send migrate wallet
+                const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
+                  signature: signature.encodedSignature
+                })
+                if (resultResponse?.success) {
+                  logSuccess('Migration Success', 'RAY staking successfully linked to new wallet')
+                } else {
+                  logError('Migration Error', capitalize(resultResponse?.msg ?? ''))
+                }
+              } finally {
+                setIsSubmittingData(false)
+                getWalletBind()
+              }
+            }}
+          >
+            {currentBindTargetWalletAddress ? 'Update migration' : 'Migrate'}
+          </Button>
+
+          <FadeInStable show={currentBindTargetWalletAddress}>
+            <Row className="mt-2 items-center justify-between px-4 ">
+              <div className="text-sm mobile:text-xs text-[#abc4ff80]">Linked wallet:</div>
+              <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
+                {currentBindTargetWalletAddress}
+              </AddressItem>
+            </Row>
+          </FadeInStable>
+        </Col>
+      </div>
     </Card>
   )
 }
