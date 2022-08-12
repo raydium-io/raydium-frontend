@@ -37,7 +37,7 @@ export function MigrateStakingHistory({ className }: { className?: string }) {
         <Collapse.Face>
           {(open) => (
             <Row
-              className={`text-2xl mobile:text-lg font-semibold justify-self-start items-center gap-2 mobile:gap-1 text-white ${
+              className={`text-2xl pr-6 w-max mobile:text-lg font-semibold justify-self-start items-center gap-2 mobile:gap-1 text-white ${
                 open ? '' : 'hover:opacity-90 opacity-30 mobile:opacity-70'
               }`}
             >
