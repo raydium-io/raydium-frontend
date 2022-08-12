@@ -65,15 +65,13 @@ export function MigrateStakingHistory({ className }: { className?: string }) {
 function MigrateStakingDescription({ className }: { className?: string }) {
   return (
     <Card
-      className="w-[min(552px,100%)] py-6 px-8 mobile:p-4 text-sm mobile:text-xs rounded-2xl mobile:rounded-xl text-[#abc4ff80] bg-[#ABC4FF20] mb-4"
+      className="w-[min(552px,100%)] py-6 px-8 mobile:p-4 text-sm mobile:text-xs rounded-2xl mobile:rounded-xl text-[#abc4ff] bg-[#ABC4FF20] mb-4"
       size="lg"
     >
       <div className="mb-2">
         This tool links RAY staking history from an old wallet to a new wallet and is available until{' '}
-        <span className="font-semibold">August 19, 10:00 UTC.</span>
+        <span className="font-semibold">August 19, 10:00 UTC.</span> Migration is optional.
       </div>
-
-      <div className="mb-2">Migration is optional.</div>
 
       <div className="mb-2">
         This tool only migrates <span className="italic">staking snapshot history</span> to a new wallet, it{' '}
@@ -94,6 +92,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
   const getToken = useToken((s) => s.getToken)
   const [targetWallet, setTargetWallet] = useState<string>()
   const [isSubmittingData, setIsSubmittingData] = useState(false)
+  const [isCancelingData, setIsCancelingData] = useState(false)
   const [currentBindTargetWalletAddress, setCurrentBindTargetWalletAddress] = useState<HexAddress>()
   const logError = useNotification((s) => s.logError)
   const logSuccess = useNotification((s) => s.logSuccess)
@@ -103,7 +102,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
 
   const getWalletBind = async () => {
     const wallet = owner && (await getWalletMigrateHistory(owner))
-    setCurrentBindTargetWalletAddress(wallet)
+    setCurrentBindTargetWalletAddress(isMintEqual(owner, wallet) ? undefined : wallet)
     setTargetWallet('')
   }
   useAsyncEffect(getWalletBind, [owner])
@@ -130,14 +129,16 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
       </Row>
 
       <Row className="text-[#abc4ff] text-sm">
-        1. Stake RAY using <span className="font-semibold mx-1">NEW</span> wallet
+        1. Stake RAY using <span className="font-semibold mx-1">NEW</span> wallet address
       </Row>
 
       <div>
-        <Row className="text-[#abc4ff] text-sm mb-1">2. Input new Wallet</Row>
+        <Row className="text-[#abc4ff] text-sm mb-1">
+          2. Input <span className="font-semibold mx-1">NEW</span> wallet address
+        </Row>
         <div>
           <Row className="items-center justify-between px-4 py-1 gap-8">
-            <div className="text-sm mobile:text-xs text-[#abc4ff80]">New wallet:</div>
+            <div className="text-sm mobile:text-xs text-[#abc4ff80]">New wallet address:</div>
             <div className="rounded-lg bg-[#141041] py-2 px-4 ">
               <Input
                 value={targetWallet}
@@ -161,11 +162,13 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
       </div>
 
       <div>
-        <Row className="text-[#abc4ff] text-sm">3. Connect old wallet</Row>
+        <Row className="text-[#abc4ff] text-sm">
+          3. Connect <span className="font-semibold mx-1">OLD</span> wallet address
+        </Row>
         <div>
           {owner ? (
             <Row className="items-center justify-between px-4 py-1">
-              <div className="text-sm mobile:text-xs text-[#abc4ff80]">Old wallet:</div>
+              <div className="text-sm mobile:text-xs text-[#abc4ff80]">Old wallet address:</div>
               <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
                 {toPubString(owner)}
               </AddressItem>
@@ -186,71 +189,119 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
       <div>
         <div className="text-[#abc4ff] text-sm">4. Migrate</div>
         <Col className="justify-center">
-          <Button
-            className="my-2 mx-auto px-8 frosted-glass-teal mobile:w-full"
-            size={isMobile ? 'sm' : 'md'}
-            isLoading={isSubmittingData}
-            validators={[
-              { should: targetWallet },
-              { should: isValidPublicKey(targetWallet) },
-              {
-                should: !isMintEqual(targetWallet, currentBindTargetWalletAddress),
-                fallbackProps: { children: 'Wallet already linked' }
-              },
-              {
-                // TODO: loading
-                should: targetWalletRay && gt(targetWalletRay, 0),
-                fallbackProps: {
-                  children: 'New wallet must stake RAY'
+          <Row className="gap-8 mobile:gap-4">
+            <Button
+              className="my-2 mx-auto px-8 frosted-glass-teal mobile:w-full"
+              size={isMobile ? 'sm' : 'md'}
+              isLoading={isSubmittingData}
+              validators={[
+                {
+                  should: !currentBindTargetWalletAddress || isValidPublicKey(targetWallet),
+                  fallbackProps: { children: 'Wallet linked' }
+                },
+                { should: targetWallet },
+                { should: isValidPublicKey(targetWallet) },
+                {
+                  should: !isMintEqual(targetWallet, currentBindTargetWalletAddress),
+                  fallbackProps: { children: 'Wallet already linked' }
+                },
+                {
+                  // TODO: loading
+                  should: targetWalletRay && gt(targetWalletRay, 0),
+                  fallbackProps: {
+                    children: 'New wallet must stake RAY'
+                  }
                 }
-              }
-            ]}
-            onClick={async () => {
-              try {
-                const newWallet = targetWallet?.trim()
-                if (!newWallet) return
+              ]}
+              onClick={async () => {
+                try {
+                  const newWallet = targetWallet?.trim()
+                  if (!newWallet) return
 
-                // check connection
-                if (!connection) {
-                  logError('Connection Error', 'No connection')
-                  return
-                }
+                  // check connection
+                  if (!connection) {
+                    logError('Connection Error', 'No connection')
+                    return
+                  }
 
-                // check target staking Ray
-                if (!(await checkStakingRay(newWallet, { connection }))) {
-                  logError('Validation Error', 'New wallet must stake RAY')
-                  return
-                }
+                  // check target staking Ray
+                  if (!(await checkStakingRay(newWallet, { connection }))) {
+                    logError('Validation Error', 'New wallet must stake RAY')
+                    return
+                  }
 
-                // encode sign message
-                setIsSubmittingData(true)
-                const signature = await getNewWalletSignature(newWallet)
-                if (!signature?.encodedSignature) {
-                  logError('Encode Error', 'Fail to encode')
-                  return
-                }
+                  // encode sign message
+                  setIsSubmittingData(true)
+                  const signature = await getNewWalletSignature(newWallet)
+                  if (!signature?.encodedSignature) {
+                    logError('Encode Error', 'Fail to encode')
+                    return
+                  }
 
-                // send migrate wallet
-                const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
-                  signature: signature.encodedSignature
-                })
-                if (resultResponse?.success) {
-                  logSuccess('Migration Success', 'RAY staking successfully linked to new wallet')
-                } else {
-                  logError('Migration Error', capitalize(resultResponse?.msg ?? ''))
+                  // send migrate wallet
+                  const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
+                    signature: signature.encodedSignature
+                  })
+                  if (resultResponse?.success) {
+                    logSuccess('Migration Success', 'RAY staking successfully linked to new wallet')
+                  } else {
+                    logError('Migration Error', capitalize(resultResponse?.msg ?? ''))
+                  }
+                } finally {
+                  setIsSubmittingData(false)
+                  getWalletBind()
                 }
-              } finally {
-                setIsSubmittingData(false)
-                getWalletBind()
-              }
-            }}
-          >
-            {currentBindTargetWalletAddress ? 'Update migration' : 'Migrate'}
-          </Button>
+              }}
+            >
+              {currentBindTargetWalletAddress ? 'Update migration' : 'Migrate'}
+            </Button>
+            {currentBindTargetWalletAddress && (
+              <Button
+                className="my-2 mx-auto px-8 frosted-glass-skygray mobile:w-full"
+                size={isMobile ? 'sm' : 'md'}
+                isLoading={isCancelingData}
+                onClick={async () => {
+                  try {
+                    const newWallet = toPubString(owner)?.trim()
+                    if (!newWallet) return
+
+                    // check connection
+                    if (!connection) {
+                      logError('Connection Error', 'No connection')
+                      return
+                    }
+
+                    // encode sign message
+                    setIsCancelingData(true)
+                    const signature = await getNewWalletSignature(newWallet)
+                    if (!signature?.encodedSignature) {
+                      logError('Encode Error', 'Fail to encode')
+                      return
+                    }
+
+                    // send migrate wallet
+                    const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
+                      signature: signature.encodedSignature
+                    })
+                    if (resultResponse?.success) {
+                      logSuccess('Wallet Link Reset', 'Wallet link has been reset')
+                    } else {
+                      logError('Reset Error', capitalize(resultResponse?.msg ?? ''))
+                    }
+                  } finally {
+                    setIsCancelingData(false)
+                    getWalletBind()
+                  }
+                }}
+              >
+                {'Reset Link'}
+              </Button>
+            )}
+          </Row>
 
           <FadeInStable show={currentBindTargetWalletAddress}>
-            <Row className="mt-2 items-center justify-between px-4 ">
-              <div className="text-sm mobile:text-xs text-[#abc4ff80]">Linked wallet:</div>
+            <Row className="mt-2 items-center justify-between ">
+              <div className="text-base mobile:text-xs text-[#abc4ff]">Linked new wallet address:</div>
               <AddressItem showDigitCount={isMobile ? 6 : 12} textClassName="mobile:text-xs">
                 {currentBindTargetWalletAddress}
               </AddressItem>
