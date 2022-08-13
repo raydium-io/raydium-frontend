@@ -36,7 +36,7 @@ export function MigrateStakingHistory({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <div className={twMerge('gap-y-8 pb-4 pt-2', className)}>
-      <Collapse>
+      <Collapse id="migration-tool-collapse">
         <Collapse.Face>
           {(open) => (
             <Row
@@ -103,8 +103,10 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
   const getWalletBind = async () => {
     const wallet = owner && (await getWalletMigrateHistory(owner))
     setCurrentBindTargetWalletAddress(isMintEqual(owner, wallet) ? undefined : wallet)
-    setTargetWallet('')
   }
+
+  const cleanInput = () => setTargetWallet('')
+
   useAsyncEffect(getWalletBind, [owner])
 
   const targetWalletRay = useAsyncMemo(
@@ -142,6 +144,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
             <div className="rounded-lg bg-[#141041] py-2 px-4 ">
               <Input
                 value={targetWallet}
+                id="migration-tool-input"
                 className="mobile:text-sm"
                 onUserInput={(v) => setTargetWallet(v.trim())}
               ></Input>
@@ -250,6 +253,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                 } finally {
                   setIsSubmittingData(false)
                   getWalletBind()
+                  cleanInput()
                 }
               }}
             >
