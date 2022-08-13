@@ -41,21 +41,25 @@ export async function setWalletMigrateTarget(
  * @author Rudy
  */
 export async function checkStakingRay(wallet: PublicKeyish, payloads: { connection: Connection }): Promise<BN> {
-  const pda = await Farm.getAssociatedLedgerAccount({
-    programId: toPub('EhhTKczWMGQt46ynNeRX1WfeagwwJd7ufHvCDjRxjo5Q'),
-    poolId: toPub('4EwbZo8BZXP5313z5A2H11MRBP15M5n6YxfmkjXESKAW'),
-    owner: toPub(wallet)
-  })
-  const accountInfo = await payloads.connection.getAccountInfo(pda)
+  try {
+    const pda = await Farm.getAssociatedLedgerAccount({
+      programId: toPub('EhhTKczWMGQt46ynNeRX1WfeagwwJd7ufHvCDjRxjo5Q'),
+      poolId: toPub('4EwbZo8BZXP5313z5A2H11MRBP15M5n6YxfmkjXESKAW'),
+      owner: toPub(wallet)
+    })
+    const accountInfo = await payloads.connection.getAccountInfo(pda)
 
-  if (
-    accountInfo &&
-    accountInfo.data
-      .toJSON()
-      .data.slice(72, 80)
-      .find((i) => i > 0)
-  ) {
-    return toBN(Buffer.from(accountInfo.data.toJSON().data.slice(72, 80)).readBigInt64LE().toString())
+    if (
+      accountInfo &&
+      accountInfo.data
+        .toJSON()
+        .data.slice(72, 80)
+        .find((i) => i > 0)
+    ) {
+      return toBN(Buffer.from(accountInfo.data.toJSON().data.slice(72, 80)).readBigInt64LE().toString())
+    }
+    return toBN(0)
+  } catch {
+    return toBN(0)
   }
-  return toBN(0)
 }
