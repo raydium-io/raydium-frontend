@@ -250,6 +250,8 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                   } else {
                     logError('Migration Error', capitalize(resultResponse?.msg ?? ''))
                   }
+                } catch (err) {
+                  logError('Migration Error', String(err))
                 } finally {
                   setIsSubmittingData(false)
                   getWalletBind()
@@ -267,7 +269,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                 onClick={async () => {
                   try {
                     const newWallet = toPubString(owner)?.trim()
-                    if (!newWallet) return
+                    if (!owner) return
 
                     // check connection
                     if (!connection) {
@@ -292,6 +294,8 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                     } else {
                       logError('Reset Error', capitalize(resultResponse?.msg ?? ''))
                     }
+                  } catch (err) {
+                    logError('Reset Error', String(err))
                   } finally {
                     setIsCancelingData(false)
                     getWalletBind()
