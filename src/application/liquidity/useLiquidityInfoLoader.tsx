@@ -29,7 +29,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   const isLpToken = useToken((s) => s.isLpToken)
   const refreshCount = useLiquidity((s) => s.refreshCount)
   const connection = useConnection((s) => s.connection)
-  const rawBalances = useWallet((s) => s.pureRawBalances)
+  const pureRawBalances = useWallet((s) => s.pureRawBalances)
 
   /** fetch json info list  */
   useEffectWithTransition(async () => {
@@ -52,7 +52,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
     if (disabled) return
     if (!jsonInfos) return
     const liquidityLpMints = new Set(jsonInfos.map((jsonInfo) => jsonInfo.lpMint))
-    const allLpBalance = Object.entries(rawBalances).filter(
+    const allLpBalance = Object.entries(pureRawBalances).filter(
       ([mint, tokenAmount]) => liquidityLpMints.has(mint) && gt(tokenAmount, 0)
     )
     const allLpBalanceMint = allLpBalance.map(([mint]) => mint)
@@ -61,7 +61,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
       .map((jsonInfo) => jsonInfo.id)
 
     useLiquidity.setState({ userExhibitionLiquidityIds })
-  }, [disabled, jsonInfos, rawBalances, isLpToken, refreshCount])
+  }, [disabled, jsonInfos, pureRawBalances, isLpToken, refreshCount])
 
   /** json infos ➡ sdkParsed infos (only wallet's LP)  */
   useRecordedEffect(
@@ -88,11 +88,11 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   useEffectWithTransition(async () => {
     if (disabled) return
     const hydratedInfos = sdkParsedInfos.map((liquidityInfo) => {
-      const lpBalance = rawBalances[String(liquidityInfo.lpMint)]
+      const lpBalance = pureRawBalances[String(liquidityInfo.lpMint)]
       return hydrateLiquidityInfo(liquidityInfo, { getToken, getLpToken, lpBalance })
     })
     useLiquidity.setState({ hydratedInfos })
-  }, [disabled, sdkParsedInfos, rawBalances, getToken, getLpToken])
+  }, [disabled, sdkParsedInfos, pureRawBalances, getToken, getLpToken])
 
   /** CURRENT jsonInfo ➡ current sdkParsedInfo  */
   useEffectWithTransition(async () => {
@@ -110,7 +110,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   useEffectWithTransition(async () => {
     if (disabled) return
     if (connection && currentSdkParsedInfo) {
-      const lpBalance = rawBalances[String(currentSdkParsedInfo.lpMint)]
+      const lpBalance = pureRawBalances[String(currentSdkParsedInfo.lpMint)]
       const hydrated = await hydrateLiquidityInfo(currentSdkParsedInfo, { getToken, getLpToken, lpBalance })
       useLiquidity.setState({
         currentHydratedInfo: hydrated
