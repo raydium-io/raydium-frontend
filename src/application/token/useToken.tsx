@@ -34,10 +34,10 @@ export type TokenStore = {
   // no QuantumSOL
   pureTokens: Record<HexAddress, SplToken>
 
-  // has QuantumSOLVersionSOL and QuantumSOLVersionWSOL
+  // QuantumSOLVersionSOL and QuantumSOLVersionWSOL
   verboseTokens: (SplToken | QuantumSOLToken)[]
 
-  // has QuantumSOL
+  // QuantumSOL
   lpTokens: Record<HexAddress, LpToken>
 
   /**
@@ -47,14 +47,11 @@ export type TokenStore = {
    * exact mode: 'so111111112' will be QSOL-WSOL\
    * support both spl and lp
    */
-  getToken(
-    mint: PublicKeyish | undefined,
-    options?: { /* use WSOL instead of isQuantumSOLVersionWSOL */ exact?: boolean }
-  ): SplToken | undefined
+  getToken(mint: PublicKeyish | undefined, options?: { /* no QuantumSOL */ exact?: boolean }): SplToken | undefined
 
-  /**  noQuantumSOL*/
-  /** can only get token in tokenList */
-  getPureToken(mint: PublicKeyish | undefined): SplToken | undefined
+  // /**  noQuantumSOL*/
+  // /** can only get token in tokenList */
+  // getPureToken(mint: PublicKeyish | undefined): SplToken | undefined
 
   /** can only get token in tokenList */
   getLpToken(mint: PublicKeyish | undefined): LpToken | undefined
@@ -137,8 +134,6 @@ export const useToken = create<TokenStore>((set, get) => ({
       : mintlike === String(WSOLMint)
       ? QuantumSOLVersionWSOL
       : get().tokens[mintlike],
-
-  getPureToken: () => undefined,
 
   isLpToken: () => false,
 

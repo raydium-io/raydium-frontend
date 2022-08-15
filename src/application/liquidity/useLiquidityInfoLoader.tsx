@@ -16,6 +16,7 @@ import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { areShallowEqual } from '@/functions/judgers/areEqual'
 import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 /**
  * will load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -28,7 +29,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   const isLpToken = useToken((s) => s.isLpToken)
   const refreshCount = useLiquidity((s) => s.refreshCount)
   const connection = useConnection((s) => s.connection)
-  const rawBalances = useWallet((s) => s.rawBalances)
+  const rawBalances = useWallet((s) => s.pureRawBalances)
 
   /** fetch json info list  */
   useEffectWithTransition(async () => {
@@ -54,10 +55,11 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
     const allLpBalance = Object.entries(rawBalances).filter(
       ([mint, tokenAmount]) => liquidityLpMints.has(mint) && gt(tokenAmount, 0)
     )
-    const allLpBalanceMint = allLpBalance.map(([mint]) => String(mint))
+    const allLpBalanceMint = allLpBalance.map(([mint]) => mint)
     const userExhibitionLiquidityIds = jsonInfos
       .filter((jsonInfo) => allLpBalanceMint.includes(jsonInfo.lpMint))
       .map((jsonInfo) => jsonInfo.id)
+
     useLiquidity.setState({ userExhibitionLiquidityIds })
   }, [disabled, jsonInfos, rawBalances, isLpToken, refreshCount])
 
