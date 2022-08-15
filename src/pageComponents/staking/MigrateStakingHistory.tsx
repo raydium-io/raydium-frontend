@@ -200,6 +200,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                   fallbackProps: { children: 'Wallet Linked' }
                 },
                 { should: targetWallet },
+                { should: owner },
                 { should: isValidPublicKey(targetWallet) },
                 {
                   should: !isMintEqual(targetWallet, currentBindTargetWalletAddress),
