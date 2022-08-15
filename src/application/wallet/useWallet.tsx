@@ -32,6 +32,7 @@ export type WalletStore = {
   select(walletName: WalletName): void
   signAllTransactions: (transactions: Transaction[]) => Promise<Transaction[]> // if not connected, return empty array
   disconnect(): Promise<unknown>
+  signMessage?: (message: Uint8Array) => Promise<Uint8Array>
   /** only for Dev */
   inSimulateMode: boolean
 

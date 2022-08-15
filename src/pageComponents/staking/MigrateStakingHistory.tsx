@@ -36,7 +36,7 @@ export function MigrateStakingHistory({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <div className={twMerge('gap-y-8 pb-4 pt-2', className)}>
-      <Collapse>
+      <Collapse id="migration-tool-collapse">
         <Collapse.Face>
           {(open) => (
             <Row
@@ -103,8 +103,10 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
   const getWalletBind = async () => {
     const wallet = owner && (await getWalletMigrateHistory(owner))
     setCurrentBindTargetWalletAddress(isMintEqual(owner, wallet) ? undefined : wallet)
-    setTargetWallet('')
   }
+
+  const cleanInput = () => setTargetWallet('')
+
   useAsyncEffect(getWalletBind, [owner])
 
   const targetWalletRay = useAsyncMemo(
@@ -142,6 +144,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
             <div className="rounded-lg bg-[#141041] py-2 px-4 ">
               <Input
                 value={targetWallet}
+                id="migration-tool-input"
                 className="mobile:text-sm"
                 onUserInput={(v) => setTargetWallet(v.trim())}
               ></Input>
@@ -200,6 +203,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                   fallbackProps: { children: 'Wallet Linked' }
                 },
                 { should: targetWallet },
+                { should: owner },
                 { should: isValidPublicKey(targetWallet) },
                 {
                   should: !isMintEqual(targetWallet, currentBindTargetWalletAddress),
@@ -233,23 +237,26 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                   // encode sign message
                   setIsSubmittingData(true)
                   const signature = await getNewWalletSignature(newWallet)
-                  if (!signature?.encodedSignature) {
+                  if (!signature) {
                     logError('Encode Error', 'Fail to encode')
                     return
                   }
 
                   // send migrate wallet
                   const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
-                    signature: signature.encodedSignature
+                    signature: signature
                   })
                   if (resultResponse?.success) {
                     logSuccess('Migration Success', 'RAY staking successfully linked to new wallet')
                   } else {
                     logError('Migration Error', capitalize(resultResponse?.msg ?? ''))
                   }
+                } catch (err) {
+                  logError('Migration Error', String(err))
                 } finally {
                   setIsSubmittingData(false)
                   getWalletBind()
+                  cleanInput()
                 }
               }}
             >
@@ -263,7 +270,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                 onClick={async () => {
                   try {
                     const newWallet = toPubString(owner)?.trim()
-                    if (!newWallet) return
+                    if (!owner) return
 
                     // check connection
                     if (!connection) {
@@ -274,20 +281,22 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                     // encode sign message
                     setIsCancelingData(true)
                     const signature = await getNewWalletSignature(newWallet)
-                    if (!signature?.encodedSignature) {
+                    if (!signature) {
                       logError('Encode Error', 'Fail to encode')
                       return
                     }
 
                     // send migrate wallet
                     const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
-                      signature: signature.encodedSignature
+                      signature
                     })
                     if (resultResponse?.success) {
                       logSuccess('Wallet Link Reset', 'Wallet link has been reset')
                     } else {
                       logError('Reset Error', capitalize(resultResponse?.msg ?? ''))
                     }
+                  } catch (err) {
+                    logError('Reset Error', String(err))
                   } finally {
                     setIsCancelingData(false)
                     getWalletBind()

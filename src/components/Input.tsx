@@ -21,6 +21,9 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import mergeProps from '@/functions/react/mergeProps'
 import { isRegExp } from '@/functions/judgers/dateType'
 import assert from 'assert'
+import { getSessionItem, setSessionItem } from '@/functions/dom/jStorage'
+import useInit from '@/hooks/useInit'
+import useUpdate from '@/hooks/useUpdate'
 
 export interface InputComponentHandler {
   text: string | number | undefined
@@ -31,7 +34,8 @@ export interface InputComponentHandler {
 }
 
 export interface InputProps {
-  id?: string // for accessibility
+  /** will record input result in localStorage */
+  id?: string
 
   type?: string // current support type in this app
 
@@ -186,6 +190,20 @@ export default function Input(props: InputProps) {
 
   // only useable for uncontrolled formkit
   const [selfValue, setSelfValue] = useState(defaultValue ?? value ?? '')
+
+  // if (set id),  sync sessionStorage to cache user input
+  if (id) {
+    useUpdate(() => {
+      setSessionItem(id, selfValue)
+    }, [selfValue])
+    useInit(() => {
+      const sessionStoredValue = getSessionItem(id)
+      if (sessionStoredValue) {
+        setSelfValue(String(sessionStoredValue))
+        onUserInput?.(String(sessionStoredValue), inputRef.current!)
+      }
+    })
+  }
 
   useEffect(() => {
     if (!inputRef.current) return

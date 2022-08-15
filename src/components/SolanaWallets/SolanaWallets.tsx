@@ -20,7 +20,8 @@ import {
   SolletWalletAdapter,
   SolongWalletAdapter,
   TorusWalletAdapter,
-  TokenPocketWalletAdapter
+  TokenPocketWalletAdapter,
+  CoinbaseWalletAdapter
 } from '@solana/wallet-adapter-wallets'
 import { clusterApiUrl } from '@solana/web3.js'
 
@@ -46,6 +47,7 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
       new SolletExtensionWalletAdapter(),
       new MathWalletAdapter({ endpoint }),
       new TokenPocketWalletAdapter(),
+      new CoinbaseWalletAdapter({ endpoint }),
       new SolongWalletAdapter({ endpoint }),
       new Coin98WalletAdapter({ endpoint }),
       new SafePalWalletAdapter({ endpoint }),

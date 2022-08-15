@@ -9,6 +9,9 @@ import { useClickOutside } from '@/hooks/useClickOutside'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import useToggle from '@/hooks/useToggle'
 import { MayFunction } from '@/types/constants'
+import { setSessionItem, getSessionItem } from '@/functions/dom/jStorage'
+import useInit from '@/hooks/useInit'
+import useUpdate from '@/hooks/useUpdate'
 
 type CollapseController = {
   open: () => void
@@ -19,6 +22,9 @@ type CollapseController = {
 export type CollapseHandler = CollapseController
 
 export type CollapseProps = {
+  /** will record input result in localStorage */
+  id?: string
+
   children?: ReactNode
   className?: MayFunction<string, [open: boolean]>
   style?: CSSProperties
@@ -42,6 +48,7 @@ export type CollapseProps = {
  * once set open, compnent becomes **controlled** Kit
  */
 export default function Collapse({
+  id,
   children = null as ReactNode,
   className = '',
   style,
@@ -60,6 +67,19 @@ export default function Collapse({
     onOn: onOpen,
     onToggle: onToggle
   })
+
+  // if (set id),  sync sessionStorage to cache user input
+  if (id) {
+    useUpdate(() => {
+      setSessionItem(id, innerOpen)
+    }, [innerOpen])
+    useInit(() => {
+      const sessionStoredValue = getSessionItem(id)
+      if (sessionStoredValue) {
+        set(Boolean(sessionStoredValue))
+      }
+    })
+  }
 
   useIsomorphicLayoutEffect(() => {
     if (!defaultOpen) set(Boolean(open))
