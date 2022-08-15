@@ -851,8 +851,8 @@ function UserLiquidityExhibition() {
                               onClick={() => {
                                 routeTo('/pools', {
                                   queryProps: objectShakeFalsy({
-                                    expandedPoolId: toPubString(info.lpMint),
-                                    searchText: toPubString(info.lpMint)
+                                    expandedPoolId: toPubString(info.id),
+                                    searchText: toPubString(info.id)
                                   })
                                 })
                               }}
