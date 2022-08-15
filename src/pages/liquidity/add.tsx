@@ -772,9 +772,6 @@ function UserLiquidityExhibition() {
       <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
         <List className={`flex flex-col gap-6 mobile:gap-5 ${exhibitionInfos.length ? 'mb-5' : ''}`}>
           {exhibitionInfos.map((info, idx) => {
-            const correspondingFarm = farmPoolsList.find(
-              (farmInfo) => isMintEqual(farmInfo.lpMint, info.lpMint) && !farmInfo.isClosedPool
-            )
             return (
               <List.Item key={idx}>
                 <FadeIn>
@@ -850,9 +847,7 @@ function UserLiquidityExhibition() {
                             <Icon
                               size="smi"
                               iconSrc="/icons/pools-pool-entry.svg"
-                              className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable-filter-effect ${
-                                correspondingFarm ? 'clickable' : 'not-clickable'
-                              }`}
+                              className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable-filter-effect clickable`}
                               onClick={() => {
                                 routeTo('/pools', {
                                   queryProps: objectShakeFalsy({
