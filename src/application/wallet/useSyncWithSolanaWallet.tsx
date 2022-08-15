@@ -25,7 +25,8 @@ export function useSyncWithSolanaWallet() {
     select: _select,
     disconnect: _disconnect,
     wallet: _wallet,
-    signAllTransactions: _signAllTransactions
+    signAllTransactions: _signAllTransactions,
+    signMessage: _signMessage
   } = _useWallet()
 
   const { connection } = useConnection()
@@ -50,6 +51,10 @@ export function useSyncWithSolanaWallet() {
       useWallet.setState({ disconnecting: _disconnecting })
     }
   }, [_disconnecting])
+
+  useIsomorphicLayoutEffect(() => {
+    useWallet.setState({ signMessage: _signMessage })
+  }, [_signMessage])
 
   useIsomorphicLayoutEffect(() => {
     if (!useWallet.getState().inSimulateMode && useWallet.getState().connecting !== _connecting) {

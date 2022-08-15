@@ -1,13 +1,12 @@
 import { inClient } from '@/functions/judgers/isSSR'
-import { PublicKey } from '@solana/web3.js'
 import base58 from 'bs58'
+import useWallet from '../wallet/useWallet'
 
-export async function getSignMessage(
-  message: string
-): Promise<{ publicKey: PublicKey; encodedSignature: string } | undefined> {
+export async function getSignMessage(message: string): Promise<string | undefined> {
   if (!inClient) return
-  const { publicKey, signature } = await (window as any).solana.signMessage(new TextEncoder().encode(message), 'utf8')
-  return { publicKey, encodedSignature: base58.encode(signature) }
+  const signMessage = useWallet.getState().signMessage
+  const signature = await signMessage?.(new TextEncoder().encode(message))
+  return signature && base58.encode(signature)
 }
 
 export async function getNewWalletSignature(newWallet: string) {

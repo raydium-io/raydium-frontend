@@ -203,6 +203,7 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                   fallbackProps: { children: 'Wallet Linked' }
                 },
                 { should: targetWallet },
+                { should: owner },
                 { should: isValidPublicKey(targetWallet) },
                 {
                   should: !isMintEqual(targetWallet, currentBindTargetWalletAddress),
@@ -236,14 +237,14 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                   // encode sign message
                   setIsSubmittingData(true)
                   const signature = await getNewWalletSignature(newWallet)
-                  if (!signature?.encodedSignature) {
+                  if (!signature) {
                     logError('Encode Error', 'Fail to encode')
                     return
                   }
 
                   // send migrate wallet
                   const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
-                    signature: signature.encodedSignature
+                    signature: signature
                   })
                   if (resultResponse?.success) {
                     logSuccess('Migration Success', 'RAY staking successfully linked to new wallet')
@@ -280,14 +281,14 @@ function MigrateStakingWalletTool({ className }: { className?: string }) {
                     // encode sign message
                     setIsCancelingData(true)
                     const signature = await getNewWalletSignature(newWallet)
-                    if (!signature?.encodedSignature) {
+                    if (!signature) {
                       logError('Encode Error', 'Fail to encode')
                       return
                     }
 
                     // send migrate wallet
                     const resultResponse = await setWalletMigrateTarget(owner!, newWallet, {
-                      signature: signature.encodedSignature
+                      signature
                     })
                     if (resultResponse?.success) {
                       logSuccess('Wallet Link Reset', 'Wallet link has been reset')
