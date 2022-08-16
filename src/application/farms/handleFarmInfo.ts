@@ -190,7 +190,7 @@ export function hydrateFarmInfo(
               perSecond: token && toString(toTokenAmount(token, rewardPerSecond)),
               openTime: rewardOpenTime,
               endTime: rewardEndTime,
-              isOptionToken: rewardInfos.filter((i) => Number(i.rewardState) === 1).length > 1, // TEST
+              isOptionToken: rewardInfo.rewardType === 'Option tokens',
               isRewardBeforeStart,
               isRewardEnded,
               isRewarding,

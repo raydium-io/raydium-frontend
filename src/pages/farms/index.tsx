@@ -505,7 +505,7 @@ function FarmCard() {
         </Row>
         <div className="font-medium text-[rgba(196,214,255,.5)] text-base ">{farmCardTitleInfo.description}</div>
       </div>
-      <Row className="items-stretch gap-6">
+      <Row className="grow flex-wrap justify-end items-stretch gap-6">
         {haveSelfCreatedFarm && <FarmSlefCreatedOnlyBlock />}
         <FarmStakedOnlyBlock />
         {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}

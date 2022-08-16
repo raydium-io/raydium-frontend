@@ -271,7 +271,7 @@ export function RewardFormCardInputs({
   return (
     <Grid className="gap-4">
       <Col>
-        <Row className="gap-4 flex-wrap">
+        <Row className="gap-4 mobile:flex-col">
           <CoinInputBoxWithTokenSelector
             className={`rounded-md grow`}
             haveHalfButton
@@ -296,7 +296,7 @@ export function RewardFormCardInputs({
           />
           <SelectBox
             disabled={disableTokenTypeSelect}
-            inputBoxClassName="w-1/3 mobile:w-full rounded-md px-4"
+            inputBoxClassName="w-1/3 shrink-0 mobile:w-full rounded-md px-4"
             candidateValues={['Standard SPL', 'Option tokens']}
             defaultValue={'Standard SPL'}
             label="Token type:"
