@@ -38,6 +38,7 @@ export function NewAddedRewardSummary({
   const rewards = useCreateFarms((s) => s.rewards)
   const editableRewards = rewards.filter((r) => r.type === 'existed reward')
   const newReards = rewards.filter((r) => r.type === 'new added')
+  console.log('newReards: ', newReards)
   // console.log('newReards.includes(activeReward): ', activeReward && newReards.includes(activeReward))
   return (
     <ListTable
@@ -50,6 +51,9 @@ export function NewAddedRewardSummary({
         {
           label: 'Token',
           cssGridItemWidth: '.6fr'
+        },
+        {
+          label: 'Token type'
         },
         {
           label: 'Amount'
@@ -85,7 +89,7 @@ export function NewAddedRewardSummary({
           return reward.token ? (
             <Col className="h-full justify-center gap-1">
               <Row className="gap-1 items-center">
-                <CoinAvatar token={reward.token} size="sm" />
+                <CoinAvatar isOptionToken={reward.isOptionToken} token={reward.token} size="sm" />
                 <div>{reward.token?.symbol ?? 'UNKNOWN'}</div>
               </Row>
               {(reward.isRewardEnded || reward.isRewardBeforeStart || reward.isRewarding) && (
@@ -118,6 +122,18 @@ export function NewAddedRewardSummary({
                   {reward.amount
                     ? formatNumber(reward.amount, { fractionLength: reward.token?.decimals ?? 6 })
                     : '(unset)'}
+                </Col>
+              )}
+            </Grid>
+          )
+        }
+
+        if (label === 'Token type') {
+          return (
+            <Grid className={`h-full`}>
+              {isEmpty ? undefined : (
+                <Col className={`grow break-all justify-center`}>
+                  {reward.token ? (reward.isOptionToken ? 'Option tokens' : 'Standard SPL') : ''}
                 </Col>
               )}
             </Grid>

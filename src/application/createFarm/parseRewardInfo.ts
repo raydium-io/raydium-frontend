@@ -51,7 +51,8 @@ export function getRewardSignature(reward: Omit<UIRewardInfo, 'originData'>): st
     toString(reward.restAmount),
     reward.endTime?.toString(),
     reward.startTime?.toString(),
-    toString(reward.claimableRewards)
+    toString(reward.claimableRewards),
+    reward.isOptionToken
   ].join(', ')
 }
 

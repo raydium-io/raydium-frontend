@@ -4,9 +4,9 @@ import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFar
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import {
-  MIN_DURATION_SECOND,
   MAX_DURATION_SECOND,
-  MAX_OFFSET_AFTER_NOW_SECOND
+  MAX_OFFSET_AFTER_NOW_SECOND,
+  MIN_DURATION_SECOND
 } from '@/application/farms/handleFarmInfo'
 import { isQuantumSOLVersionSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
@@ -15,16 +15,16 @@ import AutoBox from '@/components/AutoBox'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import Col from '@/components/Col'
 import DateInput from '@/components/DateInput'
-import FadeInStable from '@/components/FadeIn'
 import Grid from '@/components/Grid'
+import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
+import Select from '@/components/Select'
+import Tooltip from '@/components/Tooltip'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { getTime, offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
-import toPubString from '@/functions/format/toMintString'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isExist } from '@/functions/judgers/nil'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
@@ -32,9 +32,8 @@ import { toString } from '@/functions/numberish/toString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { MayFunction, Numberish } from '@/types/constants'
-import { TokenAccount, TokenAmount } from '@raydium-io/raydium-sdk'
 import produce from 'immer'
-import { RefObject, startTransition, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { RefObject, useEffect, useImperativeHandle, useState } from 'react'
 
 /**
  * if super preferential is not provide(undefined|null) it is normal useState
@@ -147,6 +146,20 @@ export function RewardFormCardInputs({
       })
     }
   }
+  const setIsOptionToken = (on?: boolean) => {
+    setTempReward((s) =>
+      produce(s, (draft) => {
+        draft.isOptionToken = on
+      })
+    )
+    if (syncDataWithZustandStore) {
+      useCreateFarms.setState({
+        rewards: produce(rewards, (draft) => {
+          if (rewardIndex >= 0) draft[rewardIndex].isOptionToken = on
+        })
+      })
+    }
+  }
   const setRewardAmount = (amount: Numberish | undefined) => {
     setTempReward((s) =>
       produce(s, (draft) => {
@@ -254,7 +267,7 @@ export function RewardFormCardInputs({
   return (
     <Grid className="gap-4">
       <Col>
-        <>
+        <Row className="gap-4">
           <CoinInputBoxWithTokenSelector
             className={`rounded-md`}
             haveHalfButton
@@ -277,6 +290,17 @@ export function RewardFormCardInputs({
             allowSOLWSOLSwitch
             onTryToSwitchSOLWSOL={handleSwitchSOLWSOLRewardToken}
           />
+          <Select
+            className="ring-transparent"
+            candidateValues={['Standard SPL', 'Option tokens']}
+            defaultValue={'Standard SPL'}
+            prefix="type:"
+            onChange={(newSortKey) => {
+              setIsOptionToken(newSortKey === 'Option tokens')
+            }}
+          />
+        </Row>
+        <>
           {reward.amount && needShowAmountAlert && (
             <div className="text-[#DA2EEF] text-right text-sm font-medium pt-2 px-2">
               Emission rewards is lower than min required
