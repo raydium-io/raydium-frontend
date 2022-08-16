@@ -24,6 +24,7 @@ export interface APIRewardInfo {
   rewardEndTime: number
   rewardPerSecond: string | number
   rewardSender?: string
+  rewardType: 'Standard SPL' | 'Option tokens'
 }
 
 export interface FarmPoolJsonInfo {
