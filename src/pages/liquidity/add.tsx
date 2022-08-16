@@ -532,7 +532,7 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
     return (
       <Row className={twMerge('font-medium text-sm mobile:text-xs text-[#ABC4FF]', className)}>
         <div className="flex justify-start align-middle">
-          <div className="flex justify-start m-auto text-2xl mobile:text-lg align-middle">{'｛'}&nbsp;&nbsp;</div>
+          <div className="flex justify-start m-auto text-2xl mobile:text-lg align-middle pb-1">{'{'}&nbsp;</div>
           <div className="min-w-[108px] mobile:min-w-[60px]">
             <Row className="flex w-full justify-between">
               <span>{1}</span>
@@ -541,7 +541,7 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
             <Row className="flex w-full justify-between">
               <span>
                 {toString(innerReversed ? div(1, price) : price, {
-                  decimalLength: isMobile ? 'auto 2' : 'auto',
+                  decimalLength: isMobile ? 'auto 2' : 'auto 5',
                   zeroDecimalNotAuto: true
                 })}
               </span>
