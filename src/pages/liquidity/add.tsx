@@ -317,7 +317,7 @@ function LiquidityCard() {
               hasHydratedLiquidityPool ? 'left-4' : 'left-1/2 -translate-x-1/2'
             }`}
           >
-            <Icon heroIconName="plus" className="p-1 mr-4 mobile:mr-2 text-[#39D0D8]" />
+            <Icon heroIconName="plus" className="p-1 mr-1 mobile:mr-1 text-[#39D0D8]" />
             <FadeIn>{hasHydratedLiquidityPool && <LiquidityCardPriceIndicator className="w-max" />}</FadeIn>
           </Row>
           <Row className="absolute right-0 items-center">
@@ -524,17 +524,34 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
   const innerPriceLeftCoin = innerReversed ? coin2 : coin1
   const innerPriceRightCoin = innerReversed ? coin1 : coin2
 
-  if (!price) return null
+  const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
+
+  if (!price || !isStable) return null
+
   return (
-    <Row className={twMerge('font-medium text-sm text-[#ABC4FF]', className)}>
-      {1} {innerPriceLeftCoin?.symbol ?? '--'} ≈{' '}
-      {toString(innerReversed ? div(1, price) : price, {
-        decimalLength: isMobile ? 'auto 2' : 'auto',
-        zeroDecimalNotAuto: true
-      })}{' '}
-      {innerPriceRightCoin?.symbol ?? '--'}
-      <div className="ml-2 clickable" onClick={() => setInnerReversed((b) => !b)}>
-        ⇋
+    <Row className={twMerge('font-medium text-sm mobile:text-xs text-[#ABC4FF]', className)}>
+      <div className="flex justify-start align-middle">
+        <div className="flex justify-start m-auto text-2xl mobile:text-lg align-middle">{'｛'}&nbsp;&nbsp;</div>
+        <div>
+          <Row className="flex w-full justify-between">
+            <span>{1}</span>
+            <span>&nbsp;{innerPriceLeftCoin?.symbol ?? '--'}</span>
+          </Row>
+          <Row className="flex w-full justify-between">
+            <span>
+              {toString(innerReversed ? div(1, price) : price, {
+                decimalLength: isMobile ? 'auto 2' : 'auto',
+                zeroDecimalNotAuto: true
+              })}
+            </span>
+            <span>&nbsp;{innerPriceRightCoin?.symbol ?? '--'}</span>
+          </Row>
+        </div>
+      </div>
+      <div className="ml-2 rotate-90 m-auto">
+        <div className="clickable" onClick={() => setInnerReversed((b) => !b)}>
+          ⇋
+        </div>
       </div>
     </Row>
   )
