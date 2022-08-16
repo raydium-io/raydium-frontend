@@ -105,6 +105,7 @@ function FarmHeader() {
 
 /** only mobile */
 function ToolsButton({ className }: { className?: string }) {
+  const currentTab = useFarms((s) => s.currentTab)
   return (
     <>
       <Popover placement="bottom-right">
@@ -122,7 +123,8 @@ function ToolsButton({ className }: { className?: string }) {
               <Grid className="grid-cols-1 items-center gap-2">
                 <FarmStakedOnlyBlock />
                 <FarmRefreshCircleBlock />
-                <FarmTimeBasisSelectorBox />
+                <FarmTimeBasisSelector />
+                {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
                 <FarmCreateFarmEntryBlock /> {/* TODO temp hide create farm entry in mobile */}
               </Grid>
             </Card>
@@ -259,7 +261,7 @@ function FarmTabBlock({ className }: { className?: string }) {
   )
 }
 
-function FarmTimeBasisSelectorBox({ className }: { className?: string }) {
+function FarmTimeBasisSelector({ className }: { className?: string }) {
   const timeBasis = useFarms((s) => s.timeBasis)
   return (
     <Select
@@ -269,7 +271,23 @@ function FarmTimeBasisSelectorBox({ className }: { className?: string }) {
       defaultValue={timeBasis}
       prefix="Time Basis:"
       onChange={(newSortKey) => {
-        useFarms.setState({ timeBasis: newSortKey ?? '7D' })
+        useFarms.setState({ timeBasis: newSortKey ?? timeBasis })
+      }}
+    />
+  )
+}
+
+function FarmRewardTokenTypeSelector({ className }: { className?: string }) {
+  const tokenType = useFarms((s) => s.tokenType)
+  return (
+    <Select
+      className={twMerge('z-20', className)}
+      candidateValues={['All', 'Standard SPL', 'Option tokens']}
+      localStorageKey="farm-reward-token-type"
+      defaultValue={tokenType}
+      prefix="Token Type:"
+      onChange={(newSortKey) => {
+        useFarms.setState({ tokenType: newSortKey ?? tokenType })
       }}
     />
   )
@@ -333,6 +351,7 @@ function FarmCard() {
   const hydratedInfos = useFarms((s) => s.hydratedInfos)
   const currentTab = useFarms((s) => s.currentTab)
   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
+  const tokenType = useFarms((s) => s.tokenType)
   const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   const searchText = useFarms((s) => s.searchText)
   const [favouriteIds] = useFarmFavoriteIds()
@@ -367,7 +386,16 @@ function FarmCard() {
         .filter((i) =>
           onlySelfFarms && isHydratedFarmInfo(i) ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true
         ) // Switch
-        .filter((i) => (i.version === 6 && onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)), // Switch
+        .filter((i) => (i.version === 6 && onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)) // Switch
+        .filter((i) =>
+          i.version === 6 && isHydratedFarmInfo(i)
+            ? tokenType === 'Option tokens'
+              ? i.rewards.some((r) => r.isOptionToken)
+              : tokenType === 'Standard SPL'
+              ? !i.rewards.some((r) => r.isOptionToken)
+              : true
+            : true
+        ), // token type (for option token)
     [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
   )
 
@@ -480,7 +508,8 @@ function FarmCard() {
       <Row className="items-stretch gap-6">
         {haveSelfCreatedFarm && <FarmSlefCreatedOnlyBlock />}
         <FarmStakedOnlyBlock />
-        <FarmTimeBasisSelectorBox />
+        {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
+        <FarmTimeBasisSelector />
         <FarmSearchBlock />
       </Row>
     </Row>

@@ -25,6 +25,7 @@ export type FarmStore = {
   onlySelfCreatedFarms: boolean
   currentTab: 'Raydium' | 'Fusion' | 'Ecosystem' | 'Staked'
   timeBasis: '24H' | '7D' | '30D'
+  tokenType: 'All' | 'Standard SPL' | 'Option tokens'
   searchText: string
 
   stakeDialogMode: 'deposit' | 'withdraw'
@@ -51,6 +52,7 @@ const useFarms = create<FarmStore>((set) => ({
   onlySelfCreatedFarms: false,
   currentTab: 'Raydium',
   timeBasis: '7D',
+  tokenType: 'Standard SPL',
   searchText: '',
 
   stakeDialogMode: 'deposit',
