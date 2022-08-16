@@ -317,7 +317,7 @@ function LiquidityCard() {
               hasHydratedLiquidityPool ? 'left-4' : 'left-1/2 -translate-x-1/2'
             }`}
           >
-            <Icon heroIconName="plus" className="p-1 mr-1 mobile:mr-1 text-[#39D0D8]" />
+            <Icon heroIconName="plus" className="p-1 text-[#39D0D8]" />
             <FadeIn>{hasHydratedLiquidityPool && <LiquidityCardPriceIndicator className="w-max" />}</FadeIn>
           </Row>
           <Row className="absolute right-0 items-center">
@@ -532,7 +532,7 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
     <Row className={twMerge('font-medium text-sm mobile:text-xs text-[#ABC4FF]', className)}>
       <div className="flex justify-start align-middle">
         <div className="flex justify-start m-auto text-2xl mobile:text-lg align-middle">{'｛'}&nbsp;&nbsp;</div>
-        <div>
+        <div className="min-w-[108px] mobile:min-w-[60px]">
           <Row className="flex w-full justify-between">
             <span>{1}</span>
             <span>&nbsp;{innerPriceLeftCoin?.symbol ?? '--'}</span>
