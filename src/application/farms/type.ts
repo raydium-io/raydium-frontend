@@ -99,6 +99,7 @@ export type HydratedRewardInfo = {
   openTime?: Date // v6
   endTime?: Date // v6
 
+  isOptionToken?: boolean // v6
   isRewarding?: boolean // v6
   isRewardBeforeStart?: boolean // v6
   isRewardEnded?: boolean // v6

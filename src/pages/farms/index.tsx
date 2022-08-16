@@ -660,7 +660,7 @@ function FarmCardDatabaseBody({
 }
 
 // currently only SDKRewardInfo
-function FarmRewardBadge({
+function FarmPendingRewardBadge({
   farmInfo,
   reward
 }: {
@@ -675,9 +675,11 @@ function FarmRewardBadge({
   return (
     <Tooltip placement="bottom">
       <Row
-        className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
-          isRewarding ? '' : 'opacity-50'
-        } ${isRewardBeforeStart ? '' : ''}`}
+        className={`ring-1 ring-inset ${
+          isTokenAmount(reward) ? 'ring-[#abc4ff80]' : reward.isOptionToken ? 'ring-[#DA2EEF]' : 'ring-[#abc4ff80]'
+        } p-1 rounded-full items-center gap-2 overflow-hidden ${isRewarding ? '' : 'opacity-50'} ${
+          isRewardBeforeStart ? '' : ''
+        }`}
       >
         {gt(pendingAmount, 0.001) && (
           <div className="text-xs translate-y-0.125 pl-1">
@@ -786,16 +788,24 @@ function FarmCardDatabaseBodyCollapseItemFace({
         <TextInfoItem
           name="Pending Rewards"
           value={
-            <Row className="flex-wrap gap-2 w-full pr-8">
-              {isJsonFarmInfo(info)
-                ? '--'
-                : info.rewards.map((reward) => {
-                    return (
-                      <Fragment key={toPubString(reward.rewardVault)}>
-                        <FarmRewardBadge farmInfo={info} reward={reward} />
-                      </Fragment>
-                    )
-                  })}
+            <Row className="flex-wrap items-center gap-2 w-full pr-8">
+              {isJsonFarmInfo(info) ? (
+                '--'
+              ) : (
+                <>
+                  {info.rewards.map((reward) => (
+                    <Fragment key={toPubString(reward.rewardVault)}>
+                      <FarmPendingRewardBadge farmInfo={info} reward={reward} />
+                    </Fragment>
+                  ))}
+                  {info.rewards.some((reward) => reward.isOptionToken) && (
+                    <Tooltip>
+                      <Badge cssColor="#DA2EEF">Option tokens</Badge>
+                      <Tooltip.Panel>test option tokens</Tooltip.Panel>
+                    </Tooltip>
+                  )}
+                </>
+              )}
             </Row>
           }
         />
@@ -811,7 +821,10 @@ function FarmCardDatabaseBodyCollapseItemFace({
                       userHavedReward &&
                       token && (
                         <div key={toPubString(token?.mint)}>
-                          <FarmRewardBadge farmInfo={info} reward={userPendingReward ?? toTokenAmount(token, 0)} />
+                          <FarmPendingRewardBadge
+                            farmInfo={info}
+                            reward={userPendingReward ?? toTokenAmount(token, 0)}
+                          />
                         </div>
                       )
                   )}

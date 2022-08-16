@@ -38,7 +38,6 @@ export function NewAddedRewardSummary({
   const rewards = useCreateFarms((s) => s.rewards)
   const editableRewards = rewards.filter((r) => r.type === 'existed reward')
   const newReards = rewards.filter((r) => r.type === 'new added')
-  console.log('newReards: ', newReards)
   // console.log('newReards.includes(activeReward): ', activeReward && newReards.includes(activeReward))
   return (
     <ListTable
