@@ -50,7 +50,7 @@ export default function InputBox({
     <Col
       onClick={focusInput}
       className={twMerge(
-        `bg-[#141041] rounded-xl mobile:rounded-lg py-3 px-6 mobile:py-2 mobile:px-4 cursor-text ${
+        `bg-[#141041] justify-between rounded-xl mobile:rounded-lg py-3 px-6 mobile:py-2 mobile:px-4 cursor-text ${
           disabled && !noDisableStyle ? 'pointer-events-none-entirely cursor-default opacity-50' : ''
         }`,
         className

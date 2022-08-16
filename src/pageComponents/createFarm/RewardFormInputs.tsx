@@ -20,6 +20,7 @@ import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import Select from '@/components/Select'
+import SelectBox from '@/components/SelectBox'
 import Tooltip from '@/components/Tooltip'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { getTime, offsetDateTime } from '@/functions/date/dateFormat'
@@ -216,6 +217,9 @@ export function RewardFormCardInputs({
       : tempReward.amount && durationTime
       ? div(tempReward.amount, parseDurationAbsolute(durationTime).days)
       : undefined
+
+  const disableTokenSelect = reward?.isRewardBeforeStart || reward?.isRewarding || reward?.isRewardEnded
+  const disableTokenTypeSelect = disableTokenSelect
   const disableCoinInput = reward?.isRwardingBeforeEnd72h
   const disableDurationInput = false
   const disableStartTimeInput = reward?.isRwardingBeforeEnd72h
@@ -267,9 +271,9 @@ export function RewardFormCardInputs({
   return (
     <Grid className="gap-4">
       <Col>
-        <Row className="gap-4">
+        <Row className="gap-4 flex-wrap">
           <CoinInputBoxWithTokenSelector
-            className={`rounded-md`}
+            className={`rounded-md grow`}
             haveHalfButton
             hasPlaceholder
             topLeftLabel="Token"
@@ -278,7 +282,7 @@ export function RewardFormCardInputs({
             disabled={disableCoinInput}
             value={rewardTokenAmount ?? ''} // pass '' to clear the input
             token={tempReward.token}
-            disabledTokenSelect={reward.isRewardBeforeStart || reward.isRewarding || reward.isRewardEnded}
+            disabledTokenSelect={disableTokenSelect}
             onSelectCoin={selectRewardToken}
             onUserInput={(amount) => {
               setRewardAmount(amount)
@@ -290,11 +294,12 @@ export function RewardFormCardInputs({
             allowSOLWSOLSwitch
             onTryToSwitchSOLWSOL={handleSwitchSOLWSOLRewardToken}
           />
-          <Select
-            className="ring-transparent"
+          <SelectBox
+            disabled={disableTokenTypeSelect}
+            inputBoxClassName="w-1/3 mobile:w-full rounded-md px-4"
             candidateValues={['Standard SPL', 'Option tokens']}
             defaultValue={'Standard SPL'}
-            prefix="type:"
+            label="Token type:"
             onChange={(newSortKey) => {
               setIsOptionToken(newSortKey === 'Option tokens')
             }}
@@ -369,7 +374,7 @@ export function RewardFormCardInputs({
           />
 
           <DateInput
-            className="grow rounded-md px-4"
+            className="w-1/3 mobile:w-full rounded-md px-4"
             label="Farming Starts"
             inputProps={{
               placeholder: 'Select date and time',
@@ -398,7 +403,7 @@ export function RewardFormCardInputs({
             }}
           />
           <DateInput
-            className="shrink-0 grow rounded-md px-4"
+            className="shrink-0 w-1/3 mobile:w-full rounded-md px-4"
             label="Farming Ends"
             inputProps={{
               placeholder: disableEndTimeInput ? undefined : 'Select date and time',

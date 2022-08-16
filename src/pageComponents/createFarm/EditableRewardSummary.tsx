@@ -62,6 +62,9 @@ export function EditableRewardSummary({
             cssGridItemWidth: '.9fr'
           },
           {
+            label: 'Token type'
+          },
+          {
             label: 'Amount'
           },
           {
@@ -108,6 +111,23 @@ export function EditableRewardSummary({
                 {hasBeenEdited ? (
                   <Col className="grow break-all justify-center text-[#39d0d8]">
                     {formatNumber(reward.amount, { fractionLength: reward.token?.decimals ?? 6 })}
+                  </Col>
+                ) : undefined}
+              </Grid>
+            )
+          }
+
+          if (label === 'Token type') {
+            return (
+              <Grid className={`h-full`}>
+                {reward.originData?.amount ? (
+                  <Col className={`grow break-all justify-center`}>
+                    {reward.token ? (reward.isOptionToken ? 'Option tokens' : 'Standard SPL') : ''}
+                  </Col>
+                ) : undefined}
+                {hasBeenEdited ? (
+                  <Col className={`grow break-all justify-center`}>
+                    {reward.token ? (reward.isOptionToken ? 'Option tokens' : 'Standard SPL') : ''}
                   </Col>
                 ) : undefined}
               </Grid>
