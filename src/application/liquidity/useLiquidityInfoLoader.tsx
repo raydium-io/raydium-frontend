@@ -1,22 +1,17 @@
-import { LiquidityPoolsJsonFile } from '@raydium-io/raydium-sdk'
-
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
-import { isExist } from '@/functions/judgers/nil'
+import { areShallowEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
+import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { HexAddress } from '@/types/constants'
-
-import useLiquidity from './useLiquidity'
+import { LiquidityPoolsJsonFile } from '@raydium-io/raydium-sdk'
 import hydrateLiquidityInfo from './hydrateLiquidityInfo'
 import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-import { areShallowEqual } from '@/functions/judgers/areEqual'
-import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import useLiquidity from './useLiquidity'
 
 /**
  * will load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -79,6 +74,9 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
         jsonInfos.filter((i) => userExhibitionLiquidityIds.includes(i.id)),
         connection
       )
+
+      // load
+
       useLiquidity.setState({ sdkParsedInfos: shakeUndifindedItem(sdkParsedInfos) })
     },
     [disabled, connection, jsonInfos, userExhibitionLiquidityIds, refreshCount] as const

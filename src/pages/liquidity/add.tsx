@@ -55,6 +55,9 @@ import { HexAddress } from '@/types/constants'
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
+import { getUserTokenEvenNotExist } from '@/application/token/getUserTokenEvenNotExist'
+import useAsyncValue from '@/hooks/useAsyncValue'
+import asyncMap from '@/functions/asyncMap'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -762,10 +765,22 @@ function UserLiquidityExhibition() {
     return percent.mul(new BN(100)).toFixed(2) + '%'
   }
 
-  const exhibitionInfos = useMemo(
-    () => hydratedInfos.filter(({ id }) => userExhibitionLiquidityIds?.includes(String(id))),
+  const exhibitionRawInfos = useMemo(
+    () => hydratedInfos.filter(({ id }) => userExhibitionLiquidityIds?.includes(toPubString(id))),
     [hydratedInfos, userExhibitionLiquidityIds]
   )
+
+  const exhibitionInfos = useAsyncValue(
+    () =>
+      asyncMap(exhibitionRawInfos, async (i) => ({
+        ...i,
+        baseToken: await getUserTokenEvenNotExist(i.baseMint),
+        quoteToken: await getUserTokenEvenNotExist(i.quoteMint)
+      })),
+    exhibitionRawInfos,
+    [exhibitionRawInfos.length]
+  )
+
   return (
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Your Liquidity</div>
