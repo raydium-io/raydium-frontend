@@ -526,35 +526,52 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
 
   const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
 
-  if (!price || !isStable) return null
-
-  return (
-    <Row className={twMerge('font-medium text-sm mobile:text-xs text-[#ABC4FF]', className)}>
-      <div className="flex justify-start align-middle">
-        <div className="flex justify-start m-auto text-2xl mobile:text-lg align-middle">{'｛'}&nbsp;&nbsp;</div>
-        <div className="min-w-[108px] mobile:min-w-[60px]">
-          <Row className="flex w-full justify-between">
-            <span>{1}</span>
-            <span>&nbsp;{innerPriceLeftCoin?.symbol ?? '--'}</span>
-          </Row>
-          <Row className="flex w-full justify-between">
-            <span>
-              {toString(innerReversed ? div(1, price) : price, {
-                decimalLength: isMobile ? 'auto 2' : 'auto',
-                zeroDecimalNotAuto: true
-              })}
-            </span>
-            <span>&nbsp;{innerPriceRightCoin?.symbol ?? '--'}</span>
-          </Row>
+  if (!price) return null
+  if (isStable) {
+    // UI for stable pair
+    return (
+      <Row className={twMerge('font-medium text-sm mobile:text-xs text-[#ABC4FF]', className)}>
+        <div className="flex justify-start align-middle">
+          <div className="flex justify-start m-auto text-2xl mobile:text-lg align-middle">{'｛'}&nbsp;&nbsp;</div>
+          <div className="min-w-[108px] mobile:min-w-[60px]">
+            <Row className="flex w-full justify-between">
+              <span>{1}</span>
+              <span>&nbsp;{innerPriceLeftCoin?.symbol ?? '--'}</span>
+            </Row>
+            <Row className="flex w-full justify-between">
+              <span>
+                {toString(innerReversed ? div(1, price) : price, {
+                  decimalLength: isMobile ? 'auto 2' : 'auto',
+                  zeroDecimalNotAuto: true
+                })}
+              </span>
+              <span>&nbsp;{innerPriceRightCoin?.symbol ?? '--'}</span>
+            </Row>
+          </div>
         </div>
-      </div>
-      <div className="ml-2 rotate-90 m-auto">
-        <div className="clickable" onClick={() => setInnerReversed((b) => !b)}>
+        <div className="ml-2 rotate-90 m-auto">
+          <div className="clickable" onClick={() => setInnerReversed((b) => !b)}>
+            ⇋
+          </div>
+        </div>
+      </Row>
+    )
+  } else {
+    // UI for non-stable pair
+    return (
+      <Row className={twMerge('font-medium text-sm text-[#ABC4FF]', className)}>
+        {1} {innerPriceLeftCoin?.symbol ?? '--'} ≈{' '}
+        {toString(innerReversed ? div(1, price) : price, {
+          decimalLength: isMobile ? 'auto 2' : 'auto',
+          zeroDecimalNotAuto: true
+        })}{' '}
+        {innerPriceRightCoin?.symbol ?? '--'}
+        <div className="ml-2 clickable" onClick={() => setInnerReversed((b) => !b)}>
           ⇋
         </div>
-      </div>
-    </Row>
-  )
+      </Row>
+    )
+  }
 }
 
 function LiquidityCardInfo({ className }: { className?: string }) {
