@@ -203,6 +203,7 @@ function SwapCard() {
   const balances = useWallet((s) => s.balances)
   const routes = useSwap((s) => s.routes)
   const swapable = useSwap((s) => s.swapable)
+  const canFindPools = useSwap((s) => s.canFindPools)
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
   const { hasConfirmed, popConfirm: popUnofficialConfirm } = useUnofficialTokenConfirmState()
   const { hasAcceptedPriceChange, swapButtonComponentRef, coinInputBox1ComponentRef, coinInputBox2ComponentRef } =
@@ -419,16 +420,16 @@ function SwapCard() {
               }
             },
             {
-              should: swapable !== false,
-              fallbackProps: { children: 'Pool Not Ready' }
-            },
-            {
               should: routes,
               fallbackProps: { children: 'Finding Pool ...' }
             },
             {
-              should: swapable === true || routes?.length === 0,
+              should: canFindPools,
               fallbackProps: { children: 'Pool Not Found' }
+            },
+            {
+              should: swapable,
+              fallbackProps: { children: 'Pool Not Ready' }
             },
             {
               should:

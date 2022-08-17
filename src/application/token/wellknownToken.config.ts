@@ -1,4 +1,6 @@
+import toPubString from '@/functions/format/toMintString'
 import { PublicKey } from '@solana/web3.js'
+import { WSOLMint } from './quantumSOL'
 
 export const RAYMint = new PublicKey('4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R')
 export const PAIMint = new PublicKey('Ea5SjE2Y6yvCeW5dYTn7PYMuW5ikXkvbGdcmSnXeaLjS')
@@ -13,3 +15,19 @@ export const ANAMint = new PublicKey('ANAxByE6G2WjFp7A4NqtWYXb3mgruyzZYg3spfxe6L
 export const ETHMint = new PublicKey('7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs')
 
 export const SOLMint = PublicKey.default
+
+export const routeMiddleMints = {
+  //TODO: actually just use getToken() is ok, this structure is build when getToken() is not ready
+  USDT: toPubString(USDTMint),
+  USDC: toPubString(USDCMint),
+  RAY: toPubString(RAYMint),
+  WSOL: toPubString(WSOLMint),
+  SRM: toPubString(SRMMint),
+  PAI: toPubString(PAIMint),
+  mSOL: toPubString(mSOLMint),
+  stSOL: toPubString(stSOLMint),
+  USDH: toPubString(USDHMint),
+  NRV: toPubString(NRVMint),
+  ANA: toPubString(ANAMint),
+  ETH: toPubString(ETHMint)
+}
