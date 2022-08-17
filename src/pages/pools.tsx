@@ -480,7 +480,7 @@ function PoolCard() {
         >
           APR {timeBasis}
           <Tooltip>
-            <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+            <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
             <Tooltip.Panel>
               Estimated APR based on trading fees earned by the pool in the past {timeBasis}
             </Tooltip.Panel>

@@ -52,7 +52,7 @@ const useFarms = create<FarmStore>((set) => ({
   onlySelfCreatedFarms: false,
   currentTab: 'Raydium',
   timeBasis: '7D',
-  tokenType: 'Standard SPL',
+  tokenType: 'All',
   searchText: '',
 
   stakeDialogMode: 'deposit',

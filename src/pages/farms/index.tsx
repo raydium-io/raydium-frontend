@@ -498,7 +498,7 @@ function FarmCard() {
           <div className="font-medium text-white text-lg">{farmCardTitleInfo.title}</div>
           {farmCardTitleInfo.tooltip && (
             <Tooltip>
-              <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+              <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
               <Tooltip.Panel className="max-w-[300px]">{farmCardTitleInfo.tooltip}</Tooltip.Panel>
             </Tooltip>
           )}
@@ -586,7 +586,7 @@ function FarmCard() {
           >
             Total APR {timeBasis}
             <Tooltip>
-              <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+              <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
               <Tooltip.Panel>
                 Estimated APR based on trading fees earned by the pool in the past {timeBasis}
               </Tooltip.Panel>
@@ -776,7 +776,14 @@ function FarmCardDatabaseBodyCollapseItemFace({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const timeBasis = useFarms((s) => s.timeBasis)
-
+  const haveOptionToken = !isJsonFarmInfo(info) && info.rewards.some((reward) => reward.isOptionToken)
+  // time-based
+  const timeBasedTotalApr = isJsonFarmInfo(info)
+    ? undefined
+    : info[timeBasis === '24H' ? 'totalApr24h' : timeBasis === '30D' ? 'totalApr30d' : 'totalApr7d']
+  const timeBasedRaydiumFeeApr = isJsonFarmInfo(info)
+    ? undefined
+    : info[timeBasis === '24H' ? 'raydiumFeeApr24h' : timeBasis === '30D' ? 'raydiumFeeApr30d' : 'raydiumFeeApr7d']
   const pcCotent = (
     <Row
       type="grid-x"
@@ -827,7 +834,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
                       <FarmPendingRewardBadge farmInfo={info} reward={reward} />
                     </Fragment>
                   ))}
-                  {info.rewards.some((reward) => reward.isOptionToken) && (
+                  {haveOptionToken && (
                     <Tooltip>
                       <Badge cssColor="#DA2EEF">Option tokens</Badge>
                       <Tooltip.Panel>
@@ -871,57 +878,36 @@ function FarmCardDatabaseBodyCollapseItemFace({
         value={
           isJsonFarmInfo(info) ? (
             '--'
-          ) : timeBasis === '24H' ? (
-            <Tooltip placement="right">
-              {info.totalApr24h ? toPercentString(info.totalApr24h) : '--'}
-              <Tooltip.Panel>
-                {info.raydiumFeeApr24h && (
-                  <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeApr24h)}</div>
-                )}
-                {info.rewards.map(
-                  ({ apr, token, userHavedReward }, idx) =>
-                    userHavedReward && (
-                      <div key={idx} className="whitespace-nowrap">
-                        {token?.symbol} {toPercentString(apr)}
-                      </div>
-                    )
-                )}
-              </Tooltip.Panel>
-            </Tooltip>
-          ) : timeBasis == '30D' ? (
-            <Tooltip placement="right">
-              {info.totalApr30d ? toPercentString(info.totalApr30d) : '--'}
-              <Tooltip.Panel>
-                {info.raydiumFeeApr30d && (
-                  <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeApr30d)}</div>
-                )}
-                {info.rewards.map(
-                  ({ apr, token, userHavedReward }, idx) =>
-                    userHavedReward && (
-                      <div key={idx} className="whitespace-nowrap">
-                        {token?.symbol} {toPercentString(apr)}
-                      </div>
-                    )
-                )}
-              </Tooltip.Panel>
-            </Tooltip>
           ) : (
-            <Tooltip placement="right">
-              {info.totalApr7d ? toPercentString(info.totalApr7d) : '--'}
-              <Tooltip.Panel>
-                {info.raydiumFeeApr7d && (
-                  <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeApr7d)}</div>
-                )}
-                {info.rewards.map(
-                  ({ apr, token, userHavedReward }, idx) =>
-                    userHavedReward && (
-                      <div key={idx} className="whitespace-nowrap">
-                        {token?.symbol} {toPercentString(apr)}
-                      </div>
-                    )
-                )}
-              </Tooltip.Panel>
-            </Tooltip>
+            <Row className="items-center">
+              <Tooltip placement="right">
+                {timeBasedTotalApr ? toPercentString(timeBasedTotalApr) : '--'}
+                <Tooltip.Panel>
+                  {timeBasedRaydiumFeeApr && (
+                    <div className="whitespace-nowrap">Fees {toPercentString(timeBasedRaydiumFeeApr)}</div>
+                  )}
+                  {info.rewards.map(
+                    ({ apr, token, userHavedReward }, idx) =>
+                      userHavedReward && (
+                        <div key={idx} className="whitespace-nowrap">
+                          {token?.symbol} {toPercentString(apr)}
+                        </div>
+                      )
+                  )}
+                </Tooltip.Panel>
+              </Tooltip>
+              {haveOptionToken && (
+                <Tooltip placement="right">
+                  <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
+                  <Tooltip.Panel>
+                    <div className="max-w-[300px]">
+                      Reward token is an option and must be redeemed. APR may be inaccurate.{' '}
+                      {/* <Link href={`https://solscan.io/token/${publicKey}`}>Token info detail</Link> */}
+                    </div>
+                  </Tooltip.Panel>
+                </Tooltip>
+              )}
+            </Row>
           )
         }
       />

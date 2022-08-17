@@ -1,13 +1,13 @@
-import React, { ReactNode, RefObject, useRef } from 'react'
+import { ReactNode, RefObject, useRef } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
 import { shrinkToValue } from '@/functions/shrinkToValue'
 
-import Col from './Col'
-import Input, { InputProps } from './Input'
 import mergeRef from '@/functions/react/mergeRef'
+import Col from './Col'
 import DecimalInput, { DecimalInputProps } from './DecimalInput'
+import Input, { InputProps } from './Input'
 
 export type InputBoxProps = {
   className?: string
@@ -16,7 +16,7 @@ export type InputBoxProps = {
   disabled?: boolean
   noDisableStyle?: boolean
 
-  label?: string
+  label?: ReactNode
   labelClassName?: string
 
   onEnter?: InputProps['onEnter']

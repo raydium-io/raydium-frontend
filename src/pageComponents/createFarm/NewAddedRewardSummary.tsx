@@ -52,7 +52,7 @@ export function NewAddedRewardSummary({
           cssGridItemWidth: '.6fr'
         },
         {
-          label: 'Token type'
+          label: 'Token Type'
         },
         {
           label: 'Amount'
@@ -127,7 +127,7 @@ export function NewAddedRewardSummary({
           )
         }
 
-        if (label === 'Token type') {
+        if (label === 'Token Type') {
           return (
             <Grid className={`h-full`}>
               {isEmpty ? undefined : (

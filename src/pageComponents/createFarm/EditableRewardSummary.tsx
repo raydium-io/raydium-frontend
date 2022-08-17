@@ -62,7 +62,7 @@ export function EditableRewardSummary({
             cssGridItemWidth: '.9fr'
           },
           {
-            label: 'Token type'
+            label: 'Token Type'
           },
           {
             label: 'Amount'
@@ -117,7 +117,7 @@ export function EditableRewardSummary({
             )
           }
 
-          if (label === 'Token type') {
+          if (label === 'Token Type') {
             return (
               <Grid className={`h-full`}>
                 {reward.originData?.amount ? (
@@ -296,7 +296,7 @@ export function EditableRewardSummary({
                           <div>Claim unemmitted rewards</div>
                           {!isMobile && (
                             <Tooltip>
-                              <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+                              <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
                               <Tooltip.Panel>
                                 <div className="max-w-[300px]">
                                   Rewards are only emitted when LP tokens are staked in the farm. If there is a period

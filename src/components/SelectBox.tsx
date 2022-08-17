@@ -1,4 +1,4 @@
-import { shrinkToValue } from '@/functions/shrinkToValue'
+import { ReactNode } from 'react'
 import InputBox from './InputBox'
 import Select, { SelectProps } from './Select'
 
@@ -10,7 +10,7 @@ export default function SelectBox<T extends string>({
   label,
   disabled,
   ...restProps
-}: Omit<SelectProps<T>, 'suffix'> & { label?: string; inputBoxClassName?: string }) {
+}: Omit<SelectProps<T>, 'suffix'> & { label?: ReactNode; inputBoxClassName?: string }) {
   return (
     <InputBox
       className={inputBoxClassName}

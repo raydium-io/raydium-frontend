@@ -299,7 +299,17 @@ export function RewardFormCardInputs({
             inputBoxClassName="w-1/3 shrink-0 mobile:w-full rounded-md px-4"
             candidateValues={['Standard SPL', 'Option tokens']}
             defaultValue={'Standard SPL'}
-            label="Token type:"
+            label={
+              <Row className="items-center">
+                <div>Token Type</div>
+                <Tooltip>
+                  <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
+                  <Tooltip.Panel>
+                    <div className="max-w-[300px]">Refer to the token metadata to redeem an option reward.</div>
+                  </Tooltip.Panel>
+                </Tooltip>
+              </Row>
+            }
             onChange={(newSortKey) => {
               setIsOptionToken(newSortKey === 'Option tokens')
             }}
