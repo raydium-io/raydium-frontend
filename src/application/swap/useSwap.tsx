@@ -34,6 +34,7 @@ export type SwapStore = {
   executionPrice?: Price | null
   currentPrice?: Price | null // return by SDK, but don't know when to use it
   routes?: RouteInfo[]
+  canFindPools?: boolean // NOTE: if no amount input, pools not ready and pools not found will all return empty array. so have to use a flag to handle this case
   routeType?: RouteType
   fee?: CurrencyAmount[] // by SDK
   swapable?: boolean

@@ -105,6 +105,7 @@ function FarmHeader() {
 
 /** only mobile */
 function ToolsButton({ className }: { className?: string }) {
+  const currentTab = useFarms((s) => s.currentTab)
   return (
     <>
       <Popover placement="bottom-right">
@@ -122,7 +123,8 @@ function ToolsButton({ className }: { className?: string }) {
               <Grid className="grid-cols-1 items-center gap-2">
                 <FarmStakedOnlyBlock />
                 <FarmRefreshCircleBlock />
-                <FarmTimeBasisSelectorBox />
+                <FarmTimeBasisSelector />
+                {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
                 <FarmCreateFarmEntryBlock /> {/* TODO temp hide create farm entry in mobile */}
               </Grid>
             </Card>
@@ -259,7 +261,7 @@ function FarmTabBlock({ className }: { className?: string }) {
   )
 }
 
-function FarmTimeBasisSelectorBox({ className }: { className?: string }) {
+function FarmTimeBasisSelector({ className }: { className?: string }) {
   const timeBasis = useFarms((s) => s.timeBasis)
   return (
     <Select
@@ -269,7 +271,23 @@ function FarmTimeBasisSelectorBox({ className }: { className?: string }) {
       defaultValue={timeBasis}
       prefix="Time Basis:"
       onChange={(newSortKey) => {
-        useFarms.setState({ timeBasis: newSortKey ?? '7D' })
+        useFarms.setState({ timeBasis: newSortKey ?? timeBasis })
+      }}
+    />
+  )
+}
+
+function FarmRewardTokenTypeSelector({ className }: { className?: string }) {
+  const tokenType = useFarms((s) => s.tokenType)
+  return (
+    <Select
+      className={twMerge('z-20', className)}
+      candidateValues={['All', 'Standard SPL', 'Option tokens']}
+      localStorageKey="farm-reward-token-type"
+      defaultValue={tokenType}
+      prefix="Token Type:"
+      onChange={(newSortKey) => {
+        useFarms.setState({ tokenType: newSortKey ?? tokenType })
       }}
     />
   )
@@ -333,6 +351,7 @@ function FarmCard() {
   const hydratedInfos = useFarms((s) => s.hydratedInfos)
   const currentTab = useFarms((s) => s.currentTab)
   const onlySelfFarms = useFarms((s) => s.onlySelfFarms)
+  const tokenType = useFarms((s) => s.tokenType)
   const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   const searchText = useFarms((s) => s.searchText)
   const [favouriteIds] = useFarmFavoriteIds()
@@ -367,7 +386,16 @@ function FarmCard() {
         .filter((i) =>
           onlySelfFarms && isHydratedFarmInfo(i) ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true
         ) // Switch
-        .filter((i) => (i.version === 6 && onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)), // Switch
+        .filter((i) => (i.version === 6 && onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)) // Switch
+        .filter((i) =>
+          i.version === 6 && isHydratedFarmInfo(i)
+            ? tokenType === 'Option tokens'
+              ? i.rewards.some((r) => r.isOptionToken)
+              : tokenType === 'Standard SPL'
+              ? !i.rewards.some((r) => r.isOptionToken)
+              : true
+            : true
+        ), // token type (for option token)
     [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
   )
 
@@ -470,17 +498,18 @@ function FarmCard() {
           <div className="font-medium text-white text-lg">{farmCardTitleInfo.title}</div>
           {farmCardTitleInfo.tooltip && (
             <Tooltip>
-              <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+              <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
               <Tooltip.Panel className="max-w-[300px]">{farmCardTitleInfo.tooltip}</Tooltip.Panel>
             </Tooltip>
           )}
         </Row>
         <div className="font-medium text-[rgba(196,214,255,.5)] text-base ">{farmCardTitleInfo.description}</div>
       </div>
-      <Row className="items-stretch gap-6">
+      <Row className="grow flex-wrap justify-end items-stretch gap-6">
         {haveSelfCreatedFarm && <FarmSlefCreatedOnlyBlock />}
         <FarmStakedOnlyBlock />
-        <FarmTimeBasisSelectorBox />
+        {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
+        <FarmTimeBasisSelector />
         <FarmSearchBlock />
       </Row>
     </Row>
@@ -557,7 +586,7 @@ function FarmCard() {
           >
             Total APR {timeBasis}
             <Tooltip>
-              <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+              <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
               <Tooltip.Panel>
                 Estimated APR based on trading fees earned by the pool in the past {timeBasis}
               </Tooltip.Panel>
@@ -660,7 +689,7 @@ function FarmCardDatabaseBody({
 }
 
 // currently only SDKRewardInfo
-function FarmRewardBadge({
+function FarmPendingRewardBadge({
   farmInfo,
   reward
 }: {
@@ -675,9 +704,11 @@ function FarmRewardBadge({
   return (
     <Tooltip placement="bottom">
       <Row
-        className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
-          isRewarding ? '' : 'opacity-50'
-        } ${isRewardBeforeStart ? '' : ''}`}
+        className={`ring-1 ring-inset ${
+          isTokenAmount(reward) ? 'ring-[#abc4ff80]' : reward.isOptionToken ? 'ring-[#DA2EEF]' : 'ring-[#abc4ff80]'
+        } p-1 rounded-full items-center gap-2 overflow-hidden ${isRewarding ? '' : 'opacity-50'} ${
+          isRewardBeforeStart ? '' : ''
+        }`}
       >
         {gt(pendingAmount, 0.001) && (
           <div className="text-xs translate-y-0.125 pl-1">
@@ -745,7 +776,14 @@ function FarmCardDatabaseBodyCollapseItemFace({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const timeBasis = useFarms((s) => s.timeBasis)
-
+  const haveOptionToken = !isJsonFarmInfo(info) && info.rewards.some((reward) => reward.isOptionToken)
+  // time-based
+  const timeBasedTotalApr = isJsonFarmInfo(info)
+    ? undefined
+    : info[timeBasis === '24H' ? 'totalApr24h' : timeBasis === '30D' ? 'totalApr30d' : 'totalApr7d']
+  const timeBasedRaydiumFeeApr = isJsonFarmInfo(info)
+    ? undefined
+    : info[timeBasis === '24H' ? 'raydiumFeeApr24h' : timeBasis === '30D' ? 'raydiumFeeApr30d' : 'raydiumFeeApr7d']
   const pcCotent = (
     <Row
       type="grid-x"
@@ -786,16 +824,27 @@ function FarmCardDatabaseBodyCollapseItemFace({
         <TextInfoItem
           name="Pending Rewards"
           value={
-            <Row className="flex-wrap gap-2 w-full pr-8">
-              {isJsonFarmInfo(info)
-                ? '--'
-                : info.rewards.map((reward) => {
-                    return (
-                      <Fragment key={toPubString(reward.rewardVault)}>
-                        <FarmRewardBadge farmInfo={info} reward={reward} />
-                      </Fragment>
-                    )
-                  })}
+            <Row className="flex-wrap items-center gap-2 w-full pr-8">
+              {isJsonFarmInfo(info) ? (
+                '--'
+              ) : (
+                <>
+                  {info.rewards.map((reward) => (
+                    <Fragment key={toPubString(reward.rewardVault)}>
+                      <FarmPendingRewardBadge farmInfo={info} reward={reward} />
+                    </Fragment>
+                  ))}
+                  {haveOptionToken && (
+                    <Tooltip>
+                      <Badge cssColor="#DA2EEF">Option tokens</Badge>
+                      <Tooltip.Panel>
+                        Reward token is an option, check token metadata and with token project on how to redeem. APR may
+                        be inaccurate.
+                      </Tooltip.Panel>
+                    </Tooltip>
+                  )}
+                </>
+              )}
             </Row>
           }
         />
@@ -811,7 +860,10 @@ function FarmCardDatabaseBodyCollapseItemFace({
                       userHavedReward &&
                       token && (
                         <div key={toPubString(token?.mint)}>
-                          <FarmRewardBadge farmInfo={info} reward={userPendingReward ?? toTokenAmount(token, 0)} />
+                          <FarmPendingRewardBadge
+                            farmInfo={info}
+                            reward={userPendingReward ?? toTokenAmount(token, 0)}
+                          />
                         </div>
                       )
                   )}
@@ -826,57 +878,35 @@ function FarmCardDatabaseBodyCollapseItemFace({
         value={
           isJsonFarmInfo(info) ? (
             '--'
-          ) : timeBasis === '24H' ? (
-            <Tooltip placement="right">
-              {info.totalApr24h ? toPercentString(info.totalApr24h) : '--'}
-              <Tooltip.Panel>
-                {info.raydiumFeeApr24h && (
-                  <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeApr24h)}</div>
-                )}
-                {info.rewards.map(
-                  ({ apr, token, userHavedReward }, idx) =>
-                    userHavedReward && (
-                      <div key={idx} className="whitespace-nowrap">
-                        {token?.symbol} {toPercentString(apr)}
-                      </div>
-                    )
-                )}
-              </Tooltip.Panel>
-            </Tooltip>
-          ) : timeBasis == '30D' ? (
-            <Tooltip placement="right">
-              {info.totalApr30d ? toPercentString(info.totalApr30d) : '--'}
-              <Tooltip.Panel>
-                {info.raydiumFeeApr30d && (
-                  <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeApr30d)}</div>
-                )}
-                {info.rewards.map(
-                  ({ apr, token, userHavedReward }, idx) =>
-                    userHavedReward && (
-                      <div key={idx} className="whitespace-nowrap">
-                        {token?.symbol} {toPercentString(apr)}
-                      </div>
-                    )
-                )}
-              </Tooltip.Panel>
-            </Tooltip>
           ) : (
-            <Tooltip placement="right">
-              {info.totalApr7d ? toPercentString(info.totalApr7d) : '--'}
-              <Tooltip.Panel>
-                {info.raydiumFeeApr7d && (
-                  <div className="whitespace-nowrap">Fees {toPercentString(info.raydiumFeeApr7d)}</div>
-                )}
-                {info.rewards.map(
-                  ({ apr, token, userHavedReward }, idx) =>
-                    userHavedReward && (
-                      <div key={idx} className="whitespace-nowrap">
-                        {token?.symbol} {toPercentString(apr)}
-                      </div>
-                    )
-                )}
-              </Tooltip.Panel>
-            </Tooltip>
+            <Row className="items-center">
+              <Tooltip placement="right">
+                {timeBasedTotalApr ? toPercentString(timeBasedTotalApr) : '--'}
+                <Tooltip.Panel>
+                  {timeBasedRaydiumFeeApr && (
+                    <div className="whitespace-nowrap">Fees {toPercentString(timeBasedRaydiumFeeApr)}</div>
+                  )}
+                  {info.rewards.map(
+                    ({ apr, token, userHavedReward }, idx) =>
+                      userHavedReward && (
+                        <div key={idx} className="whitespace-nowrap">
+                          {token?.symbol} {toPercentString(apr)}
+                        </div>
+                      )
+                  )}
+                </Tooltip.Panel>
+              </Tooltip>
+              {haveOptionToken && (
+                <Tooltip placement="right">
+                  <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
+                  <Tooltip.Panel>
+                    <div className="max-w-[300px]">
+                      Options APR is an estimate and varies based on token market price and expected strike price.
+                    </div>
+                  </Tooltip.Panel>
+                </Tooltip>
+              )}
+            </Row>
           )
         }
       />

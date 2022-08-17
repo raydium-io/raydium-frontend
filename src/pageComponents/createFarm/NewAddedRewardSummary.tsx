@@ -3,6 +3,7 @@ import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFar
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { isUiRewardInfoEmpty, validateUiRewardInfo } from '@/application/createFarm/validateRewardInfo'
+import useWallet from '@/application/wallet/useWallet'
 import { Badge } from '@/components/Badge'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
@@ -14,6 +15,7 @@ import { getTime, toUTC } from '@/functions/date/dateFormat'
 import { TimeStamp } from '@/functions/date/interface'
 import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
+import toPubString from '@/functions/format/toMintString'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
@@ -34,6 +36,7 @@ export function NewAddedRewardSummary({
   activeReward?: UIRewardInfo
   onTryEdit?(reward: UIRewardInfo, active: boolean): void
 }) {
+  const owner = useWallet((s) => s.owner)
   const isMobile = useAppSettings((s) => s.isMobile)
   const rewards = useCreateFarms((s) => s.rewards)
   const editableRewards = rewards.filter((r) => r.type === 'existed reward')
@@ -45,11 +48,14 @@ export function NewAddedRewardSummary({
       type={isMobile ? 'item-card' : 'list-table'}
       className={isMobile ? 'gap-4' : ''}
       list={newReards}
-      getItemKey={(r) => getRewardSignature(r)}
+      getItemKey={(r) => getRewardSignature(r) + toPubString(owner)}
       labelMapper={[
         {
           label: 'Token',
           cssGridItemWidth: '.6fr'
+        },
+        {
+          label: 'Token Type'
         },
         {
           label: 'Amount'
@@ -85,7 +91,7 @@ export function NewAddedRewardSummary({
           return reward.token ? (
             <Col className="h-full justify-center gap-1">
               <Row className="gap-1 items-center">
-                <CoinAvatar token={reward.token} size="sm" />
+                <CoinAvatar isOptionToken={reward.isOptionToken} token={reward.token} size="sm" />
                 <div>{reward.token?.symbol ?? 'UNKNOWN'}</div>
               </Row>
               {(reward.isRewardEnded || reward.isRewardBeforeStart || reward.isRewarding) && (
@@ -97,7 +103,7 @@ export function NewAddedRewardSummary({
               )}
             </Col>
           ) : (
-            <div>--</div>
+            <div className={isEmpty ? '' : 'text-[#DA2EEF]'}>--</div>
           )
         }
 
@@ -110,6 +116,7 @@ export function NewAddedRewardSummary({
                   className={`grow break-all justify-center ${
                     !valid &&
                     !isEmpty &&
+                    reward.token &&
                     (invalidRewardProperties.includes('token-amount') || invalidRewardProperties.includes('emission'))
                       ? 'text-[#DA2EEF]'
                       : ''
@@ -118,6 +125,18 @@ export function NewAddedRewardSummary({
                   {reward.amount
                     ? formatNumber(reward.amount, { fractionLength: reward.token?.decimals ?? 6 })
                     : '(unset)'}
+                </Col>
+              )}
+            </Grid>
+          )
+        }
+
+        if (label === 'Token Type') {
+          return (
+            <Grid className={`h-full`}>
+              {isEmpty ? undefined : (
+                <Col className={`grow break-all justify-center`}>
+                  {reward.token ? (reward.isOptionToken ? 'Option tokens' : 'Standard SPL') : ''}
                 </Col>
               )}
             </Grid>

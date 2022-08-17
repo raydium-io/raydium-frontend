@@ -5,19 +5,7 @@ import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import { usePools } from '@/application/pools/usePools'
 import { WSOLMint } from '@/application/token/quantumSOL'
-import {
-  ANAMint,
-  ETHMint,
-  mSOLMint,
-  NRVMint,
-  PAIMint,
-  RAYMint,
-  SRMMint,
-  stSOLMint,
-  USDCMint,
-  USDHMint,
-  USDTMint
-} from '@/application/token/wellknownToken.config'
+import { routeMiddleMints } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
@@ -39,24 +27,8 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     assert(marketBufferInfo?.data, `can't find market ${txParam.marketId}`)
     const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
 
-    const avaliableQuoteMints = {
-      //TODO: actually just use getToken() is ok, this structure is build when getToken() is not ready
-      USDT: String(USDTMint),
-      USDC: String(USDCMint),
-      RAY: String(RAYMint),
-      WSOL: String(WSOLMint),
-      SRM: String(SRMMint),
-      PAI: String(PAIMint),
-      mSOL: String(mSOLMint),
-      stSOL: String(stSOLMint),
-      USDH: String(USDHMint),
-      NRV: String(NRVMint),
-      ANA: String(ANAMint),
-      ETH: String(ETHMint)
-    }
-
     assert(
-      Object.values(avaliableQuoteMints).includes(String(quoteMint)),
+      Object.values(routeMiddleMints).includes(String(quoteMint)),
       `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, NRV, ANA, ETH. current: ${toPubString(
         quoteMint
       ).slice(0, 4)}...${toPubString(quoteMint).slice(-4)} is not avaliable`

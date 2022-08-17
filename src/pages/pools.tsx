@@ -31,20 +31,20 @@ import Row from '@/components/Row'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
-import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
+import { addItem, removeItem } from '@/functions/arrayMethods'
+import { capitalize } from '@/functions/changeCase'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
-import useSort from '@/hooks/useSort'
-import { capitalize } from '@/functions/changeCase'
-import { isMintEqual } from '@/functions/judgers/areEqual'
 import useOnceEffect from '@/hooks/useOnceEffect'
+import useSort from '@/hooks/useSort'
 
 /**
  * store:
@@ -480,7 +480,7 @@ function PoolCard() {
         >
           APR {timeBasis}
           <Tooltip>
-            <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+            <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
             <Tooltip.Panel>
               Estimated APR based on trading fees earned by the pool in the past {timeBasis}
             </Tooltip.Panel>
@@ -558,7 +558,7 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedPairItemInfo
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
         <List.Item key={info.lpMint}>
-          <Collapse open={expandedPoolId === info.lpMint ? true : false}>
+          <Collapse open={expandedPoolId === info.ammId ? true : false}>
             <Collapse.Face>
               {(open) => (
                 <PoolCardDatabaseBodyCollapseItemFace

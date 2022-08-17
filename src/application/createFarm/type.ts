@@ -11,6 +11,7 @@ export type UIRewardInfo = {
   // rewardVault?: HexAddress // only existed reward may have this
 
   token?: SplToken
+  isOptionToken?: boolean
   amount?: Numberish
   startTime?: Date
   endTime?: Date

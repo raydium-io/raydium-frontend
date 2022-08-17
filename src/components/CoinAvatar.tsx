@@ -5,6 +5,7 @@ import { twMerge } from 'tailwind-merge'
 import { SplToken, Token } from '@/application/token/type'
 
 import Image from './Image'
+import Row from './Row'
 
 export interface CoinAvatarProps {
   /** the shadow transparent fondation border */
@@ -15,6 +16,7 @@ export interface CoinAvatarProps {
   /** this can be used replace prop: `iconSrc` */
   /** if not specific it will show a default  dollar icon  */
   token?: Token | SplToken
+  isOptionToken?: boolean
   // basic
   domRef?: RefObject<any>
   className?: string
@@ -30,6 +32,7 @@ export default function CoinAvatar({
 
   iconSrc,
   token,
+  isOptionToken,
 
   domRef,
   className,
@@ -63,7 +66,7 @@ export default function CoinAvatar({
     <div ref={domRef} className="CoinAvatar flex items-center gap-2" style={style} onClick={onClick}>
       {!haveAnime ? (
         <div
-          className={twMerge(`${iconSize} rounded-full overflow-hidden`, className)}
+          className={twMerge(`${iconSize} relative rounded-full`, className)}
           style={{
             background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.2) 28.69%, rgba(171, 196, 255, 0) 100%)'
           }}
@@ -75,6 +78,16 @@ export default function CoinAvatar({
             src={src}
             fallbackSrc="/coins/unknown.svg"
           />
+          {false && (
+            <Row className="items-center justify-center absolute top-0 left-[calc(100%-6px)] rounded-full bg-[#abc4ff]">
+              <div
+                className="text-[6px] text-[#1B1659] top-0 left-[calc(100%-6px)] rounded-full bg-[#abc4ff]"
+                style={{}}
+              >
+                opt
+              </div>
+            </Row>
+          )}
         </div>
       ) : (
         <div

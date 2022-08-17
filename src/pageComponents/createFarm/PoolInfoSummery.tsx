@@ -48,7 +48,7 @@ export function PoolInfoSummary() {
             <Row>
               <div>APR</div>
               <Tooltip>
-                <Icon className="ml-1" size="sm" heroIconName="question-mark-circle" />
+                <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
                 <Tooltip.Panel>
                   <div className="max-w-[300px]">
                     APR based on trading fees earned by the pool in the past 30D. Farming reward APR will be calculated
