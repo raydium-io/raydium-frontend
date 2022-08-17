@@ -304,7 +304,10 @@ export function RewardFormCardInputs({
                 <Tooltip>
                   <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
                   <Tooltip.Panel>
-                    <div className="max-w-[300px]">Refer to the token metadata to redeem an option reward.</div>
+                    <div className="max-w-[300px]">
+                      Most reward tokens are Standard SPL. Only select Options Token if the token is an option that must
+                      be redeemed.
+                    </div>
                   </Tooltip.Panel>
                 </Tooltip>
               </Row>

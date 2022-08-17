@@ -838,8 +838,8 @@ function FarmCardDatabaseBodyCollapseItemFace({
                     <Tooltip>
                       <Badge cssColor="#DA2EEF">Option tokens</Badge>
                       <Tooltip.Panel>
-                        the APR is an estimate and may vary based on the market price of the token and expected strike
-                        price
+                        Reward token is an option, check token metadata and with token project on how to redeem. APR may
+                        be inaccurate.
                       </Tooltip.Panel>
                     </Tooltip>
                   )}
@@ -901,8 +901,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
                   <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
                   <Tooltip.Panel>
                     <div className="max-w-[300px]">
-                      Reward token is an option and must be redeemed. APR may be inaccurate.{' '}
-                      {/* <Link href={`https://solscan.io/token/${publicKey}`}>Token info detail</Link> */}
+                      Options APR is an estimate and varies based on token market price and expected strike price.
                     </div>
                   </Tooltip.Panel>
                 </Tooltip>
