@@ -16,6 +16,7 @@ export type SelectProps<T extends string> = {
   faceClassName?: MayFunction<string, [{ open?: boolean }]>
   dropDownOpenedClassName?: MayFunction<string, [{ open?: boolean }]>
   candidateValues: (T | { label: string; value: T })[]
+  value?: T
   defaultValue?: T
   prefix?: ReactNode
   /** stable props */
@@ -32,6 +33,7 @@ export default function Select<T extends string>({
   faceClassName,
   dropDownOpenedClassName,
   candidateValues,
+  value,
   defaultValue,
   prefix,
   localStorageKey,
@@ -46,12 +48,16 @@ export default function Select<T extends string>({
 
   const [currentValue, setCurrentValue] = localStorageKey
     ? useLocalStorageItem(localStorageKey, {
-        defaultValue,
+        defaultValue: value ?? defaultValue,
         validateFn: (v) => Boolean(v) && parsedCandidateValues.includes(v!)
       })
-    : useState(defaultValue)
+    : useState(value ?? defaultValue)
 
   const isMobile = useAppSettings((s) => s.isMobile)
+
+  useEffect(() => {
+    if (value) setCurrentValue(value)
+  }, [value])
 
   useEffect(() => {
     onChange?.(currentValue)

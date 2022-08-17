@@ -19,7 +19,6 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
-import Select from '@/components/Select'
 import SelectBox from '@/components/SelectBox'
 import Tooltip from '@/components/Tooltip'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -298,7 +297,7 @@ export function RewardFormCardInputs({
             disabled={disableTokenTypeSelect}
             inputBoxClassName="w-1/3 shrink-0 mobile:w-full rounded-md px-4"
             candidateValues={['Standard SPL', 'Option tokens']}
-            defaultValue={'Standard SPL'}
+            value={reward.isOptionToken ? 'Option tokens' : 'Standard SPL'}
             label={
               <Row className="items-center">
                 <div>Token Type</div>
