@@ -25,6 +25,7 @@ import { Numberish } from '@/types/constants'
 import Tooltip from '@/components/Tooltip'
 import Button from '@/components/Button'
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import toPubString from '@/functions/format/toMintString'
 
 export function EditableRewardSummary({
   canUserEdit,
@@ -40,10 +41,10 @@ export function EditableRewardSummary({
   onClaimReward?(payload: { reward: UIRewardInfo; onTxSuccess?: () => void }): void
   onClaimAllReward?(payload: { rewards: UIRewardInfo[]; onTxSuccess?: () => void }): void
 }) {
-  const rewards = useCreateFarms((s) => s.rewards)
-  const isMobile = useAppSettings((s) => s.isMobile)
-  const editableRewards = rewards.filter((r) => r.type === 'existed reward')
   const owner = useWallet((s) => s.owner)
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const rewards = useCreateFarms((s) => s.rewards)
+  const editableRewards = rewards.filter((r) => r.type === 'existed reward')
   const isCreator = rewards.every((reward) => isMintEqual(owner, reward.owner))
   const existSomeClaimableRewards = rewards.some(
     (reward) =>
@@ -55,7 +56,7 @@ export function EditableRewardSummary({
         list={editableRewards}
         type={isMobile ? 'item-card' : 'list-table'}
         className={isMobile ? 'gap-4' : ''}
-        getItemKey={(r) => getRewardSignature(r)}
+        getItemKey={(r) => getRewardSignature(r) + toPubString(owner)}
         labelMapper={[
           {
             label: 'Token',
