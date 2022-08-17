@@ -53,7 +53,6 @@ export default function useInitBalanceRefresher() {
       pureBalances,
       pureRawBalances
     })
-    getUserTokenEvenNotExist
   }, [connection, tokenAccounts, nativeTokenAccount, getToken, owner])
 }
 

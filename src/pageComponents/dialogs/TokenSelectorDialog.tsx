@@ -197,7 +197,7 @@ function TokenSelectorDialogContent({
       decimals,
       icon: '',
       extensions: {},
-      name: symbol.slice(0, 12),
+      name: symbol.slice(0, 16),
       userAdded: true
     })
     addUserAddedToken(newToken)

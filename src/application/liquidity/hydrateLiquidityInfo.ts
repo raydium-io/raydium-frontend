@@ -4,6 +4,7 @@ import toFraction from '@/functions/numberish/toFraction'
 import { HexAddress } from '@/types/constants'
 import { TokenAmount } from '@raydium-io/raydium-sdk'
 
+import toPubString from '@/functions/format/toMintString'
 import toBN from '../../functions/numberish/toBN'
 import { LpToken, SplToken } from '../token/type'
 import { HydratedLiquidityInfo, SDKParsedLiquidityInfo } from './type'
@@ -16,9 +17,10 @@ export default function hydrateLiquidityInfo(
     lpBalance: BN | undefined
   }
 ): HydratedLiquidityInfo {
-  const lpToken = additionalTools.getLpToken(String(liquidityInfo.lpMint)) as SplToken | undefined
-  const baseToken = additionalTools.getToken(String(liquidityInfo.baseMint))
-  const quoteToken = additionalTools.getToken(String(liquidityInfo.quoteMint))
+  const lpToken = additionalTools.getLpToken(toPubString(liquidityInfo.lpMint)) as SplToken | undefined
+  const baseToken = additionalTools.getToken(toPubString(liquidityInfo.baseMint))
+  const quoteToken = additionalTools.getToken(toPubString(liquidityInfo.quoteMint))
+
   // lp
   const sharePercent = additionalTools.lpBalance
     ? toFraction(additionalTools.lpBalance).div(toFraction(liquidityInfo.lpSupply))

@@ -765,20 +765,9 @@ function UserLiquidityExhibition() {
     return percent.mul(new BN(100)).toFixed(2) + '%'
   }
 
-  const exhibitionRawInfos = useMemo(
+  const exhibitionInfos = useMemo(
     () => hydratedInfos.filter(({ id }) => userExhibitionLiquidityIds?.includes(toPubString(id))),
     [hydratedInfos, userExhibitionLiquidityIds]
-  )
-
-  const exhibitionInfos = useAsyncValue(
-    () =>
-      asyncMap(exhibitionRawInfos, async (i) => ({
-        ...i,
-        baseToken: await getUserTokenEvenNotExist(i.baseMint),
-        quoteToken: await getUserTokenEvenNotExist(i.quoteMint)
-      })),
-    exhibitionRawInfos,
-    [exhibitionRawInfos.length]
   )
 
   return (
