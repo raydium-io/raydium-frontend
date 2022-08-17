@@ -146,7 +146,8 @@ export default async function txCreateNewFarm(
               rewardOpenTime: toBN(reward.rewardOpenTime).toNumber(),
               rewardEndTime: toBN(reward.rewardEndTime).toNumber(),
               rewardPerSecond: toBN(reward.rewardPerSecond).toNumber(),
-              rewardVault
+              rewardVault,
+              rewardType: reward.rewardType
             }
           })
         } as FarmPoolJsonInfo

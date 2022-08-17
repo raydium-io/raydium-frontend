@@ -830,7 +830,10 @@ function FarmCardDatabaseBodyCollapseItemFace({
                   {info.rewards.some((reward) => reward.isOptionToken) && (
                     <Tooltip>
                       <Badge cssColor="#DA2EEF">Option tokens</Badge>
-                      <Tooltip.Panel>test option tokens</Tooltip.Panel>
+                      <Tooltip.Panel>
+                        the APR is an estimate and may vary based on the market price of the token and expected strike
+                        price
+                      </Tooltip.Panel>
                     </Tooltip>
                   )}
                 </>
