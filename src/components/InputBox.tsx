@@ -1,13 +1,13 @@
-import React, { ReactNode, RefObject, useRef } from 'react'
+import { ReactNode, RefObject, useRef } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
 import { shrinkToValue } from '@/functions/shrinkToValue'
 
-import Col from './Col'
-import Input, { InputProps } from './Input'
 import mergeRef from '@/functions/react/mergeRef'
+import Col from './Col'
 import DecimalInput, { DecimalInputProps } from './DecimalInput'
+import Input, { InputProps } from './Input'
 
 export type InputBoxProps = {
   className?: string
@@ -16,7 +16,7 @@ export type InputBoxProps = {
   disabled?: boolean
   noDisableStyle?: boolean
 
-  label?: string
+  label?: ReactNode
   labelClassName?: string
 
   onEnter?: InputProps['onEnter']
@@ -50,7 +50,7 @@ export default function InputBox({
     <Col
       onClick={focusInput}
       className={twMerge(
-        `bg-[#141041] rounded-xl mobile:rounded-lg py-3 px-6 mobile:py-2 mobile:px-4 cursor-text ${
+        `bg-[#141041] justify-between rounded-xl mobile:rounded-lg py-3 px-6 mobile:py-2 mobile:px-4 cursor-text ${
           disabled && !noDisableStyle ? 'pointer-events-none-entirely cursor-default opacity-50' : ''
         }`,
         className

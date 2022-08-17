@@ -67,7 +67,8 @@ export default async function txCreateNewFarm(
           rewardOpenTime: toBN(div(startTimestamp, 1000)),
           rewardEndTime: toBN(div(endTimestamp, 1000)),
           rewardMint: rewardToken.id === 'sol' ? SOLMint : rewardToken.mint, // NOTE: start from RUDY, sol's mint is 11111111111111
-          rewardPerSecond: perSecondReward
+          rewardPerSecond: perSecondReward,
+          rewardType: reward.isOptionToken ? 'Option tokens' : 'Standard SPL'
         }
       })
       const lockMint = '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R' // NOTE: test
@@ -141,13 +142,12 @@ export default async function txCreateNewFarm(
               })
             )
             return {
-              ...reward,
               rewardMint: toPubString(reward.rewardMint),
               rewardOpenTime: toBN(reward.rewardOpenTime).toNumber(),
               rewardEndTime: toBN(reward.rewardEndTime).toNumber(),
               rewardPerSecond: toBN(reward.rewardPerSecond).toNumber(),
               rewardVault,
-              rewardSender: toPubString(owner)
+              rewardType: reward.rewardType
             }
           })
         } as FarmPoolJsonInfo

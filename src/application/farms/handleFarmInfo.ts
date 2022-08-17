@@ -9,6 +9,7 @@ import { DateParam, offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import jFetch from '@/functions/dom/jFetch'
 import { getLocalItem } from '@/functions/dom/jStorage'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -147,7 +148,7 @@ export function hydrateFarmInfo(
   const rewards: HydratedFarmInfo['rewards'] =
     farmInfo.version === 6
       ? shakeUndifindedItem(
-          farmInfo.state.rewardInfos.map((rewardInfo, idx) => {
+          farmInfo.state.rewardInfos.map((rewardInfo, idx, rewardInfos) => {
             const { rewardOpenTime: openTime, rewardEndTime: endTime, rewardPerSecond } = rewardInfo
             // ------------ reward time -----------------
             const rewardOpenTime = openTime.toNumber()
@@ -189,6 +190,7 @@ export function hydrateFarmInfo(
               perSecond: token && toString(toTokenAmount(token, rewardPerSecond)),
               openTime: rewardOpenTime,
               endTime: rewardEndTime,
+              isOptionToken: rewardInfo.rewardType === 'Option tokens',
               isRewardBeforeStart,
               isRewardEnded,
               isRewarding,
