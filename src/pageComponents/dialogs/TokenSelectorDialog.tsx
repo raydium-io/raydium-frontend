@@ -1,5 +1,5 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useConnection from '@/application/connection/useConnection'
+import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
 import {
   isQuantumSOL,
   isQuantumSOLVersionSOL,
@@ -25,13 +25,11 @@ import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import Switcher from '@/components/Switcher'
 import toPubString from '@/functions/format/toMintString'
+import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
-import { PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
-import { PublicKey } from '@solana/web3.js'
+import { PublicKeyish } from '@raydium-io/raydium-sdk'
 import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
-import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
-import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -148,7 +146,7 @@ function TokenSelectorDialogContent({
   // some keyboard (arrow up/down / mouse hover) will change the selected index
   const [selectedTokenIdx, setSelectedTokenIdx] = useState(0)
 
-  const userCustomizedTokenSymbol = useRef('')
+  const [userCustomizedTokenSymbol, setUserCustomizedTokenSymbol] = useState('')
 
   const cachedTokenList = useMemo(
     // cache for react useDeferredValue
@@ -186,7 +184,24 @@ function TokenSelectorDialogContent({
     ),
     [searchedTokens, selectedTokenIdx, onSelectCoin, closeAndClean, setSelectedTokenIdx]
   )
+  const connected = useWallet((s) => s.connected)
 
+  const recordUserAddedToken = (symbol: string): void => {
+    if (!symbol) return
+    const { addUserAddedToken } = useToken.getState()
+    const decimals = onlineTokenMintInfo?.decimals
+    if (!decimals) return
+    const newToken = createSplToken({
+      mint: searchText,
+      symbol: symbol.slice(0, 8),
+      decimals,
+      icon: '',
+      extensions: {},
+      name: symbol.slice(0, 12),
+      userAdded: true
+    })
+    addUserAddedToken(newToken)
+  }
   return (
     <Card
       className="flex flex-col rounded-3xl mobile:rounded-none w-[min(468px,100vw)] mobile:w-full h-[min(680px,100vh)] mobile:h-screen border-1.5 border-[rgba(99,130,202,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
@@ -294,38 +309,25 @@ function TokenSelectorDialogContent({
               <Col className="p-8  gap-4">
                 <InputBox
                   label="input a name for this token"
-                  onUserInput={(text) => {
-                    userCustomizedTokenSymbol.current = text
-                  }}
-                  onEnter={(text) => {
-                    const { addUserAddedToken } = useToken.getState()
-                    const newToken = createSplToken({
-                      mint: searchText,
-                      symbol: text,
-                      decimals: onlineTokenMintInfo.decimals,
-                      icon: '',
-                      extensions: {},
-                      name: text,
-                      userAdded: true
-                    })
-                    addUserAddedToken(newToken)
-                  }}
+                  onUserInput={setUserCustomizedTokenSymbol}
+                  onEnter={recordUserAddedToken}
                 />
                 <Button
                   className="frosted-glass-teal"
                   onClick={() => {
-                    const { addUserAddedToken } = useToken.getState()
-                    const newToken = createSplToken({
-                      mint: searchText,
-                      symbol: userCustomizedTokenSymbol.current,
-                      decimals: onlineTokenMintInfo.decimals,
-                      icon: '',
-                      extensions: {},
-                      name: userCustomizedTokenSymbol.current,
-                      userAdded: true
-                    })
-                    addUserAddedToken(newToken)
+                    recordUserAddedToken(userCustomizedTokenSymbol)
                   }}
+                  validators={[
+                    {
+                      should: connected,
+                      forceActive: true,
+                      fallbackProps: {
+                        onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                        children: 'Connect Wallet'
+                      }
+                    },
+                    { should: userCustomizedTokenSymbol }
+                  ]}
                 >
                   Add User Token
                 </Button>
