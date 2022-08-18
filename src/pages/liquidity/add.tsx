@@ -371,7 +371,7 @@ function LiquidityCard() {
         />
       </>
       {/* info panel */}
-      <FadeIn>{hasFoundLiquidityPool && <LiquidityCardInfo className="mt-5" />}</FadeIn>
+      <FadeIn>{hasFoundLiquidityPool && coin1 && coin2 && <LiquidityCardInfo className="mt-5" />}</FadeIn>
 
       {/* confirm panel */}
       {needConfirmPanel && connected && (
@@ -446,13 +446,13 @@ function LiquidityCard() {
             useLiquidity.setState({ coin1: token })
             // delete other
             if (!canTokenPairBeSelected(token, coin2)) {
-              useLiquidity.setState({ coin2: undefined })
+              useLiquidity.setState({ coin2: undefined, coin2Amount: '', unslippagedCoin2Amount: '' })
             }
           } else {
             // delete other
             useLiquidity.setState({ coin2: token })
             if (!canTokenPairBeSelected(token, coin1)) {
-              useLiquidity.setState({ coin1: undefined })
+              useLiquidity.setState({ coin1: undefined, coin1Amount: '', unslippagedCoin1Amount: '' })
             }
           }
           turnOffCoinSelector()

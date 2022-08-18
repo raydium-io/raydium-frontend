@@ -248,7 +248,7 @@ async function calculatePairTokenAmount({
       routes,
       routeType,
       swapable,
-      canFindPools: canFindPools,
+      canFindPools,
       fee,
       info: {
         amountOut: toUITokenAmount(amountOut).toExact(),
