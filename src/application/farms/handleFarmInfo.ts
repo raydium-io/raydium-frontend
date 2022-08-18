@@ -53,7 +53,9 @@ export const EXTEND_BEFORE_END_SECOND = 72 * 60 * 60 // test
 export const EXTEND_BEFORE_END = EXTEND_BEFORE_END_SECOND * 1000
 
 export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefined> {
-  const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json')
+  const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
+    cacheFreshTime: 5 * 60 * 1000
+  })
   if (!result) return undefined
   const stakeFarmInfoList = result.stake.map((i) => ({ ...i, category: 'stake' })) ?? []
   const raydiumFarmInfoList = result.raydium.map((i) => ({ ...i, category: 'raydium' })) ?? []

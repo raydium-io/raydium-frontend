@@ -39,7 +39,9 @@ export default function usePoolsInfoLoader() {
   const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
 
   const fetchPairs = async () => {
-    const pairJsonInfo = await jFetch<JsonPairItemInfo[]>('https://api.raydium.io/v2/main/pairs')
+    const pairJsonInfo = await jFetch<JsonPairItemInfo[]>('https://api.raydium.io/v2/main/pairs', {
+      cacheFreshTime: 5 * 60 * 1000
+    })
     if (!pairJsonInfo) return
     usePools.setState({ jsonInfos: pairJsonInfo.filter(({ name }) => !name.includes('unknown')) })
   }
