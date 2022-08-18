@@ -23,7 +23,7 @@ import { useDebugValue, useEffect } from 'react'
 import useWallet from '../wallet/useWallet'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { toString } from '@/functions/numberish/toString'
-import { eq } from '@/functions/numberish/compare'
+import { eq, gt } from '@/functions/numberish/compare'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { checkTokenPairCanSwap } from './check'
 
@@ -238,8 +238,11 @@ async function calculatePairTokenAmount({
     const choosedSdkParsedInfos = shakeUndifindedItem(
       routes.map((route) => sdkParsedInfoMap.get(toPubString(route.keys.id)))
     )
-    const swapable =
-      choosedSdkParsedInfos.length > 0 && choosedSdkParsedInfos.every((info) => Liquidity.getEnabledFeatures(info).swap)
+    const haveAmount = gt(upCoinAmount, 0) || gt(downCoinAmount, 0)
+    const swapable = haveAmount
+      ? choosedSdkParsedInfos.length > 0 &&
+        choosedSdkParsedInfos.every((info) => Liquidity.getEnabledFeatures(info).swap)
+      : true
     const canFindPools = checkTokenPairCanSwap(useLiquidity.getState().jsonInfos, upCoin.mint, downCoin.mint)
     return {
       executionPrice,
