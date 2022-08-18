@@ -39,6 +39,7 @@ import useToggle from '@/hooks/useToggle'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress } from '@/types/constants'
+import Grid from '@/components/Grid'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -250,11 +251,7 @@ function ConcentratedCard() {
 
         {/* swap button */}
         <div className="relative h-8 my-4">
-          <Row
-            className={`absolute h-full items-center transition-all ${
-              hasHydratedLiquidityPool ? 'left-4' : 'left-1/2 -translate-x-1/2'
-            }`}
-          >
+          <Row className={`absolute h-full items-center transition-all ${'left-1/2 -translate-x-1/2'}`}>
             <Icon heroIconName="plus" className="p-1 text-[#39D0D8]" />
             {/* <FadeIn>{hasHydratedLiquidityPool && <LiquidityCardPriceIndicator className="w-max" />}</FadeIn> */}
           </Row>
@@ -308,8 +305,11 @@ function ConcentratedCard() {
           token={coin2}
         />
       </>
-      {/* info panel */}
-      <FadeIn>{hasFoundLiquidityPool && coin1 && coin2 && <ConcentratedCardInfo className="mt-5" />}</FadeIn>
+      {/* <FadeIn>{hasFoundLiquidityPool && coin1 && coin2 && <ConcentratedFeeSwitcher className="mt-5" />}</FadeIn> */}
+
+      <ConcentratedFeeSwitcher className="my-5" />
+
+      <ConcentratedChartForm className="mt-5" />
 
       {/* supply button */}
       <Button
@@ -502,7 +502,70 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
   }
 }
 
-function ConcentratedCardInfo({ className }: { className?: string }) {
+function ConcentratedFeeSwitcher({ className }: { className?: string }) {
+  const currentHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
+  const coin1 = useLiquidity((s) => s.coin1)
+  const coin2 = useLiquidity((s) => s.coin2)
+  const focusSide = useLiquidity((s) => s.focusSide)
+  const coin1Amount = useLiquidity((s) => s.coin1Amount)
+  const coin2Amount = useLiquidity((s) => s.coin2Amount)
+  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
+
+  const isCoin1Base = String(currentHydratedInfo?.baseMint) === String(coin1?.mint)
+
+  const coinBase = isCoin1Base ? coin1 : coin2
+  const coinQuote = isCoin1Base ? coin2 : coin1
+
+  const pooledBaseTokenAmount = currentHydratedInfo?.baseToken
+    ? toTokenAmount(currentHydratedInfo.baseToken, currentHydratedInfo.baseReserve)
+    : undefined
+  const pooledQuoteTokenAmount = currentHydratedInfo?.quoteToken
+    ? toTokenAmount(currentHydratedInfo.quoteToken, currentHydratedInfo.quoteReserve)
+    : undefined
+
+  const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
+
+  return (
+    <Collapse className={twMerge('bg-[#abc4ff1a] rounded-xl', className)}>
+      <Collapse.Face>{(open) => <ConcentratedFeeSwitcherFace open={open} />}</Collapse.Face>
+      <Collapse.Body>
+        <ConcentratedFeeSwitcherContent />
+      </Collapse.Body>
+    </Collapse>
+  )
+}
+
+function ConcentratedFeeSwitcherFace({ open }: { open: boolean }) {
+  return (
+    <Row className={`py-5 px-8 mobile:py-4 mobile:px-5 gap-2 items-stretch`}>
+      <div className="grow">0.3% fee tier</div>
+      <Grid className="w-6 h-6 place-items-center self-center">
+        <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />
+      </Grid>
+    </Row>
+  )
+}
+
+function ConcentratedFeeSwitcherContent() {
+  const fees = [
+    { id: 'hello', label: 'hello' },
+    { id: 'world', label: 'world ' }
+  ]
+  return (
+    <Row className="p-4 gap-4">
+      {fees.map((fee) => (
+        <div
+          key={fee.id}
+          className="grow py-5 px-8 mobile:py-4 mobile:px-5 gap-2 items-stretch ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-xl"
+        >
+          {fee.label}
+        </div>
+      ))}
+    </Row>
+  )
+}
+
+function ConcentratedChartForm({ className }: { className?: string }) {
   const currentHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
   const coin1 = useLiquidity((s) => s.coin1)
   const coin2 = useLiquidity((s) => s.coin2)
