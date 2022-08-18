@@ -1,28 +1,18 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-import { Percent } from '@raydium-io/raydium-sdk'
-
-import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useFarms from '@/application/farms/useFarms'
 import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
 import useLiquidity from '@/application/liquidity/useLiquidity'
-import useLiquidityAmmSelector from '@/application/liquidity/useLiquidityAmmSelector'
-import useLiquidityAmountCalculator from '@/application/liquidity/useLiquidityAmountCalculator'
-import useLiquidityInitCoinFiller from '@/application/liquidity/useLiquidityInitCoinFiller'
-import useLiquidityUrlParser from '@/application/liquidity/useLiquidityUrlParser'
 import { routeTo } from '@/application/routeTools'
-import { SOL_BASE_BALANCE, SOLDecimals } from '@/application/token/quantumSOL'
+import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
-import Card from '@/components/Card'
-import CoinAvatarPair from '@/components/CoinAvatarPair'
+import { Checkbox } from '@/components/Checkbox'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
@@ -31,7 +21,6 @@ import { FadeIn } from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Link from '@/components/Link'
-import List from '@/components/List'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
@@ -39,63 +28,56 @@ import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, unifyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
-import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import { objectShakeFalsy } from '@/functions/objectMethods'
 import createContextStore from '@/functions/react/createContextStore'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useToggle from '@/hooks/useToggle'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
+import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress } from '@/types/constants'
 
-import { Checkbox } from '../../components/Checkbox'
-import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
-import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
-
-const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
+const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
   coinInputBox1ComponentRef: createRef<CoinInputBoxHandle>(),
   coinInputBox2ComponentRef: createRef<CoinInputBoxHandle>(),
   liquidityButtonComponentRef: createRef<ButtonHandle>()
 })
 
-export default function Liquidity() {
+export default function Concentrated() {
   return (
-    <LiquidityUIContextProvider>
-      <LiquidityEffect />
-      <PageLayout mobileBarTitle="Liquidity" metaTitle="Liquidity - Raydium">
-        <LiquidityPageHead />
-        <LiquidityCard />
-        <UserLiquidityExhibition />
-        <CreatePoolCardEntry />
+    <ConcentratedUIContextProvider>
+      <ConcentratedEffect />
+      <PageLayout mobileBarTitle="Concentrated" metaTitle="Concentrated - Raydium">
+        <ConcentratedPageHead />
+        <ConcentratedCard />
       </PageLayout>
-    </LiquidityUIContextProvider>
+    </ConcentratedUIContextProvider>
   )
 }
 
-function LiquidityEffect() {
-  useLiquidityUrlParser()
-  useLiquidityInitCoinFiller()
-  useLiquidityAmmSelector()
+function ConcentratedEffect() {
+  // useLiquidityUrlParser()
+  // useLiquidityInitCoinFiller()
+  // useLiquidityAmmSelector()
   //  auto fresh  liquidity's coin1Amount and coin2Amount
-  useLiquidityAmountCalculator()
+  // useLiquidityAmountCalculator()
   return null
 }
 
 // const availableTabValues = ['Swap', 'Liquidity'] as const
-function LiquidityPageHead() {
+function ConcentratedPageHead() {
   return (
     <Row className="mb-12 mobile:mb-2 self-center">
       <RowTabs
-        currentValue={'Liquidity'}
+        currentValue={'Concentrated'}
         values={['Swap', 'Liquidity', 'Concentrated']}
         onChange={(newTab) => {
           if (newTab === 'Swap') routeTo('/swap')
-          else if (newTab === 'Concentrated') routeTo('/liquidity/concentrated')
+          else if (newTab === 'Liquidity') routeTo('/liquidity/add')
         }}
       />
     </Row>
@@ -175,49 +157,7 @@ function useLiquidityWarning() {
   }
 }
 
-function ConfirmRiskPanel({
-  className,
-  temporarilyConfirm,
-  permanentlyConfirm,
-  onTemporarilyConfirm,
-  onPermanentlyConfirm
-}: {
-  className?: string
-  temporarilyConfirm?: boolean
-  permanentlyConfirm?: boolean
-  onTemporarilyConfirm?: (checkState: boolean) => void
-  onPermanentlyConfirm?: (checkState: boolean) => void
-}) {
-  return (
-    <div className={twMerge('bg-[#141041] rounded-xl py-3 px-6 mobile:px-4', className)}>
-      <div className="text-sm">
-        I have read{' '}
-        <Link href="https://raydium.gitbook.io/raydium/exchange-trade-and-swap/liquidity-pools">
-          Raydium's Liquidity Guide
-        </Link>{' '}
-        and understand the risks involved with providing liquidity and impermanent loss.
-      </div>
-
-      <Checkbox
-        checkBoxSize="sm"
-        className="my-2 w-max"
-        checked={temporarilyConfirm}
-        onChange={onTemporarilyConfirm}
-        label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Confirm</div>}
-      />
-
-      <Checkbox
-        checkBoxSize="sm"
-        className="my-2 w-max"
-        checked={permanentlyConfirm}
-        onChange={onPermanentlyConfirm}
-        label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Do not warn again for this pool</div>}
-      />
-    </div>
-  )
-}
-
-function LiquidityCard() {
+function ConcentratedCard() {
   const { connected, owner } = useWallet()
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
@@ -316,7 +256,7 @@ function LiquidityCard() {
             }`}
           >
             <Icon heroIconName="plus" className="p-1 text-[#39D0D8]" />
-            <FadeIn>{hasHydratedLiquidityPool && <LiquidityCardPriceIndicator className="w-max" />}</FadeIn>
+            {/* <FadeIn>{hasHydratedLiquidityPool && <LiquidityCardPriceIndicator className="w-max" />}</FadeIn> */}
           </Row>
           <Row className="absolute right-0 items-center">
             <Icon
@@ -369,18 +309,8 @@ function LiquidityCard() {
         />
       </>
       {/* info panel */}
-      <FadeIn>{hasFoundLiquidityPool && coin1 && coin2 && <LiquidityCardInfo className="mt-5" />}</FadeIn>
+      <FadeIn>{hasFoundLiquidityPool && coin1 && coin2 && <ConcentratedCardInfo className="mt-5" />}</FadeIn>
 
-      {/* confirm panel */}
-      {needConfirmPanel && connected && (
-        <ConfirmRiskPanel
-          className="mt-5"
-          temporarilyConfirm={hasUserTemporaryConfirmed}
-          permanentlyConfirm={hasUserPermanentConfirmed}
-          onTemporarilyConfirm={toggleTemporarilyConfirm}
-          onPermanentlyConfirm={togglePermanentlyConfirm}
-        />
-      )}
       {/* supply button */}
       <Button
         className="frosted-glass-teal w-full mt-5"
@@ -572,7 +502,7 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
   }
 }
 
-function LiquidityCardInfo({ className }: { className?: string }) {
+function ConcentratedCardInfo({ className }: { className?: string }) {
   const currentHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
   const coin1 = useLiquidity((s) => s.coin1)
   const coin2 = useLiquidity((s) => s.coin2)
@@ -603,13 +533,13 @@ function LiquidityCardInfo({ className }: { className?: string }) {
       )}
     >
       <Col className="w-full">
-        <LiquidityCardItem
+        <ConcentratedCardItem
           fieldName={`Base`}
           fieldValue={focusSide === 'coin1' ? coin1?.symbol ?? 'unknown' : coin2?.symbol ?? 'unknown'}
         />
         <FadeIn>
           {(coin1Amount || coin2Amount) && (
-            <LiquidityCardItem
+            <ConcentratedCardItem
               fieldName="Max Amount"
               fieldValue={`${formatNumber(focusSide === 'coin1' ? coin2Amount || '' : coin1Amount ?? '', {
                 fractionLength: 'auto'
@@ -617,7 +547,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
             />
           )}
         </FadeIn>
-        <LiquidityCardItem
+        <ConcentratedCardItem
           fieldName={`Pool liquidity (${coinBase?.symbol ?? 'unknown'})`}
           fieldValue={
             <div>
@@ -627,7 +557,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
             </div>
           }
         />
-        <LiquidityCardItem
+        <ConcentratedCardItem
           fieldName={`Pool liquidity (${coinQuote?.symbol ?? 'unknown'})`}
           fieldValue={
             <div>
@@ -637,7 +567,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
             </div>
           }
         />
-        <LiquidityCardItem
+        <ConcentratedCardItem
           fieldName="LP supply"
           fieldValue={
             <Row className="items-center gap-2">
@@ -655,8 +585,8 @@ function LiquidityCardInfo({ className }: { className?: string }) {
         <Collapse openDirection="upwards" className="w-full">
           <Collapse.Body>
             <Col>
-              <LiquidityCardItem fieldName="Addresses" tooltipContent={<LiquidityCardTooltipPanelAddress />} />
-              <LiquidityCardItem
+              <ConcentratedCardItem fieldName="Addresses" tooltipContent={<ConcentratedCardTooltipPanelAddress />} />
+              <ConcentratedCardItem
                 fieldName="Slippage Tolerance"
                 fieldValue={
                   <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs -my-1">
@@ -689,7 +619,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
     </Col>
   )
 }
-function LiquidityCardItem({
+function ConcentratedCardItem({
   className,
   fieldName,
   fieldValue,
@@ -719,7 +649,7 @@ function LiquidityCardItem({
   )
 }
 
-function LiquidityCardTooltipPanelAddress() {
+function ConcentratedCardTooltipPanelAddress() {
   const coin1 = useLiquidity((s) => s.coin1)
   const coin2 = useLiquidity((s) => s.coin2)
   const { lpMint, id, marketId } = useLiquidity((s) => s.currentJsonInfo) ?? {}
@@ -773,204 +703,5 @@ function LiquidityCardTooltipPanelAddressItem({
         {address}
       </AddressItem>
     </Row>
-  )
-}
-
-function UserLiquidityExhibition() {
-  const hydratedInfos = useLiquidity((s) => s.hydratedInfos)
-  const userExhibitionLiquidityIds = useLiquidity((s) => s.userExhibitionLiquidityIds)
-  const isRemoveDialogOpen = useLiquidity((s) => s.isRemoveDialogOpen)
-  const scrollToInputBox = useLiquidity((s) => s.scrollToInputBox)
-  const farmPoolsList = useFarms((s) => s.hydratedInfos)
-  const getToken = useToken((s) => s.getToken)
-
-  const balances = useWallet((s) => s.balances)
-  const rawBalances = useWallet((s) => s.rawBalances)
-  const isMobile = useAppSettings((s) => s.isMobile)
-
-  const computeSharePercentValue = (percent: Percent | undefined) => {
-    if (!percent) return '--%'
-    if (percent.numerator.mul(new BN(10000)).div(percent.denominator).lt(new BN(1))) return '<0.01%'
-    return percent.mul(new BN(100)).toFixed(2) + '%'
-  }
-
-  const exhibitionInfos = useMemo(
-    () => hydratedInfos.filter(({ id }) => userExhibitionLiquidityIds?.includes(String(id))),
-    [hydratedInfos, userExhibitionLiquidityIds]
-  )
-  return (
-    <div className="mt-12 max-w-[456px] self-center">
-      <div className="mb-6 text-xl font-medium text-white">Your Liquidity</div>
-      <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
-        <List className={`flex flex-col gap-6 mobile:gap-5 ${exhibitionInfos.length ? 'mb-5' : ''}`}>
-          {exhibitionInfos.map((info, idx) => {
-            return (
-              <List.Item key={idx}>
-                <FadeIn>
-                  <Collapse className="ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl">
-                    <Collapse.Face>
-                      {(open) => (
-                        <Row className="items-center justify-between py-4 px-6 mobile:px-4">
-                          <Row className="gap-2 items-center">
-                            <CoinAvatarPair
-                              className="justify-self-center"
-                              token1={info.baseToken}
-                              token2={info.quoteToken}
-                              size={isMobile ? 'sm' : 'md'}
-                            />
-                            <div className="text-base font-normal text-[#abc4ff]">
-                              {info.baseToken?.symbol ?? ''}/{info.quoteToken?.symbol ?? ''}
-                            </div>
-                          </Row>
-                          <Icon
-                            size="sm"
-                            className="text-[#abc4ff]"
-                            heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`}
-                          />
-                        </Row>
-                      )}
-                    </Collapse.Face>
-                    <Collapse.Body>
-                      <div className="pb-4 px-6 mobile:px-4">
-                        <Col className="border-t-1.5 border-[rgba(171,196,255,.5)] py-5 gap-3 ">
-                          <Row className="justify-between">
-                            <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Base)</div>
-                            <div className="text-xs mobile:text-2xs font-medium text-white">
-                              {toString(info.userBasePooled) || '--'} {info.baseToken?.symbol}
-                            </div>
-                          </Row>
-                          <Row className="justify-between">
-                            <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Quote)</div>
-                            <div className="text-xs mobile:text-2xs font-medium text-white">
-                              {toString(info.userQuotePooled) || '--'} {info.quoteToken?.symbol}
-                            </div>
-                          </Row>
-                          <Row className="justify-between">
-                            <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Your Liquidity</div>
-                            <div className="text-xs mobile:text-2xs font-medium text-white">
-                              {info.lpMint
-                                ? toString(div(rawBalances[String(info.lpMint)], 10 ** info.lpDecimals), {
-                                    decimalLength: `auto ${info.lpDecimals}`
-                                  })
-                                : '--'}{' '}
-                              LP
-                            </div>
-                          </Row>
-                          <Row className="justify-between">
-                            <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Your share</div>
-                            <div className="text-xs mobile:text-2xs font-medium text-white">
-                              {computeSharePercentValue(info.sharePercent)}
-                            </div>
-                          </Row>
-                        </Col>
-                        <Row className="gap-4 mb-1">
-                          <Button
-                            className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
-                            onClick={() => {
-                              useLiquidity.setState({
-                                currentJsonInfo: info.jsonInfo
-                              })
-                              scrollToInputBox()
-                            }}
-                          >
-                            Add Liquidity
-                          </Button>
-                          <Tooltip>
-                            <Icon
-                              size="smi"
-                              iconSrc="/icons/pools-pool-entry.svg"
-                              className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable-filter-effect clickable`}
-                              onClick={() => {
-                                routeTo('/pools', {
-                                  queryProps: objectShakeFalsy({
-                                    expandedPoolId: toPubString(info.id),
-                                    searchText: toPubString(info.id)
-                                  })
-                                })
-                              }}
-                            />
-                            <Tooltip.Panel>Pool</Tooltip.Panel>
-                          </Tooltip>
-                          <Tooltip>
-                            <Icon
-                              iconSrc="/icons/msic-swap-h.svg"
-                              size="smi"
-                              className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
-                              onClick={() => {
-                                routeTo('/swap', {
-                                  queryProps: {
-                                    coin1: info.baseToken,
-                                    coin2: info.quoteToken
-                                  }
-                                })
-                              }}
-                            />
-                            <Tooltip.Panel>Swap</Tooltip.Panel>
-                          </Tooltip>
-                          <Tooltip>
-                            <Icon
-                              size="smi"
-                              iconSrc="/icons/pools-remove-liquidity-entry.svg"
-                              className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect`}
-                              onClick={() => {
-                                useLiquidity.setState({ currentJsonInfo: info.jsonInfo, isRemoveDialogOpen: true })
-                              }}
-                            />
-                            <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>
-                          </Tooltip>
-                        </Row>
-                      </div>
-                    </Collapse.Body>
-                  </Collapse>
-                </FadeIn>
-              </List.Item>
-            )
-          })}
-        </List>
-
-        <RemoveLiquidityDialog
-          open={isRemoveDialogOpen}
-          onClose={() => {
-            useLiquidity.setState({ isRemoveDialogOpen: false })
-          }}
-        />
-        <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
-          If you staked your LP tokens in a farm, unstake them to see them here
-        </div>
-      </Card>
-    </div>
-  )
-}
-
-function CreatePoolCardEntry() {
-  return (
-    <div className="mt-12 max-w-[456px] self-center">
-      <div className="mb-6 text-xl font-medium text-white">Create Pool</div>
-      <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
-        <Row className="gap-4">
-          <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
-            Create a liquidity pool on Raydium that can be traded on the swap interface.{' '}
-            <Link
-              noTextStyle
-              className="text-[rgba(171,196,255)] hover:underline"
-              href="https://raydium.gitbook.io/raydium/permissionless/creating-a-pool"
-            >
-              Read the guide
-            </Link>{' '}
-            before attempting.
-          </div>
-
-          <Button
-            className="flex items-center frosted-glass-teal opacity-80"
-            onClick={() => {
-              routeTo('/liquidity/create')
-            }}
-          >
-            <Icon className="mr-2" heroIconName="plus" />
-            <div>Create Pool</div>
-          </Button>
-        </Row>
-      </Card>
-    </div>
   )
 }

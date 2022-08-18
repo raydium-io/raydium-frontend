@@ -48,7 +48,7 @@ export default function RowTabs<T extends string = string>({
       className={twMerge('rounded-full p-1', $transparentBg ? 'bg-transparent' : 'bg-cyberpunk-card-bg', className)}
       itemClassName={(checked) =>
         twMerge(
-          `grid min-w-[96px] mobile:min-w-[76px] h-9 mobile:h-7 rounded-full place-items-center text-sm mobile:text-xs font-medium  whitespace-nowrap ${
+          `grid min-w-[96px] mobile:min-w-[76px] px-3 mobile:px-2 h-9 mobile:h-7 rounded-full place-items-center text-sm mobile:text-xs font-medium  whitespace-nowrap ${
             checked ? 'text-white' : 'text-[#ABC4FF]'
           }`,
           shrinkToValue(restProps.itemClassName, [checked])

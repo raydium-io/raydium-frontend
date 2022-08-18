@@ -178,12 +178,10 @@ function SwapHead() {
     <Row className="justify-center  mb-12 mobile:mb-2">
       <RowTabs
         currentValue={'Swap'}
-        values={['Swap', 'Liquidity']}
+        values={['Swap', 'Liquidity', 'Concentrated']}
         onChange={(newTab) => {
-          // setActiveTabValue(newTab)
-          if (newTab === 'Liquidity') {
-            routeTo('/liquidity/add')
-          }
+          if (newTab === 'Liquidity') routeTo('/liquidity/add')
+          else if (newTab === 'Concentrated') routeTo('/liquidity/concentrated')
         }}
       />
     </Row>

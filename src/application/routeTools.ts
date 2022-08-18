@@ -80,6 +80,9 @@ export type PageRouteConfigs = {
   '/farms/editReview': {
     queryProps?: any
   }
+  '/liquidity/concentrated': {
+    queryProps?: any
+  }
 }
 
 export type PageRouteName = keyof PageRouteConfigs
