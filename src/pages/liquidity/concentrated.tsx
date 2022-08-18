@@ -3,7 +3,7 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
-import useLiquidity from '@/application/liquidity/useLiquidity'
+import useConcentrated from '@/application/concentrated/useConcentrated'
 import { routeTo } from '@/application/routeTools'
 import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
@@ -82,9 +82,9 @@ function ConcentratedPageHead() {
 }
 
 function useLiquidityWarning() {
-  const currentJsonInfo = useLiquidity((s) => s.currentJsonInfo)
-  const coin1 = useLiquidity((s) => s.coin1)
-  const coin2 = useLiquidity((s) => s.coin2)
+  const currentJsonInfo = useConcentrated((s) => s.currentJsonInfo)
+  const coin1 = useConcentrated((s) => s.coin1)
+  const coin2 = useConcentrated((s) => s.coin2)
   const [userConfirmedList, setUserConfirmedList] = useLocalStorageItem<HexAddress /* ammId */[]>(
     'USER_CONFIRMED_LIQUIDITY_AMM_LIST'
   )
@@ -94,8 +94,8 @@ function useLiquidityWarning() {
   const checkPermanent = useCallback(
     () =>
       Boolean(
-        useLiquidity.getState().currentJsonInfo &&
-          userConfirmedListRef.current?.includes(useLiquidity.getState().currentJsonInfo!.id)
+        useConcentrated.getState().currentJsonInfo &&
+          userConfirmedListRef.current?.includes(useConcentrated.getState().currentJsonInfo!.id)
       ),
     []
   )
@@ -173,8 +173,8 @@ function ConcentratedCard() {
     currentJsonInfo,
     currentHydratedInfo,
     isSearchAmmDialogOpen,
-    refreshLiquidity
-  } = useLiquidity()
+    refreshConcentrated
+  } = useConcentrated()
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
@@ -206,7 +206,7 @@ function ConcentratedCard() {
   const cardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    useLiquidity.setState({
+    useConcentrated.setState({
       scrollToInputBox: () => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
     })
   }, [])
@@ -235,7 +235,7 @@ function ConcentratedCard() {
             setTargetCoinNo('1')
           }}
           onUserInput={(amount) => {
-            useLiquidity.setState({ coin1Amount: amount, focusSide: 'coin1' })
+            useConcentrated.setState({ coin1Amount: amount, focusSide: 'coin1' })
           }}
           onEnter={(input) => {
             if (!input) return
@@ -259,7 +259,7 @@ function ConcentratedCard() {
                 isApprovePanelShown ? 'not-clickable' : ''
               }`}
               onClick={() => {
-                useLiquidity.setState({ isSearchAmmDialogOpen: true })
+                useConcentrated.setState({ isSearchAmmDialogOpen: true })
               }}
             />
             <div className={isApprovePanelShown ? 'not-clickable' : 'clickable'}>
@@ -269,7 +269,7 @@ function ConcentratedCard() {
                 popPlacement="right-bottom"
                 freshFunction={() => {
                   if (isApprovePanelShown) return
-                  refreshLiquidity()
+                  refreshConcentrated()
                   refreshTokenPrice()
                 }}
               />
@@ -296,7 +296,7 @@ function ConcentratedCard() {
             if (coin1 && coin1Amount) liquidityButtonComponentRef.current?.click?.()
           }}
           onUserInput={(amount) => {
-            useLiquidity.setState({ coin2Amount: amount, focusSide: 'coin2' })
+            useConcentrated.setState({ coin2Amount: amount, focusSide: 'coin2' })
           }}
           token={coin2}
         />
@@ -367,16 +367,16 @@ function ConcentratedCard() {
         close={turnOffCoinSelector}
         onSelectCoin={(token) => {
           if (targetCoinNo === '1') {
-            useLiquidity.setState({ coin1: token })
+            useConcentrated.setState({ coin1: token })
             // delete other
             if (!canTokenPairBeSelected(token, coin2)) {
-              useLiquidity.setState({ coin2: undefined, coin2Amount: '', unslippagedCoin2Amount: '' })
+              useConcentrated.setState({ coin2: undefined, coin2Amount: '', unslippagedCoin2Amount: '' })
             }
           } else {
             // delete other
-            useLiquidity.setState({ coin2: token })
+            useConcentrated.setState({ coin2: token })
             if (!canTokenPairBeSelected(token, coin1)) {
-              useLiquidity.setState({ coin1: undefined, coin1Amount: '', unslippagedCoin1Amount: '' })
+              useConcentrated.setState({ coin1: undefined, coin1Amount: '', unslippagedCoin1Amount: '' })
             }
           }
           turnOffCoinSelector()
@@ -385,7 +385,7 @@ function ConcentratedCard() {
       <SearchAmmDialog
         open={isSearchAmmDialogOpen}
         onClose={() => {
-          useLiquidity.setState({ isSearchAmmDialogOpen: false })
+          useConcentrated.setState({ isSearchAmmDialogOpen: false })
         }}
       />
     </CyberpunkStyleCard>
@@ -423,9 +423,9 @@ function RemainSOLAlert() {
 function LiquidityCardPriceIndicator({ className }: { className?: string }) {
   const [innerReversed, setInnerReversed] = useState(false)
 
-  const currentHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
-  const coin1 = useLiquidity((s) => s.coin1)
-  const coin2 = useLiquidity((s) => s.coin2)
+  const currentHydratedInfo = useConcentrated((s) => s.currentHydratedInfo)
+  const coin1 = useConcentrated((s) => s.coin1)
+  const coin2 = useConcentrated((s) => s.coin2)
   const isMobile = useAppSettings((s) => s.isMobile)
 
   const pooledBaseTokenAmount = currentHydratedInfo?.baseToken
@@ -499,12 +499,12 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
 }
 
 function ConcentratedFeeSwitcher({ className }: { className?: string }) {
-  const currentHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
-  const coin1 = useLiquidity((s) => s.coin1)
-  const coin2 = useLiquidity((s) => s.coin2)
-  const focusSide = useLiquidity((s) => s.focusSide)
-  const coin1Amount = useLiquidity((s) => s.coin1Amount)
-  const coin2Amount = useLiquidity((s) => s.coin2Amount)
+  const currentHydratedInfo = useConcentrated((s) => s.currentHydratedInfo)
+  const coin1 = useConcentrated((s) => s.coin1)
+  const coin2 = useConcentrated((s) => s.coin2)
+  const focusSide = useConcentrated((s) => s.focusSide)
+  const coin1Amount = useConcentrated((s) => s.coin1Amount)
+  const coin2Amount = useConcentrated((s) => s.coin2Amount)
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
   const isCoin1Base = String(currentHydratedInfo?.baseMint) === String(coin1?.mint)
@@ -522,7 +522,7 @@ function ConcentratedFeeSwitcher({ className }: { className?: string }) {
   const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
 
   return (
-    <Collapse className={twMerge('bg-[#abc4ff1a] rounded-xl', className)}>
+    <Collapse className={twMerge('bg-[#141041] rounded-xl', className)}>
       <Collapse.Face>{(open) => <ConcentratedFeeSwitcherFace open={open} />}</Collapse.Face>
       <Collapse.Body>
         <ConcentratedFeeSwitcherContent />
@@ -562,12 +562,12 @@ function ConcentratedFeeSwitcherContent() {
 }
 
 function ConcentratedChart({ className }: { className?: string }) {
-  const currentHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
-  const coin1 = useLiquidity((s) => s.coin1)
-  const coin2 = useLiquidity((s) => s.coin2)
-  const focusSide = useLiquidity((s) => s.focusSide)
-  const coin1Amount = useLiquidity((s) => s.coin1Amount)
-  const coin2Amount = useLiquidity((s) => s.coin2Amount)
+  const currentHydratedInfo = useConcentrated((s) => s.currentHydratedInfo)
+  const coin1 = useConcentrated((s) => s.coin1)
+  const coin2 = useConcentrated((s) => s.coin2)
+  const focusSide = useConcentrated((s) => s.focusSide)
+  const coin1Amount = useConcentrated((s) => s.coin1Amount)
+  const coin2Amount = useConcentrated((s) => s.coin2Amount)
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
   const isCoin1Base = String(currentHydratedInfo?.baseMint) === String(coin1?.mint)
@@ -655,9 +655,9 @@ function ConcentratedCardItem({
 }
 
 function ConcentratedCardTooltipPanelAddress() {
-  const coin1 = useLiquidity((s) => s.coin1)
-  const coin2 = useLiquidity((s) => s.coin2)
-  const { lpMint, id, marketId } = useLiquidity((s) => s.currentJsonInfo) ?? {}
+  const coin1 = useConcentrated((s) => s.coin1)
+  const coin2 = useConcentrated((s) => s.coin2)
+  const { lpMint, id, marketId } = useConcentrated((s) => s.currentJsonInfo) ?? {}
   return (
     <div className="w-60">
       <div className="text-sm font-semibold mb-2">Addresses</div>
