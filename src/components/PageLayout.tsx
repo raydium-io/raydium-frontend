@@ -192,8 +192,10 @@ function RPCPerformanceBanner({ className }: { className?: string }) {
 
 function VersionTooOldDialog() {
   const versionRefreshData = useAppVersion((s) => s.versionFresh)
+  const isInBonsaiTest = useAppSettings((s) => s.isInBonsaiTest)
+  const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
   return (
-    <Dialog open={versionRefreshData === 'too-old'} canClosedByMask={false}>
+    <Dialog open={versionRefreshData === 'too-old' && !isInLocalhost && !isInBonsaiTest} canClosedByMask={false}>
       {({ close }) => (
         <Card
           className={twMerge(`p-8 rounded-3xl w-[min(480px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]`)}
