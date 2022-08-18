@@ -25,6 +25,7 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { toString } from '@/functions/numberish/toString'
 import { eq } from '@/functions/numberish/compare'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import { checkTokenPairCanSwap } from './check'
 
 export function useSwapAmountCalculator() {
   const { pathname } = useRouter()
@@ -115,7 +116,8 @@ export function useSwapAmountCalculator() {
       if (!resultStillFresh) return
 
       if (focusDirectionSide === 'up') {
-        const { routes, priceImpact, executionPrice, currentPrice, swapable, routeType, fee } = calcResult ?? {}
+        const { routes, priceImpact, executionPrice, currentPrice, swapable, routeType, fee, canFindPools } =
+          calcResult ?? {}
         const { amountOut, minAmountOut } = (calcResult?.info ?? {}) as { amountOut?: string; minAmountOut?: string }
         useSwap.setState({
           fee,
@@ -127,10 +129,12 @@ export function useSwapAmountCalculator() {
           maxSpent: undefined,
           swapable,
           routeType,
+          canFindPools,
           ...{ [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountOut }
         })
       } else {
-        const { routes, priceImpact, executionPrice, currentPrice, swapable, routeType, fee } = calcResult ?? {}
+        const { routes, priceImpact, executionPrice, currentPrice, swapable, routeType, fee, canFindPools } =
+          calcResult ?? {}
         const { amountIn, maxAmountIn } = (calcResult?.info ?? {}) as { amountIn?: string; maxAmountIn?: string }
         useSwap.setState({
           fee,
@@ -142,6 +146,7 @@ export function useSwapAmountCalculator() {
           maxSpent: maxAmountIn,
           swapable,
           routeType,
+          canFindPools,
           ...{ [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountIn }
         })
       }
@@ -174,6 +179,7 @@ type SwapCalculatorInfo = {
   routeType: ReturnType<typeof Trade['getBestAmountOut']>['routeType']
   fee: ReturnType<typeof Trade['getBestAmountOut']>['fee']
   swapable: boolean
+  canFindPools: boolean
   info: { amountOut: string; minAmountOut: string } | { amountIn: string; maxAmountIn: string }
 }
 
@@ -227,23 +233,14 @@ async function calculatePairTokenAmount({
         amountIn: deUITokenAmount(upCoinTokenAmount),
         slippage: toPercent(slippageTolerance)
       })
-    // console.log('{ amountOut, minAmountOut, executionPrice, currentPrice, priceImpact, routes, routeType, fee }: ', {
-    //   amountOut,
-    //   minAmountOut,
-    //   executionPrice,
-    //   currentPrice,
-    //   priceImpact,
-    //   routes,
-    //   routeType,
-    //   fee
-    // })
 
     const sdkParsedInfoMap = new Map(sdkParsedInfos.map((info) => [toPubString(info.id), info]))
     const choosedSdkParsedInfos = shakeUndifindedItem(
       routes.map((route) => sdkParsedInfoMap.get(toPubString(route.keys.id)))
     )
-
-    const swapable = choosedSdkParsedInfos.every((info) => Liquidity.getEnabledFeatures(info).swap)
+    const swapable =
+      choosedSdkParsedInfos.length > 0 && choosedSdkParsedInfos.every((info) => Liquidity.getEnabledFeatures(info).swap)
+    const canFindPools = checkTokenPairCanSwap(useLiquidity.getState().jsonInfos, upCoin.mint, downCoin.mint)
     return {
       executionPrice,
       currentPrice,
@@ -251,6 +248,7 @@ async function calculatePairTokenAmount({
       routes,
       routeType,
       swapable,
+      canFindPools: canFindPools,
       fee,
       info: {
         amountOut: toUITokenAmount(amountOut).toExact(),

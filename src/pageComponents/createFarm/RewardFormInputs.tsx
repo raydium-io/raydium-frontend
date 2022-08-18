@@ -4,9 +4,9 @@ import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFar
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import {
-  MIN_DURATION_SECOND,
   MAX_DURATION_SECOND,
-  MAX_OFFSET_AFTER_NOW_SECOND
+  MAX_OFFSET_AFTER_NOW_SECOND,
+  MIN_DURATION_SECOND
 } from '@/application/farms/handleFarmInfo'
 import { isQuantumSOLVersionSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
@@ -15,16 +15,16 @@ import AutoBox from '@/components/AutoBox'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import Col from '@/components/Col'
 import DateInput from '@/components/DateInput'
-import FadeInStable from '@/components/FadeIn'
 import Grid from '@/components/Grid'
+import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
+import SelectBox from '@/components/SelectBox'
+import Tooltip from '@/components/Tooltip'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { getTime, offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
-import toPubString from '@/functions/format/toMintString'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isExist } from '@/functions/judgers/nil'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
@@ -32,9 +32,8 @@ import { toString } from '@/functions/numberish/toString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { MayFunction, Numberish } from '@/types/constants'
-import { TokenAccount, TokenAmount } from '@raydium-io/raydium-sdk'
 import produce from 'immer'
-import { RefObject, startTransition, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { RefObject, useEffect, useImperativeHandle, useState } from 'react'
 
 /**
  * if super preferential is not provide(undefined|null) it is normal useState
@@ -147,6 +146,20 @@ export function RewardFormCardInputs({
       })
     }
   }
+  const setIsOptionToken = (on?: boolean) => {
+    setTempReward((s) =>
+      produce(s, (draft) => {
+        draft.isOptionToken = on
+      })
+    )
+    if (syncDataWithZustandStore) {
+      useCreateFarms.setState({
+        rewards: produce(rewards, (draft) => {
+          if (rewardIndex >= 0) draft[rewardIndex].isOptionToken = on
+        })
+      })
+    }
+  }
   const setRewardAmount = (amount: Numberish | undefined) => {
     setTempReward((s) =>
       produce(s, (draft) => {
@@ -203,6 +216,9 @@ export function RewardFormCardInputs({
       : tempReward.amount && durationTime
       ? div(tempReward.amount, parseDurationAbsolute(durationTime).days)
       : undefined
+
+  const disableTokenSelect = reward?.isRewardBeforeStart || reward?.isRewarding || reward?.isRewardEnded
+  const disableTokenTypeSelect = disableTokenSelect
   const disableCoinInput = reward?.isRwardingBeforeEnd72h
   const disableDurationInput = false
   const disableStartTimeInput = reward?.isRwardingBeforeEnd72h
@@ -254,9 +270,9 @@ export function RewardFormCardInputs({
   return (
     <Grid className="gap-4">
       <Col>
-        <>
+        <Row className="gap-4 mobile:flex-col">
           <CoinInputBoxWithTokenSelector
-            className={`rounded-md`}
+            className={`rounded-md grow`}
             haveHalfButton
             hasPlaceholder
             topLeftLabel="Token"
@@ -265,7 +281,7 @@ export function RewardFormCardInputs({
             disabled={disableCoinInput}
             value={rewardTokenAmount ?? ''} // pass '' to clear the input
             token={tempReward.token}
-            disabledTokenSelect={reward.isRewardBeforeStart || reward.isRewarding || reward.isRewardEnded}
+            disabledTokenSelect={disableTokenSelect}
             onSelectCoin={selectRewardToken}
             onUserInput={(amount) => {
               setRewardAmount(amount)
@@ -277,6 +293,31 @@ export function RewardFormCardInputs({
             allowSOLWSOLSwitch
             onTryToSwitchSOLWSOL={handleSwitchSOLWSOLRewardToken}
           />
+          <SelectBox
+            disabled={disableTokenTypeSelect}
+            inputBoxClassName="w-1/3 shrink-0 mobile:w-full rounded-md px-4"
+            candidateValues={['Standard SPL', 'Option tokens']}
+            value={reward.isOptionToken ? 'Option tokens' : 'Standard SPL'}
+            label={
+              <Row className="items-center">
+                <div>Token Type</div>
+                <Tooltip>
+                  <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
+                  <Tooltip.Panel>
+                    <div className="max-w-[300px]">
+                      Most reward tokens are Standard SPL. Only select Options Token if the token is an option that must
+                      be redeemed.
+                    </div>
+                  </Tooltip.Panel>
+                </Tooltip>
+              </Row>
+            }
+            onChange={(newSortKey) => {
+              setIsOptionToken(newSortKey === 'Option tokens')
+            }}
+          />
+        </Row>
+        <>
           {reward.amount && needShowAmountAlert && (
             <div className="text-[#DA2EEF] text-right text-sm font-medium pt-2 px-2">
               Emission rewards is lower than min required
@@ -345,7 +386,7 @@ export function RewardFormCardInputs({
           />
 
           <DateInput
-            className="grow rounded-md px-4"
+            className="w-1/3 mobile:w-full rounded-md px-4"
             label="Farming Starts"
             inputProps={{
               placeholder: 'Select date and time',
@@ -374,7 +415,7 @@ export function RewardFormCardInputs({
             }}
           />
           <DateInput
-            className="shrink-0 grow rounded-md px-4"
+            className="shrink-0 w-1/3 mobile:w-full rounded-md px-4"
             label="Farming Ends"
             inputProps={{
               placeholder: disableEndTimeInput ? undefined : 'Select date and time',

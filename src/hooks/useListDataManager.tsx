@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 
 export default function useListDataManager<T>(
   arr: T[],
+  /** !if key is same, it will not re-render */
   getItemKey: (item: T, idx: number) => string | number | undefined, // for compare
   options?: {
     searchText?: string // TODO: imply it!!!

@@ -103,6 +103,7 @@ export default function ListTable<T>({
 
   onClickRow,
 
+  /** !if key is same, it will not re-render */
   getItemKey,
   renderRowItem,
   renderRowEntry,

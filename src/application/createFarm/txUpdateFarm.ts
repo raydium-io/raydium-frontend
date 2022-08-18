@@ -95,7 +95,8 @@ async function createRewardRestartInstruction({
     rewardMint: isQuantumSOLVersionSOL(reward.token) ? SOLMint : reward.token?.mint,
     rewardOpenTime: toBN(div(startTimestamp, 1000)).toNumber(),
     rewardEndTime: toBN(div(endTimestamp, 1000)).toNumber(),
-    rewardPerSecond: toBN(mul(perSecond, padZero('1', reward.token?.decimals ?? 6)))
+    rewardPerSecond: toBN(mul(perSecond, padZero('1', reward.token?.decimals ?? 6))),
+    rewardType: reward.isOptionToken ? 'Option tokens' : 'Standard SPL'
   }
   return Farm.makeRestartFarmInstruction({
     poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
@@ -134,7 +135,8 @@ function createNewRewardInstruction({
     rewardOpenTime: toBN(div(startTimestamp, 1000)),
     rewardEndTime: toBN(div(endTimestamp, 1000)),
     rewardMint: isQuantumSOLVersionSOL(rewardToken) ? SOLMint : rewardToken.mint, // NOTE: start from RUDY, sol's mint is 11111111111111
-    rewardPerSecond: toBN(mul(estimatedValue, padZero(1, rewardToken.decimals)))
+    rewardPerSecond: toBN(mul(estimatedValue, padZero(1, rewardToken.decimals))),
+    rewardType: reward.isOptionToken ? 'Option tokens' : 'Standard SPL'
   }
 
   return Farm.makeFarmCreatorAddRewardTokenInstruction({
