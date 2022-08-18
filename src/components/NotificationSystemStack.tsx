@@ -3,11 +3,13 @@ import React, { ReactNode, useEffect, useMemo, useState } from 'react'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
 
-import Col from './Col'
 import ConfirmDialog, { ConfirmDialogInfo } from '../pageComponents/dialogs/ConfirmDialog'
-import Link from './Link'
-import NotificationItem, { NotificationItemInfo } from './NotificationItem'
 import WelcomeBetaDialog from '../pageComponents/dialogs/WelcomeBetaDialog'
+
+import Col from './Col'
+import Link from './Link'
+import LinkExplorer from './LinkExplorer'
+import NotificationItem, { NotificationItemInfo } from './NotificationItem'
 
 //#region ------------------- core definition -------------------
 type PopInfo =
@@ -27,6 +29,7 @@ type PopInfo =
 export default function NotificationSystemStack() {
   const [stack, setStack] = useState<PopInfo[]>([])
   const isMobile = useAppSettings((s) => s.isMobile)
+  const explorerName = useAppSettings((s) => s.explorerName)
 
   const notificationItemInfos = useMemo(
     () => stack.filter((i) => i.is === 'notificationItem').map((i) => i.info) as NotificationItemInfo[],
@@ -60,7 +63,7 @@ export default function NotificationSystemStack() {
           title: title ?? 'Transaction sent',
           description: (
             <div>
-              View on <Link href={`https://solscan.io/tx/${txid}`}>Solscan</Link>
+              View on <LinkExplorer hrefDetail={`tx/${txid}`}>{explorerName}</LinkExplorer>
             </div>
           )
         })
@@ -84,7 +87,7 @@ export default function NotificationSystemStack() {
         setStack((s) => s.concat({ is: 'welcomeDialog', info: { content, onConfirm } }))
       }
     })
-  }, [])
+  }, [explorerName])
 
   return (
     <>

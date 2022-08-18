@@ -4,6 +4,18 @@ import { Numberish } from '@/types/constants'
 
 // it is some global uiStates
 
+export enum ExplorerName {
+  EXPLORER = 'explorer',
+  SOLSCAN = 'solscan',
+  SOLANAFM = 'solanafm'
+}
+
+export enum ExplorerUrl {
+  EXPLORER = 'https://explorer.solana.com/',
+  SOLSCAN = 'https://solscan.io/',
+  SOLANAFM = 'https://solana.fm/'
+}
+
 export type AppSettingsStore = {
   slippageTolerance: Numberish
   slippageToleranceState: 'valid' | 'invalid' | 'too small'
@@ -42,6 +54,10 @@ export type AppSettingsStore = {
       endTimestamp: number
     }
   }
+
+  // default explorer's name and URL
+  explorerName: string
+  explorerUrl: string
 }
 const useAppSettings = create<AppSettingsStore>(() => ({
   slippageTolerance: 0,
@@ -62,7 +78,9 @@ const useAppSettings = create<AppSettingsStore>(() => ({
 
   isRecentTransactionDialogShown: false,
   isWalletSelectorShown: false,
-  refreshCircleLastTimestamp: {}
+  refreshCircleLastTimestamp: {},
+  explorerName: ExplorerName.SOLSCAN,
+  explorerUrl: ExplorerUrl.SOLSCAN
 }))
 
 export default useAppSettings

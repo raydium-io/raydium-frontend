@@ -1,12 +1,17 @@
+import React, { useEffect } from 'react'
+
+import { PublicKeyish } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
+
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import toPubString from '@/functions/format/toMintString'
 import useToggle from '@/hooks/useToggle'
 import { AnyFn } from '@/types/constants'
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
-import React, { useEffect } from 'react'
-import { twMerge } from 'tailwind-merge'
+
 import Icon from './Icon'
 import Link from './Link'
+import LinkExplorer from './LinkExplorer'
 import Row from './Row'
 import { ThreeSlotItem } from './ThreeSlotItem'
 
@@ -80,9 +85,9 @@ export function AddressItem({
               />
             ) : null}
             {canExternalLink ? (
-              <Link href={`https://solscan.io/${addressType}/${publicKey}`}>
+              <LinkExplorer hrefDetail={`${publicKey}`} type={addressType}>
                 <Icon size="sm" heroIconName="external-link" className="clickable text-[#abc4ff]" />
-              </Link>
+              </LinkExplorer>
             ) : null}
           </Row>
         ) : null

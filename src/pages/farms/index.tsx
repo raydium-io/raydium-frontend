@@ -1,5 +1,7 @@
-import { TokenAmount } from '@raydium-io/raydium-sdk'
 import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+
+import { TokenAmount } from '@raydium-io/raydium-sdk'
+
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -33,6 +35,7 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Link from '@/components/Link'
+import LinkExplorer from '@/components/LinkExplorer'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
@@ -60,8 +63,8 @@ import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
-import useSort from '@/hooks/useSort'
 import useOnceEffect from '@/hooks/useOnceEffect'
+import useSort from '@/hooks/useSort'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -1184,7 +1187,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                 Pending rewards
               </div>
               <Grid
-                className={`gap-board 
+                className={`gap-board
                    ${
                      farmInfo.rewards.filter((i) => i.version === 6 || i.userHavedReward).length > 1
                        ? 'grid-cols-2'
@@ -1563,9 +1566,9 @@ function FarmCardTooltipPanelAddressItem({
             copyToClipboard(address)
           }}
         />
-        <Link href={`https://solscan.io/${type}/${address}`}>
+        <LinkExplorer hrefDetail={`${address}`} type={type}>
           <Icon size="sm" heroIconName="external-link" className="clickable text-[#abc4ff]" />
-        </Link>
+        </LinkExplorer>
       </Row>
     </Row>
   )
