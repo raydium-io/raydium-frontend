@@ -1,4 +1,4 @@
-import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createRef, ReactNode, RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -10,28 +10,24 @@ import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
-import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
-import { Checkbox } from '@/components/Checkbox'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import { FadeIn } from '@/components/FadeIn'
+import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
-import Input from '@/components/Input'
-import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, unifyItem } from '@/functions/arrayMethods'
-import formatNumber from '@/functions/format/formatNumber'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
-import { div, mul } from '@/functions/numberish/operations'
+import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
@@ -39,7 +35,7 @@ import useToggle from '@/hooks/useToggle'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress } from '@/types/constants'
-import Grid from '@/components/Grid'
+import InputBox from '@/components/InputBox'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -309,7 +305,7 @@ function ConcentratedCard() {
 
       <ConcentratedFeeSwitcher className="my-5" />
 
-      <ConcentratedChartForm className="mt-5" />
+      <ConcentratedChart className="mt-5" />
 
       {/* supply button */}
       <Button
@@ -565,7 +561,7 @@ function ConcentratedFeeSwitcherContent() {
   )
 }
 
-function ConcentratedChartForm({ className }: { className?: string }) {
+function ConcentratedChart({ className }: { className?: string }) {
   const currentHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
   const coin1 = useLiquidity((s) => s.coin1)
   const coin2 = useLiquidity((s) => s.coin2)
@@ -589,99 +585,45 @@ function ConcentratedChartForm({ className }: { className?: string }) {
   const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
 
   return (
-    <Col
-      className={twMerge(
-        'py-4 px-6 flex-grow ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-xl items-center',
-        className
-      )}
-    >
-      <Col className="w-full">
-        <ConcentratedCardItem
-          fieldName={`Base`}
-          fieldValue={focusSide === 'coin1' ? coin1?.symbol ?? 'unknown' : coin2?.symbol ?? 'unknown'}
-        />
-        <FadeIn>
-          {(coin1Amount || coin2Amount) && (
-            <ConcentratedCardItem
-              fieldName="Max Amount"
-              fieldValue={`${formatNumber(focusSide === 'coin1' ? coin2Amount || '' : coin1Amount ?? '', {
-                fractionLength: 'auto'
-              })} ${focusSide === 'coin1' ? coin2?.symbol ?? 'unknown' : coin1?.symbol ?? 'unknown'}`}
+    <Col className={twMerge('py-4', className)}>
+      <Row className="justify-between items-center">
+        <div className="text-lg text-white">Price Range</div>
+        <Row className="items-center gap-2">
+          {coin1 && coin2 && (
+            <RowTabs
+              size="sm"
+              currentValue={coin1.symbol}
+              values={[coin1.symbol ?? '--', coin2?.symbol ?? '--']}
+              onChange={(newTab) => {
+                // ONGOING
+              }}
             />
           )}
-        </FadeIn>
-        <ConcentratedCardItem
-          fieldName={`Pool liquidity (${coinBase?.symbol ?? 'unknown'})`}
-          fieldValue={
-            <div>
-              {pooledBaseTokenAmount
-                ? `${formatNumber(pooledBaseTokenAmount.toExact())} ${coinBase?.symbol ?? 'unknown'}`
-                : '--'}
-            </div>
-          }
-        />
-        <ConcentratedCardItem
-          fieldName={`Pool liquidity (${coinQuote?.symbol ?? 'unknown'})`}
-          fieldValue={
-            <div>
-              {pooledQuoteTokenAmount
-                ? `${formatNumber(pooledQuoteTokenAmount.toExact())} ${coinQuote?.symbol ?? 'unknown'}`
-                : '--'}
-            </div>
-          }
-        />
-        <ConcentratedCardItem
-          fieldName="LP supply"
-          fieldValue={
-            <Row className="items-center gap-2">
-              {isStable && <Badge className="self-center">Stable</Badge>}
-              <div>
-                {currentHydratedInfo?.lpToken
-                  ? `${formatNumber(
-                      toString(toTokenAmount(currentHydratedInfo.lpToken, currentHydratedInfo.lpSupply))
-                    )} LP`
-                  : '--'}
-              </div>
-            </Row>
-          }
-        />
-        <Collapse openDirection="upwards" className="w-full">
-          <Collapse.Body>
-            <Col>
-              <ConcentratedCardItem fieldName="Addresses" tooltipContent={<ConcentratedCardTooltipPanelAddress />} />
-              <ConcentratedCardItem
-                fieldName="Slippage Tolerance"
-                fieldValue={
-                  <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs -my-1">
-                    <Input
-                      className="w-6"
-                      value={toString(mul(slippageTolerance, 100), { decimalLength: 'auto 2' })}
-                      onUserInput={(value) => {
-                        const n = div(parseFloat(value), 100)
-                        if (n) {
-                          useAppSettings.setState({ slippageTolerance: n })
-                        }
-                      }}
-                    />
-                    <div className="opacity-50 ml-1">%</div>
-                  </Row>
-                }
-              />
-            </Col>
-          </Collapse.Body>
-          <Collapse.Face>
-            {(open) => (
-              <Row className="w-full items-center text-xs font-medium text-[rgba(171,196,255,0.5)] cursor-pointer select-none">
-                <div className="py-1.5">{open ? 'Show less' : 'More information'}</div>
-                <Icon size="xs" heroIconName={open ? 'chevron-up' : 'chevron-down'} className="ml-1" />
-              </Row>
-            )}
-          </Collapse.Face>
-        </Collapse>
-      </Col>
+          <Row>
+            <Icon heroIconName="zoom-in" />
+            <Icon heroIconName="zoom-out" />
+          </Row>
+        </Row>
+      </Row>
+      <ConcentratedChartBody className="my-2" />
+      <Row className="gap-4">
+        <InputBox className="grow" label="Min Price" decimalMode />
+        <InputBox className="grow" label="Max Price" decimalMode />
+      </Row>
     </Col>
   )
 }
+interface ChartFormBodyComponentHandler {
+  text: string | number | undefined
+  focus(): void
+  blur(): void
+  setInputText(value: string | number | undefined, options?: { isUserInput?: boolean }): void
+  clearInputValue(): void
+}
+function ConcentratedChartBody({ className, componentRef }: { className?: string; componentRef?: RefObject<any> }) {
+  return <div className={twMerge('w-full h-80 bg-[#abc4ff80]', className)}></div>
+}
+
 function ConcentratedCardItem({
   className,
   fieldName,

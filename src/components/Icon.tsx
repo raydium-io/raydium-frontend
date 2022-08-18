@@ -35,7 +35,9 @@ import {
   PlusCircleIcon,
   PencilIcon,
   LinkIcon,
-  DotsVerticalIcon
+  DotsVerticalIcon,
+  ZoomInIcon,
+  ZoomOutIcon
 } from '@heroicons/react/outline'
 import { ArrowCircleRightIcon } from '@heroicons/react/outline'
 
@@ -74,6 +76,8 @@ export type AppHeroIconName =
   | 'plus-circle'
   | 'pencil'
   | 'link'
+  | 'zoom-in'
+  | 'zoom-out'
   | ' '
 
 export interface IconProps {
@@ -179,6 +183,10 @@ export default function Icon({
         ? PencilIcon
         : heroIconName === 'link'
         ? LinkIcon
+        : heroIconName === 'zoom-in'
+        ? ZoomInIcon
+        : heroIconName === 'zoom-out'
+        ? ZoomOutIcon
         : heroIconName === ' '
         ? ({ className }: { className?: string }) => <div className={className} />
         : Fragment

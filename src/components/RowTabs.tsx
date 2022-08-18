@@ -12,6 +12,7 @@ export interface RowTabProps<T extends string = string> extends RadioGroupProps<
   $valuesLength?: number
   /** only for <Tabs>  */
   $transparentBg?: boolean
+  size?: 'md' | 'sm'
 }
 
 /**
@@ -20,6 +21,7 @@ export interface RowTabProps<T extends string = string> extends RadioGroupProps<
  * @returns
  */
 export default function RowTabs<T extends string = string>({
+  size,
   $valuesLength,
   $transparentBg,
   urlSearchQueryKey,
@@ -48,7 +50,10 @@ export default function RowTabs<T extends string = string>({
       className={twMerge('rounded-full p-1', $transparentBg ? 'bg-transparent' : 'bg-cyberpunk-card-bg', className)}
       itemClassName={(checked) =>
         twMerge(
-          `grid min-w-[96px] mobile:min-w-[76px] px-3 mobile:px-2 h-9 mobile:h-7 rounded-full place-items-center text-sm mobile:text-xs font-medium  whitespace-nowrap ${
+          size === 'sm'
+            ? 'min-w-[82px] mobile:min-w-[64px] px-2 mobile:px-1.5 h-7 mobile:h-5 text-sm mobile:text-xs'
+            : 'min-w-[96px] mobile:min-w-[76px] px-3 mobile:px-2 h-9 mobile:h-7 text-sm mobile:text-xs ',
+          `grid rounded-full place-items-center font-medium whitespace-nowrap ${
             checked ? 'text-white' : 'text-[#ABC4FF]'
           }`,
           shrinkToValue(restProps.itemClassName, [checked])
