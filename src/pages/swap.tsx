@@ -16,17 +16,13 @@ import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalcula
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  SOL_BASE_BALANCE,
-  SOLDecimals,
-  toUITokenAmount,
-  WSOLMint
+  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE, SOLDecimals, toUITokenAmount, WSOLMint
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
 import { USDCMint, USDTMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
 import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
@@ -64,7 +60,6 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
-import { AddressItem } from '@/components/AddressItem'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -802,6 +797,7 @@ function SwapCardInfo({ className }: { className?: string }) {
                       }
                     }}
                     pattern={/^\d*\.?\d*$/}
+                    maximum={100}
                   />
                   <div className="opacity-50 ml-1">%</div>
                 </Row>
