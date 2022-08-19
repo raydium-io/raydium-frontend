@@ -1,5 +1,5 @@
 import { shakeFalsyItem } from '@/functions/arrayMethods'
-import { RefObject, useImperativeHandle, useState } from 'react'
+import { Dispatch, RefObject, SetStateAction, useImperativeHandle, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 type ChartPoints = {
@@ -31,8 +31,8 @@ function polygonChartPoints(points: ChartPoints): ChartPoints {
   return appandHeadTailZero(getSqared(points))
 }
 
-interface ChartFormBodyComponentHandler {
-  setZoom(precent: number): void
+export interface ChartFormBodyComponentHandler {
+  setZoom: Dispatch<SetStateAction<number>>
 }
 
 export function ConcentratedChartBody({
@@ -64,7 +64,7 @@ export function ConcentratedChartBody({
     <svg
       className={className}
       viewBox={`0 0 ${svgInnerWidth} ${svgInnerHeight}`}
-      style={{ outline: '1px solid red !important' }}
+      style={{ outline: '1px solid red !important', transition: '75ms' }}
     >
       <polygon
         vectorEffect="non-scaling-stroke"
@@ -95,7 +95,7 @@ export function ConcentratedChartBody({
                 y={svgInnerHeight - (3 / 4) * xAxisAboveBottom} /*  3/4 psition  of  xAxisAboveBottom */
                 x={x * zoom}
                 fill={xAxisUnitColor}
-                style={{ fontSize: 8 }}
+                style={{ fontSize: 8, transition: '75ms' }}
                 textAnchor="middle"
                 dominantBaseline="middle"
               >
