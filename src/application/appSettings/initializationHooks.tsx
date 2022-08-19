@@ -69,7 +69,14 @@ export function useSlippageTolerenceValidator() {
 export function useSlippageTolerenceSyncer() {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
-  const [localStoredSlippage, setLocalStoredSlippage] = useLocalStorageItem<string>('SLIPPAGE')
+  const [localStoredSlippage, setLocalStoredSlippage] = useLocalStorageItem<string>('SLIPPAGE', {
+    validateFn: (value) => {
+      if (value === undefined || !new RegExp(`^\\d*\\.?\\d*$`).test(value)) {
+        return false
+      }
+      return true
+    }
+  })
   useRecordedEffect(
     ([prevSlippageTolerance, prevLocalStoredSlippaged]) => {
       const slippageHasLoaded = prevLocalStoredSlippaged == null && localStoredSlippage != null
@@ -153,7 +160,14 @@ export function popWelcomeDialogFn(cb?: { onConfirm: () => void }) {
 export function useDefaultExplorerSyncer() {
   const explorerName = useAppSettings((s) => s.explorerName)
 
-  const [localStoredExplorer, setLocalStoredExplorer] = useLocalStorageItem<string>('EXPLORER')
+  const [localStoredExplorer, setLocalStoredExplorer] = useLocalStorageItem<string>('EXPLORER', {
+    validateFn: (value) => {
+      if (value !== ExplorerName.EXPLORER && value !== ExplorerName.SOLSCAN && value !== ExplorerName.SOLANAFM) {
+        return false
+      }
+      return true
+    }
+  })
   useRecordedEffect(
     ([prevExplorer, prevLocalStoredExplorer]) => {
       const explorerHasLoaded = prevLocalStoredExplorer == null && localStoredExplorer != null
