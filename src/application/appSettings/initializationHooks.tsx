@@ -72,7 +72,7 @@ export function useSlippageTolerenceSyncer() {
   const [localStoredSlippage, setLocalStoredSlippage] = useLocalStorageItem<string>('SLIPPAGE')
   useRecordedEffect(
     ([prevSlippageTolerance, prevLocalStoredSlippaged]) => {
-      const slippageHasLoaded = prevSlippageTolerance == null && slippageTolerance !== null
+      const slippageHasLoaded = prevLocalStoredSlippaged == null && localStoredSlippage != null
       if (slippageHasLoaded && !eq(slippageTolerance, localStoredSlippage)) {
         useAppSettings.setState({
           slippageTolerance: localStoredSlippage ?? 0.01
