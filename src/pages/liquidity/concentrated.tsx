@@ -1,4 +1,4 @@
-import { createRef, ReactNode, RefObject, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -35,7 +35,7 @@ import useToggle from '@/hooks/useToggle'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress } from '@/types/constants'
-import InputBox from '@/components/InputBox'
+import { ConcentratedChart } from '../../pageComponents/ConcentratedRangeChart/Chart'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -81,79 +81,6 @@ function ConcentratedPageHead() {
   )
 }
 
-function useLiquidityWarning() {
-  const currentJsonInfo = useConcentrated((s) => s.currentJsonInfo)
-  const coin1 = useConcentrated((s) => s.coin1)
-  const coin2 = useConcentrated((s) => s.coin2)
-  const [userConfirmedList, setUserConfirmedList] = useLocalStorageItem<HexAddress /* ammId */[]>(
-    'USER_CONFIRMED_LIQUIDITY_AMM_LIST'
-  )
-  const userConfirmedListRef = useRef(userConfirmedList)
-  userConfirmedListRef.current = userConfirmedList
-
-  const checkPermanent = useCallback(
-    () =>
-      Boolean(
-        useConcentrated.getState().currentJsonInfo &&
-          userConfirmedListRef.current?.includes(useConcentrated.getState().currentJsonInfo!.id)
-      ),
-    []
-  )
-
-  // permanent state
-  const [hasUserPermanentConfirmed, setHasUserPermanentConfirmed] = useState(checkPermanent)
-  // temporary state
-  const [hasUserTemporaryConfirmed, setHasUserTemporaryConfirmed] = useState(false)
-
-  // when change coin pair, just reset temporary confirm and permanent confirm
-  useEffect(() => {
-    if (currentJsonInfo) {
-      setHasUserTemporaryConfirmed(false)
-    }
-    if (currentJsonInfo) {
-      setHasUserPermanentConfirmed(checkPermanent())
-    }
-  }, [currentJsonInfo])
-
-  const applyPermanentConfirm = (ammId: string) => {
-    if (hasUserPermanentConfirmed) {
-      setUserConfirmedList((old) => unifyItem(addItem(old ?? [], ammId)))
-    }
-  }
-  const toggleTemporarilyConfirm = (checkState: boolean) => setHasUserTemporaryConfirmed(checkState)
-  const togglePermanentlyConfirm = (checkState: boolean) => {
-    setHasUserPermanentConfirmed(checkState)
-    if (checkState) {
-      setHasUserTemporaryConfirmed(true)
-    }
-  }
-  // box state
-  const [isPanelShown, setIsPanelShown] = useState(
-    () => !hasUserPermanentConfirmed && !hasUserTemporaryConfirmed && Boolean(currentJsonInfo)
-  )
-
-  useEffect(() => {
-    if (!coin1 || !coin2) {
-      setIsPanelShown(false)
-    } else {
-      const noPermanent = !checkPermanent()
-      setIsPanelShown(noPermanent)
-    }
-  }, [coin1, coin2, currentJsonInfo])
-
-  const closePanel = () => setIsPanelShown(false)
-
-  return {
-    closePanel,
-    toggleTemporarilyConfirm,
-    togglePermanentlyConfirm,
-    applyPermanentConfirm,
-    hasUserPermanentConfirmed,
-    hasUserTemporaryConfirmed,
-    needConfirmPanel: isPanelShown
-  }
-}
-
 function ConcentratedCard() {
   const { connected, owner } = useWallet()
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
@@ -182,16 +109,6 @@ function ConcentratedCard() {
   const hasFoundLiquidityPool = useMemo(() => Boolean(currentJsonInfo), [currentJsonInfo])
   const hasHydratedLiquidityPool = useMemo(() => Boolean(currentHydratedInfo), [currentHydratedInfo])
 
-  // TODO: card actually don't need `toggleTemporarilyConfirm()` and `togglePermanentlyConfirm()`, so use React.Context may be better
-  const {
-    closePanel,
-    needConfirmPanel,
-    hasUserTemporaryConfirmed,
-    hasUserPermanentConfirmed,
-    applyPermanentConfirm,
-    toggleTemporarilyConfirm,
-    togglePermanentlyConfirm
-  } = useLiquidityWarning()
   const haveEnoughCoin1 =
     coin1 &&
     checkWalletHasEnoughBalance(
@@ -303,7 +220,7 @@ function ConcentratedCard() {
       </>
       {/* <FadeIn>{hasFoundLiquidityPool && coin1 && coin2 && <ConcentratedFeeSwitcher className="mt-5" />}</FadeIn> */}
 
-      <ConcentratedFeeSwitcher className="my-5" />
+      <ConcentratedFeeSwitcher className="mt-12" />
 
       <ConcentratedChart className="mt-5" />
 
@@ -334,10 +251,6 @@ function ConcentratedCard() {
             fallbackProps: { children: 'Enter an amount' }
           },
           {
-            should: !needConfirmPanel || hasUserTemporaryConfirmed,
-            fallbackProps: { children: `Confirm liquidity guide` }
-          },
-          {
             should: haveEnoughCoin1,
             fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
           },
@@ -351,10 +264,7 @@ function ConcentratedCard() {
           }
         ]}
         onClick={() => {
-          currentJsonInfo && applyPermanentConfirm(currentJsonInfo.id)
-          txAddLiquidity().then(
-            ({ allSuccess }) => allSuccess && needConfirmPanel && hasUserPermanentConfirmed && closePanel()
-          )
+          txAddLiquidity()
         }}
       >
         Add Liquidity
@@ -559,69 +469,6 @@ function ConcentratedFeeSwitcherContent() {
       ))}
     </Row>
   )
-}
-
-function ConcentratedChart({ className }: { className?: string }) {
-  const currentHydratedInfo = useConcentrated((s) => s.currentHydratedInfo)
-  const coin1 = useConcentrated((s) => s.coin1)
-  const coin2 = useConcentrated((s) => s.coin2)
-  const focusSide = useConcentrated((s) => s.focusSide)
-  const coin1Amount = useConcentrated((s) => s.coin1Amount)
-  const coin2Amount = useConcentrated((s) => s.coin2Amount)
-  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
-
-  const isCoin1Base = String(currentHydratedInfo?.baseMint) === String(coin1?.mint)
-
-  const coinBase = isCoin1Base ? coin1 : coin2
-  const coinQuote = isCoin1Base ? coin2 : coin1
-
-  const pooledBaseTokenAmount = currentHydratedInfo?.baseToken
-    ? toTokenAmount(currentHydratedInfo.baseToken, currentHydratedInfo.baseReserve)
-    : undefined
-  const pooledQuoteTokenAmount = currentHydratedInfo?.quoteToken
-    ? toTokenAmount(currentHydratedInfo.quoteToken, currentHydratedInfo.quoteReserve)
-    : undefined
-
-  const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
-
-  return (
-    <Col className={twMerge('py-4', className)}>
-      <Row className="justify-between items-center">
-        <div className="text-lg text-white">Price Range</div>
-        <Row className="items-center gap-2">
-          {coin1 && coin2 && (
-            <RowTabs
-              size="sm"
-              currentValue={coin1.symbol}
-              values={[coin1.symbol ?? '--', coin2?.symbol ?? '--']}
-              onChange={(newTab) => {
-                // ONGOING
-              }}
-            />
-          )}
-          <Row>
-            <Icon heroIconName="zoom-in" />
-            <Icon heroIconName="zoom-out" />
-          </Row>
-        </Row>
-      </Row>
-      <ConcentratedChartBody className="my-2" />
-      <Row className="gap-4">
-        <InputBox className="grow" label="Min Price" decimalMode />
-        <InputBox className="grow" label="Max Price" decimalMode />
-      </Row>
-    </Col>
-  )
-}
-interface ChartFormBodyComponentHandler {
-  text: string | number | undefined
-  focus(): void
-  blur(): void
-  setInputText(value: string | number | undefined, options?: { isUserInput?: boolean }): void
-  clearInputValue(): void
-}
-function ConcentratedChartBody({ className, componentRef }: { className?: string; componentRef?: RefObject<any> }) {
-  return <div className={twMerge('w-full h-80 bg-[#abc4ff80]', className)}></div>
 }
 
 function ConcentratedCardItem({
