@@ -1,23 +1,23 @@
 import { useEffect, useRef } from 'react'
+import { useRouter } from 'next/router'
 
 import * as Sentry from '@sentry/nextjs'
 
+import Link from '@/components/Link'
+import { getLocalItem } from '@/functions/dom/jStorage'
+import { inClient, inServer, isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { eq, gt, lt, lte } from '@/functions/numberish/compare'
+import { toString } from '@/functions/numberish/toString'
 import useDevice from '@/hooks/useDevice'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import useLocalStorageItem from '@/hooks/useLocalStorage'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
+import { useAppVersion } from '../appVersion/useAppVersion'
+import useNotification from '../notification/useNotification'
 import useWallet from '../wallet/useWallet'
 
-import useAppSettings from './useAppSettings'
-import useLocalStorageItem from '@/hooks/useLocalStorage'
-import useNotification from '../notification/useNotification'
-import { useRouter } from 'next/router'
-import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-import { toString } from '@/functions/numberish/toString'
-import Link from '@/components/Link'
-import { useAppVersion } from '../appVersion/useAppVersion'
-import { inClient, inServer, isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
-import { getLocalItem } from '@/functions/dom/jStorage'
+import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
 
 export function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -142,5 +142,31 @@ export function popWelcomeDialogFn(cb?: { onConfirm: () => void }) {
         cb?.onConfirm?.()
       }
     }
+  )
+}
+
+export function useDefaultExplorerSyncer() {
+  const explorerName = useAppSettings((s) => s.explorerName)
+
+  const [localStoredExplorer, setLocalStoredExplorer] = useLocalStorageItem<string>('EXPLORER')
+  useRecordedEffect(
+    ([prevExplorer, prevLocalStoredExplorer]) => {
+      const explorerHasLoaded = prevLocalStoredExplorer == null && localStoredExplorer != null
+      if (explorerHasLoaded && explorerName !== localStoredExplorer) {
+        useAppSettings.setState({
+          explorerName: localStoredExplorer ?? ExplorerName.SOLSCAN,
+          explorerUrl: localStoredExplorer
+            ? localStoredExplorer === ExplorerName.EXPLORER
+              ? ExplorerUrl.EXPLORER
+              : localStoredExplorer === ExplorerName.SOLSCAN
+              ? ExplorerUrl.SOLSCAN
+              : ExplorerUrl.SOLANAFM
+            : ExplorerUrl.SOLSCAN
+        })
+      } else if (explorerName) {
+        setLocalStoredExplorer(explorerName)
+      }
+    },
+    [explorerName, localStoredExplorer]
   )
 }

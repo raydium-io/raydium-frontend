@@ -1,15 +1,13 @@
-import { PublicKey } from '@solana/web3.js'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
+
+import { PublicKey } from '@solana/web3.js'
+
 import NextNProgress from 'nextjs-progressbar'
 
 import {
-  useDeviceInfoSyc,
-  useDisclaimerDataSyncer,
-  useSentryConfigurator,
-  useSlippageTolerenceSyncer,
-  useSlippageTolerenceValidator,
-  useThemeModeSync
+  useDefaultExplorerSyncer, useDeviceInfoSyc, useDisclaimerDataSyncer, useSentryConfigurator,
+  useSlippageTolerenceSyncer, useSlippageTolerenceValidator, useThemeModeSync
 } from '@/application/appSettings/initializationHooks'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
@@ -124,6 +122,7 @@ function ClientInitialization() {
 function ApplicationsInitializations() {
   useSlippageTolerenceValidator()
   useSlippageTolerenceSyncer()
+  useDefaultExplorerSyncer()
 
   /********************** appVersion **********************/
   useAppInitVersionPostHeartBeat()
