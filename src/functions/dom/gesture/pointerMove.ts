@@ -1,81 +1,98 @@
-import { AnyFn, Delta2dTranslate, SpeedVector } from '@/types/constants'
+import { AnyFn } from '@/types/constants'
+import { addEventListener, EventListenerController } from '../addEventListener'
+
+type DeltaTranslate2D = {
+  dx: number
+  dy: number
+}
+type SpeedVector = {
+  x: number
+  y: number
+}
 
 let eventId = 1
 const eventIdMap = new Map<number, { el: Element; eventName: string; fn: AnyFn }>()
 /**
- * listen to element' pointermove（pointerDown + pointerMove + pointerUp）clean event automaticly
- * @param el 目标元素
- * @param eventListeners
+ * listen to element' pointermove(pointerDown + pointerMove + pointerUp) clean event automaticly
+ * @param el target element
+ * @param options
  */
 export function attachPointerMove(
-  el: HTMLElement | undefined | null,
-  eventListeners: {
-    start?: (ev: { ev: PointerEvent; evStart: PointerEvent; evs: PointerEvent[] }) => void
-    move?: (ev: {
-      ev: PointerEvent
-      evStart: PointerEvent
-      evs: PointerEvent[]
-      currentDeltaInPx: Delta2dTranslate
-      totalDeltaInPx: Delta2dTranslate
+  el: Element | undefined | null,
+  options: {
+    /**  PointerDown */
+    start?: (utilities: { event: PointerEvent; pointEvents: PointerEvent[] }) => void
+    /**  PointerDown + PointerMove */
+    move?: (utilities: {
+      /** an alian for `eventCurrent` */
+      event: PointerEvent
+      pointEvents: PointerEvent[]
+      currentDeltaInPx: DeltaTranslate2D
+      totalDelta: DeltaTranslate2D
+      isFirstEvent: boolean
     }) => void
-    end?: (ev: {
-      ev: PointerEvent
-      evStart: PointerEvent
-      evs: PointerEvent[]
-      currentDeltaInPx: Delta2dTranslate
-      totalDeltaInPx: Delta2dTranslate
+    /**  PointerUp */
+    end?: (utilities: {
+      event: PointerEvent
+      pointEvents: PointerEvent[]
+      currentDeltaInPx: DeltaTranslate2D
+      totalDeltaInPx: DeltaTranslate2D
       currentSpeed: SpeedVector
     }) => void
   }
 ) {
   if (!el) return
-  const events: PointerEvent[] = []
-  /**
-   *
-   * @param {Event} ev
-   */
+  const eventsQueue: { ev: PointerEvent; type: 'pointerDown' | 'pointerMove' | 'pointerUp' }[] = []
+  // let pointDownController: EventListenerController
+  let pointMoveController: EventListenerController
+  // let pointUpController: EventListenerController
+
   function pointerDown(ev: PointerEvent) {
-    if (!events.length) {
-      events.push(ev)
-      eventListeners.start?.({ ev, evStart: ev, evs: events })
-      el?.addEventListener('pointermove', pointerMove, { passive: true })
-      el?.addEventListener('pointerup', pointerUp, { passive: true })
+    if (!eventsQueue.length) {
+      eventsQueue.push({ ev, type: 'pointerDown' })
+      options.start?.({ event: ev, pointEvents: eventsQueue.map(({ ev }) => ev) })
+      pointMoveController = addEventListener(el, 'pointermove', ({ ev }) => pointerMove(ev), { passive: true })
+      addEventListener(el, 'pointerup', ({ ev }) => pointerUp(ev), { passive: true, once: true })
       el?.setPointerCapture(ev.pointerId)
       ev.stopPropagation()
     }
   }
+
   function pointerMove(ev: PointerEvent) {
-    if (events.length && ev.pointerId === events[events.length - 1].pointerId) {
-      const deltaX = ev.clientX - events[events.length - 1].clientX
-      const deltaY = ev.clientY - events[events.length - 1].clientY
-      const evStart = events[0]
-      const totalDeltaX = ev.clientX - evStart.clientX
-      const totalDeltaY = ev.clientY - evStart.clientY
-      events.push(ev)
-      eventListeners.move?.({
-        ev,
-        evStart,
-        evs: events,
+    const lastEvent = eventsQueue[eventsQueue.length - 1]?.ev
+    if (eventsQueue.length && ev.pointerId === lastEvent.pointerId) {
+      const deltaX = ev.clientX - lastEvent.clientX
+      const deltaY = ev.clientY - lastEvent.clientY
+      const eventStart = eventsQueue[0]?.ev
+      const totalDeltaX = ev.clientX - eventStart.clientX
+      const totalDeltaY = ev.clientY - eventStart.clientY
+      const haveNoExistPointMove = eventsQueue.every(({ type }) => type !== 'pointerMove')
+      eventsQueue.push({ ev, type: 'pointerMove' })
+      options.move?.({
+        event: ev,
+        pointEvents: eventsQueue.map(({ ev }) => ev),
         currentDeltaInPx: { dx: deltaX, dy: deltaY },
-        totalDeltaInPx: { dx: totalDeltaX, dy: totalDeltaY }
+        totalDelta: { dx: totalDeltaX, dy: totalDeltaY },
+        isFirstEvent: haveNoExistPointMove
       })
     }
   }
+
   function pointerUp(ev: PointerEvent) {
-    if (events.length && ev.pointerId === events[events.length - 1].pointerId) {
-      events.push(ev)
+    const lastEvent = eventsQueue[eventsQueue.length - 1]?.ev
+    if (eventsQueue.length && ev.pointerId === lastEvent.pointerId) {
+      eventsQueue.push({ ev, type: 'pointerUp' })
       const eventNumber = 4
-      const nearPoint = events[events.length - eventNumber] ?? events[0]
+      const nearPoint = eventsQueue[eventsQueue.length - eventNumber]?.ev ?? eventsQueue[0]?.ev
       const deltaX = ev.clientX - nearPoint.clientX
       const deltaY = ev.clientY - nearPoint.clientY
       const deltaTime = ev.timeStamp - nearPoint.timeStamp
-      const evStart = events[0]
-      const totalDeltaX = ev.clientX - evStart.clientX
-      const totalDeltaY = ev.clientY - events[0].clientY
-      eventListeners.end?.({
-        ev,
-        evStart,
-        evs: events,
+      const eventStart = eventsQueue[0].ev
+      const totalDeltaX = ev.clientX - eventStart.clientX
+      const totalDeltaY = ev.clientY - eventStart.clientY
+      options.end?.({
+        event: ev,
+        pointEvents: eventsQueue.map(({ ev }) => ev),
         currentDeltaInPx: { dx: deltaX, dy: deltaY },
         currentSpeed: {
           x: deltaX / deltaTime || 0,
@@ -83,12 +100,12 @@ export function attachPointerMove(
         },
         totalDeltaInPx: { dx: totalDeltaX, dy: totalDeltaY }
       })
-      events.splice(0, events.length)
-      el?.removeEventListener('pointermove', pointerMove)
+      eventsQueue.splice(0, eventsQueue.length)
+      pointMoveController.abort()
     }
   }
-  el?.addEventListener('pointerdown', pointerDown)
-  // record it to cancel by id
+
+  addEventListener(el, 'pointerdown', ({ ev }) => pointerDown(ev))
   eventIdMap.set(eventId++, { el, eventName: 'pointerdown', fn: pointerDown })
   return eventId
 }
