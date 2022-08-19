@@ -536,7 +536,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
   const isMobile = useAppSettings((s) => s.isMobile)
   const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
   const sideMenuRef = useRef<HTMLDivElement>(null)
-  const lastestVersion = useAppVersion((s) => s.lastest)
+  const latestVersion = useAppVersion((s) => s.latest)
   const currentVersion = useAppVersion((s) => s.currentVersion)
 
   useEffect(() => {
@@ -651,7 +651,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             <Tooltip.Panel>
               <div className="text-xs m-2 leading-relaxed font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
                 <div>Current: {currentVersion}</div>
-                <div>Lastest: {lastestVersion}</div>
+                <div>latest: {latestVersion}</div>
                 <div>Block time: {<BlockTimeClock showSeconds />}</div>
               </div>
             </Tooltip.Panel>

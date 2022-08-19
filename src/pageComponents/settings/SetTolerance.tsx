@@ -69,6 +69,7 @@ export default function SetTolerance() {
                 }
               }}
               pattern={/^\d*\.?\d*$/}
+              maximum={100}
             />
             <div>%</div>
           </Row>

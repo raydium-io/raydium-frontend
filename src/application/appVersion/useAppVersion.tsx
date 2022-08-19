@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import create from 'zustand'
 
 // frontend (client)
-const APP_VERSION = 'V2.7.14'
+const APP_VERSION = 'V2.7.15'
 
 const APP_VERSION_CHECKING_DELAY_TIME = 1000 * 60 * 1
 
@@ -17,7 +17,7 @@ interface BackEndVersion {
 
 export type AppVersionStore = {
   // backend (client)
-  lastest?: string // example: 'V2.1.0'
+  latest?: string // example: 'V2.1.0'
   least?: string // example: 'V2.1.0'
 
   // frontend (client)
@@ -38,7 +38,7 @@ export function useAppInitVersionPostHeartBeat() {
     if (inClient && document.visibilityState === 'hidden') return
     const config = await getBackendVersion()
     if (!config) return
-    useAppVersion.setState({ lastest: config.latest, least: config.least })
+    useAppVersion.setState({ latest: config.latest, least: config.least })
   }
   useEffect(() => {
     getVersion()
@@ -49,16 +49,16 @@ export function useAppInitVersionPostHeartBeat() {
 }
 
 export function useJudgeAppVersion() {
-  const lastest = useAppVersion((s) => s.lastest)
+  const latest = useAppVersion((s) => s.latest)
   const least = useAppVersion((s) => s.least)
   const currentVersion = useAppVersion((s) => s.currentVersion)
   useEffect(() => {
-    if (!lastest || !least) return
+    if (!latest || !least) return
     if (isVersionOlder(currentVersion, least)) {
       useAppVersion.setState({
         versionFresh: 'too-old'
       })
-    } else if (isVersionEqual(currentVersion, lastest) || isVersionNewer(currentVersion, lastest)) {
+    } else if (isVersionEqual(currentVersion, latest) || isVersionNewer(currentVersion, latest)) {
       useAppVersion.setState({
         versionFresh: 'newest-version'
       })
@@ -67,7 +67,7 @@ export function useJudgeAppVersion() {
         versionFresh: 'it-works'
       })
     }
-  }, [lastest, least, currentVersion])
+  }, [latest, least, currentVersion])
 }
 //#endregion
 

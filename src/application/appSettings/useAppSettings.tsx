@@ -79,8 +79,8 @@ const useAppSettings = create<AppSettingsStore>(() => ({
   isRecentTransactionDialogShown: false,
   isWalletSelectorShown: false,
   refreshCircleLastTimestamp: {},
-  explorerName: ExplorerName.SOLSCAN,
-  explorerUrl: ExplorerUrl.SOLSCAN
+  explorerName: '',
+  explorerUrl: ''
 }))
 
 export default useAppSettings
