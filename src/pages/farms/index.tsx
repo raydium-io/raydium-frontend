@@ -741,13 +741,14 @@ function FarmPendingRewardBadge({
             reward.endTime &&
             (isRewardEnded ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period')}
         </div>
-        {(reward as HydratedRewardInfo).openTime && isRewardBeforeStart ? (
+        {(reward as HydratedRewardInfo).openTime && isRewardBeforeStart && (
           <div className="opacity-50">Start in {getCountDownTime((reward as HydratedRewardInfo).openTime)}</div>
-        ) : !isTokenAmount(reward) && reward.openTime && reward.endTime ? (
+        )}
+        {!isTokenAmount(reward) && reward.openTime && reward.endTime && (
           <div className="opacity-50">
             {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
           </div>
-        ) : null}
+        )}
         {reward.token?.mint && (
           <AddressItem
             showDigitCount={6}
