@@ -1,5 +1,6 @@
 import { shakeFalsyItem } from '@/functions/arrayMethods'
-import { Dispatch, RefObject, SetStateAction, useImperativeHandle, useState } from 'react'
+import { attachPointerMove } from '@/functions/dom/gesture/pointerMove'
+import { Dispatch, RefObject, SetStateAction, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 type ChartPoints = {
@@ -44,7 +45,8 @@ export function ConcentratedChartBody({
   points: ChartPoints
   componentRef?: RefObject<any>
 }) {
-  const lineColor = '#abc4ff'
+  const lineColor = '#abc4ff80'
+  const boundaryLineColor = '#abc4ff'
   const xAxisColor = '#abc4ff80'
   const xAxisUnitColor = xAxisColor
   const maxPrice = Math.max(...points.map((p) => p.y))
@@ -55,6 +57,34 @@ export function ConcentratedChartBody({
   const svgInnerHeight = 200
   const xAxisAboveBottom = 30
   const [zoom, setZoom] = useState(1)
+  const boundaryLineWidth = 4
+  const minBoundaryX = useRef(0)
+  const maxBoundaryX = useRef(svgInnerWidth - boundaryLineWidth)
+
+  const minBoundaryRef = useRef<SVGRectElement>(null)
+  const maxBoundaryRef = useRef<SVGRectElement>(null)
+
+  useEffect(() => {
+    attachPointerMove(minBoundaryRef.current, {
+      move({ el, totalDelta }) {
+        el.setAttribute('x', String(minBoundaryX.current + totalDelta.dx))
+      },
+      end({ totalDelta }) {
+        minBoundaryX.current = minBoundaryX.current + totalDelta.dx
+      }
+    })
+  }, [])
+
+  useEffect(() => {
+    attachPointerMove(maxBoundaryRef.current, {
+      move({ el, totalDelta }) {
+        el.setAttribute('x', String(maxBoundaryX.current + totalDelta.dx))
+      },
+      end({ totalDelta }) {
+        maxBoundaryX.current = maxBoundaryX.current + totalDelta.dx
+      }
+    })
+  }, [])
 
   useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({
     setZoom
@@ -64,7 +94,8 @@ export function ConcentratedChartBody({
     <svg
       className={className}
       viewBox={`0 0 ${svgInnerWidth} ${svgInnerHeight}`}
-      style={{ outline: '1px solid red !important', transition: '75ms' }}
+      width={svgInnerWidth}
+      height={svgInnerHeight}
     >
       <polygon
         vectorEffect="non-scaling-stroke"
@@ -82,6 +113,28 @@ export function ConcentratedChartBody({
         fill="none"
         strokeWidth="1"
       ></line>
+
+      {/* min boundary */}
+      <rect
+        ref={minBoundaryRef}
+        width={boundaryLineWidth}
+        height={svgInnerHeight - xAxisAboveBottom}
+        x={minBoundaryX.current}
+        y={0}
+        fill={boundaryLineColor}
+        style={{ cursor: 'pointer' }}
+      />
+
+      {/* max boundary */}
+      <rect
+        ref={maxBoundaryRef}
+        width={boundaryLineWidth}
+        height={svgInnerHeight - xAxisAboveBottom}
+        x={maxBoundaryX.current}
+        y={0}
+        fill={boundaryLineColor}
+        style={{ cursor: 'pointer' }}
+      />
 
       {/* x units */}
       <g>

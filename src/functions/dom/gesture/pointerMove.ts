@@ -17,26 +17,29 @@ const eventIdMap = new Map<number, { el: Element; eventName: string; fn: AnyFn }
  * @param el target element
  * @param options
  */
-export function attachPointerMove(
-  el: Element | undefined | null,
+export function attachPointerMove<El extends Element>(
+  el: El | undefined | null,
   options: {
     /**  PointerDown */
-    start?: (utilities: { event: PointerEvent; pointEvents: PointerEvent[] }) => void
+    start?: (utilities: { el: El; ev: PointerEvent; pointEvents: PointerEvent[] }) => void
     /**  PointerDown + PointerMove */
     move?: (utilities: {
-      /** an alian for `eventCurrent` */
-      event: PointerEvent
+      el: El
+      ev: PointerEvent
       pointEvents: PointerEvent[]
-      currentDeltaInPx: DeltaTranslate2D
+      /** for more accurate, use totalDelta if possiable */
+      currentDelta: DeltaTranslate2D
       totalDelta: DeltaTranslate2D
       isFirstEvent: boolean
     }) => void
     /**  PointerUp */
     end?: (utilities: {
-      event: PointerEvent
+      el: El
+      ev: PointerEvent
       pointEvents: PointerEvent[]
-      currentDeltaInPx: DeltaTranslate2D
-      totalDeltaInPx: DeltaTranslate2D
+      /** for more accurate, use totalDelta if possiable */
+      currentDelta: DeltaTranslate2D
+      totalDelta: DeltaTranslate2D
       currentSpeed: SpeedVector
     }) => void
   }
@@ -46,11 +49,10 @@ export function attachPointerMove(
   // let pointDownController: EventListenerController
   let pointMoveController: EventListenerController
   // let pointUpController: EventListenerController
-
   function pointerDown(ev: PointerEvent) {
     if (!eventsQueue.length) {
       eventsQueue.push({ ev, type: 'pointerDown' })
-      options.start?.({ event: ev, pointEvents: eventsQueue.map(({ ev }) => ev) })
+      options.start?.({ el: ev.target as El, ev, pointEvents: eventsQueue.map(({ ev }) => ev) })
       pointMoveController = addEventListener(el, 'pointermove', ({ ev }) => pointerMove(ev), { passive: true })
       addEventListener(el, 'pointerup', ({ ev }) => pointerUp(ev), { passive: true, once: true })
       el?.setPointerCapture(ev.pointerId)
@@ -69,9 +71,10 @@ export function attachPointerMove(
       const haveNoExistPointMove = eventsQueue.every(({ type }) => type !== 'pointerMove')
       eventsQueue.push({ ev, type: 'pointerMove' })
       options.move?.({
-        event: ev,
+        el: ev.target as El,
+        ev,
         pointEvents: eventsQueue.map(({ ev }) => ev),
-        currentDeltaInPx: { dx: deltaX, dy: deltaY },
+        currentDelta: { dx: deltaX, dy: deltaY },
         totalDelta: { dx: totalDeltaX, dy: totalDeltaY },
         isFirstEvent: haveNoExistPointMove
       })
@@ -91,14 +94,15 @@ export function attachPointerMove(
       const totalDeltaX = ev.clientX - eventStart.clientX
       const totalDeltaY = ev.clientY - eventStart.clientY
       options.end?.({
-        event: ev,
+        el: ev.target as El,
+        ev,
         pointEvents: eventsQueue.map(({ ev }) => ev),
-        currentDeltaInPx: { dx: deltaX, dy: deltaY },
+        currentDelta: { dx: deltaX, dy: deltaY },
         currentSpeed: {
           x: deltaX / deltaTime || 0,
           y: deltaY / deltaTime || 0
         },
-        totalDeltaInPx: { dx: totalDeltaX, dy: totalDeltaY }
+        totalDelta: { dx: totalDeltaX, dy: totalDeltaY }
       })
       eventsQueue.splice(0, eventsQueue.length)
       pointMoveController.abort()
