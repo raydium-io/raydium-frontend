@@ -49,6 +49,7 @@ import Switcher from '@/components/Switcher'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem, shakeUndifindedItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
+import { getCountDownTime } from '@/functions/date/parseDuration'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 import formatNumber from '@/functions/format/formatNumber'
@@ -740,6 +741,9 @@ function FarmPendingRewardBadge({
             reward.endTime &&
             (isRewardEnded ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period')}
         </div>
+        {(reward as HydratedRewardInfo).openTime && isRewardBeforeStart && (
+          <div className="opacity-50">Start in {getCountDownTime((reward as HydratedRewardInfo).openTime)}</div>
+        )}
         {!isTokenAmount(reward) && reward.openTime && reward.endTime && (
           <div className="opacity-50">
             {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
