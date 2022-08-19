@@ -79,6 +79,11 @@ export function useSlippageTolerenceSyncer() {
         })
       } else if (slippageTolerance) {
         setLocalStoredSlippage(toString(slippageTolerance))
+      } else {
+        // cold start, set default value
+        useAppSettings.setState({
+          slippageTolerance: 0.01
+        })
       }
     },
     [slippageTolerance, localStoredSlippage]
@@ -153,6 +158,7 @@ export function useDefaultExplorerSyncer() {
     ([prevExplorer, prevLocalStoredExplorer]) => {
       const explorerHasLoaded = prevLocalStoredExplorer == null && localStoredExplorer != null
       if (explorerHasLoaded && explorerName !== localStoredExplorer) {
+        // use local storage value
         useAppSettings.setState({
           explorerName: localStoredExplorer ?? ExplorerName.SOLSCAN,
           explorerUrl: localStoredExplorer
@@ -164,7 +170,14 @@ export function useDefaultExplorerSyncer() {
             : ExplorerUrl.SOLSCAN
         })
       } else if (explorerName) {
+        // update local storage value from input
         setLocalStoredExplorer(explorerName)
+      } else {
+        // cold start, set default value
+        useAppSettings.setState({
+          explorerName: ExplorerName.SOLSCAN,
+          explorerUrl: ExplorerUrl.SOLSCAN
+        })
       }
     },
     [explorerName, localStoredExplorer]
