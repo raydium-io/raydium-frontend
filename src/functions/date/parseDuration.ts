@@ -1,10 +1,13 @@
 import { Numberish } from '@/types/constants'
+
 import { shakeFalsyItem } from '../arrayMethods'
 import { isNumberish } from '../judgers/dateType'
 import { isNullish } from '../judgers/nil'
 import toBN from '../numberish/toBN'
 import { toString } from '../numberish/toString'
+
 import { TimeStamp } from './interface'
+import { currentIsAfter } from './judges'
 
 export type ParsedDurationInfo = Record<'days' | 'hours' | 'minutes' | 'seconds' | 'milliseconds' | 'full', number>
 
@@ -119,4 +122,31 @@ export function toDurationString(
     durationSecond,
     options?.showMilliseconds && durationMillisecond
   ]).join(' ')
+}
+
+/**
+ * baseDate should be the date time in future
+ * ex. baseDate is 2023-01-01 00:00:05, current date is 2022-12-31 00:00:03
+ * output should 1D 0h 2m
+ */
+export function getCountDownTime(baseDate: Date | undefined): string {
+  if (!baseDate || currentIsAfter(baseDate)) {
+    return ''
+  }
+
+  let delta = Math.abs(getDuration(baseDate, new Date())) / 1000
+
+  const days = Math.floor(delta / 86400)
+  delta -= days * 86400
+
+  const hours = Math.floor(delta / 3600) % 24
+  delta -= hours * 3600
+
+  const minutes = Math.floor(delta / 60) % 60
+  delta -= minutes * 60
+
+  // if needs in the future
+  // const seconds = delta % 60
+
+  return `${days}D ${hours}h ${minutes}m`
 }
