@@ -5,7 +5,6 @@ import {
   AttachPointerMovePointUpFn
 } from '@/functions/dom/gesture/pointerMove'
 import { useEvent } from '@/hooks/useEvent'
-import { useSignalState } from '@/hooks/useSignalState'
 import { Dispatch, RefObject, SetStateAction, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
@@ -56,10 +55,6 @@ export function ConcentratedChartBody({
   const boundaryLineColor = '#abc4ff'
   const xAxisColor = '#abc4ff80'
   const xAxisUnitColor = xAxisColor
-  const maxPrice = Math.max(...points.map((p) => p.y))
-  const minPrice = Math.min(...points.map((p) => p.y))
-  const diff = maxPrice - minPrice
-  const xLength = points.length
   const svgInnerWidth = 300
   const svgInnerHeight = 200
   const xAxisAboveBottom = 30
