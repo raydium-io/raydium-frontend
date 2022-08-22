@@ -17,7 +17,7 @@ import { lazyMap } from '@/functions/lazyMap'
 export default function useFarmInfoLoader() {
   const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
-  const pairs = usePools((s) => s.jsonInfos)
+  const pairs = usePools((s) => s.rawJsonInfos)
   const getToken = useToken((s) => s.getToken)
   const getLpToken = useToken((s) => s.getLpToken)
   const lpTokens = useToken((s) => s.lpTokens)
