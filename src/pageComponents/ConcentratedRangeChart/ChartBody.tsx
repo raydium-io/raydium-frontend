@@ -179,6 +179,15 @@ export function ConcentratedChartBody({
       width={svgInnerWidth}
       height={svgInnerHeight}
     >
+      <defs>
+        <style>
+          {`.no-scale {
+             transform: scale(${1 / zoom},1);
+             transform-box: fill-box;
+             transform-origin: center;
+           }`}
+        </style>
+      </defs>
       <polygon
         className="pointer-events-none"
         vectorEffect="non-scaling-stroke"
@@ -229,11 +238,15 @@ export function ConcentratedChartBody({
             const shouldRender = !(x % 40)
             return shouldRender ? (
               <text
+                className="no-scale"
                 key={p.x}
                 y={svgInnerHeight - (3 / 4) * xAxisAboveBottom} /*  3/4 psition  of  xAxisAboveBottom */
                 x={x}
                 fill={xAxisUnitColor}
-                style={{ fontSize: 8, transition: '75ms' }}
+                style={{
+                  fontSize: 8,
+                  transition: '75ms'
+                }}
                 textAnchor="middle"
                 dominantBaseline="middle"
               >
