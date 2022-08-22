@@ -18,7 +18,7 @@ const eventIdMap = new Map<number, { el: Element; eventName: string; fn: AnyFn }
  * @param options
  */
 export function attachPointerMove<El extends Element>(
-  el: El | undefined | null,
+  el: El,
   options: {
     /**  PointerDown */
     start?: (utilities: { el: El; ev: PointerEvent; pointEvents: PointerEvent[] }) => void
@@ -27,7 +27,6 @@ export function attachPointerMove<El extends Element>(
       el: El
       ev: PointerEvent
       pointEvents: PointerEvent[]
-      /** for more accurate, use totalDelta if possiable */
       currentDelta: DeltaTranslate2D
       totalDelta: DeltaTranslate2D
       isFirstEvent: boolean
@@ -37,24 +36,30 @@ export function attachPointerMove<El extends Element>(
       el: El
       ev: PointerEvent
       pointEvents: PointerEvent[]
-      /** for more accurate, use totalDelta if possiable */
       currentDelta: DeltaTranslate2D
       totalDelta: DeltaTranslate2D
       currentSpeed: SpeedVector
     }) => void
   }
 ) {
-  if (!el) return
   const eventsQueue: { ev: PointerEvent; type: 'pointerDown' | 'pointerMove' | 'pointerUp' }[] = []
-  // let pointDownController: EventListenerController
-  let pointMoveController: EventListenerController
-  // let pointUpController: EventListenerController
+  let pointDownController: EventListenerController | null = null
+  let pointMoveController: EventListenerController | null = null
+  let pointUpController: EventListenerController | null = null
+
   function pointerDown(ev: PointerEvent) {
     if (!eventsQueue.length) {
       eventsQueue.push({ ev, type: 'pointerDown' })
       options.start?.({ el: ev.target as El, ev, pointEvents: eventsQueue.map(({ ev }) => ev) })
-      pointMoveController = addEventListener(el, 'pointermove', ({ ev }) => pointerMove(ev), { passive: true })
-      addEventListener(el, 'pointerup', ({ ev }) => pointerUp(ev), { passive: true, once: true })
+      pointMoveController = addEventListener(el, 'pointermove', ({ ev }) => pointerMove(ev), {
+        passive: true,
+        onlyTargetIsSelf: true
+      })
+      pointUpController = addEventListener(el, 'pointerup', ({ ev }) => pointerUp(ev), {
+        passive: true,
+        once: true,
+        onlyTargetIsSelf: true
+      })
       el?.setPointerCapture(ev.pointerId)
       ev.stopPropagation()
     }
@@ -105,13 +110,21 @@ export function attachPointerMove<El extends Element>(
         totalDelta: { dx: totalDeltaX, dy: totalDeltaY }
       })
       eventsQueue.splice(0, eventsQueue.length)
-      pointMoveController.abort()
+      pointMoveController?.cancel()
     }
   }
 
-  addEventListener(el, 'pointerdown', ({ ev }) => pointerDown(ev))
+  pointDownController = addEventListener(el, 'pointerdown', ({ ev }) => pointerDown(ev), { onlyTargetIsSelf: true })
   eventIdMap.set(eventId++, { el, eventName: 'pointerdown', fn: pointerDown })
-  return eventId
+  return {
+    eventId,
+    pointDownController,
+    pointMoveController,
+    pointUpController,
+    cancel() {
+      cancelPointerMove(eventId)
+    }
+  }
 }
 
 export function cancelPointerMove(id: number | undefined) {

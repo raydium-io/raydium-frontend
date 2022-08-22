@@ -1,7 +1,6 @@
 import { shakeFalsyItem } from '@/functions/arrayMethods'
 import { attachPointerMove } from '@/functions/dom/gesture/pointerMove'
 import { Dispatch, RefObject, SetStateAction, useEffect, useImperativeHandle, useRef, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
 
 type ChartPoints = {
   x: number
@@ -65,23 +64,25 @@ export function ConcentratedChartBody({
   const maxBoundaryRef = useRef<SVGRectElement>(null)
 
   useEffect(() => {
+    if (!minBoundaryRef.current) return
     attachPointerMove(minBoundaryRef.current, {
       move({ el, totalDelta }) {
-        el.setAttribute('x', String(minBoundaryX.current + totalDelta.dx))
+        el.setAttribute('x', String(minBoundaryX.current + totalDelta.dx * zoom))
       },
       end({ totalDelta }) {
-        minBoundaryX.current = minBoundaryX.current + totalDelta.dx
+        minBoundaryX.current = minBoundaryX.current + totalDelta.dx * zoom
       }
     })
   }, [])
 
   useEffect(() => {
+    if (!maxBoundaryRef.current) return
     attachPointerMove(maxBoundaryRef.current, {
       move({ el, totalDelta }) {
-        el.setAttribute('x', String(maxBoundaryX.current + totalDelta.dx))
+        el.setAttribute('x', String(maxBoundaryX.current + totalDelta.dx * zoom))
       },
       end({ totalDelta }) {
-        maxBoundaryX.current = maxBoundaryX.current + totalDelta.dx
+        maxBoundaryX.current = maxBoundaryX.current + totalDelta.dx * zoom
       }
     })
   }, [])
@@ -119,7 +120,7 @@ export function ConcentratedChartBody({
         ref={minBoundaryRef}
         width={boundaryLineWidth}
         height={svgInnerHeight - xAxisAboveBottom}
-        x={minBoundaryX.current}
+        x={minBoundaryX.current * zoom}
         y={0}
         fill={boundaryLineColor}
         style={{ cursor: 'pointer' }}
@@ -130,7 +131,7 @@ export function ConcentratedChartBody({
         ref={maxBoundaryRef}
         width={boundaryLineWidth}
         height={svgInnerHeight - xAxisAboveBottom}
-        x={maxBoundaryX.current}
+        x={maxBoundaryX.current * zoom}
         y={0}
         fill={boundaryLineColor}
         style={{ cursor: 'pointer' }}
