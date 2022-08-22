@@ -122,8 +122,11 @@ export function ConcentratedChartBody({
       height={svgInnerHeight}
     >
       <polygon
+        className="pointer-events-none"
         vectorEffect="non-scaling-stroke"
-        points={polygonPoints.map((p) => `${p.x * zoom},${svgInnerHeight - p.y - xAxisAboveBottom}`).join(' ')}
+        points={polygonPoints
+          .map((p) => `${(p.x * zoom).toFixed(3)},${(svgInnerHeight - p.y - xAxisAboveBottom).toFixed(3)}`)
+          .join(' ')}
         fill={lineColor}
       />
 

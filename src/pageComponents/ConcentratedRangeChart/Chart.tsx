@@ -9,7 +9,7 @@ import { useRef } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { ChartFormBodyComponentHandler, ConcentratedChartBody } from './ChartBody'
 
-const mokeChartData = Array.from({ length: 20 }, (_, i) => ({ x: i * 10, y: i * 10 * Math.random() }))
+const mokeChartData = Array.from({ length: 200 }, (_, i) => ({ x: i * 10, y: 180 * Math.random() }))
 export function ConcentratedChart({ className }: { className?: string }) {
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
