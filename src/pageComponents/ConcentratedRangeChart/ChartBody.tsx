@@ -80,9 +80,9 @@ export function ConcentratedChartBody({
     totalDelta: { dx: number; dy: number }
     isFirstEvent: boolean
   }): void => {
-    el.setAttribute('x', String(minBoundaryX.current + totalDelta.dx * zoom))
+    el.setAttribute('x', String(minBoundaryX.current + totalDelta.dx / zoom))
   }
-  const handleGrabMinBoundaryUp = ({
+  const handleGrabMinBoundaryEnd = ({
     totalDelta
   }: {
     el: SVGRectElement
@@ -93,14 +93,14 @@ export function ConcentratedChartBody({
     totalDelta: { dx: number; dy: number }
     currentSpeed: { x: number; y: number }
   }): void => {
-    const newMinBoundaryX = minBoundaryX.current + totalDelta.dx * zoom
+    const newMinBoundaryX = minBoundaryX.current + totalDelta.dx / zoom
     minBoundaryX.current = newMinBoundaryX
   }
   useEffect(() => {
     if (!minBoundaryRef.current) return
     attachPointerMove(minBoundaryRef.current, {
       move: handleGrabMinBoundary,
-      end: handleGrabMinBoundaryUp
+      end: handleGrabMinBoundaryEnd
     })
   }, [])
   //#endregion
@@ -117,9 +117,9 @@ export function ConcentratedChartBody({
     totalDelta: { dx: number; dy: number }
     isFirstEvent: boolean
   }): void => {
-    el.setAttribute('x', String(maxBoundaryX.current + totalDelta.dx * zoom))
+    el.setAttribute('x', String(maxBoundaryX.current + totalDelta.dx / zoom))
   }
-  const handleGrabMaxBoundaryUp = ({
+  const handleGrabMaxBoundaryEnd = ({
     totalDelta
   }: {
     el: SVGRectElement
@@ -130,31 +130,31 @@ export function ConcentratedChartBody({
     totalDelta: { dx: number; dy: number }
     currentSpeed: { x: number; y: number }
   }): void => {
-    const newMaxBoundaryX = maxBoundaryX.current + totalDelta.dx * zoom
+    const newMaxBoundaryX = maxBoundaryX.current + totalDelta.dx / zoom
     maxBoundaryX.current = newMaxBoundaryX
   }
   useEffect(() => {
     if (!maxBoundaryRef.current) return
     attachPointerMove(maxBoundaryRef.current, {
       move: handleGrabMaxBoundary,
-      end: handleGrabMaxBoundaryUp
+      end: handleGrabMaxBoundaryEnd
     })
   }, [])
   //#endregion
 
   //#region ------------------- handle wrapper -------------------
   const handleGrabWrapper: AttachPointerMovePointMoveFn<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
-    el.setAttribute('viewBox', `${offsetX - totalDelta.dx * zoom} 0 ${svgInnerWidth} ${svgInnerHeight}`)
+    el.setAttribute('viewBox', `${offsetX - totalDelta.dx / zoom} 0 ${svgInnerWidth / zoom} ${svgInnerHeight}`)
   })
-  const handleGrabWrapperUp: AttachPointerMovePointUpFn<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
-    const newOffsetX = offsetX - totalDelta.dx * zoom
+  const handleGrabWrapperEnd: AttachPointerMovePointUpFn<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
+    const newOffsetX = offsetX - totalDelta.dx / zoom
     setOffsetX(newOffsetX)
   })
   useEffect(() => {
     if (!wrapperRef.current) return
     attachPointerMove(wrapperRef.current, {
       move: handleGrabWrapper,
-      end: handleGrabWrapperUp
+      end: handleGrabWrapperEnd
     })
   }, [])
   //#endregion
@@ -174,7 +174,8 @@ export function ConcentratedChartBody({
     <svg
       ref={wrapperRef}
       className={twMerge('cursor-grab active:cursor-grabbing select-none', className)}
-      viewBox={`${offsetX} 0 ${svgInnerWidth} ${svgInnerHeight}`}
+      viewBox={`${offsetX} 0 ${svgInnerWidth / zoom} ${svgInnerHeight}`}
+      preserveAspectRatio="none"
       width={svgInnerWidth}
       height={svgInnerHeight}
     >
@@ -182,7 +183,7 @@ export function ConcentratedChartBody({
         className="pointer-events-none"
         vectorEffect="non-scaling-stroke"
         points={polygonPoints
-          .map((p) => `${(p.x * zoom).toFixed(3)},${(svgInnerHeight - p.y - xAxisAboveBottom).toFixed(3)}`)
+          .map((p) => `${p.x.toFixed(3)},${(svgInnerHeight - p.y - xAxisAboveBottom).toFixed(3)}`)
           .join(' ')}
         fill={lineColor}
       />
@@ -192,7 +193,7 @@ export function ConcentratedChartBody({
         ref={minBoundaryRef}
         width={boundaryLineWidth}
         height={svgInnerHeight - xAxisAboveBottom}
-        x={minBoundaryX.current * zoom}
+        x={minBoundaryX.current}
         y={0}
         fill={boundaryLineColor}
         style={{ cursor: 'pointer' }}
@@ -203,7 +204,7 @@ export function ConcentratedChartBody({
         ref={maxBoundaryRef}
         width={boundaryLineWidth}
         height={svgInnerHeight - xAxisAboveBottom}
-        x={maxBoundaryX.current * zoom}
+        x={maxBoundaryX.current}
         y={0}
         fill={boundaryLineColor}
         style={{ cursor: 'pointer' }}
@@ -213,7 +214,7 @@ export function ConcentratedChartBody({
       <line
         x1="0"
         y1={svgInnerHeight - xAxisAboveBottom}
-        x2={1000000}
+        x2={9999999}
         y2={svgInnerHeight - xAxisAboveBottom}
         stroke={xAxisColor}
         fill="none"
@@ -230,7 +231,7 @@ export function ConcentratedChartBody({
               <text
                 key={p.x}
                 y={svgInnerHeight - (3 / 4) * xAxisAboveBottom} /*  3/4 psition  of  xAxisAboveBottom */
-                x={x * zoom}
+                x={x}
                 fill={xAxisUnitColor}
                 style={{ fontSize: 8, transition: '75ms' }}
                 textAnchor="middle"
