@@ -12,36 +12,43 @@ type SpeedVector = {
 
 let eventId = 1
 const eventIdMap = new Map<number, { el: Element; eventName: string; fn: AnyFn }>()
+
+export type AttachPointerMovePointDownFn<El extends Element> = (utilities: {
+  el: El
+  ev: PointerEvent
+  pointEvents: PointerEvent[]
+}) => void
+
+export type AttachPointerMovePointMoveFn<El extends Element> = (utilities: {
+  el: El
+  ev: PointerEvent
+  pointEvents: PointerEvent[]
+  currentDelta: DeltaTranslate2D
+  totalDelta: DeltaTranslate2D
+  isFirstEvent: boolean
+}) => void
+
+export type AttachPointerMovePointUpFn<El extends Element> = (utilities: {
+  el: El
+  ev: PointerEvent
+  pointEvents: PointerEvent[]
+  currentDelta: DeltaTranslate2D
+  totalDelta: DeltaTranslate2D
+  currentSpeed: SpeedVector
+}) => void
+
+export type AttachPointerMoveOptions<El extends Element> = {
+  start?: AttachPointerMovePointDownFn<El>
+  move?: AttachPointerMovePointMoveFn<El>
+  end?: AttachPointerMovePointUpFn<El>
+}
+
 /**
  * listen to element' pointermove(pointerDown + pointerMove + pointerUp) clean event automaticly
  * @param el target element
  * @param options
  */
-export function attachPointerMove<El extends Element>(
-  el: El,
-  options: {
-    /**  PointerDown */
-    start?: (utilities: { el: El; ev: PointerEvent; pointEvents: PointerEvent[] }) => void
-    /**  PointerDown + PointerMove */
-    move?: (utilities: {
-      el: El
-      ev: PointerEvent
-      pointEvents: PointerEvent[]
-      currentDelta: DeltaTranslate2D
-      totalDelta: DeltaTranslate2D
-      isFirstEvent: boolean
-    }) => void
-    /**  PointerUp */
-    end?: (utilities: {
-      el: El
-      ev: PointerEvent
-      pointEvents: PointerEvent[]
-      currentDelta: DeltaTranslate2D
-      totalDelta: DeltaTranslate2D
-      currentSpeed: SpeedVector
-    }) => void
-  }
-) {
+export function attachPointerMove<El extends Element>(el: El, options: AttachPointerMoveOptions<El>) {
   const eventsQueue: { ev: PointerEvent; type: 'pointerDown' | 'pointerMove' | 'pointerUp' }[] = []
   let pointDownController: EventListenerController | null = null
   let pointMoveController: EventListenerController | null = null

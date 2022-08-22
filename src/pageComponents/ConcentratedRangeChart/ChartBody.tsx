@@ -1,5 +1,11 @@
 import { shakeFalsyItem } from '@/functions/arrayMethods'
-import { attachPointerMove } from '@/functions/dom/gesture/pointerMove'
+import {
+  attachPointerMove,
+  AttachPointerMovePointMoveFn,
+  AttachPointerMovePointUpFn
+} from '@/functions/dom/gesture/pointerMove'
+import { useEvent } from '@/hooks/useEvent'
+import { useSignalState } from '@/hooks/useSignalState'
 import { Dispatch, RefObject, SetStateAction, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
@@ -58,7 +64,7 @@ export function ConcentratedChartBody({
   const svgInnerHeight = 200
   const xAxisAboveBottom = 30
   const [zoom, setZoom] = useState(1)
-  const translateOffset = useRef(0)
+  const [offsetX, setOffsetX] = useState(0)
   const wrapperRef = useRef<SVGSVGElement>(null)
   const boundaryLineWidth = 4
   const minBoundaryX = useRef(0)
@@ -67,46 +73,102 @@ export function ConcentratedChartBody({
   const minBoundaryRef = useRef<SVGRectElement>(null)
   const maxBoundaryRef = useRef<SVGRectElement>(null)
 
+  //#region ------------------- handle min boundaryLine -------------------
+  const handleGrabMinBoundary = ({
+    el,
+    totalDelta
+  }: {
+    el: SVGRectElement
+    ev: PointerEvent
+    pointEvents: PointerEvent[]
+    currentDelta: { dx: number; dy: number }
+    totalDelta: { dx: number; dy: number }
+    isFirstEvent: boolean
+  }): void => {
+    el.setAttribute('x', String(minBoundaryX.current + totalDelta.dx * zoom))
+  }
+  const handleGrabMinBoundaryUp = ({
+    totalDelta
+  }: {
+    el: SVGRectElement
+    ev: PointerEvent // rightTopPoint:
+    // rightTopPoint:
+    pointEvents: PointerEvent[]
+    currentDelta: { dx: number; dy: number }
+    totalDelta: { dx: number; dy: number }
+    currentSpeed: { x: number; y: number }
+  }): void => {
+    const newMinBoundaryX = minBoundaryX.current + totalDelta.dx * zoom
+    minBoundaryX.current = newMinBoundaryX
+  }
   useEffect(() => {
     if (!minBoundaryRef.current) return
     attachPointerMove(minBoundaryRef.current, {
-      move({ el, totalDelta }) {
-        el.setAttribute('x', String(minBoundaryX.current + totalDelta.dx * zoom))
-      },
-      end({ totalDelta }) {
-        minBoundaryX.current = minBoundaryX.current + totalDelta.dx * zoom
-      }
+      move: handleGrabMinBoundary,
+      end: handleGrabMinBoundaryUp
     })
   }, [])
+  //#endregion
 
+  //#region ------------------- handle max boundaryLine -------------------
+  const handleGrabMaxBoundary = ({
+    el,
+    totalDelta
+  }: {
+    el: SVGRectElement
+    ev: PointerEvent
+    pointEvents: PointerEvent[]
+    currentDelta: { dx: number; dy: number }
+    totalDelta: { dx: number; dy: number }
+    isFirstEvent: boolean
+  }): void => {
+    el.setAttribute('x', String(maxBoundaryX.current + totalDelta.dx * zoom))
+  }
+  const handleGrabMaxBoundaryUp = ({
+    totalDelta
+  }: {
+    el: SVGRectElement
+    ev: PointerEvent // rightTopPoint:
+    // rightTopPoint:
+    pointEvents: PointerEvent[]
+    currentDelta: { dx: number; dy: number }
+    totalDelta: { dx: number; dy: number }
+    currentSpeed: { x: number; y: number }
+  }): void => {
+    const newMaxBoundaryX = maxBoundaryX.current + totalDelta.dx * zoom
+    maxBoundaryX.current = newMaxBoundaryX
+  }
   useEffect(() => {
     if (!maxBoundaryRef.current) return
     attachPointerMove(maxBoundaryRef.current, {
-      move({ el, totalDelta }) {
-        el.setAttribute('x', String(maxBoundaryX.current + totalDelta.dx * zoom))
-      },
-      end({ totalDelta }) {
-        maxBoundaryX.current = maxBoundaryX.current + totalDelta.dx * zoom
-      }
+      move: handleGrabMaxBoundary,
+      end: handleGrabMaxBoundaryUp
     })
   }, [])
+  //#endregion
 
+  //#region ------------------- handle wrapper -------------------
+  const handleGrabWrapper: AttachPointerMovePointMoveFn<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
+    el.setAttribute('viewBox', `${offsetX - totalDelta.dx * zoom} 0 ${svgInnerWidth} ${svgInnerHeight}`)
+  })
+  const handleGrabWrapperUp: AttachPointerMovePointUpFn<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
+    const newOffsetX = offsetX - totalDelta.dx * zoom
+    setOffsetX(newOffsetX)
+  })
   useEffect(() => {
     if (!wrapperRef.current) return
     attachPointerMove(wrapperRef.current, {
-      move({ el, totalDelta }) {
-        el.setAttribute(
-          'viewBox',
-          `${translateOffset.current - totalDelta.dx * zoom} 0 ${svgInnerWidth} ${svgInnerHeight}`
-        )
-      },
-      end({ totalDelta }) {
-        translateOffset.current = translateOffset.current - totalDelta.dx * zoom
-      }
+      move: handleGrabWrapper,
+      end: handleGrabWrapperUp
     })
   }, [])
+  //#endregion
 
-  const shrinkToView = () => {}
+  const shrinkToView = () => {
+    const newZoom = (svgInnerWidth - boundaryLineWidth) / Math.abs(maxBoundaryX.current - minBoundaryX.current)
+    setZoom(newZoom)
+    setOffsetX(minBoundaryX.current)
+  }
 
   useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({
     setZoom,
@@ -117,7 +179,7 @@ export function ConcentratedChartBody({
     <svg
       ref={wrapperRef}
       className={twMerge('cursor-grab active:cursor-grabbing select-none', className)}
-      viewBox={`0 0 ${svgInnerWidth} ${svgInnerHeight}`}
+      viewBox={`${offsetX} 0 ${svgInnerWidth} ${svgInnerHeight}`}
       width={svgInnerWidth}
       height={svgInnerHeight}
     >
