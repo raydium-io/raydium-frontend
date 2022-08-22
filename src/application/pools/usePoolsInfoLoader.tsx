@@ -23,6 +23,7 @@ import useFarms from '../farms/useFarms'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
+  const rawJsonInfos = usePools((s) => s.rawJsonInfos)
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
   const stableLiquidityJsonInfoLpMints = useMemo(
     () => unifyItem(liquidityJsonInfos.filter((j) => j.version === 5).map((j) => j.lpMint)),
@@ -43,7 +44,10 @@ export default function usePoolsInfoLoader() {
       cacheFreshTime: 5 * 60 * 1000
     })
     if (!pairJsonInfo) return
-    usePools.setState({ jsonInfos: pairJsonInfo.filter(({ name }) => !name.includes('unknown')) })
+    usePools.setState({
+      jsonInfos: pairJsonInfo.filter(({ name }) => !name.includes('unknown')),
+      rawJsonInfos: pairJsonInfo
+    })
   }
 
   useEffectWithTransition(() => {
@@ -60,7 +64,7 @@ export default function usePoolsInfoLoader() {
   const lpPrices = useMemo<Record<HexAddress, Price>>(
     () =>
       Object.fromEntries(
-        jsonInfos
+        rawJsonInfos
           .map((value) => {
             const token = lpTokens[value.lpMint]
             const price = token && value.lpPrice ? toTokenPrice(token, value.lpPrice, { alreadyDecimaled: true }) : null
@@ -68,7 +72,7 @@ export default function usePoolsInfoLoader() {
           })
           .filter(([lpMint, price]) => lpMint != null && price != null)
       ),
-    [jsonInfos, lpTokens]
+    [rawJsonInfos, lpTokens]
   )
 
   useEffect(() => {
