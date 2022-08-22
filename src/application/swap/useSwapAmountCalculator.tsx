@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 
-import { jsonInfo2PoolKeys, Liquidity, Trade, WSOL } from '@raydium-io/raydium-sdk'
+import { jsonInfo2PoolKeys, Liquidity, Trade, WSOL, ZERO } from '@raydium-io/raydium-sdk'
 import { Connection } from '@solana/web3.js'
 
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -174,7 +174,7 @@ const sdkParsedInfoCache = new Map<HexAddress, SDKParsedLiquidityInfo[]>()
 type SwapCalculatorInfo = {
   executionPrice: ReturnType<typeof Trade['getBestAmountOut']>['executionPrice']
   currentPrice: ReturnType<typeof Trade['getBestAmountOut']>['currentPrice']
-  priceImpact: ReturnType<typeof Trade['getBestAmountOut']>['priceImpact']
+  priceImpact: ReturnType<typeof Trade['getBestAmountOut']>['priceImpact'] | undefined
   routes: ReturnType<typeof Trade['getBestAmountOut']>['routes']
   routeType: ReturnType<typeof Trade['getBestAmountOut']>['routeType']
   fee: ReturnType<typeof Trade['getBestAmountOut']>['fee']
@@ -244,10 +244,11 @@ async function calculatePairTokenAmount({
         choosedSdkParsedInfos.every((info) => Liquidity.getEnabledFeatures(info).swap)
       : true
     const canFindPools = checkTokenPairCanSwap(useLiquidity.getState().jsonInfos, upCoin.mint, downCoin.mint)
+    const priceImpactIsZeroofZero = priceImpact.denominator.eq(ZERO) && priceImpact.numerator.eq(ZERO)
     return {
       executionPrice,
       currentPrice,
-      priceImpact,
+      priceImpact: priceImpactIsZeroofZero ? undefined : priceImpact,
       routes,
       routeType,
       swapable,
