@@ -1,6 +1,7 @@
 import { shakeFalsyItem } from '@/functions/arrayMethods'
 import { attachPointerMove } from '@/functions/dom/gesture/pointerMove'
 import { Dispatch, RefObject, SetStateAction, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 
 type ChartPoints = {
   x: number
@@ -56,6 +57,8 @@ export function ConcentratedChartBody({
   const svgInnerHeight = 200
   const xAxisAboveBottom = 30
   const [zoom, setZoom] = useState(1)
+  const translateOffset = useRef(0)
+  const wrapperRef = useRef<SVGSVGElement>(null)
   const boundaryLineWidth = 4
   const minBoundaryX = useRef(0)
   const maxBoundaryX = useRef(svgInnerWidth - boundaryLineWidth)
@@ -87,13 +90,29 @@ export function ConcentratedChartBody({
     })
   }, [])
 
+  useEffect(() => {
+    if (!wrapperRef.current) return
+    attachPointerMove(wrapperRef.current, {
+      move({ el, totalDelta }) {
+        el.setAttribute(
+          'viewBox',
+          `${translateOffset.current - totalDelta.dx * zoom} 0 ${svgInnerWidth} ${svgInnerHeight}`
+        )
+      },
+      end({ totalDelta }) {
+        translateOffset.current = translateOffset.current - totalDelta.dx * zoom
+      }
+    })
+  }, [])
+
   useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({
     setZoom
   }))
   const polygonPoints = polygonChartPoints(points)
   return (
     <svg
-      className={className}
+      ref={wrapperRef}
+      className={twMerge('cursor-grab active:cursor-grabbing select-none', className)}
       viewBox={`0 0 ${svgInnerWidth} ${svgInnerHeight}`}
       width={svgInnerWidth}
       height={svgInnerHeight}
@@ -103,17 +122,6 @@ export function ConcentratedChartBody({
         points={polygonPoints.map((p) => `${p.x * zoom},${svgInnerHeight - p.y - xAxisAboveBottom}`).join(' ')}
         fill={lineColor}
       />
-
-      {/* x axis */}
-      <line
-        x1="0"
-        y1={svgInnerHeight - xAxisAboveBottom}
-        x2={svgInnerWidth}
-        y2={svgInnerHeight - xAxisAboveBottom}
-        stroke={xAxisColor}
-        fill="none"
-        strokeWidth="1"
-      ></line>
 
       {/* min boundary */}
       <rect
@@ -136,6 +144,17 @@ export function ConcentratedChartBody({
         fill={boundaryLineColor}
         style={{ cursor: 'pointer' }}
       />
+
+      {/* x axis */}
+      <line
+        x1="0"
+        y1={svgInnerHeight - xAxisAboveBottom}
+        x2={1000000}
+        y2={svgInnerHeight - xAxisAboveBottom}
+        stroke={xAxisColor}
+        fill="none"
+        strokeWidth="1"
+      ></line>
 
       {/* x units */}
       <g>
