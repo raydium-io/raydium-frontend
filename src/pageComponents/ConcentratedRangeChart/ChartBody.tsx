@@ -34,6 +34,7 @@ function polygonChartPoints(points: ChartPoints): ChartPoints {
 
 export interface ChartFormBodyComponentHandler {
   setZoom: Dispatch<SetStateAction<number>>
+  shrinkToView: () => void
 }
 
 export function ConcentratedChartBody({
@@ -105,8 +106,11 @@ export function ConcentratedChartBody({
     })
   }, [])
 
+  const shrinkToView = () => {}
+
   useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({
-    setZoom
+    setZoom,
+    shrinkToView
   }))
   const polygonPoints = polygonChartPoints(points)
   return (

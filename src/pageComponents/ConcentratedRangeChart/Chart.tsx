@@ -4,6 +4,7 @@ import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
+import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useRef } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { ChartFormBodyComponentHandler, ConcentratedChartBody } from './ChartBody'
@@ -28,14 +29,23 @@ export function ConcentratedChart({ className }: { className?: string }) {
               }}
             />
           )}
-          <Row>
+          <Row className="gap-2">
             <Icon
+              className="saturate-50 brightness-125"
+              iconSrc="/icons/chart-add-white-space.svg"
+              onClick={() => {
+                concentratedChartBodyRef.current?.shrinkToView()
+              }}
+            />
+            <Icon
+              className="text-[#abc4ff] saturate-50 brightness-125"
               heroIconName="zoom-in"
               onClick={() => {
                 concentratedChartBodyRef.current?.setZoom((s) => s * 1.1)
               }}
             />
             <Icon
+              className="text-[#abc4ff] saturate-50 brightness-125"
               heroIconName="zoom-out"
               onClick={() => {
                 concentratedChartBodyRef.current?.setZoom((s) => s * 0.9)
