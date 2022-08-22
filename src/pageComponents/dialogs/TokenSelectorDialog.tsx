@@ -1,10 +1,11 @@
+import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
+
+import { PublicKeyish } from '@raydium-io/raydium-sdk'
+
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useConnection from '@/application/connection/useConnection'
+import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
 import {
-  isQuantumSOL,
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  QuantumSOLVersionSOL
+  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { SupportedTokenListSettingName } from '@/application/token/useToken'
@@ -25,13 +26,9 @@ import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import Switcher from '@/components/Switcher'
 import toPubString from '@/functions/format/toMintString'
+import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
-import { PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
-import { PublicKey } from '@solana/web3.js'
-import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
-import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
-import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
 
 export type TokenSelectorProps = {
   open: boolean

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 
 import { jsonInfo2PoolKeys, Liquidity, Trade, WSOL } from '@raydium-io/raydium-sdk'
@@ -7,25 +8,23 @@ import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import { eq, gt } from '@/functions/numberish/compare'
+import { toString } from '@/functions/numberish/toString'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import useAppSettings from '../appSettings/useAppSettings'
 import useConnection from '../connection/useConnection'
+import sdkParseJsonLiquidityInfo from '../liquidity/sdkParseJsonLiquidityInfo'
 import { SDKParsedLiquidityInfo } from '../liquidity/type'
 import useLiquidity from '../liquidity/useLiquidity'
-import sdkParseJsonLiquidityInfo from '../liquidity/sdkParseJsonLiquidityInfo'
-import { SplToken } from '../token/type'
 import { deUIToken, deUITokenAmount, toUITokenAmount } from '../token/quantumSOL'
-
-import { useSwap } from './useSwap'
-import { useDebugValue, useEffect } from 'react'
+import { SplToken } from '../token/type'
 import useWallet from '../wallet/useWallet'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import { toString } from '@/functions/numberish/toString'
-import { eq, gt } from '@/functions/numberish/compare'
-import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+
 import { checkTokenPairCanSwap } from './check'
+import { useSwap } from './useSwap'
 
 export function useSwapAmountCalculator() {
   const { pathname } = useRouter()
@@ -130,7 +129,10 @@ export function useSwapAmountCalculator() {
           swapable,
           routeType,
           canFindPools,
-          ...{ [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountOut }
+          ...{
+            [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountOut,
+            [focusSide === 'coin1' ? 'isCoin2Calculating' : 'isCoin1Calculating']: false
+          }
         })
       } else {
         const { routes, priceImpact, executionPrice, currentPrice, swapable, routeType, fee, canFindPools } =
@@ -147,7 +149,10 @@ export function useSwapAmountCalculator() {
           swapable,
           routeType,
           canFindPools,
-          ...{ [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountIn }
+          ...{
+            [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountIn,
+            [focusSide === 'coin1' ? 'isCoin2Calculating' : 'isCoin1Calculating']: false
+          }
         })
       }
     } catch (err) {
