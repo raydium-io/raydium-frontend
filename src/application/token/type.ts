@@ -56,6 +56,7 @@ export interface HydratedTokenJsonInfo {
 export interface RaydiumTokenListJsonInfo {
   official: TokenJson[]
   unOfficial: TokenJson[]
+  unNamed: Pick<TokenJson, 'mint' | 'decimals'>[]
   blacklist: HexAddress[]
 }
 
