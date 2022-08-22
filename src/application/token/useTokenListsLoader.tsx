@@ -50,6 +50,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
   const devMints: string[] = []
   const unOfficialMints: string[] = []
   const officialMints: string[] = []
+  const unNamedMints: string[] = []
   const blacklist: string[] = []
   const tokens: TokenJson[] = []
   // eslint-disable-next-line no-console
@@ -59,7 +60,11 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
     if (isRaydiumMainnetTokenListName(response, raw.url)) {
       unOfficialMints.push(...response.unOfficial.map(({ mint }) => mint))
       officialMints.push(...deleteFetchedNativeSOLToken(response.official).map(({ mint }) => mint))
-      tokens.push(...deleteFetchedNativeSOLToken(response.official), ...response.unOfficial)
+      unNamedMints.push(...response.unNamed.map((j) => j.mint))
+      const fullUnnamed = response.unNamed.map(
+        (j) => ({ ...j, symbol: j.mint.slice(0, 6), name: j.mint.slice(0, 12), extensions: {}, icon: '' } as TokenJson)
+      )
+      tokens.push(...deleteFetchedNativeSOLToken(response.official), ...response.unOfficial, ...fullUnnamed)
       blacklist.push(...response.blacklist)
     }
     if (isRaydiumDevTokenListName(response, raw.url) && (isInLocalhost || isInBonsaiTest)) {
