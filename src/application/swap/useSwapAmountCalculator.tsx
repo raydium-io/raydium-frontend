@@ -85,7 +85,8 @@ export function useSwapAmountCalculator() {
         executionPrice: undefined,
         ...{
           [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']:
-            focusSide === 'coin1' ? toString(userCoin1Amount) : toString(userCoin2Amount)
+            focusSide === 'coin1' ? toString(userCoin1Amount) : toString(userCoin2Amount),
+          [focusSide === 'coin1' ? 'isCoin2Calculating' : 'isCoin1Calculating']: false
         }
       })
       return
