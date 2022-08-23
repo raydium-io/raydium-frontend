@@ -20,7 +20,8 @@ export default async function createAssociatedTokenAccountIfNotExist(payload: {
   assert(owner, 'user not connected')
 
   // avoid check twice (Ray can be a lp and can be a reward )
-  if (tokenAccountAddressCache.has(toPubString(mint))) return tokenAccountAddressCache.get(toPubString(mint))
+  if (tokenAccountAddressCache.has(toPubString(mint) + toPubString(owner)))
+    return tokenAccountAddressCache.get(toPubString(mint))
 
   const tokenAccountAddress =
     findTokenAccount(mint)?.publicKey ??
@@ -38,7 +39,7 @@ export default async function createAssociatedTokenAccountIfNotExist(payload: {
     })())
 
   // set cache
-  tokenAccountAddressCache.set(toPubString(mint), tokenAccountAddress)
+  tokenAccountAddressCache.set(toPubString(mint) + toPubString(owner), tokenAccountAddress)
 
   /* ----------------------------- auto close WSOL ---------------------------- */
   if (payload.autoUnwrapWSOLToSOL && isMintEqual(mint, WSOLMint)) {
