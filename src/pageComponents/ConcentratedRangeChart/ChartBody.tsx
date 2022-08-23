@@ -169,10 +169,9 @@ export function ConcentratedChartBody({
   const shrinkToView = () => {
     const diff = Math.abs(maxBoundaryX - minBoundaryX)
     const newZoom = svgInnerWidth / (diff * 1.2)
-    const exactBoundaryLineWidth = boundaryLineWidth * zoom
+    const newOffsetX = minBoundaryX - (svgInnerWidth / newZoom - diff) / 2
     setZoom(newZoom)
-    // console.log('minBoundaryX: ', minBoundaryX)
-    setOffsetX(minBoundaryX + exactBoundaryLineWidth / 2 - svgInnerWidth * 0.1)
+    setOffsetX(newOffsetX)
   }
 
   useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({
@@ -198,11 +197,25 @@ export function ConcentratedChartBody({
     >
       <defs>
         <style>
-          {`.no-scale {
-             transform: scale(${1 / zoom},1);
-             transform-box: fill-box;
-             transform-origin: center;
-           }`}
+          {`
+            .no-scale {
+              transform: scale(${1 / zoom},1);
+              transform-box: fill-box;
+              transform-origin: center;
+            }
+
+            .align-center {
+              transform: translate(-50%, 0%);
+              transform-box: fill-box;
+              transform-origin: center;
+            }
+
+            .no-scale-align-center {
+              transform: translate(-50%, 0%) scale(${1 / zoom},1);
+              transform-box: fill-box;
+              transform-origin: center;
+            }
+          `}
         </style>
       </defs>
 
@@ -216,7 +229,7 @@ export function ConcentratedChartBody({
 
       {/* min boundary */}
       <rect
-        className="no-scale"
+        className="no-scale-align-center"
         ref={minBoundaryRef}
         width={boundaryLineWidth}
         height={svgInnerHeight - xAxisAboveBottom}
@@ -228,7 +241,7 @@ export function ConcentratedChartBody({
 
       {/* max boundary */}
       <rect
-        className="no-scale"
+        className="no-scale-align-center"
         ref={maxBoundaryRef}
         width={boundaryLineWidth}
         height={svgInnerHeight - xAxisAboveBottom}
