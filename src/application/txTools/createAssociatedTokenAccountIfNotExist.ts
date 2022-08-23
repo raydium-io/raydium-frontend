@@ -21,7 +21,7 @@ export default async function createAssociatedTokenAccountIfNotExist(payload: {
 
   // avoid check twice (Ray can be a lp and can be a reward )
   if (tokenAccountAddressCache.has(toPubString(mint) + toPubString(owner)))
-    return tokenAccountAddressCache.get(toPubString(mint))
+    return tokenAccountAddressCache.get(toPubString(mint) + toPubString(owner))
 
   const tokenAccountAddress =
     findTokenAccount(mint)?.publicKey ??
