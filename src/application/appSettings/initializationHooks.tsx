@@ -226,7 +226,7 @@ export function useRpcPerformance() {
           id: 'getRecentPerformanceSamples',
           jsonrpc: '2.0',
           method: 'getRecentPerformanceSamples',
-          params: [4]
+          params: [100]
         })
       })
       if (!result) return
