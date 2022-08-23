@@ -1,8 +1,11 @@
+import { useEffect } from 'react'
+
 import { jsonInfo2PoolKeys, Liquidity, LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { SplToken } from '@/application/token/type'
 import { deUIToken, deUITokenAmount, toUITokenAmount } from '@/application/token/quantumSOL'
+import { SplToken } from '@/application/token/type'
+import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { eq } from '@/functions/numberish/compare'
@@ -12,10 +15,9 @@ import { HexAddress, Numberish } from '@/types/constants'
 
 import { hasSameItems } from '../../functions/arrayMethods'
 import useConnection from '../connection/useConnection'
+
 import { SDKParsedLiquidityInfo } from './type'
 import useLiquidity from './useLiquidity'
-import { useEffect } from 'react'
-import toPubString from '@/functions/format/toMintString'
 
 /**
  * will auto fresh  liquidity's coin1Amount and coin2Amount with liquidity's jsonInfos and coin1 and coin2
@@ -78,9 +80,17 @@ export default function useLiquidityAmountCalculator() {
       if (!resultStillFresh) return
 
       if (focusSide === 'coin1') {
-        useLiquidity.setState({ coin2Amount: pairCoinAmount, unslippagedCoin2Amount: unslippagedPairCoinAmount })
+        useLiquidity.setState({
+          coin2Amount: pairCoinAmount,
+          unslippagedCoin2Amount: unslippagedPairCoinAmount,
+          isCalculatingBczSelection: false
+        })
       } else {
-        useLiquidity.setState({ coin1Amount: pairCoinAmount, unslippagedCoin1Amount: unslippagedPairCoinAmount })
+        useLiquidity.setState({
+          coin1Amount: pairCoinAmount,
+          unslippagedCoin1Amount: unslippagedPairCoinAmount,
+          isCalculatingBczSelection: false
+        })
       }
     } catch (err) {
       console.error('err: ', err)
