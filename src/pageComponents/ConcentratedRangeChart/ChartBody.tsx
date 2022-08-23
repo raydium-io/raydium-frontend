@@ -70,36 +70,12 @@ export function ConcentratedChartBody({
   const maxBoundaryRef = useRef<SVGRectElement>(null)
 
   //#region ------------------- handle min boundaryLine -------------------
-  const handleGrabMinBoundary = useEvent(
-    ({
-      el,
-      totalDelta
-    }: {
-      el: SVGRectElement
-      ev: PointerEvent
-      pointEvents: PointerEvent[]
-      currentDelta: { dx: number; dy: number }
-      totalDelta: { dx: number; dy: number }
-      isFirstEvent: boolean
-    }): void => {
-      el.setAttribute('x', String(minBoundaryX + totalDelta.dx / zoom))
-    }
-  )
-  const handleGrabMinBoundaryEnd = useEvent(
-    ({
-      totalDelta
-    }: {
-      el: SVGRectElement
-      ev: PointerEvent // rightTopPoint:
-      // rightTopPoint:
-      pointEvents: PointerEvent[]
-      currentDelta: { dx: number; dy: number }
-      totalDelta: { dx: number; dy: number }
-      currentSpeed: { x: number; y: number }
-    }): void => {
-      setMinBoundaryX((n) => n + totalDelta.dx / zoom)
-    }
-  )
+  const handleGrabMinBoundary: AttachPointerMovePointMoveFn<SVGRectElement> = useEvent(({ el, totalDelta }): void => {
+    el.setAttribute('x', String(minBoundaryX + totalDelta.dx / zoom))
+  })
+  const handleGrabMinBoundaryEnd: AttachPointerMovePointUpFn<SVGRectElement> = useEvent(({ totalDelta }): void => {
+    setMinBoundaryX((n) => n + totalDelta.dx / zoom)
+  })
   useEffect(() => {
     if (!minBoundaryRef.current) return
     attachPointerMove(minBoundaryRef.current, {
@@ -110,36 +86,12 @@ export function ConcentratedChartBody({
   //#endregion
 
   //#region ------------------- handle max boundaryLine -------------------
-  const handleGrabMaxBoundary = useEvent(
-    ({
-      el,
-      totalDelta
-    }: {
-      el: SVGRectElement
-      ev: PointerEvent
-      pointEvents: PointerEvent[]
-      currentDelta: { dx: number; dy: number }
-      totalDelta: { dx: number; dy: number }
-      isFirstEvent: boolean
-    }): void => {
-      el.setAttribute('x', String(maxBoundaryX + totalDelta.dx / zoom))
-    }
-  )
-  const handleGrabMaxBoundaryEnd = useEvent(
-    ({
-      totalDelta
-    }: {
-      el: SVGRectElement
-      ev: PointerEvent // rightTopPoint:
-      // rightTopPoint:
-      pointEvents: PointerEvent[]
-      currentDelta: { dx: number; dy: number }
-      totalDelta: { dx: number; dy: number }
-      currentSpeed: { x: number; y: number }
-    }): void => {
-      setMaxBoundaryX((n) => n + totalDelta.dx / zoom)
-    }
-  )
+  const handleGrabMaxBoundary: AttachPointerMovePointMoveFn<SVGRectElement> = useEvent(({ el, totalDelta }): void => {
+    el.setAttribute('x', String(maxBoundaryX + totalDelta.dx / zoom))
+  })
+  const handleGrabMaxBoundaryEnd: AttachPointerMovePointUpFn<SVGRectElement> = useEvent(({ totalDelta }): void => {
+    setMaxBoundaryX((n) => n + totalDelta.dx / zoom)
+  })
   useEffect(() => {
     if (!maxBoundaryRef.current) return
     attachPointerMove(maxBoundaryRef.current, {
