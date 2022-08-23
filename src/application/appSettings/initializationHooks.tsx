@@ -207,7 +207,7 @@ export function useRpcPerformance() {
   const MAX_TPS = 1500 // force settings
 
   const getPerformance = useCallback(() => {
-    return globalThis.setInterval(async () => {
+    return setInterval(async () => {
       if (isLowRpcPerformance) return // no need calc again
       if (!currentEndPoint?.url) return
       const result = await jFetch<{
@@ -219,6 +219,7 @@ export function useRpcPerformance() {
         }[]
       }>(currentEndPoint?.url, {
         method: 'post',
+        ignoreCache: true,
         headers: {
           'Content-Type': 'application/json'
         },
@@ -239,6 +240,6 @@ export function useRpcPerformance() {
 
   useEffect(() => {
     const timeId = getPerformance()
-    return () => globalThis.clearInterval(timeId)
+    return () => clearInterval(timeId)
   }, [getPerformance])
 }

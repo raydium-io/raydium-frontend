@@ -96,7 +96,8 @@ export default function useFarmInfoLoader() {
     getLpToken,
     lpTokens,
     liquidityJsonInfos,
-    chainTimeOffset // when connection is ready, should get connection's chain time)
+    chainTimeOffset, // when connection is ready, should get connection's chain time),
+    farmRefreshCount
   ])
 }
 
@@ -114,7 +115,7 @@ export async function getSlotCountForSecond(currentEndPoint: Endpoint | undefine
     }[]
   }>(currentEndPoint.url, {
     method: 'post',
-    cacheFreshTime: 60 * 1000,
+    ignoreCache: true,
     headers: {
       'Content-Type': 'application/json'
     },
