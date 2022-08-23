@@ -45,10 +45,14 @@ export interface ChartFormBodyComponentHandler {
 export function ConcentratedChartBody({
   className,
   points,
+  initMinBoundaryX,
+  initMaxBoundaryX,
   componentRef
 }: {
   className?: string
   points: ChartPoints
+  initMinBoundaryX?: number
+  initMaxBoundaryX?: number
   componentRef?: RefObject<any>
 }) {
   const lineColor = '#abc4ff80'
@@ -60,10 +64,10 @@ export function ConcentratedChartBody({
   const xAxisAboveBottom = 30
   const [zoom, setZoom] = useState(1)
   const [offsetX, setOffsetX] = useState(0)
-  const boundaryLineWidth = 4
+  const boundaryLineWidth = 8
   // const minBoundaryX = useRef(0)
-  const [minBoundaryX, setMinBoundaryX] = useState(0)
-  const [maxBoundaryX, setMaxBoundaryX] = useState(svgInnerWidth - boundaryLineWidth)
+  const [minBoundaryX, setMinBoundaryX] = useState(initMinBoundaryX ?? 0)
+  const [maxBoundaryX, setMaxBoundaryX] = useState(initMaxBoundaryX ?? svgInnerWidth - boundaryLineWidth)
 
   const wrapperRef = useRef<SVGSVGElement>(null)
   const minBoundaryRef = useRef<SVGRectElement>(null)
@@ -118,10 +122,10 @@ export function ConcentratedChartBody({
   }, [])
   //#endregion
 
-  const shrinkToView = () => {
+  const shrinkToView = (forceSvgWidth = svgInnerWidth) => {
     const diff = Math.abs(maxBoundaryX - minBoundaryX)
-    const newZoom = svgInnerWidth / (diff * 1.2)
-    const newOffsetX = minBoundaryX - (svgInnerWidth / newZoom - diff) / 2
+    const newZoom = forceSvgWidth / (diff * 1.2)
+    const newOffsetX = minBoundaryX - (forceSvgWidth / newZoom - diff) / 2
     setZoom(newZoom)
     setOffsetX(newOffsetX)
   }
@@ -136,7 +140,10 @@ export function ConcentratedChartBody({
     if (!wrapperRef.current) return
     setSvgInnerWidth(wrapperRef.current.clientWidth)
     setSvgInnerHeight(wrapperRef.current.clientHeight)
-    setMaxBoundaryX(wrapperRef.current.clientWidth - boundaryLineWidth)
+    if (!initMaxBoundaryX) setMaxBoundaryX(wrapperRef.current.clientWidth - boundaryLineWidth)
+
+    // init shrink to view
+    shrinkToView(wrapperRef.current.clientWidth)
   }, [wrapperRef])
   return (
     <svg

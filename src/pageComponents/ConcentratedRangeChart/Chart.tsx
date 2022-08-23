@@ -55,7 +55,13 @@ export function ConcentratedChart({ className }: { className?: string }) {
           </Row>
         </Row>
       </Row>
-      <ConcentratedChartBody componentRef={concentratedChartBodyRef} points={mokeChartData} className="my-2" />
+      <ConcentratedChartBody
+        initMinBoundaryX={120}
+        initMaxBoundaryX={240}
+        componentRef={concentratedChartBodyRef}
+        points={mokeChartData}
+        className="my-2"
+      />
       <Row className="gap-4">
         <InputBox className="grow" label="Min Price" decimalMode />
         <InputBox className="grow" label="Max Price" decimalMode />
