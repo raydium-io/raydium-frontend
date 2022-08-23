@@ -67,7 +67,8 @@ export function ConcentratedChartBody({
   const xAxisAboveBottom = 30
   const [zoom, setZoom] = useState(1)
   const [offsetX, setOffsetX] = useState(0)
-  const boundaryLineWidth = 8
+  const boundaryLineWidth = 6
+  const minDistanceOfMinBoundaryAndMaxBoundary = boundaryLineWidth
   // const minBoundaryX = useRef(0)
   const [minBoundaryX, setMinBoundaryX] = useState(initMinBoundaryX ?? 0)
   const [maxBoundaryX, setMaxBoundaryX] = useState(initMaxBoundaryX ?? svgInnerWidth - boundaryLineWidth)
@@ -77,11 +78,11 @@ export function ConcentratedChartBody({
   const maxBoundaryRef = useRef<SVGRectElement>(null)
 
   //#region ------------------- handle min boundaryLine -------------------
-  const handleGrabMinBoundary: AttachPointerMovePointMoveFn<SVGRectElement> = useEvent(({ el, totalDelta }): void => {
-    el.setAttribute('x', String(minBoundaryX + totalDelta.dx / zoom))
+  const handleGrabMinBoundary: AttachPointerMovePointMoveFn<SVGRectElement> = useEvent(({ totalDelta }): void => {
+    moveMinBoundaryX({ offset: totalDelta.dx / zoom })
   })
   const handleGrabMinBoundaryEnd: AttachPointerMovePointUpFn<SVGRectElement> = useEvent(({ totalDelta }): void => {
-    setMinBoundaryX((n) => n + totalDelta.dx / zoom)
+    moveMinBoundaryX({ offset: totalDelta.dx / zoom, setReactState: true })
   })
   useEffect(() => {
     if (!minBoundaryRef.current) return
@@ -93,11 +94,11 @@ export function ConcentratedChartBody({
   //#endregion
 
   //#region ------------------- handle max boundaryLine -------------------
-  const handleGrabMaxBoundary: AttachPointerMovePointMoveFn<SVGRectElement> = useEvent(({ el, totalDelta }): void => {
-    el.setAttribute('x', String(maxBoundaryX + totalDelta.dx / zoom))
+  const handleGrabMaxBoundary: AttachPointerMovePointMoveFn<SVGRectElement> = useEvent(({ totalDelta }): void => {
+    moveMaxBoundaryX({ offset: totalDelta.dx / zoom })
   })
   const handleGrabMaxBoundaryEnd: AttachPointerMovePointUpFn<SVGRectElement> = useEvent(({ totalDelta }): void => {
-    setMaxBoundaryX((n) => n + totalDelta.dx / zoom)
+    moveMaxBoundaryX({ offset: totalDelta.dx / zoom, setReactState: true })
   })
   useEffect(() => {
     if (!maxBoundaryRef.current) return
@@ -125,7 +126,7 @@ export function ConcentratedChartBody({
   }, [])
   //#endregion
 
-  //#region ------------------- load methods -------------------
+  //#region ------------------- methods -------------------
   const shrinkToView = (forceSvgWidth = svgInnerWidth) => {
     const diff = Math.abs(maxBoundaryX - minBoundaryX)
     const newZoom = forceSvgWidth / (diff * 1.2)
@@ -139,6 +140,17 @@ export function ConcentratedChartBody({
   const zoomOut = (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => {
     setZoom((n) => n * Math.max(1 - 0.1 * (options?.degree ?? 1), 0.4))
   }
+  const moveMinBoundaryX = (options: { offset: number; setReactState?: boolean }) => {
+    const clampX = (newX: number) => Math.min(Math.max(newX, 0), maxBoundaryX - minDistanceOfMinBoundaryAndMaxBoundary)
+    minBoundaryRef.current?.setAttribute('x', String(clampX(minBoundaryX + options.offset)))
+    if (options.setReactState) setMinBoundaryX(clampX(minBoundaryX + options.offset))
+  }
+  const moveMaxBoundaryX = (options: { offset: number; setReactState?: boolean }) => {
+    const clampX = (newX: number) => Math.max(newX, minBoundaryX + minDistanceOfMinBoundaryAndMaxBoundary)
+    maxBoundaryRef.current?.setAttribute('x', String(clampX(maxBoundaryX + options.offset)))
+    if (options.setReactState) setMaxBoundaryX(clampX(maxBoundaryX + options.offset))
+  }
+
   useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({
     zoomIn,
     zoomOut,
@@ -202,7 +214,7 @@ export function ConcentratedChartBody({
         ref={minBoundaryRef}
         width={boundaryLineWidth}
         height={svgInnerHeight - xAxisAboveBottom}
-        x={minBoundaryX}
+        x={Math.max(minBoundaryX, 0)}
         y={0}
         fill={boundaryLineColor}
         style={{ cursor: 'pointer' }}
@@ -214,7 +226,7 @@ export function ConcentratedChartBody({
         ref={maxBoundaryRef}
         width={boundaryLineWidth}
         height={svgInnerHeight - xAxisAboveBottom}
-        x={maxBoundaryX}
+        x={Math.max(maxBoundaryX, 0)}
         y={0}
         fill={boundaryLineColor}
         style={{ cursor: 'pointer' }}
