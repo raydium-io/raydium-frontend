@@ -202,13 +202,11 @@ export function useDefaultExplorerSyncer() {
 
 export function useRpcPerformance() {
   const { connection, currentEndPoint } = useConnection()
-  const isLowRpcPerformance = useAppSettings((s) => s.isLowRpcPerformance)
 
   const MAX_TPS = 1500 // force settings
 
   const getPerformance = useCallback(() => {
     return setInterval(async () => {
-      if (isLowRpcPerformance) return // no need calc again
       if (!currentEndPoint?.url) return
       const result = await jFetch<{
         result: {
@@ -235,8 +233,8 @@ export function useRpcPerformance() {
       const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
       const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
       useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })
-    }, 1000 * 60)
-  }, [connection])
+    }, 1000 * 5)
+  }, [connection, currentEndPoint])
 
   useEffect(() => {
     const timeId = getPerformance()
