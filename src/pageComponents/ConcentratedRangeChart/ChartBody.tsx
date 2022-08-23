@@ -55,47 +55,51 @@ export function ConcentratedChartBody({
   const boundaryLineColor = '#abc4ff'
   const xAxisColor = '#abc4ff80'
   const xAxisUnitColor = xAxisColor
-  const svgInnerWidth = 300
-  const svgInnerHeight = 200
+  const [svgInnerWidth, setSvgInnerWidth] = useState(300)
+  const [svgInnerHeight, setSvgInnerHeight] = useState(200)
   const xAxisAboveBottom = 30
   const [zoom, setZoom] = useState(1)
   const [offsetX, setOffsetX] = useState(0)
-  const wrapperRef = useRef<SVGSVGElement>(null)
   const boundaryLineWidth = 4
-  const minBoundaryX = useRef(0)
-  const maxBoundaryX = useRef(svgInnerWidth - boundaryLineWidth)
+  // const minBoundaryX = useRef(0)
+  const [minBoundaryX, setMinBoundaryX] = useState(0)
+  const [maxBoundaryX, setMaxBoundaryX] = useState(svgInnerWidth - boundaryLineWidth)
 
+  const wrapperRef = useRef<SVGSVGElement>(null)
   const minBoundaryRef = useRef<SVGRectElement>(null)
   const maxBoundaryRef = useRef<SVGRectElement>(null)
 
   //#region ------------------- handle min boundaryLine -------------------
-  const handleGrabMinBoundary = ({
-    el,
-    totalDelta
-  }: {
-    el: SVGRectElement
-    ev: PointerEvent
-    pointEvents: PointerEvent[]
-    currentDelta: { dx: number; dy: number }
-    totalDelta: { dx: number; dy: number }
-    isFirstEvent: boolean
-  }): void => {
-    el.setAttribute('x', String(minBoundaryX.current + totalDelta.dx / zoom))
-  }
-  const handleGrabMinBoundaryEnd = ({
-    totalDelta
-  }: {
-    el: SVGRectElement
-    ev: PointerEvent // rightTopPoint:
-    // rightTopPoint:
-    pointEvents: PointerEvent[]
-    currentDelta: { dx: number; dy: number }
-    totalDelta: { dx: number; dy: number }
-    currentSpeed: { x: number; y: number }
-  }): void => {
-    const newMinBoundaryX = minBoundaryX.current + totalDelta.dx / zoom
-    minBoundaryX.current = newMinBoundaryX
-  }
+  const handleGrabMinBoundary = useEvent(
+    ({
+      el,
+      totalDelta
+    }: {
+      el: SVGRectElement
+      ev: PointerEvent
+      pointEvents: PointerEvent[]
+      currentDelta: { dx: number; dy: number }
+      totalDelta: { dx: number; dy: number }
+      isFirstEvent: boolean
+    }): void => {
+      el.setAttribute('x', String(minBoundaryX + totalDelta.dx / zoom))
+    }
+  )
+  const handleGrabMinBoundaryEnd = useEvent(
+    ({
+      totalDelta
+    }: {
+      el: SVGRectElement
+      ev: PointerEvent // rightTopPoint:
+      // rightTopPoint:
+      pointEvents: PointerEvent[]
+      currentDelta: { dx: number; dy: number }
+      totalDelta: { dx: number; dy: number }
+      currentSpeed: { x: number; y: number }
+    }): void => {
+      setMinBoundaryX((n) => n + totalDelta.dx / zoom)
+    }
+  )
   useEffect(() => {
     if (!minBoundaryRef.current) return
     attachPointerMove(minBoundaryRef.current, {
@@ -106,33 +110,36 @@ export function ConcentratedChartBody({
   //#endregion
 
   //#region ------------------- handle max boundaryLine -------------------
-  const handleGrabMaxBoundary = ({
-    el,
-    totalDelta
-  }: {
-    el: SVGRectElement
-    ev: PointerEvent
-    pointEvents: PointerEvent[]
-    currentDelta: { dx: number; dy: number }
-    totalDelta: { dx: number; dy: number }
-    isFirstEvent: boolean
-  }): void => {
-    el.setAttribute('x', String(maxBoundaryX.current + totalDelta.dx / zoom))
-  }
-  const handleGrabMaxBoundaryEnd = ({
-    totalDelta
-  }: {
-    el: SVGRectElement
-    ev: PointerEvent // rightTopPoint:
-    // rightTopPoint:
-    pointEvents: PointerEvent[]
-    currentDelta: { dx: number; dy: number }
-    totalDelta: { dx: number; dy: number }
-    currentSpeed: { x: number; y: number }
-  }): void => {
-    const newMaxBoundaryX = maxBoundaryX.current + totalDelta.dx / zoom
-    maxBoundaryX.current = newMaxBoundaryX
-  }
+  const handleGrabMaxBoundary = useEvent(
+    ({
+      el,
+      totalDelta
+    }: {
+      el: SVGRectElement
+      ev: PointerEvent
+      pointEvents: PointerEvent[]
+      currentDelta: { dx: number; dy: number }
+      totalDelta: { dx: number; dy: number }
+      isFirstEvent: boolean
+    }): void => {
+      el.setAttribute('x', String(maxBoundaryX + totalDelta.dx / zoom))
+    }
+  )
+  const handleGrabMaxBoundaryEnd = useEvent(
+    ({
+      totalDelta
+    }: {
+      el: SVGRectElement
+      ev: PointerEvent // rightTopPoint:
+      // rightTopPoint:
+      pointEvents: PointerEvent[]
+      currentDelta: { dx: number; dy: number }
+      totalDelta: { dx: number; dy: number }
+      currentSpeed: { x: number; y: number }
+    }): void => {
+      setMaxBoundaryX((n) => n + totalDelta.dx / zoom)
+    }
+  )
   useEffect(() => {
     if (!maxBoundaryRef.current) return
     attachPointerMove(maxBoundaryRef.current, {
@@ -160,9 +167,12 @@ export function ConcentratedChartBody({
   //#endregion
 
   const shrinkToView = () => {
-    const newZoom = (svgInnerWidth - boundaryLineWidth) / Math.abs(maxBoundaryX.current - minBoundaryX.current)
+    const diff = Math.abs(maxBoundaryX - minBoundaryX)
+    const newZoom = svgInnerWidth / (diff * 1.2)
+    const exactBoundaryLineWidth = boundaryLineWidth * zoom
     setZoom(newZoom)
-    setOffsetX(minBoundaryX.current)
+    // console.log('minBoundaryX: ', minBoundaryX)
+    setOffsetX(minBoundaryX + exactBoundaryLineWidth / 2 - svgInnerWidth * 0.1)
   }
 
   useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({
@@ -170,13 +180,20 @@ export function ConcentratedChartBody({
     shrinkToView
   }))
   const polygonPoints = polygonChartPoints(points)
+
+  useEffect(() => {
+    if (!wrapperRef.current) return
+    setSvgInnerWidth(wrapperRef.current.clientWidth)
+    setSvgInnerHeight(wrapperRef.current.clientHeight)
+    setMaxBoundaryX(wrapperRef.current.clientWidth - boundaryLineWidth)
+  }, [wrapperRef])
   return (
     <svg
       ref={wrapperRef}
       className={twMerge('cursor-grab active:cursor-grabbing select-none', className)}
       viewBox={`${offsetX} 0 ${svgInnerWidth / zoom} ${svgInnerHeight}`}
       preserveAspectRatio="none"
-      width={svgInnerWidth}
+      width={'100%'}
       height={svgInnerHeight}
     >
       <defs>
@@ -188,9 +205,9 @@ export function ConcentratedChartBody({
            }`}
         </style>
       </defs>
+
       <polygon
         className="pointer-events-none"
-        vectorEffect="non-scaling-stroke"
         points={polygonPoints
           .map((p) => `${p.x.toFixed(3)},${(svgInnerHeight - p.y - xAxisAboveBottom).toFixed(3)}`)
           .join(' ')}
@@ -199,10 +216,11 @@ export function ConcentratedChartBody({
 
       {/* min boundary */}
       <rect
+        className="no-scale"
         ref={minBoundaryRef}
         width={boundaryLineWidth}
         height={svgInnerHeight - xAxisAboveBottom}
-        x={minBoundaryX.current}
+        x={minBoundaryX}
         y={0}
         fill={boundaryLineColor}
         style={{ cursor: 'pointer' }}
@@ -210,10 +228,11 @@ export function ConcentratedChartBody({
 
       {/* max boundary */}
       <rect
+        className="no-scale"
         ref={maxBoundaryRef}
         width={boundaryLineWidth}
         height={svgInnerHeight - xAxisAboveBottom}
-        x={maxBoundaryX.current}
+        x={maxBoundaryX}
         y={0}
         fill={boundaryLineColor}
         style={{ cursor: 'pointer' }}
