@@ -94,6 +94,8 @@ export interface IconProps {
   onHover?: UseHoverOptions['onHover']
   /* this prop will auto add some tailwind class for Icon */
   onClick?: UseClickOptions['onClick']
+  /** will open long click */
+  canLongClick?: boolean
   forceColor?: string // TODO: <Icon> can basicly change theme color
 }
 
@@ -106,6 +108,7 @@ export default function Icon({
   onHover,
   /* this prop will auto add some tailwind class for Icon */
   onClick,
+  canLongClick,
   forceColor,
   domRef,
   className,
@@ -114,7 +117,7 @@ export default function Icon({
 }: IconProps) {
   const selfRef = useRef()
   const styleClass = twMerge(`Icon ${inline ? 'inline-grid' : 'grid'} h-[max-content] w-[max-content]`, className)
-  useClick(selfRef, { onClick, disable: !onClick })
+  useClick(selfRef, { onClick, disable: !onClick, canLongClick })
   useHover(selfRef, { onHover, disable: !onHover })
 
   if (heroIconName) {

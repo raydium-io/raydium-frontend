@@ -42,6 +42,7 @@ export function ConcentratedChart({ className }: { className?: string }) {
               onClick={() => {
                 concentratedChartBodyRef.current?.setZoom((s) => s * 1.1)
               }}
+              canLongClick
             />
             <Icon
               className="text-[#abc4ff] saturate-50 brightness-125"
@@ -49,6 +50,7 @@ export function ConcentratedChart({ className }: { className?: string }) {
               onClick={() => {
                 concentratedChartBodyRef.current?.setZoom((s) => s * 0.9)
               }}
+              canLongClick
             />
           </Row>
         </Row>
