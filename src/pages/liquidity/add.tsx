@@ -233,6 +233,7 @@ function LiquidityCard() {
     unslippagedCoin1Amount,
     coin2,
     coin2Amount,
+    isCalculatingBczSelection,
     unslippagedCoin2Amount,
     focusSide,
     currentJsonInfo,
@@ -350,7 +351,7 @@ function LiquidityCard() {
           componentRef={coinInputBox2ComponentRef}
           disabled={isApprovePanelShown}
           noDisableStyle
-          value={focusSide === 'coin2' ? coin2Amount : unslippagedCoin2Amount}
+          value={isCalculatingBczSelection ? '0' : focusSide === 'coin2' ? coin2Amount : unslippagedCoin2Amount}
           haveHalfButton
           haveCoinIcon
           showTokenSelectIcon
@@ -443,16 +444,20 @@ function LiquidityCard() {
         close={turnOffCoinSelector}
         onSelectCoin={(token) => {
           if (targetCoinNo === '1') {
-            useLiquidity.setState({ coin1: token })
-            // delete other
-            if (!canTokenPairBeSelected(token, coin2)) {
-              useLiquidity.setState({ coin2: undefined, coin2Amount: '', unslippagedCoin2Amount: '' })
+            if (!areSameToken(coin1, token)) {
+              useLiquidity.setState({ coin1: token, isCalculatingBczSelection: true })
+              // delete other
+              if (!canTokenPairBeSelected(token, coin2)) {
+                useLiquidity.setState({ coin2: undefined, coin2Amount: '', unslippagedCoin2Amount: '' })
+              }
             }
           } else {
-            // delete other
-            useLiquidity.setState({ coin2: token })
-            if (!canTokenPairBeSelected(token, coin1)) {
-              useLiquidity.setState({ coin1: undefined, coin1Amount: '', unslippagedCoin1Amount: '' })
+            if (!areSameToken(coin2, token)) {
+              // delete other
+              useLiquidity.setState({ coin2: token, isCalculatingBczSelection: true })
+              if (!canTokenPairBeSelected(token, coin1)) {
+                useLiquidity.setState({ coin1: undefined, coin1Amount: '', unslippagedCoin1Amount: '' })
+              }
             }
           }
           turnOffCoinSelector()
@@ -470,6 +475,10 @@ function LiquidityCard() {
 
 function canTokenPairBeSelected(targetToken: SplToken | undefined, candidateToken: SplToken | undefined) {
   return !isMintEqual(targetToken?.mint, candidateToken?.mint)
+}
+
+function areSameToken(originToken: SplToken | undefined, newSelected: SplToken): boolean {
+  return originToken?.mint === newSelected.mint
 }
 
 function RemainSOLAlert() {
