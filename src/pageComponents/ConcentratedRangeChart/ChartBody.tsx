@@ -38,7 +38,8 @@ function polygonChartPoints(points: ChartPoints): ChartPoints {
 }
 
 export interface ChartFormBodyComponentHandler {
-  setZoom: Dispatch<SetStateAction<number>>
+  zoomIn: (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => void
+  zoomOut: (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => void
   shrinkToView: () => void
 }
 
@@ -55,6 +56,8 @@ export function ConcentratedChartBody({
   initMaxBoundaryX?: number
   componentRef?: RefObject<any>
 }) {
+  const polygonPoints = polygonChartPoints(points)
+
   const lineColor = '#abc4ff80'
   const boundaryLineColor = '#abc4ff'
   const xAxisColor = '#abc4ff80'
@@ -122,6 +125,7 @@ export function ConcentratedChartBody({
   }, [])
   //#endregion
 
+  //#region ------------------- load methods -------------------
   const shrinkToView = (forceSvgWidth = svgInnerWidth) => {
     const diff = Math.abs(maxBoundaryX - minBoundaryX)
     const newZoom = forceSvgWidth / (diff * 1.2)
@@ -129,12 +133,18 @@ export function ConcentratedChartBody({
     setZoom(newZoom)
     setOffsetX(newOffsetX)
   }
-
+  const zoomIn = (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => {
+    setZoom((n) => n * Math.min(1 + 0.1 * (options?.degree ?? 1), 6))
+  }
+  const zoomOut = (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => {
+    setZoom((n) => n * Math.max(1 - 0.1 * (options?.degree ?? 1), 0.4))
+  }
   useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({
-    setZoom,
+    zoomIn,
+    zoomOut,
     shrinkToView
   }))
-  const polygonPoints = polygonChartPoints(points)
+  //#endregion
 
   useEffect(() => {
     if (!wrapperRef.current) return

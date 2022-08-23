@@ -40,7 +40,7 @@ export function ConcentratedChart({ className }: { className?: string }) {
               className="text-[#abc4ff] saturate-50 brightness-125"
               heroIconName="zoom-in"
               onClick={() => {
-                concentratedChartBodyRef.current?.setZoom((s) => s * 1.1)
+                concentratedChartBodyRef.current?.zoomIn()
               }}
               canLongClick
             />
@@ -48,7 +48,7 @@ export function ConcentratedChart({ className }: { className?: string }) {
               className="text-[#abc4ff] saturate-50 brightness-125"
               heroIconName="zoom-out"
               onClick={() => {
-                concentratedChartBodyRef.current?.setZoom((s) => s * 0.9)
+                concentratedChartBodyRef.current?.zoomOut()
               }}
               canLongClick
             />
