@@ -58,6 +58,9 @@ export type AppSettingsStore = {
   // default explorer's name and URL
   explorerName: string
   explorerUrl: string
+
+  // rpc performance status
+  isLowRpcPerformance: boolean
 }
 const useAppSettings = create<AppSettingsStore>(() => ({
   slippageTolerance: 0,
@@ -80,7 +83,9 @@ const useAppSettings = create<AppSettingsStore>(() => ({
   isWalletSelectorShown: false,
   refreshCircleLastTimestamp: {},
   explorerName: '',
-  explorerUrl: ''
+  explorerUrl: '',
+
+  isLowRpcPerformance: false
 }))
 
 export default useAppSettings

@@ -6,7 +6,7 @@ import { PublicKey } from '@solana/web3.js'
 import NextNProgress from 'nextjs-progressbar'
 
 import {
-  useDefaultExplorerSyncer, useDeviceInfoSyc, useDisclaimerDataSyncer, useSentryConfigurator,
+  useDefaultExplorerSyncer, useDeviceInfoSyc, useDisclaimerDataSyncer, useRpcPerformance, useSentryConfigurator,
   useSlippageTolerenceSyncer, useSlippageTolerenceValidator, useThemeModeSync
 } from '@/application/appSettings/initializationHooks'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
@@ -123,6 +123,7 @@ function ApplicationsInitializations() {
   useSlippageTolerenceValidator()
   useSlippageTolerenceSyncer()
   useDefaultExplorerSyncer()
+  useRpcPerformance()
 
   /********************** appVersion **********************/
   useAppInitVersionPostHeartBeat()

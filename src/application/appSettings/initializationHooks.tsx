@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useRouter } from 'next/router'
 
 import * as Sentry from '@sentry/nextjs'
 
 import Link from '@/components/Link'
+import jFetch from '@/functions/dom/jFetch'
 import { getLocalItem } from '@/functions/dom/jStorage'
 import { inClient, inServer, isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { eq, gt, lt, lte } from '@/functions/numberish/compare'
@@ -14,6 +15,7 @@ import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
 import { useAppVersion } from '../appVersion/useAppVersion'
+import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 import useWallet from '../wallet/useWallet'
 
@@ -196,4 +198,47 @@ export function useDefaultExplorerSyncer() {
     },
     [explorerName, localStoredExplorer]
   )
+}
+
+export function useRpcPerformance() {
+  const { connection, currentEndPoint } = useConnection()
+  const isLowRpcPerformance = useAppSettings((s) => s.isLowRpcPerformance)
+
+  const MAX_TPS = 1500 // force settings
+
+  const getPerformance = useCallback(() => {
+    return globalThis.setInterval(async () => {
+      if (isLowRpcPerformance) return // no need calc again
+      if (!currentEndPoint?.url) return
+      const result = await jFetch<{
+        result: {
+          numSlots: number
+          numTransactions: number
+          samplePeriodSecs: number
+          slot: number
+        }[]
+      }>(currentEndPoint?.url, {
+        method: 'post',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: 'getRecentPerformanceSamples',
+          jsonrpc: '2.0',
+          method: 'getRecentPerformanceSamples',
+          params: [4]
+        })
+      })
+      if (!result) return
+      const blocks = result.result
+      const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
+      const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
+      useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })
+    }, 1000 * 60)
+  }, [connection])
+
+  useEffect(() => {
+    const timeId = getPerformance()
+    return () => globalThis.clearInterval(timeId)
+  }, [getPerformance])
 }
