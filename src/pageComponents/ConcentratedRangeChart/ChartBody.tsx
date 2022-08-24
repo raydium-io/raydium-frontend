@@ -144,10 +144,13 @@ export function ConcentratedChartBody({
     setZoom(newZoom)
     setOffsetX(newOffsetX)
   }
-  const zoomIn = (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => {
+  const zoomIn: ChartFormBodyComponentHandler['zoomIn'] = (options) => {
     setZoom((n) => n * Math.min(1 + 0.1 * (options?.degree ?? 1), 6))
   }
-  const zoomOut = (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => {
+  const zoomOut: ChartFormBodyComponentHandler['zoomOut'] = (options?: {
+    degree?: number
+    /* TODO imply  */ align?: 'left' | 'center' | 'right'
+  }) => {
     setZoom((n) => n * Math.max(1 - 0.1 * (options?.degree ?? 1), 0.4))
   }
 
@@ -162,7 +165,7 @@ export function ConcentratedChartBody({
     return diffB <= diffA ? b : a
   }
 
-  const moveMinBoundaryX = (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => {
+  const moveMinBoundaryX: ChartFormBodyComponentHandler['moveMinBoundaryX'] = (options) => {
     const clampX = (newX: number) => Math.min(Math.max(newX, 0), maxBoundaryX - minDistanceOfMinBoundaryAndMaxBoundary)
     const clampedX = clampX(options.forceOffsetFromZero ? options.offset : minBoundaryX + options.offset)
     minBoundaryRef.current?.setAttribute('x', String(clampedX))
@@ -172,7 +175,7 @@ export function ConcentratedChartBody({
       nearestPoint && onChangeMinBoundary?.(nearestPoint)
     }
   }
-  const inputMinBoundaryX = (x: number) =>
+  const inputMinBoundaryX: ChartFormBodyComponentHandler['inputMinBoundaryX'] = (x) =>
     moveMinBoundaryX({ forceOffsetFromZero: true, offset: x, setReactState: true })
   const moveMaxBoundaryX = (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => {
     const clampX = (newX: number) => Math.max(newX, minBoundaryX + minDistanceOfMinBoundaryAndMaxBoundary)
@@ -184,7 +187,7 @@ export function ConcentratedChartBody({
       nearestPoint && onChangeMaxBoundary?.(nearestPoint)
     }
   }
-  const inputMaxBoundaryX = (x: number) =>
+  const inputMaxBoundaryX: ChartFormBodyComponentHandler['inputMaxBoundaryX'] = (x) =>
     moveMaxBoundaryX({ forceOffsetFromZero: true, offset: x, setReactState: true })
 
   useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({

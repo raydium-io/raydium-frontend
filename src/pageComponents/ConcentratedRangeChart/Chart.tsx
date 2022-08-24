@@ -65,8 +65,8 @@ export function ConcentratedChart({
         </Row>
       </Row>
       <ConcentratedChartBody
-        initMinBoundaryX={120}
-        initMaxBoundaryX={480}
+        initMinBoundaryX={minPrice}
+        initMaxBoundaryX={maxPrice}
         componentRef={concentratedChartBodyRef}
         points={mokeChartData}
         className="my-2"
