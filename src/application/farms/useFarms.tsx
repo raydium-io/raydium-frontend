@@ -1,8 +1,10 @@
 import create from 'zustand'
 
-import { FarmPoolJsonInfo, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
-import useToken from '../token/useToken'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
+
+import useToken from '../token/useToken'
+
+import { FarmPoolJsonInfo, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
 
 export type FarmStore = {
   /** detect if hydratedInfo is ready */
@@ -31,6 +33,7 @@ export type FarmStore = {
   stakeDialogMode: 'deposit' | 'withdraw'
   isStakeDialogOpen: boolean
   stakeDialogInfo: undefined | HydratedFarmInfo
+  blockSlotCount: number
 }
 
 const useFarms = create<FarmStore>((set) => ({
@@ -57,7 +60,8 @@ const useFarms = create<FarmStore>((set) => ({
 
   stakeDialogMode: 'deposit',
   isStakeDialogOpen: false,
-  stakeDialogInfo: undefined
+  stakeDialogInfo: undefined,
+  blockSlotCount: 2
 }))
 
 export const useFarmFavoriteIds = () => useLocalStorageItem<string[], null>('FAVOURITE_FARM_IDS', { emptyValue: null })
