@@ -5,7 +5,6 @@ import useLiquidity from '@/application/liquidity/useLiquidity'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import jFetch from '@/functions/dom/jFetch'
 import { lazyMap } from '@/functions/lazyMap'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 
 import useConnection from '../connection/useConnection'
@@ -18,7 +17,7 @@ import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleF
 import useFarms from './useFarms'
 
 export default function useFarmInfoLoader() {
-  const { jsonInfos, sdkParsedInfos, farmRefreshCount } = useFarms()
+  const { jsonInfos, sdkParsedInfos, farmRefreshCount, blockSlotCount } = useFarms()
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
   const pairs = usePools((s) => s.rawJsonInfos)
   const getToken = useToken((s) => s.getToken)
@@ -29,7 +28,7 @@ export default function useFarmInfoLoader() {
   const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 0 /* force */ })
 
   const connection = useConnection((s) => s.connection)
-  const currentEndPoint = useConnection((s) => s.currentEndPoint)
+
   const owner = useWallet((s) => s.owner)
   const lpPrices = usePools((s) => s.lpPrices)
 
@@ -68,7 +67,6 @@ export default function useFarmInfoLoader() {
   // auto hydrate
   // hydrate action will depends on other state, so it will rerender many times
   useEffectWithTransition(async () => {
-    const blockSlotCountForSecond = await getSlotCountForSecond(currentEndPoint)
     const hydratedInfos = await lazyMap({
       source: sdkParsedInfos,
       sourceKey: 'hydrate farm info',
@@ -79,7 +77,7 @@ export default function useFarmInfoLoader() {
           lpPrices,
           tokenPrices,
           liquidityJsonInfos,
-          blockSlotCountForSecond,
+          blockSlotCountForSecond: blockSlotCount,
           aprs,
           currentBlockChainDate, // same as chainTimeOffset
           chainTimeOffset // same as currentBlockChainDate
@@ -97,15 +95,18 @@ export default function useFarmInfoLoader() {
     lpTokens,
     liquidityJsonInfos,
     chainTimeOffset, // when connection is ready, should get connection's chain time),
-    farmRefreshCount
+    blockSlotCount
   ])
 }
 
 /**
  * to calc apr use true onChain block slot count
  */
-export async function getSlotCountForSecond(currentEndPoint: Endpoint | undefined): Promise<number> {
-  if (!currentEndPoint) return 2
+export async function getSlotCountForSecond(currentEndPoint: Endpoint | undefined) {
+  if (!currentEndPoint) {
+    useFarms.setState({ blockSlotCount: 2 })
+    return
+  }
   const result = await jFetch<{
     result: {
       numSlots: number
@@ -126,9 +127,13 @@ export async function getSlotCountForSecond(currentEndPoint: Endpoint | undefine
       params: [4]
     })
   })
-  if (!result) return 2
+  if (!result) {
+    useFarms.setState({ blockSlotCount: 2 })
+    return
+  }
 
   const performanceList = result.result
   const slotList = performanceList.map((item) => item.numSlots)
-  return slotList.reduce((a, b) => a + b, 0) / slotList.length / 60
+  useFarms.setState({ blockSlotCount: slotList.reduce((a, b) => a + b, 0) / slotList.length / 60 })
+  return
 }

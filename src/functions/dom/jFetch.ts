@@ -47,7 +47,8 @@ export default async function jFetch<Shape = any>(
  */
 // TODO: unexceptedly cache useless all response, even ignoreCache
 export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): Promise<string | undefined> {
-  const key = typeof input === 'string' ? input : input.url
+  const key =
+    typeof input === 'string' ? input + options?.body?.toString() ?? '' : input.url + options?.body?.toString() ?? ''
 
   const useStrongCache = resultCache.has(key) && Date.now() - resultCache.get(key)!.reponseTime < 2000
   if (useStrongCache) {

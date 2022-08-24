@@ -16,6 +16,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
 import { useAppVersion } from '../appVersion/useAppVersion'
 import useConnection from '../connection/useConnection'
+import { getSlotCountForSecond } from '../farms/useFarmInfoLoader'
 import useNotification from '../notification/useNotification'
 import useWallet from '../wallet/useWallet'
 
@@ -233,11 +234,26 @@ export function useRpcPerformance() {
       const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
       const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
       useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })
-    }, 1000 * 5)
+    }, 1000 * 60)
   }, [connection, currentEndPoint])
 
   useEffect(() => {
     const timeId = getPerformance()
     return () => clearInterval(timeId)
   }, [getPerformance])
+}
+
+export function useGetSlotCountForSecond() {
+  const { currentEndPoint } = useConnection()
+
+  const getSlot = useCallback(() => {
+    return setInterval(async () => {
+      await getSlotCountForSecond(currentEndPoint)
+    }, 1000 * 60)
+  }, [getSlotCountForSecond, currentEndPoint])
+
+  useEffect(() => {
+    const timeId = getSlot()
+    return () => clearInterval(timeId)
+  }, [getSlot])
 }
