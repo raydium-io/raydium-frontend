@@ -535,7 +535,7 @@ function LiquidityCardPriceIndicator({ className }: { className?: string }) {
 
   const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
 
-  if (!price) return null
+  if (!price || !coin1 || !coin2) return null
   if (isStable) {
     // UI for stable pair
     return (
