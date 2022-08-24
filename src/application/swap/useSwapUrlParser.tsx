@@ -1,3 +1,8 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
+
+import { ParsedUrlQuery } from 'querystring'
+
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import useNotification from '@/application/notification/useNotification'
@@ -11,9 +16,7 @@ import { toString } from '@/functions/numberish/toString'
 import { objectShakeFalsy, omit } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { EnumStr } from '@/types/constants'
-import { useRouter } from 'next/router'
-import { ParsedUrlQuery } from 'querystring'
-import { useCallback, useEffect, useRef, useState } from 'react'
+
 import useConnection from '../connection/useConnection'
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 import { QuantumSOLVersionSOL, QuantumSOLVersionWSOL, WSOLMint } from '../token/quantumSOL'
@@ -226,6 +229,12 @@ export default function useSwapUrlParser(): void {
     pathname
   ])
   //#endregion
+
+  useEffect(() => {
+    if (swapCoin1 === swapCoin2) {
+      useSwap.setState({ coin2: undefined, coin2Amount: 0 })
+    }
+  }, [swapCoin1, swapCoin2])
 }
 
 function getSwapInfoFromQuery(query: ParsedUrlQuery): {
