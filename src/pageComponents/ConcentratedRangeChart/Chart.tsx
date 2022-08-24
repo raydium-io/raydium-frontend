@@ -4,12 +4,11 @@ import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
-import { isNumber } from '@/functions/judgers/dateType'
 import { useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
-import { ChartFormBodyComponentHandler, ChartPoint, ChartRangeInputOption, ConcentratedChartBody } from './ChartBody'
+import { ChartFormBodyComponentHandler, ChartRangeInputOption, ConcentratedChartBody } from './ChartBody'
 
-const mokeChartData = Array.from({ length: 5000000 }, (_, i) => ({ x: i * 10, y: 180 * Math.random() }))
+const mokeChartData = Array.from({ length: 5000000 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
 export function ConcentratedChart({
   className,
   chartOptions

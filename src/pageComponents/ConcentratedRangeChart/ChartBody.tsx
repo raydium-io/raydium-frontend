@@ -332,6 +332,7 @@ function useCalcVisiablePoints(
     sideScreenCount = 6
   }: { svgInnerWidth: number; zoom: number; offsetX: number; sideScreenCount?: number }
 ) {
+  /** to avoid too small point (ETH-RAY may have point {x: 0.00021, y: 0.0003}) */
   const [sideMinX, sideMaxX] = [
     offsetX - (sideScreenCount - 1) * (svgInnerWidth / zoom),
     offsetX + (sideScreenCount + 1) * (svgInnerWidth / zoom)
