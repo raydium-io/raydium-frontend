@@ -74,14 +74,14 @@ export function ConcentratedChartBody({
   const [maxBoundaryX, setMaxBoundaryX] = useState(initMaxBoundaryX ?? svgInnerWidth - boundaryLineWidth)
 
   const wrapperRef = useRef<SVGSVGElement>(null)
-  const minBoundaryRef = useRef<SVGRectElement>(null)
-  const maxBoundaryRef = useRef<SVGRectElement>(null)
+  const minBoundaryRef = useRef<SVGUseElement>(null)
+  const maxBoundaryRef = useRef<SVGUseElement>(null)
 
   //#region ------------------- handle min boundaryLine -------------------
-  const handleGrabMinBoundary: AttachPointerMovePointMoveFn<SVGRectElement> = useEvent(({ totalDelta }): void => {
+  const handleGrabMinBoundary: AttachPointerMovePointMoveFn<SVGUseElement> = useEvent(({ totalDelta }): void => {
     moveMinBoundaryX({ offset: totalDelta.dx / zoom })
   })
-  const handleGrabMinBoundaryEnd: AttachPointerMovePointUpFn<SVGRectElement> = useEvent(({ totalDelta }): void => {
+  const handleGrabMinBoundaryEnd: AttachPointerMovePointUpFn<SVGUseElement> = useEvent(({ totalDelta }): void => {
     moveMinBoundaryX({ offset: totalDelta.dx / zoom, setReactState: true })
   })
   useEffect(() => {
@@ -94,10 +94,10 @@ export function ConcentratedChartBody({
   //#endregion
 
   //#region ------------------- handle max boundaryLine -------------------
-  const handleGrabMaxBoundary: AttachPointerMovePointMoveFn<SVGRectElement> = useEvent(({ totalDelta }): void => {
+  const handleGrabMaxBoundary: AttachPointerMovePointMoveFn<SVGUseElement> = useEvent(({ totalDelta }): void => {
     moveMaxBoundaryX({ offset: totalDelta.dx / zoom })
   })
-  const handleGrabMaxBoundaryEnd: AttachPointerMovePointUpFn<SVGRectElement> = useEvent(({ totalDelta }): void => {
+  const handleGrabMaxBoundaryEnd: AttachPointerMovePointUpFn<SVGUseElement> = useEvent(({ totalDelta }): void => {
     moveMaxBoundaryX({ offset: totalDelta.dx / zoom, setReactState: true })
   })
   useEffect(() => {
@@ -177,6 +177,15 @@ export function ConcentratedChartBody({
       height={svgInnerHeight}
     >
       <defs>
+        {/* min boundary */}
+        <g id="boundary-brush">
+          <rect
+            className="no-scale-align-center cursor-pointer"
+            width={boundaryLineWidth}
+            height={svgInnerHeight - xAxisAboveBottom}
+            fill={boundaryLineColor}
+          />
+        </g>
         <style>
           {`
             .no-scale {
@@ -209,28 +218,10 @@ export function ConcentratedChartBody({
       />
 
       {/* min boundary */}
-      <rect
-        className="no-scale-align-center"
-        ref={minBoundaryRef}
-        width={boundaryLineWidth}
-        height={svgInnerHeight - xAxisAboveBottom}
-        x={Math.max(minBoundaryX, 0)}
-        y={0}
-        fill={boundaryLineColor}
-        style={{ cursor: 'pointer' }}
-      />
+      <use href="#boundary-brush" ref={minBoundaryRef} x={Math.max(minBoundaryX, 0)} y={0} />
 
       {/* max boundary */}
-      <rect
-        className="no-scale-align-center"
-        ref={maxBoundaryRef}
-        width={boundaryLineWidth}
-        height={svgInnerHeight - xAxisAboveBottom}
-        x={Math.max(maxBoundaryX, 0)}
-        y={0}
-        fill={boundaryLineColor}
-        style={{ cursor: 'pointer' }}
-      />
+      <use href="#boundary-brush" ref={maxBoundaryRef} x={Math.max(maxBoundaryX, 0)} y={0} />
 
       {/* x axis */}
       <line
