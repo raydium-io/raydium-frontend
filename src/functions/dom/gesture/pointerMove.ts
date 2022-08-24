@@ -128,7 +128,7 @@ export function attachPointerMove<El extends Element>(el: El, options: AttachPoi
     pointDownController,
     pointMoveController,
     pointUpController,
-    cancel() {
+    detatch() {
       cancelPointerMove(eventId)
     }
   }

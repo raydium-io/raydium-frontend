@@ -9,7 +9,7 @@ import { useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { ChartFormBodyComponentHandler, ChartPoint, ChartRangeInputOption, ConcentratedChartBody } from './ChartBody'
 
-const mokeChartData = Array.from({ length: 200 }, (_, i) => ({ x: i * 10, y: 180 * Math.random() }))
+const mokeChartData = Array.from({ length: 5000000 }, (_, i) => ({ x: i * 10, y: 180 * Math.random() }))
 export function ConcentratedChart({
   className,
   chartOptions

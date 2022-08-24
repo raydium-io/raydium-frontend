@@ -5,7 +5,7 @@ import {
   AttachPointerMovePointUpFn
 } from '@/functions/dom/gesture/pointerMove'
 import { useEvent } from '@/hooks/useEvent'
-import { Dispatch, RefObject, SetStateAction, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 export type ChartPoint = {
@@ -66,8 +66,6 @@ export function ConcentratedChartBody({
   onChangeMinBoundary,
   onChangeMaxBoundary
 }: ChartRangeInputOption) {
-  const polygonPoints = polygonChartPoints(points)
-
   const lineColor = '#abc4ff80'
   const boundaryLineColor = '#abc4ff'
   const xAxisColor = '#abc4ff80'
@@ -83,6 +81,8 @@ export function ConcentratedChartBody({
   const [minBoundaryX, setMinBoundaryX] = useState(initMinBoundaryX ?? 0)
   const [maxBoundaryX, setMaxBoundaryX] = useState(initMaxBoundaryX ?? svgInnerWidth - boundaryLineWidth)
 
+  const { polygonPoints, filteredPoints } = useCalcVisiablePoints(points, { svgInnerWidth, zoom, offsetX })
+
   const wrapperRef = useRef<SVGSVGElement>(null)
   const minBoundaryRef = useRef<SVGUseElement>(null)
   const maxBoundaryRef = useRef<SVGUseElement>(null)
@@ -96,10 +96,11 @@ export function ConcentratedChartBody({
   })
   useEffect(() => {
     if (!minBoundaryRef.current) return
-    attachPointerMove(minBoundaryRef.current, {
+    const { detatch } = attachPointerMove(minBoundaryRef.current, {
       move: handleGrabMinBoundary,
       end: handleGrabMinBoundaryEnd
     })
+    return detatch
   }, [])
   //#endregion
 
@@ -112,10 +113,11 @@ export function ConcentratedChartBody({
   })
   useEffect(() => {
     if (!maxBoundaryRef.current) return
-    attachPointerMove(maxBoundaryRef.current, {
+    const { detatch } = attachPointerMove(maxBoundaryRef.current, {
       move: handleGrabMaxBoundary,
       end: handleGrabMaxBoundaryEnd
     })
+    return detatch
   }, [])
   //#endregion
 
@@ -129,10 +131,11 @@ export function ConcentratedChartBody({
   })
   useEffect(() => {
     if (!wrapperRef.current) return
-    attachPointerMove(wrapperRef.current, {
+    const { detatch } = attachPointerMove(wrapperRef.current, {
       move: handleGrabWrapper,
       end: handleGrabWrapperEnd
     })
+    return detatch
   }, [])
   //#endregion
 
@@ -268,7 +271,7 @@ export function ConcentratedChartBody({
       <polygon
         className="pointer-events-none"
         points={polygonPoints
-          .map((p) => `${p.x.toFixed(3)},${(svgInnerHeight - p.y - xAxisAboveBottom).toFixed(3)}`)
+          .map((p) => `${p.x.toFixed(0)},${(svgInnerHeight - p.y - xAxisAboveBottom).toFixed(0)}`)
           .join(' ')}
         fill={lineColor}
       />
@@ -293,7 +296,7 @@ export function ConcentratedChartBody({
       {/* x units */}
       <g>
         {shakeFalsyItem(
-          points.map((p) => {
+          filteredPoints.map((p) => {
             const x = p.x
             const shouldRender = !(x % 40)
             return shouldRender ? (
@@ -318,4 +321,22 @@ export function ConcentratedChartBody({
       </g>
     </svg>
   )
+}
+
+function useCalcVisiablePoints(
+  points: ChartPoint[],
+  {
+    svgInnerWidth,
+    zoom,
+    offsetX,
+    sideScreenCount = 6
+  }: { svgInnerWidth: number; zoom: number; offsetX: number; sideScreenCount?: number }
+) {
+  const [sideMinX, sideMaxX] = [
+    offsetX - (sideScreenCount - 1) * (svgInnerWidth / zoom),
+    offsetX + (sideScreenCount + 1) * (svgInnerWidth / zoom)
+  ]
+  const filteredPoints = useMemo(() => points.filter((p) => sideMinX < p.x && p.x < sideMaxX), [sideMinX, sideMaxX])
+  const polygonPoints = useMemo(() => polygonChartPoints(filteredPoints), [filteredPoints])
+  return { filteredPoints, polygonPoints }
 }
