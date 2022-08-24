@@ -8,15 +8,15 @@ import { useEvent } from '@/hooks/useEvent'
 import { Dispatch, RefObject, SetStateAction, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
-type ChartPoints = {
+export type ChartPoint = {
   x: number
   y: number
-}[]
+}
 
-function polygonChartPoints(points: ChartPoints): ChartPoints {
+function polygonChartPoints(points: ChartPoint[]): ChartPoint[] {
   /** used in last point */
   const intervalDistance = points[1].x - points[0].x
-  const getSqared = (points: ChartPoints) =>
+  const getSqared = (points: ChartPoint[]) =>
     points.flatMap((p, idx, points) => [
       {
         // leftTopPoint:
@@ -29,7 +29,7 @@ function polygonChartPoints(points: ChartPoints): ChartPoints {
         x: points[idx + 1]?.x ?? p.x + intervalDistance
       }
     ])
-  const appandHeadTailZero = (points: ChartPoints) => {
+  const appandHeadTailZero = (points: ChartPoint[]) => {
     const firstPoint = points[0]
     const lastPoint = points[points.length - 1]
     return [{ x: firstPoint.x, y: 0 }, ...points, { x: lastPoint.x, y: 0 }]
@@ -40,7 +40,21 @@ function polygonChartPoints(points: ChartPoints): ChartPoints {
 export interface ChartFormBodyComponentHandler {
   zoomIn: (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => void
   zoomOut: (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => void
+  moveMinBoundaryX: (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => void
+  moveMaxBoundaryX: (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => void
+  inputMinBoundaryX: (x: number) => void
+  inputMaxBoundaryX: (x: number) => void
   shrinkToView: () => void
+}
+
+export type ChartRangeInputOption = {
+  className?: string
+  points: ChartPoint[]
+  initMinBoundaryX?: number
+  initMaxBoundaryX?: number
+  componentRef?: RefObject<any>
+  onChangeMinBoundary?: (nearest: ChartPoint) => void
+  onChangeMaxBoundary?: (nearest: ChartPoint) => void
 }
 
 export function ConcentratedChartBody({
@@ -48,14 +62,10 @@ export function ConcentratedChartBody({
   points,
   initMinBoundaryX,
   initMaxBoundaryX,
-  componentRef
-}: {
-  className?: string
-  points: ChartPoints
-  initMinBoundaryX?: number
-  initMaxBoundaryX?: number
-  componentRef?: RefObject<any>
-}) {
+  componentRef,
+  onChangeMinBoundary,
+  onChangeMaxBoundary
+}: ChartRangeInputOption) {
   const polygonPoints = polygonChartPoints(points)
 
   const lineColor = '#abc4ff80'
@@ -140,20 +150,50 @@ export function ConcentratedChartBody({
   const zoomOut = (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => {
     setZoom((n) => n * Math.max(1 - 0.1 * (options?.degree ?? 1), 0.4))
   }
-  const moveMinBoundaryX = (options: { offset: number; setReactState?: boolean }) => {
+
+  /** x is between aPoint and bPoint */
+  const getNearestPintByX = (x: number) => {
+    const bIndex = points.findIndex((p) => p.x > x)
+    if (!bIndex || bIndex === 0) return
+    const b = points[bIndex]
+    const a = points[bIndex - 1]
+    const diffB = Math.abs(b.x - x)
+    const diffA = Math.abs(a.x - x)
+    return diffB <= diffA ? b : a
+  }
+
+  const moveMinBoundaryX = (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => {
     const clampX = (newX: number) => Math.min(Math.max(newX, 0), maxBoundaryX - minDistanceOfMinBoundaryAndMaxBoundary)
-    minBoundaryRef.current?.setAttribute('x', String(clampX(minBoundaryX + options.offset)))
-    if (options.setReactState) setMinBoundaryX(clampX(minBoundaryX + options.offset))
+    const clampedX = clampX(options.forceOffsetFromZero ? options.offset : minBoundaryX + options.offset)
+    minBoundaryRef.current?.setAttribute('x', String(clampedX))
+    if (options.setReactState) {
+      setMinBoundaryX(clampedX)
+      const nearestPoint = getNearestPintByX(clampedX)
+      nearestPoint && onChangeMinBoundary?.(nearestPoint)
+    }
   }
-  const moveMaxBoundaryX = (options: { offset: number; setReactState?: boolean }) => {
+  const inputMinBoundaryX = (x: number) =>
+    moveMinBoundaryX({ forceOffsetFromZero: true, offset: x, setReactState: true })
+  const moveMaxBoundaryX = (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => {
     const clampX = (newX: number) => Math.max(newX, minBoundaryX + minDistanceOfMinBoundaryAndMaxBoundary)
-    maxBoundaryRef.current?.setAttribute('x', String(clampX(maxBoundaryX + options.offset)))
-    if (options.setReactState) setMaxBoundaryX(clampX(maxBoundaryX + options.offset))
+    const clampedX = clampX(options.forceOffsetFromZero ? options.offset : maxBoundaryX + options.offset)
+    maxBoundaryRef.current?.setAttribute('x', String(clampedX))
+    if (options.setReactState) {
+      setMaxBoundaryX(clampedX)
+      const nearestPoint = getNearestPintByX(clampedX)
+      nearestPoint && onChangeMaxBoundary?.(nearestPoint)
+    }
   }
+  const inputMaxBoundaryX = (x: number) =>
+    moveMaxBoundaryX({ forceOffsetFromZero: true, offset: x, setReactState: true })
 
   useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({
     zoomIn,
     zoomOut,
+    moveMinBoundaryX,
+    moveMaxBoundaryX,
+    inputMinBoundaryX,
+    inputMaxBoundaryX,
     shrinkToView
   }))
   //#endregion

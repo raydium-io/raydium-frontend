@@ -4,14 +4,23 @@ import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
-import { useRef } from 'react'
+import { isNumber } from '@/functions/judgers/dateType'
+import { useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
-import { ChartFormBodyComponentHandler, ConcentratedChartBody } from './ChartBody'
+import { ChartFormBodyComponentHandler, ChartPoint, ChartRangeInputOption, ConcentratedChartBody } from './ChartBody'
 
 const mokeChartData = Array.from({ length: 200 }, (_, i) => ({ x: i * 10, y: 180 * Math.random() }))
-export function ConcentratedChart({ className }: { className?: string }) {
+export function ConcentratedChart({
+  className,
+  chartOptions
+}: {
+  className?: string
+  chartOptions?: ChartRangeInputOption
+}) {
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
+  const [minPrice, setMinPrice] = useState(80)
+  const [maxPrice, setMaxPrice] = useState(280)
   const concentratedChartBodyRef = useRef<ChartFormBodyComponentHandler>(null)
   return (
     <Col className={twMerge('py-4', className)}>
@@ -61,10 +70,33 @@ export function ConcentratedChart({ className }: { className?: string }) {
         componentRef={concentratedChartBodyRef}
         points={mokeChartData}
         className="my-2"
+        onChangeMinBoundary={(nearestPoint) => {
+          setMinPrice(nearestPoint.x)
+        }}
+        onChangeMaxBoundary={(nearestPoint) => {
+          setMaxPrice(nearestPoint.x)
+        }}
+        {...chartOptions}
       />
       <Row className="gap-4">
-        <InputBox className="grow" label="Min Price" decimalMode />
-        <InputBox className="grow" label="Max Price" decimalMode />
+        <InputBox
+          className="grow"
+          label="Min Price"
+          decimalMode
+          value={minPrice}
+          onUserInput={(v) => {
+            concentratedChartBodyRef.current?.inputMinBoundaryX(Number(v))
+          }}
+        />
+        <InputBox
+          className="grow"
+          label="Max Price"
+          decimalMode
+          value={maxPrice}
+          onUserInput={(v) => {
+            concentratedChartBodyRef.current?.inputMaxBoundaryX(Number(v))
+          }}
+        />
       </Row>
     </Col>
   )
