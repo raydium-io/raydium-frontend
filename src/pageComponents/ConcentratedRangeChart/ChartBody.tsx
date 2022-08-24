@@ -38,8 +38,8 @@ function polygonChartPoints(points: ChartPoint[]): ChartPoint[] {
 }
 
 export interface ChartFormBodyComponentHandler {
-  zoomIn: (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => void
-  zoomOut: (options?: { degree?: number; /* TODO imply  */ align?: 'left' | 'center' | 'right' }) => void
+  zoomIn: (options?: { degree?: number; align?: 'left' | 'center' | 'right' }) => void
+  zoomOut: (options?: { degree?: number; align?: 'left' | 'center' | 'right' }) => void
   moveMinBoundaryX: (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => void
   moveMaxBoundaryX: (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => void
   inputMinBoundaryX: (x: number) => void
@@ -145,13 +145,26 @@ export function ConcentratedChartBody({
     setOffsetX(newOffsetX)
   }
   const zoomIn: ChartFormBodyComponentHandler['zoomIn'] = (options) => {
-    setZoom((n) => n * Math.min(1 + 0.1 * (options?.degree ?? 1), 6))
+    const newZoom = zoom * Math.min(1 + 0.1 * (options?.degree ?? 1), 6)
+    setZoom(newZoom)
+    if (options?.align === 'center') {
+      const zoomedOffsetX = svgInnerWidth / zoom / 2 - svgInnerWidth / newZoom / 2
+      setOffsetX((n) => n + zoomedOffsetX)
+    } else if (options?.align === 'right') {
+      const zoomedOffsetX = svgInnerWidth / zoom - svgInnerWidth / newZoom
+      setOffsetX((n) => n + zoomedOffsetX)
+    }
   }
-  const zoomOut: ChartFormBodyComponentHandler['zoomOut'] = (options?: {
-    degree?: number
-    /* TODO imply  */ align?: 'left' | 'center' | 'right'
-  }) => {
-    setZoom((n) => n * Math.max(1 - 0.1 * (options?.degree ?? 1), 0.4))
+  const zoomOut: ChartFormBodyComponentHandler['zoomOut'] = (options) => {
+    const newZoom = zoom * Math.max(1 - 0.1 * (options?.degree ?? 1), 0.4)
+    setZoom(newZoom)
+    if (options?.align === 'center') {
+      const zoomedOffsetX = svgInnerWidth / zoom / 2 - svgInnerWidth / newZoom / 2
+      setOffsetX((n) => n + zoomedOffsetX)
+    } else if (options?.align === 'right') {
+      const zoomedOffsetX = svgInnerWidth / zoom - svgInnerWidth / newZoom
+      setOffsetX((n) => n + zoomedOffsetX)
+    }
   }
 
   /** x is between aPoint and bPoint */

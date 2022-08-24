@@ -25,7 +25,7 @@ export function ConcentratedChart({
   return (
     <Col className={twMerge('py-4', className)}>
       <Row className="justify-between items-center">
-        <div className="text-lg text-white">Price Range</div>
+        <div className=" font-bold text-white">Price Range</div>
         <Row className="items-center gap-2">
           {coin1 && coin2 && (
             <RowTabs
@@ -49,7 +49,7 @@ export function ConcentratedChart({
               className="text-[#abc4ff] saturate-50 brightness-125"
               heroIconName="zoom-in"
               onClick={() => {
-                concentratedChartBodyRef.current?.zoomIn()
+                concentratedChartBodyRef.current?.zoomIn({ align: 'center' })
               }}
               canLongClick
             />
@@ -57,7 +57,7 @@ export function ConcentratedChart({
               className="text-[#abc4ff] saturate-50 brightness-125"
               heroIconName="zoom-out"
               onClick={() => {
-                concentratedChartBodyRef.current?.zoomOut()
+                concentratedChartBodyRef.current?.zoomOut({ align: 'center' })
               }}
               canLongClick
             />
