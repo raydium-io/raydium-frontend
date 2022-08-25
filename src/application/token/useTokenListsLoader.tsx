@@ -62,7 +62,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
       officialMints.push(...deleteFetchedNativeSOLToken(response.official).map(({ mint }) => mint))
       unNamedMints.push(...response.unNamed.map((j) => j.mint))
       const fullUnnamed = response.unNamed.map(
-        (j) => ({ ...j, symbol: j.mint.slice(0, 6), name: j.mint.slice(0, 12), extensions: {}, icon: '' } as TokenJson)
+        (j) => ({ ...j, symbol: 'UNKNOWN', name: j.mint.slice(0, 12), extensions: {}, icon: '' } as TokenJson)
       )
       tokens.push(...deleteFetchedNativeSOLToken(response.official), ...response.unOfficial, ...fullUnnamed)
       blacklist.push(...response.blacklist)
