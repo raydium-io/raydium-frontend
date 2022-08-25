@@ -22,6 +22,7 @@ import {
 import useToken, {
   RAYDIUM_DEV_TOKEN_LIST_NAME,
   RAYDIUM_MAINNET_TOKEN_LIST_NAME,
+  RAYDIUM_UNNAMED_TOKEN_LIST_NAME,
   SOLANA_TOKEN_LIST_NAME
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
@@ -44,6 +45,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
   devMints: string[]
   unOfficialMints: string[]
   officialMints: string[]
+  unNamedMints: string[]
   tokens: TokenJson[]
   blacklist: string[]
 }> {
@@ -62,7 +64,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
       officialMints.push(...deleteFetchedNativeSOLToken(response.official).map(({ mint }) => mint))
       unNamedMints.push(...response.unNamed.map((j) => j.mint))
       const fullUnnamed = response.unNamed.map(
-        (j) => ({ ...j, symbol: 'UNKNOWN', name: j.mint.slice(0, 12), extensions: {}, icon: '' } as TokenJson)
+        (j) => ({ ...j, symbol: j.mint.slice(0, 6), name: j.mint.slice(0, 12), extensions: {}, icon: '' } as TokenJson)
       )
       tokens.push(...deleteFetchedNativeSOLToken(response.official), ...response.unOfficial, ...fullUnnamed)
       blacklist.push(...response.blacklist)
@@ -75,7 +77,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
     console.info('tokenList end fetching')
   })
 
-  return { devMints, unOfficialMints, officialMints, tokens, blacklist }
+  return { devMints, unOfficialMints, unNamedMints, officialMints, tokens, blacklist }
 }
 
 async function fetchTokenIconInfoList() {
@@ -117,6 +119,7 @@ async function loadTokens() {
     devMints,
     unOfficialMints,
     officialMints,
+    unNamedMints,
     tokens: allTokens,
     blacklist: _blacklist
   } = await fetchTokenLists(rawTokenListConfigs)
@@ -139,6 +142,11 @@ async function loadTokens() {
       [RAYDIUM_DEV_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME],
         mints: new Set(devMints)
+      },
+
+      [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
+        mints: new Set(unNamedMints)
       }
     }
   }))

@@ -96,16 +96,19 @@ export type TokenStore = {
   refreshTokenPrice(): void
 }
 
-export type SupportedTokenListSettingName =
-  | 'Raydium Token List' // actually  official
-  | 'Raydium Dev Token List'
-  | 'Solana Token List' // actually  unOfficial
-  | 'User Added Token List'
 export const RAYDIUM_MAINNET_TOKEN_LIST_NAME_DEPRECATED = 'Raydium Mainnet Token List'
 export const RAYDIUM_MAINNET_TOKEN_LIST_NAME = 'Raydium Token List'
+export const RAYDIUM_UNNAMED_TOKEN_LIST_NAME = 'UnNamed Token List'
 export const RAYDIUM_DEV_TOKEN_LIST_NAME = 'Raydium Dev Token List'
 export const SOLANA_TOKEN_LIST_NAME = 'Solana Token List'
 export const USER_ADDED_TOKEN_LIST_NAME = 'User Added Token List'
+
+export type SupportedTokenListSettingName =
+  | typeof RAYDIUM_MAINNET_TOKEN_LIST_NAME // actually  official
+  | typeof RAYDIUM_DEV_TOKEN_LIST_NAME
+  | typeof SOLANA_TOKEN_LIST_NAME // actually  unOfficial
+  | typeof USER_ADDED_TOKEN_LIST_NAME
+  | typeof RAYDIUM_UNNAMED_TOKEN_LIST_NAME
 
 /** zustand store hooks */
 export const useToken = create<TokenStore>((set, get) => ({
@@ -220,6 +223,10 @@ export const useToken = create<TokenStore>((set, get) => ({
     },
     [USER_ADDED_TOKEN_LIST_NAME]: {
       isOn: true
+    },
+    [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
+      isOn: true,
+      cannotbBeSeen: true
     }
   },
 
