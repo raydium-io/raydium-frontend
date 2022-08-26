@@ -8,7 +8,10 @@ import { WSOLMint } from '../token/quantumSOL'
 import useWallet from '../wallet/useWallet'
 import { TransactionPiecesCollector } from './createTransaction'
 
-const tokenAccountAddressCache = new Map()
+const tokenAccountAddressCache = new WeakMap<
+  TransactionPiecesCollector,
+  Map<string /* mint */, PublicKey /* tokenAccountAddress */>
+>()
 
 export default async function createAssociatedTokenAccountIfNotExist(payload: {
   collector: TransactionPiecesCollector
@@ -20,7 +23,8 @@ export default async function createAssociatedTokenAccountIfNotExist(payload: {
   assert(owner, 'user not connected')
 
   // avoid check twice (Ray can be a lp and can be a reward )
-  if (tokenAccountAddressCache.has(toPubString(mint))) return tokenAccountAddressCache.get(toPubString(mint))
+  if (tokenAccountAddressCache.get(payload.collector)?.has(toPubString(mint)))
+    return tokenAccountAddressCache.get(payload.collector)!.get(toPubString(mint))!
 
   const tokenAccountAddress =
     findTokenAccount(mint)?.publicKey ??
@@ -38,7 +42,8 @@ export default async function createAssociatedTokenAccountIfNotExist(payload: {
     })())
 
   // set cache
-  tokenAccountAddressCache.set(toPubString(mint), tokenAccountAddress)
+  if (!tokenAccountAddressCache.has(payload.collector)) tokenAccountAddressCache.set(payload.collector, new Map())
+  tokenAccountAddressCache.get(payload.collector)!.set(toPubString(mint), tokenAccountAddress)
 
   /* ----------------------------- auto close WSOL ---------------------------- */
   if (payload.autoUnwrapWSOLToSOL && isMintEqual(mint, WSOLMint)) {
