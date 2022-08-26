@@ -1,4 +1,5 @@
 import assert from '@/functions/assert'
+import toPubString from '@/functions/format/toMintString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { PublicKeyish, Spl } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
@@ -6,6 +7,11 @@ import { WSOLMint } from '../token/quantumSOL'
 
 import useWallet from '../wallet/useWallet'
 import { TransactionPiecesCollector } from './createTransaction'
+
+const tokenAccountAddressCache = new WeakMap<
+  TransactionPiecesCollector,
+  Map<string /* mint */, PublicKey /* tokenAccountAddress */>
+>()
 
 export default async function createAssociatedTokenAccountIfNotExist(payload: {
   collector: TransactionPiecesCollector
@@ -15,6 +21,11 @@ export default async function createAssociatedTokenAccountIfNotExist(payload: {
   const mint = new PublicKey(payload.mint)
   const { owner, findTokenAccount } = useWallet.getState()
   assert(owner, 'user not connected')
+
+  // avoid check twice (Ray can be a lp and can be a reward )
+  if (tokenAccountAddressCache.get(payload.collector)?.has(toPubString(mint)))
+    return tokenAccountAddressCache.get(payload.collector)!.get(toPubString(mint))!
+
   const tokenAccountAddress =
     findTokenAccount(mint)?.publicKey ??
     (await (async () => {
@@ -29,6 +40,10 @@ export default async function createAssociatedTokenAccountIfNotExist(payload: {
       payload.collector.addInstruction(instruction)
       return ataAddress
     })())
+
+  // set cache
+  if (!tokenAccountAddressCache.has(payload.collector)) tokenAccountAddressCache.set(payload.collector, new Map())
+  tokenAccountAddressCache.get(payload.collector)!.set(toPubString(mint), tokenAccountAddress)
 
   /* ----------------------------- auto close WSOL ---------------------------- */
   if (payload.autoUnwrapWSOLToSOL && isMintEqual(mint, WSOLMint)) {

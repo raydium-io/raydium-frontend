@@ -11,6 +11,8 @@ import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
 export type PoolsStore = {
   loading: boolean
   jsonInfos: JsonPairItemInfo[]
+  /** unlike jsonInfos, tedious Json Infos includes unknown token */
+  rawJsonInfos: JsonPairItemInfo[]
   hydratedInfos: HydratedPairItemInfo[]
   lpPrices: Record<HexAddress, Price>
   tvl?: string | number // /api.raydium.io/v2/main/info
@@ -32,6 +34,8 @@ export type PoolsStore = {
 export const usePools = create<PoolsStore>((set, get) => ({
   loading: true,
   jsonInfos: [],
+  rawJsonInfos: [],
+
   hydratedInfos: [],
   lpPrices: {},
 

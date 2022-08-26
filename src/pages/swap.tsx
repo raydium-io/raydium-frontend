@@ -27,6 +27,7 @@ import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
 import { USDCMint, USDTMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
 import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
@@ -64,7 +65,6 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
-import { AddressItem } from '@/components/AddressItem'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -194,6 +194,8 @@ function SwapCard() {
   const coin2 = useSwap((s) => s.coin2)
   const coin1Amount = useSwap((s) => s.coin1Amount)
   const coin2Amount = useSwap((s) => s.coin2Amount)
+  const isCoin1Calculating = useSwap((s) => s.isCoin1Calculating)
+  const isCoin2Calculating = useSwap((s) => s.isCoin2Calculating)
   // console.log('coin: ', coin1?.symbol, coin1Amount, coin2?.symbol, coin2Amount)
   const directionReversed = useSwap((s) => s.directionReversed)
   const priceImpact = useSwap((s) => s.priceImpact)
@@ -278,7 +280,7 @@ function SwapCard() {
             if (coin2 && coin2Amount) swapButtonComponentRef.current?.click?.()
           }}
           token={coin1}
-          value={coin1Amount ? (eq(coin1Amount, 0) ? '' : toString(coin1Amount)) : undefined}
+          value={isCoin1Calculating ? '0' : coin1Amount ? (eq(coin1Amount, 0) ? '' : toString(coin1Amount)) : undefined}
           onUserInput={(value) => {
             useSwap.setState({ focusSide: 'coin1', coin1Amount: value })
           }}
@@ -342,7 +344,7 @@ function SwapCard() {
             if (coin1 && coin1Amount) swapButtonComponentRef.current?.click?.()
           }}
           token={coin2}
-          value={coin2Amount ? (eq(coin2Amount, 0) ? '' : toString(coin2Amount)) : undefined}
+          value={isCoin2Calculating ? '0' : coin2Amount ? (eq(coin2Amount, 0) ? '' : toString(coin2Amount)) : undefined}
           onUserInput={(value) => {
             useSwap.setState({ focusSide: 'coin2', coin2Amount: value })
           }}
@@ -469,14 +471,24 @@ function SwapCard() {
         open={isCoinSelectorOn}
         onSelectCoin={(token) => {
           if (targetCoinNo === '1') {
-            useSwap.setState({ coin1: token })
-            if (!areTokenPairSwapable(token, coin2)) {
-              useSwap.setState({ coin2: undefined })
+            if (!areSameToken(coin1, token)) {
+              useSwap.setState({
+                coin1: token,
+                [directionReversed ? 'isCoin1Calculating' : 'isCoin2Calculating']: true
+              })
+              if (!areTokenPairSwapable(token, coin2)) {
+                useSwap.setState({ coin2: undefined })
+              }
             }
           } else {
-            useSwap.setState({ coin2: token })
-            if (!areTokenPairSwapable(token, coin1)) {
-              useSwap.setState({ coin1: undefined })
+            if (!areSameToken(coin2, token)) {
+              useSwap.setState({
+                coin2: token,
+                [directionReversed ? 'isCoin1Calculating' : 'isCoin2Calculating']: true
+              })
+              if (!areTokenPairSwapable(token, coin1)) {
+                useSwap.setState({ coin1: undefined })
+              }
             }
           }
           turnOffCoinSelector()
@@ -523,6 +535,10 @@ function areTokenPairSwapable(targetToken: SplToken | undefined, candidateToken:
     isWsolToSol(targetToken, candidateToken) ||
     !isMintEqual(targetToken?.mint, candidateToken?.mint)
   )
+}
+
+function areSameToken(originToken: SplToken | undefined, newSelected: SplToken): boolean {
+  return originToken?.mint === newSelected.mint
 }
 
 function SwapPriceAcceptChip() {
@@ -800,6 +816,7 @@ function SwapCardInfo({ className }: { className?: string }) {
                       }
                     }}
                     pattern={/^\d*\.?\d*$/}
+                    maximum={100}
                   />
                   <div className="opacity-50 ml-1">%</div>
                 </Row>

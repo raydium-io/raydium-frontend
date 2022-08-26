@@ -1,23 +1,26 @@
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect } from 'react'
+import { useRouter } from 'next/router'
 
 import * as Sentry from '@sentry/nextjs'
 
+import Link from '@/components/Link'
+import jFetch from '@/functions/dom/jFetch'
+import { getLocalItem } from '@/functions/dom/jStorage'
+import { inClient, inServer, isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { eq, gt, lt, lte } from '@/functions/numberish/compare'
+import { toString } from '@/functions/numberish/toString'
 import useDevice from '@/hooks/useDevice'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import useLocalStorageItem from '@/hooks/useLocalStorage'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
+import { useAppVersion } from '../appVersion/useAppVersion'
+import useConnection from '../connection/useConnection'
+import { getSlotCountForSecond } from '../farms/useFarmInfoLoader'
+import useNotification from '../notification/useNotification'
 import useWallet from '../wallet/useWallet'
 
-import useAppSettings from './useAppSettings'
-import useLocalStorageItem from '@/hooks/useLocalStorage'
-import useNotification from '../notification/useNotification'
-import { useRouter } from 'next/router'
-import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-import { toString } from '@/functions/numberish/toString'
-import Link from '@/components/Link'
-import { useAppVersion } from '../appVersion/useAppVersion'
-import { inClient, inServer, isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
-import { getLocalItem } from '@/functions/dom/jStorage'
+import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
 
 export function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -69,16 +72,28 @@ export function useSlippageTolerenceValidator() {
 export function useSlippageTolerenceSyncer() {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
-  const [localStoredSlippage, setLocalStoredSlippage] = useLocalStorageItem<string>('SLIPPAGE')
+  const [localStoredSlippage, setLocalStoredSlippage] = useLocalStorageItem<string>('SLIPPAGE', {
+    validateFn: (value) => {
+      if (value === undefined || !new RegExp(`^\\d*\\.?\\d*$`).test(value)) {
+        return false
+      }
+      return true
+    }
+  })
   useRecordedEffect(
     ([prevSlippageTolerance, prevLocalStoredSlippaged]) => {
-      const slippageHasLoaded = prevSlippageTolerance == null && slippageTolerance !== null
+      const slippageHasLoaded = prevLocalStoredSlippaged == null && localStoredSlippage != null
       if (slippageHasLoaded && !eq(slippageTolerance, localStoredSlippage)) {
         useAppSettings.setState({
           slippageTolerance: localStoredSlippage ?? 0.01
         })
       } else if (slippageTolerance) {
         setLocalStoredSlippage(toString(slippageTolerance))
+      } else {
+        // cold start, set default value
+        useAppSettings.setState({
+          slippageTolerance: 0.01
+        })
       }
     },
     [slippageTolerance, localStoredSlippage]
@@ -143,4 +158,102 @@ export function popWelcomeDialogFn(cb?: { onConfirm: () => void }) {
       }
     }
   )
+}
+
+export function useDefaultExplorerSyncer() {
+  const explorerName = useAppSettings((s) => s.explorerName)
+
+  const [localStoredExplorer, setLocalStoredExplorer] = useLocalStorageItem<string>('EXPLORER', {
+    validateFn: (value) => {
+      if (value !== ExplorerName.EXPLORER && value !== ExplorerName.SOLSCAN && value !== ExplorerName.SOLANAFM) {
+        return false
+      }
+      return true
+    }
+  })
+  useRecordedEffect(
+    ([prevExplorer, prevLocalStoredExplorer]) => {
+      const explorerHasLoaded = prevLocalStoredExplorer == null && localStoredExplorer != null
+      if (explorerHasLoaded && explorerName !== localStoredExplorer) {
+        // use local storage value
+        useAppSettings.setState({
+          explorerName: localStoredExplorer ?? ExplorerName.SOLSCAN,
+          explorerUrl: localStoredExplorer
+            ? localStoredExplorer === ExplorerName.EXPLORER
+              ? ExplorerUrl.EXPLORER
+              : localStoredExplorer === ExplorerName.SOLSCAN
+              ? ExplorerUrl.SOLSCAN
+              : ExplorerUrl.SOLANAFM
+            : ExplorerUrl.SOLSCAN
+        })
+      } else if (explorerName) {
+        // update local storage value from input
+        setLocalStoredExplorer(explorerName)
+      } else {
+        // cold start, set default value
+        useAppSettings.setState({
+          explorerName: ExplorerName.SOLSCAN,
+          explorerUrl: ExplorerUrl.SOLSCAN
+        })
+      }
+    },
+    [explorerName, localStoredExplorer]
+  )
+}
+
+export function useRpcPerformance() {
+  const { connection, currentEndPoint } = useConnection()
+
+  const MAX_TPS = 1500 // force settings
+
+  const getPerformance = useCallback(() => {
+    return setInterval(async () => {
+      if (!currentEndPoint?.url) return
+      const result = await jFetch<{
+        result: {
+          numSlots: number
+          numTransactions: number
+          samplePeriodSecs: number
+          slot: number
+        }[]
+      }>(currentEndPoint?.url, {
+        method: 'post',
+        ignoreCache: true,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          id: 'getRecentPerformanceSamples',
+          jsonrpc: '2.0',
+          method: 'getRecentPerformanceSamples',
+          params: [100]
+        })
+      })
+      if (!result) return
+      const blocks = result.result
+      const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
+      const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
+      useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })
+    }, 1000 * 60)
+  }, [connection, currentEndPoint])
+
+  useEffect(() => {
+    const timeId = getPerformance()
+    return () => clearInterval(timeId)
+  }, [getPerformance])
+}
+
+export function useGetSlotCountForSecond() {
+  const { currentEndPoint } = useConnection()
+
+  const getSlot = useCallback(() => {
+    return setInterval(async () => {
+      await getSlotCountForSecond(currentEndPoint)
+    }, 1000 * 60)
+  }, [getSlotCountForSecond, currentEndPoint])
+
+  useEffect(() => {
+    const timeId = getSlot()
+    return () => clearInterval(timeId)
+  }, [getSlot])
 }

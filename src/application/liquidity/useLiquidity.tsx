@@ -6,21 +6,14 @@ import toPubString from '@/functions/format/toMintString'
 import { gte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 
-import { SplToken } from '../token/type'
 import { toDataMint, WSOLMint } from '../token/quantumSOL'
+import { SplToken } from '../token/type'
 import {
-  ETHMint,
-  mSOLMint,
-  PAIMint,
-  RAYMint,
-  stSOLMint,
-  USDCMint,
-  USDHMint,
-  USDTMint
+  ETHMint, mSOLMint, PAIMint, RAYMint, stSOLMint, USDCMint, USDHMint, USDTMint
 } from '../token/wellknownToken.config'
 
-import { HydratedLiquidityInfo, SDKParsedLiquidityInfo } from './type'
 import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
+import { HydratedLiquidityInfo, SDKParsedLiquidityInfo } from './type'
 
 export type LiquidityStore = {
   // too tedius
@@ -80,6 +73,8 @@ export type LiquidityStore = {
   /** with slippage */
   coin2Amount?: string // for coin may be not selected yet, so it can't be TokenAmount
   unslippagedCoin2Amount?: string // for coin may be not selected yet, so it can't be TokenAmount
+
+  isCalculatingBczSelection: boolean
 
   focusSide: 'coin1' | 'coin2' // not reflect ui placement.  maybe coin1 appears below coin2
   isRemoveDialogOpen: boolean
@@ -180,6 +175,8 @@ const useLiquidity = create<LiquidityStore>((set, get) => ({
   coin1: undefined,
 
   coin2: undefined,
+
+  isCalculatingBczSelection: false,
 
   searchText: '',
   focusSide: 'coin1',

@@ -6,22 +6,36 @@ import { ZERO } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import { refreshWindow } from '@/application/appVersion/forceWindowRefresh'
+import { useAppVersion } from '@/application/appVersion/useAppVersion'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import useWallet from '@/application/wallet/useWallet'
+import { toUTC } from '@/functions/date/dateFormat'
+import { setCssVarible } from '@/functions/dom/cssVariable'
 import jFetch from '@/functions/dom/jFetch'
+import { setLocalItem } from '@/functions/dom/jStorage'
 import linkTo from '@/functions/dom/linkTo'
+import { isString } from '@/functions/judgers/dateType'
+import { inClient } from '@/functions/judgers/isSSR'
 import { eq } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useDocumentMetaTitle from '@/hooks/useDocumentMetaTitle'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
+import { useUrlQuery } from '@/hooks/useUrlQuery'
+import SetExplorer from '@/pageComponents/settings/SetExplorer'
+import SetTolerance from '@/pageComponents/settings/SetTolerance'
 import { LinkAddress } from '@/types/constants'
 
 import { Badge } from './Badge'
 import Button from './Button'
+import Card from './Card'
+import { Checkbox } from './Checkbox'
 import Col from './Col'
+import Dialog from './Dialog'
 import Drawer from './Drawer'
 import { FadeIn } from './FadeIn'
 import Grid from './Grid'
@@ -32,21 +46,9 @@ import Link from './Link'
 import MessageBoardWidget from './navWidgets/MessageBoardWidget'
 import WalletWidget from './navWidgets/WalletWidget'
 import PageLayoutPopoverDrawer from './PageLayoutPopoverDrawer'
+import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
 import Row from './Row'
 import Tooltip from './Tooltip'
-import { setCssVarible } from '@/functions/dom/cssVariable'
-import { inClient } from '@/functions/judgers/isSSR'
-import { useAppVersion } from '@/application/appVersion/useAppVersion'
-import { refreshWindow } from '@/application/appVersion/forceWindowRefresh'
-import Card from './Card'
-import Dialog from './Dialog'
-import { toUTC } from '@/functions/date/dateFormat'
-import { useForceUpdate } from '@/hooks/useForceUpdate'
-import { setLocalItem } from '@/functions/dom/jStorage'
-import { Checkbox } from './Checkbox'
-import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
-import { isString } from '@/functions/judgers/dateType'
-import { useUrlQuery } from '@/hooks/useUrlQuery'
 
 /**
  * for easier to code and read
@@ -141,40 +143,7 @@ export default function PageLayout(props: {
   )
 }
 function RPCPerformanceBanner({ className }: { className?: string }) {
-  const { connection, currentEndPoint } = useConnection()
-  const [isLowRpcPerformance, setIsLowRpcPerformance] = useState(false)
-
-  const MAX_TPS = 1500 // force settings
-
-  useAsyncEffect(async () => {
-    if (isLowRpcPerformance) return // no need calc again
-    if (!currentEndPoint?.url) return
-    const result = await jFetch<{
-      result: {
-        numSlots: number
-        numTransactions: number
-        samplePeriodSecs: number
-        slot: number
-      }[]
-    }>(currentEndPoint?.url, {
-      method: 'post',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        id: 'getRecentPerformanceSamples',
-        jsonrpc: '2.0',
-        method: 'getRecentPerformanceSamples',
-        params: [4]
-      })
-    })
-    if (!result) return
-    const blocks = result.result
-    const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
-    const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
-
-    setIsLowRpcPerformance(tps < MAX_TPS)
-  }, [connection])
+  const isLowRpcPerformance = useAppSettings((s) => s.isLowRpcPerformance)
 
   return (
     <div className={className}>
@@ -192,8 +161,10 @@ function RPCPerformanceBanner({ className }: { className?: string }) {
 
 function VersionTooOldDialog() {
   const versionRefreshData = useAppVersion((s) => s.versionFresh)
+  const isInBonsaiTest = useAppSettings((s) => s.isInBonsaiTest)
+  const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
   return (
-    <Dialog open={versionRefreshData === 'too-old'} canClosedByMask={false}>
+    <Dialog open={versionRefreshData === 'too-old' && !isInLocalhost && !isInBonsaiTest} canClosedByMask={false}>
       {({ close }) => (
         <Card
           className={twMerge(`p-8 rounded-3xl w-[min(480px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]`)}
@@ -532,7 +503,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
   const isMobile = useAppSettings((s) => s.isMobile)
   const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
   const sideMenuRef = useRef<HTMLDivElement>(null)
-  const lastestVersion = useAppVersion((s) => s.lastest)
+  const latestVersion = useAppVersion((s) => s.latest)
   const currentVersion = useAppVersion((s) => s.currentVersion)
 
   useEffect(() => {
@@ -654,7 +625,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             <Tooltip.Panel>
               <div className="text-xs m-2 leading-relaxed font-medium text-[#abc4ff] whitespace-nowrap cursor-default">
                 <div>Current: {currentVersion}</div>
-                <div>Lastest: {lastestVersion}</div>
+                <div>latest: {latestVersion}</div>
                 <div>Block time: {<BlockTimeClock showSeconds />}</div>
               </div>
             </Tooltip.Panel>
@@ -771,78 +742,12 @@ function SettingPopover() {
   const slippageToleranceState = useAppSettings((s) => s.slippageToleranceState)
   return (
     <div className="py-5 px-6">
-      <Row className="items-center mb-3 mobile:mb-6 gap-2">
-        <div className="text-[rgba(171,196,255,0.5)] text-xs mobile:text-sm">SLIPPAGE TOLERANCE</div>
-        <Tooltip placement="bottom-right">
-          <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help text-[rgba(171,196,255,0.5)]" />
-          <Tooltip.Panel>The maximum difference between your estimated price and execution price</Tooltip.Panel>
-        </Tooltip>
-      </Row>
-      <Row className="gap-3 justify-between">
-        <div
-          className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
-            eq(slippageTolerance, 0.001) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
-          } cursor-pointer`}
-          onClick={() => {
-            useAppSettings.setState({ slippageTolerance: '0.001' })
-          }}
-        >
-          0.1%
-        </div>
-        <div
-          className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
-            eq(slippageTolerance, 0.005) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
-          } cursor-pointer`}
-          onClick={() => {
-            useAppSettings.setState({ slippageTolerance: '0.005' })
-          }}
-        >
-          0.5%
-        </div>
-        <div
-          className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
-            eq(slippageTolerance, 0.01) ? 'ring-1 ring-inset ring-[#39D0D8]' : ''
-          } cursor-pointer`}
-          onClick={() => {
-            useAppSettings.setState({ slippageTolerance: '0.01' })
-          }}
-        >
-          1%
-        </div>
-        <div
-          className={`py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
-            !(eq(slippageTolerance, 0.001) || eq(slippageTolerance, 0.005) || eq(slippageTolerance, 0.01))
-              ? 'ring-1 ring-inset ring-[#39D0D8]'
-              : ''
-          }`}
-        >
-          <Row>
-            <Input
-              className="w-[32px]"
-              value={toString(mul(slippageTolerance, 100), { decimalLength: 'auto 2' })}
-              onUserInput={(value) => {
-                const n = div(parseFloat(value || '0'), 100)
-                if (n) {
-                  useAppSettings.setState({ slippageTolerance: n })
-                }
-              }}
-              pattern={/^\d*\.?\d*$/}
-            />
-            <div>%</div>
-          </Row>
-        </div>
-      </Row>
-      {(slippageToleranceState === 'invalid' || slippageToleranceState === 'too small') && (
-        <div
-          className={`mt-4 mobile:mt-6 ${
-            slippageToleranceState === 'invalid' ? 'text-[#DA2EEF]' : 'text-[#D8CB39]'
-          } text-xs mobile:text-sm`}
-        >
-          {slippageToleranceState === 'invalid'
-            ? 'Please enter a valid slippage percentage'
-            : 'Your transaction may fail'}
-        </div>
-      )}
+      <div>
+        <SetTolerance />
+      </div>
+      <div className="mt-4">
+        <SetExplorer />
+      </div>
     </div>
   )
 }

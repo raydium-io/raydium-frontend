@@ -22,6 +22,7 @@ import {
 import useToken, {
   RAYDIUM_DEV_TOKEN_LIST_NAME,
   RAYDIUM_MAINNET_TOKEN_LIST_NAME,
+  RAYDIUM_UNNAMED_TOKEN_LIST_NAME,
   SOLANA_TOKEN_LIST_NAME
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
@@ -44,12 +45,14 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
   devMints: string[]
   unOfficialMints: string[]
   officialMints: string[]
+  unNamedMints: string[]
   tokens: TokenJson[]
   blacklist: string[]
 }> {
   const devMints: string[] = []
   const unOfficialMints: string[] = []
   const officialMints: string[] = []
+  const unNamedMints: string[] = []
   const blacklist: string[] = []
   const tokens: TokenJson[] = []
   // eslint-disable-next-line no-console
@@ -59,7 +62,11 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
     if (isRaydiumMainnetTokenListName(response, raw.url)) {
       unOfficialMints.push(...response.unOfficial.map(({ mint }) => mint))
       officialMints.push(...deleteFetchedNativeSOLToken(response.official).map(({ mint }) => mint))
-      tokens.push(...deleteFetchedNativeSOLToken(response.official), ...response.unOfficial)
+      unNamedMints.push(...response.unNamed.map((j) => j.mint))
+      const fullUnnamed = response.unNamed.map(
+        (j) => ({ ...j, symbol: j.mint.slice(0, 6), name: j.mint.slice(0, 12), extensions: {}, icon: '' } as TokenJson)
+      )
+      tokens.push(...deleteFetchedNativeSOLToken(response.official), ...response.unOfficial, ...fullUnnamed)
       blacklist.push(...response.blacklist)
     }
     if (isRaydiumDevTokenListName(response, raw.url) && (isInLocalhost || isInBonsaiTest)) {
@@ -70,7 +77,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
     console.info('tokenList end fetching')
   })
 
-  return { devMints, unOfficialMints, officialMints, tokens, blacklist }
+  return { devMints, unOfficialMints, unNamedMints, officialMints, tokens, blacklist }
 }
 
 async function fetchTokenIconInfoList() {
@@ -112,6 +119,7 @@ async function loadTokens() {
     devMints,
     unOfficialMints,
     officialMints,
+    unNamedMints,
     tokens: allTokens,
     blacklist: _blacklist
   } = await fetchTokenLists(rawTokenListConfigs)
@@ -134,6 +142,11 @@ async function loadTokens() {
       [RAYDIUM_DEV_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME],
         mints: new Set(devMints)
+      },
+
+      [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
+        mints: new Set(unNamedMints)
       }
     }
   }))

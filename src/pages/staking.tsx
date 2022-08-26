@@ -44,7 +44,7 @@ export default function StakingPage() {
       <StakingHeader />
       <StakingCard />
 
-      <MigrateStakingHistory className="mt-[10vh]" />
+      {/* <MigrateStakingHistory className="mt-[10vh]" /> */}
     </PageLayout>
   )
 }

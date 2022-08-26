@@ -2,17 +2,18 @@ import React from 'react'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useTxHistory, { TxHistoryInfo } from '@/application/txHistory/useTxHistory'
+import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import Dialog from '@/components/Dialog'
 import Icon, { AppHeroIconName } from '@/components/Icon'
+import LinkExplorer from '@/components/LinkExplorer'
 import Row from '@/components/Row'
 import { toUTC } from '@/functions/date/dateFormat'
+import toPubString from '@/functions/format/toMintString'
 
 import Drawer from '../../components/Drawer'
 import Link from '../../components/Link'
-import useWallet from '@/application/wallet/useWallet'
-import toPubString from '@/functions/format/toMintString'
 
 const iconSettings: Record<
   'success' | 'fail' | 'droped' | 'pending',
@@ -85,7 +86,7 @@ function PanelContent({ historyItems, onClickX }: { historyItems: TxHistoryInfo[
       <div className="overflow-y-auto flex-1 mx-3" /* let scrollbar have some space */>
         {historyItems.length > 0 ? (
           historyItems.map((txInfo) => (
-            <Link noTextStyle key={txInfo.txid} href={`https://solscan.io/tx/${txInfo.txid}`}>
+            <LinkExplorer hrefDetail={`tx/${txInfo.txid}`} noTextStyle key={txInfo.txid}>
               <Row
                 type="grid-x"
                 className="gap-[3.5vw] grid-cols-[1fr,1fr,1fr] py-4 px-3 clickable clickable-filter-effect items-center"
@@ -105,7 +106,7 @@ function PanelContent({ historyItems, onClickX }: { historyItems: TxHistoryInfo[
                 {/* table head column: Date and time */}
                 <div className="font-medium text-[#ABC4FF] text-xs">{toUTC(txInfo.time)}</div>
               </Row>
-            </Link>
+            </LinkExplorer>
           ))
         ) : (
           <div className="font-medium text-[rgba(171,196,255,0.3)] text-sm py-4 text-center">
@@ -115,13 +116,14 @@ function PanelContent({ historyItems, onClickX }: { historyItems: TxHistoryInfo[
       </div>
 
       <Row className="border-t-1.5 border-[rgba(171,196,255,0.2)]">
-        <Link
+        <LinkExplorer
           className="py-4 rounded-none flex-grow font-medium text-[#ABC4FF] text-xs flex justify-center gap-1 items-center"
-          href={owner ? `https://solscan.io/account/${toPubString(owner)}` : ''}
+          hrefDetail={owner ? `${toPubString(owner)}` : ''}
+          type="account"
         >
           View all transactions
           <Icon size="xs" inline heroIconName="external-link" />
-        </Link>
+        </LinkExplorer>
       </Row>
     </Card>
   )

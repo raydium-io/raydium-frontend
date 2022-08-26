@@ -1,5 +1,7 @@
-import { TokenAmount } from '@raydium-io/raydium-sdk'
 import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+
+import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
+
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -33,6 +35,7 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Link from '@/components/Link'
+import LinkExplorer from '@/components/LinkExplorer'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
@@ -46,6 +49,7 @@ import Switcher from '@/components/Switcher'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem, shakeUndifindedItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
+import { getCountDownTime } from '@/functions/date/parseDuration'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 import formatNumber from '@/functions/format/formatNumber'
@@ -60,8 +64,8 @@ import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
-import useSort from '@/hooks/useSort'
 import useOnceEffect from '@/hooks/useOnceEffect'
+import useSort from '@/hooks/useSort'
 
 export default function FarmsPage() {
   useFarmUrlParser()
@@ -696,6 +700,9 @@ function FarmPendingRewardBadge({
   farmInfo: HydratedFarmInfo
   reward: HydratedRewardInfo | TokenAmount | undefined
 }) {
+  const tokenListSettings = useToken((s) => s.tokenListSettings)
+  const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
+
   if (!reward) return null
   const isRewarding = isTokenAmount(reward) ? true : reward.isRewarding
   const isRewardEnded = isTokenAmount(reward) ? false : reward.isRewardEnded
@@ -737,6 +744,9 @@ function FarmPendingRewardBadge({
             reward.endTime &&
             (isRewardEnded ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period')}
         </div>
+        {(reward as HydratedRewardInfo).openTime && isRewardBeforeStart && (
+          <div className="opacity-50">Start in {getCountDownTime((reward as HydratedRewardInfo).openTime)}</div>
+        )}
         {!isTokenAmount(reward) && reward.openTime && reward.endTime && (
           <div className="opacity-50">
             {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
@@ -753,6 +763,13 @@ function FarmPendingRewardBadge({
           >
             {toPubString(reward.token.mint)}
           </AddressItem>
+        )}
+
+        {unnamedTokenMints?.has(toPubString(reward.token?.mint)) && (
+          <div className="max-w-[300px] mt-2">
+            This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
+            want to transact with.
+          </div>
         )}
       </Tooltip.Panel>
     </Tooltip>
@@ -1184,7 +1201,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                 Pending rewards
               </div>
               <Grid
-                className={`gap-board 
+                className={`gap-board
                    ${
                      farmInfo.rewards.filter((i) => i.version === 6 || i.userHavedReward).length > 1
                        ? 'grid-cols-2'
@@ -1489,9 +1506,9 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
         />
         <div>
           {getToken(info.baseMint) && (
-            <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{`${
-              getToken(info.baseMint)?.symbol ?? 'unknown'
-            }-${getToken(info.quoteMint)?.symbol ?? 'unknown'}`}</div>
+            <Row className="mobile:text-xs font-medium mobile:mt-px mr-1.5">
+              <CoinAvatarInfoItemSymbol mint={info.baseMint} /> - <CoinAvatarInfoItemSymbol mint={info.quoteMint} />
+            </Row>
           )}
         </div>
       </AutoBox>
@@ -1504,13 +1521,40 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       className={twMerge('flex-wrap items-center mobile:items-start gap-x-2 gap-y-1', className)}
     >
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
-      <div className="mobile:text-xs font-medium mobile:mt-px mr-1.5">{name}</div>
+      <Row className="mobile:text-xs font-medium mobile:mt-px mr-1.5">
+        <CoinAvatarInfoItemSymbol mint={info.baseMint} />-<CoinAvatarInfoItemSymbol mint={info.quoteMint} />
+      </Row>
       {info.isClosedPool && <Badge cssColor="#DA2EEF">Inactive</Badge>}
       {isStable && <Badge>Stable</Badge>}
       {info.isDualFusionPool && info.version !== 6 && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
       {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
       {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
     </AutoBox>
+  )
+}
+function CoinAvatarInfoItemSymbol({ mint }: { mint: PublicKeyish }) {
+  const getToken = useToken((s) => s.getToken)
+  const tokenListSettings = useToken((s) => s.tokenListSettings)
+
+  const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
+  const token = getToken(mint)
+  return unnamedTokenMints?.has(toPubString(mint)) ? (
+    <Row className="items-center">
+      <div>{token?.symbol ?? 'UNKNOWN'}</div>
+      <div>
+        <Tooltip>
+          <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
+          <Tooltip.Panel>
+            <div className="max-w-[300px]">
+              This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
+              want to transact with.
+            </div>
+          </Tooltip.Panel>
+        </Tooltip>
+      </div>
+    </Row>
+  ) : (
+    <>{token?.symbol ?? 'UNKNOWN'}</>
   )
 }
 
@@ -1563,9 +1607,9 @@ function FarmCardTooltipPanelAddressItem({
             copyToClipboard(address)
           }}
         />
-        <Link href={`https://solscan.io/${type}/${address}`}>
+        <LinkExplorer hrefDetail={`${address}`} type={type}>
           <Icon size="sm" heroIconName="external-link" className="clickable text-[#abc4ff]" />
-        </Link>
+        </LinkExplorer>
       </Row>
     </Row>
   )

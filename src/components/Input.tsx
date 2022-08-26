@@ -1,29 +1,24 @@
 import React, {
-  CSSProperties,
-  InputHTMLAttributes,
-  ReactNode,
-  RefObject,
-  startTransition,
-  useEffect,
-  useImperativeHandle,
-  useRef,
+  CSSProperties, InputHTMLAttributes, ReactNode, RefObject, startTransition, useEffect, useImperativeHandle, useRef,
   useState
 } from 'react'
 
+import assert from 'assert'
 import { twMerge } from 'tailwind-merge'
 
+import { getSessionItem, setSessionItem } from '@/functions/dom/jStorage'
+import { isRegExp } from '@/functions/judgers/dateType'
+import { gt } from '@/functions/numberish/compare'
+import toFraction from '@/functions/numberish/toFraction'
+import mergeProps from '@/functions/react/mergeProps'
 import mergeRef from '@/functions/react/mergeRef'
+import { shrinkToValue } from '@/functions/shrinkToValue'
+import useInit from '@/hooks/useInit'
 import useToggle from '@/hooks/useToggle'
+import useUpdate from '@/hooks/useUpdate'
+import { MayArray, MayFunction } from '@/types/constants'
 
 import Row from './Row'
-import { MayArray, MayFunction } from '@/types/constants'
-import { shrinkToValue } from '@/functions/shrinkToValue'
-import mergeProps from '@/functions/react/mergeProps'
-import { isRegExp } from '@/functions/judgers/dateType'
-import assert from 'assert'
-import { getSessionItem, setSessionItem } from '@/functions/dom/jStorage'
-import useInit from '@/hooks/useInit'
-import useUpdate from '@/hooks/useUpdate'
 
 export interface InputComponentHandler {
   text: string | number | undefined
@@ -48,6 +43,9 @@ export interface InputProps {
 
   // with force pattern, you only can input pattern allowed string
   pattern?: MayArray<RegExp | ((v: string | undefined) => boolean)> /* if return false, user's input will be ignore */
+
+  // maximum value
+  maximum?: number
 
   /** only first render */
   defaultValue?: string | number
@@ -164,6 +162,7 @@ export default function Input(props: InputProps) {
     disableUserInput,
     validators,
     pattern,
+    maximum,
 
     defaultValue,
     value,
@@ -283,12 +282,17 @@ export default function Input(props: InputProps) {
             // for onChange is frequest but hight prority action. startTransition so react can abort it
             startTransition(() => {
               const inputText = ev.target.value
+              let overwrite = ''
 
               // half disable (not disable in type)
               if (disableUserInput) return
 
               // refuse unallowed input
               if (pattern && [pattern].flat().some((p) => (isRegExp(p) ? !p.test(inputText) : !p(inputText)))) return
+
+              if (maximum && gt(toFraction(inputText), maximum)) {
+                overwrite = maximum.toString()
+              }
 
               // update validator infos
               if (validators) {
@@ -311,8 +315,8 @@ export default function Input(props: InputProps) {
                 }
               }
 
-              setSelfValue(inputText)
-              onUserInput?.(ev.target.value, inputRef.current!)
+              setSelfValue(overwrite ? overwrite : inputText)
+              onUserInput?.(overwrite ? overwrite : ev.target.value, inputRef.current!)
               lockOutsideValue()
             })
           }}

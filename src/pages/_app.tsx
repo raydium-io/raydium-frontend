@@ -1,15 +1,14 @@
-import { PublicKey } from '@solana/web3.js'
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
+
+import { v } from '@raydium-io/raydium-sdk/lib/farm-1cb859cf'
+import { PublicKey } from '@solana/web3.js'
+
 import NextNProgress from 'nextjs-progressbar'
 
 import {
-  useDeviceInfoSyc,
-  useDisclaimerDataSyncer,
-  useSentryConfigurator,
-  useSlippageTolerenceSyncer,
-  useSlippageTolerenceValidator,
-  useThemeModeSync
+  useDefaultExplorerSyncer, useDeviceInfoSyc, useDisclaimerDataSyncer, useGetSlotCountForSecond, useRpcPerformance,
+  useSentryConfigurator, useSlippageTolerenceSyncer, useSlippageTolerenceValidator, useThemeModeSync
 } from '@/application/appSettings/initializationHooks'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
@@ -32,7 +31,6 @@ import useTokenPriceRefresher from '@/application/token/useTokenPriceRefresher'
 import useInitRefreshTransactionStatus from '@/application/txHistory/useInitRefreshTransactionStatus'
 import useSyncTxHistoryWithLocalStorage from '@/application/txHistory/useSyncTxHistoryWithLocalStorage'
 import useInitBalanceRefresher from '@/application/wallet/useBalanceRefresher'
-import { useInitShadowKeypairs } from '@/application/wallet/useInitShadowKeypairs'
 import { useSyncWithSolanaWallet } from '@/application/wallet/useSyncWithSolanaWallet'
 import useTokenAccountsRefresher from '@/application/wallet/useTokenAccountsRefresher'
 import { useWalletAccountChangeListeners } from '@/application/wallet/useWalletAccountChangeListeners'
@@ -124,6 +122,9 @@ function ClientInitialization() {
 function ApplicationsInitializations() {
   useSlippageTolerenceValidator()
   useSlippageTolerenceSyncer()
+  useDefaultExplorerSyncer()
+  useRpcPerformance()
+  useGetSlotCountForSecond()
 
   /********************** appVersion **********************/
   useAppInitVersionPostHeartBeat()
