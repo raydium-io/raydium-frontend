@@ -206,6 +206,8 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
 
 export const routeBack = () => router.back()
 
+export const routeReplace = (url: string) => router.replace(url)
+
 export function getRouterStackLength() {
   return historicalRouterLength
 }
