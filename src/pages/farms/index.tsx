@@ -52,6 +52,7 @@ import { addItem, removeItem, shakeFalsyItem, shakeUndifindedItem } from '@/func
 import { toUTC } from '@/functions/date/dateFormat'
 import { getCountDownTime } from '@/functions/date/parseDuration'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
+import { getURLQueryEntry } from '@/functions/dom/getURLQueryEntries'
 import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
@@ -69,9 +70,15 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 
 export default function FarmsPage() {
+  const query = getURLQueryEntry()
   useFarmUrlParser()
   useFarmResetSelfCreatedByOwner()
   const currentTab = useFarms((s) => s.currentTab)
+
+  useEffect(() => {
+    useFarms.setState({ currentTab: query.tab as 'Raydium' | 'Fusion' | 'Ecosystem' | 'Staked' })
+  }, [query])
+
   return (
     <PageLayout
       mobileBarTitle={{
