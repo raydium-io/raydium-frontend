@@ -4,6 +4,7 @@ import {
   AttachPointerMovePointMoveFn,
   AttachPointerMovePointUpFn
 } from '@/functions/dom/gesture/pointerMove'
+import { isNumber } from '@/functions/judgers/dateType'
 import { useEvent } from '@/hooks/useEvent'
 import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
@@ -76,6 +77,7 @@ export function ConcentratedChartBody({
   onChangeMinBoundary,
   onChangeMaxBoundary
 }: ChartRangeInputOption) {
+  //#region ------------------- config -------------------
   const lineColor = '#abc4ff80'
   const boundaryLineColor = '#abc4ff'
   const xAxisColor = '#abc4ff80'
@@ -94,14 +96,22 @@ export function ConcentratedChartBody({
     offsetVX
   })
   const accurateDecimalLength = Math.max(String(diffX).length - 2, 0) // TODO this algorithm is very rough
-  const [minBoundaryVX, setMinBoundaryVX] = useState((initMinBoundaryX ?? 0) * dataZoomX)
-  const [maxBoundaryVX, setMaxBoundaryVX] = useState(
-    (initMaxBoundaryX ?? svgInnerWidth) * dataZoomX - boundaryLineWidth
-  )
+  const units = genXAxisUnit({
+    dataZoom: dataZoomX,
+    viewZoom: zoom,
+    fromDataX: points[0].x,
+    toDataX: points[points.length - 1].x
+  })
+  //#endregion
 
   const wrapperRef = useRef<SVGSVGElement>(null)
   const minBoundaryRef = useRef<SVGUseElement>(null)
   const maxBoundaryRef = useRef<SVGUseElement>(null)
+
+  const [minBoundaryVX, setMinBoundaryVX] = useState((initMinBoundaryX ?? 0) * dataZoomX)
+  const [maxBoundaryVX, setMaxBoundaryVX] = useState(
+    (initMaxBoundaryX ?? svgInnerWidth) * dataZoomX - boundaryLineWidth
+  )
 
   //#region ------------------- handle min boundaryLine -------------------
   const handleGrabMinBoundary: AttachPointerMovePointMoveFn<SVGUseElement> = useEvent(({ totalDelta }): void => {
@@ -329,29 +339,23 @@ export function ConcentratedChartBody({
 
       {/* x units */}
       <g>
-        {shakeFalsyItem(
-          filteredZoomedPoints.map((p) => {
-            const vx = p.vx
-            const shouldRender = !(vx % 40) // FIXME: % 40 is not intelligense. it support that vx is an interger
-            return shouldRender ? (
-              <text
-                className="no-scale"
-                key={p.vx}
-                y={svgInnerHeight - (3 / 4) * xAxisAboveBottom} /*  3/4 psition  of  xAxisAboveBottom */
-                x={vx}
-                fill={xAxisUnitColor}
-                style={{
-                  fontSize: 8,
-                  transition: '75ms'
-                }}
-                textAnchor="middle"
-                dominantBaseline="middle"
-              >
-                {trimUnnecessaryDecimal(p.originalDataPoint.x)}
-              </text>
-            ) : null
-          })
-        )}
+        {units.map(({ vx, unitValue }) => (
+          <text
+            className="no-scale"
+            key={vx}
+            y={svgInnerHeight - (3 / 4) * xAxisAboveBottom} /*  3/4 psition  of  xAxisAboveBottom */
+            x={vx}
+            fill={xAxisUnitColor}
+            style={{
+              fontSize: 8,
+              transition: '75ms'
+            }}
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
+            {isNumber(unitValue) ? trimUnnecessaryDecimal(unitValue) : unitValue}
+          </text>
+        ))}
       </g>
     </svg>
   )
@@ -393,3 +397,24 @@ function useCalcVisiablePoints(
   const polygonPoints = useMemo(() => polygonChartPoints(filteredZoomedPoints), [filteredZoomedPoints])
   return { filteredZoomedPoints, polygonPoints, dataZoomX, dataZoomY, zoomedPoints, diffX }
 }
+
+//#region ------------------- gen x axis unit -------------------
+type UnitXAxis = {
+  vx: number
+  unitValue: number | string
+}
+function genXAxisUnit(options: { dataZoom: number; viewZoom: number; fromDataX: number; toDataX: number }) {
+  const totalZoom = options.dataZoom * options.viewZoom
+
+  // how many units in data: 0 ~ 1
+  const density = 1 / totalZoom
+
+  const unitsInOne = [density - 1] // ONGOING
+  // const unitLabel
+  const idToX = (idx: number) => idx
+
+  const xValues = Array.from({ length: 30 }, (_, id) => idToX(id))
+  const units: UnitXAxis[] = xValues.map((value) => ({ vx: options.dataZoom * value, unitValue: value }))
+  return units
+}
+//#endregion
