@@ -282,7 +282,7 @@ export function ConcentratedChartBody({
         <style>
           {`
             .no-scale {
-              transform: scale(${1 / zoom},1);
+              transform: scale(${1 / zoom}, 1);
               transform-box: fill-box;
               transform-origin: center;
             }

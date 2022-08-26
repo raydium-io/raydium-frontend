@@ -1,4 +1,3 @@
-import { AnyFn } from '@/types/constants'
 import { addEventListener, EventListenerController } from '../addEventListener'
 
 type DeltaTranslate2D = {
@@ -9,9 +8,6 @@ type SpeedVector = {
   x: number
   y: number
 }
-
-let eventId = 1
-const eventIdMap = new Map<number, { el: Element; eventName: string; fn: AnyFn }>()
 
 export type AttachPointerMovePointDownFn<El extends Element> = (utilities: {
   el: El
@@ -122,21 +118,12 @@ export function attachPointerMove<El extends Element>(el: El, options: AttachPoi
   }
 
   pointDownController = addEventListener(el, 'pointerdown', ({ ev }) => pointerDown(ev), { onlyTargetIsSelf: true })
-  eventIdMap.set(eventId++, { el, eventName: 'pointerdown', fn: pointerDown })
   return {
-    eventId,
     pointDownController,
     pointMoveController,
     pointUpController,
     detatch() {
-      cancelPointerMove(eventId)
+      pointDownController?.cancel()
     }
   }
-}
-
-export function cancelPointerMove(id: number | undefined) {
-  if (!id || !eventIdMap.has(id)) return
-  const { el, eventName, fn } = eventIdMap.get(id)!
-  el.removeEventListener(eventName, fn)
-  eventIdMap.delete(id)
 }
