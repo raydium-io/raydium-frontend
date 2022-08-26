@@ -25,13 +25,8 @@ export function useTokenGetterFnLoader() {
       return tokens[String(mint)] ?? userAddedTokens[toPubString(mint)]
     }
 
-    function getPureToken(mint: PublicKeyish | undefined): SplToken | undefined {
-      return pureTokens[String(mint)] ?? userAddedTokens[toPubString(mint)]
-    }
-
     useToken.setState({
-      getToken,
-      getPureToken
+      getToken
     })
   }, [tokens, pureTokens, userAddedTokens])
 }

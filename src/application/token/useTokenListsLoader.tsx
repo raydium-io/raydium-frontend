@@ -176,6 +176,7 @@ async function loadTokens() {
 
   const pureTokens = objectMap(splTokenJsonInfos, (tokenJsonInfo) => createSplToken(tokenJsonInfo, customTokenIcons))
 
+  /** have QSOL */
   const tokens = { ...pureTokens, [toPubString(QuantumSOL.mint)]: QuantumSOL }
 
   const verboseTokens = [
@@ -192,7 +193,11 @@ async function loadTokens() {
   }))
 
   /** NOTE -  getToken place 1 */
-  /** exact mode: 'so111111112' will be QSOL-WSOL 'sol' will be QSOL-SOL */
+  /**
+   * exact mode: 'so111111112' will be QSOl_WSOL; 'sol' will be QSOL_SOL
+   * not exact mode: 'so111111112' will be QSOl(sol); 'sol' will be QSOL_SOL
+   *
+   */
   function getToken(mint: PublicKeyish | undefined, options?: { exact?: boolean }): SplToken | undefined {
     if (mint === SOLUrlMint || isMintEqual(mint, SOLMint) || (!options?.exact && isMintEqual(mint, WSOLMint))) {
       return QuantumSOLVersionSOL
@@ -200,11 +205,7 @@ async function loadTokens() {
     if (options?.exact && isMintEqual(mint, WSOLMint)) {
       return QuantumSOLVersionWSOL
     }
-    return tokens[String(mint)]
-  }
-
-  function getPureToken(mint: PublicKeyish | undefined): SplToken | undefined {
-    return pureTokens[String(mint)]
+    return tokens[toPubString(mint)]
   }
 
   useToken.setState({
@@ -212,7 +213,6 @@ async function loadTokens() {
     tokens,
     pureTokens,
     verboseTokens,
-    getToken,
-    getPureToken
+    getToken
   })
 }

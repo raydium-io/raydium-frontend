@@ -1,8 +1,12 @@
+import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
+
+import produce from 'immer'
+import { twMerge } from 'tailwind-merge'
+
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import {
-  createNewUIRewardInfo,
-  hasRewardBeenEdited,
-  parsedHydratedRewardInfoToUiRewardInfo
+  createNewUIRewardInfo, hasRewardBeenEdited, parsedHydratedRewardInfoToUiRewardInfo
 } from '@/application/createFarm/parseRewardInfo'
 import txClaimReward from '@/application/createFarm/txClaimReward'
 import { UIRewardInfo } from '@/application/createFarm/type'
@@ -30,10 +34,6 @@ import { EditableRewardSummary } from '@/pageComponents/createFarm/EditableRewar
 import { NewRewardIndicatorAndForm } from '@/pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolInfoSummary } from '@/pageComponents/createFarm/PoolInfoSummery'
 import RewardInputDialog from '@/pageComponents/createFarm/RewardEditDialog'
-import produce from 'immer'
-import { useRouter } from 'next/router'
-import { useEffect, useMemo, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
 
 function useAvailableCheck() {
   // useEffect(() => {
@@ -104,7 +104,7 @@ export default function FarmEditPage() {
   return (
     <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Edit Farm">
       <NavButtons className="sticky top-0 mobile:-translate-y-2 z-10 mobile:bg-[#0f0b2f]" />
-      <div className="self-center w-[min(720px,90vw)]">
+      <div className="self-center w-[min(720px,90vw)] z-20">
         {!isMobile && (
           <Row className="mb-10 justify-self-start items-baseline gap-2">
             <div className="text-2xl mobile:text-lg font-semibold text-white">Edit Farm</div>

@@ -10,6 +10,7 @@ export default async function sdkParseJsonLiquidityInfo(
 ): Promise<SDKParsedLiquidityInfo[]> {
   if (!connection) return []
   if (!liquidityJsonInfos.length) return [] // no jsonInfo
+
   try {
     const info = await Liquidity.fetchMultipleInfo({ connection, pools: liquidityJsonInfos.map(jsonInfo2PoolKeys) })
     const result = info.map((sdkParsed, idx) => ({

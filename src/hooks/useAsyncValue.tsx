@@ -20,8 +20,8 @@ export default function useAsyncValue<V, F = never>(
   asyncGetValue: MayFunction<MayPromise<V>>,
   fallbackValue: MayFunction<F>,
   dependenceList?: any[]
-): V | F | undefined {
-  const [valueState, setValueState] = useState<V | F | undefined>(fallbackValue)
+): V | F {
+  const [valueState, setValueState] = useState<V | F>(fallbackValue)
   const effectCallbackIndex = useRef(0)
 
   useAsyncEffect(async () => {
