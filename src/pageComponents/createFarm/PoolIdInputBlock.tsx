@@ -123,7 +123,9 @@ export function PoolIdInputBlock({
               <div className="text-[#abc4ff80] text-sm font-medium mobile:text-end">
                 {toUsdVolume(pairInfoMap[candidate.id].liquidity, { decimalPlace: 0 })}
               </div>
-            ) : null}
+            ) : (
+              <div></div>
+            )}
             <AddressItem
               canCopy={false}
               showDigitCount={isMoblie ? 16 : 8}
