@@ -18,12 +18,7 @@ function polygonChartPoints(points: ZoomedChartPoint[]): ZoomedChartPoint[] {
   const intervalDistance = points[1].vx - points[0].vx
   const getSqared = (points: ZoomedChartPoint[]) =>
     points.flatMap((p, idx, points) => [
-      {
-        ...p,
-        // leftTopPoint:
-        vx: p.vx,
-        vy: p.vy
-      },
+      p,
       {
         ...p,
         // rightTopPoint:
@@ -52,11 +47,17 @@ export interface ChartFormBodyComponentHandler {
 export type ChartRangeInputOption = {
   className?: string
   points: ChartPoint[]
+  /**
+   * because ChartRangeInput is through math is through JS Number \
+   * it may cause tiny decimal like 3.000000000000000000001 \
+   * so trim it will be better
+   */
+  careDecimalLength?: number
   initMinBoundaryX?: number
   initMaxBoundaryX?: number
   componentRef?: RefObject<any>
-  onChangeMinBoundary?: (nearest: ChartPoint) => void
-  onChangeMaxBoundary?: (nearest: ChartPoint) => void
+  onChangeMinBoundary?: (nearestDataPoint: ChartPoint) => void
+  onChangeMaxBoundary?: (nearestDataPoint: ChartPoint) => void
 }
 
 /**
@@ -67,6 +68,7 @@ export type ChartRangeInputOption = {
 export function ConcentratedChartBody({
   className,
   points,
+  careDecimalLength = 6,
   initMinBoundaryX,
   initMaxBoundaryX,
   componentRef,
@@ -85,15 +87,16 @@ export function ConcentratedChartBody({
   const [offsetVX, setOffsetVX] = useState(0)
   const boundaryLineWidth = 6
   const minDistanceOfMinBoundaryAndMaxBoundary = boundaryLineWidth
-  // const minBoundaryX = useRef(0)
-  const [minBoundaryX, setMinBoundaryVX] = useState(initMinBoundaryX ?? 0)
-  const [maxBoundaryVX, setMaxBoundaryVX] = useState(initMaxBoundaryX ?? svgInnerWidth - boundaryLineWidth)
-
   const { polygonPoints, filteredZoomedPoints, zoomedPoints, dataZoomX } = useCalcVisiablePoints(points, {
     svgInnerWidth,
     zoom,
     offsetVX
   })
+  // const minBoundaryX = useRef(0)
+  const [minBoundaryVX, setMinBoundaryVX] = useState((initMinBoundaryX ?? 0) * dataZoomX)
+  const [maxBoundaryVX, setMaxBoundaryVX] = useState(
+    (initMaxBoundaryX ?? svgInnerWidth) * dataZoomX - boundaryLineWidth
+  )
 
   const wrapperRef = useRef<SVGSVGElement>(null)
   const minBoundaryRef = useRef<SVGUseElement>(null)
@@ -153,9 +156,9 @@ export function ConcentratedChartBody({
 
   //#region ------------------- methods -------------------
   const shrinkToView = (forceSvgWidth = svgInnerWidth) => {
-    const diff = Math.abs(maxBoundaryVX - minBoundaryX)
+    const diff = Math.abs(maxBoundaryVX - minBoundaryVX)
     const newZoom = forceSvgWidth / (diff * 1.2)
-    const newOffsetX = minBoundaryX - (forceSvgWidth / newZoom - diff) / 2
+    const newOffsetX = minBoundaryVX - (forceSvgWidth / newZoom - diff) / 2
     setZoom(newZoom)
     setOffsetVX(newOffsetX)
   }
@@ -198,12 +201,16 @@ export function ConcentratedChartBody({
   const moveMinBoundaryVX: ChartFormBodyComponentHandler['moveMinBoundaryVX'] = (options) => {
     const clampVX = (newVX: number) =>
       Math.min(Math.max(newVX, 0), maxBoundaryVX - minDistanceOfMinBoundaryAndMaxBoundary)
-    const clampedVX = clampVX(options.forceOffsetFromZero ? options.offset : minBoundaryX + options.offset)
+    const clampedVX = clampVX(options.forceOffsetFromZero ? options.offset : minBoundaryVX + options.offset)
     minBoundaryRef.current?.setAttribute('x', String(clampedVX))
     if (options.setReactState) {
       setMinBoundaryVX(clampedVX)
       const nearestPoint = getNearestZoomedPointByVX(clampedVX)
-      nearestPoint && onChangeMinBoundary?.(nearestPoint.originalDataPoint)
+      nearestPoint &&
+        onChangeMinBoundary?.({
+          x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x),
+          y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y)
+        })
     }
   }
 
@@ -211,13 +218,17 @@ export function ConcentratedChartBody({
     moveMinBoundaryVX({ forceOffsetFromZero: true, offset: dataX * dataZoomX, setReactState: true })
 
   const moveMaxBoundaryVX = (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => {
-    const clampVX = (newVX: number) => Math.max(newVX, minBoundaryX + minDistanceOfMinBoundaryAndMaxBoundary)
+    const clampVX = (newVX: number) => Math.max(newVX, minBoundaryVX + minDistanceOfMinBoundaryAndMaxBoundary)
     const clampedVX = clampVX(options.forceOffsetFromZero ? options.offset : maxBoundaryVX + options.offset)
     maxBoundaryRef.current?.setAttribute('x', String(clampedVX))
     if (options.setReactState) {
       setMaxBoundaryVX(clampedVX)
       const nearestPoint = getNearestZoomedPointByVX(clampedVX)
-      nearestPoint && onChangeMaxBoundary?.(nearestPoint.originalDataPoint)
+      nearestPoint &&
+        onChangeMaxBoundary?.({
+          x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x),
+          y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y)
+        })
     }
   }
 
@@ -244,6 +255,9 @@ export function ConcentratedChartBody({
     // init shrink to view
     shrinkToView(wrapperRef.current.clientWidth)
   }, [wrapperRef])
+
+  const trimUnnecessaryDecimal = (n: number) => Number(n.toFixed(careDecimalLength))
+
   return (
     <svg
       ref={wrapperRef}
@@ -295,7 +309,7 @@ export function ConcentratedChartBody({
       />
 
       {/* min boundary */}
-      <use href="#boundary-brush" ref={minBoundaryRef} x={Math.max(minBoundaryX, 0)} y={0} />
+      <use href="#boundary-brush" ref={minBoundaryRef} x={Math.max(minBoundaryVX, 0)} y={0} />
 
       {/* max boundary */}
       <use href="#boundary-brush" ref={maxBoundaryRef} x={Math.max(maxBoundaryVX, 0)} y={0} />
@@ -331,7 +345,7 @@ export function ConcentratedChartBody({
                 textAnchor="middle"
                 dominantBaseline="middle"
               >
-                {vx}
+                {trimUnnecessaryDecimal(p.originalDataPoint.x)}
               </text>
             ) : null
           })

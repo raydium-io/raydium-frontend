@@ -18,8 +18,8 @@ export function ConcentratedChart({
 }) {
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
-  const [minPrice, setMinPrice] = useState(80)
-  const [maxPrice, setMaxPrice] = useState(280)
+  const [minPrice, setMinPrice] = useState(0.8)
+  const [maxPrice, setMaxPrice] = useState(2.8)
   const concentratedChartBodyRef = useRef<ChartFormBodyComponentHandler>(null)
   return (
     <Col className={twMerge('py-4', className)}>
