@@ -54,7 +54,7 @@ function NavButtons({ className }: { className?: string }) {
         onClick={() => {
           if (window.history.length === 1) {
             // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
-            routeReplace('/farms')
+            routeTo('/farms')
           } else {
             routeBack()
           }
