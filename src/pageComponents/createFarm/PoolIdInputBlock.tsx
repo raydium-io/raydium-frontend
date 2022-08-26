@@ -35,9 +35,11 @@ export function PoolIdInputBlock({
   const poolId = useCreateFarms((s) => s.poolId)
   const pairInfos = usePools((s) => s.hydratedInfos)
   const liquidityPoolJsons = useLiquidity((s) => s.jsonInfos)
+  const rawLiquidityPoolJsons = usePools((s) => s.rawJsonInfos)
   const tokens = useToken((s) => s.tokens)
 
   const liquidityPoolMap = useMemo(() => listToMap(liquidityPoolJsons, (s) => s.id), [liquidityPoolJsons])
+  const rawliquidityPoolMap = useMemo(() => listToMap(rawLiquidityPoolJsons, (s) => s.ammId), [rawLiquidityPoolJsons])
   const pairInfoMap = useMemo(() => listToMap(pairInfos, (s) => s.ammId), [pairInfos])
 
   const selectedPool = liquidityPoolJsons.find((i) => i.id === poolId)
@@ -119,9 +121,11 @@ export function PoolIdInputBlock({
             <div className="text-[#abc4ff] font-medium mobile:text-sm">
               {tokens[candidate.baseMint]?.symbol ?? 'UNKNOWN'}-{tokens[candidate.quoteMint]?.symbol ?? 'UNKNOWN'}
             </div>
-            {pairInfoMap[candidate.id] ? (
+            {pairInfoMap[candidate.id] ?? rawliquidityPoolMap[candidate.id] ? (
               <div className="text-[#abc4ff80] text-sm font-medium mobile:text-end">
-                {toUsdVolume(pairInfoMap[candidate.id].liquidity, { decimalPlace: 0 })}
+                {toUsdVolume(pairInfoMap[candidate.id]?.liquidity ?? rawliquidityPoolMap[candidate.id]?.liquidity, {
+                  decimalPlace: 0
+                })}
               </div>
             ) : (
               <div></div>
