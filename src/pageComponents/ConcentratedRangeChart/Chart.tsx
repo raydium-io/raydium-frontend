@@ -8,7 +8,7 @@ import { useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { ChartFormBodyComponentHandler, ChartRangeInputOption, ConcentratedChartBody } from './ChartBody'
 
-const mokeChartData = Array.from({ length: 5000000 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
+const mokeChartData = Array.from({ length: 500 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
 export function ConcentratedChart({
   className,
   chartOptions
@@ -82,6 +82,7 @@ export function ConcentratedChart({
           className="grow"
           label="Min Price"
           decimalMode
+          decimalCount={concentratedChartBodyRef.current?.accurateDecimalLength}
           value={minPrice}
           onUserInput={(v) => {
             concentratedChartBodyRef.current?.inputMinBoundaryX(Number(v))
@@ -91,6 +92,7 @@ export function ConcentratedChart({
           className="grow"
           label="Max Price"
           decimalMode
+          decimalCount={concentratedChartBodyRef.current?.accurateDecimalLength}
           value={maxPrice}
           onUserInput={(v) => {
             concentratedChartBodyRef.current?.inputMaxBoundaryX(Number(v))

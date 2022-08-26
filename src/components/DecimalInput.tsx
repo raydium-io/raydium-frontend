@@ -11,11 +11,13 @@ import Input, { InputProps } from './Input'
 export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultValue' | 'onUserInput'> {
   /**
    * only if type is decimal
+   * it will also affact <input>'s step
    * @default  3
    */
   decimalCount?: number
   // TODO: onlyInt?: boolean
   // TODO: mustAboveZero?: boolean
+
   /**
    * only if type is decimal
    * @default  0

@@ -35,6 +35,7 @@ function polygonChartPoints(points: ZoomedChartPoint[]): ZoomedChartPoint[] {
 }
 
 export interface ChartFormBodyComponentHandler {
+  accurateDecimalLength: number
   zoomIn: (options?: { degree?: number; align?: 'left' | 'center' | 'right' }) => void
   zoomOut: (options?: { degree?: number; align?: 'left' | 'center' | 'right' }) => void
   moveMinBoundaryVX: (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => void
@@ -87,12 +88,12 @@ export function ConcentratedChartBody({
   const [offsetVX, setOffsetVX] = useState(0)
   const boundaryLineWidth = 6
   const minDistanceOfMinBoundaryAndMaxBoundary = boundaryLineWidth
-  const { polygonPoints, filteredZoomedPoints, zoomedPoints, dataZoomX } = useCalcVisiablePoints(points, {
+  const { polygonPoints, filteredZoomedPoints, zoomedPoints, dataZoomX, diffX } = useCalcVisiablePoints(points, {
     svgInnerWidth,
     zoom,
     offsetVX
   })
-  // const minBoundaryX = useRef(0)
+  const accurateDecimalLength = Math.max(String(diffX).length - 2, 0) // TODO this algorithm is very rough
   const [minBoundaryVX, setMinBoundaryVX] = useState((initMinBoundaryX ?? 0) * dataZoomX)
   const [maxBoundaryVX, setMaxBoundaryVX] = useState(
     (initMaxBoundaryX ?? svgInnerWidth) * dataZoomX - boundaryLineWidth
@@ -236,6 +237,7 @@ export function ConcentratedChartBody({
     moveMaxBoundaryVX({ forceOffsetFromZero: true, offset: dataX * dataZoomX, setReactState: true })
 
   useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({
+    accurateDecimalLength,
     zoomIn,
     zoomOut,
     moveMinBoundaryVX,
@@ -330,7 +332,7 @@ export function ConcentratedChartBody({
         {shakeFalsyItem(
           filteredZoomedPoints.map((p) => {
             const vx = p.vx
-            const shouldRender = !(vx % 40)
+            const shouldRender = !(vx % 40) // FIXME: % 40 is not intelligense. it support that vx is an interger
             return shouldRender ? (
               <text
                 className="no-scale"
@@ -370,7 +372,7 @@ function useCalcVisiablePoints(
   }: { svgInnerWidth: number; zoom: number; offsetVX: number; sideScreenCount?: number }
 ) {
   /** to avoid too small point (ETH-RAY may have point {x: 0.00021, y: 0.0003}) */
-  const { dataZoomX, dataZoomY, zoomedPoints } = useMemo(() => {
+  const { dataZoomX, dataZoomY, zoomedPoints, diffX } = useMemo(() => {
     const diffX = points[1].x - points[0].x // TEST
     const dataZoomX = 1 / diffX
     const diffY = 0.00006 // TEST
@@ -378,7 +380,7 @@ function useCalcVisiablePoints(
     const zoomedPoints = points.map(
       (p) => ({ vx: p.x * dataZoomX, vy: p.y * dataZoomY, originalDataPoint: p } as ZoomedChartPoint)
     )
-    return { dataZoomX, dataZoomY, zoomedPoints }
+    return { dataZoomX, dataZoomY, zoomedPoints, diffX }
   }, points)
   const [sideMinVX, sideMaxVX] = [
     offsetVX - (sideScreenCount - 1) * (svgInnerWidth / zoom),
@@ -389,5 +391,5 @@ function useCalcVisiablePoints(
     [sideMinVX, sideMaxVX]
   )
   const polygonPoints = useMemo(() => polygonChartPoints(filteredZoomedPoints), [filteredZoomedPoints])
-  return { filteredZoomedPoints, polygonPoints, dataZoomX, dataZoomY, zoomedPoints }
+  return { filteredZoomedPoints, polygonPoints, dataZoomX, dataZoomY, zoomedPoints, diffX }
 }
