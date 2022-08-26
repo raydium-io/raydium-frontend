@@ -15,22 +15,25 @@ import Input from '../../components/Input'
 import Col from '../../components/Col'
 import Button from '../../components/Button'
 import FadeInStable from '../../components/FadeIn'
+import { Badge } from '@/components/Badge'
 
 function WalletSelectorPanelItem({
   wallet,
-  available: detected,
-  onClick
+  detected,
+  onClick,
+  showBadge
 }: {
   wallet: { adapter: WalletAdapter; readyState: WalletReadyState }
-  available?: boolean
+  detected?: boolean
   onClick?(): void
+  showBadge: boolean
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const { select } = useWallet()
   return (
     <Row
       className={`relative items-center gap-3 m-auto px-6 mobile:px-3 mobile:py-1.5 py-3 w-64 mobile:w-[42vw] h-14  mobile:h-12 frosted-glass frosted-glass-teal rounded-xl mobile:rounded-lg ${
-        detected ? 'opacity-100' : 'opacity-40'
+        detected ? 'opacity-100' : 'opacity-60'
       } clickable clickable-filter-effect`}
       // TODO disable status
       onClick={() => {
@@ -39,16 +42,18 @@ function WalletSelectorPanelItem({
       }}
     >
       <Icon className="shrink-0" size={isMobile ? 'md' : 'lg'} iconSrc={wallet.adapter.icon} />
-      <div className="mobile:text-sm text-base font-bold text-white">{wallet.adapter.name}</div>
-      {/* {installed && (
-        <Badge
-          noOutline
-          colorType="green"
-          className="absolute right-1 bottom-1 mobile:right-0 mobile:bottom-0 mobile:text-2xs opacity-80"
-        >
-          installed
-        </Badge>
-      )} */}
+      <Row className="grow items-center justify-between flex-wrap">
+        <div className="mobile:text-sm text-base font-bold text-white">{wallet.adapter.name}</div>
+        {detected && !isMobile && (
+          <Badge
+            className={` mobile:text-2xs  text-white ${
+              showBadge ? 'opacity-80' : 'opacity-0'
+            } mix-blend-soft-light transition`}
+          >
+            detected
+          </Badge>
+        )}
+      </Row>
     </Row>
   )
 }
@@ -108,12 +113,9 @@ function PanelContent({
   close(): void
   wallets: { adapter: WalletAdapter; readyState: WalletReadyState }[]
 }) {
-  const installedWallets = wallets
-    .filter((w) => w.readyState !== WalletReadyState.Unsupported)
-    .filter((w) => w.readyState !== WalletReadyState.NotDetected)
-  const notInstalledWallets = wallets
-    .filter((w) => w.readyState !== WalletReadyState.Unsupported)
-    .filter((w) => w.readyState == WalletReadyState.NotDetected)
+  const supportedWallets = wallets.filter((w) => w.readyState !== WalletReadyState.Unsupported)
+  const installedWallets = supportedWallets.filter((w) => w.readyState !== WalletReadyState.NotDetected)
+  const notInstalledWallets = supportedWallets.filter((w) => w.readyState == WalletReadyState.NotDetected)
 
   const [isAllWalletShown, setIsAllWalletShown] = useState(false)
   const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
@@ -142,20 +144,31 @@ function PanelContent({
         } grow`}
       >
         {installedWallets.map((wallet) => (
-          <WalletSelectorPanelItem key={wallet.adapter.name} wallet={wallet} onClick={close} available />
+          <WalletSelectorPanelItem
+            key={wallet.adapter.name}
+            wallet={wallet}
+            onClick={close}
+            detected
+            showBadge={isAllWalletShown}
+          />
         ))}
       </Grid>
 
       <div className={`flex-1 ${isAllWalletShown ? 'mt-4' : ''} h-32 overflow-auto no-native-scrollbar`}>
         <FadeInStable show={isAllWalletShown}>
-          <div className="overflow-auto pt-8 no-native-scrollbar h-full" style={{ scrollbarGutter: 'always' }}>
-            <Grid className="flex-1 px-8 justify-items-stretch mobile:px-6 pb-4 overflow-auto gap-x-6 gap-y-3 mobile:gap-2 grid-cols-2 mobile:grid-cols-[1fr,1fr]">
+          <div className="pt-8 h-full">
+            <div className="text-[#abc4ff80] text-sm mobile:text-xs px-8 py-1">OTHER WALLETS</div>
+            <Grid
+              className="flex-1 px-8 justify-items-stretch mobile:px-6 pb-4 overflow-auto no-native-scrollbar  gap-x-6 gap-y-3 mobile:gap-2 grid-cols-2 mobile:grid-cols-[1fr,1fr]"
+              style={{ scrollbarGutter: 'always' }}
+            >
               {notInstalledWallets.map((wallet) => (
                 <WalletSelectorPanelItem
                   key={wallet.adapter.name}
                   wallet={wallet}
                   onClick={close}
-                  available={wallet.readyState !== WalletReadyState.NotDetected}
+                  detected={false}
+                  showBadge={isAllWalletShown}
                 />
               ))}
             </Grid>
