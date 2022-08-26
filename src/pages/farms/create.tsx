@@ -1,3 +1,8 @@
+import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+
+import produce from 'immer'
+import { twMerge } from 'tailwind-merge'
+
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
@@ -20,14 +25,12 @@ import { isDateAfter } from '@/functions/date/judges'
 import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
+import { toString } from '@/functions/numberish/toString'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
-import produce from 'immer'
-import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
+
+import { useChainDate } from '../../hooks/useChainDate'
 import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
-import { useChainDate } from '../../hooks/useChainDate'
-import { toString } from '@/functions/numberish/toString'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -190,7 +193,7 @@ export default function CreateFarmPage() {
     <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Create Farm">
       <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f]" />
 
-      <div className={`pb-10 self-center transition-all duration-500 w-[min(840px,70vw)] mobile:w-[90vw]`}>
+      <div className={`pb-10 self-center transition-all duration-500 w-[min(840px,70vw)] mobile:w-[90vw] z-20`}>
         {!isMoblie && (
           <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
         )}
