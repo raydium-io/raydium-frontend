@@ -21,8 +21,10 @@ import {
   SolongWalletAdapter,
   TorusWalletAdapter,
   TokenPocketWalletAdapter,
-  CoinbaseWalletAdapter
+  CoinbaseWalletAdapter,
+  WalletConnectWalletAdapter
 } from '@solana/wallet-adapter-wallets'
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 import { clusterApiUrl } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
@@ -36,7 +38,6 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
   const { pathname } = useRouter()
 
   const endpoint = useMemo(() => currentEndPoint?.url ?? clusterApiUrl('devnet'), [currentEndPoint])
-
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
@@ -57,7 +58,20 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
       new BitKeepWalletAdapter({ endpoint }),
       new ExodusWalletAdapter({ endpoint }),
       new CloverWalletAdapter(),
-      new CoinhubWalletAdapter()
+      new CoinhubWalletAdapter(),
+      new WalletConnectWalletAdapter({
+        network: endpoint === clusterApiUrl('devnet') ? WalletAdapterNetwork.Devnet : WalletAdapterNetwork.Mainnet,
+        options: {
+          // TODO: register project to walletconnect.com and obtain project ID
+          // projectId: 'e899c82be21d4acca2c8aec45e893598',
+          metadata: {
+            name: 'Raydium',
+            description: 'Raydium',
+            url: 'https://raydium.io/',
+            icons: ['https://raydium.io/logo/logo-only-icon.svg']
+          }
+        }
+      })
     ],
     [endpoint]
   )
