@@ -3,30 +3,16 @@ import { useRouter } from 'next/router'
 
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
 import {
-  BitKeepWalletAdapter,
-  BitpieWalletAdapter,
-  CloverWalletAdapter,
-  Coin98WalletAdapter,
-  CoinhubWalletAdapter,
-  ExodusWalletAdapter,
-  GlowWalletAdapter,
-  LedgerWalletAdapter,
-  MathWalletAdapter,
-  PhantomWalletAdapter,
-  SafePalWalletAdapter,
-  SlopeWalletAdapter,
-  SolflareWalletAdapter,
-  SolletExtensionWalletAdapter,
-  SolletWalletAdapter,
-  SolongWalletAdapter,
-  TorusWalletAdapter,
-  TokenPocketWalletAdapter,
-  CoinbaseWalletAdapter
+  BackpackWalletAdapter, BitKeepWalletAdapter, BitpieWalletAdapter, CloverWalletAdapter, Coin98WalletAdapter,
+  CoinbaseWalletAdapter, CoinhubWalletAdapter, ExodusWalletAdapter, GlowWalletAdapter, LedgerWalletAdapter,
+  MathWalletAdapter, PhantomWalletAdapter, SafePalWalletAdapter, SlopeWalletAdapter, SolflareWalletAdapter,
+  SolletExtensionWalletAdapter, SolletWalletAdapter, SolongWalletAdapter, TokenPocketWalletAdapter, TorusWalletAdapter,
+  TrustWalletAdapter
 } from '@solana/wallet-adapter-wallets'
 import { clusterApiUrl } from '@solana/web3.js'
 
-import useConnection from '@/application/connection/useConnection'
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import useConnection from '@/application/connection/useConnection'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */
 export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
@@ -40,6 +26,7 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
+      new TrustWalletAdapter(),
       new SolflareWalletAdapter(),
       new SolletWalletAdapter(),
       new TorusWalletAdapter(),
@@ -57,7 +44,8 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
       new BitKeepWalletAdapter({ endpoint }),
       new ExodusWalletAdapter({ endpoint }),
       new CloverWalletAdapter(),
-      new CoinhubWalletAdapter()
+      new CoinhubWalletAdapter(),
+      new BackpackWalletAdapter()
     ],
     [endpoint]
   )
