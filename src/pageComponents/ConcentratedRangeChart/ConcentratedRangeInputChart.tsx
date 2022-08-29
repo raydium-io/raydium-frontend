@@ -7,7 +7,7 @@ import RowTabs from '@/components/RowTabs'
 import { useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import {
-  ChartFormBodyComponentHandler,
+  ConcentratedRangeInputChartBodyComponentHandler,
   ChartRangeInputOption,
   ConcentratedRangeInputChartBody
 } from './ConcentratedRangeInputChartBody'
@@ -24,7 +24,7 @@ export function ConcentratedRangeInputChart({
   const coin2 = useConcentrated((s) => s.coin2)
   const [minPrice, setMinPrice] = useState(0.8)
   const [maxPrice, setMaxPrice] = useState(2.8)
-  const concentratedChartBodyRef = useRef<ChartFormBodyComponentHandler>(null)
+  const concentratedChartBodyRef = useRef<ConcentratedRangeInputChartBodyComponentHandler>(null)
   return (
     <Col className={twMerge('py-4', className)}>
       <Row className="justify-between items-center">

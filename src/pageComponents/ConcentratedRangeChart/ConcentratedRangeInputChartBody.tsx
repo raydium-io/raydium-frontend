@@ -35,7 +35,7 @@ function polygonChartPoints(points: ZoomedChartPoint[]): ZoomedChartPoint[] {
   return appandHeadTailZero(getSqared(points))
 }
 
-export interface ChartFormBodyComponentHandler {
+export interface ConcentratedRangeInputChartBodyComponentHandler {
   accurateDecimalLength: number
   zoomIn: (options?: { degree?: number; align?: 'left' | 'center' | 'right' }) => void
   zoomOut: (options?: { degree?: number; align?: 'left' | 'center' | 'right' }) => void
@@ -174,7 +174,7 @@ export function ConcentratedRangeInputChartBody({
     setOffsetVX(newOffsetX)
   }
 
-  const zoomIn: ChartFormBodyComponentHandler['zoomIn'] = (options) => {
+  const zoomIn: ConcentratedRangeInputChartBodyComponentHandler['zoomIn'] = (options) => {
     const newZoom = zoom * Math.min(1 + 0.1 * (options?.degree ?? 1), 6)
     setZoom(newZoom)
     if (options?.align === 'center') {
@@ -186,7 +186,7 @@ export function ConcentratedRangeInputChartBody({
     }
   }
 
-  const zoomOut: ChartFormBodyComponentHandler['zoomOut'] = (options) => {
+  const zoomOut: ConcentratedRangeInputChartBodyComponentHandler['zoomOut'] = (options) => {
     const newZoom = zoom * Math.max(1 - 0.1 * (options?.degree ?? 1), 0.4)
     setZoom(newZoom)
     if (options?.align === 'center') {
@@ -209,7 +209,7 @@ export function ConcentratedRangeInputChartBody({
     return diffB <= diffA ? b : a
   }
 
-  const moveMinBoundaryVX: ChartFormBodyComponentHandler['moveMinBoundaryVX'] = (options) => {
+  const moveMinBoundaryVX: ConcentratedRangeInputChartBodyComponentHandler['moveMinBoundaryVX'] = (options) => {
     const clampVX = (newVX: number) =>
       Math.min(Math.max(newVX, 0), maxBoundaryVX - minDistanceOfMinBoundaryAndMaxBoundary)
     const clampedVX = clampVX(options.forceOffsetFromZero ? options.offset : minBoundaryVX + options.offset)
@@ -225,7 +225,7 @@ export function ConcentratedRangeInputChartBody({
     }
   }
 
-  const inputMinBoundaryX: ChartFormBodyComponentHandler['inputMinBoundaryX'] = (dataX) =>
+  const inputMinBoundaryX: ConcentratedRangeInputChartBodyComponentHandler['inputMinBoundaryX'] = (dataX) =>
     moveMinBoundaryVX({ forceOffsetFromZero: true, offset: dataX * dataZoomX, setReactState: true })
 
   const moveMaxBoundaryVX = (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => {
@@ -243,10 +243,10 @@ export function ConcentratedRangeInputChartBody({
     }
   }
 
-  const inputMaxBoundaryX: ChartFormBodyComponentHandler['inputMaxBoundaryX'] = (dataX) =>
+  const inputMaxBoundaryX: ConcentratedRangeInputChartBodyComponentHandler['inputMaxBoundaryX'] = (dataX) =>
     moveMaxBoundaryVX({ forceOffsetFromZero: true, offset: dataX * dataZoomX, setReactState: true })
 
-  useImperativeHandle<any, ChartFormBodyComponentHandler>(componentRef, () => ({
+  useImperativeHandle<any, ConcentratedRangeInputChartBodyComponentHandler>(componentRef, () => ({
     accurateDecimalLength,
     zoomIn,
     zoomOut,
