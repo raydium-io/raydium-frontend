@@ -1,4 +1,3 @@
-import { shakeFalsyItem } from '@/functions/arrayMethods'
 import {
   attachPointerMove,
   AttachPointerMovePointMoveFn,
@@ -6,33 +5,13 @@ import {
 } from '@/functions/dom/gesture/pointerMove'
 import { isNumber } from '@/functions/judgers/dateType'
 import { useEvent } from '@/hooks/useEvent'
-import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
+import { genXAxisUnit, useCalcVisiablePoints } from './utils'
 
 export type ChartPoint = {
   x: number
   y: number
-}
-
-function polygonChartPoints(points: ZoomedChartPoint[]): ZoomedChartPoint[] {
-  /** used in last point */
-  const intervalDistance = points[1].vx - points[0].vx
-  const getSqared = (points: ZoomedChartPoint[]) =>
-    points.flatMap((p, idx, points) => [
-      p,
-      {
-        ...p,
-        // rightTopPoint:
-        vy: p.vy,
-        vx: points[idx + 1]?.vx ?? p.vx + intervalDistance
-      }
-    ])
-  const appandHeadTailZero = (points: ZoomedChartPoint[]) => {
-    const firstPoint = points[0]
-    const lastPoint = points[points.length - 1]
-    return [{ ...firstPoint, vx: firstPoint.vx, vy: 0 }, ...points, { ...lastPoint, xv: lastPoint.vx, vy: 0 }]
-  }
-  return appandHeadTailZero(getSqared(points))
 }
 
 export interface ConcentratedRangeInputChartBodyComponentHandler {
@@ -79,7 +58,8 @@ export function ConcentratedRangeInputChartBody({
 }: ChartRangeInputOption) {
   //#region ------------------- config -------------------
   const lineColor = '#abc4ff80'
-  const boundaryLineColor = '#abc4ff'
+  const minBoundaryLineColor = '#abc4ff'
+  const maxBoundaryLineColor = '#abc4ff'
   const xAxisColor = '#abc4ff80'
   const xAxisUnitColor = xAxisColor
   const [svgInnerWidth, setSvgInnerWidth] = useState(300)
@@ -89,7 +69,7 @@ export function ConcentratedRangeInputChartBody({
   const [zoom, setZoom] = useState(1)
   const [offsetVX, setOffsetVX] = useState(0)
   const boundaryLineWidth = 6
-  const minDistanceOfMinBoundaryAndMaxBoundary = boundaryLineWidth
+  const minDistanceOfMinBoundaryAndMaxBoundary = 0 // user may have very very little diff
   const { polygonPoints, filteredZoomedPoints, zoomedPoints, dataZoomX, diffX } = useCalcVisiablePoints(points, {
     svgInnerWidth,
     zoom,
@@ -281,13 +261,71 @@ export function ConcentratedRangeInputChartBody({
     >
       <defs>
         {/* min boundary */}
-        <g id="boundary-brush">
+        <g id="min-boundary-brush">
           <rect
             className="no-scale-align-center cursor-pointer"
+            x={0}
+            y={0}
             width={boundaryLineWidth}
             height={svgInnerHeight - xAxisAboveBottom}
-            fill={boundaryLineColor}
+            fill={minBoundaryLineColor}
           />
+          <rect
+            className="no-scale-align-center cursor-pointer"
+            rx="2"
+            width={16}
+            height={32}
+            fill={minBoundaryLineColor}
+          />
+          {/* <text
+            className="no-scale break-words"
+            fill="#141041"
+            y="16"
+            x="-1.3"
+            style={{
+              writingMode: 'vertical-lr',
+              fontWeight: 'bold',
+              fontSize: 12,
+              letterSpacing: 1
+            }}
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
+            MIN
+          </text> */}
+        </g>
+        <g id="max-boundary-brush">
+          <rect
+            className="no-scale-align-center rota cursor-pointer"
+            x={0}
+            y={0}
+            width={boundaryLineWidth}
+            height={svgInnerHeight - xAxisAboveBottom}
+            fill={maxBoundaryLineColor}
+          />
+          <rect
+            className="no-scale-align-center cursor-pointer"
+            rx="2"
+            width={16}
+            height={32}
+            fill={maxBoundaryLineColor}
+          />
+          {/* <text
+            className="no-scale break-words"
+            fill="#141041"
+            y="16"
+            x="-1.3"
+            style={{
+              writingMode: 'vertical-lr',
+              fontWeight: 'bold',
+              fontSize: 12,
+              letterSpacing: 1
+            }}
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
+            MAX
+          </text> */}
         </g>
         <style>
           {`
@@ -321,10 +359,10 @@ export function ConcentratedRangeInputChartBody({
       />
 
       {/* min boundary */}
-      <use href="#boundary-brush" ref={minBoundaryRef} x={Math.max(minBoundaryVX, 0)} y={0} />
+      <use href="#min-boundary-brush" ref={minBoundaryRef} x={Math.max(minBoundaryVX, 0)} y={0} />
 
       {/* max boundary */}
-      <use href="#boundary-brush" ref={maxBoundaryRef} x={Math.max(maxBoundaryVX, 0)} y={0} />
+      <use href="#max-boundary-brush" ref={maxBoundaryRef} x={Math.max(maxBoundaryVX, 0)} y={0} />
 
       {/* x axis */}
       <line
@@ -360,64 +398,3 @@ export function ConcentratedRangeInputChartBody({
     </svg>
   )
 }
-
-type ZoomedChartPoint = {
-  vx: number
-  vy: number
-  originalDataPoint: ChartPoint
-}
-function useCalcVisiablePoints(
-  points: ChartPoint[],
-  {
-    svgInnerWidth,
-    zoom,
-    offsetVX,
-    sideScreenCount = 3
-  }: { svgInnerWidth: number; zoom: number; offsetVX: number; sideScreenCount?: number }
-) {
-  /** to avoid too small point (ETH-RAY may have point {x: 0.00021, y: 0.0003}) */
-  const { dataZoomX, dataZoomY, zoomedPoints, diffX } = useMemo(() => {
-    const diffX = points[1].x - points[0].x // TEST
-    const dataZoomX = 1 / diffX
-    const diffY = 0.00006 // TEST
-    const dataZoomY = 1 / diffY
-    const zoomedPoints = points.map(
-      (p) => ({ vx: p.x * dataZoomX, vy: p.y * dataZoomY, originalDataPoint: p } as ZoomedChartPoint)
-    )
-    return { dataZoomX, dataZoomY, zoomedPoints, diffX }
-  }, points)
-  const [sideMinVX, sideMaxVX] = [
-    offsetVX - (sideScreenCount - 1) * (svgInnerWidth / zoom),
-    offsetVX + (sideScreenCount + 1) * (svgInnerWidth / zoom)
-  ]
-  const filteredZoomedPoints = useMemo(
-    () => zoomedPoints.filter((p) => sideMinVX < p.vx && p.vx < sideMaxVX),
-    [sideMinVX, sideMaxVX]
-  )
-
-  const polygonPoints = useMemo(() => polygonChartPoints(filteredZoomedPoints), [filteredZoomedPoints])
-  return { filteredZoomedPoints, polygonPoints, dataZoomX, dataZoomY, zoomedPoints, diffX }
-}
-
-//#region ------------------- gen x axis unit -------------------
-type UnitXAxis = {
-  vx: number
-  unitValue: number | string
-}
-function genXAxisUnit(options: { dataZoom: number; viewZoom: number; fromDataX: number; toDataX: number }) {
-  const totalZoom = options.dataZoom * options.viewZoom
-
-  // bigger unit zoom, lesser x Axis units
-  const baseUnitZoom = 50
-
-  // how many units in data: 0 ~ 1
-  const unitDiff = (1 * baseUnitZoom) / totalZoom
-
-  const firstUnit = Math.floor(options.fromDataX / unitDiff) * unitDiff
-  const unitCount = Math.floor((options.toDataX - options.fromDataX) / unitDiff)
-
-  const xValues = Array.from({ length: unitCount }, (_, i) => firstUnit + unitDiff * i)
-  const units: UnitXAxis[] = xValues.map((value) => ({ vx: options.dataZoom * value, unitValue: value }))
-  return units
-}
-//#endregion
