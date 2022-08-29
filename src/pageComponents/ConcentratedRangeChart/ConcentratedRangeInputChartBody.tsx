@@ -1,3 +1,4 @@
+import { handleMouseWheel, HandleMouseWheelOnWheel } from '@/functions/dom/gesture/handleMouseWheel'
 import {
   attachPointerMove,
   AttachPointerMovePointMoveFn,
@@ -102,11 +103,11 @@ export function ConcentratedRangeInputChartBody({
   })
   useEffect(() => {
     if (!minBoundaryRef.current) return
-    const { detatch } = attachPointerMove(minBoundaryRef.current, {
+    const { cancel } = attachPointerMove(minBoundaryRef.current, {
       move: handleGrabMinBoundary,
       end: handleGrabMinBoundaryEnd
     })
-    return detatch
+    return cancel
   }, [])
   //#endregion
 
@@ -119,29 +120,42 @@ export function ConcentratedRangeInputChartBody({
   })
   useEffect(() => {
     if (!maxBoundaryRef.current) return
-    const { detatch } = attachPointerMove(maxBoundaryRef.current, {
+    const { cancel } = attachPointerMove(maxBoundaryRef.current, {
       move: handleGrabMaxBoundary,
       end: handleGrabMaxBoundaryEnd
     })
-    return detatch
+    return cancel
   }, [])
   //#endregion
 
-  //#region ------------------- handle wrapper -------------------
-  const handleGrabWrapper: AttachPointerMovePointMoveFn<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
+  //#region ------------------- handle move wrapper -------------------
+  const handleMoveWrapper: AttachPointerMovePointMoveFn<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
     el.setAttribute('viewBox', `${offsetVX - totalDelta.dx / zoom} 0 ${svgInnerWidth / zoom} ${svgInnerHeight}`)
   })
-  const handleGrabWrapperEnd: AttachPointerMovePointUpFn<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
+  const handleMoveWrapperEnd: AttachPointerMovePointUpFn<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
     const newOffsetX = offsetVX - totalDelta.dx / zoom
     setOffsetVX(newOffsetX)
   })
   useEffect(() => {
     if (!wrapperRef.current) return
-    const { detatch } = attachPointerMove(wrapperRef.current, {
-      move: handleGrabWrapper,
-      end: handleGrabWrapperEnd
+    const { cancel } = attachPointerMove(wrapperRef.current, {
+      move: handleMoveWrapper,
+      end: handleMoveWrapperEnd
     })
-    return detatch
+    return cancel
+  }, [])
+  //#endregion
+
+  //#region ------------------- handle moving wrapper -------------------
+  const handleZoomWrapper: HandleMouseWheelOnWheel<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
+    el.setAttribute('viewBox', `${offsetVX - totalDelta.dx / zoom} 0 ${svgInnerWidth / zoom} ${svgInnerHeight}`)
+  })
+  useEffect(() => {
+    if (!wrapperRef.current) return
+    const { cancel } = handleMouseWheel(wrapperRef.current, {
+      onWheel: ({ ev }) => (ev.deltaY > 0 ? zoomOut({ align: 'center' }) : zoomIn({ align: 'center' }))
+    })
+    return cancel
   }, [])
   //#endregion
 
@@ -154,7 +168,7 @@ export function ConcentratedRangeInputChartBody({
     setOffsetVX(newOffsetX)
   }
 
-  const zoomIn: ConcentratedRangeInputChartBodyComponentHandler['zoomIn'] = (options) => {
+  const zoomIn = useEvent(((options) => {
     const newZoom = zoom * Math.min(1 + 0.1 * (options?.degree ?? 1), 6)
     setZoom(newZoom)
     if (options?.align === 'center') {
@@ -164,9 +178,9 @@ export function ConcentratedRangeInputChartBody({
       const zoomedOffsetX = svgInnerWidth / zoom - svgInnerWidth / newZoom
       setOffsetVX((n) => n + zoomedOffsetX)
     }
-  }
+  }) as ConcentratedRangeInputChartBodyComponentHandler['zoomIn'])
 
-  const zoomOut: ConcentratedRangeInputChartBodyComponentHandler['zoomOut'] = (options) => {
+  const zoomOut = useEvent(((options) => {
     const newZoom = zoom * Math.max(1 - 0.1 * (options?.degree ?? 1), 0.4)
     setZoom(newZoom)
     if (options?.align === 'center') {
@@ -176,7 +190,7 @@ export function ConcentratedRangeInputChartBody({
       const zoomedOffsetX = svgInnerWidth / zoom - svgInnerWidth / newZoom
       setOffsetVX((n) => n + zoomedOffsetX)
     }
-  }
+  }) as ConcentratedRangeInputChartBodyComponentHandler['zoomOut'])
 
   /** x is between aPoint and bPoint */
   const getNearestZoomedPointByVX = (x: number) => {

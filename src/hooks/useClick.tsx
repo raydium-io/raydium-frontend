@@ -85,12 +85,12 @@ export function useClick(
     ref.current?.addEventListener('pointerdown', handlePointerDown)
     ref.current?.addEventListener('pointerup', handlePointerUp)
     ref.current?.addEventListener('pointercancel', handlePointerUp)
-    ref.current?.addEventListener('click', handleClick)
+    ref.current?.addEventListener('click', handleClick as any)
     return () => {
       ref.current?.removeEventListener('pointerdown', handlePointerDown)
       ref.current?.removeEventListener('pointerup', handlePointerUp)
       ref.current?.removeEventListener('pointercancel', handlePointerUp)
-      ref.current?.removeEventListener('click', handleClick)
+      ref.current?.removeEventListener('click', handleClick as any)
     }
   }, [disable, onClick, onActiveStart, onActiveEnd])
 
