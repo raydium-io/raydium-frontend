@@ -128,7 +128,7 @@ export function ConcentratedRangeInputChartBody({
   }, [])
   //#endregion
 
-  //#region ------------------- handle move wrapper -------------------
+  //#region ------------------- handle moving wrapper -------------------
   const handleMoveWrapper: AttachPointerMovePointMoveFn<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
     el.setAttribute('viewBox', `${offsetVX - totalDelta.dx / zoom} 0 ${svgInnerWidth / zoom} ${svgInnerHeight}`)
   })
@@ -146,7 +146,7 @@ export function ConcentratedRangeInputChartBody({
   }, [])
   //#endregion
 
-  //#region ------------------- handle moving wrapper -------------------
+  //#region ------------------- handle zooming wrapper -------------------
   const handleZoomWrapper: HandleMouseWheelOnWheel<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
     el.setAttribute('viewBox', `${offsetVX - totalDelta.dx / zoom} 0 ${svgInnerWidth / zoom} ${svgInnerHeight}`)
   })
@@ -272,6 +272,7 @@ export function ConcentratedRangeInputChartBody({
       preserveAspectRatio="none"
       width="100%"
       height={svgInnerHeight}
+      style={{ touchAction: 'none' }}
     >
       <defs>
         {/* min boundary */}
