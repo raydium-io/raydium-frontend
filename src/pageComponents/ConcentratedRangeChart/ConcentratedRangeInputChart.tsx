@@ -6,10 +6,14 @@ import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import { useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
-import { ChartFormBodyComponentHandler, ChartRangeInputOption, ConcentratedChartBody } from './ChartBody'
+import {
+  ChartFormBodyComponentHandler,
+  ChartRangeInputOption,
+  ConcentratedRangeInputChartBody
+} from './ConcentratedRangeInputChartBody'
 
-const mokeChartData = Array.from({ length: 500 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
-export function ConcentratedChart({
+const mokeChartData = Array.from({ length: 50000 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
+export function ConcentratedRangeInputChart({
   className,
   chartOptions
 }: {
@@ -63,7 +67,7 @@ export function ConcentratedChart({
           </Row>
         </Row>
       </Row>
-      <ConcentratedChartBody
+      <ConcentratedRangeInputChartBody
         initMinBoundaryX={minPrice}
         initMaxBoundaryX={maxPrice}
         componentRef={concentratedChartBodyRef}

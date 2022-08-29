@@ -1,9 +1,9 @@
-import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createRef, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
 import { routeTo } from '@/application/routeTools'
 import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
@@ -23,19 +23,16 @@ import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
-import { addItem, unifyItem } from '@/functions/arrayMethods'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
-import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useToggle from '@/hooks/useToggle'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
-import { HexAddress } from '@/types/constants'
-import { ConcentratedChart } from '../../pageComponents/ConcentratedRangeChart/Chart'
+import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -222,7 +219,7 @@ function ConcentratedCard() {
 
       <ConcentratedFeeSwitcher className="mt-12" />
 
-      <ConcentratedChart className="mt-5" />
+      <ConcentratedRangeInputChart className="mt-5" />
 
       {/* supply button */}
       <Button

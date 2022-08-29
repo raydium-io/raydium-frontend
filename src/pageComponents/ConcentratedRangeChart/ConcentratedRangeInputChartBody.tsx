@@ -67,7 +67,7 @@ export type ChartRangeInputOption = {
  * x --> data x \
  * vx --> view x (x in the chart)
  */
-export function ConcentratedChartBody({
+export function ConcentratedRangeInputChartBody({
   className,
   points,
   careDecimalLength = 6,
