@@ -6,6 +6,7 @@ import {
 } from '@/functions/dom/gesture/pointerMove'
 import { isNumber } from '@/functions/judgers/dateType'
 import { useEvent } from '@/hooks/useEvent'
+import useResizeObserver from '@/hooks/useResizeObserver'
 import { RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { genXAxisUnit, useCalcVisiablePoints } from './utils'
@@ -252,15 +253,14 @@ export function ConcentratedRangeInputChartBody({
   }))
   //#endregion
 
-  useEffect(() => {
-    if (!wrapperRef.current) return
-    setSvgInnerWidth(wrapperRef.current.clientWidth)
-    setSvgInnerHeight(wrapperRef.current.clientHeight)
-    if (!initMaxBoundaryX) setMaxBoundaryVX(wrapperRef.current.clientWidth - boundaryLineWidth)
+  useResizeObserver(wrapperRef, ({ el }) => {
+    setSvgInnerWidth(el.clientWidth)
+    setSvgInnerHeight(el.clientHeight)
+    if (!initMaxBoundaryX) setMaxBoundaryVX(el.clientWidth - boundaryLineWidth)
 
     // init shrink to view
-    shrinkToView(wrapperRef.current.clientWidth)
-  }, [wrapperRef])
+    shrinkToView(el.clientWidth)
+  })
 
   const trimUnnecessaryDecimal = (n: number, careDecimalLength: number) => Number(n.toFixed(careDecimalLength))
 
@@ -379,7 +379,7 @@ export function ConcentratedRangeInputChartBody({
       {/* max boundary */}
       <use href="#max-boundary-brush" ref={maxBoundaryRef} x={Math.max(maxBoundaryVX, 0)} y={0} />
 
-      {/* x axis */}
+      {/* x axis line */}
       <line
         x1="0"
         y1={svgInnerHeight - xAxisAboveBottom}

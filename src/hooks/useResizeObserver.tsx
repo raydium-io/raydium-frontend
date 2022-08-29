@@ -8,14 +8,14 @@ import { RefObject, useEffect } from 'react'
  * @param ref
  * @param callback
  */
-export default function useResizeObserver(
-  ref: RefObject<HTMLElement | undefined | null> | undefined,
-  callback?: (entry: ResizeObserverEntry) => unknown
+export default function useResizeObserver<El extends Element>(
+  ref: RefObject<El | undefined | null> | undefined,
+  callback?: (utilities: { entry: ResizeObserverEntry; el: El }) => unknown
 ) {
   useEffect(() => {
     if (!ref?.current) return
     const observer = new window.ResizeObserver((entries) => {
-      entries.forEach((entry) => callback?.(entry))
+      entries.forEach((entry) => callback?.({ entry, el: entry.target as any }))
     })
     observer.observe(ref.current)
   }, [])
