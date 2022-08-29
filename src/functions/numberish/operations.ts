@@ -62,6 +62,9 @@ export function getMin(a: Numberish, b: Numberish): Numberish {
   return lt(b, a) ? b : a
 }
 
-export function clamp(min: Numberish, curr: Numberish, max: Numberish): Numberish {
-  return getMax(min, getMin(curr, max))
+export function clamp(min: Numberish | undefined, curr: Numberish, max: Numberish | undefined): Numberish {
+  if (max != null && min == null) return getMin(curr, max)
+  if (min != null && max == null) return getMax(min, curr)
+  if (min != null && max != null) return getMax(min, getMin(curr, max))
+  return curr
 }

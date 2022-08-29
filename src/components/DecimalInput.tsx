@@ -1,10 +1,13 @@
 import { isNumberish } from '@/functions/judgers/dateType'
 import { padZero } from '@/functions/numberish/handleZero'
+import { add, getMin, clamp, minus } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import mergeRef from '@/functions/react/mergeRef'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useSignalState } from '@/hooks/useSignalState'
 import { Numberish } from '@/types/constants'
 import React, { useEffect, useRef, useState } from 'react'
+import Icon from './Icon'
 
 import Input, { InputProps } from './Input'
 
@@ -14,16 +17,19 @@ export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultVa
    * it will also affact <input>'s step
    * @default  3
    */
+  // also stepN
   decimalCount?: number
   // TODO: onlyInt?: boolean
   // TODO: mustAboveZero?: boolean
+
+  showArrowControls?: boolean
 
   /**
    * only if type is decimal
    * @default  0
    */
-  minN?: number | string
-  maxN?: number | string
+  minN?: number
+  maxN?: number
 
   /** it will auto-valid each time when user input.
    * html will invoke this
@@ -55,6 +61,7 @@ export default function DecimalInput({
   defaultValue,
   value,
   decimalCount = 3,
+  showArrowControls,
   minN = 0,
   maxN,
   onInvalid,
@@ -62,7 +69,7 @@ export default function DecimalInput({
   onValid,
   ...restProps
 }: DecimalInputProps) {
-  const [innerValue, setInnerValue] = useState(defaultValue)
+  const [innerValue, setInnerValue, innerValueSignal] = useSignalState(defaultValue)
   useIsomorphicLayoutEffect(() => {
     setInnerValue(value)
   }, [value])
@@ -85,6 +92,38 @@ export default function DecimalInput({
     )
   }, [])
 
+  const userInput = (v: string) => {
+    if (isNumberish(v)) {
+      setInnerValue(v)
+      restProps.onUserInput?.(v, { canSafelyCovertToNumber: canSafelyCovertToNumber(v) })
+    }
+  }
+
+  const dangerousInput = (v: string) => {
+    const el = inputDomRef.current
+    if (!el) return
+    restProps.onDangerousValueChange?.(v, el)
+    const isValid = el.checkValidity()
+    if (isValid) onValid?.()
+    if (!isValid) onInvalid?.()
+  }
+
+  const stepS = (1 / 10 ** Math.floor(decimalCount)).toFixed(decimalCount)
+
+  const increase = (step = stepS) => {
+    const newN = clamp(minN, add(toString(innerValueSignal()), step), maxN)
+    const newNString = toString(newN)
+    userInput(newNString)
+    dangerousInput(newNString)
+  }
+
+  const decrease = (step = stepS) => {
+    const newN = clamp(minN, minus(toString(innerValueSignal()), step), maxN)
+    const newNString = toString(newN)
+    userInput(newNString)
+    dangerousInput(newNString)
+  }
+
   return (
     <Input
       type="number"
@@ -93,25 +132,43 @@ export default function DecimalInput({
         inputMode: 'decimal',
         min: String(minN),
         max: maxN ? String(maxN) : undefined,
-        step: String(1 / 10 ** decimalCount)
+        step: stepS
       }}
       {...restProps}
-      domRef={mergeRef(inputDomRef, restProps.inputDomRef)}
+      inputDomRef={mergeRef(inputDomRef, restProps.inputDomRef)}
       pattern={new RegExp(canNegative ? regexps.canNegativeRegexpString : regexps.decimalRegexpString)} // TODO: pattern should also accept function, so it can accept: (v, oldV)=> v.length < oldV.length
       value={innerValue ? toString(innerValue) : ''}
       defaultValue={toString(defaultValue)}
       onUserInput={(v) => {
-        if (isNumberish(v)) {
-          setInnerValue(v)
-          restProps.onUserInput?.(v, { canSafelyCovertToNumber: canSafelyCovertToNumber(v) })
-        }
+        userInput(v)
       }}
-      onDangerousValueChange={(inputContect, el) => {
-        restProps.onDangerousValueChange?.(inputContect, el)
-        const isValid = el.checkValidity()
-        if (isValid) onValid?.()
-        if (!isValid) onInvalid?.()
+      onDangerousValueChange={(v) => {
+        dangerousInput(v)
       }}
+      suffix={
+        showArrowControls ? (
+          <div>
+            <Icon
+              className="opacity-50 hover:opacity-100 clickable"
+              heroIconName="chevron-up"
+              size="xs"
+              onClick={() => {
+                increase()
+              }}
+              canLongClick
+            />
+            <Icon
+              className="opacity-50 hover:opacity-100 clickable"
+              heroIconName="chevron-down"
+              size="xs"
+              onClick={() => {
+                decrease()
+              }}
+              canLongClick
+            />
+          </div>
+        ) : undefined
+      }
     />
   )
 }

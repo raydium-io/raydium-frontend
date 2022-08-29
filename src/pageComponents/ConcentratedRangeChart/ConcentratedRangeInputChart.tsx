@@ -86,6 +86,7 @@ export function ConcentratedRangeInputChart({
           className="grow"
           label="Min Price"
           decimalMode
+          showArrowControls
           decimalCount={concentratedChartBodyRef.current?.accurateDecimalLength}
           value={minPrice}
           onUserInput={(v) => {
@@ -96,6 +97,7 @@ export function ConcentratedRangeInputChart({
           className="grow"
           label="Max Price"
           decimalMode
+          showArrowControls
           decimalCount={concentratedChartBodyRef.current?.accurateDecimalLength}
           value={maxPrice}
           onUserInput={(v) => {
