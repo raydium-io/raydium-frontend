@@ -99,8 +99,8 @@ export function ConcentratedRangeInputChartBody({
   const units = genXAxisUnit({
     dataZoom: dataZoomX,
     viewZoom: zoom,
-    fromDataX: points[0].x,
-    toDataX: points[points.length - 1].x
+    fromDataX: filteredZoomedPoints[0].originalDataPoint.x,
+    toDataX: filteredZoomedPoints[filteredZoomedPoints.length - 1].originalDataPoint.x
   })
   //#endregion
 
@@ -353,7 +353,7 @@ export function ConcentratedRangeInputChartBody({
             textAnchor="middle"
             dominantBaseline="middle"
           >
-            {isNumber(unitValue) ? trimUnnecessaryDecimal(unitValue, careDecimalLength / 2) : unitValue}
+            {isNumber(unitValue) ? trimUnnecessaryDecimal(unitValue, careDecimalLength / 3) : unitValue}
           </text>
         ))}
       </g>
@@ -372,7 +372,7 @@ function useCalcVisiablePoints(
     svgInnerWidth,
     zoom,
     offsetVX,
-    sideScreenCount = 6
+    sideScreenCount = 3
   }: { svgInnerWidth: number; zoom: number; offsetVX: number; sideScreenCount?: number }
 ) {
   /** to avoid too small point (ETH-RAY may have point {x: 0.00021, y: 0.0003}) */
@@ -394,6 +394,7 @@ function useCalcVisiablePoints(
     () => zoomedPoints.filter((p) => sideMinVX < p.vx && p.vx < sideMaxVX),
     [sideMinVX, sideMaxVX]
   )
+
   const polygonPoints = useMemo(() => polygonChartPoints(filteredZoomedPoints), [filteredZoomedPoints])
   return { filteredZoomedPoints, polygonPoints, dataZoomX, dataZoomY, zoomedPoints, diffX }
 }
