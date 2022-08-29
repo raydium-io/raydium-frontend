@@ -13,6 +13,7 @@ import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import { gt } from '@/functions/numberish/compare'
+import useToken from '@/application/token/useToken'
 
 export function RemoveLiquidityDialog({
   info,
@@ -26,6 +27,9 @@ export function RemoveLiquidityDialog({
   className?: string
 }) {
   const defaultHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
+  const currentJsonInfo = useLiquidity((s) => s.currentJsonInfo)
+  const getLpToken = useToken((s) => s.getLpToken)
+  const lpToken = getLpToken(currentJsonInfo?.lpMint) // wait for hydratedInfo is slow, so use getLpToken
   const removeAmout = useLiquidity((s) => s.removeAmount)
   const walletConnected = useWallet((s) => s.connected)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -65,7 +69,7 @@ export function RemoveLiquidityDialog({
             className="mb-6"
             componentRef={coinInputBoxComponentRef}
             topLeftLabel="Pool"
-            token={hydratedInfo?.lpToken}
+            token={lpToken}
             onUserInput={(value) => {
               useLiquidity.setState({ removeAmount: value })
             }}
