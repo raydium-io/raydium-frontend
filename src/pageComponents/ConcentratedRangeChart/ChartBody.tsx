@@ -219,8 +219,8 @@ export function ConcentratedChartBody({
       const nearestPoint = getNearestZoomedPointByVX(clampedVX)
       nearestPoint &&
         onChangeMinBoundary?.({
-          x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x),
-          y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y)
+          x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x, careDecimalLength),
+          y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y, careDecimalLength)
         })
     }
   }
@@ -237,8 +237,8 @@ export function ConcentratedChartBody({
       const nearestPoint = getNearestZoomedPointByVX(clampedVX)
       nearestPoint &&
         onChangeMaxBoundary?.({
-          x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x),
-          y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y)
+          x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x, careDecimalLength),
+          y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y, careDecimalLength)
         })
     }
   }
@@ -268,7 +268,7 @@ export function ConcentratedChartBody({
     shrinkToView(wrapperRef.current.clientWidth)
   }, [wrapperRef])
 
-  const trimUnnecessaryDecimal = (n: number) => Number(n.toFixed(careDecimalLength))
+  const trimUnnecessaryDecimal = (n: number, careDecimalLength: number) => Number(n.toFixed(careDecimalLength))
 
   return (
     <svg
@@ -353,7 +353,7 @@ export function ConcentratedChartBody({
             textAnchor="middle"
             dominantBaseline="middle"
           >
-            {isNumber(unitValue) ? trimUnnecessaryDecimal(unitValue) : unitValue}
+            {isNumber(unitValue) ? trimUnnecessaryDecimal(unitValue, careDecimalLength / 2) : unitValue}
           </text>
         ))}
       </g>
@@ -406,14 +406,16 @@ type UnitXAxis = {
 function genXAxisUnit(options: { dataZoom: number; viewZoom: number; fromDataX: number; toDataX: number }) {
   const totalZoom = options.dataZoom * options.viewZoom
 
+  // bigger unit zoom, lesser x Axis units
+  const baseUnitZoom = 50
+
   // how many units in data: 0 ~ 1
-  const density = 1 / totalZoom
+  const unitDiff = (1 * baseUnitZoom) / totalZoom
 
-  const unitsInOne = [density - 1] // ONGOING
-  // const unitLabel
-  const idToX = (idx: number) => idx
+  const firstUnit = Math.floor(options.fromDataX / unitDiff) * unitDiff
+  const unitCount = Math.floor((options.toDataX - options.fromDataX) / unitDiff)
 
-  const xValues = Array.from({ length: 30 }, (_, id) => idToX(id))
+  const xValues = Array.from({ length: unitCount }, (_, i) => firstUnit + unitDiff * i)
   const units: UnitXAxis[] = xValues.map((value) => ({ vx: options.dataZoom * value, unitValue: value }))
   return units
 }
