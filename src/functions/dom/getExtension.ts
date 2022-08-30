@@ -1,13 +1,9 @@
 import { Browser } from './getPlatformInfo'
 
-// autoFine: true || false
-// true: although there is no extension for the browser, the adapter can still auto handle the user for wallet install instruction
-// false: if wallet has extension link, then true/false doesn't matter, if not, we need to pop up the notification
-// w/o extension installation link but the wallet's official website url for the user
+// autoHandle: some wallet adapter can trigger their own pop out window for wallet instruction
 
 export const extensionMap = {
   Phantom: {
-    autoFine: false,
     [Browser.FIREFOX]: 'https://addons.mozilla.org/en-US/firefox/addon/phantom-app/',
     [Browser.EDGE_CHROMIUM]: 'https://chrome.google.com/webstore/detail/phantom/bfnaelmomeimhlpmgjnjophhpkkoljpa',
     [Browser.CHROME]: 'https://chrome.google.com/webstore/detail/phantom/bfnaelmomeimhlpmgjnjophhpkkoljpa',
@@ -16,8 +12,18 @@ export const extensionMap = {
     [Browser.IOS]: 'https://apps.apple.com/app/phantom-solana-wallet/1598432977',
     [Browser.ANDROID]: 'https://play.google.com/store/apps/details?id=app.phantom'
   },
+  Trust: {
+    [Browser.FIREFOX]: '',
+    [Browser.EDGE_CHROMIUM]: '',
+    [Browser.CHROME]: '',
+    [Browser.SAFARI]: '',
+    [Browser.OTHER]: '',
+    [Browser.IOS]: 'https://apps.apple.com/app/apple-store/id1288339409?mt=8',
+    [Browser.ANDROID]:
+      'https://play.google.com/store/apps/details?id=com.wallet.crypto.trustapp&referrer=utm_source%3Dwebsite'
+  },
   Solflare: {
-    autoFine: false,
+    autoHandle: true,
     [Browser.FIREFOX]: 'https://addons.mozilla.org/en-GB/firefox/addon/solflare-wallet/',
     [Browser.EDGE_CHROMIUM]:
       'https://chrome.google.com/webstore/detail/solflare-wallet/bhhhlbepdkbapadjdnnojkbgioiodbic',
@@ -28,7 +34,7 @@ export const extensionMap = {
     [Browser.ANDROID]: 'https://solflare.com/download#android'
   },
   Sollet: {
-    autoFine: true,
+    autoHandle: true,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]: '',
     [Browser.CHROME]: '',
@@ -38,7 +44,7 @@ export const extensionMap = {
     [Browser.ANDROID]: ''
   },
   Torus: {
-    autoFine: true,
+    autoHandle: true,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]: '',
     [Browser.CHROME]: '',
@@ -48,7 +54,7 @@ export const extensionMap = {
     [Browser.ANDROID]: ''
   },
   Ledger: {
-    autoFine: true,
+    autoHandle: true,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]: '',
     [Browser.CHROME]: '',
@@ -58,7 +64,6 @@ export const extensionMap = {
     [Browser.ANDROID]: ''
   },
   'Sollet (Extension)': {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]: 'https://chrome.google.com/webstore/detail/sollet/fhmfendgdocmcbmfikdcogofphimnkno?hl=en',
     [Browser.CHROME]: 'https://chrome.google.com/webstore/detail/sollet/fhmfendgdocmcbmfikdcogofphimnkno?hl=en',
@@ -68,7 +73,6 @@ export const extensionMap = {
     [Browser.ANDROID]: ''
   },
   MathWallet: {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]:
       'https://microsoftedge.microsoft.com/addons/detail/math-wallet/dfeccadlilpndjjohbjdblepmjeahlmm',
@@ -79,7 +83,6 @@ export const extensionMap = {
     [Browser.ANDROID]: 'https://play.google.com/store/apps/details?id=com.mathwallet.android'
   },
   TokenPocket: {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]:
       'https://chrome.google.com/webstore/detail/tokenpocket/mfgccjchihfkkindfppnaooecgfneiii?hl=en',
@@ -90,7 +93,6 @@ export const extensionMap = {
     [Browser.ANDROID]: 'https://play.google.com/store/apps/details?id=vip.mytokenpocket'
   },
   'Coinbase Wallet': {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]:
       'https://chrome.google.com/webstore/detail/coinbase-wallet-extension/hnfanknocfeofbddgcijnmhnfnkdnaad?hl=en',
@@ -103,7 +105,6 @@ export const extensionMap = {
     [Browser.ANDROID]: 'https://play.google.com/store/apps/details?id=org.toshi'
   },
   Solong: {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]: 'https://chrome.google.com/webstore/detail/solong/memijejgibaodndkimcclfapfladdchj',
     [Browser.CHROME]: 'https://chrome.google.com/webstore/detail/solong/memijejgibaodndkimcclfapfladdchj',
@@ -113,7 +114,6 @@ export const extensionMap = {
     [Browser.ANDROID]: ''
   },
   Coin98: {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]: '',
     [Browser.CHROME]: 'https://chrome.google.com/webstore/detail/coin98-wallet/aeachknmefphepccionboohckonoeemg',
@@ -123,7 +123,6 @@ export const extensionMap = {
     [Browser.ANDROID]: 'http://android.coin98.com/'
   },
   SafePal: {
-    autoFine: false,
     [Browser.FIREFOX]: 'https://addons.mozilla.org/en-US/firefox/addon/safepal-extension-wallet/',
     [Browser.EDGE_CHROMIUM]:
       'https://microsoftedge.microsoft.com/addons/detail/safepal-extension-wallet/apenkfbbpmhihehmihndmmcdanacolnh',
@@ -135,7 +134,6 @@ export const extensionMap = {
     [Browser.ANDROID]: 'https://play.google.com/store/apps/details?id=io.safepal.wallet'
   },
   Slope: {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]: 'https://chrome.google.com/webstore/detail/slope-wallet/pocmplpaccanhmnllbbkpgfliimjljgo',
     [Browser.CHROME]: 'https://chrome.google.com/webstore/detail/slope-wallet/pocmplpaccanhmnllbbkpgfliimjljgo',
@@ -145,7 +143,6 @@ export const extensionMap = {
     [Browser.ANDROID]: 'https://play.google.com/store/apps/details?id=com.wd.wallet'
   },
   Bitpie: {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]: '',
     [Browser.CHROME]: '',
@@ -155,7 +152,6 @@ export const extensionMap = {
     [Browser.ANDROID]: 'https://bitpie.com/android/'
   },
   Glow: {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]:
       'https://chrome.google.com/webstore/detail/glow-solana-wallet-beta/ojbcfhjmpigfobfclfflafhblgemeidi?hl=en&authuser=0',
@@ -167,7 +163,6 @@ export const extensionMap = {
     [Browser.ANDROID]: ''
   },
   BitKeep: {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]:
       'https://chrome.google.com/webstore/detail/bitkeep-bitcoin-crypto-wa/jiidiaalihmmhddjgbnbgdfflelocpak',
@@ -179,7 +174,6 @@ export const extensionMap = {
     [Browser.ANDROID]: 'https://play.google.com/store/apps/details?id=com.bitkeep.wallet'
   },
   Exodus: {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]:
       'https://chrome.google.com/webstore/detail/exodus-web3-wallet/aholpfdialjgjfhomihkjbmgjidlcdno',
@@ -190,7 +184,6 @@ export const extensionMap = {
     [Browser.ANDROID]: 'https://play.google.com/store/apps/details?id=exodusmovement.exodus'
   },
   Clover: {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]: 'https://chrome.google.com/webstore/detail/clv-wallet/nhnkbkgjikgcigadomkphalanndcapjk',
     [Browser.CHROME]: 'https://chrome.google.com/webstore/detail/clv-wallet/nhnkbkgjikgcigadomkphalanndcapjk',
@@ -200,7 +193,6 @@ export const extensionMap = {
     [Browser.ANDROID]: 'https://clv.org/'
   },
   Coinhub: {
-    autoFine: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]: 'https://chrome.google.com/webstore/detail/coinhub/jgaaimajipbpdogpdglhaphldakikgef',
     [Browser.CHROME]: 'https://chrome.google.com/webstore/detail/coinhub/jgaaimajipbpdogpdglhaphldakikgef',
@@ -208,5 +200,14 @@ export const extensionMap = {
     [Browser.OTHER]: '',
     [Browser.IOS]: 'https://apps.apple.com/us/app/coinhub/id1567786851',
     [Browser.ANDROID]: 'https://play.google.com/store/apps/details?id=com.coinhub.wallet'
+  },
+  Backpack: {
+    [Browser.FIREFOX]: '',
+    [Browser.EDGE_CHROMIUM]: '',
+    [Browser.CHROME]: '',
+    [Browser.SAFARI]: '',
+    [Browser.OTHER]: '',
+    [Browser.IOS]: '',
+    [Browser.ANDROID]: ''
   }
 }

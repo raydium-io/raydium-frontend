@@ -39,16 +39,12 @@ function WalletSelectorPanelItem({
       } clickable clickable-filter-effect`}
       // TODO disable status
       onClick={() => {
-        if (
-          (wallet.readyState !== WalletReadyState.Installed &&
-            extensionMap[wallet.adapter.name][getPlatformInfo()?.browserName]) ||
-          !extensionMap[wallet.adapter.name].autoFine
-        ) {
+        if (wallet.readyState !== WalletReadyState.Installed && !extensionMap[wallet.adapter.name].autoHandle) {
           logInfo(
             'Wallet installation required ',
             <div>
               <p>
-                Please install and initialize the wallet{' '}
+                Please install and initialize the {wallet.adapter.name} wallet{' '}
                 {wallet.adapter.url ? (
                   <span>
                     through the official website &nbsp;
@@ -56,6 +52,7 @@ function WalletSelectorPanelItem({
                       href={wallet.adapter.url}
                       rel="noreferrer"
                       style={{ color: 'white', textDecoration: 'underline' }}
+                      target="_blank"
                     >
                       here
                     </a>
@@ -64,15 +61,36 @@ function WalletSelectorPanelItem({
                   ''
                 )}
                 <br />
-                {wallet.adapter.url ? 'or' : ''}
-                {/* {walletExtensionList[]} */}
-                <span>{getPlatformInfo()?.browserName}</span>
+                {extensionMap[wallet.adapter.name][getPlatformInfo()?.browserName] ? (
+                  <>
+                    or install the{' '}
+                    {getPlatformInfo()?.isAndroid || getPlatformInfo()?.isIOS ? (
+                      <a
+                        href={extensionMap[wallet.adapter.name][getPlatformInfo()?.browserName]}
+                        rel="noreferrer"
+                        style={{ color: 'white', textDecoration: 'underline' }}
+                        target="_blank"
+                      >
+                        App
+                      </a>
+                    ) : (
+                      <a
+                        href={extensionMap[wallet.adapter.name][getPlatformInfo()?.browserName]}
+                        rel="noreferrer"
+                        style={{ color: 'white', textDecoration: 'underline' }}
+                        target="_blank"
+                      >
+                        extension
+                      </a>
+                    )}
+                  </>
+                ) : (
+                  ''
+                )}
               </p>
             </div>
           )
         } else {
-          // eslint-disable-next-line no-console
-          console.log('web: ', wallet.adapter.url)
           select(wallet.adapter.name)
           onClick?.()
         }

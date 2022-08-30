@@ -20,9 +20,9 @@ export function getPlatformInfo() {
   const isMobile = /(iPhone|iPad|iPod|iOS|Android)/i.test(ua)
   const isPc = !isMobile
   let browserName: Browser
-  if (/iPad|iPhone|iPod/.test(ua)) {
+  if (isIOS) {
     browserName = Browser.IOS
-  } else if (/android/i.test(ua)) {
+  } else if (isAndroid) {
     browserName = Browser.ANDROID
   } else if (ua.includes(Browser.FIREFOX)) {
     // "Mozilla/5.0 (X11; Linux i686; rv:104.0) Gecko/20100101 Firefox/104.0"

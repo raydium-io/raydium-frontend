@@ -35,7 +35,7 @@
     "@sentry/nextjs": "^7.8.1",
     "@solana/wallet-adapter-base": "^0.9.9",
     "@solana/wallet-adapter-react": "^0.15.8",
-    "@solana/wallet-adapter-wallets": "^0.17.0",
+    "@solana/wallet-adapter-wallets": "^0.18.7",
     "@solana/web3.js": "^1.50.1",
     "@uiw/react-date-input": "^4.21.14",
     "@uiw/react-date-picker": "^4.21.14",
