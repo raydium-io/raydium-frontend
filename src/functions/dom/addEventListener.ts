@@ -8,6 +8,7 @@ export interface EventListenerController {
 }
 
 export interface EventListenerOptions extends AddEventListenerOptions {
+  preventDefault?: boolean
   stopPropergation?: boolean
   onlyTargetIsSelf?: boolean
 }
@@ -39,6 +40,7 @@ export function addEventListener<El extends Element | undefined | null, K extend
   }
   const newEventCallback = (ev: Event) => {
     if (options?.stopPropergation) ev.stopPropagation()
+    if (options?.preventDefault) ev.preventDefault()
     if (options?.onlyTargetIsSelf && el !== ev.target) return
     fn({ el, ev: ev as GlobalEventHandlersEventMap[K], eventListenerController: controller })
   }

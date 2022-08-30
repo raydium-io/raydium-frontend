@@ -56,15 +56,16 @@ export function attachPointerMove<El extends Element>(el: El, options: AttachPoi
       options.start?.({ el: ev.target as El, ev, pointEvents: eventsQueue.map(({ ev }) => ev) })
       pointMoveController = addEventListener(el, 'pointermove', ({ ev }) => pointerMove(ev), {
         passive: true,
-        onlyTargetIsSelf: true
+        onlyTargetIsSelf: true,
+        stopPropergation: true
       })
       pointUpController = addEventListener(el, 'pointerup', ({ ev }) => pointerUp(ev), {
         passive: true,
         once: true,
-        onlyTargetIsSelf: true
+        onlyTargetIsSelf: true,
+        stopPropergation: true
       })
       el?.setPointerCapture(ev.pointerId)
-      ev.stopPropagation()
     }
   }
 
@@ -117,7 +118,10 @@ export function attachPointerMove<El extends Element>(el: El, options: AttachPoi
     }
   }
 
-  pointDownController = addEventListener(el, 'pointerdown', ({ ev }) => pointerDown(ev), { onlyTargetIsSelf: true })
+  pointDownController = addEventListener(el, 'pointerdown', ({ ev }) => pointerDown(ev), {
+    onlyTargetIsSelf: true,
+    stopPropergation: true
+  })
   return {
     pointDownController,
     pointMoveController,

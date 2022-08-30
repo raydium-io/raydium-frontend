@@ -7,6 +7,7 @@ import {
 import { isNumber } from '@/functions/judgers/dateType'
 import { useEvent } from '@/hooks/useEvent'
 import useResizeObserver from '@/hooks/useResizeObserver'
+import { useSignalState } from '@/hooks/useSignalState'
 import { RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { genXAxisUnit, useCalcVisiablePoints } from './utils'
@@ -64,7 +65,7 @@ export function ConcentratedRangeInputChartBody({
   const maxBoundaryLineColor = '#abc4ff'
   const xAxisColor = '#abc4ff80'
   const xAxisUnitColor = xAxisColor
-  const [svgInnerWidth, setSvgInnerWidth] = useState(300)
+  const [svgInnerWidth, setSvgInnerWidth, svgInnerWidthSignal] = useSignalState(300)
   const [svgInnerHeight, setSvgInnerHeight] = useState(200)
   const xAxisAboveBottom = 30
   // zoom won't make data change
@@ -253,13 +254,15 @@ export function ConcentratedRangeInputChartBody({
   }))
   //#endregion
 
-  useResizeObserver(wrapperRef, ({ el }) => {
-    setSvgInnerWidth(el.clientWidth)
-    setSvgInnerHeight(el.clientHeight)
-    if (!initMaxBoundaryX) setMaxBoundaryVX(el.clientWidth - boundaryLineWidth)
-
-    // init shrink to view
-    shrinkToView(el.clientWidth)
+  useResizeObserver(wrapperRef, ({ el, entry }) => {
+    // TODO:
+    if (el.clientWidth !== svgInnerWidthSignal()) {
+      setSvgInnerWidth(el.clientWidth)
+      setSvgInnerHeight(el.clientHeight)
+      if (!initMaxBoundaryX) setMaxBoundaryVX(el.clientWidth - boundaryLineWidth)
+      // init shrink to view
+      shrinkToView(el.clientWidth)
+    }
   })
 
   const trimUnnecessaryDecimal = (n: number, careDecimalLength: number) => Number(n.toFixed(careDecimalLength))
@@ -272,7 +275,7 @@ export function ConcentratedRangeInputChartBody({
       preserveAspectRatio="none"
       width="100%"
       height={svgInnerHeight}
-      style={{ touchAction: 'none' }}
+      style={{ touchAction: 'none', contain: 'strict' }}
     >
       <defs>
         {/* min boundary */}
@@ -374,13 +377,25 @@ export function ConcentratedRangeInputChartBody({
       />
 
       {/* min boundary */}
-      <use href="#min-boundary-brush" ref={minBoundaryRef} x={Math.max(minBoundaryVX, 0)} y={0} />
+      <use
+        href="#min-boundary-brush"
+        style={{ touchAction: 'none' }}
+        ref={minBoundaryRef}
+        x={Math.max(minBoundaryVX, 0)}
+        y={0}
+      />
 
       {/* max boundary */}
-      <use href="#max-boundary-brush" ref={maxBoundaryRef} x={Math.max(maxBoundaryVX, 0)} y={0} />
+      <use
+        href="#max-boundary-brush"
+        style={{ touchAction: 'none' }}
+        ref={maxBoundaryRef}
+        x={Math.max(maxBoundaryVX, 0)}
+        y={0}
+      />
 
       {/* x axis line */}
-      <line
+      {/* <line
         x1="0"
         y1={svgInnerHeight - xAxisAboveBottom}
         x2={9999999}
@@ -388,15 +403,15 @@ export function ConcentratedRangeInputChartBody({
         stroke={xAxisColor}
         fill="none"
         strokeWidth="1"
-      ></line>
+      ></line> */}
 
       {/* x units */}
-      <g>
+      {/* <g>
         {units.map(({ vx, unitValue }) => (
           <text
             className="no-scale"
             key={vx}
-            y={svgInnerHeight - (3 / 4) * xAxisAboveBottom} /*  3/4 psition  of  xAxisAboveBottom */
+            y={svgInnerHeight - (3 / 4) * xAxisAboveBottom} //  3/4 psition  of  xAxisAboveBottom
             x={vx}
             fill={xAxisUnitColor}
             style={{
@@ -409,7 +424,7 @@ export function ConcentratedRangeInputChartBody({
             {isNumber(unitValue) ? trimUnnecessaryDecimal(unitValue, careDecimalLength / 3) : unitValue}
           </text>
         ))}
-      </g>
+      </g> */}
     </svg>
   )
 }
