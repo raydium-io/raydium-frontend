@@ -5,7 +5,12 @@ import mergeRef from '@/functions/react/mergeRef'
 import { useClick, UseClickOptions } from '@/hooks/useClick'
 import { useHover, UseHoverOptions } from '@/hooks/useHover'
 import {
-  AdjustmentsIcon,
+  AdjustmentsVerticalIcon,
+  ArrowRightCircleIcon,
+  ArrowsRightLeftIcon,
+  ArrowsUpDownIcon,
+  ArrowTopRightOnSquareIcon,
+  Bars3Icon,
   BellIcon,
   CheckCircleIcon,
   CheckIcon,
@@ -13,31 +18,25 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronUpIcon,
-  ClipboardCopyIcon,
-  DesktopComputerIcon,
+  ClipboardDocumentIcon,
+  ComputerDesktopIcon,
+  EllipsisHorizontalIcon,
+  EllipsisVerticalIcon,
   ExclamationCircleIcon,
-  ExclamationIcon,
-  ExternalLinkIcon,
+  ExclamationTriangleIcon,
   InformationCircleIcon,
-  MenuIcon,
+  LinkIcon,
+  MagnifyingGlassIcon,
   MinusIcon,
+  PencilIcon,
+  PlusCircleIcon,
   PlusIcon,
   QuestionMarkCircleIcon,
-  RefreshIcon,
-  SearchIcon,
   StarIcon,
-  SwitchHorizontalIcon,
-  SwitchVerticalIcon,
-  XIcon,
   TrashIcon,
-  DotsHorizontalIcon,
   XCircleIcon,
-  PlusCircleIcon,
-  PencilIcon,
-  LinkIcon,
-  DotsVerticalIcon
-} from '@heroicons/react/outline'
-import { ArrowCircleRightIcon } from '@heroicons/react/outline'
+  XMarkIcon
+} from '@heroicons/react/24/outline'
 
 import { getFileNameOfURI } from '../functions/dom/getFileNameOfURI'
 
@@ -60,7 +59,6 @@ export type AppHeroIconName =
   | 'question-mark-circle'
   | 'clipboard-copy'
   | 'external-link'
-  | 'refresh'
   | 'search'
   | 'check'
   | 'star'
@@ -116,7 +114,7 @@ export default function Icon({
   if (heroIconName) {
     const HeroIconComponent =
       heroIconName === 'menu'
-        ? MenuIcon
+        ? Bars3Icon
         : heroIconName === 'chevron-up'
         ? ChevronUpIcon
         : heroIconName === 'chevron-down'
@@ -126,11 +124,11 @@ export default function Icon({
         : heroIconName === 'chevron-right'
         ? ChevronRightIcon
         : heroIconName === 'x'
-        ? XIcon
+        ? XMarkIcon
         : heroIconName === 'adjustments'
-        ? AdjustmentsIcon
+        ? AdjustmentsVerticalIcon
         : heroIconName === 'switch-vertical'
-        ? SwitchVerticalIcon
+        ? ArrowsUpDownIcon
         : heroIconName === 'plus'
         ? PlusIcon
         : heroIconName === 'minus'
@@ -140,7 +138,7 @@ export default function Icon({
         : heroIconName === 'x-circle'
         ? XCircleIcon
         : heroIconName === 'exclamation'
-        ? ExclamationIcon
+        ? ExclamationTriangleIcon
         : heroIconName === 'exclamation-circle'
         ? ExclamationCircleIcon
         : heroIconName === 'information-circle'
@@ -148,31 +146,29 @@ export default function Icon({
         : heroIconName === 'question-mark-circle'
         ? QuestionMarkCircleIcon
         : heroIconName === 'clipboard-copy'
-        ? ClipboardCopyIcon
+        ? ClipboardDocumentIcon
         : heroIconName === 'external-link'
-        ? ExternalLinkIcon
-        : heroIconName === 'refresh'
-        ? RefreshIcon
+        ? ArrowTopRightOnSquareIcon
         : heroIconName === 'search'
-        ? SearchIcon
+        ? MagnifyingGlassIcon
         : heroIconName === 'check'
         ? CheckIcon
         : heroIconName === 'star'
         ? StarIcon
         : heroIconName === 'switch-horizontal'
-        ? SwitchHorizontalIcon
+        ? ArrowsRightLeftIcon
         : heroIconName === 'bell'
         ? BellIcon
         : heroIconName === 'desktop-computer'
-        ? DesktopComputerIcon
+        ? ComputerDesktopIcon
         : heroIconName === 'trash'
         ? TrashIcon
         : heroIconName === 'dots-horizontal'
-        ? DotsHorizontalIcon
+        ? EllipsisHorizontalIcon
         : heroIconName === 'dots-vertical'
-        ? DotsVerticalIcon
+        ? EllipsisVerticalIcon
         : heroIconName === 'arrow-circle-right'
-        ? ArrowCircleRightIcon
+        ? ArrowRightCircleIcon
         : heroIconName === 'plus-circle'
         ? PlusCircleIcon
         : heroIconName === 'pencil'

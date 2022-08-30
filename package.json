@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@headlessui/react": "^1.6.6",
-    "@heroicons/react": "^1.0.6",
+    "@heroicons/react": "^2.0.8",
     "@raydium-io/raydium-sdk": "^1.1.0-beta.7",
     "@sentry/nextjs": "^7.11.1",
     "@solana/wallet-adapter-base": "^0.9.16",
