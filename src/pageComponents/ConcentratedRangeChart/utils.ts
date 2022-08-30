@@ -8,6 +8,17 @@ export type ZoomedChartPoint = {
 }
 
 function polygonChartPoints(points: ZoomedChartPoint[]): ZoomedChartPoint[] {
+  if (!points.length) return []
+  if (points.length === 1)
+    return points.flatMap((p) => [
+      p,
+      {
+        ...p,
+        vy: p.vy,
+        vx: p.vx * 2
+      }
+    ])
+
   /** used in last point */
   const intervalDistance = points[1].vx - points[0].vx
   const getSqared = (points: ZoomedChartPoint[]) =>
@@ -39,7 +50,7 @@ export function useCalcVisiablePoints(
 ) {
   /** to avoid too small point (ETH-RAY may have point {x: 0.00021, y: 0.0003}) */
   const { dataZoomX, dataZoomY, zoomedPoints, diffX } = useMemo(() => {
-    const diffX = points[1].x - points[0].x // TEST
+    const diffX = points.length > 1 ? points[1].x - points[0].x : 999 // TEST
     const dataZoomX = 1 / diffX
     const diffY = 0.00006 // TEST
     const dataZoomY = 1 / diffY
