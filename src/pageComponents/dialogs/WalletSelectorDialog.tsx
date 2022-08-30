@@ -3,18 +3,21 @@ import React, { useRef, useState } from 'react'
 import { WalletAdapter, WalletReadyState } from '@solana/wallet-adapter-base'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import useNotification from '@/application/notification/useNotification'
 import useWallet from '@/application/wallet/useWallet'
 import Card from '@/components/Card'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
+import { extensionMap } from '@/functions/dom/getExtension'
+import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 
+import Button from '../../components/Button'
+import Col from '../../components/Col'
+import FadeInStable from '../../components/FadeIn'
 import Grid from '../../components/Grid'
+import Input from '../../components/Input'
 import Link from '../../components/Link'
 import ResponsiveDialogDrawer from '../../components/ResponsiveDialogDrawer'
-import Input from '../../components/Input'
-import Col from '../../components/Col'
-import Button from '../../components/Button'
-import FadeInStable from '../../components/FadeIn'
 
 function WalletSelectorPanelItem({
   wallet,
@@ -27,6 +30,8 @@ function WalletSelectorPanelItem({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const { select } = useWallet()
+  const { logInfo } = useNotification()
+
   return (
     <Row
       className={`relative items-center gap-3 m-auto px-6 mobile:px-3 mobile:py-1.5 py-3 w-64 mobile:w-[42vw] h-14  mobile:h-12 frosted-glass frosted-glass-teal rounded-xl mobile:rounded-lg ${
@@ -34,8 +39,43 @@ function WalletSelectorPanelItem({
       } clickable clickable-filter-effect`}
       // TODO disable status
       onClick={() => {
-        select(wallet.adapter.name)
-        onClick?.()
+        if (
+          (wallet.readyState !== WalletReadyState.Installed &&
+            extensionMap[wallet.adapter.name][getPlatformInfo()?.browserName]) ||
+          !extensionMap[wallet.adapter.name].autoFine
+        ) {
+          logInfo(
+            'Wallet installation required ',
+            <div>
+              <p>
+                Please install and initialize the wallet{' '}
+                {wallet.adapter.url ? (
+                  <span>
+                    through the official website &nbsp;
+                    <a
+                      href={wallet.adapter.url}
+                      rel="noreferrer"
+                      style={{ color: 'white', textDecoration: 'underline' }}
+                    >
+                      here
+                    </a>
+                  </span>
+                ) : (
+                  ''
+                )}
+                <br />
+                {wallet.adapter.url ? 'or' : ''}
+                {/* {walletExtensionList[]} */}
+                <span>{getPlatformInfo()?.browserName}</span>
+              </p>
+            </div>
+          )
+        } else {
+          // eslint-disable-next-line no-console
+          console.log('web: ', wallet.adapter.url)
+          select(wallet.adapter.name)
+          onClick?.()
+        }
       }}
     >
       <Icon className="shrink-0" size={isMobile ? 'md' : 'lg'} iconSrc={wallet.adapter.icon} />
