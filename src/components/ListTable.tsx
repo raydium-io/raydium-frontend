@@ -3,7 +3,7 @@
  */
 import { isNumber, isObject } from '@/functions/judgers/dateType'
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import { MayArray, MayFunction } from '@/types/constants'
+import { AnyObj, MayArray, MayFunction } from '@/types/constants'
 import { SKeyof } from '@/types/generics'
 import { CSSProperties, Fragment, ReactNode, useRef } from 'react'
 import { twMerge } from 'tailwind-merge'
@@ -89,7 +89,7 @@ type ListTableProps<T> = {
 }
 
 // NOTE: have base style of bonsai
-export default function ListTable<T>({
+export default function ListTable<T extends AnyObj>({
   type = 'list-table',
   className,
 
