@@ -3,10 +3,12 @@ import { useRouter } from 'next/router'
 
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
 import {
+  BackpackWalletAdapter,
   BitKeepWalletAdapter,
   BitpieWalletAdapter,
   CloverWalletAdapter,
   Coin98WalletAdapter,
+  CoinbaseWalletAdapter,
   CoinhubWalletAdapter,
   ExodusWalletAdapter,
   GlowWalletAdapter,
@@ -19,16 +21,16 @@ import {
   SolletExtensionWalletAdapter,
   SolletWalletAdapter,
   SolongWalletAdapter,
-  TorusWalletAdapter,
   TokenPocketWalletAdapter,
-  CoinbaseWalletAdapter,
+  TorusWalletAdapter,
+  TrustWalletAdapter,
   WalletConnectWalletAdapter
 } from '@solana/wallet-adapter-wallets'
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 import { clusterApiUrl } from '@solana/web3.js'
 
-import useConnection from '@/application/connection/useConnection'
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import useConnection from '@/application/connection/useConnection'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */
 export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
@@ -41,6 +43,7 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
+      new TrustWalletAdapter(),
       new SolflareWalletAdapter(),
       new SolletWalletAdapter(),
       new TorusWalletAdapter(),
@@ -59,6 +62,7 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
       new ExodusWalletAdapter({ endpoint }),
       new CloverWalletAdapter(),
       new CoinhubWalletAdapter(),
+      new BackpackWalletAdapter(),
       new WalletConnectWalletAdapter({
         network: endpoint === clusterApiUrl('devnet') ? WalletAdapterNetwork.Devnet : WalletAdapterNetwork.Mainnet,
         options: {

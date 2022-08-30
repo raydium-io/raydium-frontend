@@ -61,6 +61,7 @@ export default function SetTolerance() {
           <Row>
             <Input
               className="w-[32px]"
+              placeholder="0"
               value={toString(mul(slippageTolerance, 100), { decimalLength: 'auto 2' })}
               onUserInput={(value) => {
                 const n = div(parseFloat(value || '0'), 100)
