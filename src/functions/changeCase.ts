@@ -97,7 +97,7 @@ export function toUpperCase(str: string) {
  */
 export function capitalize(str: string): Capitalize<string> {
   if (!str) return ''
-  return str[0].toUpperCase() + str.slice(1)
+  return (str[0].toUpperCase() + str.slice(1)) as Capitalize<string>
 }
 
 /**
@@ -106,7 +106,7 @@ export function capitalize(str: string): Capitalize<string> {
  */
 export function uncapitalize(str: string): Capitalize<string> {
   if (!str) return ''
-  return str[0].toLowerCase() + str.slice(1)
+  return (str[0].toLowerCase() + str.slice(1)) as Capitalize<string>
 }
 
 /**
