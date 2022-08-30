@@ -209,5 +209,15 @@ export const extensionMap = {
     [Browser.OTHER]: '',
     [Browser.IOS]: '',
     [Browser.ANDROID]: ''
-  }
+  },
+  WalletConnect: {
+    autoHandle: true,
+    [Browser.FIREFOX]: '',
+    [Browser.EDGE_CHROMIUM]: '',
+    [Browser.CHROME]: '',
+    [Browser.SAFARI]: '',
+    [Browser.OTHER]: '',
+    [Browser.IOS]: '',
+    [Browser.ANDROID]: ''
+  },
 }
