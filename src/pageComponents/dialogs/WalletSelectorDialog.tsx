@@ -44,17 +44,17 @@ function WalletSelectorPanelItem({
             'Wallet installation required ',
             <div>
               <p>
-                Please install and initialize the {wallet.adapter.name} wallet{' '}
+                Please install {wallet.adapter.name}{' '}
                 {wallet.adapter.url ? (
                   <span>
-                    through the official website &nbsp;
+                    from the official&nbsp;
                     <a
                       href={wallet.adapter.url}
                       rel="noreferrer"
                       style={{ color: 'white', textDecoration: 'underline' }}
                       target="_blank"
                     >
-                      here
+                      website
                     </a>
                   </span>
                 ) : (
@@ -63,7 +63,7 @@ function WalletSelectorPanelItem({
                 <br />
                 {extensionMap[wallet.adapter.name][getPlatformInfo()?.browserName] ? (
                   <>
-                    or install the{' '}
+                    or use the{' '}
                     {getPlatformInfo()?.isAndroid || getPlatformInfo()?.isIOS ? (
                       <a
                         href={extensionMap[wallet.adapter.name][getPlatformInfo()?.browserName]}
