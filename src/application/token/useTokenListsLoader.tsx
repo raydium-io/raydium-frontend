@@ -52,7 +52,7 @@ function excludeAlreadyKnownMints(knownMints: string[], liquidityPools: UltraLiq
         symbol: pool.baseMint.substring(0, 6),
         name: pool.baseMint.substring(0, 6),
         mint: pool.baseMint,
-        decimals: pool.baseDecimals,
+        decimals: (pool as unknown as UltraLiquidityPoolsJsonfile).baseDecimals,
         extensions: {
           coingeckoId: ''
         },
@@ -65,7 +65,7 @@ function excludeAlreadyKnownMints(knownMints: string[], liquidityPools: UltraLiq
         symbol: pool.quoteMint.substring(0, 6),
         name: pool.quoteMint.substring(0, 6),
         mint: pool.quoteMint,
-        decimals: pool.quoteDecimals,
+        decimals: (pool as unknown as UltraLiquidityPoolsJsonfile).quoteDecimals,
         extensions: {
           coingeckoId: ''
         },
