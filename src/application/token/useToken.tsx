@@ -212,7 +212,8 @@ export const useToken = create<TokenStore>((set, get) => ({
       isOn: true
     },
     [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
-      isOn: true
+      isOn: true,
+      cannotbBeSeen: true
     }
   },
 
