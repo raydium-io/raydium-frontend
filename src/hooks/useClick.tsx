@@ -26,7 +26,7 @@ export function useClick(
     onClick,
     onActiveStart,
     onActiveEnd,
-    longClickDelay = 600,
+    longClickDelay = 400,
     longClickFireEach = 80,
     canLongClick
   }: UseClickOptions = {}

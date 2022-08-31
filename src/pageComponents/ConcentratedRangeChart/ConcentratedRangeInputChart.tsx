@@ -12,7 +12,7 @@ import {
   ConcentratedRangeInputChartBody
 } from './ConcentratedRangeInputChartBody'
 
-const mokeChartData = Array.from({ length: 50000 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
+const mokeChartData = Array.from({ length: 500 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
 export function ConcentratedRangeInputChart({
   className,
   chartOptions
@@ -23,7 +23,7 @@ export function ConcentratedRangeInputChart({
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
   const [minPrice, setMinPrice] = useState(0.8)
-  const [maxPrice, setMaxPrice] = useState(2.8)
+  const [maxPrice, setMaxPrice] = useState(1.2)
   const concentratedChartBodyRef = useRef<ConcentratedRangeInputChartBodyComponentHandler>(null)
   return (
     <Col className={twMerge('py-4', className)}>
