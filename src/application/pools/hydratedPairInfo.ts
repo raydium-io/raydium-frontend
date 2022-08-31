@@ -1,8 +1,11 @@
 import { TokenAmount } from '@raydium-io/raydium-sdk'
+
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import toUsdCurrency from '@/functions/format/toUsdCurrency'
+
 import { LpToken } from '../token/type'
+
 import computeUserLedgerInfo from './infoCalculater'
 import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
 
@@ -17,8 +20,8 @@ export function hydratedPairInfo(
   const lp = payload.lpToken
   const base = lp?.base
   const quote = lp?.quote
+  let newPairName = ''
 
-  // console.log(lp?.symbol, lp)
   const tokenAmountBase = base ? toTokenAmount(base, pair.tokenAmountCoin, { alreadyDecimaled: true }) ?? null : null
   const tokenAmountQuote = quote ? toTokenAmount(quote, pair.tokenAmountPc, { alreadyDecimaled: true }) ?? null : null
   const tokenAmountLp = lp ? toTokenAmount(lp, pair.tokenAmountLp, { alreadyDecimaled: true }) ?? null : null
@@ -28,6 +31,17 @@ export function hydratedPairInfo(
     { tokenAmountBase, tokenAmountQuote, tokenAmountLp },
     { lpToken: lp, baseToken: base, quoteToken: quote, lpBalance }
   )
+
+  if (pair.name.includes('unknown')) {
+    const nameParts = pair.name.split('-')
+    if (nameParts[0] === 'unknown') {
+      nameParts[0] = base?.name?.substring(0, 6) ?? nameParts[0]
+    }
+    if (nameParts[1] === 'unknown') {
+      nameParts[1] = quote?.name?.substring(0, 6) ?? nameParts[1]
+    }
+    newPairName = nameParts.join('-')
+  }
 
   return {
     ...pair,
@@ -57,7 +71,8 @@ export function hydratedPairInfo(
       quotePooled: calcLpUserLedgerInfoResult?.quotePooled,
       sharePercent: calcLpUserLedgerInfoResult?.sharePercent,
       price: base ? toTokenPrice(base, pair.price) : null,
-      isStablePool: Boolean(payload.isStable)
+      isStablePool: Boolean(payload.isStable),
+      name: newPairName ? newPairName : pair.name
     }
   }
 }
