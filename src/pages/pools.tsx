@@ -603,7 +603,6 @@ function PoolCardDatabaseBodyCollapseItemFace({
 }) {
   const lpTokens = useToken((s) => s.lpTokens)
   const lpToken = lpTokens[info.lpMint] as LpToken | undefined
-  const haveLp = Boolean(lpToken)
   const isMobile = useAppSettings((s) => s.isMobile)
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = usePools((s) => s.timeBasis)
@@ -786,7 +785,6 @@ function PoolCardDatabaseBodyCollapseItemFace({
     </Collapse>
   )
 
-  if (!haveLp) return null
   return isMobile ? mobileContent : pcCotent
 }
 
