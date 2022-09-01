@@ -1,4 +1,3 @@
-import { TestMovableDiv } from '@/components/TestMovableDiv'
 import { handleMouseWheel, HandleMouseWheelOnWheel } from '@/functions/dom/gesture/handleMouseWheel'
 import {
   attachPointerMove,
@@ -74,9 +73,15 @@ export function ConcentratedRangeInputChartBody({
   const [offsetVX, setOffsetVX] = useState(0)
   const boundaryLineWidth = 6
   const minDistanceOfMinBoundaryAndMaxBoundary = 0 // user may have very very little diff
-  const { polygonPoints, filteredZoomedPoints, zoomedPoints, dataZoomX, diffX } = useCalcVisiablePoints(points, {
+  const {
+    polygonPoints,
+    filteredZoomedOptimizedPoints: filteredZoomedPoints,
+    zoomedPoints,
+    dataZoomX,
+    diffX
+  } = useCalcVisiablePoints(points, {
     svgInnerWidth,
-    zoom,
+    zoomVX: zoom,
     offsetVX
   })
   const accurateDecimalLength = Math.max(String(diffX).length - 2, 0) // TODO this algorithm is very rough

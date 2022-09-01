@@ -12,7 +12,7 @@ import {
   ConcentratedRangeInputChartBody
 } from './ConcentratedRangeInputChartBody'
 
-const mokeChartData = Array.from({ length: 500 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
+const mokeChartData = Array.from({ length: 50000 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
 export function ConcentratedRangeInputChart({
   className,
   chartOptions

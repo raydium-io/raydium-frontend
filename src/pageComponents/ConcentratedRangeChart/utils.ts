@@ -43,10 +43,10 @@ export function useCalcVisiablePoints(
   points: ChartPoint[],
   {
     svgInnerWidth,
-    zoom,
+    zoomVX,
     offsetVX,
-    sideScreenCount = 2
-  }: { svgInnerWidth: number; zoom: number; offsetVX: number; sideScreenCount?: number }
+    sideHiddenScreenCount = 2
+  }: { svgInnerWidth: number; zoomVX: number; offsetVX: number; sideHiddenScreenCount?: number }
 ) {
   /** to avoid too small point (ETH-RAY may have point {x: 0.00021, y: 0.0003}) */
   const { dataZoomX, dataZoomY, zoomedPoints, diffX } = useMemo(() => {
@@ -60,16 +60,20 @@ export function useCalcVisiablePoints(
     return { dataZoomX, dataZoomY, zoomedPoints, diffX }
   }, points)
   const [sideMinVX, sideMaxVX] = [
-    offsetVX - Math.max(sideScreenCount - 1, 0) * (svgInnerWidth / zoom),
-    offsetVX + (sideScreenCount + 1) * (svgInnerWidth / zoom)
+    offsetVX - Math.max(sideHiddenScreenCount - 1, 0) * (svgInnerWidth / zoomVX),
+    offsetVX + (sideHiddenScreenCount + 1) * (svgInnerWidth / zoomVX)
   ]
-  const filteredZoomedPoints = useMemo(
-    () => zoomedPoints.filter((p) => sideMinVX < p.vx && p.vx < sideMaxVX),
-    [sideMinVX, sideMaxVX]
-  )
 
-  const polygonPoints = useMemo(() => polygonChartPoints(filteredZoomedPoints), [filteredZoomedPoints])
-  return { filteredZoomedPoints, polygonPoints, dataZoomX, dataZoomY, zoomedPoints, diffX }
+  const filteredZoomedOptimizedPoints = useMemo(() => {
+    const needRenderedPoints = zoomedPoints.filter((p) => sideMinVX < p.vx && p.vx < sideMaxVX)
+    return optimizePoints(needRenderedPoints, zoomVX)
+  }, [sideMinVX, sideMaxVX, zoomVX])
+
+  const polygonPoints = useMemo(
+    () => polygonChartPoints(filteredZoomedOptimizedPoints),
+    [filteredZoomedOptimizedPoints]
+  )
+  return { filteredZoomedOptimizedPoints, polygonPoints, dataZoomX, dataZoomY, zoomedPoints, diffX }
 }
 
 type UnitXAxis = {
@@ -92,4 +96,28 @@ export function genXAxisUnit(options: { dataZoom: number; viewZoom: number; from
   const xValues = Array.from({ length: unitCount }, (_, i) => firstUnit + unitDiff * i)
   const units: UnitXAxis[] = xValues.map((value) => ({ vx: options.dataZoom * value, unitValue: value }))
   return units
+}
+
+/**
+ * get rid of unnecessary points if there is too much points
+ */
+function optimizePoints(points: ZoomedChartPoint[], zoomVX: number): ZoomedChartPoint[] {
+  const tooFew = points.length < 2
+  const tooLittleView = zoomVX >= 1
+  if (tooFew || tooLittleView) return points
+
+  const firstPoint = points[0]
+  const lastPoint = points[points.length - 1]
+  const optimizedPoints: ZoomedChartPoint[] = []
+  let idx = 0
+  for (let groupI = Math.floor(firstPoint.vx); groupI <= Math.floor(lastPoint.vx); groupI++) {
+    const groupBucket: ZoomedChartPoint[] = []
+    while (points[idx] && Math.floor(points[idx].vx / zoomVX) === groupI) {
+      groupBucket.push(points[idx])
+      idx++
+    }
+    const mediumPoint = groupBucket[Math.floor(groupBucket.length / 2)]
+    mediumPoint && optimizedPoints.push(mediumPoint)
+  }
+  return optimizedPoints
 }

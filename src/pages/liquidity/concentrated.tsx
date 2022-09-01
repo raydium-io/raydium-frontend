@@ -33,7 +33,6 @@ import useToggle from '@/hooks/useToggle'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
-import { TestMovableDiv } from '@/components/TestMovableDiv'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
