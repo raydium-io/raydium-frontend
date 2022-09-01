@@ -20,7 +20,7 @@ import {
 } from './type'
 import useToken, {
   OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME, RAYDIUM_DEV_TOKEN_LIST_NAME, RAYDIUM_MAINNET_TOKEN_LIST_NAME,
-  SOLANA_TOKEN_LIST_NAME
+  RAYDIUM_UNNAMED_TOKEN_LIST_NAME, SOLANA_TOKEN_LIST_NAME
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
 
@@ -82,6 +82,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
   unOfficialMints: string[]
   officialMints: string[]
   otherLiquiditySupportedMints: string[]
+  unNamedMints: string[]
   tokens: TokenJson[]
   blacklist: string[]
 }> {
@@ -127,7 +128,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
   // eslint-disable-next-line no-console
   console.info('tokenList end fetching')
 
-  return { devMints, unOfficialMints, officialMints, otherLiquiditySupportedMints, tokens, blacklist }
+  return { devMints, unOfficialMints, unNamedMints, otherLiquiditySupportedMints, officialMints, tokens, blacklist }
 }
 
 async function fetchTokenIconInfoList() {
@@ -170,6 +171,7 @@ async function loadTokens() {
     unOfficialMints,
     officialMints,
     otherLiquiditySupportedMints,
+    unNamedMints,
     tokens: allTokens,
     blacklist: _blacklist
   } = await fetchTokenLists(rawTokenListConfigs)
@@ -196,6 +198,10 @@ async function loadTokens() {
       [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME],
         mints: new Set(otherLiquiditySupportedMints)
+      },
+      [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
+        mints: new Set(unNamedMints)
       }
     }
   }))

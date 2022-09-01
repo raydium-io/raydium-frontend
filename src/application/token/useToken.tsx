@@ -86,18 +86,21 @@ export type TokenStore = {
   refreshTokenPrice(): void
 }
 
-export type SupportedTokenListSettingName =
-  | 'Raydium Token List' // actually  official
-  | 'Raydium Dev Token List'
-  | 'Solana Token List' // actually  unOfficial
-  | 'User Added Token List'
-  | 'Other Liquidity Supported Token List' // other tokens in liquidity pools
 export const RAYDIUM_MAINNET_TOKEN_LIST_NAME_DEPRECATED = 'Raydium Mainnet Token List'
 export const RAYDIUM_MAINNET_TOKEN_LIST_NAME = 'Raydium Token List'
+export const RAYDIUM_UNNAMED_TOKEN_LIST_NAME = 'UnNamed Token List'
 export const RAYDIUM_DEV_TOKEN_LIST_NAME = 'Raydium Dev Token List'
 export const SOLANA_TOKEN_LIST_NAME = 'Solana Token List'
 export const USER_ADDED_TOKEN_LIST_NAME = 'User Added Token List'
 export const OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME = 'Other Liquidity Supported Token List'
+
+export type SupportedTokenListSettingName =
+  | typeof RAYDIUM_MAINNET_TOKEN_LIST_NAME // actually  official
+  | typeof RAYDIUM_DEV_TOKEN_LIST_NAME
+  | typeof SOLANA_TOKEN_LIST_NAME // actually  unOfficial
+  | typeof USER_ADDED_TOKEN_LIST_NAME
+  | typeof RAYDIUM_UNNAMED_TOKEN_LIST_NAME
+  | typeof OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME
 
 /** zustand store hooks */
 export const useToken = create<TokenStore>((set, get) => ({
@@ -212,6 +215,10 @@ export const useToken = create<TokenStore>((set, get) => ({
       isOn: true
     },
     [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
+      isOn: true,
+      cannotbBeSeen: true
+    },
+    [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
       isOn: true,
       cannotbBeSeen: true
     }

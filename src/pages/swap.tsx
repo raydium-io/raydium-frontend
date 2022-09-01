@@ -127,34 +127,38 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
       title: 'Confirm Token',
       description: (
         <div className="space-y-2 text-left">
-          <p>
-            This token does not appear on the default token list. Anyone can create an SPL token on Solana, which may
-            include fake versions of existing tokens or tokens that claim to represent projects that do not have a
-            token. Take extra caution to confirm token addresses.
-          </p>
-          <p>Always check the quoted price and that the pool has sufficient liquidity before trading.</p>
+          <p>This token doesn’t appear on the default token list. Confirm this is the token that you want to trade.</p>
+
+          <Row className="justify-between items-center w-fit mx-auto gap-2">
+            <CoinAvatar token={downCoin} />
+            <div className="font-semibold">{downCoin?.symbol}</div>
+            <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
+              {downCoin?.mint}
+            </AddressItem>
+          </Row>
         </div>
       ),
       onlyConfirmButton: true,
-      confirmButtonText: 'I Understand',
-      additionalContent: (
-        <Checkbox
-          defaultChecked={hasUserPermanentConfirmed}
-          className="my-2 w-max mx-auto"
-          onChange={(newChecked) => {
-            if (!downCoin?.mint) return
-            if (newChecked) {
-              setUserPermanentConfirmedTokenMints((old) => addItem(old ?? [], String(downCoin.mint)))
-            } else {
-              setUserPermanentConfirmedTokenMints((old) => removeItem(old ?? [], String(downCoin.mint)))
-            }
-          }}
-          label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Do not warn again</div>}
-        />
-      ),
+      confirmButtonText: 'Confirm',
+      // additionalContent: ( // confirm is permanent
+      //   <Checkbox
+      //     defaultChecked={hasUserPermanentConfirmed}
+      //     className="my-2 w-max mx-auto"
+      //     onChange={(newChecked) => {
+      //       if (!downCoin?.mint) return
+      //       if (newChecked) {
+      //         setUserPermanentConfirmedTokenMints((old) => addItem(old ?? [], String(downCoin.mint)))
+      //       } else {
+      //         setUserPermanentConfirmedTokenMints((old) => removeItem(old ?? [], String(downCoin.mint)))
+      //       }
+      //     }}
+      //     label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Do not warn again</div>}
+      //   />
+      // ),
       onConfirm: () => {
         setHasUserTemporaryConfirmed(true)
         setIsConfirmPanelOn(false)
+        downCoin?.mint && setUserPermanentConfirmedTokenMints((old) => addItem(old ?? [], String(downCoin.mint)))
       },
       onCancel: () => {
         setHasUserTemporaryConfirmed(false)
