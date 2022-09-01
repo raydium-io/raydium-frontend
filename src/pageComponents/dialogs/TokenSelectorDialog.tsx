@@ -3,12 +3,10 @@ import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import useNotification from '@/application/notification/useNotification'
 import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
 import {
-  isQuantumSOL,
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  QuantumSOLVersionSOL
+  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { SupportedTokenListSettingName } from '@/application/token/useToken'
@@ -28,6 +26,7 @@ import ListFast from '@/components/ListFast'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import Switcher from '@/components/Switcher'
+import { throttle } from '@/functions/debounce'
 import toPubString from '@/functions/format/toMintString'
 import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
 import useAsyncValue from '@/hooks/useAsyncValue'
@@ -73,6 +72,7 @@ function TokenSelectorDialogContent({
   const balances = useWallet((s) => s.balances)
 
   const [searchText, setSearchText] = useState('')
+  const logWarning = throttle(useNotification.getState().logWarning)
 
   // used for if panel is not tokenList but tokenlistList
   const [currentTabIsTokenList, { off, on }] = useToggle()
@@ -192,7 +192,10 @@ function TokenSelectorDialogContent({
     if (!symbol) return
     const { addUserAddedToken } = useToken.getState()
     const decimals = onlineTokenMintInfo?.decimals
-    if (!decimals) return
+    if (!onlineTokenMintInfo || decimals === undefined) {
+      logWarning(`the mint address is invalid`)
+      return
+    }
     const newToken = createSplToken({
       mint: searchText,
       symbol: symbol.slice(0, 8),
