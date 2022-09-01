@@ -269,36 +269,34 @@ export function ConcentratedRangeInputChartBody({
   const trimUnnecessaryDecimal = (n: number, careDecimalLength: number) => Number(n.toFixed(careDecimalLength))
 
   return (
-    <>
-      <TestMovableDiv className="absolute z-tooltip" />
-      <svg
-        ref={wrapperRef}
-        className={twMerge('cursor-grab active:cursor-grabbing select-none', className)}
-        viewBox={`${offsetVX} 0 ${svgInnerWidth / zoom} ${svgInnerHeight}`}
-        preserveAspectRatio="none"
-        width="100%"
-        height={svgInnerHeight}
-        style={{ touchAction: 'none', transform: 'translateZ(0)' }}
-      >
-        <defs>
-          {/* min boundary */}
-          <g id="min-boundary-brush">
-            <rect
-              className="no-scale-align-center cursor-pointer"
-              x={0}
-              y={0}
-              width={boundaryLineWidth}
-              height={svgInnerHeight - xAxisAboveBottom}
-              fill={minBoundaryLineColor}
-            />
-            <rect
-              className="no-scale-align-center cursor-pointer"
-              rx="2"
-              width={16}
-              height={32}
-              fill={minBoundaryLineColor}
-            />
-            {/* <text
+    <svg
+      ref={wrapperRef}
+      className={twMerge('cursor-grab active:cursor-grabbing select-none', className)}
+      viewBox={`${offsetVX} 0 ${svgInnerWidth / zoom} ${svgInnerHeight}`}
+      preserveAspectRatio="none"
+      width="100%"
+      height={svgInnerHeight}
+      style={{ touchAction: 'none', transform: 'translateZ(0)' }}
+    >
+      <defs>
+        {/* min boundary */}
+        <g id="min-boundary-brush">
+          <rect
+            className="no-scale-align-center cursor-pointer"
+            x={0}
+            y={0}
+            width={boundaryLineWidth}
+            height={svgInnerHeight - xAxisAboveBottom}
+            fill={minBoundaryLineColor}
+          />
+          <rect
+            className="no-scale-align-center cursor-pointer"
+            rx="2"
+            width={16}
+            height={32}
+            fill={minBoundaryLineColor}
+          />
+          {/* <text
             className="no-scale break-words"
             fill="#141041"
             y="16"
@@ -314,24 +312,24 @@ export function ConcentratedRangeInputChartBody({
           >
             MIN
           </text> */}
-          </g>
-          <g id="max-boundary-brush">
-            <rect
-              className="no-scale-align-center rota cursor-pointer"
-              x={0}
-              y={0}
-              width={boundaryLineWidth}
-              height={svgInnerHeight - xAxisAboveBottom}
-              fill={maxBoundaryLineColor}
-            />
-            <rect
-              className="no-scale-align-center cursor-pointer"
-              rx="2"
-              width={16}
-              height={32}
-              fill={maxBoundaryLineColor}
-            />
-            {/* <text
+        </g>
+        <g id="max-boundary-brush">
+          <rect
+            className="no-scale-align-center rota cursor-pointer"
+            x={0}
+            y={0}
+            width={boundaryLineWidth}
+            height={svgInnerHeight - xAxisAboveBottom}
+            fill={maxBoundaryLineColor}
+          />
+          <rect
+            className="no-scale-align-center cursor-pointer"
+            rx="2"
+            width={16}
+            height={32}
+            fill={maxBoundaryLineColor}
+          />
+          {/* <text
             className="no-scale break-words"
             fill="#141041"
             y="16"
@@ -347,88 +345,79 @@ export function ConcentratedRangeInputChartBody({
           >
             MAX
           </text> */}
-          </g>
-          <style>
-            {`
-            .no-scale {
-              transform: scale(${1 / zoom}, 1);
-              transform-box: fill-box;
-              transform-origin: center;
-            }
-
-            .align-center {
-              transform: translate(-50%, 0%);
-              transform-box: fill-box;
-              transform-origin: center;
-            }
-
+        </g>
+        <style>
+          {`
             .no-scale-align-center {
               transform: translate(-50%, 0%) scale(${1 / zoom},1);
               transform-box: fill-box;
               transform-origin: center;
             }
           `}
-          </style>
-        </defs>
+        </style>
+      </defs>
 
-        <polygon
-          className="pointer-events-none"
-          points={polygonPoints
-            .map((p) => `${p.vx.toFixed(0)},${(svgInnerHeight - p.vy - xAxisAboveBottom).toFixed(0)}`)
-            .join(' ')}
-          fill={lineColor}
-        />
+      <polygon
+        className="pointer-events-none"
+        points={polygonPoints
+          .map((p) => `${p.vx.toFixed(0)},${(svgInnerHeight - p.vy - xAxisAboveBottom).toFixed(0)}`)
+          .join(' ')}
+        fill={lineColor}
+      />
 
-        {/* min boundary */}
-        <use
-          href="#min-boundary-brush"
-          style={{ touchAction: 'none' }}
-          ref={minBoundaryRef}
-          x={Math.max(minBoundaryVX, 0)}
-          y={0}
-        />
+      {/* min boundary */}
+      <use
+        href="#min-boundary-brush"
+        style={{ touchAction: 'none' }}
+        ref={minBoundaryRef}
+        x={Math.max(minBoundaryVX, 0)}
+        y={0}
+      />
 
-        {/* max boundary */}
-        <use
-          href="#max-boundary-brush"
-          style={{ touchAction: 'none' }}
-          ref={maxBoundaryRef}
-          x={Math.max(maxBoundaryVX, 0)}
-          y={0}
-        />
+      {/* max boundary */}
+      <use
+        href="#max-boundary-brush"
+        style={{ touchAction: 'none' }}
+        ref={maxBoundaryRef}
+        x={Math.max(maxBoundaryVX, 0)}
+        y={0}
+      />
 
-        {/* x axis line */}
-        <line
-          x1="0"
-          y1={svgInnerHeight - xAxisAboveBottom}
-          x2={9999999}
-          y2={svgInnerHeight - xAxisAboveBottom}
-          stroke={xAxisColor}
-          fill="none"
-          strokeWidth="1"
-        ></line>
+      {/* x axis line */}
+      <line
+        x1="0"
+        y1={svgInnerHeight - xAxisAboveBottom}
+        x2={9999999}
+        y2={svgInnerHeight - xAxisAboveBottom}
+        stroke={xAxisColor}
+        fill="none"
+        strokeWidth="1"
+      ></line>
 
-        {/* x units */}
-        <g>
-          {units.map(({ vx, unitValue }) => (
-            <text
-              className="no-scale"
-              key={vx}
-              y={svgInnerHeight - (3 / 4) * xAxisAboveBottom} //  3/4 psition  of  xAxisAboveBottom
-              x={vx}
-              fill={xAxisUnitColor}
-              style={{
-                fontSize: 8,
-                transition: '75ms'
-              }}
-              textAnchor="middle"
-              dominantBaseline="middle"
-            >
-              {isNumber(unitValue) ? trimUnnecessaryDecimal(unitValue, careDecimalLength / 3) : unitValue}
-            </text>
-          ))}
-        </g>
-      </svg>
-    </>
+      {/* x units */}
+      <g>
+        {units.map(({ vx, unitValue }) => (
+          <text
+            // className="no-scale"
+            key={vx}
+            y={svgInnerHeight - (2 / 3) * xAxisAboveBottom} //  3/4 psition  of  xAxisAboveBottom
+            x={vx}
+            fill={xAxisUnitColor}
+            style={{
+              fontSize: 10,
+              transition: '75ms'
+            }}
+            // idea from https://stackoverflow.com/questions/61272308/why-does-webkit-safari-ios-macos-render-my-svg-transformations-in-a-different
+            transform={`translate(${vx}, ${svgInnerHeight / 2}) scale(${1 / zoom}, 1) translate(${-vx}, ${
+              -svgInnerHeight / 2
+            })`}
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
+            {isNumber(unitValue) ? trimUnnecessaryDecimal(unitValue, careDecimalLength / 3) : unitValue}
+          </text>
+        ))}
+      </g>
+    </svg>
   )
 }

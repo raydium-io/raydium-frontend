@@ -81,7 +81,7 @@ export function genXAxisUnit(options: { dataZoom: number; viewZoom: number; from
   const totalZoom = options.dataZoom * options.viewZoom
 
   // bigger unit zoom, lesser x Axis units
-  const baseUnitZoom = 50
+  const baseUnitZoom = 100
 
   // how many units in data: 0 ~ 1
   const unitDiff = (1 * baseUnitZoom) / totalZoom
