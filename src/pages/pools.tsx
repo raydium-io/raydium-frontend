@@ -1,5 +1,7 @@
 import { useCallback, useMemo } from 'react'
 
+import { PublicKeyish } from '@raydium-io/raydium-sdk'
+
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -9,7 +11,7 @@ import { HydratedPairItemInfo } from '@/application/pools/type'
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
 import { routeTo } from '@/application/routeTools'
-import { LpToken } from '@/application/token/type'
+import { LpToken, SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
@@ -24,6 +26,7 @@ import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
+import LoadingCircleSmall from '@/components/LoadingCircleSmall'
 import PageLayout from '@/components/PageLayout'
 import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
@@ -607,6 +610,26 @@ function PoolCardDatabaseBodyCollapseItemFace({
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = usePools((s) => s.timeBasis)
 
+  const liquidityInfo = () => {
+    const lowLiquidityAlertText = `This pool has relatively low liquidity. Always check the quoted price
+     and that the pool has sufficient liquidity before trading.`
+    return (
+      <Row className="flex justify-start items-center">
+        {isHydratedPoolItemInfo(info)
+          ? toUsdVolume(info.liquidity, { autoSuffix: isTablet, decimalPlace: 0 })
+          : undefined}
+        {lt(info?.liquidity.toFixed(0) ?? 0, 100000) && (
+          <Tooltip placement="right">
+            <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help ml-1" />
+            <Tooltip.Panel>
+              <div className="whitespace-pre">{lowLiquidityAlertText}</div>
+            </Tooltip.Panel>
+          </Tooltip>
+        )}
+      </Row>
+    )
+  }
+
   const pcCotent = (
     <Row
       type="grid-x"
@@ -638,14 +661,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
 
       <CoinAvatarInfoItem info={info} className="pl-0" />
 
-      <TextInfoItem
-        name="Liquidity"
-        value={
-          isHydratedPoolItemInfo(info)
-            ? toUsdVolume(info.liquidity, { autoSuffix: isTablet, decimalPlace: 0 })
-            : undefined
-        }
-      />
+      <TextInfoItem name="Liquidity" value={liquidityInfo()} />
       <TextInfoItem
         name={`Volume(${timeBasis})`}
         value={
@@ -723,14 +739,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
 
           <CoinAvatarInfoItem info={info} />
 
-          <TextInfoItem
-            name="Liquidity"
-            value={
-              isHydratedPoolItemInfo(info)
-                ? toUsdVolume(info.liquidity, { autoSuffix: true, decimalPlace: 1 })
-                : undefined
-            }
-          />
+          <TextInfoItem name="Liquidity" value={liquidityInfo()} />
           <TextInfoItem
             name={`APR(${timeBasis})`}
             value={
@@ -970,7 +979,6 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
 
 function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | undefined; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const lowLiquidityAlertText = `This pool has relatively low liquidity. Always check the quoted price and that the pool has sufficient liquidity before trading.`
 
   return (
     <AutoBox
@@ -987,16 +995,16 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | 
         token2={info?.quote}
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
-        {info?.name}
+        <Row className="mobile:text-xs font-medium mobile:mt-px mr-1.5">
+          {info?.base && info.quote ? (
+            <>
+              <CoinAvatarInfoItemSymbol token={info?.base} />-<CoinAvatarInfoItemSymbol token={info?.quote} />
+            </>
+          ) : (
+            <LoadingCircleSmall className="w-4 h-4" />
+          )}
+        </Row>
         {info?.isStablePool && <Badge className="self-center">Stable</Badge>}
-        {lt(info?.liquidity.toFixed(0) ?? 0, 100000) && (
-          <Tooltip placement="right">
-            <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />
-            <Tooltip.Panel>
-              <div className="whitespace-pre">{lowLiquidityAlertText}</div>
-            </Tooltip.Panel>
-          </Tooltip>
-        )}
       </Row>
     </AutoBox>
   )
@@ -1011,5 +1019,29 @@ function TextInfoItem({ name, value }: { name: string; value?: any }) {
     </div>
   ) : (
     <div className="tablet:text-sm">{value || '--'}</div>
+  )
+}
+
+function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
+  const tokenListSettings = useToken((s) => s.tokenListSettings)
+
+  const otherLiquiditySupportedTokenMints = tokenListSettings['Other Liquidity Supported Token List'].mints
+  return token && otherLiquiditySupportedTokenMints?.has(toPubString(token.mint)) ? (
+    <Row className="items-center">
+      <div>{token?.symbol ?? 'UNKNOWN'}</div>
+      <div>
+        <Tooltip>
+          <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
+          <Tooltip.Panel>
+            <div className="max-w-[300px]">
+              This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
+              want to transact with.
+            </div>
+          </Tooltip.Panel>
+        </Tooltip>
+      </div>
+    </Row>
+  ) : (
+    <>{token?.symbol ?? 'UNKNOWN'}</>
   )
 }
