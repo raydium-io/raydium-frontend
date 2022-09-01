@@ -1026,7 +1026,11 @@ function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
   const tokenListSettings = useToken((s) => s.tokenListSettings)
 
   const otherLiquiditySupportedTokenMints = tokenListSettings['Other Liquidity Supported Token List'].mints
-  return token && otherLiquiditySupportedTokenMints?.has(toPubString(token.mint)) ? (
+  const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
+
+  return token &&
+    (otherLiquiditySupportedTokenMints?.has(toPubString(token.mint)) ||
+      unnamedTokenMints?.has(toPubString(token.mint))) ? (
     <Row className="items-center">
       <div>{token?.symbol ?? 'UNKNOWN'}</div>
       <div>
