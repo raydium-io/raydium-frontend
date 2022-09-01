@@ -45,7 +45,7 @@ export function useCalcVisiablePoints(
     svgInnerWidth,
     zoom,
     offsetVX,
-    sideScreenCount = 3
+    sideScreenCount = 2
   }: { svgInnerWidth: number; zoom: number; offsetVX: number; sideScreenCount?: number }
 ) {
   /** to avoid too small point (ETH-RAY may have point {x: 0.00021, y: 0.0003}) */
@@ -60,7 +60,7 @@ export function useCalcVisiablePoints(
     return { dataZoomX, dataZoomY, zoomedPoints, diffX }
   }, points)
   const [sideMinVX, sideMaxVX] = [
-    offsetVX - (sideScreenCount - 1) * (svgInnerWidth / zoom),
+    offsetVX - Math.max(sideScreenCount - 1, 0) * (svgInnerWidth / zoom),
     offsetVX + (sideScreenCount + 1) * (svgInnerWidth / zoom)
   ]
   const filteredZoomedPoints = useMemo(

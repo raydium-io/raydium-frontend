@@ -17,23 +17,11 @@ export function TestMovableDiv({ className }: { className?: string }) {
         testRectRef2.current?.style.setProperty('transform', `translate3d(${totalDelta.dx}px, ${totalDelta.dy}px, 0px)`)
       }
     })
-    // testRectRef2.current.addEventListener('touchmove', (ev) => {
-    //   window.requestAnimationFrame(() => {
-    //     testRectRef2.current?.style.setProperty(
-    //       'transform',
-    //       `translate(${ev.touches[0].clientX}px, ${ev.touches[0].clientY}px)`
-    //     )
-    //     // testRectRef2.current?.style.setProperty('left', `${ev.touches[0].clientX}px`)
-    //     // testRectRef2.current?.style.setProperty('top', `${ev.touches[0].clientY}px`)
-    //   })
-    //   ev.preventDefault()
-    //   ev.stopPropagation()
-    // })
     return cancel
   }, [])
   return (
     <div
-      className={twMerge('m-8 w-12 h-12 bg-blue-100 cursor-grab cube  touch-none', className)}
+      className={twMerge('m-8 w-12 h-12 bg-blue-100 cursor-grab cube will-change-transform touch-none', className)}
       ref={testRectRef2}
     ></div>
   )

@@ -54,6 +54,7 @@ exports.cyberpunkBgLight = plugin(({ addUtilities }) => {
         '&::before': {
           content: "''",
           position: 'absolute',
+          willChange: 'transform',
           top: '-15px',
           right: '-35px',
           bottom: '-15px',
@@ -75,6 +76,7 @@ exports.cyberpunkBgLight = plugin(({ addUtilities }) => {
           right: '-35px',
           bottom: '-15px',
           left: '-35px',
+          willChange: 'transform',
           zIndex: '-1',
           pointerEvents: 'none',
           background:
@@ -93,6 +95,7 @@ exports.cyberpunkBgLight = plugin(({ addUtilities }) => {
           width: '442px',
           height: '442px',
           transform: 'translate(-50%, -50%)',
+          willChange: 'transform',
           zIndex: '-1',
           pointerEvents: 'none',
           background:
@@ -112,6 +115,7 @@ exports.cyberpunkBgLight = plugin(({ addUtilities }) => {
           width: '620px',
           height: '620px',
           transform: 'translate(-50%, -50%)',
+          willChange: 'transform',
           zIndex: '-1',
           pointerEvents: 'none',
           background:
@@ -137,6 +141,7 @@ exports.cyberpunkBgLight = plugin(({ addUtilities }) => {
             background:
               'linear-gradient(221.5deg, #DA2EEF 16.15%, rgba(218, 46, 239, 0) 84.46%), radial-gradient(53.22% 53.22% at 93.67% 75.22%, rgba(218, 46, 239, 0.5) 0%, rgba(57, 208, 216, 0.5) 55.21%, rgba(84, 44, 238, 0.5) 100%), radial-gradient(63.44% 63.44% at 42.78% 105%, #39D0D8 0%, #542CEE 100%)',
             backgroundBlendMode: 'lighten, color-burn, normal',
+            willChange: 'transform',
             filter: 'blur(133px)',
             opacity: '.25'
           }

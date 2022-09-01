@@ -79,6 +79,7 @@ export function attachPointerMove<El extends Element>(el: El, options: AttachPoi
       const totalDeltaY = ev.clientY - eventStart.clientY
       const haveNoExistPointMove = eventsQueue.every(({ type }) => type !== 'pointerMove')
       eventsQueue.push({ ev, type: 'pointerMove' })
+      // don't callback too frequent
       options.move?.({
         el: ev.target as El,
         ev,
