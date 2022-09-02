@@ -31,7 +31,7 @@ function WalletSelectorPanelItem({
   showBadge: boolean
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const { select } = useWallet()
+  const { select, adapter } = useWallet()
   const { logInfo } = useNotification()
 
   return (
@@ -93,7 +93,12 @@ function WalletSelectorPanelItem({
             </div>
           )
         } else {
-          select(wallet.adapter.name)
+          wallet.adapter
+            .connect()
+            .then(() => {
+              select(wallet.adapter.name)
+            })
+            .catch((err) => {})
           onClick?.()
         }
       }}
