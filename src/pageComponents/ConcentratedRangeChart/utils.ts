@@ -45,35 +45,39 @@ export function useCalcVisiablePoints(
     svgInnerWidth,
     zoomVX,
     offsetVX,
-    sideHiddenScreenCount = 2
+    sideHiddenScreenCount = 1
   }: { svgInnerWidth: number; zoomVX: number; offsetVX: number; sideHiddenScreenCount?: number }
 ) {
   /** to avoid too small point (ETH-RAY may have point {x: 0.00021, y: 0.0003}) */
-  const { dataZoomX, dataZoomY, zoomedPoints, diffX } = useMemo(() => {
+  const { dataZoomX, dataZoomY, dataZoomedPoints, diffX } = useMemo(() => {
     const diffX = points.length > 1 ? points[1].x - points[0].x : 999 // TEST
     const dataZoomX = 1 / diffX
     const diffY = 0.00006 // TEST
     const dataZoomY = 1 / diffY
-    const zoomedPoints = points.map(
+    const dataZoomedPoints = points.map(
       (p) => ({ vx: p.x * dataZoomX, vy: p.y * dataZoomY, originalDataPoint: p } as ZoomedChartPoint)
     )
-    return { dataZoomX, dataZoomY, zoomedPoints, diffX }
+    return { dataZoomX, dataZoomY, dataZoomedPoints, diffX }
   }, points)
-  const [sideMinVX, sideMaxVX] = [
-    offsetVX - Math.max(sideHiddenScreenCount - 1, 0) * (svgInnerWidth / zoomVX),
-    offsetVX + (sideHiddenScreenCount + 1) * (svgInnerWidth / zoomVX)
+  const screenWidthVX = svgInnerWidth / zoomVX
+  const [minVX, maxVX] = [
+    offsetVX - Math.max(sideHiddenScreenCount, 0) * screenWidthVX,
+    offsetVX + (sideHiddenScreenCount + 1) * screenWidthVX
   ]
+  // console.log('offsetVX: ', offsetVX, zoomVX, screenWidthVX, [minVX, maxVX])
 
   const filteredZoomedOptimizedPoints = useMemo(() => {
-    const needRenderedPoints = zoomedPoints.filter((p) => sideMinVX < p.vx && p.vx < sideMaxVX)
-    return optimizePoints(needRenderedPoints, zoomVX)
-  }, [sideMinVX, sideMaxVX, zoomVX])
+    const needRenderedPoints = dataZoomedPoints.filter((p) => minVX < p.vx && p.vx < maxVX)
+
+    const optimized = optimizePoints(needRenderedPoints, zoomVX)
+    return optimized
+  }, [minVX, maxVX, zoomVX])
 
   const polygonPoints = useMemo(
     () => polygonChartPoints(filteredZoomedOptimizedPoints),
     [filteredZoomedOptimizedPoints]
   )
-  return { filteredZoomedOptimizedPoints, polygonPoints, dataZoomX, dataZoomY, zoomedPoints, diffX }
+  return { filteredZoomedOptimizedPoints, polygonPoints, dataZoomX, dataZoomY, dataZoomedPoints, diffX }
 }
 
 type UnitXAxis = {
@@ -108,16 +112,12 @@ function optimizePoints(points: ZoomedChartPoint[], zoomVX: number): ZoomedChart
 
   const firstPoint = points[0]
   const lastPoint = points[points.length - 1]
-  const optimizedPoints: ZoomedChartPoint[] = []
-  let idx = 0
-  for (let groupI = Math.floor(firstPoint.vx); groupI <= Math.floor(lastPoint.vx); groupI++) {
-    const groupBucket: ZoomedChartPoint[] = []
-    while (points[idx] && Math.floor(points[idx].vx / zoomVX) === groupI) {
-      groupBucket.push(points[idx])
-      idx++
-    }
-    const mediumPoint = groupBucket[Math.floor(groupBucket.length / 2)]
-    mediumPoint && optimizedPoints.push(mediumPoint)
+  const optimizedPointCount = Math.ceil(points.length * zoomVX)
+  const optimizedPointWidth = (lastPoint.vx - firstPoint.vx) / optimizedPointCount
+  const groupBuckets = Array.from({ length: optimizedPointCount + 2 }, (_) => [] as ZoomedChartPoint[])
+  for (const item of points) {
+    groupBuckets[Math.floor(item.vx / optimizedPointWidth)].push(item)
   }
+  const optimizedPoints = groupBuckets.filter((i) => i.length > 0).map((i) => i[Math.floor(i.length / 2)])
   return optimizedPoints
 }
