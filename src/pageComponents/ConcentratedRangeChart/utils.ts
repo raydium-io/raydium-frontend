@@ -106,9 +106,9 @@ export function genXAxisUnit(options: { dataZoom: number; viewZoom: number; from
  * get rid of unnecessary points if there is too much points
  */
 function optimizePoints(points: ZoomedChartPoint[], zoomVX: number): ZoomedChartPoint[] {
-  const tooFew = points.length < 2
-  const tooLittleView = zoomVX >= 1
-  if (tooFew || tooLittleView) return points
+  const tooFewPoints = points.length < 2
+  const tooBigZoom = zoomVX >= 1
+  if (tooFewPoints || tooBigZoom) return points
 
   const firstPoint = points[0]
   const lastPoint = points[points.length - 1]
