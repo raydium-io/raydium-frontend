@@ -104,7 +104,7 @@ function WalletSelectorPanelItem({
         {detected && !isMobile && (
           <Badge
             className={` mobile:text-2xs  text-white ${
-              showBadge ? 'opacity-80' : 'opacity-0'
+              showBadge ? 'opacity-80' : 'hidden'
             } mix-blend-soft-light transition`}
           >
             detected
