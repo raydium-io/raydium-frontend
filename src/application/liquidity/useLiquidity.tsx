@@ -2,25 +2,16 @@ import { LiquidityPoolJsonInfo as LiquidityJsonInfo, PublicKeyish } from '@raydi
 
 import create from 'zustand'
 
-import toPubString from '@/functions/format/toMintString'
+import toPubString, { toPub } from '@/functions/format/toMintString'
 import { gte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 
-import { toDataMint, WSOLMint } from '../token/quantumSOL'
+import { toDataMint } from '../token/quantumSOL'
 import { SplToken } from '../token/type'
-import {
-  ETHMint,
-  mSOLMint,
-  PAIMint,
-  RAYMint,
-  stSOLMint,
-  USDCMint,
-  USDHMint,
-  USDTMint
-} from '../token/wellknownToken.config'
 
 import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
 import { HydratedLiquidityInfo, SDKParsedLiquidityInfo } from './type'
+import { getRouteRelated } from './getRouteRelated'
 
 export type LiquidityStore = {
   // too tedius
@@ -129,24 +120,8 @@ const useLiquidity = create<LiquidityStore>((set, get) => ({
     )
 
     /** swap's route transaction middle token  */
-    const routeMiddleMints = [
-      USDCMint,
-      RAYMint,
-      WSOLMint,
-      mSOLMint,
-      PAIMint,
-      stSOLMint,
-      USDHMint,
-      USDTMint,
-      ETHMint
-    ].map(toPubString)
-    const candidateTokenMints = routeMiddleMints.concat([mint1, mint2])
-    const onlyRouteMints = routeMiddleMints.filter((routeMint) => ![mint1, mint2].includes(routeMint))
-    const routeRelated = get().jsonInfos.filter((info) => {
-      const isCandidate = candidateTokenMints.includes(info.baseMint) && candidateTokenMints.includes(info.quoteMint)
-      const onlyInRoute = onlyRouteMints.includes(info.baseMint) && onlyRouteMints.includes(info.quoteMint)
-      return isCandidate && !onlyInRoute
-    })
+    const onlyRoutes = getRouteRelated(get().jsonInfos, mint1, mint2)
+    const routeRelated = availables.concat(onlyRoutes)
 
     const best = await (async () => {
       if (availables.length === 0) return undefined
