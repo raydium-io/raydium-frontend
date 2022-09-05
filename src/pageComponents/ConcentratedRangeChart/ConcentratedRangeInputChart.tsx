@@ -23,7 +23,7 @@ export function ConcentratedRangeInputChart({
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
   const [minPrice, setMinPrice] = useState(0.8)
-  const [maxPrice, setMaxPrice] = useState(1.2)
+  const [maxPrice, setMaxPrice] = useState(100)
   const concentratedChartBodyRef = useRef<ConcentratedRangeInputChartBodyComponentHandler>(null)
   return (
     <Col className={twMerge('py-4', className)}>

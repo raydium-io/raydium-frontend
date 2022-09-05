@@ -105,7 +105,7 @@ function optimizePoints(points: ZoomedChartPoint[], zoomVX: number): ZoomedChart
   const optimizedPointWidth = (lastPoint.vx - firstPoint.vx) / optimizedPointCount
   const groupBuckets = Array.from({ length: optimizedPointCount + 2 }, (_) => [] as ZoomedChartPoint[])
   for (const item of points) {
-    groupBuckets[Math.floor(item.vx / optimizedPointWidth)].push(item)
+    groupBuckets[Math.floor(item.vx / optimizedPointWidth)]?.push(item)
   }
   const optimizedPoints = groupBuckets.filter((i) => i.length > 0).map((i) => i[Math.floor(i.length / 2)])
   return optimizedPoints

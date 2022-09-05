@@ -207,9 +207,10 @@ export function ConcentratedRangeInputChartBody({
   /** x is between aPoint and bPoint */
   const getNearestZoomedPointByVX = (x: number) => {
     const bIndex = dataZoomedPoints.findIndex((p) => p.vx > x)
-    if (!bIndex || bIndex === 0) return
+    if (bIndex < 0) return dataZoomedPoints[dataZoomedPoints.length - 1]
+    if (bIndex === 0) return dataZoomedPoints[0]
     const b = dataZoomedPoints[bIndex]
-    const a = dataZoomedPoints[bIndex - 1]
+    const a = dataZoomedPoints[Math.max(bIndex - 1, 0)]
     const diffB = Math.abs(b.vx - x)
     const diffA = Math.abs(a.vx - x)
     return diffB <= diffA ? b : a
