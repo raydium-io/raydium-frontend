@@ -9,18 +9,7 @@ export type ZoomedChartPoint = {
 
 function polygonChartPoints(points: ZoomedChartPoint[]): ZoomedChartPoint[] {
   if (!points.length) return []
-  if (points.length === 1)
-    return points.flatMap((p) => [
-      p,
-      {
-        ...p,
-        vy: p.vy,
-        vx: p.vx * 2
-      }
-    ])
-
-  /** used in last point */
-  const intervalDistance = points[1].vx - points[0].vx
+  const intervalDistance = points.length === 1 ? 1 /* casually */ : points[1].vx - points[0].vx
   const getSqared = (points: ZoomedChartPoint[]) =>
     points.flatMap((p, idx, points) => [
       p,
@@ -33,7 +22,7 @@ function polygonChartPoints(points: ZoomedChartPoint[]): ZoomedChartPoint[] {
     ])
   const appandHeadTailZero = (points: ZoomedChartPoint[]) => {
     const firstPoint = points[0]
-    const lastPoint = points[points.length - 1]
+    const lastPoint = points[Math.max(points.length - 1, 0)]
     return [{ ...firstPoint, vx: firstPoint.vx, vy: 0 }, ...points, { ...lastPoint, xv: lastPoint.vx, vy: 0 }]
   }
   return appandHeadTailZero(getSqared(points))

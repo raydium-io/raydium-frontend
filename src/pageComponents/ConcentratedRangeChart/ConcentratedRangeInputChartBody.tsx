@@ -5,6 +5,7 @@ import {
   AttachPointerMovePointUpFn
 } from '@/functions/dom/gesture/pointerMove'
 import { isNumber } from '@/functions/judgers/dateType'
+import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useEvent } from '@/hooks/useEvent'
 import useResizeObserver from '@/hooks/useResizeObserver'
 import { useSignalState } from '@/hooks/useSignalState'
@@ -85,12 +86,15 @@ export function ConcentratedRangeInputChartBody({
     offsetVX
   })
   const accurateDecimalLength = Math.max(String(diffX).length - 2, 0) // TODO this algorithm is very rough
-  const units = genXAxisUnit({
-    dataZoom: dataZoomX,
-    viewZoom: zoom,
-    fromDataX: filteredZoomedPoints[0].originalDataPoint.x,
-    toDataX: filteredZoomedPoints[filteredZoomedPoints.length - 1].originalDataPoint.x
-  })
+
+  const units = filteredZoomedPoints.length
+    ? genXAxisUnit({
+        dataZoom: dataZoomX,
+        viewZoom: zoom,
+        fromDataX: filteredZoomedPoints[0].originalDataPoint.x,
+        toDataX: filteredZoomedPoints[Math.max(filteredZoomedPoints.length - 1, 0)].originalDataPoint.x
+      })
+    : []
   //#endregion
 
   const wrapperRef = useRef<SVGSVGElement>(null)
