@@ -6,13 +6,10 @@ import { jsonInfo2PoolKeys, Liquidity, LiquidityPoolJsonInfo as LiquidityJsonInf
 
 import { SDKParsedLiquidityInfo } from './type'
 
-let refreshFlag = 1
-
-const cache = new Map<number, Record<LiquidityJsonInfo['id'], SDKParsedLiquidityInfo>>()
+const cache = new Map<LiquidityJsonInfo['id'], SDKParsedLiquidityInfo>()
 
 export function cleanCachedLiquidityInfo() {
-  cache.delete(refreshFlag)
-  refreshFlag += 1
+  cache.clear()
 }
 
 export default async function sdkParseJsonLiquidityInfo(
@@ -21,7 +18,7 @@ export default async function sdkParseJsonLiquidityInfo(
 ): Promise<SDKParsedLiquidityInfo[]> {
   if (!connection) return []
   if (!liquidityJsonInfos.length) return [] // no jsonInfo
-  const allCachedSDKLiquidityInfos = shakeUndifindedItem(liquidityJsonInfos.map((i) => cache.get(refreshFlag)?.[i.id]))
+  const allCachedSDKLiquidityInfos = shakeUndifindedItem(liquidityJsonInfos.map((i) => cache.get(i.id)))
   const allCachedSDKLiquidityInfosMap = listToMap(allCachedSDKLiquidityInfos, (i) => toPubString(i.id))
   const allCachedIDs = allCachedSDKLiquidityInfos.map((i) => toPubString(i.id))
   const allNeedSDKParsedLiquidityInfos = liquidityJsonInfos.filter((jsonInfo) => !allCachedIDs.includes(jsonInfo.id))
@@ -39,7 +36,11 @@ export default async function sdkParseJsonLiquidityInfo(
     ...sdkParsed
   }))
   const sdkParsedMap = listToMap(sdkParsed, (i) => toPubString(i.id))
-  cache.set(refreshFlag, { ...cache.get(refreshFlag), ...sdkParsedMap })
+  if (sdkParsed.length) {
+    sdkParsed.forEach((i) => {
+      cache.set(toPubString(i.id), i)
+    })
+  }
   const merged = { ...allCachedSDKLiquidityInfosMap, ...sdkParsedMap }
   return liquidityJsonInfos.map((jsonInfo) => merged[jsonInfo.id])
 }
