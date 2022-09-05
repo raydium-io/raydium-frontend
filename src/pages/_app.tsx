@@ -7,8 +7,15 @@ import { PublicKey } from '@solana/web3.js'
 import NextNProgress from 'nextjs-progressbar'
 
 import {
-  useDefaultExplorerSyncer, useDeviceInfoSyc, useDisclaimerDataSyncer, useGetSlotCountForSecond, useRpcPerformance,
-  useSentryConfigurator, useSlippageTolerenceSyncer, useSlippageTolerenceValidator, useThemeModeSync
+  useDefaultExplorerSyncer,
+  useDeviceInfoSyc,
+  useDisclaimerDataSyncer,
+  useGetSlotCountForSecond,
+  useRpcPerformance,
+  useSentryConfigurator,
+  useSlippageTolerenceSyncer,
+  useSlippageTolerenceValidator,
+  useThemeModeSync
 } from '@/application/appSettings/initializationHooks'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
@@ -48,6 +55,7 @@ import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionD
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 
 import '../styles/index.css'
+import useAutoCleanLiquidityInfoCache from '@/application/liquidity/useAutoCleanLiquidityInfoCache'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -162,6 +170,7 @@ function ApplicationsInitializations() {
 
   /* ----- load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo) ----- */
   useLiquidityInfoLoader()
+  useAutoCleanLiquidityInfoCache()
 
   /********************** pair Info (pools) **********************/
   usePoolsInfoLoader()

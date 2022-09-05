@@ -218,20 +218,26 @@ async function calculatePairTokenAmount({
     .findLiquidityInfoByTokenMint(upCoin.mint, downCoin.mint)
 
   if (jsonInfos.length) {
+    // console.time(1)
     const key = jsonInfos.map((jsonInfo) => jsonInfo.id).join('-')
     const sdkParsedInfos = sdkParsedInfoCache.has(key)
       ? sdkParsedInfoCache.get(key)!
       : await (async () => {
+          // console.log('33: ', 33)
           const sdkParsed = await sdkParseJsonLiquidityInfo(jsonInfos, connection)
           sdkParsedInfoCache.set(key, sdkParsed)
           return sdkParsed
         })()
+    // console.timeEnd(1)
 
+    // console.time('get pool')
     const pools = jsonInfos.map((jsonInfo, idx) => ({
       poolKeys: jsonInfo2PoolKeys(jsonInfo),
       poolInfo: sdkParsedInfos[idx]
     }))
+    // console.timeEnd('get pool')
 
+    // console.time('Trade.getBestAmountOut')
     const { amountOut, minAmountOut, executionPrice, currentPrice, priceImpact, routes, routeType, fee } =
       Trade.getBestAmountOut({
         pools,
@@ -239,7 +245,9 @@ async function calculatePairTokenAmount({
         amountIn: deUITokenAmount(upCoinTokenAmount),
         slippage: toPercent(slippageTolerance)
       })
+    // console.timeEnd('Trade.getBestAmountOut')
 
+    // console.time(2)
     const sdkParsedInfoMap = new Map(sdkParsedInfos.map((info) => [toPubString(info.id), info]))
     const choosedSdkParsedInfos = shakeUndifindedItem(
       routes.map((route) => sdkParsedInfoMap.get(toPubString(route.keys.id)))
@@ -251,6 +259,7 @@ async function calculatePairTokenAmount({
       : true
     const canFindPools = checkTokenPairCanSwap(useLiquidity.getState().jsonInfos, upCoin.mint, downCoin.mint)
     const priceImpactIsZeroofZero = priceImpact.denominator.eq(ZERO) && priceImpact.numerator.eq(ZERO)
+    // console.timeEnd(2)
     return {
       executionPrice,
       currentPrice,

@@ -9,7 +9,14 @@ import { div } from '@/functions/numberish/operations'
 import { toDataMint, WSOLMint } from '../token/quantumSOL'
 import { SplToken } from '../token/type'
 import {
-  ETHMint, mSOLMint, PAIMint, RAYMint, stSOLMint, USDCMint, USDHMint, USDTMint
+  ETHMint,
+  mSOLMint,
+  PAIMint,
+  RAYMint,
+  stSOLMint,
+  USDCMint,
+  USDHMint,
+  USDTMint
 } from '../token/wellknownToken.config'
 
 import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
@@ -113,8 +120,8 @@ const useLiquidity = create<LiquidityStore>((set, get) => ({
     const coin2Mint = toDataMint(coin2Mintlike)
 
     if (!coin1Mint || !coin2Mint) return { availables: [], best: undefined, routeRelated: [] }
-    const mint1 = String(coin1Mint)
-    const mint2 = String(coin2Mint)
+    const mint1 = toPubString(coin1Mint)
+    const mint2 = toPubString(coin2Mint)
 
     const availables = get().jsonInfos.filter(
       (info) =>
