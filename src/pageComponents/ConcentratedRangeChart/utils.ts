@@ -57,7 +57,6 @@ export function useCalcVisiablePoints(
 
   const filteredZoomedOptimizedPoints = useMemo(() => {
     const needRenderedPoints = dataZoomedPoints.filter((p) => minVX < p.vx && p.vx < maxVX)
-
     const optimized = optimizePoints(needRenderedPoints, zoomVX)
     return optimized
   }, [minVX, maxVX, zoomVX])
@@ -98,14 +97,15 @@ function optimizePoints(points: ZoomedChartPoint[], zoomVX: number): ZoomedChart
   const tooFewPoints = points.length < 2
   const tooBigZoom = zoomVX >= 1
   if (tooFewPoints || tooBigZoom) return points
-
   const firstPoint = points[0]
   const lastPoint = points[points.length - 1]
   const optimizedPointCount = Math.ceil(points.length * zoomVX)
   const optimizedPointWidth = (lastPoint.vx - firstPoint.vx) / optimizedPointCount
-  const groupBuckets = Array.from({ length: optimizedPointCount + 2 }, (_) => [] as ZoomedChartPoint[])
+  const firstFormatPoint = Math.floor(firstPoint.vx / optimizedPointWidth)
+  const lastFormatPoint = Math.ceil(lastPoint.vx / optimizedPointWidth)
+  const groupBuckets = Array.from({ length: lastFormatPoint - firstFormatPoint + 1 }, (_) => [] as ZoomedChartPoint[])
   for (const item of points) {
-    groupBuckets[Math.floor(item.vx / optimizedPointWidth)]?.push(item)
+    groupBuckets[Math.floor(item.vx / optimizedPointWidth) - firstFormatPoint].push(item)
   }
   const optimizedPoints = groupBuckets.filter((i) => i.length > 0).map((i) => i[Math.floor(i.length / 2)])
   return optimizedPoints
