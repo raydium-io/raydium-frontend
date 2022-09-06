@@ -1,4 +1,4 @@
-import React, { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { RouteInfo } from '@raydium-io/raydium-sdk'
 
@@ -9,7 +9,7 @@ import useNotification from '@/application/notification/useNotification'
 import { routeTo } from '@/application/routeTools'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
-import txUnwrapAllWSOL, { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
+import { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
 import txWrapSOL from '@/application/swap/txWrapSOL'
 import { useSwap } from '@/application/swap/useSwap'
 import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
@@ -18,10 +18,9 @@ import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
   isQuantumSOLVersionSOL,
   isQuantumSOLVersionWSOL,
-  SOL_BASE_BALANCE,
   SOLDecimals,
-  toUITokenAmount,
-  WSOLMint
+  SOL_BASE_BALANCE,
+  toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -31,7 +30,6 @@ import { AddressItem } from '@/components/AddressItem'
 import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
-import { Checkbox } from '@/components/Checkbox'
 import CoinAvatar from '@/components/CoinAvatar'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
@@ -40,20 +38,18 @@ import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import FadeInStable, { FadeIn } from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
-import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
-import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
-import copyToClipboard from '@/functions/dom/copyToClipboard'
+import { addItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { eq, gte, isMeaningfulNumber, isMeaninglessNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
