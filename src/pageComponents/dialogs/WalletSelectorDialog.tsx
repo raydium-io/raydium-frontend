@@ -31,7 +31,7 @@ function WalletSelectorPanelItem({
   showBadge: boolean
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const { select } = useWallet()
+  const { select, adapter } = useWallet()
   const { logInfo } = useNotification()
 
   return (
@@ -93,7 +93,12 @@ function WalletSelectorPanelItem({
             </div>
           )
         } else {
-          select(wallet.adapter.name)
+          wallet.adapter
+            .connect()
+            .then(() => {
+              select(wallet.adapter.name)
+            })
+            .catch((err) => {})
           onClick?.()
         }
       }}
@@ -104,7 +109,7 @@ function WalletSelectorPanelItem({
         {detected && !isMobile && (
           <Badge
             className={` mobile:text-2xs  text-white ${
-              showBadge ? 'opacity-80' : 'opacity-0'
+              showBadge ? 'opacity-80' : 'hidden'
             } mix-blend-soft-light transition`}
           >
             detected

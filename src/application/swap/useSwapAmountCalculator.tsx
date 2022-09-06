@@ -76,6 +76,8 @@ export function useSwapAmountCalculator() {
     const inputIsSolWSOL = isMintEqual(coin1, coin2) && isMintEqual(coin1, WSOL.mint)
     if (inputIsSolWSOL) {
       if (eq(userCoin1Amount, userCoin2Amount)) return
+      const { isApprovePanelShown } = useAppSettings.getState()
+      if (isApprovePanelShown) return // !don't refresh when approve shown
       useSwap.setState({
         fee: undefined,
         minReceived: undefined,
@@ -139,6 +141,8 @@ export function useSwapAmountCalculator() {
         const { routes, priceImpact, executionPrice, currentPrice, swapable, routeType, fee, canFindPools } =
           calcResult ?? {}
         const { amountIn, maxAmountIn } = (calcResult?.info ?? {}) as { amountIn?: string; maxAmountIn?: string }
+        const { isApprovePanelShown } = useAppSettings.getState()
+        if (isApprovePanelShown) return // !don't refresh when approve shown
         useSwap.setState({
           fee,
           routes,
