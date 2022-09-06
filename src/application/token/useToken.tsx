@@ -1,10 +1,13 @@
 import { Price, PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
 import produce from 'immer'
 import create from 'zustand'
 
 import { addItem, removeItem, shakeUndifindedItem } from '@/functions/arrayMethods'
+import { setLocalItem } from '@/functions/dom/jStorage'
 import toPubString from '@/functions/format/toMintString'
+import { omit } from '@/functions/objectMethods'
 import { HexAddress, SrcAddress } from '@/types/constants'
 
 import useWallet from '../wallet/useWallet'
@@ -73,6 +76,7 @@ export type TokenStore = {
   allSelectableTokens: SplToken[]
   addUserAddedToken(token: SplToken): void
   deleteUserAddedToken(token: SplToken): void
+  editUserAddedToken(tokenInfo: { symbol: string; name: string }, mint: PublicKey): void
   tokenListSettings: {
     [N in SupportedTokenListSettingName]: {
       mints?: Set<HexAddress> // TODO
@@ -149,6 +153,10 @@ export const useToken = create<TokenStore>((set, get) => ({
           s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set<string>(),
           toPubString(token.mint)
         )
+        setLocalItem(
+          'TOKEN_LIST_USER_ADDED_TOKENS',
+          Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
+        )
       })
     )
   },
@@ -159,6 +167,22 @@ export const useToken = create<TokenStore>((set, get) => ({
         draft.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints = removeItem(
           s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set<string>(),
           toPubString(token.mint)
+        )
+        setLocalItem(
+          'TOKEN_LIST_USER_ADDED_TOKENS',
+          Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
+        )
+      })
+    )
+  },
+  editUserAddedToken: (tokenInfo: { symbol: string; name: string }, mint: PublicKey) => {
+    set((s) =>
+      produce(s, (draft) => {
+        draft.userAddedTokens[toPubString(mint)].symbol = tokenInfo.symbol
+        draft.userAddedTokens[toPubString(mint)].name = tokenInfo.name
+        setLocalItem(
+          'TOKEN_LIST_USER_ADDED_TOKENS',
+          Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
         )
       })
     )

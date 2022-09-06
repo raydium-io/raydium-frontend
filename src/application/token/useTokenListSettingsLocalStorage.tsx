@@ -1,14 +1,16 @@
 import { useEffect } from 'react'
 
-import { getLocalItem, setLocalItem } from '@/functions/dom/jStorage'
+import { SplTokenJsonInfo } from '@raydium-io/raydium-sdk'
 
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { getLocalItem, setLocalItem } from '@/functions/dom/jStorage'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
-import { objectMap, omit } from '@/functions/objectMethods'
+import { objectMap } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
-import { SplTokenJsonInfo } from '@raydium-io/raydium-sdk'
+
 import useConnection from '../connection/useConnection'
+
 import { getTokenFromLocalStorage } from './getTokenFromLocalStorage'
 import { SOLANA_TOKEN_LIST_NAME, USER_ADDED_TOKEN_LIST_NAME, useToken } from './useToken'
 
@@ -53,19 +55,6 @@ export default function useTokenListSettingsLocalStorage() {
   }, [connection])
 
   const tokenListSettings = useToken((s) => s.tokenListSettings)
-  // whenever tokenListSettings changed, save it to localStorage
-  const userAddedTokens = useToken((s) => s.userAddedTokens)
-  const tokens = useToken((s) => s.tokens)
-  useEffect(() => {
-    if (!connection) return
-    const tokenMints = Object.keys(tokens)
-    setLocalItem(
-      'TOKEN_LIST_USER_ADDED_TOKENS',
-      Object.values(userAddedTokens)
-        .filter((t) => !tokenMints.includes(toPubString(t.mint))) // delete already in token list's old user added token
-        .map((t) => omit(t, 'decimals'))
-    ) // add token / remove token
-  }, [connection, userAddedTokens, tokens])
 
   useEffect(() => {
     setLocalItem(

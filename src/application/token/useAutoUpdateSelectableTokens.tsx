@@ -1,7 +1,7 @@
-import useWallet from '@/application/wallet/useWallet'
-import { unifyByKey } from '@/functions/arrayMethods'
-import toPubString from '@/functions/format/toMintString'
 import { useMemo } from 'react'
+
+import useWallet from '@/application/wallet/useWallet'
+import toPubString from '@/functions/format/toMintString'
 
 import useToken, { USER_ADDED_TOKEN_LIST_NAME } from './useToken'
 
