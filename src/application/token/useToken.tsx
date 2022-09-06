@@ -179,7 +179,7 @@ export const useToken = create<TokenStore>((set, get) => ({
     set((s) =>
       produce(s, (draft) => {
         draft.userAddedTokens[toPubString(mint)].symbol = tokenInfo.symbol
-        draft.userAddedTokens[toPubString(mint)].name = tokenInfo.name
+        draft.userAddedTokens[toPubString(mint)].name = tokenInfo.name ? tokenInfo.name : tokenInfo.symbol
         setLocalItem(
           'TOKEN_LIST_USER_ADDED_TOKENS',
           Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))

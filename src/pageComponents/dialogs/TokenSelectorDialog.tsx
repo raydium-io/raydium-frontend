@@ -320,17 +320,11 @@ function TokenSelectorDialogContent({
                   onUserInput={(e) => {
                     setUserCustomizedTokenInfo((prev) => ({ ...prev, symbol: e }))
                   }}
-                  onEnter={(e) => {
-                    recordUserAddedToken(userCustomizedTokenInfo)
-                  }}
                 />
                 <InputBox
                   label="input a name for this token (optional)"
                   onUserInput={(e) => {
                     setUserCustomizedTokenInfo((prev) => ({ ...prev, name: e }))
-                  }}
-                  onEnter={(e) => {
-                    recordUserAddedToken(userCustomizedTokenInfo)
                   }}
                 />
                 <Button
@@ -347,7 +341,7 @@ function TokenSelectorDialogContent({
                         children: 'Connect Wallet'
                       }
                     },
-                    { should: userCustomizedTokenInfo }
+                    { should: userCustomizedTokenInfo.symbol }
                   ]}
                 >
                   Add User Token
@@ -463,7 +457,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                   children: 'Connect Wallet'
                 }
               },
-              { should: userCustomizedTokenInfo }
+              { should: userCustomizedTokenInfo.symbol }
             ]}
           >
             Confirm
