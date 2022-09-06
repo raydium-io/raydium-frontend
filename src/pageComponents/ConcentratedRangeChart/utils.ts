@@ -1,3 +1,4 @@
+import { minus } from '@/functions/numberish/operations'
 import { useMemo } from 'react'
 import { ChartPoint } from './ConcentratedRangeInputChartBody'
 
@@ -47,7 +48,7 @@ export function useCalcVisiablePoints(
       (p) => ({ vx: p.x * dataZoomX, vy: p.y * dataZoomY, originalDataPoint: p } as ZoomedChartPoint)
     )
     return { dataZoomX, dataZoomY, dataZoomedPoints, diffX }
-  }, points)
+  }, [points])
   const screenWidthVX = svgInnerWidth / zoomVX
   const [minVX, maxVX] = [
     offsetVX - Math.max(sideHiddenScreenCount, 0) * screenWidthVX,

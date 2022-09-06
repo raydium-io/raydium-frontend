@@ -12,7 +12,7 @@ import {
   ConcentratedRangeInputChartBody
 } from './ConcentratedRangeInputChartBody'
 
-const mokeChartData = Array.from({ length: 50000 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
+// Temp const mokeChartData = Array.from({ length: 50000 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
 export function ConcentratedRangeInputChart({
   className,
   chartOptions
@@ -71,7 +71,6 @@ export function ConcentratedRangeInputChart({
         initMinBoundaryX={minPrice}
         initMaxBoundaryX={maxPrice}
         componentRef={concentratedChartBodyRef}
-        points={mokeChartData}
         className="my-2"
         onChangeMinBoundary={(nearestPoint) => {
           setMinPrice(nearestPoint.x)

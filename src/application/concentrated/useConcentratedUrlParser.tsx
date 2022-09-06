@@ -23,7 +23,7 @@ export default function useConcentratedUrlParser() {
   const concentratedCoin2Amount = useConcentrated((s) => s.coin2Amount)
   const concentratedFocusSide = useConcentrated((s) => s.focusSide)
   const LiquidityPoolJsonInfos = useConcentrated((s) => s.jsonInfos)
-  const concentratedAmmId = useConcentrated((s) => s.ammId)
+  const concentratedAmmId = useConcentrated((s) => s.currentAmmPool)
   const isRemoveDialogOpen = useConcentrated((s) => s.isRemoveDialogOpen)
 
   const findConcentratedInfoByAmmId = useCallback(
@@ -108,7 +108,7 @@ export default function useConcentratedUrlParser() {
       if (matchedConcentratedJsonInfo) {
         useConcentrated.setState({
           currentJsonInfo: matchedConcentratedJsonInfo,
-          ammId: matchedConcentratedJsonInfo.id
+          currentAmmPool: matchedConcentratedJsonInfo.id
         })
       } else if (urlAmmId) {
         // may be just haven't load LiquidityPoolJsonInfos yet

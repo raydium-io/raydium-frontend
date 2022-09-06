@@ -33,6 +33,10 @@ import useToggle from '@/hooks/useToggle'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
+import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
+import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
+import { ApiAmmPoint } from 'test-r-sdk'
+import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -54,11 +58,8 @@ export default function Concentrated() {
 }
 
 function ConcentratedEffect() {
-  // useLiquidityUrlParser()
-  // useLiquidityInitCoinFiller()
-  // useLiquidityAmmSelector()
-  //  auto fresh  liquidity's coin1Amount and coin2Amount
-  // useLiquidityAmountCalculator()
+  useConcentratedInfoLoader()
+  useConcentratedAmmSelector()
   return null
 }
 
@@ -79,6 +80,7 @@ function ConcentratedPageHead() {
 }
 
 function ConcentratedCard() {
+  const chartPoints = useConcentrated((s) => s.chartPoints)
   const { connected, owner } = useWallet()
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
@@ -218,8 +220,12 @@ function ConcentratedCard() {
       {/* <FadeIn>{hasFoundLiquidityPool && coin1 && coin2 && <ConcentratedFeeSwitcher className="mt-5" />}</FadeIn> */}
 
       <ConcentratedFeeSwitcher className="mt-12" />
-
-      <ConcentratedRangeInputChart className="mt-5" />
+      <ConcentratedRangeInputChart
+        className="mt-5"
+        chartOptions={{
+          points: chartPoints ? toXYChartFormat(chartPoints) : undefined
+        }}
+      />
 
       {/* supply button */}
       <Button
@@ -553,4 +559,11 @@ function LiquidityCardTooltipPanelAddressItem({
       </AddressItem>
     </Row>
   )
+}
+
+function toXYChartFormat(points: ApiAmmPoint[]): ChartPoint[] {
+  return points.map(({ liquidity, price }) => ({
+    x: Number(price),
+    y: Number(liquidity)
+  }))
 }

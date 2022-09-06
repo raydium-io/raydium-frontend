@@ -1,9 +1,10 @@
-import create from 'zustand'
 import { LiquidityPoolJsonInfo as ConcentratedJsonInfo, PublicKeyish } from '@raydium-io/raydium-sdk'
+import create from 'zustand'
 
 import toPubString from '@/functions/format/toMintString'
 import { gte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
+import { AmmPoolInfo, ApiAmmPoolInfo, ApiAmmPoint } from 'test-r-sdk'
 import { toDataMint, WSOLMint } from '../token/quantumSOL'
 import { SplToken } from '../token/type'
 import {
@@ -19,14 +20,19 @@ import {
 import sdkParseJsonConcentratedInfo from './sdkParseJsonConcentratedInfo'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo } from './type'
 
-export type ConcentratedStore = {
-  // too tedius
-  // /** start with `query` means temp info (may be it will be abandon by data parse)*/
-  // queryCoin1Mint?: string
-  // queryCoin2Mint?: string
-  // queryAmmId?: string
-  // queryMode?: 'removeConcentrated'
+type SDKParsedAmmPool = {
+  state: AmmPoolInfo
+}
 
+type SDKParsedAmmPoolsMap = Record<string, SDKParsedAmmPool>
+
+export type ConcentratedStore = {
+  apiAmmPools: ApiAmmPoolInfo[]
+  sdkParsedAmmPools: SDKParsedAmmPoolsMap
+  currentAmmPool?: SDKParsedAmmPool
+  /** user need manually select one */
+  selectableAmmPools?: SDKParsedAmmPool[]
+  chartPoints?: ApiAmmPoint[]
   /********************** caches (at least includes exhibition's data) **********************/
   /**
    *  pure data (just string, number, boolean, undefined, null)
@@ -64,8 +70,6 @@ export type ConcentratedStore = {
 
   searchText: string
 
-  ammId: string | undefined
-
   coin1: SplToken | undefined
 
   /** with slippage */
@@ -91,8 +95,10 @@ export type ConcentratedStore = {
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
 const useConcentrated = create<ConcentratedStore>((set, get) => ({
-  /********************** caches (at least includes exhibition's data) **********************/
+  apiAmmPools: [],
+  sdkParsedAmmPools: {},
 
+  /********************** caches (at least includes exhibition's data) **********************/
   /**
    *  pure data (just string, number, boolean, undefined, null)
    */
@@ -171,8 +177,6 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   currentJsonInfo: undefined,
   currentSdkParsedInfo: undefined, // auto parse info in {@link useConcentratedAuto}
   currentHydratedInfo: undefined, // auto parse info in {@link useConcentratedAuto}
-
-  ammId: '',
 
   coin1: undefined,
 

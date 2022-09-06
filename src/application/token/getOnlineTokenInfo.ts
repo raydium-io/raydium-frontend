@@ -8,7 +8,7 @@ import useConnection from '../connection/useConnection'
  */
 export async function getOnlineTokenInfo(mintish: PublicKeyish) {
   try {
-    const { connection } = useConnection.getState()
+    const { testConnection: connection } = useConnection.getState() // TEST devnet
     if (!connection) return
     const tokenAccount = await connection.getAccountInfo(toPub(mintish))
     if (!tokenAccount) return

@@ -5,7 +5,6 @@ import {
   AttachPointerMovePointUpFn
 } from '@/functions/dom/gesture/pointerMove'
 import { isNumber } from '@/functions/judgers/dateType'
-import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useEvent } from '@/hooks/useEvent'
 import useResizeObserver from '@/hooks/useResizeObserver'
 import { useSignalState } from '@/hooks/useSignalState'
@@ -31,7 +30,7 @@ export interface ConcentratedRangeInputChartBodyComponentHandler {
 
 export type ChartRangeInputOption = {
   className?: string
-  points: ChartPoint[]
+  points?: ChartPoint[]
   /**
    * because ChartRangeInput is through math is through JS Number \
    * it may cause tiny decimal like 3.000000000000000000001 \
@@ -80,7 +79,7 @@ export function ConcentratedRangeInputChartBody({
     dataZoomedPoints,
     dataZoomX,
     diffX
-  } = useCalcVisiablePoints(points, {
+  } = useCalcVisiablePoints(points ?? [], {
     svgInnerWidth,
     zoomVX: zoom,
     offsetVX

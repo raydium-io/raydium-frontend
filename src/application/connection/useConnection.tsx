@@ -23,6 +23,7 @@ export interface ConnectionError {
 
 export type ConnectionStore = {
   connection: Connection | undefined
+  testConnection: Connection
   version?: string | number
 
   availableEndPoints: Endpoint[]
@@ -67,6 +68,7 @@ export const SESSION_STORAGE_USER_SELECTED_RPC = 'user-selected-rpc'
 /** zustand store hooks */
 const useConnection = create<ConnectionStore>((set, get) => ({
   connection: undefined,
+  testConnection: new Connection('https://api.devnet.solana.com/'),
 
   availableEndPoints: [],
 
