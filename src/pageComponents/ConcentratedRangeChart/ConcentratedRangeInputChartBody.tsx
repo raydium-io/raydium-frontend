@@ -53,8 +53,8 @@ export function ConcentratedRangeInputChartBody({
   className,
   points,
   careDecimalLength = 6,
-  initMinBoundaryX,
-  initMaxBoundaryX,
+  initMinBoundaryX: inputInitMinBoundaryX = 0,
+  initMaxBoundaryX: inputInitMaxBoundaryX = 0,
   componentRef,
   onChangeMinBoundary,
   onChangeMaxBoundary
@@ -100,10 +100,20 @@ export function ConcentratedRangeInputChartBody({
   const minBoundaryRef = useRef<SVGUseElement>(null)
   const maxBoundaryRef = useRef<SVGUseElement>(null)
 
+  const clampToAvailable = (inputBoundaryDX: number) =>
+    points?.length ? Math.max(Math.min(inputBoundaryDX, points[points.length - 1].x), points[0].x) : 0
+  const initMinBoundaryX = clampToAvailable(inputInitMinBoundaryX)
+  const initMaxBoundaryX = clampToAvailable(inputInitMaxBoundaryX)
+
   const [minBoundaryVX, setMinBoundaryVX] = useState((initMinBoundaryX ?? 0) * dataZoomX)
   const [maxBoundaryVX, setMaxBoundaryVX] = useState(
     (initMaxBoundaryX ?? svgInnerWidth) * dataZoomX - boundaryLineWidth
   )
+
+  useEffect(() => {
+    setMinBoundaryVX(initMinBoundaryX * dataZoomX)
+    setMaxBoundaryVX((initMaxBoundaryX ?? svgInnerWidth) * dataZoomX)
+  }, [dataZoomX])
 
   //#region ------------------- handle min boundaryLine -------------------
   const handleGrabMinBoundary: AttachPointerMovePointMoveFn<SVGUseElement> = useEvent(({ totalDelta }): void => {
@@ -171,13 +181,13 @@ export function ConcentratedRangeInputChartBody({
   //#endregion
 
   //#region ------------------- methods -------------------
-  const shrinkToView = (forceSvgWidth = svgInnerWidth) => {
+  const shrinkToView = useEvent((svgWidth = svgInnerWidth) => {
     const diff = Math.abs(maxBoundaryVX - minBoundaryVX)
-    const newZoom = forceSvgWidth / (diff * 1.2)
-    const newOffsetX = minBoundaryVX - (forceSvgWidth / newZoom - diff) / 2
+    const newZoom = svgWidth / diff
+    const newOffsetX = minBoundaryVX
     setZoom(newZoom)
     setOffsetVX(newOffsetX)
-  }
+  })
 
   const zoomIn = useEvent(((options) => {
     const newZoom = zoom * Math.min(1 + 0.1 * (options?.degree ?? 1), 6)
@@ -276,7 +286,6 @@ export function ConcentratedRangeInputChartBody({
   })
 
   const trimUnnecessaryDecimal = (n: number, careDecimalLength: number) => Number(n.toFixed(careDecimalLength))
-
   return (
     <svg
       ref={wrapperRef}
@@ -369,28 +378,34 @@ export function ConcentratedRangeInputChartBody({
       <polygon
         className="pointer-events-none"
         points={polygonPoints
-          .map((p) => `${p.vx.toFixed(0)},${(svgInnerHeight - p.vy - xAxisAboveBottom).toFixed(0)}`)
+          .map(
+            (p) =>
+              `${p.vx.toFixed(polygonPoints.length > 100 ? 1 : 3)},${(
+                (svgInnerHeight - xAxisAboveBottom) *
+                (1 - p.vy)
+              ).toFixed(polygonPoints.length > 100 ? 1 : 3)}`
+          )
           .join(' ')}
         fill={lineColor}
       />
 
       {/* min boundary */}
-      <use
+      {/* <use
         href="#min-boundary-brush"
         style={{ touchAction: 'none' }}
         ref={minBoundaryRef}
         x={Math.max(minBoundaryVX, 0)}
         y={0}
-      />
+      /> */}
 
       {/* max boundary */}
-      <use
+      {/* <use
         href="#max-boundary-brush"
         style={{ touchAction: 'none' }}
         ref={maxBoundaryRef}
         x={Math.max(maxBoundaryVX, 0)}
         y={0}
-      />
+      /> */}
 
       {/* x axis line */}
       <line

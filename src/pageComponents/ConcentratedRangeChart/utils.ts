@@ -40,9 +40,14 @@ export function useCalcVisiablePoints(
 ) {
   /** to avoid too small point (ETH-RAY may have point {x: 0.00021, y: 0.0003}) */
   const { dataZoomX, dataZoomY, dataZoomedPoints, diffX } = useMemo(() => {
-    const diffX = points.length > 1 ? points[1].x - points[0].x : 999 // TEST
+    const diffX =
+      points.length > 1
+        ? points[1].x - points[0].x
+        : points.length === 1
+        ? points[0].x - 0 // TEST
+        : 1
     const dataZoomX = 1 / diffX
-    const diffY = 0.00006 // TEST
+    const diffY = Math.max(...points.map((co) => co.y))
     const dataZoomY = 1 / diffY
     const dataZoomedPoints = points.map(
       (p) => ({ vx: p.x * dataZoomX, vy: p.y * dataZoomY, originalDataPoint: p } as ZoomedChartPoint)
@@ -51,7 +56,7 @@ export function useCalcVisiablePoints(
   }, [points])
   const screenWidthVX = svgInnerWidth / zoomVX
   const [minVX, maxVX] = [
-    offsetVX - Math.max(sideHiddenScreenCount, 0) * screenWidthVX,
+    offsetVX - sideHiddenScreenCount * screenWidthVX,
     offsetVX + (sideHiddenScreenCount + 1) * screenWidthVX
   ]
   // console.log('offsetVX: ', offsetVX, zoomVX, screenWidthVX, [minVX, maxVX])
