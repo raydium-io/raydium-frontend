@@ -37,6 +37,8 @@ import useConcentratedInfoLoader from '@/application/concentrated/useConcentrate
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import { ApiAmmPoint } from 'test-r-sdk'
 import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
+import { decimalToFraction } from '@/functions/format/handleDecimal'
+import toPubString from '@/functions/format/toMintString'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -120,6 +122,7 @@ function ConcentratedCard() {
     )
 
   const cardRef = useRef<HTMLDivElement>(null)
+  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
 
   useEffect(() => {
     useConcentrated.setState({
@@ -225,6 +228,8 @@ function ConcentratedCard() {
         chartOptions={{
           points: chartPoints ? toXYChartFormat(chartPoints) : undefined
         }}
+        currentPrice={decimalToFraction(currentAmmPool?.state.currentPrice)}
+        poolId={toPubString(currentAmmPool?.state.id)}
       />
 
       {/* supply button */}

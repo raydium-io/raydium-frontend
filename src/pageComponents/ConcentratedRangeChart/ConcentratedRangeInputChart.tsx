@@ -4,27 +4,40 @@ import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
-import { useRef, useState } from 'react'
+import { mul } from '@/functions/numberish/operations'
+import { toString } from '@/functions/numberish/toString'
+import { trimUnnecessaryDecimal } from '@/functions/numberish/trimUnnecessaryDecimal'
+import { useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
+import { Fraction } from 'test-r-sdk'
 import {
-  ConcentratedRangeInputChartBodyComponentHandler,
   ChartRangeInputOption,
-  ConcentratedRangeInputChartBody
+  ConcentratedRangeInputChartBody,
+  ConcentratedRangeInputChartBodyComponentHandler
 } from './ConcentratedRangeInputChartBody'
 
 // Temp const mokeChartData = Array.from({ length: 50000 }, (_, i) => ({ x: i * 0.01, y: 0.01 * Math.random() }))
 export function ConcentratedRangeInputChart({
+  poolId,
   className,
-  chartOptions
+  chartOptions,
+  currentPrice
 }: {
+  poolId?: string
   className?: string
   chartOptions?: ChartRangeInputOption
+  currentPrice?: Fraction
 }) {
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
-  const [minPrice, setMinPrice] = useState(0.9)
-  const [maxPrice, setMaxPrice] = useState(1.0020019011404842)
+  const [minPrice, setMinPrice] = useState(currentPrice ? Number(toString(mul(currentPrice, 1 - 0.5))) : 0)
+  const [maxPrice, setMaxPrice] = useState(currentPrice ? Number(toString(mul(currentPrice, 1 + 0.5))) : 0)
+  useEffect(() => {
+    setMinPrice(currentPrice ? Number(toString(mul(currentPrice, 1 - 0.5))) : 0)
+    setMaxPrice(currentPrice ? Number(toString(mul(currentPrice, 1 + 0.5))) : 0)
+  }, [poolId])
   const concentratedChartBodyRef = useRef<ConcentratedRangeInputChartBodyComponentHandler>(null)
+  const careDecimalLength = 6 // TEMP
   return (
     <Col className={twMerge('py-4', className)}>
       <Row className="justify-between items-center">
@@ -42,7 +55,7 @@ export function ConcentratedRangeInputChart({
           )}
           <Row className="gap-2">
             <Icon
-              className="saturate-50 brightness-125"
+              className="saturate-50 brightness-125 hidden" // TEMP
               iconSrc="/icons/chart-add-white-space.svg"
               onClick={() => {
                 concentratedChartBodyRef.current?.shrinkToView()
@@ -70,13 +83,15 @@ export function ConcentratedRangeInputChart({
       <ConcentratedRangeInputChartBody
         initMinBoundaryX={minPrice}
         initMaxBoundaryX={maxPrice}
+        careDecimalLength={careDecimalLength}
+        anchorX={currentPrice ? Number(currentPrice?.toSignificant(12 /* write casually */)) : 0}
         componentRef={concentratedChartBodyRef}
         className="my-2"
-        onChangeMinBoundary={(nearestPoint) => {
-          setMinPrice(nearestPoint.x)
+        onChangeMinBoundary={({ dataX }) => {
+          setMinPrice(trimUnnecessaryDecimal(dataX, careDecimalLength))
         }}
-        onChangeMaxBoundary={(nearestPoint) => {
-          setMaxPrice(nearestPoint.x)
+        onChangeMaxBoundary={({ dataX }) => {
+          setMaxPrice(trimUnnecessaryDecimal(dataX, careDecimalLength))
         }}
         {...chartOptions}
       />

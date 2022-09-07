@@ -10,6 +10,7 @@ import useResizeObserver from '@/hooks/useResizeObserver'
 import { useSignalState } from '@/hooks/useSignalState'
 import { RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
+import { trimUnnecessaryDecimal } from '../../functions/numberish/trimUnnecessaryDecimal'
 import { genXAxisUnit, useCalcVisiablePoints } from './utils'
 
 export type ChartPoint = {
@@ -39,9 +40,10 @@ export type ChartRangeInputOption = {
   careDecimalLength?: number
   initMinBoundaryX?: number
   initMaxBoundaryX?: number
+  anchorX?: number
   componentRef?: RefObject<any>
-  onChangeMinBoundary?: (nearestDataPoint: ChartPoint) => void
-  onChangeMaxBoundary?: (nearestDataPoint: ChartPoint) => void
+  onChangeMaxBoundary?: (utility: { nearestDataPoint: ChartPoint; dataX: number }) => void
+  onChangeMinBoundary?: (utility: { nearestDataPoint: ChartPoint; dataX: number }) => void
 }
 
 /**
@@ -55,6 +57,7 @@ export function ConcentratedRangeInputChartBody({
   careDecimalLength = 6,
   initMinBoundaryX: inputInitMinBoundaryX = 0,
   initMaxBoundaryX: inputInitMaxBoundaryX = 0,
+  anchorX,
   componentRef,
   onChangeMinBoundary,
   onChangeMaxBoundary
@@ -63,6 +66,7 @@ export function ConcentratedRangeInputChartBody({
   const lineColor = '#abc4ff80'
   const minBoundaryLineColor = '#abc4ff'
   const maxBoundaryLineColor = '#abc4ff'
+  const anchorLineColor = '#abc4ff'
   const xAxisColor = '#abc4ff80'
   const xAxisUnitColor = xAxisColor
   const [svgInnerWidth, setSvgInnerWidth, svgInnerWidthSignal] = useSignalState(300)
@@ -72,7 +76,7 @@ export function ConcentratedRangeInputChartBody({
   const [zoom, setZoom] = useState(1)
   const [offsetVX, setOffsetVX] = useState(0)
   const boundaryLineWidth = 6
-  const minDistanceOfMinBoundaryAndMaxBoundary = 0 // user may have very very little diff
+  const minGapBetweenMinBoundaryAndMaxBoundary = 0 // user may have very very little diff
   const {
     polygonPoints,
     filteredZoomedOptimizedPoints: filteredZoomedPoints,
@@ -100,11 +104,9 @@ export function ConcentratedRangeInputChartBody({
   const minBoundaryRef = useRef<SVGUseElement>(null)
   const maxBoundaryRef = useRef<SVGUseElement>(null)
 
-  const clampToAvailable = (inputBoundaryDX: number) =>
-    points?.length ? Math.max(Math.min(inputBoundaryDX, points[points.length - 1].x), points[0].x) : 0
-  const initMinBoundaryX = clampToAvailable(inputInitMinBoundaryX)
-  const initMaxBoundaryX = clampToAvailable(inputInitMaxBoundaryX)
-
+  const initMinBoundaryX = inputInitMinBoundaryX
+  const initMaxBoundaryX = inputInitMaxBoundaryX
+  const anchorVX = anchorX ? anchorX * dataZoomX : 0
   const [minBoundaryVX, setMinBoundaryVX] = useState((initMinBoundaryX ?? 0) * dataZoomX)
   const [maxBoundaryVX, setMaxBoundaryVX] = useState(
     (initMaxBoundaryX ?? svgInnerWidth) * dataZoomX - boundaryLineWidth
@@ -168,9 +170,6 @@ export function ConcentratedRangeInputChartBody({
   //#endregion
 
   //#region ------------------- handle zooming wrapper -------------------
-  const handleZoomWrapper: HandleMouseWheelOnWheel<SVGSVGElement> = useEvent(({ el, totalDelta }) => {
-    el.setAttribute('viewBox', `${offsetVX - totalDelta.dx / zoom} 0 ${svgInnerWidth / zoom} ${svgInnerHeight}`)
-  })
   useEffect(() => {
     if (!wrapperRef.current) return
     const { cancel } = handleMouseWheel(wrapperRef.current, {
@@ -182,11 +181,14 @@ export function ConcentratedRangeInputChartBody({
 
   //#region ------------------- methods -------------------
   const shrinkToView = useEvent((svgWidth = svgInnerWidth) => {
-    const diff = Math.abs(maxBoundaryVX - minBoundaryVX)
-    const newZoom = svgWidth / diff
-    const newOffsetX = minBoundaryVX
+    const newZoom = svgWidth / (minBoundaryVX + maxBoundaryVX)
+    const newOffsetX = 0
     setZoom(newZoom)
     setOffsetVX(newOffsetX)
+  })
+
+  const backCenter = useEvent((zoomVX = zoom) => {
+    // TODO let anchor back to center
   })
 
   const zoomIn = useEvent(((options) => {
@@ -227,7 +229,7 @@ export function ConcentratedRangeInputChartBody({
 
   const moveMinBoundaryVX: ConcentratedRangeInputChartBodyComponentHandler['moveMinBoundaryVX'] = (options) => {
     const clampVX = (newVX: number) =>
-      Math.min(Math.max(newVX, 0), maxBoundaryVX - minDistanceOfMinBoundaryAndMaxBoundary)
+      Math.min(Math.max(newVX, 0), maxBoundaryVX - minGapBetweenMinBoundaryAndMaxBoundary)
     const clampedVX = clampVX(options.forceOffsetFromZero ? options.offset : minBoundaryVX + options.offset)
     minBoundaryRef.current?.setAttribute('x', String(clampedVX))
     if (options.setReactState) {
@@ -235,8 +237,11 @@ export function ConcentratedRangeInputChartBody({
       const nearestPoint = getNearestZoomedPointByVX(clampedVX)
       nearestPoint &&
         onChangeMinBoundary?.({
-          x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x, careDecimalLength),
-          y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y, careDecimalLength)
+          nearestDataPoint: {
+            x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x, careDecimalLength),
+            y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y, careDecimalLength)
+          },
+          dataX: clampedVX / dataZoomX
         })
     }
   }
@@ -245,7 +250,7 @@ export function ConcentratedRangeInputChartBody({
     moveMinBoundaryVX({ forceOffsetFromZero: true, offset: dataX * dataZoomX, setReactState: true })
 
   const moveMaxBoundaryVX = (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => {
-    const clampVX = (newVX: number) => Math.max(newVX, minBoundaryVX + minDistanceOfMinBoundaryAndMaxBoundary)
+    const clampVX = (newVX: number) => Math.max(newVX, minBoundaryVX + minGapBetweenMinBoundaryAndMaxBoundary)
     const clampedVX = clampVX(options.forceOffsetFromZero ? options.offset : maxBoundaryVX + options.offset)
     maxBoundaryRef.current?.setAttribute('x', String(clampedVX))
     if (options.setReactState) {
@@ -253,8 +258,11 @@ export function ConcentratedRangeInputChartBody({
       const nearestPoint = getNearestZoomedPointByVX(clampedVX)
       nearestPoint &&
         onChangeMaxBoundary?.({
-          x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x, careDecimalLength),
-          y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y, careDecimalLength)
+          nearestDataPoint: {
+            x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x, careDecimalLength),
+            y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y, careDecimalLength)
+          },
+          dataX: clampedVX / dataZoomX
         })
     }
   }
@@ -285,7 +293,6 @@ export function ConcentratedRangeInputChartBody({
     }
   })
 
-  const trimUnnecessaryDecimal = (n: number, careDecimalLength: number) => Number(n.toFixed(careDecimalLength))
   return (
     <svg
       ref={wrapperRef}
@@ -389,23 +396,35 @@ export function ConcentratedRangeInputChartBody({
         fill={lineColor}
       />
 
+      {/* anchor line */}
+      {anchorVX && (
+        <line
+          x1={anchorVX}
+          y1={0}
+          x2={anchorVX}
+          y2={svgInnerHeight - xAxisAboveBottom}
+          stroke={anchorLineColor}
+          strokeWidth="2"
+        />
+      )}
+
       {/* min boundary */}
-      {/* <use
+      <use
         href="#min-boundary-brush"
         style={{ touchAction: 'none' }}
         ref={minBoundaryRef}
         x={Math.max(minBoundaryVX, 0)}
         y={0}
-      /> */}
+      />
 
       {/* max boundary */}
-      {/* <use
+      <use
         href="#max-boundary-brush"
         style={{ touchAction: 'none' }}
         ref={maxBoundaryRef}
         x={Math.max(maxBoundaryVX, 0)}
         y={0}
-      /> */}
+      />
 
       {/* x axis line */}
       <line
