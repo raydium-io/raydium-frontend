@@ -1,5 +1,6 @@
 import { TokenAmount } from '@raydium-io/raydium-sdk'
 
+import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import toUsdCurrency from '@/functions/format/toUsdCurrency'
@@ -15,6 +16,7 @@ export function hydratedPairInfo(
     lpToken?: LpToken
     lpBalance?: TokenAmount
     isStable?: boolean
+    userCustomTokenSymbol: { [x: string]: { symbol: string; name: string } }
   }
 ): HydratedPairItemInfo {
   const lp = payload.lpToken
@@ -32,16 +34,35 @@ export function hydratedPairInfo(
     { lpToken: lp, baseToken: base, quoteToken: quote, lpBalance }
   )
 
-  if (pair.name.includes('unknown')) {
-    const nameParts = pair.name.split('-')
-    if (nameParts[0] === 'unknown') {
-      nameParts[0] = base?.name?.substring(0, 6) ?? nameParts[0]
-    }
-    if (nameParts[1] === 'unknown') {
-      nameParts[1] = quote?.name?.substring(0, 6) ?? nameParts[1]
-    }
-    newPairName = nameParts.join('-')
+  // if (pair.name.includes('unknown')) {
+
+  // }
+
+  const nameParts = pair.name.split('-')
+  const basePubString = toPubString(base?.mint)
+  const quotePubString = toPubString(quote?.mint)
+
+  if (base && payload.userCustomTokenSymbol[basePubString]) {
+    base.symbol = payload.userCustomTokenSymbol[basePubString].symbol
+    base.name = payload.userCustomTokenSymbol[basePubString].name
+      ? payload.userCustomTokenSymbol[basePubString].name
+      : base.symbol
+    nameParts[0] = base.symbol
+  } else if (nameParts[0] === 'unknown') {
+    nameParts[0] = base?.symbol?.substring(0, 6) ?? nameParts[0]
   }
+
+  if (quote && payload.userCustomTokenSymbol[quotePubString]) {
+    quote.symbol = payload.userCustomTokenSymbol[quotePubString].symbol
+    quote.name = payload.userCustomTokenSymbol[quotePubString].name
+      ? payload.userCustomTokenSymbol[quotePubString].name
+      : quote.symbol
+    nameParts[1] = quote.symbol
+  } else if (nameParts[1] === 'unknown') {
+    nameParts[1] = quote?.symbol?.substring(0, 6) ?? nameParts[0]
+  }
+
+  newPairName = nameParts.join('-')
 
   return {
     ...pair,

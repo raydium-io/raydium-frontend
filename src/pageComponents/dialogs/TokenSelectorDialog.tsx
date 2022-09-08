@@ -360,6 +360,8 @@ function TokenSelectorDialogContent({
 }
 
 function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onClick?(): void }) {
+  const [showUpdateCustomSymbol, setShowUpdateCustomSymbol] = useState(false)
+
   const userFlaggedTokenMints = useToken((s) => s.userFlaggedTokenMints)
   const canFlaggedTokenMints = useToken((s) => s.canFlaggedTokenMints)
   const userAddedTokens = useToken((s) => s.userAddedTokens)
@@ -369,6 +371,9 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
   const editUserAddedToken = useToken((s) => s.editUserAddedToken)
   const getBalance = useWallet((s) => s.getBalance)
   const connected = useWallet((s) => s.connected)
+  const userCustomTokenSymbol = useToken((s) => s.userCustomTokenSymbol)
+  const updateUserCustomTokenSymbol = useToken((s) => s.updateUserCustomTokenSymbol)
+  const isCustomTokenSymbolName = Boolean(userCustomTokenSymbol[toPubString(token.mint)])
 
   const [showUpdateInfo, setShowUpdateInfo] = useState(false)
   const [userCustomizedTokenInfo, setUserCustomizedTokenInfo] = useState({
@@ -413,7 +418,6 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
               </div>
               <div
                 onClick={(ev) => {
-                  // deleteUserAddedToken(token)
                   setShowUpdateInfo((p) => !p)
                   ev.stopPropagation()
                 }}
@@ -422,6 +426,17 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                 [Edit Token]
               </div>
             </>
+          ) : null}
+          {isCustomTokenSymbolName ? (
+            <div
+              onClick={(ev) => {
+                setShowUpdateCustomSymbol((p) => !p)
+                ev.stopPropagation()
+              }}
+              className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+            >
+              [Edit Token]
+            </div>
           ) : null}
         </Row>
         <div className="text-sm text-[#ABC4FF] justify-self-end">{getBalance(token)?.toExact?.()}</div>
@@ -459,6 +474,34 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
               },
               { should: userCustomizedTokenInfo.symbol }
             ]}
+          >
+            Confirm
+          </Button>
+        </Col>
+      )}
+      {showUpdateCustomSymbol && (
+        <Col className="p-1  gap-4">
+          <InputBox
+            value={userCustomizedTokenInfo.symbol}
+            label="input a symbol for this token"
+            onUserInput={(e) => {
+              setUserCustomizedTokenInfo((prev) => ({ ...prev, symbol: e }))
+            }}
+          />
+          <InputBox
+            value={userCustomizedTokenInfo.name}
+            label="input a name for this token (optional)"
+            onUserInput={(e) => {
+              setUserCustomizedTokenInfo((prev) => ({ ...prev, name: e }))
+            }}
+          />
+          <Button
+            className="frosted-glass-teal"
+            onClick={() => {
+              updateUserCustomTokenSymbol(token, userCustomizedTokenInfo.symbol, userCustomizedTokenInfo.name)
+              setShowUpdateCustomSymbol(false)
+            }}
+            validators={[{ should: userCustomizedTokenInfo.symbol }]}
           >
             Confirm
           </Button>

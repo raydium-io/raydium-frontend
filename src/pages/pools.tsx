@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
@@ -19,17 +19,20 @@ import { Badge } from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
+import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
+import InputBox from '@/components/InputBox'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
 import LoadingCircleSmall from '@/components/LoadingCircleSmall'
 import PageLayout from '@/components/PageLayout'
 import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
+import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
@@ -1027,6 +1030,7 @@ function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
 
   const otherLiquiditySupportedTokenMints = tokenListSettings['Other Liquidity Supported Token List'].mints
   const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
+  const [showEditDialog, setShowEditDialog] = useState(false)
 
   return token &&
     (otherLiquiditySupportedTokenMints?.has(toPubString(token.mint)) ||
@@ -1039,13 +1043,91 @@ function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
           <Tooltip.Panel>
             <div className="max-w-[300px]">
               This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
-              want to transact with.
+              want to transact with.{' '}
+              <span
+                style={{ color: '#abc4ff', cursor: 'pointer' }}
+                onClick={() => {
+                  setShowEditDialog(true)
+                }}
+              >
+                [Edit token]
+              </span>
             </div>
           </Tooltip.Panel>
         </Tooltip>
       </div>
+      <EditTokenDialog
+        open={showEditDialog}
+        token={token}
+        onClose={() => {
+          setShowEditDialog(false)
+        }}
+      />
     </Row>
   ) : (
     <>{token?.symbol ?? 'UNKNOWN'}</>
+  )
+}
+
+function EditTokenDialog({ open, token, onClose }: { open: boolean; token: SplToken; onClose: () => void }) {
+  const { userCustomTokenSymbol, updateUserCustomTokenSymbol } = useToken()
+
+  // if we got custom symbol/name, use them, otherwise use token original symbol/name
+  const [newInfo, setNewInfo] = useState({
+    symbol: userCustomTokenSymbol[toPubString(token.mint)]
+      ? userCustomTokenSymbol[toPubString(token.mint)].symbol
+      : token.symbol,
+    name: userCustomTokenSymbol[toPubString(token.mint)]
+      ? userCustomTokenSymbol[toPubString(token.mint)].name
+      : token.name
+  })
+
+  return (
+    <ResponsiveDialogDrawer maskNoBlur placement="from-bottom" open={open} onClose={onClose}>
+      {({ close }) => (
+        <Card
+          className={twMerge(
+            `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)]`
+          )}
+          size="lg"
+          style={{
+            background:
+              'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
+            boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
+          }}
+        >
+          <Row className="justify-between items-center mb-6">
+            <div className="text-3xl font-semibold text-white">Update Token Info</div>
+            <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={close} />
+          </Row>
+          <Col className="p-1  gap-4">
+            <InputBox
+              value={newInfo.symbol}
+              label="input a symbol for this token"
+              onUserInput={(e) => {
+                setNewInfo((prev) => ({ ...prev, symbol: e }))
+              }}
+            />
+            <InputBox
+              value={newInfo.name}
+              label="input a name for this token (optional)"
+              onUserInput={(e) => {
+                setNewInfo((prev) => ({ ...prev, name: e }))
+              }}
+            />
+            <Button
+              className="frosted-glass-teal"
+              onClick={() => {
+                updateUserCustomTokenSymbol(token, newInfo.symbol ?? '', newInfo.name ?? '')
+                close()
+              }}
+              validators={[{ should: newInfo.symbol }]}
+            >
+              Confirm
+            </Button>
+          </Col>
+        </Card>
+      )}
+    </ResponsiveDialogDrawer>
   )
 }

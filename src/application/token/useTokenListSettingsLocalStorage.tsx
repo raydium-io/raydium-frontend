@@ -21,6 +21,8 @@ export default function useTokenListSettingsLocalStorage() {
   useAsyncEffect(async () => {
     const userAddedTokens = getLocalItem<SplTokenJsonInfo[]>('TOKEN_LIST_USER_ADDED_TOKENS') ?? []
     const tokenListSwitchSettings = getLocalItem<{ [mapName: string]: boolean }>('TOKEN_LIST_SWITCH_SETTINGS') ?? {}
+    const userCustomTokenSymbol =
+      getLocalItem<{ [x: string]: { symbol: string; name: string } }>('USER_CUSTOM_TOKEN_SYMBOL') ?? {}
 
     useToken.setState((s) => ({
       tokenListSettings: {
@@ -35,7 +37,8 @@ export default function useTokenListSettingsLocalStorage() {
           isOn:
             tokenListSwitchSettings[USER_ADDED_TOKEN_LIST_NAME] ?? s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].isOn
         }
-      }
+      },
+      userCustomTokenSymbol
     }))
 
     if (connection) {

@@ -88,6 +88,10 @@ export type TokenStore = {
   }
   refreshTokenCount: number
   refreshTokenPrice(): void
+
+  // for customize token symbol/name (rename feature for other liquidity pools' unknown token)
+  userCustomTokenSymbol: { [x: string]: { symbol: string; name: string } }
+  updateUserCustomTokenSymbol(token: SplToken, symbol: string, name: string): void
 }
 
 export const RAYDIUM_MAINNET_TOKEN_LIST_NAME_DEPRECATED = 'Raydium Mainnet Token List'
@@ -251,6 +255,22 @@ export const useToken = create<TokenStore>((set, get) => ({
   refreshTokenCount: 0,
   refreshTokenPrice() {
     set((s) => ({ refreshTokenCount: s.refreshTokenCount + 1 }))
+  },
+
+  userCustomTokenSymbol: {},
+  updateUserCustomTokenSymbol: (token: SplToken, symbol: string, name: string) => {
+    set((s) =>
+      produce(s, (draft) => {
+        draft.userCustomTokenSymbol = {
+          ...s.userCustomTokenSymbol,
+          [toPubString(token.mint)]: {
+            symbol: symbol,
+            name: name ? name : symbol
+          }
+        }
+        setLocalItem('USER_CUSTOM_TOKEN_SYMBOL', draft.userCustomTokenSymbol)
+      })
+    )
   }
 }))
 // TODO: useLocalStorge to record user's token list

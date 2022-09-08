@@ -34,6 +34,7 @@ export default function usePoolsInfoLoader() {
   const tokens = useToken((s) => s.tokens)
   const getLpToken = useToken((s) => s.getLpToken)
   const lpTokens = useToken((s) => s.lpTokens)
+  const userCustomTokenSymbol = useToken((s) => s.userCustomTokenSymbol)
   const balances = useWallet((s) => s.balances)
   const { pathname } = useRouter()
   const refreshCount = usePools((s) => s.refreshCount)
@@ -87,9 +88,10 @@ export default function usePoolsInfoLoader() {
         hydratedPairInfo(pair, {
           lpToken: getLpToken(pair.lpMint),
           lpBalance: balances[String(pair.lpMint)],
-          isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint)
+          isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
+          userCustomTokenSymbol: userCustomTokenSymbol
         })
     })
     usePools.setState({ hydratedInfos, loading: hydratedInfos.length === 0 })
-  }, [jsonInfos, getToken, balances, lpTokens, tokens, stableLiquidityJsonInfoLpMints])
+  }, [jsonInfos, getToken, balances, lpTokens, tokens, stableLiquidityJsonInfoLpMints, userCustomTokenSymbol])
 }
