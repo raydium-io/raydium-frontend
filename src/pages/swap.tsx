@@ -446,7 +446,7 @@ function SwapCard() {
               fallbackProps: { children: `Insufficient ${upCoin?.symbol ?? ''} balance` }
             },
             {
-              should: hasAcceptedPriceChange,
+              should: hasAcceptedPriceChange || isApprovePanelShown,
               fallbackProps: { children: `Accept price change` }
             },
             {
