@@ -545,6 +545,7 @@ function areSameToken(originToken: SplToken | undefined, newSelected: SplToken):
 
 function SwapPriceAcceptChip() {
   const { hasAcceptedPriceChange, setHasAcceptedPriceChange } = useSwapContextStore()
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
   const coin1Amount = useSwap((s) => s.coin1Amount)
@@ -617,7 +618,7 @@ function SwapPriceAcceptChip() {
 
   return (
     <FadeIn>
-      {bothHaveAmount && !hasAcceptedPriceChange && (
+      {bothHaveAmount && !hasAcceptedPriceChange && !isApprovePanelShown && (
         <Row className="mt-5 bg-[#141041] rounded-xl py-2 px-6 mobile:px-4 items-center justify-between">
           <Row className="text-sm font-medium text-[#ABC4FF] items-center ">
             Price updated
