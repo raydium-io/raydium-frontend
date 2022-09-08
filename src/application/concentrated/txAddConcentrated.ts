@@ -1,69 +1,54 @@
-import { jsonInfo2PoolKeys, Liquidity } from '@raydium-io/raydium-sdk'
-
-import { deUITokenAmount } from '@/application/token/quantumSOL'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { PublicKeyish } from '@/types/constants'
 
-import useConcentrated from './useConcentrated'
-import handleMultiTx from '@/application/txTools/handleMultiTx'
 import { loadTransaction } from '@/application/txTools/createTransaction'
+import {
+  decimalToFraction,
+  fractionToDecimal,
+  recursivelyDecimalToFraction
+} from '@/application/txTools/decimal2Fraction'
+import handleMultiTx from '@/application/txTools/handleMultiTx'
+import toFraction from '@/functions/numberish/toFraction'
+import { AmmV3 } from 'test-r-sdk'
+import useAppSettings from '../appSettings/useAppSettings'
+import useConnection from '../connection/useConnection'
+import useConcentrated from './useConcentrated'
 
 export default function txAddConcentrated({ ammId: targetAmmId }: { ammId?: PublicKeyish } = {}) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
-    const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
-    const {
-      coin1,
-      coin2,
-      coin1Amount,
-      coin2Amount,
-      focusSide,
-      jsonInfos,
-      currentJsonInfo,
-      unslippagedCoin1Amount,
-      unslippagedCoin2Amount
-    } = useConcentrated.getState()
+    const { currentAmmPool, priceLower, priceUpper, coin1, coin2, coin1Amount, coin2Amount, liquidity } =
+      useConcentrated.getState()
+    const { testConnection } = useConnection.getState()
+    const { tokenAccountRawInfos } = useWallet.getState()
 
-    const targetJsonInfo = targetAmmId
-      ? jsonInfos.find(({ id: ammId }) => ammId === String(targetAmmId))
-      : currentJsonInfo
+    const { slippageTolerance } = useAppSettings.getState()
+    assert(currentAmmPool, 'not seleted amm pool')
+    assert(testConnection, 'no connection')
+    assert(priceUpper, 'not set priceUpper')
+    assert(priceLower, 'not set priceLower')
+    assert(coin1, 'not set coin1')
+    assert(coin1Amount, 'not set coin1Amount')
+    assert(coin2, 'not set coin2')
+    assert(coin2Amount, 'not set coin2Amount')
+    assert(liquidity, 'not set liquidity')
 
-    assert(targetJsonInfo, `can't find concentrated pool`)
-    assert(coin1, 'select a coin in upper box')
-    assert(coin2, 'select a coin in lower box')
-    assert(String(coin1.mint) !== String(coin2.mint), 'should not select same mint ')
-    assert(coin1Amount && gt(coin1Amount, 0), 'should input coin1 amount larger than 0')
-    assert(coin2Amount && gt(coin2Amount, 0), 'should input coin2 amount larger than 0')
-
-    const coin1TokenAmount = toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })
-    const coin2TokenAmount = toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })
-
-    const unslippagedCoin1TokenAmount = toTokenAmount(coin1, unslippagedCoin1Amount ?? coin1Amount, {
-      alreadyDecimaled: true
-    })
-    const unslippagedCoin2TokenAmount = toTokenAmount(coin2, unslippagedCoin2Amount ?? coin2Amount, {
-      alreadyDecimaled: true
+    const { transaction, signers, address } = await AmmV3.makeOpenPositionTransaction({
+      connection: testConnection,
+      liquidity,
+      poolInfo: currentAmmPool.state,
+      ownerInfo: {
+        feePayer: owner,
+        wallet: owner,
+        tokenAccounts: tokenAccountRawInfos,
+        useSOLBalance: true
+      },
+      priceLower: fractionToDecimal(toFraction(priceLower)),
+      priceUpper: fractionToDecimal(toFraction(priceUpper)),
+      slippage: Number(toString(slippageTolerance))
     })
 
-    assert(
-      checkWalletHasEnoughBalance(focusSide === 'coin1' ? coin1TokenAmount : unslippagedCoin1TokenAmount),
-      `not enough ${coin1.symbol}`
-    )
-    assert(
-      checkWalletHasEnoughBalance(focusSide === 'coin2' ? coin2TokenAmount : unslippagedCoin2TokenAmount),
-      `not enough ${coin2.symbol}`
-    )
-    const { transaction, signers } = await Liquidity.makeAddLiquidityTransaction({
-      connection,
-      poolKeys: jsonInfo2PoolKeys(targetJsonInfo),
-      userKeys: { tokenAccounts: tokenAccountRawInfos, owner },
-      amountInA: deUITokenAmount(coin1TokenAmount),
-      amountInB: deUITokenAmount(coin2TokenAmount),
-      fixedSide: focusSide === 'coin1' ? 'a' : 'b'
-    })
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
         title: 'Add Concentrated',
@@ -71,4 +56,8 @@ export default function txAddConcentrated({ ammId: targetAmmId }: { ammId?: Publ
       }
     })
   })
+}
+
+export function getNearistDataPoint(info: Parameters<typeof AmmV3['getPriceAndTick']>[0]) {
+  return recursivelyDecimalToFraction(AmmV3.getPriceAndTick(info))
 }

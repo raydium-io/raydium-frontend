@@ -37,7 +37,7 @@ import useConcentratedInfoLoader from '@/application/concentrated/useConcentrate
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import { ApiAmmPoint } from 'test-r-sdk'
 import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
-import { decimalToFraction } from '@/functions/format/handleDecimal'
+import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import toPubString from '@/functions/format/toMintString'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
@@ -83,52 +83,27 @@ function ConcentratedPageHead() {
 
 function ConcentratedCard() {
   const chartPoints = useConcentrated((s) => s.chartPoints)
-  const { connected, owner } = useWallet()
+  const { connected } = useWallet()
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
 
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
 
-  const {
-    coin1,
-    coin1Amount,
-    unslippagedCoin1Amount,
-    coin2,
-    coin2Amount,
-    unslippagedCoin2Amount,
-    focusSide,
-    currentJsonInfo,
-    currentHydratedInfo,
-    isSearchAmmDialogOpen,
-    refreshConcentrated
-  } = useConcentrated()
+  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, isSearchAmmDialogOpen, refreshConcentrated } =
+    useConcentrated()
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
-  const hasFoundLiquidityPool = useMemo(() => Boolean(currentJsonInfo), [currentJsonInfo])
-  const hasHydratedLiquidityPool = useMemo(() => Boolean(currentHydratedInfo), [currentHydratedInfo])
 
   const haveEnoughCoin1 =
-    coin1 &&
-    checkWalletHasEnoughBalance(
-      toTokenAmount(coin1, focusSide === 'coin1' ? coin1Amount : unslippagedCoin1Amount, { alreadyDecimaled: true })
-    )
+    coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
   const haveEnoughCoin2 =
-    coin2 &&
-    checkWalletHasEnoughBalance(
-      toTokenAmount(coin2, focusSide === 'coin2' ? coin2Amount : unslippagedCoin2Amount, { alreadyDecimaled: true })
-    )
+    coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }))
 
   const cardRef = useRef<HTMLDivElement>(null)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
-
-  useEffect(() => {
-    useConcentrated.setState({
-      scrollToInputBox: () => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    })
-  }, [])
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   return (
@@ -144,7 +119,7 @@ function ConcentratedCard() {
           disabled={isApprovePanelShown}
           noDisableStyle
           componentRef={coinInputBox1ComponentRef}
-          value={focusSide === 'coin1' ? coin1Amount : unslippagedCoin1Amount}
+          value={toString(coin1Amount)}
           haveHalfButton
           haveCoinIcon
           showTokenSelectIcon
@@ -200,7 +175,7 @@ function ConcentratedCard() {
           componentRef={coinInputBox2ComponentRef}
           disabled={isApprovePanelShown}
           noDisableStyle
-          value={focusSide === 'coin2' ? coin2Amount : unslippagedCoin2Amount}
+          value={toString(coin2Amount)}
           haveHalfButton
           haveCoinIcon
           showTokenSelectIcon
@@ -220,7 +195,6 @@ function ConcentratedCard() {
           token={coin2}
         />
       </>
-      {/* <FadeIn>{hasFoundLiquidityPool && coin1 && coin2 && <ConcentratedFeeSwitcher className="mt-5" />}</FadeIn> */}
 
       <ConcentratedFeeSwitcher className="mt-12" />
       <ConcentratedRangeInputChart
@@ -238,10 +212,6 @@ function ConcentratedCard() {
         componentRef={liquidityButtonComponentRef}
         isLoading={isApprovePanelShown}
         validators={[
-          {
-            should: hasFoundLiquidityPool,
-            fallbackProps: { children: `Pool not found` }
-          },
           {
             should: connected,
             forceActive: true,
@@ -288,13 +258,13 @@ function ConcentratedCard() {
             useConcentrated.setState({ coin1: token })
             // delete other
             if (!canTokenPairBeSelected(token, coin2)) {
-              useConcentrated.setState({ coin2: undefined, coin2Amount: '', unslippagedCoin2Amount: '' })
+              useConcentrated.setState({ coin2: undefined, coin2Amount: undefined, coin2Tick: undefined })
             }
           } else {
             // delete other
             useConcentrated.setState({ coin2: token })
             if (!canTokenPairBeSelected(token, coin1)) {
-              useConcentrated.setState({ coin1: undefined, coin1Amount: '', unslippagedCoin1Amount: '' })
+              useConcentrated.setState({ coin1: undefined, coin1Amount: undefined, coin1Tick: undefined })
             }
           }
           turnOffCoinSelector()
@@ -338,107 +308,8 @@ function RemainSOLAlert() {
   )
 }
 
-function LiquidityCardPriceIndicator({ className }: { className?: string }) {
-  const [innerReversed, setInnerReversed] = useState(false)
-
-  const currentHydratedInfo = useConcentrated((s) => s.currentHydratedInfo)
-  const coin1 = useConcentrated((s) => s.coin1)
-  const coin2 = useConcentrated((s) => s.coin2)
-  const isMobile = useAppSettings((s) => s.isMobile)
-
-  const pooledBaseTokenAmount = currentHydratedInfo?.baseToken
-    ? toTokenAmount(currentHydratedInfo.baseToken, currentHydratedInfo.baseReserve)
-    : undefined
-  const pooledQuoteTokenAmount = currentHydratedInfo?.quoteToken
-    ? toTokenAmount(currentHydratedInfo.quoteToken, currentHydratedInfo.quoteReserve)
-    : undefined
-
-  const isCoin1Base = String(currentHydratedInfo?.baseMint) === String(coin1?.mint)
-  const [poolCoin1TokenAmount, poolCoin2TokenAmount] = isCoin1Base
-    ? [pooledBaseTokenAmount, pooledQuoteTokenAmount]
-    : [pooledQuoteTokenAmount, pooledBaseTokenAmount]
-
-  const price =
-    isMeaningfulNumber(poolCoin1TokenAmount) && poolCoin2TokenAmount
-      ? div(poolCoin2TokenAmount, poolCoin1TokenAmount)
-      : undefined
-
-  const innerPriceLeftCoin = innerReversed ? coin2 : coin1
-  const innerPriceRightCoin = innerReversed ? coin1 : coin2
-
-  const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
-
-  if (!price) return null
-  if (isStable) {
-    // UI for stable pair
-    return (
-      <Row className={twMerge('font-medium text-sm mobile:text-xs text-[#ABC4FF]', className)}>
-        <div className="flex justify-start align-middle">
-          <div className="flex justify-start m-auto text-2xl mobile:text-lg align-middle pb-1">{'{'}&nbsp;</div>
-          <div className="min-w-[108px] mobile:min-w-[60px]">
-            <Row className="flex w-full justify-between">
-              <span>{1}</span>
-              <span>&nbsp;{innerPriceLeftCoin?.symbol ?? '--'}</span>
-            </Row>
-            <Row className="flex w-full justify-between">
-              <span>
-                {toString(innerReversed ? div(1, price) : price, {
-                  decimalLength: isMobile ? 'auto 2' : 'auto 5',
-                  zeroDecimalNotAuto: true
-                })}
-              </span>
-              <span>&nbsp;{innerPriceRightCoin?.symbol ?? '--'}</span>
-            </Row>
-          </div>
-        </div>
-        <div className="ml-2 rotate-90 m-auto">
-          <div className="clickable" onClick={() => setInnerReversed((b) => !b)}>
-            ⇋
-          </div>
-        </div>
-      </Row>
-    )
-  } else {
-    // UI for non-stable pair
-    return (
-      <Row className={twMerge('font-medium text-sm text-[#ABC4FF]', className)}>
-        {1} {innerPriceLeftCoin?.symbol ?? '--'} ≈{' '}
-        {toString(innerReversed ? div(1, price) : price, {
-          decimalLength: isMobile ? 'auto 2' : 'auto',
-          zeroDecimalNotAuto: true
-        })}{' '}
-        {innerPriceRightCoin?.symbol ?? '--'}
-        <div className="ml-2 clickable" onClick={() => setInnerReversed((b) => !b)}>
-          ⇋
-        </div>
-      </Row>
-    )
-  }
-}
-
 function ConcentratedFeeSwitcher({ className }: { className?: string }) {
-  const currentHydratedInfo = useConcentrated((s) => s.currentHydratedInfo)
-  const coin1 = useConcentrated((s) => s.coin1)
-  const coin2 = useConcentrated((s) => s.coin2)
-  const focusSide = useConcentrated((s) => s.focusSide)
-  const coin1Amount = useConcentrated((s) => s.coin1Amount)
-  const coin2Amount = useConcentrated((s) => s.coin2Amount)
-  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
-
-  const isCoin1Base = String(currentHydratedInfo?.baseMint) === String(coin1?.mint)
-
-  const coinBase = isCoin1Base ? coin1 : coin2
-  const coinQuote = isCoin1Base ? coin2 : coin1
-
-  const pooledBaseTokenAmount = currentHydratedInfo?.baseToken
-    ? toTokenAmount(currentHydratedInfo.baseToken, currentHydratedInfo.baseReserve)
-    : undefined
-  const pooledQuoteTokenAmount = currentHydratedInfo?.quoteToken
-    ? toTokenAmount(currentHydratedInfo.quoteToken, currentHydratedInfo.quoteReserve)
-    : undefined
-
-  const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
-
+  const selectableAmmPools = useConcentrated((s) => s.selectableAmmPools)
   return (
     <Collapse className={twMerge('bg-[#141041] rounded-xl', className)}>
       <Collapse.Face>{(open) => <ConcentratedFeeSwitcherFace open={open} />}</Collapse.Face>
@@ -475,93 +346,6 @@ function ConcentratedFeeSwitcherContent() {
           {fee.label}
         </div>
       ))}
-    </Row>
-  )
-}
-
-function ConcentratedCardItem({
-  className,
-  fieldName,
-  fieldValue,
-  tooltipContent,
-  debugForceOpen
-}: {
-  className?: string
-  fieldName?: string
-  fieldValue?: ReactNode
-  tooltipContent?: ReactNode
-  /** !! only use it in debug */
-  debugForceOpen?: boolean
-}) {
-  return (
-    <Row className={twMerge('w-full justify-between my-1.5', className)}>
-      <Row className="items-center text-xs font-medium text-[#ABC4FF]">
-        <div className="mr-1">{fieldName}</div>
-        {tooltipContent && (
-          <Tooltip className={className} placement="bottom-right" forceOpen={debugForceOpen}>
-            <Icon size="xs" heroIconName="question-mark-circle" className="cursor-help" />
-            <Tooltip.Panel>{tooltipContent}</Tooltip.Panel>
-          </Tooltip>
-        )}
-      </Row>
-      <div className="text-xs font-medium text-white text-right">{fieldValue}</div>
-    </Row>
-  )
-}
-
-function ConcentratedCardTooltipPanelAddress() {
-  const coin1 = useConcentrated((s) => s.coin1)
-  const coin2 = useConcentrated((s) => s.coin2)
-  const { lpMint, id, marketId } = useConcentrated((s) => s.currentJsonInfo) ?? {}
-  return (
-    <div className="w-60">
-      <div className="text-sm font-semibold mb-2">Addresses</div>
-      <Col className="gap-2">
-        {coin1 && (
-          <LiquidityCardTooltipPanelAddressItem
-            label={coin1.symbol ?? '--'}
-            type="token"
-            address={String(coin1.mint ?? '--')}
-          />
-        )}
-        {coin2 && (
-          <LiquidityCardTooltipPanelAddressItem
-            label={coin2.symbol ?? '--'}
-            type="token"
-            address={String(coin2.mint ?? '--')}
-          />
-        )}
-        {Boolean(lpMint) && <LiquidityCardTooltipPanelAddressItem label="LP" type="token" address={lpMint!} />}
-        {Boolean(id) && <LiquidityCardTooltipPanelAddressItem label="Amm ID" address={id!} />}
-        {Boolean(marketId) && <LiquidityCardTooltipPanelAddressItem label="Market ID" address={marketId!} />}
-      </Col>
-    </div>
-  )
-}
-
-function LiquidityCardTooltipPanelAddressItem({
-  className,
-  label,
-  address,
-  type = 'account'
-}: {
-  className?: string
-  label: string
-  address: string
-  type?: 'token' | 'account'
-}) {
-  return (
-    <Row className={twMerge('grid gap-2 items-center grid-cols-[5em,1fr,auto,auto]', className)}>
-      <div className="text-xs font-normal text-white">{label}</div>
-      <AddressItem
-        showDigitCount={5}
-        addressType={type}
-        canCopy
-        canExternalLink
-        textClassName="flex text-xs font-normal text-white bg-[#141041] rounded justify-center"
-      >
-        {address}
-      </AddressItem>
     </Row>
   )
 }
