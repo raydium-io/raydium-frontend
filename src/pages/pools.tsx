@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
@@ -49,6 +49,7 @@ import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
+import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 
@@ -292,7 +293,7 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
 function PoolCard() {
   const balances = useWallet((s) => s.balances)
   const unZeroBalances = objectFilter(balances, (tokenAmount) => gt(tokenAmount, 0))
-  const { hydratedInfos } = usePools()
+  const hydratedInfos = usePools((s) => s.hydratedInfos)
   // const { searchText, setSearchText, currentTab, onlySelfPools } = usePageState()
 
   const searchText = usePools((s) => s.searchText)
@@ -982,6 +983,13 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
 
 function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | undefined; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
+  const [isDetailReady, setIsDetailReady] = useState(false)
+
+  useEffect(() => {
+    if (info?.base && info.quote) {
+      setIsDetailReady(true)
+    }
+  }, [info?.base, info?.quote])
 
   return (
     <AutoBox
@@ -999,12 +1007,12 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | 
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         <Row className="mobile:text-xs font-medium mobile:mt-px mr-1.5">
-          {info?.base && info.quote ? (
+          {!isDetailReady ? (
+            info?.name
+          ) : (
             <>
               <CoinAvatarInfoItemSymbol token={info?.base} />-<CoinAvatarInfoItemSymbol token={info?.quote} />
             </>
-          ) : (
-            <LoadingCircleSmall className="w-4 h-4" />
           )}
         </Row>
         {info?.isStablePool && <Badge className="self-center">Stable</Badge>}
@@ -1070,7 +1078,8 @@ function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
 }
 
 function EditTokenDialog({ open, token, onClose }: { open: boolean; token: SplToken; onClose: () => void }) {
-  const { userCustomTokenSymbol, updateUserCustomTokenSymbol } = useToken()
+  const userCustomTokenSymbol = useToken((s) => s.userCustomTokenSymbol)
+  const updateUserCustomTokenSymbol = useToken((s) => s.updateUserCustomTokenSymbol)
 
   // if we got custom symbol/name, use them, otherwise use token original symbol/name
   const [newInfo, setNewInfo] = useState({

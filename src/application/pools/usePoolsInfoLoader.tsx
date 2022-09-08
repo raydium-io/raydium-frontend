@@ -30,8 +30,6 @@ export default function usePoolsInfoLoader() {
     [liquidityJsonInfos]
   )
 
-  const getToken = useToken((s) => s.getToken)
-  const tokens = useToken((s) => s.tokens)
   const getLpToken = useToken((s) => s.getLpToken)
   const lpTokens = useToken((s) => s.lpTokens)
   const userCustomTokenSymbol = useToken((s) => s.userCustomTokenSymbol)
@@ -93,5 +91,5 @@ export default function usePoolsInfoLoader() {
         })
     })
     usePools.setState({ hydratedInfos, loading: hydratedInfos.length === 0 })
-  }, [jsonInfos, getToken, balances, lpTokens, tokens, stableLiquidityJsonInfoLpMints, userCustomTokenSymbol])
+  }, [jsonInfos, balances, stableLiquidityJsonInfoLpMints, userCustomTokenSymbol])
 }
