@@ -52,7 +52,7 @@ export default function useAutoUpdateSelectableTokens() {
         }
         return t
       })
-  }, [verboseTokens, userAddedTokens, tokenListSettings])
+  }, [verboseTokens, userAddedTokens, tokenListSettings, userCustomTokenSymbol])
 
   // have sorted
   const sortedTokens = useMemo(() => sortTokens(settingsFiltedTokens), [settingsFiltedTokens, sortTokens, balances])
