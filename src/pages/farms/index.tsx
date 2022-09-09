@@ -722,9 +722,9 @@ function FarmPendingRewardBadge({
       <Row
         className={`ring-1 ring-inset ${
           isTokenAmount(reward) ? 'ring-[#abc4ff80]' : reward.isOptionToken ? 'ring-[#DA2EEF]' : 'ring-[#abc4ff80]'
-        } p-1 rounded-full items-center gap-2 overflow-hidden ${isRewarding ? '' : 'opacity-50'} ${
-          isRewardBeforeStart ? '' : ''
-        }`}
+        } p-1 rounded-full items-center gap-2 overflow-hidden ${
+          isRewarding ? '' : isRewardEnded ? 'opacity-30 contrast-40' : 'opacity-50'
+        } ${isRewardBeforeStart ? '' : ''}`}
       >
         {gt(pendingAmount, 0.001) && (
           <div className="text-xs translate-y-0.125 pl-1">
