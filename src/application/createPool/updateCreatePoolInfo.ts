@@ -29,7 +29,7 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
 
     assert(
       Object.values(routeMiddleMints).includes(String(quoteMint)),
-      `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, NRV, ANA, ETH. current: ${toPubString(
+      `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, ETH, USH. current: ${toPubString(
         quoteMint
       ).slice(0, 4)}...${toPubString(quoteMint).slice(-4)} is not avaliable`
     )
