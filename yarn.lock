@@ -6717,16 +6717,17 @@ tar@^6.0.2, tar@^6.1.11, tar@^6.1.2:
     mkdirp "^1.0.3"
     yallist "^4.0.0"
 
-test-r-sdk@^1.2.13:
-  version "1.2.13"
-  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.13.tgz#0c93e01c329876f83532a93015f5df8813f81b42"
-  integrity sha512-tKFSqjwyZW0wCHxnjvKPcIf/q98qeIyuxlneXucU/CDxhDELFulTGimiBDiD2HZ+QgaYJeJXuMFeHrf4YlkAHg==
+test-r-sdk@^1.2.15:
+  version "1.2.15"
+  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.15.tgz#6ec53f27365d7d85a9ccdb8f279007e988bc11a1"
+  integrity sha512-9Hb+g6wYzvbfJdLKsDo9DGRpAhiS0HA7eLgx4JzrBKQOI+jvH3fU9KY8+FzZyF7PgTnY0Vkh7GFie9SlvxHnLQ==
   dependencies:
     "@colors/colors" "^1.5.0"
     "@solana/buffer-layout" "^4.0.0"
     "@solana/spl-token" "^0.1.8"
     axios "^0.27.2"
     big.js "^6.1.1"
+    decimal.js "^10.4.0"
     decimal.js-light "^2.5.1"
     fecha "^4.2.3"
     lodash "^4.17.21"

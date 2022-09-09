@@ -41,11 +41,12 @@ export type ConcentratedStore = {
 
   coin1: SplToken | undefined
   coin1Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
-  coin1Tick?: number // from SDK, just store in UI
 
   coin2: SplToken | undefined
   coin2Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
-  coin2Tick?: number // from SDK, just store in UI
+
+  priceUpperTick?: number // from SDK, just store in UI
+  priceLowerTick?: number // from SDK, just store in UI
 
   focusSide: 'coin1' | 'coin2' // not reflect ui placement.  maybe coin1 appears below coin2
   priceLower?: Numberish

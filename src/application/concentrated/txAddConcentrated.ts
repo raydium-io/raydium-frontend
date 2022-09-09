@@ -4,11 +4,7 @@ import { toString } from '@/functions/numberish/toString'
 import { PublicKeyish } from '@/types/constants'
 
 import { loadTransaction } from '@/application/txTools/createTransaction'
-import {
-  decimalToFraction,
-  fractionToDecimal,
-  recursivelyDecimalToFraction
-} from '@/application/txTools/decimal2Fraction'
+import { fractionToDecimal } from '@/application/txTools/decimal2Fraction'
 import handleMultiTx from '@/application/txTools/handleMultiTx'
 import toFraction from '@/functions/numberish/toFraction'
 import { AmmV3 } from 'test-r-sdk'
@@ -56,8 +52,4 @@ export default function txAddConcentrated({ ammId: targetAmmId }: { ammId?: Publ
       }
     })
   })
-}
-
-export function getNearistDataPoint(info: Parameters<typeof AmmV3['getPriceAndTick']>[0]) {
-  return recursivelyDecimalToFraction(AmmV3.getPriceAndTick(info))
 }

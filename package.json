@@ -26,6 +26,7 @@
     "@solana/spl-token": "^0.1.8",
     "@solana/wallet-adapter-base": "^0.9.9",
     "@solana/web3.js": "^1.50.1",
+    "decimal.js": "^10.4.0",
     "bn.js": "^5.2.1"
   },
   "dependencies": {
@@ -49,7 +50,7 @@
     "react-markdown": "^8.0.3",
     "tailwind-merge": "^1.5.1",
     "tailwindcss": "^3.1.7",
-    "test-r-sdk": "^1.2.13",
+    "test-r-sdk": "^1.2.15",
     "zustand": "^4.0.0"
   },
   "devDependencies": {

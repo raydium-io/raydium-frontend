@@ -1,13 +1,15 @@
-import { handleMouseWheel, HandleMouseWheelOnWheel } from '@/functions/dom/gesture/handleMouseWheel'
+import { handleMouseWheel } from '@/functions/dom/gesture/handleMouseWheel'
 import {
   attachPointerMove,
   AttachPointerMovePointMoveFn,
   AttachPointerMovePointUpFn
 } from '@/functions/dom/gesture/pointerMove'
 import { isNumber } from '@/functions/judgers/dateType'
+import { toString } from '@/functions/numberish/toString'
 import { useEvent } from '@/hooks/useEvent'
 import useResizeObserver from '@/hooks/useResizeObserver'
 import { useSignalState } from '@/hooks/useSignalState'
+import { Numberish } from '@/types/constants'
 import { RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { trimUnnecessaryDecimal } from '../../functions/numberish/trimUnnecessaryDecimal'
@@ -22,10 +24,20 @@ export interface ConcentratedRangeInputChartBodyComponentHandler {
   accurateDecimalLength: number
   zoomIn: (options?: { degree?: number; align?: 'left' | 'center' | 'right' }) => void
   zoomOut: (options?: { degree?: number; align?: 'left' | 'center' | 'right' }) => void
-  moveMinBoundaryVX: (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => void
-  moveMaxBoundaryVX: (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => void
-  inputMinBoundaryX: (x: number) => void
-  inputMaxBoundaryX: (x: number) => void
+  moveMinBoundaryVX: (options: {
+    forceOffsetFromZero?: boolean
+    offset: number
+    setReactState?: boolean
+    dontInvokeCallback?: boolean
+  }) => void
+  moveMaxBoundaryVX: (options: {
+    forceOffsetFromZero?: boolean
+    offset: number
+    setReactState?: boolean
+    dontInvokeCallback?: boolean
+  }) => void
+  inputMinBoundaryX: (x: Numberish) => void
+  inputMaxBoundaryX: (x: Numberish) => void
   shrinkToView: () => void
 }
 
@@ -38,9 +50,9 @@ export type ChartRangeInputOption = {
    * so trim it will be better
    */
   careDecimalLength?: number
-  initMinBoundaryX?: number
-  initMaxBoundaryX?: number
-  anchorX?: number
+  initMinBoundaryX?: Numberish
+  initMaxBoundaryX?: Numberish
+  anchorX?: Numberish
   componentRef?: RefObject<any>
   onChangeMaxBoundary?: (utility: { nearestDataPoint: ChartPoint; dataX: number }) => void
   onChangeMinBoundary?: (utility: { nearestDataPoint: ChartPoint; dataX: number }) => void
@@ -51,17 +63,21 @@ export type ChartRangeInputOption = {
  * x --> data x \
  * vx --> view x (x in the chart)
  */
-export function ConcentratedRangeInputChartBody({
-  className,
-  points,
-  careDecimalLength = 6,
-  initMinBoundaryX: inputInitMinBoundaryX = 0,
-  initMaxBoundaryX: inputInitMaxBoundaryX = 0,
-  anchorX,
-  componentRef,
-  onChangeMinBoundary,
-  onChangeMaxBoundary
-}: ChartRangeInputOption) {
+export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
+  const {
+    className,
+    points,
+    careDecimalLength = 6,
+    initMinBoundaryX: inputInitMinBoundaryXN = 0,
+    initMaxBoundaryX: inputInitMaxBoundaryXN = 0,
+    anchorX: anchorXN,
+    componentRef,
+    onChangeMinBoundary,
+    onChangeMaxBoundary
+  } = props
+  const inputInitMinBoundaryX = Number(toString(inputInitMinBoundaryXN))
+  const inputInitMaxBoundaryX = Number(toString(inputInitMaxBoundaryXN))
+  const anchorX = Number(toString(anchorXN))
   //#region ------------------- config -------------------
   const lineColor = '#abc4ff80'
   const minBoundaryLineColor = '#abc4ff'
@@ -234,6 +250,7 @@ export function ConcentratedRangeInputChartBody({
     minBoundaryRef.current?.setAttribute('x', String(clampedVX))
     if (options.setReactState) {
       setMinBoundaryVX(clampedVX)
+      if (options.dontInvokeCallback) return
       const nearestPoint = getNearestZoomedPointByVX(clampedVX)
       nearestPoint &&
         onChangeMinBoundary?.({
@@ -246,15 +263,23 @@ export function ConcentratedRangeInputChartBody({
     }
   }
 
-  const inputMinBoundaryX: ConcentratedRangeInputChartBodyComponentHandler['inputMinBoundaryX'] = (dataX) =>
-    moveMinBoundaryVX({ forceOffsetFromZero: true, offset: dataX * dataZoomX, setReactState: true })
+  const inputMinBoundaryX: ConcentratedRangeInputChartBodyComponentHandler['inputMinBoundaryX'] = (dataXN) => {
+    const dataX = Number(toString(dataXN))
+    return moveMinBoundaryVX({
+      forceOffsetFromZero: true,
+      offset: dataX * dataZoomX,
+      setReactState: true,
+      dontInvokeCallback: true
+    })
+  }
 
-  const moveMaxBoundaryVX = (options: { forceOffsetFromZero?: boolean; offset: number; setReactState?: boolean }) => {
+  const moveMaxBoundaryVX: ConcentratedRangeInputChartBodyComponentHandler['moveMinBoundaryVX'] = (options) => {
     const clampVX = (newVX: number) => Math.max(newVX, minBoundaryVX + minGapBetweenMinBoundaryAndMaxBoundary)
     const clampedVX = clampVX(options.forceOffsetFromZero ? options.offset : maxBoundaryVX + options.offset)
     maxBoundaryRef.current?.setAttribute('x', String(clampedVX))
     if (options.setReactState) {
       setMaxBoundaryVX(clampedVX)
+      if (options.dontInvokeCallback) return true
       const nearestPoint = getNearestZoomedPointByVX(clampedVX)
       nearestPoint &&
         onChangeMaxBoundary?.({
@@ -267,8 +292,15 @@ export function ConcentratedRangeInputChartBody({
     }
   }
 
-  const inputMaxBoundaryX: ConcentratedRangeInputChartBodyComponentHandler['inputMaxBoundaryX'] = (dataX) =>
-    moveMaxBoundaryVX({ forceOffsetFromZero: true, offset: dataX * dataZoomX, setReactState: true })
+  const inputMaxBoundaryX: ConcentratedRangeInputChartBodyComponentHandler['inputMaxBoundaryX'] = (dataXN) => {
+    const dataX = Number(toString(dataXN))
+    return moveMaxBoundaryVX({
+      forceOffsetFromZero: true,
+      offset: dataX * dataZoomX,
+      setReactState: true,
+      dontInvokeCallback: true
+    })
+  }
 
   useImperativeHandle<any, ConcentratedRangeInputChartBodyComponentHandler>(componentRef, () => ({
     accurateDecimalLength,

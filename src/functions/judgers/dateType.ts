@@ -4,6 +4,7 @@ import { PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
 
 import { AnyFn, Numberish, Primitive, StringNumber } from '@/types/constants'
+import Decimal from 'decimal.js'
 
 export const isArray = Array.isArray
 export const isSet = (v: unknown): v is Set<unknown> => {
@@ -121,6 +122,9 @@ export function isTokenAmount(val: any): val is TokenAmount {
 
 export function isPubKey(val: unknown): val is PublicKey {
   return val instanceof PublicKey
+}
+export function isDecimal(val: unknown): val is Decimal {
+  return val instanceof Decimal
 }
 
 export function isValidPublicKey(val: string | undefined): val is string

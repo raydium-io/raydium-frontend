@@ -1,12 +1,17 @@
+import { getNearistDataPoint } from '@/application/concentrated/getNearistDataPoint'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import { fractionToDecimal, recursivelyDecimalToFraction } from '@/application/txTools/decimal2Fraction'
 import Col from '@/components/Col'
 import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
-import { mul } from '@/functions/numberish/operations'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import { div, mul } from '@/functions/numberish/operations'
+import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { trimUnnecessaryDecimal } from '@/functions/numberish/trimUnnecessaryDecimal'
+import { Numberish } from '@/types/constants'
 import { useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Fraction } from 'test-r-sdk'
@@ -28,16 +33,15 @@ export function ConcentratedRangeInputChart({
   chartOptions?: ChartRangeInputOption
   currentPrice?: Fraction
 }) {
-  const coin1 = useConcentrated((s) => s.coin1)
-  const coin2 = useConcentrated((s) => s.coin2)
-  const [minPrice, setMinPrice] = useState(currentPrice ? Number(toString(mul(currentPrice, 1 - 0.5))) : 0)
-  const [maxPrice, setMaxPrice] = useState(currentPrice ? Number(toString(mul(currentPrice, 1 + 0.5))) : 0)
+  const { coin1, coin2, focusSide, coin1Amount, coin2Amount, currentAmmPool } = useConcentrated()
+  const [minPrice, setMinPrice] = useState<Numberish>(currentPrice ? mul(currentPrice, 1 - 0.5) : 0)
+  const [maxPrice, setMaxPrice] = useState<Numberish>(currentPrice ? mul(currentPrice, 1 + 0.5) : 0)
   useEffect(() => {
-    setMinPrice(currentPrice ? Number(toString(mul(currentPrice, 1 - 0.5))) : 0)
-    setMaxPrice(currentPrice ? Number(toString(mul(currentPrice, 1 + 0.5))) : 0)
+    setMinPrice(currentPrice ? mul(currentPrice, 1 - 0.5) : 0)
+    setMaxPrice(currentPrice ? mul(currentPrice, 1 + 0.5) : 0)
   }, [poolId])
   const concentratedChartBodyRef = useRef<ConcentratedRangeInputChartBodyComponentHandler>(null)
-  const careDecimalLength = 6 // TEMP
+  const careDecimalLength = 6 // TEST TEMP
   return (
     <Col className={twMerge('py-4', className)}>
       <Row className="justify-between items-center">
@@ -55,7 +59,7 @@ export function ConcentratedRangeInputChart({
           )}
           <Row className="gap-2">
             <Icon
-              className="saturate-50 brightness-125 hidden" // TEMP
+              className="saturate-50 brightness-125" // TEMP
               iconSrc="/icons/chart-add-white-space.svg"
               onClick={() => {
                 concentratedChartBodyRef.current?.shrinkToView()
@@ -88,10 +92,42 @@ export function ConcentratedRangeInputChart({
         componentRef={concentratedChartBodyRef}
         className="my-2"
         onChangeMinBoundary={({ dataX }) => {
-          setMinPrice(trimUnnecessaryDecimal(dataX, careDecimalLength))
+          if (coin1 && coin2 && currentAmmPool) {
+            const focusCoin = focusSide === 'coin1' ? coin1 : coin2
+            const { price, tick } = getNearistDataPoint({
+              poolInfo: currentAmmPool.state,
+              baseIn: isMintEqual(currentAmmPool.state.mintA.mint, focusCoin?.mint),
+              price:
+                focusSide === 'coin1' ? fractionToDecimal(toFraction(dataX)) : fractionToDecimal(toFraction(1 / dataX)) // SDK force
+            })
+            const calcPrice = focusSide === 'coin1' ? price : div(1, price)
+            useConcentrated.setState(
+              focusSide === 'coin1'
+                ? { priceLowerTick: tick, priceLower: calcPrice }
+                : { priceUpperTick: tick, priceUpper: calcPrice }
+            )
+            setMinPrice(price)
+            concentratedChartBodyRef.current?.inputMinBoundaryX(price)
+          }
         }}
         onChangeMaxBoundary={({ dataX }) => {
-          setMaxPrice(trimUnnecessaryDecimal(dataX, careDecimalLength))
+          if (coin1 && coin2 && currentAmmPool) {
+            const focusCoin = focusSide === 'coin1' ? coin1 : coin2
+            const { price, tick } = getNearistDataPoint({
+              poolInfo: currentAmmPool.state,
+              baseIn: isMintEqual(currentAmmPool.state.mintA.mint, focusCoin?.mint),
+              price:
+                focusSide === 'coin1' ? fractionToDecimal(toFraction(dataX)) : fractionToDecimal(toFraction(1 / dataX)) // SDK force
+            })
+            const calcPrice = focusSide === 'coin1' ? price : div(1, price)
+            useConcentrated.setState(
+              focusSide === 'coin1'
+                ? { priceUpperTick: tick, priceUpper: calcPrice }
+                : { priceLowerTick: tick, priceLower: calcPrice }
+            )
+            setMaxPrice(price)
+            concentratedChartBodyRef.current?.inputMaxBoundaryX(price)
+          }
         }}
         {...chartOptions}
       />

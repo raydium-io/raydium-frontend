@@ -1,3 +1,4 @@
+import { isDecimal, isFraction } from '@/functions/judgers/dateType'
 import { Fraction, Token } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
@@ -65,26 +66,23 @@ function notInnerObject(v: unknown): v is Record<string, any> {
   return typeof v === 'object' && v !== null && !baseInnerObjects.some((o) => typeof o === 'object' && v instanceof o)
 }
 
-export function recursivelyDecimalToFraction<T>(jsonInfo: T): ReplaceType<T, Decimal, Fraction> {
+export function recursivelyDecimalToFraction<T>(info: T): ReplaceType<T, Decimal, Fraction> {
   // @ts-expect-error no need type for inner code
-  return jsonInfo instanceof Decimal
-    ? decimalToFraction(jsonInfo)
-    : Array.isArray(jsonInfo)
-    ? jsonInfo.map((k) => recursivelyDecimalToFraction(k))
-    : notInnerObject(jsonInfo)
-    ? Object.fromEntries(Object.entries(jsonInfo).map(([k, v]) => [k, recursivelyDecimalToFraction(v)]))
-    : jsonInfo
+  return isDecimal(info)
+    ? decimalToFraction(info)
+    : Array.isArray(info)
+    ? info.map((k) => recursivelyDecimalToFraction(k))
+    : notInnerObject(info)
+    ? Object.fromEntries(Object.entries(info).map(([k, v]) => [k, recursivelyDecimalToFraction(v)]))
+    : info
 }
-export function recursivelyFractionToDecimal<T>(
-  jsonInfo: T,
-  decimalLength?: number
-): ReplaceType<T, Fraction, Decimal> {
+export function recursivelyFractionToDecimal<T>(info: T, decimalLength?: number): ReplaceType<T, Fraction, Decimal> {
   // @ts-expect-error no need type for inner code
-  return jsonInfo instanceof Fraction
-    ? fractionToDecimal(jsonInfo, decimalLength)
-    : Array.isArray(jsonInfo)
-    ? jsonInfo.map((k) => recursivelyFractionToDecimal(k, decimalLength))
-    : notInnerObject(jsonInfo)
-    ? Object.fromEntries(Object.entries(jsonInfo).map(([k, v]) => [k, recursivelyFractionToDecimal(v, decimalLength)]))
-    : jsonInfo
+  return isFraction(info)
+    ? fractionToDecimal(info, decimalLength)
+    : Array.isArray(info)
+    ? info.map((k) => recursivelyFractionToDecimal(k, decimalLength))
+    : notInnerObject(info)
+    ? Object.fromEntries(Object.entries(info).map(([k, v]) => [k, recursivelyFractionToDecimal(v, decimalLength)]))
+    : info
 }

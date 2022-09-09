@@ -39,6 +39,8 @@ import { ApiAmmPoint } from 'test-r-sdk'
 import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import toPubString from '@/functions/format/toMintString'
+import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
+import txAddConcentrated from '@/application/concentrated/txAddConcentrated'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -62,6 +64,7 @@ export default function Concentrated() {
 function ConcentratedEffect() {
   useConcentratedInfoLoader()
   useConcentratedAmmSelector()
+  useConcentratedAmountCalculator()
   return null
 }
 
@@ -228,24 +231,24 @@ function ConcentratedCard() {
             should: coin1Amount && isMeaningfulNumber(coin1Amount) && coin2Amount && isMeaningfulNumber(coin2Amount),
             fallbackProps: { children: 'Enter an amount' }
           },
-          {
-            should: haveEnoughCoin1,
-            fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
-          },
-          {
-            should: haveEnoughCoin2,
-            fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
-          },
+          // {
+          //   should: haveEnoughCoin1,
+          //   fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
+          // },
+          // {
+          //   should: haveEnoughCoin2,
+          //   fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
+          // },
           {
             should: isMeaningfulNumber(coin1Amount) && isMeaningfulNumber(coin2Amount),
             fallbackProps: { children: 'Enter an amount' }
           }
         ]}
         onClick={() => {
-          txAddLiquidity()
+          txAddConcentrated()
         }}
       >
-        Add Liquidity
+        Add Concentrated
       </Button>
       {/* alert user if sol is not much */}
       <RemainSOLAlert />
@@ -258,13 +261,13 @@ function ConcentratedCard() {
             useConcentrated.setState({ coin1: token })
             // delete other
             if (!canTokenPairBeSelected(token, coin2)) {
-              useConcentrated.setState({ coin2: undefined, coin2Amount: undefined, coin2Tick: undefined })
+              useConcentrated.setState({ coin2: undefined, coin2Amount: undefined, priceLowerTick: undefined })
             }
           } else {
             // delete other
             useConcentrated.setState({ coin2: token })
             if (!canTokenPairBeSelected(token, coin1)) {
-              useConcentrated.setState({ coin1: undefined, coin1Amount: undefined, coin1Tick: undefined })
+              useConcentrated.setState({ coin1: undefined, coin1Amount: undefined, priceUpperTick: undefined })
             }
           }
           turnOffCoinSelector()
