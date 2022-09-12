@@ -10,6 +10,11 @@ import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 import { HexAddress, PublicKeyish, SrcAddress } from '@/types/constants'
 
 import { objectMap, replaceValue } from '../../functions/objectMethods'
+import useFarms from '../farms/useFarms'
+import useLiquidity from '../liquidity/useLiquidity'
+import { usePools } from '../pools/usePools'
+import { useSwap } from '../swap/useSwap'
+import useWallet from '../wallet/useWallet'
 
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
 import {
@@ -25,9 +30,16 @@ import useToken, {
 import { SOLMint } from './wellknownToken.config'
 
 export default function useTokenListsLoader() {
+  const walletRefreshCount = useWallet((s) => s.refreshCount)
+  const swapRefreshCount = useSwap((s) => s.refreshCount)
+  const liquidityRefreshCount = useLiquidity((s) => s.refreshCount)
+  // both farms pages and stake pages
+  const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
+  const poolRefreshCount = usePools((s) => s.refreshCount)
+
   useEffectWithTransition(() => {
     loadTokens()
-  }, [])
+  }, [walletRefreshCount, swapRefreshCount, liquidityRefreshCount, farmRefreshCount, poolRefreshCount])
 }
 
 function deleteFetchedNativeSOLToken(tokenJsons: TokenJson[]) {
@@ -170,7 +182,6 @@ export function toSplTokenInfo(splToken: SplToken): TokenJson {
 
 async function loadTokens() {
   const customTokenIcons = await fetchTokenIconInfoList()
-
   const {
     devMints,
     unOfficialMints,
@@ -180,6 +191,20 @@ async function loadTokens() {
     tokens: allTokens,
     blacklist: _blacklist
   } = await fetchTokenLists(rawTokenListConfigs)
+  // if length has not changed, don't parse again
+  const { tokenListSettings } = useToken.getState()
+  const mainnetOriginalMintsLength = tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.size
+  const solanaTokenOriginalMintsLength = tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.size
+  const devOriginalMintsLength = tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.size
+  const unnamedOriginalMintsLength = tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.size
+  if (
+    devMints.length === devOriginalMintsLength &&
+    officialMints.length === mainnetOriginalMintsLength &&
+    unOfficialMints.length === solanaTokenOriginalMintsLength &&
+    unNamedMints.length === unnamedOriginalMintsLength
+  )
+    return
+
   const blacklist = new Set(_blacklist)
   useToken.setState((s) => ({
     blacklist: _blacklist,

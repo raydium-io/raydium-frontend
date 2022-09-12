@@ -13,6 +13,7 @@ export const USDHMint = new PublicKey('USDH1SM1ojwWUga67PGrgFWUHibbjqMvuMaDkRJTg
 export const NRVMint = new PublicKey('NRVwhjBQiUPYtfDT5zRBVJajzFQHaBUNtC7SNVvqRFa')
 export const ANAMint = new PublicKey('ANAxByE6G2WjFp7A4NqtWYXb3mgruyzZYg3spfxe6Lbo')
 export const ETHMint = new PublicKey('7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs')
+export const USHMint = new PublicKey('9iLH8T7zoWhY7sBmj1WK9ENbWdS1nL8n9wAxaeRitTa6')
 
 export const SOLMint = PublicKey.default
 
@@ -27,7 +28,8 @@ export const routeMiddleMints = {
   mSOL: toPubString(mSOLMint),
   stSOL: toPubString(stSOLMint),
   USDH: toPubString(USDHMint),
-  NRV: toPubString(NRVMint),
-  ANA: toPubString(ANAMint),
-  ETH: toPubString(ETHMint)
+  // NRV: toPubString(NRVMint),
+  // ANA: toPubString(ANAMint),
+  ETH: toPubString(ETHMint),
+  USH: toPubString(USHMint),
 }
