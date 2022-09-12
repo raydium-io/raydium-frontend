@@ -356,7 +356,7 @@ function PoolCard() {
     [favouriteIds]
   )
 
-  const TableHeaderBlock = useCallback(
+  const TableHeaderBlock = useMemo(
     () => (
       <Row
         type="grid-x"
@@ -552,7 +552,7 @@ function PoolCard() {
       className="p-10 pb-4 mobile:px-3 mobile:py-3 w-full flex flex-col flex-grow h-full"
     >
       {innerPoolDatabaseWidgets}
-      {!isMobile && <TableHeaderBlock />}
+      {!isMobile && TableHeaderBlock}
       <PoolCardDatabaseBody sortedData={sortedData} />
     </CyberpunkStyleCard>
   )
