@@ -19,6 +19,7 @@ import useFarms from './farms/useFarms'
 import useIdo from './ido/useIdo'
 import useLiquidity from './liquidity/useLiquidity'
 import { usePools } from './pools/usePools'
+import { usePoolsConcentrated } from './poolsConcentrated/usePoolsConcentrated'
 import { useSwap } from './swap/useSwap'
 import { SplToken } from './token/type'
 import useWallet from './wallet/useWallet'
@@ -49,7 +50,13 @@ export type PageRouteConfigs = {
       newExpandedItemId?: string
     }
   }
-  '/pools': {
+  '/pools/classic': {
+    queryProps?: {
+      expandedPoolId?: string
+      searchText?: string
+    }
+  }
+  '/pools/concentrated': {
     queryProps?: {
       expandedPoolId?: string
       searchText?: string
@@ -192,9 +199,18 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
           })
         )
       })
-  } else if (toPage === '/pools') {
-    return router.push({ pathname: '/pools' }).then(() => {
+  } else if (toPage === '/pools/classic') {
+    return router.push({ pathname: '/pools/classic' }).then(() => {
       usePools.setState(
+        objectShakeFalsy({
+          searchText: options?.queryProps?.searchText,
+          expandedPoolId: options?.queryProps?.expandedPoolId
+        })
+      )
+    })
+  } else if (toPage === '/pools/concentrated') {
+    return router.push({ pathname: '/pools/concentrated' }).then(() => {
+      usePoolsConcentrated.setState(
         objectShakeFalsy({
           searchText: options?.queryProps?.searchText,
           expandedPoolId: options?.queryProps?.expandedPoolId

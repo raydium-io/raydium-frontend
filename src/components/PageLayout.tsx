@@ -565,8 +565,19 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             >
               Concentrated
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-pools.svg" href="/pools" isCurrentRoutePath={pathname.includes('pools')}>
+            <LinkItem
+              icon="/icons/entry-icon-pools.svg"
+              href="/pools/classic"
+              isCurrentRoutePath={pathname.includes('/pools/classic')}
+            >
               Pools
+            </LinkItem>
+            <LinkItem
+              icon="/icons/entry-icon-concentrated-pools.svg"
+              href="/pools/concentrated"
+              isCurrentRoutePath={pathname.includes('/pools/concentrated')}
+            >
+              Concentrated Pools
             </LinkItem>
             <LinkItem icon="/icons/entry-icon-farms.svg" href="/farms" isCurrentRoutePath={pathname.includes('farms')}>
               Farms
