@@ -156,22 +156,28 @@ async function loadTokens() {
 
       [RAYDIUM_MAINNET_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME],
-        mints: new Set(officialMints)
+        mints: new Set([
+          ...(s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.values() ?? []),
+          ...officialMints
+        ])
       },
 
       [SOLANA_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[SOLANA_TOKEN_LIST_NAME],
-        mints: new Set(unOfficialMints)
+        mints: new Set([...(s.tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.values() ?? []), ...unOfficialMints])
       },
 
       [RAYDIUM_DEV_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME],
-        mints: new Set(devMints)
+        mints: new Set([...(s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.values() ?? []), ...devMints])
       },
 
       [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
-        mints: new Set(unNamedMints)
+        mints: new Set([
+          ...(s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.values() ?? []),
+          ...unNamedMints
+        ])
       }
     }
   }))
