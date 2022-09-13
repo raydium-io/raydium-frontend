@@ -206,54 +206,51 @@ export function useRpcPerformance() {
 
   const MAX_TPS = 1500 // force settings
 
-  const getPerformance = useCallback(() => {
-    return setInterval(async () => {
-      if (!currentEndPoint?.url) return
-      const result = await jFetch<{
-        result: {
-          numSlots: number
-          numTransactions: number
-          samplePeriodSecs: number
-          slot: number
-        }[]
-      }>(currentEndPoint?.url, {
-        method: 'post',
-        ignoreCache: true,
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          id: 'getRecentPerformanceSamples',
-          jsonrpc: '2.0',
-          method: 'getRecentPerformanceSamples',
-          params: [100]
-        })
+  const getPerformance = useCallback(async () => {
+    if (!currentEndPoint?.url) return
+    const result = await jFetch<{
+      result: {
+        numSlots: number
+        numTransactions: number
+        samplePeriodSecs: number
+        slot: number
+      }[]
+    }>(currentEndPoint?.url, {
+      method: 'post',
+      ignoreCache: true,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        id: 'getRecentPerformanceSamples',
+        jsonrpc: '2.0',
+        method: 'getRecentPerformanceSamples',
+        params: [100]
       })
-      if (!result) return
-      const blocks = result.result
-      const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
-      const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
-      useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })
-    }, 1000 * 60)
+    })
+    if (!result) return
+    const blocks = result.result
+    const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
+    const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
+    useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })
+
+    setTimeout(getPerformance, 1000 * 60)
   }, [connection, currentEndPoint])
 
   useEffect(() => {
-    const timeId = getPerformance()
-    return () => clearInterval(timeId)
+    getPerformance()
   }, [getPerformance])
 }
 
 export function useGetSlotCountForSecond() {
   const { currentEndPoint } = useConnection()
 
-  const getSlot = useCallback(() => {
-    return setInterval(async () => {
-      await getSlotCountForSecond(currentEndPoint)
-    }, 1000 * 60)
+  const getSlot = useCallback(async () => {
+    await getSlotCountForSecond(currentEndPoint)
+    setTimeout(getSlot, 1000 * 60)
   }, [getSlotCountForSecond, currentEndPoint])
 
   useEffect(() => {
-    const timeId = getSlot()
-    return () => clearInterval(timeId)
+    getSlot()
   }, [getSlot])
 }

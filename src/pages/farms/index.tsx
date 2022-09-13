@@ -38,6 +38,7 @@ import Link from '@/components/Link'
 import LinkExplorer from '@/components/LinkExplorer'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
+import LoadingCircleSmall from '@/components/LoadingCircleSmall'
 import PageLayout from '@/components/PageLayout'
 import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
@@ -51,6 +52,7 @@ import { addItem, removeItem, shakeFalsyItem, shakeUndifindedItem } from '@/func
 import { toUTC } from '@/functions/date/dateFormat'
 import { getCountDownTime } from '@/functions/date/parseDuration'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
+import { getURLQueryEntry } from '@/functions/dom/getURLQueryEntries'
 import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
@@ -68,9 +70,15 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 
 export default function FarmsPage() {
+  const query = getURLQueryEntry()
   useFarmUrlParser()
   useFarmResetSelfCreatedByOwner()
   const currentTab = useFarms((s) => s.currentTab)
+
+  useEffect(() => {
+    useFarms.setState({ currentTab: query.tab as 'Raydium' | 'Fusion' | 'Ecosystem' | 'Staked' })
+  }, [query])
+
   return (
     <PageLayout
       mobileBarTitle={{
@@ -1574,8 +1582,14 @@ function TextInfoItem({
     <Col className={className}>
       {isMobile && <div className=" mb-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">{name}</div>}
       <Col className="flex-grow justify-center">
-        <div className="text-base mobile:text-xs">{value || '--'}</div>
-        {subValue && <div className="text-sm mobile:text-2xs text-[rgba(171,196,255,0.5)]">{subValue}</div>}
+        {value === '--' || subValue === '--' ? (
+          <LoadingCircleSmall className="w-4 h-4" />
+        ) : (
+          <>
+            <div className="text-base mobile:text-xs">{value || '--'}</div>
+            {subValue && <div className="text-sm mobile:text-2xs text-[rgba(171,196,255,0.5)]">{subValue}</div>}
+          </>
+        )}
       </Col>
     </Col>
   )

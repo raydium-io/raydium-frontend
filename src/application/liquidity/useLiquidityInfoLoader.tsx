@@ -1,34 +1,41 @@
-import { LiquidityPoolsJsonFile } from '@raydium-io/raydium-sdk'
-
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
-import { isExist } from '@/functions/judgers/nil'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import toPubString, { toPub } from '@/functions/format/toMintString'
+import { areShallowEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
+import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { HexAddress } from '@/types/constants'
-
-import useLiquidity from './useLiquidity'
+import { LiquidityPoolsJsonFile } from '@raydium-io/raydium-sdk'
+import { useEffect } from 'react'
+import { hydrateIdoInfo } from '../ido/hydrateIdoInfo'
+import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 import hydrateLiquidityInfo from './hydrateLiquidityInfo'
 import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-import { areShallowEqual } from '@/functions/judgers/areEqual'
-import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import useLiquidity from './useLiquidity'
 
 /**
  * will load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo)
  */
 export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolean } = {}) {
-  const { jsonInfos, sdkParsedInfos, currentJsonInfo, currentSdkParsedInfo, userExhibitionLiquidityIds } =
-    useLiquidity()
+  const {
+    jsonInfos,
+    sdkParsedInfos,
+    currentJsonInfo,
+    currentSdkParsedInfo,
+    userExhibitionLiquidityIds,
+    hydratedInfos
+  } = useLiquidity()
   const getToken = useToken((s) => s.getToken)
   const getLpToken = useToken((s) => s.getLpToken)
   const isLpToken = useToken((s) => s.isLpToken)
   const refreshCount = useLiquidity((s) => s.refreshCount)
   const connection = useConnection((s) => s.connection)
-  const rawBalances = useWallet((s) => s.rawBalances)
+  const pureRawBalances = useWallet((s) => s.pureRawBalances)
 
   /** fetch json info list  */
   useEffectWithTransition(async () => {
@@ -51,15 +58,16 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
     if (disabled) return
     if (!jsonInfos) return
     const liquidityLpMints = new Set(jsonInfos.map((jsonInfo) => jsonInfo.lpMint))
-    const allLpBalance = Object.entries(rawBalances).filter(
+    const allLpBalance = Object.entries(pureRawBalances).filter(
       ([mint, tokenAmount]) => liquidityLpMints.has(mint) && gt(tokenAmount, 0)
     )
-    const allLpBalanceMint = allLpBalance.map(([mint]) => String(mint))
+    const allLpBalanceMint = allLpBalance.map(([mint]) => mint)
     const userExhibitionLiquidityIds = jsonInfos
       .filter((jsonInfo) => allLpBalanceMint.includes(jsonInfo.lpMint))
       .map((jsonInfo) => jsonInfo.id)
+
     useLiquidity.setState({ userExhibitionLiquidityIds })
-  }, [disabled, jsonInfos, rawBalances, isLpToken, refreshCount])
+  }, [disabled, jsonInfos, pureRawBalances, isLpToken, refreshCount])
 
   /** json infos ➡ sdkParsed infos (only wallet's LP)  */
   useRecordedEffect(
@@ -77,6 +85,9 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
         jsonInfos.filter((i) => userExhibitionLiquidityIds.includes(i.id)),
         connection
       )
+
+      // load
+
       useLiquidity.setState({ sdkParsedInfos: shakeUndifindedItem(sdkParsedInfos) })
     },
     [disabled, connection, jsonInfos, userExhibitionLiquidityIds, refreshCount] as const
@@ -85,12 +96,39 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   /** sdkParsed infos (only wallet's LP) ➡  hydrated infos (only wallet's LP)*/
   useEffectWithTransition(async () => {
     if (disabled) return
-    const hydratedInfos = sdkParsedInfos.map((liquidityInfo) => {
-      const lpBalance = rawBalances[String(liquidityInfo.lpMint)]
-      return hydrateLiquidityInfo(liquidityInfo, { getToken, getLpToken, lpBalance })
-    })
+    const hydratedInfos = sdkParsedInfos.map((liquidityInfo) =>
+      hydrateLiquidityInfo(liquidityInfo, {
+        getToken,
+        getLpToken,
+        lpBalance: pureRawBalances[toPubString(liquidityInfo.lpMint)]
+      })
+    )
     useLiquidity.setState({ hydratedInfos })
-  }, [disabled, sdkParsedInfos, rawBalances, getToken, getLpToken])
+  }, [disabled, sdkParsedInfos, pureRawBalances, getToken, getLpToken])
+
+  // record id to userAddedTokens
+  useRecordedEffect(
+    ([prevHydratedInfos]) => {
+      const areHydratedIdsNotChanged =
+        prevHydratedInfos &&
+        areShallowEqual(
+          prevHydratedInfos?.map((i) => toPubString(i.id)),
+          hydratedInfos.map((i) => toPubString(i.id))
+        )
+      if (areHydratedIdsNotChanged) return
+      const recordedHydratedInfos = hydratedInfos.map((i) => {
+        getUserTokenEvenNotExist(i.baseMint)
+        getUserTokenEvenNotExist(i.quoteMint)
+        return hydrateLiquidityInfo(i, {
+          getToken,
+          getLpToken,
+          lpBalance: pureRawBalances[toPubString(i.lpMint)]
+        })
+      })
+      useLiquidity.setState({ hydratedInfos: recordedHydratedInfos })
+    },
+    [hydratedInfos]
+  )
 
   /** CURRENT jsonInfo ➡ current sdkParsedInfo  */
   useEffectWithTransition(async () => {
@@ -108,7 +146,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   useEffectWithTransition(async () => {
     if (disabled) return
     if (connection && currentSdkParsedInfo) {
-      const lpBalance = rawBalances[String(currentSdkParsedInfo.lpMint)]
+      const lpBalance = pureRawBalances[String(currentSdkParsedInfo.lpMint)]
       const hydrated = await hydrateLiquidityInfo(currentSdkParsedInfo, { getToken, getLpToken, lpBalance })
       useLiquidity.setState({
         currentHydratedInfo: hydrated

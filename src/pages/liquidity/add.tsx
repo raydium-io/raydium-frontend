@@ -55,6 +55,9 @@ import { HexAddress } from '@/types/constants'
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
+import { getUserTokenEvenNotExist } from '@/application/token/getUserTokenEvenNotExist'
+import useAsyncValue from '@/hooks/useAsyncValue'
+import asyncMap from '@/functions/asyncMap'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -804,9 +807,10 @@ function UserLiquidityExhibition() {
   }
 
   const exhibitionInfos = useMemo(
-    () => hydratedInfos.filter(({ id }) => userExhibitionLiquidityIds?.includes(String(id))),
+    () => hydratedInfos.filter(({ id }) => userExhibitionLiquidityIds?.includes(toPubString(id))),
     [hydratedInfos, userExhibitionLiquidityIds]
   )
+
   return (
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Your Liquidity</div>
