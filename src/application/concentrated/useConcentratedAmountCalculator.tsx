@@ -1,6 +1,5 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import assert from '@/functions/assert'
-import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
