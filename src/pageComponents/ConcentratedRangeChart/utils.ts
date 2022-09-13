@@ -1,4 +1,3 @@
-import { minus } from '@/functions/numberish/operations'
 import { useMemo } from 'react'
 import { ChartPoint } from './ConcentratedRangeInputChartBody'
 
@@ -47,7 +46,7 @@ export function useCalcVisiablePoints(
         ? points[0].x - 0 // TEST
         : 1
     const dataZoomX = 1 / diffX
-    const diffY = Math.max(...points.map((co) => co.y))
+    const diffY = Math.max(...points.map((co) => co.y)) || 1 /* fallback for diffY is zero */
     const dataZoomY = 1 / diffY
     const dataZoomedPoints = points.map(
       (p) => ({ vx: p.x * dataZoomX, vy: p.y * dataZoomY, originalDataPoint: p } as ZoomedChartPoint)
