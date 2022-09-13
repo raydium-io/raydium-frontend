@@ -1,25 +1,25 @@
-import { useRouter } from 'next/router'
 import { useEffect, useMemo } from 'react'
+import { useRouter } from 'next/router'
 
 import { Price } from '@raydium-io/raydium-sdk'
 
 import shallow from 'zustand/shallow'
 
+import { unifyItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import toTokenPrice from '@/functions/format/toTokenPrice'
+import { lazyMap } from '@/functions/lazyMap'
+import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 import { HexAddress } from '@/types/constants'
 
+import useFarms from '../farms/useFarms'
+import useLiquidity from '../liquidity/useLiquidity'
 import useToken from '../token/useToken'
 import useWallet from '../wallet/useWallet'
 
-import { unifyItem } from '@/functions/arrayMethods'
-import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
-import useLiquidity from '../liquidity/useLiquidity'
+import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
-import { hydratedPairInfo } from './hydratedPairInfo'
-import { lazyMap } from '@/functions/lazyMap'
-import useFarms from '../farms/useFarms'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
