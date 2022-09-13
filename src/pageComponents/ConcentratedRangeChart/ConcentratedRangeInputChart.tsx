@@ -34,13 +34,48 @@ export function ConcentratedRangeInputChart({
   currentPrice?: Fraction
 }) {
   const { coin1, coin2, focusSide, coin1Amount, coin2Amount, currentAmmPool } = useConcentrated()
-  const [minPrice, setMinPrice] = useState<Numberish>(currentPrice ? mul(currentPrice, 1 - 0.5) : 0)
-  const [maxPrice, setMaxPrice] = useState<Numberish>(currentPrice ? mul(currentPrice, 1 + 0.5) : 0)
+  const [minPrice, setMinPrice] = useState<Numberish>(0)
+  const [maxPrice, setMaxPrice] = useState<Numberish>(0)
+
   useEffect(() => {
     setMinPrice(currentPrice ? mul(currentPrice, 1 - 0.5) : 0)
     setMaxPrice(currentPrice ? mul(currentPrice, 1 + 0.5) : 0)
   }, [poolId])
   const concentratedChartBodyRef = useRef<ConcentratedRangeInputChartBodyComponentHandler>(null)
+
+  useEffect(() => {
+    concentratedChartBodyRef.current?.shrinkToView()
+  }, [currentAmmPool?.state.id])
+
+  const recordTickAndPrice = (dataX: Numberish, type: 'min' | 'max'): Fraction | undefined => {
+    if (!currentAmmPool || !coin1 || !coin2) return
+    const focusCoin = focusSide === 'coin1' ? coin1 : coin2
+    const { price, tick } = getNearistDataPoint({
+      poolInfo: currentAmmPool.state,
+      baseIn: isMintEqual(currentAmmPool.state.mintA.mint, focusCoin?.mint),
+      price: focusSide === 'coin1' ? fractionToDecimal(toFraction(dataX)) : fractionToDecimal(toFraction(div(1, dataX))) // SDK force
+    })
+    const calcPrice = focusSide === 'coin1' ? price : div(1, price)
+    useConcentrated.setState(
+      type === 'min'
+        ? focusSide === 'coin1'
+          ? { priceLowerTick: tick, priceLower: calcPrice }
+          : { priceUpperTick: tick, priceUpper: calcPrice }
+        : focusSide === 'coin1'
+        ? { priceUpperTick: tick, priceUpper: calcPrice }
+        : { priceLowerTick: tick, priceLower: calcPrice }
+    )
+    return price
+  }
+
+  useEffect(() => {
+    if (!currentPrice) return
+    const nearestMinPrice = recordTickAndPrice(currentPrice ? mul(currentPrice, 1 - 0.5) : 0, 'min')
+    const nearestMaxPrice = recordTickAndPrice(currentPrice ? mul(currentPrice, 1 + 0.5) : 0, 'max')
+    nearestMinPrice && setMinPrice(nearestMinPrice)
+    nearestMaxPrice && setMaxPrice(nearestMaxPrice)
+  }, [poolId])
+
   const careDecimalLength = 6 // TEST TEMP
   return (
     <Col className={twMerge('py-4', className)}>
@@ -92,41 +127,21 @@ export function ConcentratedRangeInputChart({
         componentRef={concentratedChartBodyRef}
         className="my-2"
         onChangeMinBoundary={({ dataX }) => {
-          if (coin1 && coin2 && currentAmmPool) {
-            const focusCoin = focusSide === 'coin1' ? coin1 : coin2
-            const { price, tick } = getNearistDataPoint({
-              poolInfo: currentAmmPool.state,
-              baseIn: isMintEqual(currentAmmPool.state.mintA.mint, focusCoin?.mint),
-              price:
-                focusSide === 'coin1' ? fractionToDecimal(toFraction(dataX)) : fractionToDecimal(toFraction(1 / dataX)) // SDK force
-            })
-            const calcPrice = focusSide === 'coin1' ? price : div(1, price)
-            useConcentrated.setState(
-              focusSide === 'coin1'
-                ? { priceLowerTick: tick, priceLower: calcPrice }
-                : { priceUpperTick: tick, priceUpper: calcPrice }
-            )
+          const price = recordTickAndPrice(dataX, 'min')
+          if (price) {
             setMinPrice(price)
             concentratedChartBodyRef.current?.inputMinBoundaryX(price)
+          } else {
+            concentratedChartBodyRef.current?.inputMinBoundaryX(dataX)
           }
         }}
         onChangeMaxBoundary={({ dataX }) => {
-          if (coin1 && coin2 && currentAmmPool) {
-            const focusCoin = focusSide === 'coin1' ? coin1 : coin2
-            const { price, tick } = getNearistDataPoint({
-              poolInfo: currentAmmPool.state,
-              baseIn: isMintEqual(currentAmmPool.state.mintA.mint, focusCoin?.mint),
-              price:
-                focusSide === 'coin1' ? fractionToDecimal(toFraction(dataX)) : fractionToDecimal(toFraction(1 / dataX)) // SDK force
-            })
-            const calcPrice = focusSide === 'coin1' ? price : div(1, price)
-            useConcentrated.setState(
-              focusSide === 'coin1'
-                ? { priceUpperTick: tick, priceUpper: calcPrice }
-                : { priceLowerTick: tick, priceLower: calcPrice }
-            )
+          const price = recordTickAndPrice(dataX, 'max')
+          if (price) {
             setMaxPrice(price)
             concentratedChartBodyRef.current?.inputMaxBoundaryX(price)
+          } else {
+            concentratedChartBodyRef.current?.inputMaxBoundaryX(dataX)
           }
         }}
         {...chartOptions}
