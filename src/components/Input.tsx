@@ -351,7 +351,9 @@ export default function Input(props: InputProps) {
           }}
           onKeyDown={(ev) => {
             inputHTMLProps?.onKeyDown?.(ev)
-            if (ev.key === 'Enter') {
+            if (type === 'number' && (ev.key === 'ArrowUp' || ev.key === 'ArrowDown')) {
+              ev.preventDefault()
+            } else if (ev.key === 'Enter') {
               onEnter?.((ev.target as HTMLInputElement).value, {
                 el: inputRef.current!,
                 control: inputComponentHandler,
