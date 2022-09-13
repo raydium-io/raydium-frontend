@@ -68,6 +68,7 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+import useConnection from '@/application/connection/useConnection'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -721,9 +722,9 @@ function FarmPendingRewardBadge({
       <Row
         className={`ring-1 ring-inset ${
           isTokenAmount(reward) ? 'ring-[#abc4ff80]' : reward.isOptionToken ? 'ring-[#DA2EEF]' : 'ring-[#abc4ff80]'
-        } p-1 rounded-full items-center gap-2 overflow-hidden ${isRewarding ? '' : 'opacity-50'} ${
-          isRewardBeforeStart ? '' : ''
-        }`}
+        } p-1 rounded-full items-center gap-2 overflow-hidden ${
+          isRewarding ? '' : isRewardEnded ? 'opacity-30 contrast-40' : 'opacity-50'
+        } ${isRewardBeforeStart ? '' : ''}`}
       >
         {gt(pendingAmount, 0.001) && (
           <div className="text-xs translate-y-0.125 pl-1">
@@ -809,6 +810,15 @@ function FarmCardDatabaseBodyCollapseItemFace({
   const timeBasedRaydiumFeeApr = isJsonFarmInfo(info)
     ? undefined
     : info[timeBasis === '24H' ? 'raydiumFeeApr24h' : timeBasis === '30D' ? 'raydiumFeeApr30d' : 'raydiumFeeApr7d']
+
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const rewardType = (itemReward: HydratedRewardInfo) => {
+    const chainTime = Date.now() + (chainTimeOffset ?? 0)
+    if ((itemReward.endTime ?? new Date()).getTime() < chainTime) return 1
+    if ((itemReward.openTime ?? new Date()).getTime() > chainTime) return -1
+    return 0
+  }
+
   const pcCotent = (
     <Row
       type="grid-x"
@@ -854,11 +864,13 @@ function FarmCardDatabaseBodyCollapseItemFace({
                 '--'
               ) : (
                 <>
-                  {info.rewards.map((reward) => (
-                    <Fragment key={toPubString(reward.rewardVault)}>
-                      <FarmPendingRewardBadge farmInfo={info} reward={reward} />
-                    </Fragment>
-                  ))}
+                  {info.rewards
+                    .sort((a, b) => rewardType(a) - rewardType(b))
+                    .map((reward) => (
+                      <Fragment key={toPubString(reward.rewardVault)}>
+                        <FarmPendingRewardBadge farmInfo={info} reward={reward} />
+                      </Fragment>
+                    ))}
                   {haveOptionToken && (
                     <Tooltip>
                       <Badge cssColor="#DA2EEF">Option tokens</Badge>

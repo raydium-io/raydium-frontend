@@ -1,5 +1,6 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import assert from '@/functions/assert'
+import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
@@ -37,26 +38,29 @@ export default function useConcentratedAmountCalculator() {
 /** dirty */
 function calcConcentratedPairsAmount(): void {
   const { slippageTolerance } = useAppSettings.getState()
-  const { coin1, coin1Amount, priceUpperTick, coin2, coin2Amount, priceLowerTick, focusSide } =
+  const { coin1, coin1Amount, priceUpperTick, coin2, coin2Amount, priceLowerTick, focusSide, currentAmmPool } =
     useConcentrated.getState()
+  assert(currentAmmPool, 'not pool info')
   assert(coin1, 'not set coin1')
   assert(priceUpperTick, 'not set priceUpperTick')
   assert(coin2, 'not set coin2')
   assert(priceLowerTick, 'not set priceLowerTick')
   const isFixA = focusSide === 'coin1'
-  const { liquidity, amountOut } = AmmV3.getLiquidityAmountOutFromAmountIn({
+  const { liquidity, amountA, amountB } = AmmV3.getLiquidityAmountOutFromAmountIn({
+    poolInfo: currentAmmPool.state,
     slippage: Number(toString(slippageTolerance)),
     inputA: isFixA,
-    priceUpper: priceUpperTick,
-    priceLower: priceLowerTick,
+    tickUpper: priceUpperTick,
+    tickLower: priceLowerTick,
     amount: isFixA
       ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
-      : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals))
+      : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals)),
+    add: true // NOTE what's is it ?
   })
   if (isFixA) {
-    useConcentrated.setState({ coin2Amount: toTokenAmount(coin2, amountOut) })
+    useConcentrated.setState({ coin2Amount: toTokenAmount(coin2, amountB) })
   } else {
-    useConcentrated.setState({ coin1Amount: toTokenAmount(coin1, amountOut) })
+    useConcentrated.setState({ coin1Amount: toTokenAmount(coin1, amountA) })
   }
   useConcentrated.setState({ liquidity })
 }

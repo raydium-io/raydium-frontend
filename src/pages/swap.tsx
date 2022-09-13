@@ -1,4 +1,4 @@
-import React, { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { RouteInfo } from '@raydium-io/raydium-sdk'
 
@@ -9,7 +9,7 @@ import useNotification from '@/application/notification/useNotification'
 import { routeTo } from '@/application/routeTools'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
-import txUnwrapAllWSOL, { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
+import { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
 import txWrapSOL from '@/application/swap/txWrapSOL'
 import { useSwap } from '@/application/swap/useSwap'
 import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
@@ -18,10 +18,9 @@ import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
   isQuantumSOLVersionSOL,
   isQuantumSOLVersionWSOL,
-  SOL_BASE_BALANCE,
   SOLDecimals,
-  toUITokenAmount,
-  WSOLMint
+  SOL_BASE_BALANCE,
+  toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -31,7 +30,6 @@ import { AddressItem } from '@/components/AddressItem'
 import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
-import { Checkbox } from '@/components/Checkbox'
 import CoinAvatar from '@/components/CoinAvatar'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
@@ -40,20 +38,18 @@ import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import FadeInStable, { FadeIn } from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
-import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
-import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
-import copyToClipboard from '@/functions/dom/copyToClipboard'
+import { addItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { eq, gte, isMeaningfulNumber, isMeaninglessNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
@@ -127,34 +123,38 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
       title: 'Confirm Token',
       description: (
         <div className="space-y-2 text-left">
-          <p>
-            This token does not appear on the default token list. Anyone can create an SPL token on Solana, which may
-            include fake versions of existing tokens or tokens that claim to represent projects that do not have a
-            token. Take extra caution to confirm token addresses.
-          </p>
-          <p>Always check the quoted price and that the pool has sufficient liquidity before trading.</p>
+          <p>This token doesn’t appear on the default token list. Confirm this is the token that you want to trade.</p>
+
+          <Row className="justify-between items-center w-fit mx-auto gap-2">
+            <CoinAvatar token={downCoin} />
+            <div className="font-semibold">{downCoin?.symbol}</div>
+            <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
+              {downCoin?.mint}
+            </AddressItem>
+          </Row>
         </div>
       ),
       onlyConfirmButton: true,
-      confirmButtonText: 'I Understand',
-      additionalContent: (
-        <Checkbox
-          defaultChecked={hasUserPermanentConfirmed}
-          className="my-2 w-max mx-auto"
-          onChange={(newChecked) => {
-            if (!downCoin?.mint) return
-            if (newChecked) {
-              setUserPermanentConfirmedTokenMints((old) => addItem(old ?? [], String(downCoin.mint)))
-            } else {
-              setUserPermanentConfirmedTokenMints((old) => removeItem(old ?? [], String(downCoin.mint)))
-            }
-          }}
-          label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Do not warn again</div>}
-        />
-      ),
+      confirmButtonText: 'Confirm',
+      // additionalContent: ( // confirm is permanent
+      //   <Checkbox
+      //     defaultChecked={hasUserPermanentConfirmed}
+      //     className="my-2 w-max mx-auto"
+      //     onChange={(newChecked) => {
+      //       if (!downCoin?.mint) return
+      //       if (newChecked) {
+      //         setUserPermanentConfirmedTokenMints((old) => addItem(old ?? [], String(downCoin.mint)))
+      //       } else {
+      //         setUserPermanentConfirmedTokenMints((old) => removeItem(old ?? [], String(downCoin.mint)))
+      //       }
+      //     }}
+      //     label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Do not warn again</div>}
+      //   />
+      // ),
       onConfirm: () => {
         setHasUserTemporaryConfirmed(true)
         setIsConfirmPanelOn(false)
+        downCoin?.mint && setUserPermanentConfirmedTokenMints((old) => addItem(old ?? [], String(downCoin.mint)))
       },
       onCancel: () => {
         setHasUserTemporaryConfirmed(false)
@@ -444,7 +444,7 @@ function SwapCard() {
               fallbackProps: { children: `Insufficient ${upCoin?.symbol ?? ''} balance` }
             },
             {
-              should: hasAcceptedPriceChange,
+              should: hasAcceptedPriceChange || isApprovePanelShown,
               fallbackProps: { children: `Accept price change` }
             },
             {
@@ -543,6 +543,7 @@ function areSameToken(originToken: SplToken | undefined, newSelected: SplToken):
 
 function SwapPriceAcceptChip() {
   const { hasAcceptedPriceChange, setHasAcceptedPriceChange } = useSwapContextStore()
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
   const coin1Amount = useSwap((s) => s.coin1Amount)
@@ -615,7 +616,7 @@ function SwapPriceAcceptChip() {
 
   return (
     <FadeIn>
-      {bothHaveAmount && !hasAcceptedPriceChange && (
+      {bothHaveAmount && !hasAcceptedPriceChange && !isApprovePanelShown && (
         <Row className="mt-5 bg-[#141041] rounded-xl py-2 px-6 mobile:px-4 items-center justify-between">
           <Row className="text-sm font-medium text-[#ABC4FF] items-center ">
             Price updated

@@ -23,7 +23,7 @@ export default function useConcentratedInfoLoader() {
   /**  api json info list ➡ SDK info list */
   useEffectWithTransition(async () => {
     if (!connection) return
-    const sdkParsed = await AmmV3.fetchMultipleInfos({ poolKeys: apiAmmPools, connection })
+    const sdkParsed = await AmmV3.fetchMultiplePoolInfos({ poolKeys: apiAmmPools, connection })
     if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: sdkParsed })
   }, [apiAmmPools, connection])
 

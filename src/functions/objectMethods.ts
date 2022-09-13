@@ -133,7 +133,7 @@ export function pick<T, U extends keyof T>(obj: T, propNameList: ReadonlyArray<U
   return Object.fromEntries(Object.entries(obj).filter(([key]) => propNameList.includes(key)))
 }
 
-export function replaceValue<T, K extends keyof T, V extends T[K], NewV>(
+export function replaceValue<T extends AnyObj, K extends keyof T, V extends T[K], NewV>(
   obj: T,
   findValue: (value: V, key: K) => boolean,
   replaceValue: NewV

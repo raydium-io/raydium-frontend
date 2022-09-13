@@ -85,7 +85,6 @@ const useConnection = create<ConnectionStore>((set, get) => ({
       if (!customizedEndPoint.url.replace(/.*:\/\//, '')) return
       // set loading
       set({ isLoading: true, loadingCustomizedEndPoint: customizedEndPoint })
-
       const response = await fetch(customizedEndPoint.url, {
         headers: {
           'content-type': 'application/json'

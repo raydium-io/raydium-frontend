@@ -59,7 +59,7 @@ export function useSlippageTolerenceValidator() {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
   useEffect(() => {
-    if (lte(slippageTolerance, 0) || gt(slippageTolerance, 0.5)) {
+    if (lt(slippageTolerance, 0) || gt(slippageTolerance, 1)) {
       useAppSettings.setState({ slippageToleranceState: 'invalid' })
     } else if (lt(slippageTolerance, 0.01)) {
       useAppSettings.setState({ slippageToleranceState: 'too small' })
