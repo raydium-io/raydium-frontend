@@ -365,6 +365,11 @@ export default function Input(props: InputProps) {
               })
             }
           }}
+          onWheel={(e) => {
+            if (type === 'number') {
+              e.currentTarget.blur()
+            }
+          }}
         />
       </div>
       {suffix && <div className="flex-initial ml-2">{shrinkToValue(suffix, [inputComponentHandler])}</div>}
