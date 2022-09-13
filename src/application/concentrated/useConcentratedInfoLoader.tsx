@@ -12,7 +12,7 @@ import useConcentrated from './useConcentrated'
 export default function useConcentratedInfoLoader() {
   const apiAmmPools = useConcentrated((s) => s.apiAmmPools)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
-  const connection = useConnection((s) => s.testConnection)
+  const connection = useConnection((s) => s.connection)
 
   /** fetch api json info list  */
   useEffectWithTransition(async () => {

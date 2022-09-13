@@ -58,7 +58,6 @@ export function useCalcVisiablePoints(
     offsetVX - sideHiddenScreenCount * screenWidthVX,
     offsetVX + (sideHiddenScreenCount + 1) * screenWidthVX
   ]
-  // console.log('offsetVX: ', offsetVX, zoomVX, screenWidthVX, [minVX, maxVX])
 
   const filteredZoomedOptimizedPoints = useMemo(() => {
     const needRenderedPoints = dataZoomedPoints.filter((p) => minVX < p.vx && p.vx < maxVX)

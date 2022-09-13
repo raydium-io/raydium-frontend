@@ -9,19 +9,15 @@ import handleMultiTx from '@/application/txTools/handleMultiTx'
 import toFraction from '@/functions/numberish/toFraction'
 import { AmmV3 } from 'test-r-sdk'
 import useAppSettings from '../appSettings/useAppSettings'
-import useConnection from '../connection/useConnection'
 import useConcentrated from './useConcentrated'
 
 export default function txAddConcentrated({ ammId: targetAmmId }: { ammId?: PublicKeyish } = {}) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
+  return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
     const { currentAmmPool, priceLower, priceUpper, coin1, coin2, coin1Amount, coin2Amount, liquidity } =
       useConcentrated.getState()
-    const { testConnection } = useConnection.getState()
     const { tokenAccountRawInfos } = useWallet.getState()
-
     const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')
-    assert(testConnection, 'no connection')
     assert(priceUpper, 'not set priceUpper')
     assert(priceLower, 'not set priceLower')
     assert(coin1, 'not set coin1')
@@ -31,7 +27,7 @@ export default function txAddConcentrated({ ammId: targetAmmId }: { ammId?: Publ
     assert(liquidity, 'not set liquidity')
 
     const { transaction, signers, address } = await AmmV3.makeOpenPositionTransaction({
-      connection: testConnection,
+      connection: connection,
       liquidity,
       poolInfo: currentAmmPool.state,
       ownerInfo: {
