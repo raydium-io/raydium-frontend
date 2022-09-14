@@ -12,6 +12,7 @@ import { objectShakeFalsy, objectShakeNil } from '@/functions/objectMethods'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { HexAddress, MayFunction } from '@/types/constants'
 
+import useConcentrated from './concentrated/useConcentrated'
 import { createNewUIRewardInfo, parsedHydratedRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
 import useCreateFarms from './createFarm/useCreateFarm'
 import { HydratedFarmInfo } from './farms/type'
@@ -19,7 +20,6 @@ import useFarms from './farms/useFarms'
 import useIdo from './ido/useIdo'
 import useLiquidity from './liquidity/useLiquidity'
 import { usePools } from './pools/usePools'
-import { usePoolsConcentrated } from './poolsConcentrated/usePoolsConcentrated'
 import { useSwap } from './swap/useSwap'
 import { SplToken } from './token/type'
 import useWallet from './wallet/useWallet'
@@ -210,7 +210,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
     })
   } else if (toPage === '/pools/concentrated') {
     return router.push({ pathname: '/pools/concentrated' }).then(() => {
-      usePoolsConcentrated.setState(
+      useConcentrated.setState(
         objectShakeFalsy({
           searchText: options?.queryProps?.searchText,
           expandedPoolId: options?.queryProps?.expandedPoolId

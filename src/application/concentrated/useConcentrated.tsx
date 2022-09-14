@@ -1,32 +1,46 @@
 import { LiquidityPoolJsonInfo as ConcentratedJsonInfo, PublicKeyish } from '@raydium-io/raydium-sdk'
+
+import BN from 'bn.js'
+import { AmmPoolInfo, ApiAmmPoint, ApiAmmPoolInfo } from 'test-r-sdk'
 import create from 'zustand'
 
 import toPubString from '@/functions/format/toMintString'
 import { gte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
-import { AmmPoolInfo, ApiAmmPoolInfo, ApiAmmPoint } from 'test-r-sdk'
+import { Numberish } from '@/types/constants'
+
 import { toDataMint, WSOLMint } from '../token/quantumSOL'
 import { SplToken } from '../token/type'
 import {
-  ETHMint,
-  mSOLMint,
-  PAIMint,
-  RAYMint,
-  stSOLMint,
-  USDCMint,
-  USDHMint,
-  USDTMint
+  ETHMint, mSOLMint, PAIMint, RAYMint, stSOLMint, USDCMint, USDHMint, USDTMint
 } from '../token/wellknownToken.config'
+
 import sdkParseJsonConcentratedInfo from './sdkParseJsonConcentratedInfo'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo } from './type'
-import { Numberish } from '@/types/constants'
-import BN from 'bn.js'
 
 type SDKParsedAmmPool = {
   state: AmmPoolInfo
 }
 
 type SDKParsedAmmPoolsMap = Record<string, SDKParsedAmmPool>
+
+export enum PoolsConcentratedTabs {
+  ALL = 'All',
+  STABLES = 'Stables',
+  EXOTIC = 'Exotic',
+  MY_POOLS = 'My Pools'
+}
+
+export enum PoolsConcentratedLayout {
+  LIST = 'List',
+  CARD = 'Card'
+}
+
+export enum TimeBasis {
+  DAY = '24H',
+  WEEK = '7D',
+  MONTH = '30D'
+}
 
 export type ConcentratedStore = {
   apiAmmPools: ApiAmmPoolInfo[]
@@ -59,6 +73,15 @@ export type ConcentratedStore = {
   // just for trigger refresh
   refreshCount: number
   refreshConcentrated: () => void
+
+  /** for list page */
+  loading: boolean
+  currentTab: PoolsConcentratedTabs
+  searchText: string
+  expandedPoolId?: string
+  tvl?: string | number // /api.raydium.io/v2/main/info
+  volume24h?: string | number // /api.raydium.io/v2/main/info
+  timeBasis: TimeBasis
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
@@ -84,7 +107,12 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
     set((s) => ({
       refreshCount: s.refreshCount + 1
     }))
-  }
+  },
+  loading: true,
+  currentTab: PoolsConcentratedTabs.ALL,
+  currentLayout: PoolsConcentratedLayout.LIST,
+  searchText: '',
+  timeBasis: TimeBasis.WEEK
 }))
 
 export default useConcentrated

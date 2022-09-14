@@ -3,11 +3,11 @@ import { useMemo } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import useConcentrated, { PoolsConcentratedTabs, TimeBasis } from '@/application/concentrated/useConcentrated'
 import useFarms from '@/application/farms/useFarms'
 import { isHydratedPoolItemInfo } from '@/application/pools/is'
 import { HydratedPairItemInfo } from '@/application/pools/type'
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
-import { PoolsConcentratedTabs, usePoolsConcentrated } from '@/application/poolsConcentrated/usePoolsConcentrated'
 import { routeTo } from '@/application/routeTools'
 import { LpToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
@@ -49,7 +49,7 @@ import useSort from '@/hooks/useSort'
 
 export default function PoolsConcentratedPage() {
   // usePoolSummeryInfoLoader()
-  const currentTab = usePoolsConcentrated((s) => s.currentTab)
+  const currentTab = useConcentrated((s) => s.currentTab)
   return (
     <PageLayout
       mobileBarTitle={{
@@ -60,7 +60,7 @@ export default function PoolsConcentratedPage() {
           { value: PoolsConcentratedTabs.MY_POOLS, barLabel: PoolsConcentratedTabs.MY_POOLS }
         ],
         currentValue: currentTab,
-        onChange: (value) => usePoolsConcentrated.setState({ currentTab: value as PoolsConcentratedTabs }),
+        onChange: (value) => useConcentrated.setState({ currentTab: value as PoolsConcentratedTabs }),
         urlSearchQueryKey: 'tab',
         drawerTitle: 'CONCENTRATED POOLS'
       }}
@@ -73,8 +73,8 @@ export default function PoolsConcentratedPage() {
 }
 
 function PoolHeader() {
-  const tvl = usePoolsConcentrated((s) => s.tvl)
-  const volume24h = usePoolsConcentrated((s) => s.volume24h)
+  const tvl = useConcentrated((s) => s.tvl)
+  const volume24h = useConcentrated((s) => s.volume24h)
   const showTvlVolume24h = Boolean(tvl != null && volume24h != null)
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
@@ -117,29 +117,8 @@ function PoolHeader() {
   )
 }
 
-// might not using this component, use tab instead
-// function PoolStakedOnlyBlock() {
-//   const onlySelfPools = usePoolsConcentrated((s) => s.onlySelfPools)
-//   const connected = useWallet((s) => s.connected)
-//   if (!connected) return null
-//   return (
-//     <Row className="justify-self-end mobile:justify-self-auto items-center">
-//       <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs whitespace-nowrap">
-//         Show Staked
-//       </span>
-//       <Switcher
-//         className="ml-2"
-//         defaultChecked={onlySelfPools}
-//         onToggle={(isOnly) => {
-//           usePoolsConcentrated.setState({ onlySelfPools: isOnly })
-//         }}
-//       />
-//     </Row>
-//   )
-// }
-
 function PoolsTabBlock({ className }: { className?: string }) {
-  const currentTab = usePoolsConcentrated((s) => s.currentTab)
+  const currentTab = useConcentrated((s) => s.currentTab)
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
     <RowTabs
@@ -151,7 +130,7 @@ function PoolsTabBlock({ className }: { className?: string }) {
         PoolsConcentratedTabs.EXOTIC,
         PoolsConcentratedTabs.MY_POOLS
       ] as const)}
-      onChange={(tab) => usePoolsConcentrated.setState({ currentTab: tab })}
+      onChange={(tab) => useConcentrated.setState({ currentTab: tab })}
       className={className}
     />
   ) : (
@@ -164,7 +143,7 @@ function PoolsTabBlock({ className }: { className?: string }) {
         PoolsConcentratedTabs.EXOTIC,
         PoolsConcentratedTabs.MY_POOLS
       ] as const)}
-      onChange={(tab) => usePoolsConcentrated.setState({ currentTab: tab })}
+      onChange={(tab) => useConcentrated.setState({ currentTab: tab })}
       className={twMerge('justify-self-center mobile:col-span-full', className)}
     />
   )
@@ -200,7 +179,7 @@ function ToolsButton({ className }: { className?: string }) {
 
 function PoolSearchBlock({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const storeSearchText = usePoolsConcentrated((s) => s.searchText)
+  const storeSearchText = useConcentrated((s) => s.searchText)
   return (
     <Input
       value={storeSearchText}
@@ -218,13 +197,13 @@ function PoolSearchBlock({ className }: { className?: string }) {
             storeSearchText ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
           onClick={() => {
-            usePoolsConcentrated.setState({ searchText: '' })
+            useConcentrated.setState({ searchText: '' })
           }}
         />
       }
       placeholder="Search All"
       onUserInput={(searchText) => {
-        usePoolsConcentrated.setState({ searchText })
+        useConcentrated.setState({ searchText })
       }}
     />
   )
@@ -242,16 +221,16 @@ function PoolLabelBlock({ className }: { className?: string }) {
 }
 
 function PoolTimeBasisSelectorBox({ className }: { className?: string }) {
-  const timeBasis = usePoolsConcentrated((s) => s.timeBasis)
+  const timeBasis = useConcentrated((s) => s.timeBasis)
   return (
     <Select
       className={twMerge('z-20', className)}
-      candidateValues={['24H', '7D', '30D']}
+      candidateValues={Object.values(TimeBasis)}
       localStorageKey="ui-time-basis"
       defaultValue={timeBasis}
       prefix="Time Basis:"
       onChange={(newSortKey) => {
-        usePoolsConcentrated.setState({ timeBasis: newSortKey ?? '7D' })
+        useConcentrated.setState({ timeBasis: newSortKey ?? TimeBasis.WEEK })
       }}
     />
   )
@@ -279,7 +258,7 @@ function PoolTableSorterBox({
       | undefined
   ) => void
 }) {
-  const timeBasis = usePoolsConcentrated((s) => s.timeBasis)
+  const timeBasis = useConcentrated((s) => s.timeBasis)
   return (
     <Select
       className={className}
@@ -305,7 +284,7 @@ function PoolTableSorterBox({
 }
 function PoolRefreshCircleBlock({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const refreshPools = usePoolsConcentrated((s) => s.refreshPools)
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
 
   return useMemo(() => {
     if (isMobile) {
@@ -315,7 +294,7 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
           <RefreshCircle
             refreshKey="pools"
             freshFunction={() => {
-              refreshPools()
+              refreshConcentrated()
             }}
           />
         </Row>
@@ -327,42 +306,39 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
         <RefreshCircle
           refreshKey="pools"
           freshFunction={() => {
-            refreshPools()
+            refreshConcentrated()
           }}
         />
       </div>
     )
-  }, [isMobile, refreshPools])
+  }, [isMobile, refreshConcentrated])
 }
 
 function PoolCard() {
   const balances = useWallet((s) => s.balances)
   const unZeroBalances = objectFilter(balances, (tokenAmount) => gt(tokenAmount, 0))
   // TODO: CHANGE EVERYTHING WE USE FROM usePools, IT'S JUST FOR DEV
-  // const { hydratedInfos } = usePoolsConcentrated()
-  const { hydratedInfos } = usePools()
-  // const { searchText, setSearchText, currentTab, onlySelfPools } = usePageState()
-
-  const searchText = usePoolsConcentrated((s) => s.searchText)
-  const currentTab = usePoolsConcentrated((s) => s.currentTab)
-  const onlySelfPools = usePoolsConcentrated((s) => s.onlySelfPools)
-  const timeBasis = usePoolsConcentrated((s) => s.timeBasis)
+  // const { hydratedInfos } = useConcentrated()
+  const hydratedInfos = usePools((s) => s.hydratedInfos)
+  const searchText = useConcentrated((s) => s.searchText)
+  const currentTab = useConcentrated((s) => s.currentTab)
+  const timeBasis = useConcentrated((s) => s.timeBasis)
 
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = usePoolFavoriteIds()
 
   const dataSource = useMemo(
     () =>
-      hydratedInfos
-        .filter((i) =>
-          currentTab === PoolsConcentratedTabs.ALL
-            ? true
-            : currentTab === PoolsConcentratedTabs.EXOTIC
-            ? i.official
-            : !i.official
-        ) // Tab
-        .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)), // Switch
-    [onlySelfPools, searchText, hydratedInfos]
+      hydratedInfos.filter((i) =>
+        currentTab === PoolsConcentratedTabs.ALL
+          ? true
+          : currentTab === PoolsConcentratedTabs.EXOTIC
+          ? i.official
+          : currentTab === PoolsConcentratedTabs.MY_POOLS
+          ? true
+          : !i.official
+      ), // tab
+    [searchText, hydratedInfos]
   )
 
   const searched = useMemo(
@@ -610,8 +586,8 @@ function PoolCard() {
 }
 
 function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedPairItemInfo[] }) {
-  const loading = usePoolsConcentrated((s) => s.loading)
-  const expandedPoolId = usePoolsConcentrated((s) => s.expandedPoolId)
+  const loading = useConcentrated((s) => s.loading)
+  const expandedPoolId = useConcentrated((s) => s.expandedPoolId)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
   return sortedData.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
@@ -665,7 +641,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
   const haveLp = Boolean(lpToken)
   const isMobile = useAppSettings((s) => s.isMobile)
   const isTablet = useAppSettings((s) => s.isTablet)
-  const timeBasis = usePoolsConcentrated((s) => s.timeBasis)
+  const timeBasis = useConcentrated((s) => s.timeBasis)
 
   const pcCotent = (
     <Row
@@ -855,7 +831,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
   const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
   const farmPoolsList = useFarms((s) => s.hydratedInfos)
   const prices = usePools((s) => s.lpPrices)
-  // const prices = usePoolsConcentrated((s) => s.lpPrices)
+  // const prices = useConcentrated((s) => s.lpPrices)
 
   const hasLp = isMeaningfulNumber(balances[info.lpMint])
 
@@ -959,7 +935,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             <Button
               className="frosted-glass-teal"
               onClick={() => {
-                routeTo('/liquidity/add', {
+                routeTo('/liquidity/concentrated', {
                   queryProps: {
                     ammId: info.ammId
                   }
