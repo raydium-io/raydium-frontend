@@ -30,6 +30,7 @@ export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultVa
    */
   minN?: number
   maxN?: number
+  step?: number
 
   /** it will auto-valid each time when user input.
    * html will invoke this
@@ -64,6 +65,7 @@ export default function DecimalInput({
   showArrowControls,
   minN = 0,
   maxN,
+  step = Number((1 / 10 ** Math.floor(decimalCount)).toFixed(decimalCount)),
   onInvalid,
   canNegative,
   onValid,
@@ -108,17 +110,15 @@ export default function DecimalInput({
     if (!isValid) onInvalid?.()
   }
 
-  const stepS = (1 / 10 ** Math.floor(decimalCount)).toFixed(decimalCount)
-
-  const increase = (step = stepS) => {
-    const newN = clamp(minN, add(toString(innerValueSignal()), step), maxN)
+  const increase = (steps = step) => {
+    const newN = clamp(minN, add(toString(innerValueSignal()), steps), maxN)
     const newNString = toString(newN)
     userInput(newNString)
     dangerousInput(newNString)
   }
 
-  const decrease = (step = stepS) => {
-    const newN = clamp(minN, minus(toString(innerValueSignal()), step), maxN)
+  const decrease = (steps = step) => {
+    const newN = clamp(minN, minus(toString(innerValueSignal()), steps), maxN)
     const newNString = toString(newN)
     userInput(newNString)
     dangerousInput(newNString)
@@ -132,7 +132,7 @@ export default function DecimalInput({
         inputMode: 'decimal',
         min: String(minN),
         max: maxN ? String(maxN) : undefined,
-        step: stepS
+        step: step
       }}
       {...restProps}
       inputDomRef={mergeRef(inputDomRef, restProps.inputDomRef)}
