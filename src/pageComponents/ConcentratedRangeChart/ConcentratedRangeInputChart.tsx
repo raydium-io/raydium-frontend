@@ -1,16 +1,14 @@
 import { getNearistDataPoint } from '@/application/concentrated/getNearistDataPoint'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import { fractionToDecimal, recursivelyDecimalToFraction } from '@/application/txTools/decimal2Fraction'
+import { fractionToDecimal } from '@/application/txTools/decimal2Fraction'
 import Col from '@/components/Col'
 import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { div, mul } from '@/functions/numberish/operations'
+import { div, getMax, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
-import { toString } from '@/functions/numberish/toString'
-import { trimUnnecessaryDecimal } from '@/functions/numberish/trimUnnecessaryDecimal'
 import { Numberish } from '@/types/constants'
 import { useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
@@ -34,6 +32,7 @@ export function ConcentratedRangeInputChart({
   currentPrice?: Fraction
 }) {
   const { coin1, coin2, focusSide, coin1Amount, coin2Amount, currentAmmPool } = useConcentrated()
+  const careDecimalLength = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const [minPrice, setMinPrice] = useState<Numberish>(0)
   const [maxPrice, setMaxPrice] = useState<Numberish>(0)
 
@@ -47,9 +46,10 @@ export function ConcentratedRangeInputChart({
     concentratedChartBodyRef.current?.shrinkToView()
   }, [currentAmmPool?.state.id])
 
-  const recordTickAndPrice = (dataX: Numberish, type: 'min' | 'max'): Fraction | undefined => {
+  const recordTickAndPrice = (x: Numberish, type: 'min' | 'max'): Fraction | undefined => {
     if (!currentAmmPool || !coin1 || !coin2) return
     const focusCoin = focusSide === 'coin1' ? coin1 : coin2
+    const dataX = getMax(x, 1 / 10 ** careDecimalLength)
     const { price, tick } = getNearistDataPoint({
       poolInfo: currentAmmPool.state,
       baseIn: isMintEqual(currentAmmPool.state.mintA.mint, focusCoin?.mint),
@@ -76,7 +76,6 @@ export function ConcentratedRangeInputChart({
     nearestMaxPrice && setMaxPrice(nearestMaxPrice)
   }, [poolId])
 
-  const careDecimalLength = 6 // TEST TEMP
   return (
     <Col className={twMerge('py-4', className)}>
       <Row className="justify-between items-center">
@@ -155,6 +154,7 @@ export function ConcentratedRangeInputChart({
           decimalCount={concentratedChartBodyRef.current?.accurateDecimalLength}
           value={minPrice}
           onUserInput={(v) => {
+            // TODO record price
             concentratedChartBodyRef.current?.inputMinBoundaryX(Number(v))
           }}
         />
@@ -166,6 +166,7 @@ export function ConcentratedRangeInputChart({
           decimalCount={concentratedChartBodyRef.current?.accurateDecimalLength}
           value={maxPrice}
           onUserInput={(v) => {
+            // TODO record price
             concentratedChartBodyRef.current?.inputMaxBoundaryX(Number(v))
           }}
         />

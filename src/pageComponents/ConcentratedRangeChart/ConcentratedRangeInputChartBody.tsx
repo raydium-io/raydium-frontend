@@ -431,6 +431,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
       {/* anchor line */}
       {anchorVX && (
         <line
+          className="no-scale-align-center"
           x1={anchorVX}
           y1={0}
           x2={anchorVX}

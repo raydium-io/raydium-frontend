@@ -1,4 +1,5 @@
 import { isDecimal, isFraction } from '@/functions/judgers/dateType'
+import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { Fraction, Token } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
@@ -10,7 +11,7 @@ export function decimalToFraction(n: Decimal): Fraction
 export function decimalToFraction(n: Decimal | undefined): Fraction | undefined
 export function decimalToFraction(n: Decimal | undefined): Fraction | undefined {
   if (n == null) return undefined
-  const [numerator, denominator] = n.toFraction().map((i) => i.toString())
+  const { numerator, denominator } = parseNumberInfo(n.toString())
   return new Fraction(numerator, denominator)
 }
 
