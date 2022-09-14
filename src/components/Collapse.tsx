@@ -40,6 +40,7 @@ export type CollapseProps = {
   closeByOutsideClick?: boolean
   /** usually this is used together with componentRef */
   disableOpenByClickFace?: boolean
+  disable?: boolean
   componentRef?: RefObject<any>
 }
 
@@ -60,9 +61,11 @@ export default function Collapse({
   onToggle,
   closeByOutsideClick,
   disableOpenByClickFace,
+  disable,
   componentRef
 }: CollapseProps) {
   const [innerOpen, { toggle, off, on, set }] = useToggle(open ?? defaultOpen, {
+    locked: disable,
     onOff: onClose,
     onOn: onOpen,
     onToggle: onToggle
@@ -111,7 +114,9 @@ export default function Collapse({
           if (!disableOpenByClickFace) toggle()
         }}
         className={twMerge(
-          `filter hover:brightness-90 cursor-pointer ${openDirection === 'downwards' ? '' : 'order-2'}`,
+          `filter ${disable || disableOpenByClickFace ? '' : 'hover:brightness-90 cursor-pointer'} ${
+            openDirection === 'downwards' ? '' : 'order-2'
+          }`,
           collapseFaceProps?.className
         )}
         $open={innerOpen}

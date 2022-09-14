@@ -2,7 +2,7 @@ import { createRef, ReactNode, useEffect, useMemo, useRef, useState } from 'reac
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentrated, { SDKParsedAmmPool } from '@/application/concentrated/useConcentrated'
 import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
 import { routeTo } from '@/application/routeTools'
 import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
@@ -35,12 +35,13 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
 import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
-import { ApiAmmPoint } from 'test-r-sdk'
+import { AmmPoolInfo, ApiAmmPoint } from 'test-r-sdk'
 import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import toPubString from '@/functions/format/toMintString'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import txAddConcentrated from '@/application/concentrated/txAddConcentrated'
+import { changeCurrentAmmPool } from '@/application/concentrated/changeCurrentAmmPool'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -313,40 +314,100 @@ function RemainSOLAlert() {
 
 function ConcentratedFeeSwitcher({ className }: { className?: string }) {
   const selectableAmmPools = useConcentrated((s) => s.selectableAmmPools)
+  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const unselectedAmmPools = selectableAmmPools?.filter(
+    ({ state: { id } }) => !isMintEqual(id, currentAmmPool?.state.id)
+  )
+  const unselectedAmmConfigs = unselectedAmmPools?.map((p) => p.state.ammConfig)
+  const currentAmmConfig = currentAmmPool?.state.ammConfig
   return (
-    <Collapse className={twMerge('bg-[#141041] rounded-xl', className)}>
-      <Collapse.Face>{(open) => <ConcentratedFeeSwitcherFace open={open} />}</Collapse.Face>
+    <Collapse className={twMerge('bg-[#141041] rounded-xl', className)} disable={!unselectedAmmConfigs?.length}>
+      <Collapse.Face>
+        {(open) => (
+          <ConcentratedFeeSwitcherFace
+            haveArrow={Boolean(unselectedAmmConfigs?.length)}
+            open={open}
+            ammConfig={currentAmmConfig}
+          />
+        )}
+      </Collapse.Face>
       <Collapse.Body>
-        <ConcentratedFeeSwitcherContent />
+        <ConcentratedFeeSwitcherContent
+          unselectedAmmPools={unselectedAmmPools}
+          unselectedAmmConfigs={unselectedAmmConfigs}
+        />
       </Collapse.Body>
     </Collapse>
   )
 }
 
-function ConcentratedFeeSwitcherFace({ open }: { open: boolean }) {
+function ConcentratedFeeSwitcherFace({
+  open,
+  ammConfig,
+  haveArrow
+}: {
+  haveArrow?: boolean
+  open: boolean
+  ammConfig?: AmmPoolInfo['ammConfig']
+}) {
   return (
-    <Row className={`py-5 px-8 mobile:py-4 mobile:px-5 gap-2 items-stretch`}>
-      <div className="grow">0.3% fee tier</div>
-      <Grid className="w-6 h-6 place-items-center self-center">
+    <Row className={`p-5 mobile:py-4 mobile:px-5 gap-2 items-stretch justify-between`}>
+      {ammConfig ? (
+        <Row className={`${haveArrow ? 'gap-4' : 'justify-between w-full'}`}>
+          <div>
+            <div className="text-sm text-[#abc4ff80]">protocolFeeRate</div>
+            <div className="text-[#abc4ff]">{ammConfig.protocolFeeRate}</div>
+          </div>
+          <div>
+            <div className="text-sm text-[#abc4ff80]">tickSpacing</div>
+            <div className="text-[#abc4ff]">{ammConfig.tickSpacing}</div>
+          </div>
+          <div>
+            <div className="text-sm text-[#abc4ff80]">tradeFeeRate</div>
+            <div className="text-[#abc4ff]">{ammConfig.tradeFeeRate}</div>
+          </div>
+        </Row>
+      ) : (
+        <div> -- </div>
+      )}
+      <Grid className={`w-6 h-6 place-items-center self-center ${haveArrow ? '' : 'hidden'}`}>
         <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />
       </Grid>
     </Row>
   )
 }
 
-function ConcentratedFeeSwitcherContent() {
-  const fees = [
-    { id: 'hello', label: 'hello' },
-    { id: 'world', label: 'world ' }
-  ]
+function ConcentratedFeeSwitcherContent({
+  unselectedAmmPools,
+  unselectedAmmConfigs
+}: {
+  unselectedAmmPools?: SDKParsedAmmPool[]
+  unselectedAmmConfigs?: AmmPoolInfo['ammConfig'][]
+}) {
   return (
     <Row className="p-4 gap-4">
-      {fees.map((fee) => (
+      {unselectedAmmConfigs?.map((ammConfig) => (
         <div
-          key={fee.id}
-          className="grow py-5 px-8 mobile:py-4 mobile:px-5 gap-2 items-stretch ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-xl"
+          key={toPubString(ammConfig.id)}
+          className="grow p-5 mobile:py-4 mobile:px-5 gap-2 items-stretch ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-xl"
+          onClick={() => {
+            changeCurrentAmmPool(unselectedAmmPools, ammConfig)
+          }}
         >
-          {fee.label}
+          <Col className="gap-4">
+            <div>
+              <div className="text-sm text-[#abc4ff80]">protocolFeeRate</div>
+              <div className="text-[#abc4ff]">{ammConfig.protocolFeeRate}</div>
+            </div>
+            <div>
+              <div className="text-sm text-[#abc4ff80]">tickSpacing</div>
+              <div className="text-[#abc4ff]">{ammConfig.tickSpacing}</div>
+            </div>
+            <div>
+              <div className="text-sm text-[#abc4ff80]">tradeFeeRate</div>
+              <div className="text-[#abc4ff]">{ammConfig.tradeFeeRate}</div>
+            </div>
+          </Col>
         </div>
       ))}
     </Row>

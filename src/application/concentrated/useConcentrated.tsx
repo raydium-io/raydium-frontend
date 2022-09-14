@@ -1,28 +1,11 @@
-import { LiquidityPoolJsonInfo as ConcentratedJsonInfo, PublicKeyish } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 
-import toPubString from '@/functions/format/toMintString'
-import { gte } from '@/functions/numberish/compare'
-import { div } from '@/functions/numberish/operations'
-import { AmmPoolInfo, ApiAmmPoolInfo, ApiAmmPoint } from 'test-r-sdk'
-import { toDataMint, WSOLMint } from '../token/quantumSOL'
-import { SplToken } from '../token/type'
-import {
-  ETHMint,
-  mSOLMint,
-  PAIMint,
-  RAYMint,
-  stSOLMint,
-  USDCMint,
-  USDHMint,
-  USDTMint
-} from '../token/wellknownToken.config'
-import sdkParseJsonConcentratedInfo from './sdkParseJsonConcentratedInfo'
-import { HydratedConcentratedInfo, SDKParsedConcentratedInfo } from './type'
 import { Numberish } from '@/types/constants'
 import BN from 'bn.js'
+import { AmmPoolInfo, ApiAmmPoint, ApiAmmPoolInfo } from 'test-r-sdk'
+import { SplToken } from '../token/type'
 
-type SDKParsedAmmPool = {
+export type SDKParsedAmmPool = {
   state: AmmPoolInfo
 }
 
@@ -31,9 +14,7 @@ type SDKParsedAmmPoolsMap = Record<string, SDKParsedAmmPool>
 export type ConcentratedStore = {
   apiAmmPools: ApiAmmPoolInfo[]
   sdkParsedAmmPools: SDKParsedAmmPoolsMap
-
   selectableAmmPools?: SDKParsedAmmPool[]
-
   currentAmmPool?: SDKParsedAmmPool
   /** user need manually select one */
   chartPoints?: ApiAmmPoint[]
