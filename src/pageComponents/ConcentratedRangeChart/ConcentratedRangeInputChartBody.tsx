@@ -75,9 +75,9 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
     onChangeMinBoundary,
     onChangeMaxBoundary
   } = props
-  const inputInitMinBoundaryX = Number(toString(inputInitMinBoundaryXN))
-  const inputInitMaxBoundaryX = Number(toString(inputInitMaxBoundaryXN))
-  const anchorX = Number(toString(anchorXN))
+  const inputInitMinBoundaryX = Number(toString(inputInitMinBoundaryXN, { decimalLength: careDecimalLength }))
+  const inputInitMaxBoundaryX = Number(toString(inputInitMaxBoundaryXN, { decimalLength: careDecimalLength }))
+  const anchorX = Number(toString(anchorXN, { decimalLength: careDecimalLength }))
   //#region ------------------- config -------------------
   const lineColor = '#abc4ff80'
   const minBoundaryLineColor = '#abc4ff'

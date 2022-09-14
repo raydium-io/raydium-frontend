@@ -39,16 +39,17 @@ export function useCalcVisiablePoints(
 ) {
   /** to avoid too small point (ETH-RAY may have point {x: 0.00021, y: 0.0003}) */
   const { dataZoomX, dataZoomY, dataZoomedPoints, diffX } = useMemo(() => {
+    const sortedPoints = points.sort((a, b) => a.x - b.x)
     const diffX =
-      points.length > 1
-        ? points[1].x - points[0].x
-        : points.length === 1
-        ? points[0].x - 0 // TEST
+      sortedPoints.length > 1
+        ? sortedPoints[1].x - sortedPoints[0].x
+        : sortedPoints.length === 1
+        ? sortedPoints[0].x - 0 // TEST
         : 1
     const dataZoomX = 1 / diffX
-    const diffY = Math.max(...points.map((co) => co.y)) || 1 /* fallback for diffY is zero */
+    const diffY = Math.max(...sortedPoints.map((co) => co.y)) || 1 /* fallback for diffY is zero */
     const dataZoomY = 1 / diffY
-    const dataZoomedPoints = points.map(
+    const dataZoomedPoints = sortedPoints.map(
       (p) => ({ vx: p.x * dataZoomX, vy: p.y * dataZoomY, originalDataPoint: p } as ZoomedChartPoint)
     )
     return { dataZoomX, dataZoomY, dataZoomedPoints, diffX }

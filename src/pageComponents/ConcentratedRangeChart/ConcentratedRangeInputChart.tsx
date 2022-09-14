@@ -11,7 +11,7 @@ import { div, getMax, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Fraction } from 'test-r-sdk'
 import {
@@ -63,6 +63,11 @@ export function ConcentratedRangeInputChart({
     return price
   }
 
+  const revertedPoints = useMemo(
+    () => chartOptions?.points?.map((p) => ({ x: 1 / p.x, y: p.y })),
+    [chartOptions?.points]
+  )
+
   useEffect(() => {
     if (!currentPrice) return
     recordTickAndPrice(currentPrice ? mul(currentPrice, 1 - 0.5) : 0, 'min')
@@ -113,10 +118,11 @@ export function ConcentratedRangeInputChart({
         </Row>
       </Row>
       <ConcentratedRangeInputChartBody
-        initMinBoundaryX={priceLower}
-        initMaxBoundaryX={priceUpper}
+        points={focusSide === 'coin1' ? chartOptions?.points : revertedPoints}
+        initMinBoundaryX={focusSide === 'coin1' ? priceLower : div(1, priceUpper)}
+        initMaxBoundaryX={focusSide === 'coin1' ? priceUpper : div(1, priceLower)}
         careDecimalLength={careDecimalLength}
-        anchorX={currentPrice ? Number(currentPrice?.toSignificant(12 /* write casually */)) : 0}
+        anchorX={focusSide === 'coin1' ? currentPrice : div(1, currentPrice)}
         componentRef={concentratedChartBodyRef}
         className="my-2"
         onChangeMinBoundary={({ dataX }) => {
@@ -137,7 +143,6 @@ export function ConcentratedRangeInputChart({
             concentratedChartBodyRef.current?.inputMaxBoundaryX(dataX)
           }
         }}
-        {...chartOptions}
       />
       <Row className="gap-4">
         <InputBox
