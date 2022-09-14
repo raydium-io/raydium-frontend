@@ -197,10 +197,12 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
 
   //#region ------------------- methods -------------------
   const shrinkToView = useEvent((svgWidth = svgInnerWidth) => {
-    const newZoom = svgWidth / (minBoundaryVX + maxBoundaryVX)
-    const newOffsetX = 0
-    setZoom(newZoom)
+    const resetVerboseZoomFactor = 1.2 // 1 is full width of min/max boundary , .2 is it's redundant space
+    const contentFullViewWidth = Math.max(Math.abs(maxBoundaryVX - anchorVX), Math.abs(minBoundaryVX - anchorVX)) * 2
+    const newZoom = svgWidth / contentFullViewWidth / resetVerboseZoomFactor
+    const newOffsetX = anchorVX - contentFullViewWidth / 2 - contentFullViewWidth * 0.1
     setOffsetVX(newOffsetX)
+    setZoom(newZoom)
   })
 
   const backCenter = useEvent((zoomVX = zoom) => {
@@ -315,7 +317,6 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
   //#endregion
 
   useResizeObserver(wrapperRef, ({ el, entry }) => {
-    // TODO:
     if (el.clientWidth !== svgInnerWidthSignal()) {
       setSvgInnerWidth(el.clientWidth)
       setSvgInnerHeight(el.clientHeight)
@@ -353,7 +354,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
             height={32}
             fill={minBoundaryLineColor}
           />
-          {/* <text
+          <text
             className="no-scale break-words"
             fill="#141041"
             y="16"
@@ -368,7 +369,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
             dominantBaseline="middle"
           >
             MIN
-          </text> */}
+          </text>
         </g>
         <g id="max-boundary-brush">
           <rect
@@ -386,7 +387,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
             height={32}
             fill={maxBoundaryLineColor}
           />
-          {/* <text
+          <text
             className="no-scale break-words"
             fill="#141041"
             y="16"
@@ -401,10 +402,15 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
             dominantBaseline="middle"
           >
             MAX
-          </text> */}
+          </text>
         </g>
         <style>
           {`
+            .no-scale {
+              transform: scale(${1 / zoom},1);
+              transform-box: fill-box;
+              transform-origin: center;
+            }
             .no-scale-align-center {
               transform: translate(-50%, 0%) scale(${1 / zoom},1);
               transform-box: fill-box;
@@ -443,6 +449,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
 
       {/* min boundary */}
       <use
+        className={points ? '' : 'hidden'}
         href="#min-boundary-brush"
         style={{ touchAction: 'none' }}
         ref={minBoundaryRef}
@@ -452,6 +459,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
 
       {/* max boundary */}
       <use
+        className={points ? '' : 'hidden'}
         href="#max-boundary-brush"
         style={{ touchAction: 'none' }}
         ref={maxBoundaryRef}
@@ -471,29 +479,31 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
       ></line>
 
       {/* x units */}
-      <g>
-        {units.map(({ vx, unitValue }) => (
-          <text
-            // className="no-scale"
-            key={vx}
-            y={svgInnerHeight - (2 / 3) * xAxisAboveBottom} //  3/4 psition  of  xAxisAboveBottom
-            x={vx}
-            fill={xAxisUnitColor}
-            style={{
-              fontSize: 10,
-              transition: '75ms'
-            }}
-            // idea from https://stackoverflow.com/questions/61272308/why-does-webkit-safari-ios-macos-render-my-svg-transformations-in-a-different
-            transform={`translate(${vx}, ${svgInnerHeight / 2}) scale(${1 / zoom}, 1) translate(${-vx}, ${
-              -svgInnerHeight / 2
-            })`}
-            textAnchor="middle"
-            dominantBaseline="middle"
-          >
-            {isNumber(unitValue) ? trimUnnecessaryDecimal(unitValue, careDecimalLength / 3) : unitValue}
-          </text>
-        ))}
-      </g>
+      {points && (
+        <g>
+          {units.map(({ vx, unitValue }) => (
+            <text
+              // className="no-scale"
+              key={vx}
+              y={svgInnerHeight - (2 / 3) * xAxisAboveBottom} //  3/4 psition  of  xAxisAboveBottom
+              x={vx}
+              fill={xAxisUnitColor}
+              style={{
+                fontSize: 10,
+                transition: '75ms'
+              }}
+              // idea from https://stackoverflow.com/questions/61272308/why-does-webkit-safari-ios-macos-render-my-svg-transformations-in-a-different
+              transform={`translate(${vx}, ${svgInnerHeight / 2}) scale(${1 / zoom}, 1) translate(${-vx}, ${
+                -svgInnerHeight / 2
+              })`}
+              textAnchor="middle"
+              dominantBaseline="middle"
+            >
+              {isNumber(unitValue) ? trimUnnecessaryDecimal(unitValue, careDecimalLength / 3) : unitValue}
+            </text>
+          ))}
+        </g>
+      )}
     </svg>
   )
 }

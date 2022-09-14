@@ -12,6 +12,7 @@ export type SDKParsedAmmPool = {
 type SDKParsedAmmPoolsMap = Record<string, SDKParsedAmmPool>
 
 export type ConcentratedStore = {
+  directionReversed: boolean // determine pairSide  swap make this to be true
   apiAmmPools: ApiAmmPoolInfo[]
   sdkParsedAmmPools: SDKParsedAmmPoolsMap
   selectableAmmPools?: SDKParsedAmmPool[]
@@ -44,6 +45,7 @@ export type ConcentratedStore = {
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
 const useConcentrated = create<ConcentratedStore>((set, get) => ({
+  directionReversed: false,
   apiAmmPools: [],
   sdkParsedAmmPools: {},
 

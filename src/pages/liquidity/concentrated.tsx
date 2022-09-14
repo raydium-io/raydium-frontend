@@ -201,15 +201,21 @@ function ConcentratedCard() {
       </>
 
       <ConcentratedFeeSwitcher className="mt-12" />
-      <ConcentratedRangeInputChart
-        className="mt-5"
-        chartOptions={{
-          points: chartPoints ? toXYChartFormat(chartPoints) : undefined
-        }}
-        currentPrice={decimalToFraction(currentAmmPool?.state.currentPrice)}
-        poolId={toPubString(currentAmmPool?.state.id)}
-      />
-
+      <div className="relative">
+        <ConcentratedRangeInputChart
+          className={`mt-5 ${chartPoints ? '' : 'blur-md'}`}
+          chartOptions={{
+            points: chartPoints ? toXYChartFormat(chartPoints) : undefined
+          }}
+          currentPrice={decimalToFraction(currentAmmPool?.state.currentPrice)}
+          poolId={toPubString(currentAmmPool?.state.id)}
+        />
+        {!chartPoints && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xl whitespace-nowrap text-[#abc4ff80]">
+            select token to view this
+          </div>
+        )}
+      </div>
       {/* supply button */}
       <Button
         className="frosted-glass-teal w-full mt-5"
@@ -229,7 +235,8 @@ function ConcentratedCard() {
             fallbackProps: { children: 'Select a token' }
           },
           {
-            should: coin1Amount && isMeaningfulNumber(coin1Amount) && coin2Amount && isMeaningfulNumber(coin2Amount),
+            should:
+              (coin1Amount && isMeaningfulNumber(coin1Amount)) || (coin2Amount && isMeaningfulNumber(coin2Amount)),
             fallbackProps: { children: 'Enter an amount' }
           },
           // {
