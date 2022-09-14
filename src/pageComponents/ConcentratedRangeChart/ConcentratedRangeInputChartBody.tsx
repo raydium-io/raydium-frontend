@@ -82,7 +82,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
   const lineColor = '#abc4ff80'
   const minBoundaryLineColor = '#abc4ff'
   const maxBoundaryLineColor = '#abc4ff'
-  const anchorLineColor = '#abc4ff'
+  const anchorLineColor = 'dodgerblue'
   const xAxisColor = '#abc4ff80'
   const xAxisUnitColor = xAxisColor
   const [svgInnerWidth, setSvgInnerWidth, svgInnerWidthSignal] = useSignalState(300)
@@ -434,19 +434,6 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
         fill={lineColor}
       />
 
-      {/* anchor line */}
-      {anchorVX && (
-        <line
-          className="no-scale-align-center"
-          x1={anchorVX}
-          y1={0}
-          x2={anchorVX}
-          y2={svgInnerHeight - xAxisAboveBottom}
-          stroke={anchorLineColor}
-          strokeWidth="2"
-        />
-      )}
-
       {/* min boundary */}
       <use
         className={points ? '' : 'hidden'}
@@ -466,6 +453,19 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
         x={Math.max(maxBoundaryVX, 0)}
         y={0}
       />
+
+      {/* anchor line */}
+      {anchorVX && (
+        <line
+          className="no-scale-align-center"
+          x1={anchorVX}
+          y1={0}
+          x2={anchorVX}
+          y2={svgInnerHeight - xAxisAboveBottom}
+          stroke={anchorLineColor}
+          strokeWidth="2"
+        />
+      )}
 
       {/* x axis line */}
       <line

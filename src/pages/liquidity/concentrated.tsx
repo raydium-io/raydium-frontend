@@ -1,4 +1,4 @@
-import { createRef, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -42,6 +42,7 @@ import toPubString from '@/functions/format/toMintString'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import txAddConcentrated from '@/application/concentrated/txAddConcentrated'
 import { changeCurrentAmmPool } from '@/application/concentrated/changeCurrentAmmPool'
+import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -94,12 +95,29 @@ function ConcentratedCard() {
 
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
 
-  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, isSearchAmmDialogOpen, refreshConcentrated } =
-    useConcentrated()
+  const {
+    coin1,
+    coin1Amount,
+    coin2,
+    coin2Amount,
+    focusSide,
+    isSearchAmmDialogOpen,
+    refreshConcentrated,
+    directionReversed
+  } = useConcentrated()
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
+
+  const swapElementBox1 = useRef<HTMLDivElement>(null)
+  const swapElementBox2 = useRef<HTMLDivElement>(null)
+  const [hasUISwrapped, { toggleSwap: toggleUISwap }] = useSwapTwoElements(swapElementBox1, swapElementBox2, {
+    defaultHasWrapped: directionReversed
+  })
+  const switchDirectionReversed = useCallback(() => {
+    useConcentrated.setState((s) => ({ directionReversed: !s.directionReversed }))
+  }, [])
 
   const haveEnoughCoin1 =
     coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
@@ -123,6 +141,7 @@ function ConcentratedCard() {
           disabled={isApprovePanelShown}
           noDisableStyle
           componentRef={coinInputBox1ComponentRef}
+          domRef={swapElementBox1}
           value={toString(coin1Amount)}
           haveHalfButton
           haveCoinIcon
@@ -146,7 +165,15 @@ function ConcentratedCard() {
         {/* swap button */}
         <div className="relative h-8 my-4">
           <Row className={`absolute h-full items-center transition-all ${'left-1/2 -translate-x-1/2'}`}>
-            <Icon heroIconName="plus" className="p-1 text-[#39D0D8]" />
+            <Icon
+              heroIconName="plus"
+              className={`p-1 text-[#39D0D8] frosted-glass frosted-glass-teal rounded-full mr-4 select-none transition clickable`}
+              onClick={() => {
+                toggleUISwap()
+                switchDirectionReversed()
+                useConcentrated.setState((s) => ({ ...s, tabReversed: !s.tabReversed }))
+              }}
+            />
             {/* <FadeIn>{hasHydratedLiquidityPool && <LiquidityCardPriceIndicator className="w-max" />}</FadeIn> */}
           </Row>
           <Row className="absolute right-0 items-center">
@@ -177,6 +204,7 @@ function ConcentratedCard() {
 
         <CoinInputBox
           componentRef={coinInputBox2ComponentRef}
+          domRef={swapElementBox2}
           disabled={isApprovePanelShown}
           noDisableStyle
           value={toString(coin2Amount)}
@@ -235,10 +263,9 @@ function ConcentratedCard() {
             fallbackProps: { children: 'Select a token' }
           },
           {
-            should:
-              (coin1Amount && isMeaningfulNumber(coin1Amount)) || (coin2Amount && isMeaningfulNumber(coin2Amount)),
+            should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
             fallbackProps: { children: 'Enter an amount' }
-          },
+          }
           // {
           //   should: haveEnoughCoin1,
           //   fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
@@ -247,10 +274,6 @@ function ConcentratedCard() {
           //   should: haveEnoughCoin2,
           //   fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
           // },
-          {
-            should: isMeaningfulNumber(coin1Amount) && isMeaningfulNumber(coin2Amount),
-            fallbackProps: { children: 'Enter an amount' }
-          }
         ]}
         onClick={() => {
           txAddConcentrated()
