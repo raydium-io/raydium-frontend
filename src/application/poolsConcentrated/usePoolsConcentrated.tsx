@@ -14,6 +14,11 @@ export enum PoolsConcentratedTabs {
   MY_POOLS = 'My Pools'
 }
 
+export enum PoolsConcentratedLayout {
+  LIST = 'List',
+  CARD = 'Card'
+}
+
 // backEnd naming: Pools -> PairInfo
 export type PoolsConcentratedStore = {
   loading: boolean
@@ -35,6 +40,9 @@ export type PoolsConcentratedStore = {
   // just for trigger refresh
   refreshCount: number
   refreshPools: () => void
+
+  // pool card layout
+  currentLayout: PoolsConcentratedLayout
 }
 
 // FAQ: why it's a domain? because it must be a domain , or it's a design bug ———— do something useless.
@@ -58,7 +66,8 @@ export const usePoolsConcentrated = create<PoolsConcentratedStore>((set, get) =>
     set((s) => ({
       refreshCount: s.refreshCount + 1
     }))
-  }
+  },
+  currentLayout: PoolsConcentratedLayout.LIST
 }))
 
 export const usePoolConcentratedFavoriteIds = () =>

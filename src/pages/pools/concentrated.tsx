@@ -110,32 +110,33 @@ function PoolHeader() {
           routeTo('/liquidity/create')
         }}
       >
-        <Icon heroIconName="plus-circle" className="text-[#abc4ff]" size="sm" />
-        <span className="text-[#abc4ff] font-medium text-sm mobile:text-xs">Create Pool</span>
+        {/* <Icon heroIconName="plus-circle" className="text-[#abc4ff]" size="sm" />
+        <span className="text-[#abc4ff] font-medium text-sm mobile:text-xs">Create Pool</span> */}
       </Row>
     </Grid>
   )
 }
 
-function PoolStakedOnlyBlock() {
-  const onlySelfPools = usePoolsConcentrated((s) => s.onlySelfPools)
-  const connected = useWallet((s) => s.connected)
-  if (!connected) return null
-  return (
-    <Row className="justify-self-end mobile:justify-self-auto items-center">
-      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs whitespace-nowrap">
-        Show Staked
-      </span>
-      <Switcher
-        className="ml-2"
-        defaultChecked={onlySelfPools}
-        onToggle={(isOnly) => {
-          usePoolsConcentrated.setState({ onlySelfPools: isOnly })
-        }}
-      />
-    </Row>
-  )
-}
+// might not using this component, use tab instead
+// function PoolStakedOnlyBlock() {
+//   const onlySelfPools = usePoolsConcentrated((s) => s.onlySelfPools)
+//   const connected = useWallet((s) => s.connected)
+//   if (!connected) return null
+//   return (
+//     <Row className="justify-self-end mobile:justify-self-auto items-center">
+//       <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs whitespace-nowrap">
+//         Show Staked
+//       </span>
+//       <Switcher
+//         className="ml-2"
+//         defaultChecked={onlySelfPools}
+//         onToggle={(isOnly) => {
+//           usePoolsConcentrated.setState({ onlySelfPools: isOnly })
+//         }}
+//       />
+//     </Row>
+//   )
+// }
 
 function PoolsTabBlock({ className }: { className?: string }) {
   const currentTab = usePoolsConcentrated((s) => s.currentTab)
@@ -186,7 +187,6 @@ function ToolsButton({ className }: { className?: string }) {
               size="lg"
             >
               <Grid className="grid-cols-1 items-center gap-2">
-                <PoolStakedOnlyBlock />
                 <PoolRefreshCircleBlock />
                 <PoolTimeBasisSelectorBox />
               </Grid>
@@ -590,7 +590,6 @@ function PoolCard() {
       <Row className={'justify-between pb-5 gap-16 items-center'}>
         <PoolLabelBlock />
         <Row className="gap-6 items-stretch">
-          <PoolStakedOnlyBlock />
           <PoolTimeBasisSelectorBox />
           <PoolSearchBlock />
         </Row>
