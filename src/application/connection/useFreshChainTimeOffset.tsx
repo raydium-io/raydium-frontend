@@ -1,7 +1,10 @@
-import useConnection from './useConnection'
-import { mul, sub } from '@/functions/numberish/operations'
-import { Connection } from '@solana/web3.js'
 import { useEffect } from 'react'
+
+import { Connection } from '@solana/web3.js'
+
+import { mul, sub } from '@/functions/numberish/operations'
+
+import useConnection from './useConnection'
 
 /**
  * **only in `_app.tsx`**
@@ -20,12 +23,17 @@ export default function useFreshChainTimeOffset() {
 }
 
 async function updateChinTimeOffset(connection: Connection | undefined) {
-  if (!connection) return
-  const chainTime = await connection.getBlockTime(await connection.getSlot())
-  if (!chainTime) return
-  const offset = Number(sub(mul(chainTime, 1000), Date.now()).toFixed(0))
-  useConnection.setState({
-    chainTimeOffset: offset,
-    getChainDate: () => new Date(Date.now() + (offset ?? 0))
-  })
+  try {
+    if (!connection) return
+    const chainTime = await connection.getBlockTime(await connection.getSlot())
+    if (!chainTime) return
+    const offset = Number(sub(mul(chainTime, 1000), Date.now()).toFixed(0))
+    useConnection.setState({
+      chainTimeOffset: offset,
+      getChainDate: () => new Date(Date.now() + (offset ?? 0))
+    })
+  } catch (error) {
+    console.error('in updateChinTimeOffset, error: ', error)
+    return
+  }
 }
