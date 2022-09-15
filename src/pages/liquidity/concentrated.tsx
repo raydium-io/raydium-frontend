@@ -1,3 +1,8 @@
+import { createRef, useCallback, useRef, useState } from 'react'
+
+import { twMerge } from 'tailwind-merge'
+import { AmmV3PoolInfo, ApiAmmV3Point } from 'test-r-sdk'
+
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { changeCurrentAmmPool } from '@/application/concentrated/changeCurrentAmmPool'
 import txAddConcentrated from '@/application/concentrated/txAddConcentrated'
@@ -7,7 +12,7 @@ import useConcentratedAmmSelector from '@/application/concentrated/useConcentrat
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import { routeTo } from '@/application/routeTools'
-import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
+import { SOL_BASE_BALANCE, SOLDecimals } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
@@ -37,9 +42,7 @@ import useToggle from '@/hooks/useToggle'
 import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
-import { createRef, useCallback, useRef, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
-import { AmmV3PoolInfo, ApiAmmV3Point } from 'test-r-sdk'
+
 import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
@@ -117,6 +120,15 @@ function ConcentratedCard() {
     useConcentrated.setState((s) => ({ directionReversed: !s.directionReversed }))
   }, [])
 
+  const swapElementBox1 = useRef<HTMLDivElement>(null)
+  const swapElementBox2 = useRef<HTMLDivElement>(null)
+  const [hasUISwrapped, { toggleSwap: toggleUISwap }] = useSwapTwoElements(swapElementBox1, swapElementBox2, {
+    defaultHasWrapped: directionReversed
+  })
+  const switchDirectionReversed = useCallback(() => {
+    useConcentrated.setState((s) => ({ directionReversed: !s.directionReversed }))
+  }, [])
+
   const haveEnoughCoin1 =
     coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
   const haveEnoughCoin2 =
@@ -139,6 +151,7 @@ function ConcentratedCard() {
           disabled={isApprovePanelShown}
           noDisableStyle
           componentRef={coinInputBox1ComponentRef}
+          domRef={swapElementBox1}
           domRef={swapElementBox1}
           value={toString(coin1Amount)}
           haveHalfButton
@@ -437,7 +450,7 @@ function ConcentratedFeeSwitcherContent({
   )
 }
 
-function toXYChartFormat(points: ApiAmmV3Point[]): ChartPoint[] {
+function toXYChartFormat(points: ApiAmmV3V3Point[]): ChartPoint[] {
   return points.map(({ liquidity, price }) => ({
     x: Number(price),
     y: Number(liquidity)

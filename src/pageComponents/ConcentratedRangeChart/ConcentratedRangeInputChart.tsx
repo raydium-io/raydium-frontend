@@ -1,3 +1,8 @@
+import { useEffect, useMemo, useRef } from 'react'
+
+import { twMerge } from 'tailwind-merge'
+import { Fraction } from 'test-r-sdk'
+
 import { getPrevPriceAndTick, getPriceAndTick } from '@/application/concentrated/getNearistDataPoint'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import { fractionToDecimal } from '@/application/txTools/decimal2Fraction'
@@ -10,13 +15,9 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { div, getMax, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
 import { Numberish } from '@/types/constants'
-import { useEffect, useMemo, useRef } from 'react'
-import { twMerge } from 'tailwind-merge'
-import { Fraction } from 'test-r-sdk'
+
 import {
-  ChartRangeInputOption,
-  ConcentratedRangeInputChartBody,
-  ConcentratedRangeInputChartBodyComponentHandler
+  ChartRangeInputOption, ConcentratedRangeInputChartBody, ConcentratedRangeInputChartBodyComponentHandler
 } from './ConcentratedRangeInputChartBody'
 
 export function ConcentratedRangeInputChart({

@@ -3,9 +3,10 @@ import { useMemo } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import useConcentrated, { PoolsConcentratedTabs, TimeBasis } from '@/application/concentrated/useConcentrated'
 import useFarms from '@/application/farms/useFarms'
-import { isHydratedPoolItemInfo } from '@/application/pools/is'
+import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { HydratedPairItemInfo } from '@/application/pools/type'
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
@@ -318,41 +319,30 @@ function PoolCard() {
   const balances = useWallet((s) => s.balances)
   const unZeroBalances = objectFilter(balances, (tokenAmount) => gt(tokenAmount, 0))
   // TODO: CHANGE EVERYTHING WE USE FROM usePools, IT'S JUST FOR DEV
-  // const { hydratedInfos } = useConcentrated()
-  const hydratedInfos = usePools((s) => s.hydratedInfos)
+  const hydratedInfos = useConcentrated((s) => s.hydratedInfos)
+  // const hydratedInfos = usePools((s) => s.hydratedInfos)
   const searchText = useConcentrated((s) => s.searchText)
   const currentTab = useConcentrated((s) => s.currentTab)
   const timeBasis = useConcentrated((s) => s.timeBasis)
+  const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
 
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = usePoolFavoriteIds()
 
-  const dataSource = useMemo(
-    () =>
-      hydratedInfos.filter((i) =>
-        currentTab === PoolsConcentratedTabs.ALL
-          ? true
-          : currentTab === PoolsConcentratedTabs.EXOTIC
-          ? i.official
-          : currentTab === PoolsConcentratedTabs.MY_POOLS
-          ? true
-          : !i.official
-      ), // tab
-    [searchText, hydratedInfos]
-  )
+  const dataSource = useMemo(() => hydratedInfos, [searchText, hydratedInfos])
 
   const searched = useMemo(
     () =>
       searchItems(dataSource, {
         text: searchText,
         matchConfigs: (i) => [
-          { text: i.ammId, entirely: true },
-          { text: i.market, entirely: true }, // Input Auto complete result sort setting
-          { text: i.lpMint, entirely: true },
-          { text: toPubString(i.base?.mint), entirely: true },
-          { text: toPubString(i.quote?.mint), entirely: true },
-          i.base?.symbol,
-          i.quote?.symbol
+          { text: i.id, entirely: true }
+          // { text: i.market, entirely: true }, // Input Auto complete result sort setting
+          // { text: i.lpMint, entirely: true },
+          // { text: toPubString(i.base?.mint), entirely: true },
+          // { text: toPubString(i.quote?.mint), entirely: true },
+          // i.base?.symbol,
+          // i.quote?.symbol
           // i.base?.name,
           // i.quote?.name
         ]
@@ -366,7 +356,7 @@ function PoolCard() {
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity] }
+    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.id), (i) => i.liquidity] }
   })
   // re-sort when favourite have loaded
   useOnceEffect(
@@ -375,7 +365,7 @@ function PoolCard() {
       if (favouriteIds != null) {
         setSortConfig({
           key: 'init',
-          sortCompare: [(i) => favouriteIds?.includes(toPubString(i.ammId)), (i) => i.liquidity],
+          sortCompare: [(i) => favouriteIds?.includes(toPubString(i.id)), (i) => i.liquidity],
           mode: 'decrease'
         })
         runed()
@@ -396,7 +386,7 @@ function PoolCard() {
             setSortConfig({
               key: 'favorite',
               sortModeQueue: ['decrease', 'none'],
-              sortCompare: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity]
+              sortCompare: [(i) => favouriteIds?.includes(i.id), (i) => i.liquidity]
             })
           }}
         >
@@ -551,8 +541,7 @@ function PoolCard() {
               newSortKey
                 ? setSortConfig({
                     key: newSortKey,
-                    sortCompare:
-                      newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.ammId) : (i) => i[newSortKey]
+                    sortCompare: newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.id) : (i) => i[newSortKey]
                   })
                 : clearSortConfig()
             }}
@@ -585,21 +574,21 @@ function PoolCard() {
   )
 }
 
-function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedPairItemInfo[] }) {
+function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentratedInfo[] }) {
   const loading = useConcentrated((s) => s.loading)
   const expandedPoolId = useConcentrated((s) => s.expandedPoolId)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
   return sortedData.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
-        <List.Item key={info.lpMint}>
-          <Collapse open={expandedPoolId === info.ammId ? true : false}>
+        <List.Item key={info.id}>
+          <Collapse open={expandedPoolId === info.id ? true : false}>
             <Collapse.Face>
               {(open) => (
                 <PoolCardDatabaseBodyCollapseItemFace
                   open={open}
                   info={info}
-                  isFavourite={favouriteIds?.includes(info.ammId)}
+                  isFavourite={favouriteIds?.includes(info.id)}
                   onUnFavorite={(ammId) => {
                     setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
                   }}
@@ -631,14 +620,11 @@ function PoolCardDatabaseBodyCollapseItemFace({
   onStartFavorite
 }: {
   open: boolean
-  info: HydratedPairItemInfo
+  info: HydratedConcentratedInfo
   isFavourite?: boolean
   onUnFavorite?: (ammId: string) => void
   onStartFavorite?: (ammId: string) => void
 }) {
-  const lpTokens = useToken((s) => s.lpTokens)
-  const lpToken = lpTokens[info.lpMint] as LpToken | undefined
-  const haveLp = Boolean(lpToken)
   const isMobile = useAppSettings((s) => s.isMobile)
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = useConcentrated((s) => s.timeBasis)
@@ -656,7 +642,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             iconSrc="/icons/misc-star-filled.svg"
             onClick={({ ev }) => {
               ev.stopPropagation()
-              onUnFavorite?.(info.ammId)
+              onUnFavorite?.(info.id)
             }}
             className="clickable clickable-mask-offset-2 m-auto self-center"
           />
@@ -665,7 +651,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             iconSrc="/icons/misc-star-empty.svg"
             onClick={({ ev }) => {
               ev.stopPropagation()
-              onStartFavorite?.(info.ammId)
+              onStartFavorite?.(info.id)
             }}
             className="clickable clickable-mask-offset-2 opacity-30 hover:opacity-80 transition m-auto self-center"
           />
@@ -677,7 +663,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name="Liquidity"
         value={
-          isHydratedPoolItemInfo(info)
+          isHydratedConcentratedItemInfo(info)
             ? toUsdVolume(info.liquidity, { autoSuffix: isTablet, decimalPlace: 0 })
             : undefined
         }
@@ -685,7 +671,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name={`Volume(${timeBasis})`}
         value={
-          isHydratedPoolItemInfo(info)
+          isHydratedConcentratedItemInfo(info)
             ? timeBasis === '24H'
               ? toUsdVolume(info.volume24h, { autoSuffix: isTablet, decimalPlace: 0 })
               : timeBasis === '7D'
@@ -697,9 +683,9 @@ function PoolCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name={`Fees(${timeBasis})`}
         value={
-          isHydratedPoolItemInfo(info)
+          isHydratedConcentratedItemInfo(info)
             ? timeBasis === '24H'
-              ? toUsdVolume(info.fee24h, { autoSuffix: isTablet, decimalPlace: 0 })
+              ? toUsdVolume(info.day.fee, { autoSuffix: isTablet, decimalPlace: 0 })
               : timeBasis === '7D'
               ? toUsdVolume(info.fee7d, { autoSuffix: isTablet, decimalPlace: 0 })
               : toUsdVolume(info.fee30d, { autoSuffix: isTablet, decimalPlace: 0 })
@@ -709,12 +695,12 @@ function PoolCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name={`APR(${timeBasis})`}
         value={
-          isHydratedPoolItemInfo(info)
+          isHydratedConcentratedItemInfo(info)
             ? timeBasis === '24H'
-              ? toPercentString(info.apr24h, { alreadyPercented: true })
+              ? toPercentString(info.day.apr, { alreadyPercented: true })
               : timeBasis === '7D'
-              ? toPercentString(info.apr7d, { alreadyPercented: true })
-              : toPercentString(info.apr30d, { alreadyPercented: true })
+              ? toPercentString(info.week.apr, { alreadyPercented: true })
+              : toPercentString(info.month.apr, { alreadyPercented: true })
             : undefined
         }
       />
@@ -821,11 +807,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
     </Collapse>
   )
 
-  if (!haveLp) return null
   return isMobile ? mobileContent : pcCotent
 }
 
-function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedPairItemInfo }) {
+function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedConcentratedInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const balances = useWallet((s) => s.balances)
   const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
@@ -1006,7 +991,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
   )
 }
 
-function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | undefined; className?: string }) {
+function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInfo | undefined; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const lowLiquidityAlertText = `This pool has relatively low liquidity. Always check the quoted price and that the pool has sufficient liquidity before trading.`
 
@@ -1021,13 +1006,13 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | 
       <CoinAvatarPair
         className="justify-self-center mr-2"
         size={isMobile ? 'sm' : 'md'}
-        token1={info?.base}
-        token2={info?.quote}
+        token1={info?.baseToken}
+        token2={info?.quoteToken}
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         {info?.name}
-        {info?.isStablePool && <Badge className="self-center">Stable</Badge>}
-        {lt(info?.liquidity.toFixed(0) ?? 0, 100000) && (
+        {/* {info?.isStablePool && <Badge className="self-center">Stable</Badge>} */}
+        {lt(toString(info?.liquidity, { decimalLength: 'auto 0' }) ?? 0, 100000) && (
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />
             <Tooltip.Panel>

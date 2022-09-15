@@ -26,6 +26,8 @@ export enum TimeBasis {
   MONTH = '30D'
 }
 
+type SDKParsedAmmPoolsMap = Record<string, SDKParsedAmmPool>
+
 export type ConcentratedStore = {
   selectableAmmPools?: HydratedConcentratedInfo[]
   currentAmmPool?: HydratedConcentratedInfo
@@ -71,6 +73,7 @@ export type ConcentratedStore = {
   tvl?: string | number // /api.raydium.io/v2/main/info
   volume24h?: string | number // /api.raydium.io/v2/main/info
   timeBasis: TimeBasis
+  hydratedInfos: HydratedConcentratedInfo[]
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
@@ -104,7 +107,8 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   currentTab: PoolsConcentratedTabs.ALL,
   currentLayout: PoolsConcentratedLayout.LIST,
   searchText: '',
-  timeBasis: TimeBasis.WEEK
+  timeBasis: TimeBasis.WEEK,
+  hydratedInfos: []
 }))
 
 export default useConcentrated

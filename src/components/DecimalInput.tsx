@@ -1,14 +1,15 @@
+import React, { useEffect, useRef, useState } from 'react'
+
 import { isNumberish } from '@/functions/judgers/dateType'
 import { padZero } from '@/functions/numberish/handleZero'
-import { add, getMin, clamp, minus } from '@/functions/numberish/operations'
+import { add, clamp, getMin, minus } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import mergeRef from '@/functions/react/mergeRef'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { useSignalState } from '@/hooks/useSignalState'
 import { Numberish } from '@/types/constants'
-import React, { useEffect, useRef, useState } from 'react'
-import Icon from './Icon'
 
+import Icon from './Icon'
 import Input, { InputProps } from './Input'
 
 type TriggerBy = 'user-input' | 'increase-decrease' | 'code-input'
