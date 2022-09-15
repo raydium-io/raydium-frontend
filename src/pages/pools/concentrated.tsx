@@ -319,7 +319,7 @@ function PoolCard() {
   const balances = useWallet((s) => s.balances)
   const unZeroBalances = objectFilter(balances, (tokenAmount) => gt(tokenAmount, 0))
   // TODO: CHANGE EVERYTHING WE USE FROM usePools, IT'S JUST FOR DEV
-  const hydratedInfos = useConcentrated((s) => s.hydratedInfos)
+  const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   // const hydratedInfos = usePools((s) => s.hydratedInfos)
   const searchText = useConcentrated((s) => s.searchText)
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -329,10 +329,7 @@ function PoolCard() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = usePoolFavoriteIds()
 
-  const dataSource = useMemo(() => hydratedInfos, [searchText, hydratedInfos])
-
-  // eslint-disable-next-line no-console
-  console.log('data source: ', dataSource)
+  const dataSource = useMemo(() => hydratedAmmPools, [searchText, hydratedAmmPools])
 
   const searched = useMemo(
     () =>
@@ -700,10 +697,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
         value={
           isHydratedConcentratedItemInfo(info)
             ? timeBasis === '24H'
-              ? toPercentString(info.state.day.apr, { alreadyPercented: true })
+              ? toPercentString(info.state.day.apr)
               : timeBasis === '7D'
-              ? toPercentString(info.state.week.apr, { alreadyPercented: true })
-              : toPercentString(info.state.month.apr, { alreadyPercented: true })
+              ? toPercentString(info.state.week.apr)
+              : toPercentString(info.state.month.apr)
             : undefined
         }
       />
@@ -849,7 +846,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Your Liquidity</div>
             <div className="text-white font-medium text-base mobile:text-xs">
               {/* {toUsdVolume(toTotalPrice(balances[info.lpMint], prices[info.lpMint]))} */}
-              --isHydratedConcentratedItemInfo
+              --
             </div>
             <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
               {/* {isHydratedConcentratedItemInfo(info) ? toString(balances[info.lpMint] ?? 0) + ' LP' : '--'} */}
@@ -932,6 +929,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             <Button
               className="frosted-glass-teal"
               onClick={() => {
+                // TODO: set coin1, coin2
+                // useConcentrated.setState({ coin1: info.baseToken, coin2: info.quoteToken })
                 routeTo('/liquidity/concentrated', {
                   queryProps: {
                     ammId: info.id

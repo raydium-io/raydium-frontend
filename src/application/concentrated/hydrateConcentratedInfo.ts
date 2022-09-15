@@ -15,7 +15,7 @@ export default function hydrateConcentratedInfo(
 ): HydratedConcentratedInfo {
   const baseToken = additionalTools.getToken(String(concentratedInfo.state.mintA.mint))
   const quoteToken = additionalTools.getToken(String(concentratedInfo.state.mintB.mint))
-  const name = (baseToken ? baseToken.name : 'unknown') + '-' + (quoteToken ? quoteToken?.name : 'unknown')
+  const name = (baseToken ? baseToken.symbol : 'unknown') + '-' + (quoteToken ? quoteToken?.symbol : 'unknown')
 
   return {
     ...concentratedInfo,
