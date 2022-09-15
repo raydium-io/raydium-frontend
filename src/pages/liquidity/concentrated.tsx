@@ -1,15 +1,17 @@
-import { createRef, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
-
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import { changeCurrentAmmPool } from '@/application/concentrated/changeCurrentAmmPool'
+import txAddConcentrated from '@/application/concentrated/txAddConcentrated'
+import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
+import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
+import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
+import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import { routeTo } from '@/application/routeTools'
 import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
+import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
-import { AddressItem } from '@/components/AddressItem'
 import Button, { ButtonHandle } from '@/components/Button'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
@@ -23,24 +25,22 @@ import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
+import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
+import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
+import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
+import { createRef, useCallback, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
+import { AmmV3PoolInfo, ApiAmmV3Point } from 'test-r-sdk'
 import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
-import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
-import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
-import { ApiAmmPoint } from 'test-r-sdk'
-import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
-import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
-import toPubString from '@/functions/format/toMintString'
-import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
-import txAddConcentrated from '@/application/concentrated/txAddConcentrated'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -93,12 +93,29 @@ function ConcentratedCard() {
 
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
 
-  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, isSearchAmmDialogOpen, refreshConcentrated } =
-    useConcentrated()
+  const {
+    coin1,
+    coin1Amount,
+    coin2,
+    coin2Amount,
+    focusSide,
+    isSearchAmmDialogOpen,
+    refreshConcentrated,
+    directionReversed
+  } = useConcentrated()
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
+
+  const swapElementBox1 = useRef<HTMLDivElement>(null)
+  const swapElementBox2 = useRef<HTMLDivElement>(null)
+  const [hasUISwrapped, { toggleSwap: toggleUISwap }] = useSwapTwoElements(swapElementBox1, swapElementBox2, {
+    defaultHasWrapped: directionReversed
+  })
+  const switchDirectionReversed = useCallback(() => {
+    useConcentrated.setState((s) => ({ directionReversed: !s.directionReversed }))
+  }, [])
 
   const haveEnoughCoin1 =
     coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
@@ -122,6 +139,7 @@ function ConcentratedCard() {
           disabled={isApprovePanelShown}
           noDisableStyle
           componentRef={coinInputBox1ComponentRef}
+          domRef={swapElementBox1}
           value={toString(coin1Amount)}
           haveHalfButton
           haveCoinIcon
@@ -145,8 +163,15 @@ function ConcentratedCard() {
         {/* swap button */}
         <div className="relative h-8 my-4">
           <Row className={`absolute h-full items-center transition-all ${'left-1/2 -translate-x-1/2'}`}>
-            <Icon heroIconName="plus" className="p-1 text-[#39D0D8]" />
-            {/* <FadeIn>{hasHydratedLiquidityPool && <LiquidityCardPriceIndicator className="w-max" />}</FadeIn> */}
+            <Icon
+              heroIconName="plus"
+              className={`p-1 text-[#39D0D8] frosted-glass frosted-glass-teal rounded-full mr-4 select-none transition clickable`}
+              onClick={() => {
+                toggleUISwap()
+                switchDirectionReversed()
+                useConcentrated.setState((s) => ({ ...s, tabReversed: !s.tabReversed }))
+              }}
+            />
           </Row>
           <Row className="absolute right-0 items-center">
             <Icon
@@ -176,6 +201,7 @@ function ConcentratedCard() {
 
         <CoinInputBox
           componentRef={coinInputBox2ComponentRef}
+          domRef={swapElementBox2}
           disabled={isApprovePanelShown}
           noDisableStyle
           value={toString(coin2Amount)}
@@ -200,15 +226,21 @@ function ConcentratedCard() {
       </>
 
       <ConcentratedFeeSwitcher className="mt-12" />
-      <ConcentratedRangeInputChart
-        className="mt-5"
-        chartOptions={{
-          points: chartPoints ? toXYChartFormat(chartPoints) : undefined
-        }}
-        currentPrice={decimalToFraction(currentAmmPool?.state.currentPrice)}
-        poolId={toPubString(currentAmmPool?.state.id)}
-      />
-
+      <div className="relative">
+        <ConcentratedRangeInputChart
+          className={`mt-5 ${chartPoints ? '' : 'blur-md'}`}
+          chartOptions={{
+            points: chartPoints ? toXYChartFormat(chartPoints) : undefined
+          }}
+          currentPrice={decimalToFraction(currentAmmPool?.state.currentPrice)}
+          poolId={toPubString(currentAmmPool?.state.id)}
+        />
+        {!chartPoints && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xl whitespace-nowrap text-[#abc4ff80]">
+            select token to view this
+          </div>
+        )}
+      </div>
       {/* supply button */}
       <Button
         className="frosted-glass-teal w-full mt-5"
@@ -228,9 +260,9 @@ function ConcentratedCard() {
             fallbackProps: { children: 'Select a token' }
           },
           {
-            should: coin1Amount && isMeaningfulNumber(coin1Amount) && coin2Amount && isMeaningfulNumber(coin2Amount),
+            should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
             fallbackProps: { children: 'Enter an amount' }
-          },
+          }
           // {
           //   should: haveEnoughCoin1,
           //   fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
@@ -239,10 +271,6 @@ function ConcentratedCard() {
           //   should: haveEnoughCoin2,
           //   fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
           // },
-          {
-            should: isMeaningfulNumber(coin1Amount) && isMeaningfulNumber(coin2Amount),
-            fallbackProps: { children: 'Enter an amount' }
-          }
         ]}
         onClick={() => {
           txAddConcentrated()
@@ -313,47 +341,103 @@ function RemainSOLAlert() {
 
 function ConcentratedFeeSwitcher({ className }: { className?: string }) {
   const selectableAmmPools = useConcentrated((s) => s.selectableAmmPools)
+  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const unselectedAmmPools = selectableAmmPools?.filter(
+    ({ state: { id } }) => !isMintEqual(id, currentAmmPool?.state.id)
+  )
+  const currentAmmConfig = currentAmmPool?.state.ammConfig
   return (
-    <Collapse className={twMerge('bg-[#141041] rounded-xl', className)}>
-      <Collapse.Face>{(open) => <ConcentratedFeeSwitcherFace open={open} />}</Collapse.Face>
+    <Collapse className={twMerge('bg-[#141041] rounded-xl', className)} disable={!unselectedAmmPools?.length}>
+      <Collapse.Face>
+        {(open) => (
+          <ConcentratedFeeSwitcherFace
+            haveArrow={Boolean(unselectedAmmPools?.length)}
+            open={open}
+            ammConfig={currentAmmConfig}
+          />
+        )}
+      </Collapse.Face>
       <Collapse.Body>
-        <ConcentratedFeeSwitcherContent />
+        <ConcentratedFeeSwitcherContent unselectedAmmPools={unselectedAmmPools} />
       </Collapse.Body>
     </Collapse>
   )
 }
 
-function ConcentratedFeeSwitcherFace({ open }: { open: boolean }) {
+function ConcentratedFeeSwitcherFace({
+  open,
+  ammConfig,
+  haveArrow
+}: {
+  haveArrow?: boolean
+  open: boolean
+  ammConfig?: AmmV3PoolInfo['ammConfig']
+}) {
   return (
-    <Row className={`py-5 px-8 mobile:py-4 mobile:px-5 gap-2 items-stretch`}>
-      <div className="grow">0.3% fee tier</div>
-      <Grid className="w-6 h-6 place-items-center self-center">
+    <Row className={`p-5 mobile:py-4 mobile:px-5 gap-2 items-stretch justify-between`}>
+      {ammConfig ? (
+        <Row className={`${haveArrow ? 'gap-4' : 'justify-between w-full'}`}>
+          <div>
+            <div className="text-sm text-[#abc4ff80]">protocolFeeRate</div>
+            <div className="text-[#abc4ff]">{ammConfig.protocolFeeRate}</div>
+          </div>
+          <div>
+            <div className="text-sm text-[#abc4ff80]">tickSpacing</div>
+            <div className="text-[#abc4ff]">{ammConfig.tickSpacing}</div>
+          </div>
+          <div>
+            <div className="text-sm text-[#abc4ff80]">tradeFeeRate</div>
+            <div className="text-[#abc4ff]">{ammConfig.tradeFeeRate}</div>
+          </div>
+        </Row>
+      ) : (
+        <div> -- </div>
+      )}
+      <Grid className={`w-6 h-6 place-items-center self-center ${haveArrow ? '' : 'hidden'}`}>
         <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />
       </Grid>
     </Row>
   )
 }
 
-function ConcentratedFeeSwitcherContent() {
-  const fees = [
-    { id: 'hello', label: 'hello' },
-    { id: 'world', label: 'world ' }
-  ]
+function ConcentratedFeeSwitcherContent({
+  unselectedAmmPools,
+  unselectedAmmConfigs
+}: {
+  unselectedAmmPools?: HydratedConcentratedInfo[]
+  unselectedAmmConfigs?: AmmV3PoolInfo['ammConfig'][]
+}) {
   return (
     <Row className="p-4 gap-4">
-      {fees.map((fee) => (
+      {unselectedAmmConfigs?.map((ammConfig) => (
         <div
-          key={fee.id}
-          className="grow py-5 px-8 mobile:py-4 mobile:px-5 gap-2 items-stretch ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-xl"
+          key={toPubString(ammConfig.id)}
+          className="grow p-5 mobile:py-4 mobile:px-5 gap-2 items-stretch ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-xl"
+          onClick={() => {
+            changeCurrentAmmPool(unselectedAmmPools, ammConfig)
+          }}
         >
-          {fee.label}
+          <Col className="gap-4">
+            <div>
+              <div className="text-sm text-[#abc4ff80]">protocolFeeRate</div>
+              <div className="text-[#abc4ff]">{ammConfig.protocolFeeRate}</div>
+            </div>
+            <div>
+              <div className="text-sm text-[#abc4ff80]">tickSpacing</div>
+              <div className="text-[#abc4ff]">{ammConfig.tickSpacing}</div>
+            </div>
+            <div>
+              <div className="text-sm text-[#abc4ff80]">tradeFeeRate</div>
+              <div className="text-[#abc4ff]">{ammConfig.tradeFeeRate}</div>
+            </div>
+          </Col>
         </div>
       ))}
     </Row>
   )
 }
 
-function toXYChartFormat(points: ApiAmmPoint[]): ChartPoint[] {
+function toXYChartFormat(points: ApiAmmV3Point[]): ChartPoint[] {
   return points.map(({ liquidity, price }) => ({
     x: Number(price),
     y: Number(liquidity)

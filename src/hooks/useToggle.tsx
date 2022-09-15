@@ -31,6 +31,7 @@ export type UseToggleRefReturn = [MutableRefObject<boolean>, ToggleController]
 export default function useToggle(
   initValue: MayFunc<boolean> = false,
   options: {
+    locked?: boolean
     /**only affact delay-* and canelDelayAction */
     delay?: number
     /* usually it is for debug */
@@ -45,6 +46,7 @@ export default function useToggle(
   const [isOn, _setIsOn] = useState(initValue)
   const [delayActionId, setDelayActionId] = useState<number | NodeJS.Timeout>(0)
   const setIsOn = (...params: any[]) => {
+    if (options.locked) return
     //@ts-expect-error temp
     _setIsOn(...params)
   }

@@ -1,16 +1,18 @@
 import { useEffect } from 'react'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import useConcentrated from './useConcentrated'
+import toPubString from '@/functions/format/toMintString'
 
 /** coin1 coin2 ammId */
 export default function useConcentratedAmmSelector() {
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
   const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
+  const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
 
   useEffect(() => {
-    if (!Object.values(sdkParsedAmmPools).length || !coin1 || !coin2) return
-    const allSelectablePools = Object.values(sdkParsedAmmPools).filter(
+    if (!hydratedAmmPools.length || !coin1 || !coin2) return
+    const allSelectablePools = hydratedAmmPools.filter(
       (p) =>
         (isMintEqual(p.state.mintA.mint, coin1.mint) && isMintEqual(p.state.mintB.mint, coin2.mint)) ||
         (isMintEqual(p.state.mintA.mint, coin2.mint) && isMintEqual(p.state.mintB.mint, coin1.mint))
@@ -19,7 +21,7 @@ export default function useConcentratedAmmSelector() {
       selectableAmmPools: allSelectablePools,
       currentAmmPool: allSelectablePools[0] // TEST
     })
-  }, [coin1, coin2, sdkParsedAmmPools])
+  }, [coin1, coin2, hydratedAmmPools])
 
   // /** update `coin1` and `coin2` (to match `ammId`) */
   // useEffect(() => {

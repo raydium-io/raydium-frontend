@@ -1,28 +1,12 @@
-import { LiquidityPoolJsonInfo as ConcentratedJsonInfo, PublicKeyish } from '@raydium-io/raydium-sdk'
-
 import BN from 'bn.js'
-import { AmmPoolInfo, ApiAmmPoint, ApiAmmPoolInfo } from 'test-r-sdk'
+import { ApiAmmV3Point } from 'test-r-sdk'
 import create from 'zustand'
 
-import toPubString from '@/functions/format/toMintString'
-import { gte } from '@/functions/numberish/compare'
-import { div } from '@/functions/numberish/operations'
 import { Numberish } from '@/types/constants'
 
-import { toDataMint, WSOLMint } from '../token/quantumSOL'
 import { SplToken } from '../token/type'
-import {
-  ETHMint, mSOLMint, PAIMint, RAYMint, stSOLMint, USDCMint, USDHMint, USDTMint
-} from '../token/wellknownToken.config'
 
-import sdkParseJsonConcentratedInfo from './sdkParseJsonConcentratedInfo'
-import { HydratedConcentratedInfo, SDKParsedConcentratedInfo } from './type'
-
-type SDKParsedAmmPool = {
-  state: AmmPoolInfo
-}
-
-type SDKParsedAmmPoolsMap = Record<string, SDKParsedAmmPool>
+import { APIConcentratedInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo } from './type'
 
 export enum PoolsConcentratedTabs {
   ALL = 'All',
@@ -46,11 +30,10 @@ export type ConcentratedStore = {
   apiAmmPools: ApiAmmPoolInfo[]
   sdkParsedAmmPools: SDKParsedAmmPoolsMap
 
-  selectableAmmPools?: SDKParsedAmmPool[]
-
-  currentAmmPool?: SDKParsedAmmPool
+  selectableAmmPools?: HydratedConcentratedInfo[]
+  currentAmmPool?: HydratedConcentratedInfo
   /** user need manually select one */
-  chartPoints?: ApiAmmPoint[]
+  chartPoints?: ApiAmmV3Point[]
   liquidity?: BN // from SDK, just store in UI
 
   coin1: SplToken | undefined
@@ -65,6 +48,15 @@ export type ConcentratedStore = {
   focusSide: 'coin1' | 'coin2' // not reflect ui placement.  maybe coin1 appears below coin2
   priceLower?: Numberish
   priceUpper?: Numberish
+
+  directionReversed: boolean // determine chart rang input box focus make this to be true
+  tabReversed: boolean // determine chart rang input tab focus make this to be true
+
+  //#endregion
+
+  apiAmmPools: APIConcentratedInfo[]
+  sdkParsedAmmPools: SDKParsedConcentratedInfo[]
+  hydratedAmmPools: HydratedConcentratedInfo[]
 
   isRemoveDialogOpen: boolean
   isSearchAmmDialogOpen: boolean
@@ -86,8 +78,11 @@ export type ConcentratedStore = {
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
 const useConcentrated = create<ConcentratedStore>((set, get) => ({
+  directionReversed: false,
+  tabReversed: false,
   apiAmmPools: [],
-  sdkParsedAmmPools: {},
+  sdkParsedAmmPools: [],
+  hydratedAmmPools: [],
 
   coin1: undefined,
 

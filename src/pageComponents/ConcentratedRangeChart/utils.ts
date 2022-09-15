@@ -23,7 +23,7 @@ function polygonChartPoints(points: ZoomedChartPoint[]): ZoomedChartPoint[] {
   const appandHeadTailZero = (points: ZoomedChartPoint[]) => {
     const firstPoint = points[0]
     const lastPoint = points[Math.max(points.length - 1, 0)]
-    return [{ ...firstPoint, vx: firstPoint.vx, vy: 0 }, ...points, { ...lastPoint, xv: lastPoint.vx, vy: 0 }]
+    return [{ ...firstPoint, vx: firstPoint.vx, vy: 0 }, ...points, { ...lastPoint, vx: lastPoint.vx, vy: 0 }]
   }
   return appandHeadTailZero(getSqared(points))
 }
@@ -39,16 +39,17 @@ export function useCalcVisiablePoints(
 ) {
   /** to avoid too small point (ETH-RAY may have point {x: 0.00021, y: 0.0003}) */
   const { dataZoomX, dataZoomY, dataZoomedPoints, diffX } = useMemo(() => {
+    const sortedPoints = points.sort((a, b) => a.x - b.x)
     const diffX =
-      points.length > 1
-        ? points[1].x - points[0].x
-        : points.length === 1
-        ? points[0].x - 0 // TEST
+      sortedPoints.length > 1
+        ? sortedPoints[1].x - sortedPoints[0].x
+        : sortedPoints.length === 1
+        ? sortedPoints[0].x - 0 // TEST
         : 1
     const dataZoomX = 1 / diffX
-    const diffY = Math.max(...points.map((co) => co.y)) || 1 /* fallback for diffY is zero */
+    const diffY = Math.max(...sortedPoints.map((co) => co.y)) || 1 /* fallback for diffY is zero */
     const dataZoomY = 1 / diffY
-    const dataZoomedPoints = points.map(
+    const dataZoomedPoints = sortedPoints.map(
       (p) => ({ vx: p.x * dataZoomX, vy: p.y * dataZoomY, originalDataPoint: p } as ZoomedChartPoint)
     )
     return { dataZoomX, dataZoomY, dataZoomedPoints, diffX }
@@ -60,8 +61,8 @@ export function useCalcVisiablePoints(
   ]
 
   const filteredZoomedOptimizedPoints = useMemo(() => {
-    const needRenderedPoints = dataZoomedPoints.filter((p) => minVX < p.vx && p.vx < maxVX)
-    const optimized = optimizePoints(needRenderedPoints, zoomVX)
+    const visiablePoints = dataZoomedPoints.filter((p) => minVX < p.vx && p.vx < maxVX)
+    const optimized = optimizePoints(visiablePoints, zoomVX)
     return optimized
   }, [minVX, maxVX, zoomVX])
 
