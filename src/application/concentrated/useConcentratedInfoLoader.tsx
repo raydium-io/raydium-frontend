@@ -18,7 +18,7 @@ export default function useConcentratedInfoLoader() {
 
   /** fetch api json info list  */
   useEffectWithTransition(async () => {
-    const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('http://192.168.60.31:8000/v2/ammV3/ammPools')
+    const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
     if (response) useConcentrated.setState({ apiAmmPools: response.data })
   }, [])
 
@@ -46,7 +46,7 @@ export default function useConcentratedInfoLoader() {
   useEffectWithTransition(async () => {
     if (!currentAmmPool) return
     const chartResponse = await jFetch<{ data: ApiAmmV3Point[] }>(
-      `http://192.168.60.31:8000/v2/ammV3/positionLine?pool_id=${toPubString(currentAmmPool.state.id)}`
+      `https://api.raydium.io/v2/ammV3/positionLine?pool_id=${toPubString(currentAmmPool.state.id)}`
     )
     if (!chartResponse) return
     useConcentrated.setState({ chartPoints: chartResponse.data })
