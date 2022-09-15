@@ -1,32 +1,15 @@
 import React, { ReactNode, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
 import {
-  BackpackWalletAdapter,
-  BitKeepWalletAdapter,
-  BitpieWalletAdapter,
-  CloverWalletAdapter,
-  Coin98WalletAdapter,
-  CoinbaseWalletAdapter,
-  CoinhubWalletAdapter,
-  ExodusWalletAdapter,
-  GlowWalletAdapter,
-  LedgerWalletAdapter,
-  MathWalletAdapter,
-  PhantomWalletAdapter,
-  SafePalWalletAdapter,
-  SlopeWalletAdapter,
-  SolflareWalletAdapter,
-  SolletExtensionWalletAdapter,
-  SolletWalletAdapter,
-  SolongWalletAdapter,
-  TokenPocketWalletAdapter,
-  TorusWalletAdapter,
-  TrustWalletAdapter,
-  WalletConnectWalletAdapter
+  BackpackWalletAdapter, BitKeepWalletAdapter, BitpieWalletAdapter, CloverWalletAdapter, Coin98WalletAdapter,
+  CoinbaseWalletAdapter, CoinhubWalletAdapter, ExodusWalletAdapter, GlowWalletAdapter, LedgerWalletAdapter,
+  MathWalletAdapter, PhantomWalletAdapter, SafePalWalletAdapter, SlopeWalletAdapter, SolflareWalletAdapter,
+  SolletExtensionWalletAdapter, SolletWalletAdapter, SolongWalletAdapter, TokenPocketWalletAdapter, TorusWalletAdapter,
+  TrustWalletAdapter, WalletConnectWalletAdapter
 } from '@solana/wallet-adapter-wallets'
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 import { clusterApiUrl } from '@solana/web3.js'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
@@ -67,7 +50,7 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
         network: endpoint === clusterApiUrl('devnet') ? WalletAdapterNetwork.Devnet : WalletAdapterNetwork.Mainnet,
         options: {
           // TODO: register project to walletconnect.com and obtain project ID
-          // projectId: 'e899c82be21d4acca2c8aec45e893598',
+          projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PJ_ID,
           metadata: {
             name: 'Raydium',
             description: 'Raydium',
