@@ -1,10 +1,9 @@
 import { createRef, useCallback, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { AmmV3PoolInfo, ApiAmmV3Point } from 'test-r-sdk'
+import { ApiAmmV3Point } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { changeCurrentAmmPool } from '@/application/concentrated/changeCurrentAmmPool'
 import txAddConcentrated from '@/application/concentrated/txAddConcentrated'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -31,6 +30,7 @@ import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
 import toPubString from '@/functions/format/toMintString'
+import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
@@ -120,15 +120,6 @@ function ConcentratedCard() {
     useConcentrated.setState((s) => ({ directionReversed: !s.directionReversed }))
   }, [])
 
-  const swapElementBox1 = useRef<HTMLDivElement>(null)
-  const swapElementBox2 = useRef<HTMLDivElement>(null)
-  const [hasUISwrapped, { toggleSwap: toggleUISwap }] = useSwapTwoElements(swapElementBox1, swapElementBox2, {
-    defaultHasWrapped: directionReversed
-  })
-  const switchDirectionReversed = useCallback(() => {
-    useConcentrated.setState((s) => ({ directionReversed: !s.directionReversed }))
-  }, [])
-
   const haveEnoughCoin1 =
     coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
   const haveEnoughCoin2 =
@@ -151,7 +142,6 @@ function ConcentratedCard() {
           disabled={isApprovePanelShown}
           noDisableStyle
           componentRef={coinInputBox1ComponentRef}
-          domRef={swapElementBox1}
           domRef={swapElementBox1}
           value={toString(coin1Amount)}
           haveHalfButton
@@ -358,7 +348,6 @@ function ConcentratedFeeSwitcher({ className }: { className?: string }) {
   const unselectedAmmPools = selectableAmmPools?.filter(
     ({ state: { id } }) => !isMintEqual(id, currentAmmPool?.state.id)
   )
-  const currentAmmConfig = currentAmmPool?.state.ammConfig
   return (
     <Collapse className={twMerge('bg-[#141041] rounded-xl', className)} disable={!unselectedAmmPools?.length}>
       <Collapse.Face>
@@ -366,7 +355,7 @@ function ConcentratedFeeSwitcher({ className }: { className?: string }) {
           <ConcentratedFeeSwitcherFace
             haveArrow={Boolean(unselectedAmmPools?.length)}
             open={open}
-            ammConfig={currentAmmConfig}
+            currentPool={currentAmmPool}
           />
         )}
       </Collapse.Face>
@@ -379,28 +368,28 @@ function ConcentratedFeeSwitcher({ className }: { className?: string }) {
 
 function ConcentratedFeeSwitcherFace({
   open,
-  ammConfig,
+  currentPool,
   haveArrow
 }: {
   haveArrow?: boolean
   open: boolean
-  ammConfig?: AmmV3PoolInfo['ammConfig']
+  currentPool?: HydratedConcentratedInfo
 }) {
   return (
     <Row className={`p-5 mobile:py-4 mobile:px-5 gap-2 items-stretch justify-between`}>
-      {ammConfig ? (
+      {currentPool ? (
         <Row className={`${haveArrow ? 'gap-4' : 'justify-between w-full'}`}>
           <div>
             <div className="text-sm text-[#abc4ff80]">protocolFeeRate</div>
-            <div className="text-[#abc4ff]">{ammConfig.protocolFeeRate}</div>
+            <div className="text-[#abc4ff]">{toPercentString(currentPool.protocolFeeRate, { fixed: 4 })}</div>
           </div>
           <div>
             <div className="text-sm text-[#abc4ff80]">tickSpacing</div>
-            <div className="text-[#abc4ff]">{ammConfig.tickSpacing}</div>
+            <div className="text-[#abc4ff]">{currentPool.state.tickSpacing}</div>
           </div>
           <div>
             <div className="text-sm text-[#abc4ff80]">tradeFeeRate</div>
-            <div className="text-[#abc4ff]">{ammConfig.tradeFeeRate}</div>
+            <div className="text-[#abc4ff]">{toPercentString(currentPool.tradeFeeRate, { fixed: 4 })}</div>
           </div>
         </Row>
       ) : (
@@ -413,35 +402,29 @@ function ConcentratedFeeSwitcherFace({
   )
 }
 
-function ConcentratedFeeSwitcherContent({
-  unselectedAmmPools,
-  unselectedAmmConfigs
-}: {
-  unselectedAmmPools?: HydratedConcentratedInfo[]
-  unselectedAmmConfigs?: AmmV3PoolInfo['ammConfig'][]
-}) {
+function ConcentratedFeeSwitcherContent({ unselectedAmmPools }: { unselectedAmmPools?: HydratedConcentratedInfo[] }) {
   return (
     <Row className="p-4 gap-4">
-      {unselectedAmmConfigs?.map((ammConfig) => (
+      {unselectedAmmPools?.map((unselectedAmmPool) => (
         <div
-          key={toPubString(ammConfig.id)}
+          key={toPubString(unselectedAmmPool.state.id)}
           className="grow p-5 mobile:py-4 mobile:px-5 gap-2 items-stretch ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-xl"
           onClick={() => {
-            changeCurrentAmmPool(unselectedAmmPools, ammConfig)
+            useConcentrated.setState({ currentAmmPool: unselectedAmmPool })
           }}
         >
           <Col className="gap-4">
             <div>
               <div className="text-sm text-[#abc4ff80]">protocolFeeRate</div>
-              <div className="text-[#abc4ff]">{ammConfig.protocolFeeRate}</div>
+              <div className="text-[#abc4ff]">{toPercentString(unselectedAmmPool.protocolFeeRate, { fixed: 4 })}</div>
             </div>
             <div>
               <div className="text-sm text-[#abc4ff80]">tickSpacing</div>
-              <div className="text-[#abc4ff]">{ammConfig.tickSpacing}</div>
+              <div className="text-[#abc4ff]">{unselectedAmmPool.state.tickSpacing}</div>
             </div>
             <div>
               <div className="text-sm text-[#abc4ff80]">tradeFeeRate</div>
-              <div className="text-[#abc4ff]">{ammConfig.tradeFeeRate}</div>
+              <div className="text-[#abc4ff]">{toPercentString(unselectedAmmPool.tradeFeeRate, { fixed: 4 })}</div>
             </div>
           </Col>
         </div>
@@ -450,7 +433,7 @@ function ConcentratedFeeSwitcherContent({
   )
 }
 
-function toXYChartFormat(points: ApiAmmV3V3Point[]): ChartPoint[] {
+function toXYChartFormat(points: ApiAmmV3Point[]): ChartPoint[] {
   return points.map(({ liquidity, price }) => ({
     x: Number(price),
     y: Number(liquidity)

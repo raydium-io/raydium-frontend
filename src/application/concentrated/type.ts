@@ -1,4 +1,4 @@
-import { Percent } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, Percent } from '@raydium-io/raydium-sdk'
 
 import { AmmV3PoolInfo, ApiAmmV3PoolInfo } from 'test-r-sdk'
 
@@ -20,4 +20,11 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   quoteToken: SplToken | undefined
   name: string
   id: string
+  liquidity: CurrencyAmount
+  fee24h: CurrencyAmount
+  fee7d: CurrencyAmount
+  fee30d: CurrencyAmount
+  volume24h: CurrencyAmount
+  volume7d: CurrencyAmount
+  volume30d: CurrencyAmount
 }

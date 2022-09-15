@@ -51,7 +51,7 @@ export default function useConcentratedInfoLoader() {
           getLpToken
         })
     })
-    useConcentrated.setState({ hydratedAmmPools: hydratedInfos })
+    useConcentrated.setState({ hydratedAmmPools: hydratedInfos, loading: hydratedInfos.length === 0 })
   }, [sdkParsedAmmPools, connection])
 
   /** select pool chart data */

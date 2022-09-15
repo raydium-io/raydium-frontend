@@ -331,6 +331,9 @@ function PoolCard() {
 
   const dataSource = useMemo(() => hydratedInfos, [searchText, hydratedInfos])
 
+  // eslint-disable-next-line no-console
+  console.log('data source: ', dataSource)
+
   const searched = useMemo(
     () =>
       searchItems(dataSource, {
@@ -685,7 +688,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
         value={
           isHydratedConcentratedItemInfo(info)
             ? timeBasis === '24H'
-              ? toUsdVolume(info.day.fee, { autoSuffix: isTablet, decimalPlace: 0 })
+              ? toUsdVolume(info.fee24h, { autoSuffix: isTablet, decimalPlace: 0 })
               : timeBasis === '7D'
               ? toUsdVolume(info.fee7d, { autoSuffix: isTablet, decimalPlace: 0 })
               : toUsdVolume(info.fee30d, { autoSuffix: isTablet, decimalPlace: 0 })
@@ -697,10 +700,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
         value={
           isHydratedConcentratedItemInfo(info)
             ? timeBasis === '24H'
-              ? toPercentString(info.day.apr, { alreadyPercented: true })
+              ? toPercentString(info.state.day.apr, { alreadyPercented: true })
               : timeBasis === '7D'
-              ? toPercentString(info.week.apr, { alreadyPercented: true })
-              : toPercentString(info.month.apr, { alreadyPercented: true })
+              ? toPercentString(info.state.week.apr, { alreadyPercented: true })
+              : toPercentString(info.state.month.apr, { alreadyPercented: true })
             : undefined
         }
       />
@@ -726,7 +729,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
                 iconSrc="/icons/misc-star-filled.svg"
                 onClick={({ ev }) => {
                   ev.stopPropagation()
-                  onUnFavorite?.(info.ammId)
+                  onUnFavorite?.(info.id)
                 }}
                 size="sm"
               />
@@ -736,7 +739,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
                 iconSrc="/icons/misc-star-empty.svg"
                 onClick={({ ev }) => {
                   ev.stopPropagation()
-                  onStartFavorite?.(info.ammId)
+                  onStartFavorite?.(info.id)
                 }}
                 size="sm"
               />
@@ -748,7 +751,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
           <TextInfoItem
             name="Liquidity"
             value={
-              isHydratedPoolItemInfo(info)
+              isHydratedConcentratedItemInfo(info)
                 ? toUsdVolume(info.liquidity, { autoSuffix: true, decimalPlace: 1 })
                 : undefined
             }
@@ -756,12 +759,12 @@ function PoolCardDatabaseBodyCollapseItemFace({
           <TextInfoItem
             name={`APR(${timeBasis})`}
             value={
-              isHydratedPoolItemInfo(info)
+              isHydratedConcentratedItemInfo(info)
                 ? timeBasis === '24H'
-                  ? toPercentString(info.apr24h, { alreadyPercented: true })
+                  ? toPercentString(info.state.day.apr, { alreadyPercented: true })
                   : timeBasis === '7D'
-                  ? toPercentString(info.apr7d, { alreadyPercented: true })
-                  : toPercentString(info.apr30d, { alreadyPercented: true })
+                  ? toPercentString(info.state.week.apr, { alreadyPercented: true })
+                  : toPercentString(info.state.month.apr, { alreadyPercented: true })
                 : undefined
             }
           />
@@ -781,7 +784,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
           <TextInfoItem
             name="Volume(7d)"
             value={
-              isHydratedPoolItemInfo(info)
+              isHydratedConcentratedItemInfo(info)
                 ? toUsdVolume(info.volume7d, { autoSuffix: true, decimalPlace: 0 })
                 : undefined
             }
@@ -789,7 +792,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
           <TextInfoItem
             name="Volume(24h)"
             value={
-              isHydratedPoolItemInfo(info)
+              isHydratedConcentratedItemInfo(info)
                 ? toUsdVolume(info.volume24h, { autoSuffix: true, decimalPlace: 0 })
                 : undefined
             }
@@ -797,7 +800,9 @@ function PoolCardDatabaseBodyCollapseItemFace({
           <TextInfoItem
             name="Fees(7d)"
             value={
-              isHydratedPoolItemInfo(info) ? toUsdVolume(info.fee7d, { autoSuffix: true, decimalPlace: 0 }) : undefined
+              isHydratedConcentratedItemInfo(info)
+                ? toUsdVolume(info.fee7d, { autoSuffix: true, decimalPlace: 0 })
+                : undefined
             }
           />
 
@@ -818,12 +823,14 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
   const prices = usePools((s) => s.lpPrices)
   // const prices = useConcentrated((s) => s.lpPrices)
 
-  const hasLp = isMeaningfulNumber(balances[info.lpMint])
+  // TODO: NFT balance
+  // const hasLp = isMeaningfulNumber(balances[info.lpMint])
+  const hasLp = false
 
-  const correspondingFarm = useMemo(
-    () => farmPoolsList.find((farmInfo) => isMintEqual(farmInfo.lpMint, info.lpMint) && !farmInfo.isClosedPool),
-    [info]
-  )
+  const correspondingFarm = useMemo(() => {
+    // return farmPoolsList.find((farmInfo) => isMintEqual(farmInfo.lpMint, info.lpMint) && !farmInfo.isClosedPool)
+    return false
+  }, [info])
 
   return (
     <AutoBox
@@ -841,10 +848,12 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           <div className="flex-grow">
             <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Your Liquidity</div>
             <div className="text-white font-medium text-base mobile:text-xs">
-              {toUsdVolume(toTotalPrice(balances[info.lpMint], prices[info.lpMint]))}
+              {/* {toUsdVolume(toTotalPrice(balances[info.lpMint], prices[info.lpMint]))} */}
+              --isHydratedConcentratedItemInfo
             </div>
             <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-              {isHydratedPoolItemInfo(info) ? toString(balances[info.lpMint] ?? 0) + ' LP' : '--'}
+              {/* {isHydratedConcentratedItemInfo(info) ? toString(balances[info.lpMint] ?? 0) + ' LP' : '--'} */}
+              --
             </div>
           </div>
         </Row>
@@ -852,10 +861,12 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           <div className="flex-grow">
             <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Assets Pooled</div>
             <div className="text-white font-medium text-base mobile:text-xs">
-              {isHydratedPoolItemInfo(info) ? `${toString(info.basePooled || 0)} ${info.base?.symbol ?? ''}` : '--'}
+              {/* {isHydratedConcentratedItemInfo(info) ? `${toString(info.basePooled || 0)} ${info.base?.symbol ?? ''}` : '--'} */}
+              --
             </div>
             <div className="text-white font-medium text-base mobile:text-xs">
-              {isHydratedPoolItemInfo(info) ? `${toString(info.quotePooled || 0)} ${info.quote?.symbol ?? ''}` : '--'}
+              {/* {isHydratedConcentratedItemInfo(info) ? `${toString(info.quotePooled || 0)} ${info.quote?.symbol ?? ''}` : '--'} */}
+              --
             </div>
           </div>
         </Row>
@@ -863,7 +874,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           <div className="flex-grow">
             <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Your Share</div>
             <div className="text-white font-medium text-base mobile:text-xs">
-              {isHydratedPoolItemInfo(info) ? toPercentString(info.sharePercent) : '--%'}
+              {/* {isHydratedConcentratedItemInfo(info) ? toPercentString(info.sharePercent) : '--%'} */}
+              --
             </div>
           </div>
         </Row>
@@ -883,7 +895,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               onClick={() => {
                 routeTo('/liquidity/concentrated', {
                   queryProps: {
-                    ammId: info.ammId
+                    ammId: info.id
                   }
                 })
               }}
@@ -895,7 +907,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               onClick={() => {
                 routeTo('/liquidity/concentrated', {
                   queryProps: {
-                    ammId: info.ammId,
+                    ammId: info.id,
                     mode: 'removeLiquidity'
                   }
                 })
@@ -908,8 +920,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               onClick={() => {
                 routeTo('/swap', {
                   queryProps: {
-                    coin1: info.base,
-                    coin2: info.quote
+                    coin1: info.baseToken,
+                    coin2: info.quoteToken
                   }
                 })
               }}
@@ -922,7 +934,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               onClick={() => {
                 routeTo('/liquidity/concentrated', {
                   queryProps: {
-                    ammId: info.ammId
+                    ammId: info.id
                   }
                 })
               }}
@@ -937,14 +949,14 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                   correspondingFarm ? 'clickable' : 'not-clickable'
                 }`}
                 onClick={() => {
-                  routeTo('/farms', {
-                    //@ts-expect-error no need to care about enum of this error
-                    queryProps: objectShakeFalsy({
-                      currentTab: correspondingFarm?.category ? capitalize(correspondingFarm?.category) : undefined,
-                      newExpandedItemId: toPubString(correspondingFarm?.id),
-                      searchText: [info.base?.symbol, info.quote?.symbol].join(' ')
-                    })
-                  })
+                  // routeTo('/farms', {
+                  //   //@ts-expect-error no need to care about enum of this error
+                  //   queryProps: objectShakeFalsy({
+                  //     currentTab: correspondingFarm?.category ? capitalize(correspondingFarm?.category) : undefined,
+                  //     newExpandedItemId: toPubString(correspondingFarm?.id),
+                  //     searchText: [info.base?.symbol, info.quote?.symbol].join(' ')
+                  //   })
+                  // })
                 }}
               />
               <Tooltip.Panel>Farm</Tooltip.Panel>
@@ -960,7 +972,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                   hasLp &&
                     routeTo('/liquidity/concentrated', {
                       queryProps: {
-                        ammId: info.ammId,
+                        ammId: info.id,
                         mode: 'removeLiquidity'
                       }
                     })
@@ -976,8 +988,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 onClick={() => {
                   routeTo('/swap', {
                     queryProps: {
-                      coin1: info.base,
-                      coin2: info.quote
+                      coin1: info.baseToken,
+                      coin2: info.quoteToken
                     }
                   })
                 }}
