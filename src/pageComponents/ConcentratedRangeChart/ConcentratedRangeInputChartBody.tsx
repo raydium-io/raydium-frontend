@@ -7,6 +7,7 @@ import {
 import { isNumber } from '@/functions/judgers/dateType'
 import { toString } from '@/functions/numberish/toString'
 import { useEvent } from '@/hooks/useEvent'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import useResizeObserver from '@/hooks/useResizeObserver'
 import { useSignalState } from '@/hooks/useSignalState'
 import { Numberish } from '@/types/constants'
@@ -123,12 +124,12 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
   const initMinBoundaryX = inputInitMinBoundaryX
   const initMaxBoundaryX = inputInitMaxBoundaryX
   const anchorVX = anchorX ? anchorX * dataZoomX : 0
-  const [minBoundaryVX, setMinBoundaryVX] = useState((initMinBoundaryX ?? 0) * dataZoomX)
-  const [maxBoundaryVX, setMaxBoundaryVX] = useState(
+  const [minBoundaryVX, setMinBoundaryVX, minBoundaryVXSignal] = useSignalState((initMinBoundaryX ?? 0) * dataZoomX)
+  const [maxBoundaryVX, setMaxBoundaryVX, maxBoundaryVXSignal] = useSignalState(
     (initMaxBoundaryX ?? svgInnerWidth) * dataZoomX - boundaryLineWidth
   )
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     setMinBoundaryVX(initMinBoundaryX * dataZoomX)
     setMaxBoundaryVX((initMaxBoundaryX ?? svgInnerWidth) * dataZoomX)
   }, [dataZoomX])
@@ -198,7 +199,8 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
   //#region ------------------- methods -------------------
   const shrinkToView = useEvent((svgWidth = svgInnerWidth) => {
     const resetVerboseZoomFactor = 1.2 // 1 is full width of min/max boundary , .2 is it's redundant space
-    const contentFullViewWidth = Math.max(Math.abs(maxBoundaryVX - anchorVX), Math.abs(minBoundaryVX - anchorVX)) * 2
+    const contentFullViewWidth =
+      Math.max(Math.abs(maxBoundaryVXSignal() - anchorVX), Math.abs(minBoundaryVXSignal() - anchorVX)) * 2
     const newZoom = svgWidth / contentFullViewWidth / resetVerboseZoomFactor
     const newOffsetX = anchorVX - contentFullViewWidth / 2 - contentFullViewWidth * 0.1
     setOffsetVX(newOffsetX)
@@ -326,9 +328,9 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
     }
   })
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     shrinkToView()
-  }, [points?.[0].x])
+  }, [points?.[0].x, anchorVX])
 
   return (
     <svg
