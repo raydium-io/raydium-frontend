@@ -1,15 +1,17 @@
-import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
-
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useConcentrated, { SDKParsedAmmPool } from '@/application/concentrated/useConcentrated'
-import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
+import { changeCurrentAmmPool } from '@/application/concentrated/changeCurrentAmmPool'
+import txAddConcentrated from '@/application/concentrated/txAddConcentrated'
+import { HydratedConcentratedInfo } from '@/application/concentrated/type'
+import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
+import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
+import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import { routeTo } from '@/application/routeTools'
 import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
+import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
-import { AddressItem } from '@/components/AddressItem'
 import Button, { ButtonHandle } from '@/components/Button'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
@@ -23,26 +25,22 @@ import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
+import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
+import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
+import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
-import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
-import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
-import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
+import { createRef, useCallback, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 import { AmmV3PoolInfo, ApiAmmV3Point } from 'test-r-sdk'
-import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
-import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
-import toPubString from '@/functions/format/toMintString'
-import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
-import txAddConcentrated from '@/application/concentrated/txAddConcentrated'
-import { changeCurrentAmmPool } from '@/application/concentrated/changeCurrentAmmPool'
-import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
+import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -347,24 +345,20 @@ function ConcentratedFeeSwitcher({ className }: { className?: string }) {
   const unselectedAmmPools = selectableAmmPools?.filter(
     ({ state: { id } }) => !isMintEqual(id, currentAmmPool?.state.id)
   )
-  const unselectedAmmConfigs = unselectedAmmPools?.map((p) => p.state.ammConfig)
   const currentAmmConfig = currentAmmPool?.state.ammConfig
   return (
-    <Collapse className={twMerge('bg-[#141041] rounded-xl', className)} disable={!unselectedAmmConfigs?.length}>
+    <Collapse className={twMerge('bg-[#141041] rounded-xl', className)} disable={!unselectedAmmPools?.length}>
       <Collapse.Face>
         {(open) => (
           <ConcentratedFeeSwitcherFace
-            haveArrow={Boolean(unselectedAmmConfigs?.length)}
+            haveArrow={Boolean(unselectedAmmPools?.length)}
             open={open}
             ammConfig={currentAmmConfig}
           />
         )}
       </Collapse.Face>
       <Collapse.Body>
-        <ConcentratedFeeSwitcherContent
-          unselectedAmmPools={unselectedAmmPools}
-          unselectedAmmConfigs={unselectedAmmConfigs}
-        />
+        <ConcentratedFeeSwitcherContent unselectedAmmPools={unselectedAmmPools} />
       </Collapse.Body>
     </Collapse>
   )
@@ -410,7 +404,7 @@ function ConcentratedFeeSwitcherContent({
   unselectedAmmPools,
   unselectedAmmConfigs
 }: {
-  unselectedAmmPools?: SDKParsedAmmPool[]
+  unselectedAmmPools?: HydratedConcentratedInfo[]
   unselectedAmmConfigs?: AmmV3PoolInfo['ammConfig'][]
 }) {
   return (

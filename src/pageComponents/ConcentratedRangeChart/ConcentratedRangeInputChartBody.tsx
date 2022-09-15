@@ -360,7 +360,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
             height={32}
             fill={minBoundaryLineColor}
           />
-          <text
+          {/* <text
             className="no-scale break-words"
             fill="#141041"
             y="16"
@@ -375,7 +375,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
             dominantBaseline="middle"
           >
             MIN
-          </text>
+          </text> */}
         </g>
         <g id="max-boundary-brush">
           <rect
@@ -393,7 +393,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
             height={32}
             fill={maxBoundaryLineColor}
           />
-          <text
+          {/* <text
             className="no-scale break-words"
             fill="#141041"
             y="16"
@@ -408,7 +408,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
             dominantBaseline="middle"
           >
             MAX
-          </text>
+          </text> */}
         </g>
         <style>
           {`

@@ -1,9 +1,10 @@
 import jFetch from '@/functions/dom/jFetch'
 import toPubString from '@/functions/format/toMintString'
-
+import { lazyMap } from '@/functions/lazyMap'
 import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
 import useConnection from '../connection/useConnection'
+import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
 
 /**
@@ -11,6 +12,7 @@ import useConcentrated from './useConcentrated'
  */
 export default function useConcentratedInfoLoader() {
   const apiAmmPools = useConcentrated((s) => s.apiAmmPools)
+  const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const connection = useConnection((s) => s.connection)
 
@@ -24,8 +26,21 @@ export default function useConcentratedInfoLoader() {
   useEffectWithTransition(async () => {
     if (!connection) return
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({ poolKeys: apiAmmPools, connection })
-    if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: sdkParsed })
+    if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
   }, [apiAmmPools, connection])
+
+  /** SDK info list ➡ hydrated info list */
+  useEffectWithTransition(async () => {
+    if (!connection) return
+    if (!sdkParsedAmmPools) return
+    const sdkParsedAmmPoolsList = Object.values(sdkParsedAmmPools)
+    const hydratedInfos = await lazyMap({
+      source: sdkParsedAmmPoolsList,
+      sourceKey: 'hydrate amm pool Info',
+      loopFn: (sdkParsed) => hydrateConcentratedInfo(sdkParsed)
+    })
+    useConcentrated.setState({ hydratedAmmPools: hydratedInfos })
+  }, [sdkParsedAmmPools, connection])
 
   /** select pool chart data */
   useEffectWithTransition(async () => {

@@ -2,22 +2,15 @@ import create from 'zustand'
 
 import { Numberish } from '@/types/constants'
 import BN from 'bn.js'
-import { AmmV3PoolInfo, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
+import { ApiAmmV3Point } from 'test-r-sdk'
 import { SplToken } from '../token/type'
-
-export type SDKParsedAmmPool = {
-  state: AmmV3PoolInfo
-}
-
-type SDKParsedAmmPoolsMap = Record<string, SDKParsedAmmPool>
+import { APIConcentratedInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo } from './type'
 
 export type ConcentratedStore = {
-  directionReversed: boolean // determine chart rang input box focus make this to be true
-  tabReversed: boolean // determine chart rang input tab focus make this to be true
-  apiAmmPools: ApiAmmV3PoolInfo[]
-  sdkParsedAmmPools: SDKParsedAmmPoolsMap
-  selectableAmmPools?: SDKParsedAmmPool[]
-  currentAmmPool?: SDKParsedAmmPool
+  //#region ------------------- card UI -------------------
+
+  selectableAmmPools?: HydratedConcentratedInfo[]
+  currentAmmPool?: HydratedConcentratedInfo
   /** user need manually select one */
   chartPoints?: ApiAmmV3Point[]
   liquidity?: BN // from SDK, just store in UI
@@ -35,6 +28,15 @@ export type ConcentratedStore = {
   priceLower?: Numberish
   priceUpper?: Numberish
 
+  directionReversed: boolean // determine chart rang input box focus make this to be true
+  tabReversed: boolean // determine chart rang input tab focus make this to be true
+
+  //#endregion
+
+  apiAmmPools: APIConcentratedInfo[]
+  sdkParsedAmmPools: SDKParsedConcentratedInfo[]
+  hydratedAmmPools: HydratedConcentratedInfo[]
+
   isRemoveDialogOpen: boolean
   isSearchAmmDialogOpen: boolean
   removeAmount: string
@@ -49,7 +51,8 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   directionReversed: false,
   tabReversed: false,
   apiAmmPools: [],
-  sdkParsedAmmPools: {},
+  sdkParsedAmmPools: [],
+  hydratedAmmPools: [],
 
   coin1: undefined,
 
