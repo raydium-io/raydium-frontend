@@ -1,4 +1,4 @@
-import { getNearistDataPoint } from '@/application/concentrated/getNearistDataPoint'
+import { getPrevPriceAndTick, getPriceAndTick } from '@/application/concentrated/getNearistDataPoint'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import { fractionToDecimal } from '@/application/txTools/decimal2Fraction'
 import Col from '@/components/Col'
@@ -9,6 +9,7 @@ import RowTabs from '@/components/RowTabs'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { div, getMax, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
+import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
 import { useEffect, useMemo, useRef } from 'react'
 import { twMerge } from 'tailwind-merge'
@@ -31,7 +32,17 @@ export function ConcentratedRangeInputChart({
   chartOptions?: ChartRangeInputOption
   currentPrice?: Fraction
 }) {
-  const { coin1, coin2, focusSide, currentAmmPool, priceLower, priceUpper, tabReversed } = useConcentrated()
+  const {
+    coin1,
+    coin2,
+    focusSide,
+    currentAmmPool,
+    priceLower,
+    priceUpper,
+    tabReversed,
+    priceLowerTick,
+    priceUpperTick
+  } = useConcentrated()
   const careDecimalLength = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const focusSideCoin = !tabReversed ? coin1 : coin2
   const concentratedChartBodyRef = useRef<ConcentratedRangeInputChartBodyComponentHandler>(null)
@@ -39,20 +50,49 @@ export function ConcentratedRangeInputChart({
   const recordTickAndPrice = (x: Numberish, type: 'min' | 'max'): Fraction | undefined => {
     if (!currentAmmPool || !coin1 || !coin2) return
     const targetCoin = tabReversed ? coin2 : coin1
-    const dataX = getMax(x, 1 / 10 ** careDecimalLength)
-    const { price, tick } = getNearistDataPoint({
+    const trimedX = getMax(x, 1 / 10 ** careDecimalLength)
+    const { price, tick } = getPriceAndTick({
       poolInfo: currentAmmPool.state,
       baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
-      price: fractionToDecimal(toFraction(dataX))
+      price: fractionToDecimal(toFraction(trimedX))
     })
     useConcentrated.setState(
       type === 'min'
         ? !tabReversed
           ? { priceLowerTick: tick, priceLower: price }
-          : { priceUpperTick: tick, priceUpper: price }
+          : { priceUpperTick: tick, priceUpper: div(1, price) }
         : !tabReversed
         ? { priceUpperTick: tick, priceUpper: price }
-        : { priceLowerTick: tick, priceLower: price }
+        : { priceLowerTick: tick, priceLower: div(1, price) }
+    )
+    return price
+  }
+  const getNextPrevPrice = (boundaryType: 'min' | 'max', direct: 'increase' | 'decrease'): Fraction | undefined => {
+    const { priceLowerTick, priceUpperTick } = useConcentrated.getState()
+    const prevTick =
+      boundaryType === 'max'
+        ? tabReversed
+          ? priceLowerTick
+          : priceUpperTick
+        : tabReversed
+        ? priceUpperTick
+        : priceLowerTick
+    if (!currentAmmPool || !coin1 || !coin2 || !prevTick) return
+    const targetCoin = tabReversed ? coin2 : coin1
+    const tickDiff = direct === 'increase' ? (tabReversed ? -1 : +1) : tabReversed ? +1 : -1
+    const { price, tick } = getPrevPriceAndTick({
+      poolInfo: currentAmmPool.state,
+      baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
+      tick: prevTick + tickDiff
+    })
+    useConcentrated.setState(
+      boundaryType === 'min'
+        ? !tabReversed
+          ? { priceLowerTick: tick, priceLower: price }
+          : { priceUpperTick: tick, priceUpper: div(1, price) }
+        : !tabReversed
+        ? { priceUpperTick: tick, priceUpper: price }
+        : { priceLowerTick: tick, priceLower: div(1, price) }
     )
     return price
   }
@@ -138,7 +178,10 @@ export function ConcentratedRangeInputChart({
           showArrowControls
           decimalCount={careDecimalLength}
           value={!tabReversed ? priceLower : div(1, priceUpper)}
-          onUserInput={(v) => {
+          increaseFn={(v) => getNextPrevPrice('min', 'increase')}
+          decreaseFn={(v) => getNextPrevPrice('min', 'decrease')}
+          onUserInput={(v, { triggerBy }) => {
+            if (triggerBy === 'increase-decrease') return // no need to record again
             if (v == null) return
             const price = recordTickAndPrice(v, !tabReversed ? 'min' : 'max')
             if (price == null) return
@@ -152,7 +195,10 @@ export function ConcentratedRangeInputChart({
           showArrowControls
           decimalCount={careDecimalLength}
           value={!tabReversed ? priceUpper : div(1, priceLower)}
-          onUserInput={(v) => {
+          increaseFn={(v) => getNextPrevPrice('max', 'increase')}
+          decreaseFn={(v) => getNextPrevPrice('max', 'decrease')}
+          onUserInput={(v, { triggerBy }) => {
+            if (triggerBy === 'increase-decrease') return // no need to record again
             if (v == null) return
             const price = recordTickAndPrice(v, !tabReversed ? 'max' : 'min')
             if (price == null) return

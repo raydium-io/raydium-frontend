@@ -61,8 +61,8 @@ export function useCalcVisiablePoints(
   ]
 
   const filteredZoomedOptimizedPoints = useMemo(() => {
-    const needRenderedPoints = dataZoomedPoints.filter((p) => minVX < p.vx && p.vx < maxVX)
-    const optimized = optimizePoints(needRenderedPoints, zoomVX)
+    const visiablePoints = dataZoomedPoints.filter((p) => minVX < p.vx && p.vx < maxVX)
+    const optimized = optimizePoints(visiablePoints, zoomVX)
     return optimized
   }, [minVX, maxVX, zoomVX])
 

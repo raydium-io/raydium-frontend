@@ -11,6 +11,8 @@ import Icon from './Icon'
 
 import Input, { InputProps } from './Input'
 
+type TriggerBy = 'user-input' | 'increase-decrease' | 'code-input'
+
 export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultValue' | 'onUserInput'> {
   /**
    * only if type is decimal
@@ -32,21 +34,23 @@ export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultVa
   maxN?: number
   step?: number
 
-  /** it will auto-valid each time when user input.
+  /**
+   * it will auto-valid each time when user input.
    * html will invoke this
    */
   onInvalid?: () => void
-
-  /** this  */
   onValid?: () => void
+
   /** default: false */
   canNegative?: boolean
   value?: Numberish
   defaultValue?: Numberish
   onUserInput?: (
     n: number | /* if value is too big */ string | undefined,
-    payload: { canSafelyCovertToNumber: boolean }
+    payload: { canSafelyCovertToNumber: boolean; triggerBy: TriggerBy }
   ) => void
+  increaseFn?: (currentValue: Numberish) => Numberish | undefined
+  decreaseFn?: (currentValue: Numberish) => Numberish | undefined
 }
 
 function getRegexp(decimalCount: number) {
@@ -69,6 +73,8 @@ export default function DecimalInput({
   onInvalid,
   canNegative,
   onValid,
+  increaseFn,
+  decreaseFn,
   ...restProps
 }: DecimalInputProps) {
   const [innerValue, setInnerValue, innerValueSignal] = useSignalState(defaultValue)
@@ -94,13 +100,14 @@ export default function DecimalInput({
     )
   }, [])
 
-  const userInput = (v: string) => {
+  const userInput = (v: string, triggerBy: TriggerBy = 'user-input') => {
     if (isNumberish(v)) {
       setInnerValue(v)
-      restProps.onUserInput?.(v, { canSafelyCovertToNumber: canSafelyCovertToNumber(v) })
+      restProps.onUserInput?.(v, { canSafelyCovertToNumber: canSafelyCovertToNumber(v), triggerBy })
     }
   }
 
+  /**@deprecated */
   const dangerousInput = (v: string) => {
     const el = inputDomRef.current
     if (!el) return
@@ -110,17 +117,19 @@ export default function DecimalInput({
     if (!isValid) onInvalid?.()
   }
 
-  const increase = (steps = step) => {
-    const newN = clamp(minN, add(toString(innerValueSignal()), steps), maxN)
+  const increase = () => {
+    const increasedValue = increaseFn?.(toString(innerValueSignal())) ?? add(toString(innerValueSignal()), step)
+    const newN = clamp(minN, increasedValue, maxN)
     const newNString = toString(newN)
-    userInput(newNString)
+    userInput(newNString, 'increase-decrease')
     dangerousInput(newNString)
   }
 
-  const decrease = (steps = step) => {
-    const newN = clamp(minN, minus(toString(innerValueSignal()), steps), maxN)
+  const decrease = () => {
+    const decreasedValue = decreaseFn?.(toString(innerValueSignal())) ?? minus(toString(innerValueSignal()), step)
+    const newN = clamp(minN, decreasedValue, maxN)
     const newNString = toString(newN)
-    userInput(newNString)
+    userInput(newNString, 'increase-decrease')
     dangerousInput(newNString)
   }
 
@@ -152,18 +161,14 @@ export default function DecimalInput({
               className="opacity-50 hover:opacity-100 clickable"
               heroIconName="chevron-up"
               size="xs"
-              onClick={() => {
-                increase()
-              }}
+              onClick={increase}
               canLongClick
             />
             <Icon
               className="opacity-50 hover:opacity-100 clickable"
               heroIconName="chevron-down"
               size="xs"
-              onClick={() => {
-                decrease()
-              }}
+              onClick={decrease}
               canLongClick
             />
           </div>
