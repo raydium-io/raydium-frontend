@@ -2,7 +2,7 @@ import jFetch from '@/functions/dom/jFetch'
 import toPubString from '@/functions/format/toMintString'
 
 import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
-import { AmmV3, ApiAmmPoint, ApiAmmPoolInfo } from 'test-r-sdk'
+import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
 import useConnection from '../connection/useConnection'
 import useConcentrated from './useConcentrated'
 
@@ -16,7 +16,7 @@ export default function useConcentratedInfoLoader() {
 
   /** fetch api json info list  */
   useEffectWithTransition(async () => {
-    const response = await jFetch<{ data: ApiAmmPoolInfo[] }>('http://192.168.60.31:8000/v2/ammV3/ammPools')
+    const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('http://192.168.60.31:8000/v2/ammV3/ammPools')
     if (response) useConcentrated.setState({ apiAmmPools: response.data })
   }, [])
 
@@ -30,7 +30,7 @@ export default function useConcentratedInfoLoader() {
   /** select pool chart data */
   useEffectWithTransition(async () => {
     if (!currentAmmPool) return
-    const chartResponse = await jFetch<{ data: ApiAmmPoint[] }>(
+    const chartResponse = await jFetch<{ data: ApiAmmV3Point[] }>(
       `http://192.168.60.31:8000/v2/ammV3/positionLine?pool_id=${toPubString(currentAmmPool.state.id)}`
     )
     if (!chartResponse) return

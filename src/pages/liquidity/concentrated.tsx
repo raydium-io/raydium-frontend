@@ -35,7 +35,7 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
 import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
-import { AmmPoolInfo, ApiAmmPoint } from 'test-r-sdk'
+import { AmmV3PoolInfo, ApiAmmV3Point } from 'test-r-sdk'
 import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import toPubString from '@/functions/format/toMintString'
@@ -377,7 +377,7 @@ function ConcentratedFeeSwitcherFace({
 }: {
   haveArrow?: boolean
   open: boolean
-  ammConfig?: AmmPoolInfo['ammConfig']
+  ammConfig?: AmmV3PoolInfo['ammConfig']
 }) {
   return (
     <Row className={`p-5 mobile:py-4 mobile:px-5 gap-2 items-stretch justify-between`}>
@@ -411,7 +411,7 @@ function ConcentratedFeeSwitcherContent({
   unselectedAmmConfigs
 }: {
   unselectedAmmPools?: SDKParsedAmmPool[]
-  unselectedAmmConfigs?: AmmPoolInfo['ammConfig'][]
+  unselectedAmmConfigs?: AmmV3PoolInfo['ammConfig'][]
 }) {
   return (
     <Row className="p-4 gap-4">
@@ -443,7 +443,7 @@ function ConcentratedFeeSwitcherContent({
   )
 }
 
-function toXYChartFormat(points: ApiAmmPoint[]): ChartPoint[] {
+function toXYChartFormat(points: ApiAmmV3Point[]): ChartPoint[] {
   return points.map(({ liquidity, price }) => ({
     x: Number(price),
     y: Number(liquidity)

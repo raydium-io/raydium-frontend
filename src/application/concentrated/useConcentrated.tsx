@@ -2,11 +2,11 @@ import create from 'zustand'
 
 import { Numberish } from '@/types/constants'
 import BN from 'bn.js'
-import { AmmPoolInfo, ApiAmmPoint, ApiAmmPoolInfo } from 'test-r-sdk'
+import { AmmV3PoolInfo, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
 import { SplToken } from '../token/type'
 
 export type SDKParsedAmmPool = {
-  state: AmmPoolInfo
+  state: AmmV3PoolInfo
 }
 
 type SDKParsedAmmPoolsMap = Record<string, SDKParsedAmmPool>
@@ -14,12 +14,12 @@ type SDKParsedAmmPoolsMap = Record<string, SDKParsedAmmPool>
 export type ConcentratedStore = {
   directionReversed: boolean // determine chart rang input box focus make this to be true
   tabReversed: boolean // determine chart rang input tab focus make this to be true
-  apiAmmPools: ApiAmmPoolInfo[]
+  apiAmmPools: ApiAmmV3PoolInfo[]
   sdkParsedAmmPools: SDKParsedAmmPoolsMap
   selectableAmmPools?: SDKParsedAmmPool[]
   currentAmmPool?: SDKParsedAmmPool
   /** user need manually select one */
-  chartPoints?: ApiAmmPoint[]
+  chartPoints?: ApiAmmV3Point[]
   liquidity?: BN // from SDK, just store in UI
 
   coin1: SplToken | undefined

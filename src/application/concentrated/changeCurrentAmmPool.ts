@@ -1,10 +1,10 @@
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { AmmPoolInfo } from 'test-r-sdk'
+import { AmmV3PoolInfo } from 'test-r-sdk'
 import useConcentrated, { SDKParsedAmmPool } from './useConcentrated'
 
 export function changeCurrentAmmPool(
   selectableAmmPools: SDKParsedAmmPool[] | undefined,
-  config: AmmPoolInfo['ammConfig']
+  config: AmmV3PoolInfo['ammConfig']
 ) {
   if (!selectableAmmPools) return
   const targetAmmPool = selectableAmmPools.find(({ state: { id } }) => {
