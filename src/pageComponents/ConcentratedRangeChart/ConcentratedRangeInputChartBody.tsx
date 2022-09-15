@@ -55,8 +55,8 @@ export type ChartRangeInputOption = {
   initMaxBoundaryX?: Numberish
   anchorX?: Numberish
   componentRef?: RefObject<any>
-  onChangeMaxBoundary?: (utility: { nearestDataPoint: ChartPoint; dataX: number }) => void
-  onChangeMinBoundary?: (utility: { nearestDataPoint: ChartPoint; dataX: number }) => void
+  onChangeMaxBoundary?: (utility: { nearestDataPoint?: ChartPoint; dataX: number }) => void
+  onChangeMinBoundary?: (utility: { nearestDataPoint?: ChartPoint; dataX: number }) => void
 }
 
 /**
@@ -256,14 +256,15 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
       setMinBoundaryVX(clampedVX)
       if (options.dontInvokeCallback) return
       const nearestPoint = getNearestZoomedPointByVX(clampedVX)
-      nearestPoint &&
-        onChangeMinBoundary?.({
-          nearestDataPoint: {
-            x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x, careDecimalLength),
-            y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y, careDecimalLength)
-          },
-          dataX: clampedVX / dataZoomX
-        })
+      onChangeMinBoundary?.({
+        nearestDataPoint: nearestPoint
+          ? {
+              x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x, careDecimalLength),
+              y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y, careDecimalLength)
+            }
+          : undefined,
+        dataX: clampedVX / dataZoomX
+      })
     }
   }
 
@@ -285,14 +286,15 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
       setMaxBoundaryVX(clampedVX)
       if (options.dontInvokeCallback) return true
       const nearestPoint = getNearestZoomedPointByVX(clampedVX)
-      nearestPoint &&
-        onChangeMaxBoundary?.({
-          nearestDataPoint: {
-            x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x, careDecimalLength),
-            y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y, careDecimalLength)
-          },
-          dataX: clampedVX / dataZoomX
-        })
+      onChangeMaxBoundary?.({
+        nearestDataPoint: nearestPoint
+          ? {
+              x: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.x, careDecimalLength),
+              y: trimUnnecessaryDecimal(nearestPoint.originalDataPoint.y, careDecimalLength)
+            }
+          : undefined,
+        dataX: clampedVX / dataZoomX
+      })
     }
   }
 
@@ -330,7 +332,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
 
   useIsomorphicLayoutEffect(() => {
     shrinkToView()
-  }, [points?.[0].x, anchorVX])
+  }, [points?.[0]?.x, anchorVX])
 
   return (
     <svg
