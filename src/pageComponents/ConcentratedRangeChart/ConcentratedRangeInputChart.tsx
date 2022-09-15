@@ -36,10 +36,6 @@ export function ConcentratedRangeInputChart({
   const focusSideCoin = !tabReversed ? coin1 : coin2
   const concentratedChartBodyRef = useRef<ConcentratedRangeInputChartBodyComponentHandler>(null)
 
-  useEffect(() => {
-    concentratedChartBodyRef.current?.shrinkToView()
-  }, [currentAmmPool?.state.id, tabReversed])
-
   const recordTickAndPrice = (x: Numberish, type: 'min' | 'max'): Fraction | undefined => {
     if (!currentAmmPool || !coin1 || !coin2) return
     const targetCoin = tabReversed ? coin2 : coin1

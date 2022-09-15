@@ -174,7 +174,6 @@ function ConcentratedCard() {
                 useConcentrated.setState((s) => ({ ...s, tabReversed: !s.tabReversed }))
               }}
             />
-            {/* <FadeIn>{hasHydratedLiquidityPool && <LiquidityCardPriceIndicator className="w-max" />}</FadeIn> */}
           </Row>
           <Row className="absolute right-0 items-center">
             <Icon

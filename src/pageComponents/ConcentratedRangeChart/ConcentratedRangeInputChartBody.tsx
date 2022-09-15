@@ -326,6 +326,10 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
     }
   })
 
+  useEffect(() => {
+    shrinkToView()
+  }, [points?.[0].x])
+
   return (
     <svg
       ref={wrapperRef}
