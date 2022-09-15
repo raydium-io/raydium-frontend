@@ -98,7 +98,7 @@ export function ConcentratedRangeInputChart({
   }
 
   const revertedPoints = useMemo(
-    () => chartOptions?.points?.map((p) => ({ x: 1 / p.x, y: p.y })),
+    () => chartOptions?.points?.map((p, idx, ps) => ({ x: 1 / p.x, y: ps[(idx - 1 + ps.length) % ps.length].y })), // UI NOTE: need to decrease y to handle idle position
     [chartOptions?.points]
   )
 

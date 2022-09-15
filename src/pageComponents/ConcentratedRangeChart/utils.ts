@@ -23,7 +23,7 @@ function polygonChartPoints(points: ZoomedChartPoint[]): ZoomedChartPoint[] {
   const appandHeadTailZero = (points: ZoomedChartPoint[]) => {
     const firstPoint = points[0]
     const lastPoint = points[Math.max(points.length - 1, 0)]
-    return [{ ...firstPoint, vx: firstPoint.vx, vy: 0 }, ...points, { ...lastPoint, xv: lastPoint.vx, vy: 0 }]
+    return [{ ...firstPoint, vx: firstPoint.vx, vy: 0 }, ...points, { ...lastPoint, vx: lastPoint.vx, vy: 0 }]
   }
   return appandHeadTailZero(getSqared(points))
 }
