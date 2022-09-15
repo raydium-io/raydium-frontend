@@ -1,6 +1,6 @@
 import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
 
-import useToken, { TokenStore } from '@/application/token/useToken'
+import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
 import toPubString from '@/functions/format/toMintString'
 import { lazyMap } from '@/functions/lazyMap'
@@ -34,36 +34,22 @@ export default function useConcentratedInfoLoader() {
   useEffectWithTransition(async () => {
     if (!connection) return
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({ poolKeys: apiAmmPools, connection })
-    if (sdkParsed) {
-      const sdkParsedArray = Object.keys(sdkParsed).map((k) => {
-        return sdkParsed[k].state
-      })
-      const hydratedInfos = await lazyMap({
-        source: sdkParsedArray,
-        sourceKey: 'ammv3 sdkParsedInfo',
-        loopFn: (pair) =>
-          hydrateConcentratedInfo(pair, {
-            getToken,
-            getLpToken
-          })
-      })
-      useConcentrated.setState({
-        sdkParsedAmmPools: Object.values(sdkParsed),
-        hydratedInfos,
-        loading: hydratedInfos.length === 0
-      })
-    }
+    if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
   }, [apiAmmPools, connection])
 
   /** SDK info list ➡ hydrated info list */
   useEffectWithTransition(async () => {
     if (!connection) return
-    if (!sdkParsedAmmPools) return
+    if (!sdkParsedAmmPools || sdkParsedAmmPools.length === 0) return
     const sdkParsedAmmPoolsList = Object.values(sdkParsedAmmPools)
     const hydratedInfos = await lazyMap({
       source: sdkParsedAmmPoolsList,
       sourceKey: 'hydrate amm pool Info',
-      loopFn: (sdkParsed) => hydrateConcentratedInfo(sdkParsed)
+      loopFn: (sdkParsed) =>
+        hydrateConcentratedInfo(sdkParsed, {
+          getToken,
+          getLpToken
+        })
     })
     useConcentrated.setState({ hydratedAmmPools: hydratedInfos })
   }, [sdkParsedAmmPools, connection])

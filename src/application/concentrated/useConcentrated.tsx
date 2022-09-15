@@ -26,8 +26,6 @@ export enum TimeBasis {
   MONTH = '30D'
 }
 
-type SDKParsedAmmPoolsMap = Record<string, SDKParsedAmmPool>
-
 export type ConcentratedStore = {
   selectableAmmPools?: HydratedConcentratedInfo[]
   currentAmmPool?: HydratedConcentratedInfo
