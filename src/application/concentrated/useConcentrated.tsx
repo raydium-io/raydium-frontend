@@ -27,9 +27,6 @@ export enum TimeBasis {
 }
 
 export type ConcentratedStore = {
-  apiAmmPools: ApiAmmPoolInfo[]
-  sdkParsedAmmPools: SDKParsedAmmPoolsMap
-
   selectableAmmPools?: HydratedConcentratedInfo[]
   currentAmmPool?: HydratedConcentratedInfo
   /** user need manually select one */
