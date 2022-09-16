@@ -427,8 +427,8 @@ function UserLiquidityExhibition() {
       <div className="mb-6 text-xl font-medium text-white">Your Concentrated Liquidity</div>
       <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
         <List className={`flex flex-col gap-6 mobile:gap-5 ${usersHydratedInfos.length ? 'mb-5' : ''}`}>
-          {usersHydratedInfos.map((info) => (
-            <List.Item key={toPubString(info.id)}>
+          {usersHydratedInfos.map((currentAmmPool) => (
+            <List.Item key={toPubString(currentAmmPool.id)}>
               <FadeIn>
                 <Collapse className="ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl">
                   <Collapse.Face>
@@ -437,12 +437,12 @@ function UserLiquidityExhibition() {
                         <Row className="gap-2 items-center">
                           <CoinAvatarPair
                             className="justify-self-center"
-                            token1={info.base}
-                            token2={info.quote}
+                            token1={currentAmmPool.base}
+                            token2={currentAmmPool.quote}
                             size={isMobile ? 'sm' : 'md'}
                           />
                           <div className="text-base font-normal text-[#abc4ff]">
-                            {info.base?.symbol ?? ''}/{info.quote?.symbol ?? ''}
+                            {currentAmmPool.base?.symbol ?? ''}/{currentAmmPool.quote?.symbol ?? ''}
                           </div>
                         </Row>
                         <Icon
@@ -456,15 +456,41 @@ function UserLiquidityExhibition() {
                   <Collapse.Body>
                     <div className="pb-4 px-6 mobile:px-4">
                       <Col className="border-t-1.5 border-[rgba(171,196,255,.5)] py-5 gap-3 ">
-                        {info.userPositionAccount?.map((i) => {
+                        {currentAmmPool.userPositionAccount?.map((positionInfo) => {
                           return (
-                            <Row className="justify-between" key={`${i.tickLowerIndex}-${i.tickUpperIndex}`}>
+                            <Row
+                              className="justify-between"
+                              key={`${positionInfo.tickLowerIndex}-${positionInfo.tickUpperIndex}`}
+                            >
                               <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">
-                                {toString(i.priceLower)}-{toString(i.priceUpper)}
+                                {toString(positionInfo.priceLower)}-{toString(positionInfo.priceUpper)}
                               </div>
-                              <div className="text-xs mobile:text-2xs font-medium text-white">
-                                <div></div>
-                              </div>
+                              <Row className="text-xs mobile:text-2xs font-medium text-white gap-4">
+                                <div
+                                  className="text-base clickable"
+                                  onClick={() => {
+                                    useConcentrated.setState({
+                                      isAddDialogOpen: true,
+                                      currentAmmPool: currentAmmPool,
+                                      targetUserPositionAccount: positionInfo
+                                    })
+                                  }}
+                                >
+                                  ➕
+                                </div>
+                                <div
+                                  className="text-base clickable"
+                                  onClick={() => {
+                                    useConcentrated.setState({
+                                      isRemoveDialogOpen: true,
+                                      currentAmmPool: currentAmmPool,
+                                      targetUserPositionAccount: positionInfo
+                                    })
+                                  }}
+                                >
+                                  ➖
+                                </div>
+                              </Row>
                             </Row>
                           )
                         })}
@@ -496,7 +522,11 @@ function UserLiquidityExhibition() {
                         <Button
                           className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
                           onClick={() => {
-                            useConcentrated.setState({ currentAmmPool: info, coin1: info.base, coin2: info.quote })
+                            useConcentrated.setState({
+                              currentAmmPool: currentAmmPool,
+                              coin1: currentAmmPool.base,
+                              coin2: currentAmmPool.quote
+                            })
                             scrollToInputBox()
                           }}
                         >
@@ -527,8 +557,8 @@ function UserLiquidityExhibition() {
                             onClick={() => {
                               routeTo('/swap', {
                                 queryProps: {
-                                  coin1: info.base,
-                                  coin2: info.quote
+                                  coin1: currentAmmPool.base,
+                                  coin2: currentAmmPool.quote
                                 }
                               })
                             }}
@@ -541,7 +571,7 @@ function UserLiquidityExhibition() {
                             iconSrc="/icons/pools-remove-liquidity-entry.svg"
                             className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect`}
                             onClick={() => {
-                              useConcentrated.setState({ currentAmmPool: info, isRemoveDialogOpen: true })
+                              useConcentrated.setState({ currentAmmPool: currentAmmPool, isRemoveDialogOpen: true })
                             }}
                           />
                           <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>
