@@ -68,7 +68,8 @@ function hydrateUserPositionAccounnt(
     userPositionAccount: sdkConcentratedInfo.positionAccount?.map((a) => ({
       ...recursivelyDecimalToFraction(a),
       amountA: toBN(a.amountA),
-      amountB: toBN(a.amountB)
+      amountB: toBN(a.amountB),
+      nftMint: a.nftMint // need this or nftMint will be buggy, this is only quick fixed
     }))
   }
 }

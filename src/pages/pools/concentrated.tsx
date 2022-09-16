@@ -1,24 +1,16 @@
 import { useMemo } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { AmmV3PoolPersonalPosition } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import { HydratedConcentratedInfo } from '@/application/concentrated/type'
+import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
   PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
-import useFarms from '@/application/farms/useFarms'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
-import { HydratedPairItemInfo } from '@/application/pools/type'
-import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
-import { LpToken } from '@/application/token/type'
-import useToken from '@/application/token/useToken'
-import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
-import { Badge } from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
@@ -35,19 +27,14 @@ import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
-import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
-import { capitalize } from '@/functions/changeCase'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
-import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import { lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
-import { objectFilter } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
@@ -112,7 +99,7 @@ function PoolHeader() {
       <Row
         className={`justify-self-end self-center gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
         onClick={() => {
-          routeTo('/liquidity/create')
+          // routeTo('/liquidity/create')
         }}
       >
         {/* <Icon heroIconName="plus-circle" className="text-[#abc4ff]" size="sm" />
@@ -324,22 +311,14 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
 
 function PoolCard() {
   const balances = useWallet((s) => s.balances)
-  const unZeroBalances = objectFilter(balances, (tokenAmount) => gt(tokenAmount, 0))
-  // TODO: CHANGE EVERYTHING WE USE FROM usePools, IT'S JUST FOR DEV
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
-  // const hydratedInfos = usePools((s) => s.hydratedInfos)
   const searchText = useConcentrated((s) => s.searchText)
-  const currentTab = useConcentrated((s) => s.currentTab)
   const timeBasis = useConcentrated((s) => s.timeBasis)
-  const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
 
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
 
   const dataSource = useMemo(() => hydratedAmmPools, [searchText, hydratedAmmPools])
-
-  // eslint-disable-next-line no-console
-  console.log('data source:', { dataSource })
 
   const searched = useMemo(
     () =>
@@ -642,9 +621,6 @@ function PoolCardDatabaseBodyCollapseItemFace({
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = useConcentrated((s) => s.timeBasis)
 
-  // eslint-disable-next-line no-console
-  console.log('info: ', timeBasis === TimeBasis.WEEK)
-
   const pcCotent = (
     <Row
       type="grid-x"
@@ -859,23 +835,23 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.12), rgb(171 196 255 / 4%) 100%)'
       }}
     >
-      {info.positionAccount ? (
+      {info.userPositionAccount ? (
         <>
-          {info.positionAccount.map((p) => {
+          {info.userPositionAccount.map((p) => {
             let myPosition = '--'
             const amountA = toString(p.amountA, { decimalLength: 'auto 2' })
             const amountB = toString(p.amountB, { decimalLength: 'auto 2' })
-            const lower = toString(decimalToFraction(p.priceLower), { decimalLength: 'auto 5' })
-            const upper = toString(decimalToFraction(p.priceUpper), { decimalLength: 'auto 5' })
+            const lower = toString(p.priceLower, { decimalLength: 'auto 5' })
+            const upper = toString(p.priceUpper, { decimalLength: 'auto 5' })
 
             if (lower && upper) {
               myPosition = lower + '-' + upper
             }
             return (
               <PoolCardDatabaseBodyCollapsePositionContent
-                key={toPubString(p.nftMint)}
+                key={p.nftMint.toString()}
                 poolInfo={info}
-                positionAccount={p}
+                userPositionAccount={p}
                 myPosition={myPosition}
                 amountA={amountA}
                 amountB={amountB}
@@ -897,13 +873,13 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
 
 function PoolCardDatabaseBodyCollapsePositionContent({
   poolInfo: info,
-  positionAccount: p,
+  userPositionAccount: p,
   myPosition: myPosition,
   amountA,
   amountB
 }: {
   poolInfo: HydratedConcentratedInfo
-  positionAccount?: AmmV3PoolPersonalPosition
+  userPositionAccount?: UserPositionAccount
   myPosition?: string
   amountA?: string
   amountB?: string
@@ -950,9 +926,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
             </Row>
           </AutoBox>
           <Row
-            className={`pl-8 ${isMobile ? 'pr-8' : ''} py-2 gap-3 items-center self-center justify-center ${
-              isMobile ? lightBoardClass : ''
-            } mobile:w-full`}
+            className={`pl-8 ${
+              isMobile ? 'pr-8' : ''
+            }  pt-5 gap-3 items-center self-center justify-center mobile:w-full`}
           >
             {isMobile ? (
               <Row className="gap-5">
@@ -961,6 +937,11 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   heroIconName="plus"
                   className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                   onClick={() => {
+                    useConcentrated.setState({
+                      isAddDialogOpen: true,
+                      currentAmmPool: info,
+                      targetUserPositionAccount: p
+                    })
                     routeTo('/liquidity/concentrated', {
                       queryProps: {}
                     })
@@ -971,17 +952,12 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   iconSrc="/icons/pools-remove-liquidity-entry.svg"
                   className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] 'clickable' clickable-filter-effect`}
                   onClick={() => {
-                    routeTo('/liquidity/concentrated', {
-                      queryProps: {}
+                    useConcentrated.setState({
+                      isRemoveDialogOpen: true,
+                      currentAmmPool: info,
+                      targetUserPositionAccount: p
                     })
-                  }}
-                />
-                <Icon
-                  size="sm"
-                  iconSrc="/icons/msic-swap-h.svg"
-                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
-                  onClick={() => {
-                    routeTo('/swap', {
+                    routeTo('/liquidity/concentrated', {
                       queryProps: {}
                     })
                   }}
@@ -995,8 +971,11 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     heroIconName="plus"
                     className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] opacity-100 clickable clickable-filter-effect`}
                     onClick={() => {
-                      // TODO: add
-                      useConcentrated.setState({ coin1: info.base, coin2: info.quote })
+                      useConcentrated.setState({
+                        isAddDialogOpen: true,
+                        currentAmmPool: info,
+                        targetUserPositionAccount: p
+                      })
                       routeTo('/liquidity/concentrated', {
                         queryProps: {}
                       })
@@ -1008,10 +987,15 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   <Icon
                     size="smi"
                     iconSrc="/icons/pools-remove-liquidity-entry.svg"
-                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] opacity-50 not-clickable`}
+                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
+                      p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                    }`}
                     onClick={() => {
-                      // TODO: remove
-                      useConcentrated.setState({})
+                      useConcentrated.setState({
+                        isRemoveDialogOpen: true,
+                        currentAmmPool: info,
+                        targetUserPositionAccount: p
+                      })
                       routeTo('/liquidity/concentrated', {
                         queryProps: {}
                       })
@@ -1036,9 +1020,6 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
     <AutoBox
       is={isMobile ? 'Col' : 'Row'}
       className={twMerge('clickable flex-wrap items-center mobile:items-start', className)}
-      // onClick={() => {
-      //   if (!isMobile) push(`/liquidity/?ammId=${ammId}`)
-      // }}
     >
       <CoinAvatarPair
         className="justify-self-center mr-2"
