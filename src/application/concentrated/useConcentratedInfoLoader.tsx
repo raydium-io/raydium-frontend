@@ -22,8 +22,8 @@ export default function useConcentratedInfoLoader() {
   const connection = useConnection((s) => s.connection)
   const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
   const owner = useWallet((s) => s.owner)
-  const getToken = useToken.getState((s) => s.getToken)
-  const getLpToken = useToken.getState((s) => s.getLpToken)
+  const getToken = useToken((s) => s.getToken)
+  const getLpToken = useToken((s) => s.getLpToken)
 
   /** fetch api json info list  */
   useEffectWithTransition(async () => {
