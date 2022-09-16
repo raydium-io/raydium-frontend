@@ -4,7 +4,9 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
-import useConcentrated, { PoolsConcentratedTabs, TimeBasis } from '@/application/concentrated/useConcentrated'
+import useConcentrated, {
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+} from '@/application/concentrated/useConcentrated'
 import useFarms from '@/application/farms/useFarms'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { HydratedPairItemInfo } from '@/application/pools/type'
@@ -328,7 +330,7 @@ function PoolCard() {
   const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
 
   const isMobile = useAppSettings((s) => s.isMobile)
-  const [favouriteIds] = usePoolFavoriteIds()
+  const [favouriteIds] = useConcentratedFavoriteIds()
 
   const dataSource = useMemo(() => hydratedAmmPools, [searchText, hydratedAmmPools])
 
@@ -581,7 +583,7 @@ function PoolCard() {
 function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentratedInfo[] }) {
   const loading = useConcentrated((s) => s.loading)
   const expandedPoolId = useConcentrated((s) => s.expandedPoolId)
-  const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
+  const [favouriteIds, setFavouriteIds] = useConcentratedFavoriteIds()
   return sortedData.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
@@ -645,6 +647,8 @@ function PoolCardDatabaseBodyCollapseItemFace({
           <Icon
             iconSrc="/icons/misc-star-filled.svg"
             onClick={({ ev }) => {
+              // eslint-disable-next-line no-console
+              console.log('ZZZ')
               ev.stopPropagation()
               onUnFavorite?.(info.id)
             }}
@@ -870,15 +874,6 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           <div className="flex-grow">
             <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">My Position</div>
             <div className="text-white font-medium text-base mobile:text-xs">{myPosition}</div>
-          </div>
-        </Row>
-        <Row>
-          <div className="flex-grow">
-            <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">APY</div>
-            <div className="text-white font-medium text-base mobile:text-xs">
-              {/* {isHydratedConcentratedItemInfo(info) ? `${toString(info.basePooled || 0)} ${info.base?.symbol ?? ''}` : '--'} */}
-              0%
-            </div>
           </div>
         </Row>
         <Row>

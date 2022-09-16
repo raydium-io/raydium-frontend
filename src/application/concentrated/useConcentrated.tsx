@@ -2,6 +2,7 @@ import BN from 'bn.js'
 import { ApiAmmV3Point } from 'test-r-sdk'
 import create from 'zustand'
 
+import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
@@ -108,3 +109,6 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
 }))
 
 export default useConcentrated
+
+export const useConcentratedFavoriteIds = () =>
+  useLocalStorageItem<string[], null>('FAVOURITE_CONCENTRATED_POOL_IDS', { emptyValue: null })
