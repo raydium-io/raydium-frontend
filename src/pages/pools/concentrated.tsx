@@ -331,6 +331,9 @@ function PoolCard() {
 
   const dataSource = useMemo(() => hydratedAmmPools, [searchText, hydratedAmmPools])
 
+  // eslint-disable-next-line no-console
+  // console.log('data source:', { dataSource })
+
   const searched = useMemo(
     () =>
       searchItems(dataSource, {
@@ -928,7 +931,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               className="frosted-glass-teal"
               onClick={() => {
                 // TODO: set coin1, coin2
-                // useConcentrated.setState({ coin1: info.baseToken, coin2: info.quoteToken })
+                useConcentrated.setState({ coin1: info.baseToken, coin2: info.quoteToken })
                 routeTo('/liquidity/concentrated', {
                   queryProps: {
                     ammId: info.id
@@ -938,7 +941,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             >
               Add Liquidity
             </Button>
-            <Tooltip>
+            {/* <Tooltip>
               <Icon
                 size="smi"
                 iconSrc="/icons/pools-farm-entry.svg"
@@ -957,7 +960,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 }}
               />
               <Tooltip.Panel>Farm</Tooltip.Panel>
-            </Tooltip>
+            </Tooltip> */}
             <Tooltip>
               <Icon
                 size="smi"
