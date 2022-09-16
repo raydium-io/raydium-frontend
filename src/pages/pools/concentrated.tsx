@@ -12,6 +12,7 @@ import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import { LpToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
+import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
 import { Badge } from '@/components/Badge'
@@ -830,6 +831,27 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     return false
   }, [info])
 
+  const myPosition = useMemo(() => {
+    const lower = toString(
+      decimalToFraction(
+        info.positionAccount?.find((p) => toPubString(p.poolId) === toPubString(info.state.id))?.priceLower
+      ),
+      { decimalLength: 'auto 5' }
+    )
+    const upper = toString(
+      decimalToFraction(
+        info.positionAccount?.find((p) => toPubString(p.poolId) === toPubString(info.state.id))?.priceUpper
+      ),
+      { decimalLength: 'auto 5' }
+    )
+
+    if (lower && upper) {
+      return lower + '-' + upper
+    }
+
+    return '--'
+  }, [info])
+
   return (
     <AutoBox
       is={isMobile ? 'Col' : 'Row'}
@@ -844,14 +866,16 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
       >
         <Row>
           <div className="flex-grow">
-            <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Your Liquidity</div>
+            <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">My Position</div>
+            <div className="text-white font-medium text-base mobile:text-xs">{myPosition}</div>
+          </div>
+        </Row>
+        <Row>
+          <div className="flex-grow">
+            <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">APY</div>
             <div className="text-white font-medium text-base mobile:text-xs">
-              {/* {toUsdVolume(toTotalPrice(balances[info.lpMint], prices[info.lpMint]))} */}
-              --
-            </div>
-            <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-              {/* {isHydratedConcentratedItemInfo(info) ? toString(balances[info.lpMint] ?? 0) + ' LP' : '--'} */}
-              --
+              {/* {isHydratedConcentratedItemInfo(info) ? `${toString(info.basePooled || 0)} ${info.base?.symbol ?? ''}` : '--'} */}
+              0%
             </div>
           </div>
         </Row>
@@ -859,21 +883,32 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           <div className="flex-grow">
             <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Assets Pooled</div>
             <div className="text-white font-medium text-base mobile:text-xs">
-              {/* {isHydratedConcentratedItemInfo(info) ? `${toString(info.basePooled || 0)} ${info.base?.symbol ?? ''}` : '--'} */}
-              --
+              {/* {isHydratedConcentratedItemInfo(info) ? toPercentString(info.sharePercent) : '--%'} */}
+              {info.positionAccount
+                ? toString(
+                    info.positionAccount?.find((p) => toPubString(p.poolId) === toPubString(info.state.id))?.amountA,
+                    { decimalLength: 'auto 2' }
+                  )
+                : 0}{' '}
+              {info.baseToken?.symbol}
             </div>
             <div className="text-white font-medium text-base mobile:text-xs">
-              {/* {isHydratedConcentratedItemInfo(info) ? `${toString(info.quotePooled || 0)} ${info.quote?.symbol ?? ''}` : '--'} */}
-              --
+              {info.positionAccount
+                ? toString(
+                    info.positionAccount?.find((p) => toPubString(p.poolId) === toPubString(info.state.id))?.amountB,
+                    { decimalLength: 'auto 2' }
+                  )
+                : 0}{' '}
+              {info.quoteToken?.symbol}
             </div>
           </div>
         </Row>
         <Row>
           <div className="flex-grow">
-            <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Your Share</div>
+            <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">Pending Fees</div>
             <div className="text-white font-medium text-base mobile:text-xs">
               {/* {isHydratedConcentratedItemInfo(info) ? toPercentString(info.sharePercent) : '--%'} */}
-              --
+              0%
             </div>
           </div>
         </Row>
