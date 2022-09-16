@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { twMerge } from 'tailwind-merge'
+import { AmmV3PoolPersonalPosition } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
@@ -858,13 +859,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
 
   const openNewPosition = useMemo(() => {
     return (
-      <AutoBox
-        is={'Col'}
-        className={`py-5 px-8 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}
-        style={{
-          background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.12), rgb(171 196 255 / 4%) 100%)'
-        }}
-      >
+      <AutoBox is={'Col'} className={`py-5 px-8 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
         <div style={{ marginBottom: 8, color: '#ABC4FF', fontWeight: 400, fontSize: 12, fontStyle: 'normal' }}>
           Want to open a new position?
         </div>
@@ -884,7 +879,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     )
   }, [info])
 
-  return info.positionAccount ? null : (
+  return (
     <AutoBox
       is={'Col'}
       className={`justify-between rounded-b-3xl mobile:rounded-b-lg`}
@@ -892,141 +887,171 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.12), rgb(171 196 255 / 4%) 100%)'
       }}
     >
-      <AutoBox
-        is={isMobile ? 'Col' : 'Row'}
-        className={`justify-between`}
-        style={{
-          background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.12), rgb(171 196 255 / 4%) 100%)'
-        }}
-      >
-        <Row className={`w-full pt-5 px-8 mobile:py-3 mobile:px-4 mobile:m-0`}>
-          <div
-            className={`flex w-full pb-5 ${isMobile ? 'flex-col' : 'flex-row'}`}
-            style={{ borderBottom: '1px solid rgba(171, 196, 255, .1)' }}
+      {info.positionAccount ? (
+        <>
+          {info.positionAccount.map((p) => {
+            let myPosition = '--'
+            const amountA = toString(p.amountA, { decimalLength: 'auto 2' })
+            const amountB = toString(p.amountB, { decimalLength: 'auto 2' })
+            const lower = toString(decimalToFraction(p.priceLower), { decimalLength: 'auto 5' })
+            const upper = toString(decimalToFraction(p.priceUpper), { decimalLength: 'auto 5' })
+
+            if (lower && upper) {
+              myPosition = lower + '-' + upper
+            }
+            return (
+              <PoolCardDatabaseBodyCollapsePositionContent
+                key={toPubString(p.nftMint)}
+                poolInfo={info}
+                positionAccount={p}
+                myPosition={myPosition}
+                amountA={amountA}
+                amountB={amountB}
+              />
+            )
+          })}
+
+          <AutoBox>{openNewPosition}</AutoBox>
+        </>
+      ) : (
+        <>
+          <PoolCardDatabaseBodyCollapsePositionContent poolInfo={info} />
+          <AutoBox>{openNewPosition}</AutoBox>
+        </>
+      )}
+    </AutoBox>
+  )
+}
+
+function PoolCardDatabaseBodyCollapsePositionContent({
+  poolInfo: info,
+  positionAccount: p,
+  myPosition: myPosition,
+  amountA,
+  amountB
+}: {
+  poolInfo: HydratedConcentratedInfo
+  positionAccount?: AmmV3PoolPersonalPosition
+  myPosition?: string
+  amountA?: string
+  amountB?: string
+}) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
+  return (
+    <AutoBox is={isMobile ? 'Col' : 'Row'}>
+      <Row className={`w-full pt-5 px-8 mobile:py-3 mobile:px-4 mobile:m-0`}>
+        <div
+          className={`flex w-full pb-5 ${isMobile ? 'flex-col' : 'flex-row'}`}
+          style={{ borderBottom: '1px solid rgba(171, 196, 255, .1)' }}
+        >
+          <AutoBox
+            is={isMobile ? 'Grid' : 'Row'}
+            className={`gap-[4vw] mobile:gap-3 mobile:grid-cols-3-auto flex-grow justify-between`}
           >
-            <AutoBox
-              is={isMobile ? 'Grid' : 'Row'}
-              className={`gap-[4vw] mobile:gap-3 mobile:grid-cols-3-auto flex-grow justify-between`}
-            >
-              <Row>
-                <div className="flex-grow">
-                  <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
-                    My Position
-                  </div>
-                  <div className="text-white font-medium text-base mobile:text-xs">--</div>
-                </div>
-              </Row>
-              <Row>
-                <div className="flex-grow">
-                  <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
-                    Assets Pooled
-                  </div>
-                  <div className="text-white font-medium text-base mobile:text-xs">0 {info.baseToken?.symbol}</div>
-                  <div className="text-white font-medium text-base mobile:text-xs">0 {info.quoteToken?.symbol}</div>
-                </div>
-              </Row>
-              <Row>
-                <div className="flex-grow">
-                  <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
-                    Pending Fees
-                  </div>
-                  <div className="text-white font-medium text-base mobile:text-xs">0%</div>
-                </div>
-              </Row>
-            </AutoBox>
-            <Row
-              className={`pl-8 ${isMobile ? 'pr-8' : ''} py-2 gap-3 items-center self-center justify-center ${
-                isMobile ? lightBoardClass : ''
-              } mobile:w-full`}
-            >
-              {isMobile ? (
-                <Row className="gap-5">
-                  <Icon
-                    size="sm"
-                    heroIconName="plus"
-                    className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
-                    onClick={() => {
-                      routeTo('/liquidity/concentrated', {
-                        queryProps: {}
-                      })
-                    }}
-                  />
-                  <Icon
-                    size="sm"
-                    iconSrc="/icons/pools-remove-liquidity-entry.svg"
-                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] 'clickable' clickable-filter-effect`}
-                    onClick={() => {
-                      routeTo('/liquidity/concentrated', {
-                        queryProps: {}
-                      })
-                    }}
-                  />
-                  <Icon
-                    size="sm"
-                    iconSrc="/icons/msic-swap-h.svg"
-                    className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
-                    onClick={() => {
-                      routeTo('/swap', {
-                        queryProps: {}
-                      })
-                    }}
-                  />
-                </Row>
-              ) : (
-                <>
-                  <Tooltip>
-                    <Icon
-                      size="smi"
-                      heroIconName="plus"
-                      className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] opacity-100 clickable clickable-filter-effect`}
-                      onClick={() => {
-                        // TODO: add
-                        useConcentrated.setState({ coin1: info.baseToken, coin2: info.quoteToken })
-                        routeTo('/liquidity/concentrated', {
-                          queryProps: {}
-                        })
-                      }}
-                    />
-                    <Tooltip.Panel>Add Liquidity</Tooltip.Panel>
-                  </Tooltip>
-                  <Tooltip>
-                    <Icon
-                      size="smi"
-                      iconSrc="/icons/pools-remove-liquidity-entry.svg"
-                      className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] opacity-50 not-clickable`}
-                      onClick={() => {
-                        // TODO: remove
-                        useConcentrated.setState({ coin1: info.baseToken, coin2: info.quoteToken })
-                        routeTo('/liquidity/concentrated', {
-                          queryProps: {}
-                        })
-                      }}
-                    />
-                    <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>
-                  </Tooltip>
-                  <Tooltip>
-                    <Icon
-                      iconSrc="/icons/msic-swap-h.svg"
-                      size="smi"
-                      className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
-                      onClick={() => {
-                        routeTo('/swap', {
-                          queryProps: {
-                            coin1: info.baseToken,
-                            coin2: info.quoteToken
-                          }
-                        })
-                      }}
-                    />
-                    <Tooltip.Panel>Swap</Tooltip.Panel>
-                  </Tooltip>
-                </>
-              )}
+            <Row>
+              <div className="flex-grow">
+                <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">My Position</div>
+                <div className="text-white font-medium text-base mobile:text-xs">{myPosition ?? '--'}</div>
+              </div>
             </Row>
-          </div>
-        </Row>
-      </AutoBox>
-      <AutoBox>{openNewPosition}</AutoBox>
+            <Row>
+              <div className="flex-grow">
+                <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
+                  Assets Pooled
+                </div>
+                <div className="text-white font-medium text-base mobile:text-xs">
+                  {amountA ?? '0'} {info.baseToken?.symbol}
+                </div>
+                <div className="text-white font-medium text-base mobile:text-xs">
+                  {amountB ?? '0'} {info.quoteToken?.symbol}
+                </div>
+              </div>
+            </Row>
+            <Row>
+              <div className="flex-grow">
+                <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
+                  Pending Fees
+                </div>
+                <div className="text-white font-medium text-base mobile:text-xs">$0</div>
+              </div>
+            </Row>
+          </AutoBox>
+          <Row
+            className={`pl-8 ${isMobile ? 'pr-8' : ''} py-2 gap-3 items-center self-center justify-center ${
+              isMobile ? lightBoardClass : ''
+            } mobile:w-full`}
+          >
+            {isMobile ? (
+              <Row className="gap-5">
+                <Icon
+                  size="sm"
+                  heroIconName="plus"
+                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                  onClick={() => {
+                    routeTo('/liquidity/concentrated', {
+                      queryProps: {}
+                    })
+                  }}
+                />
+                <Icon
+                  size="sm"
+                  iconSrc="/icons/pools-remove-liquidity-entry.svg"
+                  className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] 'clickable' clickable-filter-effect`}
+                  onClick={() => {
+                    routeTo('/liquidity/concentrated', {
+                      queryProps: {}
+                    })
+                  }}
+                />
+                <Icon
+                  size="sm"
+                  iconSrc="/icons/msic-swap-h.svg"
+                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                  onClick={() => {
+                    routeTo('/swap', {
+                      queryProps: {}
+                    })
+                  }}
+                />
+              </Row>
+            ) : (
+              <>
+                <Tooltip>
+                  <Icon
+                    size="smi"
+                    heroIconName="plus"
+                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] opacity-100 clickable clickable-filter-effect`}
+                    onClick={() => {
+                      // TODO: add
+                      useConcentrated.setState({ coin1: info.baseToken, coin2: info.quoteToken })
+                      routeTo('/liquidity/concentrated', {
+                        queryProps: {}
+                      })
+                    }}
+                  />
+                  <Tooltip.Panel>Add Liquidity</Tooltip.Panel>
+                </Tooltip>
+                <Tooltip>
+                  <Icon
+                    size="smi"
+                    iconSrc="/icons/pools-remove-liquidity-entry.svg"
+                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] opacity-50 not-clickable`}
+                    onClick={() => {
+                      // TODO: remove
+                      useConcentrated.setState({})
+                      routeTo('/liquidity/concentrated', {
+                        queryProps: {}
+                      })
+                    }}
+                  />
+                  <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>
+                </Tooltip>
+              </>
+            )}
+          </Row>
+        </div>
+      </Row>
     </AutoBox>
   )
 }
