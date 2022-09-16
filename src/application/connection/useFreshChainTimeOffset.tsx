@@ -21,7 +21,8 @@ export default function useFreshChainTimeOffset() {
 
 async function updateChinTimeOffset(connection: Connection | undefined) {
   if (!connection) return
-  const chainTime = await connection.getBlockTime(await connection.getSlot())
+  const slot = await connection.getSlot()
+  const chainTime = await connection.getBlockTime(slot)
   if (!chainTime) return
   const offset = Number(sub(mul(chainTime, 1000), Date.now()).toFixed(0))
   useConnection.setState({
