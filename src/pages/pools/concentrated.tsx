@@ -272,13 +272,16 @@ function PoolTableSorterBox({
         { label: 'Liquidity', value: 'liquidity' },
         {
           label: `Volume ${timeBasis}`,
-          value: timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
+          value: timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
         },
         {
           label: `Fees ${timeBasis}`,
-          value: timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d'
+          value: timeBasis === TimeBasis.DAY ? 'fee24h' : timeBasis === TimeBasis.WEEK ? 'fee7d' : 'fee30d'
         },
-        { label: `APR ${timeBasis}`, value: timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d' },
+        {
+          label: `APR ${timeBasis}`,
+          value: timeBasis === TimeBasis.DAY ? 'apr24h' : timeBasis === TimeBasis.WEEK ? 'apr7d' : 'apr30d'
+        },
         { label: 'Favorite', value: 'favorite' }
       ]}
       // defaultValue="apr"
@@ -343,13 +346,13 @@ function PoolCard() {
       searchItems(dataSource, {
         text: searchText,
         matchConfigs: (i) => [
-          { text: i.id, entirely: false },
-          { text: toPubString(i.baseToken?.mint), entirely: true },
-          { text: toPubString(i.quoteToken?.mint), entirely: true },
-          i.baseToken?.symbol,
-          i.quoteToken?.symbol,
-          i.baseToken?.name,
-          i.quoteToken?.name
+          { text: i.idString, entirely: false },
+          { text: toPubString(i.base?.mint), entirely: true },
+          { text: toPubString(i.quote?.mint), entirely: true },
+          i.base?.symbol,
+          i.quote?.symbol,
+          i.base?.name,
+          i.quote?.name
         ]
       }),
     [dataSource, searchText]
@@ -361,7 +364,7 @@ function PoolCard() {
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.id), (i) => i.liquidity] }
+    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.liquidity] }
   })
   // re-sort when favourite have loaded
   useOnceEffect(
@@ -370,7 +373,7 @@ function PoolCard() {
       if (favouriteIds != null) {
         setSortConfig({
           key: 'init',
-          sortCompare: [(i) => favouriteIds?.includes(toPubString(i.id)), (i) => i.liquidity],
+          sortCompare: [(i) => favouriteIds?.includes(toPubString(i.idString)), (i) => i.liquidity],
           mode: 'decrease'
         })
         runed()
@@ -391,7 +394,7 @@ function PoolCard() {
             setSortConfig({
               key: 'favorite',
               sortModeQueue: ['decrease', 'none'],
-              sortCompare: [(i) => favouriteIds?.includes(i.id), (i) => i.liquidity]
+              sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.liquidity]
             })
           }}
         >
@@ -461,7 +464,8 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
+            const key =
+              timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
           }}
         >
@@ -483,7 +487,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            const key = timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d'
+            const key = timeBasis === TimeBasis.DAY ? 'fee24h' : timeBasis === TimeBasis.WEEK ? 'fee7d' : 'fee30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
           }}
         >
@@ -507,7 +511,8 @@ function PoolCard() {
           onClick={() => {
             setSortConfig({
               key: 'apr',
-              sortCompare: (i) => i.state[timeBasis === '24H' ? 'day' : timeBasis === '7D' ? 'week' : 'month'].apr
+              sortCompare: (i) =>
+                i.state[timeBasis === TimeBasis.DAY ? 'day' : timeBasis === TimeBasis.WEEK ? 'week' : 'month'].apr
             })
           }}
         >
@@ -548,7 +553,8 @@ function PoolCard() {
               newSortKey
                 ? setSortConfig({
                     key: newSortKey,
-                    sortCompare: newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.id) : (i) => i[newSortKey]
+                    sortCompare:
+                      newSortKey === 'favorite' ? (i) => favouriteIds?.includes(i.idString) : (i) => i[newSortKey]
                   })
                 : clearSortConfig()
             }}
@@ -588,14 +594,14 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentrated
   return sortedData.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
-        <List.Item key={info.id}>
-          <Collapse open={expandedPoolId === info.id ? true : false}>
+        <List.Item key={info.idString}>
+          <Collapse open={expandedPoolId === info.idString ? true : false}>
             <Collapse.Face>
               {(open) => (
                 <PoolCardDatabaseBodyCollapseItemFace
                   open={open}
                   info={info}
-                  isFavourite={favouriteIds?.includes(info.id)}
+                  isFavourite={favouriteIds?.includes(info.idString)}
                   onUnFavorite={(ammId) => {
                     setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
                   }}
@@ -636,6 +642,9 @@ function PoolCardDatabaseBodyCollapseItemFace({
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = useConcentrated((s) => s.timeBasis)
 
+  // eslint-disable-next-line no-console
+  console.log('info: ', timeBasis === TimeBasis.WEEK)
+
   const pcCotent = (
     <Row
       type="grid-x"
@@ -649,7 +658,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             iconSrc="/icons/misc-star-filled.svg"
             onClick={({ ev }) => {
               ev.stopPropagation()
-              onUnFavorite?.(info.id)
+              onUnFavorite?.(info.idString)
             }}
             className="clickable clickable-mask-offset-2 m-auto self-center"
           />
@@ -658,7 +667,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             iconSrc="/icons/misc-star-empty.svg"
             onClick={({ ev }) => {
               ev.stopPropagation()
-              onStartFavorite?.(info.id)
+              onStartFavorite?.(info.idString)
             }}
             className="clickable clickable-mask-offset-2 opacity-30 hover:opacity-80 transition m-auto self-center"
           />
@@ -679,9 +688,9 @@ function PoolCardDatabaseBodyCollapseItemFace({
         name={`Volume(${timeBasis})`}
         value={
           isHydratedConcentratedItemInfo(info)
-            ? timeBasis === '24H'
+            ? timeBasis === TimeBasis.DAY
               ? toUsdVolume(info.volume24h, { autoSuffix: isTablet, decimalPlace: 0 })
-              : timeBasis === '7D'
+              : timeBasis === TimeBasis.WEEK
               ? toUsdVolume(info.volume7d, { autoSuffix: isTablet, decimalPlace: 0 })
               : toUsdVolume(info.volume30d, { autoSuffix: isTablet, decimalPlace: 0 })
             : undefined
@@ -691,9 +700,9 @@ function PoolCardDatabaseBodyCollapseItemFace({
         name={`Fees(${timeBasis})`}
         value={
           isHydratedConcentratedItemInfo(info)
-            ? timeBasis === '24H'
+            ? timeBasis === TimeBasis.DAY
               ? toUsdVolume(info.fee24h, { autoSuffix: isTablet, decimalPlace: 0 })
-              : timeBasis === '7D'
+              : timeBasis === TimeBasis.WEEK
               ? toUsdVolume(info.fee7d, { autoSuffix: isTablet, decimalPlace: 0 })
               : toUsdVolume(info.fee30d, { autoSuffix: isTablet, decimalPlace: 0 })
             : undefined
@@ -703,9 +712,9 @@ function PoolCardDatabaseBodyCollapseItemFace({
         name={`APR(${timeBasis})`}
         value={
           isHydratedConcentratedItemInfo(info)
-            ? timeBasis === '24H'
+            ? timeBasis === TimeBasis.DAY
               ? toPercentString(info.state.day.apr)
-              : timeBasis === '7D'
+              : timeBasis === TimeBasis.WEEK
               ? toPercentString(info.state.week.apr)
               : toPercentString(info.state.month.apr)
             : undefined
@@ -733,7 +742,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
                 iconSrc="/icons/misc-star-filled.svg"
                 onClick={({ ev }) => {
                   ev.stopPropagation()
-                  onUnFavorite?.(info.id)
+                  onUnFavorite?.(info.idString)
                 }}
                 size="sm"
               />
@@ -743,7 +752,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
                 iconSrc="/icons/misc-star-empty.svg"
                 onClick={({ ev }) => {
                   ev.stopPropagation()
-                  onStartFavorite?.(info.id)
+                  onStartFavorite?.(info.idString)
                 }}
                 size="sm"
               />
@@ -764,9 +773,9 @@ function PoolCardDatabaseBodyCollapseItemFace({
             name={`APR(${timeBasis})`}
             value={
               isHydratedConcentratedItemInfo(info)
-                ? timeBasis === '24H'
+                ? timeBasis === TimeBasis.DAY
                   ? toPercentString(info.state.day.apr, { alreadyPercented: true })
-                  : timeBasis === '7D'
+                  : timeBasis === TimeBasis.WEEK
                   ? toPercentString(info.state.week.apr, { alreadyPercented: true })
                   : toPercentString(info.state.month.apr, { alreadyPercented: true })
                 : undefined
@@ -820,43 +829,6 @@ function PoolCardDatabaseBodyCollapseItemFace({
 }
 
 function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedConcentratedInfo }) {
-  const isMobile = useAppSettings((s) => s.isMobile)
-  const balances = useWallet((s) => s.balances)
-  const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
-  const farmPoolsList = useFarms((s) => s.hydratedInfos)
-  const prices = usePools((s) => s.lpPrices)
-  // const prices = useConcentrated((s) => s.lpPrices)
-
-  // TODO: NFT balance
-  // const hasLp = isMeaningfulNumber(balances[info.lpMint])
-  const hasLp = false
-
-  const correspondingFarm = useMemo(() => {
-    // return farmPoolsList.find((farmInfo) => isMintEqual(farmInfo.lpMint, info.lpMint) && !farmInfo.isClosedPool)
-    return false
-  }, [info])
-
-  const myPosition = useMemo(() => {
-    const lower = toString(
-      decimalToFraction(
-        info.positionAccount?.find((p) => toPubString(p.poolId) === toPubString(info.state.id))?.priceLower
-      ),
-      { decimalLength: 'auto 5' }
-    )
-    const upper = toString(
-      decimalToFraction(
-        info.positionAccount?.find((p) => toPubString(p.poolId) === toPubString(info.state.id))?.priceUpper
-      ),
-      { decimalLength: 'auto 5' }
-    )
-
-    if (lower && upper) {
-      return lower + '-' + upper
-    }
-
-    return '--'
-  }, [info])
-
   const openNewPosition = useMemo(() => {
     return (
       <AutoBox is={'Col'} className={`py-5 px-8 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
@@ -867,7 +839,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           className="frosted-glass-teal"
           onClick={() => {
             // create
-            useConcentrated.setState({ coin1: info.baseToken, coin2: info.quoteToken })
+            useConcentrated.setState({ coin1: info.base, coin2: info.quote })
             routeTo('/liquidity/concentrated', {
               queryProps: {}
             })
@@ -961,10 +933,10 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   Assets Pooled
                 </div>
                 <div className="text-white font-medium text-base mobile:text-xs">
-                  {amountA ?? '0'} {info.baseToken?.symbol}
+                  {amountA ?? '0'} {info.base?.symbol}
                 </div>
                 <div className="text-white font-medium text-base mobile:text-xs">
-                  {amountB ?? '0'} {info.quoteToken?.symbol}
+                  {amountB ?? '0'} {info.quote?.symbol}
                 </div>
               </div>
             </Row>
@@ -1024,7 +996,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] opacity-100 clickable clickable-filter-effect`}
                     onClick={() => {
                       // TODO: add
-                      useConcentrated.setState({ coin1: info.baseToken, coin2: info.quoteToken })
+                      useConcentrated.setState({ coin1: info.base, coin2: info.quote })
                       routeTo('/liquidity/concentrated', {
                         queryProps: {}
                       })
@@ -1071,8 +1043,8 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
       <CoinAvatarPair
         className="justify-self-center mr-2"
         size={isMobile ? 'sm' : 'md'}
-        token1={info?.baseToken}
-        token2={info?.quoteToken}
+        token1={info?.base}
+        token2={info?.quote}
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         {info?.name}

@@ -9,5 +9,5 @@ export function isHydratedPoolItemInfo(info: JsonPairItemInfo | HydratedPairItem
 }
 
 export function isHydratedConcentratedItemInfo(info: HydratedConcentratedInfo): info is HydratedConcentratedInfo {
-  return typeof info.id === 'string'
+  return typeof info.idString === 'string'
 }

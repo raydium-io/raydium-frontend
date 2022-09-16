@@ -17,11 +17,12 @@ export type SDKParsedConcentratedInfo = {
 export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   protocolFeeRate: Percent
   tradeFeeRate: Percent
+  base: SplToken | undefined
+  quote: SplToken | undefined
+  id: PublicKey
   userPositionAccount?: UserPositionAccount[]
-  baseToken: SplToken | undefined
-  quoteToken: SplToken | undefined
   name: string
-  id: string
+  idString: string
   liquidity: CurrencyAmount
   fee24h: CurrencyAmount
   fee7d: CurrencyAmount
@@ -31,7 +32,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   volume30d: CurrencyAmount
 }
 
-interface UserPositionAccount {
+export interface UserPositionAccount {
   poolId: PublicKey
   nftMint: PublicKey
   priceLower: Numberish

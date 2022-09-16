@@ -947,6 +947,7 @@ function UserLiquidityExhibition() {
             useLiquidity.setState({ isRemoveDialogOpen: false })
           }}
         />
+        
         <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
           If you staked your LP tokens in a farm, unstake them to see them here
         </div>

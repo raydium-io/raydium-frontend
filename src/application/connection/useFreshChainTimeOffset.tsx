@@ -23,17 +23,13 @@ export default function useFreshChainTimeOffset() {
 }
 
 async function updateChinTimeOffset(connection: Connection | undefined) {
-  try {
-    if (!connection) return
-    const chainTime = await connection.getBlockTime(await connection.getSlot())
-    if (!chainTime) return
-    const offset = Number(sub(mul(chainTime, 1000), Date.now()).toFixed(0))
-    useConnection.setState({
-      chainTimeOffset: offset,
-      getChainDate: () => new Date(Date.now() + (offset ?? 0))
-    })
-  } catch (error) {
-    console.error('in updateChinTimeOffset, error: ', error)
-    return
-  }
+  if (!connection) return
+  const slot = await connection.getSlot()
+  const chainTime = await connection.getBlockTime(slot)
+  if (!chainTime) return
+  const offset = Number(sub(mul(chainTime, 1000), Date.now()).toFixed(0))
+  useConnection.setState({
+    chainTimeOffset: offset,
+    getChainDate: () => new Date(Date.now() + (offset ?? 0))
+  })
 }

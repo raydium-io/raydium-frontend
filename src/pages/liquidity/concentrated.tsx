@@ -1,7 +1,7 @@
-import { createRef, useCallback, useRef, useState } from 'react'
+import { createRef, useCallback, useEffect, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { ApiAmmV3Point } from 'test-r-sdk'
+import { AmmV3PoolInfo, ApiAmmV3Point } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import txAddConcentrated from '@/application/concentrated/txAddConcentrated'
@@ -17,6 +17,8 @@ import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
+import Card from '@/components/Card'
+import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
@@ -24,11 +26,13 @@ import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
+import List from '@/components/List'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -59,6 +63,7 @@ export default function Concentrated() {
       <PageLayout mobileBarTitle="Concentrated" metaTitle="Concentrated - Raydium">
         <ConcentratedPageHead />
         <ConcentratedCard />
+        <UserLiquidityExhibition />
       </PageLayout>
     </ConcentratedUIContextProvider>
   )
@@ -96,16 +101,8 @@ function ConcentratedCard() {
 
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
 
-  const {
-    coin1,
-    coin1Amount,
-    coin2,
-    coin2Amount,
-    focusSide,
-    isSearchAmmDialogOpen,
-    refreshConcentrated,
-    directionReversed
-  } = useConcentrated()
+  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, refreshConcentrated, directionReversed } =
+    useConcentrated()
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
@@ -126,6 +123,12 @@ function ConcentratedCard() {
     coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }))
 
   const cardRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    useConcentrated.setState({
+      scrollToInputBox: () => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    })
+  }, [cardRef])
+
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -177,16 +180,6 @@ function ConcentratedCard() {
             />
           </Row>
           <Row className="absolute right-0 items-center">
-            <Icon
-              size="sm"
-              heroIconName="search"
-              className={`p-2 frosted-glass frosted-glass-teal rounded-full mr-4 clickable text-[#39D0D8] select-none ${
-                isApprovePanelShown ? 'not-clickable' : ''
-              }`}
-              onClick={() => {
-                useConcentrated.setState({ isSearchAmmDialogOpen: true })
-              }}
-            />
             <div className={isApprovePanelShown ? 'not-clickable' : 'clickable'}>
               <RefreshCircle
                 run={!isApprovePanelShown}
@@ -302,12 +295,6 @@ function ConcentratedCard() {
             }
           }
           turnOffCoinSelector()
-        }}
-      />
-      <SearchAmmDialog
-        open={isSearchAmmDialogOpen}
-        onClose={() => {
-          useConcentrated.setState({ isSearchAmmDialogOpen: false })
         }}
       />
     </CyberpunkStyleCard>
@@ -430,6 +417,188 @@ function ConcentratedFeeSwitcherContent({ unselectedAmmPools }: { unselectedAmmP
         </div>
       ))}
     </Row>
+  )
+}
+
+function UserLiquidityExhibition() {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const hydratedInfos = useConcentrated((s) => s.hydratedAmmPools)
+  const usersHydratedInfos = hydratedInfos.filter((i) => i.userPositionAccount)
+  const scrollToInputBox = useConcentrated((s) => s.scrollToInputBox)
+  return (
+    <div className="mt-12 max-w-[456px] self-center">
+      <div className="mb-6 text-xl font-medium text-white">Your Concentrated Liquidity</div>
+      <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
+        <List className={`flex flex-col gap-6 mobile:gap-5 ${usersHydratedInfos.length ? 'mb-5' : ''}`}>
+          {usersHydratedInfos.map((currentAmmPool) => (
+            <List.Item key={toPubString(currentAmmPool.id)}>
+              <FadeIn>
+                <Collapse className="ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl">
+                  <Collapse.Face>
+                    {(open) => (
+                      <Row className="items-center justify-between py-4 px-6 mobile:px-4">
+                        <Row className="gap-2 items-center">
+                          <CoinAvatarPair
+                            className="justify-self-center"
+                            token1={currentAmmPool.base}
+                            token2={currentAmmPool.quote}
+                            size={isMobile ? 'sm' : 'md'}
+                          />
+                          <div className="text-base font-normal text-[#abc4ff]">
+                            {currentAmmPool.base?.symbol ?? ''}/{currentAmmPool.quote?.symbol ?? ''}
+                          </div>
+                        </Row>
+                        <Icon
+                          size="sm"
+                          className="text-[#abc4ff]"
+                          heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`}
+                        />
+                      </Row>
+                    )}
+                  </Collapse.Face>
+                  <Collapse.Body>
+                    <div className="pb-4 px-6 mobile:px-4">
+                      <Col className="border-t-1.5 border-[rgba(171,196,255,.5)] py-5 gap-3 ">
+                        {currentAmmPool.userPositionAccount?.map((positionInfo) => {
+                          return (
+                            <Row
+                              className="justify-between"
+                              key={`${positionInfo.tickLowerIndex}-${positionInfo.tickUpperIndex}`}
+                            >
+                              <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">
+                                {toString(positionInfo.priceLower)}-{toString(positionInfo.priceUpper)}
+                              </div>
+                              <Row className="text-xs mobile:text-2xs font-medium text-white gap-4">
+                                <div
+                                  className="text-base clickable"
+                                  onClick={() => {
+                                    useConcentrated.setState({
+                                      isAddDialogOpen: true,
+                                      currentAmmPool: currentAmmPool,
+                                      targetUserPositionAccount: positionInfo
+                                    })
+                                  }}
+                                >
+                                  ➕
+                                </div>
+                                <div
+                                  className="text-base clickable"
+                                  onClick={() => {
+                                    useConcentrated.setState({
+                                      isRemoveDialogOpen: true,
+                                      currentAmmPool: currentAmmPool,
+                                      targetUserPositionAccount: positionInfo
+                                    })
+                                  }}
+                                >
+                                  ➖
+                                </div>
+                              </Row>
+                            </Row>
+                          )
+                        })}
+                        {/* <Row className="justify-between">
+                          <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Quote)</div>
+                          <div className="text-xs mobile:text-2xs font-medium text-white">
+                            {toString(info.userQuotePooled) || '--'} {info.quoteToken?.symbol}
+                          </div>
+                        </Row>
+                        <Row className="justify-between">
+                          <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Your Liquidity</div>
+                          <div className="text-xs mobile:text-2xs font-medium text-white">
+                            {info.lpMint
+                              ? toString(div(rawBalances[String(info.lpMint)], 10 ** info.lpDecimals), {
+                                  decimalLength: `auto ${info.lpDecimals}`
+                                })
+                              : '--'}{' '}
+                            LP
+                          </div>
+                        </Row>
+                        <Row className="justify-between">
+                          <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Your share</div>
+                          <div className="text-xs mobile:text-2xs font-medium text-white">
+                            {computeSharePercentValue(info.sharePercent)}
+                          </div>
+                        </Row> */}
+                      </Col>
+                      <Row className="gap-4 mb-1">
+                        <Button
+                          className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
+                          onClick={() => {
+                            useConcentrated.setState({
+                              currentAmmPool: currentAmmPool,
+                              coin1: currentAmmPool.base,
+                              coin2: currentAmmPool.quote
+                            })
+                            scrollToInputBox()
+                          }}
+                        >
+                          Open New Position
+                        </Button>
+                        {/* <Tooltip>
+                          <Icon
+                            size="smi"
+                            iconSrc="/icons/pools-pool-entry.svg"
+                            className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable-filter-effect clickable`}
+                            onClick={() => {
+                              // routeTo('/pools', {
+                              //   queryProps: objectShakeFalsy({
+                              //     expandedPoolId: toPubString(info.id),
+                              //     searchText: toPubString(info.id)
+                              //   })
+                              // })
+                            }}
+                          />
+                          <Tooltip.Panel>Pool</Tooltip.Panel>
+                        </Tooltip> */}
+                        {/* temp: wait for JACK */}
+                        <Tooltip>
+                          <Icon
+                            iconSrc="/icons/msic-swap-h.svg"
+                            size="smi"
+                            className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                            onClick={() => {
+                              routeTo('/swap', {
+                                queryProps: {
+                                  coin1: currentAmmPool.base,
+                                  coin2: currentAmmPool.quote
+                                }
+                              })
+                            }}
+                          />
+                          <Tooltip.Panel>Swap</Tooltip.Panel>
+                        </Tooltip>
+                        <Tooltip>
+                          <Icon
+                            size="smi"
+                            iconSrc="/icons/pools-remove-liquidity-entry.svg"
+                            className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect`}
+                            onClick={() => {
+                              useConcentrated.setState({ currentAmmPool: currentAmmPool, isRemoveDialogOpen: true })
+                            }}
+                          />
+                          <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>
+                        </Tooltip>
+                      </Row>
+                    </div>
+                  </Collapse.Body>
+                </Collapse>
+              </FadeIn>
+            </List.Item>
+          ))}
+        </List>
+
+        {/* <RemoveLiquidityDialog
+          open={isRemoveDialogOpen}
+          onClose={() => {
+            useLiquidity.setState({ isRemoveDialogOpen: false })
+          }}
+        /> */}
+        <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
+          If you staked your LP tokens in a farm, unstake them to see them here
+        </div>
+      </Card>
+    </div>
   )
 }
 

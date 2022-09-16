@@ -5,29 +5,18 @@ import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import { div } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 
+import useToken from '../token/useToken'
 import { recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo } from './type'
 
-export default function hydrateConcentratedInfo(
-  concentratedInfo: SDKParsedConcentratedInfo,
-  additionalTools: {
-    getToken: TokenStore['getToken']
-    getLpToken: TokenStore['getLpToken']
-  }
-): HydratedConcentratedInfo {
-  const baseToken = additionalTools.getToken(String(concentratedInfo.state.mintA.mint))
-  const quoteToken = additionalTools.getToken(String(concentratedInfo.state.mintB.mint))
-  const name = (baseToken ? baseToken.symbol : 'unknown') + '-' + (quoteToken ? quoteToken?.symbol : 'unknown')
-
+export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConcentratedInfo): HydratedConcentratedInfo {
   return {
     ...concentratedInfo,
+    ...hydratePoolInfo(concentratedInfo),
     ...hydrateFeeRate(concentratedInfo),
     ...hydrateUserPositionAccounnt(concentratedInfo),
-    baseToken,
-    quoteToken,
-    name,
-    id: toPubString(concentratedInfo.state.id),
+    idString: toPubString(concentratedInfo.state.id),
     liquidity: toUsdCurrency(Math.round(concentratedInfo.state.liquidity.toNumber())),
     fee24h: toUsdCurrency(concentratedInfo.state.day.fee),
     fee7d: toUsdCurrency(concentratedInfo.state.week.fee),
@@ -35,6 +24,25 @@ export default function hydrateConcentratedInfo(
     volume24h: toUsdCurrency(concentratedInfo.state.day.volume),
     volume7d: toUsdCurrency(concentratedInfo.state.week.volume),
     volume30d: toUsdCurrency(concentratedInfo.state.month.volume)
+  }
+}
+
+/**
+ * part of {@link hydrateConcentratedInfo}
+ */
+function hydratePoolInfo(
+  sdkConcentratedInfo: SDKParsedConcentratedInfo
+): Pick<HydratedConcentratedInfo, 'base' | 'quote' | 'id' | 'name'> {
+  const { getToken } = useToken.getState()
+  const base = getToken(sdkConcentratedInfo.state.mintA.mint)
+  const quote = getToken(sdkConcentratedInfo.state.mintB.mint)
+  const name = (base ? base.symbol : 'unknown') + '-' + (quote ? quote?.symbol : 'unknown')
+
+  return {
+    id: sdkConcentratedInfo.state.id,
+    base,
+    quote,
+    name
   }
 }
 
@@ -61,11 +69,6 @@ function hydrateUserPositionAccounnt(
       ...recursivelyDecimalToFraction(a),
       amountA: toBN(a.amountA),
       amountB: toBN(a.amountB)
-      // liquidity: Number(a.liquidity),
-      // feeGrowthInsideLastX64A: Number(a.feeGrowthInsideLastX64A),
-      // feeGrowthInsideLastX64B: Number(a.feeGrowthInsideLastX64B),
-      // tokenFeesOwedA: Number(a.tokenFeesOwedA),
-      // tokenFeesOwedB: Number(a.tokenFeesOwedB)
     }))
   }
 }

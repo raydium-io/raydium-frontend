@@ -7,7 +7,7 @@ import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
 
-import { APIConcentratedInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo } from './type'
+import { APIConcentratedInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
 
 export enum PoolsConcentratedTabs {
   ALL = 'All',
@@ -34,10 +34,10 @@ export type ConcentratedStore = {
   chartPoints?: ApiAmmV3Point[]
   liquidity?: BN // from SDK, just store in UI
 
-  coin1: SplToken | undefined
+  coin1?: SplToken
   coin1Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
 
-  coin2: SplToken | undefined
+  coin2?: SplToken
   coin2Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
 
   priceUpperTick?: number // from SDK, just store in UI
@@ -57,8 +57,10 @@ export type ConcentratedStore = {
   hydratedAmmPools: HydratedConcentratedInfo[]
 
   isRemoveDialogOpen: boolean
-  isSearchAmmDialogOpen: boolean
-  removeAmount: string
+  isAddDialogOpen: boolean
+  targetUserPositionAccount?: UserPositionAccount
+
+  scrollToInputBox: () => void
 
   // just for trigger refresh
   refreshCount: number
@@ -82,20 +84,17 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   sdkParsedAmmPools: [],
   hydratedAmmPools: [],
 
-  coin1: undefined,
-
-  coin2: undefined,
-
   focusSide: 'coin1',
 
+  isAddDialogOpen: false,
   isRemoveDialogOpen: false,
+
   isSearchAmmDialogOpen: false,
   removeAmount: '',
-
+  scrollToInputBox: () => {},
   refreshCount: 0,
   refreshConcentrated: () => {
     // will auto refresh wallet
-
     // refresh sdk parsed
     set((s) => ({
       refreshCount: s.refreshCount + 1
