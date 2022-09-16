@@ -1,5 +1,7 @@
 import { toPercent } from '@/functions/format/toPercent'
 import { div } from '@/functions/numberish/operations'
+import toBN from '@/functions/numberish/toBN'
+import { recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo } from './type'
 
 export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConcentratedInfo): HydratedConcentratedInfo {
@@ -30,12 +32,14 @@ function hydrateUserPositionAccounnt(
 ): Pick<HydratedConcentratedInfo, 'userPositionAccount'> {
   return {
     userPositionAccount: sdkConcentratedInfo.positionAccount?.map((a) => ({
-      ...a,
-      liquidity: Number(a.liquidity),
-      feeGrowthInsideLastX64A: Number(a.feeGrowthInsideLastX64A),
-      feeGrowthInsideLastX64B: Number(a.feeGrowthInsideLastX64B),
-      tokenFeesOwedA: Number(a.tokenFeesOwedA),
-      tokenFeesOwedB: Number(a.tokenFeesOwedB)
+      ...recursivelyDecimalToFraction(a),
+      amountA: toBN(a.amountA),
+      amountB: toBN(a.amountB)
+      // liquidity: Number(a.liquidity),
+      // feeGrowthInsideLastX64A: Number(a.feeGrowthInsideLastX64A),
+      // feeGrowthInsideLastX64B: Number(a.feeGrowthInsideLastX64B),
+      // tokenFeesOwedA: Number(a.tokenFeesOwedA),
+      // tokenFeesOwedB: Number(a.tokenFeesOwedB)
     }))
   }
 }

@@ -1,3 +1,4 @@
+import { Numberish } from '@/types/constants'
 import { Percent } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import { AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo } from 'test-r-sdk'
@@ -18,11 +19,15 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
 interface UserPositionAccount {
   poolId: PublicKey
   nftMint: PublicKey
+  priceLower: Numberish
+  priceUpper: Numberish
+  amountA: Numberish
+  amountB: Numberish
   tickLowerIndex: number
   tickUpperIndex: number
-  liquidity: number // Rudy promise
-  feeGrowthInsideLastX64A: number // Rudy promise (but don't know what's is it)
-  feeGrowthInsideLastX64B: number // Rudy promise (but don't know what's is it)
-  tokenFeesOwedA: number // Rudy promise
-  tokenFeesOwedB: number // Rudy promise
+  // liquidity: BN__default; // currently useless
+  // feeGrowthInsideLastX64A: BN__default; // currently useless
+  // feeGrowthInsideLastX64B: BN__default; // currently useless
+  // tokenFeesOwedA: BN__default; // currently useless
+  // tokenFeesOwedB: BN__default; // currently useless
 }
