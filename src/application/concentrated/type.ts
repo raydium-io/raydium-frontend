@@ -2,6 +2,7 @@ import { Numberish } from '@/types/constants'
 import { Percent } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import { AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo } from 'test-r-sdk'
+import { SplToken } from '../token/type'
 
 export type APIConcentratedInfo = ApiAmmV3PoolInfo
 
@@ -13,10 +14,13 @@ export type SDKParsedConcentratedInfo = {
 export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   protocolFeeRate: Percent
   tradeFeeRate: Percent
+  base: SplToken | undefined
+  quote: SplToken | undefined
+  id: PublicKey
   userPositionAccount?: UserPositionAccount[]
 }
 
-interface UserPositionAccount {
+export interface UserPositionAccount {
   poolId: PublicKey
   nftMint: PublicKey
   priceLower: Numberish

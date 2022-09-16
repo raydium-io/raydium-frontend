@@ -4,6 +4,7 @@ import { lazyMap } from '@/functions/lazyMap'
 import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
 import useConnection from '../connection/useConnection'
+import useToken from '../token/useToken'
 import useWallet from '../wallet/useWallet'
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
@@ -18,6 +19,7 @@ export default function useConcentratedInfoLoader() {
   const connection = useConnection((s) => s.connection)
   const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
   const owner = useWallet((s) => s.owner)
+  const tokens = useToken((s) => s.tokens)
 
   /** fetch api json info list  */
   useEffectWithTransition(async () => {
@@ -43,7 +45,8 @@ export default function useConcentratedInfoLoader() {
 
   /** SDK info list ➡ hydrated info list */
   useEffectWithTransition(async () => {
-    if (!connection) return
+    if (!connection) return // don't hydrate when connection is not ready
+    if (!Object.keys(tokens).length) return // don't hydrate when token is not loaded
     if (!sdkParsedAmmPools) return
     const sdkParsedAmmPoolsList = Object.values(sdkParsedAmmPools)
     const hydratedInfos = await lazyMap({
@@ -52,7 +55,7 @@ export default function useConcentratedInfoLoader() {
       loopFn: (sdkParsed) => hydrateConcentratedInfo(sdkParsed)
     })
     useConcentrated.setState({ hydratedAmmPools: hydratedInfos })
-  }, [sdkParsedAmmPools, connection])
+  }, [sdkParsedAmmPools, connection, tokens])
 
   /** select pool chart data */
   useEffectWithTransition(async () => {
