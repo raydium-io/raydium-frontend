@@ -64,7 +64,7 @@ export default function useConnectionInitialization() {
           autoChoosedEndPoint: data.rpcs.find(({ url }) => url === selectedEndpointUrl),
           currentEndPoint:
             s.currentEndPoint ?? userSelectedRpc ?? data.rpcs.find(({ url }) => url === selectedEndpointUrl),
-          // connection, // TEST TEMP
+          connection,
           isLoading: false
         }))
       })
