@@ -502,8 +502,10 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            const key = timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d'
-            setSortConfig({ key, sortCompare: (i) => i[key] })
+            setSortConfig({
+              key: 'apr',
+              sortCompare: (i) => i.state[timeBasis === '24H' ? 'day' : timeBasis === '7D' ? 'week' : 'month'].apr
+            })
           }}
         >
           APR {timeBasis}
