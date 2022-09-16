@@ -336,15 +336,13 @@ function PoolCard() {
       searchItems(dataSource, {
         text: searchText,
         matchConfigs: (i) => [
-          { text: i.id, entirely: true }
-          // { text: i.market, entirely: true }, // Input Auto complete result sort setting
-          // { text: i.lpMint, entirely: true },
-          // { text: toPubString(i.base?.mint), entirely: true },
-          // { text: toPubString(i.quote?.mint), entirely: true },
-          // i.base?.symbol,
-          // i.quote?.symbol
-          // i.base?.name,
-          // i.quote?.name
+          { text: i.id, entirely: false },
+          { text: toPubString(i.baseToken?.mint), entirely: true },
+          { text: toPubString(i.quoteToken?.mint), entirely: true },
+          i.baseToken?.symbol,
+          i.quoteToken?.symbol,
+          i.baseToken?.name,
+          i.quoteToken?.name
         ]
       }),
     [dataSource, searchText]
