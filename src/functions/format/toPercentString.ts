@@ -31,10 +31,11 @@ export default function toPercentString(
     const fractionN = toFraction(n ?? 0)
     const stringPart = fractionN.mul(options?.alreadyPercented ? 1 : 100).toFixed(options?.fixed ?? 2)
     if (eq(fractionN, 0)) return '0%'
-    if (!options?.exact && stringPart === '0.00') return options?.alwaysSigned ? '<+0.01%' : '<0.01%'
+    if (!options?.exact && stringPart === (0).toFixed(options?.fixed ?? 2))
+      return options?.alwaysSigned ? '<+0.01%' : '<0.01%'
     return options?.alwaysSigned
       ? `${getSign(stringPart)}${formatNumber(getUnsignNumber(stringPart))}%`
-      : `${formatNumber(stringPart)}%`
+      : `${formatNumber(stringPart, { fractionLength: options?.fixed })}%`
   } catch (err) {
     return '0%'
   }

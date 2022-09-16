@@ -1,17 +1,15 @@
-import useWallet from '@/application/wallet/useWallet'
-import assert from '@/functions/assert'
-import { toString } from '@/functions/numberish/toString'
-import { PublicKeyish } from '@/types/constants'
-
 import { loadTransaction } from '@/application/txTools/createTransaction'
 import { fractionToDecimal } from '@/application/txTools/decimal2Fraction'
 import handleMultiTx from '@/application/txTools/handleMultiTx'
+import useWallet from '@/application/wallet/useWallet'
+import assert from '@/functions/assert'
 import toFraction from '@/functions/numberish/toFraction'
+import { toString } from '@/functions/numberish/toString'
 import { AmmV3 } from 'test-r-sdk'
 import useAppSettings from '../appSettings/useAppSettings'
 import useConcentrated from './useConcentrated'
 
-export default function txAddConcentrated({ ammId: targetAmmId }: { ammId?: PublicKeyish } = {}) {
+export default function txAddConcentrated() {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
     const { currentAmmPool, priceLower, priceUpper, coin1, coin2, coin1Amount, coin2Amount, liquidity } =
       useConcentrated.getState()

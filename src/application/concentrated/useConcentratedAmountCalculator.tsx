@@ -24,7 +24,7 @@ export default function useConcentratedAmountCalculator() {
     } catch (err) {
       /* still can't calc amount */
       // eslint-disable-next-line no-console
-      console.log(`still can't calc amount`, err) /* TEST */
+      console.log(`still can't calc amount`, err instanceof Error ? err.message : err)
     }
   }, [
     slippageTolerance,

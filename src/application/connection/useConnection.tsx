@@ -66,7 +66,7 @@ export const LOCALSTORAGE_KEY_USER_RPC = 'USER_RPC'
 export const SESSION_STORAGE_USER_SELECTED_RPC = 'user-selected-rpc'
 /** zustand store hooks */
 const useConnection = create<ConnectionStore>((set, get) => ({
-  connection: new Connection('https://api.mainnet-beta.solana.com/'), // TEMP TEST
+  connection: undefined,
 
   availableEndPoints: [],
 

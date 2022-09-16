@@ -7,6 +7,7 @@ import { lazyMap } from '@/functions/lazyMap'
 import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 
 import useConnection from '../connection/useConnection'
+import useWallet from '../wallet/useWallet'
 
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
@@ -19,23 +20,32 @@ export default function useConcentratedInfoLoader() {
   const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const connection = useConnection((s) => s.connection)
-  const { getToken, getLpToken } = useToken.getState()
+  const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
+  const owner = useWallet((s) => s.owner)
+  const getToken = useToken.getState((s) => s.getToken)
+  const getLpToken = useToken.getState((s) => s.getLpToken)
 
   /** fetch api json info list  */
   useEffectWithTransition(async () => {
     const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
-
-    if (response) {
-      useConcentrated.setState({ apiAmmPools: response.data })
-    }
+    if (response) useConcentrated.setState({ apiAmmPools: response.data })
   }, [])
 
   /**  api json info list ➡ SDK info list */
   useEffectWithTransition(async () => {
     if (!connection) return
-    const sdkParsed = await AmmV3.fetchMultiplePoolInfos({ poolKeys: apiAmmPools, connection })
-    if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
-  }, [apiAmmPools, connection])
+    if (owner) {
+      const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
+        poolKeys: apiAmmPools,
+        connection,
+        ownerInfo: {
+          tokenAccounts: tokenAccounts,
+          wallet: owner
+        }
+      })
+      if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
+    }
+  }, [apiAmmPools, connection, tokenAccounts, owner])
 
   /** SDK info list ➡ hydrated info list */
   useEffectWithTransition(async () => {

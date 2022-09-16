@@ -19,12 +19,12 @@ export default function hydrateConcentratedInfo(
 
   return {
     ...concentratedInfo,
+    ...hydrateFeeRate(concentratedInfo),
+    ...hydrateUserPositionAccounnt(concentratedInfo),
     baseToken,
     quoteToken,
     name,
     id: toPubString(concentratedInfo.state.id),
-    protocolFeeRate: toPercent(div(concentratedInfo.state.ammConfig.protocolFeeRate, 10 ** 8)),
-    tradeFeeRate: toPercent(div(concentratedInfo.state.ammConfig.tradeFeeRate, 10 ** 8)),
     liquidity: toUsdCurrency(Math.round(concentratedInfo.state.liquidity.toNumber())),
     fee24h: toUsdCurrency(concentratedInfo.state.day.fee),
     fee7d: toUsdCurrency(concentratedInfo.state.week.fee),
@@ -32,5 +32,35 @@ export default function hydrateConcentratedInfo(
     volume24h: toUsdCurrency(concentratedInfo.state.day.volume),
     volume7d: toUsdCurrency(concentratedInfo.state.week.volume),
     volume30d: toUsdCurrency(concentratedInfo.state.month.volume)
+  }
+}
+
+/**
+ * part of {@link hydrateConcentratedInfo}
+ */
+function hydrateFeeRate(
+  sdkConcentratedInfo: SDKParsedConcentratedInfo
+): Pick<HydratedConcentratedInfo, 'protocolFeeRate' | 'tradeFeeRate'> {
+  return {
+    protocolFeeRate: toPercent(div(sdkConcentratedInfo.state.ammConfig.protocolFeeRate, 10 ** 8)),
+    tradeFeeRate: toPercent(div(sdkConcentratedInfo.state.ammConfig.tradeFeeRate, 10 ** 8))
+  }
+}
+
+/**
+ * part of {@link hydrateConcentratedInfo}
+ */
+function hydrateUserPositionAccounnt(
+  sdkConcentratedInfo: SDKParsedConcentratedInfo
+): Pick<HydratedConcentratedInfo, 'userPositionAccount'> {
+  return {
+    userPositionAccount: sdkConcentratedInfo.positionAccount?.map((a) => ({
+      ...a,
+      liquidity: Number(a.liquidity),
+      feeGrowthInsideLastX64A: Number(a.feeGrowthInsideLastX64A),
+      feeGrowthInsideLastX64B: Number(a.feeGrowthInsideLastX64B),
+      tokenFeesOwedA: Number(a.tokenFeesOwedA),
+      tokenFeesOwedB: Number(a.tokenFeesOwedB)
+    }))
   }
 }
