@@ -38,6 +38,7 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+import LiquidityRangeInput from '@/pageComponents/ConcentratedRangeChart/LiquidityRangeInput'
 
 export default function PoolsConcentratedPage() {
   // usePoolSummeryInfoLoader()
@@ -58,6 +59,9 @@ export default function PoolsConcentratedPage() {
       }}
       metaTitle="Concentrated Pools - Raydium"
     >
+      <div>
+        <LiquidityRangeInput />
+      </div>
       <PoolHeader />
       <PoolCard />
     </PageLayout>
