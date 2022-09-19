@@ -5,7 +5,10 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedLayout, PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedLayout,
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { routeTo } from '@/application/routeTools'
@@ -979,7 +982,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   <Icon
                     size="smi"
                     heroIconName="plus"
-                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] opacity-100 clickable clickable-filter-effect`}
+                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] opacity-100 clickable clickable-filter-effect ${
+                      p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                    }`}
                     onClick={() => {
                       useConcentrated.setState({
                         isAddDialogOpen: true,

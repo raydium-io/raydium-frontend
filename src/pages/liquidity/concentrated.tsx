@@ -135,7 +135,6 @@ function ConcentratedCard() {
       wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light"
       className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
     >
-      <div>[DEBUG] focusSide:{focusSide}</div>
       {/* input twin */}
       <>
         <CoinInputBox
@@ -587,7 +586,7 @@ function UserLiquidityExhibition() {
         </List>
 
         <ChangeConcentratedPoolDialog
-          open={isAddDialogOpen || isRemoveDialogOpen}
+          open={Boolean(isAddDialogOpen || isRemoveDialogOpen)}
           mode={isAddDialogOpen ? 'add' : isRemoveDialogOpen ? 'remove' : undefined}
           onClose={() => {
             useConcentrated.setState({ isRemoveDialogOpen: undefined, isAddDialogOpen: undefined })

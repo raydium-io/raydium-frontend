@@ -5,6 +5,7 @@ import Col from '@/components/Col'
 import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
+import RowTabs from '@/components/RowTabs'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { div, getMax, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
@@ -30,6 +31,7 @@ export function ConcentratedRangeInputChart({
   currentPrice?: Fraction
 }) {
   const { coin1, coin2, currentAmmPool, priceLower, priceUpper, focusSide } = useConcentrated()
+  const focusSideCoin = focusSide === 'coin1' ? coin1 : coin2
   const careDecimalLength = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const concentratedChartBodyRef = useRef<ConcentratedRangeInputChartBodyComponentHandler>(null)
 
@@ -111,17 +113,16 @@ export function ConcentratedRangeInputChart({
       <Row className="justify-between items-center">
         <div className=" font-bold text-white">Price Range</div>
         <Row className="items-center gap-2">
-          {/* {coin1 && coin2 && (
+          {coin1 && coin2 && (
             <RowTabs
               size="sm"
               currentValue={focusSideCoin?.symbol}
               values={[coin1.symbol ?? '--', coin2?.symbol ?? '--']}
               onChange={(value) => {
-                console.log('111: ', 111)
                 useConcentrated.setState({ focusSide: value === coin1.symbol ? 'coin1' : 'coin2' })
               }}
             />
-          )} */}
+          )}
           <Row className="gap-2">
             <Icon
               className="saturate-50 brightness-125" // TEMP
