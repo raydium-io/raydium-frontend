@@ -355,6 +355,12 @@ function PoolCard() {
     [favouriteIds]
   )
 
+  useEffect(() => {
+    // for re-sort after time basis has been changed
+    const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
+    setSortConfig({ key, sortCompare: (i) => i[key] })
+  }, [timeBasis])
+
   const TableHeaderBlock = useCallback(
     () => (
       <Row
