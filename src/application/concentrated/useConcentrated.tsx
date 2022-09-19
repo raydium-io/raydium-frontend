@@ -47,9 +47,6 @@ export type ConcentratedStore = {
   priceLower?: Numberish
   priceUpper?: Numberish
 
-  directionReversed: boolean // determine chart rang input box focus make this to be true
-  tabReversed: boolean // determine chart rang input tab focus make this to be true
-
   //#endregion
 
   apiAmmPools: APIConcentratedInfo[]
@@ -78,8 +75,6 @@ export type ConcentratedStore = {
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
 const useConcentrated = create<ConcentratedStore>((set, get) => ({
-  directionReversed: false,
-  tabReversed: false,
   apiAmmPools: [],
   sdkParsedAmmPools: [],
   hydratedAmmPools: [],

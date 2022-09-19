@@ -48,6 +48,7 @@ import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 
 import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -101,8 +102,7 @@ function ConcentratedCard() {
 
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
 
-  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, refreshConcentrated, directionReversed } =
-    useConcentrated()
+  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, refreshConcentrated } = useConcentrated()
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
@@ -110,12 +110,15 @@ function ConcentratedCard() {
 
   const swapElementBox1 = useRef<HTMLDivElement>(null)
   const swapElementBox2 = useRef<HTMLDivElement>(null)
-  const [hasUISwrapped, { toggleSwap: toggleUISwap }] = useSwapTwoElements(swapElementBox1, swapElementBox2, {
-    defaultHasWrapped: directionReversed
-  })
-  const switchDirectionReversed = useCallback(() => {
-    useConcentrated.setState((s) => ({ directionReversed: !s.directionReversed }))
-  }, [])
+  const [, { toggleSwap: toggleUISwap }] = useSwapTwoElements(swapElementBox1, swapElementBox2)
+  useRecordedEffect(
+    ([prevFocusSide]) => {
+      if (prevFocusSide && prevFocusSide !== focusSide) {
+        toggleUISwap()
+      }
+    },
+    [focusSide]
+  )
 
   const haveEnoughCoin1 =
     coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
@@ -138,6 +141,7 @@ function ConcentratedCard() {
       wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light"
       className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
     >
+      <div>[DEBUG] focusSide:{focusSide}</div>
       {/* input twin */}
       <>
         <CoinInputBox
@@ -156,7 +160,7 @@ function ConcentratedCard() {
             setTargetCoinNo('1')
           }}
           onUserInput={(amount) => {
-            useConcentrated.setState({ coin1Amount: amount, focusSide: 'coin1' })
+            useConcentrated.setState({ coin1Amount: amount })
           }}
           onEnter={(input) => {
             if (!input) return
@@ -173,9 +177,7 @@ function ConcentratedCard() {
               heroIconName="plus"
               className={`p-1 text-[#39D0D8] frosted-glass frosted-glass-teal rounded-full mr-4 select-none transition clickable`}
               onClick={() => {
-                toggleUISwap()
-                switchDirectionReversed()
-                useConcentrated.setState((s) => ({ ...s, tabReversed: !s.tabReversed }))
+                useConcentrated.setState((s) => ({ ...s, focusSide: s.focusSide === 'coin1' ? 'coin2' : 'coin1' }))
               }}
             />
           </Row>
@@ -215,7 +217,7 @@ function ConcentratedCard() {
             if (coin1 && coin1Amount) liquidityButtonComponentRef.current?.click?.()
           }}
           onUserInput={(amount) => {
-            useConcentrated.setState({ coin2Amount: amount, focusSide: 'coin2' })
+            useConcentrated.setState({ coin2Amount: amount })
           }}
           token={coin2}
         />

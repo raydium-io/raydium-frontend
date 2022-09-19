@@ -50,6 +50,9 @@ export type PageRouteConfigs = {
       newExpandedItemId?: string
     }
   }
+  '/pools': {
+    queryProps?: any
+  }
   '/pools/classic': {
     queryProps?: {
       expandedPoolId?: string
