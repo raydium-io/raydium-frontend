@@ -4,7 +4,7 @@ import { twMerge } from 'tailwind-merge'
 import { AmmV3PoolInfo, ApiAmmV3Point } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import txAddConcentrated from '@/application/concentrated/txAddConcentrated'
+import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
@@ -49,6 +49,7 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 
 import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import { ChangeConcentratedPoolDialog } from '@/pageComponents/dialogs/ChangeConcentratedPoolDialog'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -271,7 +272,7 @@ function ConcentratedCard() {
           // },
         ]}
         onClick={() => {
-          txAddConcentrated()
+          txCreateConcentrated()
         }}
       >
         Add Concentrated
@@ -427,6 +428,10 @@ function UserLiquidityExhibition() {
   const hydratedInfos = useConcentrated((s) => s.hydratedAmmPools)
   const usersHydratedInfos = hydratedInfos.filter((i) => i.userPositionAccount)
   const scrollToInputBox = useConcentrated((s) => s.scrollToInputBox)
+  const isAddDialogOpen = useConcentrated((s) => s.isAddDialogOpen)
+  const isRemoveDialogOpen = useConcentrated((s) => s.isRemoveDialogOpen)
+  // console.log('isAddDialogOpen: ', isAddDialogOpen)
+  // console.log('isRemoveDialogOpen: ', isRemoveDialogOpen)
   return (
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Your Concentrated Liquidity</div>
@@ -590,12 +595,13 @@ function UserLiquidityExhibition() {
           ))}
         </List>
 
-        {/* <RemoveLiquidityDialog
-          open={isRemoveDialogOpen}
+        <ChangeConcentratedPoolDialog
+          open={isAddDialogOpen && isRemoveDialogOpen}
+          mode={isAddDialogOpen ? 'add' : isRemoveDialogOpen ? 'remove' : undefined}
           onClose={() => {
-            useLiquidity.setState({ isRemoveDialogOpen: false })
+            useConcentrated.setState({ isRemoveDialogOpen: false, isAddDialogOpen: false })
           }}
-        /> */}
+        />
         <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
           If you staked your LP tokens in a farm, unstake them to see them here
         </div>

@@ -66,6 +66,7 @@ function hydrateUserPositionAccounnt(
 ): Pick<HydratedConcentratedInfo, 'userPositionAccount'> {
   return {
     userPositionAccount: sdkConcentratedInfo.positionAccount?.map((a) => ({
+      sdkParsed: a,
       ...recursivelyDecimalToFraction(a),
       amountA: toBN(a.amountA),
       amountB: toBN(a.amountB),
