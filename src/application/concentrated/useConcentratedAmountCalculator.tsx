@@ -14,7 +14,8 @@ import useConcentrated from './useConcentrated'
  */
 export default function useConcentratedAmountCalculator() {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
-  const { coin1, coin1Amount, priceUpperTick, coin2, coin2Amount, priceLowerTick, focusSide } = useConcentrated()
+  const { coin1, coin1Amount, priceUpperTick, coin2, coin2Amount, priceLowerTick, focusSide, userCursorSide } =
+    useConcentrated()
   useEffect(() => {
     try {
       calcConcentratedPairsAmount()
@@ -26,25 +27,26 @@ export default function useConcentratedAmountCalculator() {
   }, [
     slippageTolerance,
     coin1,
-    focusSide === 'coin1' ? coin1Amount : coin2Amount,
+    userCursorSide === 'coin1' ? coin1Amount : coin2Amount,
     priceUpperTick,
     coin2,
     priceLowerTick,
-    focusSide
+    focusSide,
+    userCursorSide
   ])
 }
 
 /** dirty */
 function calcConcentratedPairsAmount(): void {
   const { slippageTolerance } = useAppSettings.getState()
-  const { coin1, coin1Amount, priceUpperTick, coin2, coin2Amount, priceLowerTick, focusSide, currentAmmPool } =
+  const { coin1, coin1Amount, priceUpperTick, coin2, coin2Amount, priceLowerTick, userCursorSide, currentAmmPool } =
     useConcentrated.getState()
   assert(currentAmmPool, 'not pool info')
   assert(coin1, 'not set coin1')
   assert(priceUpperTick, 'not set priceUpperTick')
   assert(coin2, 'not set coin2')
   assert(priceLowerTick, 'not set priceLowerTick')
-  const isFixA = focusSide === 'coin1'
+  const isFixA = userCursorSide === 'coin1'
   const { liquidity, amountA, amountB } = AmmV3.getLiquidityAmountOutFromAmountIn({
     poolInfo: currentAmmPool.state,
     slippage: Number(toString(slippageTolerance)),

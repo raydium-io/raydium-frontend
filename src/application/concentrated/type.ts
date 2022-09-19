@@ -1,7 +1,7 @@
 import { CurrencyAmount, Percent } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import { AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo } from 'test-r-sdk'
+import { AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, TokenAmount } from 'test-r-sdk'
 
 import { Numberish } from '@/types/constants'
 
@@ -39,8 +39,10 @@ export interface UserPositionAccount {
   nftMint: PublicKey
   priceLower: Numberish
   priceUpper: Numberish
-  amountA: Numberish
-  amountB: Numberish
+  amountA?: TokenAmount
+  amountB?: TokenAmount
+  tokenA?: SplToken
+  tokenB?: SplToken
   tickLowerIndex: number
   tickUpperIndex: number
   // liquidity: BN__default; // currently useless

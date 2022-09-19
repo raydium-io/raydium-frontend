@@ -1,8 +1,3 @@
-import { createRef, useCallback, useEffect, useRef, useState } from 'react'
-
-import { twMerge } from 'tailwind-merge'
-import { AmmV3PoolInfo, ApiAmmV3Point } from 'test-r-sdk'
-
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
@@ -11,7 +6,7 @@ import useConcentratedAmmSelector from '@/application/concentrated/useConcentrat
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import { routeTo } from '@/application/routeTools'
-import { SOL_BASE_BALANCE, SOLDecimals } from '@/application/token/quantumSOL'
+import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
@@ -32,7 +27,6 @@ import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -41,15 +35,16 @@ import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
 import { ChartPoint } from '@/pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChartBody'
-import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
-import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
-
-import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
-import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { ChangeConcentratedPoolDialog } from '@/pageComponents/dialogs/ChangeConcentratedPoolDialog'
+import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
+import { createRef, useEffect, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
+import { ApiAmmV3Point } from 'test-r-sdk'
+import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -100,9 +95,7 @@ function ConcentratedCard() {
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
-
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
-
   const { coin1, coin1Amount, coin2, coin2Amount, focusSide, refreshConcentrated } = useConcentrated()
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 
@@ -161,7 +154,7 @@ function ConcentratedCard() {
             setTargetCoinNo('1')
           }}
           onUserInput={(amount) => {
-            useConcentrated.setState({ coin1Amount: amount })
+            useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
           }}
           onEnter={(input) => {
             if (!input) return
@@ -218,7 +211,7 @@ function ConcentratedCard() {
             if (coin1 && coin1Amount) liquidityButtonComponentRef.current?.click?.()
           }}
           onUserInput={(amount) => {
-            useConcentrated.setState({ coin2Amount: amount })
+            useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
           }}
           token={coin2}
         />
@@ -430,8 +423,6 @@ function UserLiquidityExhibition() {
   const scrollToInputBox = useConcentrated((s) => s.scrollToInputBox)
   const isAddDialogOpen = useConcentrated((s) => s.isAddDialogOpen)
   const isRemoveDialogOpen = useConcentrated((s) => s.isRemoveDialogOpen)
-  // console.log('isAddDialogOpen: ', isAddDialogOpen)
-  // console.log('isRemoveDialogOpen: ', isRemoveDialogOpen)
   return (
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Your Concentrated Liquidity</div>
@@ -596,10 +587,10 @@ function UserLiquidityExhibition() {
         </List>
 
         <ChangeConcentratedPoolDialog
-          open={isAddDialogOpen && isRemoveDialogOpen}
+          open={isAddDialogOpen || isRemoveDialogOpen}
           mode={isAddDialogOpen ? 'add' : isRemoveDialogOpen ? 'remove' : undefined}
           onClose={() => {
-            useConcentrated.setState({ isRemoveDialogOpen: false, isAddDialogOpen: false })
+            useConcentrated.setState({ isRemoveDialogOpen: undefined, isAddDialogOpen: undefined })
           }}
         />
         <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">

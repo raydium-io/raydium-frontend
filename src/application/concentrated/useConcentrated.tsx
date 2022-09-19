@@ -43,7 +43,9 @@ export type ConcentratedStore = {
   priceUpperTick?: number // from SDK, just store in UI
   priceLowerTick?: number // from SDK, just store in UI
 
-  focusSide: 'coin1' | 'coin2' // not reflect ui placement.  maybe coin1 appears below coin2
+  focusSide: 'coin1' | 'coin2' // tansaction base side
+  userCursorSide: 'coin1' | 'coin2' // some calculate may only whether compare  whether userCursorSide's amount have changed
+
   priceLower?: Numberish
   priceUpper?: Numberish
 
@@ -80,6 +82,7 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   hydratedAmmPools: [],
 
   focusSide: 'coin1',
+  userCursorSide: 'coin1',
 
   isAddDialogOpen: false,
   isRemoveDialogOpen: false,
