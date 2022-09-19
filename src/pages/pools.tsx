@@ -1106,7 +1106,7 @@ function EditTokenDialog({ open, token, onClose }: { open: boolean; token: SplTo
           }}
         >
           <Row className="justify-between items-center mb-6">
-            <div className="text-3xl font-semibold text-white">Update Token Info</div>
+            <div className="text-3xl font-semibold text-white">Update Token Symbol/Name</div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={close} />
           </Row>
           <Col className="p-1  gap-4">
