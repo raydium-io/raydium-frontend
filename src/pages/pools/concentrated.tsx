@@ -5,7 +5,7 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedLayout, PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { routeTo } from '@/application/routeTools'
@@ -47,8 +47,8 @@ export default function PoolsConcentratedPage() {
       mobileBarTitle={{
         items: [
           { value: PoolsConcentratedTabs.ALL, barLabel: PoolsConcentratedTabs.ALL },
-          { value: PoolsConcentratedTabs.STABLES, barLabel: PoolsConcentratedTabs.STABLES },
-          { value: PoolsConcentratedTabs.EXOTIC, barLabel: PoolsConcentratedTabs.EXOTIC },
+          // { value: PoolsConcentratedTabs.STABLES, barLabel: PoolsConcentratedTabs.STABLES },
+          // { value: PoolsConcentratedTabs.EXOTIC, barLabel: PoolsConcentratedTabs.EXOTIC },
           { value: PoolsConcentratedTabs.MY_POOLS, barLabel: PoolsConcentratedTabs.MY_POOLS }
         ],
         currentValue: currentTab,
@@ -118,8 +118,8 @@ function PoolsTabBlock({ className }: { className?: string }) {
       urlSearchQueryKey="tab"
       values={shakeFalsyItem([
         PoolsConcentratedTabs.ALL,
-        PoolsConcentratedTabs.STABLES,
-        PoolsConcentratedTabs.EXOTIC,
+        // PoolsConcentratedTabs.STABLES,
+        // PoolsConcentratedTabs.EXOTIC,
         PoolsConcentratedTabs.MY_POOLS
       ] as const)}
       onChange={(tab) => useConcentrated.setState({ currentTab: tab })}
@@ -131,8 +131,8 @@ function PoolsTabBlock({ className }: { className?: string }) {
       urlSearchQueryKey="tab"
       values={shakeFalsyItem([
         PoolsConcentratedTabs.ALL,
-        PoolsConcentratedTabs.STABLES,
-        PoolsConcentratedTabs.EXOTIC,
+        // PoolsConcentratedTabs.STABLES,
+        // PoolsConcentratedTabs.EXOTIC,
         PoolsConcentratedTabs.MY_POOLS
       ] as const)}
       onChange={(tab) => useConcentrated.setState({ currentTab: tab })}
@@ -314,11 +314,21 @@ function PoolCard() {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const searchText = useConcentrated((s) => s.searchText)
   const timeBasis = useConcentrated((s) => s.timeBasis)
+  const currentTab = useConcentrated((s) => s.currentTab)
 
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
 
-  const dataSource = useMemo(() => hydratedAmmPools, [searchText, hydratedAmmPools])
+  const dataSource = useMemo(
+    () =>
+      hydratedAmmPools.filter((pool) => {
+        if (currentTab === PoolsConcentratedTabs.MY_POOLS) {
+          return pool.userPositionAccount !== undefined ? true : false
+        }
+        return true
+      }),
+    [searchText, hydratedAmmPools, currentTab]
+  )
 
   const searched = useMemo(
     () =>
@@ -352,7 +362,7 @@ function PoolCard() {
       if (favouriteIds != null) {
         setSortConfig({
           key: 'init',
-          sortCompare: [(i) => favouriteIds?.includes(toPubString(i.idString)), (i) => i.liquidity],
+          sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.liquidity],
           mode: 'decrease'
         })
         runed()
