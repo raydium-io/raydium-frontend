@@ -22,7 +22,6 @@ export default function txIncreaseConcentrated() {
     assert(coin2Amount, 'not set coin2Amount')
     assert(isMeaningfulNumber(liquidity), 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
-
     const { transaction, signers, address } = await AmmV3.makeIncreaseLiquidityTransaction({
       connection: connection,
       liquidity,
@@ -36,7 +35,6 @@ export default function txIncreaseConcentrated() {
       slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed
     })
-
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
         title: 'Increase Concentrated',

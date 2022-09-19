@@ -1,6 +1,7 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
@@ -17,6 +18,7 @@ export default function useConcentratedAmountCalculator() {
   const { coin1, coin1Amount, priceUpperTick, coin2, coin2Amount, priceLowerTick, focusSide, userCursorSide } =
     useConcentrated()
   useEffect(() => {
+    if (!isMeaningfulNumber(userCursorSide === 'coin1' ? coin1Amount : coin2Amount)) return
     try {
       calcConcentratedPairsAmount()
     } catch (err) {

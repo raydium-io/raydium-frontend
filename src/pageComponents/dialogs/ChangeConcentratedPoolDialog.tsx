@@ -16,7 +16,7 @@ import { twMerge } from 'tailwind-merge'
 export function ChangeConcentratedPoolDialog({
   className,
   open,
-  mode,
+  mode: inputMode,
   onClose
 }: {
   className?: string
@@ -24,6 +24,12 @@ export function ChangeConcentratedPoolDialog({
   mode?: 'add' | 'remove'
   onClose?(): void
 }) {
+  // cache for UI
+  const [mode, setMode] = useState(inputMode)
+  useEffect(() => {
+    if (inputMode != null) setMode(inputMode)
+  }, [inputMode])
+
   const walletConnected = useWallet((s) => s.connected)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const buttonComponentRef = useRef<ButtonHandle>()
@@ -159,16 +165,18 @@ export function ChangeConcentratedPoolDialog({
                 }
               ]}
               onClick={() => {
-                txIncreaseConcentrated().then(() => {
-                  onClose?.()
-                  useConcentrated.setState({
-                    coin1Amount: undefined,
-                    coin2Amount: undefined
-                  })
+                txIncreaseConcentrated().then(({ allSuccess }) => {
+                  if (allSuccess) {
+                    onClose?.()
+                    useConcentrated.setState({
+                      coin1Amount: undefined,
+                      coin2Amount: undefined
+                    })
+                  }
                 })
               }}
             >
-              Remove Liquidity
+              {mode === 'add' ? 'Add' : 'Remove'} Liquidity
             </Button>
             <Button
               type="text"

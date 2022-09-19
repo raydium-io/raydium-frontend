@@ -64,7 +64,7 @@ export type ReplaceType<Old, From, To> = {
 const baseInnerObjects = [Token, TokenAmount, PublicKey, Fraction, BN, Currency, CurrencyAmount, Price, Percent]
 
 function notInnerObject(v: unknown): v is Record<string, any> {
-  return typeof v === 'object' && v !== null && !baseInnerObjects.some((o) => typeof o === 'object' && v instanceof o)
+  return typeof v === 'object' && v !== null && !baseInnerObjects.some((o) => v instanceof o)
 }
 
 export function recursivelyDecimalToFraction<T>(info: T): ReplaceType<T, Decimal, Fraction> {
