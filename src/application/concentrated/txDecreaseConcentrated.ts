@@ -22,7 +22,7 @@ export default function txDecreaseConcentrated() {
     assert(coin2Amount, 'not set coin2Amount')
     assert(isMeaningfulNumber(liquidity), 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
-    const { transaction, signers, address } = await AmmV3.makeIncreaseLiquidityTransaction({
+    const { transaction, signers, address } = await AmmV3.makeDecreaseLiquidityTransaction({
       connection: connection,
       liquidity,
       poolInfo: currentAmmPool.state,
@@ -37,10 +37,10 @@ export default function txDecreaseConcentrated() {
     })
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
-        title: 'Increase Concentrated',
-        description: `Increase ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
+        title: 'Decrease Concentrated',
+        description: `Decrease ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
           coin2.symbol
-        } to ${toPubString(targetUserPositionAccount.poolId)}`
+        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
     })
   })

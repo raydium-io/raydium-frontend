@@ -1,4 +1,5 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txIncreaseConcentrated from '@/application/concentrated/txIncreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useWallet from '@/application/wallet/useWallet'
@@ -165,7 +166,8 @@ export function ChangeConcentratedPoolDialog({
                 }
               ]}
               onClick={() => {
-                txIncreaseConcentrated().then(({ allSuccess }) => {
+                const tx = mode === 'add' ? txIncreaseConcentrated : txDecreaseConcentrated
+                tx().then(({ allSuccess }) => {
                   if (allSuccess) {
                     onClose?.()
                     useConcentrated.setState({
