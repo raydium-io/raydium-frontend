@@ -1,6 +1,7 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
@@ -66,19 +67,22 @@ function calcConcentratedPairsAmount(): void {
   assert(priceUpperTick, 'not set priceUpperTick')
   assert(coin2, 'not set coin2')
   assert(priceLowerTick, 'not set priceLowerTick')
-  const isFixA = userCursorSide === 'coin1'
   const { liquidity, amountA, amountB } = AmmV3.getLiquidityAmountOutFromAmountIn({
     poolInfo: currentAmmPool.state,
     slippage: Number(toString(slippageTolerance)),
-    inputA: isFixA,
-    tickUpper: priceUpperTick,
-    tickLower: priceLowerTick,
-    amount: isFixA
-      ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
-      : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals)),
+    inputA:
+      userCursorSide === 'coin1'
+        ? isMintEqual(coin1.mint, currentAmmPool.state.mintA.mint)
+        : isMintEqual(coin2.mint, currentAmmPool.state.mintA.mint),
+    tickUpper: Math.max(priceUpperTick, priceLowerTick),
+    tickLower: Math.min(priceLowerTick, priceUpperTick),
+    amount:
+      userCursorSide === 'coin1'
+        ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
+        : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals)),
     add: !isRemoveDialogOpen // SDK flag for math round direction
   })
-  if (isFixA) {
+  if (userCursorSide === 'coin1') {
     useConcentrated.setState({ coin2Amount: toTokenAmount(coin2, amountB) })
   } else {
     useConcentrated.setState({ coin1Amount: toTokenAmount(coin1, amountA) })
