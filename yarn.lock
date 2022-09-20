@@ -2749,7 +2749,7 @@ blakejs@^1.1.0:
   resolved "https://registry.yarnpkg.com/blakejs/-/blakejs-1.2.1.tgz#5057e4206eadb4a97f7c0b6e197a505042fc3814"
   integrity sha512-QXUSXI3QVc/gJME0dBpXrag1kbzOqCjCX8/b54ntNyW6sjtoqxqRk3LTmXzaJoh71zMsDCjM+47jS7XiwN/+fQ==
 
-bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.11.8, bn.js@^4.11.9, bn.js@^5.0.0, bn.js@^5.1.0, bn.js@^5.1.1, bn.js@^5.1.2, bn.js@^5.2.0, bn.js@^5.2.1:
+bn.js@^4.0.0, bn.js@^4.1.0, bn.js@^4.11.8, bn.js@^4.11.9, bn.js@^5.0.0, bn.js@^5.1.0, bn.js@^5.1.1, bn.js@^5.1.2, bn.js@^5.2.0:
   version "5.2.1"
   resolved "https://registry.yarnpkg.com/bn.js/-/bn.js-5.2.1.tgz#0bc527a6a0d18d0aa8d5b0538ce4a77dccfa7b70"
   integrity sha512-eXRvHzWyYPBuB4NBy0cmYQjGitUrtqwbvlzP3G6VFnNRbsZQIxQ10PbKKHt8gZ/HW/D/747aDl+QkDqg3KQLMQ==
@@ -8251,10 +8251,10 @@ temp@^0.8.4:
   dependencies:
     rimraf "~2.6.2"
 
-test-r-sdk@^1.2.23:
-  version "1.2.23"
-  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.23.tgz#71849fd60432cf87a12fd70abcb854f04b2ac886"
-  integrity sha512-3MT1CpzCLKYw9T0k1JLboEEuUc143KGFamJQwBDVeSUJjRjjpB8F5QWbaK8CdSqBZw6aexQGUcZ8KTgTHo+0TQ==
+test-r-sdk@^1.2.32:
+  version "1.2.32"
+  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.32.tgz#139fa18c3278c1aca47fe255255cf5d118d7c57f"
+  integrity sha512-4FuZDyuNabR1k7a1EAcS6J5UDtxt6ThvlaTo3/TzTY5OLuL5MXKtGLTYD22+FZjSH5p5t69E4T/uDYBHQgA1Lw==
   dependencies:
     "@colors/colors" "^1.5.0"
     "@solana/buffer-layout" "^4.0.0"

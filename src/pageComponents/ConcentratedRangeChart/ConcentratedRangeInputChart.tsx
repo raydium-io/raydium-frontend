@@ -1,9 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react'
-
-import { twMerge } from 'tailwind-merge'
-import { Fraction } from 'test-r-sdk'
-
-import { getPrevPriceAndTick, getPriceAndTick } from '@/application/concentrated/getNearistDataPoint'
+import { getPriceAndTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import { fractionToDecimal } from '@/application/txTools/decimal2Fraction'
 import Col from '@/components/Col'
@@ -15,7 +10,9 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { div, getMax, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
 import { Numberish } from '@/types/constants'
-
+import { useEffect, useMemo, useRef } from 'react'
+import { twMerge } from 'tailwind-merge'
+import { Fraction } from 'test-r-sdk'
 import {
   ChartRangeInputOption,
   ConcentratedRangeInputChartBody,
@@ -34,8 +31,8 @@ export function ConcentratedRangeInputChart({
   currentPrice?: Fraction
 }) {
   const { coin1, coin2, currentAmmPool, priceLower, priceUpper, focusSide } = useConcentrated()
-  const careDecimalLength = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const focusSideCoin = focusSide === 'coin1' ? coin1 : coin2
+  const careDecimalLength = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const concentratedChartBodyRef = useRef<ConcentratedRangeInputChartBodyComponentHandler>(null)
 
   const recordTickAndPrice = (x: Numberish, boundaryType: 'min' | 'max'): Fraction | undefined => {
@@ -77,7 +74,7 @@ export function ConcentratedRangeInputChart({
     if (!currentAmmPool || !coin1 || !coin2 || !prevTick) return
     const targetCoin = focusSide === 'coin1' ? coin1 : coin2
     const tickDiff = direct === 'increase' ? (focusSide === 'coin1' ? +1 : -1) : focusSide === 'coin1' ? -1 : +1
-    const { price, tick } = getPrevPriceAndTick({
+    const { price, tick } = getTickPrice({
       poolInfo: currentAmmPool.state,
       baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
       tick: prevTick + tickDiff

@@ -25,10 +25,11 @@ import useWallet from '../wallet/useWallet'
 
 import { checkTokenPairCanSwap } from './check'
 import { useSwap } from './useSwap'
+import { getAllSwapableRouteInfos } from '@/models/ammAndLiquidity'
+import assert from '@/functions/assert'
 
 export function useSwapAmountCalculator() {
   const { pathname } = useRouter()
-
   const connection = useConnection((s) => s.connection)
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
@@ -198,6 +199,33 @@ function cleanCalcCache() {
 }
 
 async function calculatePairTokenAmount({
+  upCoin,
+  upCoinAmount,
+  downCoin,
+  downCoinAmount,
+  focusSide,
+  connection,
+  slippageTolerance
+}: {
+  upCoin: SplToken
+  upCoinAmount: Numberish | undefined
+  downCoin: SplToken
+  downCoinAmount: Numberish | undefined
+  focusSide: 'up' | 'down'
+  connection: Connection
+  slippageTolerance: Numberish
+}): Promise<SwapCalculatorInfo | undefined> {
+  assert(upCoinAmount, "can't calc now")
+  const allSwapableRoutes = getAllSwapableRouteInfos({
+    connection,
+    input: upCoin,
+    output: downCoin,
+    inputAmount: upCoinAmount,
+    slippageTolerance
+  })
+  return allSwapableRoutes[0]
+}
+async function calculatePairTokenAmount_DrepcatedOldMethod({
   upCoin,
   upCoinAmount,
   downCoin,

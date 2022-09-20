@@ -487,7 +487,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
       ></line>
 
       {/* x units */}
-      {points && (
+      {/* {points && (
         <g>
           {units.map(({ vx, unitValue }) => (
             <text
@@ -511,7 +511,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
             </text>
           ))}
         </g>
-      )}
+      )} */}
     </svg>
   )
 }
