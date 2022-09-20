@@ -460,7 +460,7 @@ function UserLiquidityExhibition() {
                           return (
                             <Row
                               className="justify-between"
-                              key={`${positionInfo.tickLowerIndex}-${positionInfo.tickUpperIndex}`}
+                              key={`${positionInfo.tickLower}-${positionInfo.tickUpper}`}
                             >
                               <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">
                                 {toString(positionInfo.priceLower)}-{toString(positionInfo.priceUpper)}

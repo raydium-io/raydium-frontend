@@ -58,8 +58,8 @@ export function ChangeConcentratedPoolDialog({
     useConcentrated.setState({
       coin1,
       coin2,
-      priceLowerTick: targetUserPositionAccount.tickLowerIndex,
-      priceUpperTick: targetUserPositionAccount.tickUpperIndex
+      priceLowerTick: targetUserPositionAccount.tickLower,
+      priceUpperTick: targetUserPositionAccount.tickUpper
     })
   }, [currentAmmPool, targetUserPositionAccount])
 

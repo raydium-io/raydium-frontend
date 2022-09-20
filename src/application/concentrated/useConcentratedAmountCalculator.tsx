@@ -15,8 +15,17 @@ import useConcentrated from './useConcentrated'
  */
 export default function useConcentratedAmountCalculator() {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
-  const { coin1, coin1Amount, priceUpperTick, coin2, coin2Amount, priceLowerTick, focusSide, userCursorSide } =
-    useConcentrated()
+  const {
+    coin1,
+    coin1Amount,
+    priceUpperTick,
+    coin2,
+    coin2Amount,
+    priceLowerTick,
+    focusSide,
+    userCursorSide,
+    isRemoveDialogOpen
+  } = useConcentrated()
   useEffect(() => {
     if (!isMeaningfulNumber(userCursorSide === 'coin1' ? coin1Amount : coin2Amount)) return
     try {
@@ -41,8 +50,17 @@ export default function useConcentratedAmountCalculator() {
 /** dirty */
 function calcConcentratedPairsAmount(): void {
   const { slippageTolerance } = useAppSettings.getState()
-  const { coin1, coin1Amount, priceUpperTick, coin2, coin2Amount, priceLowerTick, userCursorSide, currentAmmPool } =
-    useConcentrated.getState()
+  const {
+    coin1,
+    coin1Amount,
+    priceUpperTick,
+    coin2,
+    coin2Amount,
+    priceLowerTick,
+    userCursorSide,
+    currentAmmPool,
+    isRemoveDialogOpen
+  } = useConcentrated.getState()
   assert(currentAmmPool, 'not pool info')
   assert(coin1, 'not set coin1')
   assert(priceUpperTick, 'not set priceUpperTick')
@@ -58,7 +76,7 @@ function calcConcentratedPairsAmount(): void {
     amount: isFixA
       ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
       : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals)),
-    add: true // NOTE what's is it ?
+    add: !isRemoveDialogOpen // SDK flag for math round direction
   })
   if (isFixA) {
     useConcentrated.setState({ coin2Amount: toTokenAmount(coin2, amountB) })
