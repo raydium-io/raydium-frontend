@@ -5,7 +5,7 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedLayout, PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { routeTo } from '@/application/routeTools'
@@ -38,7 +38,6 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
-import LiquidityRangeInput from '@/pageComponents/ConcentratedRangeChart/LiquidityRangeInput'
 
 export default function PoolsConcentratedPage() {
   // usePoolSummeryInfoLoader()
@@ -59,9 +58,6 @@ export default function PoolsConcentratedPage() {
       }}
       metaTitle="Concentrated Pools - Raydium"
     >
-      <div>
-        <LiquidityRangeInput />
-      </div>
       <PoolHeader />
       <PoolCard />
     </PageLayout>
@@ -851,7 +847,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     >
       {info.userPositionAccount ? (
         <>
-          {info.userPositionAccount.map((p) => {
+          {info.userPositionAccount.map((p, idx) => {
             let myPosition = '--'
             const amountA = toString(p.amountA, { decimalLength: 'auto 2' })
             const amountB = toString(p.amountB, { decimalLength: 'auto 2' })
@@ -861,7 +857,39 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             if (lower && upper) {
               myPosition = lower + '-' + upper
             }
+
+            // TODO: remove the comment out code below, they are for testing only
+            // if (idx === 0) {
+            //   useConcentrated.setState({
+            //     currentAmmPool: info,
+            //     targetUserPositionAccount: p
+            //   })
+            // }
+
+            // const getCoinAmount = (pair: LiquidityAmountPair) => {
+            //   // eslint-disable-next-line no-console
+            //   console.log(
+            //     'getCoinAmountA: ',
+            //     pair.amountSlippageA.toNumber(),
+            //     'getCoinAmountB: ',
+            //     pair.amountSlippageB.toNumber()
+            //   )
+            // }
+
             return (
+              // <>
+              //   <PoolCardDatabaseBodyCollapsePositionContent
+              //     key={p.nftMint.toString()}
+              //     poolInfo={info}
+              //     userPositionAccount={p}
+              //     myPosition={myPosition}
+              //     amountA={amountA}
+              //     amountB={amountB}
+              //   />
+              //   <div className="px-3">
+              //     <ConcentratedSliderInput getCoinAmount={getCoinAmount} />
+              //   </div>
+              // </>
               <PoolCardDatabaseBodyCollapsePositionContent
                 key={p.nftMint.toString()}
                 poolInfo={info}

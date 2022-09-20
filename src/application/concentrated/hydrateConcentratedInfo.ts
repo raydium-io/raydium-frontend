@@ -70,7 +70,8 @@ function hydrateUserPositionAccounnt(
       ...recursivelyDecimalToFraction(a),
       amountA: toBN(a.amountA),
       amountB: toBN(a.amountB),
-      nftMint: a.nftMint // need this or nftMint will be buggy, this is only quick fixed
+      nftMint: a.nftMint, // need this or nftMint will be buggy, this is only quick fixed,
+      liquidity: a.liquidity
     }))
   }
 }
