@@ -9,18 +9,7 @@ import RangeInput from '@/components/RangeInput'
 import toPubString from '@/functions/format/toMintString'
 import { isArray } from '@/functions/judgers/dateType'
 
-export interface LiquidityAmountPair {
-  amountSlippageA: BN
-  amountSlippageB: BN
-}
-
-export default function ConcentratedSliderInput({
-  isAdd = false,
-  getCoinAmount
-}: {
-  isAdd?: boolean
-  getCoinAmount?: (pair: LiquidityAmountPair) => void
-}) {
+export default function ConcentratedSliderInput({ isAdd = false }: { isAdd?: boolean }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
@@ -44,7 +33,10 @@ export default function ConcentratedSliderInput({
         slippage: Number(slippageTolerance),
         add: false
       })
-      getCoinAmount && getCoinAmount(amountFromLiquidity)
+      useConcentrated.setState({
+        coin1Amount: amountFromLiquidity.amountSlippageA,
+        coin2Amount: amountFromLiquidity.amountSlippageB
+      })
     },
     [currentAmmPool]
   )
