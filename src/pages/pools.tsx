@@ -51,7 +51,7 @@ import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 import useOnceEffect from '@/hooks/useOnceEffect'
-import useSort from '@/hooks/useSort'
+import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 
 /**
  * store:
@@ -204,7 +204,15 @@ function PoolLabelBlock({ className }: { className?: string }) {
   )
 }
 
-function PoolTimeBasisSelectorBox({ className }: { className?: string }) {
+function PoolTimeBasisSelectorBox({
+  className,
+  sortConfigs,
+  setSortConfig
+}: {
+  className?: string
+  sortConfigs?: SortConfigItem<HydratedPairItemInfo[]>
+  setSortConfig?: (simpleConfig: SimplifiedSortConfig<HydratedPairItemInfo[]>) => void
+}) {
   const timeBasis = usePools((s) => s.timeBasis)
   return (
     <Select
@@ -215,6 +223,19 @@ function PoolTimeBasisSelectorBox({ className }: { className?: string }) {
       prefix="Time Basis:"
       onChange={(newSortKey) => {
         usePools.setState({ timeBasis: newSortKey ?? '7D' })
+        if (sortConfigs && setSortConfig) {
+          if (sortConfigs.key.includes('fee')) {
+            const key = 'fee' + newSortKey?.toLowerCase()
+            setSortConfig({ ...sortConfigs, key })
+          } else if (sortConfigs.key.includes('volume')) {
+            const key = 'volume' + newSortKey?.toLowerCase()
+            const sortModeQ = [sortConfigs.sortModeQueue[2], sortConfigs.sortModeQueue[0], sortConfigs.sortModeQueue[1]]
+            setSortConfig({ key, sortModeQueue: sortModeQ, sortCompare: sortConfigs.sortCompare })
+          } else if (sortConfigs.key.includes('apr')) {
+            const key = 'apr' + newSortKey?.toLowerCase()
+            setSortConfig({ ...sortConfigs, key })
+          }
+        }
       }}
     />
   )
@@ -354,12 +375,6 @@ function PoolCard() {
     },
     [favouriteIds]
   )
-
-  useEffect(() => {
-    // for re-sort after time basis has been changed
-    const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
-    setSortConfig({ key, sortCompare: (i) => i[key] })
-  }, [timeBasis])
 
   const TableHeaderBlock = useCallback(
     () => (
@@ -544,7 +559,7 @@ function PoolCard() {
         <PoolLabelBlock />
         <Row className="gap-6 items-stretch">
           <PoolStakedOnlyBlock />
-          <PoolTimeBasisSelectorBox />
+          <PoolTimeBasisSelectorBox sortConfigs={sortConfig} setSortConfig={setSortConfig} />
           <PoolSearchBlock />
         </Row>
       </Row>
