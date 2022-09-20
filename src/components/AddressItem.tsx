@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKeyish } from 'test-r-sdk'
 
 import { twMerge } from 'tailwind-merge'
 

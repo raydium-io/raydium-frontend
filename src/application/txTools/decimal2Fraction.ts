@@ -1,6 +1,6 @@
 import { isDecimal, isFraction } from '@/functions/judgers/dateType'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
-import { Fraction, Token } from '@raydium-io/raydium-sdk'
+import { Fraction, Token } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
 import Decimal from 'decimal.js'

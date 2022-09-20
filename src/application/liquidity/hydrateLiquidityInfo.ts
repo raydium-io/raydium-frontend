@@ -2,7 +2,7 @@ import BN from 'bn.js'
 
 import toFraction from '@/functions/numberish/toFraction'
 import { HexAddress } from '@/types/constants'
-import { TokenAmount } from '@raydium-io/raydium-sdk'
+import { TokenAmount } from 'test-r-sdk'
 
 import toPubString from '@/functions/format/toMintString'
 import toBN from '../../functions/numberish/toBN'

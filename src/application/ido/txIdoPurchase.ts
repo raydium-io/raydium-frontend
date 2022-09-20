@@ -1,4 +1,4 @@
-import { Spl, WSOL } from '@raydium-io/raydium-sdk'
+import { Spl, WSOL } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'

@@ -1,5 +1,5 @@
 import { Numberish } from '@/types/constants'
-import { CurrencyAmount, Price } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, Price } from 'test-r-sdk'
 
 import { mul } from '../numberish/operations'
 import toUsdCurrency from './toUsdCurrency'

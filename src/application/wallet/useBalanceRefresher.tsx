@@ -13,7 +13,7 @@ import { add } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { objectShakeNil, objectMap } from '@/functions/objectMethods'
 import { Numberish } from '@/types/constants'
-import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
+import { PublicKeyish, TokenAmount } from 'test-r-sdk'
 import { ITokenAccount } from './type'
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 

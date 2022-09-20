@@ -1,4 +1,4 @@
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKeyish } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { SplToken, Token } from '@/application/token/type'

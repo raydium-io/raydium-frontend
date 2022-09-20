@@ -1,5 +1,5 @@
 import { toPub } from '@/functions/format/toMintString'
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKeyish } from 'test-r-sdk'
 import { Connection } from '@solana/web3.js'
 import { SplToken } from '../token/type'
 import { parseBalanceFromTokenAccount } from '../wallet/useBalanceRefresher'

@@ -1,4 +1,4 @@
-import { LiquidityPoolJsonInfo, MARKET_STATE_LAYOUT_V3, PublicKeyish } from '@raydium-io/raydium-sdk'
+import { LiquidityPoolJsonInfo, MARKET_STATE_LAYOUT_V3, PublicKeyish } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'

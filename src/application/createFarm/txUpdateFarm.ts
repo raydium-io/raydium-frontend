@@ -1,4 +1,4 @@
-import { Farm, FarmCreateInstructionParamsV6, FarmRewardInfo } from '@raydium-io/raydium-sdk'
+import { Farm, FarmCreateInstructionParamsV6, FarmRewardInfo } from 'test-r-sdk'
 
 import assert from '@/functions/assert'
 

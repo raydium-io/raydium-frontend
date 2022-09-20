@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 
-import { jsonInfo2PoolKeys, Liquidity, Trade, WSOL, ZERO } from '@raydium-io/raydium-sdk'
+import { jsonInfo2PoolKeys, Liquidity, Trade, WSOL, ZERO } from 'test-r-sdk'
 import { Connection } from '@solana/web3.js'
 
 import { shakeUndifindedItem } from '@/functions/arrayMethods'

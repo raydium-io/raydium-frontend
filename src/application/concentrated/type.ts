@@ -1,4 +1,4 @@
-import { CurrencyAmount, Percent } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, Percent } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, TokenAmount } from 'test-r-sdk'

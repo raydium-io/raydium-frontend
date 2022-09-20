@@ -18,7 +18,7 @@ import {
   u64,
   u8,
   validateAndParsePublicKey
-} from '@raydium-io/raydium-sdk'
+} from 'test-r-sdk'
 import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js'
 
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'

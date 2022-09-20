@@ -1,4 +1,4 @@
-import { PublicKeyish, Token } from '@raydium-io/raydium-sdk'
+import { PublicKeyish, Token } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { isArray, isObject, isString } from '../judgers/dateType'

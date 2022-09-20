@@ -1,7 +1,6 @@
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
 
-import { v } from '@raydium-io/raydium-sdk/lib/farm-1cb859cf'
 import { PublicKey } from '@solana/web3.js'
 
 import NextNProgress from 'nextjs-progressbar'

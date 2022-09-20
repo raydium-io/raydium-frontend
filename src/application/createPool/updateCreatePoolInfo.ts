@@ -1,4 +1,4 @@
-import { Liquidity, MARKET_STATE_LAYOUT_V3, PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
+import { Liquidity, MARKET_STATE_LAYOUT_V3, PublicKeyish, SPL_MINT_LAYOUT } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
@@ -11,6 +11,7 @@ import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 
 import useCreatePool from './useCreatePool'
+import { getOnlineTokenDecimals } from '../token/getOnlineTokenInfo'
 
 export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }): Promise<{ isSuccess: boolean }> {
   try {
@@ -26,7 +27,10 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     const marketBufferInfo = await connection.getAccountInfo(new PublicKey(txParam.marketId))
     assert(marketBufferInfo?.data, `can't find market ${txParam.marketId}`)
     const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
-
+    const baseDecimals = await getOnlineTokenDecimals(baseMint)
+    const quoteDecimals = await getOnlineTokenDecimals(quoteMint)
+    assert(baseDecimals, 'base decimal must exist')
+    assert(quoteDecimals, 'quote decimal must exist')
     assert(
       Object.values(routeMiddleMints).includes(String(quoteMint)),
       `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, ETH, USH. current: ${toPubString(
@@ -69,6 +73,8 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
       version: 4,
       baseMint,
       quoteMint,
+      baseDecimals,
+      quoteDecimals,
       marketId: new PublicKey(txParam.marketId)
     })
     const { id: ammId, lpMint } = associatedPoolKeys

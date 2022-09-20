@@ -1,6 +1,6 @@
 import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 
-import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
+import { PublicKeyish, TokenAmount } from 'test-r-sdk'
 
 import { twMerge } from 'tailwind-merge'
 

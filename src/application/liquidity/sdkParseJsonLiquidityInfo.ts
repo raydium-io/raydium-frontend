@@ -2,7 +2,7 @@ import useConnection from '@/application/connection/useConnection'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
-import { jsonInfo2PoolKeys, Liquidity, LiquidityPoolJsonInfo as LiquidityJsonInfo } from '@raydium-io/raydium-sdk'
+import { jsonInfo2PoolKeys, Liquidity, LiquidityPoolJsonInfo as LiquidityJsonInfo } from 'test-r-sdk'
 
 import { SDKParsedLiquidityInfo } from './type'
 

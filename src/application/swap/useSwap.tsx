@@ -1,4 +1,4 @@
-import { CurrencyAmount, Price, RouteInfo, RouteType } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, Price, RouteInfo, RouteType } from 'test-r-sdk'
 
 import create from 'zustand'
 

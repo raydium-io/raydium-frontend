@@ -3,7 +3,7 @@ import BN from 'bn.js'
 import { TokenJson } from '@/application/token/type'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { Numberish } from '@/types/constants'
-import { Currency, Price, TEN, Token } from '@raydium-io/raydium-sdk'
+import { Currency, Price, TEN, Token } from 'test-r-sdk'
 
 export const usdCurrency = new Currency(6, 'usd', 'usd')
 

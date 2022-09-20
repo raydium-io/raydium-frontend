@@ -1,7 +1,7 @@
 import BN from 'bn.js'
 
 import { Numberish } from '@/types/constants'
-import { BigNumberish, TEN } from '@raydium-io/raydium-sdk'
+import { BigNumberish, TEN } from 'test-r-sdk'
 
 import toFraction from './toFraction'
 import { shakeFractionDecimal } from './shakeFractionDecimal'

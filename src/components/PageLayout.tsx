@@ -1,7 +1,7 @@
 import React, { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { ZERO } from '@raydium-io/raydium-sdk'
+import { ZERO } from 'test-r-sdk'
 
 import { twMerge } from 'tailwind-merge'
 

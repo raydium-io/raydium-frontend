@@ -30,7 +30,7 @@ import {
   TEN,
   TokenAmount,
   ZERO
-} from '@raydium-io/raydium-sdk'
+} from 'test-r-sdk'
 import BN from 'bn.js'
 import { SplToken } from '../token/type'
 import { APIRewardInfo, FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'

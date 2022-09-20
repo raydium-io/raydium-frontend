@@ -1,4 +1,4 @@
-import { Spl } from '@raydium-io/raydium-sdk'
+import { Spl } from 'test-r-sdk'
 
 import { createTransactionCollector } from '../txTools/createTransaction'
 import handleMultiTx from '../txTools/handleMultiTx'

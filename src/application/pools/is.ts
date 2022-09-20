@@ -1,4 +1,4 @@
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKeyish } from 'test-r-sdk'
 
 import { HydratedConcentratedInfo } from '../concentrated/type'
 

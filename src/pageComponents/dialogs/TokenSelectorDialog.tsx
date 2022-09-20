@@ -1,6 +1,6 @@
 import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
 
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKeyish } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'

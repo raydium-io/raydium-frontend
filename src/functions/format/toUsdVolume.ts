@@ -1,5 +1,5 @@
 import { FormatOptions } from '@/functions/format/formatNumber'
-import { Fraction, Rounding } from '@raydium-io/raydium-sdk'
+import { Fraction, Rounding } from 'test-r-sdk'
 import { autoSuffixNumberish } from './autoSuffixNumberish'
 
 /**

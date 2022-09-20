@@ -1,6 +1,6 @@
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { Numberish } from '@/types/constants'
-import { Fraction, Percent, Price, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
+import { Fraction, Percent, Price, TokenAmount, ZERO } from 'test-r-sdk'
 import tryCatch from '../tryCatch'
 
 export default function toFraction(value: Numberish): Fraction {

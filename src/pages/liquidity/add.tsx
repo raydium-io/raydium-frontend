@@ -1,6 +1,6 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Percent } from '@raydium-io/raydium-sdk'
+import { Percent } from 'test-r-sdk'
 
 import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
@@ -947,7 +947,7 @@ function UserLiquidityExhibition() {
             useLiquidity.setState({ isRemoveDialogOpen: false })
           }}
         />
-        
+
         <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
           If you staked your LP tokens in a farm, unstake them to see them here
         </div>

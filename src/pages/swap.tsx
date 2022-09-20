@@ -1,6 +1,6 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { RouteInfo } from '@raydium-io/raydium-sdk'
+import { RouteInfo } from 'test-r-sdk'
 
 import { twMerge } from 'tailwind-merge'
 

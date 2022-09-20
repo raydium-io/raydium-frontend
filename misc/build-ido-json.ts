@@ -1,6 +1,6 @@
 import fs from 'fs'
 
-import { getMultipleAccountsInfo } from '@raydium-io/raydium-sdk'
+import { getMultipleAccountsInfo } from 'test-r-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
 import { Ido, IDO_POOLS, IdoPoolJsonInfo, Snapshot } from '../src/utils/sdk'

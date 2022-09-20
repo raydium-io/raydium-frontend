@@ -10,7 +10,7 @@ import {
   SplAccount,
   Token,
   TokenAmount
-} from '@raydium-io/raydium-sdk'
+} from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { SplToken } from '../token/type'

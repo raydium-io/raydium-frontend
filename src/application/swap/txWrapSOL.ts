@@ -1,4 +1,4 @@
-import { CurrencyAmount, Spl } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, Spl } from 'test-r-sdk'
 
 import { createTransactionCollector } from '../txTools/createTransaction'
 import handleMultiTx from '../txTools/handleMultiTx'

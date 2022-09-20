@@ -1,6 +1,6 @@
 import useToken from '@/application/token/useToken'
 import toPubString from '@/functions/format/toMintString'
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKeyish } from 'test-r-sdk'
 import { getOnlineTokenDecimals } from './getOnlineTokenInfo'
 import { SplToken } from './type'
 import { createSplToken } from './useTokenListsLoader'

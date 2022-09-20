@@ -1,4 +1,4 @@
-import { Trade } from '@raydium-io/raydium-sdk'
+import { Trade } from 'test-r-sdk'
 
 import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
