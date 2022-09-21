@@ -1,10 +1,12 @@
-import jFetch from '@/functions/dom/jFetch'
-import { inClient } from '@/functions/judgers/isSSR'
 import { useEffect } from 'react'
+
 import create from 'zustand'
 
+import jFetch from '@/functions/dom/jFetch'
+import { inClient } from '@/functions/judgers/isSSR'
+
 // frontend (client)
-const APP_VERSION = 'V2.7.32'
+const APP_VERSION = 'V2.7.33'
 
 const APP_VERSION_CHECKING_DELAY_TIME = 1000 * 60 * 1
 
