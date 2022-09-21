@@ -139,21 +139,6 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
       ),
       onlyConfirmButton: true,
       confirmButtonText: 'Confirm',
-      // additionalContent: ( // confirm is permanent
-      //   <Checkbox
-      //     defaultChecked={hasUserPermanentConfirmed}
-      //     className="my-2 w-max mx-auto"
-      //     onChange={(newChecked) => {
-      //       if (!downCoin?.mint) return
-      //       if (newChecked) {
-      //         setUserPermanentConfirmedTokenMints((old) => addItem(old ?? [], String(downCoin.mint)))
-      //       } else {
-      //         setUserPermanentConfirmedTokenMints((old) => removeItem(old ?? [], String(downCoin.mint)))
-      //       }
-      //     }}
-      //     label={<div className="text-sm italic text-[rgba(171,196,255,0.5)]">Do not warn again</div>}
-      //   />
-      // ),
       onConfirm: () => {
         setHasUserTemporaryConfirmed(true)
         setIsConfirmPanelOn(false)
@@ -199,13 +184,12 @@ function SwapCard() {
   const coin2Amount = useSwap((s) => s.coin2Amount)
   const isCoin1Calculating = useSwap((s) => s.isCoin1Calculating)
   const isCoin2Calculating = useSwap((s) => s.isCoin2Calculating)
-  // console.log('coin: ', coin1?.symbol, coin1Amount, coin2?.symbol, coin2Amount)
   const directionReversed = useSwap((s) => s.directionReversed)
   const priceImpact = useSwap((s) => s.priceImpact)
   const refreshSwap = useSwap((s) => s.refreshSwap)
   const balances = useWallet((s) => s.balances)
   const preflightCalcResult = useSwap((s) => s.preflightCalcResult)
-  const isFindingPool = !preflightCalcResult // finding Pools
+  const isFindingPool = !preflightCalcResult // finding Pools ...
   const swapable = useSwap((s) => s.swapable) // Pool not ready
   const canFindPools = useSwap((s) => s.canFindPools) // Pool not found
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
@@ -770,7 +754,7 @@ function SwapCardInfo({ className }: { className?: string }) {
           fieldName="Swapping Through"
           fieldValue={
             <Row className="items-center gap-2">
-              {isStable && <Badge className="self-center">Stable</Badge>}
+              {currentCalcResult?.poolType && <Badge className="self-center">{currentCalcResult.poolType}</Badge>}
               <div>{swapThrough}</div>
             </Row>
           }

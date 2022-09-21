@@ -148,7 +148,6 @@ export default function CoinInputBox({
 
   const variousPrices = { ...lpPrices, ...tokenPrices }
   const [inputedAmount, setInputedAmount, inputAmountSignal] = useSignalState<string>() // setInputedAmount use to state , not sync, useSignalState can get sync value
-
   // sync outter's value and inner's inputedAmount
   useEffect(() => {
     if (isOutsideValueLocked.current) return
@@ -214,9 +213,7 @@ export default function CoinInputBox({
       maxBalance = toTokenAmount(
         maxValue.token,
         gte(maxValue, SOL_BASE_BALANCE) ? sub(maxValue, SOL_BASE_BALANCE) : 0,
-        {
-          alreadyDecimaled: true
-        }
+        { alreadyDecimaled: true }
       )
     }
     const newAmount = toString(mul(maxBalance, percent), {

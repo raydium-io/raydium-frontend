@@ -22,7 +22,7 @@ import {
   AmmV3PoolPersonalPosition,
   ApiAmmV3PoolInfo,
   LiquidityPoolsJsonFile,
-  TickCacheType,
+  ReturnTypeFetchMultiplePoolTickArrays,
   TradeV2
 } from 'test-r-sdk'
 
@@ -35,7 +35,7 @@ type PairKeyString = string
 
 type SimulatePoolCacheType = Promise<Awaited<ReturnType<typeof TradeV2['fetchMultipleInfo']>> | undefined>
 
-type TickCache = Promise<TickCacheType | undefined>
+type TickCache = Promise<ReturnTypeFetchMultiplePoolTickArrays | undefined>
 
 // TODO: timeout-map
 const sdkCaches: Map<

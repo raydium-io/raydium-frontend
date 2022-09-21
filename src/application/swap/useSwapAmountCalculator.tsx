@@ -98,8 +98,20 @@ export function useSwapAmountCalculator() {
       return
     }
 
-    // console.log('calc 2')
-    if (!isMeaningfulNumber(upCoinAmount)) return
+    // empty upCoinAmount
+    if (!isMeaningfulNumber(upCoinAmount)) {
+      useSwap.setState(directionReversed ? { coin1Amount: undefined } : { coin2Amount: undefined })
+      useSwap.setState({
+        calcResult: undefined,
+        fee: undefined,
+        minReceived: undefined,
+        maxSpent: undefined,
+        priceImpact: undefined,
+        executionPrice: undefined
+      })
+      return
+    }
+
     const { abort: abortCalc, result: abortableCalcResult } = makeAbortable(() =>
       getAllSwapableRouteInfos({
         connection,
