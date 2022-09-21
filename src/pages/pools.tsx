@@ -224,16 +224,20 @@ function PoolTimeBasisSelectorBox({
       onChange={(newSortKey) => {
         usePools.setState({ timeBasis: newSortKey ?? '7D' })
         if (sortConfigs && setSortConfig) {
+          let key = ''
           if (sortConfigs.key.includes('fee')) {
-            const key = 'fee' + newSortKey?.toLowerCase()
-            setSortConfig({ ...sortConfigs, key })
+            key = 'fee' + newSortKey?.toLowerCase()
           } else if (sortConfigs.key.includes('volume')) {
-            const key = 'volume' + newSortKey?.toLowerCase()
-            const sortModeQ = [sortConfigs.sortModeQueue[2], sortConfigs.sortModeQueue[0], sortConfigs.sortModeQueue[1]]
-            setSortConfig({ key, sortModeQueue: sortModeQ, sortCompare: sortConfigs.sortCompare })
+            key = 'volume' + newSortKey?.toLowerCase()
           } else if (sortConfigs.key.includes('apr')) {
-            const key = 'apr' + newSortKey?.toLowerCase()
-            setSortConfig({ ...sortConfigs, key })
+            key = 'apr' + newSortKey?.toLowerCase()
+          }
+          if (key) {
+            setSortConfig({
+              key, // use new key
+              sortCompare: [(i) => i[key], (i) => i[key]], // push duplicate, bcz current algorithm choose array.slice(1) as the compareFactor
+              mode: sortConfigs.mode // keep the same mode
+            })
           }
         }
       }}

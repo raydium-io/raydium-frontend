@@ -92,8 +92,6 @@ export default function useSort<D extends Record<string, any>[]>(
   /** this will cause only one sortConfigItem */
   const setConfig = useCallback(
     (simpleConfig: SimplifiedSortConfig<D>) => {
-      // eslint-disable-next-line no-console
-      console.log('JJJJ')
       setConfigs((currentConfigs) => parseSortConfig(simpleConfig, currentConfigs))
     },
     [setConfigs]
