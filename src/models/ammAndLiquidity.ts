@@ -1,31 +1,33 @@
 /**
  * `/models` are the data center of `/application`
  * while `/application` is the interface of `/pages` and `/pageComponents`
- * @todo not burn old
+ * @todo not burn old yet
  */
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
-import sdkParseJsonLiquidityInfo from '@/application/liquidity/sdkParseJsonLiquidityInfo'
-import { deUIToken, deUITokenAmount, isQuantumSOLVersionSOL } from '@/application/token/quantumSOL'
+import { useSwap } from '@/application/swap/useSwap'
+import { deUIToken, deUITokenAmount } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
-import { SOLMint } from '@/application/token/wellknownToken.config'
 import assert from '@/functions/assert'
 import jFetch from '@/functions/dom/jFetch'
+import listToMap from '@/functions/format/listToMap'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { HexAddress, Numberish } from '@/types/constants'
+import { toString } from '@/functions/numberish/toString'
+import { Numberish } from '@/types/constants'
 import { Connection, PublicKey } from '@solana/web3.js'
 import {
   AmmV3,
+  AmmV3PoolInfo,
+  AmmV3PoolPersonalPosition,
   ApiAmmV3PoolInfo,
-  LiquidityPoolJsonInfo,
   LiquidityPoolsJsonFile,
   TickCacheType,
-  TokenAmount,
-  Trade,
-  TradeV2
+  TradeV2,
+  ZERO
 } from 'test-r-sdk'
 
 const apiCache = {} as {
@@ -34,8 +36,6 @@ const apiCache = {} as {
 }
 
 type SDKPoolCache = ReturnType<typeof AmmV3['fetchMultiplePoolInfos']>
-// IDEA: timeout-map
-const sdkParsedAmmV3PoolInfo = {} as Record<string, SDKPoolCache>
 
 type PairKeyString = string
 
@@ -73,7 +73,14 @@ async function getOldKeys() {
   return response
 }
 
-//TODO: cache
+const parsedAmmV3PoolInfoCache = new Map<
+  string,
+  {
+    state: AmmV3PoolInfo
+    positionAccount?: AmmV3PoolPersonalPosition[] | undefined
+  }
+>()
+
 async function getParsedAmmV3PoolInfo({
   connection,
   apiAmmPools
@@ -81,17 +88,22 @@ async function getParsedAmmV3PoolInfo({
   connection: Connection
   apiAmmPools: ApiAmmV3PoolInfo[]
 }) {
-  // TODO cache for kick duplicated apiAmmPools
-  const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
-    poolKeys: apiAmmPools,
-    connection
-    // ownerInfo: {
-    //   tokenAccounts: tokenAccounts,
-    //   wallet: owner
-    // }
-  })
+  const needRefetchApiAmmPools = apiAmmPools.filter(({ id }) => !parsedAmmV3PoolInfoCache.has(toPubString(id)))
 
-  return sdkParsed
+  if (needRefetchApiAmmPools.length) {
+    const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
+      poolKeys: needRefetchApiAmmPools,
+      connection,
+      batchRequest: true
+    })
+    Object.values(sdkParsed).forEach((sdk) => {
+      parsedAmmV3PoolInfoCache.set(toPubString(sdk.state.id), sdk)
+    })
+  }
+
+  const apiAmmPoolsArray = apiAmmPools.map(({ id }) => parsedAmmV3PoolInfoCache.get(toPubString(id))!)
+  const map = listToMap(apiAmmPoolsArray, (i) => toPubString(i.state.id))
+  return map
 }
 
 async function getApiInfos() {
@@ -129,23 +141,6 @@ function getSDKCacheInfos({
       apiPoolList: apiPoolList,
       ammV3List: Object.values(sdkParsedAmmV3PoolInfo).map((i) => i.state)
     })
-    // console.log('routes.needTickArray: ', routes.needTickArray.length)
-    // console.log('routes.needSimulate: ', routes.needSimulate.length)
-    // console.time('AmmV3.fetchMultiplePoolTickArrays')
-    // const tickCache = await AmmV3.fetchMultiplePoolTickArrays({
-    //   connection,
-    //   poolKeys: routes.needTickArray,
-    //   batchRequest: false
-    // })
-    // console.timeEnd('AmmV3.fetchMultiplePoolTickArrays')
-
-    // console.time('TradeV2.fetchMultipleInfo')
-    // const poolInfosCache = await TradeV2.fetchMultipleInfo({
-    //   connection,
-    //   pools: routes.needSimulate,
-    //   batchRequest: false
-    // })
-    // console.timeEnd('TradeV2.fetchMultipleInfo')
     const [tickCache, poolInfosCache] = [
       AmmV3.fetchMultiplePoolTickArrays({ connection, poolKeys: routes.needTickArray, batchRequest: false }).catch(
         (err) => {
@@ -211,33 +206,95 @@ export async function getAllSwapableRouteInfos({
   )
   assert(ammV3, 'ammV3 api must be loaded')
   assert(apiPoolList, 'liquidity api must be loaded')
+  // console.log('ammV3: ', ammV3)
+
+  const { chainTimeOffset } = useConnection.getState()
+  const chainTime = (chainTimeOffset ?? 0 + Date.now()) / 1000
+
+  // console.time('getParsedAmmV3PoolInfo')
+  // TODO: can Promised function be aborted
   const sdkParsedAmmV3PoolInfo = await getParsedAmmV3PoolInfo({ connection, apiAmmPools: ammV3 })
-  const { routes, poolInfosCache, tickCache } = await getSDKCacheInfos({
+  // console.log('sdkParsedAmmV3PoolInfo: ', sdkParsedAmmV3PoolInfo)
+  const { routes, poolInfosCache, tickCache } = getSDKCacheInfos({
     connection,
     inputMint: input.mint,
     outputMint: output.mint,
     apiPoolList: apiPoolList,
     sdkParsedAmmV3PoolInfo
   })
-  // console.log('getAllRouteComputeAmountOut params: ', {
-  //   directPath: routes.directPath,
-  //   routePathDict: routes.routePathDict,
-  //   simulateCache: poolInfosCache,
-  //   tickCache,
-  //   inputTokenAmount: deUITokenAmount(toTokenAmount(input, inputAmount)),
-  //   outputToken: deUIToken(output),
-  //   slippage: toPercent(slippageTolerance)
-  // })
+  // console.timeEnd('getParsedAmmV3PoolInfo')
+
+  // console.log(
+  // 'getAllRouteComputeAmountOut params: ',
+  // toHumanReadable({
+  // directPath: routes.directPath,
+  //     routePathDict: routes.routePathDict,
+  //     simulateCache: poolInfosCache,
+  //     tickCache,
+  //     inputTokenAmount: deUITokenAmount(toTokenAmount(input, inputAmount)),
+  //     outputToken: deUIToken(output),
+  //     slippage: toPercent(slippageTolerance)
+  //   }),
+  //   toString(inputAmount)
+  // )
+  // console.time('1')
+  const simulateCache = await poolInfosCache
+  // console.timeEnd('1')
+
+  // console.time('2')
+  const tickCache2 = await tickCache
+  // console.timeEnd('2')
+
   const routeList = await TradeV2.getAllRouteComputeAmountOut({
     directPath: routes.directPath,
-    // routePathDict: {},
     routePathDict: routes.routePathDict,
-    simulateCache: await poolInfosCache,
-    tickCache: await tickCache,
-    inputTokenAmount: deUITokenAmount(toTokenAmount(input, inputAmount)),
+    simulateCache: simulateCache,
+    tickCache: tickCache2,
+    inputTokenAmount: deUITokenAmount(toTokenAmount(input, inputAmount, { alreadyDecimaled: true })),
     outputToken: deUIToken(output),
-    slippage: toPercent(slippageTolerance)
+    slippage: toPercent(slippageTolerance),
+    chainTime
   })
+
+  // console.log(
+  //   'params: ',
+  //   toHumanReadable({
+  //     directPath: routes.directPath,
+  //     routePathDict: routes.routePathDict,
+  //     simulateCache: simulateCache,
+  //     tickCache: tickCache2,
+  //     inputTokenAmount: deUITokenAmount(toTokenAmount(input, inputAmount, { alreadyDecimaled: true })),
+  //     outputToken: deUIToken(output),
+  //     slippage: toPercent(slippageTolerance),
+  //     chainTime
+  //   })
+  // )
+
   // console.log('routeList: ', routeList)
+  // console.log(
+  //   routeList.map((i) =>
+  //     i.routeType === 'amm'
+  //       ? {
+  //           type: i.routeType,
+  //           inValue: i.amountIn.toFixed(),
+  //           value: i.amountOut.toFixed(),
+  //           v1: i.poolKey[0].version,
+  //           p1: String(i.poolKey[0].id),
+  //           priceI: i.priceImpact.denominator.eq(ZERO) ? 0 : i.priceImpact.toFixed(5)
+  //         }
+  //       : {
+  //           type: i.routeType,
+  //           inValue: i.amountIn.toFixed(),
+  //           value: i.amountOut.toFixed(),
+  //           v1: i.poolKey[0].version,
+  //           v2: i.poolKey[1].version,
+  //           p1: String(i.poolKey[0].id),
+  //           p2: String(i.poolKey[1].id),
+  //           priceI: i.priceImpact.denominator.eq(ZERO) ? 0 : i.priceImpact.toFixed(5)
+  //         }
+  //   )
+  // )
+  // console.log('routeList', routeList.length)
+
   return routeList
 }

@@ -1,6 +1,7 @@
+import { SOLDecimals } from '@/application/token/quantumSOL'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { Numberish } from '@/types/constants'
-import { Fraction, Percent, Price, TokenAmount, ZERO } from 'test-r-sdk'
+import { CurrencyAmount, Fraction, Percent, Price, TokenAmount, ZERO } from 'test-r-sdk'
 import tryCatch from '../tryCatch'
 
 export default function toFraction(value: Numberish): Fraction {
@@ -10,7 +11,7 @@ export default function toFraction(value: Numberish): Fraction {
   if (value instanceof Price) return value.adjusted
 
   // to complete math format(may have decimal), not BN
-  if (value instanceof TokenAmount)
+  if (value instanceof CurrencyAmount)
     return tryCatch(
       () => toFraction(value.toExact()),
       () => new Fraction(ZERO)
@@ -32,7 +33,11 @@ export function toFractionWithDecimals(value: Numberish): { fr: Fraction; decima
   if (value instanceof Price) return { fr: value.adjusted }
 
   // to complete math format(may have decimal), not BN
-  if (value instanceof TokenAmount) return { fr: toFraction(value.toExact()), decimals: value.token.decimals }
+  if (value instanceof CurrencyAmount)
+    return {
+      fr: toFraction(value.toExact()),
+      decimals: value instanceof TokenAmount ? value.token.decimals : SOLDecimals
+    }
 
   // do not ideal with other fraction value
   if (value instanceof Fraction) return { fr: value }

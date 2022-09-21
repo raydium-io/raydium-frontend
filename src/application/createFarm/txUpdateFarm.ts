@@ -21,7 +21,6 @@ import useWallet from '../wallet/useWallet'
 import { hasRewardBeenEdited } from './parseRewardInfo'
 import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import { validateUiRewardInfo } from './validateRewardInfo'
 

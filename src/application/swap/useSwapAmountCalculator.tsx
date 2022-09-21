@@ -1,19 +1,19 @@
-import { useEffect } from 'react'
-import { useRouter } from 'next/router'
-
-import { jsonInfo2PoolKeys, Liquidity, Trade, WSOL, ZERO } from 'test-r-sdk'
-import { Connection } from '@solana/web3.js'
-
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { eq, gt } from '@/functions/numberish/compare'
+import { eq, gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
+import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { getAllSwapableRouteInfos } from '@/models/ammAndLiquidity'
 import { HexAddress, Numberish } from '@/types/constants'
-
+import { Connection } from '@solana/web3.js'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
+import { jsonInfo2PoolKeys, Liquidity, Trade, WSOL, ZERO } from 'test-r-sdk'
 import useAppSettings from '../appSettings/useAppSettings'
 import useConnection from '../connection/useConnection'
 import sdkParseJsonLiquidityInfo from '../liquidity/sdkParseJsonLiquidityInfo'
@@ -22,11 +22,8 @@ import useLiquidity from '../liquidity/useLiquidity'
 import { deUIToken, deUITokenAmount, toUITokenAmount } from '../token/quantumSOL'
 import { SplToken } from '../token/type'
 import useWallet from '../wallet/useWallet'
-
 import { checkTokenPairCanSwap } from './check'
-import { useSwap } from './useSwap'
-import { getAllSwapableRouteInfos } from '@/models/ammAndLiquidity'
-import assert from '@/functions/assert'
+import { ComputeAmountOutLayout, useSwap } from './useSwap'
 
 export function useSwapAmountCalculator() {
   const { pathname } = useRouter()
@@ -52,17 +49,30 @@ export function useSwapAmountCalculator() {
     cleanCalcCache()
   }, [refreshCount])
 
+  // get preflight
+  useEffectWithTransition(async () => {
+    if (!coin1 || !coin2) return // not fullfilled
+    const preflightCalcResult = await getAllSwapableRouteInfos({
+      connection,
+      input: coin1,
+      output: coin2,
+      inputAmount: 1,
+      slippageTolerance: 0
+    })
+    useSwap.setState({ preflightCalcResult: preflightCalcResult })
+  }, [connection, coin1, coin2])
+
   // if don't check focusSideCoin, it will calc twice.
   // one for coin1Amount then it will change coin2Amount
   // changing coin2Amount will cause another calc
-  useAsyncEffect(async () => {
+  useEffectWithTransition(async () => {
     // pairInfo is not enough
     if (!upCoin || !downCoin || !connection || !pathname.startsWith('/swap')) {
       useSwap.setState({
+        calcResult: undefined,
         fee: undefined,
         minReceived: undefined,
         maxSpent: undefined,
-        routes: undefined,
         priceImpact: undefined,
         executionPrice: undefined,
         ...{ [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: undefined }
@@ -80,10 +90,10 @@ export function useSwapAmountCalculator() {
       const { isApprovePanelShown } = useAppSettings.getState()
       if (isApprovePanelShown) return // !don't refresh when approve shown
       useSwap.setState({
+        calcResult: undefined,
         fee: undefined,
         minReceived: undefined,
         maxSpent: undefined,
-        routes: undefined,
         priceImpact: undefined,
         executionPrice: undefined,
         ...{
@@ -96,13 +106,12 @@ export function useSwapAmountCalculator() {
     }
 
     try {
-      const calcResult = await calculatePairTokenAmount({
-        upCoin,
-        upCoinAmount,
-        downCoin,
-        downCoinAmount,
+      if (!isMeaningfulNumber(upCoinAmount)) return
+      const calcResult = await getAllSwapableRouteInfos({
         connection,
-        focusSide: focusDirectionSide,
+        input: upCoin,
+        output: downCoin,
+        inputAmount: upCoinAmount,
         slippageTolerance
       })
       // for calculatePairTokenAmount is async, result maybe droped. if that, just stop it
@@ -118,57 +127,36 @@ export function useSwapAmountCalculator() {
       })()
       if (!resultStillFresh) return
 
-      if (focusDirectionSide === 'up') {
-        const { routes, priceImpact, executionPrice, currentPrice, swapable, routeType, fee, canFindPools } =
-          calcResult ?? {}
-        const { amountOut, minAmountOut } = (calcResult?.info ?? {}) as { amountOut?: string; minAmountOut?: string }
-        useSwap.setState({
-          fee,
-          routes,
-          priceImpact,
-          executionPrice,
-          currentPrice,
-          minReceived: minAmountOut,
-          maxSpent: undefined,
-          swapable,
-          routeType,
-          canFindPools,
-          ...{
-            [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountOut,
-            [focusSide === 'coin1' ? 'isCoin2Calculating' : 'isCoin1Calculating']: false
-          }
-        })
-      } else {
-        const { routes, priceImpact, executionPrice, currentPrice, swapable, routeType, fee, canFindPools } =
-          calcResult ?? {}
-        const { amountIn, maxAmountIn } = (calcResult?.info ?? {}) as { amountIn?: string; maxAmountIn?: string }
-        const { isApprovePanelShown } = useAppSettings.getState()
-        if (isApprovePanelShown) return // !don't refresh when approve shown
-        useSwap.setState({
-          fee,
-          routes,
-          priceImpact,
-          executionPrice,
-          currentPrice,
-          minReceived: undefined,
-          maxSpent: maxAmountIn,
-          swapable,
-          routeType,
-          canFindPools,
-          ...{
-            [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountIn,
-            [focusSide === 'coin1' ? 'isCoin2Calculating' : 'isCoin1Calculating']: false
-          }
-        })
-      }
+      // if (focusDirectionSide === 'up') {
+      const swapable = true /* TEMP: Pool Not Ready */
+      const canFindPools = Boolean(calcResult?.length)
+      const { priceImpact, executionPrice, currentPrice, routeType, fee, amountOut, minAmountOut, poolKey } =
+        calcResult?.[0] ?? {}
+
+      useSwap.setState({
+        fee,
+        calcResult,
+        priceImpact,
+        executionPrice,
+        currentPrice,
+        minReceived: minAmountOut,
+        maxSpent: undefined,
+        swapable,
+        routeType,
+        canFindPools,
+        ...{
+          [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountOut,
+          [focusSide === 'coin1' ? 'isCoin2Calculating' : 'isCoin1Calculating']: false
+        }
+      })
     } catch (err) {
       console.error(err)
     }
   }, [
     upCoin,
     downCoin,
-    upCoinAmount,
-    downCoinAmount,
+    toString(upCoinAmount),
+    toString(downCoinAmount),
     directionReversed,
     focusSide,
     slippageTolerance,
@@ -198,7 +186,7 @@ function cleanCalcCache() {
   sdkParsedInfoCache.clear()
 }
 
-async function calculatePairTokenAmount({
+async function calculatePairTokenAmount_dreprecated({
   upCoin,
   upCoinAmount,
   downCoin,
@@ -214,18 +202,18 @@ async function calculatePairTokenAmount({
   focusSide: 'up' | 'down'
   connection: Connection
   slippageTolerance: Numberish
-}): Promise<SwapCalculatorInfo | undefined> {
-  assert(upCoinAmount, "can't calc now")
-  const allSwapableRoutes = getAllSwapableRouteInfos({
+}): Promise<ComputeAmountOutLayout | undefined> {
+  assert(isMeaningfulNumber(upCoinAmount), "can't calc now")
+  const allSwapableRoutes = await getAllSwapableRouteInfos({
     connection,
     input: upCoin,
     output: downCoin,
     inputAmount: upCoinAmount,
     slippageTolerance
   })
-  return allSwapableRoutes[0]
+  return allSwapableRoutes
 }
-async function calculatePairTokenAmount_DrepcatedOldMethod({
+async function calculatePairTokenAmount_dreprecatedOldMethod({
   upCoin,
   upCoinAmount,
   downCoin,

@@ -61,6 +61,9 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
+import useLiquidity from '@/application/liquidity/useLiquidity'
+import listToMap from '@/functions/format/listToMap'
+import ConcentratedSliderInput from '@/pageComponents/ConcentratedRangeChart/ConcentratedSliderInput'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -201,9 +204,9 @@ function SwapCard() {
   const priceImpact = useSwap((s) => s.priceImpact)
   const refreshSwap = useSwap((s) => s.refreshSwap)
   const balances = useWallet((s) => s.balances)
-  const routes = useSwap((s) => s.routes)
-  const swapable = useSwap((s) => s.swapable)
-  const canFindPools = useSwap((s) => s.canFindPools)
+  const calcResult = useSwap((s) => s.calcResult)
+  const swapable = useSwap((s) => s.swapable) // Pool not ready
+  const canFindPools = useSwap((s) => s.canFindPools) // Pool not found
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
   const { hasConfirmed, popConfirm: popUnofficialConfirm } = useUnofficialTokenConfirmState()
   const { hasAcceptedPriceChange, swapButtonComponentRef, coinInputBox1ComponentRef, coinInputBox2ComponentRef } =
@@ -420,7 +423,7 @@ function SwapCard() {
               }
             },
             {
-              should: routes,
+              should: calcResult,
               fallbackProps: { children: 'Finding Pool ...' }
             },
             {
@@ -728,7 +731,8 @@ function SwapCardInfo({ className }: { className?: string }) {
   const minReceived = useSwap((s) => s.minReceived)
   const fee = useSwap((s) => s.fee)
   const maxSpent = useSwap((s) => s.maxSpent)
-  const routes = useSwap((s) => s.routes)
+  const calcResult = useSwap((s) => s.calcResult)
+  const currentCalcResult = calcResult?.[0]
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
   const getToken = useToken((s) => s.getToken)
 
@@ -737,20 +741,16 @@ function SwapCardInfo({ className }: { className?: string }) {
 
   const swapThrough =
     upCoin && downCoin
-      ? routes?.length
-        ? routes.length === 1
-          ? routes[0].source === 'serum'
-            ? 'Serum Market'
-            : 'Raydium Pool'
-          : `${upCoin?.symbol} → ${getToken(getRouteMiddleToken({ routes, upCoin, downCoin }))?.symbol} → ${
-              downCoin?.symbol
-            }`
-        : undefined
+      ? currentCalcResult?.routeType === 'amm'
+        ? 'Raydium Pool'
+        : currentCalcResult?.routeType === 'route'
+        ? `${upCoin?.symbol} → ${getToken(currentCalcResult?.middleMint)?.symbol} → ${downCoin?.symbol}`
+        : 'Others'
       : undefined
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
-  const isStable = useMemo(() => Boolean(routes?.some((route) => route.keys.version === 5)), [routes])
+  const isStable = useMemo(() => Boolean(currentCalcResult?.poolKey?.some((t) => t.version === 5)), [calcResult])
   return (
     <Col
       className={twMerge(
@@ -779,13 +779,13 @@ function SwapCardInfo({ className }: { className?: string }) {
       {maxSpent ? (
         <SwapCardItem
           fieldName="Maximum Spent"
-          fieldValue={`${maxSpent ?? ''} ${upCoin?.symbol ?? '--'}`}
+          fieldValue={`${toString(maxSpent ?? '')} ${upCoin?.symbol ?? '--'}`}
           tooltipContent="The max amount of tokens you will spend on this trade"
         />
       ) : (
         <SwapCardItem
           fieldName="Minimum Received"
-          fieldValue={`${minReceived ?? ''} ${downCoin?.symbol ?? '--'}`}
+          fieldValue={`${toString(minReceived ?? '')} ${downCoin?.symbol ?? '--'}`}
           tooltipContent="The least amount of tokens you will recieve on this trade"
         />
       )}
@@ -899,7 +899,11 @@ function SwapCardItem({
 function SwapCardTooltipPanelAddress() {
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
-  const routes = useSwap((s) => s.routes)
+  const calcResult = useSwap((s) => s.calcResult)
+  const currentPoolKeys = calcResult?.[0]?.poolKey
+  const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
+  const liquidityJsonInfoMap = listToMap(liquidityJsonInfos, (i) => i.id)
+  const currentLiquidityInfos = currentPoolKeys?.map(({ id }) => liquidityJsonInfoMap[toPubString(id)])
   return (
     <div className="w-60">
       <div className="text-sm font-semibold mb-2">Addresses</div>
@@ -915,30 +919,26 @@ function SwapCardTooltipPanelAddress() {
           address={String(coin2?.mint ?? '--')}
         />
         {/* show routes address panel */}
-        {routes?.length && routes?.length === 1 ? (
+        {currentLiquidityInfos?.length && currentLiquidityInfos?.length === 1 ? (
           <>
-            {routes[0].keys.marketId && (
-              <SwapCardTooltipPanelAddressItem label="Market ID" address={String(routes[0].keys.marketId)} />
+            {currentLiquidityInfos[0] && (
+              <SwapCardTooltipPanelAddressItem label="Market ID" address={currentLiquidityInfos[0].marketId} />
             )}
-            {routes[0].keys.id && (
-              <SwapCardTooltipPanelAddressItem label="Amm ID" address={String(routes[0].keys.id)} />
+            {currentLiquidityInfos[0] && (
+              <SwapCardTooltipPanelAddressItem label="Amm ID" address={currentLiquidityInfos[0].id} />
             )}
           </>
-        ) : routes?.length && routes.length > 1 ? (
+        ) : currentLiquidityInfos?.length && currentLiquidityInfos.length > 1 ? (
           <>
-            {routes?.map((routeInfo, idx) => (
+            {currentLiquidityInfos?.map(({ marketId }, idx) => (
               <SwapCardTooltipPanelAddressItem
-                key={'market' + String(routeInfo.keys.id)}
+                key={'market' + marketId}
                 label={`Market ID (route ${idx + 1})`}
-                address={String(routeInfo.keys.marketId)}
+                address={marketId}
               />
             ))}
-            {routes?.map((routeInfo, idx) => (
-              <SwapCardTooltipPanelAddressItem
-                key={'amm' + String(routeInfo.keys.id)}
-                label={`Amm ID (route ${idx + 1})`}
-                address={String(routeInfo.keys.id)}
-              />
+            {currentLiquidityInfos?.map(({ id }, idx) => (
+              <SwapCardTooltipPanelAddressItem key={'amm' + id} label={`Amm ID (route ${idx + 1})`} address={id} />
             ))}
           </>
         ) : null}
