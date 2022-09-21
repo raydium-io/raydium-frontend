@@ -1,29 +1,19 @@
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import assert from '@/functions/assert'
-import toPubString from '@/functions/format/toMintString'
-import { toPercent } from '@/functions/format/toPercent'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { eq, gt, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 import { getAllSwapableRouteInfos } from '@/models/ammAndLiquidity'
-import { HexAddress, Numberish } from '@/types/constants'
-import { Connection } from '@solana/web3.js'
+import { makeAbortable } from '@/models/makeAbortable'
+import { HexAddress } from '@/types/constants'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
-import { jsonInfo2PoolKeys, Liquidity, Trade, WSOL, ZERO } from 'test-r-sdk'
+import { WSOL } from 'test-r-sdk'
 import useAppSettings from '../appSettings/useAppSettings'
 import useConnection from '../connection/useConnection'
-import sdkParseJsonLiquidityInfo from '../liquidity/sdkParseJsonLiquidityInfo'
 import { SDKParsedLiquidityInfo } from '../liquidity/type'
 import useLiquidity from '../liquidity/useLiquidity'
-import { deUIToken, deUITokenAmount, toUITokenAmount } from '../token/quantumSOL'
-import { SplToken } from '../token/type'
 import useWallet from '../wallet/useWallet'
-import { checkTokenPairCanSwap } from './check'
-import { ComputeAmountOutLayout, useSwap } from './useSwap'
+import { useSwap } from './useSwap'
 
 export function useSwapAmountCalculator() {
   const { pathname } = useRouter()
@@ -52,6 +42,7 @@ export function useSwapAmountCalculator() {
   // get preflight
   useEffectWithTransition(async () => {
     if (!coin1 || !coin2) return // not fullfilled
+    useSwap.setState({ preflightCalcResult: undefined, canFindPools: undefined, swapable: undefined })
     const preflightCalcResult = await getAllSwapableRouteInfos({
       connection,
       input: coin1,
@@ -59,13 +50,15 @@ export function useSwapAmountCalculator() {
       inputAmount: 1,
       slippageTolerance: 0
     })
-    useSwap.setState({ preflightCalcResult: preflightCalcResult })
+    const swapable = Boolean(preflightCalcResult?.[0]?.poolReady)
+    const canFindPools = Boolean(preflightCalcResult?.length)
+    useSwap.setState({ preflightCalcResult: preflightCalcResult, canFindPools, swapable })
   }, [connection, coin1, coin2])
 
   // if don't check focusSideCoin, it will calc twice.
   // one for coin1Amount then it will change coin2Amount
   // changing coin2Amount will cause another calc
-  useEffectWithTransition(async () => {
+  useEffect(() => {
     // pairInfo is not enough
     if (!upCoin || !downCoin || !connection || !pathname.startsWith('/swap')) {
       useSwap.setState({
@@ -105,16 +98,23 @@ export function useSwapAmountCalculator() {
       return
     }
 
-    try {
-      if (!isMeaningfulNumber(upCoinAmount)) return
-      const calcResult = await getAllSwapableRouteInfos({
+    // console.log('calc 2')
+    if (!isMeaningfulNumber(upCoinAmount)) return
+    const { abort: abortCalc, result: abortableCalcResult } = makeAbortable(() =>
+      getAllSwapableRouteInfos({
         connection,
         input: upCoin,
         output: downCoin,
         inputAmount: upCoinAmount,
         slippageTolerance
+      }).catch((err) => {
+        console.error(err)
       })
-      // for calculatePairTokenAmount is async, result maybe droped. if that, just stop it
+    )
+    // console.log('calc 3', abortableCalcResult)
+    abortableCalcResult.then((calcResult) => {
+      // console.log('calcResult: ', calcResult)
+      if (!calcResult) return
       const resultStillFresh = (() => {
         const directionReversed = useSwap.getState().directionReversed
         const currentUpCoinAmount =
@@ -128,7 +128,7 @@ export function useSwapAmountCalculator() {
       if (!resultStillFresh) return
 
       // if (focusDirectionSide === 'up') {
-      const swapable = true /* TEMP: Pool Not Ready */
+      const swapable = calcResult[0]?.poolReady
       const canFindPools = Boolean(calcResult?.length)
       const { priceImpact, executionPrice, currentPrice, routeType, fee, amountOut, minAmountOut, poolKey } =
         calcResult?.[0] ?? {}
@@ -149,15 +149,20 @@ export function useSwapAmountCalculator() {
           [focusSide === 'coin1' ? 'isCoin2Calculating' : 'isCoin1Calculating']: false
         }
       })
-    } catch (err) {
-      console.error(err)
+    })
+
+    // console.log('calc')
+    // for calculatePairTokenAmount is async, result maybe droped. if that, just stop it
+
+    return () => {
+      // console.log('calc abort')
+      abortCalc()
     }
   }, [
     upCoin,
     downCoin,
-    toString(upCoinAmount),
-    toString(downCoinAmount),
     directionReversed,
+    focusSide === 'coin1' ? toString(userCoin1Amount) : toString(userCoin2Amount),
     focusSide,
     slippageTolerance,
     connection,
@@ -170,120 +175,6 @@ export function useSwapAmountCalculator() {
 
 const sdkParsedInfoCache = new Map<HexAddress, SDKParsedLiquidityInfo[]>()
 
-type SwapCalculatorInfo = {
-  executionPrice: ReturnType<typeof Trade['getBestAmountOut']>['executionPrice']
-  currentPrice: ReturnType<typeof Trade['getBestAmountOut']>['currentPrice']
-  priceImpact: ReturnType<typeof Trade['getBestAmountOut']>['priceImpact'] | undefined
-  routes: ReturnType<typeof Trade['getBestAmountOut']>['routes']
-  routeType: ReturnType<typeof Trade['getBestAmountOut']>['routeType']
-  fee: ReturnType<typeof Trade['getBestAmountOut']>['fee']
-  swapable: boolean
-  canFindPools: boolean
-  info: { amountOut: string; minAmountOut: string } | { amountIn: string; maxAmountIn: string }
-}
-
 function cleanCalcCache() {
   sdkParsedInfoCache.clear()
-}
-
-async function calculatePairTokenAmount_dreprecated({
-  upCoin,
-  upCoinAmount,
-  downCoin,
-  downCoinAmount,
-  focusSide,
-  connection,
-  slippageTolerance
-}: {
-  upCoin: SplToken
-  upCoinAmount: Numberish | undefined
-  downCoin: SplToken
-  downCoinAmount: Numberish | undefined
-  focusSide: 'up' | 'down'
-  connection: Connection
-  slippageTolerance: Numberish
-}): Promise<ComputeAmountOutLayout | undefined> {
-  assert(isMeaningfulNumber(upCoinAmount), "can't calc now")
-  const allSwapableRoutes = await getAllSwapableRouteInfos({
-    connection,
-    input: upCoin,
-    output: downCoin,
-    inputAmount: upCoinAmount,
-    slippageTolerance
-  })
-  return allSwapableRoutes
-}
-async function calculatePairTokenAmount_dreprecatedOldMethod({
-  upCoin,
-  upCoinAmount,
-  downCoin,
-  downCoinAmount,
-  focusSide,
-  connection,
-  slippageTolerance
-}: {
-  upCoin: SplToken
-  upCoinAmount: Numberish | undefined
-  downCoin: SplToken
-  downCoinAmount: Numberish | undefined
-  focusSide: 'up' | 'down'
-  connection: Connection
-  slippageTolerance: Numberish
-}): Promise<SwapCalculatorInfo | undefined> {
-  const upCoinTokenAmount = toTokenAmount(upCoin, upCoinAmount, { alreadyDecimaled: true })
-  const downCoinTokenAmount = toTokenAmount(downCoin, downCoinAmount, { alreadyDecimaled: true })
-
-  const { routeRelated: jsonInfos } = await useLiquidity
-    .getState()
-    .findLiquidityInfoByTokenMint(upCoin.mint, downCoin.mint)
-
-  if (jsonInfos.length) {
-    const key = jsonInfos.map((jsonInfo) => jsonInfo.id).join('-')
-    const sdkParsedInfos = sdkParsedInfoCache.has(key)
-      ? sdkParsedInfoCache.get(key)!
-      : await (async () => {
-          const sdkParsed = await sdkParseJsonLiquidityInfo(jsonInfos, connection)
-          sdkParsedInfoCache.set(key, sdkParsed)
-          return sdkParsed
-        })()
-
-    const pools = jsonInfos.map((jsonInfo, idx) => ({
-      poolKeys: jsonInfo2PoolKeys(jsonInfo),
-      poolInfo: sdkParsedInfos[idx]
-    }))
-
-    const { amountOut, minAmountOut, executionPrice, currentPrice, priceImpact, routes, routeType, fee } =
-      Trade.getBestAmountOut({
-        pools,
-        currencyOut: deUIToken(downCoin),
-        amountIn: deUITokenAmount(upCoinTokenAmount),
-        slippage: toPercent(slippageTolerance)
-      })
-
-    const sdkParsedInfoMap = new Map(sdkParsedInfos.map((info) => [toPubString(info.id), info]))
-    const choosedSdkParsedInfos = shakeUndifindedItem(
-      routes.map((route) => sdkParsedInfoMap.get(toPubString(route.keys.id)))
-    )
-    const haveAmount = gt(upCoinAmount, 0) || gt(downCoinAmount, 0)
-    const swapable = haveAmount
-      ? choosedSdkParsedInfos.length > 0 &&
-        choosedSdkParsedInfos.every((info) => Liquidity.getEnabledFeatures(info).swap)
-      : true
-    const canFindPools = checkTokenPairCanSwap(useLiquidity.getState().jsonInfos, upCoin.mint, downCoin.mint)
-    const priceImpactIsZeroofZero = priceImpact.denominator.eq(ZERO) && priceImpact.numerator.eq(ZERO)
-    return {
-      executionPrice,
-      currentPrice,
-      priceImpact: priceImpactIsZeroofZero ? undefined : priceImpact,
-      routes,
-      routeType,
-      swapable,
-      canFindPools,
-      fee,
-      info: {
-        amountOut: toUITokenAmount(amountOut).toExact(),
-        minAmountOut: toUITokenAmount(minAmountOut).toExact()
-      }
-    }
-  }
 }

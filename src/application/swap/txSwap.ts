@@ -9,6 +9,8 @@ import handleMultiTx from '../txTools/handleMultiTx'
 import useWallet from '../wallet/useWallet'
 import { useSwap } from './useSwap'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import asyncMap from '@/functions/asyncMap'
 
 export default function txSwap() {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
@@ -47,7 +49,8 @@ export default function txSwap() {
     assert(checkWalletHasEnoughBalance(upCoinTokenAmount), `not enough ${upCoin.symbol}`)
 
     assert(routeType, 'accidently routeType is undefined')
-    const { transaction, signers, address } = await TradeV2.makeSwapTranscation({
+
+    const { transactions, address } = await TradeV2.makeSwapTranscation({
       connection,
       swapInfo: calcResult[0],
       ownerInfo: {
@@ -57,14 +60,23 @@ export default function txSwap() {
       }
     })
 
-    const signedTransaction = await loadTransaction({ transaction: transaction, signers })
-    transactionCollector.add(signedTransaction, {
-      txHistoryInfo: {
-        title: 'Swap',
-        description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
-          downCoin.symbol
-        }`
-      }
-    })
+    const signedTransactions = shakeUndifindedItem(
+      await asyncMap(transactions, (merged) => {
+        if (!merged) return
+        const { transaction, signer: signers } = merged
+        return loadTransaction({ transaction: transaction, signers })
+      })
+    )
+
+    for (const signedTransaction of signedTransactions) {
+      transactionCollector.add(signedTransaction, {
+        txHistoryInfo: {
+          title: 'Swap',
+          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
+            downCoin.symbol
+          }`
+        }
+      })
+    }
   })
 }

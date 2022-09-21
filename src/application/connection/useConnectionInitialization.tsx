@@ -57,14 +57,14 @@ export default function useConnectionInitialization() {
         const selectedEndpointUrl = await caculateEndpointUrlByRpcConfig(data)
         const userSelectedRpc = getSessionItem<Endpoint>(SESSION_STORAGE_USER_SELECTED_RPC)
 
-        // const connection = new Connection(userSelectedRpc?.url ?? selectedEndpointUrl, 'confirmed') // ONLINE PRODUCTION
-        const connection = new Connection(
-          'https://rpc.ankr.com/solana/069441feac8b4eda17322b1fb89a2c3ef5950e74e6742f7f385de5a205f16b68',
-          {
-            wsEndpoint: 'wss://rpc.ankr.com/solana/ws/069441feac8b4eda17322b1fb89a2c3ef5950e74e6742f7f385de5a205f16b68',
-            commitment: 'confirmed'
-          }
-        ) // TEMP for DEV
+        const connection = new Connection(userSelectedRpc?.url ?? selectedEndpointUrl, 'confirmed') // ONLINE PRODUCTION
+        // const connection = new Connection(
+        //   'https://rpc.ankr.com/solana/069441feac8b4eda17322b1fb89a2c3ef5950e74e6742f7f385de5a205f16b68',
+        //   {
+        //     wsEndpoint: 'wss://rpc.ankr.com/solana/ws/069441feac8b4eda17322b1fb89a2c3ef5950e74e6742f7f385de5a205f16b68',
+        //     commitment: 'confirmed'
+        //   }
+        // ) // TEMP for DEV
 
         useConnection.setState((s) => ({
           availableEndPoints: unifyByKey([...data.rpcs, ...(s.availableEndPoints ?? [])], (i) => i.url),
