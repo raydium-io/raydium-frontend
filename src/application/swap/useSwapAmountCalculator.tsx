@@ -167,7 +167,7 @@ export function useSwapAmountCalculator() {
     upCoin,
     downCoin,
     upCoinAmount,
-    downCoinAmount,
+    // downCoinAmount, // TEMP no down coin Amount for not calc twice
     directionReversed,
     focusSide,
     slippageTolerance,

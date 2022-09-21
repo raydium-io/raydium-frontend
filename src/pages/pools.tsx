@@ -293,26 +293,34 @@ function PoolTableSorterBox({
 }
 function PoolRefreshCircleBlock({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  return isMobile ? (
-    <Row className={twMerge('items-center', className)}>
-      <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Refresh Pools</span>
-      <RefreshCircle
-        refreshKey="pools"
-        freshFunction={() => {
-          usePools.getState().refreshPools()
-        }}
-      />
-    </Row>
-  ) : (
-    <div className={twMerge('justify-self-end', className)}>
-      <RefreshCircle
-        refreshKey="pools"
-        freshFunction={() => {
-          usePools.getState().refreshPools()
-        }}
-      />
-    </div>
-  )
+  const refreshPools = usePools((s) => s.refreshPools)
+
+  return useMemo(() => {
+    if (isMobile) {
+      return (
+        <Row className={twMerge('items-center', className)}>
+          <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Refresh Pools</span>
+          <RefreshCircle
+            refreshKey="pools"
+            freshFunction={() => {
+              refreshPools()
+            }}
+          />
+        </Row>
+      )
+    }
+
+    return (
+      <div className={twMerge('justify-self-end', className)}>
+        <RefreshCircle
+          refreshKey="pools"
+          freshFunction={() => {
+            refreshPools()
+          }}
+        />
+      </div>
+    )
+  }, [isMobile, refreshPools])
 }
 
 function PoolCard() {
@@ -380,7 +388,7 @@ function PoolCard() {
     [favouriteIds]
   )
 
-  const TableHeaderBlock = useCallback(
+  const TableHeaderBlock = useMemo(
     () => (
       <Row
         type="grid-x"
@@ -576,7 +584,7 @@ function PoolCard() {
       className="p-10 pb-4 mobile:px-3 mobile:py-3 w-full flex flex-col flex-grow h-full"
     >
       {innerPoolDatabaseWidgets}
-      {!isMobile && <TableHeaderBlock />}
+      {!isMobile && TableHeaderBlock}
       <PoolCardDatabaseBody sortedData={sortedData} />
     </CyberpunkStyleCard>
   )
