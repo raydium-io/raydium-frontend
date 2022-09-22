@@ -9,7 +9,7 @@ import { unifyItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import { lazyMap } from '@/functions/lazyMap'
-import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress } from '@/types/constants'
 
 import useFarms from '../farms/useFarms'
@@ -50,7 +50,7 @@ export default function usePoolsInfoLoader() {
     })
   }
 
-  useEffectWithTransition(() => {
+  useTransitionedEffect(() => {
     fetchPairs()
   }, [refreshCount, farmRefreshCount])
 
@@ -79,7 +79,7 @@ export default function usePoolsInfoLoader() {
     usePools.setState({ lpPrices })
   }, [lpPrices])
 
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     const hydratedInfos = await lazyMap({
       source: jsonInfos,
       sourceKey: 'pair jsonInfo',

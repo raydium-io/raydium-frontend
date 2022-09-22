@@ -26,7 +26,7 @@ import useToken, {
   SOLANA_TOKEN_LIST_NAME
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
-import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
@@ -42,7 +42,7 @@ export default function useTokenListsLoader() {
   const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
   const poolRefreshCount = usePools((s) => s.refreshCount)
 
-  useEffectWithTransition(() => {
+  useTransitionedEffect(() => {
     loadTokens()
   }, [walletRefreshCount, swapRefreshCount, liquidityRefreshCount, farmRefreshCount, poolRefreshCount])
 }

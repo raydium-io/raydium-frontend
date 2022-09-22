@@ -15,7 +15,7 @@ import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { createSplToken } from '../token/useTokenListsLoader'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
-import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 
 export default function useAutoFetchIdoInfos() {
   const connection = useConnection((s) => s.connection)
@@ -51,7 +51,7 @@ export default function useAutoFetchIdoInfos() {
   }, [owner])
 
   // raw list info
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     const rawList = await fetchRawIdoListJson()
     const hydrated = rawList.map((raw) => {
       const { base, quote } = getIdoTokens(raw)
@@ -72,7 +72,7 @@ export default function useAutoFetchIdoInfos() {
   }, [tokens])
 
   // inject project info
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (!currentIdoId) return
     const projectInfo = await fetchRawIdoProjectInfoJson({ idoId: currentIdoId })
     if (!projectInfo) return // some error occurs
@@ -87,7 +87,7 @@ export default function useAutoFetchIdoInfos() {
   }, [currentIdoId])
 
   // refresh SDK info
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (!connection) return
     const targetIds = shakeUndifindedItem([idoRefreshFactor?.refreshIdoId].flat())
     const rawList = Object.values(idoRawInfos ?? {}).filter((item) => targetIds.includes(item.id))
@@ -117,7 +117,7 @@ export default function useAutoFetchIdoInfos() {
   }, [idoRefreshFactor, owner])
 
   // get SDKInfo, and merge with rawInfo
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (!connection) return
     const rawList = Object.values(
       (inIdoDetailPage && currentIdoId ? pick(idoRawInfos, [currentIdoId]) : idoRawInfos) ?? {}
@@ -167,7 +167,7 @@ export default function useAutoFetchIdoInfos() {
     }, 1000)
   }, [idoRawInfos, currentIdoId, connection, owner, inIdoDetailPage])
 
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (!shadowKeypairs?.length) return
     if (!connection) return
     const rawList = Object.values(idoRawInfos ?? {}).slice(0, 3)

@@ -4,7 +4,7 @@ import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
 import toPubString from '@/functions/format/toMintString'
 import { lazyMap } from '@/functions/lazyMap'
-import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 
 import useConnection from '../connection/useConnection'
 import useWallet from '../wallet/useWallet'
@@ -27,14 +27,14 @@ export default function useConcentratedInfoLoader() {
   const { pathname } = useRouter()
 
   /** fetch api json info list  */
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (!pathname.includes('concentrated')) return
     const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
     if (response) useConcentrated.setState({ apiAmmPools: response.data })
   }, [pathname])
 
   /**  api json info list ➡ SDK info list */
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (!pathname.includes('concentrated')) return
     if (!connection) return
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
@@ -51,7 +51,7 @@ export default function useConcentratedInfoLoader() {
   }, [apiAmmPools, connection, tokenAccounts, owner, pathname])
 
   /** SDK info list ➡ hydrated info list */
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (!pathname.includes('concentrated')) return
     if (!connection) return // don't hydrate when connection is not ready
     if (!Object.keys(tokens).length) return // don't hydrate when token is not loaded
@@ -66,7 +66,7 @@ export default function useConcentratedInfoLoader() {
   }, [sdkParsedAmmPools, connection, tokens, pathname])
 
   /** select pool chart data */
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (!pathname.includes('concentrated')) return
     if (!currentAmmPool) return
     const chartResponse = await jFetch<{ data: ApiAmmV3Point[] }>(

@@ -5,7 +5,7 @@ import useLiquidity from '@/application/liquidity/useLiquidity'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import jFetch from '@/functions/dom/jFetch'
 import { lazyMap } from '@/functions/lazyMap'
-import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 
 import useConnection from '../connection/useConnection'
 import { usePools } from '../pools/usePools'
@@ -38,18 +38,18 @@ export default function useFarmInfoLoader() {
   )
 
   // auto fetch json farm info when init
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     const farmJsonInfos = await fetchFarmJsonInfos()
     if (farmJsonInfos) useFarms.setState({ jsonInfos: farmJsonInfos })
   }, [farmRefreshCount])
 
   // auto fetch json farm info when init
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     useFarms.setState({ haveUpcomingFarms: jsonInfos.some((info) => info.upcoming) })
   }, [jsonInfos])
 
   // auto sdkParse
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (!jsonInfos || !connection) return
     if (!jsonInfos?.length) return
     const sdkParsedInfos = await mergeSdkFarmInfo(
@@ -66,7 +66,7 @@ export default function useFarmInfoLoader() {
 
   // auto hydrate
   // hydrate action will depends on other state, so it will rerender many times
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     const hydratedInfos = await lazyMap({
       source: sdkParsedInfos,
       sourceKey: 'hydrate farm info',
