@@ -1,10 +1,10 @@
-import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-import { RouteInfo } from 'test-r-sdk'
+import { createRef, ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
+import { RouteInfo } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import useLiquidity from '@/application/liquidity/useLiquidity'
 import useNotification from '@/application/notification/useNotification'
 import { routeTo } from '@/application/routeTools'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
@@ -16,11 +16,7 @@ import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalcula
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  SOLDecimals,
-  SOL_BASE_BALANCE,
-  toUITokenAmount
+  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE, SOLDecimals, toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -45,6 +41,7 @@ import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
+import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -61,9 +58,6 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
-import useLiquidity from '@/application/liquidity/useLiquidity'
-import listToMap from '@/functions/format/listToMap'
-import ConcentratedSliderInput from '@/pageComponents/ConcentratedRangeChart/ConcentratedSliderInput'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -725,13 +719,20 @@ function SwapCardInfo({ className }: { className?: string }) {
   const isWarningPrice = useMemo(() => priceImpact != null && gte(priceImpact, 0.01), [priceImpact])
 
   const swapThrough =
-    upCoin && downCoin
-      ? currentCalcResult?.routeType === 'amm'
-        ? 'Raydium Pool'
-        : currentCalcResult?.routeType === 'route'
-        ? `${upCoin?.symbol} → ${getToken(currentCalcResult?.middleMint)?.symbol} → ${downCoin?.symbol}`
-        : 'Others'
-      : undefined
+    upCoin && downCoin ? (
+      currentCalcResult?.routeType === 'amm' ? (
+        'Raydium Pool'
+      ) : currentCalcResult?.routeType === 'route' ? (
+        <SwappingThrough
+          startSymbol={upCoin?.symbol ?? ''}
+          middleSymbol={getToken(currentCalcResult?.middleMint)?.symbol ?? ''}
+          endSymbol={downCoin?.symbol ?? ''}
+          poolTypes={currentCalcResult.poolType}
+        />
+      ) : (
+        'Others'
+      )
+    ) : undefined
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
@@ -754,7 +755,9 @@ function SwapCardInfo({ className }: { className?: string }) {
           fieldName="Swapping Through"
           fieldValue={
             <Row className="items-center gap-2">
-              {currentCalcResult?.poolType && <Badge className="self-center">{currentCalcResult.poolType}</Badge>}
+              {currentCalcResult?.routeType === 'amm' && currentCalcResult?.poolType && (
+                <Badge className="self-center">{currentCalcResult.poolType}</Badge>
+              )}
               <div>{swapThrough}</div>
             </Row>
           }
@@ -843,6 +846,72 @@ function SwapCardInfo({ className }: { className?: string }) {
         </Collapse.Face>
       </Collapse>
     </Col>
+  )
+}
+
+function SwappingThrough({
+  startSymbol,
+  middleSymbol,
+  endSymbol,
+  poolTypes
+}: {
+  startSymbol: string
+  middleSymbol: string
+  endSymbol: string
+  poolTypes: (string | undefined)[]
+}) {
+  return (
+    <Row className="items-center ">
+      {startSymbol} <ArrowWithTag tagValue={poolTypes[0]} /> {middleSymbol} <ArrowWithTag tagValue={poolTypes[1]} />
+      {endSymbol}
+    </Row>
+  )
+}
+
+function ArrowWithTag({ tagValue = '' }: { tagValue?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  useLayoutEffect(() => {
+    if (ref && ref.current) {
+      setWidth(ref.current.offsetWidth)
+    }
+  }, [ref])
+
+  return (
+    <div ref={ref} className="relative top-[-15px]" style={{ marginLeft: 4, marginRight: 4, maxHeight: 16 }}>
+      {tagValue ? (
+        <Badge className="self-center " size="sm">
+          {tagValue}
+        </Badge>
+      ) : (
+        <div style={{ height: 18, width: 12 }}></div>
+      )}
+      <Arrow className="" width={width} />
+    </div>
+  )
+}
+
+function Arrow({ className, width }: { className: string; width: number }) {
+  return (
+    <div className={twMerge('flex flex-col justify-start mt-[-2px] items-end', className)}>
+      <svg width={width} height={15} viewBox={`0 0 ${width} 15`}>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="3.5" refY="4.5" orient="auto">
+            <path d="M3.5,4.5 L2,7 L7,4.5 L2,2 L3.5,4.5" fill="white" />
+          </marker>
+        </defs>
+
+        <path
+          d={`M0,7 H${width - 5}`}
+          vectorEffect="non-scaling-stroke"
+          stroke="white"
+          strokeWidth="1.25px"
+          fill="none"
+          markerEnd="url(#arrow)"
+        />
+      </svg>
+    </div>
   )
 }
 
