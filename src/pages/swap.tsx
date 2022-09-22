@@ -63,7 +63,7 @@ import { HexAddress, Numberish } from '@/types/constants'
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import listToMap from '@/functions/format/listToMap'
-import ConcentratedSliderInput from '@/pageComponents/ConcentratedRangeChart/ConcentratedSliderInput'
+import ConcentratedLiquiditySlider from '@/pageComponents/ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
 function SwapEffect() {
   useSwapInitCoinFiller()

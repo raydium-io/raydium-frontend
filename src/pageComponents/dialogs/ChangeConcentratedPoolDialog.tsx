@@ -6,6 +6,7 @@ import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
+import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
@@ -13,6 +14,7 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { toString } from '@/functions/numberish/toString'
 import { useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
+import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
 export function ChangeConcentratedPoolDialog({
   className,
@@ -78,60 +80,65 @@ export function ChangeConcentratedPoolDialog({
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
           </Row>
 
-          {/* input-container-box */}
-          <CoinInputBox
-            className="mb-6"
-            componentRef={coinInputBoxComponentRef1}
-            haveCoinIcon
-            topLeftLabel={'Base'}
-            topRightLabel={mode === 'remove' ? `Deposited: ${toString(targetUserPositionAccount?.amountA)}` : undefined}
-            maxValue={mode === 'remove' ? targetUserPositionAccount?.amountA : undefined}
-            token={coinBase}
-            value={toString(coinBaseAmount)}
-            onUserInput={(value) => {
-              if (focusSide === 'coin1') {
-                useConcentrated.setState({ coin1Amount: value, userCursorSide: 'coin1' })
-              } else {
-                useConcentrated.setState({ coin2Amount: value, userCursorSide: 'coin2' })
-              }
-            }}
-            onInputAmountClampInBalanceChange={({ negative, outOfMax }) => {
-              setAmountBaseIsNegative(negative)
-              setAmountBaseIsOutOfMax(outOfMax)
-            }}
-            onEnter={(input) => {
-              if (!input) return
-              buttonComponentRef.current?.click?.()
-            }}
-          />
+          <Col className="gap-3 mb-6">
+            {/* input-container-box */}
 
-          {/* input-container-box 2 */}
-          <CoinInputBox
-            className="mb-6"
-            componentRef={coinInputBoxComponentRef2}
-            haveCoinIcon
-            topLeftLabel={'Quote'}
-            topRightLabel={mode === 'remove' ? `Deposited: ${toString(targetUserPositionAccount?.amountB)}` : undefined}
-            maxValue={mode === 'remove' ? targetUserPositionAccount?.amountB : undefined}
-            token={coinQuote}
-            value={toString(coinQuoteAmount)}
-            onUserInput={(value) => {
-              if (focusSide === 'coin1') {
-                useConcentrated.setState({ coin2Amount: value, userCursorSide: 'coin2' })
-              } else {
-                useConcentrated.setState({ coin1Amount: value, userCursorSide: 'coin1' })
+            <CoinInputBox
+              componentRef={coinInputBoxComponentRef1}
+              haveCoinIcon
+              topLeftLabel={'Base'}
+              topRightLabel={
+                mode === 'remove' ? `Deposited: ${toString(targetUserPositionAccount?.amountA)}` : undefined
               }
-            }}
-            onInputAmountClampInBalanceChange={({ negative, outOfMax }) => {
-              setAmountQuoteIsNegative(negative)
-              setAmountQuoteIsOutOfMax(outOfMax)
-            }}
-            onEnter={(input) => {
-              if (!input) return
-              buttonComponentRef.current?.click?.()
-            }}
-          />
+              maxValue={mode === 'remove' ? targetUserPositionAccount?.amountA : undefined}
+              token={coinBase}
+              value={toString(coinBaseAmount)}
+              onUserInput={(value) => {
+                if (focusSide === 'coin1') {
+                  useConcentrated.setState({ coin1Amount: value, userCursorSide: 'coin1' })
+                } else {
+                  useConcentrated.setState({ coin2Amount: value, userCursorSide: 'coin2' })
+                }
+              }}
+              onInputAmountClampInBalanceChange={({ negative, outOfMax }) => {
+                setAmountBaseIsNegative(negative)
+                setAmountBaseIsOutOfMax(outOfMax)
+              }}
+              onEnter={(input) => {
+                if (!input) return
+                buttonComponentRef.current?.click?.()
+              }}
+            />
 
+            {/* input-container-box 2 */}
+            <CoinInputBox
+              componentRef={coinInputBoxComponentRef2}
+              haveCoinIcon
+              topLeftLabel={'Quote'}
+              topRightLabel={
+                mode === 'remove' ? `Deposited: ${toString(targetUserPositionAccount?.amountB)}` : undefined
+              }
+              maxValue={mode === 'remove' ? targetUserPositionAccount?.amountB : undefined}
+              token={coinQuote}
+              value={toString(coinQuoteAmount)}
+              onUserInput={(value) => {
+                if (focusSide === 'coin1') {
+                  useConcentrated.setState({ coin2Amount: value, userCursorSide: 'coin2' })
+                } else {
+                  useConcentrated.setState({ coin1Amount: value, userCursorSide: 'coin1' })
+                }
+              }}
+              onInputAmountClampInBalanceChange={({ negative, outOfMax }) => {
+                setAmountQuoteIsNegative(negative)
+                setAmountQuoteIsOutOfMax(outOfMax)
+              }}
+              onEnter={(input) => {
+                if (!input) return
+                buttonComponentRef.current?.click?.()
+              }}
+            />
+            {mode === 'remove' && <ConcentratedLiquiditySlider />}
+          </Col>
           <Row className="flex-col gap-1">
             <Button
               className="frosted-glass frosted-glass-teal"
@@ -146,8 +153,6 @@ export function ChangeConcentratedPoolDialog({
                     children: 'Connect Wallet'
                   }
                 },
-                // { should: gt(removeAmout, 0) },
-                // should: value is smaller than balance, but larget than zero ,
                 {
                   should: !amountBaseIsOutOfMax,
                   fallbackProps: { children: `${coinBase?.symbol ?? ''} Amount Too Large` }

@@ -455,44 +455,39 @@ function UserLiquidityExhibition() {
                   <Collapse.Body>
                     <div className="pb-4 px-6 mobile:px-4">
                       <Col className="border-t-1.5 border-[rgba(171,196,255,.5)] py-5 gap-3 ">
-                        {currentAmmPool.userPositionAccount?.map((positionInfo) => {
-                          return (
-                            <Row
-                              className="justify-between"
-                              key={`${positionInfo.tickLower}-${positionInfo.tickUpper}`}
-                            >
-                              <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">
-                                {toString(positionInfo.priceLower)}-{toString(positionInfo.priceUpper)}
+                        {currentAmmPool.userPositionAccount?.map((positionInfo) => (
+                          <Row className="justify-between" key={`${positionInfo.tickLower}-${positionInfo.tickUpper}`}>
+                            <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">
+                              {toString(positionInfo.priceLower)}-{toString(positionInfo.priceUpper)}
+                            </div>
+                            <Row className="text-xs mobile:text-2xs font-medium text-white gap-4">
+                              <div
+                                className="text-base clickable"
+                                onClick={() => {
+                                  useConcentrated.setState({
+                                    isAddDialogOpen: true,
+                                    currentAmmPool: currentAmmPool,
+                                    targetUserPositionAccount: positionInfo
+                                  })
+                                }}
+                              >
+                                ➕
                               </div>
-                              <Row className="text-xs mobile:text-2xs font-medium text-white gap-4">
-                                <div
-                                  className="text-base clickable"
-                                  onClick={() => {
-                                    useConcentrated.setState({
-                                      isAddDialogOpen: true,
-                                      currentAmmPool: currentAmmPool,
-                                      targetUserPositionAccount: positionInfo
-                                    })
-                                  }}
-                                >
-                                  ➕
-                                </div>
-                                <div
-                                  className="text-base clickable"
-                                  onClick={() => {
-                                    useConcentrated.setState({
-                                      isRemoveDialogOpen: true,
-                                      currentAmmPool: currentAmmPool,
-                                      targetUserPositionAccount: positionInfo
-                                    })
-                                  }}
-                                >
-                                  ➖
-                                </div>
-                              </Row>
+                              <div
+                                className="text-base clickable"
+                                onClick={() => {
+                                  useConcentrated.setState({
+                                    isRemoveDialogOpen: true,
+                                    currentAmmPool: currentAmmPool,
+                                    targetUserPositionAccount: positionInfo
+                                  })
+                                }}
+                              >
+                                ➖
+                              </div>
                             </Row>
-                          )
-                        })}
+                          </Row>
+                        ))}
                         {/* <Row className="justify-between">
                           <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Quote)</div>
                           <div className="text-xs mobile:text-2xs font-medium text-white">

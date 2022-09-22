@@ -5,11 +5,11 @@ import { AmmV3 } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import RangeInput from '@/components/RangeInput'
+import RangeSliderBox from '@/components/RangeSliderBox'
 import toPubString from '@/functions/format/toMintString'
 import { isArray } from '@/functions/judgers/dateType'
 
-export default function ConcentratedSliderInput({ isAdd = false }: { isAdd?: boolean }) {
+export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?: boolean }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
@@ -42,7 +42,7 @@ export default function ConcentratedSliderInput({ isAdd = false }: { isAdd?: boo
   )
 
   return (
-    <RangeInput
+    <RangeSliderBox
       max={position?.liquidity.toNumber() ?? 0}
       className="py-3 px-3 ring-1 mobile:ring-1 ring-[rgba(54, 185, 226, 0.5)] rounded-xl mobile:rounded-xl "
       onChange={onSliderChange}
