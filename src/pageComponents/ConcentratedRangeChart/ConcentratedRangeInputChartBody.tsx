@@ -84,6 +84,7 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
   const minBoundaryLineColor = '#abc4ff'
   const maxBoundaryLineColor = '#abc4ff'
   const anchorLineColor = 'dodgerblue'
+  const anchorUnitColor = 'dodgerblue'
   const xAxisColor = '#abc4ff80'
   const xAxisUnitColor = xAxisColor
   const [svgInnerWidth, setSvgInnerWidth, svgInnerWidthSignal] = useSignalState(300)
@@ -473,6 +474,28 @@ export function ConcentratedRangeInputChartBody(props: ChartRangeInputOption) {
           stroke={anchorLineColor}
           strokeWidth="2"
         />
+      )}
+
+      {/* anchor price */}
+      {anchorX && (
+        <text
+          className="no-scale"
+          y={svgInnerHeight - (2 / 3) * xAxisAboveBottom} //  3/4 psition  of  xAxisAboveBottom
+          x={anchorVX}
+          fill={anchorUnitColor}
+          style={{
+            fontSize: 10,
+            transition: '75ms'
+          }}
+          // idea from https://stackoverflow.com/questions/61272308/why-does-webkit-safari-ios-macos-render-my-svg-transformations-in-a-different
+          transform={`translate(${anchorVX}, ${svgInnerHeight / 2}) scale(${1 / zoom}, 1) translate(${-anchorVX}, ${
+            -svgInnerHeight / 2
+          })`}
+          textAnchor="middle"
+          dominantBaseline="middle"
+        >
+          {isNumber(anchorX) ? trimUnnecessaryDecimal(anchorX, careDecimalLength / 1) : anchorX}
+        </text>
       )}
 
       {/* x axis line */}
