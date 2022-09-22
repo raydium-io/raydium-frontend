@@ -11,9 +11,10 @@ import { SplToken } from '@/application/token/type'
 import assert from '@/functions/assert'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
-import toPubString from '@/functions/format/toMintString'
+import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isPubKeyish } from '@/functions/judgers/dateType'
 import { Numberish } from '@/types/constants'
 import { Connection, PublicKey } from '@solana/web3.js'
 import {
@@ -22,6 +23,7 @@ import {
   AmmV3PoolPersonalPosition,
   ApiAmmV3PoolInfo,
   LiquidityPoolsJsonFile,
+  PublicKeyish,
   ReturnTypeFetchMultiplePoolTickArrays,
   TradeV2
 } from 'test-r-sdk'
@@ -111,6 +113,7 @@ async function getApiInfos() {
   }
   return apiCache
 }
+
 /**
  * have data cache
  */
@@ -161,23 +164,29 @@ function getSDKCacheInfos({
 }
 
 export async function getAddLiquidityDefaultPool({
-  connection,
-  input,
-  output
+  connection = useConnection.getState().connection,
+  mint1,
+  mint2
 }: {
-  connection: Connection
-  input: SplToken
-  output: SplToken
+  connection?: Connection
+  mint1: PublicKeyish
+  mint2: PublicKeyish
 }) {
   const { ammV3, liquidity: apiPoolList } = await getApiInfos()
   assert(ammV3, 'ammV3 api must be loaded')
   assert(apiPoolList, 'liquidity api must be loaded')
-
+  assert(connection, 'need connection to get default')
+  const isInputPublicKeyish = isPubKeyish(mint1)
+  const isOutputPublicKeyish = isPubKeyish(mint2)
+  if (!isInputPublicKeyish || !isOutputPublicKeyish) {
+    console.error('input/output is not PublicKeyish')
+    return
+  }
   const sdkParsedAmmV3PoolInfo = await getParsedAmmV3PoolInfo({ connection, apiAmmPools: ammV3 })
   const { routes, poolInfosCache } = getSDKCacheInfos({
     connection,
-    inputMint: input.mint,
-    outputMint: output.mint,
+    inputMint: toPub(mint1),
+    outputMint: toPub(mint2),
     apiPoolList: apiPoolList,
     sdkParsedAmmV3PoolInfo: sdkParsedAmmV3PoolInfo
   })

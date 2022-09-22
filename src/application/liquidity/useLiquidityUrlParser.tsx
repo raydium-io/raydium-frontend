@@ -7,10 +7,11 @@ import { areShallowEqual, isStringInsensitivelyEqual } from '@/functions/judgers
 import { objectShakeFalsy } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import { getAddLiquidityDefaultPool } from '@/models/ammAndLiquidity'
 import { EnumStr } from '@/types/constants'
 import { useRouter } from 'next/router'
 import { ParsedUrlQuery } from 'querystring'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import useConnection from '../connection/useConnection'
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 import useLiquidity from './useLiquidity'
@@ -30,7 +31,6 @@ export default function useLiquidityUrlParser() {
     (ammid: string) => liquidityPoolJsonInfos.find((jsonInfo) => jsonInfo.id === ammid),
     [liquidityPoolJsonInfos]
   )
-  const findLiquidityInfoByTokenMint = useLiquidity((s) => s.findLiquidityInfoByTokenMint)
   const tokens = useToken((s) => s.tokens)
   const userAddedTokens = useToken((s) => s.userAddedTokens)
   const connection = useConnection((s) => s.connection)
@@ -89,7 +89,7 @@ export default function useLiquidityUrlParser() {
       const matchedLiquidityJsonInfo = urlAmmId
         ? findLiquidityInfoByAmmId(urlAmmId)
         : urlCoin1 && urlCoin2
-        ? (await findLiquidityInfoByTokenMint(urlCoin1.mint, urlCoin2.mint)).best
+        ? await getAddLiquidityDefaultPool({ mint1: urlCoin1Mint, mint2: urlCoin2Mint })
         : undefined
 
       const coin1 = getToken(matchedLiquidityJsonInfo?.baseMint) ?? urlCoin1
@@ -155,8 +155,7 @@ export default function useLiquidityUrlParser() {
     liquidityCoin2,
 
     liquidityPoolJsonInfos,
-    findLiquidityInfoByAmmId,
-    findLiquidityInfoByTokenMint
+    findLiquidityInfoByAmmId
   ])
 
   //#region ------------------- sync zustand data to url -------------------

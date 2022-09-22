@@ -5,6 +5,7 @@ import BN from 'bn.js'
 
 import { AnyFn, Numberish, Primitive, StringNumber } from '@/types/constants'
 import Decimal from 'decimal.js'
+import toPubString, { toPub } from '../format/toMintString'
 
 export const isArray = Array.isArray
 export const isSet = (v: unknown): v is Set<unknown> => {
@@ -123,6 +124,11 @@ export function isTokenAmount(val: any): val is TokenAmount {
 export function isPubKey(val: unknown): val is PublicKey {
   return val instanceof PublicKey
 }
+
+export function isPubKeyish<T extends PublicKey | string>(val: T): val is T {
+  return isPubKey(toPub(val))
+}
+
 export function isDecimal(val: unknown): val is Decimal {
   return val instanceof Decimal
 }
