@@ -958,6 +958,7 @@ function SwapCardTooltipPanelAddress() {
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
   const liquidityJsonInfoMap = listToMap(liquidityJsonInfos, (i) => i.id)
   const currentLiquidityInfos = currentPoolKeys?.map(({ id }) => liquidityJsonInfoMap[toPubString(id)])
+
   return (
     <div className="w-60">
       <div className="text-sm font-semibold mb-2">Addresses</div>
@@ -984,16 +985,20 @@ function SwapCardTooltipPanelAddress() {
           </>
         ) : currentLiquidityInfos?.length && currentLiquidityInfos.length > 1 ? (
           <>
-            {currentLiquidityInfos?.map(({ marketId }, idx) => (
-              <SwapCardTooltipPanelAddressItem
-                key={'market' + marketId}
-                label={`Market ID (route ${idx + 1})`}
-                address={marketId}
-              />
-            ))}
-            {currentLiquidityInfos?.map(({ id }, idx) => (
-              <SwapCardTooltipPanelAddressItem key={'amm' + id} label={`Amm ID (route ${idx + 1})`} address={id} />
-            ))}
+            {currentLiquidityInfos
+              ?.filter((info) => (info && info.marketId ? true : false))
+              .map(({ marketId }, idx) => (
+                <SwapCardTooltipPanelAddressItem
+                  key={'market' + marketId}
+                  label={`Market ID (route ${idx + 1})`}
+                  address={marketId}
+                />
+              ))}
+            {currentLiquidityInfos
+              ?.filter((info) => (info && info.id ? true : false))
+              .map(({ id }, idx) => (
+                <SwapCardTooltipPanelAddressItem key={'amm' + id} label={`Amm ID (route ${idx + 1})`} address={id} />
+              ))}
           </>
         ) : null}
       </Col>
