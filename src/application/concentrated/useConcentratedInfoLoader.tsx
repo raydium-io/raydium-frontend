@@ -9,6 +9,7 @@ import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
 import useConnection from '../connection/useConnection'
 import useWallet from '../wallet/useWallet'
 
+import { useRouter } from 'next/router'
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
 
@@ -23,31 +24,35 @@ export default function useConcentratedInfoLoader() {
   const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
   const owner = useWallet((s) => s.owner)
   const tokens = useToken((s) => s.tokens)
+  const { pathname } = useRouter()
 
   /** fetch api json info list  */
   useEffectWithTransition(async () => {
+    if (!pathname.includes('concentrated')) return
     const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
     if (response) useConcentrated.setState({ apiAmmPools: response.data })
-  }, [])
+  }, [pathname])
 
   /**  api json info list ➡ SDK info list */
   useEffectWithTransition(async () => {
+    if (!pathname.includes('concentrated')) return
     if (!connection) return
-    if (owner) {
-      const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
-        poolKeys: apiAmmPools,
-        connection,
-        ownerInfo: {
-          tokenAccounts: tokenAccounts,
-          wallet: owner
-        }
-      })
-      if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
-    }
-  }, [apiAmmPools, connection, tokenAccounts, owner])
+    const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
+      poolKeys: apiAmmPools,
+      connection,
+      ownerInfo: owner
+        ? {
+            tokenAccounts: tokenAccounts,
+            wallet: owner
+          }
+        : undefined
+    })
+    if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
+  }, [apiAmmPools, connection, tokenAccounts, owner, pathname])
 
   /** SDK info list ➡ hydrated info list */
   useEffectWithTransition(async () => {
+    if (!pathname.includes('concentrated')) return
     if (!connection) return // don't hydrate when connection is not ready
     if (!Object.keys(tokens).length) return // don't hydrate when token is not loaded
     if (!sdkParsedAmmPools || sdkParsedAmmPools.length === 0) return
@@ -58,15 +63,16 @@ export default function useConcentratedInfoLoader() {
       loopFn: (sdkParsed) => hydrateConcentratedInfo(sdkParsed)
     })
     useConcentrated.setState({ hydratedAmmPools: hydratedInfos, loading: hydratedInfos.length === 0 })
-  }, [sdkParsedAmmPools, connection, tokens])
+  }, [sdkParsedAmmPools, connection, tokens, pathname])
 
   /** select pool chart data */
   useEffectWithTransition(async () => {
+    if (!pathname.includes('concentrated')) return
     if (!currentAmmPool) return
     const chartResponse = await jFetch<{ data: ApiAmmV3Point[] }>(
       `https://api.raydium.io/v2/ammV3/positionLine?pool_id=${toPubString(currentAmmPool.state.id)}`
     )
     if (!chartResponse) return
     useConcentrated.setState({ chartPoints: chartResponse.data })
-  }, [currentAmmPool])
+  }, [currentAmmPool, pathname])
 }

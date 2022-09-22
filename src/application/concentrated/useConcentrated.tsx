@@ -28,6 +28,7 @@ export enum TimeBasis {
 }
 
 export type ConcentratedStore = {
+  //#region ------------------- data -------------------
   selectableAmmPools?: HydratedConcentratedInfo[]
   currentAmmPool?: HydratedConcentratedInfo
   /** user need manually select one */
@@ -48,7 +49,6 @@ export type ConcentratedStore = {
 
   priceLower?: Numberish
   priceUpper?: Numberish
-
   //#endregion
 
   apiAmmPools: APIConcentratedInfo[]

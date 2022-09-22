@@ -67,7 +67,6 @@ export default function Concentrated() {
 }
 
 function ConcentratedEffect() {
-  useConcentratedInfoLoader()
   useConcentratedAmmSelector()
   useConcentratedAmountCalculator()
   return null
