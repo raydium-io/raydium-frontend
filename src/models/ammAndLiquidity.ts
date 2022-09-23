@@ -25,6 +25,7 @@ import {
   LiquidityPoolsJsonFile,
   PublicKeyish,
   ReturnTypeFetchMultiplePoolTickArrays,
+  ReturnTypeGetAllRouteComputeAmountOut,
   TradeV2
 } from 'test-r-sdk'
 
@@ -249,5 +250,14 @@ export async function getAllSwapableRouteInfos({
     chainTime
   })
 
-  return routeList
+  return { routeList, bestResult: getBestCalcResult(routeList) }
+}
+
+function getBestCalcResult(
+  routeList: ReturnTypeGetAllRouteComputeAmountOut
+): ReturnTypeGetAllRouteComputeAmountOut[number] | undefined {
+  if (!routeList.length) return undefined
+  const isReadyRoutes = routeList.filter((i) => i.poolReady)
+  if (!isReadyRoutes.length) return routeList[0]
+  return isReadyRoutes[0]
 }

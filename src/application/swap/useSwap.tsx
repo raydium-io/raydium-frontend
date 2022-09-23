@@ -1,11 +1,11 @@
-import { CurrencyAmount, Price, RouteInfo, RouteType, TradeV2 } from 'test-r-sdk'
+import { CurrencyAmount, Price, ReturnTypeGetAllRouteComputeAmountOut, RouteInfo, RouteType, TradeV2 } from 'test-r-sdk'
 
 import create from 'zustand'
 
 import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
-export type ComputeAmountOutLayout = Awaited<ReturnType<typeof TradeV2['getAllRouteComputeAmountOut']>>
+
 export type SwapStore = {
   directionReversed: boolean // determine pairSide  swap make this to be true
 
@@ -37,9 +37,10 @@ export type SwapStore = {
   currentPrice?: Price | null // return by SDK, but don't know when to use it
   // routes?: RouteInfo[] // disappear when sdk > ammV3
   /** from SDK,  */
-  calcResult?: ComputeAmountOutLayout
+  calcResult?: ReturnTypeGetAllRouteComputeAmountOut
+  selectedCalcResult?: ReturnTypeGetAllRouteComputeAmountOut[number]
   canFindPools?: boolean // NOTE: if no amount input, pools not ready and pools not found will all return empty array. so have to use a flag to handle this case
-  preflightCalcResult?: ComputeAmountOutLayout // NOTE: just chech whether can swap
+  preflightCalcResult?: ReturnTypeGetAllRouteComputeAmountOut // NOTE: just chech whether can swap
   routeType?: RouteType
   fee?: CurrencyAmount[] // by SDK
   swapable?: boolean

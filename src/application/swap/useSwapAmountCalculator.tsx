@@ -44,15 +44,17 @@ export function useSwapAmountCalculator() {
   useTransitionedEffect(async () => {
     if (!coin1 || !coin2) return // not fullfilled
     useSwap.setState({ preflightCalcResult: undefined, canFindPools: undefined, swapable: undefined })
-    const preflightCalcResult = await getAllSwapableRouteInfos({
-      connection,
-      input: coin1,
-      output: coin2,
-      inputAmount: 1,
-      slippageTolerance: 0
-    })
-    const swapable = Boolean(preflightCalcResult?.[0]?.poolReady)
-    const canFindPools = Boolean(preflightCalcResult?.length)
+    const { routeList: preflightCalcResult, bestResult } =
+      (await getAllSwapableRouteInfos({
+        connection,
+        input: coin1,
+        output: coin2,
+        inputAmount: 1,
+        slippageTolerance: 0.05
+      })) ?? {}
+
+    const swapable = Boolean(bestResult?.poolReady)
+    const canFindPools = Boolean(bestResult)
     useSwap.setState({ preflightCalcResult: preflightCalcResult, canFindPools, swapable })
   }, [connection, coin1, coin2])
 
@@ -64,6 +66,7 @@ export function useSwapAmountCalculator() {
     if (!upCoin || !downCoin || !connection || !pathname.startsWith('/swap')) {
       useSwap.setState({
         calcResult: undefined,
+        selectedCalcResult: undefined,
         fee: undefined,
         minReceived: undefined,
         maxSpent: undefined,
@@ -85,6 +88,7 @@ export function useSwapAmountCalculator() {
       if (isApprovePanelShown) return // !don't refresh when approve shown
       useSwap.setState({
         calcResult: undefined,
+        selectedCalcResult: undefined,
         fee: undefined,
         minReceived: undefined,
         maxSpent: undefined,
@@ -104,6 +108,7 @@ export function useSwapAmountCalculator() {
       useSwap.setState(directionReversed ? { coin1Amount: undefined } : { coin2Amount: undefined })
       useSwap.setState({
         calcResult: undefined,
+        selectedCalcResult: undefined,
         fee: undefined,
         minReceived: undefined,
         maxSpent: undefined,
@@ -113,21 +118,27 @@ export function useSwapAmountCalculator() {
       return
     }
 
-    const { abort: abortCalc, result: abortableCalcResult } = makeAbortable(() =>
+    const { abort: abortCalc, result: abortableAllSwapableRouteInfos } = makeAbortable(() =>
       getAllSwapableRouteInfos({
         connection,
         input: upCoin,
         output: downCoin,
         inputAmount: upCoinAmount,
         slippageTolerance
-      }).catch((err) => {
-        console.error(err)
       })
+        .then((result) => {
+          const { routeList, bestResult } = result ?? {}
+          return { routeList, bestResult }
+        })
+        .catch((err) => {
+          console.error(err)
+        })
     )
     // console.log('calc 3', abortableCalcResult)
-    abortableCalcResult.then((calcResult) => {
-      // console.log('calcResult: ', calcResult)
-      if (!calcResult) return
+    abortableAllSwapableRouteInfos.then((infos) => {
+      // console.log('infos: ', infos)
+      if (!infos) return
+      const { routeList: calcResult, bestResult } = infos
       const resultStillFresh = (() => {
         const directionReversed = useSwap.getState().directionReversed
         const currentUpCoinAmount =
@@ -141,14 +152,15 @@ export function useSwapAmountCalculator() {
       if (!resultStillFresh) return
 
       // if (focusDirectionSide === 'up') {
-      const swapable = calcResult[0]?.poolReady
+      const swapable = bestResult?.poolReady
       const canFindPools = Boolean(calcResult?.length)
       const { priceImpact, executionPrice, currentPrice, routeType, fee, amountOut, minAmountOut, poolKey } =
-        calcResult?.[0] ?? {}
+        bestResult ?? {}
 
       useSwap.setState({
         fee,
         calcResult,
+        selectedCalcResult: bestResult,
         priceImpact,
         executionPrice,
         currentPrice,
