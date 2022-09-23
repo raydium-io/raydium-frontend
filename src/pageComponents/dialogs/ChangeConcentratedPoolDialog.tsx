@@ -137,7 +137,7 @@ export function ChangeConcentratedPoolDialog({
                 buttonComponentRef.current?.click?.()
               }}
             />
-            {mode === 'remove' && <ConcentratedLiquiditySlider />}
+            {/* {mode === 'remove' && <ConcentratedLiquiditySlider />} */}
           </Col>
           <Row className="flex-col gap-1">
             <Button
