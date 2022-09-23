@@ -1,7 +1,10 @@
+import React, { ReactNode, useRef, useState } from 'react'
+
+import { twMerge } from 'tailwind-merge'
+
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { useHover } from '@/hooks/useHover'
-import React, { ReactNode, useRef, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
+
 import Row from './Row'
 
 export function Badge(props: {
