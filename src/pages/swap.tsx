@@ -1,11 +1,12 @@
-import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-import { RouteInfo } from 'test-r-sdk'
+import { createRef, ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
+import { AmmV3PoolInfo, LiquidityPoolJsonInfo, RouteInfo } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import useLiquidity from '@/application/liquidity/useLiquidity'
 import useNotification from '@/application/notification/useNotification'
+import { isLiquidityPoolJsonInfo } from '@/application/pools/is'
 import { routeTo } from '@/application/routeTools'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
@@ -16,11 +17,7 @@ import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalcula
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  SOLDecimals,
-  SOL_BASE_BALANCE,
-  toUITokenAmount
+  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE, SOLDecimals, toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -45,10 +42,12 @@ import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
+import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { isArray } from '@/functions/judgers/dateType'
 import { eq, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -57,13 +56,11 @@ import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import useToggle from '@/hooks/useToggle'
+import ConcentratedLiquiditySlider from '@/pageComponents/ConcentratedRangeChart/ConcentratedLiquiditySlider'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
-import useLiquidity from '@/application/liquidity/useLiquidity'
-import listToMap from '@/functions/format/listToMap'
-import ConcentratedLiquiditySlider from '@/pageComponents/ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -716,8 +713,8 @@ function SwapCardInfo({ className }: { className?: string }) {
   const minReceived = useSwap((s) => s.minReceived)
   const fee = useSwap((s) => s.fee)
   const maxSpent = useSwap((s) => s.maxSpent)
-  const calcResult = useSwap((s) => s.calcResult)
-  const currentCalcResult = calcResult?.[0]
+  const selectedCalcResult = useSwap((s) => s.selectedCalcResult)
+  const currentCalcResult = selectedCalcResult
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
   const getToken = useToken((s) => s.getToken)
 
@@ -725,21 +722,31 @@ function SwapCardInfo({ className }: { className?: string }) {
   const isWarningPrice = useMemo(() => priceImpact != null && gte(priceImpact, 0.01), [priceImpact])
 
   const swapThrough =
-    upCoin && downCoin
-      ? currentCalcResult?.routeType === 'amm'
-        ? 'Raydium Pool'
-        : currentCalcResult?.routeType === 'route'
-        ? `${upCoin?.symbol} → ${getToken(currentCalcResult?.middleMint)?.symbol} → ${downCoin?.symbol}`
-        : 'Others'
-      : undefined
+    upCoin && downCoin ? (
+      currentCalcResult?.routeType === 'amm' ? (
+        'Raydium Pool'
+      ) : currentCalcResult?.routeType === 'route' ? (
+        <SwappingThrough
+          startSymbol={upCoin?.symbol ?? ''}
+          middleSymbol={getToken(currentCalcResult?.middleMint)?.symbol ?? ''}
+          endSymbol={downCoin?.symbol ?? ''}
+          poolTypes={currentCalcResult.poolType}
+        />
+      ) : (
+        'Others'
+      )
+    ) : undefined
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
-  const isStable = useMemo(() => Boolean(currentCalcResult?.poolKey?.some((t) => t.version === 5)), [calcResult])
+  const isStable = useMemo(
+    () => Boolean(currentCalcResult?.poolKey?.some((t) => t.version === 5)),
+    [selectedCalcResult]
+  )
   return (
     <Col
       className={twMerge(
-        `py-4 px-6 flex-grow border-1.5  ${
+        `pt-5 pb-4 px-6 flex-grow border-1.5  ${
           isDangerousPrice
             ? 'border-[#DA2EEF]'
             : isWarningPrice
@@ -754,7 +761,9 @@ function SwapCardInfo({ className }: { className?: string }) {
           fieldName="Swapping Through"
           fieldValue={
             <Row className="items-center gap-2">
-              {currentCalcResult?.poolType && <Badge className="self-center">{currentCalcResult.poolType}</Badge>}
+              {currentCalcResult?.routeType === 'amm' && currentCalcResult?.poolType && (
+                <Badge className="self-center">{currentCalcResult.poolType}</Badge>
+              )}
               <div>{swapThrough}</div>
             </Row>
           }
@@ -846,6 +855,70 @@ function SwapCardInfo({ className }: { className?: string }) {
   )
 }
 
+function SwappingThrough({
+  startSymbol,
+  middleSymbol,
+  endSymbol,
+  poolTypes
+}: {
+  startSymbol: string
+  middleSymbol: string
+  endSymbol: string
+  poolTypes: (string | undefined)[]
+}) {
+  return (
+    <Row className="items-center">
+      {startSymbol} <ArrowWithTag tagValue={poolTypes[0]} /> {middleSymbol} <ArrowWithTag tagValue={poolTypes[1]} />
+      {endSymbol}
+    </Row>
+  )
+}
+
+function ArrowWithTag({ tagValue = '' }: { tagValue?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  useLayoutEffect(() => {
+    if (ref && ref.current) {
+      setWidth(ref.current.offsetWidth)
+    }
+  }, [ref])
+
+  return (
+    <div ref={ref} className="relative top-[-15px]" style={{ marginLeft: 4, marginRight: 4, maxHeight: 19 }}>
+      {tagValue ? (
+        <Badge className="self-center text-[8px] px-1">{tagValue}</Badge>
+      ) : (
+        <div style={{ height: 19, width: 12 }}></div>
+      )}
+      <Arrow className="" width={width} />
+    </div>
+  )
+}
+
+function Arrow({ className, width }: { className: string; width: number }) {
+  return (
+    <div className={twMerge('flex flex-col justify-start mt-[-2px] items-end', className)}>
+      <svg width={width} height={15} viewBox={`0 0 ${width} 15`}>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="3.5" refY="4.5" orient="auto">
+            <path d="M3.5,4.5 L2,7 L7,4.5 L2,2 L3.5,4.5" fill="white" />
+          </marker>
+        </defs>
+
+        <path
+          d={`M0,7 H${width - 5}`}
+          vectorEffect="non-scaling-stroke"
+          stroke="white"
+          strokeWidth="1.25px"
+          fill="none"
+          markerEnd="url(#arrow)"
+        />
+      </svg>
+    </div>
+  )
+}
+
 function SwapCardItem({
   className,
   fieldName,
@@ -884,11 +957,9 @@ function SwapCardItem({
 function SwapCardTooltipPanelAddress() {
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
-  const calcResult = useSwap((s) => s.calcResult)
-  const currentPoolKeys = calcResult?.[0]?.poolKey
-  const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
-  const liquidityJsonInfoMap = listToMap(liquidityJsonInfos, (i) => i.id)
-  const currentLiquidityInfos = currentPoolKeys?.map(({ id }) => liquidityJsonInfoMap[toPubString(id)])
+  const selectedCalcResult = useSwap((s) => s.selectedCalcResult)
+  const currentPoolKeys = selectedCalcResult?.poolKey
+
   return (
     <div className="w-60">
       <div className="text-sm font-semibold mb-2">Addresses</div>
@@ -904,27 +975,42 @@ function SwapCardTooltipPanelAddress() {
           address={String(coin2?.mint ?? '--')}
         />
         {/* show routes address panel */}
-        {currentLiquidityInfos?.length && currentLiquidityInfos?.length === 1 ? (
+        {currentPoolKeys?.length ? (
           <>
-            {currentLiquidityInfos[0] && (
-              <SwapCardTooltipPanelAddressItem label="Market ID" address={currentLiquidityInfos[0].marketId} />
-            )}
-            {currentLiquidityInfos[0] && (
-              <SwapCardTooltipPanelAddressItem label="Amm ID" address={currentLiquidityInfos[0].id} />
-            )}
-          </>
-        ) : currentLiquidityInfos?.length && currentLiquidityInfos.length > 1 ? (
-          <>
-            {currentLiquidityInfos?.map(({ marketId }, idx) => (
-              <SwapCardTooltipPanelAddressItem
-                key={'market' + marketId}
-                label={`Market ID (route ${idx + 1})`}
-                address={marketId}
-              />
-            ))}
-            {currentLiquidityInfos?.map(({ id }, idx) => (
-              <SwapCardTooltipPanelAddressItem key={'amm' + id} label={`Amm ID (route ${idx + 1})`} address={id} />
-            ))}
+            {currentPoolKeys.map((info, idx, arr) => {
+              const dom: any[] = []
+              let multiRoute = ''
+              if (arr.length > 1) {
+                multiRoute = `(route ${idx + 1})`
+              }
+              if (isLiquidityPoolJsonInfo(info)) {
+                // original pool
+                dom.push(
+                  <SwapCardTooltipPanelAddressItem
+                    key={'market' + info.marketId}
+                    label={`Market ID ${multiRoute}`}
+                    address={info.marketId}
+                  />
+                )
+                dom.push(
+                  <SwapCardTooltipPanelAddressItem
+                    key={'amm' + info.id}
+                    label={`Amm ID ${multiRoute}`}
+                    address={info.id}
+                  />
+                )
+              } else {
+                // CLMM
+                dom.push(
+                  <SwapCardTooltipPanelAddressItem
+                    key={'amm' + info.id}
+                    label={`Amm ID ${multiRoute}`}
+                    address={toPubString(info.id)}
+                  />
+                )
+              }
+              return dom
+            })}
           </>
         ) : null}
       </Col>
