@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
+import { useCallback, useEffect, useState } from 'react'
 
 import { ParsedUrlQuery } from 'querystring'
 
@@ -17,6 +17,7 @@ import { objectShakeFalsy, omit } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { EnumStr } from '@/types/constants'
 
+import { getAddLiquidityDefaultPool } from '@/models/ammAndLiquidity'
 import useConnection from '../connection/useConnection'
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 import { QuantumSOLVersionSOL, QuantumSOLVersionWSOL, WSOLMint } from '../token/quantumSOL'
@@ -37,7 +38,6 @@ export default function useSwapUrlParser(): void {
   const swapFocusSide = useSwap((s) => s.focusSide)
   const swapDirectionReversed = useSwap((s) => s.directionReversed)
   const liquidityPoolJsonInfos = useLiquidity((s) => s.jsonInfos)
-  const findLiquidityInfoByTokenMint = useLiquidity((s) => s.findLiquidityInfoByTokenMint)
   const findLiquidityInfoByAmmId = useCallback(
     (ammid: string) => liquidityPoolJsonInfos.find((jsonInfo) => jsonInfo.id === ammid),
     [liquidityPoolJsonInfos]
@@ -101,7 +101,7 @@ export default function useSwapUrlParser(): void {
       const matchedLiquidityJsonInfo = urlAmmId
         ? findLiquidityInfoByAmmId(urlAmmId)
         : urlCoin1 && urlCoin2
-        ? (await findLiquidityInfoByTokenMint(urlCoin1.mint, urlCoin2.mint)).best
+        ? await getAddLiquidityDefaultPool({ mint1: urlCoin1Mint, mint2: urlCoin2Mint })
         : undefined
       if (matchedLiquidityJsonInfo) {
         const coin1 = getToken(matchedLiquidityJsonInfo?.baseMint) ?? urlCoin1

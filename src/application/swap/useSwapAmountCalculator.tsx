@@ -1,7 +1,8 @@
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
-import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { useIdleEffect } from '@/hooks/useIdleEffect'
+import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { getAllSwapableRouteInfos } from '@/models/ammAndLiquidity'
 import { makeAbortable } from '@/models/makeAbortable'
 import { HexAddress } from '@/types/constants'
@@ -40,7 +41,7 @@ export function useSwapAmountCalculator() {
   }, [refreshCount])
 
   // get preflight
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (!coin1 || !coin2) return // not fullfilled
     useSwap.setState({ preflightCalcResult: undefined, canFindPools: undefined, swapable: undefined })
     const preflightCalcResult = await getAllSwapableRouteInfos({
@@ -58,7 +59,7 @@ export function useSwapAmountCalculator() {
   // if don't check focusSideCoin, it will calc twice.
   // one for coin1Amount then it will change coin2Amount
   // changing coin2Amount will cause another calc
-  useEffect(() => {
+  useIdleEffect(() => {
     // pairInfo is not enough
     if (!upCoin || !downCoin || !connection || !pathname.startsWith('/swap')) {
       useSwap.setState({

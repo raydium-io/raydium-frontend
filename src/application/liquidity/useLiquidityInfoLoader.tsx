@@ -7,7 +7,7 @@ import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { areShallowEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
-import { useEffectWithTransition } from '@/hooks/useEffectWithTransition'
+import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { HexAddress } from '@/types/constants'
 import { LiquidityPoolsJsonFile } from 'test-r-sdk'
@@ -38,7 +38,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   const pureRawBalances = useWallet((s) => s.pureRawBalances)
 
   /** fetch json info list  */
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (disabled) return
     const response = await jFetch<LiquidityPoolsJsonFile>('https://api.raydium.io/v2/sdk/liquidity/mainnet.json', {
       ignoreCache: true
@@ -53,7 +53,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   }, [disabled])
 
   /** get userExhibitionLiquidityIds */
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     // when refresh, it will refresh twice. one for rawBalance, one for liquidityRefreshCount
     if (disabled) return
     if (!jsonInfos) return
@@ -94,7 +94,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   )
 
   /** sdkParsed infos (only wallet's LP) ➡  hydrated infos (only wallet's LP)*/
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (disabled) return
     const hydratedInfos = sdkParsedInfos.map((liquidityInfo) =>
       hydrateLiquidityInfo(liquidityInfo, {
@@ -131,7 +131,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   )
 
   /** CURRENT jsonInfo ➡ current sdkParsedInfo  */
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (disabled) return
     if (connection && currentJsonInfo) {
       useLiquidity.setState({
@@ -143,7 +143,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   }, [disabled, currentJsonInfo, connection, refreshCount])
 
   /** CURRENT sdkParsedInfo ➡ current hydratedInfo  */
-  useEffectWithTransition(async () => {
+  useTransitionedEffect(async () => {
     if (disabled) return
     if (connection && currentSdkParsedInfo) {
       const lpBalance = pureRawBalances[String(currentSdkParsedInfo.lpMint)]

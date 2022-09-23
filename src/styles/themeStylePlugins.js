@@ -54,35 +54,32 @@ exports.cyberpunkBgLight = plugin(({ addUtilities }) => {
         '&::before': {
           content: "''",
           position: 'absolute',
-          willChange: 'transform',
-          top: '-15px',
-          right: '-35px',
-          bottom: '-15px',
-          left: '-35px',
+          top: '15px',
+          bottom: '15px',
+          left: '15px',
           zIndex: '-1', // !!! is't parent node must have a new stacking context (like css isolation)
           pointerEvents: 'none',
-          background:
-            'radial-gradient(closest-side at 66.7%, #e300ff 100%, transparent 100%), radial-gradient(closest-side at 33.3%, #39d0d8 100%, transparent 100%)',
-          filter: 'blur(90px)',
-          opacity: '.45'
-        }
-      },
-      '.cyberpunk-bg-light-simi': {
-        position: 'relative',
-        '&::before': {
+          width: '60%',
+          borderRadius: '50%',
+          backgroundColor: '#39d0d8',
+          opacity: '.45',
+          boxShadow: '0px 0px 140px 55px #39d0d8aa',
+          mixBlendMode: 'hard-light'
+        },
+        '&::after': {
           content: "''",
           position: 'absolute',
-          top: '-15px',
-          right: '-35px',
-          bottom: '-15px',
-          left: '-35px',
-          willChange: 'transform',
-          zIndex: '-1',
+          top: '15px',
+          bottom: '15px',
+          right: '15px',
+          zIndex: '-1', // !!! is't parent node must have a new stacking context (like css isolation)
           pointerEvents: 'none',
-          background:
-            'radial-gradient(closest-side at 66.7%, #da2eef8c, transparent), radial-gradient(closest-side at 33.3%, #39d0d88c, transparent)',
-          filter: 'blur(90px)',
-          opacity: '.45'
+          width: '60%',
+          borderRadius: '50%',
+          backgroundColor: '#e300ff',
+          opacity: '.45',
+          boxShadow: '0px 0px 140px 55px #e300ffaa',
+          mixBlendMode: 'hard-light'
         }
       },
       '.cyberpunk-bg-light-acceleraytor': {

@@ -12,7 +12,7 @@ import Row from './Row'
 
 import 'rc-slider/assets/index.css'
 
-export interface InputProps {
+export interface RangeSliderBoxProps {
   id?: string
   title?: string
   currentAmount?: string
@@ -24,9 +24,9 @@ export interface InputProps {
   onChange?: (value: number | number[]) => void
 }
 
-export default function RangeInput(props: InputProps) {
+export default function RangeSliderBox(props: RangeSliderBoxProps) {
   // props set by validators
-  const [fallbackProps, setFallbackProps] = useState<Omit<InputProps, 'validators' | 'disabled'>>()
+  const [fallbackProps, setFallbackProps] = useState<Omit<RangeSliderBoxProps, 'validators' | 'disabled'>>()
   const [currentPercentage, setCurrentPercentage] = useState<number>(0)
   const [currentValue, setCurrentValue] = useState<number>(0)
 

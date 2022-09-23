@@ -46,6 +46,7 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { isArray } from '@/functions/judgers/dateType'
 import { eq, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -54,6 +55,7 @@ import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import useToggle from '@/hooks/useToggle'
+import ConcentratedLiquiditySlider from '@/pageComponents/ConcentratedRangeChart/ConcentratedLiquiditySlider'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
@@ -974,7 +976,7 @@ function SwapCardTooltipPanelAddress() {
           address={String(coin2?.mint ?? '--')}
         />
         {/* show routes address panel */}
-        {currentLiquidityInfos?.length && currentLiquidityInfos?.length === 1 ? (
+        {currentLiquidityInfos?.length && currentLiquidityInfos?.length === 1 && currentLiquidityInfos[0] ? (
           <>
             {currentLiquidityInfos[0] && (
               <SwapCardTooltipPanelAddressItem label="Market ID" address={currentLiquidityInfos[0].marketId} />
@@ -1000,6 +1002,17 @@ function SwapCardTooltipPanelAddress() {
                 <SwapCardTooltipPanelAddressItem key={'amm' + id} label={`Amm ID (route ${idx + 1})`} address={id} />
               ))}
           </>
+        ) : isArray(currentLiquidityInfos) && !currentLiquidityInfos[0] && isArray(currentPoolKeys) ? (
+          currentPoolKeys.map((info, idx) => {
+            const address = toPubString(info.id)
+            return (
+              <SwapCardTooltipPanelAddressItem
+                key={'amm' + address}
+                label={`Amm ID (route ${idx + 1})`}
+                address={address}
+              />
+            )
+          })
         ) : null}
       </Col>
     </div>

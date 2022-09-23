@@ -55,6 +55,7 @@ import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 
 import '../styles/index.css'
 import useAutoCleanLiquidityInfoCache from '@/application/liquidity/useAutoCleanLiquidityInfoCache'
+import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -173,6 +174,9 @@ function ApplicationsInitializations() {
 
   /********************** pair Info (pools) **********************/
   usePoolsInfoLoader()
+
+  /********************** concentrated pools **********************/
+  useConcentratedInfoLoader()
 
   /********************** farm **********************/
   useFarmInfoLoader()

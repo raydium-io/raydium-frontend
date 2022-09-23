@@ -5,6 +5,9 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 import useLiquidity from './useLiquidity'
+import listToMap from '@/functions/format/listToMap'
+import toPubString from '@/functions/format/toMintString'
+import { getAddLiquidityDefaultPool } from '@/models/ammAndLiquidity'
 
 /** coin1 coin2 ammId */
 export default function useLiquidityAmmSelector() {
@@ -34,13 +37,10 @@ export default function useLiquidityAmmSelector() {
   /** update `ammId` (to match `coin1` and `coin2`) */
   useAsyncEffect(async () => {
     if (!coin1 || !coin2) return
-    const { findLiquidityInfoByTokenMint, ammId } = useLiquidity.getState()
-
-    const computeResult = await findLiquidityInfoByTokenMint(coin1?.mint, coin2?.mint)
-
-    const resultPool = ammId
-      ? computeResult.availables.find((p) => p.id === ammId) || computeResult.best
-      : computeResult.best
+    const { ammId, jsonInfos } = useLiquidity.getState()
+    const jsonMap = listToMap(jsonInfos, (i) => toPubString(i.id))
+    const best = await getAddLiquidityDefaultPool({ mint1: coin1.mint, mint2: coin2.mint })
+    const resultPool = ammId ? jsonMap[ammId] || best : best
     if (resultPool) {
       // current is right, no need to sync again
       if (ammId === resultPool?.id) return
