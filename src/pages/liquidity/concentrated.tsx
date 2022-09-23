@@ -45,6 +45,7 @@ import { createRef, useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { ApiAmmV3Point } from 'test-r-sdk'
 import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
+import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -128,6 +129,7 @@ function ConcentratedCard() {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
@@ -217,6 +219,15 @@ function ConcentratedCard() {
 
       <ConcentratedFeeSwitcher className="mt-12" />
       <div className="relative">
+        {chartPoints && (
+          <Chart
+            chartOptions={{
+              points: chartPoints ? toXYChartFormat(chartPoints) : undefined
+            }}
+            currentPrice={decimalToFraction(currentAmmPool?.state.currentPrice)}
+            poolId={toPubString(currentAmmPool?.state.id)}
+          />
+        )}
         <ConcentratedRangeInputChart
           className={`mt-5 ${chartPoints ? '' : 'blur-md'}`}
           chartOptions={{
