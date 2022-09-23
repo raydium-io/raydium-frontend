@@ -19,6 +19,8 @@ import {
   ConcentratedRangeInputChartBodyComponentHandler
 } from './ConcentratedRangeInputChartBody'
 
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, ReferenceLine } from 'recharts'
+
 export function ConcentratedRangeInputChart({
   poolId,
   className,
