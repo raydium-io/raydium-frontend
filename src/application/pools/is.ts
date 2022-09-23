@@ -1,4 +1,4 @@
-import { PublicKeyish } from 'test-r-sdk'
+import { LiquidityPoolJsonInfo, PublicKeyish } from 'test-r-sdk'
 
 import { HydratedConcentratedInfo } from '../concentrated/type'
 
@@ -10,4 +10,8 @@ export function isHydratedPoolItemInfo(info: JsonPairItemInfo | HydratedPairItem
 
 export function isHydratedConcentratedItemInfo(info: HydratedConcentratedInfo): info is HydratedConcentratedInfo {
   return typeof info.idString === 'string'
+}
+
+export function isLiquidityPoolJsonInfo(info: any): info is LiquidityPoolJsonInfo {
+  return 'marketId' in info
 }

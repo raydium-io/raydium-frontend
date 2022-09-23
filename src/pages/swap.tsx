@@ -1,11 +1,12 @@
 import { createRef, ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { RouteInfo } from 'test-r-sdk'
+import { AmmV3PoolInfo, LiquidityPoolJsonInfo, RouteInfo } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import useNotification from '@/application/notification/useNotification'
+import { isLiquidityPoolJsonInfo } from '@/application/pools/is'
 import { routeTo } from '@/application/routeTools'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
@@ -955,9 +956,10 @@ function SwapCardTooltipPanelAddress() {
   const coin2 = useSwap((s) => s.coin2)
   const calcResult = useSwap((s) => s.calcResult)
   const currentPoolKeys = calcResult?.[0]?.poolKey
-  const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
-  const liquidityJsonInfoMap = listToMap(liquidityJsonInfos, (i) => i.id)
-  const currentLiquidityInfos = currentPoolKeys?.map(({ id }) => liquidityJsonInfoMap[toPubString(id)])
+
+  const poolKeyLength = useMemo(() => {
+    return currentPoolKeys?.length
+  }, [currentPoolKeys])
 
   return (
     <div className="w-60">
@@ -974,43 +976,43 @@ function SwapCardTooltipPanelAddress() {
           address={String(coin2?.mint ?? '--')}
         />
         {/* show routes address panel */}
-        {currentLiquidityInfos?.length && currentLiquidityInfos?.length === 1 && currentLiquidityInfos[0] ? (
+        {currentPoolKeys?.length ? (
           <>
-            {currentLiquidityInfos[0] && (
-              <SwapCardTooltipPanelAddressItem label="Market ID" address={currentLiquidityInfos[0].marketId} />
-            )}
-            {currentLiquidityInfos[0] && (
-              <SwapCardTooltipPanelAddressItem label="Amm ID" address={currentLiquidityInfos[0].id} />
-            )}
+            {currentPoolKeys.map((info, idx, arr) => {
+              const dom: any[] = []
+              let multiRoute = ''
+              if (arr.length > 1) {
+                multiRoute = `(route ${idx + 1})`
+              }
+              if (isLiquidityPoolJsonInfo(info)) {
+                // original pool
+                dom.push(
+                  <SwapCardTooltipPanelAddressItem
+                    key={'market' + info.marketId}
+                    label={`Market ID ${multiRoute}`}
+                    address={info.marketId}
+                  />
+                )
+                dom.push(
+                  <SwapCardTooltipPanelAddressItem
+                    key={'amm' + info.id}
+                    label={`Amm ID ${multiRoute}`}
+                    address={info.id}
+                  />
+                )
+              } else {
+                // CLMM
+                dom.push(
+                  <SwapCardTooltipPanelAddressItem
+                    key={'amm' + info.id}
+                    label={`Amm ID ${multiRoute}`}
+                    address={toPubString(info.id)}
+                  />
+                )
+              }
+              return dom
+            })}
           </>
-        ) : currentLiquidityInfos?.length && currentLiquidityInfos.length > 1 ? (
-          <>
-            {currentLiquidityInfos
-              ?.filter((info) => (info && info.marketId ? true : false))
-              .map(({ marketId }, idx) => (
-                <SwapCardTooltipPanelAddressItem
-                  key={'market' + marketId}
-                  label={`Market ID (route ${idx + 1})`}
-                  address={marketId}
-                />
-              ))}
-            {currentLiquidityInfos
-              ?.filter((info) => (info && info.id ? true : false))
-              .map(({ id }, idx) => (
-                <SwapCardTooltipPanelAddressItem key={'amm' + id} label={`Amm ID (route ${idx + 1})`} address={id} />
-              ))}
-          </>
-        ) : isArray(currentLiquidityInfos) && !currentLiquidityInfos[0] && isArray(currentPoolKeys) ? (
-          currentPoolKeys.map((info, idx) => {
-            const address = toPubString(info.id)
-            return (
-              <SwapCardTooltipPanelAddressItem
-                key={'amm' + address}
-                label={`Amm ID (route ${idx + 1})`}
-                address={address}
-              />
-            )
-          })
         ) : null}
       </Col>
     </div>
