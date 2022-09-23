@@ -5,7 +5,9 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { routeTo } from '@/application/routeTools'
@@ -938,11 +940,20 @@ function PoolCardDatabaseBodyCollapsePositionContent({
             is={isMobile ? 'Grid' : 'Row'}
             className={`gap-[4vw] mobile:gap-3 mobile:grid-cols-3-auto flex-grow justify-between`}
           >
-            <Row>
+            <Row className="justify-between items-center">
               <div className="flex-grow">
                 <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">My Position</div>
                 <div className="text-white font-medium text-base mobile:text-xs">{myPosition ?? '--'}</div>
               </div>
+              <Button
+                className="frosted-glass-teal ml-6"
+                onClick={() => {
+                  useConcentrated.setState({ currentAmmPool: info, targetUserPositionAccount: p })
+                  routeTo('/liquidity/my-position')
+                }}
+              >
+                Manage Position
+              </Button>
             </Row>
             <Row>
               <div className="flex-grow">
