@@ -743,7 +743,7 @@ function SwapCardInfo({ className }: { className?: string }) {
   return (
     <Col
       className={twMerge(
-        `py-4 px-6 flex-grow border-1.5  ${
+        `pt-5 pb-4 px-6 flex-grow border-1.5  ${
           isDangerousPrice
             ? 'border-[#DA2EEF]'
             : isWarningPrice
@@ -864,7 +864,7 @@ function SwappingThrough({
   poolTypes: (string | undefined)[]
 }) {
   return (
-    <Row className="items-center mt-2">
+    <Row className="items-center">
       {startSymbol} <ArrowWithTag tagValue={poolTypes[0]} /> {middleSymbol} <ArrowWithTag tagValue={poolTypes[1]} />
       {endSymbol}
     </Row>
@@ -882,11 +882,11 @@ function ArrowWithTag({ tagValue = '' }: { tagValue?: string }) {
   }, [ref])
 
   return (
-    <div ref={ref} className="relative top-[-15px]" style={{ marginLeft: 4, marginRight: 4, maxHeight: 16 }}>
+    <div ref={ref} className="relative top-[-15px]" style={{ marginLeft: 4, marginRight: 4, maxHeight: 19 }}>
       {tagValue ? (
         <Badge className="self-center text-[8px] px-1">{tagValue}</Badge>
       ) : (
-        <div style={{ height: 18, width: 12 }}></div>
+        <div style={{ height: 19, width: 12 }}></div>
       )}
       <Arrow className="" width={width} />
     </div>
