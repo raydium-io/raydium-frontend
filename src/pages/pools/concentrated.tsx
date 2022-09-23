@@ -355,7 +355,7 @@ function PoolCard() {
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.liquidity] }
+    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.tvl] }
   })
   // re-sort when favourite have loaded
   useOnceEffect(
@@ -364,7 +364,7 @@ function PoolCard() {
       if (favouriteIds != null) {
         setSortConfig({
           key: 'init',
-          sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.liquidity],
+          sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.tvl],
           mode: 'decrease'
         })
         runed()
@@ -385,7 +385,7 @@ function PoolCard() {
             setSortConfig({
               key: 'favorite',
               sortModeQueue: ['decrease', 'none'],
-              sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.liquidity]
+              sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.tvl]
             })
           }}
         >
@@ -434,7 +434,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: 'liquidity', sortCompare: (i) => i.liquidity })
+            setSortConfig({ key: 'liquidity', sortCompare: (i) => i.tvl })
           }}
         >
           Liquidity
@@ -668,7 +668,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
         name="Liquidity"
         value={
           isHydratedConcentratedItemInfo(info)
-            ? toUsdVolume(info.liquidity, { autoSuffix: isTablet, decimalPlace: 0 })
+            ? toUsdVolume(info.tvl, { autoSuffix: isTablet, decimalPlace: 0 })
             : undefined
         }
       />
@@ -753,7 +753,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             name="Liquidity"
             value={
               isHydratedConcentratedItemInfo(info)
-                ? toUsdVolume(info.liquidity, { autoSuffix: true, decimalPlace: 1 })
+                ? toUsdVolume(info.tvl, { autoSuffix: true, decimalPlace: 1 })
                 : undefined
             }
           />
@@ -1088,7 +1088,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         {info?.name}
         {/* {info?.isStablePool && <Badge className="self-center">Stable</Badge>} */}
-        {lt(toString(info?.liquidity, { decimalLength: 'auto 0' }) ?? 0, 100000) && (
+        {lt(toString(info?.tvl, { decimalLength: 'auto 0' }) ?? 0, 100000) && (
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />
             <Tooltip.Panel>
