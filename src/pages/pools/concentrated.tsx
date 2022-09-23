@@ -927,7 +927,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   amountB?: string
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const lightBoardClass = 'bg-[rgba(20,16,65,.2)]'
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
       <Row className={`w-full pt-5 px-8 mobile:py-3 mobile:px-4 mobile:m-0`}>
@@ -997,7 +996,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     useConcentrated.setState({
                       isRemoveDialogOpen: true,
                       currentAmmPool: info,
-                      targetUserPositionAccount: p
+                      targetUserPositionAccount: p,
+                      coin1: info.base,
+                      coin2: info.quote
                     })
                     routeTo('/liquidity/concentrated', {
                       queryProps: {}
@@ -1038,7 +1039,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                       useConcentrated.setState({
                         isRemoveDialogOpen: true,
                         currentAmmPool: info,
-                        targetUserPositionAccount: p
+                        targetUserPositionAccount: p,
+                        coin1: info.base,
+                        coin2: info.quote
                       })
                       routeTo('/liquidity/concentrated', {
                         queryProps: {}
