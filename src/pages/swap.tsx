@@ -713,8 +713,8 @@ function SwapCardInfo({ className }: { className?: string }) {
   const minReceived = useSwap((s) => s.minReceived)
   const fee = useSwap((s) => s.fee)
   const maxSpent = useSwap((s) => s.maxSpent)
-  const calcResult = useSwap((s) => s.calcResult)
-  const currentCalcResult = calcResult?.[0]
+  const selectedCalcResult = useSwap((s) => s.selectedCalcResult)
+  const currentCalcResult = selectedCalcResult
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
   const getToken = useToken((s) => s.getToken)
 
@@ -739,7 +739,10 @@ function SwapCardInfo({ className }: { className?: string }) {
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
-  const isStable = useMemo(() => Boolean(currentCalcResult?.poolKey?.some((t) => t.version === 5)), [calcResult])
+  const isStable = useMemo(
+    () => Boolean(currentCalcResult?.poolKey?.some((t) => t.version === 5)),
+    [selectedCalcResult]
+  )
   return (
     <Col
       className={twMerge(
@@ -954,12 +957,8 @@ function SwapCardItem({
 function SwapCardTooltipPanelAddress() {
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
-  const calcResult = useSwap((s) => s.calcResult)
-  const currentPoolKeys = calcResult?.[0]?.poolKey
-
-  const poolKeyLength = useMemo(() => {
-    return currentPoolKeys?.length
-  }, [currentPoolKeys])
+  const selectedCalcResult = useSwap((s) => s.selectedCalcResult)
+  const currentPoolKeys = selectedCalcResult?.poolKey
 
   return (
     <div className="w-60">

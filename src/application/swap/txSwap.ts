@@ -20,7 +20,8 @@ export default function txSwap() {
       coin2,
       coin1Amount,
       coin2Amount,
-      calcResult,
+      selectedCalcResult,
+
       focusSide,
       routeType,
       directionReversed,
@@ -41,7 +42,7 @@ export default function txSwap() {
     assert(upCoin, 'select a coin in upper box')
     assert(downCoin, 'select a coin in lower box')
     assert(!isMintEqual(upCoin.mint, downCoin.mint), 'should not select same mint ')
-    assert(calcResult, "can't find correct route")
+    assert(selectedCalcResult, "can't find correct route")
 
     const upCoinTokenAmount = toTokenAmount(upCoin, upCoinAmount, { alreadyDecimaled: true })
     const downCoinTokenAmount = toTokenAmount(downCoin, downCoinAmount, { alreadyDecimaled: true })
@@ -52,7 +53,7 @@ export default function txSwap() {
 
     const { transactions, address } = await TradeV2.makeSwapTranscation({
       connection,
-      swapInfo: calcResult[0],
+      swapInfo: selectedCalcResult,
       ownerInfo: {
         wallet: owner,
         tokenAccounts: tokenAccountRawInfos,
