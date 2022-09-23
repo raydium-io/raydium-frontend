@@ -5,7 +5,9 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { usePools } from '@/application/pools/usePools'
@@ -1001,11 +1003,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 <Button
                   className="frosted-glass-teal"
                   onClick={() => {
-                    // create
-                    useConcentrated.setState({ coin1: info.base, coin2: info.quote })
-                    routeTo('/liquidity/concentrated', {
-                      queryProps: {}
-                    })
+                    useConcentrated.setState({ currentAmmPool: info, targetUserPositionAccount: p })
+                    routeTo('/liquidity/my-position')
                   }}
                 >
                   Manage Liquidity
