@@ -42,5 +42,17 @@ export function throttle<F extends (...args: any[]) => void>(
   }
 }
 
-// TODO
-// export function throttle
+export type DebounceOptions = {
+  delay?: number
+}
+
+export function debounce<F extends (...args: any[]) => void>(fn: F, options?: DebounceOptions): F {
+  let cachedTimoutId: number
+
+  // @ts-expect-error force
+  return (...args: Parameters<F>) => {
+    if (cachedTimoutId) window.clearTimeout(cachedTimoutId)
+    const timeoutId = window.setTimeout(() => fn(...args), options?.delay ?? 400)
+    cachedTimoutId = timeoutId
+  }
+}
