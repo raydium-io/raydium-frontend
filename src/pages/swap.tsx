@@ -863,7 +863,7 @@ function SwappingThrough({
   poolTypes: (string | undefined)[]
 }) {
   return (
-    <Row className="items-center ">
+    <Row className="items-center mt-2">
       {startSymbol} <ArrowWithTag tagValue={poolTypes[0]} /> {middleSymbol} <ArrowWithTag tagValue={poolTypes[1]} />
       {endSymbol}
     </Row>
@@ -883,9 +883,7 @@ function ArrowWithTag({ tagValue = '' }: { tagValue?: string }) {
   return (
     <div ref={ref} className="relative top-[-15px]" style={{ marginLeft: 4, marginRight: 4, maxHeight: 16 }}>
       {tagValue ? (
-        <Badge className="self-center " size="sm">
-          {tagValue}
-        </Badge>
+        <Badge className="self-center text-[8px] px-1">{tagValue}</Badge>
       ) : (
         <div style={{ height: 18, width: 12 }}></div>
       )}
