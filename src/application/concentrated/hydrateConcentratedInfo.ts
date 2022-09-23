@@ -73,7 +73,9 @@ function hydrateUserPositionAccounnt(
       amountA: tokenA ? toTokenAmount(tokenA, a.amountA) : undefined,
       amountB: tokenB ? toTokenAmount(tokenB, a.amountB) : undefined,
       nftMint: a.nftMint, // need this or nftMint will be buggy, this is only quick fixed
-      liquidity: a.liquidity
+      liquidity: a.liquidity,
+      tokenA,
+      tokenB
     }))
   }
 }
