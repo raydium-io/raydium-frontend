@@ -53,7 +53,7 @@ function hydrateFeeRate(
 ): Pick<HydratedConcentratedInfo, 'protocolFeeRate' | 'tradeFeeRate'> {
   return {
     protocolFeeRate: toPercent(div(sdkConcentratedInfo.state.ammConfig.protocolFeeRate, 10 ** 8)),
-    tradeFeeRate: toPercent(div(sdkConcentratedInfo.state.ammConfig.tradeFeeRate, 10 ** 8))
+    tradeFeeRate: toPercent(div(sdkConcentratedInfo.state.ammConfig.tradeFeeRate, 10 ** 6))
   }
 }
 

@@ -134,9 +134,7 @@ export function useSwapAmountCalculator() {
             console.error(err)
           })
       )
-      // console.log('calc 3', abortableCalcResult)
       abortableAllSwapableRouteInfos.then((infos) => {
-        // console.log('infos: ', infos)
         if (!infos) return
         const { routeList: calcResult, bestResult } = infos
         const resultStillFresh = (() => {
@@ -176,10 +174,7 @@ export function useSwapAmountCalculator() {
         })
       })
 
-      // console.log('calc')
-      // for calculatePairTokenAmount is async, result maybe droped. if that, just stop it
       return () => {
-        // console.log('calc abort')
         abortCalc()
       }
     },
