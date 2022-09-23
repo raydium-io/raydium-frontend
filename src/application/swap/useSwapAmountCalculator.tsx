@@ -1,3 +1,6 @@
+import { useEffect } from 'react'
+import { WSOL } from 'test-r-sdk'
+
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
@@ -8,8 +11,6 @@ import { getAllSwapableRouteInfos } from '@/models/ammAndLiquidity'
 import { makeAbortable } from '@/models/makeAbortable'
 import { HexAddress } from '@/types/constants'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
-import { WSOL } from 'test-r-sdk'
 import useAppSettings from '../appSettings/useAppSettings'
 import useConnection from '../connection/useConnection'
 import { SDKParsedLiquidityInfo } from '../liquidity/type'
@@ -182,7 +183,7 @@ export function useSwapAmountCalculator() {
         abortCalc()
       }
     },
-    { debouncedOptions: { delay: 800 } }
+    { debouncedOptions: { delay: 300 } }
   )
 
   // if don't check focusSideCoin, it will calc twice.
