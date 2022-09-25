@@ -93,6 +93,9 @@ export type PageRouteConfigs = {
   '/liquidity/concentrated': {
     queryProps?: any
   }
+  '/liquidity/my-position': {
+    queryProps?: any
+  }
 }
 
 export type PageRouteName = keyof PageRouteConfigs

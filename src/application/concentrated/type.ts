@@ -23,7 +23,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   userPositionAccount?: UserPositionAccount[]
   name: string
   idString: string
-  liquidity: CurrencyAmount
+  tvl: CurrencyAmount
   fee24h: CurrencyAmount
   fee7d: CurrencyAmount
   fee30d: CurrencyAmount

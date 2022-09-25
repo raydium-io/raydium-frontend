@@ -1,5 +1,5 @@
 import { AnyFn, ObjectNotArray } from '@/types/constants'
-import { isUndefined } from './judgers/dateType'
+import { isArray, isObject, isUndefined } from './judgers/dateType'
 import { isExist } from './judgers/nil'
 
 /**
@@ -57,4 +57,12 @@ export function mergeFunction<T extends AnyFn>(...fns: T[]): (...params: Paramet
   return (...params) => {
     fns.forEach((fn) => fn?.(...params))
   }
+}
+
+export function mergeObject<T extends any[]>(...objs: [...T]): T[number] {
+  return _mergeObjects(objs, (k, v1, v2) => {
+    if (isArray(v1) && isArray(v2)) return [...v1, ...v2]
+    if (isObject(v1) && isObject(v2)) return { ...v1, ...v2 }
+    return v2
+  })
 }

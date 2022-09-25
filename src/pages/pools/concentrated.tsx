@@ -5,15 +5,21 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
+import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
+import useToken from '@/application/token/useToken'
+import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
+import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import Grid from '@/components/Grid'
@@ -32,8 +38,9 @@ import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
+import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { lt } from '@/functions/numberish/compare'
+import compare, { lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useOnceEffect from '@/hooks/useOnceEffect'
@@ -353,7 +360,7 @@ function PoolCard() {
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.liquidity] }
+    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.tvl] }
   })
   // re-sort when favourite have loaded
   useOnceEffect(
@@ -362,7 +369,7 @@ function PoolCard() {
       if (favouriteIds != null) {
         setSortConfig({
           key: 'init',
-          sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.liquidity],
+          sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.tvl],
           mode: 'decrease'
         })
         runed()
@@ -383,7 +390,7 @@ function PoolCard() {
             setSortConfig({
               key: 'favorite',
               sortModeQueue: ['decrease', 'none'],
-              sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.liquidity]
+              sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.tvl]
             })
           }}
         >
@@ -432,7 +439,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setSortConfig({ key: 'liquidity', sortCompare: (i) => i.liquidity })
+            setSortConfig({ key: 'liquidity', sortCompare: (i) => i.tvl })
           }}
         >
           Liquidity
@@ -666,7 +673,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
         name="Liquidity"
         value={
           isHydratedConcentratedItemInfo(info)
-            ? toUsdVolume(info.liquidity, { autoSuffix: isTablet, decimalPlace: 0 })
+            ? toUsdVolume(info.tvl, { autoSuffix: isTablet, decimalPlace: 0 })
             : undefined
         }
       />
@@ -751,7 +758,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             name="Liquidity"
             value={
               isHydratedConcentratedItemInfo(info)
-                ? toUsdVolume(info.liquidity, { autoSuffix: true, decimalPlace: 1 })
+                ? toUsdVolume(info.tvl, { autoSuffix: true, decimalPlace: 1 })
                 : undefined
             }
           />
@@ -815,6 +822,16 @@ function PoolCardDatabaseBodyCollapseItemFace({
 }
 
 function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedConcentratedInfo }) {
+  // eslint-disable-next-line no-console
+  console.log('info: ', info)
+
+  const { lpPrices } = usePools()
+  const tokenPrices = useToken((s) => s.tokenPrices)
+
+  const variousPrices = useMemo(() => {
+    return { ...lpPrices, ...tokenPrices }
+  }, [lpPrices, tokenPrices])
+
   const openNewPosition = useMemo(() => {
     return (
       <AutoBox is={'Col'} className={`py-5 px-8 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
@@ -855,8 +872,20 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             const upper = toString(p.priceUpper, { decimalLength: 'auto 5' })
 
             if (lower && upper) {
-              myPosition = lower + '-' + upper
+              myPosition = lower + ' - ' + upper
             }
+
+            // eslint-disable-next-line no-console
+            console.log('p: ', p)
+
+            const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
+            const coinBPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenB?.mint)] ?? null)
+
+            const myPositionPrice = coinAPrice.add(coinBPrice)
+            const myPositionVolume = myPositionPrice ? toUsdVolume(myPositionPrice) : '--'
+            const poolCurrentPrice = decimalToFraction(info.state.currentPrice)
+            const inRange =
+              compare('gte', poolCurrentPrice, p.priceLower) && compare('lte', poolCurrentPrice, p.priceUpper)
 
             // TODO: remove the comment out code below, they are for testing only
             // if (idx === 0) {
@@ -897,6 +926,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 myPosition={myPosition}
                 amountA={amountA}
                 amountB={amountB}
+                myPositionVolume={myPositionVolume}
+                inRange={inRange}
               />
             )
           })}
@@ -918,15 +949,35 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   userPositionAccount: p,
   myPosition: myPosition,
   amountA,
-  amountB
+  amountB,
+  myPositionVolume,
+  inRange
 }: {
   poolInfo: HydratedConcentratedInfo
   userPositionAccount?: UserPositionAccount
   myPosition?: string
   amountA?: string
   amountB?: string
+  myPositionVolume?: string
+  inRange?: boolean
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
+
+  const rangeTag = useMemo(() => {
+    if (!inRange) return null
+    // const dom: any[] = []
+    // dom.push()
+    return (
+      <Row className="items-center bg-[#142B45] rounded text-xs text-[#39D0D8] py-0.5 px-1 ml-2">
+        <Icon size="xs" iconSrc={'/icons/check-circle.svg'} />
+        <div className="font-normal" style={{ marginLeft: 4 }}>
+          {' '}
+          In Range
+        </div>
+      </Row>
+    )
+  }, [inRange])
+
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
       <Row className={`w-full pt-5 px-8 mobile:py-3 mobile:px-4 mobile:m-0`}>
@@ -936,34 +987,57 @@ function PoolCardDatabaseBodyCollapsePositionContent({
         >
           <AutoBox
             is={isMobile ? 'Grid' : 'Row'}
-            className={`gap-[4vw] mobile:gap-3 mobile:grid-cols-3-auto flex-grow justify-between`}
+            className={`gap-[8px] mobile:gap-3 mobile:grid-cols-2-auto flex-grow justify-between`}
           >
-            <Row>
-              <div className="flex-grow">
-                <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">My Position</div>
+            <Row className="flex-grow justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg py-6 px-6  items-center">
+              <Col>
+                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
+                  My Position {inRange ? rangeTag : null}
+                </div>
                 <div className="text-white font-medium text-base mobile:text-xs">{myPosition ?? '--'}</div>
-              </div>
+                <div className="text-white font-medium text-base text-[14px] mobile:text-xs">
+                  {myPositionVolume ?? '--'}
+                </div>
+              </Col>
+              <Col>
+                <Button
+                  className="frosted-glass-teal"
+                  onClick={() => {
+                    useConcentrated.setState({ currentAmmPool: info, targetUserPositionAccount: p })
+                    routeTo('/liquidity/my-position')
+                  }}
+                >
+                  Manage Liquidity
+                </Button>
+              </Col>
             </Row>
-            <Row>
-              <div className="flex-grow">
-                <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
-                  Assets Pooled
+            <Row className="flex-grow justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg py-6 px-6  items-center">
+              <Col>
+                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
+                  Unclaimed Yield
                 </div>
-                <div className="text-white font-medium text-base mobile:text-xs">
-                  {amountA ?? '0'} {info.base?.symbol}
+                <div className="text-[16px] text-white font-normal text-base mobile:text-xs">
+                  {myPositionVolume ?? '--'}
                 </div>
-                <div className="text-white font-medium text-base mobile:text-xs">
-                  {amountB ?? '0'} {info.quote?.symbol}
-                </div>
-              </div>
-            </Row>
-            <Row>
-              <div className="flex-grow">
-                <div className="text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
-                  Pending Fees
-                </div>
-                <div className="text-white font-medium text-base mobile:text-xs">$0</div>
-              </div>
+                <AutoBox is="Row" className="gap-[5px] font-normal text-sm">
+                  <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
+                  <Col className="text-white">17.4%</Col>
+                </AutoBox>
+              </Col>
+              <Col>
+                <Button
+                  className="frosted-glass-teal"
+                  onClick={() => {
+                    // create
+                    useConcentrated.setState({ coin1: info.base, coin2: info.quote })
+                    routeTo('/liquidity/concentrated', {
+                      queryProps: {}
+                    })
+                  }}
+                >
+                  Harvest
+                </Button>
+              </Col>
             </Row>
           </AutoBox>
           <Row
@@ -1077,7 +1151,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         {info?.name}
         {/* {info?.isStablePool && <Badge className="self-center">Stable</Badge>} */}
-        {lt(toString(info?.liquidity, { decimalLength: 'auto 0' }) ?? 0, 100000) && (
+        {lt(toString(info?.tvl, { decimalLength: 'auto 0' }) ?? 0, 100000) && (
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />
             <Tooltip.Panel>
