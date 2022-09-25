@@ -30,6 +30,7 @@ const config = {
         'text-home-page-secondary': 'var(--text-home-page-secondary)',
         'big-title': '#ffffff',
         'secondary-title': '#abc4ff',
+        'active-cyan': '#39d0d8',
 
         // 👇 ground color (like: <Card>'s background)
         'ground-color-light-solid': 'var(--ground-color-light-solid)',
@@ -64,8 +65,14 @@ const config = {
         'formkit-ground': 'var(--formkit-ground-color)',
         'formkit-line': 'var(--formkit-line-color)',
 
+        // background color
+        'dark-blue': '#141041',
+        'active-tab-bg': '#1B1659',
+
         // 👇🎃 other color
-        'dropzone-card-bg': 'var(--card-color-dark)'
+        'dropzone-card-bg': 'var(--card-color-dark)',
+        'light-blue-opacity': 'rgba(54, 185, 226, 0.5)',
+        'light-blue': '#39D0D8'
       },
       fontSize: {
         '2xs': '10px'

@@ -1,8 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef } from 'react'
 
 import { isNumberish } from '@/functions/judgers/dateType'
-import { padZero } from '@/functions/numberish/handleZero'
-import { add, clamp, getMin, minus } from '@/functions/numberish/operations'
+import { add, clamp, minus } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import mergeRef from '@/functions/react/mergeRef'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
@@ -26,6 +25,7 @@ export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultVa
   // TODO: mustAboveZero?: boolean
 
   showArrowControls?: boolean
+  showPlusMinusControls?: boolean
 
   /**
    * only if type is decimal
@@ -68,6 +68,7 @@ export default function DecimalInput({
   value,
   decimalCount = 3,
   showArrowControls,
+  showPlusMinusControls,
   minN = 0,
   maxN,
   step = Number((1 / 10 ** Math.floor(decimalCount)).toFixed(decimalCount)),
@@ -155,6 +156,11 @@ export default function DecimalInput({
       onDangerousValueChange={(v) => {
         dangerousInput(v)
       }}
+      prefix={
+        showPlusMinusControls ? (
+          <Icon className="text-light-blue clickable" heroIconName="minus" size="xs" onClick={decrease} canLongClick />
+        ) : undefined
+      }
       suffix={
         showArrowControls ? (
           <div>
@@ -173,6 +179,8 @@ export default function DecimalInput({
               canLongClick
             />
           </div>
+        ) : showPlusMinusControls ? (
+          <Icon className="text-light-blue clickable" heroIconName="plus" size="xs" onClick={decrease} canLongClick />
         ) : undefined
       }
     />

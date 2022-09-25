@@ -2,70 +2,60 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Fraction } from 'test-r-sdk'
 import { ChartPoint, ChartRangeInputOption } from './ConcentratedRangeInputChartBody'
 import Icon from '@/components/Icon'
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  ReferenceLine,
-  ResponsiveContainer,
-  Label,
-  ReferenceArea,
-  Tooltip
-} from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
 import useDevice from '@/hooks/useDevice'
 import {
   getPriceLabel,
   Range,
-  smoothCount,
   ZOOM_INTERVAL,
   DEFAULT_X_AXIS,
+  HIGHLIGHT_COLOR,
   strokeFillProp,
   toFixedNumber,
+  getConfig,
   getLabel
 } from './chartUtil'
+import PriceRangeInput from './PriceRangeInput'
 
 interface HighlightPoint extends ChartPoint {
   z?: number // for highlight select range
 }
 
-export default function Chart({
-  poolId,
-  className,
-  chartOptions,
-  currentPrice,
-  showCurrentPriceOnly,
-  hideRangeLine,
-  hideXAxis
-}: {
+interface Props {
   poolId?: string
   className?: string
   chartOptions?: ChartRangeInputOption
   currentPrice?: Fraction
   showCurrentPriceOnly?: boolean
+  showZoom?: boolean
   hideRangeLine?: boolean
   hideXAxis?: boolean
-}) {
+  height?: number
+  onPositionChange?: (props: { min: number; max: number }) => void
+}
+
+export default function Chart(props: Props) {
+  const { chartOptions, currentPrice, height, showCurrentPriceOnly, showZoom, hideRangeLine, hideXAxis } = props
   const points: HighlightPoint[] = chartOptions?.points || []
+  const [defaultMin, defaultMax] = [
+    chartOptions?.initMinBoundaryX as Fraction,
+    chartOptions?.initMaxBoundaryX as Fraction
+  ]
   const hasPoints = points.length > 0
   const { isMobile } = useDevice()
   const [displayList, setDisplayList] = useState(points)
   const [isMoving, setIsMoving] = useState(false)
-  const [isHover, setIsHover] = useState(false)
   const [position, setPosition] = useState({
-    [Range.Min]: points[1]?.x || 10,
-    [Range.Max]: points[points.length - 2]?.x || 80
+    [Range.Min]: Number(defaultMin?.toFixed(6)) || 10,
+    [Range.Max]: Number(defaultMax?.toFixed(6)) || 80
   })
   const boundaryRef = useRef({ min: points[0]?.x || 0, max: points[points.length - 1]?.x || 100 })
   const moveRef = useRef('')
   const areaRef = useRef<number | undefined>()
   const maxYRef = useRef<number>(0)
   const xAxisRef = useRef<number[]>([])
-  const tickGap = (xAxisRef.current[1] - xAxisRef.current[0]) / xAxisRef.current.length
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
 
-  const handleMouseEnter = useCallback(() => setIsHover(true), [])
-  const handleMouseLeave = useCallback(() => setIsHover(false), [])
   const handleMouseUp = useCallback(() => {
     if (!moveRef.current) return
     setIsMoving(false)
@@ -82,10 +72,43 @@ export default function Chart({
     } else {
       xAxisRef.current.push(val)
     }
-    if (val < 1) val.toFixed(2)
-    if (val < 10) val.toFixed(1)
+    if (val < 1) return val.toPrecision(4)
+    if (val < 10) return val.toPrecision(1)
     return val.toFixed(0)
   }, [])
+
+  useEffect(() => {
+    if (!points.length) return
+    const { precision, smoothCount } = getConfig(points[0].x, points.length)
+    const displayList: HighlightPoint[] = []
+    const pointMaxIndex = points.length - 1
+    for (let i = 0; i < pointMaxIndex; i++) {
+      const point = points[i]
+      const nextPoint = points[i + 1]
+      displayList.push(point)
+      maxYRef.current = Math.max(maxYRef.current, point.y, nextPoint.y)
+      // add more points to chart to smooth line
+      if (!showCurrentPriceOnly || smoothCount > 0) {
+        const gap = Number(((nextPoint.x - point.x) / smoothCount).toFixed(precision))
+        for (let j = 1; j <= smoothCount; j++) {
+          const y = j > Math.floor(smoothCount / 2) ? nextPoint.y : point.y
+          displayList.push({ x: point.x + gap * j, y, z: y })
+        }
+      }
+    }
+    if (pointMaxIndex > 0) displayList.push(points[pointMaxIndex])
+
+    boundaryRef.current = { min: points[0].x, max: points[points.length - 1].x }
+    setDisplayList(displayList)
+    setXAxisDomain(DEFAULT_X_AXIS)
+  }, [points, showCurrentPriceOnly])
+
+  useEffect(() => {
+    setPosition({
+      [Range.Min]: Number(defaultMin?.toFixed(6)),
+      [Range.Max]: Number(defaultMax?.toFixed(6))
+    })
+  }, [defaultMin, defaultMax])
 
   useEffect(() => {
     if (isMoving) return
@@ -113,36 +136,6 @@ export default function Chart({
       isMobile && window.removeEventListener('pointerup', handleMouseUp)
     }
   }, [isMobile])
-
-  useEffect(() => {
-    if (!points.length) return
-    const displayList: HighlightPoint[] = []
-    const pointMaxIndex = points.length - 1
-    for (let i = 0; i < pointMaxIndex; i++) {
-      const point = points[i]
-      const nextPoint = points[i + 1]
-      displayList.push(point)
-      maxYRef.current = Math.max(maxYRef.current, point.y, nextPoint.y)
-      // add more points to chart to smooth line
-      if (!showCurrentPriceOnly || points.length < 1000) {
-        const gap = Number(((nextPoint.x - point.x) / smoothCount).toFixed(2))
-        for (let j = 1; j <= smoothCount; j++) {
-          const y = j > Math.floor(smoothCount / 2) ? nextPoint.y : point.y
-          displayList.push({ x: point.x + gap * j, y, z: y })
-        }
-      }
-    }
-    if (pointMaxIndex > 0) displayList.push(points[pointMaxIndex])
-
-    boundaryRef.current = { min: points[0].x, max: points[points.length - 1].x }
-    setDisplayList(displayList)
-    // set default reference line
-    setPosition({
-      [Range.Min]: points[1].x,
-      [Range.Max]: points[pointMaxIndex - 1].x
-    })
-    setXAxisDomain(DEFAULT_X_AXIS)
-  }, [points, showCurrentPriceOnly])
 
   const handleMove = useCallback((e: any) => {
     if (!moveRef.current || !e) return
@@ -213,11 +206,21 @@ export default function Chart({
     boundaryRef.current = { min, max }
     setXAxisDomain([min, max])
   }
-  const getReferenceProps = (range: Range) =>
-    position[range]
+
+  const getMouseEvent = (range: Range) => ({
+    onPointerDown: handleMouseDown(range),
+    onMouseDown: handleMouseDown(range)
+  })
+
+  const getReferenceProps = (range: Range) => {
+    const tickGap = xAxisRef.current.length
+      ? (xAxisRef.current[1] - xAxisRef.current[0]) / xAxisRef.current.length
+      : points.length
+      ? (points[points.length - 1].x - points[0].x) / 8 / 8
+      : 0
+    return position[range]
       ? {
-          onPointerDown: handleMouseDown(range),
-          onMouseDown: handleMouseDown(range),
+          ...getMouseEvent(range),
           x1: position[range] - (range === Range.Min ? 1.6 * tickGap : tickGap / 1.5),
           x2: position[range] + (range === Range.Max ? 1.6 * tickGap : tickGap / 1.5),
           y1: 0,
@@ -227,29 +230,32 @@ export default function Chart({
           isFront: true
         }
       : null
+  }
 
   return (
     <>
-      <div className="flex select-none">
-        <Icon
-          onClick={zoomReset}
-          className="saturate-50 brightness-125 cursor-pointer"
-          iconSrc="/icons/chart-add-white-space.svg"
-        />
-        <Icon
-          className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
-          onClick={zoomIn}
-          heroIconName="zoom-in"
-          canLongClick
-        />
-        <Icon
-          onClick={zoomOut}
-          className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
-          heroIconName="zoom-out"
-          canLongClick
-        />
-      </div>
-      <div className="w-full h-[250px] select-none">
+      {showZoom && (
+        <div className="flex select-none">
+          <Icon
+            onClick={zoomReset}
+            className="saturate-50 brightness-125 cursor-pointer"
+            iconSrc="/icons/chart-add-white-space.svg"
+          />
+          <Icon
+            className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
+            onClick={zoomIn}
+            heroIconName="zoom-in"
+            canLongClick
+          />
+          <Icon
+            onClick={zoomOut}
+            className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
+            heroIconName="zoom-out"
+            canLongClick
+          />
+        </div>
+      )}
+      <div className="w-full select-none" style={{ height: `${height || 140}px` }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             style={{ userSelect: 'none' }}
@@ -260,8 +266,6 @@ export default function Chart({
             }}
             defaultShowTooltip={false}
             data={displayList || []}
-            onMouseEnter={handleMouseEnter}
-            onMouseLeave={handleMouseLeave}
             onMouseMove={handleMove}
             onMouseUp={handleMouseUp}
           >
@@ -277,12 +281,19 @@ export default function Chart({
               fillOpacity={0.2}
               strokeOpacity={0.2}
             />
-            <Area {...strokeFillProp} style={{ cursor: isMoving ? 'grab' : 'default' }} type="monotone" dataKey="z" />
+            <Area
+              {...strokeFillProp}
+              fill="#abc4ff"
+              stroke="#abc4ff"
+              style={{ cursor: isMoving ? 'grab' : 'default' }}
+              type="monotone"
+              dataKey="z"
+            />
             <Tooltip wrapperStyle={{ display: 'none' }} isAnimationActive={false} cursor={false} active={false} />
             <XAxis
-              style={{ userSelect: 'none' }}
+              style={{ userSelect: 'none', fontSize: '10px' }}
               type="number"
-              tickCount={8}
+              tickCount={7}
               tickFormatter={formatTicks}
               domain={xAxisDomain}
               interval="preserveStartEnd"
@@ -292,6 +303,40 @@ export default function Chart({
               dataKey="x"
             />
             <YAxis allowDataOverflow domain={['dataMin', 'dataMax']} type="number" hide={true} />
+            {!hideRangeLine && position[Range.Min] && (
+              <ReferenceLine
+                {...strokeFillProp}
+                {...getMouseEvent(Range.Min)}
+                className="cursor-grab"
+                isFront={true}
+                x={position[Range.Min]}
+                strokeWidth={4}
+                label={getLabel({ side: Range.Min, ...getMouseEvent(Range.Min) })}
+              />
+            )}
+
+            {!hideRangeLine && position[Range.Max] && (
+              <ReferenceLine
+                {...strokeFillProp}
+                {...getMouseEvent(Range.Max)}
+                className="cursor-grab"
+                isFront={true}
+                x={position[Range.Max]}
+                strokeWidth={4}
+                label={getLabel({ side: Range.Max, ...getMouseEvent(Range.Max) })}
+              />
+            )}
+
+            {currentPrice && (
+              <ReferenceLine
+                isFront={true}
+                x={currentPrice?.toSignificant(4)}
+                stroke="#FFF"
+                strokeDasharray="4"
+                strokeWidth={2}
+                label={getPriceLabel(currentPrice?.toSignificant(4))}
+              />
+            )}
             {hasPoints && (
               <ReferenceArea
                 style={{ cursor: 'pointer' }}
@@ -311,51 +356,8 @@ export default function Chart({
                 }}
                 x1={position[Range.Min]}
                 x2={position[Range.Max]}
-                fill="transparent"
-              />
-            )}
-            {!hideRangeLine && position[Range.Min] && (
-              <ReferenceLine
-                {...strokeFillProp}
-                className="cursor-grab"
-                isFront={true}
-                onPointerDown={isMobile ? handleMouseDown(Range.Min) : undefined}
-                onMouseDown={handleMouseDown(Range.Min)}
-                x={position[Range.Min]}
-                strokeWidth={6}
-                label={getLabel(Range.Min)}
-              >
-                {(isHover || isMoving) && (
-                  <Label style={{ userSelect: 'none' }} value="10%" offset={15} position="insideTopRight" />
-                )}
-              </ReferenceLine>
-            )}
-
-            {!hideRangeLine && position[Range.Max] && (
-              <ReferenceLine
-                {...strokeFillProp}
-                className="cursor-grab"
-                isFront={true}
-                onPointerDown={handleMouseDown(Range.Max)}
-                onMouseDown={handleMouseDown(Range.Max)}
-                x={position[Range.Max]}
-                strokeWidth={6}
-                label={getLabel(Range.Max)}
-              >
-                {(isHover || isMoving) && (
-                  <Label style={{ userSelect: 'none' }} value="50%" offset={15} position="insideTopLeft" />
-                )}
-              </ReferenceLine>
-            )}
-
-            {currentPrice && (
-              <ReferenceLine
-                isFront={true}
-                x={currentPrice?.toSignificant(4)}
-                stroke="#FFF"
-                strokeDasharray="4"
-                strokeWidth={2}
-                label={getPriceLabel(currentPrice?.toSignificant(4))}
+                fill={HIGHLIGHT_COLOR}
+                fillOpacity="0.3"
               />
             )}
             <ReferenceArea {...getReferenceProps(Range.Min)} />
@@ -363,6 +365,7 @@ export default function Chart({
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      <PriceRangeInput decimals={6} minValue={position.min} maxValue={position.max} />
     </>
   )
 }

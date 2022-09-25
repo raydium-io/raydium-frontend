@@ -8,7 +8,7 @@ import { FadeIn } from '@/components/FadeIn'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
 
-export default function RemainSOLAlert() {
+export function RemainSOLAlert() {
   const rawsolBalance = useWallet((s) => s.solBalance)
   const solBalance = div(rawsolBalance, 10 ** SOLDecimals)
 

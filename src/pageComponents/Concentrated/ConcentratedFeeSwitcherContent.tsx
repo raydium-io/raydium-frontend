@@ -5,7 +5,7 @@ import Col from '@/components/Col'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 
-export default function ConcentratedFeeSwitcherContent({
+export function ConcentratedFeeSwitcherContent({
   unselectedAmmPools
 }: {
   unselectedAmmPools?: HydratedConcentratedInfo[]

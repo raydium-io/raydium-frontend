@@ -5,26 +5,55 @@ export enum Range {
 export const smoothCount = 20
 export const ZOOM_INTERVAL = 4
 export const REFERENCE_LINE_COLOR = '#abc4ff'
-export const HIGHLIGHT_COLOR = '#39D0D8'
+export const HIGHLIGHT_COLOR = '#256491'
 export const strokeFillProp = {
-  stroke: '#39D0D8',
-  fill: '#39D0D8'
+  stroke: '#256491',
+  fill: '#256491'
 }
-export const DEFAULT_X_AXIS = ['dataMin - 1', 'dataMax + 1']
+export const DEFAULT_X_AXIS = ['dataMin', 'dataMax']
+
+export const getConfig = (num: number, totalCount: number) => {
+  const config = { precision: 1, smoothCount: 10 }
+  if (num < 0.1) config.precision = 6
+  else if (num < 1) config.precision = 4
+  else if (num < 100) config.precision = 2
+
+  if (totalCount < 100) config.smoothCount = 20
+  if (totalCount >= 1000) config.smoothCount = 0
+
+  return config
+}
 export const toFixedNumber = (num: number, digits = 6) => (num ? parseFloat(num.toFixed(digits)) : 0)
-export const getLabel = (side: Range) => (props) => {
-  return (
-    <g>
-      <rect
-        x={props.viewBox.x - (side === Range.Min ? 12 : 0)}
-        y={props.viewBox.y}
-        fill={HIGHLIGHT_COLOR}
-        width={12}
-        height={30}
-      />
-    </g>
-  )
-}
+export const getLabel =
+  (labelProps: { side: Range; onPointerDown?: () => void; onMouseDown?: () => void }) => (props) => {
+    const { side, ...rest } = labelProps
+    return (
+      <g {...rest}>
+        <rect
+          x={props.viewBox.x - (side === Range.Min ? 12 : 0)}
+          y={props.viewBox.y}
+          fill={HIGHLIGHT_COLOR}
+          width={12}
+          height={28}
+          rx="2"
+        />
+        <rect
+          x={props.viewBox.x - (side === Range.Min ? 4 : -4)}
+          y={props.viewBox.y + 10}
+          fill="#FFF"
+          width={1}
+          height={10}
+        />
+        <rect
+          x={props.viewBox.x - (side === Range.Min ? 7 : -7)}
+          y={props.viewBox.y + 10}
+          fill="#FFF"
+          width={1}
+          height={10}
+        />
+      </g>
+    )
+  }
 
 export const getPriceLabel = (price?: number | string) => (props) => {
   return price ? (

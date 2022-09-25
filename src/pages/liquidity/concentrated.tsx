@@ -35,11 +35,18 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { createRef, useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { ConcentratedRangeInputChart } from '../../pageComponents/ConcentratedRangeChart/ConcentratedRangeInputChart'
+import { getPriceBoundary } from '@/application/concentrated/getNearistDataPoint'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
-import RemainSOLAlert from '@/pageComponents/Concentrated/RemainSOLAlert'
-import ConcentratedFeeSwitcherContent from '@/pageComponents/Concentrated/ConcentratedFeeSwitcherContent'
-import ConcentratedFeeSwitcherFace from '@/pageComponents/Concentrated/ConcentratedFeeSwitcherFace'
-import { canTokenPairBeSelected, toXYChartFormat } from '@/pageComponents/Concentrated/util'
+import {
+  ConcentratedFeeSwitcherContent,
+  ConcentratedFeeSwitcherFace,
+  RemainSOLAlert,
+  canTokenPairBeSelected,
+  toXYChartFormat,
+  PairInfoTitle
+} from '@/pageComponents/Concentrated'
+import InputBox from '@/components/InputBox'
+import toFraction from '@/functions/numberish/toFraction'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -55,133 +62,10 @@ export default function Concentrated() {
   return (
     <ConcentratedUIContextProvider>
       <PageLayout mobileBarTitle="Concentrated" metaTitle="Concentrated - Raydium">
-        <Content />
         <ConcentratedCard />
-        <UserLiquidityExhibition />
+        {/* <UserLiquidityExhibition /> */}
       </PageLayout>
     </ConcentratedUIContextProvider>
-  )
-}
-
-function Content() {
-  const cardRef = useRef<HTMLDivElement>(null)
-  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
-  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, refreshConcentrated } = useConcentrated()
-  const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
-    useLiquidityContextStore()
-  const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
-
-  const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
-  const swapElementBox1 = useRef<HTMLDivElement>(null)
-  const swapElementBox2 = useRef<HTMLDivElement>(null)
-
-  return (
-    <CyberpunkStyleCard
-      domRef={cardRef}
-      wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light"
-      className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
-    >
-      <>
-        <CoinInputBox
-          className="mt-5 mobile:mt-0"
-          disabled={isApprovePanelShown}
-          noDisableStyle
-          componentRef={coinInputBox1ComponentRef}
-          domRef={swapElementBox1}
-          value={toString(coin1Amount)}
-          haveHalfButton
-          haveCoinIcon
-          showTokenSelectIcon
-          topLeftLabel=""
-          onTryToTokenSelect={() => {
-            turnOnCoinSelector()
-            setTargetCoinNo('1')
-          }}
-          onUserInput={(amount) => {
-            useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
-          }}
-          onEnter={(input) => {
-            if (!input) return
-            if (!coin2) coinInputBox2ComponentRef.current?.selectToken?.()
-            if (coin2 && coin2Amount) liquidityButtonComponentRef.current?.click?.()
-          }}
-          token={coin1}
-        />
-
-        {/* swap button */}
-        <div className="relative h-8 my-4">
-          <Row className={`absolute h-full items-center transition-all ${'left-1/2 -translate-x-1/2'}`}>
-            <Icon
-              heroIconName="plus"
-              className={`p-1 text-[#39D0D8] frosted-glass frosted-glass-teal rounded-full mr-4 select-none transition clickable`}
-              onClick={() => {
-                useConcentrated.setState((s) => ({ ...s, focusSide: s.focusSide === 'coin1' ? 'coin2' : 'coin1' }))
-              }}
-            />
-          </Row>
-          <Row className="absolute right-0 items-center">
-            <div className={isApprovePanelShown ? 'not-clickable' : 'clickable'}>
-              <RefreshCircle
-                run={!isApprovePanelShown}
-                refreshKey="liquidity/add"
-                popPlacement="right-bottom"
-                freshFunction={() => {
-                  if (isApprovePanelShown) return
-                  refreshConcentrated()
-                  refreshTokenPrice()
-                }}
-              />
-            </div>
-          </Row>
-        </div>
-
-        <CoinInputBox
-          componentRef={coinInputBox2ComponentRef}
-          domRef={swapElementBox2}
-          disabled={isApprovePanelShown}
-          noDisableStyle
-          value={toString(coin2Amount)}
-          haveHalfButton
-          haveCoinIcon
-          showTokenSelectIcon
-          topLeftLabel=""
-          onTryToTokenSelect={() => {
-            turnOnCoinSelector()
-            setTargetCoinNo('2')
-          }}
-          onEnter={(input) => {
-            if (!input) return
-            if (!coin1) coinInputBox1ComponentRef.current?.selectToken?.()
-            if (coin1 && coin1Amount) liquidityButtonComponentRef.current?.click?.()
-          }}
-          onUserInput={(amount) => {
-            useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
-          }}
-          token={coin2}
-        />
-      </>
-      <TokenSelectorDialog
-        open={isCoinSelectorOn}
-        close={turnOffCoinSelector}
-        onSelectCoin={(token) => {
-          if (targetCoinNo === '1') {
-            useConcentrated.setState({ coin1: token })
-            // delete other
-            if (!canTokenPairBeSelected(token, coin2)) {
-              useConcentrated.setState({ coin2: undefined, coin2Amount: undefined, priceLowerTick: undefined })
-            }
-          } else {
-            // delete other
-            useConcentrated.setState({ coin2: token })
-            if (!canTokenPairBeSelected(token, coin1)) {
-              useConcentrated.setState({ coin1: undefined, coin1Amount: undefined, priceUpperTick: undefined })
-            }
-          }
-          turnOffCoinSelector()
-        }}
-      />
-    </CyberpunkStyleCard>
   )
 }
 
@@ -190,12 +74,18 @@ function Content() {
 function ConcentratedCard() {
   const chartPoints = useConcentrated((s) => s.chartPoints)
   const { connected } = useWallet()
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
-  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, refreshConcentrated } = useConcentrated()
+  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, refreshConcentrated, currentAmmPool } = useConcentrated()
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
+  const [userPosition, setUserPosition] = useState({ min: 0, max: 0 })
+
+  const inputDecimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
+  let points = chartPoints ? toXYChartFormat(chartPoints) : undefined
+  if (focusSide !== 'coin1') points = points?.map((p) => ({ x: 1 / p.x, y: p.y })).reverse()
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
@@ -224,107 +114,161 @@ function ConcentratedCard() {
     })
   }, [cardRef])
 
-  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
-
-  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const boundaryData = getPriceBoundary({ coin1, coin2, ammPool: currentAmmPool, reverse: focusSide !== 'coin1' })
 
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
-      wrapperClassName="w-[min(456px,100%)] self-center cyberpunk-bg-light"
-      className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
+      wrapperClassName="md:w-[806px] w-full self-center cyberpunk-bg-light"
+      className="p-6 mobile:py-5 mobile:px-3"
     >
-      {/* input twin */}
-      <>
-        <CoinInputBox
-          className="mt-5 mobile:mt-0"
-          disabled={isApprovePanelShown}
-          noDisableStyle
-          componentRef={coinInputBox1ComponentRef}
-          domRef={swapElementBox1}
-          value={toString(coin1Amount)}
-          haveHalfButton
-          haveCoinIcon
-          showTokenSelectIcon
-          topLeftLabel=""
-          onTryToTokenSelect={() => {
-            turnOnCoinSelector()
-            setTargetCoinNo('1')
-          }}
-          onUserInput={(amount) => {
-            useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
-          }}
-          onEnter={(input) => {
-            if (!input) return
-            if (!coin2) coinInputBox2ComponentRef.current?.selectToken?.()
-            if (coin2 && coin2Amount) liquidityButtonComponentRef.current?.click?.()
-          }}
-          token={coin1}
-        />
+      <PairInfoTitle
+        coin1={coin1}
+        coin2={coin2}
+        currentPrice={currentAmmPool?.state.currentPrice}
+        focusSide={focusSide}
+        onChangeFocus={(focusSide) => useConcentrated.setState({ focusSide })}
+      />
 
-        {/* swap button */}
-        <div className="relative h-8 my-4">
-          <Row className={`absolute h-full items-center transition-all ${'left-1/2 -translate-x-1/2'}`}>
-            <Icon
-              heroIconName="plus"
-              className={`p-1 text-[#39D0D8] frosted-glass frosted-glass-teal rounded-full mr-4 select-none transition clickable`}
-              onClick={() => {
-                useConcentrated.setState((s) => ({ ...s, focusSide: s.focusSide === 'coin1' ? 'coin2' : 'coin1' }))
-              }}
-            />
-          </Row>
-          <Row className="absolute right-0 items-center">
-            <div className={isApprovePanelShown ? 'not-clickable' : 'clickable'}>
-              <RefreshCircle
-                run={!isApprovePanelShown}
-                refreshKey="liquidity/add"
-                popPlacement="right-bottom"
-                freshFunction={() => {
-                  if (isApprovePanelShown) return
-                  refreshConcentrated()
-                  refreshTokenPrice()
-                }}
-              />
-            </div>
-          </Row>
-        </div>
-
-        <CoinInputBox
-          componentRef={coinInputBox2ComponentRef}
-          domRef={swapElementBox2}
-          disabled={isApprovePanelShown}
-          noDisableStyle
-          value={toString(coin2Amount)}
-          haveHalfButton
-          haveCoinIcon
-          showTokenSelectIcon
-          topLeftLabel=""
-          onTryToTokenSelect={() => {
-            turnOnCoinSelector()
-            setTargetCoinNo('2')
-          }}
-          onEnter={(input) => {
-            if (!input) return
-            if (!coin1) coinInputBox1ComponentRef.current?.selectToken?.()
-            if (coin1 && coin1Amount) liquidityButtonComponentRef.current?.click?.()
-          }}
-          onUserInput={(amount) => {
-            useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
-          }}
-          token={coin2}
-        />
-      </>
-
-      <div className="relative">
-        {chartPoints && (
+      <div className="flex flex-gap-1 gap-2.5 mb-10">
+        <div className="bg-dark-blue min-h-[180px] rounded-xl flex-1 px-3 py-4">
+          <div className="text-base leading-[22px] text-secondary-title mb-5">Set Price Range</div>
           <Chart
             chartOptions={{
-              points: chartPoints ? toXYChartFormat(chartPoints) : undefined
+              points: points || [],
+              initMinBoundaryX: boundaryData?.priceLower,
+              initMaxBoundaryX: boundaryData?.priceUpper
             }}
             currentPrice={decimalToFraction(currentAmmPool?.state.currentPrice)}
             poolId={toPubString(currentAmmPool?.state.id)}
+            onPositionChange={setUserPosition}
           />
-        )}
+        </div>
+
+        <div className="bg-dark-blue rounded-xl flex-1 px-3 py-4">
+          <div className="text-base leading-[22px] text-secondary-title mb-5">Deposit Amount</div>
+          {/* input twin */}
+          <>
+            <CoinInputBox
+              className="mt-5 mobile:mt-0 border border-light-blue-opacity"
+              disabled={isApprovePanelShown}
+              noDisableStyle
+              componentRef={coinInputBox1ComponentRef}
+              domRef={swapElementBox1}
+              value={toString(coin1Amount)}
+              haveHalfButton
+              haveCoinIcon
+              showTokenSelectIcon
+              topLeftLabel=""
+              onTryToTokenSelect={() => {
+                turnOnCoinSelector()
+                setTargetCoinNo('1')
+              }}
+              onUserInput={(amount) => {
+                useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
+              }}
+              onEnter={(input) => {
+                if (!input) return
+                if (!coin2) coinInputBox2ComponentRef.current?.selectToken?.()
+                if (coin2 && coin2Amount) liquidityButtonComponentRef.current?.click?.()
+              }}
+              token={coin1}
+            />
+
+            {/* swap button */}
+            <div className="relative h-8 my-4">
+              <Row className={`absolute h-full items-center transition-all ${'left-1/2 -translate-x-1/2'}`}>
+                <Icon
+                  heroIconName="plus"
+                  className={`p-1 text-[#39D0D8] frosted-glass frosted-glass-teal rounded-full mr-4 select-none transition clickable`}
+                  onClick={() => {
+                    useConcentrated.setState((s) => ({ ...s, focusSide: s.focusSide === 'coin1' ? 'coin2' : 'coin1' }))
+                  }}
+                />
+              </Row>
+              <Row className="absolute right-0 items-center">
+                <div className={isApprovePanelShown ? 'not-clickable' : 'clickable'}>
+                  <RefreshCircle
+                    run={!isApprovePanelShown}
+                    refreshKey="liquidity/add"
+                    popPlacement="right-bottom"
+                    freshFunction={() => {
+                      if (isApprovePanelShown) return
+                      refreshConcentrated()
+                      refreshTokenPrice()
+                    }}
+                  />
+                </div>
+              </Row>
+            </div>
+
+            <CoinInputBox
+              className="border border-light-blue-opacity"
+              componentRef={coinInputBox2ComponentRef}
+              domRef={swapElementBox2}
+              disabled={isApprovePanelShown}
+              noDisableStyle
+              value={toString(coin2Amount)}
+              haveHalfButton
+              haveCoinIcon
+              showTokenSelectIcon
+              topLeftLabel=""
+              onTryToTokenSelect={() => {
+                turnOnCoinSelector()
+                setTargetCoinNo('2')
+              }}
+              onEnter={(input) => {
+                if (!input) return
+                if (!coin1) coinInputBox1ComponentRef.current?.selectToken?.()
+                if (coin1 && coin1Amount) liquidityButtonComponentRef.current?.click?.()
+              }}
+              onUserInput={(amount) => {
+                useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
+              }}
+              token={coin2}
+            />
+          </>
+          {/* supply button */}
+          <Button
+            className="frosted-glass-teal w-full mt-5"
+            componentRef={liquidityButtonComponentRef}
+            isLoading={isApprovePanelShown}
+            validators={[
+              {
+                should: connected,
+                forceActive: true,
+                fallbackProps: {
+                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                  children: 'Connect Wallet'
+                }
+              },
+              {
+                should: coin1 && coin2,
+                fallbackProps: { children: 'Select a token' }
+              },
+              {
+                should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
+                fallbackProps: { children: 'Enter an amount' }
+              }
+              // {
+              //   should: haveEnoughCoin1,
+              //   fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
+              // },
+              // {
+              //   should: haveEnoughCoin2,
+              //   fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
+              // },
+            ]}
+            onClick={() => {
+              txCreateConcentrated()
+            }}
+          >
+            Add Concentrated
+          </Button>
+          <RemainSOLAlert />
+        </div>
+      </div>
+      <div className="relative">
         <ConcentratedRangeInputChart
           className={`mt-5 ${chartPoints ? '' : 'blur-md'}`}
           chartOptions={{
@@ -339,45 +283,9 @@ function ConcentratedCard() {
           </div>
         )}
       </div>
-      {/* supply button */}
-      <Button
-        className="frosted-glass-teal w-full mt-5"
-        componentRef={liquidityButtonComponentRef}
-        isLoading={isApprovePanelShown}
-        validators={[
-          {
-            should: connected,
-            forceActive: true,
-            fallbackProps: {
-              onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-              children: 'Connect Wallet'
-            }
-          },
-          {
-            should: coin1 && coin2,
-            fallbackProps: { children: 'Select a token' }
-          },
-          {
-            should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
-            fallbackProps: { children: 'Enter an amount' }
-          }
-          // {
-          //   should: haveEnoughCoin1,
-          //   fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
-          // },
-          // {
-          //   should: haveEnoughCoin2,
-          //   fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
-          // },
-        ]}
-        onClick={() => {
-          txCreateConcentrated()
-        }}
-      >
-        Add Concentrated
-      </Button>
+
       {/* alert user if sol is not much */}
-      <RemainSOLAlert />
+
       {/** coin selector panel */}
       <TokenSelectorDialog
         open={isCoinSelectorOn}

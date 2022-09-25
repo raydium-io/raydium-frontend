@@ -4,7 +4,7 @@ import Row from '@/components/Row'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 
-export default function ConcentratedFeeSwitcherFace({
+export function ConcentratedFeeSwitcherFace({
   open,
   currentPool,
   haveArrow

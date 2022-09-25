@@ -1,5 +1,12 @@
 import React, {
-  CSSProperties, InputHTMLAttributes, ReactNode, RefObject, startTransition, useEffect, useImperativeHandle, useRef,
+  CSSProperties,
+  InputHTMLAttributes,
+  ReactNode,
+  RefObject,
+  startTransition,
+  useEffect,
+  useImperativeHandle,
+  useRef,
   useState
 } from 'react'
 
@@ -263,7 +270,7 @@ export default function Input(props: InputProps) {
       style={style}
       domRef={domRef}
     >
-      <div className="flex-initial">{shrinkToValue(prefix, [inputComponentHandler])}</div>
+      <div className="flex-initial mr-2">{shrinkToValue(prefix, [inputComponentHandler])}</div>
 
       {/* input-wrapperbox is for style input inner body easier */}
       <div className={twMerge('flex flex-grow flex-shrink', inputWrapperClassName)}>
