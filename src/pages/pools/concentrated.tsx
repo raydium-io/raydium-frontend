@@ -7,6 +7,7 @@ import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/con
 import useConcentrated, {
   PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
+import useNotification from '@/application/notification/useNotification'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
@@ -23,6 +24,7 @@ import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
+import LinkExplorer from '@/components/LinkExplorer'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
@@ -33,7 +35,9 @@ import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
+import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
+import { shrinkAccount } from '@/functions/format/shrinkAccount'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
@@ -821,7 +825,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
 
 function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedConcentratedInfo }) {
   // eslint-disable-next-line no-console
-  console.log('info: ', info)
+  // console.log('info: ', info)
 
   const { lpPrices } = usePools()
   const tokenPrices = useToken((s) => s.tokenPrices)
@@ -874,7 +878,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             }
 
             // eslint-disable-next-line no-console
-            console.log('p: ', p)
+            // console.log('p: ', p)
 
             const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
             const coinBPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenB?.mint)] ?? null)
@@ -962,19 +966,26 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   const isMobile = useAppSettings((s) => s.isMobile)
 
   const rangeTag = useMemo(() => {
-    if (!inRange) return null
-    // const dom: any[] = []
-    // dom.push()
+    if (!inRange)
+      return (
+        <Row className="items-center bg-[#DA2EEF]/10 rounded text-xs text-[#DA2EEF] py-0.5 px-1 ml-2">
+          <Icon size="xs" iconSrc={'/icons/warn-stick.svg'} />
+          <div className="font-normal" style={{ marginLeft: 4 }}>
+            Out of Range
+          </div>
+        </Row>
+      )
     return (
       <Row className="items-center bg-[#142B45] rounded text-xs text-[#39D0D8] py-0.5 px-1 ml-2">
         <Icon size="xs" iconSrc={'/icons/check-circle.svg'} />
         <div className="font-normal" style={{ marginLeft: 4 }}>
-          {' '}
           In Range
         </div>
       </Row>
     )
   }, [inRange])
+  const { logInfo } = useNotification.getState()
+  const walletConnected = useWallet((s) => s.connected)
 
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
@@ -987,40 +998,63 @@ function PoolCardDatabaseBodyCollapsePositionContent({
             is={isMobile ? 'Grid' : 'Row'}
             className={`gap-[8px] mobile:gap-3 mobile:grid-cols-2-auto flex-grow justify-between`}
           >
-            <Row className="flex-grow justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg py-6 px-6  items-center">
+            <Row className="flex-1 justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg py-6 px-6  items-center">
               <Col>
-                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
-                  My Position {inRange ? rangeTag : null}
+                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                  Price Range {inRange ? rangeTag : null}
                 </div>
-                <div className="text-white font-medium text-base mobile:text-xs">{myPosition ?? '--'}</div>
-                <div className="text-white font-medium text-base text-[14px] mobile:text-xs">
-                  {myPositionVolume ?? '--'}
+                <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPosition ?? '--'}</div>
+                <div className=" text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2">
+                  {info.base?.symbol} per {info.quote?.symbol}
                 </div>
               </Col>
               <Col>
-                <Button
-                  className="frosted-glass-teal"
-                  onClick={() => {
-                    // create
-                    useConcentrated.setState({ coin1: info.base, coin2: info.quote })
-                    routeTo('/liquidity/concentrated', {
-                      queryProps: {}
-                    })
-                  }}
-                >
-                  Manage Liquidity
-                </Button>
+                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                  My Position
+                </div>
+                <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPositionVolume ?? '--'}</div>
+                <Row className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2">
+                  {shrinkAccount(p?.nftMint, 6)}{' '}
+                  <Icon
+                    size="sm"
+                    className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
+                    heroIconName="clipboard-copy"
+                    onClick={({ ev }) => {
+                      ev.stopPropagation()
+                      copyToClipboard(toPubString(p?.nftMint))
+                      logInfo('Account has been copied!')
+                    }}
+                  />
+                  <LinkExplorer className="flex items-center" hrefDetail={`${p?.nftMint}`} type="account">
+                    <Icon
+                      size="sm"
+                      className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
+                      inline
+                      heroIconName="external-link"
+                    />
+                  </LinkExplorer>
+                </Row>
               </Col>
             </Row>
-            <Row className="flex-grow justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg py-6 px-6  items-center">
+            <Row className="flex-1  justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg py-6 px-6  items-center">
               <Col>
-                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
+                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
                   Unclaimed Yield
+                  <Tooltip>
+                    <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
+                    <Tooltip.Panel>
+                      <div className="max-w-[300px]">
+                        Rewards are only emitted when LP tokens are staked in the farm. If there is a period when no LP
+                        tokens are staked, unemmitted rewards can be claimed here once farming period ends
+                      </div>
+                    </Tooltip.Panel>
+                  </Tooltip>
                 </div>
-                <div className="text-[16px] text-white font-normal text-base mobile:text-xs">
-                  {myPositionVolume ?? '--'}
-                </div>
-                <AutoBox is="Row" className="gap-[5px] font-normal text-sm">
+                <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPositionVolume ?? '--'}</div>
+                <AutoBox
+                  is="Row"
+                  className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2"
+                >
                   <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
                   <Col className="text-white">17.4%</Col>
                 </AutoBox>
@@ -1028,6 +1062,16 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               <Col>
                 <Button
                   className="frosted-glass-teal"
+                  validators={[
+                    {
+                      should: walletConnected,
+                      forceActive: true,
+                      fallbackProps: {
+                        onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                        children: 'Connect Wallet'
+                      }
+                    }
+                  ]}
                   onClick={() => {
                     // create
                     useConcentrated.setState({ coin1: info.base, coin2: info.quote })
