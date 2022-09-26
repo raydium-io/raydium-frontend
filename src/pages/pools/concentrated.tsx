@@ -1052,7 +1052,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               <Col>
                 <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
                   Unclaimed Yield
-                  <Tooltip>
+                  <Tooltip darkGradient={true}>
                     <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
                     <Tooltip.Panel>
                       <div className="max-w-[300px]">
