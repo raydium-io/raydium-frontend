@@ -50,6 +50,8 @@ export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultVa
     n: number | /* if value is too big */ string | undefined,
     payload: { canSafelyCovertToNumber: boolean; triggerBy: TriggerBy }
   ) => void
+  skipAutoIncrease?: boolean
+  skipAutoDecrease?: boolean
   increaseFn?: (currentValue: Numberish) => Numberish | undefined
   decreaseFn?: (currentValue: Numberish) => Numberish | undefined
 }
@@ -75,6 +77,8 @@ export default function DecimalInput({
   onInvalid,
   canNegative,
   onValid,
+  skipAutoIncrease,
+  skipAutoDecrease,
   increaseFn,
   decreaseFn,
   ...restProps
@@ -158,7 +162,7 @@ export default function DecimalInput({
       }}
       prefix={
         showPlusMinusControls ? (
-          <Icon className="text-light-blue clickable" heroIconName="minus" size="xs" onClick={decrease} canLongClick />
+          <Icon className="text-light-blue clickable" heroIconName="minus" size="xs" onClick={decrease} />
         ) : undefined
       }
       suffix={
@@ -180,7 +184,7 @@ export default function DecimalInput({
             />
           </div>
         ) : showPlusMinusControls ? (
-          <Icon className="text-light-blue clickable" heroIconName="plus" size="xs" onClick={decrease} canLongClick />
+          <Icon className="text-light-blue clickable" heroIconName="plus" size="xs" onClick={increase} />
         ) : undefined
       }
     />

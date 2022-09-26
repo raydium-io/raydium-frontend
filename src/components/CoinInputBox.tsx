@@ -73,6 +73,7 @@ export interface CoinInputBoxProps {
   // return valid info
   onInputAmountClampInBalanceChange?(info: { outOfMax: boolean; negative: boolean }): void
   onBlur?(input: string | undefined): void
+  onPriceChange?(Fraction): void
 
   // -------- customized ----------
   // customize component appearance
@@ -123,6 +124,7 @@ export default function CoinInputBox({
   onInputAmountClampInBalanceChange,
   onEnter,
   onBlur,
+  onPriceChange,
 
   topLeftLabel,
   topRightLabel,
@@ -190,6 +192,10 @@ export default function CoinInputBox({
     if (!price || !inputedAmount) return undefined
     return toTotalPrice(inputedAmount, price)
   }, [inputedAmount, price])
+
+  useEffect(() => {
+    onPriceChange?.(totalPrice)
+  }, [onPriceChange, totalPrice])
 
   // input must satisfied validPattern
   const validPattern = useMemo(() => new RegExp(`^(\\d*)(\\.\\d{0,${token?.decimals ?? 6}})?$`), [token])

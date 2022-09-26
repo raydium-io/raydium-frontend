@@ -68,7 +68,10 @@ export default function useConcentratedInfoLoader() {
   /** select pool chart data */
   useTransitionedEffect(async () => {
     if (!pathname.includes('concentrated')) return
-    if (!currentAmmPool) return
+    if (!currentAmmPool) {
+      useConcentrated.setState({ chartPoints: [] })
+      return
+    }
     const chartResponse = await jFetch<{ data: ApiAmmV3Point[] }>(
       `https://api.raydium.io/v2/ammV3/positionLine?pool_id=${toPubString(currentAmmPool.state.id)}`
     )

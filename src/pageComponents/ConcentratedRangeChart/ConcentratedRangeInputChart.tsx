@@ -46,16 +46,7 @@ export function ConcentratedRangeInputChart({
       baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
       price: fractionToDecimal(toFraction(trimedX))
     })
-    // if (boundaryType === 'min') {
-    //   focusSide === 'coin1'
-    //     ? { priceLowerTick: tick, priceLower: price }
-    //     : { priceUpperTick: tick, priceUpper: div(1, price) }
-    // }
-    // if (boundaryType === 'max') {
-    //   focusSide === 'coin1'
-    //     ? { priceUpperTick: tick, priceUpper: price }
-    //     : { priceLowerTick: tick, priceLower: div(1, price) }
-    // }
+
     useConcentrated.setState(
       boundaryType === 'min'
         ? focusSide === 'coin1'

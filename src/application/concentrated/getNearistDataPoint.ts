@@ -7,6 +7,7 @@ import { Fraction } from '@raydium-io/raydium-sdk'
 import { AmmV3 } from 'test-r-sdk'
 import { SplToken } from '../token/type'
 import { HydratedConcentratedInfo } from './type'
+import { Numberish } from '@/types/constants'
 
 export function getPriceAndTick(info: Parameters<typeof AmmV3['getPriceAndTick']>[0]) {
   const result = AmmV3.getPriceAndTick(info)
@@ -64,4 +65,17 @@ export function getPriceBoundary({ coin1, coin2, reverse, ammPool }: GetChartDat
     priceUpperTick: tickMax,
     priceUpper: priceMax
   }
+}
+
+export function recordPrickTick({ p, coin1, coin2, reverse, ammPool }: GetChartDataProps & { p: Numberish }) {
+  if (!ammPool || !coin1 || !coin2) return
+  const targetCoin = !reverse ? coin1 : coin2
+  const careDecimalLength = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
+  const trimedX = getMax(p, 1 / 10 ** careDecimalLength)
+  const { price, tick } = getPriceAndTick({
+    poolInfo: ammPool.state,
+    baseIn: isMintEqual(ammPool.state.mintA.mint, targetCoin?.mint),
+    price: fractionToDecimal(toFraction(trimedX))
+  })
+  return { price, tick }
 }
