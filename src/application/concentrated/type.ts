@@ -6,6 +6,9 @@ import { AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, TokenAmount
 import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
+import { ReplaceType } from '../txTools/decimal2Fraction'
+import BN from 'bn.js'
+import Decimal from 'decimal.js'
 
 export type APIConcentratedInfo = ApiAmmV3PoolInfo
 
@@ -23,10 +26,17 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   userPositionAccount?: UserPositionAccount[]
   name: string
   idString: string
+
   tvl: CurrencyAmount
   fee24h: CurrencyAmount
   fee7d: CurrencyAmount
   fee30d: CurrencyAmount
+  apr24h: Percent
+  apr7d: Percent
+  apr30d: Percent
+  feeApr24h: Percent
+  feeApr7d: Percent
+  feeApr30d: Percent
   volume24h: CurrencyAmount
   volume7d: CurrencyAmount
   volume30d: CurrencyAmount
@@ -49,6 +59,8 @@ export interface UserPositionAccount {
   tickUpper: number
   positionPercentA: Percent
   positionPercentB: Percent
+  tokenFeeAmountA?: TokenAmount
+  tokenFeeAmountB?: TokenAmount
   // liquidity: BN__default; // currently useless
   // feeGrowthInsideLastX64A: BN__default; // currently useless
   // feeGrowthInsideLastX64B: BN__default; // currently useless

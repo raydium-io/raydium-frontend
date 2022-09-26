@@ -221,7 +221,7 @@ function ConcentratedCard() {
   const chartPoints = useConcentrated((s) => s.chartPoints)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
-
+  const { tokenPrices } = useToken()
   const { connected } = useWallet()
   // it is for coin selector panel
   const { coin1, coin1Amount, coin2, coin2Amount, focusSide } = useConcentrated()
@@ -254,9 +254,9 @@ function ConcentratedCard() {
       wrapperClassName=" w-[min(912px,100%)] self-center cyberpunk-bg-light"
       className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
     >
-      <Grid className="gap-8 grid-cols-2 w-[min(912px,100%)]">
+      <Grid className="gap-3 grid-cols-2 w-[min(912px,100%)]">
         {/* top */}
-        <Row className="col-span-full justify-between">
+        <Row className="col-span-full justify-between py-4">
           <Row className="items-center gap-2">
             <CoinAvatarPair token1={currentAmmPool?.base} token2={currentAmmPool?.quote} />
             <div>
@@ -332,65 +332,185 @@ function ConcentratedCard() {
           </Grid>
         </Row>
 
-        <div>
-          <ConcentratedAmountInputPair />
-          {/* supply button */}
-          <Button
-            className="frosted-glass-teal w-full"
-            componentRef={liquidityButtonComponentRef}
-            isLoading={isApprovePanelShown}
-            validators={[
-              {
-                should: connected,
-                forceActive: true,
-                fallbackProps: {
-                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                  children: 'Connect Wallet'
-                }
-              },
-              {
-                should: coin1 && coin2,
-                fallbackProps: { children: 'Select a token' }
-              },
-              {
-                should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
-                fallbackProps: { children: 'Enter an amount' }
-              }
-              // {
-              //   should: haveEnoughCoin1,
-              //   fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
-              // },
-              // {
-              //   should: haveEnoughCoin2,
-              //   fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
-              // },
-            ]}
-            onClick={() => {
-              txCreateConcentrated()
-            }}
-          >
-            Add Concentrated
-          </Button>{' '}
-        </div>
+        <Col className="bg-[#141041] col-span-1 row-span-2 py-2 px-3 rounded-xl gap-4">
+          <Row className="items-center gap-2">
+            <div className="font-medium text-[#abc4ff]">My position</div>
+            <RangeTag type="in-range" />
+          </Row>
+          <Grid className="items-center text-2xl text-white">0.01 - 0.02</Grid>
+          <div className="font-medium text-[#abc4ff]">
+            {currentAmmPool?.base?.symbol ?? '--'} per {currentAmmPool?.quote?.symbol ?? '--'}
+          </div>
+          <div className="items-center grow">
+            <div className="h-full bg-[#abc4ff] rounded"></div>
+          </div>
+          <Row className="items-center flex-wrap gap-2">
+            <RowItem
+              className="border-1.5 border-[#abc4ff40] text-[#abc4ff] text-xs font-normal py-1.5 px-3 rounded-lg"
+              prefix={<div className="w-3 h-3 bg-[#abc4ff] rounded-full mr-2"></div>}
+            >
+              Pool Liquidity
+            </RowItem>
+            <RowItem
+              className="border-1.5 border-[#abc4ff40] text-[#abc4ff] text-xs font-normal py-1.5 px-3 rounded-lg"
+              prefix={<div className="w-3 h-3 bg-[#161b4a] rounded-full mr-2"></div>}
+            >
+              My Range
+            </RowItem>
+            <RowItem
+              className="border-1.5 border-[#abc4ff40] text-[#abc4ff] text-xs font-normal py-1.5 px-3 rounded-lg"
+              prefix={<div className="w-3 h-3 bg-white rounded-full mr-2"></div>}
+            >
+              Current Price
+            </RowItem>
+          </Row>
+        </Col>
 
-        {/* <ConcentratedFeeSwitcher className="mt-12" /> */}
-        <div className="relative">
-          <ConcentratedRangeInputChart
-            className={`mt-5 ${chartPoints ? '' : 'blur-md'}`}
-            chartOptions={{
-              points: chartPoints ? toXYChartFormat(chartPoints) : undefined
-            }}
-            currentPrice={decimalToFraction(currentAmmPool?.state.currentPrice)}
-            poolId={toPubString(currentAmmPool?.state.id)}
-          />
-          {!chartPoints && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xl whitespace-nowrap text-[#abc4ff80]">
-              select token to view this
+        <Col className="bg-[#141041] py-2 px-3 rounded-xl gap-4">
+          <Row className="items-center gap-2">
+            <div className="font-medium text-[#abc4ff]">Pending Yield</div>
+          </Row>
+          <Row className="items-center gap-4">
+            <div className="font-medium text-2xl text-white">
+              {/* Temp Dev */}
+              {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)}
             </div>
-          )}
-        </div>
-        {/* alert user if sol is not much */}
-        <RemainSOLAlert />
+            <Button
+              className="frosted-glass-teal"
+              onClick={() => {
+                routeTo('/liquidity/my-position') // TEMP
+              }}
+            >
+              Harvest All
+            </Button>
+          </Row>
+
+          <Grid className="grid-cols-2 border-1.5 border-[#abc4ff40] py-2 px-3 gap-2 rounded-xl">
+            <div>
+              <div className="font-medium text-[#abc4ff] mt-2 mb-4">Rewards</div>
+              <Grid className="grow grid-cols-1 gap-2">
+                <RowItem
+                  prefix={
+                    <Row className="items-center gap-2">
+                      <CoinAvatar token={currentAmmPool?.base} size="smi" />
+                      <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
+                    </Row>
+                  }
+                  text={
+                    <div className="text-white justify-end">
+                      {toUsdVolume(
+                        mul(
+                          targetUserPositionAccount?.tokenFeeAmountA,
+                          tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountA?.token.mint)]
+                        )
+                      )}
+                    </div>
+                  }
+                />
+                <RowItem
+                  prefix={
+                    <Row className="items-center gap-2">
+                      <CoinAvatar token={currentAmmPool?.quote} size="smi" />
+                      <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.quote?.symbol ?? '--'}</div>
+                    </Row>
+                  }
+                  text={
+                    <div className="text-white justify-end">
+                      {toUsdVolume(
+                        mul(
+                          targetUserPositionAccount?.tokenFeeAmountB,
+                          tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountB?.token.mint)]
+                        )
+                      )}
+                    </div>
+                  }
+                />
+              </Grid>
+            </div>
+            <div>
+              <div className="font-medium text-[#abc4ff] mt-2 mb-4">Fees</div>
+              <Grid className="grow grid-cols-1 gap-2">
+                <RowItem
+                  prefix={
+                    <Row className="items-center gap-2">
+                      <CoinAvatar token={currentAmmPool?.base} size="smi" />
+                      <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
+                    </Row>
+                  }
+                  text={
+                    <div className="text-white justify-end">
+                      {toUsdVolume(
+                        mul(
+                          targetUserPositionAccount?.tokenFeeAmountA,
+                          tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountA?.token.mint)]
+                        )
+                      )}
+                    </div>
+                  }
+                />
+                <RowItem
+                  prefix={
+                    <Row className="items-center gap-2">
+                      <CoinAvatar token={currentAmmPool?.quote} size="smi" />
+                      <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.quote?.symbol ?? '--'}</div>
+                    </Row>
+                  }
+                  text={
+                    <div className="text-white justify-end">
+                      {toUsdVolume(
+                        mul(
+                          targetUserPositionAccount?.tokenFeeAmountB,
+                          tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountB?.token.mint)]
+                        )
+                      )}
+                    </div>
+                  }
+                />
+              </Grid>
+            </div>
+          </Grid>
+        </Col>
+
+        <Col className="bg-[#141041] py-2 px-3 rounded-xl gap-4">
+          <Row className="items-center gap-2">
+            <div className="font-medium text-[#abc4ff]">Estimated APR</div>
+          </Row>
+          <Row className="items-center gap-4">
+            <div className="font-medium text-2xl text-white">{toPercentString(currentAmmPool?.apr30d)}</div>
+          </Row>
+          <Grid className="grid-cols-1 border-1.5 border-[#abc4ff40] py-2 px-3 gap-2 rounded-xl">
+            <div className="font-medium text-[#abc4ff] mt-2 mb-4">Yield</div>
+            <Grid className="grow grid-cols-2 gap-2">
+              <RowItem
+                prefix={
+                  <Row className="items-center gap-2">
+                    <Icon iconSrc="/icons/entry-icon-trade.svg" size="md" className="scale-75 " />
+                    <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
+                  </Row>
+                }
+                text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.feeApr30d)}</div>}
+              />
+              <RowItem
+                prefix={
+                  <Row className="items-center gap-2">
+                    <CoinAvatar token={currentAmmPool?.base} size="smi" />
+                    <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
+                  </Row>
+                }
+                text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.apr30d)}</div>} // TEMP
+              />
+              <RowItem
+                prefix={
+                  <Row className="items-center gap-2">
+                    <CoinAvatar token={currentAmmPool?.quote} size="smi" />
+                    <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.quote?.symbol ?? '--'}</div>
+                  </Row>
+                }
+                text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.apr30d)}</div>} // TEMP
+              />
+            </Grid>
+          </Grid>
+        </Col>
       </Grid>
     </CyberpunkStyleCard>
   )
