@@ -1035,11 +1035,11 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 </div>
               </Col>
               <Col>
-                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
                   My Position
                   {p ? (
                     <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
-                      <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
+                      <Icon className=" cursor-help" size="sm" heroIconName="question-mark-circle" />
                       <Tooltip.Panel>
                         <div className="max-w-[300px] py-3 px-5">
                           {info.base && (
@@ -1088,11 +1088,11 @@ function PoolCardDatabaseBodyCollapsePositionContent({
             </Row>
             <Row className="flex-1  justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg py-6 px-6  items-center">
               <Col>
-                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
                   Unclaimed Yield
                   {p ? (
                     <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
-                      <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
+                      <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
                       <Tooltip.Panel>
                         <div className="max-w-[300px] py-[6px] px-5">
                           {info.base && (
@@ -1123,6 +1123,20 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 >
                   <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
                   <Col className="text-white">17.4%</Col>
+                  <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
+                    <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
+                    <Tooltip.Panel>
+                      <div className="max-w-[300px] py-3 px-5">
+                        <TokenPositionInfo
+                          customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
+                          customKey="Trade Fees"
+                          customValue="7.1%"
+                        />
+                        {info.base && <TokenPositionInfo token={info.base} customValue="5.1%" suffix="Rewards" />}
+                        {info.quote && <TokenPositionInfo token={info.quote} customValue="2%" suffix="Rewards" />}
+                      </div>
+                    </Tooltip.Panel>
+                  </Tooltip>
                 </AutoBox>
               </Col>
               <Col>
@@ -1248,27 +1262,39 @@ function TokenPositionInfo({
   token,
   tokenAmount,
   tokenPrice,
-  suffix = ''
+  suffix = '',
+  customIcon,
+  customKey,
+  customValue
 }: {
-  token: SplToken
+  token?: SplToken
   tokenAmount?: string
   tokenPrice?: CurrencyAmount
   suffix?: string
+  customIcon?: any
+  customKey?: any
+  customValue?: any
 }) {
   // eslint-disable-next-line no-console
-  console.log('amount: ', tokenAmount, 'price: ', toUsdVolume(tokenPrice))
+  // console.log('amount: ', tokenAmount, 'price: ', toUsdVolume(tokenPrice))
 
   return (
     <Row className="py-2 gap-8 justify-between items-center font-medium text-[12px] ">
       <Row className="flex items-center justify-start gap-[6px]">
-        <CoinAvatar token={token} size="smi" />{' '}
+        {customIcon ? customIcon : <CoinAvatar token={token} size="smi" />}{' '}
         <div className=" text-[#ABC4FF]">
-          {token.symbol} {suffix}
+          {customKey ? customKey : token ? token!.symbol : null} {suffix}
         </div>
       </Row>
       <Row className="flex justify-end gap-1">
-        <div className="text-white">{tokenAmount}</div>
-        <div className="text-[#ABC4FF]">({toUsdVolume(tokenPrice)})</div>
+        {customValue ? (
+          customValue
+        ) : (
+          <>
+            <div className="text-white">{tokenAmount}</div>
+            <div className="text-[#ABC4FF]">({toUsdVolume(tokenPrice)})</div>
+          </>
+        )}
       </Row>
     </Row>
   )
