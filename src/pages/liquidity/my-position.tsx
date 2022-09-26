@@ -1,3 +1,4 @@
+import { UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
@@ -21,6 +22,7 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { mul } from '@/functions/numberish/operations'
+import { toString } from '@/functions/numberish/toString'
 import { twMerge } from 'tailwind-merge'
 
 export default function MyPosition() {
@@ -43,7 +45,7 @@ function MyPositionEffect() {
 
 // const availableTabValues = ['Swap', 'Liquidity'] as const
 function MyPositionPageHead() {
-  return <Row className="mb-10 mobile:mb-2 font-medium text-2xl">My Position</Row>
+  return <Row className="w-[min(912px,100%)] self-center mb-10 mobile:mb-2 font-medium text-2xl">My Position</Row>
 }
 
 function MyPositionCardTopInfo({ className }: { className?: string }) {
@@ -116,11 +118,12 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
 
 function MyPositionCardChartInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
         <div className="font-medium text-[#abc4ff]">My position</div>
-        <RangeTag type="in-range" />
+        <RangeTag positionAccount={targetUserPositionAccount} />
       </Row>
       <Grid className="items-center text-2xl text-white">0.01 - 0.02</Grid>
       <div className="font-medium text-[#abc4ff]">
@@ -173,7 +176,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
             routeTo('/liquidity/my-position') // TEMP
           }}
         >
-          Harvest All
+          Harvest
         </Button>
       </Row>
 
@@ -313,6 +316,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
 
 function MyPositionCardHeader({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   return (
     <Row className={twMerge('justify-between py-2 pb-5', className)}>
       <Row className="items-center gap-2">
@@ -320,7 +324,7 @@ function MyPositionCardHeader({ className }: { className?: string }) {
         <div className="font-medium text-xl text-white">
           {currentAmmPool?.base?.symbol ?? '--'} - {currentAmmPool?.quote?.symbol ?? '--'}
         </div>
-        <Badge>Pool Fee {toPercentString(currentAmmPool?.tradeFeeRate)}</Badge>
+        <RangeTag positionAccount={targetUserPositionAccount} />
       </Row>
       <Row className="items-center gap-2">
         <Button className="frosted-glass-teal">Add Liquidity</Button>
@@ -426,21 +430,20 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
   )
 }
 
-function RangeTag({ type }: { type: 'in-range' | 'out-of-range' }) {
-  if (type === 'out-of-range')
-    return (
-      <Row className="items-center bg-[#DA2EEF]/10 rounded text-xs text-[#DA2EEF] py-0.5 px-1 ml-2">
-        <Icon size="xs" iconSrc={'/icons/warn-stick.svg'} />
-        <div className="font-normal" style={{ marginLeft: 4 }}>
-          Out of Range
-        </div>
-      </Row>
-    )
-  return (
+function RangeTag({ positionAccount }: { positionAccount?: UserPositionAccount }) {
+  if (!positionAccount) return null
+  return positionAccount.inRange ? (
     <Row className="items-center bg-[#142B45] rounded text-xs text-[#39D0D8] py-0.5 px-1 ml-2">
       <Icon size="xs" iconSrc={'/icons/check-circle.svg'} />
       <div className="font-normal" style={{ marginLeft: 4 }}>
         In Range
+      </div>
+    </Row>
+  ) : (
+    <Row className="items-center bg-[#DA2EEF]/10 rounded text-xs text-[#DA2EEF] py-0.5 px-1 ml-2">
+      <Icon size="xs" iconSrc={'/icons/warn-stick.svg'} />
+      <div className="font-normal" style={{ marginLeft: 4 }}>
+        Out of Range
       </div>
     </Row>
   )

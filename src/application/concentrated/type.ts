@@ -1,4 +1,4 @@
-import { CurrencyAmount, Percent } from 'test-r-sdk'
+import { CurrencyAmount, Fraction, Percent } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, TokenAmount } from 'test-r-sdk'
@@ -28,6 +28,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   idString: string
 
   ammConfig: AmmV3PoolInfo['ammConfig']
+  currentPrice: Fraction
 
   tvl: CurrencyAmount
   fee24h: CurrencyAmount
@@ -47,6 +48,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
 export interface UserPositionAccount {
   /** transform to SDK function, should not used directlly in UI */
   sdkParsed: AmmV3PoolPersonalPosition
+  inRange: boolean
   poolId: PublicKey
   nftMint: PublicKey
   priceLower: Numberish
