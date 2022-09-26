@@ -25,6 +25,8 @@ export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConce
  */
 function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial<HydratedConcentratedInfo> {
   return {
+    ammConfig: sdkConcentratedInfo.state.ammConfig,
+
     idString: toPubString(sdkConcentratedInfo.state.id),
     tvl: toUsdCurrency(sdkConcentratedInfo.state.tvl),
     fee24h: toUsdCurrency(sdkConcentratedInfo.state.day.fee),

@@ -27,6 +27,8 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   name: string
   idString: string
 
+  ammConfig: AmmV3PoolInfo['ammConfig']
+
   tvl: CurrencyAmount
   fee24h: CurrencyAmount
   fee7d: CurrencyAmount
