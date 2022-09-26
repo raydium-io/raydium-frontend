@@ -225,6 +225,7 @@ function ConcentratedAmountInputPair() {
 function ConcentratedCard() {
   const chartPoints = useConcentrated((s) => s.chartPoints)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
 
   const { connected } = useWallet()
   // it is for coin selector panel
@@ -259,6 +260,7 @@ function ConcentratedCard() {
       className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
     >
       <Grid className="gap-8 grid-cols-2 w-[min(912px,100%)]">
+        {/* top */}
         <Row className="col-span-full justify-between">
           <Row className="items-center gap-2">
             <CoinAvatarPair token1={currentAmmPool?.base} token2={currentAmmPool?.quote} />
@@ -268,19 +270,18 @@ function ConcentratedCard() {
             <Badge>Pool Fee {toPercentString(currentAmmPool?.tradeFeeRate)}</Badge>
           </Row>
           <Row className="items-center gap-2">
-            <Badge>Pool Fee {toPercentString(currentAmmPool?.tradeFeeRate)}</Badge>
-            {coin1 && coin2 && (
-              <RowTabs
-                size="sm"
-                currentValue={focusSideCoin?.symbol}
-                values={[coin1.symbol ?? '--', coin2?.symbol ?? '--']}
-                onChange={(value) => {
-                  useConcentrated.setState({ focusSide: value === coin1.symbol ? 'coin1' : 'coin2' })
-                }}
-              />
-            )}
+            <Button className="frosted-glass-teal">Add Liquidity</Button>
+            <Button className="frosted-glass-teal ghost">Remove Liquidity</Button>
           </Row>
         </Row>
+
+        <Grid className="bg-[#141041] grid-cols-4">
+          {/* Title */}
+          <div>
+            <div>Liquidity</div>
+            {/* <div>{currentAmmPool?.tvl}</div> */}
+          </div>
+        </Grid>
 
         <div>
           <ConcentratedAmountInputPair />
