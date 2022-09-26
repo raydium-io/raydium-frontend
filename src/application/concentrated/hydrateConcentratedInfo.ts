@@ -3,10 +3,10 @@ import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import { mergeObject } from '@/functions/merge'
-import { div } from '@/functions/numberish/operations'
+import { add, div, mul } from '@/functions/numberish/operations'
 
 import useToken from '../token/useToken'
-import { recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
+import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo } from './type'
 
@@ -99,16 +99,26 @@ function hydrateUserPositionAccounnt(
   const { getToken } = useToken.getState()
   const tokenA = getToken(sdkConcentratedInfo.state.mintA.mint)
   const tokenB = getToken(sdkConcentratedInfo.state.mintB.mint)
+  const currentPrice = decimalToFraction(sdkConcentratedInfo.state.currentPrice)
   return {
-    userPositionAccount: sdkConcentratedInfo.positionAccount?.map((a) => ({
-      sdkParsed: a,
-      ...recursivelyDecimalToFraction(a),
-      amountA: tokenA ? toTokenAmount(tokenA, a.amountA) : undefined,
-      amountB: tokenB ? toTokenAmount(tokenB, a.amountB) : undefined,
-      nftMint: a.nftMint, // need this or nftMint will be buggy, this is only quick fixed
-      liquidity: a.liquidity,
-      tokenA,
-      tokenB
-    }))
+    userPositionAccount: sdkConcentratedInfo.positionAccount?.map((a) => {
+      const amountA = tokenA ? toTokenAmount(tokenA, a.amountA) : undefined
+      const amountB = tokenB ? toTokenAmount(tokenB, a.amountB) : undefined
+      const innerVolumeA = mul(currentPrice, amountA) ?? 0
+      const innerVolumeB = mul(currentPrice, amountB) ?? 0
+      return {
+        sdkParsed: a,
+        ...recursivelyDecimalToFraction(a),
+        amountA,
+        amountB,
+        nftMint: a.nftMint, // need this or nftMint will be buggy, this is only quick fixed
+        liquidity: a.liquidity,
+        tokenA,
+        tokenB,
+        amountLiquidityValue: toUsdCurrency(1000), // TEMP DATA
+        positionPercentA: toPercent(div(innerVolumeA, add(innerVolumeA, innerVolumeB))),
+        positionPercentB: toPercent(div(innerVolumeB, add(innerVolumeA, innerVolumeB)))
+      }
+    })
   }
 }

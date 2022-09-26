@@ -11,9 +11,11 @@ import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
 import { Badge } from '@/components/Badge'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
@@ -26,14 +28,17 @@ import List from '@/components/List'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
+import { RowItem } from '@/components/RowItem'
 import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import toUsdCurrency from '@/functions/format/toUsdCurrency'
+import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
-import { div } from '@/functions/numberish/operations'
+import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
@@ -74,19 +79,9 @@ function ConcentratedEffect() {
 
 // const availableTabValues = ['Swap', 'Liquidity'] as const
 function ConcentratedPageHead() {
-  return (
-    <Row className="mb-12 mobile:mb-2 self-center">
-      <RowTabs
-        currentValue={'Concentrated'}
-        values={['Swap', 'Liquidity', 'Concentrated']}
-        onChange={(newTab) => {
-          if (newTab === 'Swap') routeTo('/swap')
-          else if (newTab === 'Liquidity') routeTo('/liquidity/add')
-        }}
-      />
-    </Row>
-  )
+  return <Row className="mb-10 mobile:mb-2 font-medium text-2xl">My Position</Row>
 }
+
 function ConcentratedAmountInputPair() {
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
@@ -275,11 +270,66 @@ function ConcentratedCard() {
           </Row>
         </Row>
 
-        <Grid className="bg-[#141041] grid-cols-4">
-          {/* Title */}
+        <Grid className="bg-[#141041] grid-cols-4 col-span-full">
           <div>
-            <div>Liquidity</div>
-            {/* <div>{currentAmmPool?.tvl}</div> */}
+            <div className="font-medium text-[#abc4ff]">Liquidity</div>
+            <div className="font-medium text-2xl text-white">
+              {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)}
+            </div>
+          </div>
+          <div>
+            <div className="font-medium text-[#abc4ff]">Leverage</div>
+            <div className="font-medium text-2xl text-white">{targetUserPositionAccount?.leverage.toFixed(2)}x</div>
+          </div>
+          <div>
+            <div className="font-medium text-[#abc4ff]">Deposit Ratio</div>
+            <Col className="font-medium text-2xl text-white">
+              <RowItem
+                prefix={
+                  <Row>
+                    <CoinAvatar token={currentAmmPool?.base} />
+                    <div className="text-[#abc4ff80]">{currentAmmPool?.base?.symbol ?? '--'}</div>
+                  </Row>
+                }
+                suffix={
+                  <div className="text-[#abc4ff80]">{toPercentString(targetUserPositionAccount?.positionPercentA)}</div>
+                }
+                text={
+                  <div className="text-white">
+                    {toUsdVolume(
+                      mul(targetUserPositionAccount?.amountLiquidityValue, targetUserPositionAccount?.positionPercentA)
+                    )}
+                  </div>
+                }
+              />
+              <RowItem
+                prefix={
+                  <Row>
+                    <CoinAvatar token={currentAmmPool?.quote} />
+                    <div className="text-[#abc4ff80]">{currentAmmPool?.quote?.symbol ?? '--'}</div>
+                  </Row>
+                }
+                suffix={
+                  <div className="text-[#abc4ff80]">{toPercentString(targetUserPositionAccount?.positionPercentB)}</div>
+                }
+                text={
+                  <div className="text-white">
+                    {toUsdVolume(
+                      mul(targetUserPositionAccount?.amountLiquidityValue, targetUserPositionAccount?.positionPercentB)
+                    )}
+                  </div>
+                }
+              />
+            </Col>
+          </div>
+          <div>
+            <div className="font-medium text-[#abc4ff]">NFT</div>
+            <div className="font-medium text-2xl text-[#abc4ff80]">
+              {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)}
+              <AddressItem showDigitCount={6} canCopy canExternalLink>
+                {targetUserPositionAccount?.nftMint}
+              </AddressItem>
+            </div>
           </div>
         </Grid>
 
