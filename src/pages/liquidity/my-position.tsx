@@ -270,32 +270,32 @@ function ConcentratedCard() {
           </Row>
         </Row>
 
-        <Grid className="bg-[#141041] grid-cols-4 col-span-full">
-          <div>
+        <Row className="bg-[#141041] justify-between col-span-full py-2 px-3 rounded-xl gap-8">
+          <Grid className="items-center grow">
             <div className="font-medium text-[#abc4ff]">Liquidity</div>
             <div className="font-medium text-2xl text-white">
               {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)}
             </div>
-          </div>
-          <div>
+          </Grid>
+          <Grid className="items-center grow">
             <div className="font-medium text-[#abc4ff]">Leverage</div>
             <div className="font-medium text-2xl text-white">{targetUserPositionAccount?.leverage.toFixed(2)}x</div>
-          </div>
-          <div>
+          </Grid>
+          <Grid className="items-center grow">
             <div className="font-medium text-[#abc4ff]">Deposit Ratio</div>
             <Col className="font-medium text-2xl text-white">
               <RowItem
                 prefix={
-                  <Row>
-                    <CoinAvatar token={currentAmmPool?.base} />
-                    <div className="text-[#abc4ff80]">{currentAmmPool?.base?.symbol ?? '--'}</div>
+                  <Row className="items-center gap-2">
+                    <CoinAvatar token={currentAmmPool?.base} size="smi" />
+                    <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
                   </Row>
                 }
                 suffix={
                   <div className="text-[#abc4ff80]">{toPercentString(targetUserPositionAccount?.positionPercentA)}</div>
                 }
                 text={
-                  <div className="text-white">
+                  <div className="text-white justify-end">
                     {toUsdVolume(
                       mul(targetUserPositionAccount?.amountLiquidityValue, targetUserPositionAccount?.positionPercentA)
                     )}
@@ -304,9 +304,9 @@ function ConcentratedCard() {
               />
               <RowItem
                 prefix={
-                  <Row>
-                    <CoinAvatar token={currentAmmPool?.quote} />
-                    <div className="text-[#abc4ff80]">{currentAmmPool?.quote?.symbol ?? '--'}</div>
+                  <Row className="items-center gap-2">
+                    <CoinAvatar token={currentAmmPool?.quote} size="smi" />
+                    <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.quote?.symbol ?? '--'}</div>
                   </Row>
                 }
                 suffix={
@@ -321,17 +321,16 @@ function ConcentratedCard() {
                 }
               />
             </Col>
-          </div>
-          <div>
+          </Grid>
+          <Grid className="items-center grow">
             <div className="font-medium text-[#abc4ff]">NFT</div>
             <div className="font-medium text-2xl text-[#abc4ff80]">
-              {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)}
               <AddressItem showDigitCount={6} canCopy canExternalLink>
                 {targetUserPositionAccount?.nftMint}
               </AddressItem>
             </div>
-          </div>
-        </Grid>
+          </Grid>
+        </Row>
 
         <div>
           <ConcentratedAmountInputPair />
@@ -394,6 +393,26 @@ function ConcentratedCard() {
         <RemainSOLAlert />
       </Grid>
     </CyberpunkStyleCard>
+  )
+}
+
+function RangeTag({ type }: { type: 'in-range' | 'out-of-range' }) {
+  if (type === 'out-of-range')
+    return (
+      <Row className="items-center bg-[#DA2EEF]/10 rounded text-xs text-[#DA2EEF] py-0.5 px-1 ml-2">
+        <Icon size="xs" iconSrc={'/icons/warn-stick.svg'} />
+        <div className="font-normal" style={{ marginLeft: 4 }}>
+          Out of Range
+        </div>
+      </Row>
+    )
+  return (
+    <Row className="items-center bg-[#142B45] rounded text-xs text-[#39D0D8] py-0.5 px-1 ml-2">
+      <Icon size="xs" iconSrc={'/icons/check-circle.svg'} />
+      <div className="font-normal" style={{ marginLeft: 4 }}>
+        In Range
+      </div>
+    </Row>
   )
 }
 

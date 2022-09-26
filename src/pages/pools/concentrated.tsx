@@ -986,6 +986,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
       </Row>
     )
   }, [inRange])
+
   const { logInfo } = useNotification.getState()
   const walletConnected = useWallet((s) => s.connected)
 
