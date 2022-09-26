@@ -1,24 +1,25 @@
 import { useMemo } from 'react'
 
 import { twMerge } from 'tailwind-merge'
+import { CurrencyAmount } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useNotification from '@/application/notification/useNotification'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
+import { SplToken, TokenAmount } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
@@ -870,8 +871,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         <>
           {info.userPositionAccount.map((p, idx) => {
             let myPosition = '--'
-            const amountA = toString(p.amountA, { decimalLength: 'auto 2' })
-            const amountB = toString(p.amountB, { decimalLength: 'auto 2' })
+            const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
+            const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
             const lower = toString(p.priceLower, { decimalLength: 'auto 5' })
             const upper = toString(p.priceUpper, { decimalLength: 'auto 5' })
 
@@ -931,6 +932,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 amountA={amountA}
                 amountB={amountB}
                 myPositionVolume={myPositionVolume}
+                coinAPrice={coinAPrice}
+                coinBPrice={coinBPrice}
                 inRange={inRange}
               />
             )
@@ -955,6 +958,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   amountA,
   amountB,
   myPositionVolume,
+  coinAPrice,
+  coinBPrice,
   inRange
 }: {
   poolInfo: HydratedConcentratedInfo
@@ -963,29 +968,48 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   amountA?: string
   amountB?: string
   myPositionVolume?: string
+  coinAPrice?: CurrencyAmount
+  coinBPrice?: CurrencyAmount
   inRange?: boolean
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
 
   const rangeTag = useMemo(() => {
-    if (!inRange)
-      return (
-        <Row className="items-center bg-[#DA2EEF]/10 rounded text-xs text-[#DA2EEF] py-0.5 px-1 ml-2">
-          <Icon size="xs" iconSrc={'/icons/warn-stick.svg'} />
+    let bgColor = 'bg-[#142B45]'
+    let textColor = 'text-[#39D0D8]'
+    let iconSrc = '/icons/check-circle.svg'
+    let textValue = 'In Range'
+    if (!inRange) {
+      bgColor = 'bg-[#DA2EEF]/10'
+      textColor = 'text-[#DA2EEF]'
+      iconSrc = '/icons/warn-stick.svg'
+      textValue = 'Out of Range'
+    }
+
+    return (
+      <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
+        <Row className={twMerge('items-center rounded text-xs py-0.5 px-1 ml-2', bgColor, textColor)}>
+          <Icon size="xs" iconSrc={iconSrc} />
           <div className="font-normal" style={{ marginLeft: 4 }}>
-            Out of Range
+            {textValue}
           </div>
         </Row>
-      )
-    return (
-      <Row className="items-center bg-[#142B45] rounded text-xs text-[#39D0D8] py-0.5 px-1 ml-2">
-        <Icon size="xs" iconSrc={'/icons/check-circle.svg'} />
-        <div className="font-normal" style={{ marginLeft: 4 }}>
-          In Range
-        </div>
-      </Row>
+        <Tooltip.Panel>
+          <div className="max-w-[300px] py-3 px-5">
+            <div className="font-medium text-[#ABC4FF] text-2xs">Current Price</div>
+            <Row className="gap-5  mt-1">
+              <div className="text-xs text-white">
+                {toString(decimalToFraction(info.state.currentPrice), { decimalLength: 'auto 5' })}
+              </div>
+              <div className="text-[#ABC4FF] text-xs">
+                {info.base?.symbol} per {info.quote?.symbol}
+              </div>
+            </Row>
+          </div>
+        </Tooltip.Panel>
+      </Tooltip>
     )
-  }, [inRange])
+  }, [inRange, info.state.currentPrice, info.base?.symbol, info.quote?.symbol])
   const { logInfo } = useNotification.getState()
   const walletConnected = useWallet((s) => s.connected)
 
@@ -1013,6 +1037,21 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               <Col>
                 <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
                   My Position
+                  {p ? (
+                    <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
+                      <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
+                      <Tooltip.Panel>
+                        <div className="max-w-[300px] py-3 px-5">
+                          {info.base && (
+                            <TokenPositionInfo token={info.base} tokenAmount={amountA} tokenPrice={coinAPrice} />
+                          )}
+                          {info.quote && (
+                            <TokenPositionInfo token={info.quote} tokenAmount={amountB} tokenPrice={coinBPrice} />
+                          )}
+                        </div>
+                      </Tooltip.Panel>
+                    </Tooltip>
+                  ) : null}
                 </div>
                 <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPositionVolume ?? '--'}</div>
                 <Row className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2">
@@ -1051,15 +1090,31 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               <Col>
                 <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
                   Unclaimed Yield
-                  <Tooltip darkGradient={true}>
-                    <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
-                    <Tooltip.Panel>
-                      <div className="max-w-[300px]">
-                        Rewards are only emitted when LP tokens are staked in the farm. If there is a period when no LP
-                        tokens are staked, unemmitted rewards can be claimed here once farming period ends
-                      </div>
-                    </Tooltip.Panel>
-                  </Tooltip>
+                  {p ? (
+                    <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
+                      <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
+                      <Tooltip.Panel>
+                        <div className="max-w-[300px] py-[6px] px-5">
+                          {info.base && (
+                            <TokenPositionInfo
+                              token={info.base}
+                              tokenAmount={amountA}
+                              tokenPrice={coinAPrice}
+                              suffix="Rewards"
+                            />
+                          )}
+                          {info.quote && (
+                            <TokenPositionInfo
+                              token={info.quote}
+                              tokenAmount={amountB}
+                              tokenPrice={coinBPrice}
+                              suffix="Rewards"
+                            />
+                          )}
+                        </div>
+                      </Tooltip.Panel>
+                    </Tooltip>
+                  ) : null}
                 </div>
                 <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPositionVolume ?? '--'}</div>
                 <AutoBox
@@ -1186,6 +1241,36 @@ function PoolCardDatabaseBodyCollapsePositionContent({
         </div>
       </Row>
     </AutoBox>
+  )
+}
+
+function TokenPositionInfo({
+  token,
+  tokenAmount,
+  tokenPrice,
+  suffix = ''
+}: {
+  token: SplToken
+  tokenAmount?: string
+  tokenPrice?: CurrencyAmount
+  suffix?: string
+}) {
+  // eslint-disable-next-line no-console
+  console.log('amount: ', tokenAmount, 'price: ', toUsdVolume(tokenPrice))
+
+  return (
+    <Row className="py-2 gap-8 justify-between items-center font-medium text-[12px] ">
+      <Row className="flex items-center justify-start gap-[6px]">
+        <CoinAvatar token={token} size="smi" />{' '}
+        <div className=" text-[#ABC4FF]">
+          {token.symbol} {suffix}
+        </div>
+      </Row>
+      <Row className="flex justify-end gap-1">
+        <div className="text-white">{tokenAmount}</div>
+        <div className="text-[#ABC4FF]">({toUsdVolume(tokenPrice)})</div>
+      </Row>
+    </Row>
   )
 }
 
