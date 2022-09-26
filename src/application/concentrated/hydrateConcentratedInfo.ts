@@ -23,18 +23,19 @@ export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConce
 /**
  * part of {@link hydrateConcentratedInfo}
  */
-function hydrateBaseInfo(
-  sdkConcentratedInfo: SDKParsedConcentratedInfo
-): Pick<
-  HydratedConcentratedInfo,
-  'idString' | 'tvl' | 'fee24h' | 'fee7d' | 'fee30d' | 'volume24h' | 'volume7d' | 'volume30d'
-> {
+function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial<HydratedConcentratedInfo> {
   return {
     idString: toPubString(sdkConcentratedInfo.state.id),
     tvl: toUsdCurrency(sdkConcentratedInfo.state.tvl),
     fee24h: toUsdCurrency(sdkConcentratedInfo.state.day.fee),
     fee7d: toUsdCurrency(sdkConcentratedInfo.state.week.fee),
     fee30d: toUsdCurrency(sdkConcentratedInfo.state.month.fee),
+    apr24h: toPercent(sdkConcentratedInfo.state.day.apr),
+    apr7d: toPercent(sdkConcentratedInfo.state.week.apr),
+    apr30d: toPercent(sdkConcentratedInfo.state.month.apr),
+    feeApr24h: toPercent(sdkConcentratedInfo.state.day.feeApr),
+    feeApr7d: toPercent(sdkConcentratedInfo.state.week.feeApr),
+    feeApr30d: toPercent(sdkConcentratedInfo.state.month.feeApr),
     volume24h: toUsdCurrency(sdkConcentratedInfo.state.day.volume),
     volume7d: toUsdCurrency(sdkConcentratedInfo.state.week.volume),
     volume30d: toUsdCurrency(sdkConcentratedInfo.state.month.volume)
@@ -43,9 +44,7 @@ function hydrateBaseInfo(
 /**
  * part of {@link hydrateConcentratedInfo}
  */
-function hydratePoolInfo(
-  sdkConcentratedInfo: SDKParsedConcentratedInfo
-): Pick<HydratedConcentratedInfo, 'base' | 'quote' | 'id' | 'name'> {
+function hydratePoolInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial<HydratedConcentratedInfo> {
   const { getToken } = useToken.getState()
   const base = getToken(sdkConcentratedInfo.state.mintA.mint)
   const quote = getToken(sdkConcentratedInfo.state.mintB.mint)
@@ -62,9 +61,7 @@ function hydratePoolInfo(
 /**
  * part of {@link hydrateConcentratedInfo}
  */
-function hydratePositionInfo(
-  sdkConcentratedInfo: SDKParsedConcentratedInfo
-): Pick<HydratedConcentratedInfo, 'base' | 'quote' | 'id' | 'name'> {
+function hydratePositionInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial<HydratedConcentratedInfo> {
   const { getToken } = useToken.getState()
   const base = getToken(sdkConcentratedInfo.state.mintA.mint)
   const quote = getToken(sdkConcentratedInfo.state.mintB.mint)
@@ -81,9 +78,7 @@ function hydratePositionInfo(
 /**
  * part of {@link hydrateConcentratedInfo}
  */
-function hydrateFeeRate(
-  sdkConcentratedInfo: SDKParsedConcentratedInfo
-): Pick<HydratedConcentratedInfo, 'protocolFeeRate' | 'tradeFeeRate'> {
+function hydrateFeeRate(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial<HydratedConcentratedInfo> {
   return {
     protocolFeeRate: toPercent(div(sdkConcentratedInfo.state.ammConfig.protocolFeeRate, 10 ** 8)),
     tradeFeeRate: toPercent(div(sdkConcentratedInfo.state.ammConfig.tradeFeeRate, 10 ** 6))
@@ -104,6 +99,8 @@ function hydrateUserPositionAccounnt(
     userPositionAccount: sdkConcentratedInfo.positionAccount?.map((a) => {
       const amountA = tokenA ? toTokenAmount(tokenA, a.amountA) : undefined
       const amountB = tokenB ? toTokenAmount(tokenB, a.amountB) : undefined
+      const tokenFeeAmountA = tokenA ? toTokenAmount(tokenA, a.tokenFeeAmountA) : undefined
+      const tokenFeeAmountB = tokenB ? toTokenAmount(tokenB, a.tokenFeeAmountB) : undefined
       const innerVolumeA = mul(currentPrice, amountA) ?? 0
       const innerVolumeB = mul(currentPrice, amountB) ?? 0
       return {
@@ -117,7 +114,9 @@ function hydrateUserPositionAccounnt(
         tokenB,
         amountLiquidityValue: toUsdCurrency(1000), // TEMP DATA
         positionPercentA: toPercent(div(innerVolumeA, add(innerVolumeA, innerVolumeB))),
-        positionPercentB: toPercent(div(innerVolumeB, add(innerVolumeA, innerVolumeB)))
+        positionPercentB: toPercent(div(innerVolumeB, add(innerVolumeA, innerVolumeB))),
+        tokenFeeAmountA,
+        tokenFeeAmountB
       }
     })
   }
