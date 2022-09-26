@@ -23,7 +23,7 @@ export const getConfig = (num: number, totalCount: number) => {
 
   return config
 }
-export const toFixedNumber = (num: number, digits = 6) => (num ? parseFloat(num.toFixed(digits)) : 0)
+export const toFixedNumber = (num: number | string, digits = 6) => (num ? parseFloat(Number(num).toFixed(digits)) : 0)
 export const getLabel =
   (labelProps: { side: Range; onPointerDown?: () => void; onMouseDown?: () => void }) => (props) => {
     const { side, ...rest } = labelProps

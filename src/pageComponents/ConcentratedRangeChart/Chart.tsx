@@ -3,6 +3,7 @@ import { Fraction } from 'test-r-sdk'
 import { ChartPoint, ChartRangeInputOption } from './ConcentratedRangeInputChartBody'
 import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
 import useDevice from '@/hooks/useDevice'
+import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
 import {
   getPriceLabel,
   Range,
@@ -17,6 +18,7 @@ import PriceRangeInput from './PriceRangeInput'
 
 interface HighlightPoint extends ChartPoint {
   z?: number // for highlight select range
+  extend?: boolean
 }
 
 interface PositionState {
@@ -34,7 +36,7 @@ interface Props {
   hideRangeLine?: boolean
   hideXAxis?: boolean
   height?: number
-  onPositionChange?: (props: { min: number; max: number }) => void
+  onPositionChange?: (props: { min: number; max: number }) => PriceBoundaryReturn
 }
 
 export default function Chart(props: Props) {
@@ -67,7 +69,6 @@ export default function Chart(props: Props) {
   const smoothCountRef = useRef(0)
   const moveRef = useRef('')
   const areaRef = useRef<number | undefined>()
-  const maxYRef = useRef<number>(0)
   const xAxisRef = useRef<number[]>([])
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
   const tickGap = xAxisRef.current.length
@@ -98,10 +99,6 @@ export default function Chart(props: Props) {
     [decimals, points]
   )
 
-  const extendPoints = (newMaxPoint: number) => {
-    setDisplayList((list) => [...list, { x: newMaxPoint + tickGap, y: 0, z: 0 }])
-  }
-
   useEffect(() => {
     setDisplayList([])
     setXAxisDomain(DEFAULT_X_AXIS)
@@ -126,7 +123,6 @@ export default function Chart(props: Props) {
       const point = points[i]
       const nextPoint = points[i + 1]
       displayList.push({ ...point })
-      maxYRef.current = Math.max(maxYRef.current, point.y, nextPoint.y)
       // add more points to chart to smooth line
       if (!showCurrentPriceOnly || smoothCount > 0) {
         const gap = toFixedNumber((nextPoint.x - point.x) / smoothCount, decimals)
@@ -146,21 +142,21 @@ export default function Chart(props: Props) {
   useEffect(() => {
     if (!defaultMin && !defaultMax) return
     updatePosition({
-      [Range.Min]: Number(defaultMin?.toFixed(decimals) || 0),
-      [Range.Max]: Number(defaultMax?.toFixed(decimals) || 100)
+      [Range.Min]: Number(defaultMin?.toFixed(10) || 0),
+      [Range.Max]: Number(defaultMax?.toFixed(10) || 100)
     })
 
     return () => {
       if (defaultMin && defaultMax) setRendered(false)
     }
-  }, [defaultMin, defaultMax, decimals, updatePosition])
+  }, [defaultMin, defaultMax, updatePosition])
 
+  const lastMoveRef = useRef('')
   useEffect(() => {
-    if (isMoving) return
-    if (rendered) onPositionChange?.(position)
-    // draw hightLightPoints
+    if (isMoving || !rendered) return
     setDisplayList((list) => [
       ...list.map((point) => ({
+        extend: point.extend,
         x: point.x,
         y: point.y,
         z:
@@ -170,7 +166,12 @@ export default function Chart(props: Props) {
             : undefined
       }))
     ])
-  }, [rendered, isMoving, position, onPositionChange])
+    // draw hightLightPoints
+
+    return () => {
+      lastMoveRef.current = moveRef.current
+    }
+  }, [rendered, isMoving, position, decimals, onPositionChange])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -204,6 +205,26 @@ export default function Chart(props: Props) {
     return val.toFixed(1)
   }, [])
 
+  let timer: number | undefined = undefined
+  const debounceUpdate = ({ side, ...pos }: { min: number; max: number; side: Range | string }) => {
+    timer && clearTimeout(timer)
+    timer = window.setTimeout(() => {
+      const res = onPositionChange?.(pos)
+      if (!res) return
+      if (side === 'area')
+        updatePosition({ min: Number(res.priceLower.toFixed(9)), max: Number(res.priceUpper.toFixed(9)) })
+      if (side === Range.Min)
+        updatePosition((pos) => ({
+          ...pos,
+          [Range.Min]: Number(res.priceLower.toFixed(9))
+        }))
+      if (side === Range.Max)
+        updatePosition((pos) => ({
+          ...pos,
+          [Range.Max]: Number(res.priceUpper.toFixed(9))
+        }))
+    }, 100)
+  }
   const handleMove = useCallback(
     (e: any) => {
       if (!moveRef.current || !e) return
@@ -218,10 +239,12 @@ export default function Chart(props: Props) {
         areaRef.current = activeLabel
         updatePosition((pos) => {
           const [newLeft, newRight] = [pos[Range.Min] + diff, pos[Range.Max] + diff]
-          return {
+          const newPos = {
             [Range.Min]: newLeft <= boundaryRef.current.min ? pos[Range.Min] : newLeft,
             [Range.Max]: newRight >= boundaryRef.current.max ? pos[Range.Max] : newRight
           }
+          debounceUpdate({ ...newPos, side: moveRef.current })
+          return newPos
         })
         return
       }
@@ -236,47 +259,13 @@ export default function Chart(props: Props) {
           moveRef.current = Range.Min
           return { ...pos, [Range.Min]: activeLabel }
         }
+
+        debounceUpdate({ ...pos, [moveRef.current]: activeLabel, side: moveRef.current })
         return { ...pos, [moveRef.current]: activeLabel }
       })
     },
-    [updatePosition]
+    [updatePosition, onPositionChange]
   )
-
-  // const zoomCounterRef = useRef(0)
-  // const zoomReset = () => {
-  //   setXAxisDomain(DEFAULT_X_AXIS)
-  //   boundaryRef.current = { min: displayList[0].x, max: displayList[displayList.length - 1].x }
-  //   zoomCounterRef.current = 0
-  // }
-  // const zoomIn = () => {
-  //   const newRef = zoomCounterRef.current + ZOOM_INTERVAL
-  //   if (newRef >= displayList.length - 1 - newRef) {
-  //     return
-  //   }
-  //   zoomCounterRef.current = newRef
-  //   const [min, max] = [displayList[newRef].x, displayList[displayList.length - 1 - newRef].x]
-  //   boundaryRef.current = { min, max }
-  //   setXAxisDomain([min, max])
-  //   updatePosition((pos) => {
-  //     return {
-  //       [Range.Min]: min > pos[Range.Min] ? min : pos[Range.Min],
-  //       [Range.Max]: max < pos[Range.Max] ? max : pos[Range.Max]
-  //     }
-  //   })
-  // }
-  // const zoomOut = () => {
-  //   zoomCounterRef.current = zoomCounterRef.current - ZOOM_INTERVAL
-  //   if (zoomCounterRef.current < 0) {
-  //     zoomCounterRef.current = 0
-  //     return
-  //   }
-  //   const [min, max] = [
-  //     displayList[zoomCounterRef.current].x,
-  //     displayList[displayList.length - 1 - zoomCounterRef.current].x
-  //   ]
-  //   boundaryRef.current = { min, max }
-  //   setXAxisDomain([min, max])
-  // }
 
   const getMouseEvent = (range: Range) => ({
     onPointerDown: handleMouseDown(range),
@@ -284,18 +273,18 @@ export default function Chart(props: Props) {
   })
 
   const getReferenceProps = (range: Range) => {
-    // const tickGap = xAxisRef.current.length
-    //   ? (xAxisRef.current[1] - xAxisRef.current[0]) / xAxisRef.current.length
-    //   : points.length
-    //   ? (points[points.length - 1].x - points[0].x) / 8 / 8
-    //   : 0
+    const [x1, x2] = [
+      position[range] - (range === Range.Min ? 1.5 * tickGap : tickGap / 1.5),
+      position[range] + (range === Range.Max ? 1.5 * tickGap : tickGap / 1.5)
+    ]
     return position[range]
       ? {
           ...getMouseEvent(range),
-          x1: position[range] - (range === Range.Min ? 1.6 * tickGap : tickGap / 1.5),
-          x2: position[range] + (range === Range.Max ? 1.6 * tickGap : tickGap / 1.5),
-          y1: 0,
-          y2: maxYRef.current,
+          x1: range === Range.Min && x1 < xAxisRef.current[0] ? xAxisRef.current[0] : x1,
+          x2:
+            range === Range.Max && x2 > xAxisRef.current[xAxisRef.current.length - 1]
+              ? displayList[displayList.length - 1].x
+              : x2,
           style: { cursor: 'grab' },
           fill: 'transparent',
           isFront: true
@@ -305,9 +294,23 @@ export default function Chart(props: Props) {
 
   const handlePriceChange = useCallback(
     ({ val, side }: { val?: number | string; side: Range }) => {
-      setPosition((p) => ({ ...p, [side]: parseFloat(String(val!)) }))
+      const newVal = parseFloat(String(val!))
+      setPosition((p) => ({ ...p, [side]: newVal }))
+      setDisplayList((list) => {
+        const filteredList = list.filter((p) => !p.extend)
+        if (side === Range.Max) {
+          if (newVal > filteredList[filteredList.length - 1].x) {
+            for (let i = 1; ; i++) {
+              const newX = filteredList[filteredList.length - 1].x + tickGap * i
+              filteredList.push({ x: newX, y: 0, z: 0, extend: true })
+              if (newX > newVal) break
+            }
+          }
+        }
+        return filteredList
+      })
     },
-    [tickGap]
+    [tickGap, points]
   )
 
   const handleInDecrease = useCallback(
@@ -324,7 +327,7 @@ export default function Chart(props: Props) {
           )
           if (!val || (isMin && newPos >= toFixedNumber(prePos[Range.Max], decimals))) return prePos // when min > max
           resultPos = newPos
-          setDisplayList((list) => [...list, { x: newPos + tickGap, y: 0, z: 0 }])
+          setDisplayList((list) => [...list, { x: newPos + tickGap, y: 0, extend: true }])
           return { ...prePos, [side]: newPos }
         })
         return String(resultPos)
@@ -332,11 +335,10 @@ export default function Chart(props: Props) {
       setPosition((prePos) => {
         const newPos = toFixedNumber(
           [...points].reverse().find((p) => {
-            return toFixedNumber(p.x, decimals) < toFixedNumber(Number(val), decimals)
+            return toFixedNumber(p.x, decimals) < toFixedNumber(val, decimals)
           })?.x || 0,
           decimals
         )
-
         if (isMin && newPos <= toFixedNumber(points[0].x, decimals))
           return { ...prePos, [Range.Min]: toFixedNumber(points[0].x, decimals) } // when min < points[0].x
         if (!isMin && newPos <= prePos[Range.Min]) return prePos // when max > max points
@@ -350,27 +352,6 @@ export default function Chart(props: Props) {
 
   return (
     <>
-      {/* {showZoom && (
-        <div className="flex select-none">
-          <Icon
-            onClick={zoomReset}
-            className="saturate-50 brightness-125 cursor-pointer"
-            iconSrc="/icons/chart-add-white-space.svg"
-          />
-          <Icon
-            className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
-            onClick={zoomIn}
-            heroIconName="zoom-in"
-            canLongClick
-          />
-          <Icon
-            onClick={zoomOut}
-            className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
-            heroIconName="zoom-out"
-            canLongClick
-          />
-        </div>
-      )} */}
       <div className="w-full select-none" style={{ height: `${height || 140}px` }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart

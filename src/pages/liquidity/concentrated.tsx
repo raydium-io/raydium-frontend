@@ -22,7 +22,7 @@ import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getPriceBoundary, recordPrickTick } from '@/application/concentrated/getNearistDataPoint'
+import { getPriceBoundary, calLowerUpper } from '@/application/concentrated/getNearistDataPoint'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Fraction } from 'test-r-sdk'
 import { RemainSOLAlert, canTokenPairBeSelected, toXYChartFormat, PairInfoTitle } from '@/pageComponents/Concentrated'
@@ -64,9 +64,13 @@ function ConcentratedCard() {
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
-  let points = useMemo(() => (chartPoints ? toXYChartFormat(chartPoints) : undefined), [chartPoints])
+
   const isFocus1 = focusSide === 'coin1'
-  if (!isFocus1) points = points?.map((p) => ({ x: 1 / p.x, y: p.y })).reverse()
+  const points = useMemo(() => {
+    const formatPoints = chartPoints ? toXYChartFormat(chartPoints) : undefined
+    if (isFocus1) return formatPoints
+    return formatPoints ? formatPoints.map((p) => ({ x: 1 / p.x, y: p.y })).reverse() : undefined
+  }, [chartPoints, isFocus1])
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
@@ -115,23 +119,17 @@ function ConcentratedCard() {
 
   const handlePosChange = useCallback(
     (props) => {
-      if (!currentAmmPool) return
-      const res = recordPrickTick({
-        p: props.min,
+      if (!currentAmmPool || !coin1 || !coin2) return
+      const res = calLowerUpper({
+        ...props,
         coin1,
         coin2,
         ammPool: currentAmmPool,
         reverse: !isFocus1
-      })
-      // console.log(123123, res, res?.price.toFixed(6))
-      const res2 = recordPrickTick({
-        p: props.max,
-        coin1,
-        coin2,
-        ammPool: currentAmmPool,
-        reverse: !isFocus1
-      })
-      // console.log(123123, res2, res2?.price.toFixed(6))
+      })!
+
+      useConcentrated.setState(res)
+      return res
     },
     [coin1, coin2, currentAmmPool, isFocus1]
   )

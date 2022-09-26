@@ -8,6 +8,7 @@ import { AmmV3 } from 'test-r-sdk'
 import { SplToken } from '../token/type'
 import { HydratedConcentratedInfo } from './type'
 import { Numberish } from '@/types/constants'
+import { Range } from '@/pageComponents/ConcentratedRangeChart/chartUtil'
 
 export function getPriceAndTick(info: Parameters<typeof AmmV3['getPriceAndTick']>[0]) {
   const result = AmmV3.getPriceAndTick(info)
@@ -26,14 +27,16 @@ interface GetChartDataProps {
   ammPool?: HydratedConcentratedInfo
 }
 
-export function getPriceBoundary({ coin1, coin2, reverse, ammPool }: GetChartDataProps):
+export type PriceBoundaryReturn =
   | {
       priceLowerTick: number
       priceLower: Fraction
       priceUpperTick: number
       priceUpper: Fraction
     }
-  | undefined {
+  | undefined
+
+export function getPriceBoundary({ coin1, coin2, reverse, ammPool }: GetChartDataProps): PriceBoundaryReturn {
   if (!ammPool) return
   const targetCoin = reverse ? coin2 : coin1
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
@@ -67,8 +70,14 @@ export function getPriceBoundary({ coin1, coin2, reverse, ammPool }: GetChartDat
   }
 }
 
-export function recordPrickTick({ p, coin1, coin2, reverse, ammPool }: GetChartDataProps & { p: Numberish }) {
-  if (!ammPool || !coin1 || !coin2) return
+interface GetPriceTick {
+  coin1: SplToken
+  coin2: SplToken
+  reverse: boolean
+  ammPool: HydratedConcentratedInfo
+}
+
+export function getPriceTick({ p, coin1, coin2, reverse, ammPool }: GetPriceTick & { p: Numberish }) {
   const targetCoin = !reverse ? coin1 : coin2
   const careDecimalLength = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const trimedX = getMax(p, 1 / 10 ** careDecimalLength)
@@ -78,4 +87,35 @@ export function recordPrickTick({ p, coin1, coin2, reverse, ammPool }: GetChartD
     price: fractionToDecimal(toFraction(trimedX))
   })
   return { price, tick }
+}
+
+export function calLowerUpper({
+  min,
+  max,
+  coin1,
+  coin2,
+  reverse,
+  ammPool
+}: GetPriceTick & { [Range.Min]: number; [Range.Max]: number }): PriceBoundaryReturn {
+  const resLower = getPriceTick({
+    p: min,
+    coin1,
+    coin2,
+    ammPool,
+    reverse
+  })!
+  const resUpper = getPriceTick({
+    p: max,
+    coin1,
+    coin2,
+    ammPool,
+    reverse
+  })!
+
+  return {
+    priceLower: resLower.price,
+    priceLowerTick: resLower.tick,
+    priceUpper: resUpper.price,
+    priceUpperTick: resUpper.tick
+  }
 }
