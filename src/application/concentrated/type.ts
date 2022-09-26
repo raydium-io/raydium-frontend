@@ -43,8 +43,12 @@ export interface UserPositionAccount {
   amountB?: TokenAmount
   tokenA?: SplToken
   tokenB?: SplToken
+  leverage: number
+  amountLiquidityValue: CurrencyAmount
   tickLower: number
   tickUpper: number
+  positionPercentA: Percent
+  positionPercentB: Percent
   // liquidity: BN__default; // currently useless
   // feeGrowthInsideLastX64A: BN__default; // currently useless
   // feeGrowthInsideLastX64B: BN__default; // currently useless
