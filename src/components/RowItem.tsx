@@ -2,7 +2,7 @@ import React, { MouseEvent, ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
 import Row from './Row'
 
-export function ThreeSlotItem({
+export function RowItem({
   className,
   textClassName,
 
@@ -19,9 +19,9 @@ export function ThreeSlotItem({
   onClick?(ev: MouseEvent): void
 }) {
   return (
-    <Row className={twMerge('items-center', className)} onClick={onClick}>
+    <Row className={twMerge('items-center text-sm whitespace-nowrap', className)} onClick={onClick}>
       {prefix}
-      <div className={twMerge('grow text-sm whitespace-nowrap', textClassName)}>{text}</div>
+      <div className={twMerge('grow', textClassName)}>{text}</div>
       {suffix}
     </Row>
   )
