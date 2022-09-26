@@ -4,7 +4,7 @@ import Grid from '@/components/Grid'
 import PageLayout from '@/components/PageLayout'
 import useIdo from '@/application/ido/useIdo'
 import { AddressItem } from '@/components/AddressItem'
-import { ThreeSlotItem } from '@/components/ThreeSlotItem'
+import { RowItem } from '@/components/RowItem'
 import { toString } from '@/functions/numberish/toString'
 import { add, mul, sub } from '@/functions/numberish/operations'
 import { Numberish } from '@/types/constants'
@@ -229,7 +229,7 @@ function IdoPanel() {
 
 function ItemBlock(props: { label: ReactNode; value: ReactNode }) {
   return (
-    <ThreeSlotItem
+    <RowItem
       prefix={<div className="text-xs opacity-75">{props.label}: </div>}
       text={props.value}
       textClassName="text-base"

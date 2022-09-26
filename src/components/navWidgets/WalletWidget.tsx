@@ -10,7 +10,7 @@ import Icon from '../Icon'
 import PageLayoutPopoverDrawer from '../PageLayoutPopoverDrawer'
 import Row from '../Row'
 import { FadeIn } from '../FadeIn'
-import { ThreeSlotItem } from '../ThreeSlotItem'
+import { RowItem } from '../RowItem'
 import { PublicKeyish } from '@/types/constants'
 import toPubString from '@/functions/format/toMintString'
 import { AddressItem } from '../AddressItem'
@@ -47,7 +47,7 @@ export default function WalletWidget() {
                 {publicKey}
               </AddressItem>
             </FadeIn>
-            <ThreeSlotItem
+            <RowItem
               textClassName="text-white"
               className="py-4 px-6 border-[rgba(171,196,255,0.2)] cursor-pointer clickable clickable-filter-effect"
               prefix={<Icon className="mr-3" size="sm" iconSrc="/icons/misc-recent-transactions.svg" />}
@@ -57,7 +57,7 @@ export default function WalletWidget() {
                 closePanel?.()
               }}
             />
-            <ThreeSlotItem
+            <RowItem
               textClassName="text-white"
               className="py-4 px-6 border-[rgba(171,196,255,0.2)] cursor-pointer clickable clickable-filter-effect"
               prefix={<Icon className="mr-3" size="sm" iconSrc="/icons/misc-disconnect-wallet.svg" />}
