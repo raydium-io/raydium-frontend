@@ -123,7 +123,7 @@ function ConcentratedCard() {
         ammPool: currentAmmPool,
         reverse: !isFocus1
       })
-      console.log(123123, res, res?.price.toFixed(6))
+      // console.log(123123, res, res?.price.toFixed(6))
       const res2 = recordPrickTick({
         p: props.max,
         coin1,
@@ -131,7 +131,7 @@ function ConcentratedCard() {
         ammPool: currentAmmPool,
         reverse: !isFocus1
       })
-      console.log(123123, res2, res2?.price.toFixed(6))
+      // console.log(123123, res2, res2?.price.toFixed(6))
     },
     [coin1, coin2, currentAmmPool, isFocus1]
   )

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Fraction } from 'test-r-sdk'
 import { ChartPoint, ChartRangeInputOption } from './ConcentratedRangeInputChartBody'
 import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
@@ -48,7 +48,7 @@ export default function Chart(props: Props) {
     hideRangeLine,
     hideXAxis
   } = props
-  const points: HighlightPoint[] = chartOptions?.points || []
+  const points: HighlightPoint[] = useMemo(() => Object.assign([], chartOptions?.points || []), [chartOptions?.points])
   const [defaultMin, defaultMax] = [
     chartOptions?.initMinBoundaryX as Fraction,
     chartOptions?.initMaxBoundaryX as Fraction
@@ -64,64 +64,63 @@ export default function Chart(props: Props) {
   })
 
   const boundaryRef = useRef({ min: 0, max: 100 })
+  const smoothCountRef = useRef(0)
   const moveRef = useRef('')
   const areaRef = useRef<number | undefined>()
   const maxYRef = useRef<number>(0)
   const xAxisRef = useRef<number[]>([])
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
+  const tickGap = xAxisRef.current.length
+    ? (xAxisRef.current[1] - xAxisRef.current[0]) / xAxisRef.current.length
+    : points.length
+    ? (points[points.length - 1].x - points[0].x) / 8 / 8
+    : 0
   boundaryRef.current = { min: points[0]?.x || 0, max: points[points.length - 1]?.x || 100 }
 
   const updatePosition = useCallback(
     (nextStateOrCbk: PositionState | ((prePos: PositionState) => PositionState)) => {
       const getSafeMin = (val) => Math.max(boundaryRef.current.min, val)
-      const getSafeMax = (val) => Math.min(boundaryRef.current.max, val)
       if (typeof nextStateOrCbk === 'function') {
         setPosition((prePos) => {
           const newPos = nextStateOrCbk(prePos)
           return {
             [Range.Min]: toFixedNumber(getSafeMin(newPos[Range.Min]), decimals),
-            [Range.Max]: toFixedNumber(getSafeMax(newPos[Range.Max]), decimals)
+            [Range.Max]: toFixedNumber(newPos[Range.Max], decimals)
           }
         })
         return
       }
       setPosition({
         [Range.Min]: toFixedNumber(getSafeMin(nextStateOrCbk[Range.Min]), decimals),
-        [Range.Max]: toFixedNumber(getSafeMax(nextStateOrCbk[Range.Max]), decimals)
+        [Range.Max]: toFixedNumber(nextStateOrCbk[Range.Max], decimals)
       })
     },
     [decimals, points]
   )
 
-  const handleMouseUp = useCallback(() => {
-    if (!moveRef.current) return
-    setIsMoving(false)
-    moveRef.current = ''
-  }, [])
-  const handleMouseDown = (side: Range) => () => {
-    moveRef.current = side
-    setIsMoving(true)
+  const extendPoints = (newMaxPoint: number) => {
+    setDisplayList((list) => [...list, { x: newMaxPoint + tickGap, y: 0, z: 0 }])
   }
-
-  const formatTicks = useCallback((val: number) => {
-    if (!xAxisRef.current.length || val < xAxisRef.current[xAxisRef.current.length - 1]) {
-      xAxisRef.current = [val]
-    } else {
-      xAxisRef.current.push(val)
-    }
-    if (val < 1) return val.toFixed(4)
-    if (val < 10) return val.toFixed(1)
-
-    return val.toFixed(1)
-  }, [])
 
   useEffect(() => {
     setDisplayList([])
     setXAxisDomain(DEFAULT_X_AXIS)
     setRendered(false)
+    setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
     if (!points.length) return
     const { smoothCount } = getConfig(points[0].x, points.length)
+    smoothCountRef.current = smoothCount
     const displayList: HighlightPoint[] = []
+    const [defaultMinNum, defaultMaxNum] = [
+      defaultMin ? Number(defaultMin.toFixed(decimals)) : undefined,
+      defaultMax ? Number(defaultMax.toFixed(decimals)) : undefined
+    ]
+
+    if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(decimals)))
+      points.unshift({ x: defaultMinNum - (points[1].x - points[0].x) / 2, y: 0, z: undefined })
+    if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(decimals)))
+      points.push({ x: defaultMaxNum + (points[1].x - points[0].x) / 2, y: 0, z: undefined })
+
     const pointMaxIndex = points.length - 1
     for (let i = 0; i < pointMaxIndex; i++) {
       const point = points[i]
@@ -142,7 +141,7 @@ export default function Chart(props: Props) {
     setDisplayList(displayList)
     setXAxisDomain(DEFAULT_X_AXIS)
     setRendered(true)
-  }, [points, showCurrentPriceOnly])
+  }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly])
 
   useEffect(() => {
     if (!defaultMin && !defaultMax) return
@@ -154,7 +153,7 @@ export default function Chart(props: Props) {
     return () => {
       if (defaultMin && defaultMax) setRendered(false)
     }
-  }, [defaultMin, defaultMax, decimals, points, updatePosition])
+  }, [defaultMin, defaultMax, decimals, updatePosition])
 
   useEffect(() => {
     if (isMoving) return
@@ -182,6 +181,28 @@ export default function Chart(props: Props) {
       isMobile && window.removeEventListener('pointerup', handleMouseUp)
     }
   }, [isMobile])
+
+  const handleMouseUp = useCallback(() => {
+    if (!moveRef.current) return
+    setIsMoving(false)
+    moveRef.current = ''
+  }, [])
+  const handleMouseDown = (side: Range) => () => {
+    moveRef.current = side
+    setIsMoving(true)
+  }
+
+  const formatTicks = useCallback((val: number) => {
+    if (!xAxisRef.current.length || val < xAxisRef.current[xAxisRef.current.length - 1]) {
+      xAxisRef.current = [val]
+    } else {
+      xAxisRef.current.push(val)
+    }
+    if (val < 1) return val.toFixed(4)
+    if (val < 10) return val.toFixed(1)
+
+    return val.toFixed(1)
+  }, [])
 
   const handleMove = useCallback(
     (e: any) => {
@@ -263,11 +284,11 @@ export default function Chart(props: Props) {
   })
 
   const getReferenceProps = (range: Range) => {
-    const tickGap = xAxisRef.current.length
-      ? (xAxisRef.current[1] - xAxisRef.current[0]) / xAxisRef.current.length
-      : points.length
-      ? (points[points.length - 1].x - points[0].x) / 8 / 8
-      : 0
+    // const tickGap = xAxisRef.current.length
+    //   ? (xAxisRef.current[1] - xAxisRef.current[0]) / xAxisRef.current.length
+    //   : points.length
+    //   ? (points[points.length - 1].x - points[0].x) / 8 / 8
+    //   : 0
     return position[range]
       ? {
           ...getMouseEvent(range),
@@ -282,9 +303,12 @@ export default function Chart(props: Props) {
       : null
   }
 
-  const handlePriceChange = useCallback(({ val, side }: { val?: number | string; side: Range }) => {
-    setPosition((p) => ({ ...p, [side]: parseFloat(String(val!)) }))
-  }, [])
+  const handlePriceChange = useCallback(
+    ({ val, side }: { val?: number | string; side: Range }) => {
+      setPosition((p) => ({ ...p, [side]: parseFloat(String(val!)) }))
+    },
+    [tickGap]
+  )
 
   const handleInDecrease = useCallback(
     (props: { val?: number | string; side: Range; isIncrease: boolean }): string => {
@@ -295,11 +319,12 @@ export default function Chart(props: Props) {
         setPosition((prePos) => {
           const newPos = toFixedNumber(
             points.find((p) => !val || toFixedNumber(p.x, decimals) > toFixedNumber(Number(val), decimals))?.x ||
-              Number.MAX_SAFE_INTEGER,
+              toFixedNumber(Number(val) + tickGap, decimals),
             decimals
           )
-          if (isMin && newPos >= toFixedNumber(prePos[Range.Max], decimals)) return prePos // when min > max
+          if (!val || (isMin && newPos >= toFixedNumber(prePos[Range.Max], decimals))) return prePos // when min > max
           resultPos = newPos
+          setDisplayList((list) => [...list, { x: newPos + tickGap, y: 0, z: 0 }])
           return { ...prePos, [side]: newPos }
         })
         return String(resultPos)
@@ -320,7 +345,7 @@ export default function Chart(props: Props) {
       })
       return String(resultPos)
     },
-    [points]
+    [points, tickGap, decimals]
   )
 
   return (
@@ -453,7 +478,7 @@ export default function Chart(props: Props) {
                     : undefined
                 }
                 x1={position[Range.Min]}
-                x2={position[Range.Max]}
+                x2={Math.min(position[Range.Max], xAxisRef.current[xAxisRef.current.length - 1])}
                 fill={HIGHLIGHT_COLOR}
                 fillOpacity="0.3"
               />
