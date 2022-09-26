@@ -52,19 +52,19 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   return (
-    <Row className={twMerge('bg-[#141041] justify-between py-3 px-4 rounded-xl gap-8', className)}>
-      <Grid className="items-center grow">
-        <div className="font-medium text-[#abc4ff]">Liquidity</div>
+    <Row className={twMerge('bg-[#141041] grid-cols-4 py-3 px-4 rounded-xl gap-8', className)}>
+      <Grid className="grid-rows-[2em,1fr] items-center grow">
+        <div className="font-medium text-[#abc4ff] h-8">Liquidity</div>
         <div className="font-medium text-2xl text-white">
           {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)}
         </div>
       </Grid>
-      <Grid className="items-center grow">
-        <div className="font-medium text-[#abc4ff]">Leverage</div>
+      <Grid className="grid-rows-[2em,1fr] items-center grow">
+        <div className="font-medium text-[#abc4ff] h-8">Leverage</div>
         <div className="font-medium text-2xl text-white">{targetUserPositionAccount?.leverage.toFixed(2)}x</div>
       </Grid>
-      <Grid className="items-center grow">
-        <div className="font-medium text-[#abc4ff]">Deposit Ratio</div>
+      <Grid className="grid-rows-[2em,1fr] items-center grow">
+        <div className="font-medium text-[#abc4ff] h-8">Deposit Ratio</div>
         <Col className="font-medium text-2xl text-white">
           <RowItem
             prefix={
@@ -104,8 +104,8 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
           />
         </Col>
       </Grid>
-      <Grid className="items-center grow">
-        <div className="font-medium text-[#abc4ff]">NFT</div>
+      <Grid className="grid-rows-[2em,1fr] items-center grow">
+        <div className="font-medium text-[#abc4ff] h-8">NFT</div>
         <div className="font-medium text-2xl text-[#abc4ff80]">
           <AddressItem showDigitCount={6} canCopy canExternalLink>
             {targetUserPositionAccount?.nftMint}
