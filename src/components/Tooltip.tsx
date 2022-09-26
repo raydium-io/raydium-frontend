@@ -1,5 +1,6 @@
 import React, { ComponentProps, ReactNode, RefObject, useImperativeHandle, useMemo } from 'react'
 
+import { red } from 'bn.js'
 import { twMerge } from 'tailwind-merge'
 
 import addPropsToReactElement from '@/functions/react/addPropsToReactElement'
@@ -25,6 +26,7 @@ export interface TooltipProps {
   placement?: PopoverPlacement
   triggerBy?: PopoverProps['triggerBy']
   defaultOpen?: PopoverProps['defaultOpen']
+  darkGradient?: boolean
 }
 
 // TODO: it should be an pre-config version of <Popover>
@@ -37,7 +39,8 @@ export default function Tooltip({
   placement = 'top',
   triggerBy = 'hover',
   disable,
-  defaultOpen
+  defaultOpen,
+  darkGradient = false
 }: TooltipProps) {
   const content = useMemo(
     () =>
@@ -48,6 +51,8 @@ export default function Tooltip({
       ),
     [children]
   )
+
+  const darkGradientMain = 'bg-[transparent]'
 
   return (
     <Popover
@@ -66,7 +71,10 @@ export default function Tooltip({
         {({ locationInfo }) => (
           <div className="relative">
             <div
-              className="w-2 h-2 absolute bg-[#0C0926] rotate-45 -translate-x-1 -translate-y-1"
+              className={twMerge(
+                'w-2 h-2 absolute bg-[#0C0926] rotate-45 -translate-x-1 -translate-y-1',
+                darkGradient ? darkGradientMain : ''
+              )}
               style={
                 locationInfo
                   ? {
@@ -78,7 +86,13 @@ export default function Tooltip({
                     }
               }
             />
-            <Card className={twMerge('TooltipPanel p-4 bg-[#0C0926] rounded text-xs text-white', panelClassName)}>
+            <Card
+              className={twMerge('TooltipPanel p-4 bg-[#0C0926] rounded text-xs text-white', panelClassName)}
+              style={{
+                background: darkGradient ? 'linear-gradient(126.6deg, #2c3971, #21265d 100%)' : 'default',
+                border: darkGradient ? '1px solid  rgba(171, 196, 255, 0.2)' : 'none'
+              }}
+            >
               {content}
             </Card>
           </div>
