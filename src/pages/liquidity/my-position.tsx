@@ -9,6 +9,8 @@ import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
+import { ColItem } from '@/components/ColItem'
+import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
@@ -48,7 +50,7 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   return (
-    <Row className={twMerge('bg-[#141041] justify-between py-2 px-3 rounded-xl gap-8', className)}>
+    <Row className={twMerge('bg-[#141041] justify-between py-3 px-4 rounded-xl gap-8', className)}>
       <Grid className="items-center grow">
         <div className="font-medium text-[#abc4ff]">Liquidity</div>
         <div className="font-medium text-2xl text-white">
@@ -115,7 +117,7 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
 function MyPositionCardChartInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   return (
-    <Col className={twMerge('bg-[#141041] py-2 px-3 rounded-xl gap-4', className)}>
+    <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
         <div className="font-medium text-[#abc4ff]">My position</div>
         <RangeTag type="in-range" />
@@ -156,7 +158,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   return (
-    <Col className={twMerge('bg-[#141041] py-2 px-3 rounded-xl gap-4', className)}>
+    <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
         <div className="font-medium text-[#abc4ff]">Pending Yield</div>
       </Row>
@@ -175,7 +177,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
         </Button>
       </Row>
 
-      <Grid className="grid-cols-2 border-1.5 border-[#abc4ff40] py-2 px-3 gap-2 rounded-xl">
+      <Grid className="grid-cols-2 border-1.5 border-[#abc4ff40] py-3 px-4 gap-2 rounded-xl">
         <div>
           <div className="font-medium text-[#abc4ff] mt-2 mb-4">Rewards</div>
           <Grid className="grow grid-cols-1 gap-2">
@@ -266,14 +268,14 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
 function MyPositionCardAPRInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   return (
-    <Col className={twMerge('bg-[#141041] py-2 px-3 rounded-xl gap-4', className)}>
+    <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
         <div className="font-medium text-[#abc4ff]">Estimated APR</div>
       </Row>
       <Row className="items-center gap-4">
         <div className="font-medium text-2xl text-white">{toPercentString(currentAmmPool?.apr30d)}</div>
       </Row>
-      <Grid className="grid-cols-1 border-1.5 border-[#abc4ff40] py-2 px-3 gap-2 rounded-xl">
+      <Grid className="grid-cols-1 border-1.5 border-[#abc4ff40] py-3 px-4 gap-2 rounded-xl">
         <div className="font-medium text-[#abc4ff] mt-2 mb-4">Yield</div>
         <Grid className="grow grid-cols-2 gap-2">
           <RowItem
@@ -312,7 +314,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
 function MyPositionCardHeader({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   return (
-    <Row className={twMerge('justify-between py-6', className)}>
+    <Row className={twMerge('justify-between py-2 pb-5', className)}>
       <Row className="items-center gap-2">
         <CoinAvatarPair token1={currentAmmPool?.base} token2={currentAmmPool?.quote} size="lg" />
         <div className="font-medium text-xl text-white">
@@ -332,7 +334,7 @@ function MyPositionCard() {
   return (
     <CyberpunkStyleCard
       wrapperClassName="w-[min(912px,100%)] self-center cyberpunk-bg-light"
-      className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
+      className="py-5 px-6 mobile:py-5 mobile:px-3"
     >
       <MyPositionCardHeader />
 
@@ -342,7 +344,85 @@ function MyPositionCard() {
         <MyPositionCardPendingRewardInfo />
         <MyPositionCardAPRInfo />
       </Grid>
+
+      <MyPositionCardPoolOverview />
     </CyberpunkStyleCard>
+  )
+}
+
+function MyPositionCardPoolOverview({ className }: { className?: string }) {
+  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  return (
+    <Collapse openDirection="upwards" className="w-full mt-4">
+      <Collapse.Body>
+        <div className="pb-4">
+          <div className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
+            <div className="font-medium text-[#abc4ff] mb-4">Pool Overview</div>
+            <Grid className="grid-cols-4 gap-8">
+              <ColItem
+                className="gap-1 font-medium"
+                prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">Fee Rate</div>}
+                text={<div className="text-white">{toPercentString(currentAmmPool?.fee30d)}</div>}
+              />
+              <ColItem
+                className="gap-1 font-medium"
+                prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">Liquidity</div>}
+                text={<div className="text-white">{toUsdVolume(currentAmmPool?.tvl)}</div>}
+              />
+              <ColItem
+                className="gap-1 font-medium"
+                prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">24h Volume</div>}
+                text={<div className="text-white">{toUsdVolume(currentAmmPool?.volume24h)}</div>}
+              />
+              <ColItem
+                className="gap-1 font-medium"
+                prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">Tick Spacing</div>}
+                text={<div className="text-white">{currentAmmPool?.ammConfig.tickSpacing}</div>}
+              />
+              <ColItem
+                className="gap-1 font-medium"
+                prefix={
+                  <div className="text-[#abc4ff80] min-w-[4em] mr-1">
+                    Weekly Rewards {currentAmmPool?.base?.symbol ?? 'base'}
+                  </div>
+                }
+                text={
+                  <Row className="items-center gap-2">
+                    <CoinAvatar token={currentAmmPool?.base} size="smi" />
+                    <div className="text-white">🚧amount</div>
+                    <div className="text-[#abc4ff80]">🚧usd</div>
+                  </Row>
+                }
+              />
+              <ColItem
+                className="gap-1 font-medium"
+                prefix={
+                  <div className="text-[#abc4ff80] min-w-[4em] mr-1">
+                    Weekly Rewards {currentAmmPool?.quote?.symbol ?? 'quote'}
+                  </div>
+                }
+                text={
+                  <Row className="items-center gap-2">
+                    <CoinAvatar token={currentAmmPool?.quote} size="smi" />
+                    <div className="text-white">🚧amount</div>
+                    <div className="text-[#abc4ff80]">🚧usd</div>
+                  </Row>
+                }
+              />
+            </Grid>
+          </div>
+        </div>
+      </Collapse.Body>
+      <Collapse.Face>
+        {(open) => (
+          <Row className="border-t-1.5 pt-5 border-[#abc4ff40] w-full items-center justify-center text-sm font-medium text-[#abc4ff] cursor-pointer select-none">
+            <div>Pool Overview</div>
+            <Icon size="sm" heroIconName={open ? 'chevron-up' : 'chevron-down'} className="ml-1" />
+          </Row>
+        )}
+      </Collapse.Face>
+    </Collapse>
   )
 }
 
