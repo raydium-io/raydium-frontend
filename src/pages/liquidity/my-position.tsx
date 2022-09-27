@@ -20,7 +20,9 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { mul } from '@/functions/numberish/operations'
+import { toString } from '@/functions/numberish/toString'
 import { twMerge } from 'tailwind-merge'
+import { Price } from 'test-r-sdk'
 
 export default function MyPosition() {
   return (
@@ -329,8 +331,10 @@ function MyPositionCard() {
 }
 
 function MyPositionCardPoolOverview({ className }: { className?: string }) {
+  const tokenPrices = useToken((s) => s.tokenPrices)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
-  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const basePrice: Price | undefined = tokenPrices[toPubString(currentAmmPool?.base?.mint)]
+  const quotePrice: Price | undefined = tokenPrices[toPubString(currentAmmPool?.quote?.mint)]
   return (
     <Collapse openDirection="upwards" className="w-full mt-4">
       <Collapse.Body>
@@ -341,6 +345,7 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
               <ColItem
                 className="gap-1 font-medium"
                 prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">Fee Rate</div>}
+                // TEMP: force 30d
                 text={<div className="text-white">{toPercentString(currentAmmPool?.fee30d)}</div>}
               />
               <ColItem
@@ -365,11 +370,14 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                     Weekly Rewards {currentAmmPool?.base?.symbol ?? 'base'}
                   </div>
                 }
+                // TEMP: force 30d
                 text={
                   <Row className="items-center gap-2">
                     <CoinAvatar token={currentAmmPool?.base} size="smi" />
-                    <div className="text-white">🚧amount</div>
-                    <div className="text-[#abc4ff80]">🚧usd</div>
+                    <div className="text-white">
+                      {toString(currentAmmPool?.rewardsA7d, { decimalLength: currentAmmPool?.base?.decimals })}
+                    </div>
+                    <div className="text-[#abc4ff80]">{toUsdVolume(mul(currentAmmPool?.rewardsA7d, basePrice))}</div>
                   </Row>
                 }
               />
@@ -380,11 +388,14 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                     Weekly Rewards {currentAmmPool?.quote?.symbol ?? 'quote'}
                   </div>
                 }
+                // TEMP: force 30d
                 text={
                   <Row className="items-center gap-2">
                     <CoinAvatar token={currentAmmPool?.quote} size="smi" />
-                    <div className="text-white">🚧amount</div>
-                    <div className="text-[#abc4ff80]">🚧usd</div>
+                    <div className="text-white">
+                      {toString(currentAmmPool?.rewardsB7d, { decimalLength: currentAmmPool?.quote?.decimals })}
+                    </div>
+                    <div className="text-[#abc4ff80]">{toUsdVolume(mul(currentAmmPool?.rewardsB7d, quotePrice))}</div>
                   </Row>
                 }
               />
