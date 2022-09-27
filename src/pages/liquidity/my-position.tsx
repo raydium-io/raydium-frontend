@@ -1,7 +1,7 @@
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import { routeTo } from '@/application/routeTools'
+import { routeBack, routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
@@ -19,22 +19,51 @@ import { RowItem } from '@/components/RowItem'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { mul } from '@/functions/numberish/operations'
+import { inClient } from '@/functions/judgers/isSSR'
+import { add, mul } from '@/functions/numberish/operations'
+import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
+import { Numberish } from '@/types/constants'
 import { twMerge } from 'tailwind-merge'
-import { Price } from 'test-r-sdk'
+import { Fraction, Price, Token } from 'test-r-sdk'
 
 export default function MyPosition() {
   return (
     <>
       <PageLayout mobileBarTitle="Concentrated" metaTitle="Concentrated - Raydium">
+        <NavButtons />
         <MyPositionPageHead />
         <MyPositionCard />
-
         <AddConcentratedLiquidityDialog />
       </PageLayout>
     </>
+  )
+}
+
+function NavButtons() {
+  return (
+    <Row
+      className={twMerge(
+        '-mt-4 mobile:mt-4 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] items-center justify-between'
+      )}
+    >
+      <Button
+        type="text"
+        className="text-sm text-[#ABC4FF] opacity-50 px-0"
+        prefix={<Icon heroIconName="chevron-left" size="sm" />}
+        onClick={() => {
+          if (inClient && window.history.length === 1) {
+            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
+            routeTo('/pools/concentrated')
+          } else {
+            routeBack()
+          }
+        }}
+      >
+        Back to all pools
+      </Button>
+    </Row>
   )
 }
 
@@ -109,7 +138,9 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
         <div className="font-medium text-[#abc4ff]">My position</div>
         <RangeTag positionAccount={targetUserPositionAccount} />
       </Row>
-      <Grid className="items-center text-2xl text-white">0.01 - 0.02</Grid>
+      <Grid className="items-center text-2xl text-white">
+        {toString(targetUserPositionAccount?.priceLower)} - {toString(targetUserPositionAccount?.priceUpper)}
+      </Grid>
       <div className="font-medium text-[#abc4ff]">
         {currentAmmPool?.base?.symbol ?? '--'} per {currentAmmPool?.quote?.symbol ?? '--'}
       </div>
@@ -142,18 +173,40 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
 
 function MyPositionCardPendingRewardInfo({ className }: { className?: string }) {
   const tokenPrices = useToken((s) => s.tokenPrices)
-  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const rewardsVolume: { token?: Token; volume?: Numberish }[] =
+    targetUserPositionAccount?.rewardInfos.map((info) => ({
+      token: info.penddingReward?.token,
+      volume: mul(info.penddingReward, tokenPrices[toPubString(info.penddingReward?.token.mint)])
+    })) ?? []
+  const feesVolume: { token?: Token; volume?: Numberish }[] = targetUserPositionAccount
+    ? [
+        {
+          token: targetUserPositionAccount?.tokenFeeAmountA?.token,
+          volume: mul(
+            targetUserPositionAccount?.tokenFeeAmountA,
+            tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountA?.token.mint)]
+          )
+        },
+        {
+          token: targetUserPositionAccount?.tokenFeeAmountB?.token,
+          volume: mul(
+            targetUserPositionAccount?.tokenFeeAmountB,
+            tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountB?.token.mint)]
+          )
+        }
+      ]
+    : []
+  const totalVolume = rewardsVolume
+    .concat(feesVolume)
+    .reduce((acc, { volume }) => (volume ? add(acc ?? toFraction(0), volume) : acc), undefined as Fraction | undefined)
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
         <div className="font-medium text-[#abc4ff]">Pending Yield</div>
       </Row>
-      <Row className="items-center gap-4">
-        <div className="font-medium text-2xl text-white">
-          {/* Temp Dev */}
-          {/* {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)} */}
-        </div>
+      <Row className="items-center gap-8">
+        <div className="font-medium text-2xl text-white">{toUsdVolume(totalVolume)}</div>
         <Button className="frosted-glass-teal" onClick={() => txHavestConcentrated()}>
           Harvest
         </Button>
@@ -163,83 +216,35 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
         <div>
           <div className="font-medium text-[#abc4ff] mt-2 mb-4">Rewards</div>
           <Grid className="grow grid-cols-1 gap-2">
-            <RowItem
-              prefix={
-                <Row className="items-center gap-2">
-                  <CoinAvatar token={currentAmmPool?.base} size="smi" />
-                  <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
-                </Row>
-              }
-              text={
-                <div className="text-white justify-end">
-                  {toUsdVolume(
-                    mul(
-                      targetUserPositionAccount?.tokenFeeAmountA,
-                      tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountA?.token.mint)]
-                    )
-                  )}
-                </div>
-              }
-            />
-            <RowItem
-              prefix={
-                <Row className="items-center gap-2">
-                  <CoinAvatar token={currentAmmPool?.quote} size="smi" />
-                  <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.quote?.symbol ?? '--'}</div>
-                </Row>
-              }
-              text={
-                <div className="text-white justify-end">
-                  {toUsdVolume(
-                    mul(
-                      targetUserPositionAccount?.tokenFeeAmountB,
-                      tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountB?.token.mint)]
-                    )
-                  )}
-                </div>
-              }
-            />
+            {rewardsVolume.map(({ token, volume }) => (
+              <RowItem
+                key={toPubString(token?.mint)}
+                prefix={
+                  <Row className="items-center gap-2">
+                    <CoinAvatar token={token} size="smi" />
+                    <div className="text-[#abc4ff80] min-w-[4em] mr-1">{token?.symbol ?? '--'}</div>
+                  </Row>
+                }
+                text={<div className="text-white justify-end">{toUsdVolume(volume)}</div>}
+              />
+            ))}
           </Grid>
         </div>
         <div>
           <div className="font-medium text-[#abc4ff] mt-2 mb-4">Fees</div>
           <Grid className="grow grid-cols-1 gap-2">
-            <RowItem
-              prefix={
-                <Row className="items-center gap-2">
-                  <CoinAvatar token={currentAmmPool?.base} size="smi" />
-                  <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
-                </Row>
-              }
-              text={
-                <div className="text-white justify-end">
-                  {toUsdVolume(
-                    mul(
-                      targetUserPositionAccount?.tokenFeeAmountA,
-                      tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountA?.token.mint)]
-                    )
-                  )}
-                </div>
-              }
-            />
-            <RowItem
-              prefix={
-                <Row className="items-center gap-2">
-                  <CoinAvatar token={currentAmmPool?.quote} size="smi" />
-                  <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.quote?.symbol ?? '--'}</div>
-                </Row>
-              }
-              text={
-                <div className="text-white justify-end">
-                  {toUsdVolume(
-                    mul(
-                      targetUserPositionAccount?.tokenFeeAmountB,
-                      tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountB?.token.mint)]
-                    )
-                  )}
-                </div>
-              }
-            />
+            {feesVolume.map(({ token, volume }) => (
+              <RowItem
+                key={toPubString(token?.mint)}
+                prefix={
+                  <Row className="items-center gap-2">
+                    <CoinAvatar token={token} size="smi" />
+                    <div className="text-[#abc4ff80] min-w-[4em] mr-1">{token?.symbol ?? '--'}</div>
+                  </Row>
+                }
+                text={<div className="text-white justify-end">{toUsdVolume(volume)}</div>}
+              />
+            ))}
           </Grid>
         </div>
       </Grid>

@@ -20,6 +20,9 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
+  const liquidity = useConcentrated((s) => s.liquidity)
+  const isInput = useConcentrated((s) => s.isInput)
+  const isRemoveDialogOpen = useConcentrated((s) => s.isRemoveDialogOpen)
 
   assert(coin1, 'base token not been set')
   assert(coin2, 'quote token not been set')
@@ -49,7 +52,9 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
         }),
         coin2Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageB), 10 ** coin2.decimals), {
           decimalLength: 'auto 10'
-        })
+        }),
+        isInput: false,
+        liquidity: new BN(value)
       })
     },
     [currentAmmPool, coin1, coin2]
@@ -60,6 +65,7 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
       max={position?.liquidity.toNumber() ?? 0}
       className="py-3 px-3 ring-1 mobile:ring-1 ring-[rgba(54, 185, 226, 0.5)] rounded-xl mobile:rounded-xl "
       onChange={throttle(onSliderChange)}
+      liquidity={liquidity}
     />
   )
 }

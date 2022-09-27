@@ -1,12 +1,16 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
+import BN from 'bn.js'
 import Slider, { SliderProps } from 'rc-slider'
 import { twMerge } from 'tailwind-merge'
 
 import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { isArray } from '@/functions/judgers/dateType'
+import { div } from '@/functions/numberish/operations'
+import toFraction from '@/functions/numberish/toFraction'
 import mergeProps from '@/functions/react/mergeProps'
+import Liquidity from '@/pages/liquidity/add'
 
 import Row from './Row'
 
@@ -22,15 +26,20 @@ export interface RangeSliderBoxProps {
   min?: number
   max: number
   onChange?: (value: number | number[]) => void
+  liquidity?: BN
 }
 
+// this component is actually for remove liquidity purpose
 export default function RangeSliderBox(props: RangeSliderBoxProps) {
   // props set by validators
   const [fallbackProps, setFallbackProps] = useState<Omit<RangeSliderBoxProps, 'validators' | 'disabled'>>()
   const [currentPercentage, setCurrentPercentage] = useState<number>(0)
   const [currentValue, setCurrentValue] = useState<number>(0)
 
-  const { id, title, max, className, titleClassName, tagClassName, onChange } = mergeProps(props, fallbackProps)
+  const { id, title, max, className, titleClassName, tagClassName, onChange, liquidity } = mergeProps(
+    props,
+    fallbackProps
+  )
 
   const onSliderChange = useCallback(
     (value: number | number[]) => {
@@ -45,14 +54,18 @@ export default function RangeSliderBox(props: RangeSliderBoxProps) {
 
   const setPercentageValue = useCallback(
     (value) => {
-      // eslint-disable-next-line no-console
-      console.log('click value:', value)
       setCurrentPercentage(value)
       setCurrentValue(max * value)
       onChange && onChange(max * value)
     },
     [max]
   )
+
+  useEffect(() => {
+    const newCurrentPercentage = (liquidity?.toNumber() ?? 0) / max
+    setCurrentPercentage(newCurrentPercentage > 1 ? 1 : newCurrentPercentage)
+    setCurrentValue(liquidity?.toNumber() ?? 0)
+  }, [liquidity])
 
   return (
     <div className={twMerge('w-full py-1 px-1', className)}>
@@ -122,7 +135,7 @@ function SliderWrap({
   defaultValue?: number
 }) {
   return (
-    <Row className={twMerge('w-full h-5, pl-3', className)}>
+    <Row className={twMerge('w-full h-5, px-3', className)}>
       <Slider
         min={0}
         max={max}

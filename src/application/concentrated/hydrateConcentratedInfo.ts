@@ -133,6 +133,7 @@ function hydrateUserPositionAccounnt(
       const positionPercentA = toPercent(div(innerVolumeA, add(innerVolumeA, innerVolumeB)))
       const positionPercentB = toPercent(div(innerVolumeB, add(innerVolumeA, innerVolumeB)))
       const inRange = checkIsInRange(sdkConcentratedInfo, a)
+      const poolRewardInfos = sdkConcentratedInfo.state.rewardInfos
       return {
         sdkParsed: a,
         ...recursivelyDecimalToFraction(a),
@@ -147,6 +148,13 @@ function hydrateUserPositionAccounnt(
         tokenFeeAmountA,
         tokenFeeAmountB,
         inRange,
+        rewardInfos: a.rewardInfos
+          .map((info, idx) => {
+            const token = getToken(poolRewardInfos[idx]?.tokenMint)
+            const penddingReward = token ? toTokenAmount(token, info.peddingReward) : undefined
+            return { penddingReward }
+          })
+          .filter((info) => Boolean(info.penddingReward)),
         getLiquidityVolume: (tokenPrices: Record<string, Price>) => {
           const aPrice = tokenPrices[toPubString(tokenA?.mint)]
           const bPrice = tokenPrices[toPubString(tokenB?.mint)]

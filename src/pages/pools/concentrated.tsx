@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { stringify } from 'querystring'
 import { twMerge } from 'tailwind-merge'
 import { CurrencyAmount } from 'test-r-sdk'
 
@@ -10,6 +9,7 @@ import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/con
 import useConcentrated, {
   PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
+import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { usePools } from '@/application/pools/usePools'
@@ -47,16 +47,21 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import compare, { lt } from '@/functions/numberish/compare'
+import { lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
+import { RemoveConcentratedPoolDialog } from '@/pageComponents/dialogs/RemoveConcentratedPoolDialog'
 
 export default function PoolsConcentratedPage() {
   // usePoolSummeryInfoLoader()
   const currentTab = useConcentrated((s) => s.currentTab)
+  const isRemoveDialogOpen = useConcentrated((s) => s.isRemoveDialogOpen)
+
+  useConcentratedAmountCalculator()
+
   return (
     <PageLayout
       mobileBarTitle={{
@@ -76,6 +81,7 @@ export default function PoolsConcentratedPage() {
       <PoolHeader />
       <PoolCard />
       <AddConcentratedLiquidityDialog />
+      <RemoveConcentratedPoolDialog />
     </PageLayout>
   )
 }
@@ -1203,25 +1209,32 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 </div>
                 <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPositionVolume ?? '--'}</div>
                 <Row className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2">
-                  {shrinkAccount(p?.nftMint, 6)}{' '}
-                  <Icon
-                    size="sm"
-                    className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
-                    heroIconName="clipboard-copy"
-                    onClick={({ ev }) => {
-                      ev.stopPropagation()
-                      copyToClipboard(toPubString(p?.nftMint))
-                      logInfo('Account has been copied!')
-                    }}
-                  />
-                  <LinkExplorer className="flex items-center" hrefDetail={`${p?.nftMint}`} type="account">
-                    <Icon
-                      size="sm"
-                      className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
-                      inline
-                      heroIconName="external-link"
-                    />
-                  </LinkExplorer>
+                  {p ? (
+                    <>
+                      {' '}
+                      {shrinkAccount(p?.nftMint, 6)}{' '}
+                      <Icon
+                        size="sm"
+                        className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
+                        heroIconName="clipboard-copy"
+                        onClick={({ ev }) => {
+                          ev.stopPropagation()
+                          copyToClipboard(toPubString(p?.nftMint))
+                          logInfo('Account has been copied!')
+                        }}
+                      />
+                      <LinkExplorer className="flex items-center" hrefDetail={`${p?.nftMint}`} type="account">
+                        <Icon
+                          size="sm"
+                          className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
+                          inline
+                          heroIconName="external-link"
+                        />
+                      </LinkExplorer>
+                    </>
+                  ) : (
+                    <>&nbsp;</>
+                  )}
                 </Row>
               </Col>
               <Button
@@ -1234,6 +1247,19 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     fallbackProps: {
                       onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
                       children: 'Connect Wallet'
+                    }
+                  },
+                  {
+                    should: p,
+                    forceActive: true,
+                    fallbackProps: {
+                      onClick: () => {
+                        useConcentrated.setState({ coin1: info.base, coin2: info.quote })
+                        routeTo('/liquidity/concentrated', {
+                          queryProps: {}
+                        })
+                      },
+                      children: 'Create Position'
                     }
                   }
                 ]}
@@ -1281,36 +1307,42 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2"
                 >
                   <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
-                  <Col className="text-white">{yieldInfo.apr}</Col>
-                  <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
-                    <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
-                    <Tooltip.Panel>
-                      <div className="max-w-[300px] py-3 px-5">
-                        <TokenPositionInfo
-                          customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
-                          customKey="Trade Fees"
-                          customValue={yieldInfo.tradeFeesApr}
-                          className="gap-32"
-                        />
-                        {info.base && (
-                          <TokenPositionInfo
-                            token={info.base}
-                            customValue={yieldInfo.rewardsAprA}
-                            suffix="Rewards"
-                            className="gap-32"
-                          />
-                        )}
-                        {info.quote && (
-                          <TokenPositionInfo
-                            token={info.quote}
-                            customValue={yieldInfo.rewardsAprB}
-                            suffix="Rewards"
-                            className="gap-32"
-                          />
-                        )}
-                      </div>
-                    </Tooltip.Panel>
-                  </Tooltip>
+                  {p ? (
+                    <>
+                      <Col className="text-white">{yieldInfo.apr}</Col>
+                      <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
+                        <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
+                        <Tooltip.Panel>
+                          <div className="max-w-[300px] py-3 px-5">
+                            <TokenPositionInfo
+                              customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
+                              customKey="Trade Fees"
+                              customValue={yieldInfo.tradeFeesApr}
+                              className="gap-32"
+                            />
+                            {info.base && (
+                              <TokenPositionInfo
+                                token={info.base}
+                                customValue={yieldInfo.rewardsAprA}
+                                suffix="Rewards"
+                                className="gap-32"
+                              />
+                            )}
+                            {info.quote && (
+                              <TokenPositionInfo
+                                token={info.quote}
+                                customValue={yieldInfo.rewardsAprB}
+                                suffix="Rewards"
+                                className="gap-32"
+                              />
+                            )}
+                          </div>
+                        </Tooltip.Panel>
+                      </Tooltip>
+                    </>
+                  ) : (
+                    <div className="text-sm font-medium text-white">--</div>
+                  )}
                 </AutoBox>
               </Col>
               <Col>
@@ -1349,11 +1381,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     useConcentrated.setState({
                       isAddDialogOpen: true,
                       currentAmmPool: info,
-                      targetUserPositionAccount: p,
-                      coin1: info.base,
-                      coin2: info.quote
+                      targetUserPositionAccount: p
                     })
-                    routeTo('/liquidity/concentrated')
+                    // routeTo('/liquidity/concentrated')
                   }}
                 />
                 <Icon
@@ -1364,11 +1394,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     useConcentrated.setState({
                       isRemoveDialogOpen: true,
                       currentAmmPool: info,
-                      targetUserPositionAccount: p,
-                      coin1: info.base,
-                      coin2: info.quote
+                      targetUserPositionAccount: p
                     })
-                    routeTo('/liquidity/concentrated')
+                    // routeTo('/liquidity/concentrated')
                   }}
                 />
               </Row>
@@ -1405,12 +1433,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                       useConcentrated.setState({
                         isRemoveDialogOpen: true,
                         currentAmmPool: info,
-                        targetUserPositionAccount: p,
-                        coin1: info.base,
-                        coin2: info.quote
-                      })
-                      routeTo('/liquidity/concentrated', {
-                        queryProps: {}
+                        targetUserPositionAccount: p
                       })
                     }}
                   />

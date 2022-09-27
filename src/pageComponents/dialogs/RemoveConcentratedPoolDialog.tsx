@@ -1,6 +1,9 @@
+import { useEffect, useRef, useState } from 'react'
+
+import { twMerge } from 'tailwind-merge'
+
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
-import txIncreaseConcentrated from '@/application/concentrated/txIncreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
@@ -12,19 +15,16 @@ import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { toString } from '@/functions/numberish/toString'
-import { useEffect, useRef, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
+
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
-export function ChangeConcentratedPoolDialog({
+export function RemoveConcentratedPoolDialog({
   className,
-  open,
   mode: inputMode,
   onClose
 }: {
   className?: string
-  open: boolean
-  mode?: 'add' | 'remove'
+  mode?: 'remove'
   onClose?(): void
 }) {
   // cache for UI
@@ -32,7 +32,7 @@ export function ChangeConcentratedPoolDialog({
   useEffect(() => {
     if (inputMode != null) setMode(inputMode)
   }, [inputMode])
-
+  const open = useConcentrated((s) => s.isRemoveDialogOpen)
   const walletConnected = useWallet((s) => s.connected)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const buttonComponentRef = useRef<ButtonHandle>()
@@ -66,7 +66,14 @@ export function ChangeConcentratedPoolDialog({
   }, [currentAmmPool, targetUserPositionAccount])
 
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog
+      open={open}
+      onClose={() => {
+        useConcentrated.setState({
+          isRemoveDialogOpen: false
+        })
+      }}
+    >
       {({ close: closeDialog }) => (
         <Card
           className={twMerge(
@@ -76,7 +83,7 @@ export function ChangeConcentratedPoolDialog({
           size="lg"
         >
           <Row className="justify-between items-center mb-6">
-            <div className="text-xl font-semibold text-white">{mode === 'add' ? 'Add' : 'Remove'} Concentrated</div>
+            <div className="text-xl font-semibold text-white">Remove Concentrated</div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
           </Row>
 
@@ -87,13 +94,12 @@ export function ChangeConcentratedPoolDialog({
               componentRef={coinInputBoxComponentRef1}
               haveCoinIcon
               topLeftLabel={'Base'}
-              topRightLabel={
-                mode === 'remove' ? `Deposited: ${toString(targetUserPositionAccount?.amountA)}` : undefined
-              }
-              maxValue={mode === 'remove' ? targetUserPositionAccount?.amountA : undefined}
+              topRightLabel={`Deposited: ${toString(targetUserPositionAccount?.amountA)}`}
+              maxValue={targetUserPositionAccount?.amountA}
               token={coinBase}
               value={toString(coinBaseAmount)}
               onUserInput={(value) => {
+                useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
                   useConcentrated.setState({ coin1Amount: value, userCursorSide: 'coin1' })
                 } else {
@@ -115,13 +121,12 @@ export function ChangeConcentratedPoolDialog({
               componentRef={coinInputBoxComponentRef2}
               haveCoinIcon
               topLeftLabel={'Quote'}
-              topRightLabel={
-                mode === 'remove' ? `Deposited: ${toString(targetUserPositionAccount?.amountB)}` : undefined
-              }
-              maxValue={mode === 'remove' ? targetUserPositionAccount?.amountB : undefined}
+              topRightLabel={`Deposited: ${toString(targetUserPositionAccount?.amountB)}`}
+              maxValue={targetUserPositionAccount?.amountB}
               token={coinQuote}
               value={toString(coinQuoteAmount)}
               onUserInput={(value) => {
+                useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
                   useConcentrated.setState({ coin2Amount: value, userCursorSide: 'coin2' })
                 } else {
@@ -137,7 +142,7 @@ export function ChangeConcentratedPoolDialog({
                 buttonComponentRef.current?.click?.()
               }}
             />
-            {/* {mode === 'remove' && <ConcentratedLiquiditySlider />} */}
+            <ConcentratedLiquiditySlider />
           </Col>
           <Row className="flex-col gap-1">
             <Button
@@ -171,7 +176,7 @@ export function ChangeConcentratedPoolDialog({
                 }
               ]}
               onClick={() => {
-                const tx = mode === 'add' ? txIncreaseConcentrated : txDecreaseConcentrated
+                const tx = txDecreaseConcentrated
                 tx().then(({ allSuccess }) => {
                   if (allSuccess) {
                     onClose?.()
@@ -183,7 +188,7 @@ export function ChangeConcentratedPoolDialog({
                 })
               }}
             >
-              {mode === 'add' ? 'Add' : 'Remove'} Liquidity
+              Remove Liquidity
             </Button>
             <Button
               type="text"
