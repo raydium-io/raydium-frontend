@@ -38,19 +38,18 @@ export type PriceBoundaryReturn =
 
 export function getPriceBoundary({ coin1, coin2, reverse, ammPool }: GetChartDataProps): PriceBoundaryReturn {
   if (!ammPool) return
-  const targetCoin = reverse ? coin2 : coin1
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const currentPrice = decimalToFraction(ammPool?.state.currentPrice)
   const trimMinX = getMax(currentPrice ? mul(currentPrice, 1 - 0.5) : 0, 1 / 10 ** decimals)
   const trimMaxX = getMax(currentPrice ? mul(currentPrice, 1 + 0.5) : 0, 1 / 10 ** decimals)
   const { price: priceMin, tick: tickMin } = getPriceAndTick({
     poolInfo: ammPool.state,
-    baseIn: isMintEqual(ammPool.state.mintA.mint, targetCoin?.mint),
+    baseIn: true,
     price: fractionToDecimal(toFraction(trimMinX))
   })
   const { price: priceMax, tick: tickMax } = getPriceAndTick({
     poolInfo: ammPool.state,
-    baseIn: isMintEqual(ammPool.state.mintA.mint, targetCoin?.mint),
+    baseIn: true,
     price: fractionToDecimal(toFraction(trimMaxX))
   })
   if (reverse) {

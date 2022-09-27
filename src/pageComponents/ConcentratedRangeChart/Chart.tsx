@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo, useImperativeHandle, forwardRef } from 'react'
 import { Fraction } from 'test-r-sdk'
 import { ChartPoint, ChartRangeInputOption } from './ConcentratedRangeInputChartBody'
 import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
@@ -36,16 +36,18 @@ interface Props {
   hideRangeLine?: boolean
   hideXAxis?: boolean
   height?: number
-  onPositionChange?: (props: { min: number; max: number }) => PriceBoundaryReturn
+  onPositionChange: (props: { min: number; max: number; side: Range; userInput?: boolean }) => PriceBoundaryReturn
+  onInDecrease: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
 }
 
-export default function Chart(props: Props) {
+export default forwardRef(function Chart(props: Props, ref) {
   const {
     chartOptions,
     currentPrice,
     decimals,
     height,
     onPositionChange,
+    onInDecrease,
     showCurrentPriceOnly,
     hideRangeLine,
     hideXAxis
@@ -206,10 +208,11 @@ export default function Chart(props: Props) {
   }, [])
 
   let timer: number | undefined = undefined
+
   const debounceUpdate = ({ side, ...pos }: { min: number; max: number; side: Range | string }) => {
     timer && clearTimeout(timer)
     timer = window.setTimeout(() => {
-      const res = onPositionChange?.(pos)
+      const res = onPositionChange(pos)
       if (!res) return
       if (side === 'area')
         updatePosition({ min: Number(res.priceLower.toFixed(9)), max: Number(res.priceUpper.toFixed(9)) })
@@ -295,7 +298,11 @@ export default function Chart(props: Props) {
   const handlePriceChange = useCallback(
     ({ val, side }: { val?: number | string; side: Range }) => {
       const newVal = parseFloat(String(val!))
-      setPosition((p) => ({ ...p, [side]: newVal }))
+
+      setPosition((p) => {
+        onPositionChange({ ...p, [side]: newVal, side, userInput: true })
+        return { ...p, [side]: newVal }
+      })
       setDisplayList((list) => {
         const filteredList = list.filter((p) => !p.extend)
         if (side === Range.Max) {
@@ -310,7 +317,7 @@ export default function Chart(props: Props) {
         return filteredList
       })
     },
-    [tickGap, points]
+    [tickGap, points, onPositionChange]
   )
 
   const handleInDecrease = useCallback(
@@ -320,34 +327,35 @@ export default function Chart(props: Props) {
       let resultPos = val
       if (isIncrease) {
         setPosition((prePos) => {
-          const newPos = toFixedNumber(
-            points.find((p) => !val || toFixedNumber(p.x, decimals) > toFixedNumber(Number(val), decimals))?.x ||
-              toFixedNumber(Number(val) + tickGap, decimals),
-            decimals
-          )
-          if (!val || (isMin && newPos >= toFixedNumber(prePos[Range.Max], decimals))) return prePos // when min > max
-          resultPos = newPos
-          setDisplayList((list) => [...list, { x: newPos + tickGap, y: 0, extend: true }])
-          return { ...prePos, [side]: newPos }
+          const newPos = onInDecrease({ p: Number(val), isMin, isIncrease: true })
+          const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
+          resultPos = posNum
+          if (!isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
+            setDisplayList((list) => [...list, { x: posNum + tickGap, y: 0, extend: true }])
+          return { ...prePos, [side]: posNum }
         })
         return String(resultPos)
       }
       setPosition((prePos) => {
-        const newPos = toFixedNumber(
-          [...points].reverse().find((p) => {
-            return toFixedNumber(p.x, decimals) < toFixedNumber(val, decimals)
-          })?.x || 0,
-          decimals
-        )
-        if (isMin && newPos <= toFixedNumber(points[0].x, decimals))
+        const newPos = onInDecrease({ p: Number(val), isMin, isIncrease: false })
+        const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
+        if (isMin && posNum <= toFixedNumber(points[0].x, decimals))
           return { ...prePos, [Range.Min]: toFixedNumber(points[0].x, decimals) } // when min < points[0].x
-        if (!isMin && newPos <= prePos[Range.Min]) return prePos // when max > max points
-        resultPos = newPos
-        return { ...prePos, [side]: newPos }
+        if (!isMin && posNum <= prePos[Range.Min]) return prePos // when max > max points
+        resultPos = posNum
+        return { ...prePos, [side]: posNum }
       })
       return String(resultPos)
     },
     [points, tickGap, decimals]
+  )
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      getPosition: () => position
+    }),
+    [position]
   )
 
   return (
@@ -374,7 +382,7 @@ export default function Chart(props: Props) {
               tooltipType="none"
               activeDot={false}
               dot={false}
-              type="monotone"
+              type="step"
               dataKey="y"
               fillOpacity={0.2}
               strokeOpacity={0.2}
@@ -384,7 +392,7 @@ export default function Chart(props: Props) {
               fill="#abc4ff"
               stroke="#abc4ff"
               style={{ cursor: isMoving ? 'grab' : 'default' }}
-              type="monotone"
+              type="step"
               dataKey="z"
             />
             {!hideRangeLine && (
@@ -478,4 +486,4 @@ export default function Chart(props: Props) {
       />
     </>
   )
-}
+})

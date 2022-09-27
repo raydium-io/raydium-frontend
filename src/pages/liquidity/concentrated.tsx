@@ -1,11 +1,11 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
-import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import toFraction from '@/functions/numberish/toFraction'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
@@ -22,8 +22,15 @@ import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getPriceBoundary, calLowerUpper } from '@/application/concentrated/getNearistDataPoint'
+import {
+  getPriceBoundary,
+  getPriceTick,
+  getTickPrice,
+  calLowerUpper
+} from '@/application/concentrated/getNearistDataPoint'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
+import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
+import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import { Fraction } from 'test-r-sdk'
 import { RemainSOLAlert, canTokenPairBeSelected, toXYChartFormat, PairInfoTitle } from '@/pageComponents/Concentrated'
 import Decimal from 'decimal.js'
@@ -54,15 +61,17 @@ export default function Concentrated() {
 function ConcentratedCard() {
   const chartPoints = useConcentrated((s) => s.chartPoints)
   const { connected } = useWallet()
+  const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
   const priceRef = useRef<(Fraction | undefined)[]>([])
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
-  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, refreshConcentrated, currentAmmPool } = useConcentrated()
-  const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
-
+  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, currentAmmPool, priceLowerTick, priceUpperTick } =
+    useConcentrated()
+  const chartRef = useRef<{ getPosition: () => { min: number; max: number } }>()
+  const tickRef = useRef<{ lower?: number; upper?: number }>({ lower: undefined, upper: undefined })
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
 
   const isFocus1 = focusSide === 'coin1'
@@ -99,10 +108,38 @@ function ConcentratedCard() {
     })
   }, [cardRef])
 
-  const boundaryData = useMemo(
-    () => getPriceBoundary({ coin1, coin2, ammPool: currentAmmPool, reverse: focusSide !== 'coin1' }),
-    [coin1, coin2, currentAmmPool, focusSide]
-  )
+  const boundaryData = useMemo(() => {
+    const res = getPriceBoundary({ coin1, coin2, ammPool: currentAmmPool, reverse: !isFocus1 })
+    tickRef.current.lower = res?.priceLowerTick
+    tickRef.current.upper = res?.priceUpperTick
+    res && useConcentrated.setState(res)
+    return res
+  }, [coin1, coin2, currentAmmPool, isFocus1])
+
+  const handleClickInDecrease = ({ p, isMin, isIncrease }: { p: number; isMin: boolean; isIncrease: boolean }) => {
+    if (!currentAmmPool || !coin1 || !coin2 || priceLowerTick === undefined) return
+    const targetCoin = isFocus1 ? coin1 : coin2
+    const tickKey = isMin ? 'lower' : 'upper'
+    if (!tickRef.current[tickKey]) {
+      const res = getPriceTick({
+        p: p * 1.002,
+        coin1,
+        coin2,
+        reverse: !isFocus1,
+        ammPool: currentAmmPool
+      })
+      tickRef.current[tickKey] = res.tick
+    }
+    const nextTick = tickRef.current[tickKey]! + (isIncrease ? 1 : -1) * Math.pow(-1, isFocus1 ? 0 : 1)
+    const { price, tick } = getTickPrice({
+      poolInfo: currentAmmPool.state,
+      baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
+      tick: nextTick
+    })
+    tickRef.current[tickKey] = tick
+
+    return price
+  }
 
   const totalDeposit = priceRef.current
     .filter((p) => !!p)
@@ -118,21 +155,42 @@ function ConcentratedCard() {
   const ratio2 = priceRef.current[1] ? parseFloat((100 - Number(ratio1)).toFixed(1)) : '0'
 
   const handlePosChange = useCallback(
-    (props) => {
-      if (!currentAmmPool || !coin1 || !coin2) return
+    ({ side, userInput, ...pos }: { min: number; max: number; side: Range; userInput?: boolean }) => {
+      if (!currentAmmPool || !coin1 || !coin2 || !pos.min || !pos.max) return
       const res = calLowerUpper({
-        ...props,
+        ...pos,
         coin1,
         coin2,
         ammPool: currentAmmPool,
         reverse: !isFocus1
       })!
-
-      useConcentrated.setState(res)
+      if (userInput && side) {
+        const isMin = side === Range.Min
+        const res = getPriceTick({
+          p: pos[side] * 1.002,
+          coin1,
+          coin2,
+          reverse: !isFocus1,
+          ammPool: currentAmmPool
+        })
+        tickRef.current[isMin ? 'lower' : 'upper'] = res.tick
+      } else {
+        tickRef.current = { lower: res.priceLowerTick, upper: res.priceUpperTick }
+        useConcentrated.setState(res)
+      }
       return res
     },
     [coin1, coin2, currentAmmPool, isFocus1]
   )
+
+  const handleClickCreatePool = useCallback(() => {
+    const position = chartRef.current!.getPosition()
+    useConcentrated.setState({
+      priceLower: position.min,
+      priceUpper: position.max
+    })
+    onConfirmOpen()
+  }, [onConfirmOpen])
 
   return (
     <CyberpunkStyleCard
@@ -249,18 +307,18 @@ function ConcentratedCard() {
               {
                 should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
                 fallbackProps: { children: 'Enter an amount' }
+              },
+              {
+                should: haveEnoughCoin1,
+                fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
+              },
+              {
+                should: haveEnoughCoin2,
+                fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
               }
-              // {
-              //   should: haveEnoughCoin1,
-              //   fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
-              // },
-              // {
-              //   should: haveEnoughCoin2,
-              //   fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
-              // },
             ]}
             onClick={() => {
-              txCreateConcentrated()
+              handleClickCreatePool()
             }}
           >
             Add Concentrated
@@ -271,6 +329,7 @@ function ConcentratedCard() {
         <div className="bg-dark-blue min-h-[180px] rounded-xl flex-1 px-3 py-4">
           <div className="text-base leading-[22px] text-secondary-title mb-5">Set Price Range</div>
           <Chart
+            ref={chartRef}
             chartOptions={{
               points: points || [],
               initMinBoundaryX: boundaryData?.priceLower,
@@ -285,11 +344,12 @@ function ConcentratedCard() {
             }
             decimals={decimals}
             onPositionChange={handlePosChange}
+            onInDecrease={handleClickInDecrease}
           />
           <div className="mt-4 border border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
             <div className="flex justify-between items-center">
               <span className="text-sm leading-[18px] text-secondary-title">Estimated APR</span>
-              <span className="text-2xl leading-[30px]">≈${currentAmmPool?.apr24h.toFixed(1) || '-'}%</span>
+              <span className="text-2xl leading-[30px]">≈{currentAmmPool?.rewardApr24h[0]?.toFixed(1) || '-'}%</span>
             </div>
             <div className="flex mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
               <div className="mr-[22px]">
@@ -310,7 +370,7 @@ function ConcentratedCard() {
                 <div className="flex items-center mb-2">
                   <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
                   <span className="text-xs text-active-cyan opacity-50 mx-1">Trading Fees</span>
-                  <span className="text-sm">{currentAmmPool?.fee24h.toFixed(1) || '-'}%</span>
+                  <span className="text-sm">{currentAmmPool?.fee24hA.toFixed(1) || '-'}%</span>
                 </div>
               </div>
             </div>
@@ -338,6 +398,18 @@ function ConcentratedCard() {
           turnOffCoinSelector()
         }}
       />
+      {isConfirmOn && (
+        <AddLiquidityConfirmDialog
+          coin1={coin1!}
+          coin2={coin2!}
+          decimals={decimals}
+          position={chartRef.current!.getPosition()}
+          totalDeposit={toUsdVolume(totalDeposit)}
+          currentPrice={currentAmmPool!.state.currentPrice}
+          onConfirm={txCreateConcentrated}
+          onClose={onConfirmClose}
+        />
+      )}
     </CyberpunkStyleCard>
   )
 }

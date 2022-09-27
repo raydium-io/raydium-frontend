@@ -82,6 +82,7 @@ export function ConcentratedRangeInputChart({
       baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
       tick: prevTick + tickDiff
     })
+    console.log(123123, tick)
     useConcentrated.setState(
       boundaryType === 'min'
         ? focusSide === 'coin1'
@@ -184,7 +185,7 @@ export function ConcentratedRangeInputChart({
           label="Min Price"
           decimalMode
           showPlusMinusControls
-          decimalCount={careDecimalLength}
+          decimalCount={9}
           value={focusSide === 'coin1' ? priceLower : div(1, priceUpper)}
           increaseFn={() => getNextPrevPrice('min', 'increase')}
           decreaseFn={() => getNextPrevPrice('min', 'decrease')}
