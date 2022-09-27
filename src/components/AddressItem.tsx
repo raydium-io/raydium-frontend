@@ -13,10 +13,10 @@ import Icon from './Icon'
 import Link from './Link'
 import LinkExplorer from './LinkExplorer'
 import Row from './Row'
-import { ThreeSlotItem } from './ThreeSlotItem'
+import { RowItem } from './RowItem'
 
 /**
- * base on {@link ThreeSlotItem}
+ * base on {@link RowItem}
  */
 export function AddressItem({
   canCopy = true,
@@ -52,7 +52,7 @@ export function AddressItem({
 
   if (!publicKey) return null
   return (
-    <ThreeSlotItem
+    <RowItem
       className={className}
       textClassName={textClassName}
       text={

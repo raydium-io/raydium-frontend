@@ -1,23 +1,25 @@
 import { useMemo } from 'react'
 
 import { twMerge } from 'tailwind-merge'
+import { CurrencyAmount } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
+import useNotification from '@/application/notification/useNotification'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
+import { SplToken, TokenAmount } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
@@ -25,6 +27,7 @@ import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
+import LinkExplorer from '@/components/LinkExplorer'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
@@ -35,7 +38,9 @@ import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
+import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
+import { shrinkAccount } from '@/functions/format/shrinkAccount'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
@@ -823,7 +828,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
 
 function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedConcentratedInfo }) {
   // eslint-disable-next-line no-console
-  console.log('info: ', info)
+  // console.log('info: ', info)
 
   const { lpPrices } = usePools()
   const tokenPrices = useToken((s) => s.tokenPrices)
@@ -866,8 +871,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         <>
           {info.userPositionAccount.map((p, idx) => {
             let myPosition = '--'
-            const amountA = toString(p.amountA, { decimalLength: 'auto 2' })
-            const amountB = toString(p.amountB, { decimalLength: 'auto 2' })
+            const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
+            const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
             const lower = toString(p.priceLower, { decimalLength: 'auto 5' })
             const upper = toString(p.priceUpper, { decimalLength: 'auto 5' })
 
@@ -876,7 +881,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             }
 
             // eslint-disable-next-line no-console
-            console.log('p: ', p)
+            // console.log('p: ', p)
 
             const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
             const coinBPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenB?.mint)] ?? null)
@@ -927,6 +932,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 amountA={amountA}
                 amountB={amountB}
                 myPositionVolume={myPositionVolume}
+                coinAPrice={coinAPrice}
+                coinBPrice={coinBPrice}
                 inRange={inRange}
               />
             )
@@ -951,6 +958,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   amountA,
   amountB,
   myPositionVolume,
+  coinAPrice,
+  coinBPrice,
   inRange
 }: {
   poolInfo: HydratedConcentratedInfo
@@ -959,24 +968,50 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   amountA?: string
   amountB?: string
   myPositionVolume?: string
+  coinAPrice?: CurrencyAmount
+  coinBPrice?: CurrencyAmount
   inRange?: boolean
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
 
   const rangeTag = useMemo(() => {
-    if (!inRange) return null
-    // const dom: any[] = []
-    // dom.push()
+    let bgColor = 'bg-[#142B45]'
+    let textColor = 'text-[#39D0D8]'
+    let iconSrc = '/icons/check-circle.svg'
+    let textValue = 'In Range'
+    if (!inRange) {
+      bgColor = 'bg-[#DA2EEF]/10'
+      textColor = 'text-[#DA2EEF]'
+      iconSrc = '/icons/warn-stick.svg'
+      textValue = 'Out of Range'
+    }
+
     return (
-      <Row className="items-center bg-[#142B45] rounded text-xs text-[#39D0D8] py-0.5 px-1 ml-2">
-        <Icon size="xs" iconSrc={'/icons/check-circle.svg'} />
-        <div className="font-normal" style={{ marginLeft: 4 }}>
-          {' '}
-          In Range
-        </div>
-      </Row>
+      <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
+        <Row className={twMerge('items-center rounded text-xs py-0.5 px-1 ml-2', bgColor, textColor)}>
+          <Icon size="xs" iconSrc={iconSrc} />
+          <div className="font-normal" style={{ marginLeft: 4 }}>
+            {textValue}
+          </div>
+        </Row>
+        <Tooltip.Panel>
+          <div className="max-w-[300px] py-3 px-5">
+            <div className="font-medium text-[#ABC4FF] text-2xs">Current Price</div>
+            <Row className="gap-5  mt-1">
+              <div className="text-xs text-white">
+                {toString(decimalToFraction(info.state.currentPrice), { decimalLength: 'auto 5' })}
+              </div>
+              <div className="text-[#ABC4FF] text-xs">
+                {info.base?.symbol} per {info.quote?.symbol}
+              </div>
+            </Row>
+          </div>
+        </Tooltip.Panel>
+      </Tooltip>
     )
-  }, [inRange])
+  }, [inRange, info.state.currentPrice, info.base?.symbol, info.quote?.symbol])
+  const { logInfo } = useNotification.getState()
+  const walletConnected = useWallet((s) => s.connected)
 
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
@@ -989,44 +1024,134 @@ function PoolCardDatabaseBodyCollapsePositionContent({
             is={isMobile ? 'Grid' : 'Row'}
             className={`gap-[8px] mobile:gap-3 mobile:grid-cols-2-auto flex-grow justify-between`}
           >
-            <Row className="flex-grow justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg py-6 px-6  items-center">
+            <Row className="flex-1 justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg py-6 px-6  items-center">
               <Col>
-                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
-                  My Position {inRange ? rangeTag : null}
+                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                  Price Range {inRange ? rangeTag : null}
                 </div>
-                <div className="text-white font-medium text-base mobile:text-xs">{myPosition ?? '--'}</div>
-                <div className="text-white font-medium text-base text-[14px] mobile:text-xs">
-                  {myPositionVolume ?? '--'}
+                <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPosition ?? '--'}</div>
+                <div className=" text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2">
+                  {info.base?.symbol} per {info.quote?.symbol}
                 </div>
               </Col>
               <Col>
-                <Button
-                  className="frosted-glass-teal"
-                  onClick={() => {
-                    useConcentrated.setState({ currentAmmPool: info, targetUserPositionAccount: p })
-                    routeTo('/liquidity/my-position')
-                  }}
-                >
-                  Manage Liquidity
-                </Button>
+                <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
+                  My Position
+                  {p ? (
+                    <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
+                      <Icon className=" cursor-help" size="sm" heroIconName="question-mark-circle" />
+                      <Tooltip.Panel>
+                        <div className="max-w-[300px] py-3 px-5">
+                          {info.base && (
+                            <TokenPositionInfo token={info.base} tokenAmount={amountA} tokenPrice={coinAPrice} />
+                          )}
+                          {info.quote && (
+                            <TokenPositionInfo token={info.quote} tokenAmount={amountB} tokenPrice={coinBPrice} />
+                          )}
+                        </div>
+                      </Tooltip.Panel>
+                    </Tooltip>
+                  ) : null}
+                </div>
+                <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPositionVolume ?? '--'}</div>
+                <Row className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2">
+                  {shrinkAccount(p?.nftMint, 6)}{' '}
+                  <Icon
+                    size="sm"
+                    className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
+                    heroIconName="clipboard-copy"
+                    onClick={({ ev }) => {
+                      ev.stopPropagation()
+                      copyToClipboard(toPubString(p?.nftMint))
+                      logInfo('Account has been copied!')
+                    }}
+                  />
+                  <LinkExplorer className="flex items-center" hrefDetail={`${p?.nftMint}`} type="account">
+                    <Icon
+                      size="sm"
+                      className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
+                      inline
+                      heroIconName="external-link"
+                    />
+                  </LinkExplorer>
+                </Row>
               </Col>
+              <Button
+                className="frosted-glass-teal"
+                onClick={() => {
+                  useConcentrated.setState({ currentAmmPool: info, targetUserPositionAccount: p })
+                  routeTo('/liquidity/my-position')
+                }}
+              >
+                Manage Liquidity
+              </Button>
             </Row>
-            <Row className="flex-grow justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg py-6 px-6  items-center">
+            <Row className="flex-1  justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg py-6 px-6  items-center">
               <Col>
-                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mb-1">
+                <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
                   Unclaimed Yield
+                  {p ? (
+                    <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
+                      <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
+                      <Tooltip.Panel>
+                        <div className="max-w-[300px] py-[6px] px-5">
+                          {info.base && (
+                            <TokenPositionInfo
+                              token={info.base}
+                              tokenAmount={amountA}
+                              tokenPrice={coinAPrice}
+                              suffix="Rewards"
+                            />
+                          )}
+                          {info.quote && (
+                            <TokenPositionInfo
+                              token={info.quote}
+                              tokenAmount={amountB}
+                              tokenPrice={coinBPrice}
+                              suffix="Rewards"
+                            />
+                          )}
+                        </div>
+                      </Tooltip.Panel>
+                    </Tooltip>
+                  ) : null}
                 </div>
-                <div className="text-[16px] text-white font-normal text-base mobile:text-xs">
-                  {myPositionVolume ?? '--'}
-                </div>
-                <AutoBox is="Row" className="gap-[5px] font-normal text-sm">
+                <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPositionVolume ?? '--'}</div>
+                <AutoBox
+                  is="Row"
+                  className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2"
+                >
                   <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
                   <Col className="text-white">17.4%</Col>
+                  <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
+                    <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
+                    <Tooltip.Panel>
+                      <div className="max-w-[300px] py-3 px-5">
+                        <TokenPositionInfo
+                          customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
+                          customKey="Trade Fees"
+                          customValue="7.1%"
+                        />
+                        {info.base && <TokenPositionInfo token={info.base} customValue="5.1%" suffix="Rewards" />}
+                        {info.quote && <TokenPositionInfo token={info.quote} customValue="2%" suffix="Rewards" />}
+                      </div>
+                    </Tooltip.Panel>
+                  </Tooltip>
                 </AutoBox>
               </Col>
               <Col>
                 <Button
                   className="frosted-glass-teal"
+                  validators={[
+                    {
+                      should: walletConnected,
+                      forceActive: true,
+                      fallbackProps: {
+                        onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                        children: 'Connect Wallet'
+                      }
+                    }
+                  ]}
                   onClick={() => {
                     // create
                     useConcentrated.setState({ coin1: info.base, coin2: info.quote })
@@ -1130,6 +1255,48 @@ function PoolCardDatabaseBodyCollapsePositionContent({
         </div>
       </Row>
     </AutoBox>
+  )
+}
+
+function TokenPositionInfo({
+  token,
+  tokenAmount,
+  tokenPrice,
+  suffix = '',
+  customIcon,
+  customKey,
+  customValue
+}: {
+  token?: SplToken
+  tokenAmount?: string
+  tokenPrice?: CurrencyAmount
+  suffix?: string
+  customIcon?: any
+  customKey?: any
+  customValue?: any
+}) {
+  // eslint-disable-next-line no-console
+  // console.log('amount: ', tokenAmount, 'price: ', toUsdVolume(tokenPrice))
+
+  return (
+    <Row className="py-2 gap-8 justify-between items-center font-medium text-[12px] ">
+      <Row className="flex items-center justify-start gap-[6px]">
+        {customIcon ? customIcon : <CoinAvatar token={token} size="smi" />}{' '}
+        <div className=" text-[#ABC4FF]">
+          {customKey ? customKey : token ? token!.symbol : null} {suffix}
+        </div>
+      </Row>
+      <Row className="flex justify-end gap-1">
+        {customValue ? (
+          customValue
+        ) : (
+          <>
+            <div className="text-white">{tokenAmount}</div>
+            <div className="text-[#ABC4FF]">({toUsdVolume(tokenPrice)})</div>
+          </>
+        )}
+      </Row>
+    </Row>
   )
 }
 
