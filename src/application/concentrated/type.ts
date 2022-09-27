@@ -3,7 +3,14 @@ import { PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
 import Decimal from 'decimal.js'
 import {
-  AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, CurrencyAmount, Fraction, Percent, Price, TokenAmount
+  AmmV3PoolInfo,
+  AmmV3PoolPersonalPosition,
+  ApiAmmV3PoolInfo,
+  CurrencyAmount,
+  Fraction,
+  Percent,
+  Price,
+  TokenAmount
 } from 'test-r-sdk'
 
 import { Numberish } from '@/types/constants'
@@ -29,35 +36,39 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
 
   ammConfig: AmmV3PoolInfo['ammConfig']
   currentPrice: Fraction
-
+  rewardInfos: {
+    rewardToken: SplToken | undefined
+    rewardState: number
+    openTime: number
+    endTime: number
+    lastUpdateTime: number
+    rewardTotalEmissioned: TokenAmount | undefined
+    rewardClaimed: TokenAmount | undefined
+    tokenMint: PublicKey
+    tokenVault: PublicKey
+    authority: PublicKey
+    emissionsPerSecondX64: BN
+    rewardGrowthGlobalX64: BN
+  }[]
   tvl: CurrencyAmount
-  fee24h: CurrencyAmount
-  fee7d: CurrencyAmount
-  fee30d: CurrencyAmount
-  apr24h: Percent
-  apr7d: Percent
-  apr30d: Percent
   feeApr24h: Percent
   feeApr7d: Percent
   feeApr30d: Percent
+  totalApr24h: Percent
+  totalApr7d: Percent
+  totalApr30d: Percent
   volume24h: CurrencyAmount
   volume7d: CurrencyAmount
   volume30d: CurrencyAmount
-  rewardsA24h: number
-  rewardsB24h: number
-  rewardsA7d: number
-  rewardsB7d: number
-  rewardsA30d: number
-  rewardsB30d: number
-  rewardApr24hA: Percent
-  rewardApr24hB: Percent
-  rewardApr24hC: Percent
-  rewardApr7dA: Percent
-  rewardApr7dB: Percent
-  rewardApr7dC: Percent
-  rewardApr30dA: Percent
-  rewardApr30dB: Percent
-  rewardApr30dC: Percent
+  fee24hA: TokenAmount
+  fee24hB: TokenAmount
+  fee7dA: TokenAmount
+  fee7dB: TokenAmount
+  fee30dA: TokenAmount
+  fee30dB: TokenAmount
+  rewardApr24h: Percent[]
+  rewardApr7d: Percent[]
+  rewardApr30d: Percent[]
 }
 
 export interface UserPositionAccount {

@@ -255,7 +255,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
         <div className="font-medium text-[#abc4ff]">Estimated APR</div>
       </Row>
       <Row className="items-center gap-4">
-        <div className="font-medium text-2xl text-white">{toPercentString(currentAmmPool?.apr30d)}</div>
+        <div className="font-medium text-2xl text-white">{toPercentString(currentAmmPool?.totalApr30d)}</div>
       </Row>
       <Grid className="grid-cols-1 border-1.5 border-[#abc4ff40] py-3 px-4 gap-2 rounded-xl">
         <div className="font-medium text-[#abc4ff] mt-2 mb-4">Yield</div>
@@ -276,7 +276,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
                 <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
               </Row>
             }
-            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.apr30d)}</div>} // TEMP
+            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.fee30dA)}</div>} // TEMP
           />
           <RowItem
             prefix={
@@ -285,7 +285,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
                 <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.quote?.symbol ?? '--'}</div>
               </Row>
             }
-            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.apr30d)}</div>} // TEMP
+            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.fee30dB)}</div>} // TEMP
           />
         </Grid>
       </Grid>
@@ -376,7 +376,7 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                 className="gap-1 font-medium"
                 prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">Fee Rate</div>}
                 // TEMP: force 30d
-                text={<div className="text-white">{toPercentString(currentAmmPool?.fee30d)}</div>}
+                text={<div className="text-white">{toPercentString(currentAmmPool?.feeApr30d)}</div>}
               />
               <ColItem
                 className="gap-1 font-medium"
@@ -405,9 +405,9 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                   <Row className="items-center gap-2">
                     <CoinAvatar token={currentAmmPool?.base} size="smi" />
                     <div className="text-white">
-                      {toString(currentAmmPool?.rewardsA7d, { decimalLength: currentAmmPool?.base?.decimals })}
+                      {toString(currentAmmPool?.fee7dA, { decimalLength: currentAmmPool?.base?.decimals })}
                     </div>
-                    <div className="text-[#abc4ff80]">{toUsdVolume(mul(currentAmmPool?.rewardsA7d, basePrice))}</div>
+                    <div className="text-[#abc4ff80]">{toUsdVolume(mul(currentAmmPool?.fee7dA, basePrice))}</div>
                   </Row>
                 }
               />
@@ -423,9 +423,9 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                   <Row className="items-center gap-2">
                     <CoinAvatar token={currentAmmPool?.quote} size="smi" />
                     <div className="text-white">
-                      {toString(currentAmmPool?.rewardsB7d, { decimalLength: currentAmmPool?.quote?.decimals })}
+                      {toString(currentAmmPool?.fee7dB, { decimalLength: currentAmmPool?.quote?.decimals })}
                     </div>
-                    <div className="text-[#abc4ff80]">{toUsdVolume(mul(currentAmmPool?.rewardsB7d, quotePrice))}</div>
+                    <div className="text-[#abc4ff80]">{toUsdVolume(mul(currentAmmPool?.fee7dB, quotePrice))}</div>
                   </Row>
                 }
               />

@@ -4,6 +4,7 @@ import useConcentrated from '@/application/concentrated/useConcentrated'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatar from '@/components/CoinAvatar'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
@@ -62,9 +63,61 @@ export function AddConcentratedLiquidityDialog() {
           size="lg"
         >
           <Row className="justify-between items-center mb-6">
-            <div className="text-xl font-semibold text-white">Add Concentrated</div>
+            <div className="text-xl font-semibold text-white">
+              Add Concentrated to {coinBase?.symbol ?? '--'} - {coinQuote?.symbol ?? '--'}{' '}
+            </div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
           </Row>
+
+          <Col className="gap-2 border-1.5 rounded-lg border-[#abc4ff40] py-2.5 px-2.5 mb-4">
+            <div className="font-medium text-sm text-[#abc4ff]">My Position</div>
+            <Row className="items-center">
+              <CoinAvatar token={coinBase} size="sm" />
+              <div className="ml-2 mr-auto text-sm text-[#abc4ff80]">{coinBase?.symbol ?? '--'}</div>
+              <div className="text-white font-medium text-sm">
+                {toString(targetUserPositionAccount?.amountA)} {coinBase?.symbol ?? '--'}
+              </div>
+            </Row>
+            <Row className="items-center">
+              <CoinAvatar token={coinQuote} size="sm" />
+              <div className="ml-2 mr-auto text-sm text-[#abc4ff80]">{coinQuote?.symbol ?? '--'}</div>
+              <div className="text-white font-medium text-sm">
+                {toString(targetUserPositionAccount?.amountB)} {coinQuote?.symbol ?? '--'}
+              </div>
+            </Row>
+          </Col>
+
+          <Col className="gap-2 border-1.5 rounded-lg border-[#abc4ff40] py-2.5 px-2.5 mb-4">
+            <Row className="items-center">
+              <div className="font-medium text-sm text-[#abc4ff]">Selected Range</div>
+              <Row>
+                <div className="text-[#abc4ff80] text-sm">current Price</div>
+                <div className="text-white font-medium text-sm">
+                  {0.01} {coinQuote?.symbol ?? '--'} / {coinQuote?.symbol ?? '--'}
+                </div>
+              </Row>
+              <Row>
+                <Col>
+                  <div>Min Price</div>
+                  <div>{0.08}</div>
+                </Col>
+              </Row>
+            </Row>
+            <Row className="items-center">
+              <CoinAvatar token={coinBase} size="sm" />
+              <div className="ml-2 mr-auto text-sm text-[#abc4ff80]">{coinBase?.symbol ?? '--'}</div>
+              <div className="text-white font-medium text-sm">
+                {toString(targetUserPositionAccount?.amountA)} {coinBase?.symbol ?? '--'}
+              </div>
+            </Row>
+            <Row className="items-center">
+              <CoinAvatar token={coinQuote} size="sm" />
+              <div className="ml-2 mr-auto text-sm text-[#abc4ff80]">{coinQuote?.symbol ?? '--'}</div>
+              <div className="text-white font-medium text-sm">
+                {toString(targetUserPositionAccount?.amountB)} {coinQuote?.symbol ?? '--'}
+              </div>
+            </Row>
+          </Col>
 
           <Col className="gap-3 mb-6">
             {/* input-container-box */}

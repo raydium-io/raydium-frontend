@@ -28,39 +28,61 @@ export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConce
  */
 function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial<HydratedConcentratedInfo> {
   const currentPrice = decimalToFraction(sdkConcentratedInfo.state.currentPrice)
+  const { getToken } = useToken.getState()
+  const tokenA = getToken(sdkConcentratedInfo.state.mintA.mint)
+  const tokenB = getToken(sdkConcentratedInfo.state.mintB.mint)
+  const rewardLength = sdkConcentratedInfo.state.rewardInfos.length
   return {
     ammConfig: sdkConcentratedInfo.state.ammConfig,
     currentPrice,
 
+    rewardInfos: sdkConcentratedInfo.state.rewardInfos.map((r) => {
+      const rewardToken = getToken(r.tokenMint)
+      return {
+        ...r,
+        rewardToken,
+        openTime: r.openTime.toNumber() * 1000,
+        endTime: r.endTime.toNumber() * 1000,
+        lastUpdateTime: r.lastUpdateTime.toNumber() * 1000,
+        rewardClaimed: rewardToken ? toTokenAmount(rewardToken, r.rewardClaimed) : undefined,
+        rewardTotalEmissioned: rewardToken ? toTokenAmount(rewardToken, r.rewardTotalEmissioned) : undefined
+      }
+    }),
+
     idString: toPubString(sdkConcentratedInfo.state.id),
     tvl: toUsdCurrency(sdkConcentratedInfo.state.tvl),
-    fee24h: toUsdCurrency(sdkConcentratedInfo.state.day.feeApr),
-    fee7d: toUsdCurrency(sdkConcentratedInfo.state.week.feeApr),
-    fee30d: toUsdCurrency(sdkConcentratedInfo.state.month.feeApr),
-    apr24h: toPercent(sdkConcentratedInfo.state.day.apr),
-    apr7d: toPercent(sdkConcentratedInfo.state.week.apr),
-    apr30d: toPercent(sdkConcentratedInfo.state.month.apr),
+
+    totalApr24h: toPercent(sdkConcentratedInfo.state.day.apr),
+    totalApr7d: toPercent(sdkConcentratedInfo.state.week.apr),
+    totalApr30d: toPercent(sdkConcentratedInfo.state.month.apr),
     feeApr24h: toPercent(sdkConcentratedInfo.state.day.feeApr),
     feeApr7d: toPercent(sdkConcentratedInfo.state.week.feeApr),
     feeApr30d: toPercent(sdkConcentratedInfo.state.month.feeApr),
+    rewardApr24h: [
+      toPercent(sdkConcentratedInfo.state.day.rewardApr.A),
+      toPercent(sdkConcentratedInfo.state.day.rewardApr.B),
+      toPercent(sdkConcentratedInfo.state.day.rewardApr.C)
+    ].slice(0, rewardLength),
+    rewardApr7d: [
+      toPercent(sdkConcentratedInfo.state.week.rewardApr.A),
+      toPercent(sdkConcentratedInfo.state.week.rewardApr.B),
+      toPercent(sdkConcentratedInfo.state.week.rewardApr.C)
+    ].slice(0, rewardLength),
+    rewardApr30d: [
+      toPercent(sdkConcentratedInfo.state.month.rewardApr.A),
+      toPercent(sdkConcentratedInfo.state.month.rewardApr.B),
+      toPercent(sdkConcentratedInfo.state.month.rewardApr.C)
+    ].slice(0, rewardLength),
+
     volume24h: toUsdCurrency(sdkConcentratedInfo.state.day.volume),
     volume7d: toUsdCurrency(sdkConcentratedInfo.state.week.volume),
     volume30d: toUsdCurrency(sdkConcentratedInfo.state.month.volume),
-    weeklyRewardsA24h: sdkConcentratedInfo.state.day.feeA,
-    weeklyRewardsB24h: sdkConcentratedInfo.state.day.feeB,
-    weeklyRewardsA7d: sdkConcentratedInfo.state.week.feeA,
-    weeklyRewardsB7d: sdkConcentratedInfo.state.week.feeB,
-    weeklyRewardsA30d: sdkConcentratedInfo.state.month.feeA,
-    weeklyRewardsB30d: sdkConcentratedInfo.state.month.feeB,
-    rewardApr24hA: toPercent(sdkConcentratedInfo.state.day.rewardApr.A),
-    rewardApr24hB: toPercent(sdkConcentratedInfo.state.day.rewardApr.B),
-    rewardApr24hC: toPercent(sdkConcentratedInfo.state.day.rewardApr.C),
-    rewardApr7dA: toPercent(sdkConcentratedInfo.state.day.rewardApr.A),
-    rewardApr7dB: toPercent(sdkConcentratedInfo.state.day.rewardApr.B),
-    rewardApr7dC: toPercent(sdkConcentratedInfo.state.day.rewardApr.C),
-    rewardApr30dA: toPercent(sdkConcentratedInfo.state.day.rewardApr.A),
-    rewardApr30dB: toPercent(sdkConcentratedInfo.state.day.rewardApr.B),
-    rewardApr30dC: toPercent(sdkConcentratedInfo.state.day.rewardApr.C)
+    fee24hA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.day.feeA) : undefined,
+    fee24hB: tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.day.feeB) : undefined,
+    fee7dA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.week.feeA) : undefined,
+    fee7dB: tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.week.feeB) : undefined,
+    fee30dA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.month.feeA) : undefined,
+    fee30dB: tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.month.feeB) : undefined
   }
 }
 /**
