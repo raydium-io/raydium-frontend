@@ -1,9 +1,11 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
+import { stringify } from 'querystring'
 import { twMerge } from 'tailwind-merge'
 import { CurrencyAmount } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
   PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
@@ -50,6 +52,7 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 
 export default function PoolsConcentratedPage() {
   // usePoolSummeryInfoLoader()
@@ -72,6 +75,7 @@ export default function PoolsConcentratedPage() {
     >
       <PoolHeader />
       <PoolCard />
+      <AddConcentratedLiquidityDialog />
     </PageLayout>
   )
 }
@@ -699,10 +703,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
         value={
           isHydratedConcentratedItemInfo(info)
             ? timeBasis === TimeBasis.DAY
-              ? toUsdVolume(info.fee24h, { autoSuffix: isTablet, decimalPlace: 0 })
+              ? toUsdVolume(info.feeApr24h, { autoSuffix: isTablet, decimalPlace: 0 })
               : timeBasis === TimeBasis.WEEK
-              ? toUsdVolume(info.fee7d, { autoSuffix: isTablet, decimalPlace: 0 })
-              : toUsdVolume(info.fee30d, { autoSuffix: isTablet, decimalPlace: 0 })
+              ? toUsdVolume(info.feeApr7d, { autoSuffix: isTablet, decimalPlace: 0 })
+              : toUsdVolume(info.feeApr30d, { autoSuffix: isTablet, decimalPlace: 0 })
             : undefined
         }
       />
@@ -812,7 +816,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             name="Fees(7d)"
             value={
               isHydratedConcentratedItemInfo(info)
-                ? toUsdVolume(info.fee7d, { autoSuffix: true, decimalPlace: 0 })
+                ? toUsdVolume(info.feeApr7d, { autoSuffix: true, decimalPlace: 0 })
                 : undefined
             }
           />
@@ -869,7 +873,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     >
       {info.userPositionAccount ? (
         <>
-          {info.userPositionAccount.map((p, idx) => {
+          {info.userPositionAccount.map((p, idx, originArray) => {
             let myPosition = '--'
             const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
             const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
@@ -881,13 +885,18 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             }
 
             // eslint-disable-next-line no-console
-            // console.log('p: ', p)
+            // console.log('p A: ', p.tokenFeeAmountA)
 
             const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
             const coinBPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenB?.mint)] ?? null)
 
             const myPositionPrice = coinAPrice.add(coinBPrice)
             const myPositionVolume = myPositionPrice ? toUsdVolume(myPositionPrice) : '--'
+
+            const coinARewardPrice = toTotalPrice(p.tokenFeeAmountA, variousPrices[String(p.tokenA?.mint)] ?? null)
+            const coinBRewardPrice = toTotalPrice(p.tokenFeeAmountB, variousPrices[String(p.tokenB?.mint)] ?? null)
+            const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
+            const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
 
             // TODO: remove the comment out code below, they are for testing only
             // if (idx === 0) {
@@ -932,6 +941,10 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 coinAPrice={coinAPrice}
                 coinBPrice={coinBPrice}
                 inRange={p.inRange}
+                noBorderBottom={false}
+                rewardAPrice={coinARewardPrice}
+                rewardBPrice={coinBRewardPrice}
+                rewardTotalVolume={rewardTotalVolume}
               />
             )
           })}
@@ -957,7 +970,12 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   myPositionVolume,
   coinAPrice,
   coinBPrice,
-  inRange
+  inRange,
+  noBorderBottom = false,
+  noAsset = false,
+  rewardAPrice,
+  rewardBPrice,
+  rewardTotalVolume
 }: {
   poolInfo: HydratedConcentratedInfo
   userPositionAccount?: UserPositionAccount
@@ -968,6 +986,11 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   coinAPrice?: CurrencyAmount
   coinBPrice?: CurrencyAmount
   inRange?: boolean
+  noBorderBottom?: boolean
+  noAsset?: boolean
+  rewardAPrice?: CurrencyAmount
+  rewardBPrice?: CurrencyAmount
+  rewardTotalVolume?: string
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
 
@@ -1009,13 +1032,141 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   }, [inRange, info.state.currentPrice, info.base?.symbol, info.quote?.symbol])
   const { logInfo } = useNotification.getState()
   const walletConnected = useWallet((s) => s.connected)
+  const timeBasis = useConcentrated((s) => s.timeBasis)
+  const [yieldInfo, setYieldInfo] = useState<{
+    apr: string
+    tradeFeesApr: string
+    rewardsAprA: string
+    rewardsAprB: string
+    rewardsAprC: string
+  }>({
+    apr: '--',
+    tradeFeesApr: '--',
+    rewardsAprA: '--',
+    rewardsAprB: '--',
+    rewardsAprC: '--'
+  })
+
+  useEffect(() => {
+    if (timeBasis === TimeBasis.DAY) {
+      setYieldInfo({
+        apr: toPercentString(info.totalApr24h),
+        tradeFeesApr: toPercentString(info.feeApr24h),
+        rewardsAprA: toPercentString(info.rewardApr24h[0]),
+        rewardsAprB: toPercentString(info.rewardApr24h[1]),
+        rewardsAprC: toPercentString(info.rewardApr24h[2])
+      })
+    } else if (timeBasis === TimeBasis.WEEK) {
+      setYieldInfo({
+        apr: toPercentString(info.totalApr7d),
+        tradeFeesApr: toPercentString(info.feeApr7d),
+        rewardsAprA: toPercentString(info.rewardApr7d[0]),
+        rewardsAprB: toPercentString(info.rewardApr7d[1]),
+        rewardsAprC: toPercentString(info.rewardApr7d[2])
+      })
+    } else if (timeBasis === TimeBasis.MONTH) {
+      setYieldInfo({
+        apr: toPercentString(info.totalApr30d),
+        tradeFeesApr: toPercentString(info.feeApr30d),
+        rewardsAprA: toPercentString(info.rewardApr30d[0]),
+        rewardsAprB: toPercentString(info.rewardApr30d[1]),
+        rewardsAprC: toPercentString(info.rewardApr30d[2])
+      })
+    } else {
+      setYieldInfo({
+        apr: '--',
+        tradeFeesApr: '--',
+        rewardsAprA: '--',
+        rewardsAprB: '--',
+        rewardsAprC: '--'
+      })
+    }
+  }, [timeBasis])
+
+  // if (noAsset) {
+  //   return (
+  //     <AutoBox is={isMobile ? 'Col' : 'Row'}>
+  //       <Row className={`w-full py-5 px-8 mobile:py-3 mobile:px-4 mobile:m-0`}>
+  //         <div
+  //           className={`flex w-full ${isMobile ? 'flex-col' : 'flex-row'}`}
+  //           style={{ borderBottom: !noBorderBottom ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
+  //         >
+  //           <AutoBox
+  //             is={isMobile ? 'Grid' : 'Row'}
+  //             className={`gap-[8px] mobile:gap-3 mobile:grid-cols-2-auto flex-grow justify-between`}
+  //           >
+  //             <Row className="flex-1 justify-between items-center">
+  //               <Col>
+  //                 <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+  //                   Estinated APR
+  //                 </div>
+  //                 <Row className="gap-10 mt-[12px]">
+  //                   <Col>
+  //                     <div className="font-medium text-sm mobile:text-2xs text-white">Trade Fees</div>
+  //                     <Row className="flex items-center gap-1 mt-1">
+  //                       <CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />
+  //                       <div className="text-white font-medium text-sm">{info.}</div>
+  //                     </Row>
+  //                   </Col>
+  //                   <Col>
+  //                     <div className="font-medium text-sm mobile:text-2xs text-white">Rewards</div>
+  //                     <Row className="flex items-center gap-6 mt-1">
+  //                       {info.base && (
+  //                         <Row className="gap-1">
+  //                           <CoinAvatar token={info.base} size="smi" />{' '}
+  //                           <div className="text-[#ABC4FF]/50">{info.base.symbol}</div>
+  //                           <div className="text-white">2.7%</div>
+  //                         </Row>
+  //                       )}
+  //                       {info.quote && (
+  //                         <Row className="gap-1">
+  //                           <CoinAvatar token={info.quote} size="smi" />{' '}
+  //                           <div className="text-[#ABC4FF]/50">{info.quote.symbol}</div>
+  //                           <div className="text-white">2.7%</div>
+  //                         </Row>
+  //                       )}
+  //                     </Row>
+  //                   </Col>
+  //                 </Row>
+  //               </Col>
+  //               <Row className="gap-5">
+  //                 <Button
+  //                   className="frosted-glass-teal"
+  //                   onClick={() => {
+  //                     useConcentrated.setState({ currentAmmPool: info, targetUserPositionAccount: p })
+  //                     routeTo('/liquidity/my-position')
+  //                   }}
+  //                 >
+  //                   Create Position
+  //                 </Button>
+  //                 <Icon
+  //                   size="sm"
+  //                   iconSrc="/icons/msic-swap-h.svg"
+  //                   className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+  //                   onClick={() => {
+  //                     routeTo('/swap', {
+  //                       queryProps: {
+  //                         coin1: info.base,
+  //                         coin2: info.quote
+  //                       }
+  //                     })
+  //                   }}
+  //                 />
+  //               </Row>
+  //             </Row>
+  //           </AutoBox>
+  //         </div>
+  //       </Row>
+  //     </AutoBox>
+  //   )
+  // }
 
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
       <Row className={`w-full pt-5 px-8 mobile:py-3 mobile:px-4 mobile:m-0`}>
         <div
           className={`flex w-full pb-5 ${isMobile ? 'flex-col' : 'flex-row'}`}
-          style={{ borderBottom: '1px solid rgba(171, 196, 255, .1)' }}
+          style={{ borderBottom: !noBorderBottom ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
         >
           <AutoBox
             is={isMobile ? 'Grid' : 'Row'}
@@ -1075,6 +1226,17 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               </Col>
               <Button
                 className="frosted-glass-teal"
+                disabled={!p}
+                validators={[
+                  {
+                    should: walletConnected,
+                    forceActive: true,
+                    fallbackProps: {
+                      onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                      children: 'Connect Wallet'
+                    }
+                  }
+                ]}
                 onClick={() => {
                   useConcentrated.setState({ currentAmmPool: info, targetUserPositionAccount: p })
                   routeTo('/liquidity/my-position')
@@ -1095,16 +1257,16 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                           {info.base && (
                             <TokenPositionInfo
                               token={info.base}
-                              tokenAmount={amountA}
-                              tokenPrice={coinAPrice}
+                              tokenAmount={toString(p.tokenFeeAmountA, { decimalLength: 'auto 5' })}
+                              tokenPrice={rewardAPrice}
                               suffix="Rewards"
                             />
                           )}
                           {info.quote && (
                             <TokenPositionInfo
                               token={info.quote}
-                              tokenAmount={amountB}
-                              tokenPrice={coinBPrice}
+                              tokenAmount={toString(p.tokenFeeAmountB, { decimalLength: 'auto 5' })}
+                              tokenPrice={rewardBPrice}
                               suffix="Rewards"
                             />
                           )}
@@ -1113,13 +1275,13 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     </Tooltip>
                   ) : null}
                 </div>
-                <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPositionVolume ?? '--'}</div>
+                <div className="text-white font-medium text-base mobile:text-xs mt-3">{rewardTotalVolume ?? '--'}</div>
                 <AutoBox
                   is="Row"
                   className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2"
                 >
                   <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
-                  <Col className="text-white">17.4%</Col>
+                  <Col className="text-white">{yieldInfo.apr}</Col>
                   <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
                     <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
                     <Tooltip.Panel>
@@ -1127,14 +1289,24 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         <TokenPositionInfo
                           customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
                           customKey="Trade Fees"
-                          customValue="7.1%"
+                          customValue={yieldInfo.tradeFeesApr}
                           className="gap-32"
                         />
                         {info.base && (
-                          <TokenPositionInfo token={info.base} customValue="5.1%" suffix="Rewards" className="gap-32" />
+                          <TokenPositionInfo
+                            token={info.base}
+                            customValue={yieldInfo.rewardsAprA}
+                            suffix="Rewards"
+                            className="gap-32"
+                          />
                         )}
                         {info.quote && (
-                          <TokenPositionInfo token={info.quote} customValue="2%" suffix="Rewards" className="gap-32" />
+                          <TokenPositionInfo
+                            token={info.quote}
+                            customValue={yieldInfo.rewardsAprB}
+                            suffix="Rewards"
+                            className="gap-32"
+                          />
                         )}
                       </div>
                     </Tooltip.Panel>
@@ -1144,6 +1316,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               <Col>
                 <Button
                   className="frosted-glass-teal"
+                  disabled={!p}
                   validators={[
                     {
                       should: walletConnected,
@@ -1154,13 +1327,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                       }
                     }
                   ]}
-                  onClick={() => {
-                    // create
-                    useConcentrated.setState({ coin1: info.base, coin2: info.quote })
-                    routeTo('/liquidity/concentrated', {
-                      queryProps: {}
-                    })
-                  }}
+                  onClick={() => txHavestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p })}
                 >
                   Harvest
                 </Button>
@@ -1182,11 +1349,11 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     useConcentrated.setState({
                       isAddDialogOpen: true,
                       currentAmmPool: info,
-                      targetUserPositionAccount: p
+                      targetUserPositionAccount: p,
+                      coin1: info.base,
+                      coin2: info.quote
                     })
-                    routeTo('/liquidity/concentrated', {
-                      queryProps: {}
-                    })
+                    routeTo('/liquidity/concentrated')
                   }}
                 />
                 <Icon
@@ -1201,9 +1368,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                       coin1: info.base,
                       coin2: info.quote
                     })
-                    routeTo('/liquidity/concentrated', {
-                      queryProps: {}
-                    })
+                    routeTo('/liquidity/concentrated')
                   }}
                 />
               </Row>
@@ -1222,9 +1387,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         currentAmmPool: info,
                         targetUserPositionAccount: p
                       })
-                      routeTo('/liquidity/concentrated', {
-                        queryProps: {}
-                      })
+                      // routeTo('/liquidity/concentrated', {
+                      //   queryProps: {}
+                      // })
                     }}
                   />
                   <Tooltip.Panel>Add Liquidity</Tooltip.Panel>

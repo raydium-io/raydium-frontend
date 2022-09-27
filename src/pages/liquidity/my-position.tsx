@@ -1,11 +1,9 @@
+import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
-import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import { AddressItem } from '@/components/AddressItem'
-import { Badge } from '@/components/Badge'
 import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
@@ -23,24 +21,21 @@ import toPercentString from '@/functions/format/toPercentString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { twMerge } from 'tailwind-merge'
+import { Price } from 'test-r-sdk'
 
 export default function MyPosition() {
   return (
     <>
-      <MyPositionEffect />
       <PageLayout mobileBarTitle="Concentrated" metaTitle="Concentrated - Raydium">
         <MyPositionPageHead />
         <MyPositionCard />
+
+        <AddConcentratedLiquidityDialog />
       </PageLayout>
     </>
   )
-}
-
-function MyPositionEffect() {
-  useConcentratedAmmSelector()
-  useConcentratedAmountCalculator()
-  return null
 }
 
 // const availableTabValues = ['Swap', 'Liquidity'] as const
@@ -51,13 +46,14 @@ function MyPositionPageHead() {
 function MyPositionCardTopInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const tokenPrices = useToken((s) => s.tokenPrices)
+  const { wholeLiquidity, baseLiquidity, quoteLiquidity } =
+    targetUserPositionAccount?.getLiquidityVolume?.(tokenPrices) ?? {}
   return (
     <Row className={twMerge('bg-[#141041] grid-cols-4 py-3 px-4 rounded-xl gap-12', className)}>
       <Grid className="grid-rows-[2em,1fr] items-center grow">
         <div className="font-medium text-[#abc4ff] h-8">Liquidity</div>
-        <div className="font-medium text-2xl text-white">
-          {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)}
-        </div>
+        <div className="font-medium text-2xl text-white">{toUsdVolume(wholeLiquidity)}</div>
       </Grid>
       <Grid className="grid-rows-[2em,1fr] items-center grow">
         <div className="font-medium text-[#abc4ff] h-8">Leverage</div>
@@ -76,13 +72,7 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
             suffix={
               <div className="text-[#abc4ff80]">{toPercentString(targetUserPositionAccount?.positionPercentA)}</div>
             }
-            text={
-              <div className="text-white justify-end">
-                {toUsdVolume(
-                  mul(targetUserPositionAccount?.amountLiquidityValue, targetUserPositionAccount?.positionPercentA)
-                )}
-              </div>
-            }
+            text={<div className="text-white justify-end">{toUsdVolume(baseLiquidity)}</div>}
           />
           <RowItem
             prefix={
@@ -94,13 +84,7 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
             suffix={
               <div className="text-[#abc4ff80]">{toPercentString(targetUserPositionAccount?.positionPercentB)}</div>
             }
-            text={
-              <div className="text-white">
-                {toUsdVolume(
-                  mul(targetUserPositionAccount?.amountLiquidityValue, targetUserPositionAccount?.positionPercentB)
-                )}
-              </div>
-            }
+            text={<div className="text-white">{toUsdVolume(quoteLiquidity)}</div>}
           />
         </Col>
       </Grid>
@@ -168,14 +152,9 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
       <Row className="items-center gap-4">
         <div className="font-medium text-2xl text-white">
           {/* Temp Dev */}
-          {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)}
+          {/* {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)} */}
         </div>
-        <Button
-          className="frosted-glass-teal"
-          onClick={() => {
-            routeTo('/liquidity/my-position') // TEMP
-          }}
-        >
+        <Button className="frosted-glass-teal" onClick={() => txHavestConcentrated()}>
           Harvest
         </Button>
       </Row>
@@ -276,7 +255,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
         <div className="font-medium text-[#abc4ff]">Estimated APR</div>
       </Row>
       <Row className="items-center gap-4">
-        <div className="font-medium text-2xl text-white">{toPercentString(currentAmmPool?.apr30d)}</div>
+        <div className="font-medium text-2xl text-white">{toPercentString(currentAmmPool?.totalApr30d)}</div>
       </Row>
       <Grid className="grid-cols-1 border-1.5 border-[#abc4ff40] py-3 px-4 gap-2 rounded-xl">
         <div className="font-medium text-[#abc4ff] mt-2 mb-4">Yield</div>
@@ -297,7 +276,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
                 <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
               </Row>
             }
-            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.apr30d)}</div>} // TEMP
+            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.fee30dA)}</div>} // TEMP
           />
           <RowItem
             prefix={
@@ -306,7 +285,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
                 <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.quote?.symbol ?? '--'}</div>
               </Row>
             }
-            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.apr30d)}</div>} // TEMP
+            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.fee30dB)}</div>} // TEMP
           />
         </Grid>
       </Grid>
@@ -327,8 +306,35 @@ function MyPositionCardHeader({ className }: { className?: string }) {
         <RangeTag positionAccount={targetUserPositionAccount} />
       </Row>
       <Row className="items-center gap-2">
-        <Button className="frosted-glass-teal">Add Liquidity</Button>
-        <Button className="frosted-glass-teal ghost">Remove Liquidity</Button>
+        <Button
+          className="frosted-glass-teal"
+          onClick={() => {
+            useConcentrated.setState({
+              isAddDialogOpen: true,
+              currentAmmPool,
+              targetUserPositionAccount,
+              coin1: currentAmmPool?.base,
+              coin2: currentAmmPool?.quote
+            })
+          }}
+        >
+          Add Liquidity
+        </Button>
+        <Button
+          className="frosted-glass-teal ghost"
+          onClick={() => {
+            useConcentrated.setState({
+              isRemoveDialogOpen: true,
+              currentAmmPool,
+              targetUserPositionAccount,
+              coin1: currentAmmPool?.base,
+              coin2: currentAmmPool?.quote
+            })
+            routeTo('/liquidity/concentrated')
+          }}
+        >
+          Remove Liquidity
+        </Button>
       </Row>
     </Row>
   )
@@ -355,8 +361,10 @@ function MyPositionCard() {
 }
 
 function MyPositionCardPoolOverview({ className }: { className?: string }) {
+  const tokenPrices = useToken((s) => s.tokenPrices)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
-  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const basePrice: Price | undefined = tokenPrices[toPubString(currentAmmPool?.base?.mint)]
+  const quotePrice: Price | undefined = tokenPrices[toPubString(currentAmmPool?.quote?.mint)]
   return (
     <Collapse openDirection="upwards" className="w-full mt-4">
       <Collapse.Body>
@@ -367,7 +375,8 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
               <ColItem
                 className="gap-1 font-medium"
                 prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">Fee Rate</div>}
-                text={<div className="text-white">{toPercentString(currentAmmPool?.fee30d)}</div>}
+                // TEMP: force 30d
+                text={<div className="text-white">{toPercentString(currentAmmPool?.feeApr30d)}</div>}
               />
               <ColItem
                 className="gap-1 font-medium"
@@ -385,32 +394,38 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                 text={<div className="text-white">{currentAmmPool?.ammConfig.tickSpacing}</div>}
               />
               <ColItem
-                className="gap-1 font-medium"
+                className="gap-1 font-medium col-span-2"
                 prefix={
                   <div className="text-[#abc4ff80] min-w-[4em] mr-1">
                     Weekly Rewards {currentAmmPool?.base?.symbol ?? 'base'}
                   </div>
                 }
+                // TEMP: force 30d
                 text={
                   <Row className="items-center gap-2">
                     <CoinAvatar token={currentAmmPool?.base} size="smi" />
-                    <div className="text-white">🚧amount</div>
-                    <div className="text-[#abc4ff80]">🚧usd</div>
+                    <div className="text-white">
+                      {toString(currentAmmPool?.fee7dA, { decimalLength: currentAmmPool?.base?.decimals })}
+                    </div>
+                    <div className="text-[#abc4ff80]">{toUsdVolume(mul(currentAmmPool?.fee7dA, basePrice))}</div>
                   </Row>
                 }
               />
               <ColItem
-                className="gap-1 font-medium"
+                className="gap-1 font-medium col-span-2"
                 prefix={
                   <div className="text-[#abc4ff80] min-w-[4em] mr-1">
                     Weekly Rewards {currentAmmPool?.quote?.symbol ?? 'quote'}
                   </div>
                 }
+                // TEMP: force 30d
                 text={
                   <Row className="items-center gap-2">
                     <CoinAvatar token={currentAmmPool?.quote} size="smi" />
-                    <div className="text-white">🚧amount</div>
-                    <div className="text-[#abc4ff80]">🚧usd</div>
+                    <div className="text-white">
+                      {toString(currentAmmPool?.fee7dB, { decimalLength: currentAmmPool?.quote?.decimals })}
+                    </div>
+                    <div className="text-[#abc4ff80]">{toUsdVolume(mul(currentAmmPool?.fee7dB, quotePrice))}</div>
                   </Row>
                 }
               />
