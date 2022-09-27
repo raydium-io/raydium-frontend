@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { stringify } from 'querystring'
 import { twMerge } from 'tailwind-merge'
 import { CurrencyAmount } from 'test-r-sdk'
 
@@ -10,6 +9,7 @@ import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/con
 import useConcentrated, {
   PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
+import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { usePools } from '@/application/pools/usePools'
@@ -47,16 +47,21 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import compare, { lt } from '@/functions/numberish/compare'
+import { lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
+import { RemoveConcentratedPoolDialog } from '@/pageComponents/dialogs/RemoveConcentratedPoolDialog'
 
 export default function PoolsConcentratedPage() {
   // usePoolSummeryInfoLoader()
   const currentTab = useConcentrated((s) => s.currentTab)
+  const isRemoveDialogOpen = useConcentrated((s) => s.isRemoveDialogOpen)
+
+  useConcentratedAmountCalculator()
+
   return (
     <PageLayout
       mobileBarTitle={{
@@ -76,6 +81,7 @@ export default function PoolsConcentratedPage() {
       <PoolHeader />
       <PoolCard />
       <AddConcentratedLiquidityDialog />
+      <RemoveConcentratedPoolDialog />
     </PageLayout>
   )
 }
@@ -1349,11 +1355,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     useConcentrated.setState({
                       isAddDialogOpen: true,
                       currentAmmPool: info,
-                      targetUserPositionAccount: p,
-                      coin1: info.base,
-                      coin2: info.quote
+                      targetUserPositionAccount: p
                     })
-                    routeTo('/liquidity/concentrated')
+                    // routeTo('/liquidity/concentrated')
                   }}
                 />
                 <Icon
@@ -1364,11 +1368,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     useConcentrated.setState({
                       isRemoveDialogOpen: true,
                       currentAmmPool: info,
-                      targetUserPositionAccount: p,
-                      coin1: info.base,
-                      coin2: info.quote
+                      targetUserPositionAccount: p
                     })
-                    routeTo('/liquidity/concentrated')
+                    // routeTo('/liquidity/concentrated')
                   }}
                 />
               </Row>
@@ -1405,12 +1407,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                       useConcentrated.setState({
                         isRemoveDialogOpen: true,
                         currentAmmPool: info,
-                        targetUserPositionAccount: p,
-                        coin1: info.base,
-                        coin2: info.quote
-                      })
-                      routeTo('/liquidity/concentrated', {
-                        queryProps: {}
+                        targetUserPositionAccount: p
                       })
                     }}
                   />

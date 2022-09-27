@@ -55,6 +55,7 @@ export type ConcentratedStore = {
   sdkParsedAmmPools: SDKParsedConcentratedInfo[]
   hydratedAmmPools: HydratedConcentratedInfo[]
 
+  isInput: boolean | undefined
   isRemoveDialogOpen: boolean
   isAddDialogOpen: boolean
   targetUserPositionAccount?: UserPositionAccount
@@ -86,6 +87,7 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
 
   isAddDialogOpen: false,
   isRemoveDialogOpen: false,
+  isInput: undefined,
 
   isSearchAmmDialogOpen: false,
   removeAmount: '',
