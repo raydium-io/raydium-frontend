@@ -1,4 +1,4 @@
-import { CurrencyAmount, Fraction, Percent } from 'test-r-sdk'
+import { CurrencyAmount, Fraction, Percent, Price } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, TokenAmount } from 'test-r-sdk'
@@ -64,13 +64,17 @@ export interface UserPositionAccount {
   tokenA?: SplToken
   tokenB?: SplToken
   leverage: number
-  amountLiquidityValue: CurrencyAmount
   tickLower: number
   tickUpper: number
   positionPercentA: Percent
   positionPercentB: Percent
   tokenFeeAmountA?: TokenAmount
   tokenFeeAmountB?: TokenAmount
+  getLiquidityVolume: (tokenPrices: Record<string, Price>) => {
+    wholeLiquidity: Fraction | undefined
+    baseLiquidity: Fraction | undefined
+    quoteLiquidity: Fraction | undefined
+  }
   // liquidity: BN__default; // currently useless
   // feeGrowthInsideLastX64A: BN__default; // currently useless
   // feeGrowthInsideLastX64B: BN__default; // currently useless
