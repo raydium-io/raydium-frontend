@@ -228,8 +228,8 @@ export function useRpcPerformance() {
         params: [100]
       })
     })
-    if (!result) return
-    const blocks = result.result
+    const blocks = result?.result
+    if (!blocks) return
     const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
     const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
     useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })

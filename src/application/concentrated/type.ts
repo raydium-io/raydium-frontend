@@ -74,6 +74,9 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
 export interface UserPositionAccount {
   /** transform to SDK function, should not used directlly in UI */
   sdkParsed: AmmV3PoolPersonalPosition
+  rewardInfos: {
+    penddingReward: TokenAmount | undefined
+  }[]
   inRange: boolean
   poolId: PublicKey
   nftMint: PublicKey
