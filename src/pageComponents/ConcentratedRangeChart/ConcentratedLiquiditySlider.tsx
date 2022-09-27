@@ -53,7 +53,8 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
         coin2Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageB), 10 ** coin2.decimals), {
           decimalLength: 'auto 10'
         }),
-        isInput: false
+        isInput: false,
+        liquidity: new BN(value)
       })
     },
     [currentAmmPool, coin1, coin2]
