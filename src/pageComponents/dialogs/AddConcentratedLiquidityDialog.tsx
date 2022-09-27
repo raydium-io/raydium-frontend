@@ -11,6 +11,7 @@ import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
+import FadeInStable, { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
@@ -19,6 +20,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { useEffect, useRef, useState } from 'react'
@@ -81,7 +83,7 @@ export function AddConcentratedLiquidityDialog() {
         >
           <Row className="justify-between items-center mb-6">
             <div className="text-xl font-semibold text-white">
-              Add Liquidity{/*  */} to {coinBase?.symbol ?? '--'} - {coinQuote?.symbol ?? '--'}{' '}
+              Add Liquidity to {coinBase?.symbol ?? '--'} - {coinQuote?.symbol ?? '--'}{' '}
             </div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
           </Row>
@@ -183,21 +185,23 @@ export function AddConcentratedLiquidityDialog() {
             />
           </Col>
 
-          <Col className="gap-2 border-1.5 rounded-xl border-[#abc4ff40] py-2.5 px-2.5 mb-4">
-            <Row className="items-center">
-              <div className="ml-2 mr-auto text-sm text-[#abc4ff]">Total Deposit</div>
-              <div className="text-white font-medium text-sm">{toUsdVolume(totalVolume)}</div>
-            </Row>
-            <Row className="items-center">
-              <div className="ml-2 mr-auto text-sm text-[#abc4ff]">Deposit Ratio</div>
+          <FadeInStable show={isMeaningfulNumber(coinBaseAmount)}>
+            <Col className="gap-2 border-1.5 rounded-xl border-[#abc4ff40] py-2.5 px-2.5 mb-4">
               <Row className="items-center">
-                <CoinAvatarPair token1={coinBase} token2={coinQuote} size="sm" className="mr-1" />
-                <div className="text-white font-medium text-xs">
-                  {toPercentString(div(baseVolume, totalVolume))} / {toPercentString(div(quoteVolume, totalVolume))}
-                </div>
+                <div className="ml-2 mr-auto text-sm text-[#abc4ff]">Total Deposit</div>
+                <div className="text-white font-medium text-sm">{toUsdVolume(totalVolume)}</div>
               </Row>
-            </Row>
-          </Col>
+              <Row className="items-center">
+                <div className="ml-2 mr-auto text-sm text-[#abc4ff]">Deposit Ratio</div>
+                <Row className="items-center">
+                  <CoinAvatarPair token1={coinBase} token2={coinQuote} size="sm" className="mr-1" />
+                  <div className="text-white font-medium text-xs">
+                    {toPercentString(div(baseVolume, totalVolume))} / {toPercentString(div(quoteVolume, totalVolume))}
+                  </div>
+                </Row>
+              </Row>
+            </Col>
+          </FadeInStable>
 
           <Row className="flex-col gap-1">
             <Button
