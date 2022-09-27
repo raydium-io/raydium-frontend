@@ -1,8 +1,7 @@
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import { routeTo } from '@/application/routeTools'
-import { SplToken } from '@/application/token/type'
+import { routeBack, routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
@@ -20,6 +19,7 @@ import { RowItem } from '@/components/RowItem'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
+import { inClient } from '@/functions/judgers/isSSR'
 import { add, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
@@ -32,12 +32,38 @@ export default function MyPosition() {
   return (
     <>
       <PageLayout mobileBarTitle="Concentrated" metaTitle="Concentrated - Raydium">
+        <NavButtons />
         <MyPositionPageHead />
         <MyPositionCard />
-
         <AddConcentratedLiquidityDialog />
       </PageLayout>
     </>
+  )
+}
+
+function NavButtons() {
+  return (
+    <Row
+      className={twMerge(
+        '-mt-4 mobile:mt-4 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] items-center justify-between'
+      )}
+    >
+      <Button
+        type="text"
+        className="text-sm text-[#ABC4FF] opacity-50 px-0"
+        prefix={<Icon heroIconName="chevron-left" size="sm" />}
+        onClick={() => {
+          if (inClient && window.history.length === 1) {
+            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
+            routeTo('/pools/concentrated')
+          } else {
+            routeBack()
+          }
+        }}
+      >
+        Back to all pools
+      </Button>
+    </Row>
   )
 }
 
@@ -179,7 +205,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
       <Row className="items-center gap-2">
         <div className="font-medium text-[#abc4ff]">Pending Yield</div>
       </Row>
-      <Row className="items-center gap-4">
+      <Row className="items-center gap-8">
         <div className="font-medium text-2xl text-white">{toUsdVolume(totalVolume)}</div>
         <Button className="frosted-glass-teal" onClick={() => txHavestConcentrated()}>
           Harvest
