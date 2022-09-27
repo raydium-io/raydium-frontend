@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useCallback, useMemo, useImperativeHandle,
 import { Fraction } from 'test-r-sdk'
 import { ChartPoint, ChartRangeInputOption } from './ConcentratedRangeInputChartBody'
 import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
+import Icon from '@/components/Icon'
 import useDevice from '@/hooks/useDevice'
 import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
 import {
@@ -9,6 +10,7 @@ import {
   Range,
   DEFAULT_X_AXIS,
   HIGHLIGHT_COLOR,
+  ZOOM_INTERVAL,
   strokeFillProp,
   toFixedNumber,
   getConfig,
@@ -36,7 +38,7 @@ interface Props {
   hideRangeLine?: boolean
   hideXAxis?: boolean
   height?: number
-  onPositionChange: (props: { min: number; max: number; side: Range; userInput?: boolean }) => PriceBoundaryReturn
+  onPositionChange: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
   onInDecrease: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
 }
 
@@ -50,6 +52,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     onInDecrease,
     showCurrentPriceOnly,
     hideRangeLine,
+    showZoom,
     hideXAxis
   } = props
   const points: HighlightPoint[] = useMemo(() => Object.assign([], chartOptions?.points || []), [chartOptions?.points])
@@ -153,26 +156,22 @@ export default forwardRef(function Chart(props: Props, ref) {
     }
   }, [defaultMin, defaultMax, updatePosition])
 
-  const lastMoveRef = useRef('')
   useEffect(() => {
     if (isMoving || !rendered) return
-    setDisplayList((list) => [
-      ...list.map((point) => ({
+    // draw hightLightPoints
+    setDisplayList((list) => {
+      const newList = list.map((point, idx) => ({
         extend: point.extend,
         x: point.x,
         y: point.y,
         z:
-          toFixedNumber(point.x) >= toFixedNumber(position[Range.Min]) &&
-          toFixedNumber(point.x) <= toFixedNumber(position[Range.Max])
+          toFixedNumber(point.x, decimals) >= toFixedNumber(position[Range.Min], decimals) &&
+          toFixedNumber(point.x, decimals) <= toFixedNumber(position[Range.Max], decimals)
             ? point.y
             : undefined
       }))
-    ])
-    // draw hightLightPoints
-
-    return () => {
-      lastMoveRef.current = moveRef.current
-    }
+      return newList
+    })
   }, [rendered, isMoving, position, decimals, onPositionChange])
 
   useEffect(() => {
@@ -350,6 +349,42 @@ export default forwardRef(function Chart(props: Props, ref) {
     [points, tickGap, decimals]
   )
 
+  const zoomCounterRef = useRef(0)
+  const zoomReset = () => {
+    setXAxisDomain(DEFAULT_X_AXIS)
+    boundaryRef.current = { min: displayList[0].x, max: displayList[displayList.length - 1].x }
+    zoomCounterRef.current = 0
+  }
+  const zoomIn = () => {
+    const newRef = zoomCounterRef.current + ZOOM_INTERVAL
+    if (newRef >= displayList.length - 1 - newRef) {
+      return
+    }
+    zoomCounterRef.current = newRef
+    const [min, max] = [displayList[newRef].x, displayList[displayList.length - 1 - newRef].x]
+    boundaryRef.current = { min, max }
+    setXAxisDomain([min, max])
+    updatePosition((pos) => {
+      return {
+        [Range.Min]: min > pos[Range.Min] ? min : pos[Range.Min],
+        [Range.Max]: max < pos[Range.Max] ? max : pos[Range.Max]
+      }
+    })
+  }
+  const zoomOut = () => {
+    zoomCounterRef.current = zoomCounterRef.current - ZOOM_INTERVAL
+    if (zoomCounterRef.current < 0) {
+      zoomCounterRef.current = 0
+      return
+    }
+    const [min, max] = [
+      displayList[zoomCounterRef.current].x,
+      displayList[displayList.length - 1 - zoomCounterRef.current].x
+    ]
+    boundaryRef.current = { min, max }
+    setXAxisDomain([min, max])
+  }
+
   useImperativeHandle(
     ref,
     () => ({
@@ -360,6 +395,27 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   return (
     <>
+      {showZoom && (
+        <div className="flex justify-end gap-2 select-none">
+          <Icon
+            onClick={zoomReset}
+            className="saturate-50 brightness-125 cursor-pointer"
+            iconSrc="/icons/chart-add-white-space.svg"
+          />
+          <Icon
+            className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
+            onClick={zoomIn}
+            heroIconName="zoom-in"
+            canLongClick
+          />
+          <Icon
+            onClick={zoomOut}
+            className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
+            heroIconName="zoom-out"
+            canLongClick
+          />
+        </div>
+      )}
       <div className="w-full select-none" style={{ height: `${height || 140}px` }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
@@ -466,7 +522,7 @@ export default forwardRef(function Chart(props: Props, ref) {
                       }
                     : undefined
                 }
-                x1={position[Range.Min]}
+                x1={Math.max(position[(Range.Min, xAxisRef.current[0])])}
                 x2={Math.min(position[Range.Max], xAxisRef.current[xAxisRef.current.length - 1])}
                 fill={HIGHLIGHT_COLOR}
                 fillOpacity="0.3"

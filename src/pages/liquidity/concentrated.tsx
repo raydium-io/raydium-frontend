@@ -155,7 +155,7 @@ function ConcentratedCard() {
   const ratio2 = priceRef.current[1] ? parseFloat((100 - Number(ratio1)).toFixed(1)) : '0'
 
   const handlePosChange = useCallback(
-    ({ side, userInput, ...pos }: { min: number; max: number; side: Range; userInput?: boolean }) => {
+    ({ side, userInput, ...pos }: { min: number; max: number; side?: Range; userInput?: boolean }) => {
       if (!currentAmmPool || !coin1 || !coin2 || !pos.min || !pos.max) return
       const res = calLowerUpper({
         ...pos,
@@ -327,7 +327,7 @@ function ConcentratedCard() {
         </div>
 
         <div className="bg-dark-blue min-h-[180px] rounded-xl flex-1 px-3 py-4">
-          <div className="text-base leading-[22px] text-secondary-title mb-5">Set Price Range</div>
+          <div className="text-base leading-[22px] text-secondary-title mb-3">Set Price Range</div>
           <Chart
             ref={chartRef}
             chartOptions={{
@@ -345,6 +345,7 @@ function ConcentratedCard() {
             decimals={decimals}
             onPositionChange={handlePosChange}
             onInDecrease={handleClickInDecrease}
+            showZoom
           />
           <div className="mt-4 border border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
             <div className="flex justify-between items-center">
