@@ -888,9 +888,6 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
 
             const myPositionPrice = coinAPrice.add(coinBPrice)
             const myPositionVolume = myPositionPrice ? toUsdVolume(myPositionPrice) : '--'
-            const poolCurrentPrice = decimalToFraction(info.state.currentPrice)
-            const inRange =
-              compare('gte', poolCurrentPrice, p.priceLower) && compare('lte', poolCurrentPrice, p.priceUpper)
 
             // TODO: remove the comment out code below, they are for testing only
             // if (idx === 0) {
@@ -934,7 +931,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 myPositionVolume={myPositionVolume}
                 coinAPrice={coinAPrice}
                 coinBPrice={coinBPrice}
-                inRange={inRange}
+                inRange={p.inRange}
               />
             )
           })}
@@ -1131,9 +1128,14 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                           customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
                           customKey="Trade Fees"
                           customValue="7.1%"
+                          className="gap-32"
                         />
-                        {info.base && <TokenPositionInfo token={info.base} customValue="5.1%" suffix="Rewards" />}
-                        {info.quote && <TokenPositionInfo token={info.quote} customValue="2%" suffix="Rewards" />}
+                        {info.base && (
+                          <TokenPositionInfo token={info.base} customValue="5.1%" suffix="Rewards" className="gap-32" />
+                        )}
+                        {info.quote && (
+                          <TokenPositionInfo token={info.quote} customValue="2%" suffix="Rewards" className="gap-32" />
+                        )}
                       </div>
                     </Tooltip.Panel>
                   </Tooltip>
@@ -1265,7 +1267,8 @@ function TokenPositionInfo({
   suffix = '',
   customIcon,
   customKey,
-  customValue
+  customValue,
+  className
 }: {
   token?: SplToken
   tokenAmount?: string
@@ -1274,12 +1277,13 @@ function TokenPositionInfo({
   customIcon?: any
   customKey?: any
   customValue?: any
+  className?: string
 }) {
   // eslint-disable-next-line no-console
   // console.log('amount: ', tokenAmount, 'price: ', toUsdVolume(tokenPrice))
 
   return (
-    <Row className="py-2 gap-8 justify-between items-center font-medium text-[12px] ">
+    <Row className={twMerge('py-2 gap-8 justify-between items-center font-medium text-[12px] ', className)}>
       <Row className="flex items-center justify-start gap-[6px]">
         {customIcon ? customIcon : <CoinAvatar token={token} size="smi" />}{' '}
         <div className=" text-[#ABC4FF]">
