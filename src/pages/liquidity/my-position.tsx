@@ -1,3 +1,4 @@
+import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import { routeTo } from '@/application/routeTools'
@@ -148,12 +149,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
           {/* Temp Dev */}
           {/* {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)} */}
         </div>
-        <Button
-          className="frosted-glass-teal"
-          onClick={() => {
-            routeTo('/liquidity/my-position') // TEMP
-          }}
-        >
+        <Button className="frosted-glass-teal" onClick={() => txHavestConcentrated()}>
           Harvest
         </Button>
       </Row>

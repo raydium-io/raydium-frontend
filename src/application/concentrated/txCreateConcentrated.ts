@@ -7,12 +7,16 @@ import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { AmmV3 } from 'test-r-sdk'
 import useAppSettings from '../appSettings/useAppSettings'
+import { HydratedConcentratedInfo } from './type'
 import useConcentrated from './useConcentrated'
 
-export default function txCreateConcentrated() {
+export default function txCreateConcentrated({
+  currentAmmPool = useConcentrated.getState().currentAmmPool
+}: {
+  currentAmmPool?: HydratedConcentratedInfo
+} = {}) {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
-    const { currentAmmPool, priceLower, priceUpper, coin1, coin2, coin1Amount, coin2Amount, liquidity } =
-      useConcentrated.getState()
+    const { priceLower, priceUpper, coin1, coin2, coin1Amount, coin2Amount, liquidity } = useConcentrated.getState()
     const { tokenAccountRawInfos } = useWallet.getState()
     const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')
