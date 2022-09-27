@@ -33,9 +33,9 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
 
     idString: toPubString(sdkConcentratedInfo.state.id),
     tvl: toUsdCurrency(sdkConcentratedInfo.state.tvl),
-    fee24h: toUsdCurrency(sdkConcentratedInfo.state.day.fee),
-    fee7d: toUsdCurrency(sdkConcentratedInfo.state.week.fee),
-    fee30d: toUsdCurrency(sdkConcentratedInfo.state.month.fee),
+    fee24h: toUsdCurrency(sdkConcentratedInfo.state.day.feeApr),
+    fee7d: toUsdCurrency(sdkConcentratedInfo.state.week.feeApr),
+    fee30d: toUsdCurrency(sdkConcentratedInfo.state.month.feeApr),
     apr24h: toPercent(sdkConcentratedInfo.state.day.apr),
     apr7d: toPercent(sdkConcentratedInfo.state.week.apr),
     apr30d: toPercent(sdkConcentratedInfo.state.month.apr),
@@ -44,7 +44,13 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     feeApr30d: toPercent(sdkConcentratedInfo.state.month.feeApr),
     volume24h: toUsdCurrency(sdkConcentratedInfo.state.day.volume),
     volume7d: toUsdCurrency(sdkConcentratedInfo.state.week.volume),
-    volume30d: toUsdCurrency(sdkConcentratedInfo.state.month.volume)
+    volume30d: toUsdCurrency(sdkConcentratedInfo.state.month.volume),
+    weeklyRewardsA24h: sdkConcentratedInfo.state.day.feeA,
+    weeklyRewardsB24h: sdkConcentratedInfo.state.day.feeB,
+    weeklyRewardsA7d: sdkConcentratedInfo.state.week.feeA,
+    weeklyRewardsB7d: sdkConcentratedInfo.state.week.feeB,
+    weeklyRewardsA30d: sdkConcentratedInfo.state.month.feeA,
+    weeklyRewardsB30d: sdkConcentratedInfo.state.month.feeB
   }
 }
 /**

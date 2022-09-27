@@ -8396,10 +8396,10 @@ temp@^0.8.4:
   dependencies:
     rimraf "~2.6.2"
 
-test-r-sdk@^1.2.55:
-  version "1.2.55"
-  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.55.tgz#51656117bb90c55cb84c28f2320b6f88f95aa76c"
-  integrity sha512-sUB4zwsuaPHo65JBRrj/shHiVwJcSlj5VZnCxhst2NKMlGIM6q4GtbnflmPrg8FxGOlT9rIYIEfaB0DVH5A7bw==
+test-r-sdk@^1.2.57:
+  version "1.2.57"
+  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.57.tgz#8d216c8ebffc12999552a6c3e02e2d8762701484"
+  integrity sha512-Vla4VbJjCPvVTN1Bm4zeDiez+xl91R59yh8SOj20Q9UBaCJ4SVRD04Si84MdVhXEPrlzOoXqzP/eqTOjyuDxvg==
   dependencies:
     "@colors/colors" "^1.5.0"
     "@solana/buffer-layout" "^4.0.0"

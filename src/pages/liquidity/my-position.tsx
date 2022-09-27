@@ -52,7 +52,7 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   return (
-    <Row className={twMerge('bg-[#141041] grid-cols-4 py-3 px-4 rounded-xl gap-8', className)}>
+    <Row className={twMerge('bg-[#141041] grid-cols-4 py-3 px-4 rounded-xl gap-12', className)}>
       <Grid className="grid-rows-[2em,1fr] items-center grow">
         <div className="font-medium text-[#abc4ff] h-8">Liquidity</div>
         <div className="font-medium text-2xl text-white">
