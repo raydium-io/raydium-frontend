@@ -403,6 +403,8 @@ function ConcentratedCard() {
         <AddLiquidityConfirmDialog
           coin1={coin1!}
           coin2={coin2!}
+          coin1Amount={coin1Amount!}
+          coin2Amount={coin2Amount!}
           decimals={decimals}
           position={chartRef.current!.getPosition()}
           totalDeposit={toUsdVolume(totalDeposit)}

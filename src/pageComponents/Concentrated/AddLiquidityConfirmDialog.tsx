@@ -1,5 +1,7 @@
 import React, * as react from 'react'
 import { SplToken } from '@/application/token/type'
+import { toString } from '@/functions/numberish/toString'
+import { Numberish } from '@/types/constants'
 import { twMerge } from 'tailwind-merge'
 import CoinAvatar from '@/components/CoinAvatar'
 import Button from '@/components/Button'
@@ -13,6 +15,8 @@ import Decimal from 'decimal.js'
 interface Props {
   coin1: SplToken
   coin2: SplToken
+  coin1Amount: Numberish
+  coin2Amount: Numberish
   decimals: number
   currentPrice: Decimal
   position: { min: number; max: number }
@@ -24,6 +28,8 @@ interface Props {
 export default function AddLiquidityConfirmDialog({
   coin1,
   coin2,
+  coin1Amount,
+  coin2Amount,
   decimals,
   currentPrice,
   position,
@@ -65,14 +71,18 @@ export default function AddLiquidityConfirmDialog({
                 <CoinAvatar className="inline-block mr-1" noCoinIconBorder size="sm" token={coin1} />
                 {coin1.symbol}
               </span>
-              <span>456 {coin1.symbol}</span>
+              <span>
+                {toString(coin1Amount)} {coin1.symbol}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="flex items-center text-sm text-light-blue opacity-50">
                 <CoinAvatar className="inline-block mr-1" noCoinIconBorder size="sm" token={coin2} />
                 {coin2.symbol}
               </span>
-              <span>123 {coin2.symbol}</span>
+              <span>
+                {toString(coin2Amount)} {coin2.symbol}
+              </span>
             </div>
           </div>
         </div>
