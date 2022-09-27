@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { stringify } from 'querystring'
 import { twMerge } from 'tailwind-merge'
 import { CurrencyAmount } from 'test-r-sdk'
 
@@ -48,7 +47,7 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import compare, { lt } from '@/functions/numberish/compare'
+import { lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useOnceEffect from '@/hooks/useOnceEffect'
@@ -710,10 +709,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
         value={
           isHydratedConcentratedItemInfo(info)
             ? timeBasis === TimeBasis.DAY
-              ? toUsdVolume(info.fee24h, { autoSuffix: isTablet, decimalPlace: 0 })
+              ? toUsdVolume(info.feeApr24h, { autoSuffix: isTablet, decimalPlace: 0 })
               : timeBasis === TimeBasis.WEEK
-              ? toUsdVolume(info.fee7d, { autoSuffix: isTablet, decimalPlace: 0 })
-              : toUsdVolume(info.fee30d, { autoSuffix: isTablet, decimalPlace: 0 })
+              ? toUsdVolume(info.feeApr7d, { autoSuffix: isTablet, decimalPlace: 0 })
+              : toUsdVolume(info.feeApr30d, { autoSuffix: isTablet, decimalPlace: 0 })
             : undefined
         }
       />
@@ -823,7 +822,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             name="Fees(7d)"
             value={
               isHydratedConcentratedItemInfo(info)
-                ? toUsdVolume(info.fee7d, { autoSuffix: true, decimalPlace: 0 })
+                ? toUsdVolume(info.feeApr7d, { autoSuffix: true, decimalPlace: 0 })
                 : undefined
             }
           />
@@ -1057,27 +1056,27 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   useEffect(() => {
     if (timeBasis === TimeBasis.DAY) {
       setYieldInfo({
-        apr: toPercentString(info.apr24h),
+        apr: toPercentString(info.totalApr24h),
         tradeFeesApr: toPercentString(info.feeApr24h),
-        rewardsAprA: toPercentString(info.rewardApr24hA),
-        rewardsAprB: toPercentString(info.rewardApr24hB),
-        rewardsAprC: toPercentString(info.rewardApr24hC)
+        rewardsAprA: toPercentString(info.rewardApr24h[0]),
+        rewardsAprB: toPercentString(info.rewardApr24h[1]),
+        rewardsAprC: toPercentString(info.rewardApr24h[2])
       })
     } else if (timeBasis === TimeBasis.WEEK) {
       setYieldInfo({
-        apr: toPercentString(info.apr7d),
+        apr: toPercentString(info.totalApr7d),
         tradeFeesApr: toPercentString(info.feeApr7d),
-        rewardsAprA: toPercentString(info.rewardApr7dA),
-        rewardsAprB: toPercentString(info.rewardApr7dB),
-        rewardsAprC: toPercentString(info.rewardApr7dC)
+        rewardsAprA: toPercentString(info.rewardApr7d[0]),
+        rewardsAprB: toPercentString(info.rewardApr7d[1]),
+        rewardsAprC: toPercentString(info.rewardApr7d[2])
       })
     } else if (timeBasis === TimeBasis.MONTH) {
       setYieldInfo({
-        apr: toPercentString(info.apr30d),
+        apr: toPercentString(info.totalApr30d),
         tradeFeesApr: toPercentString(info.feeApr30d),
-        rewardsAprA: toPercentString(info.rewardApr30dA),
-        rewardsAprB: toPercentString(info.rewardApr30dB),
-        rewardsAprC: toPercentString(info.rewardApr30dC)
+        rewardsAprA: toPercentString(info.rewardApr30d[0]),
+        rewardsAprB: toPercentString(info.rewardApr30d[1]),
+        rewardsAprC: toPercentString(info.rewardApr30d[2])
       })
     } else {
       setYieldInfo({

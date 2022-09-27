@@ -4,7 +4,6 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
-import txIncreaseConcentrated from '@/application/concentrated/txIncreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
@@ -96,10 +95,11 @@ export function RemoveConcentratedPoolDialog({
               haveCoinIcon
               topLeftLabel={'Base'}
               topRightLabel={`Deposited: ${toString(targetUserPositionAccount?.amountA)}`}
-              maxValue={mode === 'remove' ? targetUserPositionAccount?.amountA : undefined}
+              maxValue={targetUserPositionAccount?.amountA}
               token={coinBase}
               value={toString(coinBaseAmount)}
               onUserInput={(value) => {
+                useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
                   useConcentrated.setState({ coin1Amount: value, userCursorSide: 'coin1' })
                 } else {
@@ -122,10 +122,11 @@ export function RemoveConcentratedPoolDialog({
               haveCoinIcon
               topLeftLabel={'Quote'}
               topRightLabel={`Deposited: ${toString(targetUserPositionAccount?.amountB)}`}
-              maxValue={mode === 'remove' ? targetUserPositionAccount?.amountB : undefined}
+              maxValue={targetUserPositionAccount?.amountB}
               token={coinQuote}
               value={toString(coinQuoteAmount)}
               onUserInput={(value) => {
+                useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
                   useConcentrated.setState({ coin2Amount: value, userCursorSide: 'coin2' })
                 } else {

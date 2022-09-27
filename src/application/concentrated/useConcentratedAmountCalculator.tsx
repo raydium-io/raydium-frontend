@@ -1,3 +1,7 @@
+import { useEffect } from 'react'
+
+import { AmmV3 } from 'test-r-sdk'
+
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -6,8 +10,7 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
-import { useEffect } from 'react'
-import { AmmV3 } from 'test-r-sdk'
+
 import useConcentrated from './useConcentrated'
 
 /**
@@ -60,13 +63,16 @@ function calcConcentratedPairsAmount(): void {
     priceLowerTick,
     userCursorSide,
     currentAmmPool,
-    isRemoveDialogOpen
+    isRemoveDialogOpen,
+    isInput
   } = useConcentrated.getState()
   assert(currentAmmPool, 'not pool info')
   assert(coin1, 'not set coin1')
   assert(priceUpperTick, 'not set priceUpperTick')
   assert(coin2, 'not set coin2')
   assert(priceLowerTick, 'not set priceLowerTick')
+
+  if (isRemoveDialogOpen && isInput === false) return // while removing liquidity, need to know the source is from input or from slider
   const { liquidity, amountA, amountB } = AmmV3.getLiquidityAmountOutFromAmountIn({
     poolInfo: currentAmmPool.state,
     slippage: Number(toString(slippageTolerance)),
@@ -87,5 +93,6 @@ function calcConcentratedPairsAmount(): void {
   } else {
     useConcentrated.setState({ coin1Amount: toTokenAmount(coin1, amountA) })
   }
+
   useConcentrated.setState({ liquidity })
 }
