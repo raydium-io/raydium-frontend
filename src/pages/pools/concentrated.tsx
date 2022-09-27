@@ -1209,25 +1209,32 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 </div>
                 <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPositionVolume ?? '--'}</div>
                 <Row className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2">
-                  {shrinkAccount(p?.nftMint, 6)}{' '}
-                  <Icon
-                    size="sm"
-                    className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
-                    heroIconName="clipboard-copy"
-                    onClick={({ ev }) => {
-                      ev.stopPropagation()
-                      copyToClipboard(toPubString(p?.nftMint))
-                      logInfo('Account has been copied!')
-                    }}
-                  />
-                  <LinkExplorer className="flex items-center" hrefDetail={`${p?.nftMint}`} type="account">
-                    <Icon
-                      size="sm"
-                      className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
-                      inline
-                      heroIconName="external-link"
-                    />
-                  </LinkExplorer>
+                  {p ? (
+                    <>
+                      {' '}
+                      {shrinkAccount(p?.nftMint, 6)}{' '}
+                      <Icon
+                        size="sm"
+                        className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
+                        heroIconName="clipboard-copy"
+                        onClick={({ ev }) => {
+                          ev.stopPropagation()
+                          copyToClipboard(toPubString(p?.nftMint))
+                          logInfo('Account has been copied!')
+                        }}
+                      />
+                      <LinkExplorer className="flex items-center" hrefDetail={`${p?.nftMint}`} type="account">
+                        <Icon
+                          size="sm"
+                          className={'clickable text-[rgba(171,196,255,1)] font-semibold'}
+                          inline
+                          heroIconName="external-link"
+                        />
+                      </LinkExplorer>
+                    </>
+                  ) : (
+                    <>&nbsp;</>
+                  )}
                 </Row>
               </Col>
               <Button
@@ -1240,6 +1247,19 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     fallbackProps: {
                       onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
                       children: 'Connect Wallet'
+                    }
+                  },
+                  {
+                    should: p,
+                    forceActive: true,
+                    fallbackProps: {
+                      onClick: () => {
+                        useConcentrated.setState({ coin1: info.base, coin2: info.quote })
+                        routeTo('/liquidity/concentrated', {
+                          queryProps: {}
+                        })
+                      },
+                      children: 'Create Position'
                     }
                   }
                 ]}
@@ -1287,36 +1307,42 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2"
                 >
                   <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
-                  <Col className="text-white">{yieldInfo.apr}</Col>
-                  <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
-                    <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
-                    <Tooltip.Panel>
-                      <div className="max-w-[300px] py-3 px-5">
-                        <TokenPositionInfo
-                          customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
-                          customKey="Trade Fees"
-                          customValue={yieldInfo.tradeFeesApr}
-                          className="gap-32"
-                        />
-                        {info.base && (
-                          <TokenPositionInfo
-                            token={info.base}
-                            customValue={yieldInfo.rewardsAprA}
-                            suffix="Rewards"
-                            className="gap-32"
-                          />
-                        )}
-                        {info.quote && (
-                          <TokenPositionInfo
-                            token={info.quote}
-                            customValue={yieldInfo.rewardsAprB}
-                            suffix="Rewards"
-                            className="gap-32"
-                          />
-                        )}
-                      </div>
-                    </Tooltip.Panel>
-                  </Tooltip>
+                  {p ? (
+                    <>
+                      <Col className="text-white">{yieldInfo.apr}</Col>
+                      <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
+                        <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
+                        <Tooltip.Panel>
+                          <div className="max-w-[300px] py-3 px-5">
+                            <TokenPositionInfo
+                              customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
+                              customKey="Trade Fees"
+                              customValue={yieldInfo.tradeFeesApr}
+                              className="gap-32"
+                            />
+                            {info.base && (
+                              <TokenPositionInfo
+                                token={info.base}
+                                customValue={yieldInfo.rewardsAprA}
+                                suffix="Rewards"
+                                className="gap-32"
+                              />
+                            )}
+                            {info.quote && (
+                              <TokenPositionInfo
+                                token={info.quote}
+                                customValue={yieldInfo.rewardsAprB}
+                                suffix="Rewards"
+                                className="gap-32"
+                              />
+                            )}
+                          </div>
+                        </Tooltip.Panel>
+                      </Tooltip>
+                    </>
+                  ) : (
+                    <div className="text-sm font-medium text-white">--</div>
+                  )}
                 </AutoBox>
               </Col>
               <Col>
