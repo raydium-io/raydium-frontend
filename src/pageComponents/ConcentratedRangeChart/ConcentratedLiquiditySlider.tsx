@@ -2,7 +2,6 @@ import { useCallback, useMemo } from 'react'
 
 import BN from 'bn.js'
 import { AmmV3 } from 'test-r-sdk'
-import { p } from 'test-r-sdk/lib/farm-99c9c4db'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConcentrated from '@/application/concentrated/useConcentrated'
