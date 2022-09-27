@@ -46,6 +46,7 @@ export function ConcentratedRangeInputChart({
       baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
       price: fractionToDecimal(toFraction(trimedX))
     })
+
     useConcentrated.setState(
       boundaryType === 'min'
         ? focusSide === 'coin1'
@@ -100,7 +101,13 @@ export function ConcentratedRangeInputChart({
   }
 
   const revertedPoints = useMemo(
-    () => chartOptions?.points?.map((p, idx, ps) => ({ x: 1 / p.x, y: ps[(idx - 1 + ps.length) % ps.length].y })), // UI NOTE: need to decrease y to handle idle position
+    () =>
+      chartOptions?.points?.map((p, idx, ps) => {
+        return {
+          x: 1 / p.x,
+          y: ps[(idx - 1 + ps.length) % ps.length].y
+        }
+      }), // UI NOTE: need to decrease y to handle idle position
     [chartOptions?.points]
   )
 
@@ -173,10 +180,10 @@ export function ConcentratedRangeInputChart({
       />
       <Row className="gap-4">
         <InputBox
-          className="grow"
+          className="grow border border-light-blue-opacity"
           label="Min Price"
           decimalMode
-          showArrowControls
+          showPlusMinusControls
           decimalCount={careDecimalLength}
           value={focusSide === 'coin1' ? priceLower : div(1, priceUpper)}
           increaseFn={() => getNextPrevPrice('min', 'increase')}

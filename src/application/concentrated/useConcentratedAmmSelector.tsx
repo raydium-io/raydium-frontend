@@ -11,6 +11,9 @@ export default function useConcentratedAmmSelector() {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
 
   useEffect(() => {
+    useConcentrated.setState({
+      currentAmmPool: undefined
+    })
     if (!hydratedAmmPools.length || !coin1 || !coin2) return
     const allSelectablePools = hydratedAmmPools.filter(
       (p) =>
