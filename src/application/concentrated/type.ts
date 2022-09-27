@@ -1,14 +1,15 @@
-import { CurrencyAmount, Fraction, Percent, Price } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import { AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, TokenAmount } from 'test-r-sdk'
+import BN from 'bn.js'
+import Decimal from 'decimal.js'
+import {
+  AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, CurrencyAmount, Fraction, Percent, Price, TokenAmount
+} from 'test-r-sdk'
 
 import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
 import { ReplaceType } from '../txTools/decimal2Fraction'
-import BN from 'bn.js'
-import Decimal from 'decimal.js'
 
 export type APIConcentratedInfo = ApiAmmV3PoolInfo
 
@@ -49,6 +50,15 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   weeklyRewardsB7d: number
   weeklyRewardsA30d: number
   weeklyRewardsB30d: number
+  rewardApr24hA: Percent
+  rewardApr24hB: Percent
+  rewardApr24hC: Percent
+  rewardApr7dA: Percent
+  rewardApr7dB: Percent
+  rewardApr7dC: Percent
+  rewardApr30dA: Percent
+  rewardApr30dB: Percent
+  rewardApr30dC: Percent
 }
 
 export interface UserPositionAccount {

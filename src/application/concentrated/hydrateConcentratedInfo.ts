@@ -1,3 +1,5 @@
+import { AmmV3PoolPersonalPosition, Price } from 'test-r-sdk'
+
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -5,7 +7,6 @@ import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import { mergeObject } from '@/functions/merge'
 import { gt, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
-import { AmmV3PoolPersonalPosition, Price } from 'test-r-sdk'
 
 import useToken from '../token/useToken'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
@@ -50,7 +51,16 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     weeklyRewardsA7d: sdkConcentratedInfo.state.week.feeA,
     weeklyRewardsB7d: sdkConcentratedInfo.state.week.feeB,
     weeklyRewardsA30d: sdkConcentratedInfo.state.month.feeA,
-    weeklyRewardsB30d: sdkConcentratedInfo.state.month.feeB
+    weeklyRewardsB30d: sdkConcentratedInfo.state.month.feeB,
+    rewardApr24hA: toPercent(sdkConcentratedInfo.state.day.rewardApr.A),
+    rewardApr24hB: toPercent(sdkConcentratedInfo.state.day.rewardApr.B),
+    rewardApr24hC: toPercent(sdkConcentratedInfo.state.day.rewardApr.C),
+    rewardApr7dA: toPercent(sdkConcentratedInfo.state.day.rewardApr.A),
+    rewardApr7dB: toPercent(sdkConcentratedInfo.state.day.rewardApr.B),
+    rewardApr7dC: toPercent(sdkConcentratedInfo.state.day.rewardApr.C),
+    rewardApr30dA: toPercent(sdkConcentratedInfo.state.day.rewardApr.A),
+    rewardApr30dB: toPercent(sdkConcentratedInfo.state.day.rewardApr.B),
+    rewardApr30dC: toPercent(sdkConcentratedInfo.state.day.rewardApr.C)
   }
 }
 /**
