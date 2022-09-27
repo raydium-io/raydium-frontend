@@ -5,7 +5,7 @@ import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import { mergeObject } from '@/functions/merge'
 import { gt, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
-import { AmmV3PoolPersonalPosition } from 'test-r-sdk'
+import { AmmV3PoolPersonalPosition, Price } from 'test-r-sdk'
 
 import useToken from '../token/useToken'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
@@ -98,6 +98,8 @@ function hydrateUserPositionAccounnt(
       const tokenFeeAmountB = tokenB ? toTokenAmount(tokenB, a.tokenFeeAmountB) : undefined
       const innerVolumeA = mul(currentPrice, amountA) ?? 0
       const innerVolumeB = mul(currentPrice, amountB) ?? 0
+      const positionPercentA = toPercent(div(innerVolumeA, add(innerVolumeA, innerVolumeB)))
+      const positionPercentB = toPercent(div(innerVolumeB, add(innerVolumeA, innerVolumeB)))
       const inRange = checkIsInRange(sdkConcentratedInfo, a)
       return {
         sdkParsed: a,
@@ -108,12 +110,21 @@ function hydrateUserPositionAccounnt(
         liquidity: a.liquidity,
         tokenA,
         tokenB,
-        amountLiquidityValue: toUsdCurrency(1000), // TEMP DATA
-        positionPercentA: toPercent(div(innerVolumeA, add(innerVolumeA, innerVolumeB))),
-        positionPercentB: toPercent(div(innerVolumeB, add(innerVolumeA, innerVolumeB))),
+        positionPercentA,
+        positionPercentB,
         tokenFeeAmountA,
         tokenFeeAmountB,
-        inRange
+        inRange,
+        getLiquidityVolume: (tokenPrices: Record<string, Price>) => {
+          const aPrice = tokenPrices[toPubString(tokenA?.mint)]
+          const bPrice = tokenPrices[toPubString(tokenB?.mint)]
+          const wholeLiquidity = add(mul(amountA, aPrice), mul(amountB, bPrice))
+          return {
+            wholeLiquidity,
+            baseLiquidity: mul(wholeLiquidity, positionPercentA),
+            quoteLiquidity: mul(wholeLiquidity, positionPercentB)
+          }
+        }
       }
     })
   }

@@ -1,11 +1,8 @@
 import { UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
-import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import { AddressItem } from '@/components/AddressItem'
-import { Badge } from '@/components/Badge'
 import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
@@ -22,25 +19,17 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { mul } from '@/functions/numberish/operations'
-import { toString } from '@/functions/numberish/toString'
 import { twMerge } from 'tailwind-merge'
 
 export default function MyPosition() {
   return (
     <>
-      <MyPositionEffect />
       <PageLayout mobileBarTitle="Concentrated" metaTitle="Concentrated - Raydium">
         <MyPositionPageHead />
         <MyPositionCard />
       </PageLayout>
     </>
   )
-}
-
-function MyPositionEffect() {
-  useConcentratedAmmSelector()
-  useConcentratedAmountCalculator()
-  return null
 }
 
 // const availableTabValues = ['Swap', 'Liquidity'] as const
@@ -51,13 +40,14 @@ function MyPositionPageHead() {
 function MyPositionCardTopInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const tokenPrices = useToken((s) => s.tokenPrices)
+  const { wholeLiquidity, baseLiquidity, quoteLiquidity } =
+    targetUserPositionAccount?.getLiquidityVolume?.(tokenPrices) ?? {}
   return (
     <Row className={twMerge('bg-[#141041] grid-cols-4 py-3 px-4 rounded-xl gap-12', className)}>
       <Grid className="grid-rows-[2em,1fr] items-center grow">
         <div className="font-medium text-[#abc4ff] h-8">Liquidity</div>
-        <div className="font-medium text-2xl text-white">
-          {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)}
-        </div>
+        <div className="font-medium text-2xl text-white">{toUsdVolume(wholeLiquidity)}</div>
       </Grid>
       <Grid className="grid-rows-[2em,1fr] items-center grow">
         <div className="font-medium text-[#abc4ff] h-8">Leverage</div>
@@ -76,13 +66,7 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
             suffix={
               <div className="text-[#abc4ff80]">{toPercentString(targetUserPositionAccount?.positionPercentA)}</div>
             }
-            text={
-              <div className="text-white justify-end">
-                {toUsdVolume(
-                  mul(targetUserPositionAccount?.amountLiquidityValue, targetUserPositionAccount?.positionPercentA)
-                )}
-              </div>
-            }
+            text={<div className="text-white justify-end">{toUsdVolume(baseLiquidity)}</div>}
           />
           <RowItem
             prefix={
@@ -94,13 +78,7 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
             suffix={
               <div className="text-[#abc4ff80]">{toPercentString(targetUserPositionAccount?.positionPercentB)}</div>
             }
-            text={
-              <div className="text-white">
-                {toUsdVolume(
-                  mul(targetUserPositionAccount?.amountLiquidityValue, targetUserPositionAccount?.positionPercentB)
-                )}
-              </div>
-            }
+            text={<div className="text-white">{toUsdVolume(quoteLiquidity)}</div>}
           />
         </Col>
       </Grid>
@@ -168,7 +146,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
       <Row className="items-center gap-4">
         <div className="font-medium text-2xl text-white">
           {/* Temp Dev */}
-          {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)}
+          {/* {toUsdVolume(targetUserPositionAccount?.amountLiquidityValue)} */}
         </div>
         <Button
           className="frosted-glass-teal"
