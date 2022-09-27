@@ -82,10 +82,12 @@ const parsedAmmV3PoolInfoCache = new Map<
 
 async function getParsedAmmV3PoolInfo({
   connection,
-  apiAmmPools
+  apiAmmPools,
+  chainTimeOffset = useConnection.getState().chainTimeOffset ?? 0
 }: {
   connection: Connection
   apiAmmPools: ApiAmmV3PoolInfo[]
+  chainTimeOffset?: number
 }) {
   const needRefetchApiAmmPools = apiAmmPools.filter(({ id }) => !parsedAmmV3PoolInfoCache.has(toPubString(id)))
 
@@ -93,7 +95,8 @@ async function getParsedAmmV3PoolInfo({
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: needRefetchApiAmmPools,
       connection,
-      batchRequest: true
+      batchRequest: true,
+      chainTime: (Date.now() + chainTimeOffset) / 1000
     })
     Object.values(sdkParsed).forEach((sdk) => {
       parsedAmmV3PoolInfoCache.set(toPubString(sdk.state.id), sdk)

@@ -21,6 +21,7 @@ export default function useConcentratedInfoLoader() {
   const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const connection = useConnection((s) => s.connection)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
   const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
   const owner = useWallet((s) => s.owner)
   const tokens = useToken((s) => s.tokens)
@@ -45,10 +46,11 @@ export default function useConcentratedInfoLoader() {
             tokenAccounts: tokenAccounts,
             wallet: owner
           }
-        : undefined
+        : undefined,
+      chainTime: (Date.now() + chainTimeOffset) / 1000
     })
     if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
-  }, [apiAmmPools, connection, tokenAccounts, owner, pathname])
+  }, [apiAmmPools, connection, tokenAccounts, owner, pathname, chainTimeOffset])
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {
