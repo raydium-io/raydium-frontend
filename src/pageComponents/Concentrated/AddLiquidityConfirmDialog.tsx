@@ -92,21 +92,21 @@ export default function AddLiquidityConfirmDialog({
             <span className="text-sm leading-[18px] text-secondary-title">Selected Range</span>
             <div className="text-sm flex items-center leading-[18px]">
               <span className="flex items-center text-sm text-light-blue opacity-50 mr-2">Current Price</span>
-              {currentPrice.toDecimalPlaces(decimalPlace).toString()} {coin2.symbol} per {coin1.symbol}
+              {toString(currentPrice.toString(), { decimalLength: decimalPlace })} {coin2.symbol} per {coin1.symbol}
             </div>
           </div>
 
           <div className="flex gap-2">
             <div className="border justify-center text-center flex-1 border-light-blue-opacity rounded-xl p-3">
               <span className="text-sm leading-[18px] text-secondary-title">Min Price</span>
-              <div className="text-xl my-3">{position.min.toPrecision(decimalPlace).toString()}</div>
+              <div className="text-xl my-3">{toString(position.min, { decimalLength: decimalPlace })}</div>
               <div className="text-sm text-light-blue opacity-50">
                 {coin2.symbol} per {coin1.symbol}
               </div>
             </div>
             <div className="border justify-center text-center flex-1 border-light-blue-opacity rounded-xl p-3">
               <span className="text-sm leading-[18px] text-secondary-title">Max Price</span>
-              <div className="text-xl my-3">{position.max.toPrecision(decimalPlace).toString()}</div>
+              <div className="text-xl my-3">{toString(position.max, { decimalLength: decimalPlace })}</div>
               <div className="text-sm text-light-blue opacity-50">
                 {coin2.symbol} per {coin1.symbol}
               </div>
@@ -115,9 +115,9 @@ export default function AddLiquidityConfirmDialog({
         </div>
 
         <div className="mt-4 border border-secondary-title border-opacity-50  rounded-xl p-3">
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
-            <span>{totalDeposit}</span>
+            <span className="text-lg">{totalDeposit}</span>
           </div>
         </div>
         <Col className="items-center mt-5">
