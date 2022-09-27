@@ -8,9 +8,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useNotification from '@/application/notification/useNotification'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
@@ -54,6 +52,7 @@ import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 
 export default function PoolsConcentratedPage() {
   // usePoolSummeryInfoLoader()
@@ -76,6 +75,7 @@ export default function PoolsConcentratedPage() {
     >
       <PoolHeader />
       <PoolCard />
+      <AddConcentratedLiquidityDialog />
     </PageLayout>
   )
 }
@@ -1387,9 +1387,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         currentAmmPool: info,
                         targetUserPositionAccount: p
                       })
-                      routeTo('/liquidity/concentrated', {
-                        queryProps: {}
-                      })
+                      // routeTo('/liquidity/concentrated', {
+                      //   queryProps: {}
+                      // })
                     }}
                   />
                   <Tooltip.Panel>Add Liquidity</Tooltip.Panel>
