@@ -9,7 +9,6 @@ import {
 import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
-import { ReplaceType } from '../txTools/decimal2Fraction'
 
 export type APIConcentratedInfo = ApiAmmV3PoolInfo
 
@@ -44,12 +43,12 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   volume24h: CurrencyAmount
   volume7d: CurrencyAmount
   volume30d: CurrencyAmount
-  weeklyRewardsA24h: number
-  weeklyRewardsB24h: number
-  weeklyRewardsA7d: number
-  weeklyRewardsB7d: number
-  weeklyRewardsA30d: number
-  weeklyRewardsB30d: number
+  rewardsA24h: number
+  rewardsB24h: number
+  rewardsA7d: number
+  rewardsB7d: number
+  rewardsA30d: number
+  rewardsB30d: number
   rewardApr24hA: Percent
   rewardApr24hB: Percent
   rewardApr24hC: Percent

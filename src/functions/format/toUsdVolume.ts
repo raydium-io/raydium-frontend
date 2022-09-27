@@ -1,12 +1,13 @@
 import { FormatOptions } from '@/functions/format/formatNumber'
-import { Fraction, Rounding } from 'test-r-sdk'
+import { Numberish } from '@/types/constants'
+import { Rounding } from 'test-r-sdk'
 import { autoSuffixNumberish } from './autoSuffixNumberish'
 
 /**
  * it depends on 'toFixed'
  */
 export default function toUsdVolume(
-  amount: Fraction | undefined,
+  amount: Numberish | undefined,
   options?: {
     autoSuffix?: boolean
 
