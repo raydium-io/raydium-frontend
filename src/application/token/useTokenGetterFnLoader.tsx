@@ -22,7 +22,7 @@ export function useTokenGetterFnLoader() {
       if (options?.exact && isMintEqual(mint, WSOLMint)) {
         return QuantumSOLVersionWSOL
       }
-      return tokens[String(mint)] ?? userAddedTokens[toPubString(mint)]
+      return tokens[toPubString(mint)] ?? userAddedTokens[toPubString(mint)]
     }
 
     useToken.setState({

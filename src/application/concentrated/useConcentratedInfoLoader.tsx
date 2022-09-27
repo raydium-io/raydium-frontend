@@ -79,5 +79,5 @@ export default function useConcentratedInfoLoader() {
     )
     if (!chartResponse) return
     useConcentrated.setState({ chartPoints: chartResponse.data })
-  }, [currentAmmPool, pathname])
+  }, [currentAmmPool, pathname, tokens])
 }
