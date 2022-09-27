@@ -5,7 +5,7 @@ export enum Range {
 export const smoothCount = 20
 export const ZOOM_INTERVAL = 4
 export const REFERENCE_LINE_COLOR = '#abc4ff'
-export const HIGHLIGHT_COLOR = '#256491'
+export const HIGHLIGHT_COLOR = '#1B365F'
 export const strokeFillProp = {
   stroke: '#256491',
   fill: '#256491'
@@ -32,7 +32,7 @@ export const getLabel =
         <rect
           x={props.viewBox.x - (side === Range.Min ? 12 : 0)}
           y={props.viewBox.y}
-          fill={HIGHLIGHT_COLOR}
+          fill={strokeFillProp.fill}
           width={12}
           height={28}
           rx="2"
@@ -60,17 +60,17 @@ export const getPriceLabel = (price?: number | string) => (props) => {
     <g>
       <text
         className="break-words"
-        fill="#FFF"
+        fill="#ABC4FF"
         y={props.viewBox.y - 10}
         x={props.viewBox.x - 2}
         style={{
-          fontWeight: 'bold',
-          fontSize: 12
+          fontWeight: '500',
+          fontSize: 10
         }}
         textAnchor="middle"
         dominantBaseline="middle"
       >
-        {price}
+        Current Price {price}
       </text>
     </g>
   ) : (

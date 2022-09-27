@@ -289,7 +289,7 @@ function ConcentratedCard() {
           <div className="mt-4 border border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
             <div className="flex justify-between items-center">
               <span className="text-sm leading-[18px] text-secondary-title">Estimated APR</span>
-              <span className="text-2xl leading-[30px]">≈0%</span>
+              <span className="text-2xl leading-[30px]">≈${currentAmmPool?.apr24h.toFixed(1) || '-'}%</span>
             </div>
             <div className="flex mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
               <div className="mr-[22px]">
@@ -310,7 +310,7 @@ function ConcentratedCard() {
                 <div className="flex items-center mb-2">
                   <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
                   <span className="text-xs text-active-cyan opacity-50 mx-1">Trading Fees</span>
-                  <span className="text-sm">0%</span>
+                  <span className="text-sm">{currentAmmPool?.fee24h.toFixed(1) || '-'}%</span>
                 </div>
               </div>
             </div>
