@@ -869,7 +869,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     >
       {info.userPositionAccount ? (
         <>
-          {info.userPositionAccount.map((p, idx) => {
+          {info.userPositionAccount.map((p, idx, originArray) => {
             let myPosition = '--'
             const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
             const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
@@ -932,6 +932,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 coinAPrice={coinAPrice}
                 coinBPrice={coinBPrice}
                 inRange={p.inRange}
+                noBorderBottom={idx === originArray.length - 1 ? true : false}
               />
             )
           })}
@@ -940,8 +941,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         </>
       ) : (
         <>
-          <PoolCardDatabaseBodyCollapsePositionContent poolInfo={info} />
-          <AutoBox>{openNewPosition}</AutoBox>
+          <PoolCardDatabaseBodyCollapsePositionContent poolInfo={info} noBorderBottom={true} noAsset={true} />
+          {/* <AutoBox>{openNewPosition}</AutoBox> */}
         </>
       )}
     </AutoBox>
@@ -957,7 +958,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   myPositionVolume,
   coinAPrice,
   coinBPrice,
-  inRange
+  inRange,
+  noBorderBottom = false,
+  noAsset = false
 }: {
   poolInfo: HydratedConcentratedInfo
   userPositionAccount?: UserPositionAccount
@@ -968,6 +971,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   coinAPrice?: CurrencyAmount
   coinBPrice?: CurrencyAmount
   inRange?: boolean
+  noBorderBottom?: boolean
+  noAsset?: boolean
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
 
@@ -1010,12 +1015,90 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   const { logInfo } = useNotification.getState()
   const walletConnected = useWallet((s) => s.connected)
 
+  if (noAsset) {
+    return (
+      <AutoBox is={isMobile ? 'Col' : 'Row'}>
+        <Row className={`w-full py-5 px-8 mobile:py-3 mobile:px-4 mobile:m-0`}>
+          <div
+            className={`flex w-full ${isMobile ? 'flex-col' : 'flex-row'}`}
+            style={{ borderBottom: !noBorderBottom ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
+          >
+            <AutoBox
+              is={isMobile ? 'Grid' : 'Row'}
+              className={`gap-[8px] mobile:gap-3 mobile:grid-cols-2-auto flex-grow justify-between`}
+            >
+              <Row className="flex-1 justify-between items-center">
+                <Col>
+                  <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                    Estinated APR
+                  </div>
+                  <Row className="gap-10 mt-[12px]">
+                    <Col>
+                      <div className="font-medium text-sm mobile:text-2xs text-white">Trade Fees</div>
+                      <Row className="flex items-center gap-1 mt-1">
+                        <CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />
+                        <div className="text-white font-medium text-sm">9.4%</div>
+                      </Row>
+                    </Col>
+                    <Col>
+                      <div className="font-medium text-sm mobile:text-2xs text-white">Rewards</div>
+                      <Row className="flex items-center gap-6 mt-1">
+                        {info.base && (
+                          <Row className="gap-1">
+                            <CoinAvatar token={info.base} size="smi" />{' '}
+                            <div className="text-[#ABC4FF]/50">{info.base.symbol}</div>
+                            <div className="text-white">2.7%</div>
+                          </Row>
+                        )}
+                        {info.quote && (
+                          <Row className="gap-1">
+                            <CoinAvatar token={info.quote} size="smi" />{' '}
+                            <div className="text-[#ABC4FF]/50">{info.quote.symbol}</div>
+                            <div className="text-white">2.7%</div>
+                          </Row>
+                        )}
+                      </Row>
+                    </Col>
+                  </Row>
+                </Col>
+                <Row className="gap-5">
+                  <Button
+                    className="frosted-glass-teal"
+                    onClick={() => {
+                      useConcentrated.setState({ currentAmmPool: info, targetUserPositionAccount: p })
+                      routeTo('/liquidity/my-position')
+                    }}
+                  >
+                    Create Position
+                  </Button>
+                  <Icon
+                    size="sm"
+                    iconSrc="/icons/msic-swap-h.svg"
+                    className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                    onClick={() => {
+                      routeTo('/swap', {
+                        queryProps: {
+                          coin1: info.base,
+                          coin2: info.quote
+                        }
+                      })
+                    }}
+                  />
+                </Row>
+              </Row>
+            </AutoBox>
+          </div>
+        </Row>
+      </AutoBox>
+    )
+  }
+
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
       <Row className={`w-full pt-5 px-8 mobile:py-3 mobile:px-4 mobile:m-0`}>
         <div
           className={`flex w-full pb-5 ${isMobile ? 'flex-col' : 'flex-row'}`}
-          style={{ borderBottom: '1px solid rgba(171, 196, 255, .1)' }}
+          style={{ borderBottom: !noBorderBottom ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
         >
           <AutoBox
             is={isMobile ? 'Grid' : 'Row'}
