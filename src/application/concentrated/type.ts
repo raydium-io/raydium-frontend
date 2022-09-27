@@ -43,6 +43,12 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   volume24h: CurrencyAmount
   volume7d: CurrencyAmount
   volume30d: CurrencyAmount
+  weeklyRewardsA24h: number
+  weeklyRewardsB24h: number
+  weeklyRewardsA7d: number
+  weeklyRewardsB7d: number
+  weeklyRewardsA30d: number
+  weeklyRewardsB30d: number
 }
 
 export interface UserPositionAccount {
