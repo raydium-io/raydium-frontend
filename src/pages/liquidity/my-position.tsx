@@ -21,6 +21,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { twMerge } from 'tailwind-merge'
 import { Price } from 'test-r-sdk'
 
@@ -30,6 +31,8 @@ export default function MyPosition() {
       <PageLayout mobileBarTitle="Concentrated" metaTitle="Concentrated - Raydium">
         <MyPositionPageHead />
         <MyPositionCard />
+
+        <AddConcentratedLiquidityDialog />
       </PageLayout>
     </>
   )
@@ -303,8 +306,35 @@ function MyPositionCardHeader({ className }: { className?: string }) {
         <RangeTag positionAccount={targetUserPositionAccount} />
       </Row>
       <Row className="items-center gap-2">
-        <Button className="frosted-glass-teal">Add Liquidity</Button>
-        <Button className="frosted-glass-teal ghost">Remove Liquidity</Button>
+        <Button
+          className="frosted-glass-teal"
+          onClick={() => {
+            useConcentrated.setState({
+              isAddDialogOpen: true,
+              currentAmmPool,
+              targetUserPositionAccount,
+              coin1: currentAmmPool?.base,
+              coin2: currentAmmPool?.quote
+            })
+          }}
+        >
+          Add Liquidity
+        </Button>
+        <Button
+          className="frosted-glass-teal ghost"
+          onClick={() => {
+            useConcentrated.setState({
+              isRemoveDialogOpen: true,
+              currentAmmPool,
+              targetUserPositionAccount,
+              coin1: currentAmmPool?.base,
+              coin2: currentAmmPool?.quote
+            })
+            routeTo('/liquidity/concentrated')
+          }}
+        >
+          Remove Liquidity
+        </Button>
       </Row>
     </Row>
   )
@@ -364,7 +394,7 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                 text={<div className="text-white">{currentAmmPool?.ammConfig.tickSpacing}</div>}
               />
               <ColItem
-                className="gap-1 font-medium"
+                className="gap-1 font-medium col-span-2"
                 prefix={
                   <div className="text-[#abc4ff80] min-w-[4em] mr-1">
                     Weekly Rewards {currentAmmPool?.base?.symbol ?? 'base'}
@@ -382,7 +412,7 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                 }
               />
               <ColItem
-                className="gap-1 font-medium"
+                className="gap-1 font-medium col-span-2"
                 prefix={
                   <div className="text-[#abc4ff80] min-w-[4em] mr-1">
                     Weekly Rewards {currentAmmPool?.quote?.symbol ?? 'quote'}

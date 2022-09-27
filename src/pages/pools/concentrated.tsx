@@ -6,7 +6,9 @@ import { CurrencyAmount } from 'test-r-sdk'
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useNotification from '@/application/notification/useNotification'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
@@ -1265,11 +1267,11 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     useConcentrated.setState({
                       isAddDialogOpen: true,
                       currentAmmPool: info,
-                      targetUserPositionAccount: p
+                      targetUserPositionAccount: p,
+                      coin1: info.base,
+                      coin2: info.quote
                     })
-                    routeTo('/liquidity/concentrated', {
-                      queryProps: {}
-                    })
+                    routeTo('/liquidity/concentrated')
                   }}
                 />
                 <Icon
@@ -1284,9 +1286,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                       coin1: info.base,
                       coin2: info.quote
                     })
-                    routeTo('/liquidity/concentrated', {
-                      queryProps: {}
-                    })
+                    routeTo('/liquidity/concentrated')
                   }}
                 />
               </Row>
