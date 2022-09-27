@@ -45,7 +45,7 @@ export default function txCreateConcentrated({
 
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
-        title: 'Add Concentrated',
+        title: 'Add Concentrated Liquidity',
         description: `Add ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${coin2.symbol}`
       }
     })
