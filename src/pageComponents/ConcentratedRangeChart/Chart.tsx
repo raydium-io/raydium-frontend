@@ -514,8 +514,8 @@ export default forwardRef(function Chart(props: Props, ref) {
                 fillOpacity="0.3"
               />
             )}
-            <ReferenceArea {...getReferenceProps(Range.Min)} />
-            <ReferenceArea {...getReferenceProps(Range.Max)} />
+            {!hideRangeLine && <ReferenceArea {...getReferenceProps(Range.Min)} />}
+            {!hideRangeLine && <ReferenceArea {...getReferenceProps(Range.Max)} />}
           </AreaChart>
         </ResponsiveContainer>
       </div>
