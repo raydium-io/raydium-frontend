@@ -1264,7 +1264,11 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   }
                 ]}
                 onClick={() => {
-                  useConcentrated.setState({ currentAmmPool: info, targetUserPositionAccount: p })
+                  useConcentrated.setState({
+                    currentAmmPool: info,
+                    targetUserPositionAccount: p,
+                    expandedPoolId: info.idString
+                  })
                   routeTo('/liquidity/my-position')
                 }}
               >
