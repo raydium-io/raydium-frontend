@@ -183,7 +183,7 @@ export function ConcentratedRangeInputChart({
       />
       <Row className="gap-4">
         <InputBox
-          className="grow border border-light-blue-opacity"
+          className="grow border-1.5 border-[#abc4ff40]"
           label="Min Price"
           decimalMode
           showPlusMinusControls

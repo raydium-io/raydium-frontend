@@ -218,6 +218,9 @@ export function AddConcentratedLiquidityDialog() {
                   }
                 },
                 {
+                  should: isMeaningfulNumber(coinBaseAmount) || isMeaningfulNumber(coinQuoteAmount)
+                },
+                {
                   should: !amountBaseIsOutOfMax,
                   fallbackProps: { children: `${coinBase?.symbol ?? ''} Amount Too Large` }
                 },
