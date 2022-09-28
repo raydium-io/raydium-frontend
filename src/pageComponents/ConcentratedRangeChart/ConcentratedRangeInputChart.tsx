@@ -1,3 +1,9 @@
+import { useEffect, useMemo, useRef } from 'react'
+
+import { CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, Tooltip, XAxis, YAxis } from 'recharts'
+import { twMerge } from 'tailwind-merge'
+import { Fraction } from 'test-r-sdk'
+
 import { getPriceAndTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import { fractionToDecimal } from '@/application/txTools/decimal2Fraction'
@@ -10,16 +16,10 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { div, getMax, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
 import { Numberish } from '@/types/constants'
-import { useEffect, useMemo, useRef } from 'react'
-import { twMerge } from 'tailwind-merge'
-import { Fraction } from 'test-r-sdk'
-import {
-  ChartRangeInputOption,
-  ConcentratedRangeInputChartBody,
-  ConcentratedRangeInputChartBodyComponentHandler
-} from './ConcentratedRangeInputChartBody'
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceArea, ReferenceLine } from 'recharts'
+import {
+  ChartRangeInputOption, ConcentratedRangeInputChartBody, ConcentratedRangeInputChartBodyComponentHandler
+} from './ConcentratedRangeInputChartBody'
 
 export function ConcentratedRangeInputChart({
   poolId,
@@ -82,7 +82,6 @@ export function ConcentratedRangeInputChart({
       baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
       tick: prevTick + tickDiff
     })
-    console.log(123123, tick)
     useConcentrated.setState(
       boundaryType === 'min'
         ? focusSide === 'coin1'

@@ -50,6 +50,7 @@ import toUsdVolume from '@/functions/format/toUsdVolume'
 import { lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
+import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
@@ -999,6 +1000,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   rewardTotalVolume?: string
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
+  const unclaimedYield = useConcentratedPendingYield(p)
 
   const rangeTag = useMemo(() => {
     let bgColor = 'bg-[#142B45]'
@@ -1305,7 +1307,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     </Tooltip>
                   ) : null}
                 </div>
-                <div className="text-white font-medium text-base mobile:text-xs mt-3">{rewardTotalVolume ?? '--'}</div>
+                <div className="text-white font-medium text-base mobile:text-xs mt-3">
+                  {toUsdVolume(unclaimedYield) ?? '--'}
+                </div>
                 <AutoBox
                   is="Row"
                   className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2"
