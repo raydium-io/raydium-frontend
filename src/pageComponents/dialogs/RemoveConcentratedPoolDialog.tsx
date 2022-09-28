@@ -14,6 +14,7 @@ import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
@@ -52,6 +53,7 @@ export function RemoveConcentratedPoolDialog({
   const [amountBaseIsNegative, setAmountBaseIsNegative] = useState(false)
   const [amountQuoteIsOutOfMax, setAmountQuoteIsOutOfMax] = useState(false)
   const [amountQuoteIsNegative, setAmountQuoteIsNegative] = useState(false)
+  const liquidity = useConcentrated((s) => s.liquidity)
 
   useEffect(() => {
     if (!currentAmmPool || !targetUserPositionAccount) return
@@ -173,6 +175,10 @@ export function RemoveConcentratedPoolDialog({
                 {
                   should: !amountQuoteIsNegative,
                   fallbackProps: { children: `Negative ${coinQuote?.symbol ?? ''} Amount` }
+                },
+                {
+                  should: gt(liquidity, 0),
+                  fallbackProps: { children: `Set up remove amount` }
                 }
               ]}
               onClick={() => {

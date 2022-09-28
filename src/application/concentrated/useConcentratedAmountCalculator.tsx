@@ -31,7 +31,6 @@ export default function useConcentratedAmountCalculator() {
     isRemoveDialogOpen
   } = useConcentrated()
   useEffect(() => {
-    if (!isMeaningfulNumber(userCursorSide === 'coin1' ? coin1Amount : coin2Amount)) return
     try {
       calcConcentratedPairsAmount()
     } catch (err) {
