@@ -20,7 +20,9 @@ import { SplToken } from '../token/type'
 export type APIConcentratedInfo = ApiAmmV3PoolInfo
 
 export type SDKParsedConcentratedInfo = {
+  /** SDK info */
   state: AmmV3PoolInfo
+  /** SDK info */
   positionAccount?: AmmV3PoolPersonalPosition[]
 }
 

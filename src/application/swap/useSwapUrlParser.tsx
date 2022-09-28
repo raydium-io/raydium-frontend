@@ -21,6 +21,7 @@ import { getAddLiquidityDefaultPool } from '@/models/ammAndLiquidity'
 import useConnection from '../connection/useConnection'
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 import { QuantumSOLVersionSOL, QuantumSOLVersionWSOL, WSOLMint } from '../token/quantumSOL'
+import useUpdateUrlFn from '../txTools/useUpdateUrlFn'
 
 function isSolAndWsol(query1: string, query2: string): boolean {
   return query1 === 'sol' && query2 === toPubString(WSOLMint)
@@ -31,6 +32,7 @@ function isWsolAndSol(query1: string, query2: string): boolean {
 
 export default function useSwapUrlParser(): void {
   const { query, pathname, replace } = useRouter()
+  const throttledUpdateUrl = useUpdateUrlFn()
   const swapCoin1 = useSwap((s) => s.coin1)
   const swapCoin2 = useSwap((s) => s.coin2)
   const swapCoin1Amount = useSwap((s) => s.coin1Amount)
@@ -167,15 +169,6 @@ export default function useSwapUrlParser(): void {
   ])
 
   //#region ------------------- sync zustand data to url -------------------
-  const throttledUpdateUrl = useCallback(
-    throttle(
-      (pathname: string, query: Record<string, any>) => {
-        replace({ pathname, query }, undefined, { shallow: true })
-      },
-      { delay: 100 }
-    ),
-    []
-  )
 
   useEffect(() => {
     if (!pathname.includes('/swap')) return

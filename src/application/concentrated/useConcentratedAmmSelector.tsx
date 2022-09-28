@@ -1,7 +1,6 @@
-import { useEffect } from 'react'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { useEffect } from 'react'
 import useConcentrated from './useConcentrated'
-import toPubString from '@/functions/format/toMintString'
 
 /** coin1 coin2 ammId */
 export default function useConcentratedAmmSelector() {

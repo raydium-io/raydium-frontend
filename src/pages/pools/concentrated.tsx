@@ -61,7 +61,6 @@ import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/Remo
 export default function PoolsConcentratedPage() {
   // usePoolSummeryInfoLoader()
   const currentTab = useConcentrated((s) => s.currentTab)
-  const isRemoveDialogOpen = useConcentrated((s) => s.isRemoveDialogOpen)
 
   useConcentratedAmountCalculator()
 

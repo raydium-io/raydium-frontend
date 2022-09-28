@@ -29,14 +29,14 @@ export default function useConcentratedInfoLoader() {
 
   /** fetch api json info list  */
   useTransitionedEffect(async () => {
-    if (!pathname.includes('concentrated')) return
+    if (!pathname.includes('concentrated') && !pathname.includes('my-position')) return
     const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
     if (response) useConcentrated.setState({ apiAmmPools: response.data })
   }, [pathname])
 
   /**  api json info list ➡ SDK info list */
   useTransitionedEffect(async () => {
-    if (!pathname.includes('concentrated')) return
+    if (!pathname.includes('concentrated') && !pathname.includes('my-position')) return
     if (!connection) return
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: apiAmmPools,
@@ -54,7 +54,7 @@ export default function useConcentratedInfoLoader() {
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {
-    if (!pathname.includes('concentrated')) return
+    if (!pathname.includes('concentrated') && !pathname.includes('my-position')) return
     if (!connection) return // don't hydrate when connection is not ready
     if (!Object.keys(tokens).length) return // don't hydrate when token is not loaded
     if (!sdkParsedAmmPools || sdkParsedAmmPools.length === 0) return
