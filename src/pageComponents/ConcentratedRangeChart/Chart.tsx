@@ -81,7 +81,10 @@ export default forwardRef(function Chart(props: Props, ref) {
   const xAxisRef = useRef<number[]>([])
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
-  boundaryRef.current = { min: points[0]?.x || 0, max: points[points.length - 1]?.x || 100 }
+  boundaryRef.current =
+    xAxisDomain === DEFAULT_X_AXIS
+      ? { min: points[0]?.x || 0, max: points[points.length - 1]?.x || 100 }
+      : boundaryRef.current
 
   const updatePosition = useCallback(
     (nextStateOrCbk: PositionState | ((prePos: PositionState) => PositionState)) => {
@@ -101,7 +104,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         [Range.Max]: toFixedNumber(nextStateOrCbk[Range.Max], decimals)
       })
     },
-    [decimals, points]
+    [decimals, points, xAxisDomain]
   )
 
   useEffect(() => {
@@ -214,6 +217,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       if (!moveRef.current || !e) return
       // move center area
       const activeLabel = e.activeLabel
+      if (!activeLabel) return
       if (moveRef.current === 'area') {
         if (areaRef.current === undefined) {
           areaRef.current = activeLabel
@@ -221,11 +225,13 @@ export default forwardRef(function Chart(props: Props, ref) {
         }
         const diff = activeLabel - areaRef.current
         areaRef.current = activeLabel
+        const isDefault = typeof xAxisDomain[0] === 'string'
+        const [xMin, xMax] = isDefault ? [boundaryRef.current.min, boundaryRef.current.max] : xAxisDomain
         updatePosition((pos) => {
           const [newLeft, newRight] = [pos[Range.Min] + diff, pos[Range.Max] + diff]
           const newPos = {
-            [Range.Min]: newLeft <= boundaryRef.current.min ? pos[Range.Min] : newLeft,
-            [Range.Max]: newRight >= boundaryRef.current.max ? pos[Range.Max] : newRight
+            [Range.Min]: newLeft <= xMin || newLeft >= pos[Range.Max] ? pos[Range.Min] : newLeft,
+            [Range.Max]: newRight >= xMax || newRight <= pos[Range.Min] ? pos[Range.Max] : newRight
           }
           debounceUpdate({ ...newPos, side: moveRef.current })
           return newPos
@@ -243,12 +249,11 @@ export default forwardRef(function Chart(props: Props, ref) {
           moveRef.current = Range.Min
           return { ...pos, [Range.Min]: activeLabel }
         }
-
         debounceUpdate({ ...pos, [moveRef.current]: activeLabel, side: moveRef.current })
         return { ...pos, [moveRef.current]: activeLabel }
       })
     },
-    [updatePosition, onPositionChange]
+    [updatePosition, onPositionChange, xAxisDomain]
   )
 
   const getMouseEvent = (range: Range) => ({
@@ -331,18 +336,34 @@ export default forwardRef(function Chart(props: Props, ref) {
     [points, tickGap, decimals]
   )
 
-  const zoomCounterRef = useRef(0)
+  const extendDisplay = ({ min, max }: { min: number; max: number }) => {
+    setDisplayList((list) => {
+      const newList = list.filter((p) => !p.extend)
+      const lastPoint = newList[newList.length - 1].x
+      if (min < newList[0].x) {
+        for (let i = 0; min <= newList[0].x; i++) newList.unshift({ x: newList[0].x - i * tickGap, y: 0, extend: true })
+      }
+      if (max > lastPoint) {
+        for (let i = 1; newList[newList.length - 1].x <= max; i++)
+          newList.push({ x: lastPoint + i * tickGap, y: 0, extend: true })
+      }
+      return newList
+    })
+  }
+
   const zoomReset = () => {
+    setDisplayList((list) => list.filter((p) => !p.extend))
     setXAxisDomain(DEFAULT_X_AXIS)
     boundaryRef.current = { min: displayList[0].x, max: displayList[displayList.length - 1].x }
-    zoomCounterRef.current = 0
   }
   const zoomIn = () => {
     const [min, max] = [
       xAxisRef.current[0] + tickGap * ZOOM_INTERVAL,
-      xAxisRef[xAxisRef.current.length - 1] - tickGap * ZOOM_INTERVAL
+      xAxisRef.current[xAxisRef.current.length - 1] - tickGap * ZOOM_INTERVAL
     ]
+    if (min >= max) return
     boundaryRef.current = { min, max }
+    extendDisplay({ min, max })
     setXAxisDomain([min, max])
   }
   const zoomOut = () => {
@@ -350,7 +371,9 @@ export default forwardRef(function Chart(props: Props, ref) {
       Math.max(xAxisRef.current[0] - tickGap * ZOOM_INTERVAL, 0),
       xAxisRef.current[xAxisRef.current.length - 1] + tickGap * ZOOM_INTERVAL
     ]
-    boundaryRef.current = { min, max }
+    boundaryRef.current.min = min
+    boundaryRef.current.max = max
+    extendDisplay({ min, max })
     setXAxisDomain([min, max])
   }
 
@@ -480,10 +503,11 @@ export default forwardRef(function Chart(props: Props, ref) {
                       }
                     : undefined
                 }
-                x1={Math.max(position[Range.Min], points[0].x, xAxis[0] || 0)}
+                // x1={Math.max(position[Range.Min], points[0].x, xAxis[0] || 0)}
+                x1={Math.max(position[Range.Min], displayList[0]?.x || 0)}
                 x2={Math.min(
                   position[Range.Max],
-                  points[points.length - 1].x,
+                  displayList[displayList.length - 1]?.x,
                   xAxis[xAxis.length - 1] || Number.MAX_SAFE_INTEGER
                 )}
                 fill={HIGHLIGHT_COLOR}
