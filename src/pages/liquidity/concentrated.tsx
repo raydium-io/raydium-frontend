@@ -64,7 +64,7 @@ export default function Concentrated() {
 
 function ConcentratedCard() {
   const chartPoints = useConcentrated((s) => s.chartPoints)
-  const { connected } = useWallet()
+  const connected = useWallet((s) => s.connected)
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
@@ -117,9 +117,12 @@ function ConcentratedCard() {
     const res = getPriceBoundary({ coin1, coin2, ammPool: currentAmmPool, reverse: !isFocus1 })
     tickRef.current.lower = res?.priceLowerTick
     tickRef.current.upper = res?.priceUpperTick
-    res && useConcentrated.setState(res)
     return res
   }, [coin1, coin2, currentAmmPool, isFocus1])
+
+  useEffect(() => {
+    boundaryData && useConcentrated.setState(boundaryData)
+  }, [boundaryData])
 
   const handleClickInDecrease = ({ p, isMin, isIncrease }: { p: number; isMin: boolean; isIncrease: boolean }) => {
     if (!currentAmmPool || !coin1 || !coin2) return
