@@ -104,7 +104,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         [Range.Max]: toFixedNumber(nextStateOrCbk[Range.Max], decimals)
       })
     },
-    [decimals, points, xAxisDomain]
+    [decimals, points]
   )
 
   useEffect(() => {
@@ -230,8 +230,10 @@ export default forwardRef(function Chart(props: Props, ref) {
         updatePosition((pos) => {
           const [newLeft, newRight] = [pos[Range.Min] + diff, pos[Range.Max] + diff]
           const newPos = {
-            [Range.Min]: newLeft <= xMin || newLeft >= pos[Range.Max] ? pos[Range.Min] : newLeft,
-            [Range.Max]: newRight >= xMax || newRight <= pos[Range.Min] ? pos[Range.Max] : newRight
+            [Range.Min]:
+              (newLeft <= xMin && newLeft < pos[Range.Min]) || newLeft >= pos[Range.Max] ? pos[Range.Min] : newLeft,
+            [Range.Max]:
+              (newRight >= xMax && newRight > pos[Range.Max]) || newRight <= pos[Range.Min] ? pos[Range.Max] : newRight
           }
           debounceUpdate({ ...newPos, side: moveRef.current })
           return newPos
@@ -262,18 +264,16 @@ export default forwardRef(function Chart(props: Props, ref) {
   })
 
   const getReferenceProps = (range: Range) => {
+    const isMin = range === Range.Min
     const [x1, x2] = [
-      position[range] - (range === Range.Min ? 1.5 * tickGap : tickGap / 1.5),
-      position[range] + (range === Range.Max ? 1.5 * tickGap : tickGap / 1.5)
+      position[range] - (isMin ? 1.5 * tickGap : tickGap / 1.5),
+      position[range] + (!isMin ? 1.5 * tickGap : tickGap / 1.5)
     ]
     return position[range]
       ? {
           ...getMouseEvent(range),
-          x1: range === Range.Min && x1 < xAxisRef.current[0] ? xAxisRef.current[0] : x1,
-          x2:
-            range === Range.Max && x2 > xAxisRef.current[xAxisRef.current.length - 1]
-              ? displayList[displayList.length - 1].x
-              : x2,
+          x1: Math.max(x1, isMin ? xAxis[0] : position[Range.Max]),
+          x2: Math.min(x2, isMin ? position[Range.Min] : xAxis[xAxis.length - 1]),
           style: { cursor: 'grab' },
           fill: 'transparent',
           isFront: true
@@ -503,8 +503,7 @@ export default forwardRef(function Chart(props: Props, ref) {
                       }
                     : undefined
                 }
-                // x1={Math.max(position[Range.Min], points[0].x, xAxis[0] || 0)}
-                x1={Math.max(position[Range.Min], displayList[0]?.x || 0)}
+                x1={Math.max(position[Range.Min], displayList[0]?.x || 0, xAxis[0])}
                 x2={Math.min(
                   position[Range.Max],
                   displayList[displayList.length - 1]?.x,
