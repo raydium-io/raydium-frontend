@@ -20,8 +20,12 @@ import { toString } from '@/functions/numberish/toString'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
+import useInit from '@/hooks/useInit'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
+  useInit(() => {
+    useConcentrated.setState({ coin1Amount: undefined, coin2Amount: undefined })
+  })
   // cache for UI
   const open = useConcentrated((s) => s.isRemoveDialogOpen)
   const walletConnected = useWallet((s) => s.connected)
@@ -63,7 +67,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       open={open}
       onClose={() => {
         useConcentrated.setState({
-          isRemoveDialogOpen: false
+          isRemoveDialogOpen: false,
+          coin1Amount: undefined,
+          coin2Amount: undefined
         })
       }}
     >

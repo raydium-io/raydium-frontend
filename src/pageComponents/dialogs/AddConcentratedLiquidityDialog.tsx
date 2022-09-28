@@ -11,23 +11,26 @@ import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
-import FadeInStable, { FadeIn } from '@/components/FadeIn'
+import FadeInStable from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
-import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import useInit from '@/hooks/useInit'
 import { useEffect, useRef, useState } from 'react'
 import { Price } from 'test-r-sdk'
 
 export function AddConcentratedLiquidityDialog() {
   useConcentratedAmountCalculator()
+  useInit(() => {
+    useConcentrated.setState({ coin1Amount: undefined, coin2Amount: undefined })
+  })
   const open = useConcentrated((s) => s.isAddDialogOpen)
   const walletConnected = useWallet((s) => s.connected)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -72,7 +75,9 @@ export function AddConcentratedLiquidityDialog() {
       open={open}
       onClose={() => {
         useConcentrated.setState({
-          isAddDialogOpen: false
+          isAddDialogOpen: false,
+          coin1Amount: undefined,
+          coin2Amount: undefined
         })
       }}
     >
