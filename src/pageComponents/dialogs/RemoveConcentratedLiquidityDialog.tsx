@@ -21,20 +21,8 @@ import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
-export function RemoveConcentratedPoolDialog({
-  className,
-  mode: inputMode,
-  onClose
-}: {
-  className?: string
-  mode?: 'remove'
-  onClose?(): void
-}) {
+export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   // cache for UI
-  const [mode, setMode] = useState(inputMode)
-  useEffect(() => {
-    if (inputMode != null) setMode(inputMode)
-  }, [inputMode])
   const open = useConcentrated((s) => s.isRemoveDialogOpen)
   const walletConnected = useWallet((s) => s.connected)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -89,7 +77,7 @@ export function RemoveConcentratedPoolDialog({
         >
           <Row className="justify-between items-center mb-6">
             <div className="text-xl font-semibold text-white">
-              Remove Concentrated from {coinBase?.symbol} / {coinQuote?.symbol}
+              Remove Concentrated from {coinBase?.symbol} - {coinQuote?.symbol}
             </div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
           </Row>

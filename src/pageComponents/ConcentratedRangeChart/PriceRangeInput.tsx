@@ -13,7 +13,7 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
   return (
     <div className="flex gap-2.5">
       <InputBox
-        className="grow border border-light-blue-opacity"
+        className="grow border-1.5 border-[#abc4ff40]"
         label="Min Price"
         decimalMode
         showPlusMinusControls
@@ -28,7 +28,7 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         }}
       />
       <InputBox
-        className="grow border border-light-blue-opacity"
+        className="grow border-1.5 border-[#abc4ff40]"
         label="Max Price"
         decimalMode
         showPlusMinusControls

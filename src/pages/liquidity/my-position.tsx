@@ -30,6 +30,11 @@ import { Numberish } from '@/types/constants'
 import { twMerge } from 'tailwind-merge'
 import { Fraction, Price, Token } from 'test-r-sdk'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
+import useWallet from '@/application/wallet/useWallet'
+import useAppSettings from '@/application/appSettings/useAppSettings'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
+import { useImperativeHandle } from 'react'
 
 export default function MyPosition() {
   return (
@@ -39,6 +44,7 @@ export default function MyPosition() {
         <MyPositionPageHead />
         <MyPositionCard />
         <AddConcentratedLiquidityDialog />
+        <RemoveConcentratedLiquidityDialog />
       </PageLayout>
     </>
   )
@@ -196,8 +202,11 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
 }
 
 function MyPositionCardPendingRewardInfo({ className }: { className?: string }) {
-  const tokenPrices = useToken((s) => s.tokenPrices)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+
+  const connected = useWallet((s) => s.connected)
+
+  const tokenPrices = useToken((s) => s.tokenPrices)
   const rewardsVolume: { token?: Token; volume?: Numberish }[] =
     targetUserPositionAccount?.rewardInfos.map((info) => ({
       token: info.penddingReward?.token,
@@ -224,14 +233,31 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
   const totalVolume = rewardsVolume
     .concat(feesVolume)
     .reduce((acc, { volume }) => (volume ? add(acc ?? toFraction(0), volume) : acc), undefined as Fraction | undefined)
+
+  useImperativeHandle
+  const hasPendingReward = isMeaningfulNumber(totalVolume)
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
         <div className="font-medium text-[#abc4ff]">Pending Yield</div>
       </Row>
       <Row className="items-center gap-8">
-        <div className="font-medium text-2xl text-white">{toUsdVolume(totalVolume)}</div>
-        <Button className="frosted-glass-teal" onClick={() => txHavestConcentrated()}>
+        <div className="font-medium text-2xl text-white">≈{toUsdVolume(totalVolume)}</div>
+        <Button
+          className="frosted-glass-teal"
+          onClick={() => txHavestConcentrated()}
+          validators={[
+            {
+              should: connected,
+              forceActive: true,
+              fallbackProps: {
+                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                children: 'Connect Wallet'
+              }
+            },
+            { should: hasPendingReward }
+          ]}
+        >
           Harvest
         </Button>
       </Row>
@@ -359,7 +385,6 @@ function MyPositionCardHeader({ className }: { className?: string }) {
               coin1: currentAmmPool?.base,
               coin2: currentAmmPool?.quote
             })
-            routeTo('/liquidity/concentrated')
           }}
         >
           Remove Liquidity

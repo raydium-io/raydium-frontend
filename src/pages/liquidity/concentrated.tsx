@@ -217,7 +217,7 @@ function ConcentratedCard() {
             {/* input twin */}
             <>
               <CoinInputBox
-                className="mt-5 mb-4 mobile:mt-0 border border-light-blue-opacity"
+                className="mt-5 mb-4 mobile:mt-0 border-1.5 border-[#abc4ff40]"
                 disabled={isApprovePanelShown}
                 noDisableStyle
                 componentRef={coinInputBox1ComponentRef}
@@ -243,7 +243,7 @@ function ConcentratedCard() {
               />
 
               <CoinInputBox
-                className="border border-light-blue-opacity"
+                className="border-1.5 border-[#abc4ff40]"
                 componentRef={coinInputBox2ComponentRef}
                 domRef={swapElementBox2}
                 disabled={isApprovePanelShown}
@@ -269,7 +269,7 @@ function ConcentratedCard() {
               />
             </>
 
-            <div className="mt-4 border border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
+            <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
               <div className="flex justify-between mb-4">
                 <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
                 <span className="text-lg leading-[18px]">{toUsdVolume(totalDeposit)}</span>
@@ -346,7 +346,7 @@ function ConcentratedCard() {
             onInDecrease={handleClickInDecrease}
             showZoom
           />
-          <div className="mt-4 border border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
+          <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
             <div className="flex justify-between items-center">
               <span className="text-sm leading-[18px] text-secondary-title">Estimated APR</span>
               <span className="text-2xl leading-[30px]">≈{toPercentString(currentAmmPool?.totalApr30d)}</span>

@@ -88,9 +88,9 @@ function calcConcentratedPairsAmount(): void {
     add: !isRemoveDialogOpen // SDK flag for math round direction
   })
   if (userCursorSide === 'coin1') {
-    useConcentrated.setState({ coin2Amount: toTokenAmount(coin2, amountB) })
+    useConcentrated.setState({ coin2Amount: isMeaningfulNumber(amountA) ? toTokenAmount(coin2, amountB) : undefined })
   } else {
-    useConcentrated.setState({ coin1Amount: toTokenAmount(coin1, amountA) })
+    useConcentrated.setState({ coin1Amount: isMeaningfulNumber(amountB) ? toTokenAmount(coin1, amountA) : undefined })
   }
 
   useConcentrated.setState({ liquidity })
