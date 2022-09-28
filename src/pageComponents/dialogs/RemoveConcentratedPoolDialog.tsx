@@ -89,7 +89,7 @@ export function RemoveConcentratedPoolDialog({
         >
           <Row className="justify-between items-center mb-6">
             <div className="text-xl font-semibold text-white">
-              Remove Concentrated from {coinBase?.symbol} / {coinQuote?.symbol}
+              Remove Concentrated from {coinBase?.symbol} - {coinQuote?.symbol}
             </div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
           </Row>
