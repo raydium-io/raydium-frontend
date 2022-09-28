@@ -36,10 +36,12 @@ interface Props {
   showCurrentPriceOnly?: boolean
   showZoom?: boolean
   hideRangeLine?: boolean
+  hideRangeInput?: boolean
+  hideCurrentPriceLabel?: boolean
   hideXAxis?: boolean
   height?: number
-  onPositionChange: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
-  onInDecrease: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
+  onPositionChange?: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
+  onInDecrease?: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
 }
 
 export default forwardRef(function Chart(props: Props, ref) {
@@ -51,7 +53,9 @@ export default forwardRef(function Chart(props: Props, ref) {
     onPositionChange,
     onInDecrease,
     showCurrentPriceOnly,
+    hideCurrentPriceLabel,
     hideRangeLine,
+    hideRangeInput,
     showZoom,
     hideXAxis
   } = props
@@ -192,7 +196,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const debounceUpdate = ({ side, ...pos }: { min: number; max: number; side: Range | string }) => {
     timer && clearTimeout(timer)
     timer = window.setTimeout(() => {
-      const res = onPositionChange(pos)
+      const res = onPositionChange?.(pos)
       if (!res) return
       if (side === 'area')
         updatePosition({ min: Number(res.priceLower.toFixed(9)), max: Number(res.priceUpper.toFixed(9)) })
@@ -280,7 +284,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       const newVal = parseFloat(String(val!))
 
       setPosition((p) => {
-        onPositionChange({ ...p, [side]: newVal, side, userInput: true })
+        onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
         return { ...p, [side]: newVal }
       })
       setDisplayList((list) => {
@@ -307,7 +311,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       let resultPos = val
       if (isIncrease) {
         setPosition((prePos) => {
-          const newPos = onInDecrease({ p: Number(val), isMin, isIncrease: true })
+          const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: true })
           const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
           resultPos = posNum
           if (!isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
@@ -317,7 +321,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         return String(resultPos)
       }
       setPosition((prePos) => {
-        const newPos = onInDecrease({ p: Number(val), isMin, isIncrease: false })
+        const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: false })
         const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
         if (isMin && posNum <= toFixedNumber(points[0].x, decimals))
           return { ...prePos, [Range.Min]: toFixedNumber(points[0].x, decimals) } // when min < points[0].x
@@ -468,7 +472,7 @@ export default forwardRef(function Chart(props: Props, ref) {
                 stroke="#FFF"
                 strokeDasharray="4"
                 strokeWidth={2}
-                label={getPriceLabel(currentPrice?.toSignificant(4))}
+                label={hideCurrentPriceLabel ? undefined : getPriceLabel(currentPrice?.toSignificant(4))}
               />
             )}
             {hasPoints && (
@@ -507,13 +511,15 @@ export default forwardRef(function Chart(props: Props, ref) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <PriceRangeInput
-        decimals={decimals}
-        minValue={position.min}
-        maxValue={position.max}
-        onPriceChange={handlePriceChange}
-        onInDecrease={handleInDecrease}
-      />
+      {!hideRangeInput && (
+        <PriceRangeInput
+          decimals={decimals}
+          minValue={position.min}
+          maxValue={position.max}
+          onPriceChange={handlePriceChange}
+          onInDecrease={handleInDecrease}
+        />
+      )}
     </>
   )
 })

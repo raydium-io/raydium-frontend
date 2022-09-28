@@ -24,9 +24,12 @@ import { add, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
+import Chart from '@/pageComponents/ConcentratedRangeChart/Chart'
+import { toXYChartFormat } from '@/pageComponents/Concentrated'
 import { Numberish } from '@/types/constants'
 import { twMerge } from 'tailwind-merge'
 import { Fraction, Price, Token } from 'test-r-sdk'
+import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 
 export default function MyPosition() {
   return (
@@ -130,8 +133,18 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
 }
 
 function MyPositionCardChartInfo({ className }: { className?: string }) {
-  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const [currentAmmPool, chartPoints, coin1, coin2] = useConcentrated((s) => [
+    s.currentAmmPool,
+    s.chartPoints,
+    s.coin1,
+    s.coin2
+  ])
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
+  const [initMinBoundaryX, initMaxBoundaryX] = [
+    targetUserPositionAccount && toFraction(targetUserPositionAccount!.priceLower),
+    targetUserPositionAccount && toFraction(targetUserPositionAccount!.priceUpper)
+  ]
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
@@ -145,7 +158,18 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
         {currentAmmPool?.base?.symbol ?? '--'} per {currentAmmPool?.quote?.symbol ?? '--'}
       </div>
       <div className="items-center grow">
-        <div className="h-full bg-[#abc4ff] rounded"></div>
+        <Chart
+          chartOptions={{
+            points: chartPoints ? toXYChartFormat(chartPoints) : [],
+            initMinBoundaryX,
+            initMaxBoundaryX
+          }}
+          currentPrice={currentAmmPool ? decimalToFraction(currentAmmPool.state.currentPrice) : undefined}
+          decimals={decimals}
+          hideRangeLine
+          hideRangeInput
+          hideCurrentPriceLabel
+        />
       </div>
       <Row className="items-center flex-wrap gap-2">
         <RowItem
