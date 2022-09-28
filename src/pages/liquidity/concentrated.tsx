@@ -67,7 +67,6 @@ function ConcentratedCard() {
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
-  const priceRef = useRef<(Fraction | undefined)[]>([])
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
   const { coin1, coin1Amount, coin2, coin2Amount, focusSide, currentAmmPool, priceLowerTick, priceUpperTick } =
     useConcentrated()
@@ -142,7 +141,8 @@ function ConcentratedCard() {
     return price
   }
 
-  const totalDeposit = priceRef.current
+  const prices = [coin1Amount ? toFraction(coin1Amount) : undefined, coin2Amount ? toFraction(coin2Amount) : undefined]
+  const totalDeposit = prices
     .filter((p) => !!p)
     .reduce((acc, cur) => {
       const newAcc = acc!.add(toFraction(cur!))
@@ -150,10 +150,8 @@ function ConcentratedCard() {
       return newAcc
     }, new Fraction(0))
 
-  const ratio1 = parseFloat(
-    priceRef.current[0] ? priceRef.current[0].div(totalDeposit!).mul(100).toFixed(1, undefined, 0) : '0'
-  )
-  const ratio2 = priceRef.current[1] ? parseFloat((100 - Number(ratio1)).toFixed(1)) : '0'
+  const ratio1 = parseFloat(prices[0] ? prices[0].div(totalDeposit!).mul(100).toFixed(1, undefined, 0) : '0')
+  const ratio2 = prices[1] ? parseFloat((100 - Number(ratio1)).toFixed(1)) : '0'
 
   const handlePosChange = useCallback(
     ({ side, userInput, ...pos }: { min: number; max: number; side?: Range; userInput?: boolean }) => {
@@ -226,9 +224,6 @@ function ConcentratedCard() {
                 haveCoinIcon
                 showTokenSelectIcon
                 topLeftLabel=""
-                onPriceChange={(price: Fraction | undefined) => {
-                  priceRef.current[0] = price
-                }}
                 onTryToTokenSelect={() => {
                   turnOnCoinSelector()
                   setTargetCoinNo('1')
@@ -255,7 +250,6 @@ function ConcentratedCard() {
                 haveCoinIcon
                 showTokenSelectIcon
                 topLeftLabel=""
-                onPriceChange={(price: Fraction | undefined) => (priceRef.current[1] = price)}
                 onTryToTokenSelect={() => {
                   turnOnCoinSelector()
                   setTargetCoinNo('2')
