@@ -37,9 +37,7 @@ export function PairInfoTitle(props: Props) {
     return new Decimal(1).div(currentPrice).toDecimalPlaces(coin2?.decimals).toString()
   }
 
-  const [coin1Symbol = '--', coin2Symbol = '--'] = isFocus1
-    ? [coin1?.symbol, coin2?.symbol]
-    : [coin2?.symbol, coin1?.symbol]
+  const [coin1Symbol = '--', coin2Symbol = '--'] = [coin1?.symbol, coin2?.symbol]
 
   return (
     <div className="flex justify-between items-center mb-[27px]">
@@ -47,7 +45,7 @@ export function PairInfoTitle(props: Props) {
         <CoinAvatar className="z-10 inline-block" noCoinIconBorder size="md" token={coin1} />
         <CoinAvatar className="-ml-3 inline-block" noCoinIconBorder size="md" token={coin2} />
         <span className="ml-2 text-xl">
-          {coin1Symbol} / {coin2Symbol}
+          {coin1?.symbol || '-'} / {coin2?.symbol || '-'}
         </span>
         <div className="px-1 ml-2 text-sm text-secondary-title rounded-xl border border-secondary-title">
           {fee || '-'}

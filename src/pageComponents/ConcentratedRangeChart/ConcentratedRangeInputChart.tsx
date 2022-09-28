@@ -82,7 +82,7 @@ export function ConcentratedRangeInputChart({
       baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
       tick: prevTick + tickDiff
     })
-    console.log(123123, tick)
+
     useConcentrated.setState(
       boundaryType === 'min'
         ? focusSide === 'coin1'
