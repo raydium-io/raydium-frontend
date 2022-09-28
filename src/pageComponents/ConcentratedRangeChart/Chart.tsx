@@ -36,10 +36,12 @@ interface Props {
   showCurrentPriceOnly?: boolean
   showZoom?: boolean
   hideRangeLine?: boolean
+  hideRangeInput?: boolean
+  hideCurrentPriceLabel?: boolean
   hideXAxis?: boolean
   height?: number
-  onPositionChange: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
-  onInDecrease: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
+  onPositionChange?: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
+  onInDecrease?: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
 }
 
 export default forwardRef(function Chart(props: Props, ref) {
@@ -51,7 +53,9 @@ export default forwardRef(function Chart(props: Props, ref) {
     onPositionChange,
     onInDecrease,
     showCurrentPriceOnly,
+    hideCurrentPriceLabel,
     hideRangeLine,
+    hideRangeInput,
     showZoom,
     hideXAxis
   } = props
@@ -63,12 +67,12 @@ export default forwardRef(function Chart(props: Props, ref) {
   const hasPoints = points.length > 0
   const { isMobile } = useDevice()
   const [displayList, setDisplayList] = useState<HighlightPoint[]>(points)
-  const [rendered, setRendered] = useState(false)
   const [isMoving, setIsMoving] = useState(false)
   const [position, setPosition] = useState<PositionState>({
     [Range.Min]: Number(defaultMin?.toFixed(decimals)) || 0,
     [Range.Max]: Number(defaultMax?.toFixed(decimals)) || 100
   })
+  const [xAxis, setXAxis] = useState<number[]>([])
 
   const boundaryRef = useRef({ min: 0, max: 100 })
   const smoothCountRef = useRef(0)
@@ -107,7 +111,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   useEffect(() => {
     setDisplayList([])
     setXAxisDomain(DEFAULT_X_AXIS)
-    setRendered(false)
+    xAxisRef.current = []
     setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
     if (!points.length) return
     const { smoothCount } = getConfig(points[0].x, points.length)
@@ -141,7 +145,6 @@ export default forwardRef(function Chart(props: Props, ref) {
 
     setDisplayList(displayList)
     setXAxisDomain(DEFAULT_X_AXIS)
-    setRendered(true)
   }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly])
 
   useEffect(() => {
@@ -150,11 +153,11 @@ export default forwardRef(function Chart(props: Props, ref) {
       [Range.Min]: Number(defaultMin?.toFixed(10) || 0),
       [Range.Max]: Number(defaultMax?.toFixed(10) || 100)
     })
-
-    return () => {
-      if (defaultMin && defaultMax) setRendered(false)
-    }
   }, [defaultMin, defaultMax, updatePosition])
+
+  useEffect(() => {
+    setXAxis(xAxisRef.current)
+  }, [position])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -176,7 +179,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     setIsMoving(true)
   }
 
-  const formatTicks = useCallback((val: number) => {
+  const formatTicks = (val: number) => {
     if (!xAxisRef.current.length || val < xAxisRef.current[xAxisRef.current.length - 1]) {
       xAxisRef.current = [val]
     } else {
@@ -186,14 +189,14 @@ export default forwardRef(function Chart(props: Props, ref) {
     if (val < 10) return val.toFixed(1)
 
     return val.toFixed(1)
-  }, [])
+  }
 
   let timer: number | undefined = undefined
 
   const debounceUpdate = ({ side, ...pos }: { min: number; max: number; side: Range | string }) => {
     timer && clearTimeout(timer)
     timer = window.setTimeout(() => {
-      const res = onPositionChange(pos)
+      const res = onPositionChange?.(pos)
       if (!res) return
       if (side === 'area')
         updatePosition({ min: Number(res.priceLower.toFixed(9)), max: Number(res.priceUpper.toFixed(9)) })
@@ -281,7 +284,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       const newVal = parseFloat(String(val!))
 
       setPosition((p) => {
-        onPositionChange({ ...p, [side]: newVal, side, userInput: true })
+        onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
         return { ...p, [side]: newVal }
       })
       setDisplayList((list) => {
@@ -308,7 +311,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       let resultPos = val
       if (isIncrease) {
         setPosition((prePos) => {
-          const newPos = onInDecrease({ p: Number(val), isMin, isIncrease: true })
+          const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: true })
           const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
           resultPos = posNum
           if (!isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
@@ -318,7 +321,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         return String(resultPos)
       }
       setPosition((prePos) => {
-        const newPos = onInDecrease({ p: Number(val), isMin, isIncrease: false })
+        const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: false })
         const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
         if (isMin && posNum <= toFixedNumber(points[0].x, decimals))
           return { ...prePos, [Range.Min]: toFixedNumber(points[0].x, decimals) } // when min < points[0].x
@@ -469,7 +472,7 @@ export default forwardRef(function Chart(props: Props, ref) {
                 stroke="#FFF"
                 strokeDasharray="4"
                 strokeWidth={2}
-                label={getPriceLabel(currentPrice?.toSignificant(4))}
+                label={hideCurrentPriceLabel ? undefined : getPriceLabel(currentPrice?.toSignificant(4))}
               />
             )}
             {hasPoints && (
@@ -493,8 +496,12 @@ export default forwardRef(function Chart(props: Props, ref) {
                       }
                     : undefined
                 }
-                x1={Math.max(position[Range.Min], xAxisRef.current[0])}
-                x2={Math.min(position[Range.Max], xAxisRef.current[xAxisRef.current.length - 1])}
+                x1={Math.max(position[Range.Min], points[0].x, xAxis[0] || 0)}
+                x2={Math.min(
+                  position[Range.Max],
+                  points[points.length - 1].x,
+                  xAxis[xAxis.length - 1] || Number.MAX_SAFE_INTEGER
+                )}
                 fill={HIGHLIGHT_COLOR}
                 fillOpacity="0.3"
               />
@@ -504,13 +511,15 @@ export default forwardRef(function Chart(props: Props, ref) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <PriceRangeInput
-        decimals={decimals}
-        minValue={position.min}
-        maxValue={position.max}
-        onPriceChange={handlePriceChange}
-        onInDecrease={handleInDecrease}
-      />
+      {!hideRangeInput && (
+        <PriceRangeInput
+          decimals={decimals}
+          minValue={position.min}
+          maxValue={position.max}
+          onPriceChange={handlePriceChange}
+          onInDecrease={handleInDecrease}
+        />
+      )}
     </>
   )
 })

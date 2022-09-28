@@ -18,7 +18,9 @@ import toFraction from '@/functions/numberish/toFraction'
 import { Numberish } from '@/types/constants'
 
 import {
-  ChartRangeInputOption, ConcentratedRangeInputChartBody, ConcentratedRangeInputChartBodyComponentHandler
+  ChartRangeInputOption,
+  ConcentratedRangeInputChartBody,
+  ConcentratedRangeInputChartBodyComponentHandler
 } from './ConcentratedRangeInputChartBody'
 
 export function ConcentratedRangeInputChart({
@@ -82,6 +84,7 @@ export function ConcentratedRangeInputChart({
       baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
       tick: prevTick + tickDiff
     })
+
     useConcentrated.setState(
       boundaryType === 'min'
         ? focusSide === 'coin1'
