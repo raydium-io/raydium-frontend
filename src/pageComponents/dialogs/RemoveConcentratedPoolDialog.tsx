@@ -13,8 +13,11 @@ import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
+import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
+import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
@@ -52,6 +55,8 @@ export function RemoveConcentratedPoolDialog({
   const [amountBaseIsNegative, setAmountBaseIsNegative] = useState(false)
   const [amountQuoteIsOutOfMax, setAmountQuoteIsOutOfMax] = useState(false)
   const [amountQuoteIsNegative, setAmountQuoteIsNegative] = useState(false)
+  const liquidity = useConcentrated((s) => s.liquidity)
+  const pendingYield = useConcentratedPendingYield()
 
   useEffect(() => {
     if (!currentAmmPool || !targetUserPositionAccount) return
@@ -77,13 +82,15 @@ export function RemoveConcentratedPoolDialog({
       {({ close: closeDialog }) => (
         <Card
           className={twMerge(
-            'backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(456px,90vw)] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card',
+            'backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(500px,90vw)] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card',
             className
           )}
           size="lg"
         >
           <Row className="justify-between items-center mb-6">
-            <div className="text-xl font-semibold text-white">Remove Concentrated</div>
+            <div className="text-xl font-semibold text-white">
+              Remove Concentrated from {coinBase?.symbol} / {coinQuote?.symbol}
+            </div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
           </Row>
 
@@ -143,6 +150,12 @@ export function RemoveConcentratedPoolDialog({
               }}
             />
             <ConcentratedLiquiditySlider />
+            <div className="py-3 px-3 ring-1 mobile:ring-1 ring-[rgba(54, 185, 226, 0.5)] rounded-xl mobile:rounded-xl ">
+              <Row className="flex justify-between items-center text-[#ABC4FF] font-medium text-sm">
+                <div>Pending Yield</div>
+                <div className="text-lg text-white">{toUsdVolume(pendingYield)}</div>
+              </Row>
+            </div>
           </Col>
           <Row className="flex-col gap-1">
             <Button
@@ -173,6 +186,10 @@ export function RemoveConcentratedPoolDialog({
                 {
                   should: !amountQuoteIsNegative,
                   fallbackProps: { children: `Negative ${coinQuote?.symbol ?? ''} Amount` }
+                },
+                {
+                  should: gt(liquidity, 0),
+                  fallbackProps: { children: `Enter Amount` }
                 }
               ]}
               onClick={() => {
@@ -188,7 +205,7 @@ export function RemoveConcentratedPoolDialog({
                 })
               }}
             >
-              Remove Liquidity
+              Withdraw Liquidity
             </Button>
             <Button
               type="text"
