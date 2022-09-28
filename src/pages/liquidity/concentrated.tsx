@@ -82,8 +82,6 @@ function ConcentratedCard() {
     return formatPoints ? formatPoints.map((p) => ({ x: 1 / p.x, y: p.y })).reverse() : undefined
   }, [chartPoints, isFocus1])
 
-  console.log(12313, currentAmmPool)
-
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
 

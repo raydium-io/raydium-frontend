@@ -7,9 +7,10 @@ export const ZOOM_INTERVAL = 10
 export const REFERENCE_LINE_COLOR = '#abc4ff'
 export const HIGHLIGHT_COLOR = '#1B365F'
 export const strokeFillProp = {
-  stroke: '#256491',
-  fill: '#256491'
+  fill: '#abc4ff',
+  stroke: '#abc4ff'
 }
+export const boundaryColor = '#256491'
 export const DEFAULT_X_AXIS = ['dataMin', 'dataMax']
 
 export const getConfig = (num: number, totalCount: number) => {
@@ -32,7 +33,7 @@ export const getLabel =
         <rect
           x={props.viewBox.x - (side === Range.Min ? 12 : 0)}
           y={props.viewBox.y}
-          fill={strokeFillProp.fill}
+          fill={boundaryColor}
           width={12}
           height={28}
           rx="2"

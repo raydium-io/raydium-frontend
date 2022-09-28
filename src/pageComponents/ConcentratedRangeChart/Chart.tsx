@@ -11,6 +11,7 @@ import {
   DEFAULT_X_AXIS,
   HIGHLIGHT_COLOR,
   ZOOM_INTERVAL,
+  boundaryColor,
   strokeFillProp,
   toFixedNumber,
   getConfig,
@@ -19,7 +20,6 @@ import {
 import PriceRangeInput from './PriceRangeInput'
 
 interface HighlightPoint extends ChartPoint {
-  z?: number // for highlight select range
   extend?: boolean
 }
 
@@ -119,9 +119,9 @@ export default forwardRef(function Chart(props: Props, ref) {
     ]
 
     if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(decimals)))
-      points.unshift({ x: defaultMinNum - (points[1].x - points[0].x) / 2, y: 0, z: undefined })
+      points.unshift({ x: defaultMinNum - (points[1].x - points[0].x) / 2, y: 0 })
     if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(decimals)))
-      points.push({ x: defaultMaxNum + (points[1].x - points[0].x) / 2, y: 0, z: undefined })
+      points.push({ x: defaultMaxNum + (points[1].x - points[0].x) / 2, y: 0 })
 
     const pointMaxIndex = points.length - 1
     for (let i = 0; i < pointMaxIndex; i++) {
@@ -155,24 +155,6 @@ export default forwardRef(function Chart(props: Props, ref) {
       if (defaultMin && defaultMax) setRendered(false)
     }
   }, [defaultMin, defaultMax, updatePosition])
-
-  useEffect(() => {
-    if (isMoving || !rendered) return
-    // draw hightLightPoints
-    setDisplayList((list) => {
-      const newList = list.map((point, idx) => ({
-        extend: point.extend,
-        x: point.x,
-        y: point.y,
-        z:
-          toFixedNumber(point.x, decimals) >= toFixedNumber(position[Range.Min], decimals) &&
-          toFixedNumber(point.x, decimals) <= toFixedNumber(position[Range.Max], decimals)
-            ? point.y
-            : undefined
-      }))
-      return newList
-    })
-  }, [rendered, isMoving, position, decimals, onPositionChange])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -308,7 +290,7 @@ export default forwardRef(function Chart(props: Props, ref) {
           if (newVal > filteredList[filteredList.length - 1].x) {
             for (let i = 1; ; i++) {
               const newX = filteredList[filteredList.length - 1].x + tickGap * i
-              filteredList.push({ x: newX, y: 0, z: 0, extend: true })
+              filteredList.push({ x: newX, y: 0, extend: true })
               if (newX > newVal) break
             }
           }
@@ -432,6 +414,7 @@ export default forwardRef(function Chart(props: Props, ref) {
           >
             <Area
               {...strokeFillProp}
+              fillOpacity={0.9}
               animateNewValues={false}
               style={{ cursor: isMoving ? 'grab' : 'default' }}
               legendType="none"
@@ -440,16 +423,6 @@ export default forwardRef(function Chart(props: Props, ref) {
               dot={false}
               type="step"
               dataKey="y"
-              fillOpacity={0.2}
-              strokeOpacity={0.2}
-            />
-            <Area
-              {...strokeFillProp}
-              fill="#abc4ff"
-              stroke="#abc4ff"
-              style={{ cursor: isMoving ? 'grab' : 'default' }}
-              type="step"
-              dataKey="z"
             />
             {!hideRangeLine && (
               <Tooltip wrapperStyle={{ display: 'none' }} isAnimationActive={false} cursor={false} active={false} />
@@ -469,8 +442,8 @@ export default forwardRef(function Chart(props: Props, ref) {
             <YAxis allowDataOverflow domain={['dataMin', 'dataMax']} type="number" hide={true} />
             {!hideRangeLine && position[Range.Min] && (
               <ReferenceLine
-                {...strokeFillProp}
                 {...getMouseEvent(Range.Min)}
+                stroke={boundaryColor}
                 className="cursor-grab"
                 isFront={true}
                 x={position[Range.Min]}
@@ -478,11 +451,10 @@ export default forwardRef(function Chart(props: Props, ref) {
                 label={getLabel({ side: Range.Min, ...getMouseEvent(Range.Min) })}
               />
             )}
-
             {!hideRangeLine && position[Range.Max] && (
               <ReferenceLine
-                {...strokeFillProp}
                 {...getMouseEvent(Range.Max)}
+                stroke={boundaryColor}
                 className="cursor-grab"
                 isFront={true}
                 x={position[Range.Max]}
@@ -490,7 +462,6 @@ export default forwardRef(function Chart(props: Props, ref) {
                 label={getLabel({ side: Range.Max, ...getMouseEvent(Range.Max) })}
               />
             )}
-
             {currentPrice && (
               <ReferenceLine
                 isFront={true}
@@ -522,7 +493,7 @@ export default forwardRef(function Chart(props: Props, ref) {
                       }
                     : undefined
                 }
-                x1={Math.max(position[(Range.Min, xAxisRef.current[0])])}
+                x1={Math.max(position[Range.Min], xAxisRef.current[0])}
                 x2={Math.min(position[Range.Max], xAxisRef.current[xAxisRef.current.length - 1])}
                 fill={HIGHLIGHT_COLOR}
                 fillOpacity="0.3"
