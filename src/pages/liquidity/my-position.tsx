@@ -32,6 +32,7 @@ import Chart from '@/pageComponents/ConcentratedRangeChart/Chart'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
+import { s } from '@raydium-io/raydium-sdk/lib/farm-1cb859cf'
 import { useImperativeHandle } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Fraction, Price, Token } from 'test-r-sdk'
@@ -176,7 +177,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
           hideRangeLine
           hideRangeInput
           hideCurrentPriceLabel
-          height={300}
+          height={isMobile ? 200 : 300}
         />
       </div>
       <Row className="items-center flex-wrap gap-2">
@@ -306,6 +307,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
 
 function MyPositionCardAPRInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
@@ -321,29 +323,23 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
             prefix={
               <Row className="items-center gap-2">
                 <Icon iconSrc="/icons/entry-icon-trade.svg" size="md" className="scale-75 " />
-                <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
+                <div className="text-[#abc4ff80] min-w-[4em] mr-1">Trade Fee</div>
               </Row>
             }
             text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.feeApr30d)}</div>}
           />
-          <RowItem
-            prefix={
-              <Row className="items-center gap-2">
-                <CoinAvatar token={currentAmmPool?.base} size="smi" />
-                <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
-              </Row>
-            }
-            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.fee30dA)}</div>} // TEMP
-          />
-          <RowItem
-            prefix={
-              <Row className="items-center gap-2">
-                <CoinAvatar token={currentAmmPool?.quote} size="smi" />
-                <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.quote?.symbol ?? '--'}</div>
-              </Row>
-            }
-            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.fee30dB)}</div>} // TEMP
-          />
+          {targetUserPositionAccount?.rewardInfos.map(({ penddingReward, apr30d }) => (
+            <RowItem
+              key={toPubString(penddingReward?.token.mint)}
+              prefix={
+                <Row className="items-center gap-2">
+                  <CoinAvatar token={penddingReward?.token} size="smi" />
+                  <div className="text-[#abc4ff80] min-w-[4em] mr-1">{penddingReward?.token?.symbol ?? '--'}</div>
+                </Row>
+              }
+              text={<div className="text-white justify-end">{toPercentString(apr30d)}</div>} // TEMP
+            />
+          ))}
         </Grid>
       </Grid>
     </Col>

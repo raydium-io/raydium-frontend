@@ -1,12 +1,10 @@
 import { getSessionItem, setSessionItem } from '@/functions/dom/jStorage'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { routeTo } from '../routeTools'
-import useUpdateUrlFn from '../txTools/useUpdateUrlFn'
 import useConcentrated from './useConcentrated'
 
 const nftMintName = 'MY_POSITION_NFT_MINT'
@@ -15,7 +13,6 @@ const myPositionAmmIdName = 'MY_POSITION_AMM_ID'
 /** position id */
 export default function useConcentratedMyPositionUrlParser() {
   const { pathname, query } = useRouter()
-  const updateUrl = useUpdateUrlFn()
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const hydrateConcentratedInfo = useConcentrated((s) => s.hydratedAmmPools)
 

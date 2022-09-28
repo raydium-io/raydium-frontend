@@ -78,6 +78,9 @@ export interface UserPositionAccount {
   sdkParsed: AmmV3PoolPersonalPosition
   rewardInfos: {
     penddingReward: TokenAmount | undefined
+    apr24h: Percent
+    apr7d: Percent
+    apr30d: Percent
   }[]
   inRange: boolean
   poolId: PublicKey
