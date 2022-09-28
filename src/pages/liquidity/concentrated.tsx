@@ -370,13 +370,13 @@ function ConcentratedCard() {
                       </div>
                     )
                   })}
-                  <div>
-                    <span className="text-sm leading-[18px] text-secondary-title">Fees</span>
-                    <div className="flex items-center mb-2">
-                      <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
-                      <span className="text-xs text-active-cyan opacity-50 mx-1">Trading Fees</span>
-                      <span className="text-sm">{toPercentString(currentAmmPool?.feeApr30d)}</span>
-                    </div>
+                </div>
+                <div>
+                  <span className="text-sm leading-[18px] text-secondary-title">Fees</span>
+                  <div className="flex items-center mb-2">
+                    <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
+                    <span className="text-xs text-active-cyan opacity-50 mx-1">Trading Fees</span>
+                    <span className="text-sm">{toPercentString(currentAmmPool?.feeApr30d)}</span>
                   </div>
                 </div>
               </div>
