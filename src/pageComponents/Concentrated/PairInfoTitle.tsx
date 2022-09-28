@@ -3,6 +3,7 @@ import { SplToken } from '@/application/token/type'
 import CoinAvatar from '@/components/CoinAvatar'
 import RectTabs, { TabItem } from '@/components/RectTabs'
 import { useCallback, useMemo } from 'react'
+import CoinAvatarPair from '@/components/CoinAvatarPair'
 
 interface Props {
   coin1?: SplToken
@@ -42,8 +43,7 @@ export function PairInfoTitle(props: Props) {
   return (
     <div className="flex justify-between items-center mb-[27px]">
       <div className="flex items-center">
-        <CoinAvatar className="z-10 inline-block" noCoinIconBorder size="md" token={coin1} />
-        <CoinAvatar className="-ml-3 inline-block" noCoinIconBorder size="md" token={coin2} />
+        <CoinAvatarPair size="lg" token1={coin1} token2={coin2} />
         <span className="ml-2 text-xl">
           {coin1?.symbol || '-'} / {coin2?.symbol || '-'}
         </span>

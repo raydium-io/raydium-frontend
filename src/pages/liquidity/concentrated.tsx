@@ -214,7 +214,7 @@ function ConcentratedCard() {
             {/* input twin */}
             <>
               <CoinInputBox
-                className="mt-5 mb-4 mobile:mt-0 border border-light-blue-opacity"
+                className="mt-5 mb-4 mobile:mt-0 border-1.5 border-[#abc4ff40]"
                 disabled={isApprovePanelShown}
                 noDisableStyle
                 componentRef={coinInputBox1ComponentRef}
@@ -240,7 +240,7 @@ function ConcentratedCard() {
               />
 
               <CoinInputBox
-                className="border border-light-blue-opacity"
+                className="border-1.5 border-[#abc4ff40]"
                 componentRef={coinInputBox2ComponentRef}
                 domRef={swapElementBox2}
                 disabled={isApprovePanelShown}
@@ -266,7 +266,7 @@ function ConcentratedCard() {
               />
             </>
 
-            <div className="mt-4 border border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
+            <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
               <div className="flex justify-between mb-4">
                 <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
                 <span className="text-lg leading-[18px]">{toUsdVolume(totalDeposit)}</span>
@@ -343,7 +343,7 @@ function ConcentratedCard() {
             onInDecrease={handleClickInDecrease}
             showZoom
           />
-          <div className="mt-4 border border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
+          <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
             <div className="flex justify-between items-center">
               <span className="text-sm leading-[18px] text-secondary-title">Estimated APR</span>
               <span className="text-2xl leading-[30px]">≈{toPercentString(currentAmmPool?.totalApr30d)}</span>
@@ -352,21 +352,21 @@ function ConcentratedCard() {
               <div className="mr-[22px]">
                 <span className="text-sm leading-[18px] text-secondary-title">Rewards</span>
                 <div className="flex items-center mb-2">
-                  <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
-                  <span className="text-xs text-active-cyan opacity-50 mx-1">{coin1?.symbol}</span>
+                  <CoinAvatar className="inline-block" size="sm" token={coin1} />
+                  <span className="text-xs text-[#abc4ff80]  mx-1">{coin1?.symbol}</span>
                   <span className="text-sm">{toPercentString(currentAmmPool?.fee30dA)}</span>
                 </div>
                 <div className="flex items-center">
-                  <CoinAvatar className="inline-block mr-1" noCoinIconBorder size="sm" token={coin2} />
-                  <span className="text-xs text-active-cyan opacity-50 mx-1">{coin2?.symbol}</span>
+                  <CoinAvatar className="inline-block mr-1" size="sm" token={coin2} />
+                  <span className="text-xs text-[#abc4ff80]  mx-1">{coin2?.symbol}</span>
                   <span className="text-sm">{toPercentString(currentAmmPool?.fee30dB)}</span>
                 </div>
               </div>
               <div>
                 <span className="text-sm leading-[18px] text-secondary-title">Fees</span>
                 <div className="flex items-center mb-2">
-                  <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
-                  <span className="text-xs text-active-cyan opacity-50 mx-1">Trading Fees</span>
+                  <CoinAvatar className="inline-block" size="sm" token={coin1} />
+                  <span className="text-xs text-[#abc4ff80]  mx-1">Trading Fees</span>
                   <span className="text-sm">{toPercentString(currentAmmPool?.feeApr30d)}</span>
                 </div>
               </div>
