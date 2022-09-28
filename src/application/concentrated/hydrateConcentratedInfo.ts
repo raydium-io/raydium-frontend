@@ -77,6 +77,11 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     volume24h: toUsdCurrency(sdkConcentratedInfo.state.day.volume),
     volume7d: toUsdCurrency(sdkConcentratedInfo.state.week.volume),
     volume30d: toUsdCurrency(sdkConcentratedInfo.state.month.volume),
+
+    volumeFee24h: toUsdCurrency(sdkConcentratedInfo.state.day.volumeFee),
+    volumeFee7d: toUsdCurrency(sdkConcentratedInfo.state.week.volumeFee),
+    volumeFee30d: toUsdCurrency(sdkConcentratedInfo.state.month.volumeFee),
+
     fee24hA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.day.feeA) : undefined,
     fee24hB: tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.day.feeB) : undefined,
     fee7dA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.week.feeA) : undefined,

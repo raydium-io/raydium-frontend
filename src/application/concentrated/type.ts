@@ -59,15 +59,22 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   totalApr24h: Percent
   totalApr7d: Percent
   totalApr30d: Percent
+
   volume24h: CurrencyAmount
   volume7d: CurrencyAmount
   volume30d: CurrencyAmount
+
   fee24hA: TokenAmount
   fee24hB: TokenAmount
   fee7dA: TokenAmount
   fee7dB: TokenAmount
   fee30dA: TokenAmount
   fee30dB: TokenAmount
+
+  volumeFee24h: CurrencyAmount
+  volumeFee7d: CurrencyAmount
+  volumeFee30d: CurrencyAmount
+
   rewardApr24h: Percent[]
   rewardApr7d: Percent[]
   rewardApr30d: Percent[]

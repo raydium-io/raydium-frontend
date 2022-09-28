@@ -7,7 +7,9 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
@@ -709,10 +711,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
         value={
           isHydratedConcentratedItemInfo(info)
             ? timeBasis === TimeBasis.DAY
-              ? toUsdVolume(info.feeApr24h, { autoSuffix: isTablet, decimalPlace: 0 })
+              ? toUsdVolume(info.volumeFee24h, { autoSuffix: isTablet, decimalPlace: 0 })
               : timeBasis === TimeBasis.WEEK
-              ? toUsdVolume(info.feeApr7d, { autoSuffix: isTablet, decimalPlace: 0 })
-              : toUsdVolume(info.feeApr30d, { autoSuffix: isTablet, decimalPlace: 0 })
+              ? toUsdVolume(info.volumeFee7d, { autoSuffix: isTablet, decimalPlace: 0 })
+              : toUsdVolume(info.volumeFee30d, { autoSuffix: isTablet, decimalPlace: 0 })
             : undefined
         }
       />
