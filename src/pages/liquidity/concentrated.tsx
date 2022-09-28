@@ -3,6 +3,7 @@ import useConcentrated from '@/application/concentrated/useConcentrated'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
+import toPercentString from '@/functions/format/toPercentString'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import toFraction from '@/functions/numberish/toFraction'
 import { isMintEqual } from '@/functions/judgers/areEqual'
@@ -117,7 +118,7 @@ function ConcentratedCard() {
   }, [coin1, coin2, currentAmmPool, isFocus1])
 
   const handleClickInDecrease = ({ p, isMin, isIncrease }: { p: number; isMin: boolean; isIncrease: boolean }) => {
-    if (!currentAmmPool || !coin1 || !coin2 || priceLowerTick === undefined) return
+    if (!currentAmmPool || !coin1 || !coin2) return
     const targetCoin = isFocus1 ? coin1 : coin2
     const tickKey = isMin ? 'lower' : 'upper'
     if (!tickRef.current[tickKey]) {
@@ -201,6 +202,7 @@ function ConcentratedCard() {
       <PairInfoTitle
         coin1={coin1}
         coin2={coin2}
+        fee={toPercentString(currentAmmPool?.protocolFeeRate)}
         currentPrice={currentAmmPool?.state.currentPrice}
         focusSide={focusSide}
         onChangeFocus={(focusSide) => useConcentrated.setState({ focusSide })}
@@ -350,7 +352,7 @@ function ConcentratedCard() {
           <div className="mt-4 border border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
             <div className="flex justify-between items-center">
               <span className="text-sm leading-[18px] text-secondary-title">Estimated APR</span>
-              <span className="text-2xl leading-[30px]">≈{currentAmmPool?.rewardApr24h[0]?.toFixed(1) || '-'}%</span>
+              <span className="text-2xl leading-[30px]">≈{toPercentString(currentAmmPool?.totalApr30d)}</span>
             </div>
             <div className="flex mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
               <div className="mr-[22px]">
@@ -358,12 +360,12 @@ function ConcentratedCard() {
                 <div className="flex items-center mb-2">
                   <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
                   <span className="text-xs text-active-cyan opacity-50 mx-1">{coin1?.symbol}</span>
-                  <span className="text-sm">0%</span>
+                  <span className="text-sm">{toPercentString(currentAmmPool?.fee30dA)}</span>
                 </div>
                 <div className="flex items-center">
                   <CoinAvatar className="inline-block mr-1" noCoinIconBorder size="sm" token={coin2} />
                   <span className="text-xs text-active-cyan opacity-50 mx-1">{coin2?.symbol}</span>
-                  <span className="text-sm">0%</span>
+                  <span className="text-sm">{toPercentString(currentAmmPool?.fee30dB)}</span>
                 </div>
               </div>
               <div>
@@ -371,7 +373,7 @@ function ConcentratedCard() {
                 <div className="flex items-center mb-2">
                   <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
                   <span className="text-xs text-active-cyan opacity-50 mx-1">Trading Fees</span>
-                  <span className="text-sm">{currentAmmPool?.fee24hA.toFixed(1) || '-'}%</span>
+                  <span className="text-sm">{toPercentString(currentAmmPool?.feeApr30d)}</span>
                 </div>
               </div>
             </div>

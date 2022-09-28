@@ -7,13 +7,14 @@ import { useCallback, useMemo } from 'react'
 interface Props {
   coin1?: SplToken
   coin2?: SplToken
+  fee?: string
   currentPrice?: Decimal
   focusSide: 'coin1' | 'coin2'
   onChangeFocus: (focusSide: 'coin1' | 'coin2') => void
 }
 
 export function PairInfoTitle(props: Props) {
-  const { coin1, coin2, currentPrice, focusSide, onChangeFocus } = props
+  const { coin1, coin2, currentPrice, fee, focusSide, onChangeFocus } = props
   const isFocus1 = focusSide === 'coin1'
 
   const tabs = useMemo(() => {
@@ -48,6 +49,9 @@ export function PairInfoTitle(props: Props) {
         <span className="ml-2 text-xl">
           {coin1Symbol} / {coin2Symbol}
         </span>
+        <div className="px-1 ml-2 text-sm text-secondary-title rounded-xl border border-secondary-title">
+          {fee || '-'}
+        </div>
       </div>
       <div className="flex items-center">
         {currentPrice && (
