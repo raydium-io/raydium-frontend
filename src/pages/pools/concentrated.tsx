@@ -7,9 +7,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
@@ -907,38 +905,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
             const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
 
-            // TODO: remove the comment out code below, they are for testing only
-            // if (idx === 0) {
-            //   useConcentrated.setState({
-            //     currentAmmPool: info,
-            //     targetUserPositionAccount: p
-            //   })
-            // }
-
-            // const getCoinAmount = (pair: LiquidityAmountPair) => {
-            //   // eslint-disable-next-line no-console
-            //   console.log(
-            //     'getCoinAmountA: ',
-            //     pair.amountSlippageA.toNumber(),
-            //     'getCoinAmountB: ',
-            //     pair.amountSlippageB.toNumber()
-            //   )
-            // }
-
             return (
-              // <>
-              //   <PoolCardDatabaseBodyCollapsePositionContent
-              //     key={p.nftMint.toString()}
-              //     poolInfo={info}
-              //     userPositionAccount={p}
-              //     myPosition={myPosition}
-              //     amountA={amountA}
-              //     amountB={amountB}
-              //   />
-              //   <div className="px-3">
-              //     <ConcentratedSliderInput getCoinAmount={getCoinAmount} />
-              //   </div>
-              // </>
               <PoolCardDatabaseBodyCollapsePositionContent
                 key={p.nftMint.toString()}
                 poolInfo={info}

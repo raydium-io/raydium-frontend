@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router'
+
 import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
 
 import useToken from '@/application/token/useToken'
@@ -9,7 +11,6 @@ import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import useConnection from '../connection/useConnection'
 import useWallet from '../wallet/useWallet'
 
-import { useRouter } from 'next/router'
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
 

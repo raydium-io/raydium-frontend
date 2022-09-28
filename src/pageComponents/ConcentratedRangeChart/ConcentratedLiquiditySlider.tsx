@@ -43,7 +43,7 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
         poolInfo: currentAmmPool.state,
         ownerPosition: position,
         liquidity: new BN(value),
-        slippage: Number(slippageTolerance),
+        slippage: 0, // always 0, for remove liquidity only
         add: false
       })
       useConcentrated.setState({
