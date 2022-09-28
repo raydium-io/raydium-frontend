@@ -10,17 +10,8 @@ import { add, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
 import { Numberish } from '@/types/constants'
 
-export default function useConcentratedPendingYield(inputUserPositionAccount?: UserPositionAccount) {
+export default function useConcentratedPendingYield(targetUserPositionAccount?: UserPositionAccount) {
   const tokenPrices = useToken((s) => s.tokenPrices)
-  const selectedUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
-
-  let targetUserPositionAccount: UserPositionAccount | undefined
-
-  if (!inputUserPositionAccount) {
-    targetUserPositionAccount = selectedUserPositionAccount
-  } else {
-    targetUserPositionAccount = inputUserPositionAccount
-  }
 
   return useMemo(() => {
     if (!targetUserPositionAccount) return undefined

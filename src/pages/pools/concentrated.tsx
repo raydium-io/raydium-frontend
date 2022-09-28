@@ -47,7 +47,7 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { lt } from '@/functions/numberish/compare'
+import { isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
@@ -1325,7 +1325,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               <Col>
                 <Button
                   className="frosted-glass-teal"
-                  disabled={!p}
                   validators={[
                     {
                       should: walletConnected,
@@ -1334,7 +1333,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
                         children: 'Connect Wallet'
                       }
-                    }
+                    },
+                    { should: isMeaningfulNumber(unclaimedYield) }
                   ]}
                   onClick={() => txHavestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p })}
                 >
@@ -1350,6 +1350,19 @@ function PoolCardDatabaseBodyCollapsePositionContent({
           >
             {isMobile ? (
               <Row className="gap-5">
+                <Icon
+                  size="sm"
+                  iconSrc="/icons/msic-swap-h.svg"
+                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                  onClick={() => {
+                    routeTo('/swap', {
+                      queryProps: {
+                        coin1: info.base,
+                        coin2: info.quote
+                      }
+                    })
+                  }}
+                />
                 <Icon
                   size="sm"
                   heroIconName="plus"
@@ -1379,6 +1392,22 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               </Row>
             ) : (
               <>
+                <Tooltip>
+                  <Icon
+                    size="sm"
+                    iconSrc="/icons/msic-swap-h.svg"
+                    className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                    onClick={() => {
+                      routeTo('/swap', {
+                        queryProps: {
+                          coin1: info.base,
+                          coin2: info.quote
+                        }
+                      })
+                    }}
+                  />
+                  <Tooltip.Panel>Swap</Tooltip.Panel>
+                </Tooltip>
                 <Tooltip>
                   <Icon
                     size="smi"
