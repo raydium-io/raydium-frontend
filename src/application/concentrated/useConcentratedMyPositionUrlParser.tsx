@@ -5,10 +5,12 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
+import { routeTo } from '../routeTools'
 import useUpdateUrlFn from '../txTools/useUpdateUrlFn'
 import useConcentrated from './useConcentrated'
 
-const sessionName = 'MY_POSITION_NFT_MINT'
+const nftMintName = 'MY_POSITION_NFT_MINT'
+const myPositionAmmIdName = 'MY_POSITION_AMM_ID'
 
 /** position id */
 export default function useConcentratedMyPositionUrlParser() {
@@ -22,11 +24,11 @@ export default function useConcentratedMyPositionUrlParser() {
   useEffect(() => {
     if (!pathname.includes('my-position')) return
     if (targetUserPositionAccount && nftMint) {
-      updateUrl(pathname, { ['ammid']: toPubString(targetUserPositionAccount.poolId) })
-      setSessionItem(sessionName, nftMint)
+      setSessionItem(nftMintName, nftMint)
+      setSessionItem(myPositionAmmIdName, toPubString(targetUserPositionAccount.poolId))
     } else {
-      const storagedNftMint = getSessionItem<string>(sessionName)
-      const ammId = query['ammid'] ? String(query['ammid']).trim() : undefined
+      const storagedNftMint = getSessionItem<string>(nftMintName)
+      const ammId = getSessionItem<string>(myPositionAmmIdName)
 
       const currentAmmPool = hydrateConcentratedInfo.find(({ id }) => isMintEqual(ammId, id))
       const targetUserPositionAccount = currentAmmPool?.userPositionAccount?.find(({ nftMint }) =>
@@ -43,8 +45,10 @@ export default function useConcentratedMyPositionUrlParser() {
 
   useRecordedEffect(
     ([prevPathname]) => {
-      if (prevPathname?.includes('my-position') && !pathname.includes('my-position')) {
-        updateUrl(pathname, {})
+      const storagedNftMint = getSessionItem<string>(nftMintName)
+      const ammId = getSessionItem<string>(myPositionAmmIdName)
+      if (!prevPathname && pathname.includes('my-position') && !storagedNftMint && !ammId) {
+        routeTo('/pools/concentrated')
       }
     },
     [pathname]

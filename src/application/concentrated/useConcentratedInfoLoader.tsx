@@ -70,7 +70,7 @@ export default function useConcentratedInfoLoader() {
 
   /** select pool chart data */
   useTransitionedEffect(async () => {
-    if (!pathname.includes('concentrated')) return
+    if (!pathname.includes('concentrated') && !pathname.includes('my-position')) return
     if (!currentAmmPool) {
       useConcentrated.setState({ chartPoints: [] })
       return

@@ -145,6 +145,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
     s.coin1,
     s.coin2
   ])
+  const isMobile = useAppSettings((s) => s.isMobile)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const [initMinBoundaryX, initMaxBoundaryX] = [
@@ -175,6 +176,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
           hideRangeLine
           hideRangeInput
           hideCurrentPriceLabel
+          height={300}
         />
       </div>
       <Row className="items-center flex-wrap gap-2">
