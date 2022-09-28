@@ -57,6 +57,7 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
+import { useRouter } from 'next/router'
 
 export default function PoolsConcentratedPage() {
   // usePoolSummeryInfoLoader()
@@ -723,10 +724,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
         value={
           isHydratedConcentratedItemInfo(info)
             ? timeBasis === TimeBasis.DAY
-              ? toPercentString(info.state.day.apr)
+              ? toPercentString(info.totalApr24h)
               : timeBasis === TimeBasis.WEEK
-              ? toPercentString(info.state.week.apr)
-              : toPercentString(info.state.month.apr)
+              ? toPercentString(info.totalApr7d)
+              : toPercentString(info.totalApr30d)
             : undefined
         }
       />
@@ -858,11 +859,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         <Button
           className="frosted-glass-teal"
           onClick={() => {
-            // create
             useConcentrated.setState({ coin1: info.base, coin2: info.quote })
-            routeTo('/liquidity/concentrated', {
-              queryProps: {}
-            })
+            routeTo('/liquidity/concentrated')
           }}
         >
           Open New Position
