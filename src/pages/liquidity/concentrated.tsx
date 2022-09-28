@@ -21,6 +21,7 @@ import createContextStore from '@/functions/react/createContextStore'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
+import useToken from '@/application/token/useToken'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -65,6 +66,7 @@ function ConcentratedCard() {
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
+  const getToken = useToken((s) => s.getToken)
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
@@ -72,6 +74,7 @@ function ConcentratedCard() {
     useConcentrated()
   const chartRef = useRef<{ getPosition: () => { min: number; max: number } }>()
   const tickRef = useRef<{ lower?: number; upper?: number }>({ lower: undefined, upper: undefined })
+  const hasReward = !!currentAmmPool && currentAmmPool.state.rewardInfos.length > 0
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
 
   const isFocus1 = focusSide === 'coin1'
@@ -348,29 +351,31 @@ function ConcentratedCard() {
               <span className="text-sm leading-[18px] text-secondary-title">Estimated APR</span>
               <span className="text-2xl leading-[30px]">≈{toPercentString(currentAmmPool?.totalApr30d)}</span>
             </div>
-            <div className="flex mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
-              <div className="mr-[22px]">
-                <span className="text-sm leading-[18px] text-secondary-title">Rewards</span>
-                <div className="flex items-center mb-2">
-                  <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
-                  <span className="text-xs text-active-cyan opacity-50 mx-1">{coin1?.symbol}</span>
-                  <span className="text-sm">{toPercentString(currentAmmPool?.fee30dA)}</span>
-                </div>
-                <div className="flex items-center">
-                  <CoinAvatar className="inline-block mr-1" noCoinIconBorder size="sm" token={coin2} />
-                  <span className="text-xs text-active-cyan opacity-50 mx-1">{coin2?.symbol}</span>
-                  <span className="text-sm">{toPercentString(currentAmmPool?.fee30dB)}</span>
+            {hasReward && (
+              <div className="flex mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
+                <div className="mr-[22px]">
+                  <span className="text-sm leading-[18px] text-secondary-title">Rewards</span>
+                  {currentAmmPool?.state.rewardInfos.map((reward, idx) => {
+                    const rewardToken = getToken(reward.tokenMint)
+                    return (
+                      <div key={reward.tokenMint.toBase58()} className="flex items-center mb-2">
+                        <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={rewardToken} />
+                        <span className="text-xs text-active-cyan opacity-50 mx-1">{rewardToken?.symbol}</span>
+                        <span className="text-sm">{toPercentString(currentAmmPool?.rewardApr30d[idx])}</span>
+                      </div>
+                    )
+                  })}
+                  <div>
+                    <span className="text-sm leading-[18px] text-secondary-title">Fees</span>
+                    <div className="flex items-center mb-2">
+                      <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
+                      <span className="text-xs text-active-cyan opacity-50 mx-1">Trading Fees</span>
+                      <span className="text-sm">{toPercentString(currentAmmPool?.feeApr30d)}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div>
-                <span className="text-sm leading-[18px] text-secondary-title">Fees</span>
-                <div className="flex items-center mb-2">
-                  <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
-                  <span className="text-xs text-active-cyan opacity-50 mx-1">Trading Fees</span>
-                  <span className="text-sm">{toPercentString(currentAmmPool?.feeApr30d)}</span>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>

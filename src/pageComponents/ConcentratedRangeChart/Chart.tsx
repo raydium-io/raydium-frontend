@@ -80,11 +80,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const areaRef = useRef<number | undefined>()
   const xAxisRef = useRef<number[]>([])
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
-  const tickGap = xAxisRef.current.length
-    ? (xAxisRef.current[1] - xAxisRef.current[0]) / xAxisRef.current.length
-    : points.length
-    ? (points[points.length - 1].x - points[0].x) / 8 / 8
-    : 0
+  const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   boundaryRef.current = { min: points[0]?.x || 0, max: points[points.length - 1]?.x || 100 }
 
   const updatePosition = useCallback(
@@ -157,7 +153,7 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   useEffect(() => {
     setXAxis(xAxisRef.current)
-  }, [position])
+  }, [position, xAxisDomain])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -185,6 +181,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     } else {
       xAxisRef.current.push(val)
     }
+    if (val === 0) return '0'
     if (val < 1) return val.toFixed(4)
     if (val < 10) return val.toFixed(1)
 
@@ -341,30 +338,17 @@ export default forwardRef(function Chart(props: Props, ref) {
     zoomCounterRef.current = 0
   }
   const zoomIn = () => {
-    const newRef = zoomCounterRef.current + ZOOM_INTERVAL
-    if (newRef >= displayList.length - 1 - newRef) {
-      return
-    }
-    zoomCounterRef.current = newRef
-    const [min, max] = [displayList[newRef].x, displayList[displayList.length - 1 - newRef].x]
+    const [min, max] = [
+      xAxisRef.current[0] + tickGap * ZOOM_INTERVAL,
+      xAxisRef[xAxisRef.current.length - 1] - tickGap * ZOOM_INTERVAL
+    ]
     boundaryRef.current = { min, max }
     setXAxisDomain([min, max])
-    updatePosition((pos) => {
-      return {
-        [Range.Min]: min > pos[Range.Min] ? min : pos[Range.Min],
-        [Range.Max]: max < pos[Range.Max] ? max : pos[Range.Max]
-      }
-    })
   }
   const zoomOut = () => {
-    zoomCounterRef.current = zoomCounterRef.current - ZOOM_INTERVAL
-    if (zoomCounterRef.current < 0) {
-      zoomCounterRef.current = 0
-      return
-    }
     const [min, max] = [
-      displayList[zoomCounterRef.current].x,
-      displayList[displayList.length - 1 - zoomCounterRef.current].x
+      Math.max(xAxisRef.current[0] - tickGap * ZOOM_INTERVAL, 0),
+      xAxisRef.current[xAxisRef.current.length - 1] + tickGap * ZOOM_INTERVAL
     ]
     boundaryRef.current = { min, max }
     setXAxisDomain([min, max])
