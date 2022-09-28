@@ -959,8 +959,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         </>
       ) : (
         <>
-          <PoolCardDatabaseBodyCollapsePositionContent poolInfo={info} />
-          <AutoBox>{openNewPosition}</AutoBox>
+          <PoolCardDatabaseBodyCollapsePositionContent poolInfo={info} noBorderBottom={true} />
+          {/* <AutoBox>{openNewPosition}</AutoBox> */}
         </>
       )}
     </AutoBox>
