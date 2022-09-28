@@ -35,6 +35,7 @@ import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiqu
 import { Fraction } from 'test-r-sdk'
 import { RemainSOLAlert, canTokenPairBeSelected, toXYChartFormat, PairInfoTitle } from '@/pageComponents/Concentrated'
 import Decimal from 'decimal.js'
+import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -46,6 +47,7 @@ const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityCo
 export default function Concentrated() {
   useConcentratedAmmSelector()
   useConcentratedAmountCalculator()
+  useConcentratedInitCoinFiller()
 
   return (
     <ConcentratedUIContextProvider>
