@@ -7,7 +7,9 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
@@ -54,7 +56,7 @@ import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
-import { RemoveConcentratedPoolDialog } from '@/pageComponents/dialogs/RemoveConcentratedPoolDialog'
+import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 
 export default function PoolsConcentratedPage() {
   // usePoolSummeryInfoLoader()
@@ -82,7 +84,7 @@ export default function PoolsConcentratedPage() {
       <PoolHeader />
       <PoolCard />
       <AddConcentratedLiquidityDialog />
-      <RemoveConcentratedPoolDialog />
+      <RemoveConcentratedLiquidityDialog />
     </PageLayout>
   )
 }

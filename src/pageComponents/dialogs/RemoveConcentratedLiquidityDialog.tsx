@@ -21,20 +21,8 @@ import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
-export function RemoveConcentratedPoolDialog({
-  className,
-  mode: inputMode,
-  onClose
-}: {
-  className?: string
-  mode?: 'remove'
-  onClose?(): void
-}) {
+export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   // cache for UI
-  const [mode, setMode] = useState(inputMode)
-  useEffect(() => {
-    if (inputMode != null) setMode(inputMode)
-  }, [inputMode])
   const open = useConcentrated((s) => s.isRemoveDialogOpen)
   const walletConnected = useWallet((s) => s.connected)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
