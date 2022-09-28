@@ -3,7 +3,7 @@ export enum Range {
   Max = 'max'
 }
 export const smoothCount = 20
-export const ZOOM_INTERVAL = 10
+export const ZOOM_INTERVAL = 5
 export const REFERENCE_LINE_COLOR = '#abc4ff'
 export const HIGHLIGHT_COLOR = '#1B365F'
 export const strokeFillProp = {

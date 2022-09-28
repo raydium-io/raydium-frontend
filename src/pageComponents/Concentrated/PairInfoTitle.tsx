@@ -38,7 +38,9 @@ export function PairInfoTitle(props: Props) {
     return new Decimal(1).div(currentPrice).toDecimalPlaces(coin2?.decimals).toString()
   }
 
-  const [coin1Symbol = '--', coin2Symbol = '--'] = [coin1?.symbol, coin2?.symbol]
+  const [coin1Symbol = '--', coin2Symbol = '--'] = isFocus1
+    ? [coin1?.symbol, coin2?.symbol]
+    : [coin2?.symbol, coin1?.symbol]
 
   return (
     <div className="flex justify-between items-center mb-[27px]">
@@ -54,7 +56,7 @@ export function PairInfoTitle(props: Props) {
       <div className="flex items-center">
         {currentPrice && (
           <>
-            {getPrice()} {coin1Symbol} per {coin2Symbol}
+            {getPrice()} {coin2Symbol} per {coin1Symbol}
           </>
         )}
         {coin1 && coin2 && (

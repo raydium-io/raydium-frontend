@@ -44,7 +44,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const [amountQuoteIsOutOfMax, setAmountQuoteIsOutOfMax] = useState(false)
   const [amountQuoteIsNegative, setAmountQuoteIsNegative] = useState(false)
   const liquidity = useConcentrated((s) => s.liquidity)
-  const pendingYield = useConcentratedPendingYield()
+  const pendingYield = useConcentratedPendingYield(targetUserPositionAccount)
 
   useEffect(() => {
     if (!currentAmmPool || !targetUserPositionAccount) return

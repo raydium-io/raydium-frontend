@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import { AmmV3 } from 'test-r-sdk'
 
@@ -10,6 +10,7 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
+import { Numberish } from '@/types/constants'
 
 import useConcentrated from './useConcentrated'
 
@@ -18,7 +19,7 @@ import useConcentrated from './useConcentrated'
  * @requires {@link useConcentrated `useConcentrated`}
  */
 export default function useConcentratedAmountCalculator() {
-  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
+  const slippageToleranceByConfig = useAppSettings((s) => s.slippageTolerance)
   const {
     coin1,
     coin1Amount,
@@ -30,9 +31,15 @@ export default function useConcentratedAmountCalculator() {
     userCursorSide,
     isRemoveDialogOpen
   } = useConcentrated()
+
+  const slippageTolerance = useMemo(() => {
+    if (isRemoveDialogOpen) return 0
+    return slippageToleranceByConfig
+  }, [isRemoveDialogOpen, slippageToleranceByConfig])
+
   useEffect(() => {
     try {
-      calcConcentratedPairsAmount()
+      calcConcentratedPairsAmount(slippageTolerance)
     } catch (err) {
       /* still can't calc amount */
       // eslint-disable-next-line no-console
@@ -51,8 +58,8 @@ export default function useConcentratedAmountCalculator() {
 }
 
 /** dirty */
-function calcConcentratedPairsAmount(): void {
-  const { slippageTolerance } = useAppSettings.getState()
+function calcConcentratedPairsAmount(slippageTolerance: Numberish): void {
+  // const { slippageTolerance } = useAppSettings.getState()
   const {
     coin1,
     coin1Amount,
