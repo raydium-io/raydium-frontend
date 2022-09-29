@@ -19,6 +19,7 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         showPlusMinusControls
         decimalCount={decimals}
         value={minValue}
+        maxN={maxValue ? Number(maxValue) : undefined}
         increaseFn={() => onInDecrease({ val: minValue, side: Range.Min, isIncrease: true })}
         decreaseFn={() => onInDecrease({ val: minValue, side: Range.Min, isIncrease: false })}
         onUserInput={(val, { triggerBy }) => {
@@ -34,6 +35,7 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         showPlusMinusControls
         decimalCount={decimals}
         value={maxValue}
+        minN={minValue ? Number(minValue) : undefined}
         increaseFn={() => onInDecrease({ val: maxValue, side: Range.Max, isIncrease: true })}
         decreaseFn={() => onInDecrease({ val: maxValue, side: Range.Max, isIncrease: false })}
         onUserInput={(val, { triggerBy }) => {

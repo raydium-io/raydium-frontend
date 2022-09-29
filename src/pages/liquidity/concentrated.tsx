@@ -15,7 +15,7 @@ import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import PageLayout from '@/components/PageLayout'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
@@ -43,6 +43,7 @@ import RowTabs from '@/components/RowTabs'
 import Grid from '@/components/Grid'
 import FadeInStable from '@/components/FadeIn'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
+import { div, sub } from '@/functions/numberish/operations'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -96,7 +97,17 @@ function ConcentratedCard() {
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
-  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, currentAmmPool, hydratedAmmPools } = useConcentrated()
+  const {
+    coin1,
+    coin1Amount,
+    coin2,
+    coin2Amount,
+    focusSide,
+    currentAmmPool,
+    hydratedAmmPools,
+    priceUpper,
+    priceLower
+  } = useConcentrated()
   const chartRef = useRef<{ getPosition: () => { min: number; max: number } }>()
   const tickRef = useRef<{ lower?: number; upper?: number }>({ lower: undefined, upper: undefined })
   const hasReward = !!currentAmmPool && currentAmmPool.state.rewardInfos.length > 0
@@ -348,6 +359,12 @@ function ConcentratedCard() {
                 should: currentAmmPool,
                 fallbackProps: {
                   children: 'Pool Not Found'
+                }
+              },
+              {
+                should: gt(sub(priceUpper, priceLower), div(currentAmmPool?.currentPrice, 1000)),
+                fallbackProps: {
+                  children: 'Range to small'
                 }
               },
               {

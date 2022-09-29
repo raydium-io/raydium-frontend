@@ -157,6 +157,9 @@ export default function DecimalInput({
       onUserInput={(v) => {
         userInput(v)
       }}
+      onBlur={(v) => {
+        if (minN || maxN) userInput(toString(clamp(minN, String(v), maxN)))
+      }}
       onDangerousValueChange={(v) => {
         dangerousInput(v)
       }}
