@@ -46,7 +46,7 @@ export function PairInfoTitle(props: Props) {
     <div className="flex justify-between items-center mb-[27px]">
       <div className="flex items-center">
         <CoinAvatarPair size="lg" token1={coin1} token2={coin2} />
-        <span className="ml-2 text-xl">
+        <span className="ml-2 text-xl font-medium text-white">
           {coin1?.symbol || '-'} / {coin2?.symbol || '-'}
         </span>
         <div className="px-2.5 py-1 ml-2 rounded-lg text-sm text-secondary-title bg-active-tab-bg">

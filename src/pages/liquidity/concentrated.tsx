@@ -96,8 +96,7 @@ function ConcentratedCard() {
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
-  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, currentAmmPool, priceLowerTick, priceUpperTick } =
-    useConcentrated()
+  const { coin1, coin1Amount, coin2, coin2Amount, focusSide, currentAmmPool, hydratedAmmPools } = useConcentrated()
   const chartRef = useRef<{ getPosition: () => { min: number; max: number } }>()
   const tickRef = useRef<{ lower?: number; upper?: number }>({ lower: undefined, upper: undefined })
   const hasReward = !!currentAmmPool && currentAmmPool.state.rewardInfos.length > 0
@@ -383,7 +382,7 @@ function ConcentratedCard() {
         >
           {!currentAmmPool && (
             <div className="absolute inset-0 z-10 grid grid-child-center backdrop-blur-md text-[#abc4ff]">
-              Pool Not Found
+              {hydratedAmmPools.length ? 'Pool Not Found' : 'Loading...'}
             </div>
           )}
           <div className="text-base leading-[22px] text-secondary-title mb-3">Set Price Range</div>
