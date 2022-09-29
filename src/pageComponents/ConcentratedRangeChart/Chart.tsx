@@ -79,12 +79,12 @@ export default forwardRef(function Chart(props: Props, ref) {
   const moveRef = useRef('')
   const areaRef = useRef<number | undefined>()
   const xAxisRef = useRef<number[]>([])
-  const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
-  boundaryRef.current =
-    xAxisDomain === DEFAULT_X_AXIS
-      ? { min: points[0]?.x || 0, max: points[points.length - 1]?.x || 100 }
-      : boundaryRef.current
+  const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
+
+  boundaryRef.current = xAxisDomain.length
+    ? { min: Number(xAxisDomain[0]) || 0, max: Number(xAxisDomain[xAxisDomain.length - 1]) || 100 }
+    : boundaryRef.current
 
   const updatePosition = useCallback(
     (nextStateOrCbk: PositionState | ((prePos: PositionState) => PositionState)) => {
@@ -99,6 +99,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         })
         return
       }
+
       setPosition({
         [Range.Min]: toFixedNumber(getSafeMin(nextStateOrCbk[Range.Min]), decimals),
         [Range.Max]: toFixedNumber(nextStateOrCbk[Range.Max], decimals)
@@ -148,6 +149,7 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   useEffect(() => {
     if (!defaultMin && !defaultMax) return
+    console.log(555555, defaultMin.toFixed(6))
     updatePosition({
       [Range.Min]: Number(defaultMin?.toFixed(10) || 0),
       [Range.Max]: Number(defaultMax?.toFixed(10) || 100)
