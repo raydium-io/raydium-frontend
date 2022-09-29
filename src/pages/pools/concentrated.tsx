@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useRouter } from 'next/router'
 
 import { twMerge } from 'tailwind-merge'
 import { CurrencyAmount } from 'test-r-sdk'
@@ -17,7 +16,6 @@ import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
-import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
@@ -58,7 +56,6 @@ import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConc
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 
 export default function PoolsConcentratedPage() {
-  // usePoolSummeryInfoLoader()
   const currentTab = useConcentrated((s) => s.currentTab)
 
   useConcentratedAmountCalculator()
