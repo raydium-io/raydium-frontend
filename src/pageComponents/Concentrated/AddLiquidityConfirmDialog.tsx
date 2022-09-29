@@ -64,6 +64,7 @@ export default function AddLiquidityConfirmDialog({
           size="lg"
         >
           <Row className="justify-between items-center mb-6">
+            <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="chevron-left" onClick={close} />
             <div className="text-xl font-semibold text-white">
               Preview Deposit to {coin1?.symbol} / {coin2?.symbol}
             </div>
