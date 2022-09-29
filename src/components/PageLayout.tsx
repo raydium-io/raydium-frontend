@@ -548,45 +548,37 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             <LinkItem icon="/icons/entry-icon-trade.svg" href="https://dex.raydium.io/">
               Trading
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-swap.svg" href="/swap" isCurrentRoutePath={pathname.includes('swap')}>
+            <LinkItem icon="/icons/entry-icon-swap.svg" href="/swap" isCurrentRoutePath={pathname === '/swap'}>
               Swap
             </LinkItem>
             <LinkItem
               icon="/icons/entry-icon-liquidity.svg"
               href="/liquidity/add"
-              isCurrentRoutePath={pathname.includes('/liquidity/add')}
+              isCurrentRoutePath={pathname === '/liquidity/add'}
             >
               Liquidity
             </LinkItem>
             <LinkItem
               icon="/icons/entry-icon-liquidity.svg"
               href="/liquidity/concentrated"
-              isCurrentRoutePath={pathname.includes('/liquidity/concentrated')}
+              isCurrentRoutePath={pathname === '/liquidity/concentrated'}
             >
               Concentrated
             </LinkItem>
-            <LinkItem
-              icon="/icons/entry-icon-pools.svg"
-              href="/pools/classic"
-              isCurrentRoutePath={pathname.includes('/pools/classic')}
-            >
+            <LinkItem icon="/icons/entry-icon-pools.svg" href="/pools" isCurrentRoutePath={pathname === '/pools'}>
               Pools
             </LinkItem>
             <LinkItem
               icon="/icons/entry-icon-concentrated-pools.svg"
               href="/pools/concentrated"
-              isCurrentRoutePath={pathname.includes('/pools/concentrated')}
+              isCurrentRoutePath={pathname === '/pools/concentrated'}
             >
               Concentrated Pools
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-farms.svg" href="/farms" isCurrentRoutePath={pathname.includes('farms')}>
+            <LinkItem icon="/icons/entry-icon-farms.svg" href="/farms" isCurrentRoutePath={pathname === '/farms'}>
               Farms
             </LinkItem>
-            <LinkItem
-              icon="/icons/entry-icon-staking.svg"
-              href="/staking"
-              isCurrentRoutePath={pathname.includes('staking')}
-            >
+            <LinkItem icon="/icons/entry-icon-staking.svg" href="/staking" isCurrentRoutePath={pathname === '/staking'}>
               Staking
             </LinkItem>
             <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/list">
