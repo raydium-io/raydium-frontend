@@ -761,10 +761,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
             value={
               isHydratedConcentratedItemInfo(info)
                 ? timeBasis === TimeBasis.DAY
-                  ? toPercentString(info.state.day.apr, { alreadyPercented: true })
+                  ? toPercentString(info.totalApr24h)
                   : timeBasis === TimeBasis.WEEK
-                  ? toPercentString(info.state.week.apr, { alreadyPercented: true })
-                  : toPercentString(info.state.month.apr, { alreadyPercented: true })
+                  ? toPercentString(info.totalApr7d)
+                  : toPercentString(info.totalApr30d)
                 : undefined
             }
           />
@@ -964,9 +964,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
           <div className="max-w-[300px] py-3 px-5">
             <div className="font-medium text-[#ABC4FF] text-2xs">Current Price</div>
             <Row className="gap-5  mt-1">
-              <div className="text-xs text-white">
-                {toString(decimalToFraction(info.state.currentPrice), { decimalLength: 'auto 5' })}
-              </div>
+              <div className="text-xs text-white">{toString(info.currentPrice, { decimalLength: 'auto 5' })}</div>
               <div className="text-[#ABC4FF] text-xs">
                 {info.base?.symbol} per {info.quote?.symbol}
               </div>
@@ -975,7 +973,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
         </Tooltip.Panel>
       </Tooltip>
     )
-  }, [inRange, info.state.currentPrice, info.base?.symbol, info.quote?.symbol])
+  }, [inRange, info.currentPrice, info.base?.symbol, info.quote?.symbol])
   const { logInfo } = useNotification.getState()
   const walletConnected = useWallet((s) => s.connected)
   const timeBasis = useConcentrated((s) => s.timeBasis)
