@@ -97,7 +97,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               topLeftLabel={'Base'}
               topRightLabel={`Deposited: ${toString(targetUserPositionAccount?.amountA)}`}
               maxValue={targetUserPositionAccount?.amountA}
-              canFillFullSOL
+              canFillFullBalance
               token={coinBase}
               value={toString(coinBaseAmount)}
               onUserInput={(value) => {
@@ -125,7 +125,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               topLeftLabel={'Quote'}
               topRightLabel={`Deposited: ${toString(targetUserPositionAccount?.amountB)}`}
               maxValue={targetUserPositionAccount?.amountB}
-              canFillFullSOL
+              canFillFullBalance
               token={coinQuote}
               value={toString(coinQuoteAmount)}
               onUserInput={(value) => {
