@@ -472,7 +472,11 @@ function ConcentratedCard() {
         position={chartRef.current?.getPosition()}
         totalDeposit={toUsdVolume(totalDeposit)}
         currentPrice={currentAmmPool?.currentPrice}
-        onConfirm={txCreateConcentrated}
+        onConfirm={(close) =>
+          txCreateConcentrated().then(({ allSuccess }) => {
+            if (allSuccess) close()
+          })
+        }
         onClose={onConfirmClose}
       />
     </CyberpunkStyleCard>
