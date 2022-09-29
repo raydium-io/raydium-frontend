@@ -1,3 +1,7 @@
+import { useEffect, useRef, useState } from 'react'
+
+import { Price } from 'test-r-sdk'
+
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import txIncreaseConcentrated from '@/application/concentrated/txIncreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -14,6 +18,7 @@ import Dialog from '@/components/Dialog'
 import FadeInStable from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
+import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
@@ -23,8 +28,6 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useInit from '@/hooks/useInit'
-import { useEffect, useRef, useState } from 'react'
-import { Price } from 'test-r-sdk'
 
 export function AddConcentratedLiquidityDialog() {
   useConcentratedAmountCalculator()
@@ -71,7 +74,8 @@ export function AddConcentratedLiquidityDialog() {
   const quoteVolume = mul(coinQuoteAmount, tokenPriceQuote)
   const totalVolume = add(baseVolume, quoteVolume)
   return (
-    <Dialog
+    <ResponsiveDialogDrawer
+      placement="from-bottom"
       open={open}
       onClose={() => {
         useConcentrated.setState({
@@ -83,7 +87,7 @@ export function AddConcentratedLiquidityDialog() {
     >
       {({ close: closeDialog }) => (
         <Card
-          className="backdrop-filter backdrop-blur-xl p-8 pb-2 rounded-3xl w-[min(456px,90vw)] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
+          className="backdrop-filter backdrop-blur-xl p-8 pb-2 rounded-3xl w-[min(456px,90vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
           size="lg"
         >
           <Row className="justify-between items-center mb-6">
@@ -210,7 +214,7 @@ export function AddConcentratedLiquidityDialog() {
 
           <Row className="flex-col gap-1">
             <Button
-              className="frosted-glass frosted-glass-teal"
+              className="frosted-glass frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
               isLoading={isApprovePanelShown}
               componentRef={buttonComponentRef}
               validators={[
@@ -266,6 +270,6 @@ export function AddConcentratedLiquidityDialog() {
           </Row>
         </Card>
       )}
-    </Dialog>
+    </ResponsiveDialogDrawer>
   )
 }

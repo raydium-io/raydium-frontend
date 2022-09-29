@@ -71,7 +71,10 @@ export default function RangeSliderBox(props: RangeSliderBoxProps) {
     <div className={twMerge('w-full py-1 px-1', className)}>
       <Row className="w-full flex flex-row justify-between">
         <div className="w-full flex flex-row justify-start items-center ">
-          <span className={twMerge('text-[#ABC4FF] font-normal', titleClassName)} style={{ marginRight: 8 }}>
+          <span
+            className={twMerge('text-[#ABC4FF] font-normal text-base mobile:text-sm', titleClassName)}
+            style={{ marginRight: 8 }}
+          >
             {title ?? 'Amount'}
           </span>
           <PercentTag tagName="Max" className={tagClassName} percentageValue={1} onClick={setPercentageValue} />
@@ -79,7 +82,9 @@ export default function RangeSliderBox(props: RangeSliderBoxProps) {
           <PercentTag tagName="50%" className={tagClassName} percentageValue={0.5} onClick={setPercentageValue} />
           <PercentTag tagName="25%" className={tagClassName} percentageValue={0.25} onClick={setPercentageValue} />
         </div>
-        <div style={{ color: 'white', fontSize: 18, fontWeight: 500 }}>{toPercentString(currentPercentage)}</div>
+        <div className="text-lg mobile:text-sm text-white font-medium flex items-center">
+          {toPercentString(currentPercentage)}
+        </div>
       </Row>
       <SliderWrap currentValue={55} className={'mt-5'} max={max} onChange={onSliderChange} value={currentValue} />
     </div>
@@ -100,7 +105,7 @@ function PercentTag({
   return (
     <div
       className={twMerge(
-        'text-[#ABC4FF] font-medium m-0.25 bg-[#1B1659] rounded-xl mobile:rounded-l hover:bg-[#ABC4FF] hover:text-[#1B1659] py-1 px-3 clickable',
+        'text-[#ABC4FF] font-medium text-base mobile:text-sm m-0.25 bg-[#1B1659] rounded-xl mobile:rounded-lg hover:bg-[#ABC4FF] hover:text-[#1B1659] py-1 px-3 mobile:px-2 clickable',
         className
       )}
       onClick={() => {

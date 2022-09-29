@@ -12,15 +12,16 @@ import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
+import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
+import useInit from '@/hooks/useInit'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
-import useInit from '@/hooks/useInit'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   useInit(() => {
@@ -63,7 +64,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   }, [currentAmmPool, targetUserPositionAccount])
 
   return (
-    <Dialog
+    <ResponsiveDialogDrawer
+      placement="from-bottom"
       open={open}
       onClose={() => {
         useConcentrated.setState({
@@ -76,7 +78,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       {({ close: closeDialog }) => (
         <Card
           className={twMerge(
-            'backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(500px,90vw)] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card',
+            'backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(500px,90vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card',
             className
           )}
           size="lg"
@@ -146,14 +148,14 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
             <ConcentratedLiquiditySlider />
             <div className="py-3 px-3 ring-1 mobile:ring-1 ring-[rgba(54, 185, 226, 0.5)] rounded-xl mobile:rounded-xl ">
               <Row className="flex justify-between items-center text-[#ABC4FF] font-medium text-sm">
-                <div>Pending Yield</div>
+                <div className="text-base mobile:text-sm">Pending Yield</div>
                 <div className="text-lg text-white">{toUsdVolume(pendingYield)}</div>
               </Row>
             </div>
           </Col>
           <Row className="flex-col gap-1">
             <Button
-              className="frosted-glass frosted-glass-teal"
+              className="frosted-glass frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
               isLoading={isApprovePanelShown}
               componentRef={buttonComponentRef}
               validators={[
@@ -211,6 +213,6 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
           </Row>
         </Card>
       )}
-    </Dialog>
+    </ResponsiveDialogDrawer>
   )
 }
