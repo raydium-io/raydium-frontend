@@ -11,21 +11,24 @@ import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import Decimal from 'decimal.js'
+import { Fraction } from 'test-r-sdk'
 
 interface Props {
-  coin1: SplToken
-  coin2: SplToken
-  coin1Amount: Numberish
-  coin2Amount: Numberish
+  open: boolean
+  coin1?: SplToken
+  coin2?: SplToken
+  coin1Amount?: Numberish
+  coin2Amount?: Numberish
   decimals: number
-  currentPrice: Decimal
-  position: { min: number; max: number }
+  currentPrice?: Fraction
+  position?: { min: number; max: number }
   totalDeposit: string
   onConfirm?: () => void
   onClose: () => void
 }
 
 export default function AddLiquidityConfirmDialog({
+  open,
   coin1,
   coin2,
   coin1Amount,
@@ -51,7 +54,7 @@ export default function AddLiquidityConfirmDialog({
   }, [onClose])
 
   return (
-    <Dialog open={true} onClose={close}>
+    <Dialog open={open} onClose={close}>
       <Card
         className={twMerge(
           `p-6 rounded-3xl w-[min(480px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card`
@@ -59,7 +62,6 @@ export default function AddLiquidityConfirmDialog({
         size="lg"
       >
         <Row className="justify-between items-center mb-6">
-          <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="chevron-left" onClick={close} />
           <div className="text-xl font-semibold text-white">Preview Deposit to WETH / DAI</div>
           <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={close} />
         </Row>
@@ -69,19 +71,19 @@ export default function AddLiquidityConfirmDialog({
             <div className="flex justify-between mb-2.5">
               <span className="flex items-center text-sm text-light-blue opacity-50">
                 <CoinAvatar className="inline-block mr-1" noCoinIconBorder size="sm" token={coin1} />
-                {coin1.symbol}
+                {coin1?.symbol}
               </span>
               <span>
-                {toString(coin1Amount)} {coin1.symbol}
+                {toString(coin1Amount)} {coin1?.symbol}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="flex items-center text-sm text-light-blue opacity-50">
                 <CoinAvatar className="inline-block mr-1" noCoinIconBorder size="sm" token={coin2} />
-                {coin2.symbol}
+                {coin2?.symbol}
               </span>
               <span>
-                {toString(coin2Amount)} {coin2.symbol}
+                {toString(coin2Amount)} {coin2?.symbol}
               </span>
             </div>
           </div>
@@ -92,23 +94,23 @@ export default function AddLiquidityConfirmDialog({
             <span className="text-sm leading-[18px] text-secondary-title">Selected Range</span>
             <div className="text-sm flex items-center leading-[18px]">
               <span className="flex items-center text-sm text-light-blue opacity-50 mr-2">Current Price</span>
-              {toString(currentPrice.toString(), { decimalLength: decimalPlace })} {coin2.symbol} per {coin1.symbol}
+              {toString(currentPrice?.toString(), { decimalLength: decimalPlace })} {coin2?.symbol} per {coin1?.symbol}
             </div>
           </div>
 
           <div className="flex gap-2">
             <div className="border justify-center text-center flex-1 border-light-blue-opacity rounded-xl p-3">
               <span className="text-sm leading-[18px] text-secondary-title">Min Price</span>
-              <div className="text-xl my-3">{toString(position.min, { decimalLength: decimalPlace })}</div>
+              <div className="text-xl my-3">{toString(position?.min, { decimalLength: decimalPlace })}</div>
               <div className="text-sm text-light-blue opacity-50">
-                {coin2.symbol} per {coin1.symbol}
+                {coin2?.symbol} per {coin1?.symbol}
               </div>
             </div>
             <div className="border justify-center text-center flex-1 border-light-blue-opacity rounded-xl p-3">
               <span className="text-sm leading-[18px] text-secondary-title">Max Price</span>
-              <div className="text-xl my-3">{toString(position.max, { decimalLength: decimalPlace })}</div>
+              <div className="text-xl my-3">{toString(position?.max, { decimalLength: decimalPlace })}</div>
               <div className="text-sm text-light-blue opacity-50">
-                {coin2.symbol} per {coin1.symbol}
+                {coin2?.symbol} per {coin1?.symbol}
               </div>
             </div>
           </div>

@@ -222,7 +222,8 @@ function ConcentratedCard() {
   )
 
   const handleClickCreatePool = useCallback(() => {
-    const position = chartRef.current!.getPosition()
+    const position = chartRef.current?.getPosition()
+    if (!position) return
     useConcentrated.setState({
       priceLower: position.min,
       priceUpper: position.max
@@ -461,20 +462,19 @@ function ConcentratedCard() {
           turnOffCoinSelector()
         }}
       />
-      {isConfirmOn && (
-        <AddLiquidityConfirmDialog
-          coin1={coin1!}
-          coin2={coin2!}
-          coin1Amount={coin1Amount!}
-          coin2Amount={coin2Amount!}
-          decimals={decimals}
-          position={chartRef.current!.getPosition()}
-          totalDeposit={toUsdVolume(totalDeposit)}
-          currentPrice={currentAmmPool!.state.currentPrice}
-          onConfirm={txCreateConcentrated}
-          onClose={onConfirmClose}
-        />
-      )}
+      <AddLiquidityConfirmDialog
+        open={isConfirmOn}
+        coin1={coin1}
+        coin2={coin2}
+        coin1Amount={coin1Amount}
+        coin2Amount={coin2Amount}
+        decimals={decimals}
+        position={chartRef.current?.getPosition()}
+        totalDeposit={toUsdVolume(totalDeposit)}
+        currentPrice={currentAmmPool?.currentPrice}
+        onConfirm={txCreateConcentrated}
+        onClose={onConfirmClose}
+      />
     </CyberpunkStyleCard>
   )
 }
