@@ -102,12 +102,12 @@ function ConcentratedCard() {
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const isCoin1Base = isMintEqual(currentAmmPool?.state.mintA.mint, coin1)
   const isFocus1 = focusSide === 'coin1'
-  const isCoinPoolDirectionEq = !((isFocus1 && isCoin1Base) || (!isCoin1Base && !isFocus1))
+  const isPairPoolDirectionEq = (isFocus1 && isCoin1Base) || (!isCoin1Base && !isFocus1)
   const points = useMemo(() => {
     const formatPoints = chartPoints ? toXYChartFormat(chartPoints) : undefined
-    if (isCoinPoolDirectionEq) return formatPoints
+    if (isPairPoolDirectionEq) return formatPoints
     return formatPoints ? formatPoints.map((p) => ({ x: 1 / p.x, y: p.y })).reverse() : undefined
-  }, [chartPoints, isCoinPoolDirectionEq])
+  }, [chartPoints, isPairPoolDirectionEq])
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
@@ -141,12 +141,12 @@ function ConcentratedCard() {
       coin1,
       coin2,
       ammPool: currentAmmPool,
-      reverse: !isCoinPoolDirectionEq
+      reverse: !isPairPoolDirectionEq
     })
     tickRef.current.lower = res?.priceLowerTick
     tickRef.current.upper = res?.priceUpperTick
     return res
-  }, [coin1, coin2, currentAmmPool, isCoinPoolDirectionEq])
+  }, [coin1, coin2, currentAmmPool, isPairPoolDirectionEq])
 
   useEffect(() => {
     boundaryData && useConcentrated.setState(boundaryData)
@@ -238,7 +238,7 @@ function ConcentratedCard() {
         coin2={coin2}
         fee={toPercentString(currentAmmPool?.tradeFeeRate, { exact: true })}
         currentPrice={currentAmmPool?.state.currentPrice}
-        isCoinPoolDirectionEq={isCoinPoolDirectionEq}
+        isPairPoolDirectionEq={isPairPoolDirectionEq}
         focusSide={focusSide}
         onChangeFocus={(focusSide) => useConcentrated.setState({ focusSide })}
       />
@@ -371,7 +371,7 @@ function ConcentratedCard() {
             currentPrice={
               currentAmmPool
                 ? decimalToFraction(
-                    isCoinPoolDirectionEq
+                    isPairPoolDirectionEq
                       ? currentAmmPool.state.currentPrice
                       : new Decimal(1).div(currentAmmPool.state.currentPrice)
                   )

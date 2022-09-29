@@ -9,13 +9,13 @@ interface Props {
   coin2?: SplToken
   fee?: string
   currentPrice?: Decimal
-  isCoinPoolDirectionEq: boolean
+  isPairPoolDirectionEq: boolean
   focusSide: 'coin1' | 'coin2'
   onChangeFocus: (focusSide: 'coin1' | 'coin2') => void
 }
 
 export function PairInfoTitle(props: Props) {
-  const { coin1, coin2, currentPrice, fee, focusSide, isCoinPoolDirectionEq, onChangeFocus } = props
+  const { coin1, coin2, currentPrice, fee, focusSide, isPairPoolDirectionEq, onChangeFocus } = props
   const isFocus1 = focusSide === 'coin1'
 
   const tabs = useMemo(() => {
@@ -34,7 +34,7 @@ export function PairInfoTitle(props: Props) {
 
   const getPrice = () => {
     if (!currentPrice || !coin1 || !coin2) return ''
-    if (!isCoinPoolDirectionEq) return currentPrice.toDecimalPlaces(coin1?.decimals).toString()
+    if (isPairPoolDirectionEq) return currentPrice.toDecimalPlaces(coin1?.decimals).toString()
     return new Decimal(1).div(currentPrice).toDecimalPlaces(coin2?.decimals).toString()
   }
 
