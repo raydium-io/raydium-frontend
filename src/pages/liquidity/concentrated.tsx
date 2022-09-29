@@ -101,12 +101,14 @@ function ConcentratedCard() {
   const tickRef = useRef<{ lower?: number; upper?: number }>({ lower: undefined, upper: undefined })
   const hasReward = !!currentAmmPool && currentAmmPool.state.rewardInfos.length > 0
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
+  const isCoin1Base = isMintEqual(currentAmmPool?.state.mintA.mint, coin1)
   const isFocus1 = focusSide === 'coin1'
+  const isPairPoolDirectionEq = (isFocus1 && isCoin1Base) || (!isCoin1Base && !isFocus1)
   const points = useMemo(() => {
     const formatPoints = chartPoints ? toXYChartFormat(chartPoints) : undefined
-    if (isFocus1) return formatPoints
+    if (isPairPoolDirectionEq) return formatPoints
     return formatPoints ? formatPoints.map((p) => ({ x: 1 / p.x, y: p.y })).reverse() : undefined
-  }, [chartPoints, isFocus1])
+  }, [chartPoints, isPairPoolDirectionEq])
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
@@ -136,11 +138,16 @@ function ConcentratedCard() {
   }, [cardRef])
 
   const boundaryData = useMemo(() => {
-    const res = getPriceBoundary({ coin1, coin2, ammPool: currentAmmPool, reverse: !isFocus1 })
+    const res = getPriceBoundary({
+      coin1,
+      coin2,
+      ammPool: currentAmmPool,
+      reverse: !isPairPoolDirectionEq
+    })
     tickRef.current.lower = res?.priceLowerTick
     tickRef.current.upper = res?.priceUpperTick
     return res
-  }, [coin1, coin2, currentAmmPool, isFocus1])
+  }, [coin1, coin2, currentAmmPool, isPairPoolDirectionEq])
 
   useEffect(() => {
     boundaryData && useConcentrated.setState(boundaryData)
@@ -234,6 +241,7 @@ function ConcentratedCard() {
         coin2={coin2}
         fee={toPercentString(currentAmmPool?.tradeFeeRate, { exact: true })}
         currentPrice={currentAmmPool?.state.currentPrice}
+        isPairPoolDirectionEq={isPairPoolDirectionEq}
         focusSide={focusSide}
         onChangeFocus={(focusSide) => useConcentrated.setState({ focusSide })}
       />
@@ -375,7 +383,9 @@ function ConcentratedCard() {
             currentPrice={
               currentAmmPool
                 ? decimalToFraction(
-                    isFocus1 ? currentAmmPool.state.currentPrice : new Decimal(1).div(currentAmmPool.state.currentPrice)
+                    isPairPoolDirectionEq
+                      ? currentAmmPool.state.currentPrice
+                      : new Decimal(1).div(currentAmmPool.state.currentPrice)
                   )
                 : undefined
             }
