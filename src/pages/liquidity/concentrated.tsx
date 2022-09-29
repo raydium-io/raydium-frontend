@@ -40,6 +40,7 @@ import useConcentratedInitCoinFiller from '@/application/concentrated/useConcent
 import { routeTo } from '@/application/routeTools'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
+import Grid from '@/components/Grid'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -303,8 +304,8 @@ function ConcentratedCard() {
               <div className="flex justify-between">
                 <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
                 <span className="text-lg flex leading-[18px]">
-                  <CoinAvatar className="z-10 inline-block" noCoinIconBorder size="sm" token={coin1} />
-                  <CoinAvatar className="-ml-2 inline-block mr-2" noCoinIconBorder size="sm" token={coin2} />
+                  <CoinAvatar className="z-10 inline-block" size="sm" token={coin1} />
+                  <CoinAvatar className="-ml-2 inline-block mr-2" size="sm" token={coin2} />
                   {ratio1}% / {ratio2}%
                 </span>
               </div>
@@ -378,29 +379,29 @@ function ConcentratedCard() {
               <span className="text-2xl leading-[30px]">≈{toPercentString(currentAmmPool?.totalApr30d)}</span>
             </div>
             {hasReward && (
-              <div className="flex mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
-                <div className="mr-[22px]">
-                  <span className="text-sm leading-[18px] text-secondary-title">Rewards</span>
+              <Grid className="grid-cols-2 mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
+                <div>
+                  <div className="text-sm leading-[18px] text-secondary-title my-1.5">Rewards</div>
                   {currentAmmPool?.state.rewardInfos.map((reward, idx) => {
                     const rewardToken = getToken(reward.tokenMint)
                     return (
                       <div key={reward.tokenMint.toBase58()} className="flex items-center mb-2">
-                        <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={rewardToken} />
-                        <span className="text-xs text-active-cyan opacity-50 mx-1">{rewardToken?.symbol}</span>
+                        <CoinAvatar className="inline-block" size="sm" token={rewardToken} />
+                        <span className="text-xs text-[#abc4ff80] ml-1 mr-4">{rewardToken?.symbol}</span>
                         <span className="text-sm">{toPercentString(currentAmmPool?.rewardApr30d[idx])}</span>
                       </div>
                     )
                   })}
                 </div>
                 <div>
-                  <span className="text-sm leading-[18px] text-secondary-title">Fees</span>
+                  <div className="text-sm leading-[18px] text-secondary-title my-1.5">Fees</div>
                   <div className="flex items-center mb-2">
-                    <CoinAvatar className="inline-block" noCoinIconBorder size="sm" token={coin1} />
-                    <span className="text-xs text-active-cyan opacity-50 mx-1">Trading Fees</span>
+                    <CoinAvatar className="inline-block" size="sm" token={coin1} />
+                    <span className="text-xs text-[#abc4ff80] ml-1 mr-4">Trading Fees</span>
                     <span className="text-sm">{toPercentString(currentAmmPool?.feeApr30d)}</span>
                   </div>
                 </div>
-              </div>
+              </Grid>
             )}
           </div>
         </div>
