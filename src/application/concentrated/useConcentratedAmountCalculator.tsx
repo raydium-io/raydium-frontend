@@ -79,6 +79,10 @@ function calcConcentratedPairsAmount(slippageTolerance: Numberish): void {
   assert(priceLowerTick, 'not set priceLowerTick')
 
   if (isRemoveDialogOpen && isInput === false) return // while removing liquidity, need to know the source is from input or from slider
+  const inputAmount =
+    userCursorSide === 'coin1'
+      ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
+      : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals))
   const { liquidity, amountA, amountB } = AmmV3.getLiquidityAmountOutFromAmountIn({
     poolInfo: currentAmmPool.state,
     slippage: Number(toString(slippageTolerance)),
@@ -88,16 +92,18 @@ function calcConcentratedPairsAmount(slippageTolerance: Numberish): void {
         : isMintEqual(coin2.mint, currentAmmPool.state.mintA.mint),
     tickUpper: Math.max(priceUpperTick, priceLowerTick),
     tickLower: Math.min(priceLowerTick, priceUpperTick),
-    amount:
-      userCursorSide === 'coin1'
-        ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
-        : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals)),
+    amount: inputAmount,
     add: !isRemoveDialogOpen // SDK flag for math round direction
   })
+
   if (userCursorSide === 'coin1') {
-    useConcentrated.setState({ coin2Amount: isMeaningfulNumber(amountA) ? toTokenAmount(coin2, amountB) : undefined })
+    useConcentrated.setState({
+      coin2Amount: isMeaningfulNumber(inputAmount) ? toTokenAmount(coin2, amountB) : undefined
+    })
   } else {
-    useConcentrated.setState({ coin1Amount: isMeaningfulNumber(amountB) ? toTokenAmount(coin1, amountA) : undefined })
+    useConcentrated.setState({
+      coin1Amount: isMeaningfulNumber(inputAmount) ? toTokenAmount(coin1, amountA) : undefined
+    })
   }
 
   useConcentrated.setState({ liquidity })
