@@ -10,7 +10,6 @@ import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
-import Decimal from 'decimal.js'
 import { Fraction } from 'test-r-sdk'
 
 interface Props {
@@ -65,7 +64,9 @@ export default function AddLiquidityConfirmDialog({
           size="lg"
         >
           <Row className="justify-between items-center mb-6">
-            <div className="text-xl font-semibold text-white">Preview Deposit to WETH / DAI</div>
+            <div className="text-xl font-semibold text-white">
+              Preview Deposit to {coin1?.symbol} / {coin2?.symbol}
+            </div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={close} />
           </Row>
           <div className="mt-4 border-1.5 border-[#abc4ff40]  rounded-xl p-3">
@@ -97,7 +98,7 @@ export default function AddLiquidityConfirmDialog({
               <span className="text-sm leading-[18px] text-secondary-title">Selected Range</span>
               <div className="text-sm flex items-center leading-[18px]">
                 <span className="flex items-center text-sm text-[#abc4ff80] mr-2">Current Price</span>
-                {toString(currentPrice?.toString(), { decimalLength: decimalPlace })} {coin2?.symbol} per{' '}
+                {currentPrice ? toString(currentPrice, { decimalLength: decimalPlace }) : '0'} {coin2?.symbol} per{' '}
                 {coin1?.symbol}
               </div>
             </div>
