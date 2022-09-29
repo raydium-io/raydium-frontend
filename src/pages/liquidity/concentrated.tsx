@@ -243,7 +243,7 @@ function ConcentratedCard() {
             {/* input twin */}
             <>
               <CoinInputBox
-                className="mt-5 mb-4 mobile:mt-0 border-1.5 border-[#abc4ff40]"
+                className="mt-5 mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
                 disabled={isApprovePanelShown}
                 noDisableStyle
                 componentRef={coinInputBox1ComponentRef}
@@ -269,7 +269,7 @@ function ConcentratedCard() {
               />
 
               <CoinInputBox
-                className="border-1.5 border-[#abc4ff40]"
+                className="py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
                 componentRef={coinInputBox2ComponentRef}
                 domRef={swapElementBox2}
                 disabled={isApprovePanelShown}
