@@ -830,7 +830,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           Want to open a new position?
         </div>
         <Button
-          className="frosted-glass-teal"
+          className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
           onClick={() => {
             useConcentrated.setState({ coin1: info.base, coin2: info.quote })
             routeTo('/liquidity/concentrated')
@@ -1032,12 +1032,18 @@ function PoolCardDatabaseBodyCollapsePositionContent({
           style={{ borderBottom: !noBorderBottom ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
         >
           <AutoBox
-            is={isMobile ? 'Grid' : 'Row'}
+            is={isMobile ? 'Col' : 'Row'}
             className={`gap-[8px] mobile:gap-3 mobile:grid-cols-2-auto flex-grow justify-between`}
           >
-            <Row className="flex-1 justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg py-6 px-6  items-center">
-              <Col>
-                <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+            <AutoBox
+              is={isMobile ? 'div' : 'Row'}
+              className="flex-auto w-2/3 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg py-6 px-6  items-center"
+            >
+              <Col
+                className={isMobile ? 'mb-2 pb-2' : ''}
+                style={{ borderBottom: isMobile ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
+              >
+                <div className="flex justify-start mobile:justify-between text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
                   Price Range {inRange ? rangeTag : null}
                 </div>
                 <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPosition ?? '--'}</div>
@@ -1094,45 +1100,53 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   )}
                 </Row>
               </Col>
-              <Button
-                className="frosted-glass-teal"
-                disabled={!p}
-                validators={[
-                  {
-                    should: walletConnected,
-                    forceActive: true,
-                    fallbackProps: {
-                      onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                      children: 'Connect Wallet'
-                    }
-                  },
-                  {
-                    should: p,
-                    forceActive: true,
-                    fallbackProps: {
-                      onClick: () => {
-                        useConcentrated.setState({ coin1: info.base, coin2: info.quote })
-                        routeTo('/liquidity/concentrated', {
-                          queryProps: {}
-                        })
-                      },
-                      children: 'Create Position'
-                    }
-                  }
-                ]}
-                onClick={() => {
-                  useConcentrated.setState({
-                    currentAmmPool: info,
-                    targetUserPositionAccount: p,
-                    expandedPoolId: info.idString
-                  })
-                  routeTo('/liquidity/my-position')
-                }}
+              <AutoBox
+                is={isMobile ? 'Row' : 'Col'}
+                className={isMobile ? 'flex justify-center items-center pt-3' : ''}
               >
-                Manage Liquidity
-              </Button>
-            </Row>
-            <Row className="flex-1  justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg py-6 px-6  items-center">
+                <Button
+                  className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+                  disabled={!p}
+                  validators={[
+                    {
+                      should: walletConnected,
+                      forceActive: true,
+                      fallbackProps: {
+                        onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                        children: 'Connect Wallet'
+                      }
+                    },
+                    {
+                      should: p,
+                      forceActive: true,
+                      fallbackProps: {
+                        onClick: () => {
+                          useConcentrated.setState({ coin1: info.base, coin2: info.quote })
+                          routeTo('/liquidity/concentrated', {
+                            queryProps: {}
+                          })
+                        },
+                        children: 'Create Position'
+                      }
+                    }
+                  ]}
+                  onClick={() => {
+                    useConcentrated.setState({
+                      currentAmmPool: info,
+                      targetUserPositionAccount: p,
+                      expandedPoolId: info.idString
+                    })
+                    routeTo('/liquidity/my-position')
+                  }}
+                >
+                  Manage Liquidity
+                </Button>
+              </AutoBox>
+            </AutoBox>
+            <AutoBox
+              is={isMobile ? 'div' : 'Row'}
+              className="flex-auto w-1/3 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg py-6 px-6  items-center"
+            >
               <Col>
                 <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
                   Unclaimed Yield
@@ -1208,9 +1222,12 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   )}
                 </AutoBox>
               </Col>
-              <Col>
+              <AutoBox
+                is={isMobile ? 'Row' : 'Col'}
+                className={isMobile ? 'flex justify-center items-center pt-3' : ''}
+              >
                 <Button
-                  className="frosted-glass-teal"
+                  className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
                   validators={[
                     {
                       should: walletConnected,
@@ -1226,13 +1243,13 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 >
                   Harvest
                 </Button>
-              </Col>
-            </Row>
+              </AutoBox>
+            </AutoBox>
           </AutoBox>
           <Row
             className={`pl-8 ${
-              isMobile ? 'pr-8' : ''
-            }  pt-5 gap-3 items-center self-center justify-center mobile:w-full`}
+              isMobile ? 'pr-8 pt-5' : ''
+            }   gap-3 items-center self-center justify-center mobile:w-full`}
           >
             {isMobile ? (
               <Row className="gap-5">
@@ -1252,7 +1269,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 <Icon
                   size="sm"
                   heroIconName="plus"
-                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                  className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] opacity-100 clickable clickable-filter-effect ${
+                    p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                  }`}
                   onClick={() => {
                     useConcentrated.setState({
                       isAddDialogOpen: true,
@@ -1264,7 +1283,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 <Icon
                   size="sm"
                   iconSrc="/icons/pools-remove-liquidity-entry.svg"
-                  className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] 'clickable' clickable-filter-effect`}
+                  className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
+                    p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                  }`}
                   onClick={() => {
                     useConcentrated.setState({
                       isRemoveDialogOpen: true,
