@@ -149,7 +149,6 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   useEffect(() => {
     if (!defaultMin && !defaultMax) return
-    console.log(555555, defaultMin.toFixed(6))
     updatePosition({
       [Range.Min]: Number(defaultMin?.toFixed(10) || 0),
       [Range.Max]: Number(defaultMax?.toFixed(10) || 100)
