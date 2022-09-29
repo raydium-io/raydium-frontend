@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/router'
 
 import { twMerge } from 'tailwind-merge'
 import { CurrencyAmount } from 'test-r-sdk'
@@ -7,16 +8,14 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
-import { SplToken, TokenAmount } from '@/application/token/type'
+import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
@@ -57,7 +56,6 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
-import { useRouter } from 'next/router'
 
 export default function PoolsConcentratedPage() {
   // usePoolSummeryInfoLoader()
@@ -70,8 +68,6 @@ export default function PoolsConcentratedPage() {
       mobileBarTitle={{
         items: [
           { value: PoolsConcentratedTabs.ALL, barLabel: PoolsConcentratedTabs.ALL },
-          // { value: PoolsConcentratedTabs.STABLES, barLabel: PoolsConcentratedTabs.STABLES },
-          // { value: PoolsConcentratedTabs.EXOTIC, barLabel: PoolsConcentratedTabs.EXOTIC },
           { value: PoolsConcentratedTabs.MY_POOLS, barLabel: PoolsConcentratedTabs.MY_POOLS }
         ],
         currentValue: currentTab,
@@ -121,15 +117,6 @@ function PoolHeader() {
         )}
       </>
       <PoolsTabBlock />
-      <Row
-        className={`justify-self-end self-center gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
-        onClick={() => {
-          // routeTo('/liquidity/create')
-        }}
-      >
-        {/* <Icon heroIconName="plus-circle" className="text-[#abc4ff]" size="sm" />
-        <span className="text-[#abc4ff] font-medium text-sm mobile:text-xs">Create Pool</span> */}
-      </Row>
     </Grid>
   )
 }
@@ -141,12 +128,7 @@ function PoolsTabBlock({ className }: { className?: string }) {
     <RowTabs
       currentValue={currentTab}
       urlSearchQueryKey="tab"
-      values={shakeFalsyItem([
-        PoolsConcentratedTabs.ALL,
-        // PoolsConcentratedTabs.STABLES,
-        // PoolsConcentratedTabs.EXOTIC,
-        PoolsConcentratedTabs.MY_POOLS
-      ] as const)}
+      values={shakeFalsyItem([PoolsConcentratedTabs.ALL, PoolsConcentratedTabs.MY_POOLS] as const)}
       onChange={(tab) => useConcentrated.setState({ currentTab: tab })}
       className={className}
     />
@@ -154,19 +136,13 @@ function PoolsTabBlock({ className }: { className?: string }) {
     <RowTabs
       currentValue={currentTab}
       urlSearchQueryKey="tab"
-      values={shakeFalsyItem([
-        PoolsConcentratedTabs.ALL,
-        // PoolsConcentratedTabs.STABLES,
-        // PoolsConcentratedTabs.EXOTIC,
-        PoolsConcentratedTabs.MY_POOLS
-      ] as const)}
+      values={shakeFalsyItem([PoolsConcentratedTabs.ALL, PoolsConcentratedTabs.MY_POOLS] as const)}
       onChange={(tab) => useConcentrated.setState({ currentTab: tab })}
       className={twMerge('justify-self-center mobile:col-span-full', className)}
     />
   )
 }
 
-// TODO: add tab, ref farm page: ToolsButton
 function ToolsButton({ className }: { className?: string }) {
   return (
     <>
@@ -890,9 +866,6 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               myPosition = lower + ' - ' + upper
             }
 
-            // eslint-disable-next-line no-console
-            // console.log('p A: ', p.tokenFeeAmountA)
-
             const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
             const coinBPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenB?.mint)] ?? null)
 
@@ -927,10 +900,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           <AutoBox>{openNewPosition}</AutoBox>
         </>
       ) : (
-        <>
-          <PoolCardDatabaseBodyCollapsePositionContent poolInfo={info} noBorderBottom={true} />
-          {/* <AutoBox>{openNewPosition}</AutoBox> */}
-        </>
+        <PoolCardDatabaseBodyCollapsePositionContent poolInfo={info} noBorderBottom={true} />
       )}
     </AutoBox>
   )
@@ -1058,84 +1028,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
       })
     }
   }, [timeBasis])
-
-  // if (noAsset) {
-  //   return (
-  //     <AutoBox is={isMobile ? 'Col' : 'Row'}>
-  //       <Row className={`w-full py-5 px-8 mobile:py-3 mobile:px-4 mobile:m-0`}>
-  //         <div
-  //           className={`flex w-full ${isMobile ? 'flex-col' : 'flex-row'}`}
-  //           style={{ borderBottom: !noBorderBottom ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
-  //         >
-  //           <AutoBox
-  //             is={isMobile ? 'Grid' : 'Row'}
-  //             className={`gap-[8px] mobile:gap-3 mobile:grid-cols-2-auto flex-grow justify-between`}
-  //           >
-  //             <Row className="flex-1 justify-between items-center">
-  //               <Col>
-  //                 <div className="flex justify-start text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-  //                   Estinated APR
-  //                 </div>
-  //                 <Row className="gap-10 mt-[12px]">
-  //                   <Col>
-  //                     <div className="font-medium text-sm mobile:text-2xs text-white">Trade Fees</div>
-  //                     <Row className="flex items-center gap-1 mt-1">
-  //                       <CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />
-  //                       <div className="text-white font-medium text-sm">{info.}</div>
-  //                     </Row>
-  //                   </Col>
-  //                   <Col>
-  //                     <div className="font-medium text-sm mobile:text-2xs text-white">Rewards</div>
-  //                     <Row className="flex items-center gap-6 mt-1">
-  //                       {info.base && (
-  //                         <Row className="gap-1">
-  //                           <CoinAvatar token={info.base} size="smi" />{' '}
-  //                           <div className="text-[#ABC4FF]/50">{info.base.symbol}</div>
-  //                           <div className="text-white">2.7%</div>
-  //                         </Row>
-  //                       )}
-  //                       {info.quote && (
-  //                         <Row className="gap-1">
-  //                           <CoinAvatar token={info.quote} size="smi" />{' '}
-  //                           <div className="text-[#ABC4FF]/50">{info.quote.symbol}</div>
-  //                           <div className="text-white">2.7%</div>
-  //                         </Row>
-  //                       )}
-  //                     </Row>
-  //                   </Col>
-  //                 </Row>
-  //               </Col>
-  //               <Row className="gap-5">
-  //                 <Button
-  //                   className="frosted-glass-teal"
-  //                   onClick={() => {
-  //                     useConcentrated.setState({ currentAmmPool: info, targetUserPositionAccount: p })
-  //                     routeTo('/liquidity/my-position')
-  //                   }}
-  //                 >
-  //                   Create Position
-  //                 </Button>
-  //                 <Icon
-  //                   size="sm"
-  //                   iconSrc="/icons/msic-swap-h.svg"
-  //                   className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
-  //                   onClick={() => {
-  //                     routeTo('/swap', {
-  //                       queryProps: {
-  //                         coin1: info.base,
-  //                         coin2: info.quote
-  //                       }
-  //                     })
-  //                   }}
-  //                 />
-  //               </Row>
-  //             </Row>
-  //           </AutoBox>
-  //         </div>
-  //       </Row>
-  //     </AutoBox>
-  //   )
-  // }
 
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
@@ -1372,7 +1264,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                       currentAmmPool: info,
                       targetUserPositionAccount: p
                     })
-                    // routeTo('/liquidity/concentrated')
                   }}
                 />
                 <Icon
@@ -1385,7 +1276,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                       currentAmmPool: info,
                       targetUserPositionAccount: p
                     })
-                    // routeTo('/liquidity/concentrated')
                   }}
                 />
               </Row>
@@ -1420,9 +1310,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         currentAmmPool: info,
                         targetUserPositionAccount: p
                       })
-                      // routeTo('/liquidity/concentrated', {
-                      //   queryProps: {}
-                      // })
                     }}
                   />
                   <Tooltip.Panel>Add Liquidity</Tooltip.Panel>
@@ -1472,9 +1359,6 @@ function TokenPositionInfo({
   customValue?: any
   className?: string
 }) {
-  // eslint-disable-next-line no-console
-  // console.log('amount: ', tokenAmount, 'price: ', toUsdVolume(tokenPrice))
-
   return (
     <Row className={twMerge('py-2 gap-8 justify-between items-center font-medium text-[12px] ', className)}>
       <Row className="flex items-center justify-start gap-[6px]">
@@ -1514,7 +1398,6 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         {info?.name}
-        {/* {info?.isStablePool && <Badge className="self-center">Stable</Badge>} */}
         {lt(toString(info?.tvl, { decimalLength: 'auto 0' }) ?? 0, 100000) && (
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />
