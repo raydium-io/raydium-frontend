@@ -1,3 +1,5 @@
+import { Fraction } from 'test-r-sdk'
+import { ChartPoint } from '../Concentrated/type'
 export enum Range {
   Min = 'min',
   Max = 'max'
@@ -77,4 +79,28 @@ export const getPriceLabel = (price?: number | string) => (props) => {
   ) : (
     <g></g>
   )
+}
+
+export const getDefaultPointOffset = (props: {
+  points: ChartPoint[]
+  defaultMin?: Fraction
+  defaultMax?: Fraction
+  decimals: number
+  showCurrentPriceOnly?: boolean
+}): { offsetMin: number; offsetMax: number } => {
+  const { points, defaultMin, defaultMax, decimals, showCurrentPriceOnly } = props
+  const offsets = { offsetMin: 0, offsetMax: 0 }
+  if (showCurrentPriceOnly) {
+    const getIndex = (price: Fraction) =>
+      points.findIndex((p) => Number(p.x.toFixed(decimals)) === Number(price.toFixed(decimals)))
+    if (defaultMin) {
+      const idx = getIndex(defaultMin)
+      if (idx > 0) offsets.offsetMin = (points[idx].x - points[idx - 1].x) / 2
+    }
+    if (defaultMax) {
+      const idx = getIndex(defaultMax)
+      if (idx > 0) offsets.offsetMax = (points[idx].x - points[idx - 1].x) / 2
+    }
+  }
+  return offsets
 }

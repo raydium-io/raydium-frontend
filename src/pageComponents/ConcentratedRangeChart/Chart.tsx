@@ -11,6 +11,7 @@ import {
   DEFAULT_X_AXIS,
   HIGHLIGHT_COLOR,
   ZOOM_INTERVAL,
+  getDefaultPointOffset,
   boundaryColor,
   strokeFillProp,
   toFixedNumber,
@@ -81,6 +82,13 @@ export default forwardRef(function Chart(props: Props, ref) {
   const xAxisRef = useRef<number[]>([])
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
+  const { offsetMin, offsetMax } = getDefaultPointOffset({
+    points,
+    defaultMin,
+    defaultMax,
+    decimals,
+    showCurrentPriceOnly
+  })
 
   boundaryRef.current = xAxisDomain.length
     ? { min: Number(xAxisDomain[0]) || 0, max: Number(xAxisDomain[xAxisDomain.length - 1]) || 100 }
@@ -122,22 +130,20 @@ export default forwardRef(function Chart(props: Props, ref) {
       defaultMax ? Number(defaultMax.toFixed(decimals)) : undefined
     ]
 
-    if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(decimals))) {
-      points.unshift({ x: defaultMinNum - (points[1].x - points[0].x), y: 0 })
+    const gap = points[1].x - points[0].x
+    if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(decimals)) + gap) {
+      points.unshift({ x: Math.max(defaultMinNum - gap, 0), y: 0 })
     }
-    if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(decimals)))
-      points.push({ x: defaultMaxNum + (points[1].x - points[0].x), y: 0 })
+    if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(decimals)) - gap)
+      points.push({ x: defaultMaxNum + gap * 2, y: 0 })
 
-    const extraGap = (points[1].x - points[0].x) / 2
-    points[0].x = points[0].x - extraGap
-    points[points.length - 1].x = points[points.length - 1].x + extraGap
     const pointMaxIndex = points.length - 1
     for (let i = 0; i < pointMaxIndex; i++) {
       const point = points[i]
       const nextPoint = points[i + 1]
       displayList.push({ ...point })
       // add more points to chart to smooth line
-      if (!showCurrentPriceOnly || smoothCount > 0) {
+      if (!showCurrentPriceOnly && smoothCount > 0) {
         const gap = toFixedNumber((nextPoint.x - point.x) / smoothCount, decimals)
         for (let j = 1; j <= smoothCount; j++) {
           const y = toFixedNumber(j > Math.floor(smoothCount / 2) ? nextPoint.y : point.y, decimals)
@@ -154,10 +160,10 @@ export default forwardRef(function Chart(props: Props, ref) {
   useEffect(() => {
     if (!defaultMin && !defaultMax) return
     updatePosition({
-      [Range.Min]: Number(defaultMin?.toFixed(10) || 0),
-      [Range.Max]: Number(defaultMax?.toFixed(10) || 100)
+      [Range.Min]: Number(defaultMin.toFixed(10)) - offsetMin,
+      [Range.Max]: Number(defaultMax.toFixed(10)) - offsetMax
     })
-  }, [defaultMin, defaultMax, updatePosition])
+  }, [defaultMin, defaultMax, updatePosition, offsetMin, offsetMax])
 
   useEffect(() => {
     setXAxis(xAxisRef.current)
