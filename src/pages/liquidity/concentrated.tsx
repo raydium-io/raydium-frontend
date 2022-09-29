@@ -4,6 +4,7 @@ import txCreateConcentrated from '@/application/concentrated/txCreateConcentrate
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import toPercentString from '@/functions/format/toPercentString'
+import toPubString from '@/functions/format/toMintString'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import toFraction from '@/functions/numberish/toFraction'
 import { isMintEqual } from '@/functions/judgers/areEqual'
@@ -164,30 +165,34 @@ function ConcentratedCard() {
     boundaryData && useConcentrated.setState(boundaryData)
   }, [boundaryData])
 
-  const handleClickInDecrease = ({ p, isMin, isIncrease }: { p: number; isMin: boolean; isIncrease: boolean }) => {
-    if (!currentAmmPool || !coin1 || !coin2) return
-    const targetCoin = isFocus1 ? coin1 : coin2
-    const tickKey = isMin ? 'lower' : 'upper'
-    if (!tickRef.current[tickKey]) {
-      const res = getPriceTick({
-        p: p * 1.002,
-        coin1,
-        coin2,
-        reverse: !isFocus1,
-        ammPool: currentAmmPool
+  const handleClickInDecrease = useCallback(
+    ({ p, isMin, isIncrease }: { p: number; isMin: boolean; isIncrease: boolean }) => {
+      if (!currentAmmPool || !coin1 || !coin2) return
+      const targetCoin = isFocus1 ? coin1 : coin2
+      const tickKey = isMin ? 'lower' : 'upper'
+      if (!tickRef.current[tickKey]) {
+        const res = getPriceTick({
+          p: p * 1.002,
+          coin1,
+          coin2,
+          reverse: !isFocus1,
+          ammPool: currentAmmPool
+        })
+        tickRef.current[tickKey] = res.tick
+      }
+      const nextTick = tickRef.current[tickKey]! + (isIncrease ? 1 : -1) * Math.pow(-1, isFocus1 ? 0 : 1)
+      const { price, tick } = getTickPrice({
+        poolInfo: currentAmmPool.state,
+        baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
+        tick: nextTick
       })
-      tickRef.current[tickKey] = res.tick
-    }
-    const nextTick = tickRef.current[tickKey]! + (isIncrease ? 1 : -1) * Math.pow(-1, isFocus1 ? 0 : 1)
-    const { price, tick } = getTickPrice({
-      poolInfo: currentAmmPool.state,
-      baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
-      tick: nextTick
-    })
-    tickRef.current[tickKey] = tick
 
-    return price
-  }
+      tickRef.current[tickKey] = nextTick
+
+      return price
+    },
+    [coin1?.mint, coin2?.mint, currentAmmPool?.ammConfig.id, isFocus1]
+  )
 
   const prices = [coin1Amount ? toFraction(coin1Amount) : undefined, coin2Amount ? toFraction(coin2Amount) : undefined]
   const totalDeposit = prices
@@ -223,13 +228,15 @@ function ConcentratedCard() {
           ammPool: currentAmmPool
         })
         tickRef.current[isMin ? 'lower' : 'upper'] = res.tick
+        isMin && useConcentrated.setState({ priceLowerTick: res.tick })
+        !isMin && useConcentrated.setState({ priceUpperTick: res.tick })
       } else {
         tickRef.current = { lower: res.priceLowerTick, upper: res.priceUpperTick }
         useConcentrated.setState(res)
       }
       return res
     },
-    [coin1, coin2, currentAmmPool, isFocus1]
+    [toPubString(coin1?.mint), toPubString(coin2?.mint), toPubString(currentAmmPool?.ammConfig.id), isFocus1]
   )
 
   const handleClickCreatePool = useCallback(() => {
@@ -241,6 +248,15 @@ function ConcentratedCard() {
     })
     onConfirmOpen()
   }, [onConfirmOpen])
+
+  const chartOptions = useMemo(
+    () => ({
+      points: points || [],
+      initMinBoundaryX: boundaryData?.priceLower,
+      initMaxBoundaryX: boundaryData?.priceUpper
+    }),
+    [points, boundaryData]
+  )
 
   return (
     <CyberpunkStyleCard
@@ -406,11 +422,7 @@ function ConcentratedCard() {
           <div className="text-base leading-[22px] text-secondary-title mb-3">Set Price Range</div>
           <Chart
             ref={chartRef}
-            chartOptions={{
-              points: points || [],
-              initMinBoundaryX: boundaryData?.priceLower,
-              initMaxBoundaryX: boundaryData?.priceUpper
-            }}
+            chartOptions={chartOptions}
             currentPrice={
               currentAmmPool
                 ? decimalToFraction(

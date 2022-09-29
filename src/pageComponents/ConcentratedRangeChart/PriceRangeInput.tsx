@@ -23,9 +23,8 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         increaseFn={() => onInDecrease({ val: minValue, side: Range.Min, isIncrease: true })}
         decreaseFn={() => onInDecrease({ val: minValue, side: Range.Min, isIncrease: false })}
         onUserInput={(val, { triggerBy }) => {
-          // if (triggerBy === 'increase-decrease') return // no need to record again
-          if (!val || triggerBy === 'increase-decrease') return
-          onPriceChange({ val, side: Range.Min })
+          const isClick = triggerBy === 'increase-decrease'
+          if (!val || isClick) return
         }}
       />
       <InputBox

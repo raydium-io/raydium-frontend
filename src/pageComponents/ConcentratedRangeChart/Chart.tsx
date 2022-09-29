@@ -122,11 +122,15 @@ export default forwardRef(function Chart(props: Props, ref) {
       defaultMax ? Number(defaultMax.toFixed(decimals)) : undefined
     ]
 
-    if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(decimals)))
-      points.unshift({ x: defaultMinNum - (points[1].x - points[0].x) / 2, y: 0 })
+    if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(decimals))) {
+      points.unshift({ x: defaultMinNum - (points[1].x - points[0].x), y: 0 })
+    }
     if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(decimals)))
-      points.push({ x: defaultMaxNum + (points[1].x - points[0].x) / 2, y: 0 })
+      points.push({ x: defaultMaxNum + (points[1].x - points[0].x), y: 0 })
 
+    const extraGap = (points[1].x - points[0].x) / 2
+    points[0].x = points[0].x - extraGap
+    points[points.length - 1].x = points[points.length - 1].x + extraGap
     const pointMaxIndex = points.length - 1
     for (let i = 0; i < pointMaxIndex; i++) {
       const point = points[i]
@@ -285,9 +289,10 @@ export default forwardRef(function Chart(props: Props, ref) {
   const handlePriceChange = useCallback(
     ({ val, side }: { val?: number | string; side: Range }) => {
       const newVal = parseFloat(String(val!))
-
       setPosition((p) => {
-        onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
+        setTimeout(() => {
+          onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
+        }, 200)
         return { ...p, [side]: newVal }
       })
       setDisplayList((list) => {
@@ -304,7 +309,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         return filteredList
       })
     },
-    [tickGap, points, onPositionChange]
+    [tickGap, points, debounceUpdate]
   )
 
   const handleInDecrease = useCallback(
@@ -430,6 +435,7 @@ export default forwardRef(function Chart(props: Props, ref) {
               style={{ cursor: isMoving ? 'grab' : 'default' }}
               legendType="none"
               tooltipType="none"
+              isAnimationActive={false}
               activeDot={false}
               dot={false}
               type="step"
