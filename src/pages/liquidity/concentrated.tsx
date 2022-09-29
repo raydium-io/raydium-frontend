@@ -37,6 +37,9 @@ import { Fraction } from 'test-r-sdk'
 import { RemainSOLAlert, canTokenPairBeSelected, toXYChartFormat, PairInfoTitle } from '@/pageComponents/Concentrated'
 import Decimal from 'decimal.js'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
+import { routeTo } from '@/application/routeTools'
+import Row from '@/components/Row'
+import RowTabs from '@/components/RowTabs'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -46,21 +49,39 @@ const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityCo
 })
 
 export default function Concentrated() {
-  useConcentratedAmmSelector()
-  useConcentratedAmountCalculator()
-  useConcentratedInitCoinFiller()
-
   return (
     <ConcentratedUIContextProvider>
+      <ConcentratedEffects />
       <PageLayout mobileBarTitle="Concentrated" metaTitle="Concentrated - Raydium">
+        <ConcentratedHead />
         <ConcentratedCard />
         {/* <UserLiquidityExhibition /> */}
       </PageLayout>
     </ConcentratedUIContextProvider>
   )
 }
+function ConcentratedEffects() {
+  useConcentratedAmmSelector()
+  useConcentratedAmountCalculator()
+  useConcentratedInitCoinFiller()
+  return null
+}
 
 // const availableTabValues = ['Swap', 'Liquidity'] as const
+function ConcentratedHead() {
+  return (
+    <Row className="justify-center  mb-12 mobile:mb-2">
+      <RowTabs
+        currentValue={'Concentrated'}
+        values={['Swap', 'Liquidity', 'Concentrated']}
+        onChange={(newTab) => {
+          if (newTab === 'Liquidity') routeTo('/liquidity/add')
+          else if (newTab === 'Swap') routeTo('/swap')
+        }}
+      />
+    </Row>
+  )
+}
 
 function ConcentratedCard() {
   const chartPoints = useConcentrated((s) => s.chartPoints)
