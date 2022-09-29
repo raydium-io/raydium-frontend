@@ -180,7 +180,9 @@ function ConcentratedCard() {
       return newAcc
     }, new Fraction(0))
 
-  const ratio1 = parseFloat(prices[0] ? prices[0].div(totalDeposit!).mul(100).toFixed(1, undefined, 0) : '0')
+  const ratio1 = isMeaningfulNumber(totalDeposit)
+    ? parseFloat(prices[0] ? prices[0].div(totalDeposit).mul(100).toFixed(1, undefined, 0) : '0')
+    : 0
   const ratio2 = prices[1] ? parseFloat((100 - Number(ratio1)).toFixed(1)) : '0'
 
   const handlePosChange = useCallback(
