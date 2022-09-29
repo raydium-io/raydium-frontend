@@ -41,6 +41,7 @@ import { routeTo } from '@/application/routeTools'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Grid from '@/components/Grid'
+import FadeInStable from '@/components/FadeIn'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -186,7 +187,9 @@ function ConcentratedCard() {
       return newAcc
     }, new Fraction(0))
 
-  const ratio1 = parseFloat(prices[0] ? prices[0].div(totalDeposit!).mul(100).toFixed(1, undefined, 0) : '0')
+  const ratio1 = isMeaningfulNumber(totalDeposit)
+    ? parseFloat(prices[0] ? prices[0].div(totalDeposit).mul(100).toFixed(1, undefined, 0) : '0')
+    : 0
   const ratio2 = prices[1] ? parseFloat((100 - Number(ratio1)).toFixed(1)) : '0'
 
   const handlePosChange = useCallback(
@@ -253,10 +256,11 @@ function ConcentratedCard() {
               <CoinInputBox
                 className="mt-5 mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
                 disabled={isApprovePanelShown}
+                disabledInput={!currentAmmPool}
                 noDisableStyle
                 componentRef={coinInputBox1ComponentRef}
                 domRef={swapElementBox1}
-                value={toString(coin1Amount)}
+                value={currentAmmPool ? toString(coin1Amount) : undefined}
                 haveHalfButton
                 haveCoinIcon
                 showTokenSelectIcon
@@ -281,8 +285,9 @@ function ConcentratedCard() {
                 componentRef={coinInputBox2ComponentRef}
                 domRef={swapElementBox2}
                 disabled={isApprovePanelShown}
+                disabledInput={!currentAmmPool}
                 noDisableStyle
-                value={toString(coin2Amount)}
+                value={currentAmmPool ? toString(coin2Amount) : undefined}
                 haveHalfButton
                 haveCoinIcon
                 showTokenSelectIcon
@@ -303,20 +308,24 @@ function ConcentratedCard() {
               />
             </>
 
-            <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
-              <div className="flex justify-between mb-4">
-                <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
-                <span className="text-lg leading-[18px]">{toUsdVolume(totalDeposit)}</span>
+            <FadeInStable
+              show={Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))}
+            >
+              <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
+                <div className="flex justify-between mb-4">
+                  <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
+                  <span className="text-lg leading-[18px]">{toUsdVolume(totalDeposit)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
+                  <span className="text-lg flex leading-[18px]">
+                    <CoinAvatar className="z-10 inline-block" size="sm" token={coin1} />
+                    <CoinAvatar className="-ml-2 inline-block mr-2" size="sm" token={coin2} />
+                    {ratio1}% / {ratio2}%
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
-                <span className="text-lg flex leading-[18px]">
-                  <CoinAvatar className="z-10 inline-block" size="sm" token={coin1} />
-                  <CoinAvatar className="-ml-2 inline-block mr-2" size="sm" token={coin2} />
-                  {ratio1}% / {ratio2}%
-                </span>
-              </div>
-            </div>
+            </FadeInStable>
           </div>
 
           {/* supply button */}
@@ -332,6 +341,9 @@ function ConcentratedCard() {
                   onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
                   children: 'Connect Wallet'
                 }
+              },
+              {
+                should: currentAmmPool
               },
               {
                 should: coin1 && coin2,
