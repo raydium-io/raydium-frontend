@@ -49,8 +49,8 @@ export function PairInfoTitle(props: Props) {
         <span className="ml-2 text-xl">
           {coin1?.symbol || '-'} / {coin2?.symbol || '-'}
         </span>
-        <div className="px-1 ml-2 text-sm text-secondary-title rounded-xl border border-secondary-title">
-          {fee || '-'}
+        <div className="px-2.5 py-1 ml-2 rounded-lg text-sm text-secondary-title bg-active-tab-bg">
+          Pool Fee {fee || '-'}
         </div>
       </div>
       <div className="flex items-center">
