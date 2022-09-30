@@ -877,7 +877,7 @@
     bs58 "^4.0.1"
     eventemitter3 "^4.0.7"
 
-"@raydium-io/raydium-sdk@^1.1.0-beta.7":
+"@raydium-io/raydium-sdk@1.1.0-beta.7":
   version "1.1.0-beta.7"
   resolved "https://registry.yarnpkg.com/@raydium-io/raydium-sdk/-/raydium-sdk-1.1.0-beta.7.tgz#ee8f8a36a26e305b76df8e6265156805ee908e2c"
   integrity sha512-i68LAVg+b/KXULbrQdOn5Dw2VSPB1zxJzat0AmORrPllVfqeMB3hXY9MFhRNohzwyqquD6xAUrb6+22Q8df4Cw==
