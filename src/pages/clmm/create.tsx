@@ -7,6 +7,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import toPubString from '@/functions/format/toMintString'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import toFraction from '@/functions/numberish/toFraction'
+import toBN from '@/functions/numberish/toBN'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import useWallet from '@/application/wallet/useWallet'
@@ -137,6 +138,25 @@ function ConcentratedCard() {
     [focusSide]
   )
 
+  const currentPrice = currentAmmPool
+    ? decimalToFraction(
+        isPairPoolDirectionEq
+          ? currentAmmPool.state.currentPrice
+          : new Decimal(1).div(currentAmmPool.state.currentPrice)
+      )
+    : undefined
+
+  const inputDisable =
+    currentAmmPool && currentPrice
+      ? [
+          toBN(priceUpper || 0, decimals).lt(toBN(currentPrice || 0, decimals)),
+          toBN(priceLower || 0, decimals).gt(toBN(currentPrice || 0, decimals))
+        ]
+      : [false, false]
+
+  if (!isFocus1) inputDisable.reverse()
+  const [coin1InputDisabled, coin2InputDisabled] = inputDisable
+
   const haveEnoughCoin1 =
     coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
   const haveEnoughCoin2 =
@@ -186,9 +206,9 @@ function ConcentratedCard() {
         baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
         tick: nextTick
       })
-
       tickRef.current[tickKey] = nextTick
-
+      isMin && useConcentrated.setState({ priceLower: price, priceLowerTick: nextTick })
+      !isMin && useConcentrated.setState({ priceUpper: price, priceUpperTick: nextTick })
       return price
     },
     [coin1?.mint, coin2?.mint, currentAmmPool?.ammConfig.id, isFocus1]
@@ -228,8 +248,8 @@ function ConcentratedCard() {
           ammPool: currentAmmPool
         })
         tickRef.current[isMin ? 'lower' : 'upper'] = res.tick
-        isMin && useConcentrated.setState({ priceLowerTick: res.tick })
-        !isMin && useConcentrated.setState({ priceUpperTick: res.tick })
+        isMin && useConcentrated.setState({ priceLowerTick: res.tick, priceLower: pos[side] })
+        !isMin && useConcentrated.setState({ priceUpperTick: res.tick, priceUpper: pos[side] })
       } else {
         tickRef.current = { lower: res.priceLowerTick, upper: res.priceUpperTick }
         useConcentrated.setState(res)
@@ -284,7 +304,7 @@ function ConcentratedCard() {
               <CoinInputBox
                 className="mt-5 mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
                 disabled={isApprovePanelShown}
-                disabledInput={!currentAmmPool}
+                disabledInput={!currentAmmPool || coin1InputDisabled}
                 noDisableStyle
                 componentRef={coinInputBox1ComponentRef}
                 domRef={swapElementBox1}
@@ -313,7 +333,7 @@ function ConcentratedCard() {
                 componentRef={coinInputBox2ComponentRef}
                 domRef={swapElementBox2}
                 disabled={isApprovePanelShown}
-                disabledInput={!currentAmmPool}
+                disabledInput={!currentAmmPool || coin2InputDisabled}
                 noDisableStyle
                 value={currentAmmPool ? toString(coin2Amount) : undefined}
                 haveHalfButton
@@ -423,15 +443,7 @@ function ConcentratedCard() {
           <Chart
             ref={chartRef}
             chartOptions={chartOptions}
-            currentPrice={
-              currentAmmPool
-                ? decimalToFraction(
-                    isPairPoolDirectionEq
-                      ? currentAmmPool.state.currentPrice
-                      : new Decimal(1).div(currentAmmPool.state.currentPrice)
-                  )
-                : undefined
-            }
+            currentPrice={currentPrice}
             decimals={decimals}
             onPositionChange={handlePosChange}
             onInDecrease={handleClickInDecrease}
@@ -500,7 +512,13 @@ function ConcentratedCard() {
         decimals={decimals}
         position={chartRef.current?.getPosition()}
         totalDeposit={toUsdVolume(totalDeposit)}
-        currentPrice={currentAmmPool?.currentPrice}
+        currentPrice={
+          currentAmmPool
+            ? decimalToFraction(
+                isCoin1Base ? currentAmmPool.state.currentPrice : new Decimal(1).div(currentAmmPool.state.currentPrice)
+              )
+            : undefined
+        }
         onConfirm={(close) =>
           txCreateConcentrated().then(({ allSuccess }) => {
             if (allSuccess) close()

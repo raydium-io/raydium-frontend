@@ -319,20 +319,18 @@ export default forwardRef(function Chart(props: Props, ref) {
   )
 
   const handleInDecrease = useCallback(
-    (props: { val?: number | string; side: Range; isIncrease: boolean }): string => {
+    (props: { val?: number | string; side: Range; isIncrease: boolean }): void => {
       const { val = '', side, isIncrease } = props
       const isMin = side === Range.Min
-      let resultPos = val
       if (isIncrease) {
         setPosition((prePos) => {
           const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: true })
           const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
-          resultPos = posNum
           if (!isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
             setDisplayList((list) => [...list, { x: posNum + tickGap, y: 0, extend: true }])
           return { ...prePos, [side]: posNum }
         })
-        return String(resultPos)
+        return
       }
       setPosition((prePos) => {
         const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: false })
@@ -340,10 +338,9 @@ export default forwardRef(function Chart(props: Props, ref) {
         if (isMin && posNum <= toFixedNumber(points[0].x, decimals))
           return { ...prePos, [Range.Min]: toFixedNumber(points[0].x, decimals) } // when min < points[0].x
         if (!isMin && posNum <= prePos[Range.Min]) return prePos // when max > max points
-        resultPos = posNum
         return { ...prePos, [side]: posNum }
       })
-      return String(resultPos)
+      return
     },
     [points, tickGap, decimals]
   )
