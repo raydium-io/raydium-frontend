@@ -271,28 +271,21 @@ function ConcentratedCard() {
       return newAcc
     }, new Fraction(0))
 
-  const ratio1 = currentPrice
-    ? toFraction(coin1Amount || '0')
-        .mul(currentPrice)
-        .div(
-          toBN(coin1Amount || 0).gt(new BN(0))
-            ? toFraction(coin1Amount!)
-                .mul(currentPrice)
-                .add(toFraction(coin2Amount || '0'))
-            : toFraction(1)
-        )
-        .mul(100)
-        .toFixed(1)
-    : '0'
+  const amount1 = (coin1InputDisabled ? '0' : coin1Amount) || '0'
+  const amount2 = coin2InputDisabled ? '0' : coin2Amount
+  const denominator = currentPrice
+    ? toBN(amount1).gt(new BN(0))
+      ? toFraction(amount1)
+          .mul(currentPrice)
+          .add(toFraction(amount2 || '0'))
+      : toBN(amount2 || 0).gt(new BN(0))
+      ? toFraction(amount2!)
+      : toFraction(1)
+    : toFraction(1)
+  const ratio1 = currentPrice ? toFraction(amount1).mul(currentPrice).div(denominator).mul(100).toFixed(1) : '0'
   const ratio2 = currentPrice
-    ? toFraction(coin2Amount || '0')
-        .div(
-          toBN(coin1Amount || 0).gt(new BN(0))
-            ? toFraction(coin1Amount || '0')
-                .mul(currentPrice)
-                .add(toFraction(coin2Amount || '0'))
-            : toFraction(1)
-        )
+    ? toFraction(amount2 || '0')
+        .div(denominator)
         .mul(100)
         .toFixed(1)
     : '0'
