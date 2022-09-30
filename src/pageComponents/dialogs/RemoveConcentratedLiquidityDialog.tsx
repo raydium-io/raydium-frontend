@@ -191,10 +191,10 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                 }
               ]}
               onClick={() => {
-                const tx = txDecreaseConcentrated
-                tx().then(({ allSuccess }) => {
+                txDecreaseConcentrated().then(({ allSuccess }) => {
                   if (allSuccess) {
                     onClose?.()
+                    closeDialog()
                     useConcentrated.setState({
                       coin1Amount: undefined,
                       coin2Amount: undefined

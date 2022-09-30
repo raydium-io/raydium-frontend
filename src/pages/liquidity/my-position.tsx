@@ -162,7 +162,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
         {toString(targetUserPositionAccount?.priceLower)} - {toString(targetUserPositionAccount?.priceUpper)}
       </Grid>
       <div className="font-medium text-[#abc4ff]">
-        {currentAmmPool?.base?.symbol ?? '--'} per {currentAmmPool?.quote?.symbol ?? '--'}
+        {currentAmmPool?.quote?.symbol ?? '--'} per {currentAmmPool?.base?.symbol ?? '--'}
       </div>
       <div className="items-center grow">
         <Chart
