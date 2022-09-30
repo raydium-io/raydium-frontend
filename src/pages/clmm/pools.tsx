@@ -7,7 +7,9 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
@@ -196,6 +198,21 @@ function PoolSearchBlock({ className }: { className?: string }) {
         useConcentrated.setState({ searchText })
       }}
     />
+  )
+}
+
+function OpenNewPosition({ className }: { className?: string }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  return (
+    <Button
+      className={twMerge('frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs', className)}
+      onClick={() => {
+        routeTo('/clmm/create')
+      }}
+      size="sm"
+    >
+      Open Position
+    </Button>
   )
 }
 
@@ -546,15 +563,17 @@ function PoolCard() {
                 : clearSortConfig()
             }}
           />
+          <OpenNewPosition />
         </Grid>
         <ToolsButton className="self-center" />
       </Row>
     </div>
   ) : (
     <div>
-      <Row className={'justify-between pb-5 gap-16 items-center'}>
+      <Row className={'justify-between pb-5 gap-16 gap-y-4 items-center flex-wrap'}>
         <PoolLabelBlock />
         <Row className="gap-6 items-stretch">
+          <OpenNewPosition />
           <PoolTimeBasisSelectorBox />
           <PoolSearchBlock />
         </Row>

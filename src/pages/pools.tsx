@@ -535,7 +535,7 @@ function PoolCard() {
     </div>
   ) : (
     <div>
-      <Row className={'justify-between pb-5 gap-16 items-center'}>
+      <Row className={'justify-between pb-5 gap-16 gap-y-4 items-center'}>
         <PoolLabelBlock />
         <Row className="gap-6 items-stretch">
           <PoolStakedOnlyBlock />

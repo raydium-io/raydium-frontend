@@ -75,7 +75,7 @@ function NavButtons() {
     </Row>
   )
 }
-function NavButtonsSide() {
+function AsideNavButtons() {
   return (
     <Row
       className={twMerge(
@@ -442,7 +442,7 @@ function MyPositionCard() {
       className="py-5 px-6 mobile:py-5 mobile:px-3"
     >
       <div className="absolute -left-8 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <NavButtonsSide />
+        <AsideNavButtons />
       </div>
       <MyPositionCardHeader />
 
