@@ -955,6 +955,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const unclaimedYield = useConcentratedPendingYield(p)
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
 
   const rangeTag = useMemo(() => {
     let bgColor = 'bg-[#142B45]'
@@ -1258,7 +1259,15 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     },
                     { should: isMeaningfulNumber(unclaimedYield) }
                   ]}
-                  onClick={() => txHavestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p })}
+                  onClick={() =>
+                    txHavestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(
+                      ({ allSuccess }) => {
+                        if (allSuccess) {
+                          refreshConcentrated()
+                        }
+                      }
+                    )
+                  }
                 >
                   Harvest
                 </Button>

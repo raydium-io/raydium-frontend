@@ -228,6 +228,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
 
 function MyPositionCardPendingRewardInfo({ className }: { className?: string }) {
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
 
   const connected = useWallet((s) => s.connected)
 
@@ -270,7 +271,13 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
         <div className="font-medium text-2xl text-white">≈{toUsdVolume(totalVolume)}</div>
         <Button
           className="frosted-glass-teal"
-          onClick={() => txHavestConcentrated()}
+          onClick={() =>
+            txHavestConcentrated().then(({ allSuccess }) => {
+              if (allSuccess) {
+                refreshConcentrated()
+              }
+            })
+          }
           validators={[
             {
               should: connected,
