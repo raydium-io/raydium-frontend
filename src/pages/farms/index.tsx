@@ -505,7 +505,7 @@ function FarmCard() {
       </Row>
     </div>
   ) : (
-    <Row className="justify-between gap-16 items-center mb-4">
+    <Row className="justify-between gap-16 gap-y-4 items-center mb-4">
       <div>
         <Row className="items-center">
           <div className="font-medium text-white text-lg">{farmCardTitleInfo.title}</div>

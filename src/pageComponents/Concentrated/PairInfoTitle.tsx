@@ -3,12 +3,15 @@ import { SplToken } from '@/application/token/type'
 import RectTabs, { TabItem } from '@/components/RectTabs'
 import { useCallback, useMemo } from 'react'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
+import { Fraction } from 'test-r-sdk'
+import { toString } from '@/functions/numberish/toString'
+import { div } from '@/functions/numberish/operations'
 
 interface Props {
   coin1?: SplToken
   coin2?: SplToken
   fee?: string
-  currentPrice?: Decimal
+  currentPrice?: Fraction
   isPairPoolDirectionEq: boolean
   focusSide: 'coin1' | 'coin2'
   onChangeFocus: (focusSide: 'coin1' | 'coin2') => void
@@ -34,8 +37,8 @@ export function PairInfoTitle(props: Props) {
 
   const getPrice = () => {
     if (!currentPrice || !coin1 || !coin2) return ''
-    if (isPairPoolDirectionEq) return currentPrice.toDecimalPlaces(coin1?.decimals).toString()
-    return new Decimal(1).div(currentPrice).toDecimalPlaces(coin2?.decimals).toString()
+    if (isPairPoolDirectionEq) return toString(currentPrice, { decimalLength: coin1.decimals })
+    return toString(div(1, currentPrice), { decimalLength: coin2.decimals })
   }
 
   const [coin1Symbol = '--', coin2Symbol = '--'] = isFocus1

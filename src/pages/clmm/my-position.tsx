@@ -1,7 +1,7 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
-import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
 import { routeBack, routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
@@ -72,6 +72,29 @@ function NavButtons() {
       >
         Back to all pools
       </Button>
+    </Row>
+  )
+}
+function AsideNavButtons() {
+  return (
+    <Row
+      className={twMerge(
+        '-mt-4 mobile:mt-4 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] items-center justify-between'
+      )}
+    >
+      <Button
+        type="text"
+        className="text-sm text-[#ABC4FF] px-0"
+        prefix={<Icon heroIconName="chevron-left" />}
+        onClick={() => {
+          if (inClient && window.history.length === 1) {
+            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
+            routeTo('/clmm/pools')
+          } else {
+            routeBack()
+          }
+        }}
+      ></Button>
     </Row>
   )
 }
@@ -307,13 +330,20 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
 function MyPositionCardAPRInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const timeBasis = useConcentrated((s) => s.timeBasis)
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
         <div className="font-medium text-[#abc4ff]">Estimated APR</div>
       </Row>
       <Row className="items-center gap-4">
-        <div className="font-medium text-2xl text-white">{toPercentString(currentAmmPool?.totalApr30d)}</div>
+        <div className="font-medium text-2xl text-white">
+          {toPercentString(
+            currentAmmPool?.[
+              timeBasis === TimeBasis.DAY ? 'totalApr24h' : timeBasis === TimeBasis.WEEK ? 'totalApr7d' : 'totalApr30d'
+            ]
+          )}
+        </div>
       </Row>
       <Grid className="grid-cols-1 border-1.5 border-[#abc4ff40] py-3 px-4 gap-2 rounded-xl">
         <div className="font-medium text-[#abc4ff] mt-2 mb-4">Yield</div>
@@ -325,9 +355,17 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
                 <div className="text-[#abc4ff80] min-w-[4em] mr-1">Trade Fee</div>
               </Row>
             }
-            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.feeApr30d)}</div>}
+            text={
+              <div className="text-white justify-end">
+                {toPercentString(
+                  currentAmmPool?.[
+                    timeBasis === TimeBasis.DAY ? 'feeApr24h' : timeBasis === TimeBasis.WEEK ? 'fee7d' : 'feeApr30d'
+                  ]
+                )}
+              </div>
+            }
           />
-          {targetUserPositionAccount?.rewardInfos.map(({ penddingReward, apr30d }) => (
+          {targetUserPositionAccount?.rewardInfos.map(({ penddingReward, apr30d, apr24h, apr7d }) => (
             <RowItem
               key={toPubString(penddingReward?.token.mint)}
               prefix={
@@ -336,7 +374,13 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
                   <div className="text-[#abc4ff80] min-w-[4em] mr-1">{penddingReward?.token?.symbol ?? '--'}</div>
                 </Row>
               }
-              text={<div className="text-white justify-end">{toPercentString(apr30d)}</div>} // TEMP
+              text={
+                <div className="text-white justify-end">
+                  {toPercentString(
+                    timeBasis === TimeBasis.DAY ? apr24h : timeBasis === TimeBasis.WEEK ? apr7d : apr30d
+                  )}
+                </div>
+              } // TEMP
             />
           ))}
         </Grid>
@@ -394,9 +438,12 @@ function MyPositionCardHeader({ className }: { className?: string }) {
 function MyPositionCard() {
   return (
     <CyberpunkStyleCard
-      wrapperClassName="w-[min(912px,100%)] self-center cyberpunk-bg-light"
+      wrapperClassName="relative w-[min(912px,100%)] self-center cyberpunk-bg-light"
       className="py-5 px-6 mobile:py-5 mobile:px-3"
     >
+      <div className="absolute -left-8 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <AsideNavButtons />
+      </div>
       <MyPositionCardHeader />
 
       <Grid className="gap-3 grid-cols-2 w-[min(912px,100%)]">

@@ -342,7 +342,7 @@ function HomePageSection3() {
           style={{ background: 'radial-gradient(39.84% 47.5% at 96.82% 58.33%, #39d0d8 0%, #2b6aff 100%)' }}
         />
       </div>
-      <Row className="w-full justify-around px-56 tablet:px-0 mobile:px-0 tablet:grid mobile:grid gap-16">
+      <Row className="w-full justify-around px-56 tablet:px-0 mobile:px-0 tablet:grid mobile:grid gap-16 gap-y-4">
         <Image src="/logo/solana-text-logo.svg" />
         <Image src="/logo/serum-text-logo.svg" />
       </Row>
@@ -363,7 +363,7 @@ function HomePageFooter() {
             : "url('/backgroundImages/home-footer-bg.webp') 0 0 / 100% 100%"
       }}
     >
-      <Grid className="mobile:gap-14 justify-around px-[10%] grid-cols-4 tablet:grid-cols-3 mobile:grid-cols-1 gap-16">
+      <Grid className="mobile:gap-14 justify-around px-[10%] grid-cols-4 tablet:grid-cols-3 mobile:grid-cols-1 gap-16 gap-y-4">
         <div>
           <div className="mb-8">
             <div className="text-sm mb-3 tablet:text-center">ABOUT</div>

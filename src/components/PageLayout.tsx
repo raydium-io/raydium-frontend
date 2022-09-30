@@ -558,13 +558,6 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             >
               Liquidity
             </LinkItem>
-            <LinkItem
-              icon="/icons/entry-icon-liquidity.svg"
-              href="/clmm/create"
-              isCurrentRoutePath={pathname === '/clmm/create'}
-            >
-              Concentrated
-            </LinkItem>
             <LinkItem icon="/icons/entry-icon-pools.svg" href="/pools" isCurrentRoutePath={pathname === '/pools'}>
               Pools
             </LinkItem>
@@ -573,7 +566,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
               href="/clmm/pools"
               isCurrentRoutePath={pathname === '/clmm/pools'}
             >
-              Concentrated Pools
+              Concentrated
             </LinkItem>
             <LinkItem icon="/icons/entry-icon-farms.svg" href="/farms" isCurrentRoutePath={pathname === '/farms'}>
               Farms

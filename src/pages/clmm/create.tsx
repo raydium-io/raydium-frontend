@@ -1,5 +1,5 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
@@ -39,13 +39,16 @@ import { Fraction } from 'test-r-sdk'
 import { RemainSOLAlert, canTokenPairBeSelected, toXYChartFormat, PairInfoTitle } from '@/pageComponents/Concentrated'
 import Decimal from 'decimal.js'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
-import { routeTo } from '@/application/routeTools'
+import { routeBack, routeTo } from '@/application/routeTools'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Grid from '@/components/Grid'
 import FadeInStable from '@/components/FadeIn'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import { div, sub } from '@/functions/numberish/operations'
+import { twMerge } from 'tailwind-merge'
+import Icon from '@/components/Icon'
+import { inClient } from '@/functions/judgers/isSSR'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -59,13 +62,64 @@ export default function Concentrated() {
     <ConcentratedUIContextProvider>
       <ConcentratedEffects />
       <PageLayout mobileBarTitle="Concentrated" metaTitle="Concentrated - Raydium">
-        <ConcentratedHead />
+        <NavButtons />
         <ConcentratedCard />
         {/* <UserLiquidityExhibition /> */}
       </PageLayout>
     </ConcentratedUIContextProvider>
   )
 }
+
+function NavButtons() {
+  return (
+    <Row
+      className={twMerge(
+        '-mt-4 mobile:mt-4 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] items-center justify-between'
+      )}
+    >
+      <Button
+        type="text"
+        className="text-sm text-[#ABC4FF] opacity-50 px-0"
+        prefix={<Icon heroIconName="chevron-left" size="sm" />}
+        onClick={() => {
+          if (inClient && window.history.length === 1) {
+            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
+            routeTo('/clmm/pools')
+          } else {
+            routeBack()
+          }
+        }}
+      >
+        Back to all pools
+      </Button>
+    </Row>
+  )
+}
+
+function AsideNavButtons() {
+  return (
+    <Row
+      className={twMerge(
+        '-mt-4 mobile:mt-4 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] items-center justify-between'
+      )}
+    >
+      <Button
+        type="text"
+        className="text-sm text-[#ABC4FF] px-0"
+        prefix={<Icon heroIconName="chevron-left" />}
+        onClick={() => {
+          if (inClient && window.history.length === 1) {
+            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
+            routeTo('/clmm/pools')
+          } else {
+            routeBack()
+          }
+        }}
+      ></Button>
+    </Row>
+  )
+}
+
 function ConcentratedEffects() {
   useConcentratedAmmSelector()
   useConcentratedAmountCalculator()
@@ -73,24 +127,9 @@ function ConcentratedEffects() {
   return null
 }
 
-// const availableTabValues = ['Swap', 'Liquidity'] as const
-function ConcentratedHead() {
-  return (
-    <Row className="justify-center  mb-12 mobile:mb-2">
-      <RowTabs
-        currentValue={'Concentrated'}
-        values={['Swap', 'Liquidity', 'Concentrated']}
-        onChange={(newTab) => {
-          if (newTab === 'Liquidity') routeTo('/liquidity/add')
-          else if (newTab === 'Swap') routeTo('/swap')
-        }}
-      />
-    </Row>
-  )
-}
-
 function ConcentratedCard() {
   const chartPoints = useConcentrated((s) => s.chartPoints)
+  const timeBasis = useConcentrated((s) => s.timeBasis)
   const connected = useWallet((s) => s.connected)
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -284,11 +323,15 @@ function ConcentratedCard() {
       wrapperClassName="md:w-[806px] w-full self-center cyberpunk-bg-light"
       className="p-6 mobile:py-5 mobile:px-3"
     >
+      <div className="absolute -left-8 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <AsideNavButtons />
+      </div>
+
       <PairInfoTitle
         coin1={coin1}
         coin2={coin2}
         fee={toPercentString(currentAmmPool?.tradeFeeRate, { exact: true })}
-        currentPrice={currentAmmPool?.state.currentPrice}
+        currentPrice={currentAmmPool?.currentPrice}
         isPairPoolDirectionEq={isPairPoolDirectionEq}
         focusSide={focusSide}
         onChangeFocus={(focusSide) => useConcentrated.setState({ focusSide })}
@@ -452,7 +495,18 @@ function ConcentratedCard() {
           <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
             <div className="flex justify-between items-center">
               <span className="text-sm leading-[18px] text-secondary-title">Estimated APR</span>
-              <span className="text-2xl leading-[30px]">≈{toPercentString(currentAmmPool?.totalApr30d)}</span>
+              <span className="text-2xl leading-[30px]">
+                ≈
+                {toPercentString(
+                  currentAmmPool?.[
+                    timeBasis === TimeBasis.DAY
+                      ? 'totalApr24h'
+                      : timeBasis === TimeBasis.WEEK
+                      ? 'totalApr7d'
+                      : 'totalApr30d'
+                  ]
+                )}
+              </span>
             </div>
             {hasReward && (
               <Grid className="grid-cols-2 mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
@@ -464,7 +518,17 @@ function ConcentratedCard() {
                       <div key={reward.tokenMint.toBase58()} className="flex items-center mb-2">
                         <CoinAvatar className="inline-block" size="sm" token={rewardToken} />
                         <span className="text-xs text-[#abc4ff80] ml-1 mr-4">{rewardToken?.symbol}</span>
-                        <span className="text-sm">{toPercentString(currentAmmPool?.rewardApr30d[idx])}</span>
+                        <span className="text-sm">
+                          {toPercentString(
+                            currentAmmPool?.[
+                              timeBasis === TimeBasis.DAY
+                                ? 'rewardApr24h'
+                                : timeBasis === TimeBasis.WEEK
+                                ? 'rewardApr7d'
+                                : 'rewardApr30d'
+                            ][idx]
+                          )}
+                        </span>
                       </div>
                     )
                   })}
@@ -474,7 +538,17 @@ function ConcentratedCard() {
                   <div className="flex items-center mb-2">
                     <CoinAvatar className="inline-block" size="sm" token={coin1} />
                     <span className="text-xs text-[#abc4ff80] ml-1 mr-4">Trading Fees</span>
-                    <span className="text-sm">{toPercentString(currentAmmPool?.feeApr30d)}</span>
+                    <span className="text-sm">
+                      {toPercentString(
+                        currentAmmPool?.[
+                          timeBasis === TimeBasis.DAY
+                            ? 'feeApr24h'
+                            : timeBasis === TimeBasis.WEEK
+                            ? 'feeApr7d'
+                            : 'feeApr30d'
+                        ]
+                      )}
+                    </span>
                   </div>
                 </div>
               </Grid>
