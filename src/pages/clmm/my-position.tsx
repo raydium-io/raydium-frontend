@@ -75,6 +75,29 @@ function NavButtons() {
     </Row>
   )
 }
+function NavButtonsSide() {
+  return (
+    <Row
+      className={twMerge(
+        '-mt-4 mobile:mt-4 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] items-center justify-between'
+      )}
+    >
+      <Button
+        type="text"
+        className="text-sm text-[#ABC4FF] px-0"
+        prefix={<Icon heroIconName="chevron-left" />}
+        onClick={() => {
+          if (inClient && window.history.length === 1) {
+            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
+            routeTo('/clmm/pools')
+          } else {
+            routeBack()
+          }
+        }}
+      ></Button>
+    </Row>
+  )
+}
 
 // const availableTabValues = ['Swap', 'Liquidity'] as const
 function MyPositionPageHead() {
@@ -394,9 +417,12 @@ function MyPositionCardHeader({ className }: { className?: string }) {
 function MyPositionCard() {
   return (
     <CyberpunkStyleCard
-      wrapperClassName="w-[min(912px,100%)] self-center cyberpunk-bg-light"
+      wrapperClassName="relative w-[min(912px,100%)] self-center cyberpunk-bg-light"
       className="py-5 px-6 mobile:py-5 mobile:px-3"
     >
+      <div className="absolute -left-8 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <NavButtonsSide />
+      </div>
       <MyPositionCardHeader />
 
       <Grid className="gap-3 grid-cols-2 w-[min(912px,100%)]">
