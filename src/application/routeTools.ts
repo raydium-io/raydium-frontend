@@ -51,9 +51,6 @@ export type PageRouteConfigs = {
     }
   }
   '/pools': {
-    queryProps?: any
-  }
-  '/pools/classic': {
     queryProps?: {
       expandedPoolId?: string
       searchText?: string
@@ -205,8 +202,8 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
           })
         )
       })
-  } else if (toPage === '/pools/classic') {
-    return router.push({ pathname: '/pools/classic' }).then(() => {
+  } else if (toPage === '/pools') {
+    return router.push({ pathname: '/pools' }).then(() => {
       usePools.setState(
         objectShakeFalsy({
           searchText: options?.queryProps?.searchText,

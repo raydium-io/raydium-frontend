@@ -1,6 +1,5 @@
 import Decimal from 'decimal.js'
 import { SplToken } from '@/application/token/type'
-import CoinAvatar from '@/components/CoinAvatar'
 import RectTabs, { TabItem } from '@/components/RectTabs'
 import { useCallback, useMemo } from 'react'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
@@ -10,12 +9,13 @@ interface Props {
   coin2?: SplToken
   fee?: string
   currentPrice?: Decimal
+  isPairPoolDirectionEq: boolean
   focusSide: 'coin1' | 'coin2'
   onChangeFocus: (focusSide: 'coin1' | 'coin2') => void
 }
 
 export function PairInfoTitle(props: Props) {
-  const { coin1, coin2, currentPrice, fee, focusSide, onChangeFocus } = props
+  const { coin1, coin2, currentPrice, fee, focusSide, isPairPoolDirectionEq, onChangeFocus } = props
   const isFocus1 = focusSide === 'coin1'
 
   const tabs = useMemo(() => {
@@ -34,7 +34,7 @@ export function PairInfoTitle(props: Props) {
 
   const getPrice = () => {
     if (!currentPrice || !coin1 || !coin2) return ''
-    if (isFocus1) return currentPrice.toDecimalPlaces(coin1?.decimals).toString()
+    if (isPairPoolDirectionEq) return currentPrice.toDecimalPlaces(coin1?.decimals).toString()
     return new Decimal(1).div(currentPrice).toDecimalPlaces(coin2?.decimals).toString()
   }
 
@@ -46,7 +46,7 @@ export function PairInfoTitle(props: Props) {
     <div className="flex justify-between items-center mb-[27px]">
       <div className="flex items-center">
         <CoinAvatarPair size="lg" token1={coin1} token2={coin2} />
-        <span className="ml-2 text-xl">
+        <span className="ml-2 text-xl font-medium text-white">
           {coin1?.symbol || '-'} / {coin2?.symbol || '-'}
         </span>
         <div className="px-2.5 py-1 ml-2 rounded-lg text-sm text-secondary-title bg-active-tab-bg">

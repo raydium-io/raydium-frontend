@@ -1,4 +1,5 @@
 import { inClient } from '@/functions/judgers/isSSR'
+import { requestIdleCallback } from '@/functions/lazyMap'
 import { AnyFn } from '@/types/constants'
 import { useEffect, useRef } from 'react'
 
@@ -9,7 +10,7 @@ export function useIdleEffect(effect: () => any, dependenceList?: any[]) {
   const cleanFn = useRef<AnyFn>()
   useEffect(() => {
     if (!inClient) return
-    window.requestIdleCallback(() => {
+    requestIdleCallback(() => {
       cleanFn.current?.()
       const returnedCleanFn = effect()
       cleanFn.current = returnedCleanFn

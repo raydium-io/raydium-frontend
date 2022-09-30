@@ -11,6 +11,7 @@ import {
   DEFAULT_X_AXIS,
   HIGHLIGHT_COLOR,
   ZOOM_INTERVAL,
+  getDefaultPointOffset,
   boundaryColor,
   strokeFillProp,
   toFixedNumber,
@@ -79,12 +80,19 @@ export default forwardRef(function Chart(props: Props, ref) {
   const moveRef = useRef('')
   const areaRef = useRef<number | undefined>()
   const xAxisRef = useRef<number[]>([])
-  const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
-  boundaryRef.current =
-    xAxisDomain === DEFAULT_X_AXIS
-      ? { min: points[0]?.x || 0, max: points[points.length - 1]?.x || 100 }
-      : boundaryRef.current
+  const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
+  const { offsetMin, offsetMax } = getDefaultPointOffset({
+    points,
+    defaultMin,
+    defaultMax,
+    decimals,
+    showCurrentPriceOnly
+  })
+
+  boundaryRef.current = xAxisDomain.length
+    ? { min: Number(xAxisDomain[0]) || 0, max: Number(xAxisDomain[xAxisDomain.length - 1]) || 100 }
+    : boundaryRef.current
 
   const updatePosition = useCallback(
     (nextStateOrCbk: PositionState | ((prePos: PositionState) => PositionState)) => {
@@ -99,6 +107,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         })
         return
       }
+
       setPosition({
         [Range.Min]: toFixedNumber(getSafeMin(nextStateOrCbk[Range.Min]), decimals),
         [Range.Max]: toFixedNumber(nextStateOrCbk[Range.Max], decimals)
@@ -121,10 +130,12 @@ export default forwardRef(function Chart(props: Props, ref) {
       defaultMax ? Number(defaultMax.toFixed(decimals)) : undefined
     ]
 
-    if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(decimals)))
-      points.unshift({ x: defaultMinNum - (points[1].x - points[0].x) / 2, y: 0 })
-    if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(decimals)))
-      points.push({ x: defaultMaxNum + (points[1].x - points[0].x) / 2, y: 0 })
+    const gap = points[1].x - points[0].x
+    if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(decimals)) + gap) {
+      points.unshift({ x: Math.max(defaultMinNum - gap, 0), y: 0 })
+    }
+    if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(decimals)) - gap)
+      points.push({ x: defaultMaxNum + gap * 2, y: 0 })
 
     const pointMaxIndex = points.length - 1
     for (let i = 0; i < pointMaxIndex; i++) {
@@ -132,7 +143,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       const nextPoint = points[i + 1]
       displayList.push({ ...point })
       // add more points to chart to smooth line
-      if (!showCurrentPriceOnly || smoothCount > 0) {
+      if (!showCurrentPriceOnly && smoothCount > 0) {
         const gap = toFixedNumber((nextPoint.x - point.x) / smoothCount, decimals)
         for (let j = 1; j <= smoothCount; j++) {
           const y = toFixedNumber(j > Math.floor(smoothCount / 2) ? nextPoint.y : point.y, decimals)
@@ -149,10 +160,10 @@ export default forwardRef(function Chart(props: Props, ref) {
   useEffect(() => {
     if (!defaultMin && !defaultMax) return
     updatePosition({
-      [Range.Min]: Number(defaultMin?.toFixed(10) || 0),
-      [Range.Max]: Number(defaultMax?.toFixed(10) || 100)
+      [Range.Min]: Number(defaultMin.toFixed(10)) - offsetMin,
+      [Range.Max]: Number(defaultMax.toFixed(10)) - offsetMax
     })
-  }, [defaultMin, defaultMax, updatePosition])
+  }, [defaultMin, defaultMax, updatePosition, offsetMin, offsetMax])
 
   useEffect(() => {
     setXAxis(xAxisRef.current)
@@ -284,9 +295,10 @@ export default forwardRef(function Chart(props: Props, ref) {
   const handlePriceChange = useCallback(
     ({ val, side }: { val?: number | string; side: Range }) => {
       const newVal = parseFloat(String(val!))
-
       setPosition((p) => {
-        onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
+        setTimeout(() => {
+          onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
+        }, 200)
         return { ...p, [side]: newVal }
       })
       setDisplayList((list) => {
@@ -303,7 +315,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         return filteredList
       })
     },
-    [tickGap, points, onPositionChange]
+    [tickGap, points, debounceUpdate]
   )
 
   const handleInDecrease = useCallback(
@@ -429,6 +441,7 @@ export default forwardRef(function Chart(props: Props, ref) {
               style={{ cursor: isMoving ? 'grab' : 'default' }}
               legendType="none"
               tooltipType="none"
+              isAnimationActive={false}
               activeDot={false}
               dot={false}
               type="step"

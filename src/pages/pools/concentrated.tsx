@@ -7,7 +7,9 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
@@ -1177,7 +1179,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   ) : null}
                 </div>
                 <div className="text-white font-medium text-base mobile:text-xs mt-3">
-                  {toUsdVolume(unclaimedYield) ?? '--'}
+                  ≈{toUsdVolume(unclaimedYield)}
                 </div>
                 <AutoBox
                   is="Row"

@@ -98,6 +98,8 @@ export interface CoinInputBoxProps {
   haveHalfButton?: boolean
   hideMaxButton?: boolean
   haveCoinIcon?: boolean
+  // by default, SOL balance will sub 0.05
+  canFillFullBalance?: boolean
   showTokenSelectIcon?: boolean
 }
 
@@ -137,6 +139,7 @@ export default function CoinInputBox({
   hideMaxButton,
   haveHalfButton,
   haveCoinIcon,
+  canFillFullBalance,
   showTokenSelectIcon
 }: CoinInputBoxProps) {
   const disabledInput = disabled || innerDisabledInput
@@ -214,7 +217,12 @@ export default function CoinInputBox({
   // press button will also cause user input.
   function fillAmountWithBalance(percent: number) {
     let maxBalance = maxValue
-    if (isTokenAmount(maxValue) && isQuantumSOL(maxValue.token) && !isQuantumSOLVersionWSOL(maxValue.token)) {
+    if (
+      !canFillFullBalance &&
+      isTokenAmount(maxValue) &&
+      isQuantumSOL(maxValue.token) &&
+      !isQuantumSOLVersionWSOL(maxValue.token)
+    ) {
       // if user select sol max balance is -0.05
       maxBalance = toTokenAmount(
         maxValue.token,

@@ -176,6 +176,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
           hideRangeLine
           hideRangeInput
           hideCurrentPriceLabel
+          showCurrentPriceOnly
           height={isMobile ? 200 : 300}
         />
       </div>
