@@ -37,7 +37,13 @@ import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import { Fraction } from 'test-r-sdk'
-import { RemainSOLAlert, canTokenPairBeSelected, toXYChartFormat, PairInfoTitle } from '@/pageComponents/Concentrated'
+import {
+  RemainSOLAlert,
+  canTokenPairBeSelected,
+  toXYChartFormat,
+  calculateRatio,
+  PairInfoTitle
+} from '@/pageComponents/Concentrated'
 import Decimal from 'decimal.js'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import { routeBack, routeTo } from '@/application/routeTools'
@@ -45,11 +51,10 @@ import Row from '@/components/Row'
 import Grid from '@/components/Grid'
 import { FadeIn } from '@/components/FadeIn'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
-import { div, sub } from '@/functions/numberish/operations'
+import { div, sub, mul } from '@/functions/numberish/operations'
 import { twMerge } from 'tailwind-merge'
 import Icon from '@/components/Icon'
 import { inClient } from '@/functions/judgers/isSSR'
-import { BN } from 'bn.js'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -267,28 +272,15 @@ function ConcentratedCard() {
     .filter((p) => !!p)
     .reduce((acc, cur) => {
       const newAcc = acc!.add(toFraction(cur!))
-
       return newAcc
     }, new Fraction(0))
-
-  const amount1 = (coin1InputDisabled ? '0' : coin1Amount) || '0'
-  const amount2 = coin2InputDisabled ? '0' : coin2Amount
-  const denominator = currentPrice
-    ? toBN(amount1).gt(new BN(0))
-      ? toFraction(amount1)
-          .mul(currentPrice)
-          .add(toFraction(amount2 || '0'))
-      : toBN(amount2 || 0).gt(new BN(0))
-      ? toFraction(amount2!)
-      : toFraction(1)
-    : toFraction(1)
-  const ratio1 = currentPrice ? toFraction(amount1).mul(currentPrice).div(denominator).mul(100).toFixed(1) : '0'
-  const ratio2 = currentPrice
-    ? toFraction(amount2 || '0')
-        .div(denominator)
-        .mul(100)
-        .toFixed(1)
-    : '0'
+  const { ratio1, ratio2 } = calculateRatio({
+    coin1Amount,
+    coin2Amount,
+    coin1InputDisabled,
+    coin2InputDisabled,
+    currentPrice
+  })
 
   const handlePosChange = useCallback(
     ({ side, userInput, ...pos }: { min: number; max: number; side?: Range; userInput?: boolean }) => {
@@ -440,16 +432,17 @@ function ConcentratedCard() {
                 </span>
               </div>
             </div>
+            {coin1InputDisabled || coin2InputDisabled ? (
+              <FadeIn>
+                <div className="flex items-center mt-3.5 p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
+                  <Icon size="sm" className="mr-1.5" heroIconName="exclamation-circle" />
+                  Your position will not trade or earn fees until price moves into your range.
+                </div>
+              </FadeIn>
+            ) : (
+              ''
+            )}
           </div>
-          {coin1InputDisabled || coin2InputDisabled ? (
-            <FadeIn>
-              <div className="p-2 bg-[#141041] rounded mt-4 text-sm text-[#abc4ff]">
-                Your position will not trade or earn fees until price moves into your range.
-              </div>
-            </FadeIn>
-          ) : (
-            ''
-          )}
 
           {/* supply button */}
           <Button
@@ -513,9 +506,9 @@ function ConcentratedCard() {
               {hydratedAmmPools.length ? 'Pool Not Found' : 'Loading...'}
             </div>
           )}
-          <div className="text-base leading-[22px] text-secondary-title mb-3">Set Price Range</div>
           <Chart
             ref={chartRef}
+            title="Set Price Range"
             chartOptions={chartOptions}
             currentPrice={currentPrice}
             priceLabel={isFocus1 ? `${coin2?.symbol} per ${coin1?.symbol}` : `${coin1?.symbol} per ${coin2?.symbol}`}

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, useMemo, useImperativeHandle, forwardRef } from 'react'
+import { useEffect, useRef, useState, useCallback, useMemo, useImperativeHandle, forwardRef, ReactNode } from 'react'
 import { Fraction } from 'test-r-sdk'
 import { ChartPoint, ChartRangeInputOption } from './ConcentratedRangeInputChartBody'
 import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
@@ -6,7 +6,6 @@ import Icon from '@/components/Icon'
 import useDevice from '@/hooks/useDevice'
 import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
 import {
-  getPriceLabel,
   Range,
   DEFAULT_X_AXIS,
   HIGHLIGHT_COLOR,
@@ -42,6 +41,7 @@ interface Props {
   hideCurrentPriceLabel?: boolean
   hideXAxis?: boolean
   height?: number
+  title?: ReactNode
   onPositionChange?: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
   onInDecrease?: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
 }
@@ -55,6 +55,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     height,
     onPositionChange,
     onInDecrease,
+    title,
     showCurrentPriceOnly,
     hideCurrentPriceLabel,
     hideRangeLine,
@@ -198,10 +199,11 @@ export default forwardRef(function Chart(props: Props, ref) {
       xAxisRef.current.push(val)
     }
     if (val === 0) return '0'
-    if (val < 1) return val.toFixed(4)
-    if (val < 10) return val.toFixed(1)
+    if (val < 0.1) return Number(val.toFixed(4)).toString()
+    if (val < 1) return Number(val.toFixed(2)).toString()
+    if (val < 10) return Number(val.toFixed(1)).toString()
 
-    return val.toFixed(1)
+    return Number(val.toFixed(1)).toString()
   }
 
   let timer: number | undefined = undefined
@@ -403,36 +405,40 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   return (
     <>
-      {showZoom && (
-        <div className="flex justify-end gap-2 select-none">
-          <Icon
-            onClick={zoomReset}
-            className="saturate-50 brightness-125 cursor-pointer"
-            iconSrc="/icons/chart-add-white-space.svg"
-          />
-          <Icon
-            className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
-            onClick={zoomIn}
-            heroIconName="zoom-in"
-            canLongClick
-          />
-          <Icon
-            onClick={zoomOut}
-            className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
-            heroIconName="zoom-out"
-            canLongClick
-          />
-        </div>
-      )}
+      <div className="flex justify-between text-base leading-[22px] text-secondary-title mb-2">
+        {title}
+        {showZoom && (
+          <div className="flex gap-2 select-none">
+            <Icon
+              onClick={zoomReset}
+              className="saturate-50 brightness-125 cursor-pointer"
+              iconSrc="/icons/chart-add-white-space.svg"
+            />
+            <Icon
+              className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
+              onClick={zoomIn}
+              heroIconName="zoom-in"
+              canLongClick
+            />
+            <Icon
+              onClick={zoomOut}
+              className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
+              heroIconName="zoom-out"
+              canLongClick
+            />
+          </div>
+        )}
+      </div>
+      <div className="text-[#ABC4FF] text-sm">
+        {hideCurrentPriceLabel ? undefined : `Current Price ${currentPrice?.toSignificant(4)} ${priceLabel || ''}`}
+      </div>
       <div className="w-full select-none" style={{ height: `${height || 140}px` }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             style={{ userSelect: 'none' }}
             width={500}
             height={400}
-            margin={{
-              top: 30
-            }}
+            margin={{ top: 10 }}
             defaultShowTooltip={false}
             data={displayList || []}
             onMouseMove={handleMove}
@@ -496,13 +502,6 @@ export default forwardRef(function Chart(props: Props, ref) {
                 stroke="#FFF"
                 strokeDasharray="4"
                 strokeWidth={2}
-                label={
-                  hideCurrentPriceLabel
-                    ? undefined
-                    : getPriceLabel(
-                        priceLabel ? `${currentPrice?.toSignificant(4)} ${priceLabel}` : currentPrice?.toSignificant(4)
-                      )
-                }
               />
             )}
             {hasPoints && (

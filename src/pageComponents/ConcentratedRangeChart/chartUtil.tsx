@@ -17,9 +17,9 @@ export const DEFAULT_X_AXIS = ['dataMin', 'dataMax']
 
 export const getConfig = (num: number, totalCount: number) => {
   const config = { precision: 1, smoothCount: 10 }
-  if (num < 0.1) config.precision = 6
-  else if (num < 1) config.precision = 4
-  else if (num < 100) config.precision = 2
+  if (num < 0.1) config.precision = 4
+  else if (num < 1) config.precision = 2
+  else if (num < 100) config.precision = 1
 
   if (totalCount < 100) config.smoothCount = 20
   if (totalCount >= 1000) config.smoothCount = 0
@@ -64,7 +64,7 @@ export const getPriceLabel = (price?: number | string) => (props) => {
       <text
         className="break-words"
         fill="#ABC4FF"
-        y={props.viewBox.y - 25}
+        y={props.viewBox.y - 23}
         x={props.viewBox.x - 2}
         style={{
           fontWeight: '500',
