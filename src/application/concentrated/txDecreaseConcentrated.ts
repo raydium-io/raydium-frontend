@@ -31,8 +31,6 @@ export default function txDecreaseConcentrated({
     assert(coin2Amount, 'not set coin2Amount')
     assert(isMeaningfulNumber(liquidity), 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
-    // eslint-disable-next-line no-console
-    console.log('same ?: ', eq(targetUserPositionAccount.sdkParsed.liquidity, liquidity))
     const { transaction, signers, address } = await AmmV3.makeDecreaseLiquidityTransaction({
       connection: connection,
       liquidity,
