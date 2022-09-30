@@ -155,7 +155,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
-        <div className="font-medium text-[#abc4ff]">My position</div>
+        <div className="font-medium text-[#abc4ff]">My Position</div>
         <RangeTag positionAccount={targetUserPositionAccount} />
       </Row>
       <Grid className="items-center text-2xl text-white">
@@ -164,18 +164,17 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
       <div className="font-medium text-[#abc4ff]">
         {currentAmmPool?.quote?.symbol ?? '--'} per {currentAmmPool?.base?.symbol ?? '--'}
       </div>
-      <div className="items-center grow">
+      <div className="items-center grow ">
         <Chart
           chartOptions={{
             points: chartPoints ? toXYChartFormat(chartPoints) : [],
             initMinBoundaryX,
             initMaxBoundaryX
           }}
-          currentPrice={currentAmmPool ? decimalToFraction(currentAmmPool.state.currentPrice) : undefined}
+          currentPrice={currentAmmPool ? currentAmmPool.currentPrice : undefined}
           decimals={decimals}
           hideRangeLine
           hideRangeInput
-          hideCurrentPriceLabel
           showCurrentPriceOnly
           height={isMobile ? 200 : 300}
         />
