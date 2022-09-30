@@ -170,7 +170,7 @@ function ConcentratedCard() {
       if (!currentAmmPool || !coin1 || !coin2) return
       const targetCoin = isFocus1 ? coin1 : coin2
       const tickKey = isMin ? 'lower' : 'upper'
-      if (!tickRef.current[tickKey]) {
+      if (tickRef.current[tickKey] === undefined) {
         const res = getPriceTick({
           p: p * 1.002,
           coin1,

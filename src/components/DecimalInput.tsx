@@ -162,7 +162,7 @@ export default function DecimalInput({
       }}
       prefix={
         showPlusMinusControls ? (
-          <Icon className="text-light-blue clickable" heroIconName="minus" size="xs" onClick={decrease} />
+          <Icon className="text-light-blue clickable" heroIconName="minus" size="xs" onClick={decrease} canLongClick />
         ) : undefined
       }
       suffix={
@@ -184,7 +184,7 @@ export default function DecimalInput({
             />
           </div>
         ) : showPlusMinusControls ? (
-          <Icon className="text-light-blue clickable" heroIconName="plus" size="xs" onClick={increase} />
+          <Icon className="text-light-blue clickable" heroIconName="plus" size="xs" onClick={increase} canLongClick />
         ) : undefined
       }
     />
