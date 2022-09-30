@@ -1,5 +1,5 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
@@ -90,6 +90,7 @@ function ConcentratedHead() {
 
 function ConcentratedCard() {
   const chartPoints = useConcentrated((s) => s.chartPoints)
+  const timeBasis = useConcentrated((s) => s.timeBasis)
   const connected = useWallet((s) => s.connected)
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -440,7 +441,18 @@ function ConcentratedCard() {
           <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
             <div className="flex justify-between items-center">
               <span className="text-sm leading-[18px] text-secondary-title">Estimated APR</span>
-              <span className="text-2xl leading-[30px]">≈{toPercentString(currentAmmPool?.totalApr30d)}</span>
+              <span className="text-2xl leading-[30px]">
+                ≈
+                {toPercentString(
+                  currentAmmPool?.[
+                    timeBasis === TimeBasis.DAY
+                      ? 'totalApr24h'
+                      : timeBasis === TimeBasis.WEEK
+                      ? 'totalApr7d'
+                      : 'totalApr30d'
+                  ]
+                )}
+              </span>
             </div>
             {hasReward && (
               <Grid className="grid-cols-2 mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
@@ -452,7 +464,17 @@ function ConcentratedCard() {
                       <div key={reward.tokenMint.toBase58()} className="flex items-center mb-2">
                         <CoinAvatar className="inline-block" size="sm" token={rewardToken} />
                         <span className="text-xs text-[#abc4ff80] ml-1 mr-4">{rewardToken?.symbol}</span>
-                        <span className="text-sm">{toPercentString(currentAmmPool?.rewardApr30d[idx])}</span>
+                        <span className="text-sm">
+                          {toPercentString(
+                            currentAmmPool?.[
+                              timeBasis === TimeBasis.DAY
+                                ? 'rewardApr24h'
+                                : timeBasis === TimeBasis.WEEK
+                                ? 'rewardApr7d'
+                                : 'rewardApr30d'
+                            ][idx]
+                          )}
+                        </span>
                       </div>
                     )
                   })}
@@ -462,7 +484,17 @@ function ConcentratedCard() {
                   <div className="flex items-center mb-2">
                     <CoinAvatar className="inline-block" size="sm" token={coin1} />
                     <span className="text-xs text-[#abc4ff80] ml-1 mr-4">Trading Fees</span>
-                    <span className="text-sm">{toPercentString(currentAmmPool?.feeApr30d)}</span>
+                    <span className="text-sm">
+                      {toPercentString(
+                        currentAmmPool?.[
+                          timeBasis === TimeBasis.DAY
+                            ? 'feeApr24h'
+                            : timeBasis === TimeBasis.WEEK
+                            ? 'feeApr7d'
+                            : 'feeApr30d'
+                        ]
+                      )}
+                    </span>
                   </div>
                 </div>
               </Grid>

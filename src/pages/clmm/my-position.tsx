@@ -1,7 +1,7 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
-import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
 import { routeBack, routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
@@ -330,13 +330,20 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
 function MyPositionCardAPRInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const timeBasis = useConcentrated((s) => s.timeBasis)
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
         <div className="font-medium text-[#abc4ff]">Estimated APR</div>
       </Row>
       <Row className="items-center gap-4">
-        <div className="font-medium text-2xl text-white">{toPercentString(currentAmmPool?.totalApr30d)}</div>
+        <div className="font-medium text-2xl text-white">
+          {toPercentString(
+            currentAmmPool?.[
+              timeBasis === TimeBasis.DAY ? 'totalApr24h' : timeBasis === TimeBasis.WEEK ? 'totalApr7d' : 'totalApr30d'
+            ]
+          )}
+        </div>
       </Row>
       <Grid className="grid-cols-1 border-1.5 border-[#abc4ff40] py-3 px-4 gap-2 rounded-xl">
         <div className="font-medium text-[#abc4ff] mt-2 mb-4">Yield</div>
@@ -348,9 +355,17 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
                 <div className="text-[#abc4ff80] min-w-[4em] mr-1">Trade Fee</div>
               </Row>
             }
-            text={<div className="text-white justify-end">{toPercentString(currentAmmPool?.feeApr30d)}</div>}
+            text={
+              <div className="text-white justify-end">
+                {toPercentString(
+                  currentAmmPool?.[
+                    timeBasis === TimeBasis.DAY ? 'feeApr24h' : timeBasis === TimeBasis.WEEK ? 'fee7d' : 'feeApr30d'
+                  ]
+                )}
+              </div>
+            }
           />
-          {targetUserPositionAccount?.rewardInfos.map(({ penddingReward, apr30d }) => (
+          {targetUserPositionAccount?.rewardInfos.map(({ penddingReward, apr30d, apr24h, apr7d }) => (
             <RowItem
               key={toPubString(penddingReward?.token.mint)}
               prefix={
@@ -359,7 +374,13 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
                   <div className="text-[#abc4ff80] min-w-[4em] mr-1">{penddingReward?.token?.symbol ?? '--'}</div>
                 </Row>
               }
-              text={<div className="text-white justify-end">{toPercentString(apr30d)}</div>} // TEMP
+              text={
+                <div className="text-white justify-end">
+                  {toPercentString(
+                    timeBasis === TimeBasis.DAY ? apr24h : timeBasis === TimeBasis.WEEK ? apr7d : apr30d
+                  )}
+                </div>
+              } // TEMP
             />
           ))}
         </Grid>
