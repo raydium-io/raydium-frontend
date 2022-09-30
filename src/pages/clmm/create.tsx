@@ -311,7 +311,7 @@ function ConcentratedCard() {
         coin1={coin1}
         coin2={coin2}
         fee={toPercentString(currentAmmPool?.tradeFeeRate, { exact: true })}
-        currentPrice={currentAmmPool?.state.currentPrice}
+        currentPrice={currentAmmPool?.currentPrice}
         isPairPoolDirectionEq={isPairPoolDirectionEq}
         focusSide={focusSide}
         onChangeFocus={(focusSide) => useConcentrated.setState({ focusSide })}
