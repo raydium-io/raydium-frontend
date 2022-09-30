@@ -523,6 +523,7 @@ function ConcentratedCard() {
             onPositionChange={handlePosChange}
             onInDecrease={handleClickInDecrease}
             showZoom
+            height={200}
           />
           <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
             <div className="flex justify-between items-center">
