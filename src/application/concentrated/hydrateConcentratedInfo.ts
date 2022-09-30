@@ -82,12 +82,16 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     volumeFee7d: toUsdCurrency(sdkConcentratedInfo.state.week.volumeFee),
     volumeFee30d: toUsdCurrency(sdkConcentratedInfo.state.month.volumeFee),
 
-    fee24hA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.day.feeA) : undefined,
-    fee24hB: tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.day.feeB) : undefined,
-    fee7dA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.week.feeA) : undefined,
-    fee7dB: tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.week.feeB) : undefined,
-    fee30dA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.month.feeA) : undefined,
-    fee30dB: tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.month.feeB) : undefined
+    fee24hA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.day.feeA, { alreadyDecimaled: true }) : undefined,
+    fee24hB: tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.day.feeB, { alreadyDecimaled: true }) : undefined,
+    fee7dA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.week.feeA, { alreadyDecimaled: true }) : undefined,
+    fee7dB: tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.week.feeB, { alreadyDecimaled: true }) : undefined,
+    fee30dA: tokenA
+      ? toTokenAmount(tokenA, sdkConcentratedInfo.state.month.feeA, { alreadyDecimaled: true })
+      : undefined,
+    fee30dB: tokenB
+      ? toTokenAmount(tokenB, sdkConcentratedInfo.state.month.feeB, { alreadyDecimaled: true })
+      : undefined
   }
 }
 /**
