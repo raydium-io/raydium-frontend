@@ -64,7 +64,7 @@ function NavButtons() {
         onClick={() => {
           if (inClient && window.history.length === 1) {
             // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
-            routeTo('/pools/concentrated')
+            routeTo('/clmm/pools')
           } else {
             routeBack()
           }

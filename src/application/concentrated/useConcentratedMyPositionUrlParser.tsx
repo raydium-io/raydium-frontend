@@ -45,7 +45,7 @@ export default function useConcentratedMyPositionUrlParser() {
       const storagedNftMint = getSessionItem<string>(nftMintName)
       const ammId = getSessionItem<string>(myPositionAmmIdName)
       if (!prevPathname && pathname.includes('my-position') && !storagedNftMint && !ammId) {
-        routeTo('/pools/concentrated')
+        routeTo('/clmm/pools')
       }
     },
     [pathname]

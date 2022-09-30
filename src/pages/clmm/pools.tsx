@@ -835,7 +835,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
           onClick={() => {
             useConcentrated.setState({ coin1: info.base, coin2: info.quote })
-            routeTo('/liquidity/concentrated')
+            routeTo('/clmm/create')
           }}
         >
           Open New Position
@@ -1124,7 +1124,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                       fallbackProps: {
                         onClick: () => {
                           useConcentrated.setState({ coin1: info.base, coin2: info.quote })
-                          routeTo('/liquidity/concentrated', {
+                          routeTo('/clmm/create', {
                             queryProps: {}
                           })
                         },
@@ -1138,7 +1138,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                       targetUserPositionAccount: p,
                       expandedPoolId: info.idString
                     })
-                    routeTo('/liquidity/my-position')
+                    routeTo('/clmm/my-position')
                   }}
                 >
                   Manage Liquidity

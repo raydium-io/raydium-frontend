@@ -56,7 +56,7 @@ export type PageRouteConfigs = {
       searchText?: string
     }
   }
-  '/pools/concentrated': {
+  '/clmm/pools': {
     queryProps?: {
       expandedPoolId?: string
       searchText?: string
@@ -87,10 +87,10 @@ export type PageRouteConfigs = {
   '/farms/editReview': {
     queryProps?: any
   }
-  '/liquidity/concentrated': {
+  '/clmm/create': {
     queryProps?: any
   }
-  '/liquidity/my-position': {
+  '/clmm/my-position': {
     queryProps?: any
   }
 }
@@ -211,8 +211,8 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         })
       )
     })
-  } else if (toPage === '/pools/concentrated') {
-    return router.push({ pathname: '/pools/concentrated' }).then(() => {
+  } else if (toPage === '/clmm/pools') {
+    return router.push({ pathname: '/clmm/pools' }).then(() => {
       useConcentrated.setState(
         objectShakeFalsy({
           searchText: options?.queryProps?.searchText,

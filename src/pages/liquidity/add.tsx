@@ -98,7 +98,7 @@ function LiquidityPageHead() {
         values={['Swap', 'Liquidity', 'Concentrated']}
         onChange={(newTab) => {
           if (newTab === 'Swap') routeTo('/swap')
-          else if (newTab === 'Concentrated') routeTo('/liquidity/concentrated')
+          else if (newTab === 'Concentrated') routeTo('/clmm/create')
         }}
       />
     </Row>
