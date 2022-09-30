@@ -10,7 +10,6 @@ import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
-import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
@@ -29,6 +28,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   })
   // cache for UI
   const open = useConcentrated((s) => s.isRemoveDialogOpen)
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const walletConnected = useWallet((s) => s.connected)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const buttonComponentRef = useRef<ButtonHandle>()
@@ -195,7 +195,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                   if (allSuccess) {
                     onClose?.()
                     closeDialog()
+                    refreshConcentrated()
                     useConcentrated.setState({
+                      isAddDialogOpen: false,
                       coin1Amount: undefined,
                       coin2Amount: undefined
                     })

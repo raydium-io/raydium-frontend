@@ -35,6 +35,7 @@ export function AddConcentratedLiquidityDialog() {
     useConcentrated.setState({ coin1Amount: undefined, coin2Amount: undefined })
   })
   const open = useConcentrated((s) => s.isAddDialogOpen)
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const walletConnected = useWallet((s) => s.connected)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const buttonComponentRef = useRef<ButtonHandle>()
@@ -249,6 +250,7 @@ export function AddConcentratedLiquidityDialog() {
               onClick={() => {
                 txIncreaseConcentrated().then(({ allSuccess }) => {
                   if (allSuccess) {
+                    refreshConcentrated()
                     useConcentrated.setState({
                       isAddDialogOpen: false,
                       coin1Amount: undefined,
