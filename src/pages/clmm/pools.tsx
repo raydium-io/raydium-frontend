@@ -954,6 +954,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   rewardTotalVolume?: string
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const unclaimedYield = useConcentratedPendingYield(p)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
 
@@ -1248,6 +1249,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               >
                 <Button
                   className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+                  isLoading={isApprovePanelShown}
                   validators={[
                     {
                       should: walletConnected,

@@ -262,6 +262,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
 
   useImperativeHandle
   const hasPendingReward = isMeaningfulNumber(totalVolume)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
@@ -271,6 +272,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
         <div className="font-medium text-2xl text-white">≈{toUsdVolume(totalVolume)}</div>
         <Button
           className="frosted-glass-teal"
+          isLoading={isApprovePanelShown}
           onClick={() =>
             txHavestConcentrated().then(({ allSuccess }) => {
               if (allSuccess) {
