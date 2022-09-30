@@ -228,6 +228,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
 
 function MyPositionCardPendingRewardInfo({ className }: { className?: string }) {
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
 
   const connected = useWallet((s) => s.connected)
 
@@ -261,6 +262,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
 
   useImperativeHandle
   const hasPendingReward = isMeaningfulNumber(totalVolume)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
@@ -270,7 +272,14 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
         <div className="font-medium text-2xl text-white">≈{toUsdVolume(totalVolume)}</div>
         <Button
           className="frosted-glass-teal"
-          onClick={() => txHavestConcentrated()}
+          isLoading={isApprovePanelShown}
+          onClick={() =>
+            txHavestConcentrated().then(({ allSuccess }) => {
+              if (allSuccess) {
+                refreshConcentrated()
+              }
+            })
+          }
           validators={[
             {
               should: connected,
