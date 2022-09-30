@@ -26,6 +26,7 @@ import {
   ExclamationTriangleIcon,
   InformationCircleIcon,
   LinkIcon,
+  LockClosedIcon,
   MagnifyingGlassIcon,
   MagnifyingGlassMinusIcon,
   MagnifyingGlassPlusIcon,
@@ -76,6 +77,7 @@ export type AppHeroIconName =
   | 'link'
   | 'zoom-in'
   | 'zoom-out'
+  | 'lock-closed'
   | ' '
 
 export interface IconProps {
@@ -186,6 +188,8 @@ export default function Icon({
         ? MagnifyingGlassPlusIcon
         : heroIconName === 'zoom-out'
         ? MagnifyingGlassMinusIcon
+        : heroIconName === 'lock-closed'
+        ? LockClosedIcon
         : heroIconName === ' '
         ? ({ className }: { className?: string }) => <div className={className} />
         : Fragment

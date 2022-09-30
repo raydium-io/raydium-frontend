@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react'
 
 import { AmmV3 } from 'test-r-sdk'
-
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -84,29 +83,28 @@ function calcConcentratedPairsAmount(slippageTolerance: Numberish): void {
   const isCoin1Base = isMintEqual(coin1.mint, currentAmmPool.state.mintA.mint)
   const isPairPoolDirectionEq = (isFocus1 && isCoin1Base) || (!isCoin1Base && !isFocus1)
 
-  const inputAmount =
-    userCursorSide === 'coin1'
-      ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
-      : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals))
+  const inputAmount = isFocus1 ? coin1Amount : coin2Amount
+  const hasInput = inputAmount !== undefined && inputAmount !== ''
+  const inputAmountBN = isFocus1
+    ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
+    : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals))
   const { liquidity, amountA, amountB } = AmmV3.getLiquidityAmountOutFromAmountIn({
     poolInfo: currentAmmPool.state,
     slippage: Number(toString(slippageTolerance)),
     inputA: isPairPoolDirectionEq,
     tickUpper: Math.max(priceUpperTick, priceLowerTick),
     tickLower: Math.min(priceLowerTick, priceUpperTick),
-    amount: inputAmount,
+    amount: inputAmountBN,
     add: !isRemoveDialogOpen // SDK flag for math round direction
   })
 
   if (isFocus1) {
     useConcentrated.setState({
-      coin2Amount: isMeaningfulNumber(inputAmount)
-        ? toTokenAmount(coin2, isCoin1Base ? amountB : amountA).toFixed()
-        : undefined
+      coin2Amount: hasInput ? toTokenAmount(coin2, isCoin1Base ? amountB : amountA).toFixed() : undefined
     })
   } else {
     useConcentrated.setState({
-      coin1Amount: isMeaningfulNumber(inputAmount) ? toTokenAmount(coin1, isCoin1Base ? amountA : amountB) : undefined
+      coin1Amount: hasInput ? toTokenAmount(coin1, isCoin1Base ? amountA : amountB) : undefined
     })
   }
 

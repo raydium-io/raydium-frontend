@@ -32,6 +32,7 @@ import {
   getTickPrice,
   calLowerUpper
 } from '@/application/concentrated/getNearistDataPoint'
+import InputLocked from '@/pageComponents/Concentrated/InputLocked'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
@@ -41,14 +42,14 @@ import Decimal from 'decimal.js'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import { routeBack, routeTo } from '@/application/routeTools'
 import Row from '@/components/Row'
-import RowTabs from '@/components/RowTabs'
 import Grid from '@/components/Grid'
-import FadeInStable from '@/components/FadeIn'
+import { FadeIn } from '@/components/FadeIn'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import { div, sub } from '@/functions/numberish/operations'
 import { twMerge } from 'tailwind-merge'
 import Icon from '@/components/Icon'
 import { inClient } from '@/functions/judgers/isSSR'
+import { BN } from 'bn.js'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -186,7 +187,7 @@ function ConcentratedCard() {
     : undefined
 
   const inputDisable =
-    currentAmmPool && currentPrice
+    currentAmmPool && currentPrice && priceUpper !== undefined && priceUpper !== undefined
       ? [
           toBN(priceUpper || 0, decimals).lt(toBN(currentPrice || 0, decimals)),
           toBN(priceLower || 0, decimals).gt(toBN(currentPrice || 0, decimals))
@@ -195,6 +196,11 @@ function ConcentratedCard() {
 
   if (!isFocus1) inputDisable.reverse()
   const [coin1InputDisabled, coin2InputDisabled] = inputDisable
+
+  useEffect(() => {
+    coin1InputDisabled && useConcentrated.setState({ coin1Amount: '0' })
+    coin2InputDisabled && useConcentrated.setState({ coin2Amount: '0' })
+  }, [coin1InputDisabled, coin2InputDisabled])
 
   const haveEnoughCoin1 =
     coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
@@ -262,10 +268,31 @@ function ConcentratedCard() {
       return newAcc
     }, new Fraction(0))
 
-  const ratio1 = isMeaningfulNumber(totalDeposit)
-    ? parseFloat(prices[0] ? prices[0].div(totalDeposit).mul(100).toFixed(1, undefined, 0) : '0')
-    : 0
-  const ratio2 = prices[1] ? parseFloat((100 - Number(ratio1)).toFixed(1)) : '0'
+  const ratio1 = currentPrice
+    ? toFraction(coin1Amount || '0')
+        .mul(currentPrice)
+        .div(
+          toBN(coin1Amount || 0).gt(new BN(0))
+            ? toFraction(coin1Amount!)
+                .mul(currentPrice)
+                .add(toFraction(coin2Amount || '0'))
+            : toFraction(1)
+        )
+        .mul(100)
+        .toFixed(1)
+    : '0'
+  const ratio2 = currentPrice
+    ? toFraction(coin2Amount || '0')
+        .div(
+          toBN(coin1Amount || 0).gt(new BN(0))
+            ? toFraction(coin1Amount || '0')
+                .mul(currentPrice)
+                .add(toFraction(coin2Amount || '0'))
+            : toFraction(1)
+        )
+        .mul(100)
+        .toFixed(1)
+    : '0'
 
   const handlePosChange = useCallback(
     ({ side, userInput, ...pos }: { min: number; max: number; side?: Range; userInput?: boolean }) => {
@@ -331,7 +358,7 @@ function ConcentratedCard() {
         coin1={coin1}
         coin2={coin2}
         fee={toPercentString(currentAmmPool?.tradeFeeRate, { exact: true })}
-        currentPrice={currentAmmPool?.currentPrice}
+        currentPrice={currentAmmPool?.state.currentPrice}
         isPairPoolDirectionEq={isPairPoolDirectionEq}
         focusSide={focusSide}
         onChangeFocus={(focusSide) => useConcentrated.setState({ focusSide })}
@@ -343,7 +370,8 @@ function ConcentratedCard() {
             <div className="text-base leading-[22px] text-secondary-title mb-5">Deposit Amount</div>
 
             {/* input twin */}
-            <>
+            <div className="relative">
+              {coin1InputDisabled && <InputLocked />}
               <CoinInputBox
                 className="mt-5 mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
                 disabled={isApprovePanelShown}
@@ -370,7 +398,9 @@ function ConcentratedCard() {
                 }}
                 token={coin1}
               />
-
+            </div>
+            <div className="relative">
+              {coin2InputDisabled && <InputLocked />}
               <CoinInputBox
                 className="py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
                 componentRef={coinInputBox2ComponentRef}
@@ -397,7 +427,7 @@ function ConcentratedCard() {
                 }}
                 token={coin2}
               />
-            </>
+            </div>
 
             <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
               <div className="flex justify-between mb-4">
@@ -419,6 +449,15 @@ function ConcentratedCard() {
               </div>
             </div>
           </div>
+          {coin1InputDisabled || coin2InputDisabled ? (
+            <FadeIn>
+              <div className="p-2 bg-[rgba(0,0,0,0.5)] rounded mt-4 text-sm text-[#d8cb39]">
+                Your position will not trade or earn fees until price moves into your range.
+              </div>
+            </FadeIn>
+          ) : (
+            ''
+          )}
 
           {/* supply button */}
           <Button
@@ -467,7 +506,7 @@ function ConcentratedCard() {
               handleClickCreatePool()
             }}
           >
-            Add Concentrated
+            Preview
           </Button>
           <RemainSOLAlert />
         </div>
