@@ -55,9 +55,6 @@ import { HexAddress } from '@/types/constants'
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
-import { getUserTokenEvenNotExist } from '@/application/token/getUserTokenEvenNotExist'
-import useAsyncValue from '@/hooks/useAsyncValue'
-import asyncMap from '@/functions/asyncMap'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -95,10 +92,9 @@ function LiquidityPageHead() {
     <Row className="mb-12 mobile:mb-2 self-center">
       <RowTabs
         currentValue={'Liquidity'}
-        values={['Swap', 'Liquidity', 'Concentrated']}
+        values={['Swap', 'Liquidity']}
         onChange={(newTab) => {
           if (newTab === 'Swap') routeTo('/swap')
-          else if (newTab === 'Concentrated') routeTo('/clmm/create')
         }}
       />
     </Row>
