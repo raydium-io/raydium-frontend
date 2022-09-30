@@ -245,7 +245,8 @@ function ConcentratedCard() {
         })
         tickRef.current[tickKey] = res.tick
       }
-      const nextTick = tickRef.current[tickKey]! + (isIncrease ? 1 : -1) * Math.pow(-1, isFocus1 ? 0 : 1)
+      const nextTick =
+        tickRef.current[tickKey]! + (isIncrease ? 1 : -1) * Math.pow(-1, isFocus1 && isPairPoolDirectionEq ? 0 : 1)
       const { price, tick } = getTickPrice({
         poolInfo: currentAmmPool.state,
         baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
@@ -256,7 +257,7 @@ function ConcentratedCard() {
       !isMin && useConcentrated.setState({ priceUpper: price, priceUpperTick: nextTick })
       return price
     },
-    [coin1?.mint, coin2?.mint, currentAmmPool?.ammConfig.id, isFocus1]
+    [coin1?.mint, coin2?.mint, currentAmmPool?.ammConfig.id, isFocus1, isPairPoolDirectionEq]
   )
 
   const prices = [coin1Amount ? toFraction(coin1Amount) : undefined, coin2Amount ? toFraction(coin2Amount) : undefined]
