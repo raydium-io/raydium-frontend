@@ -34,6 +34,7 @@ interface Props {
   className?: string
   chartOptions?: ChartRangeInputOption
   currentPrice?: Fraction
+  priceLabel?: string
   showCurrentPriceOnly?: boolean
   showZoom?: boolean
   hideRangeLine?: boolean
@@ -49,6 +50,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const {
     chartOptions,
     currentPrice,
+    priceLabel,
     decimals,
     height,
     onPositionChange,
@@ -426,7 +428,7 @@ export default forwardRef(function Chart(props: Props, ref) {
             width={500}
             height={400}
             margin={{
-              top: 20
+              top: 30
             }}
             defaultShowTooltip={false}
             data={displayList || []}
@@ -491,7 +493,13 @@ export default forwardRef(function Chart(props: Props, ref) {
                 stroke="#FFF"
                 strokeDasharray="4"
                 strokeWidth={2}
-                label={hideCurrentPriceLabel ? undefined : getPriceLabel(currentPrice?.toSignificant(4))}
+                label={
+                  hideCurrentPriceLabel
+                    ? undefined
+                    : getPriceLabel(
+                        priceLabel ? `${currentPrice?.toSignificant(4)} ${priceLabel}` : currentPrice?.toSignificant(4)
+                      )
+                }
               />
             )}
             {hasPoints && (

@@ -8,14 +8,12 @@ interface Props {
   coin1?: SplToken
   coin2?: SplToken
   fee?: string
-  currentPrice?: Decimal
-  isPairPoolDirectionEq: boolean
   focusSide: 'coin1' | 'coin2'
   onChangeFocus: (focusSide: 'coin1' | 'coin2') => void
 }
 
 export function PairInfoTitle(props: Props) {
-  const { coin1, coin2, currentPrice, fee, focusSide, isPairPoolDirectionEq, onChangeFocus } = props
+  const { coin1, coin2, fee, focusSide, onChangeFocus } = props
   const isFocus1 = focusSide === 'coin1'
 
   const tabs = useMemo(() => {
@@ -32,16 +30,6 @@ export function PairInfoTitle(props: Props) {
     [coin2]
   )
 
-  const getPrice = () => {
-    if (!currentPrice || !coin1 || !coin2) return ''
-    if (isPairPoolDirectionEq) return currentPrice.toFixed(coin1.decimals)
-    return new Decimal(1).div(currentPrice).toFixed(coin2.decimals)
-  }
-
-  const [coin1Symbol = '--', coin2Symbol = '--'] = isFocus1
-    ? [coin1?.symbol, coin2?.symbol]
-    : [coin2?.symbol, coin1?.symbol]
-
   return (
     <div className="flex justify-between items-center mb-[27px]">
       <div className="flex items-center">
@@ -54,11 +42,6 @@ export function PairInfoTitle(props: Props) {
         </div>
       </div>
       <div className="flex items-center">
-        {currentPrice && (
-          <>
-            {getPrice()} {coin2Symbol} per {coin1Symbol}
-          </>
-        )}
         {coin1 && coin2 && (
           <RectTabs
             classNames="ml-4"

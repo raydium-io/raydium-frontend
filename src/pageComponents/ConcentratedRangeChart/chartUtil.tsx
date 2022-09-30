@@ -64,16 +64,30 @@ export const getPriceLabel = (price?: number | string) => (props) => {
       <text
         className="break-words"
         fill="#ABC4FF"
-        y={props.viewBox.y - 10}
+        y={props.viewBox.y - 25}
         x={props.viewBox.x - 2}
         style={{
           fontWeight: '500',
-          fontSize: 10
+          fontSize: 12
         }}
         textAnchor="middle"
         dominantBaseline="middle"
       >
-        Current Price {price}
+        Current Price
+      </text>
+      <text
+        className="break-words"
+        fill="#ABC4FF"
+        y={props.viewBox.y - 10}
+        x={props.viewBox.x - 2}
+        style={{
+          fontWeight: '500',
+          fontSize: 12
+        }}
+        textAnchor="middle"
+        dominantBaseline="middle"
+      >
+        {price}
       </text>
     </g>
   ) : (

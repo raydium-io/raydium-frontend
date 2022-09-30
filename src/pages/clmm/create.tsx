@@ -526,6 +526,7 @@ function ConcentratedCard() {
             ref={chartRef}
             chartOptions={chartOptions}
             currentPrice={currentPrice}
+            priceLabel={isFocus1 ? `${coin2?.symbol} per ${coin1?.symbol}` : `${coin1?.symbol} per ${coin2?.symbol}`}
             decimals={decimals}
             onPositionChange={handlePosChange}
             onInDecrease={handleClickInDecrease}
