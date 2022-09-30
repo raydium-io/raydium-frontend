@@ -371,7 +371,7 @@ function ConcentratedCard() {
             <div className="text-base leading-[22px] text-secondary-title mb-5">Deposit Amount</div>
 
             {/* input twin */}
-            <div className="relative">
+            <div ref={swapElementBox1} className="relative">
               {coin1InputDisabled && <InputLocked />}
               <CoinInputBox
                 className="mt-5 mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
@@ -379,7 +379,6 @@ function ConcentratedCard() {
                 disabledInput={!currentAmmPool || coin1InputDisabled}
                 noDisableStyle
                 componentRef={coinInputBox1ComponentRef}
-                domRef={swapElementBox1}
                 value={currentAmmPool ? toString(coin1Amount) : undefined}
                 haveHalfButton
                 haveCoinIcon
@@ -400,12 +399,11 @@ function ConcentratedCard() {
                 token={coin1}
               />
             </div>
-            <div className="relative">
+            <div ref={swapElementBox2} className="relative">
               {coin2InputDisabled && <InputLocked />}
               <CoinInputBox
                 className="py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
                 componentRef={coinInputBox2ComponentRef}
-                domRef={swapElementBox2}
                 disabled={isApprovePanelShown}
                 disabledInput={!currentAmmPool || coin2InputDisabled}
                 noDisableStyle
