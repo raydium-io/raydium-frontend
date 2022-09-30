@@ -350,7 +350,7 @@ function ConcentratedCard() {
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
-      wrapperClassName="md:w-[806px] w-full self-center cyberpunk-bg-light"
+      wrapperClassName="w-[min(912px,100%)] w-full self-center cyberpunk-bg-light"
       className="p-6 mobile:py-5 mobile:px-3"
     >
       <div className="absolute -left-8 top-1/2 -translate-x-1/2 -translate-y-1/2">
@@ -365,7 +365,7 @@ function ConcentratedCard() {
         onChangeFocus={(focusSide) => useConcentrated.setState({ focusSide })}
       />
 
-      <div className="flex flex-gap-1 gap-2.5 mb-10">
+      <div className="flex flex-gap-1 gap-3 mb-3">
         <div className="bg-dark-blue rounded-xl flex flex-col justify-between flex-1 px-3 py-4">
           <div>
             <div className="text-base leading-[22px] text-secondary-title mb-5">Deposit Amount</div>
