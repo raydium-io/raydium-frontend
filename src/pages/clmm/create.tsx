@@ -452,7 +452,7 @@ function ConcentratedCard() {
           </div>
           {coin1InputDisabled || coin2InputDisabled ? (
             <FadeIn>
-              <div className="p-2 bg-[rgba(0,0,0,0.5)] rounded mt-4 text-sm text-[#d8cb39]">
+              <div className="p-2 bg-[#141041] rounded mt-4 text-sm text-[#abc4ff]">
                 Your position will not trade or earn fees until price moves into your range.
               </div>
             </FadeIn>
