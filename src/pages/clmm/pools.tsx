@@ -7,9 +7,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
@@ -1402,6 +1400,7 @@ function TokenPositionInfo({
 function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInfo | undefined; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const lowLiquidityAlertText = `This pool has relatively low liquidity. Always check the quoted price and that the pool has sufficient liquidity before trading.`
+  const timeBasis = useConcentrated((s) => s.timeBasis)
 
   return (
     <AutoBox
@@ -1415,7 +1414,17 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
         token2={info?.quote}
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
-        {info?.name}
+        <Col>
+          <div>{info?.name}</div>
+          <div className="font-medium text-xs text-[#ABC4FF]/50">
+            Fee{' '}
+            {timeBasis === TimeBasis.DAY
+              ? toPercentString(info?.feeApr24h)
+              : timeBasis === TimeBasis.WEEK
+              ? toPercentString(info?.feeApr7d)
+              : toPercentString(info?.feeApr30d)}
+          </div>
+        </Col>
         {lt(toString(info?.tvl, { decimalLength: 'auto 0' }) ?? 0, 100000) && (
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />
