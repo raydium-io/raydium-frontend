@@ -369,6 +369,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     boundaryRef.current = { min: displayList[0].x, max: displayList[displayList.length - 1].x }
   }
   const zoomIn = () => {
+    if (!hasPoints) return
     const [min, max] = [
       xAxisRef.current[0] + tickGap * ZOOM_INTERVAL,
       xAxisRef.current[xAxisRef.current.length - 1] - tickGap * ZOOM_INTERVAL
@@ -379,6 +380,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     setXAxisDomain([min, max])
   }
   const zoomOut = () => {
+    if (!hasPoints) return
     const [min, max] = [
       Math.max(xAxisRef.current[0] - tickGap * ZOOM_INTERVAL, 0),
       xAxisRef.current[xAxisRef.current.length - 1] + tickGap * ZOOM_INTERVAL
