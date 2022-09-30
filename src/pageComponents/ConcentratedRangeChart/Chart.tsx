@@ -328,7 +328,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         setPosition((prePos) => {
           const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: true })
           const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
-          if (!isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
+          if (hasPoints && !isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
             setDisplayList((list) => [...list, { x: posNum + tickGap, y: 0, extend: true }])
           return { ...prePos, [side]: posNum }
         })
@@ -344,7 +344,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       })
       return
     },
-    [points, tickGap, decimals]
+    [points, hasPoints, tickGap, decimals]
   )
 
   const extendDisplay = ({ min, max }: { min: number; max: number }) => {
@@ -365,7 +365,10 @@ export default forwardRef(function Chart(props: Props, ref) {
   const zoomReset = () => {
     setDisplayList((list) => list.filter((p) => !p.extend))
     setXAxisDomain(DEFAULT_X_AXIS)
-    boundaryRef.current = { min: displayList[0].x, max: displayList[displayList.length - 1].x }
+    boundaryRef.current = {
+      min: hasPoints ? displayList[0].x : 10,
+      max: hasPoints ? displayList[displayList.length - 1].x : 100
+    }
   }
   const zoomIn = () => {
     if (!hasPoints) return
