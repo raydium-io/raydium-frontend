@@ -7,9 +7,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
@@ -855,7 +853,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             routeTo('/clmm/create')
           }}
         >
-          Open New Position
+          Create Position
         </Button>
       </AutoBox>
     )
@@ -1065,7 +1063,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 style={{ borderBottom: isMobile ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
               >
                 <div className="flex justify-start mobile:justify-between text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
-                  Price Range {inRange ? rangeTag : null}
+                  Price Range {p ? rangeTag : null}
                 </div>
                 <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPosition ?? '--'}</div>
                 <div className=" text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2">
