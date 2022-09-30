@@ -13,6 +13,7 @@ import useWallet from '../wallet/useWallet'
 
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -21,6 +22,7 @@ export default function useConcentratedInfoLoader() {
   const apiAmmPools = useConcentrated((s) => s.apiAmmPools)
   const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const refreshCount = useConcentrated((s) => s.refreshCount)
   const connection = useConnection((s) => s.connection)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
   const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
@@ -29,11 +31,15 @@ export default function useConcentratedInfoLoader() {
   const { pathname } = useRouter()
 
   /** fetch api json info list  */
-  useTransitionedEffect(async () => {
-    if (!pathname.includes('concentrated') && !pathname.includes('my-position')) return
-    const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
-    if (response) useConcentrated.setState({ apiAmmPools: response.data })
-  }, [pathname])
+  useRecordedEffect(
+    async ([, prevRefreshCount]) => {
+      if (!pathname.includes('concentrated') && !pathname.includes('my-position')) return
+      if (prevRefreshCount === refreshCount && apiAmmPools.length) return
+      const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
+      if (response) useConcentrated.setState({ apiAmmPools: response.data })
+    },
+    [pathname, refreshCount]
+  )
 
   /**  api json info list ➡ SDK info list */
   useTransitionedEffect(async () => {
@@ -42,12 +48,7 @@ export default function useConcentratedInfoLoader() {
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: apiAmmPools,
       connection,
-      ownerInfo: owner
-        ? {
-            tokenAccounts: tokenAccounts,
-            wallet: owner
-          }
-        : undefined,
+      ownerInfo: owner ? { tokenAccounts: tokenAccounts, wallet: owner } : undefined,
       chainTime: (Date.now() + chainTimeOffset) / 1000
     })
     if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })

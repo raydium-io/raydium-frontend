@@ -14,7 +14,7 @@ import { isFunction } from '@/functions/judgers/dateType'
  */
 export function useRecordedEffect<T extends readonly any[]>(
   effectFn: (prevDependenceList: T | undefined[]) => ((...params: any) => any) | any,
-  dependenceList: T,
+  dependenceList: readonly [...T],
   options?: {
     /**useful when item of dependenceList is object */
     shallowShallow?: boolean
@@ -26,6 +26,7 @@ export function useRecordedEffect<T extends readonly any[]>(
   useEffect(() => {
     if (prevValue.current.length && compareFunction(prevValue.current, dependenceList)) return cleanupFn.current
     const returnedFn = effectFn(prevValue.current)
+    // @ts-expect-error force
     prevValue.current = dependenceList
     cleanupFn.current = returnedFn
     return isFunction(returnedFn) ? returnedFn : undefined
