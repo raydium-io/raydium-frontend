@@ -1416,14 +1416,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         <Col>
           <div>{info?.name}</div>
-          <div className="font-medium text-xs text-[#ABC4FF]/50">
-            Fee{' '}
-            {timeBasis === TimeBasis.DAY
-              ? toPercentString(info?.feeApr24h)
-              : timeBasis === TimeBasis.WEEK
-              ? toPercentString(info?.feeApr7d)
-              : toPercentString(info?.feeApr30d)}
-          </div>
+          <div className="font-medium text-xs text-[#ABC4FF]/50">Fee {toPercentString(info?.tradeFeeRate)}</div>
         </Col>
         {lt(toString(info?.tvl, { decimalLength: 'auto 0' }) ?? 0, 100000) && (
           <Tooltip placement="right">
