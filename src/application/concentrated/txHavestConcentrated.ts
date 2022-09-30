@@ -1,10 +1,13 @@
+import { AmmV3, ZERO } from 'test-r-sdk'
+
 import assert from '@/functions/assert'
 import { toString } from '@/functions/numberish/toString'
-import { AmmV3, ZERO } from 'test-r-sdk'
+
 import useAppSettings from '../appSettings/useAppSettings'
 import { loadTransaction } from '../txTools/createTransaction'
 import handleMultiTx from '../txTools/handleMultiTx'
 import useWallet from '../wallet/useWallet'
+
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
 
@@ -28,7 +31,8 @@ export default function txHavestConcentrated({
         feePayer: owner,
         wallet: owner,
         tokenAccounts: tokenAccountRawInfos,
-        useSOLBalance: true
+        useSOLBalance: true,
+        closePosition: false
       },
       slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed
