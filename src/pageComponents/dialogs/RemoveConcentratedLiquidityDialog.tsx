@@ -21,6 +21,7 @@ import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useInit from '@/hooks/useInit'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
+import { routeTo } from '@/application/routeTools'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   useInit(() => {
@@ -201,6 +202,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                       coin1Amount: undefined,
                       coin2Amount: undefined
                     })
+                    routeTo('/clmm/pools')
                   }
                 })
               }}
