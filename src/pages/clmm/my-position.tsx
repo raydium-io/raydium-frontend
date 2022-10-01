@@ -314,7 +314,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
                 />
               ))
             ) : (
-              <div className="text-[#abc4ff80]">(no reward)</div>
+              <div className="text-[#abc4ff80]">(No Reward)</div>
             )}
           </Grid>
         </div>

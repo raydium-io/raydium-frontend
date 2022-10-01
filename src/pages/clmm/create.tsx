@@ -574,7 +574,7 @@ function ConcentratedCard() {
                       )
                     })
                   ) : (
-                    <div className="text-[#abc4ff80]">(no reward)</div>
+                    <div className="text-[#abc4ff80]">(No Reward)</div>
                   )}
                 </div>
               </div>

@@ -1160,7 +1160,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     routeTo('/clmm/my-position')
                   }}
                 >
-                  Manage Liquidity
+                  Manage
                 </Button>
               </AutoBox>
             </AutoBox>
@@ -1170,7 +1170,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
             >
               <Col>
                 <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
-                  Unclaimed Yield
+                  Pending Yield
                   {p ? (
                     <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
                       <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
