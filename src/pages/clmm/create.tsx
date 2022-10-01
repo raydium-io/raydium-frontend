@@ -37,13 +37,7 @@ import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import { Fraction } from 'test-r-sdk'
-import {
-  RemainSOLAlert,
-  canTokenPairBeSelected,
-  toXYChartFormat,
-  calculateRatio,
-  PairInfoTitle
-} from '@/pageComponents/Concentrated'
+import { RemainSOLAlert, canTokenPairBeSelected, toXYChartFormat, PairInfoTitle } from '@/pageComponents/Concentrated'
 import Decimal from 'decimal.js'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import { routeBack, routeTo } from '@/application/routeTools'
@@ -51,10 +45,11 @@ import Row from '@/components/Row'
 import Grid from '@/components/Grid'
 import { FadeIn } from '@/components/FadeIn'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
-import { div, sub, mul } from '@/functions/numberish/operations'
+import { div, sub } from '@/functions/numberish/operations'
 import { twMerge } from 'tailwind-merge'
 import Icon from '@/components/Icon'
 import { inClient } from '@/functions/judgers/isSSR'
+import { BN } from 'bn.js'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -272,15 +267,35 @@ function ConcentratedCard() {
     .filter((p) => !!p)
     .reduce((acc, cur) => {
       const newAcc = acc!.add(toFraction(cur!))
+
       return newAcc
     }, new Fraction(0))
-  const { ratio1, ratio2 } = calculateRatio({
-    coin1Amount,
-    coin2Amount,
-    coin1InputDisabled,
-    coin2InputDisabled,
-    currentPrice
-  })
+
+  const ratio1 = currentPrice
+    ? toFraction(coin1Amount || '0')
+        .mul(currentPrice)
+        .div(
+          toBN(coin1Amount || 0).gt(new BN(0))
+            ? toFraction(coin1Amount!)
+                .mul(currentPrice)
+                .add(toFraction(coin2Amount || '0'))
+            : toFraction(1)
+        )
+        .mul(100)
+        .toFixed(1)
+    : '0'
+  const ratio2 = currentPrice
+    ? toFraction(coin2Amount || '0')
+        .div(
+          toBN(coin1Amount || 0).gt(new BN(0))
+            ? toFraction(coin1Amount || '0')
+                .mul(currentPrice)
+                .add(toFraction(coin2Amount || '0'))
+            : toFraction(1)
+        )
+        .mul(100)
+        .toFixed(1)
+    : '0'
 
   const handlePosChange = useCallback(
     ({ side, userInput, ...pos }: { min: number; max: number; side?: Range; userInput?: boolean }) => {
@@ -432,17 +447,16 @@ function ConcentratedCard() {
                 </span>
               </div>
             </div>
-            {coin1InputDisabled || coin2InputDisabled ? (
-              <FadeIn>
-                <div className="flex items-center mt-3.5 p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
-                  <Icon size="sm" className="mr-1.5" heroIconName="exclamation-circle" />
-                  Your position will not trade or earn fees until price moves into your range.
-                </div>
-              </FadeIn>
-            ) : (
-              ''
-            )}
           </div>
+          {coin1InputDisabled || coin2InputDisabled ? (
+            <FadeIn>
+              <div className="p-2 bg-[#141041] rounded mt-4 text-sm text-[#abc4ff]">
+                Your position will not trade or earn fees until price moves into your range.
+              </div>
+            </FadeIn>
+          ) : (
+            ''
+          )}
 
           {/* supply button */}
           <Button
@@ -506,9 +520,9 @@ function ConcentratedCard() {
               {hydratedAmmPools.length ? 'Pool Not Found' : 'Loading...'}
             </div>
           )}
+          <div className="text-base leading-[22px] text-secondary-title mb-3">Set Price Range</div>
           <Chart
             ref={chartRef}
-            title="Set Price Range"
             chartOptions={chartOptions}
             currentPrice={currentPrice}
             priceLabel={isFocus1 ? `${coin2?.symbol} per ${coin1?.symbol}` : `${coin1?.symbol} per ${coin2?.symbol}`}
@@ -534,51 +548,55 @@ function ConcentratedCard() {
                 )}
               </span>
             </div>
-            {hasReward && (
-              <Grid className="grid-cols-2 mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
-                <div>
-                  <div className="text-sm leading-[18px] text-secondary-title my-1.5">Rewards</div>
-                  {currentAmmPool?.state.rewardInfos.map((reward, idx) => {
-                    const rewardToken = getToken(reward.tokenMint)
-                    return (
-                      <div key={reward.tokenMint.toBase58()} className="flex items-center mb-2">
-                        <CoinAvatar className="inline-block" size="sm" token={rewardToken} />
-                        <span className="text-xs text-[#abc4ff80] ml-1 mr-4">{rewardToken?.symbol}</span>
-                        <span className="text-sm">
-                          {toPercentString(
-                            currentAmmPool?.[
-                              timeBasis === TimeBasis.DAY
-                                ? 'rewardApr24h'
-                                : timeBasis === TimeBasis.WEEK
-                                ? 'rewardApr7d'
-                                : 'rewardApr30d'
-                            ][idx]
-                          )}
-                        </span>
-                      </div>
-                    )
-                  })}
+            <Grid className="grid-cols-2 mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
+              <div>
+                <div className="text-sm leading-[18px] text-secondary-title my-1.5">Rewards</div>
+                <div className="text-sm">
+                  {hasReward ? (
+                    currentAmmPool?.state.rewardInfos.map((reward, idx) => {
+                      const rewardToken = getToken(reward.tokenMint)
+                      return (
+                        <div key={reward.tokenMint.toBase58()} className="flex items-center mb-2">
+                          <CoinAvatar className="inline-block" size="sm" token={rewardToken} />
+                          <span className="text-xs text-[#abc4ff80] ml-1 mr-4">{rewardToken?.symbol}</span>
+                          <span className="text-sm">
+                            {toPercentString(
+                              currentAmmPool?.[
+                                timeBasis === TimeBasis.DAY
+                                  ? 'rewardApr24h'
+                                  : timeBasis === TimeBasis.WEEK
+                                  ? 'rewardApr7d'
+                                  : 'rewardApr30d'
+                              ][idx]
+                            )}
+                          </span>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="text-[#abc4ff80]">(no reward)</div>
+                  )}
                 </div>
-                <div>
-                  <div className="text-sm leading-[18px] text-secondary-title my-1.5">Fees</div>
-                  <div className="flex items-center mb-2">
-                    <CoinAvatar className="inline-block" size="sm" token={coin1} />
-                    <span className="text-xs text-[#abc4ff80] ml-1 mr-4">Trading Fees</span>
-                    <span className="text-sm">
-                      {toPercentString(
-                        currentAmmPool?.[
-                          timeBasis === TimeBasis.DAY
-                            ? 'feeApr24h'
-                            : timeBasis === TimeBasis.WEEK
-                            ? 'feeApr7d'
-                            : 'feeApr30d'
-                        ]
-                      )}
-                    </span>
-                  </div>
+              </div>
+              <div>
+                <div className="text-sm leading-[18px] text-secondary-title my-1.5">Fees</div>
+                <div className="flex items-center mb-2">
+                  <CoinAvatar className="inline-block" size="sm" token={coin1} />
+                  <span className="text-xs text-[#abc4ff80] ml-1 mr-4">Trading Fees</span>
+                  <span className="text-sm">
+                    {toPercentString(
+                      currentAmmPool?.[
+                        timeBasis === TimeBasis.DAY
+                          ? 'feeApr24h'
+                          : timeBasis === TimeBasis.WEEK
+                          ? 'feeApr7d'
+                          : 'feeApr30d'
+                      ]
+                    )}
+                  </span>
                 </div>
-              </Grid>
-            )}
+              </div>
+            </Grid>
           </div>
         </div>
       </div>

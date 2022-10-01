@@ -54,7 +54,7 @@ function NavButtons() {
   return (
     <Row
       className={twMerge(
-        '-mt-4 mobile:mt-4 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] items-center justify-between'
+        '-mt-4 mobile:mt-0 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] items-center justify-between'
       )}
     >
       <Button
@@ -300,18 +300,22 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
         <div>
           <div className="font-medium text-[#abc4ff] mt-2 mb-4">Rewards</div>
           <Grid className="grow grid-cols-1 gap-2">
-            {rewardsVolume.map(({ token, volume }) => (
-              <RowItem
-                key={toPubString(token?.mint)}
-                prefix={
-                  <Row className="items-center gap-2">
-                    <CoinAvatar token={token} size="smi" />
-                    <div className="text-[#abc4ff80] min-w-[4em] mr-1">{token?.symbol ?? '--'}</div>
-                  </Row>
-                }
-                text={<div className="text-white justify-end">{toUsdVolume(volume)}</div>}
-              />
-            ))}
+            {rewardsVolume.length ? (
+              rewardsVolume.map(({ token, volume }) => (
+                <RowItem
+                  key={toPubString(token?.mint)}
+                  prefix={
+                    <Row className="items-center gap-2">
+                      <CoinAvatar token={token} size="smi" />
+                      <div className="text-[#abc4ff80] min-w-[4em] mr-1">{token?.symbol ?? '--'}</div>
+                    </Row>
+                  }
+                  text={<div className="text-white justify-end">{toUsdVolume(volume)}</div>}
+                />
+              ))
+            ) : (
+              <div className="text-[#abc4ff80]">(no reward)</div>
+            )}
           </Grid>
         </div>
         <div>
