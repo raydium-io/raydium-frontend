@@ -92,7 +92,7 @@ export default function Select<T extends string>({
     <div className={twMerge('relative', shrinkToValue(className, [{ open: isOpen }]))}>
       <div
         className={twMerge(
-          `py-2 px-6 mobile:px-3 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] h-full rounded-xl mobile:rounded-lg invisible ${
+          `py-2 px-4 mobile:px-3 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] h-full rounded-xl mobile:rounded-lg invisible ${
             disabled ? 'opacity-50 pointer-events-none' : ''
           }`,
           shrinkToValue(faceClassName, [{ open: isOpen }])

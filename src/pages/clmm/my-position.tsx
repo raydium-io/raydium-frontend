@@ -206,7 +206,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
           hideRangeLine
           hideRangeInput
           showCurrentPriceOnly
-          height={isMobile ? 200 : 300}
+          height={isMobile ? 100 : 150}
         />
       </div>
       <Row className="items-center flex-wrap gap-2">
