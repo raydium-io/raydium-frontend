@@ -50,6 +50,7 @@ import { twMerge } from 'tailwind-merge'
 import Icon from '@/components/Icon'
 import { inClient } from '@/functions/judgers/isSSR'
 import { BN } from 'bn.js'
+import { calculateRatio } from '@/pageComponents/Concentrated/util'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -271,31 +272,13 @@ function ConcentratedCard() {
       return newAcc
     }, new Fraction(0))
 
-  const ratio1 = currentPrice
-    ? toFraction(coin1Amount || '0')
-        .mul(currentPrice)
-        .div(
-          toBN(coin1Amount || 0).gt(new BN(0))
-            ? toFraction(coin1Amount!)
-                .mul(currentPrice)
-                .add(toFraction(coin2Amount || '0'))
-            : toFraction(1)
-        )
-        .mul(100)
-        .toFixed(1)
-    : '0'
-  const ratio2 = currentPrice
-    ? toFraction(coin2Amount || '0')
-        .div(
-          toBN(coin1Amount || 0).gt(new BN(0))
-            ? toFraction(coin1Amount || '0')
-                .mul(currentPrice)
-                .add(toFraction(coin2Amount || '0'))
-            : toFraction(1)
-        )
-        .mul(100)
-        .toFixed(1)
-    : '0'
+  const { ratio1, ratio2 } = calculateRatio({
+    currentPrice,
+    coin1InputDisabled,
+    coin2InputDisabled,
+    coin1Amount,
+    coin2Amount
+  })
 
   const handlePosChange = useCallback(
     ({ side, userInput, ...pos }: { min: number; max: number; side?: Range; userInput?: boolean }) => {
