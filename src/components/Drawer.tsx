@@ -9,6 +9,7 @@ import { inClient } from '@/functions/judgers/isSSR'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import useTwoStateSyncer from '@/hooks/use2StateSyncer'
 import { MayFunction } from '@/types/constants'
+import { useSignalState } from '@/hooks/useSignalState'
 
 export const DRAWER_STACK_ID = 'drawer-stack'
 
@@ -34,14 +35,7 @@ const placementClasses = {
 export interface DrawerProps {
   className?: string
   style?: React.CSSProperties
-  children?: MayFunction<
-    ReactNode,
-    [
-      {
-        close(): void
-      }
-    ]
-  >
+  children?: MayFunction<ReactNode, [{ close(): void }]>
   open: boolean
   placement?: 'from-left' | 'from-bottom' | 'from-top' | 'from-right'
   transitionSpeed?: 'fast' | 'normal'
@@ -84,7 +78,7 @@ export default function Drawer({
 
   // for onCloseTransitionEnd
   // during leave transition, open is still true, but innerOpen is false, so transaction will happen without props:open has change (if open is false, React may destory this component immediately)
-  const [innerOpen, setInnerOpen] = useState(open)
+  const [innerOpen, setInnerOpen] = useSignalState(open)
 
   useEffect(() => {
     if (open) onOpen?.()

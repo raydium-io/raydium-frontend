@@ -206,7 +206,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                     })
                     setTimeout(() => {
                       routeTo('/clmm/pools')
-                    }, 200)
+                    }, 600)
                   }
                 })
               }}
