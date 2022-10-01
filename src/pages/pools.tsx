@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -9,7 +9,7 @@ import { HydratedPairItemInfo } from '@/application/pools/type'
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
 import { routeTo } from '@/application/routeTools'
-import { LpToken } from '@/application/token/type'
+import { LpToken, SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
@@ -17,16 +17,19 @@ import { Badge } from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
+import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
+import InputBox from '@/components/InputBox'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
 import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
+import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
@@ -44,7 +47,7 @@ import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import useOnceEffect from '@/hooks/useOnceEffect'
-import useSort from '@/hooks/useSort'
+import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 
 /**
  * store:
@@ -197,7 +200,15 @@ function PoolLabelBlock({ className }: { className?: string }) {
   )
 }
 
-function PoolTimeBasisSelectorBox({ className }: { className?: string }) {
+function PoolTimeBasisSelectorBox({
+  className,
+  sortConfigs,
+  setSortConfig
+}: {
+  className?: string
+  sortConfigs?: SortConfigItem<HydratedPairItemInfo[]>
+  setSortConfig?: (simpleConfig: SimplifiedSortConfig<HydratedPairItemInfo[]>) => void
+}) {
   const timeBasis = usePools((s) => s.timeBasis)
   return (
     <Select
@@ -208,6 +219,23 @@ function PoolTimeBasisSelectorBox({ className }: { className?: string }) {
       prefix="Time Basis:"
       onChange={(newSortKey) => {
         usePools.setState({ timeBasis: newSortKey ?? '7D' })
+        if (sortConfigs && setSortConfig) {
+          let key = ''
+          if (sortConfigs.key.includes('fee')) {
+            key = 'fee' + newSortKey?.toLowerCase()
+          } else if (sortConfigs.key.includes('volume')) {
+            key = 'volume' + newSortKey?.toLowerCase()
+          } else if (sortConfigs.key.includes('apr')) {
+            key = 'apr' + newSortKey?.toLowerCase()
+          }
+          if (key) {
+            setSortConfig({
+              key, // use new key
+              sortCompare: [(i) => i[key], (i) => i[key]], // push duplicate, bcz current algorithm choose array.slice(1) as the compareFactor
+              mode: sortConfigs.mode // keep the same mode
+            })
+          }
+        }
       }}
     />
   )
@@ -294,7 +322,7 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
 function PoolCard() {
   const balances = useWallet((s) => s.balances)
   const unZeroBalances = objectFilter(balances, (tokenAmount) => gt(tokenAmount, 0))
-  const { hydratedInfos } = usePools()
+  const hydratedInfos = usePools((s) => s.hydratedInfos)
   // const { searchText, setSearchText, currentTab, onlySelfPools } = usePageState()
 
   const searchText = usePools((s) => s.searchText)
@@ -539,7 +567,7 @@ function PoolCard() {
         <PoolLabelBlock />
         <Row className="gap-6 items-stretch">
           <PoolStakedOnlyBlock />
-          <PoolTimeBasisSelectorBox />
+          <PoolTimeBasisSelectorBox sortConfigs={sortConfig} setSortConfig={setSortConfig} />
           <PoolSearchBlock />
         </Row>
       </Row>
@@ -611,10 +639,29 @@ function PoolCardDatabaseBodyCollapseItemFace({
 }) {
   const lpTokens = useToken((s) => s.lpTokens)
   const lpToken = lpTokens[info.lpMint] as LpToken | undefined
-  const haveLp = Boolean(lpToken)
   const isMobile = useAppSettings((s) => s.isMobile)
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = usePools((s) => s.timeBasis)
+
+  const liquidityInfo = () => {
+    const lowLiquidityAlertText = `This pool has relatively low liquidity. Always check the quoted price
+     and that the pool has sufficient liquidity before trading.`
+    return (
+      <Row className="flex justify-start items-center">
+        {isHydratedPoolItemInfo(info)
+          ? toUsdVolume(info.liquidity, { autoSuffix: isTablet, decimalPlace: 0 })
+          : undefined}
+        {lt(info?.liquidity.toFixed(0) ?? 0, 100000) && (
+          <Tooltip placement="right">
+            <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help ml-1" />
+            <Tooltip.Panel>
+              <div className="whitespace-pre">{lowLiquidityAlertText}</div>
+            </Tooltip.Panel>
+          </Tooltip>
+        )}
+      </Row>
+    )
+  }
 
   const pcCotent = (
     <Row
@@ -647,14 +694,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
 
       <CoinAvatarInfoItem info={info} className="pl-0" />
 
-      <TextInfoItem
-        name="Liquidity"
-        value={
-          isHydratedPoolItemInfo(info)
-            ? toUsdVolume(info.liquidity, { autoSuffix: isTablet, decimalPlace: 0 })
-            : undefined
-        }
-      />
+      <TextInfoItem name="Liquidity" value={liquidityInfo()} />
       <TextInfoItem
         name={`Volume(${timeBasis})`}
         value={
@@ -732,14 +772,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
 
           <CoinAvatarInfoItem info={info} />
 
-          <TextInfoItem
-            name="Liquidity"
-            value={
-              isHydratedPoolItemInfo(info)
-                ? toUsdVolume(info.liquidity, { autoSuffix: true, decimalPlace: 1 })
-                : undefined
-            }
-          />
+          <TextInfoItem name="Liquidity" value={liquidityInfo()} />
           <TextInfoItem
             name={`APR(${timeBasis})`}
             value={
@@ -794,7 +827,6 @@ function PoolCardDatabaseBodyCollapseItemFace({
     </Collapse>
   )
 
-  if (!haveLp) return null
   return isMobile ? mobileContent : pcCotent
 }
 
@@ -980,7 +1012,13 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
 
 function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | undefined; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const lowLiquidityAlertText = `This pool has relatively low liquidity. Always check the quoted price and that the pool has sufficient liquidity before trading.`
+  const [isDetailReady, setIsDetailReady] = useState(false)
+
+  useEffect(() => {
+    if (info?.base && info.quote) {
+      setIsDetailReady(true)
+    }
+  }, [info?.base, info?.quote])
 
   return (
     <AutoBox
@@ -997,16 +1035,16 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | 
         token2={info?.quote}
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
-        {info?.name}
+        <Row className="mobile:text-xs font-medium mobile:mt-px mr-1.5">
+          {!isDetailReady ? (
+            info?.name
+          ) : (
+            <>
+              <CoinAvatarInfoItemSymbol token={info?.base} />-<CoinAvatarInfoItemSymbol token={info?.quote} />
+            </>
+          )}
+        </Row>
         {info?.isStablePool && <Badge className="self-center">Stable</Badge>}
-        {lt(info?.liquidity.toFixed(0) ?? 0, 100000) && (
-          <Tooltip placement="right">
-            <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />
-            <Tooltip.Panel>
-              <div className="whitespace-pre">{lowLiquidityAlertText}</div>
-            </Tooltip.Panel>
-          </Tooltip>
-        )}
       </Row>
     </AutoBox>
   )
@@ -1021,5 +1059,113 @@ function TextInfoItem({ name, value }: { name: string; value?: any }) {
     </div>
   ) : (
     <div className="tablet:text-sm">{value || '--'}</div>
+  )
+}
+
+function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
+  const tokenListSettings = useToken((s) => s.tokenListSettings)
+
+  const otherLiquiditySupportedTokenMints = tokenListSettings['Other Liquidity Supported Token List'].mints
+  const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
+  const [showEditDialog, setShowEditDialog] = useState(false)
+
+  return token &&
+    (otherLiquiditySupportedTokenMints?.has(toPubString(token.mint)) ||
+      unnamedTokenMints?.has(toPubString(token.mint))) ? (
+    <Row className="items-center">
+      <div>{token?.symbol ?? 'UNKNOWN'}</div>
+      <div>
+        <Tooltip>
+          <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
+          <Tooltip.Panel>
+            <div className="max-w-[300px]">
+              This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
+              want to transact with.{' '}
+              <span
+                style={{ color: '#abc4ff', cursor: 'pointer' }}
+                onClick={() => {
+                  setShowEditDialog(true)
+                }}
+              >
+                [Edit token]
+              </span>
+            </div>
+          </Tooltip.Panel>
+        </Tooltip>
+      </div>
+      <EditTokenDialog
+        open={showEditDialog}
+        token={token}
+        onClose={() => {
+          setShowEditDialog(false)
+        }}
+      />
+    </Row>
+  ) : (
+    <>{token?.symbol ?? 'UNKNOWN'}</>
+  )
+}
+
+function EditTokenDialog({ open, token, onClose }: { open: boolean; token: SplToken; onClose: () => void }) {
+  const userCustomTokenSymbol = useToken((s) => s.userCustomTokenSymbol)
+  const updateUserCustomTokenSymbol = useToken((s) => s.updateUserCustomTokenSymbol)
+
+  // if we got custom symbol/name, use them, otherwise use token original symbol/name
+  const [newInfo, setNewInfo] = useState({
+    symbol: userCustomTokenSymbol[toPubString(token.mint)]
+      ? userCustomTokenSymbol[toPubString(token.mint)].symbol
+      : token.symbol,
+    name: userCustomTokenSymbol[toPubString(token.mint)]
+      ? userCustomTokenSymbol[toPubString(token.mint)].name
+      : token.name
+  })
+
+  return (
+    <ResponsiveDialogDrawer maskNoBlur placement="from-bottom" open={open} onClose={onClose}>
+      {({ close }) => (
+        <Card
+          className={twMerge(
+            `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)]`
+          )}
+          size="lg"
+          style={{
+            background:
+              'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
+            boxShadow: '0px 8px 48px rgba(171, 196, 255, 0.12)'
+          }}
+        >
+          <Row className="justify-between items-center mb-6">
+            <div className="text-3xl font-semibold text-white">Update Token Symbol/Name</div>
+            <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={close} />
+          </Row>
+          <Col className="p-1  gap-4">
+            <InputBox
+              value={newInfo.symbol}
+              label="input a symbol for this token"
+              onUserInput={(e) => {
+                setNewInfo((prev) => ({ ...prev, symbol: e }))
+              }}
+            />
+            <InputBox
+              value={newInfo.name}
+              label="input a name for this token (optional)"
+              onUserInput={(e) => {
+                setNewInfo((prev) => ({ ...prev, name: e }))
+              }}
+            />
+            <Button
+              className="frosted-glass-teal"
+              onClick={() => {
+                updateUserCustomTokenSymbol(token, newInfo.symbol ?? '', newInfo.name ?? '')
+                close()
+              }}
+              validators={[{ should: newInfo.symbol }]}
+            >
+              Confirm
+            </Button>
+          </Col>
+        </Card>
+      )}
+    </ResponsiveDialogDrawer>
   )
 }

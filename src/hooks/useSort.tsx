@@ -3,9 +3,9 @@ import { useCallback, useMemo, useState } from 'react'
 import { ZERO } from 'test-r-sdk'
 
 import { isBigInt, isBN, isBoolean, isFraction, isNumber, isString } from '@/functions/judgers/dateType'
+import { isNullish } from '@/functions/judgers/nil'
 import { EnumStr } from '@/types/constants'
 import { ExactPartial, MayArray } from '@/types/generics'
-import { isNullish } from '@/functions/judgers/nil'
 
 type SortMode = 'decrease' | 'increase' | 'none'
 
@@ -23,7 +23,10 @@ export type SortConfigItem<D extends Record<string, any>[]> = {
   sortCompare: MayArray<(item: D[number]) => any> // for item may be tedius, so use rule
 }
 
-type SimplifiedSortConfig<D extends Record<string, any>[]> = ExactPartial<SortConfigItem<D>, 'mode' | 'sortModeQueue'>
+export type SimplifiedSortConfig<D extends Record<string, any>[]> = ExactPartial<
+  SortConfigItem<D>,
+  'mode' | 'sortModeQueue'
+>
 
 /**
  * don't support too smart configs

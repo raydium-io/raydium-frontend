@@ -1,17 +1,23 @@
 import { useEffect } from 'react'
 
-import { Token, WSOL } from 'test-r-sdk'
+import { LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
 
 import { asyncMapAllSettled } from '@/functions/asyncMap'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { HexAddress, PublicKeyish, SrcAddress } from '@/types/constants'
 
-import { isMintEqual } from '@/functions/judgers/areEqual'
 import { objectMap, replaceValue } from '../../functions/objectMethods'
+
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
-import { isRaydiumDevTokenListName, isRaydiumMainnetTokenListName, rawTokenListConfigs } from './rawTokenLists.config'
+import {
+  isRaydiumDevTokenListName,
+  isRaydiumMainnetTokenListName,
+  liquidityMainnetListUrl,
+  rawTokenListConfigs
+} from './rawTokenLists.config'
 import {
   RaydiumDevTokenListJsonInfo,
   RaydiumTokenListJsonInfo,
@@ -20,19 +26,20 @@ import {
   TokenListFetchConfigItem
 } from './type'
 import useToken, {
+  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME,
   RAYDIUM_DEV_TOKEN_LIST_NAME,
   RAYDIUM_MAINNET_TOKEN_LIST_NAME,
   RAYDIUM_UNNAMED_TOKEN_LIST_NAME,
   SOLANA_TOKEN_LIST_NAME
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
+import { isInLocalhost, isInBonsaiTest } from '@/functions/judgers/isSSR'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
-import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
-import { useSwap } from '../swap/useSwap'
-import useWallet from '../wallet/useWallet'
 import useFarms from '../farms/useFarms'
 import useLiquidity from '../liquidity/useLiquidity'
 import { usePools } from '../pools/usePools'
+import { useSwap } from '../swap/useSwap'
+import useWallet from '../wallet/useWallet'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -53,10 +60,52 @@ function deleteFetchedNativeSOLToken(tokenJsons: TokenJson[]) {
 
 // function uniqueItems<T>(items: T[], mapper?: (old: S)=>):T
 
+interface UltraLiquidityPoolsJsonfile extends LiquidityPoolsJsonFile {
+  baseDecimals: number
+  quoteDecimals: number
+  lpDecimals: number
+}
+
+function excludeAlreadyKnownMints(knownMints: string[], liquidityPools: UltraLiquidityPoolsJsonfile): TokenJson[] {
+  const currentMints = [...knownMints]
+  const remainTokenJsons: TokenJson[] = []
+  liquidityPools.unOfficial.forEach((pool) => {
+    if (!currentMints.includes(pool.baseMint)) {
+      currentMints.push(pool.baseMint)
+      remainTokenJsons.push({
+        symbol: pool.baseMint.substring(0, 6),
+        name: pool.baseMint.substring(0, 6),
+        mint: pool.baseMint,
+        decimals: (pool as unknown as UltraLiquidityPoolsJsonfile).baseDecimals,
+        extensions: {
+          coingeckoId: ''
+        },
+        icon: ''
+      })
+    }
+    if (!currentMints.includes(pool.quoteMint)) {
+      currentMints.push(pool.quoteMint)
+      remainTokenJsons.push({
+        symbol: pool.quoteMint.substring(0, 6),
+        name: pool.quoteMint.substring(0, 6),
+        mint: pool.quoteMint,
+        decimals: (pool as unknown as UltraLiquidityPoolsJsonfile).quoteDecimals,
+        extensions: {
+          coingeckoId: ''
+        },
+        icon: ''
+      })
+    }
+  })
+
+  return remainTokenJsons
+}
+
 async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Promise<{
   devMints: string[]
   unOfficialMints: string[]
   officialMints: string[]
+  otherLiquiditySupportedMints: string[]
   unNamedMints: string[]
   tokens: TokenJson[]
   blacklist: string[]
@@ -64,6 +113,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
   const devMints: string[] = []
   const unOfficialMints: string[] = []
   const officialMints: string[] = []
+  const otherLiquiditySupportedMints: string[] = []
   const unNamedMints: string[] = []
   const blacklist: string[] = []
   const tokens: TokenJson[] = []
@@ -85,11 +135,24 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
       devMints.push(...response.tokens.map(({ mint }) => mint))
       tokens.push(...response.tokens)
     }
-    // eslint-disable-next-line no-console
-    console.info('tokenList end fetching')
   })
 
-  return { devMints, unOfficialMints, unNamedMints, officialMints, tokens, blacklist }
+  // we wait other token(mints above) finished their fetching, then cross match liquidity pool unofficial pool list
+  // to find out the 'unknown' token, and add them to the list
+  const liquidityPoolResponse = await jFetch<UltraLiquidityPoolsJsonfile>(liquidityMainnetListUrl)
+  const excludesTokenJson = liquidityPoolResponse
+    ? excludeAlreadyKnownMints(
+        devMints.concat(unOfficialMints).concat(officialMints).concat(unNamedMints),
+        liquidityPoolResponse
+      )
+    : undefined
+
+  excludesTokenJson && otherLiquiditySupportedMints.push(...excludesTokenJson.map(({ mint }) => mint))
+  excludesTokenJson && tokens.push(...excludesTokenJson)
+  // eslint-disable-next-line no-console
+  console.info('tokenList end fetching')
+
+  return { devMints, unOfficialMints, unNamedMints, otherLiquiditySupportedMints, officialMints, tokens, blacklist }
 }
 
 async function fetchTokenIconInfoList() {
@@ -104,9 +167,14 @@ export function createSplToken(
   },
   customTokenIcons?: Record<string, SrcAddress>
 ): SplToken {
-  const { mint, symbol, name = symbol, decimals, ...rest } = info
+  const { mint, symbol, name, decimals, ...rest } = info
+
   // TODO: recordPubString(token.mint)
-  const splToken = Object.assign(new Token(mint, decimals, symbol, name), { icon: '', extensions: {}, id: mint }, rest)
+  const splToken = Object.assign(
+    new Token(mint, decimals, symbol, name ?? symbol),
+    { icon: '', extensions: {}, id: mint },
+    rest
+  )
   if (customTokenIcons?.[mint]) {
     splToken.icon = customTokenIcons[mint] ?? ''
   }
@@ -130,6 +198,7 @@ async function loadTokens() {
     devMints,
     unOfficialMints,
     officialMints,
+    otherLiquiditySupportedMints,
     unNamedMints,
     tokens: allTokens,
     blacklist: _blacklist
@@ -171,7 +240,10 @@ async function loadTokens() {
         ...s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME],
         mints: new Set([...(s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.values() ?? []), ...devMints])
       },
-
+      [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME],
+        mints: new Set(otherLiquiditySupportedMints)
+      },
       [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
         mints: new Set([

@@ -21,6 +21,8 @@ export type SplToken = Token & {
     [key in 'coingeckoId' | 'website' | 'whitepaper']?: string
   }
   userAdded?: boolean // only if token is added by user
+  symbol?: string // overwrite type Currency readonly limit
+  name?: string // overwrite type Currency readonly limit
 }
 
 export type LpToken = Token & {

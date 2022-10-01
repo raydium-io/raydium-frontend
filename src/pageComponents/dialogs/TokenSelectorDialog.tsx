@@ -1,14 +1,12 @@
-import { useCallback, useDeferredValue, useMemo, useRef, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 
 import { PublicKeyish } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import useNotification from '@/application/notification/useNotification'
 import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
 import {
-  isQuantumSOL,
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  QuantumSOLVersionSOL
+  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { SupportedTokenListSettingName } from '@/application/token/useToken'
@@ -28,6 +26,7 @@ import ListFast from '@/components/ListFast'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import Switcher from '@/components/Switcher'
+import { throttle } from '@/functions/debounce'
 import toPubString from '@/functions/format/toMintString'
 import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
 import useAsyncValue from '@/hooks/useAsyncValue'
@@ -73,6 +72,7 @@ function TokenSelectorDialogContent({
   const balances = useWallet((s) => s.balances)
 
   const [searchText, setSearchText] = useState('')
+  const logWarning = throttle(useNotification.getState().logWarning)
 
   // used for if panel is not tokenList but tokenlistList
   const [currentTabIsTokenList, { off, on }] = useToggle()
@@ -148,7 +148,10 @@ function TokenSelectorDialogContent({
   // some keyboard (arrow up/down / mouse hover) will change the selected index
   const [selectedTokenIdx, setSelectedTokenIdx] = useState(0)
 
-  const [userCustomizedTokenSymbol, setUserCustomizedTokenSymbol] = useState('')
+  const [userCustomizedTokenInfo, setUserCustomizedTokenInfo] = useState({
+    symbol: '',
+    name: ''
+  })
 
   const cachedTokenList = useMemo(
     // cache for react useDeferredValue
@@ -188,18 +191,21 @@ function TokenSelectorDialogContent({
   )
   const connected = useWallet((s) => s.connected)
 
-  const recordUserAddedToken = (symbol: string): void => {
-    if (!symbol) return
+  const recordUserAddedToken = (info: { symbol: string; name: string }): void => {
+    if (!info.symbol) return
     const { addUserAddedToken } = useToken.getState()
     const decimals = onlineTokenMintInfo?.decimals
-    if (!decimals) return
+    if (!onlineTokenMintInfo || decimals === undefined) {
+      logWarning(`the mint address is invalid`)
+      return
+    }
     const newToken = createSplToken({
       mint: searchText,
-      symbol: symbol.slice(0, 8),
+      symbol: info.symbol.slice(0, 8),
       decimals,
       icon: '',
       extensions: {},
-      name: symbol.slice(0, 16),
+      name: info.name ? info.name.slice(0, 16) : info.symbol.slice(0, 8),
       userAdded: true
     })
     addUserAddedToken(newToken)
@@ -310,14 +316,21 @@ function TokenSelectorDialogContent({
             ) : onlineTokenMintInfo ? (
               <Col className="p-8  gap-4">
                 <InputBox
-                  label="input a name for this token"
-                  onUserInput={setUserCustomizedTokenSymbol}
-                  onEnter={recordUserAddedToken}
+                  label="input a symbol for this token"
+                  onUserInput={(e) => {
+                    setUserCustomizedTokenInfo((prev) => ({ ...prev, symbol: e }))
+                  }}
+                />
+                <InputBox
+                  label="input a name for this token (optional)"
+                  onUserInput={(e) => {
+                    setUserCustomizedTokenInfo((prev) => ({ ...prev, name: e }))
+                  }}
                 />
                 <Button
                   className="frosted-glass-teal"
                   onClick={() => {
-                    recordUserAddedToken(userCustomizedTokenSymbol)
+                    recordUserAddedToken(userCustomizedTokenInfo)
                   }}
                   validators={[
                     {
@@ -328,7 +341,7 @@ function TokenSelectorDialogContent({
                         children: 'Connect Wallet'
                       }
                     },
-                    { should: userCustomizedTokenSymbol }
+                    { should: userCustomizedTokenInfo.symbol }
                   ]}
                 >
                   Add User Token
@@ -347,50 +360,154 @@ function TokenSelectorDialogContent({
 }
 
 function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onClick?(): void }) {
+  const [showUpdateCustomSymbol, setShowUpdateCustomSymbol] = useState(false)
+
   const userFlaggedTokenMints = useToken((s) => s.userFlaggedTokenMints)
   const canFlaggedTokenMints = useToken((s) => s.canFlaggedTokenMints)
   const userAddedTokens = useToken((s) => s.userAddedTokens)
   const isUserAddedToken = Boolean(userAddedTokens[toPubString(token.mint)])
   const toggleFlaggedToken = useToken((s) => s.toggleFlaggedToken)
   const deleteUserAddedToken = useToken((s) => s.deleteUserAddedToken)
+  const editUserAddedToken = useToken((s) => s.editUserAddedToken)
   const getBalance = useWallet((s) => s.getBalance)
+  const connected = useWallet((s) => s.connected)
+  const userCustomTokenSymbol = useToken((s) => s.userCustomTokenSymbol)
+  const updateUserCustomTokenSymbol = useToken((s) => s.updateUserCustomTokenSymbol)
+  const isCustomTokenSymbolName = Boolean(userCustomTokenSymbol[toPubString(token.mint)])
+
+  const [showUpdateInfo, setShowUpdateInfo] = useState(false)
+  const [userCustomizedTokenInfo, setUserCustomizedTokenInfo] = useState({
+    symbol: token.symbol || '',
+    name: token.name || ''
+  })
+
   return (
-    <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2 ">
-      <Row>
-        <CoinAvatar token={token} className="mr-2" />
-        <Col className="mr-2">
-          <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
-            {token.symbol}
-          </div>
-          <div className="text-xs  max-w-[12em] overflow-hidden text-ellipsis whitespace-nowrap  font-medium text-[rgba(171,196,255,.5)]">
-            {token.name}
-          </div>
-        </Col>
-        {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
-          <div
-            onClick={(ev) => {
-              toggleFlaggedToken(token)
-              ev.stopPropagation()
-            }}
-            className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
-          >
-            {userFlaggedTokenMints.has(toPubString(token.mint)) ? '[Remove Token]' : '[Add Token]'}
-          </div>
-        ) : null}
-        {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
-          <div
-            onClick={(ev) => {
-              deleteUserAddedToken(token)
-              ev.stopPropagation()
-            }}
-            className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
-          >
-            [Delete Token]
-          </div>
-        ) : null}
+    <div className="group w-full">
+      <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2 ">
+        <Row>
+          <CoinAvatar token={token} className="mr-2" />
+          <Col className="mr-2">
+            <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
+              {token.symbol}
+            </div>
+            <div className="text-xs  max-w-[12em] overflow-hidden text-ellipsis whitespace-nowrap  font-medium text-[rgba(171,196,255,.5)]">
+              {token.name}
+            </div>
+          </Col>
+          {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+            <div
+              onClick={(ev) => {
+                toggleFlaggedToken(token)
+                ev.stopPropagation()
+              }}
+              className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+            >
+              {userFlaggedTokenMints.has(toPubString(token.mint)) ? '[Remove Token]' : '[Add Token]'}
+            </div>
+          ) : null}
+          {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+            <>
+              <div
+                onClick={(ev) => {
+                  deleteUserAddedToken(token)
+                  ev.stopPropagation()
+                }}
+                className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+              >
+                [Delete Token]
+              </div>
+              <div
+                onClick={(ev) => {
+                  setShowUpdateInfo((p) => !p)
+                  ev.stopPropagation()
+                }}
+                className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+              >
+                [Edit Token]
+              </div>
+            </>
+          ) : null}
+          {isCustomTokenSymbolName ? (
+            <div
+              onClick={(ev) => {
+                setShowUpdateCustomSymbol((p) => !p)
+                ev.stopPropagation()
+              }}
+              className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+            >
+              [Edit Token]
+            </div>
+          ) : null}
+        </Row>
+        <div className="text-sm text-[#ABC4FF] justify-self-end">{getBalance(token)?.toExact?.()}</div>
       </Row>
-      <div className="text-sm text-[#ABC4FF] justify-self-end">{getBalance(token)?.toExact?.()}</div>
-    </Row>
+      {showUpdateInfo && (
+        <Col className="p-1  gap-4">
+          <InputBox
+            value={userCustomizedTokenInfo.symbol}
+            label="input a symbol for this token"
+            onUserInput={(e) => {
+              setUserCustomizedTokenInfo((prev) => ({ ...prev, symbol: e }))
+            }}
+          />
+          <InputBox
+            value={userCustomizedTokenInfo.name}
+            label="input a name for this token (optional)"
+            onUserInput={(e) => {
+              setUserCustomizedTokenInfo((prev) => ({ ...prev, name: e }))
+            }}
+          />
+          <Button
+            className="frosted-glass-teal"
+            onClick={() => {
+              editUserAddedToken(userCustomizedTokenInfo, token.mint)
+              setShowUpdateInfo(false)
+            }}
+            validators={[
+              {
+                should: connected,
+                forceActive: true,
+                fallbackProps: {
+                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                  children: 'Connect Wallet'
+                }
+              },
+              { should: userCustomizedTokenInfo.symbol }
+            ]}
+          >
+            Confirm
+          </Button>
+        </Col>
+      )}
+      {showUpdateCustomSymbol && (
+        <Col className="p-1  gap-4">
+          <InputBox
+            value={userCustomizedTokenInfo.symbol}
+            label="input a symbol for this token"
+            onUserInput={(e) => {
+              setUserCustomizedTokenInfo((prev) => ({ ...prev, symbol: e }))
+            }}
+          />
+          <InputBox
+            value={userCustomizedTokenInfo.name}
+            label="input a name for this token (optional)"
+            onUserInput={(e) => {
+              setUserCustomizedTokenInfo((prev) => ({ ...prev, name: e }))
+            }}
+          />
+          <Button
+            className="frosted-glass-teal"
+            onClick={() => {
+              updateUserCustomTokenSymbol(token, userCustomizedTokenInfo.symbol, userCustomizedTokenInfo.name)
+              setShowUpdateCustomSymbol(false)
+            }}
+            validators={[{ should: userCustomizedTokenInfo.symbol }]}
+          >
+            Confirm
+          </Button>
+        </Col>
+      )}
+    </div>
   )
 }
 

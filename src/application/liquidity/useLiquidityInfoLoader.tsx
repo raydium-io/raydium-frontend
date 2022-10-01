@@ -3,17 +3,16 @@ import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import toPubString, { toPub } from '@/functions/format/toMintString'
+import toPubString from '@/functions/format/toMintString'
 import { areShallowEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
-import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress } from '@/types/constants'
 import { LiquidityPoolsJsonFile } from 'test-r-sdk'
-import { useEffect } from 'react'
-import { hydrateIdoInfo } from '../ido/hydrateIdoInfo'
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
+import { liquidityMainnetListUrl } from '../token/rawTokenLists.config'
+
 import hydrateLiquidityInfo from './hydrateLiquidityInfo'
 import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
 import useLiquidity from './useLiquidity'
@@ -40,7 +39,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   /** fetch json info list  */
   useTransitionedEffect(async () => {
     if (disabled) return
-    const response = await jFetch<LiquidityPoolsJsonFile>('https://api.raydium.io/v2/sdk/liquidity/mainnet.json', {
+    const response = await jFetch<LiquidityPoolsJsonFile>(liquidityMainnetListUrl, {
       ignoreCache: true
     })
     const blacklist = await jFetch<HexAddress[]>('/amm-blacklist.json')

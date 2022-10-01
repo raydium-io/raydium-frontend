@@ -1,13 +1,16 @@
-import { Price, PublicKeyish } from 'test-r-sdk'
+import { Price, PublicKeyish } from '@raydium-io/raydium-sdk'
 
+import produce from 'immer'
 import create from 'zustand'
 
 import { addItem, removeItem, shakeUndifindedItem } from '@/functions/arrayMethods'
+import { setLocalItem } from '@/functions/dom/jStorage'
+import toPubString from '@/functions/format/toMintString'
+import { omit } from '@/functions/objectMethods'
 import { HexAddress, SrcAddress } from '@/types/constants'
 
 import useWallet from '../wallet/useWallet'
 
-import { LpToken, SplToken, TokenJson } from './type'
 import {
   isQuantumSOL,
   isQuantumSOLVersionSOL,
@@ -18,10 +21,9 @@ import {
   SOLUrlMint,
   WSOLMint
 } from './quantumSOL'
+import { LpToken, SplToken, TokenJson } from './type'
 import { RAYMint } from './wellknownToken.config'
-import toPubString from '@/functions/format/toMintString'
-import { objectShakeNil } from '@/functions/objectMethods'
-import produce from 'immer'
+import { PublicKey } from '@solana/web3.js'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
@@ -80,6 +82,7 @@ export type TokenStore = {
   allSelectableTokens: SplToken[]
   addUserAddedToken(token: SplToken): void
   deleteUserAddedToken(token: SplToken): void
+  editUserAddedToken(tokenInfo: { symbol: string; name: string }, mint: PublicKey): void
   tokenListSettings: {
     [N in SupportedTokenListSettingName]: {
       mints?: Set<HexAddress> // TODO
@@ -91,6 +94,10 @@ export type TokenStore = {
   }
   refreshTokenCount: number
   refreshTokenPrice(): void
+
+  // for customize token symbol/name (rename feature for other liquidity pools' unknown token)
+  userCustomTokenSymbol: { [x: string]: { symbol: string; name: string } }
+  updateUserCustomTokenSymbol(token: SplToken, symbol: string, name: string): void
 }
 
 export const RAYDIUM_MAINNET_TOKEN_LIST_NAME_DEPRECATED = 'Raydium Mainnet Token List'
@@ -99,6 +106,7 @@ export const RAYDIUM_UNNAMED_TOKEN_LIST_NAME = 'UnNamed Token List'
 export const RAYDIUM_DEV_TOKEN_LIST_NAME = 'Raydium Dev Token List'
 export const SOLANA_TOKEN_LIST_NAME = 'Solana Token List'
 export const USER_ADDED_TOKEN_LIST_NAME = 'User Added Token List'
+export const OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME = 'Other Liquidity Supported Token List'
 
 export type SupportedTokenListSettingName =
   | typeof RAYDIUM_MAINNET_TOKEN_LIST_NAME // actually  official
@@ -106,6 +114,7 @@ export type SupportedTokenListSettingName =
   | typeof SOLANA_TOKEN_LIST_NAME // actually  unOfficial
   | typeof USER_ADDED_TOKEN_LIST_NAME
   | typeof RAYDIUM_UNNAMED_TOKEN_LIST_NAME
+  | typeof OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME
 
 /** zustand store hooks */
 export const useToken = create<TokenStore>((set, get) => ({
@@ -154,6 +163,10 @@ export const useToken = create<TokenStore>((set, get) => ({
           s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set<string>(),
           toPubString(token.mint)
         )
+        setLocalItem(
+          'TOKEN_LIST_USER_ADDED_TOKENS',
+          Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
+        )
       })
     )
   },
@@ -164,6 +177,22 @@ export const useToken = create<TokenStore>((set, get) => ({
         draft.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints = removeItem(
           s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set<string>(),
           toPubString(token.mint)
+        )
+        setLocalItem(
+          'TOKEN_LIST_USER_ADDED_TOKENS',
+          Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
+        )
+      })
+    )
+  },
+  editUserAddedToken: (tokenInfo: { symbol: string; name: string }, mint: PublicKey) => {
+    set((s) =>
+      produce(s, (draft) => {
+        draft.userAddedTokens[toPubString(mint)].symbol = tokenInfo.symbol
+        draft.userAddedTokens[toPubString(mint)].name = tokenInfo.name ? tokenInfo.name : tokenInfo.symbol
+        setLocalItem(
+          'TOKEN_LIST_USER_ADDED_TOKENS',
+          Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
         )
       })
     )
@@ -219,6 +248,10 @@ export const useToken = create<TokenStore>((set, get) => ({
     [USER_ADDED_TOKEN_LIST_NAME]: {
       isOn: true
     },
+    [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
+      isOn: true,
+      cannotbBeSeen: true
+    },
     [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
       isOn: true,
       cannotbBeSeen: true
@@ -228,6 +261,22 @@ export const useToken = create<TokenStore>((set, get) => ({
   refreshTokenCount: 0,
   refreshTokenPrice() {
     set((s) => ({ refreshTokenCount: s.refreshTokenCount + 1 }))
+  },
+
+  userCustomTokenSymbol: {},
+  updateUserCustomTokenSymbol: (token: SplToken, symbol: string, name: string) => {
+    set((s) =>
+      produce(s, (draft) => {
+        draft.userCustomTokenSymbol = {
+          ...s.userCustomTokenSymbol,
+          [toPubString(token.mint)]: {
+            symbol: symbol,
+            name: name ? name : symbol
+          }
+        }
+        setLocalItem('USER_CUSTOM_TOKEN_SYMBOL', draft.userCustomTokenSymbol)
+      })
+    )
   }
 }))
 // TODO: useLocalStorge to record user's token list

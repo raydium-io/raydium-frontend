@@ -187,6 +187,8 @@ export function useSwapAmountCalculator() {
   useIdleEffect(startCalc, [
     upCoin,
     downCoin,
+    upCoinAmount,
+    downCoinAmount,
     directionReversed,
     focusSide === 'coin1' ? toString(userCoin1Amount) : toString(userCoin2Amount),
     focusSide,
