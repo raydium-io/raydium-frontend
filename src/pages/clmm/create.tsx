@@ -348,8 +348,8 @@ function ConcentratedCard() {
         onChangeFocus={(focusSide) => useConcentrated.setState({ focusSide })}
       />
 
-      <div className="flex flex-gap-1 gap-3 mb-3">
-        <div className="bg-dark-blue rounded-xl flex flex-col justify-between flex-1 px-3 py-4">
+      <div className="flex flex-col sm:flex-row flex-gap-1 gap-3 mb-3">
+        <div className="bg-dark-blue rounded-xl flex flex-col justify-between w-full sm:w-1/2 px-3 py-4">
           <div>
             <div className="text-base leading-[22px] text-secondary-title mb-5">Deposit Amount</div>
 
@@ -494,7 +494,7 @@ function ConcentratedCard() {
         </div>
 
         <div
-          className={`relative bg-dark-blue min-h-[180px] rounded-xl flex-1 px-3 py-4 ${
+          className={`relative bg-dark-blue min-h-[180px] rounded-xl w-full sm:w-1/2 px-3 py-4 ${
             currentAmmPool ? '' : 'pointer-events-none select-none'
           }`}
         >

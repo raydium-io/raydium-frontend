@@ -189,6 +189,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     moveRef.current = ''
   }, [])
   const handleMouseDown = (side: Range) => () => {
+    if (moveRef.current) return
     moveRef.current = side
     setIsMoving(true)
   }
@@ -442,6 +443,7 @@ export default forwardRef(function Chart(props: Props, ref) {
             margin={{ top: 10 }}
             defaultShowTooltip={false}
             data={displayList || []}
+            onMouseDown={isMobile ? handleMouseDown(Range.Min) : undefined}
             onMouseMove={handleMove}
             onMouseUp={handleMouseUp}
           >
