@@ -63,7 +63,7 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
   return (
     <RangeSliderBox
       max={position?.liquidity.toNumber() ?? 0}
-      className="py-3 px-3 ring-1 mobile:ring-1 ring-[rgba(54, 185, 226, 0.5)] rounded-xl mobile:rounded-xl "
+      className="py-3 px-3 ring-1 mobile:ring-1 ring-[#abc4ff40] rounded-xl mobile:rounded-xl "
       onChange={throttle(onSliderChange)}
       liquidity={liquidity}
     />

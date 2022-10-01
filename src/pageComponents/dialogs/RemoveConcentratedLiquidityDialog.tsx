@@ -51,6 +51,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const [amountQuoteIsNegative, setAmountQuoteIsNegative] = useState(false)
   const liquidity = useConcentrated((s) => s.liquidity)
   const pendingYield = useConcentratedPendingYield(targetUserPositionAccount)
+  const isMobile = useAppSettings((s) => s.isMobile)
 
   useEffect(() => {
     if (!currentAmmPool || !targetUserPositionAccount) return
@@ -91,7 +92,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
           </Row>
 
-          <Col className="gap-3 mb-6">
+          <Col className="gap-3 mb-6 mobile:mb-4">
             {/* input-container-box */}
 
             <CoinInputBox
@@ -149,7 +150,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               }}
             />
             <ConcentratedLiquiditySlider />
-            <div className="py-3 px-3 ring-1 mobile:ring-1 ring-[rgba(54, 185, 226, 0.5)] rounded-xl mobile:rounded-xl ">
+            <div className="py-3 px-3 ring-1 mobile:ring-1 ring-[#abc4ff40] rounded-xl mobile:rounded-xl ">
               <Row className="flex justify-between items-center text-[#ABC4FF] font-medium text-sm">
                 <div className="text-base mobile:text-sm">Pending Yield</div>
                 <div className="text-lg text-white">{toUsdVolume(pendingYield)}</div>
@@ -158,7 +159,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
           </Col>
           <Row className="flex-col gap-1">
             <Button
-              className="frosted-glass frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+              size={isMobile ? 'sm' : undefined}
+              className="frosted-glass frosted-glass-teal mobile:text-sm"
               isLoading={isApprovePanelShown}
               componentRef={buttonComponentRef}
               validators={[
@@ -212,8 +214,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               Withdraw Liquidity
             </Button>
             <Button
+              size={isMobile ? 'sm' : undefined}
               type="text"
-              className="text-sm text-[#ABC4FF] opacity-50 backdrop-filter-none"
+              className="text-sm mobile:text-xs text-[#ABC4FF] opacity-50 backdrop-filter-none"
               onClick={closeDialog}
             >
               Cancel

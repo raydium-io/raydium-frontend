@@ -4,13 +4,9 @@ import BN from 'bn.js'
 import Slider, { SliderProps } from 'rc-slider'
 import { twMerge } from 'tailwind-merge'
 
-import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { isArray } from '@/functions/judgers/dateType'
-import { div } from '@/functions/numberish/operations'
-import toFraction from '@/functions/numberish/toFraction'
 import mergeProps from '@/functions/react/mergeProps'
-import Liquidity from '@/pages/liquidity/add'
 
 import Row from './Row'
 
@@ -72,15 +68,17 @@ export default function RangeSliderBox(props: RangeSliderBoxProps) {
       <Row className="w-full flex flex-row justify-between">
         <div className="w-full flex flex-row justify-start items-center ">
           <span
-            className={twMerge('text-[#ABC4FF] font-normal text-base mobile:text-sm', titleClassName)}
+            className={twMerge('text-[#ABC4FF] font-medium text-base mobile:text-sm', titleClassName)}
             style={{ marginRight: 8 }}
           >
             {title ?? 'Amount'}
           </span>
-          <PercentTag tagName="Max" className={tagClassName} percentageValue={1} onClick={setPercentageValue} />
-          <PercentTag tagName="75%" className={tagClassName} percentageValue={0.75} onClick={setPercentageValue} />
-          <PercentTag tagName="50%" className={tagClassName} percentageValue={0.5} onClick={setPercentageValue} />
-          <PercentTag tagName="25%" className={tagClassName} percentageValue={0.25} onClick={setPercentageValue} />
+          <Row className="gap-1 mobile:gap-0.5">
+            <PercentTag tagName="Max" className={tagClassName} percentageValue={1} onClick={setPercentageValue} />
+            <PercentTag tagName="75%" className={tagClassName} percentageValue={0.75} onClick={setPercentageValue} />
+            <PercentTag tagName="50%" className={tagClassName} percentageValue={0.5} onClick={setPercentageValue} />
+            <PercentTag tagName="25%" className={tagClassName} percentageValue={0.25} onClick={setPercentageValue} />
+          </Row>
         </div>
         <div className="text-lg mobile:text-sm text-white font-medium flex items-center">
           {toPercentString(currentPercentage)}
@@ -105,7 +103,7 @@ function PercentTag({
   return (
     <div
       className={twMerge(
-        'text-[#ABC4FF] font-medium text-base mobile:text-sm m-0.25 bg-[#1B1659] rounded-xl mobile:rounded-lg hover:bg-[#ABC4FF] hover:text-[#1B1659] py-1 px-3 mobile:px-2 clickable',
+        'text-[#ABC4FF] font-medium text-sm mobile:text-xs m-0.25 bg-[#14104180] rounded-lg mobile:rounded-md hover:bg-[#ABC4FF] hover:text-[#1B1659] py-1 px-3 mobile:px-2 clickable',
         className
       )}
       onClick={() => {
