@@ -43,7 +43,7 @@ export function useSwapAmountCalculator() {
   }, [refreshCount])
 
   // get preflight
-  useTransitionedEffect(async () => {
+  useIdleEffect(async () => {
     if (!coin1 || !coin2) return // not fullfilled
     useSwap.setState({ preflightCalcResult: undefined, canFindPools: undefined, swapable: undefined })
     const { routeList: preflightCalcResult, bestResult } =
@@ -187,8 +187,6 @@ export function useSwapAmountCalculator() {
   useIdleEffect(startCalc, [
     upCoin,
     downCoin,
-    upCoinAmount,
-    downCoinAmount,
     directionReversed,
     focusSide === 'coin1' ? toString(userCoin1Amount) : toString(userCoin2Amount),
     focusSide,
