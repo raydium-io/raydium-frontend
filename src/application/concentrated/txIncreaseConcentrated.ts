@@ -43,8 +43,8 @@ export default function txIncreaseConcentrated({
     })
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
-        title: 'Increase Concentrated',
-        description: `Increase ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
+        title: 'Liquidity Added',
+        description: `Added ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
           coin2.symbol
         } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }

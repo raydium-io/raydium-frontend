@@ -17,6 +17,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)
+ * @todo just register hooks in specific component
  */
 export default function useConcentratedInfoLoader() {
   const apiAmmPools = useConcentrated((s) => s.apiAmmPools)

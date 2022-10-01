@@ -39,10 +39,8 @@ export default function txHavestConcentrated({
     })
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
-        title: 'Havest Concentrated',
-        description: `Havest concentrated pool: ${currentAmmPool.base?.symbol ?? '--'} - ${
-          currentAmmPool.quote?.symbol ?? '--'
-        }`
+        title: 'Havested Rewards',
+        description: `Havested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
       }
     })
   })
