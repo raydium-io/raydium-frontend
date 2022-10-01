@@ -878,7 +878,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     >
       {info.userPositionAccount ? (
         <>
-          {info.userPositionAccount.map((p, idx, originArray) => {
+          {info.userPositionAccount.map((p) => {
             let myPosition = '--'
             const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
             const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
@@ -892,8 +892,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
             const coinBPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenB?.mint)] ?? null)
 
-            const myPositionPrice = coinAPrice.add(coinBPrice)
-            const myPositionVolume = myPositionPrice ? toUsdVolume(myPositionPrice) : '--'
+            const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
 
             const coinARewardPrice = toTotalPrice(p.tokenFeeAmountA, variousPrices[String(p.tokenA?.mint)] ?? null)
             const coinBRewardPrice = toTotalPrice(p.tokenFeeAmountB, variousPrices[String(p.tokenB?.mint)] ?? null)
@@ -908,7 +907,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 myPosition={myPosition}
                 amountA={amountA}
                 amountB={amountB}
-                myPositionVolume={myPositionVolume}
+                myPositionVolume={toUsdVolume(wholeLiquidity)}
                 coinAPrice={coinAPrice}
                 coinBPrice={coinBPrice}
                 inRange={p.inRange}
