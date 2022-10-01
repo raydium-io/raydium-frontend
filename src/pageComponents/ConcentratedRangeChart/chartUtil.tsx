@@ -7,7 +7,7 @@ export enum Range {
 export const smoothCount = 20
 export const ZOOM_INTERVAL = 5
 export const REFERENCE_LINE_COLOR = '#abc4ff'
-export const HIGHLIGHT_COLOR = '#abc4ff'
+export const HIGHLIGHT_COLOR = '#1B365F'
 export const strokeFillProp = {
   fill: '#abc4ff',
   stroke: '#abc4ff'
