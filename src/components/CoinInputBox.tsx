@@ -269,7 +269,7 @@ export default function CoinInputBox({
       onClick={focusInput}
     >
       {/* from & balance */}
-      <Row className="justify-between mb-2 mobile:mb-4">
+      <Row className="justify-between mb-2">
         <div className="text-xs mobile:text-2xs text-[rgba(171,196,255,.5)]">{topLeftLabel}</div>
         <div
           className={`text-xs mobile:text-2xs justify-self-end text-[rgba(171,196,255,.5)] ${

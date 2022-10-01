@@ -74,6 +74,8 @@ export function AddConcentratedLiquidityDialog() {
   const baseVolume = mul(coinBaseAmount, tokenPriceBase)
   const quoteVolume = mul(coinQuoteAmount, tokenPriceQuote)
   const totalVolume = add(baseVolume, quoteVolume)
+
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <ResponsiveDialogDrawer
       placement="from-bottom"
@@ -88,35 +90,35 @@ export function AddConcentratedLiquidityDialog() {
     >
       {({ close: closeDialog }) => (
         <Card
-          className="backdrop-filter backdrop-blur-xl p-8 pb-2 rounded-3xl w-[min(456px,90vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
+          className="backdrop-filter backdrop-blur-xl p-8 mobile:p-4 pb-2 rounded-3xl mobile:rounded-lg w-[min(456px,90vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
           size="lg"
         >
-          <Row className="justify-between items-center mb-6">
-            <div className="text-xl font-semibold text-white">
+          <Row className="justify-between items-center mb-6 mobile:mb-3">
+            <div className="mobile:text-base text-xl font-semibold text-white">
               Add Liquidity to {coinBase?.symbol ?? '--'} - {coinQuote?.symbol ?? '--'}{' '}
             </div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
           </Row>
 
-          <Col className="gap-2 border-1.5 rounded-xl border-[#abc4ff40] py-2.5 px-2.5 mb-4">
-            <div className="font-medium text-sm text-[#abc4ff]">My Position</div>
+          <Col className="gap-2 mobile:gap-1 border-1.5 rounded-xl border-[#abc4ff40] p-2.5 mobile:p-2 mb-4 mobile:mb-2">
+            <div className="font-medium text-sm text-[#abc4ff] mobile:pb-1">My Position</div>
             <Row className="items-center">
-              <CoinAvatar token={coinBase} size="sm" />
-              <div className="ml-2 mr-auto text-sm text-[#abc4ff80]">{coinBase?.symbol ?? '--'}</div>
-              <div className="text-white font-medium text-sm">
+              <CoinAvatar token={coinBase} size={isMobile ? 'xs' : 'sm'} />
+              <div className="ml-2 mr-auto text-sm mobile:text-xs text-[#abc4ff80]">{coinBase?.symbol ?? '--'}</div>
+              <div className="text-white font-medium text-sm mobile:text-xs">
                 {toString(targetUserPositionAccount?.amountA)} {coinBase?.symbol ?? '--'}
               </div>
             </Row>
             <Row className="items-center">
-              <CoinAvatar token={coinQuote} size="sm" />
-              <div className="ml-2 mr-auto text-sm text-[#abc4ff80]">{coinQuote?.symbol ?? '--'}</div>
-              <div className="text-white font-medium text-sm">
+              <CoinAvatar token={coinQuote} size={isMobile ? 'xs' : 'sm'} />
+              <div className="ml-2 mr-auto text-sm mobile:text-xs text-[#abc4ff80]">{coinQuote?.symbol ?? '--'}</div>
+              <div className="text-white font-medium text-sm mobile:text-xs">
                 {toString(targetUserPositionAccount?.amountB)} {coinQuote?.symbol ?? '--'}
               </div>
             </Row>
           </Col>
 
-          <Col className="gap-2 border-1.5 rounded-xl border-[#abc4ff40] py-2.5 px-2.5 mb-4">
+          <Col className="gap-2 border-1.5 rounded-xl border-[#abc4ff40] p-2.5 mobile:p-2 mb-4 mobile:mb-2">
             <Row className="items-center py-1">
               <div className="font-medium text-sm text-[#abc4ff] mr-auto">Selected Range</div>
               <Row>
@@ -126,7 +128,7 @@ export function AddConcentratedLiquidityDialog() {
                 </div>
               </Row>
             </Row>
-            <Grid className="grid-cols-2 gap-4">
+            <Grid className="grid-cols-2 gap-4 mobile:gap-2">
               <Col className="gap-2 border-1.5 rounded-xl border-[#39d0d866] items-center py-3">
                 <div className="text-[#abc4ff] text-sm">Min Price</div>
                 <div className="text-white text-xl font-medium">{toString(targetUserPositionAccount?.priceLower)}</div>
@@ -144,10 +146,10 @@ export function AddConcentratedLiquidityDialog() {
             </Grid>
           </Col>
 
-          <Col className="gap-3 mb-6">
+          <Col className="gap-3 mobile:gap-2 mb-6 mobile:mb-2">
             {/* input-container-box */}
             <CoinInputBox
-              className="p-4"
+              className="p-4 mobile:py-2"
               componentRef={coinInputBoxComponentRef1}
               haveCoinIcon
               topLeftLabel={'Amount'}
@@ -172,6 +174,7 @@ export function AddConcentratedLiquidityDialog() {
 
             {/* input-container-box 2 */}
             <CoinInputBox
+              className="p-4 mobile:py-2"
               componentRef={coinInputBoxComponentRef2}
               haveCoinIcon
               topLeftLabel={'Amount'}
@@ -196,13 +199,13 @@ export function AddConcentratedLiquidityDialog() {
           </Col>
 
           <FadeInStable show={isMeaningfulNumber(coinBaseAmount)}>
-            <Col className="gap-2 border-1.5 rounded-xl border-[#abc4ff40] py-2.5 px-2.5 mb-4">
+            <Col className="gap-2 mobile:gap-1 border-1.5 rounded-xl border-[#abc4ff40] py-2.5 px-2.5 mb-4">
               <Row className="items-center">
-                <div className="ml-2 mr-auto text-sm text-[#abc4ff]">Total Deposit</div>
+                <div className="ml-2 mr-auto text-sm mobile:text-xs text-[#abc4ff]">Total Deposit</div>
                 <div className="text-white font-medium text-sm">{toUsdVolume(totalVolume)}</div>
               </Row>
               <Row className="items-center">
-                <div className="ml-2 mr-auto text-sm text-[#abc4ff]">Deposit Ratio</div>
+                <div className="ml-2 mr-auto text-sm mobile:text-xs text-[#abc4ff]">Deposit Ratio</div>
                 <Row className="items-center">
                   <CoinAvatarPair token1={coinBase} token2={coinQuote} size="sm" className="mr-1" />
                   <div className="text-white font-medium text-xs">
@@ -215,7 +218,8 @@ export function AddConcentratedLiquidityDialog() {
 
           <Row className="flex-col gap-1">
             <Button
-              className="frosted-glass frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+              className="frosted-glass frosted-glass-teal mobile:text-sm"
+              size={isMobile ? 'sm' : undefined}
               isLoading={isApprovePanelShown}
               componentRef={buttonComponentRef}
               validators={[
@@ -264,6 +268,7 @@ export function AddConcentratedLiquidityDialog() {
             </Button>
             <Button
               type="text"
+              size={isMobile ? 'sm' : undefined}
               className="text-sm text-[#ABC4FF] opacity-50 backdrop-filter-none"
               onClick={closeDialog}
             >
