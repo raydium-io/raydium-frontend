@@ -56,6 +56,7 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
+import Link from '@/components/Link'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -219,9 +220,12 @@ function OpenNewPosition({ className }: { className?: string }) {
 function PoolLabelBlock({ className }: { className?: string }) {
   return (
     <div className={className}>
-      <div className="font-medium text-xl mobile:text-base text-white">Liquidity Pools</div>
+      <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
       <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
-        Earn yield on trading fees by providing liquidity
+        Concentrate liquidity for increased captial efficiency.{' '}
+        <Link className="inline-block" href="https://www.google.com">
+          Learn more
+        </Link>
       </div>
     </div>
   )

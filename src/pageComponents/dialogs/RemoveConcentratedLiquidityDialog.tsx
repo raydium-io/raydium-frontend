@@ -202,7 +202,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                       coin1Amount: undefined,
                       coin2Amount: undefined
                     })
-                    routeTo('/clmm/pools')
+                    setTimeout(() => {
+                      routeTo('/clmm/pools')
+                    }, 200)
                   }
                 })
               }}
