@@ -30,6 +30,7 @@ interface PositionState {
 }
 
 interface Props {
+  poolId?: string
   decimals: number
   className?: string
   chartOptions?: ChartRangeInputOption
@@ -49,6 +50,7 @@ interface Props {
 
 export default forwardRef(function Chart(props: Props, ref) {
   const {
+    poolId,
     chartOptions,
     currentPrice,
     priceLabel,
@@ -69,6 +71,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     chartOptions?.initMinBoundaryX as Fraction,
     chartOptions?.initMaxBoundaryX as Fraction
   ]
+  const poolIdRef = useRef<string | undefined>()
   const hasPoints = points.length > 0
   const { isMobile } = useDevice()
   const [displayList, setDisplayList] = useState<HighlightPoint[]>(points)
@@ -124,8 +127,11 @@ export default forwardRef(function Chart(props: Props, ref) {
     setDisplayList([])
     setXAxisDomain(DEFAULT_X_AXIS)
     xAxisRef.current = []
-    setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
+    if (poolIdRef.current !== poolId) {
+      setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
+    }
     if (!points.length) return
+
     const { smoothCount } = getConfig(points[0].x, points.length)
     smoothCountRef.current = smoothCount
     const displayList: HighlightPoint[] = []
@@ -159,15 +165,16 @@ export default forwardRef(function Chart(props: Props, ref) {
 
     setDisplayList(displayList)
     setXAxisDomain(DEFAULT_X_AXIS)
-  }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly])
+  }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolId])
 
   useEffect(() => {
-    if (!defaultMin && !defaultMax) return
+    if ((!defaultMin && !defaultMax) || (hasPoints && poolIdRef.current && poolIdRef.current === poolId)) return
+    poolIdRef.current = hasPoints ? poolId : undefined
     updatePosition({
       [Range.Min]: Number(defaultMin.toFixed(10)) - offsetMin,
       [Range.Max]: Number(defaultMax.toFixed(10)) - offsetMax
     })
-  }, [defaultMin, defaultMax, updatePosition, offsetMin, offsetMax])
+  }, [defaultMin, defaultMax, updatePosition, offsetMin, offsetMax, poolId, hasPoints])
 
   useEffect(() => {
     setXAxis(xAxisRef.current)

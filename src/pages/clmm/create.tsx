@@ -51,6 +51,7 @@ import Icon from '@/components/Icon'
 import { inClient } from '@/functions/judgers/isSSR'
 import { BN } from 'bn.js'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
+import usePrevious from '@/hooks/usePrevious'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -151,6 +152,7 @@ function ConcentratedCard() {
     priceUpper,
     priceLower
   } = useConcentrated()
+  const prevPoolId = usePrevious<string | undefined>(currentAmmPool?.idString)
   const chartRef = useRef<{ getPosition: () => { min: number; max: number } }>()
   const tickRef = useRef<{ lower?: number; upper?: number }>({ lower: undefined, upper: undefined })
   const hasReward = !!currentAmmPool && currentAmmPool.state.rewardInfos.length > 0
@@ -228,8 +230,9 @@ function ConcentratedCard() {
   }, [coin1, coin2, currentAmmPool, isPairPoolDirectionEq])
 
   useEffect(() => {
+    if (currentAmmPool?.idString === prevPoolId) return
     boundaryData && useConcentrated.setState(boundaryData)
-  }, [boundaryData])
+  }, [boundaryData, currentAmmPool?.idString, prevPoolId])
 
   const handleClickInDecrease = useCallback(
     ({ p, isMin, isIncrease }: { p: number; isMin: boolean; isIncrease: boolean }) => {
@@ -505,6 +508,7 @@ function ConcentratedCard() {
             </div>
           )}
           <Chart
+            poolId={currentAmmPool?.idString}
             title={<div className="text-base leading-[22px] text-secondary-title mb-3">Set Price Range</div>}
             ref={chartRef}
             chartOptions={chartOptions}
