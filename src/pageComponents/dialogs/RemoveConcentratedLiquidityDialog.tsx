@@ -79,14 +79,14 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       {({ close: closeDialog }) => (
         <Card
           className={twMerge(
-            'backdrop-filter backdrop-blur-xl p-8 rounded-3xl w-[min(500px,90vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card',
+            'p-8 mobile:p-4 rounded-3xl w-[min(500px,90vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card',
             className
           )}
           size="lg"
         >
-          <Row className="justify-between items-center mb-6">
-            <div className="text-xl font-semibold text-white">
-              Remove Concentrated from {coinBase?.symbol} - {coinQuote?.symbol}
+          <Row className="justify-between items-center mb-6 mobile:mb-3">
+            <div className="mobile:text-base text-xl font-semibold text-white">
+              Remove Liquidity from {coinBase?.symbol} - {coinQuote?.symbol}
             </div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
           </Row>

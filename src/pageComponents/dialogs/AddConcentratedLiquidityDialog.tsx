@@ -90,7 +90,7 @@ export function AddConcentratedLiquidityDialog() {
     >
       {({ close: closeDialog }) => (
         <Card
-          className="backdrop-filter backdrop-blur-xl p-8 mobile:p-4 pb-2 rounded-3xl mobile:rounded-lg w-[min(456px,90vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
+          className="p-8 mobile:p-4 pb-2 rounded-3xl mobile:rounded-lg w-[min(456px,90vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
           size="lg"
         >
           <Row className="justify-between items-center mb-6 mobile:mb-3">
