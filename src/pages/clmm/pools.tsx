@@ -517,7 +517,7 @@ function PoolCard() {
         </Row>
 
         {/* table head column: volume24h */}
-        <Row
+        {/* <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             setSortConfig({
@@ -545,7 +545,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
-        </Row>
+        </Row> */}
 
         <PoolRefreshCircleBlock className="pr-8 self-center" />
       </Row>
@@ -718,7 +718,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             : undefined
         }
       />
-      <TextInfoItem
+      {/* <TextInfoItem
         name={`APR(${timeBasis})`}
         value={
           isHydratedConcentratedItemInfo(info)
@@ -729,7 +729,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
               : toPercentString(info.totalApr30d)
             : undefined
         }
-      />
+      /> */}
       <Grid className="w-9 h-9 mr-8 place-items-center">
         <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />
       </Grid>
@@ -779,7 +779,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
                 : undefined
             }
           />
-          <TextInfoItem
+          {/* <TextInfoItem
             name={`APR(${timeBasis})`}
             value={
               isHydratedConcentratedItemInfo(info)
@@ -790,7 +790,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
                   : toPercentString(info.totalApr30d)
                 : undefined
             }
-          />
+          /> */}
 
           <Grid className="w-6 h-6 place-items-center">
             <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />
@@ -991,7 +991,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
             <Row className="gap-5  mt-1">
               <div className="text-xs text-white">{toString(info.currentPrice, { decimalLength: 'auto 5' })}</div>
               <div className="text-[#ABC4FF] text-xs">
-                {info.base?.symbol} per {info.quote?.symbol}
+                {info.quote?.symbol} per {info.base?.symbol}
               </div>
             </Row>
           </div>

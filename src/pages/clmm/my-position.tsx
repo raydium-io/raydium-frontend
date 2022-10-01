@@ -475,7 +475,7 @@ function MyPositionCard() {
         <MyPositionCardTopInfo className="col-span-full" />
         <MyPositionCardChartInfo className="col-span-1 row-span-2" />
         <MyPositionCardPendingRewardInfo />
-        <MyPositionCardAPRInfo />
+        {/* <MyPositionCardAPRInfo /> */}
       </Grid>
 
       <MyPositionCardPoolOverview />
