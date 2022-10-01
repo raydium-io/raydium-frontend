@@ -7,9 +7,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
@@ -30,6 +28,7 @@ import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
+import Link from '@/components/Link'
 import LinkExplorer from '@/components/LinkExplorer'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
@@ -56,7 +55,6 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
-import Link from '@/components/Link'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -177,7 +175,7 @@ function PoolSearchBlock({ className }: { className?: string }) {
     <Input
       value={storeSearchText}
       className={twMerge(
-        'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg min-w-[6em]',
+        'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[12vw] mobile:w-auto',
         className
       )}
       inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
@@ -375,7 +373,7 @@ function PoolCard() {
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.tvl] }
+    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString)] }
   })
   // re-sort when favourite have loaded
   useOnceEffect(
@@ -384,7 +382,7 @@ function PoolCard() {
       if (favouriteIds != null) {
         setSortConfig({
           key: 'init',
-          sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.tvl],
+          sortCompare: [(i) => favouriteIds?.includes(i.idString)],
           mode: 'decrease'
         })
         runed()
@@ -579,7 +577,7 @@ function PoolCard() {
     <div>
       <Row className={'justify-between pb-5 gap-16 gap-y-4 items-center flex-wrap'}>
         <PoolLabelBlock />
-        <Row className="gap-6 items-stretch">
+        <Row className="gap-4 items-stretch">
           <OpenNewPosition />
           <PoolTimeBasisSelectorBox />
           <PoolSearchBlock />
@@ -878,7 +876,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     >
       {info.userPositionAccount ? (
         <>
-          {info.userPositionAccount.map((p, idx, originArray) => {
+          {info.userPositionAccount.map((p) => {
             let myPosition = '--'
             const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
             const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
@@ -890,10 +888,9 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             }
 
             const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
-            const coinBPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenB?.mint)] ?? null)
+            const coinBPrice = toTotalPrice(p.amountB, variousPrices[String(p.tokenB?.mint)] ?? null)
 
-            const myPositionPrice = coinAPrice.add(coinBPrice)
-            const myPositionVolume = myPositionPrice ? toUsdVolume(myPositionPrice) : '--'
+            const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
 
             const coinARewardPrice = toTotalPrice(p.tokenFeeAmountA, variousPrices[String(p.tokenA?.mint)] ?? null)
             const coinBRewardPrice = toTotalPrice(p.tokenFeeAmountB, variousPrices[String(p.tokenB?.mint)] ?? null)
@@ -908,7 +905,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 myPosition={myPosition}
                 amountA={amountA}
                 amountB={amountB}
-                myPositionVolume={myPositionVolume}
+                myPositionVolume={toUsdVolume(wholeLiquidity)}
                 coinAPrice={coinAPrice}
                 coinBPrice={coinBPrice}
                 inRange={p.inRange}
@@ -1207,7 +1204,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 <div className="text-white font-medium text-base mobile:text-xs mt-3">
                   ≈{toUsdVolume(unclaimedYield)}
                 </div>
-                <AutoBox
+                {/* <AutoBox
                   is="Row"
                   className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2"
                 >
@@ -1248,7 +1245,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   ) : (
                     <div className="text-sm font-medium text-white">--</div>
                   )}
-                </AutoBox>
+                </AutoBox> */}
               </Col>
               <AutoBox
                 is={isMobile ? 'Row' : 'Col'}

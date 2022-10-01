@@ -16,6 +16,7 @@ import { usePools } from '@/application/pools/usePools'
 import { listToJSMap } from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { shakeFalsyItem } from '@/functions/arrayMethods'
+import useConcentrated from '../concentrated/useConcentrated'
 
 /** update token accounts will cause balance refresh */
 export default function useTokenAccountsRefresher(): void {
@@ -25,9 +26,9 @@ export default function useTokenAccountsRefresher(): void {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
   const swapRefreshCount = useSwap((s) => s.refreshCount)
   const liquidityRefreshCount = useLiquidity((s) => s.refreshCount)
-  // both farms pages and stake pages
   const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
   const poolRefreshCount = usePools((s) => s.refreshCount)
+  const concentratedRefreshCount = useConcentrated((s) => s.refreshCount)
 
   useEffect(() => {
     if (!connection || !owner) return
@@ -45,7 +46,8 @@ export default function useTokenAccountsRefresher(): void {
     swapRefreshCount,
     liquidityRefreshCount,
     farmRefreshCount,
-    poolRefreshCount
+    poolRefreshCount,
+    concentratedRefreshCount
   ])
 }
 

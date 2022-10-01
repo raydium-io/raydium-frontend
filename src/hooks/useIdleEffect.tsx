@@ -11,7 +11,7 @@ export function useIdleEffect(effect: () => any, dependenceList?: any[]) {
   useEffect(() => {
     if (!inClient) return
     requestIdleCallback(() => {
-      cleanFn.current?.()
+      if (typeof cleanFn.current === 'function') cleanFn.current()
       const returnedCleanFn = effect()
       cleanFn.current = returnedCleanFn
     })

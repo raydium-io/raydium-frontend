@@ -164,7 +164,7 @@ function PoolSearchBlock({ className }: { className?: string }) {
     <Input
       value={storeSearchText}
       className={twMerge(
-        'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg min-w-[6em]',
+        'px-2 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[12vw] mobile:w-auto',
         className
       )}
       inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
@@ -565,7 +565,7 @@ function PoolCard() {
     <div>
       <Row className={'justify-between pb-5 gap-16 gap-y-4 items-center'}>
         <PoolLabelBlock />
-        <Row className="gap-6 items-stretch">
+        <Row className="gap-4 items-stretch">
           <PoolStakedOnlyBlock />
           <PoolTimeBasisSelectorBox sortConfigs={sortConfig} setSortConfig={setSortConfig} />
           <PoolSearchBlock />

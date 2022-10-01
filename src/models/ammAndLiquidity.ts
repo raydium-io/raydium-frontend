@@ -147,7 +147,7 @@ function getSDKCacheInfos({
     const tickCache = AmmV3.fetchMultiplePoolTickArrays({
       connection,
       poolKeys: routes.needTickArray,
-      batchRequest: false
+      batchRequest: true
     }).catch((err) => {
       sdkCaches.delete(key)
       return undefined
@@ -156,7 +156,7 @@ function getSDKCacheInfos({
     const poolInfosCache = TradeV2.fetchMultipleInfo({
       connection,
       pools: routes.needSimulate,
-      batchRequest: false
+      batchRequest: true
     }).catch((err) => {
       sdkCaches.delete(key)
       return undefined
