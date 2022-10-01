@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
+import { LiquidityPoolsJsonFile, Token, WSOL } from 'test-r-sdk'
 
 import { asyncMapAllSettled } from '@/functions/asyncMap'
 import jFetch from '@/functions/dom/jFetch'
