@@ -223,7 +223,10 @@ function PoolLabelBlock({ className }: { className?: string }) {
       <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
       <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
         Concentrate liquidity for increased captial efficiency.{' '}
-        <Link className="inline-block" href="https://www.google.com">
+        <Link
+          className="inline-block"
+          href="https://docs.raydium.io/raydium/concentrated-liquidity/what-is-concentrated-liquidity"
+        >
           Learn more
         </Link>
       </div>
