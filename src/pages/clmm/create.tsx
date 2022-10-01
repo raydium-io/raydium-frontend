@@ -308,7 +308,7 @@ function ConcentratedCard() {
       }
       return res
     },
-    [toPubString(coin1?.mint), toPubString(coin2?.mint), toPubString(currentAmmPool?.ammConfig.id), isFocus1]
+    [coin1?.mint, coin2?.mint, currentAmmPool?.ammConfig.id, isFocus1]
   )
 
   const handleClickCreatePool = useCallback(() => {
