@@ -7,11 +7,12 @@ export enum Range {
 export const smoothCount = 20
 export const ZOOM_INTERVAL = 5
 export const REFERENCE_LINE_COLOR = '#abc4ff'
-export const HIGHLIGHT_COLOR = '#1B365F'
+export const HIGHLIGHT_COLOR = '#abc4ff'
 export const strokeFillProp = {
   fill: '#abc4ff',
   stroke: '#abc4ff'
 }
+export const unitColor = '#abc4ff80'
 export const boundaryColor = '#256491'
 export const DEFAULT_X_AXIS = ['dataMin', 'dataMax']
 
@@ -73,7 +74,7 @@ export const getPriceLabel = (price?: number | string) => (props) => {
         textAnchor="middle"
         dominantBaseline="middle"
       >
-        Current Price
+        Current Price:
       </text>
       <text
         className="break-words"

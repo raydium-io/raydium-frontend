@@ -9,6 +9,7 @@ import {
   Range,
   DEFAULT_X_AXIS,
   HIGHLIGHT_COLOR,
+  unitColor,
   ZOOM_INTERVAL,
   getDefaultPointOffset,
   boundaryColor,
@@ -429,8 +430,8 @@ export default forwardRef(function Chart(props: Props, ref) {
           </div>
         )}
       </div>
-      <div className="text-[#ABC4FF] text-sm">
-        {hideCurrentPriceLabel ? undefined : `Current Price ${currentPrice?.toSignificant(4)} ${priceLabel || ''}`}
+      <div className="text-[#ABC4FF] text-sm text-center">
+        {hideCurrentPriceLabel ? undefined : `Current Price: ${currentPrice?.toSignificant(4)} ${priceLabel || ''}`}
       </div>
       <div className="w-full select-none" style={{ height: `${height || 140}px` }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -461,7 +462,7 @@ export default forwardRef(function Chart(props: Props, ref) {
               <Tooltip wrapperStyle={{ display: 'none' }} isAnimationActive={false} cursor={false} active={false} />
             )}
             <XAxis
-              style={{ userSelect: 'none', fontSize: '10px' }}
+              style={{ userSelect: 'none', fontSize: '10px', fill: unitColor }}
               type="number"
               tickCount={7}
               tickFormatter={formatTicks}

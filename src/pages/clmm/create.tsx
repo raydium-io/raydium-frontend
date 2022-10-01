@@ -520,8 +520,8 @@ function ConcentratedCard() {
               {hydratedAmmPools.length ? 'Pool Not Found' : 'Loading...'}
             </div>
           )}
-          <div className="text-base leading-[22px] text-secondary-title mb-3">Set Price Range</div>
           <Chart
+            title={<div className="text-base leading-[22px] text-secondary-title mb-3">Set Price Range</div>}
             ref={chartRef}
             chartOptions={chartOptions}
             currentPrice={currentPrice}
