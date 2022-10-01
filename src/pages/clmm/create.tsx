@@ -515,7 +515,7 @@ function ConcentratedCard() {
             showZoom
             height={200}
           />
-          <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
+          {/* <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
             <div className="flex justify-between items-center">
               <span className="text-sm leading-[18px] text-secondary-title">Estimated APR</span>
               <span className="text-2xl leading-[30px]">
@@ -580,7 +580,7 @@ function ConcentratedCard() {
                 </div>
               </div>
             </Grid>
-          </div>
+          </div> */}
         </div>
       </div>
       {/** coin selector panel */}
