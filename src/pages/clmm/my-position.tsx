@@ -101,7 +101,11 @@ function AsideNavButtons() {
 
 // const availableTabValues = ['Swap', 'Liquidity'] as const
 function MyPositionPageHead() {
-  return <Row className="w-[min(912px,100%)] self-center mb-10 mobile:mb-2 font-medium text-2xl">My Position</Row>
+  return (
+    <Row className="w-[min(912px,100%)] self-center mb-10 mobile:mb-2 font-medium text-2xl mobile:text-xl">
+      My Position
+    </Row>
+  )
 }
 
 function MyPositionCardTopInfo({ className }: { className?: string }) {
@@ -110,24 +114,27 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
   const tokenPrices = useToken((s) => s.tokenPrices)
   const { wholeLiquidity, baseLiquidity, quoteLiquidity } =
     targetUserPositionAccount?.getLiquidityVolume?.(tokenPrices) ?? {}
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <Row className={twMerge('bg-[#141041] grid-cols-4 py-3 px-4 rounded-xl gap-12', className)}>
+    <Row className={twMerge('flex-wrap bg-[#141041] grid-cols-4 py-3 px-4 rounded-xl gap-12 mobile:gap-4', className)}>
       <Grid className="grid-rows-[2em,1fr] items-center grow">
-        <div className="font-medium text-[#abc4ff] h-8">Liquidity</div>
-        <div className="font-medium text-2xl text-white">{toUsdVolume(wholeLiquidity)}</div>
+        <div className="mobile:text-sm font-medium text-[#abc4ff] h-8">Liquidity</div>
+        <div className="mobile:text-md font-medium text-2xl text-white">{toUsdVolume(wholeLiquidity)}</div>
       </Grid>
       <Grid className="grid-rows-[2em,1fr] items-center grow">
-        <div className="font-medium text-[#abc4ff] h-8">Leverage</div>
-        <div className="font-medium text-2xl text-white">{targetUserPositionAccount?.leverage.toFixed(2)}x</div>
+        <div className="mobile:text-sm font-medium text-[#abc4ff] h-8">Leverage</div>
+        <div className="mobile:text-md font-medium text-2xl text-white">
+          {targetUserPositionAccount?.leverage.toFixed(2)}x
+        </div>
       </Grid>
       <Grid className="grid-rows-[2em,1fr] items-center grow">
-        <div className="font-medium text-[#abc4ff] h-8">Deposit Ratio</div>
-        <Col className="font-medium text-2xl text-white">
+        <div className="mobile:text-sm font-medium text-[#abc4ff] h-8">Deposit Ratio</div>
+        <Col className="mobile:text-md font-medium text-2xl text-white gap-2 mobile:gap-1">
           <RowItem
             prefix={
               <Row className="items-center gap-2">
-                <CoinAvatar token={currentAmmPool?.base} size="smi" />
-                <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
+                <CoinAvatar token={currentAmmPool?.base} size={isMobile ? 'sm' : 'smi'} />
+                <div className=" text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.base?.symbol ?? '--'}</div>
               </Row>
             }
             suffix={
@@ -138,7 +145,7 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
           <RowItem
             prefix={
               <Row className="items-center gap-2">
-                <CoinAvatar token={currentAmmPool?.quote} size="smi" />
+                <CoinAvatar token={currentAmmPool?.quote} size={isMobile ? 'sm' : 'smi'} />
                 <div className="text-[#abc4ff80] min-w-[4em] mr-1">{currentAmmPool?.quote?.symbol ?? '--'}</div>
               </Row>
             }
@@ -150,9 +157,9 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
         </Col>
       </Grid>
       <Grid className="grid-rows-[2em,1fr] items-center grow">
-        <div className="font-medium text-[#abc4ff] h-8">NFT</div>
-        <div className="font-medium text-2xl text-[#abc4ff80]">
-          <AddressItem showDigitCount={6} canCopy canExternalLink>
+        <div className="mobile:text-sm font-medium text-[#abc4ff] h-8">NFT</div>
+        <div className="font-medium text-[#abc4ff80]">
+          <AddressItem textClassName="text-xs" showDigitCount={isMobile ? 8 : 6} canCopy canExternalLink>
             {targetUserPositionAccount?.nftMint}
           </AddressItem>
         </div>
@@ -178,13 +185,13 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
-        <div className="font-medium text-[#abc4ff]">My Position</div>
+        <div className="mobile:text-sm font-medium text-[#abc4ff]">My Position</div>
         <RangeTag positionAccount={targetUserPositionAccount} />
       </Row>
-      <Grid className="items-center text-2xl text-white">
+      <Grid className="items-center text-2xl text-white mobile:text-base">
         {toString(targetUserPositionAccount?.priceLower)} - {toString(targetUserPositionAccount?.priceUpper)}
       </Grid>
-      <div className="font-medium text-[#abc4ff]">
+      <div className="font-medium text-[#abc4ff] mobile:text-xs">
         {currentAmmPool?.quote?.symbol ?? '--'} per {currentAmmPool?.base?.symbol ?? '--'}
       </div>
       <div className="items-center grow ">
@@ -261,17 +268,19 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
     .reduce((acc, { volume }) => (volume ? add(acc ?? toFraction(0), volume) : acc), undefined as Fraction | undefined)
 
   useImperativeHandle
+  const isMobile = useAppSettings((s) => s.isMobile)
   const hasPendingReward = isMeaningfulNumber(totalVolume)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
-        <div className="font-medium text-[#abc4ff]">Pending Yield</div>
+        <div className="mobile:text-sm font-medium text-[#abc4ff]">Pending Yield</div>
       </Row>
       <Row className="items-center gap-8">
         <div className="font-medium text-2xl text-white">≈{toUsdVolume(totalVolume)}</div>
         <Button
           className="frosted-glass-teal"
+          size={isMobile ? 'sm' : undefined}
           isLoading={isApprovePanelShown}
           onClick={() =>
             txHavestConcentrated().then(({ allSuccess }) => {
@@ -298,7 +307,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
 
       <Grid className="grid-cols-2 border-1.5 border-[#abc4ff40] py-3 px-4 gap-2 rounded-xl">
         <div>
-          <div className="font-medium text-[#abc4ff] mt-2 mb-4">Rewards</div>
+          <div className="mobile:text-sm font-medium text-[#abc4ff] mt-2 mb-4">Rewards</div>
           <Grid className="grow grid-cols-1 gap-2">
             {rewardsVolume.length ? (
               rewardsVolume.map(({ token, volume }) => (
@@ -314,13 +323,13 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
                 />
               ))
             ) : (
-              <div className="text-[#abc4ff80]">(No Reward)</div>
+              <div className="text-[#abc4ff80] mobile:text-sm ">(No Reward)</div>
             )}
           </Grid>
         </div>
         <div>
-          <div className="font-medium text-[#abc4ff] mt-2 mb-4">Fees</div>
-          <Grid className="grow grid-cols-1 gap-2">
+          <div className="mobile:text-sm font-medium text-[#abc4ff] mt-2 mb-4">Fees</div>
+          <Grid className="grow grid-cols-1 gap-2 mobile:gap-1">
             {feesVolume.map(({ token, volume }) => (
               <RowItem
                 key={toPubString(token?.mint)}
@@ -347,7 +356,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
-        <div className="font-medium text-[#abc4ff]">Estimated APR</div>
+        <div className="mobile:text-sm font-medium text-[#abc4ff]">Estimated APR</div>
       </Row>
       <Row className="items-center gap-4">
         <div className="font-medium text-2xl text-white">
@@ -359,7 +368,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
         </div>
       </Row>
       <Grid className="grid-cols-1 border-1.5 border-[#abc4ff40] py-3 px-4 gap-2 rounded-xl">
-        <div className="font-medium text-[#abc4ff] mt-2 mb-4">Yield</div>
+        <div className="mobile:text-sm font-medium text-[#abc4ff] mt-2 mb-4">Yield</div>
         <Grid className="grow grid-cols-2 gap-2">
           <RowItem
             prefix={
@@ -405,18 +414,19 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
 function MyPositionCardHeader({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <Row className={twMerge('justify-between py-2 pb-5', className)}>
+    <Row className={twMerge('justify-between py-2 pb-5 mobile:py-1 mobile:pb-2 gap-2 flex-wrap', className)}>
       <Row className="items-center gap-2">
-        <CoinAvatarPair token1={currentAmmPool?.base} token2={currentAmmPool?.quote} size="lg" />
-        <div className="font-medium text-xl text-white">
+        <CoinAvatarPair token1={currentAmmPool?.base} token2={currentAmmPool?.quote} size={isMobile ? 'md' : 'lg'} />
+        <div className="font-medium text-xl mobile:text-lg text-white">
           {currentAmmPool?.base?.symbol ?? '--'} - {currentAmmPool?.quote?.symbol ?? '--'}
         </div>
         <RangeTag positionAccount={targetUserPositionAccount} />
       </Row>
-      <Row className="items-center gap-2">
+      <Row className="items-center gap-2 mobile:grow">
         <Button
-          className="frosted-glass-teal"
+          className="frosted-glass-teal mobile:grow"
           onClick={() => {
             useConcentrated.setState({
               isAddDialogOpen: true,
@@ -426,11 +436,13 @@ function MyPositionCardHeader({ className }: { className?: string }) {
               coin2: currentAmmPool?.quote
             })
           }}
+          size={isMobile ? 'sm' : undefined}
         >
           Add Liquidity
         </Button>
         <Button
-          className="frosted-glass-teal ghost"
+          className="frosted-glass-teal ghost mobile:grow"
+          size={isMobile ? 'sm' : undefined}
           onClick={() => {
             useConcentrated.setState({
               isRemoveDialogOpen: true,
@@ -452,14 +464,14 @@ function MyPositionCard() {
   return (
     <CyberpunkStyleCard
       wrapperClassName="relative w-[min(912px,100%)] self-center cyberpunk-bg-light"
-      className="py-5 px-6 mobile:py-5 mobile:px-3"
+      className="py-5 px-6 mobile:py-3 mobile:px-3"
     >
       <div className="absolute -left-8 top-1/2 -translate-x-1/2 -translate-y-1/2">
         <AsideNavButtons />
       </div>
       <MyPositionCardHeader />
 
-      <Grid className="gap-3 grid-cols-2 w-[min(912px,100%)]">
+      <Grid className="gap-3 mobile:gap-2 grid-cols-2 mobile:grid-cols-1 w-[min(912px,100%)]">
         <MyPositionCardTopInfo className="col-span-full" />
         <MyPositionCardChartInfo className="col-span-1 row-span-2" />
         <MyPositionCardPendingRewardInfo />
@@ -476,13 +488,15 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const basePrice: Price | undefined = tokenPrices[toPubString(currentAmmPool?.base?.mint)]
   const quotePrice: Price | undefined = tokenPrices[toPubString(currentAmmPool?.quote?.mint)]
+  const timeBasis = useConcentrated((s) => s.timeBasis)
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Collapse openDirection="upwards" className="w-full mt-4">
       <Collapse.Body>
         <div className="pb-4">
-          <div className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
+          <div className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4 ', className)}>
             <div className="font-medium text-[#abc4ff] mb-4">Pool Overview</div>
-            <Grid className="grid-cols-4 gap-8">
+            <Grid className="grid-cols-4 mobile:grid-cols-2 gap-8 mobile:gap-4 mobile:text-sm">
               <ColItem
                 className="gap-1 font-medium"
                 prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">Fee Rate</div>}
@@ -511,14 +525,31 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                     Weekly Rewards {currentAmmPool?.base?.symbol ?? 'base'}
                   </div>
                 }
-                // TEMP: force 30d
                 text={
                   <Row className="items-center gap-2">
                     <CoinAvatar token={currentAmmPool?.base} size="smi" />
                     <div className="text-white">
-                      {toString(currentAmmPool?.fee7dA, { decimalLength: currentAmmPool?.base?.decimals })}
+                      {toString(
+                        currentAmmPool?.[
+                          timeBasis === TimeBasis.DAY ? 'fee24hA' : timeBasis === TimeBasis.WEEK ? 'fee7dA' : 'fee30dA'
+                        ],
+                        { decimalLength: currentAmmPool?.base?.decimals }
+                      )}
                     </div>
-                    <div className="text-[#abc4ff80]">{toUsdVolume(mul(currentAmmPool?.fee7dA, basePrice))}</div>
+                    <div className="text-[#abc4ff80]">
+                      {toUsdVolume(
+                        mul(
+                          currentAmmPool?.[
+                            timeBasis === TimeBasis.DAY
+                              ? 'fee24hA'
+                              : timeBasis === TimeBasis.WEEK
+                              ? 'fee7dA'
+                              : 'fee30dA'
+                          ],
+                          basePrice
+                        )
+                      )}
+                    </div>
                   </Row>
                 }
               />
@@ -529,14 +560,31 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                     Weekly Rewards {currentAmmPool?.quote?.symbol ?? 'quote'}
                   </div>
                 }
-                // TEMP: force 30d
                 text={
                   <Row className="items-center gap-2">
                     <CoinAvatar token={currentAmmPool?.quote} size="smi" />
                     <div className="text-white">
-                      {toString(currentAmmPool?.fee7dB, { decimalLength: currentAmmPool?.quote?.decimals })}
+                      {toString(
+                        currentAmmPool?.[
+                          timeBasis === TimeBasis.DAY ? 'fee24hB' : timeBasis === TimeBasis.WEEK ? 'fee7dB' : 'fee30dB'
+                        ],
+                        { decimalLength: currentAmmPool?.quote?.decimals }
+                      )}
                     </div>
-                    <div className="text-[#abc4ff80]">{toUsdVolume(mul(currentAmmPool?.fee7dB, quotePrice))}</div>
+                    <div className="text-[#abc4ff80]">
+                      {toUsdVolume(
+                        mul(
+                          currentAmmPool?.[
+                            timeBasis === TimeBasis.DAY
+                              ? 'fee24hB'
+                              : timeBasis === TimeBasis.WEEK
+                              ? 'fee7dB'
+                              : 'fee30dB'
+                          ],
+                          quotePrice
+                        )
+                      )}
+                    </div>
                   </Row>
                 }
               />
@@ -546,9 +594,9 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
       </Collapse.Body>
       <Collapse.Face>
         {(open) => (
-          <Row className="border-t-1.5 pt-5 border-[#abc4ff40] w-full items-center justify-center text-sm font-medium text-[#abc4ff] cursor-pointer select-none">
+          <Row className="border-t-1.5 pt-5 mobile:pt-3 border-[#abc4ff40] w-full items-center justify-center text-sm font-medium text-[#abc4ff] cursor-pointer select-none">
             <div>Pool Overview</div>
-            <Icon size="sm" heroIconName={open ? 'chevron-up' : 'chevron-down'} className="ml-1" />
+            <Icon size={isMobile ? 'xs' : 'sm'} heroIconName={open ? 'chevron-up' : 'chevron-down'} className="ml-1" />
           </Row>
         )}
       </Collapse.Face>
@@ -561,14 +609,14 @@ function RangeTag({ positionAccount }: { positionAccount?: UserPositionAccount }
   return positionAccount.inRange ? (
     <Row className="items-center bg-[#142B45] rounded text-xs text-[#39D0D8] py-0.5 px-1 ml-2">
       <Icon size="xs" iconSrc={'/icons/check-circle.svg'} />
-      <div className="font-normal" style={{ marginLeft: 4 }}>
+      <div className="mobile:text-2xs font-normal" style={{ marginLeft: 4 }}>
         In Range
       </div>
     </Row>
   ) : (
     <Row className="items-center bg-[#DA2EEF]/10 rounded text-xs text-[#DA2EEF] py-0.5 px-1 ml-2">
       <Icon size="xs" iconSrc={'/icons/warn-stick.svg'} />
-      <div className="font-normal" style={{ marginLeft: 4 }}>
+      <div className="mobile:text-2xs font-normal" style={{ marginLeft: 4 }}>
         Out of Range
       </div>
     </Row>
