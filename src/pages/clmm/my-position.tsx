@@ -499,7 +499,7 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
         <div className="pb-4">
           <div className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4 ', className)}>
             <div className="font-medium text-[#abc4ff] mb-4">Pool Overview</div>
-            <Grid className="grid-cols-4 mobile:grid-cols-2 gap-8 mobile:gap-4 mobile:text-sm">
+            <Grid className="grid-cols-5 mobile:grid-cols-2 gap-8 mobile:gap-4 mobile:text-sm">
               <ColItem
                 className="gap-1 font-medium"
                 prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">Fee Rate</div>}
@@ -517,10 +517,15 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
               />
               <ColItem
                 className="gap-1 font-medium"
+                prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">24h Fee</div>}
+                text={<div className="text-white">{toUsdVolume(currentAmmPool?.feeApr24h)}</div>}
+              />
+              <ColItem
+                className="gap-1 font-medium"
                 prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">Tick Spacing</div>}
                 text={<div className="text-white">{currentAmmPool?.ammConfig.tickSpacing}</div>}
               />
-              <ColItem
+              {/* <ColItem
                 className="gap-1 font-medium col-span-2"
                 prefix={
                   <div className="text-[#abc4ff80] min-w-[4em] mr-1">
@@ -554,7 +559,7 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                     </div>
                   </Row>
                 }
-              />
+              /> 
               <ColItem
                 className="gap-1 font-medium col-span-2"
                 prefix={
@@ -589,7 +594,7 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                     </div>
                   </Row>
                 }
-              />
+              />*/}
             </Grid>
           </div>
         </div>
