@@ -7,7 +7,9 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
@@ -209,7 +211,7 @@ function OpenNewPosition({ className }: { className?: string }) {
       }}
       size="sm"
     >
-      Open Position
+      Create Position
     </Button>
   )
 }
@@ -1446,14 +1448,15 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
           <div>{info?.name}</div>
           <div className="font-medium text-xs text-[#ABC4FF]/50">Fee {toPercentString(info?.tradeFeeRate)}</div>
         </Col>
-        {lt(toString(info?.tvl, { decimalLength: 'auto 0' }) ?? 0, 100000) && (
+        {/* Temprary don't */}
+        {/* {lt(toString(info?.tvl, { decimalLength: 'auto 0' }) ?? 0, 100000) && (
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />
             <Tooltip.Panel>
               <div className="whitespace-pre">{lowLiquidityAlertText}</div>
             </Tooltip.Panel>
           </Tooltip>
-        )}
+        )} */}
       </Row>
     </AutoBox>
   )

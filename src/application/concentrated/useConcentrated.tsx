@@ -104,7 +104,7 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   currentTab: PoolsConcentratedTabs.ALL,
   currentLayout: PoolsConcentratedLayout.LIST,
   searchText: '',
-  timeBasis: TimeBasis.WEEK
+  timeBasis: TimeBasis.DAY
 }))
 
 export default useConcentrated
