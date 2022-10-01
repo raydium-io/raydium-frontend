@@ -34,7 +34,7 @@ import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/Remo
 import { Numberish } from '@/types/constants'
 import { useImperativeHandle } from 'react'
 import { twMerge } from 'tailwind-merge'
-import { Fraction, Price, Token } from 'test-r-sdk'
+import { Fraction, Price, Token, TokenAmount } from 'test-r-sdk'
 
 export default function MyPosition() {
   return (
@@ -240,26 +240,29 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
   const connected = useWallet((s) => s.connected)
 
   const tokenPrices = useToken((s) => s.tokenPrices)
-  const rewardsVolume: { token?: Token; volume?: Numberish }[] =
+  const rewardsVolume: { token?: Token; volume?: Numberish; amount?: TokenAmount }[] =
     targetUserPositionAccount?.rewardInfos.map((info) => ({
       token: info.penddingReward?.token,
-      volume: mul(info.penddingReward, tokenPrices[toPubString(info.penddingReward?.token.mint)])
+      volume: mul(info.penddingReward, tokenPrices[toPubString(info.penddingReward?.token.mint)]),
+      amount: info.penddingReward
     })) ?? []
-  const feesVolume: { token?: Token; volume?: Numberish }[] = targetUserPositionAccount
+  const feesVolume: { token?: Token; volume?: Numberish; amount?: TokenAmount }[] = targetUserPositionAccount
     ? [
         {
           token: targetUserPositionAccount?.tokenFeeAmountA?.token,
           volume: mul(
             targetUserPositionAccount?.tokenFeeAmountA,
             tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountA?.token.mint)]
-          )
+          ),
+          amount: targetUserPositionAccount?.tokenFeeAmountA
         },
         {
           token: targetUserPositionAccount?.tokenFeeAmountB?.token,
           volume: mul(
             targetUserPositionAccount?.tokenFeeAmountB,
             tokenPrices[toPubString(targetUserPositionAccount?.tokenFeeAmountB?.token.mint)]
-          )
+          ),
+          amount: targetUserPositionAccount?.tokenFeeAmountB
         }
       ]
     : []
@@ -305,32 +308,11 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
         </Button>
       </Row>
 
-      <Grid className="grid-cols-2 border-1.5 border-[#abc4ff40] py-3 px-4 gap-2 rounded-xl">
-        <div>
-          <div className="mobile:text-sm font-medium text-[#abc4ff] mt-2 mb-4">Rewards</div>
-          <Grid className="grow grid-cols-1 gap-2">
-            {rewardsVolume.length ? (
-              rewardsVolume.map(({ token, volume }) => (
-                <RowItem
-                  key={toPubString(token?.mint)}
-                  prefix={
-                    <Row className="items-center gap-2">
-                      <CoinAvatar token={token} size="smi" />
-                      <div className="text-[#abc4ff80] min-w-[4em] mr-1">{token?.symbol ?? '--'}</div>
-                    </Row>
-                  }
-                  text={<div className="text-white justify-end">{toUsdVolume(volume)}</div>}
-                />
-              ))
-            ) : (
-              <div className="text-[#abc4ff80] mobile:text-sm ">(No Reward)</div>
-            )}
-          </Grid>
-        </div>
+      <Grid className="grid-cols-2 gap-6 mobile:gap-2 border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl">
         <div>
           <div className="mobile:text-sm font-medium text-[#abc4ff] mt-2 mb-4">Fees</div>
           <Grid className="grow grid-cols-1 gap-2 mobile:gap-1">
-            {feesVolume.map(({ token, volume }) => (
+            {feesVolume.map(({ token, volume, amount }) => (
               <RowItem
                 key={toPubString(token?.mint)}
                 prefix={
@@ -339,9 +321,30 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
                     <div className="text-[#abc4ff80] min-w-[4em] mr-1">{token?.symbol ?? '--'}</div>
                   </Row>
                 }
-                text={<div className="text-white justify-end">{toUsdVolume(volume)}</div>}
+                text={<div className="text-white justify-end text-end">{toString(amount)}</div>}
               />
             ))}
+          </Grid>
+        </div>
+        <div>
+          <div className="mobile:text-sm font-medium text-[#abc4ff] mt-2 mb-4">Rewards</div>
+          <Grid className="grow grid-cols-1 gap-2">
+            {rewardsVolume.length ? (
+              rewardsVolume.map(({ token, volume, amount }) => (
+                <RowItem
+                  key={toPubString(token?.mint)}
+                  prefix={
+                    <Row className="items-center gap-2">
+                      <CoinAvatar token={token} size="smi" />
+                      <div className="text-[#abc4ff80] min-w-[4em] mr-1">{token?.symbol ?? '--'}</div>
+                    </Row>
+                  }
+                  text={<div className="text-white justify-end text-end">{toString(amount)}</div>}
+                />
+              ))
+            ) : (
+              <div className="text-[#abc4ff80] mobile:text-sm ">(No Reward)</div>
+            )}
           </Grid>
         </div>
       </Grid>
