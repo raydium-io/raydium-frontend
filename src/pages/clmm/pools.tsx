@@ -1207,7 +1207,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 <div className="text-white font-medium text-base mobile:text-xs mt-3">
                   ≈{toUsdVolume(unclaimedYield)}
                 </div>
-                <AutoBox
+                {/* <AutoBox
                   is="Row"
                   className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2"
                 >
@@ -1248,7 +1248,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   ) : (
                     <div className="text-sm font-medium text-white">--</div>
                   )}
-                </AutoBox>
+                </AutoBox> */}
               </Col>
               <AutoBox
                 is={isMobile ? 'Row' : 'Col'}
