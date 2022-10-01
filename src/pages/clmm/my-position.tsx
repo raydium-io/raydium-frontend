@@ -503,8 +503,7 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
               <ColItem
                 className="gap-1 font-medium"
                 prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">Fee Rate</div>}
-                // TEMP: force 30d
-                text={<div className="text-white">{toPercentString(currentAmmPool?.feeApr30d)}</div>}
+                text={<div className="text-white">{toPercentString(currentAmmPool?.tradeFeeRate)}</div>}
               />
               <ColItem
                 className="gap-1 font-medium"
