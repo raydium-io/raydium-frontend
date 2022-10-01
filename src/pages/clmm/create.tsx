@@ -6,7 +6,6 @@ import useConcentratedAmountCalculator from '@/application/concentrated/useConce
 import toPercentString from '@/functions/format/toPercentString'
 import toPubString from '@/functions/format/toMintString'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
-import toFraction from '@/functions/numberish/toFraction'
 import toBN from '@/functions/numberish/toBN'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import toUsdVolume from '@/functions/format/toUsdVolume'
@@ -266,14 +265,10 @@ function ConcentratedCard() {
     [coin1?.mint, coin2?.mint, currentAmmPool?.ammConfig.id, isFocus1, isCoin1Base]
   )
 
-  const prices = [coin1Amount ? toFraction(coin1Amount) : undefined, coin2Amount ? toFraction(coin2Amount) : undefined]
-  const totalDeposit = prices
-    .filter((p) => !!p)
-    .reduce((acc, cur) => {
-      const newAcc = acc!.add(toFraction(cur!))
-
-      return newAcc
-    }, new Fraction(0))
+  const [prices, setPrices] = useState<(string | undefined)[]>([])
+  const updatePrice1 = useCallback((tokenP) => setPrices((p) => [tokenP?.toExact(), p[1]]), [])
+  const updatePrice2 = useCallback((tokenP) => setPrices((p) => [p[0], tokenP?.toExact()]), [])
+  const totalDeposit = prices.filter((p) => !!p).reduce((acc, cur) => acc + parseFloat(cur!), 0)
 
   const { ratio1, ratio2 } = calculateRatio({
     currentPrice,
@@ -370,6 +365,7 @@ function ConcentratedCard() {
                 haveCoinIcon
                 showTokenSelectIcon
                 topLeftLabel=""
+                onPriceChange={updatePrice1}
                 onTryToTokenSelect={() => {
                   turnOnCoinSelector()
                   setTargetCoinNo('1')
@@ -398,6 +394,7 @@ function ConcentratedCard() {
                 haveCoinIcon
                 showTokenSelectIcon
                 topLeftLabel=""
+                onPriceChange={updatePrice2}
                 onTryToTokenSelect={() => {
                   turnOnCoinSelector()
                   setTargetCoinNo('2')
