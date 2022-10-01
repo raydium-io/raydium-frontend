@@ -375,7 +375,7 @@ function PoolCard() {
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.tvl] }
+    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString)] }
   })
   // re-sort when favourite have loaded
   useOnceEffect(
@@ -384,7 +384,7 @@ function PoolCard() {
       if (favouriteIds != null) {
         setSortConfig({
           key: 'init',
-          sortCompare: [(i) => favouriteIds?.includes(i.idString), (i) => i.tvl],
+          sortCompare: [(i) => favouriteIds?.includes(i.idString)],
           mode: 'decrease'
         })
         runed()
