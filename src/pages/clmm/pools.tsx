@@ -7,9 +7,7 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
@@ -30,6 +28,7 @@ import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
+import Link from '@/components/Link'
 import LinkExplorer from '@/components/LinkExplorer'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
@@ -56,7 +55,6 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
-import Link from '@/components/Link'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -890,7 +888,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             }
 
             const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
-            const coinBPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenB?.mint)] ?? null)
+            const coinBPrice = toTotalPrice(p.amountB, variousPrices[String(p.tokenB?.mint)] ?? null)
 
             const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
 
