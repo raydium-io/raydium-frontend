@@ -113,7 +113,7 @@ export default function Select<T extends string>({
       >
         <Collapse.Face>
           {(open) => (
-            <div className={twMerge('py-2 px-6 mobile:px-3', shrinkToValue(faceClassName, [{ open: isOpen }]))}>
+            <div className={twMerge('py-2 px-3 mobile:px-2', shrinkToValue(faceClassName, [{ open: isOpen }]))}>
               <FaceContent open={open} />
             </div>
           )}
