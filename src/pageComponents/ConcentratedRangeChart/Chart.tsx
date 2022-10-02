@@ -11,9 +11,9 @@ import {
   HIGHLIGHT_COLOR,
   unitColor,
   ZOOM_INTERVAL,
-  getDefaultPointOffset,
+  AREA_CONFIG,
   boundaryColor,
-  strokeFillProp,
+  getStrokeFill,
   toFixedNumber,
   getConfig,
   getLabel
@@ -21,6 +21,7 @@ import {
 import PriceRangeInput from './PriceRangeInput'
 
 interface HighlightPoint extends ChartPoint {
+  position?: number
   extend?: boolean
 }
 
@@ -89,13 +90,6 @@ export default forwardRef(function Chart(props: Props, ref) {
   const xAxisRef = useRef<number[]>([])
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
-  const { offsetMin, offsetMax } = getDefaultPointOffset({
-    points,
-    defaultMin,
-    defaultMax,
-    decimals,
-    showCurrentPriceOnly
-  })
 
   boundaryRef.current = xAxisDomain.length
     ? { min: Number(xAxisDomain[0]) || 0, max: Number(xAxisDomain[xAxisDomain.length - 1]) || 100 }
@@ -149,10 +143,12 @@ export default forwardRef(function Chart(props: Props, ref) {
       points.push({ x: defaultMaxNum + gap * 2, y: 0 })
 
     const pointMaxIndex = points.length - 1
+    let maxY = points[0].y
     for (let i = 0; i < pointMaxIndex; i++) {
       const point = points[i]
       const nextPoint = points[i + 1]
       displayList.push({ ...point })
+      maxY = Math.max(maxY, point.y)
       // add more points to chart to smooth line
       if (!showCurrentPriceOnly && smoothCount > 0) {
         const gap = toFixedNumber((nextPoint.x - point.x) / smoothCount, decimals)
@@ -164,7 +160,14 @@ export default forwardRef(function Chart(props: Props, ref) {
     }
     if (pointMaxIndex > 0) displayList.push(points[pointMaxIndex])
 
-    setDisplayList(displayList)
+    setDisplayList(
+      showCurrentPriceOnly
+        ? displayList.map((p) => ({
+            ...p,
+            position: defaultMinNum && p.x >= defaultMinNum && defaultMaxNum && p.x <= defaultMaxNum ? maxY : undefined
+          }))
+        : displayList
+    )
     setXAxisDomain(DEFAULT_X_AXIS)
   }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolId])
 
@@ -172,10 +175,10 @@ export default forwardRef(function Chart(props: Props, ref) {
     if ((!defaultMin && !defaultMax) || (hasPoints && poolIdRef.current && poolIdRef.current === poolId)) return
     poolIdRef.current = hasPoints ? poolId : undefined
     updatePosition({
-      [Range.Min]: Number(defaultMin.toFixed(10)) - offsetMin,
-      [Range.Max]: Number(defaultMax.toFixed(10)) - offsetMax
+      [Range.Min]: Number(defaultMin.toFixed(10)),
+      [Range.Max]: Number(defaultMax.toFixed(10))
     })
-  }, [defaultMin, defaultMax, updatePosition, offsetMin, offsetMax, poolId, hasPoints])
+  }, [defaultMin, defaultMax, updatePosition, poolId, hasPoints])
 
   useEffect(() => {
     setXAxis(xAxisRef.current)
@@ -305,6 +308,12 @@ export default forwardRef(function Chart(props: Props, ref) {
         }
       : null
   }
+
+  const handleAreaMouseDown = useCallback(() => {
+    setIsMoving(true)
+    areaRef.current = undefined
+    moveRef.current = 'area'
+  }, [])
 
   const handlePriceChange = useCallback(
     ({ val, side }: { val?: number | string; side: Range }) => {
@@ -456,18 +465,14 @@ export default forwardRef(function Chart(props: Props, ref) {
             onMouseUp={handleMouseUp}
           >
             <Area
-              {...strokeFillProp}
+              {...AREA_CONFIG}
+              {...getStrokeFill('#abc4ff')}
               fillOpacity={0.9}
-              animateNewValues={false}
               style={{ cursor: isMoving ? 'grab' : 'default' }}
-              legendType="none"
-              tooltipType="none"
-              isAnimationActive={false}
-              activeDot={false}
-              dot={false}
               type="step"
               dataKey="y"
             />
+            <Area {...AREA_CONFIG} {...getStrokeFill(HIGHLIGHT_COLOR)} fillOpacity="0.3" dataKey="position" />
             {!hideRangeLine && (
               <Tooltip wrapperStyle={{ display: 'none' }} isAnimationActive={false} cursor={false} active={false} />
             )}
@@ -515,31 +520,15 @@ export default forwardRef(function Chart(props: Props, ref) {
                 strokeWidth={2}
               />
             )}
-            {hasPoints && (
+            {hasPoints && !showCurrentPriceOnly && (
               <ReferenceArea
                 style={{ cursor: hideRangeLine ? 'default' : 'pointer' }}
-                onPointerDown={
-                  isMobile && !hideRangeLine
-                    ? () => {
-                        setIsMoving(true)
-                        areaRef.current = undefined
-                        moveRef.current = 'area'
-                      }
-                    : undefined
-                }
-                onMouseDown={
-                  !hideRangeLine
-                    ? () => {
-                        setIsMoving(true)
-                        areaRef.current = undefined
-                        moveRef.current = 'area'
-                      }
-                    : undefined
-                }
-                x1={Math.max(position[Range.Min], displayList[0]?.x || 0, xAxis[0])}
+                onPointerDown={isMobile && !hideRangeLine ? handleAreaMouseDown : undefined}
+                onMouseDown={!hideRangeLine ? handleAreaMouseDown : undefined}
+                x1={Math.max(position[Range.Min], displayList[0]?.x || 0, xAxis[0] || 0)}
                 x2={Math.min(
                   position[Range.Max],
-                  displayList[displayList.length - 1]?.x,
+                  displayList[displayList.length - 1]?.x || Number.MAX_SAFE_INTEGER,
                   xAxis[xAxis.length - 1] || Number.MAX_SAFE_INTEGER
                 )}
                 fill={HIGHLIGHT_COLOR}
