@@ -31,7 +31,7 @@ interface PositionState {
 }
 
 interface Props {
-  poolId?: string
+  poolFocusKey?: string
   decimals: number
   className?: string
   chartOptions?: ChartRangeInputOption
@@ -45,18 +45,20 @@ interface Props {
   hideXAxis?: boolean
   height?: number
   title?: ReactNode
+  focusSide?: 'coin1' | 'coin2'
   onPositionChange?: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
   onInDecrease?: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
 }
 
 export default forwardRef(function Chart(props: Props, ref) {
   const {
-    poolId,
+    poolFocusKey,
     chartOptions,
     currentPrice,
     priceLabel,
     decimals,
     height,
+    focusSide,
     onPositionChange,
     onInDecrease,
     title,
@@ -82,7 +84,6 @@ export default forwardRef(function Chart(props: Props, ref) {
     [Range.Max]: Number(defaultMax?.toFixed(decimals)) || 100
   })
   const [xAxis, setXAxis] = useState<number[]>([])
-
   const boundaryRef = useRef({ min: 0, max: 100 })
   const smoothCountRef = useRef(0)
   const moveRef = useRef('')
@@ -122,20 +123,21 @@ export default forwardRef(function Chart(props: Props, ref) {
     setXAxisDomain(DEFAULT_X_AXIS)
     boundaryRef.current = { min: 0, max: 100 }
     xAxisRef.current = []
-    if (poolIdRef.current !== poolId) {
-      setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
-    }
+    if (poolIdRef.current !== poolFocusKey) setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
     if (!points.length) return
 
     const { smoothCount } = getConfig(points[0].x, points.length)
     smoothCountRef.current = smoothCount
     const displayList: HighlightPoint[] = []
     const [defaultMinNum, defaultMaxNum] = [
-      defaultMin ? Number(defaultMin.toFixed(decimals)) : undefined,
-      defaultMax ? Number(defaultMax.toFixed(decimals)) : undefined
+      defaultMin ? Number(defaultMin.toFixed(6)) : undefined,
+      defaultMax ? Number(defaultMax.toFixed(6)) : undefined
     ]
+    const isInPositionRange = (x: number) =>
+      !!(defaultMinNum && x >= defaultMinNum && defaultMaxNum && x <= defaultMaxNum)
 
     const gap = points[1].x - points[0].x
+    // if chart points not include position point, we auto add them to point list
     if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(decimals)) + gap) {
       points.unshift({ x: Math.max(defaultMinNum - gap, 0), y: 0 })
     }
@@ -143,11 +145,23 @@ export default forwardRef(function Chart(props: Props, ref) {
       points.push({ x: defaultMaxNum + gap * 2, y: 0 })
 
     const pointMaxIndex = points.length - 1
+    let [foundDefaultMin, foundDefaultMax] = [false, false]
     let maxY = points[0].y
     for (let i = 0; i < pointMaxIndex; i++) {
-      const point = points[i]
-      const nextPoint = points[i + 1]
+      const [point, nextPoint] = [points[i], points[i + 1]]
+      const pointXNum = toFixedNumber(point.x, decimals)
+      if (defaultMinNum && pointXNum > defaultMinNum && !foundDefaultMin) {
+        displayList.push({ ...point, x: defaultMinNum })
+        foundDefaultMin = true
+      }
+      if (defaultMaxNum && pointXNum > defaultMaxNum && !foundDefaultMax) {
+        displayList.push({ ...point, x: defaultMaxNum })
+        foundDefaultMax = true
+      }
       displayList.push({ ...point })
+
+      foundDefaultMin = foundDefaultMin || pointXNum === defaultMinNum
+      foundDefaultMax = foundDefaultMax || pointXNum === defaultMaxNum
       maxY = Math.max(maxY, point.y)
       // add more points to chart to smooth line
       if (!showCurrentPriceOnly && smoothCount > 0) {
@@ -164,21 +178,21 @@ export default forwardRef(function Chart(props: Props, ref) {
       showCurrentPriceOnly
         ? displayList.map((p) => ({
             ...p,
-            position: defaultMinNum && p.x >= defaultMinNum && defaultMaxNum && p.x <= defaultMaxNum ? maxY : undefined
+            position: isInPositionRange(toFixedNumber(p.x, decimals)) ? maxY : undefined
           }))
         : displayList
     )
     setXAxisDomain(DEFAULT_X_AXIS)
-  }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolId])
+  }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolFocusKey])
 
   useEffect(() => {
-    if ((!defaultMin && !defaultMax) || (hasPoints && poolIdRef.current && poolIdRef.current === poolId)) return
-    poolIdRef.current = hasPoints ? poolId : undefined
+    if ((!defaultMin && !defaultMax) || (hasPoints && poolIdRef.current && poolIdRef.current === poolFocusKey)) return
+    poolIdRef.current = hasPoints ? poolFocusKey : undefined
     updatePosition({
       [Range.Min]: Number(defaultMin.toFixed(10)),
       [Range.Max]: Number(defaultMax.toFixed(10))
     })
-  }, [defaultMin, defaultMax, updatePosition, poolId, hasPoints])
+  }, [defaultMin, defaultMax, updatePosition, hasPoints, poolFocusKey])
 
   useEffect(() => {
     setXAxis(xAxisRef.current)

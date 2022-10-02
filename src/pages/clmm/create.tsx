@@ -151,7 +151,8 @@ function ConcentratedCard() {
     priceUpper,
     priceLower
   } = useConcentrated()
-  const prevPoolId = usePrevious<string | undefined>(currentAmmPool?.idString)
+  const poolFocusKey = `${currentAmmPool?.idString}-${focusSide}`
+  const prevPoolId = usePrevious<string | undefined>(poolFocusKey)
   const chartRef = useRef<{ getPosition: () => { min: number; max: number } }>()
   const tickRef = useRef<{ lower?: number; upper?: number }>({ lower: undefined, upper: undefined })
   const hasReward = !!currentAmmPool && currentAmmPool.state.rewardInfos.length > 0
@@ -229,9 +230,9 @@ function ConcentratedCard() {
   }, [coin1, coin2, currentAmmPool, isPairPoolDirectionEq])
 
   useEffect(() => {
-    if (currentAmmPool?.idString === prevPoolId) return
+    if (poolFocusKey === prevPoolId) return
     boundaryData && useConcentrated.setState(boundaryData)
-  }, [boundaryData, currentAmmPool?.idString, prevPoolId])
+  }, [boundaryData, poolFocusKey, prevPoolId])
 
   const handleClickInDecrease = useCallback(
     ({ p, isMin, isIncrease }: { p: number; isMin: boolean; isIncrease: boolean }) => {
@@ -505,7 +506,8 @@ function ConcentratedCard() {
             </div>
           )}
           <Chart
-            poolId={currentAmmPool?.idString}
+            poolFocusKey={poolFocusKey}
+            focusSide={focusSide}
             title={<div className="text-base leading-[22px] text-secondary-title mb-3">Set Price Range</div>}
             ref={chartRef}
             chartOptions={chartOptions}
