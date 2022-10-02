@@ -3,7 +3,7 @@ import { Fraction } from 'test-r-sdk'
 import { ChartPoint, ChartRangeInputOption } from './ConcentratedRangeInputChartBody'
 import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
 import Icon from '@/components/Icon'
-import useDevice from '@/hooks/useDevice'
+import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
 import {
   Range,
@@ -73,7 +73,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   ]
   const poolIdRef = useRef<string | undefined>()
   const hasPoints = points.length > 0
-  const { isMobile } = useDevice()
+  const { isMobile } = getPlatformInfo() || {}
   const [displayList, setDisplayList] = useState<HighlightPoint[]>(points)
   const [isMoving, setIsMoving] = useState(false)
   const [position, setPosition] = useState<PositionState>({
@@ -126,6 +126,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   useEffect(() => {
     setDisplayList([])
     setXAxisDomain(DEFAULT_X_AXIS)
+    boundaryRef.current = { min: 0, max: 100 }
     xAxisRef.current = []
     if (poolIdRef.current !== poolId) {
       setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
@@ -390,7 +391,6 @@ export default forwardRef(function Chart(props: Props, ref) {
     ]
     if (min >= max) return
     boundaryRef.current = { min, max }
-    extendDisplay({ min, max })
     setXAxisDomain([min, max])
   }
   const zoomOut = () => {
