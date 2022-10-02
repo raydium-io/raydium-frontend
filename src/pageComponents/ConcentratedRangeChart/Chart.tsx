@@ -314,6 +314,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         }, 200)
         return { ...p, [side]: newVal }
       })
+      if (!points.length) return
       setDisplayList((list) => {
         const filteredList = list.filter((p) => !p.extend)
         if (side === Range.Max) {
