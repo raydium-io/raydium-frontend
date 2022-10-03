@@ -496,7 +496,6 @@ function ConcentratedCard() {
           )}
           <Chart
             poolFocusKey={poolFocusKey}
-            focusSide={focusSide}
             title={<div className="text-base leading-[22px] text-secondary-title mb-3">Set Price Range</div>}
             ref={chartRef}
             chartOptions={chartOptions}
