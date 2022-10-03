@@ -45,7 +45,6 @@ interface Props {
   hideXAxis?: boolean
   height?: number
   title?: ReactNode
-  focusSide?: 'coin1' | 'coin2'
   onPositionChange?: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
   onInDecrease?: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
 }
@@ -58,7 +57,6 @@ export default forwardRef(function Chart(props: Props, ref) {
     priceLabel,
     decimals,
     height,
-    focusSide,
     onPositionChange,
     onInDecrease,
     title,
@@ -86,6 +84,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const [xAxis, setXAxis] = useState<number[]>([])
   const boundaryRef = useRef({ min: 0, max: 100 })
   const smoothCountRef = useRef(0)
+  const zoomRef = useRef(0)
   const moveRef = useRef('')
   const areaRef = useRef<number | undefined>()
   const xAxisRef = useRef<number[]>([])
@@ -121,10 +120,13 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   useEffect(() => {
     setDisplayList([])
-    setXAxisDomain(DEFAULT_X_AXIS)
     boundaryRef.current = { min: 0, max: 100 }
     xAxisRef.current = []
-    if (poolIdRef.current !== poolFocusKey) setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
+    if (poolIdRef.current !== poolFocusKey) {
+      zoomRef.current = 0
+      setXAxisDomain(DEFAULT_X_AXIS)
+      setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
+    }
     if (!points.length) return
 
     const { smoothCount } = getConfig(points[0].x, points.length)
@@ -183,7 +185,6 @@ export default forwardRef(function Chart(props: Props, ref) {
           }))
         : displayList
     )
-    setXAxisDomain(DEFAULT_X_AXIS)
   }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolFocusKey])
 
   useEffect(() => {
@@ -220,18 +221,21 @@ export default forwardRef(function Chart(props: Props, ref) {
     setIsMoving(true)
   }
 
+  let labels: string[] = []
   const formatTicks = (val: number) => {
     if (!xAxisRef.current.length || val < xAxisRef.current[xAxisRef.current.length - 1]) {
       xAxisRef.current = [val]
+      labels = []
     } else {
       xAxisRef.current.push(val)
     }
-    if (val === 0) return '0'
-    if (val < 0.1) return Number(val.toFixed(4)).toString()
-    if (val < 1) return Number(val.toFixed(2)).toString()
-    if (val < 10) return Number(val.toFixed(1)).toString()
 
-    return Number(val.toFixed(1)).toString()
+    let tick = Number(val.toFixed(1)).toString()
+    for (let i = 1; i < 5 && labels.indexOf(tick) !== -1; i++) {
+      tick = Number(val.toFixed(i)).toString()
+    }
+    labels.push(tick)
+    return tick
   }
 
   let timer: number | undefined = undefined
@@ -411,6 +415,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   }
 
   const zoomReset = () => {
+    zoomRef.current = 0
     setDisplayList((list) => list.filter((p) => !p.extend))
     setXAxisDomain(DEFAULT_X_AXIS)
     boundaryRef.current = {
@@ -418,26 +423,38 @@ export default forwardRef(function Chart(props: Props, ref) {
       max: hasPoints ? displayList[displayList.length - 1].x : 100
     }
   }
+  const setupXAxis = ({ min, max }: { min: number; max: number }) => {
+    boundaryRef.current = { min, max }
+    extendDisplay({ min, max })
+    setXAxisDomain([min, max])
+  }
   const zoomIn = () => {
     if (!hasPoints) return
-    const [min, max] = [
-      xAxisRef.current[0] + tickGap * ZOOM_INTERVAL,
-      xAxisRef.current[xAxisRef.current.length - 1] - tickGap * ZOOM_INTERVAL
-    ]
+    const center = (position[Range.Max] + position[Range.Min]) / 2
+    const min = Math.max(
+      center - (ZOOM_INTERVAL - zoomRef.current) * tickGap,
+      xAxis[0] + (zoomRef.current + 1) * tickGap
+    )
+    const max = Math.min(
+      center + (ZOOM_INTERVAL - zoomRef.current) * tickGap,
+      xAxis[xAxis.length - 1] - (zoomRef.current + 1) * tickGap
+    )
     if (min >= max) return
-    boundaryRef.current = { min, max }
-    setXAxisDomain([min, max])
+    zoomRef.current = zoomRef.current + 1
+    setupXAxis({ min, max })
   }
   const zoomOut = () => {
     if (!hasPoints) return
+    zoomRef.current = zoomRef.current - 1
+    const center = (position[Range.Max] + position[Range.Min]) / 2
     const [min, max] = [
-      Math.max(xAxisRef.current[0] - tickGap * ZOOM_INTERVAL, 0),
-      xAxisRef.current[xAxisRef.current.length - 1] + tickGap * ZOOM_INTERVAL
+      Math.min(center - (ZOOM_INTERVAL - zoomRef.current) * tickGap, xAxis[0] + zoomRef.current * tickGap),
+      Math.max(
+        center + (ZOOM_INTERVAL - zoomRef.current) * tickGap,
+        xAxis[xAxis.length - 1] - zoomRef.current * tickGap
+      )
     ]
-    boundaryRef.current.min = min
-    boundaryRef.current.max = max
-    extendDisplay({ min, max })
-    setXAxisDomain([min, max])
+    setupXAxis({ min, max })
   }
 
   useImperativeHandle(

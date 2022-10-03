@@ -1,11 +1,9 @@
-import { Fraction } from 'test-r-sdk'
-import { ChartPoint } from '../Concentrated/type'
 export enum Range {
   Min = 'min',
   Max = 'max'
 }
 export const smoothCount = 20
-export const ZOOM_INTERVAL = 5
+export const ZOOM_INTERVAL = 15
 export const REFERENCE_LINE_COLOR = '#abc4ff'
 export const HIGHLIGHT_COLOR = '#1B365F'
 export const unitColor = '#abc4ff80'
