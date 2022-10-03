@@ -103,7 +103,7 @@ function PoolHeader() {
     ) : null
   ) : (
     <Grid className="grid-cols-3 justify-between items-center pb-8 pt-0">
-      <>
+      <div>
         <div className="text-2xl font-semibold justify-self-start text-white">Concentrated Pools</div>
         {showTvlVolume24h && (
           <Row className="title text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
@@ -115,8 +115,9 @@ function PoolHeader() {
             </div>
           </Row>
         )}
-      </>
+      </div>
       <PoolsTabBlock />
+      <PoolCreateConcentratedPoolEntryBlock />
     </Grid>
   )
 }
@@ -161,6 +162,7 @@ function ToolsButton({ className }: { className?: string }) {
               <Grid className="grid-cols-1 items-center gap-2">
                 <PoolRefreshCircleBlock />
                 <PoolTimeBasisSelectorBox />
+                <PoolCreateConcentratedPoolEntryBlock />
               </Grid>
             </Card>
           </div>
@@ -331,6 +333,25 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
   }, [isMobile, refreshConcentrated])
 }
 
+function PoolCreateConcentratedPoolEntryBlock({ className }: { className?: string }) {
+  return (
+    <Row
+      className={twMerge(
+        `justify-self-end mobile:justify-self-auto gap-1 py-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`,
+        className
+      )}
+      onClick={() => {
+        routeTo('/clmm/create-pool')
+      }}
+    >
+      <Icon heroIconName="plus-circle" className="text-[#abc4ff] mobile:text-[#abc4ff80]" size="sm" />
+      <span className="text-[#abc4ff] mobile:text-[#abc4ff80] font-medium text-sm mobile:text-xs">
+        Create Concentrated Pool
+      </span>
+    </Row>
+  )
+}
+
 function PoolCard() {
   const balances = useWallet((s) => s.balances)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
@@ -377,6 +398,7 @@ function PoolCard() {
   } = useSort(searched, {
     defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString)] }
   })
+
   // re-sort when favourite have loaded
   useOnceEffect(
     ({ runed }) => {

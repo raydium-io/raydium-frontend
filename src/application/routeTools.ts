@@ -76,7 +76,7 @@ export type PageRouteConfigs = {
   '/farms/create': {
     queryProps?: any
   }
-  '/farms/createReview': {
+  '/farms/create-review': {
     queryProps?: any
   }
   '/farms/edit': {
@@ -84,13 +84,25 @@ export type PageRouteConfigs = {
       farmInfo: HydratedFarmInfo
     }
   }
-  '/farms/editReview': {
+  '/farms/edit-review': {
     queryProps?: any
   }
   '/clmm/create': {
     queryProps?: any
   }
   '/clmm/my-position': {
+    queryProps?: any
+  }
+  '/clmm/create-pool': {
+    queryProps?: any
+  }
+  '/clmm/create-pool-review': {
+    queryProps?: any
+  }
+  '/clmm/edit-pool': {
+    queryProps?: any
+  }
+  '/clmm/edit-pool-review': {
     queryProps?: any
   }
 }

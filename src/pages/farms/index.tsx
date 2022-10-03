@@ -138,7 +138,7 @@ function ToolsButton({ className }: { className?: string }) {
                 <FarmRefreshCircleBlock />
                 <FarmTimeBasisSelector />
                 {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
-                <FarmCreateFarmEntryBlock /> {/* TODO temp hide create farm entry in mobile */}
+                <FarmCreateFarmEntryBlock />
               </Grid>
             </Card>
           </div>
