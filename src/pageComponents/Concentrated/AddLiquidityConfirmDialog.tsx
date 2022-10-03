@@ -59,17 +59,17 @@ export default function AddLiquidityConfirmDialog({
       {({ close }) => (
         <Card
           className={twMerge(
-            `p-6 rounded-3xl w-[min(480px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card`
+            `p-6 mobile:py-4 mobile:px-2 rounded-3xl w-[min(480px,95vw)] mx-8 border-1.5 border-[rgba(171,196,255,0.2)]  bg-cyberpunk-card-bg shadow-cyberpunk-card`
           )}
           size="lg"
         >
-          <Row className="justify-between items-center mb-6">
-            <div className="text-xl font-semibold text-white">
+          <Row className="justify-between items-center mb-6 mobile:mb-3">
+            <div className="text-xl font-semibold text-white mobile:text-base">
               Preview Deposit to {coin1?.symbol} / {coin2?.symbol}
             </div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={close} />
           </Row>
-          <div className="mt-4 border-1.5 border-[#abc4ff40]  rounded-xl p-3">
+          <div className="mt-4 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
             <span className="text-sm leading-[18px] text-secondary-title">My Position</span>
             <div className="text-sm flex leading-[18px] flex-col pt-2.5">
               <div className="flex justify-between mb-2.5">
@@ -93,25 +93,25 @@ export default function AddLiquidityConfirmDialog({
             </div>
           </div>
 
-          <div className="mt-4 border-1.5 border-[#abc4ff40]  rounded-xl p-3">
+          <div className="mt-4 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
             <div className="flex justify-between mb-3">
               <span className="text-sm leading-[18px] text-secondary-title">Selected Range</span>
-              <div className="text-sm flex items-center leading-[18px]">
-                <span className="flex items-center text-sm text-[#abc4ff80] mr-2">Current Price</span>
+              <div className="text-sm flex items-end leading-[18px] font-medium mobile:text-xs">
+                <span className="flex text-[#abc4ff80] mr-2">Current Price</span>
                 {currentPrice ? toString(currentPrice, { decimalLength: decimalPlace }) : '0'} {coin2?.symbol} per{' '}
                 {coin1?.symbol}
               </div>
             </div>
 
             <div className="flex gap-3">
-              <div className="border-1.5 justify-center text-center flex-1 border-light-blue-opacity rounded-xl p-3">
+              <div className="border-1.5 justify-center text-center flex-1 border-light-blue-opacity rounded-xl p-3 mobile:p-2">
                 <span className="text-sm leading-[18px] text-secondary-title">Min Price</span>
                 <div className="text-xl my-3">{toString(position?.min, { decimalLength: decimalPlace })}</div>
                 <div className="text-sm text-[#abc4ff80]">
                   {coin2?.symbol} per {coin1?.symbol}
                 </div>
               </div>
-              <div className="border-1.5 justify-center text-center flex-1 border-light-blue-opacity rounded-xl p-3">
+              <div className="border-1.5 justify-center text-center flex-1 border-light-blue-opacity rounded-xl p-3 mobile:p-2">
                 <span className="text-sm leading-[18px] text-secondary-title">Max Price</span>
                 <div className="text-xl my-3">{toString(position?.max, { decimalLength: decimalPlace })}</div>
                 <div className="text-sm text-[#abc4ff80]">
@@ -121,13 +121,13 @@ export default function AddLiquidityConfirmDialog({
             </div>
           </div>
 
-          <div className="mt-4 border-1.5 border-[#abc4ff40]  rounded-xl p-3">
+          <div className="mt-4 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
             <div className="flex justify-between items-center">
               <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
               <span className="text-lg">{totalDeposit}</span>
             </div>
           </div>
-          <Col className="items-center mt-5">
+          <Col className="items-center mt-5 mobile:mt-3">
             <div className="self-stretch">
               <Col>
                 <Button className={`frosted-glass-teal`} onClick={() => confirm(close)}>

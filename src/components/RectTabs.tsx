@@ -3,6 +3,7 @@ import { twMerge } from 'tailwind-merge'
 
 export interface TabItem {
   name: ReactNode
+  className?: string
   value: string | number
 }
 
@@ -34,9 +35,10 @@ export default function RectTabs(props: Props) {
             key={tab.value}
             onClick={isSelected ? undefined : handleChange}
             data-val={tab.value}
-            className={`flex text-xs ${
-              isSelected ? 'bg-active-tab-bg text-active-cyan cursor-default' : 'cursor-pointer'
-            }`}
+            className={twMerge(
+              `flex text-xs ${isSelected ? 'bg-active-tab-bg text-active-cyan cursor-default' : 'cursor-pointer'}`,
+              tab.className
+            )}
           >
             <div className="py-1 px-2.5">{tab.name}</div>
           </div>
