@@ -89,6 +89,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const moveRef = useRef('')
   const areaRef = useRef<number | undefined>()
   const xAxisRef = useRef<number[]>([])
+  const blurRef = useRef<number | undefined>()
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
 
@@ -329,19 +330,30 @@ export default forwardRef(function Chart(props: Props, ref) {
     moveRef.current = 'area'
   }, [])
 
+  const handleBlurInput = useCallback(
+    (side: Range) => {
+      if (blurRef.current === undefined) return
+      updatePosition((p) => ({ ...p, [side]: blurRef.current }))
+      blurRef.current = undefined
+    },
+    [updatePosition]
+  )
+
   const handlePriceChange = useCallback(
     ({ val, side }: { val?: number | string; side: Range }) => {
       const newVal = parseFloat(String(val!))
+      const isMin = side === Range.Min
       setPosition((p) => {
         setTimeout(() => {
-          onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
+          const res = onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
+          blurRef.current = res ? Number(isMin ? res.priceLower.toFixed(9) : res.priceUpper.toFixed(9)) : undefined
         }, 200)
         return { ...p, [side]: newVal }
       })
       if (!points.length) return
       setDisplayList((list) => {
         const filteredList = list.filter((p) => !p.extend)
-        if (side === Range.Max) {
+        if (!isMin) {
           if (newVal > filteredList[filteredList.length - 1].x) {
             for (let i = 1; ; i++) {
               const newX = filteredList[filteredList.length - 1].x + tickGap * i
@@ -559,6 +571,7 @@ export default forwardRef(function Chart(props: Props, ref) {
           decimals={decimals}
           minValue={position.min}
           maxValue={position.max}
+          onBlur={handleBlurInput}
           onPriceChange={handlePriceChange}
           onInDecrease={handleInDecrease}
         />

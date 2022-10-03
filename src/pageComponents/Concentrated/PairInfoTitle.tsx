@@ -43,7 +43,7 @@ export function PairInfoTitle(props: Props) {
   )
 
   return (
-    <div className="flex justify-between items-center mb-[27px] mobile:flex-col mobile:mb-3">
+    <div className="flex justify-between items-center mb-[27px] mobile:flex-col mobile:items-baseline mobile:mb-3">
       <div className="flex items-center mobile:mb-2">
         <CoinAvatarPair size="lg" token1={coin1} token2={coin2} />
         <span className="ml-2 text-xl font-medium mobile:text-lg text-white">

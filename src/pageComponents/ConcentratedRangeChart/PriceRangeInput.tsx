@@ -5,11 +5,12 @@ interface Props {
   decimals: number
   minValue?: number | string
   maxValue?: number | string
+  onBlur?: (side: Range) => void
   onPriceChange: (props: { val: number | string | undefined; side: Range }) => void
   onInDecrease: (props: { val?: number | string; side: Range; isIncrease: boolean }) => void
 }
 
-export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceChange, onInDecrease }: Props) {
+export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceChange, onInDecrease, onBlur }: Props) {
   return (
     <div className="flex gap-2.5">
       <InputBox
@@ -20,6 +21,7 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         decimalCount={decimals}
         value={minValue}
         maxN={maxValue ? Number(maxValue) : undefined}
+        onBlur={() => onBlur?.(Range.Min)}
         increaseFn={() => {
           onInDecrease({ val: minValue, side: Range.Min, isIncrease: true })
           return undefined
@@ -42,6 +44,7 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         decimalCount={decimals}
         value={maxValue}
         minN={minValue ? Number(minValue) : undefined}
+        onBlur={() => onBlur?.(Range.Max)}
         increaseFn={() => {
           onInDecrease({ val: maxValue, side: Range.Max, isIncrease: true })
           return undefined

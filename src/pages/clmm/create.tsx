@@ -1,5 +1,5 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
+import useConcentrated from '@/application/concentrated/useConcentrated'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
@@ -11,7 +11,6 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
-import CoinAvatar from '@/components/CoinAvatar'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import PageLayout from '@/components/PageLayout'
@@ -35,20 +34,17 @@ import InputLocked from '@/pageComponents/Concentrated/InputLocked'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
-import { Fraction } from 'test-r-sdk'
 import { RemainSOLAlert, canTokenPairBeSelected, toXYChartFormat, PairInfoTitle } from '@/pageComponents/Concentrated'
 import Decimal from 'decimal.js'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import { routeBack, routeTo } from '@/application/routeTools'
 import Row from '@/components/Row'
-import Grid from '@/components/Grid'
 import { FadeIn } from '@/components/FadeIn'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import { div, sub } from '@/functions/numberish/operations'
 import { twMerge } from 'tailwind-merge'
 import Icon from '@/components/Icon'
 import { inClient } from '@/functions/judgers/isSSR'
-import { BN } from 'bn.js'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
 import usePrevious from '@/hooks/usePrevious'
 
@@ -131,12 +127,10 @@ function ConcentratedEffects() {
 
 function ConcentratedCard() {
   const chartPoints = useConcentrated((s) => s.chartPoints)
-  const timeBasis = useConcentrated((s) => s.timeBasis)
   const connected = useWallet((s) => s.connected)
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
-  const getToken = useToken((s) => s.getToken)
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
@@ -149,13 +143,14 @@ function ConcentratedCard() {
     currentAmmPool,
     hydratedAmmPools,
     priceUpper,
-    priceLower
+    priceLower,
+    priceLowerTick,
+    priceUpperTick
   } = useConcentrated()
   const poolFocusKey = `${currentAmmPool?.idString}-${focusSide}`
   const prevPoolId = usePrevious<string | undefined>(poolFocusKey)
   const chartRef = useRef<{ getPosition: () => { min: number; max: number } }>()
   const tickRef = useRef<{ lower?: number; upper?: number }>({ lower: undefined, upper: undefined })
-  const hasReward = !!currentAmmPool && currentAmmPool.state.rewardInfos.length > 0
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const isCoin1Base = isMintEqual(currentAmmPool?.state.mintA.mint, coin1)
   const isFocus1 = focusSide === 'coin1'
@@ -289,18 +284,12 @@ function ConcentratedCard() {
         ammPool: currentAmmPool,
         reverse: !isFocus1
       })!
+      const isMin = side === Range.Min
+      const tickKey = isMin ? 'priceLowerTick' : 'priceUpperTick'
       if (userInput && side) {
-        const isMin = side === Range.Min
-        const res = getPriceTick({
-          p: pos[side] * 1.002,
-          coin1,
-          coin2,
-          reverse: !isFocus1,
-          ammPool: currentAmmPool
-        })
-        tickRef.current[isMin ? 'lower' : 'upper'] = res.tick
-        isMin && useConcentrated.setState({ priceLowerTick: res.tick, priceLower: pos[side] })
-        !isMin && useConcentrated.setState({ priceUpperTick: res.tick, priceUpper: pos[side] })
+        tickRef.current[isMin ? 'lower' : 'upper'] = res[tickKey]
+        isMin && useConcentrated.setState({ priceLowerTick: res[tickKey], priceLower: pos[side] })
+        !isMin && useConcentrated.setState({ priceUpperTick: res[tickKey], priceUpper: pos[side] })
       } else {
         tickRef.current = { lower: res.priceLowerTick, upper: res.priceUpperTick }
         useConcentrated.setState(res)
@@ -519,72 +508,6 @@ function ConcentratedCard() {
             showZoom
             height={200}
           />
-          {/* <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
-            <div className="flex justify-between items-center">
-              <span className="text-sm leading-[18px] text-secondary-title">Estimated APR</span>
-              <span className="text-2xl leading-[30px]">
-                ≈
-                {toPercentString(
-                  currentAmmPool?.[
-                    timeBasis === TimeBasis.DAY
-                      ? 'totalApr24h'
-                      : timeBasis === TimeBasis.WEEK
-                      ? 'totalApr7d'
-                      : 'totalApr30d'
-                  ]
-                )}
-              </span>
-            </div>
-            <Grid className="grid-cols-2 mt-[18px] border border-secondary-title border-opacity-50 rounded-xl p-2.5">
-              <div>
-                <div className="text-sm leading-[18px] text-secondary-title my-1.5">Rewards</div>
-                <div className="text-sm">
-                  {hasReward ? (
-                    currentAmmPool?.state.rewardInfos.map((reward, idx) => {
-                      const rewardToken = getToken(reward.tokenMint)
-                      return (
-                        <div key={reward.tokenMint.toBase58()} className="flex items-center mb-2">
-                          <CoinAvatar className="inline-block" size="sm" token={rewardToken} />
-                          <span className="text-xs text-[#abc4ff80] ml-1 mr-4">{rewardToken?.symbol}</span>
-                          <span className="text-sm">
-                            {toPercentString(
-                              currentAmmPool?.[
-                                timeBasis === TimeBasis.DAY
-                                  ? 'rewardApr24h'
-                                  : timeBasis === TimeBasis.WEEK
-                                  ? 'rewardApr7d'
-                                  : 'rewardApr30d'
-                              ][idx]
-                            )}
-                          </span>
-                        </div>
-                      )
-                    })
-                  ) : (
-                    <div className="text-[#abc4ff80]">(No Reward)</div>
-                  )}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm leading-[18px] text-secondary-title my-1.5">Fees</div>
-                <div className="flex items-center mb-2">
-                  <CoinAvatar className="inline-block" size="sm" token={coin1} />
-                  <span className="text-xs text-[#abc4ff80] ml-1 mr-4">Trading Fees</span>
-                  <span className="text-sm">
-                    {toPercentString(
-                      currentAmmPool?.[
-                        timeBasis === TimeBasis.DAY
-                          ? 'feeApr24h'
-                          : timeBasis === TimeBasis.WEEK
-                          ? 'feeApr7d'
-                          : 'feeApr30d'
-                      ]
-                    )}
-                  </span>
-                </div>
-              </div>
-            </Grid>
-          </div> */}
         </div>
       </div>
       {/** coin selector panel */}
