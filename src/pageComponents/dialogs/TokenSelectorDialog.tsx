@@ -6,7 +6,10 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
 import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
 import {
-  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL
+  isQuantumSOL,
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  QuantumSOLVersionSOL
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { SupportedTokenListSettingName } from '@/application/token/useToken'
@@ -34,8 +37,8 @@ import useToggle from '@/hooks/useToggle'
 
 export type TokenSelectorProps = {
   open: boolean
-  close: () => void
-  onSelectCoin?: (token: SplToken) => unknown
+  onClose?: () => void
+  onSelectToken?: (token: SplToken) => unknown
   disableTokens?: (SplToken | PublicKeyish)[]
   /**
    * if it select WSOL it can also select SOL, if it select SOL, can also select WSOL\
@@ -51,17 +54,17 @@ export default function TokenSelectorDialog(props: TokenSelectorProps) {
       transitionSpeed="fast"
       placement="from-top"
       open={props.open}
-      onClose={props.close}
+      onClose={props.onClose}
     >
-      {({ close: closePanel }) => <TokenSelectorDialogContent {...props} close={closePanel} />}
+      {({ close: closePanel }) => <TokenSelectorDialogContent {...props} onClose={closePanel} />}
     </ResponsiveDialogDrawer>
   )
 }
 
 function TokenSelectorDialogContent({
   open,
-  close: closePanel,
-  onSelectCoin,
+  onClose: closePanel,
+  onSelectToken,
   disableTokens,
   canSelectQuantumSOL
 }: TokenSelectorProps) {
@@ -178,7 +181,7 @@ function TokenSelectorDialogContent({
               <TokenSelectorDialogTokenItem
                 onClick={() => {
                   closeAndClean()
-                  onSelectCoin?.(token)
+                  onSelectToken?.(token)
                 }}
                 token={token}
               />
@@ -187,7 +190,7 @@ function TokenSelectorDialogContent({
         )}
       />
     ),
-    [searchedTokens, selectedTokenIdx, onSelectCoin, closeAndClean, setSelectedTokenIdx]
+    [searchedTokens, selectedTokenIdx, onSelectToken, closeAndClean, setSelectedTokenIdx]
   )
   const connected = useWallet((s) => s.connected)
 
@@ -221,7 +224,7 @@ function TokenSelectorDialogContent({
           } else if (e.key === 'ArrowDown') {
             setSelectedTokenIdx((s) => Math.min(s + 1, searchedTokens.length - 1))
           } else if (e.key === 'Enter') {
-            onSelectCoin?.(searchedTokens[selectedTokenIdx])
+            onSelectToken?.(searchedTokens[selectedTokenIdx])
             setTimeout(() => {
               closeAndClean()
             }, 200) // delay: give user some time to reflect the change
@@ -293,7 +296,7 @@ function TokenSelectorDialogContent({
                     onClick={() => {
                       if (token && isTokenDisabled(token)) return
                       closeAndClean()
-                      if (token && onSelectCoin) onSelectCoin(token)
+                      if (token && onSelectToken) onSelectToken(token)
                     }}
                   >
                     <CoinAvatar size={isMobile ? 'xs' : 'sm'} token={token} />

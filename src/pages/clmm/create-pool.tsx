@@ -8,7 +8,7 @@ import useConnection from '@/application/connection/useConnection'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
 import { MAX_DURATION, MIN_DURATION } from '@/application/farms/handleFarmInfo'
-import { routeBack, routeReplace, routeTo } from '@/application/routeTools'
+import { routeBack, routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -25,12 +25,12 @@ import { isDateAfter } from '@/functions/date/judges'
 import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
-import { toString } from '@/functions/numberish/toString'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
-
 import { useChainDate } from '../../hooks/useChainDate'
 import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
+import { PoolSelectCard } from '@/pageComponents/createConcentratedPool/PoolSelectCard'
+import { PoolRewardsInput } from '@/pageComponents/createConcentratedPool/PoolRewardsInput'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -54,24 +54,14 @@ function NavButtons({ className }: { className?: string }) {
         onClick={() => {
           if (window.history.length === 1) {
             // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
-            routeTo('/farms')
+            routeTo('/clmm/pools')
           } else {
             routeBack()
           }
         }}
       >
-        Back to Farms
+        Back to Concentrated pools
       </Button>
-
-      {/* <Link
-        className={`rounded-none font-medium text-sm text-[#ABC4FF] opacity-50 flex gap-1 items-center ${
-          idoInfo?.projectDetailLink ? 'opacity-50' : 'opacity-0'
-        } transition`}
-        href={idoInfo?.projectDetailLink}
-      >
-        <Icon size="sm" inline heroIconName="information-circle" />
-        Read full details
-      </Link> */}
     </Row>
   )
 }
@@ -202,7 +192,7 @@ export default function CreateFarmPage() {
 
       <div className={`pb-10 self-center transition-all duration-500 w-[min(840px,70vw)] mobile:w-[90vw] z-20`}>
         {!isMoblie && (
-          <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Farm</div>
+          <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Pool</div>
         )}
 
         <WarningBoard className="pb-16 mobile:pb-10 w-full" />
@@ -212,7 +202,7 @@ export default function CreateFarmPage() {
             stepNumber={1}
             title={
               <Row className="justify-between items-center">
-                <div className="font-medium text-lg mobile:text-base text-white leading-8">Select Pool</div>
+                <div className="font-medium text-lg mobile:text-base text-white leading-8">Create Pool</div>
                 <Row
                   className={`justify-self-end  mobile:justify-self-auto gap-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`}
                   onClick={() => {
@@ -226,43 +216,32 @@ export default function CreateFarmPage() {
             }
             haveNavline
           >
-            <PoolIdInputBlock componentRef={PoolIdInputBlockRef} onInputValidate={setPoolIdValid} />
+            <PoolSelectCard />
           </FormStep>
 
           <FormStep
             stepNumber={2}
+            title={<div className="font-medium text-lg mobile:text-base text-white leading-8 mb-1">Add Liquidity</div>}
+            haveNavline
+          >
+            <div className="bg-[#abc4ff80] rounded-3xl h-32">😂🚧🚧</div>
+          </FormStep>
+
+          <FormStep
+            stepNumber={3}
             title={
               <>
-                <div className="font-medium text-lg mobile:text-base text-white leading-8 mb-1">Farming Reward</div>
-                <Row className="text-sm mobile:text-xs">
-                  <div className="text-[#abc4ff] mr-2">Cluster time: </div>
-                  <TimeClock className="text-[#abc4ff80]" offset={chainTimeOffset} />
-                </Row>
-                <div className="font-medium text-sm mobile:text-xs leading-snug text-[#abc4ff80]">
-                  This is Solana's current on-chain time, there could be a delay depending on Solana's network status
+                <div className="font-medium text-lg mobile:text-base text-white leading-8 mb-1">Rewards</div>
+                <div className="font-medium text-sm mobile:text-xs text-justify leading-snug text-[#abc4ff80] mb-8">
+                  <span className="text-[#DA2EEF]">Please note: </span>Rewards allocated to farms are final and unused
+                  rewards cannot be claimed. However, you can add additional rewards to the farm. 300 RAY is collected
+                  as an Ecosystem farm creation fee, which will be deposited into the Raydium treasury. Token rewards
+                  should have a minimum duration period of at least 7 days and last no more than 90 days.
                 </div>
               </>
             }
           >
-            {cachedInputs}
-            <Button
-              type="text"
-              className="w-max"
-              disabled={rewards.length >= 5}
-              onClick={() => {
-                useCreateFarms.setState({
-                  rewards: produce(rewards, (draft) => {
-                    draft.push(createNewUIRewardInfo())
-                  })
-                })
-              }}
-            >
-              <Row className="items-center">
-                <Icon className="text-[#abc4ff]" heroIconName="plus-circle" size="sm" />
-                <div className="ml-1.5 text-[#abc4ff] font-medium mobile:text-sm">Add another reward token</div>
-                <div className="ml-1.5 text-[#abc4ff80] font-medium mobile:text-sm">({5 - rewards.length} more)</div>
-              </Row>
-            </Button>
+            <PoolRewardsInput />
           </FormStep>
         </div>
 
