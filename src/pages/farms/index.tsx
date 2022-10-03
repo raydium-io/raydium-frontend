@@ -138,7 +138,7 @@ function ToolsButton({ className }: { className?: string }) {
                 <FarmRefreshCircleBlock />
                 <FarmTimeBasisSelector />
                 {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
-                <FarmCreateFarmEntryBlock /> {/* TODO temp hide create farm entry in mobile */}
+                <FarmCreateFarmEntryBlock />
               </Grid>
             </Card>
           </div>
@@ -485,7 +485,7 @@ function FarmCard() {
   const innerFarmDatabaseWidgets = isMobile ? (
     <div>
       <Row className="mb-4">
-        <Grid className="grow gap-3 grid-cols-auto-fit">
+        <Grid className="grow gap-2 grid-cols-auto-fit">
           <FarmSearchBlock />
           <FarmTableSorterBlock
             onChange={(newSortKey) => {

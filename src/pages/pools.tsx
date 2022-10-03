@@ -544,7 +544,7 @@ function PoolCard() {
   const innerPoolDatabaseWidgets = isMobile ? (
     <div>
       <Row className="mb-4">
-        <Grid className="grow gap-3 grid-cols-auto-fit">
+        <Grid className="grow gap-2 grid-cols-auto-fit">
           <PoolSearchBlock />
           <PoolTableSorterBox
             onChange={(newSortKey) => {

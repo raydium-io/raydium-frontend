@@ -7,7 +7,9 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useNotification from '@/application/notification/useNotification'
@@ -101,7 +103,7 @@ function PoolHeader() {
     ) : null
   ) : (
     <Grid className="grid-cols-3 justify-between items-center pb-8 pt-0">
-      <>
+      <div>
         <div className="text-2xl font-semibold justify-self-start text-white">Concentrated Pools</div>
         {showTvlVolume24h && (
           <Row className="title text-base mobile:text-xs justify-self-start self-end text-[#abc4ff80] gap-4">
@@ -113,8 +115,9 @@ function PoolHeader() {
             </div>
           </Row>
         )}
-      </>
+      </div>
       <PoolsTabBlock />
+      <PoolCreateConcentratedPoolEntryBlock />
     </Grid>
   )
 }
@@ -159,6 +162,7 @@ function ToolsButton({ className }: { className?: string }) {
               <Grid className="grid-cols-1 items-center gap-2">
                 <PoolRefreshCircleBlock />
                 <PoolTimeBasisSelectorBox />
+                <PoolCreateConcentratedPoolEntryBlock />
               </Grid>
             </Card>
           </div>
@@ -204,11 +208,11 @@ function OpenNewPosition({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Button
-      className={twMerge('frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs', className)}
+      className={twMerge('frosted-glass-teal mobile:text-2xs', className)}
       onClick={() => {
         routeTo('/clmm/create')
       }}
-      size="sm"
+      size={isMobile ? 'xs' : 'sm'}
     >
       Create Position
     </Button>
@@ -329,6 +333,25 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
   }, [isMobile, refreshConcentrated])
 }
 
+function PoolCreateConcentratedPoolEntryBlock({ className }: { className?: string }) {
+  return (
+    <Row
+      className={twMerge(
+        `justify-self-end mobile:justify-self-auto gap-1 py-1 flex-wrap items-center opacity-100 pointer-events-auto clickable transition`,
+        className
+      )}
+      onClick={() => {
+        routeTo('/clmm/create-pool')
+      }}
+    >
+      <Icon heroIconName="plus-circle" className="text-[#abc4ff] mobile:text-[#abc4ff80]" size="sm" />
+      <span className="text-[#abc4ff] mobile:text-[#abc4ff80] font-medium text-sm mobile:text-xs">
+        Create Concentrated Pool
+      </span>
+    </Row>
+  )
+}
+
 function PoolCard() {
   const balances = useWallet((s) => s.balances)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
@@ -375,6 +398,7 @@ function PoolCard() {
   } = useSort(searched, {
     defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString)] }
   })
+
   // re-sort when favourite have loaded
   useOnceEffect(
     ({ runed }) => {
@@ -555,7 +579,7 @@ function PoolCard() {
   const innerPoolDatabaseWidgets = isMobile ? (
     <div>
       <Row className="mb-4">
-        <Grid className="grow gap-3 grid-cols-auto-fit">
+        <Grid className="grow gap-2 grid-cols-auto-fit">
           <PoolSearchBlock />
           <PoolTableSorterBox
             onChange={(newSortKey) => {
@@ -849,10 +873,11 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
 
   const openNewPosition = useMemo(() => {
     return (
-      <AutoBox is={'Col'} className={`py-5 px-8 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
-        <div style={{ marginBottom: 8, color: '#ABC4FF', fontWeight: 400, fontSize: 12, fontStyle: 'normal' }}>
-          Want to open a new position?
-        </div>
+      <AutoBox
+        is={'Col'}
+        className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}
+      >
+        <div className="mb-2 text-xs">Want to open a new position?</div>
         <Button
           className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
           onClick={() => {
@@ -976,7 +1001,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
 
     return (
       <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
-        <Row className={twMerge('items-center rounded text-xs py-0.5 px-1 ml-2', bgColor, textColor)}>
+        <Row className={twMerge('items-center rounded text-xs mobile:text-2xs py-0.5 px-1 ml-2', bgColor, textColor)}>
           <Icon size="xs" iconSrc={iconSrc} />
           <div className="font-normal" style={{ marginLeft: 4 }}>
             {textValue}
@@ -1051,7 +1076,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
 
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
-      <Row className={`w-full pt-5 px-8 mobile:py-3 mobile:px-4 mobile:m-0`}>
+      <Row className={`w-full pt-5 px-8 mobile:py-3 mobile:px-2 mobile:m-0`}>
         <div
           className={`flex w-full pb-5 ${isMobile ? 'flex-col' : 'flex-row'}`}
           style={{ borderBottom: !noBorderBottom ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
@@ -1062,22 +1087,24 @@ function PoolCardDatabaseBodyCollapsePositionContent({
           >
             <AutoBox
               is={isMobile ? 'div' : 'Row'}
-              className="flex-auto w-2/3 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg py-6 px-6  items-center"
+              className="flex-auto w-2/3 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center"
             >
               <Col
-                className={isMobile ? 'mb-2 pb-2' : ''}
+                className="mobile:mb-2 mobile:pb-2"
                 style={{ borderBottom: isMobile ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
               >
-                <div className="flex justify-start mobile:justify-between text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">
+                <div className="flex justify-start mobile:justify-between text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
                   Price Range {p ? rangeTag : null}
                 </div>
-                <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPosition ?? '--'}</div>
-                <div className=" text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2">
+                <div className="text-white font-medium text-base mobile:text-sm mt-3 mobile:mt-1">
+                  {myPosition ?? '--'}
+                </div>
+                <div className=" text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2 mobile:mt-1">
                   {info.quote?.symbol} per {info.base?.symbol}
                 </div>
               </Col>
               <Col>
-                <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
+                <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs gap-1">
                   My Position
                   {p ? (
                     <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
@@ -1095,8 +1122,10 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     </Tooltip>
                   ) : null}
                 </div>
-                <div className="text-white font-medium text-base mobile:text-xs mt-3">{myPositionVolume ?? '--'}</div>
-                <Row className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2">
+                <div className="text-white font-medium text-base mobile:text-sm mt-3 mobile:mt-1">
+                  {myPositionVolume ?? '--'}
+                </div>
+                <Row className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2 mobile:mt-1">
                   {p ? (
                     <>
                       {' '}
@@ -1130,7 +1159,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 className={isMobile ? 'flex justify-center items-center pt-3' : ''}
               >
                 <Button
-                  className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+                  className="frosted-glass-teal"
+                  size={isMobile ? 'xs' : undefined}
                   disabled={!p}
                   validators={[
                     {
@@ -1170,7 +1200,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
             </AutoBox>
             <AutoBox
               is={isMobile ? 'div' : 'Row'}
-              className="flex-auto w-1/3 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg py-6 px-6  items-center"
+              className="flex-auto w-1/3 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center"
             >
               <Col>
                 <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
@@ -1201,12 +1231,12 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     </Tooltip>
                   ) : null}
                 </div>
-                <div className="text-white font-medium text-base mobile:text-xs mt-3">
+                <div className="text-white font-medium text-base mobile:text-sm mt-3 mobile:mt-1">
                   ≈{toUsdVolume(unclaimedYield)}
                 </div>
                 {/* <AutoBox
                   is="Row"
-                  className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2"
+                  className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2 mobile:mt-1"
                 >
                   <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
                   {p ? (
@@ -1252,7 +1282,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 className={isMobile ? 'flex justify-center items-center pt-3' : ''}
               >
                 <Button
-                  className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+                  className="frosted-glass-teal"
+                  size={isMobile ? 'xs' : undefined}
                   isLoading={isApprovePanelShown}
                   validators={[
                     {
@@ -1286,7 +1317,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
             }   gap-3 items-center self-center justify-center mobile:w-full`}
           >
             {isMobile ? (
-              <Row className="gap-5">
+              <Row className="gap-5 mobile:gap-4">
                 <Icon
                   size="sm"
                   iconSrc="/icons/msic-swap-h.svg"
