@@ -15,7 +15,7 @@ import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isPubKeyish } from '@/functions/judgers/dateType'
-import { isInLocalhost } from '@/functions/judgers/isSSR'
+import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { Numberish } from '@/types/constants'
 import { Connection, PublicKey } from '@solana/web3.js'
 import {
@@ -148,7 +148,7 @@ function getSDKCacheInfos({
     const tickCache = AmmV3.fetchMultiplePoolTickArrays({
       connection,
       poolKeys: routes.needTickArray,
-      batchRequest: !isInLocalhost
+      batchRequest: !isInLocalhost && !isInBonsaiTest
     }).catch((err) => {
       sdkCaches.delete(key)
       return undefined
@@ -157,7 +157,7 @@ function getSDKCacheInfos({
     const poolInfosCache = TradeV2.fetchMultipleInfo({
       connection,
       pools: routes.needSimulate,
-      batchRequest: !isInLocalhost
+      batchRequest: !isInLocalhost && !isInBonsaiTest
     }).catch((err) => {
       sdkCaches.delete(key)
       return undefined
