@@ -3,7 +3,7 @@ import TokenSelectorDialog, { TokenSelectorProps } from '../pageComponents/dialo
 import useToggle from '@/hooks/useToggle'
 
 export type CoinInputBoxWithSelectorProps = Omit<CoinInputBoxProps, 'haveCoinIcon' | 'showTokenSelectIcon'> &
-  Pick<TokenSelectorProps, 'onSelectCoin' | 'disableTokens' | 'canSelectQuantumSOL'> & {
+  Pick<TokenSelectorProps, 'onSelectToken' | 'disableTokens' | 'canSelectQuantumSOL'> & {
     tokenSelectorProps?: Partial<Omit<TokenSelectorProps, 'open' | 'close'>>
   }
 
@@ -29,11 +29,11 @@ export default function CoinInputBoxWithTokenSelector({ tokenSelectorProps, ...p
         disableTokens={props.disableTokens}
         canSelectQuantumSOL={props.canSelectQuantumSOL}
         open={isCoinSelectorOn}
-        onSelectCoin={(token) => {
+        onSelectToken={(token) => {
           turnOffCoinSelector()
-          props.onSelectCoin?.(token)
+          props.onSelectToken?.(token)
         }}
-        close={turnOffCoinSelector}
+        onClose={turnOffCoinSelector}
       />
     </>
   )

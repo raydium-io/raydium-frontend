@@ -438,8 +438,8 @@ function LiquidityCard() {
       {/** coin selector panel */}
       <TokenSelectorDialog
         open={isCoinSelectorOn}
-        close={turnOffCoinSelector}
-        onSelectCoin={(token) => {
+        onClose={turnOffCoinSelector}
+        onSelectToken={(token) => {
           if (targetCoinNo === '1') {
             if (!areSameToken(coin1, token)) {
               useLiquidity.setState({ coin1: token, isCalculatingBczSelection: true })

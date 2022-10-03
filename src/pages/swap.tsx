@@ -457,7 +457,7 @@ function SwapCard() {
       {/* <SelectorPanel open={isCoinSelectorOn} onClose={toggleCoinSelector} /> */}
       <TokenSelectorDialog
         open={isCoinSelectorOn}
-        onSelectCoin={(token) => {
+        onSelectToken={(token) => {
           if (targetCoinNo === '1') {
             if (!areSameToken(coin1, token)) {
               useSwap.setState({
@@ -481,7 +481,7 @@ function SwapCard() {
           }
           turnOffCoinSelector()
         }}
-        close={turnOffCoinSelector}
+        onClose={turnOffCoinSelector}
       />
     </CyberpunkStyleCard>
   )

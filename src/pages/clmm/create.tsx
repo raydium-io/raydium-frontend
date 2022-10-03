@@ -513,8 +513,8 @@ function ConcentratedCard() {
       {/** coin selector panel */}
       <TokenSelectorDialog
         open={isCoinSelectorOn}
-        close={turnOffCoinSelector}
-        onSelectCoin={(token) => {
+        onClose={turnOffCoinSelector}
+        onSelectToken={(token) => {
           if (targetCoinNo === '1') {
             useConcentrated.setState({ coin1: token })
             // delete other
