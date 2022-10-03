@@ -44,8 +44,12 @@ export function AddConcentratedLiquidityDialog() {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const coinBase = currentAmmPool?.base
   const coinQuote = currentAmmPool?.quote
+  const currentPrice = currentAmmPool?.currentPrice
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const originalCoin1 = useConcentrated((s) => s.coin1)
+  const originalCoin2 = useConcentrated((s) => s.coin2)
+  const decimals =
+    originalCoin1 || originalCoin2 ? Math.max(originalCoin1?.decimals ?? 0, originalCoin2?.decimals ?? 0) : 6
   const tokenPrices = useToken((s) => s.tokenPrices)
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)
   const originalCoin2Amount = useConcentrated((s) => s.coin2Amount)
@@ -124,7 +128,8 @@ export function AddConcentratedLiquidityDialog() {
               <Row>
                 <div className="text-[#abc4ff80] text-xs mr-2">current Price</div>
                 <div className="text-white font-medium text-xs">
-                  {0.01} {coinQuote?.symbol ?? '--'} per {coinBase?.symbol ?? '--'}
+                  {currentPrice ? toString(currentPrice, { decimalLength: decimals }) : '0'} {coinQuote?.symbol ?? '--'}{' '}
+                  per {coinBase?.symbol ?? '--'}
                 </div>
               </Row>
             </Row>
