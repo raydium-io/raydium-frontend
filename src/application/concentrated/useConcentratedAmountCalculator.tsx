@@ -97,6 +97,14 @@ function calcConcentratedPairsAmount(slippageTolerance: Numberish): void {
     add: !isRemoveDialogOpen // SDK flag for math round direction
   })
 
+  console.log(
+    999999,
+    Math.max(priceUpperTick, priceLowerTick),
+    Math.min(priceLowerTick, priceUpperTick),
+    amountA.toString(),
+    amountB.toString()
+  )
+
   if (isFocus1) {
     useConcentrated.setState({
       coin2Amount: hasInput ? toTokenAmount(coin2, isCoin1Base ? amountB : amountA).toFixed() : undefined

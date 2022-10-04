@@ -28,6 +28,8 @@ export default function txCreateConcentrated({
     assert(coin2Amount, 'not set coin2Amount')
     assert(liquidity, 'not set liquidity')
 
+    console.log(777777, coin1Amount, coin2Amount, liquidity.toString())
+
     const { transaction, signers, address } = await AmmV3.makeOpenPositionTransaction({
       connection: connection,
       liquidity,

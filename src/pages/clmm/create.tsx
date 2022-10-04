@@ -318,6 +318,8 @@ function ConcentratedCard() {
     [points, boundaryData]
   )
 
+  console.log(123123, priceLower?.toFixed(9), priceUpper?.toFixed(9), priceLowerTick, priceUpperTick)
+
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
