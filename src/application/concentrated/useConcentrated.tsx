@@ -1,5 +1,5 @@
 import BN from 'bn.js'
-import { ApiAmmV3Point } from 'test-r-sdk'
+import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
 import create from 'zustand'
 
 import useLocalStorageItem from '@/hooks/useLocalStorage'
@@ -7,7 +7,13 @@ import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
 
-import { APIConcentratedInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
+import {
+  APIConcentratedInfo,
+  HydratedConcentratedInfo,
+  SDKParsedConcentratedInfo,
+  UICLMMRewardInfo,
+  UserPositionAccount
+} from './type'
 
 export enum PoolsConcentratedTabs {
   ALL = 'All',
@@ -74,6 +80,11 @@ export type ConcentratedStore = {
   tvl?: string | number // /api.raydium.io/v2/main/info
   volume24h?: string | number // /api.raydium.io/v2/main/info
   timeBasis: TimeBasis
+
+  availableAmmConfigFeeOptions?: ApiAmmV3ConfigInfo[] // create pool
+  userSelectedAmmConfigFeeOption?: ApiAmmV3ConfigInfo // create pool
+  userSettedCurrentPrice?: Numberish // create pool
+  rewards: UICLMMRewardInfo[] // TEMP
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
@@ -104,7 +115,9 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   currentTab: PoolsConcentratedTabs.ALL,
   currentLayout: PoolsConcentratedLayout.LIST,
   searchText: '',
-  timeBasis: TimeBasis.DAY
+  timeBasis: TimeBasis.DAY,
+
+  rewards: []
 }))
 
 export default useConcentrated
