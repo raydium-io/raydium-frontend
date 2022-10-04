@@ -220,4 +220,13 @@ export const extensionMap = {
     [Browser.IOS]: '',
     [Browser.ANDROID]: ''
   },
+  Brave: {
+    [Browser.FIREFOX]: '',
+    [Browser.EDGE_CHROMIUM]: '',
+    [Browser.CHROME]: '',
+    [Browser.SAFARI]: '',
+    [Browser.OTHER]: '',
+    [Browser.IOS]: '',
+    [Browser.ANDROID]: ''
+  }
 }
