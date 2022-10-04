@@ -9,6 +9,7 @@ import { SplToken } from '../token/type'
 
 import {
   APIConcentratedInfo,
+  HydratedAmmV3ConfigInfo,
   HydratedConcentratedInfo,
   SDKParsedConcentratedInfo,
   UICLMMRewardInfo,
@@ -81,8 +82,8 @@ export type ConcentratedStore = {
   volume24h?: string | number // /api.raydium.io/v2/main/info
   timeBasis: TimeBasis
 
-  availableAmmConfigFeeOptions?: ApiAmmV3ConfigInfo[] // create pool
-  userSelectedAmmConfigFeeOption?: ApiAmmV3ConfigInfo // create pool
+  availableAmmConfigFeeOptions?: HydratedAmmV3ConfigInfo[] // create pool
+  userSelectedAmmConfigFeeOption?: HydratedAmmV3ConfigInfo // create pool
   userSettedCurrentPrice?: Numberish // create pool
   rewards: UICLMMRewardInfo[] // TEMP
 }

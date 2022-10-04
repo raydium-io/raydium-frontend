@@ -148,3 +148,11 @@ export interface UserPositionAccount {
   // tokenFeesOwedA: BN__default; // currently useless
   // tokenFeesOwedB: BN__default; // currently useless
 }
+
+export interface HydratedAmmV3ConfigInfo {
+  id: string
+  index: number
+  protocolFeeRate: Percent
+  tradeFeeRate: Percent
+  tickSpacing: number
+}

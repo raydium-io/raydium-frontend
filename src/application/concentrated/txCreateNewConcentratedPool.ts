@@ -1,22 +1,14 @@
-import { AmmV3 } from 'test-r-sdk'
-
 import assert from '@/functions/assert'
-import toPubString, { toPub } from '@/functions/format/toMintString'
-import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
-import { toString } from '@/functions/numberish/toString'
-
-import useAppSettings from '../appSettings/useAppSettings'
-import { loadTransaction } from '../txTools/createTransaction'
-import handleMultiTx from '../txTools/handleMultiTx'
-import useWallet from '../wallet/useWallet'
-
-import { HydratedConcentratedInfo, UserPositionAccount } from './type'
-import useConcentrated from './useConcentrated'
-import { ammV3ProgramId } from '../token/wellknownProgram.config'
-import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
-import { SOLMint } from '../token/wellknownToken.config'
-import { fractionToDecimal } from '../txTools/decimal2Fraction'
+import { toPub } from '@/functions/format/toMintString'
 import toFraction from '@/functions/numberish/toFraction'
+import { AmmV3 } from 'test-r-sdk'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
+import { ammV3ProgramId } from '../token/wellknownProgram.config'
+import { SOLMint } from '../token/wellknownToken.config'
+import { loadTransaction } from '../txTools/createTransaction'
+import { fractionToDecimal } from '../txTools/decimal2Fraction'
+import handleMultiTx from '../txTools/handleMultiTx'
+import useConcentrated from './useConcentrated'
 
 export default function txCreateNewConcentratedPool() {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
@@ -34,7 +26,6 @@ export default function txCreateNewConcentratedPool() {
       initialPrice: fractionToDecimal(toFraction(userSettedCurrentPrice)),
       owner
     })
-    console.log('transaction, signers, address: ', transaction, signers, address)
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
         title: 'Create pool',

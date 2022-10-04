@@ -1,90 +1,54 @@
-import useAppSettings from '@/application/appSettings/useAppSettings'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import { SplToken } from '@/application/token/type'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
-import Input from '@/components/Input'
+import Grid from '@/components/Grid'
+import Icon from '@/components/Icon'
+import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
-import toPubString from '@/functions/format/toMintString'
-import { toPercent } from '@/functions/format/toPercent'
-import toPercentString from '@/functions/format/toPercentString'
-import { div } from '@/functions/numberish/operations'
 import { useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
+import { ConcentratedFeeSwitcher } from './ConcentratedFeeSwitcher'
 
 export function CreatePoolCard() {
-  const isMobile = useAppSettings((s) => s.isMobile)
-  const selectableAmmPools = useConcentrated((s) => s.selectableAmmPools)
-  const selectableAmmPoolIds = selectableAmmPools?.map((i) => toPubString(i.id))
-  const userSelectedAmmConfigFeeOption = useConcentrated((s) => s.userSelectedAmmConfigFeeOption)
-  const availableAmmConfigFeeOptions = useConcentrated((s) => s.availableAmmConfigFeeOptions)
-  const availableAmmConfigFeeOptionsWithCreatable = availableAmmConfigFeeOptions?.map((i) => ({
-    originalData: i,
-    ...i,
-    protocolFeeRate: toPercent(div(i.protocolFeeRate, 10 ** 4), { alreadyDecimaled: true }),
-    tradeFeeRate: toPercent(div(i.tradeFeeRate, 10 ** 4), { alreadyDecimaled: true }),
-    selected: i.id === userSelectedAmmConfigFeeOption?.id,
-    creatable: !selectableAmmPoolIds?.includes(i.id)
-  }))
   return (
     <Card
       className={twMerge(
-        `p-6 mobile:py-4 mobile:px-2 rounded-3xl w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card`
+        `grid grid-cols-2-auto gap-4 p-6 mobile:py-4 mobile:px-2 rounded-3xl w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card`
       )}
       size="lg"
     >
       {/* left */}
       <div className="border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
-        <div>
-          <div>Select Tokens</div>
-          <Row className="gap-2">
+        <div className="mb-8">
+          <div className="font-medium text-[#abc4ff] my-1">Select Tokens</div>
+          <Grid className="grid-cols-2 gap-4">
             <SelectTokenItem title="Base Token" onSelectToken={(token) => useConcentrated.setState({ coin1: token })} />
             <SelectTokenItem
               title="Quote Token"
               onSelectToken={(token) => useConcentrated.setState({ coin2: token })}
             />
-          </Row>
+          </Grid>
         </div>
+
         <div>
-          <div>Select Fee</div>
-          <Row className="gap-4">
-            {availableAmmConfigFeeOptionsWithCreatable?.map((i) => (
-              <div
-                key={i.id}
-                className={`${i.creatable ? 'cursor-pointer' : 'opacity-50 pointer-events-none'} ${
-                  i.selected ? 'border-1.5 border-[#abc4ff]' : ''
-                }`}
-                onClick={() => {
-                  useConcentrated.setState({ userSelectedAmmConfigFeeOption: i.originalData })
-                }}
-              >
-                <div>{toPercentString(toPercent(i.tradeFeeRate))}</div>
-              </div>
-            ))}
-          </Row>
+          <div className="font-medium text-[#abc4ff] my-1">Select Fee</div>
+          <ConcentratedFeeSwitcher />
         </div>
       </div>
 
       {/* right */}
       <div className="border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
         <div>
-          <div>Set Current Price</div>
-          <Input
+          <div className="font-medium text-[#abc4ff] my-1">Set Current Price</div>
+          <InputBox
+            decimalMode
             onUserInput={(value) => {
               useConcentrated.setState({ userSettedCurrentPrice: value })
             }}
           />
         </div>
-        {/* <div>
-          <div>Select Fee</div>
-          <Row>
-            <div>ba</div>
-            <div>la</div>
-            <div>ba</div>
-            <div>la</div>
-          </Row>
-        </div> */}
       </div>
     </Card>
   )
@@ -95,20 +59,27 @@ function SelectTokenItem({ title, onSelectToken }: { title?: string; onSelectTok
   const [cachedToken, setCachedToken] = useState<SplToken>()
   return (
     <>
-      <div className="bg-[#141041] rounded-xl py-4 px-8 cursor-pointer" onClick={() => setIsSelectorOpen(true)}>
+      <Grid
+        className="bg-[#141041] rounded-xl py-2 cursor-pointer place-content-center"
+        onClick={() => setIsSelectorOpen(true)}
+      >
         {cachedToken ? (
           <div>
-            <CoinAvatar token={cachedToken} />
-            <div>{cachedToken.symbol ?? ''}</div>
+            <div className="text-xs font-medium text-[#abc4ff80] my-1 text-center">{title}</div>
+            <Row className="items-center gap-2">
+              <CoinAvatar token={cachedToken} />
+              <div className="text-[#abc4ff] font-medium">{cachedToken.symbol ?? ''}</div>
+              <Icon size="sm" className="text-[#abc4ff]" heroIconName="chevron-down" />
+            </Row>
           </div>
         ) : (
           <div>{title}</div>
         )}
-      </div>
+      </Grid>
       <TokenSelectorDialog
         open={isSelectorOpen}
         onClose={() => {
-          setIsSelectorOpen(true)
+          setIsSelectorOpen(false)
         }}
         onSelectToken={(token) => {
           onSelectToken?.(token)

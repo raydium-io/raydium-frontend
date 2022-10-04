@@ -68,6 +68,41 @@ function NavButtons({ className }: { className?: string }) {
   )
 }
 
+function WarningBoard({ className }: { className: string }) {
+  const [needWarning, setNeedWarning] = useState(true)
+  const isMoblie = useAppSettings((s) => s.isMobile)
+  return (
+    <FadeInStable show={needWarning}>
+      <Row className={className}>
+        <Card
+          className={`p-6 mobile:p-4 grow rounded-3xl mobile:rounded-2xl ring-1 ring-inset ring-[#39d0d8] bg-[#1B1659]`}
+        >
+          <div className="mobile:text-sm font-medium text-base text-white mb-3">
+            You can create a farm based on the pool you created!
+          </div>
+
+          <div className="font-medium text-sm mobile:text-xs text-[#ABC4FF80] mb-4">
+            You can choose to create a farm after creating this pool and providing your position. You can also create a
+            farm based on a previously created pool.
+          </div>
+
+          <Row className="gap-4">
+            <Button
+              className="frosted-glass-teal mobile:px-4"
+              size={isMoblie ? 'sm' : 'md'}
+              onClick={() => {
+                setNeedWarning(false)
+              }}
+            >
+              Got it
+            </Button>
+          </Row>
+        </Card>
+      </Row>
+    </FadeInStable>
+  )
+}
+
 export default function CreatePoolPage() {
   useConcentratedAmmConfigInfoLoader()
 
@@ -108,13 +143,11 @@ export default function CreatePoolPage() {
           <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Pool</div>
         )}
 
-        {/* <WarningBoard className="pb-16 mobile:pb-10 w-full" /> */}
+        <WarningBoard className="pb-16 w-full" />
 
-        <div className="space-y-4">
-          <CreatePoolCard />
-        </div>
+        <CreatePoolCard />
 
-        <Col className="items-center ml-12 mobile:ml-0">
+        <Col className="items-center my-8">
           <Button
             className="frosted-glass-teal mobile:w-full"
             size={isMoblie ? 'sm' : 'lg'}
