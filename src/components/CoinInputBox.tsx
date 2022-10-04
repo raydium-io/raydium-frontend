@@ -325,7 +325,7 @@ export default function CoinInputBox({
                 onClick={() => {
                   if (onCustomMax) {
                     onCustomMax()
-                    setInputedAmount(toString(maxValue))
+                    setInputedAmount(typeof maxValue === 'string' ? maxValue : toString(maxValue))
                   } else {
                     fillAmountWithBalance(1)
                   }

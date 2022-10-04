@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
 import { AmmV3 } from 'test-r-sdk'
 
@@ -96,10 +95,10 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
 
     setMaxInfo({
       coin1Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageA), 10 ** coinBase.decimals), {
-        decimalLength: 'auto 10'
+        decimalLength: `auto ${coinBase.decimals}`
       }),
       coin2Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageB), 10 ** coinQuote.decimals), {
-        decimalLength: 'auto 10'
+        decimalLength: `auto ${coinQuote.decimals}`
       })
     })
   }, [targetUserPositionAccount, currentAmmPool, position, coinBase, coinQuote])
@@ -110,7 +109,6 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
 
   const removeMaxLiquidity = useCallback(() => {
     if (!position?.liquidity || !maxInfo.coin1Amount || !maxInfo.coin2Amount) return
-
     useConcentrated.setState({
       coin1Amount: maxInfo.coin1Amount,
       coin2Amount: maxInfo.coin2Amount,
@@ -157,7 +155,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               maxValue={maxInfo.coin1Amount}
               canFillFullBalance
               token={coinBase}
-              value={toString(originalCoin1Amount)}
+              value={toString(originalCoin1Amount, { decimalLength: `auto ${(coinBase?.decimals ?? 10) + 1}` })}
               onUserInput={(value) => {
                 useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
@@ -188,7 +186,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               maxValue={maxInfo.coin2Amount}
               canFillFullBalance
               token={coinQuote}
-              value={toString(originalCoin2Amount)}
+              value={toString(originalCoin2Amount, { decimalLength: `auto ${(coinQuote?.decimals ?? 10) + 1}` })}
               onUserInput={(value) => {
                 useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
