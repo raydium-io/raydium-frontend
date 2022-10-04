@@ -266,7 +266,6 @@ export function RewardFormCardInputs({
       ? div(getDuration(reward.endTime, reward.startTime) / 1000, 10 ** reward.token.decimals)
       : undefined
   const needShowAmountAlert = !isInputAmount && lt(reward.amount, minBoundary)
-
   return (
     <Grid className="gap-4">
       <Col>

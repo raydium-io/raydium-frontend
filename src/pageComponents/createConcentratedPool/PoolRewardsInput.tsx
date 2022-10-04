@@ -1,6 +1,7 @@
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import FadeInStable from '@/components/FadeIn'
 import FadeIn from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import { RewardFormCard } from '@/pages/farms/create'
@@ -47,15 +48,13 @@ export function PoolRewardsInput({ className }: { className?: string }) {
         </div>
       )}
       <Grid className="grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-8 mobile:gap-4">
-        <FadeIn>
-          {activeReward && (
-            <RewardFormCard>
-              <RewardFormCardInputs syncDataWithZustandStore reward={activeReward} />
-            </RewardFormCard>
-          )}
-        </FadeIn>
+        <FadeInStable show={Boolean(activeReward)}>
+          <RewardFormCard>
+            <RewardFormCardInputs syncDataWithZustandStore reward={activeReward} />
+          </RewardFormCard>
+        </FadeInStable>
       </Grid>
-      😂🚧🚧
+      🚧🚧
       {isMobile && focusReward != null && (
         <RewardInputDialog
           cardTitle="Edit rewards"
