@@ -343,7 +343,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       const newVal = blurRef.current
       blurTimerRef.current = window.setTimeout(() => {
         updatePosition((p) => ({ ...p, [side]: newVal }))
-      }, 100)
+      }, 200)
       blurRef.current = undefined
     },
     [updatePosition]
