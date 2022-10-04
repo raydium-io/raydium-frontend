@@ -57,6 +57,7 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
+import { isInLocalhost } from '@/functions/judgers/isSSR'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -334,6 +335,7 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
 }
 
 function PoolCreateConcentratedPoolEntryBlock({ className }: { className?: string }) {
+  if (!isInLocalhost) return null
   return (
     <Row
       className={twMerge(
