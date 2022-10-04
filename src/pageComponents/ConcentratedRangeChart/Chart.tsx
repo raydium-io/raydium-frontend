@@ -89,6 +89,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const areaRef = useRef<number | undefined>()
   const xAxisRef = useRef<number[]>([])
   const blurRef = useRef<number | undefined>()
+  const blurTimerRef = useRef<number | undefined>()
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
 
@@ -339,7 +340,10 @@ export default forwardRef(function Chart(props: Props, ref) {
   const handleBlurInput = useCallback(
     (side: Range) => {
       if (blurRef.current === undefined) return
-      updatePosition((p) => ({ ...p, [side]: blurRef.current }))
+      const newVal = blurRef.current
+      blurTimerRef.current = window.setTimeout(() => {
+        updatePosition((p) => ({ ...p, [side]: newVal }))
+      }, 100)
       blurRef.current = undefined
     },
     [updatePosition]
@@ -376,6 +380,7 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   const handleInDecrease = useCallback(
     (props: { val?: number | string; side: Range; isIncrease: boolean }): void => {
+      blurTimerRef.current && clearTimeout(blurTimerRef.current)
       const { val = '', side, isIncrease } = props
       const isMin = side === Range.Min
       if (isIncrease) {
