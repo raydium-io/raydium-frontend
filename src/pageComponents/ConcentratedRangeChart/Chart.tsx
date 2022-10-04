@@ -230,8 +230,10 @@ export default forwardRef(function Chart(props: Props, ref) {
       xAxisRef.current.push(val)
     }
 
-    let tick = Number(val.toFixed(1)).toString()
-    for (let i = 1; i < 5 && labels.indexOf(tick) !== -1; i++) {
+    const initDecimals = val < 1 ? 2 : 1
+
+    let tick = Number(val.toFixed(initDecimals)).toString()
+    for (let i = initDecimals; i < 5 && labels.indexOf(tick) !== -1; i++) {
       tick = Number(val.toFixed(i)).toString()
     }
     labels.push(tick)
@@ -430,15 +432,9 @@ export default forwardRef(function Chart(props: Props, ref) {
   }
   const zoomIn = () => {
     if (!hasPoints) return
-    const center = (position[Range.Max] + position[Range.Min]) / 2
-    const min = Math.max(
-      center - (ZOOM_INTERVAL - zoomRef.current) * tickGap,
-      xAxis[0] + (zoomRef.current + 1) * tickGap
-    )
-    const max = Math.min(
-      center + (ZOOM_INTERVAL - zoomRef.current) * tickGap,
-      xAxis[xAxis.length - 1] - (zoomRef.current + 1) * tickGap
-    )
+    const center = Number(currentPrice!.toFixed(decimals))
+    const min = center - (ZOOM_INTERVAL - zoomRef.current) * tickGap
+    const max = center + (ZOOM_INTERVAL - zoomRef.current) * tickGap
     if (min >= max) return
     zoomRef.current = zoomRef.current + 1
     setupXAxis({ min, max })
@@ -446,7 +442,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const zoomOut = () => {
     if (!hasPoints) return
     zoomRef.current = zoomRef.current - 1
-    const center = (position[Range.Max] + position[Range.Min]) / 2
+    const center = Number(currentPrice?.toFixed(decimals)) || (position[Range.Max] + position[Range.Min]) / 2
     const [min, max] = [
       Math.min(center - (ZOOM_INTERVAL - zoomRef.current) * tickGap, xAxis[0] + zoomRef.current * tickGap),
       Math.max(

@@ -143,9 +143,7 @@ function ConcentratedCard() {
     currentAmmPool,
     hydratedAmmPools,
     priceUpper,
-    priceLower,
-    priceLowerTick,
-    priceUpperTick
+    priceLower
   } = useConcentrated()
   const poolFocusKey = `${currentAmmPool?.idString}-${focusSide}`
   const prevPoolId = usePrevious<string | undefined>(poolFocusKey)
@@ -317,8 +315,6 @@ function ConcentratedCard() {
     }),
     [points, boundaryData]
   )
-
-  console.log(123123, priceLower?.toFixed(9), priceUpper?.toFixed(9), priceLowerTick, priceUpperTick)
 
   return (
     <CyberpunkStyleCard
