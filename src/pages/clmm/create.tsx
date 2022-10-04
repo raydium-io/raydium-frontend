@@ -143,9 +143,7 @@ function ConcentratedCard() {
     currentAmmPool,
     hydratedAmmPools,
     priceUpper,
-    priceLower,
-    priceLowerTick,
-    priceUpperTick
+    priceLower
   } = useConcentrated()
   const poolFocusKey = `${currentAmmPool?.idString}-${focusSide}`
   const prevPoolId = usePrevious<string | undefined>(poolFocusKey)
@@ -229,38 +227,6 @@ function ConcentratedCard() {
     boundaryData && useConcentrated.setState(boundaryData)
   }, [boundaryData, poolFocusKey, prevPoolId])
 
-  const handleClickInDecrease = useCallback(
-    ({ p, isMin, isIncrease }: { p: number; isMin: boolean; isIncrease: boolean }) => {
-      if (!currentAmmPool || !coin1 || !coin2) return
-      const targetCoin = isFocus1 ? coin1 : coin2
-      const tickKey = isMin ? 'lower' : 'upper'
-      if (tickRef.current[tickKey] === undefined) {
-        const res = getPriceTick({
-          p: p * 1.002,
-          coin1,
-          coin2,
-          reverse: !isFocus1,
-          ammPool: currentAmmPool
-        })
-        tickRef.current[tickKey] = res.tick
-      }
-
-      const nextTick =
-        tickRef.current[tickKey]! +
-        (isIncrease ? 1 : -1) * Math.pow(-1, isCoin1Base ? (isFocus1 ? 0 : 1) : isFocus1 ? 1 : 0)
-      const { price, tick } = getTickPrice({
-        poolInfo: currentAmmPool.state,
-        baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
-        tick: nextTick
-      })
-      tickRef.current[tickKey] = nextTick
-      isMin && useConcentrated.setState({ priceLower: price, priceLowerTick: nextTick })
-      !isMin && useConcentrated.setState({ priceUpper: price, priceUpperTick: nextTick })
-      return price
-    },
-    [coin1?.mint, coin2?.mint, currentAmmPool?.ammConfig.id, isFocus1, isCoin1Base]
-  )
-
   const [prices, setPrices] = useState<(string | undefined)[]>([])
   const updatePrice1 = useCallback((tokenP) => setPrices((p) => [tokenP?.toExact(), p[1]]), [])
   const updatePrice2 = useCallback((tokenP) => setPrices((p) => [p[0], tokenP?.toExact()]), [])
@@ -297,6 +263,39 @@ function ConcentratedCard() {
       return res
     },
     [toPubString(coin1?.mint), toPubString(coin2?.mint), currentAmmPool?.idString, isFocus1]
+  )
+
+  const handleClickInDecrease = useCallback(
+    ({ p, isMin, isIncrease }: { p: number; isMin: boolean; isIncrease: boolean }) => {
+      if (!currentAmmPool || !coin1 || !coin2) return
+      const targetCoin = isFocus1 ? coin1 : coin2
+      const tickKey = isMin ? 'lower' : 'upper'
+      if (tickRef.current[tickKey] === undefined) {
+        const res = getPriceTick({
+          p: p * 1.002,
+          coin1,
+          coin2,
+          reverse: !isFocus1,
+          ammPool: currentAmmPool
+        })
+        tickRef.current[tickKey] = res.tick
+      }
+
+      const nextTick =
+        tickRef.current[tickKey]! +
+        (isIncrease ? currentAmmPool.state.tickSpacing : -1 * currentAmmPool.state.tickSpacing) *
+          Math.pow(-1, isCoin1Base ? (isFocus1 ? 0 : 1) : isFocus1 ? 1 : 0)
+      const { price, tick } = getTickPrice({
+        poolInfo: currentAmmPool.state,
+        baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
+        tick: nextTick
+      })
+      tickRef.current[tickKey] = nextTick
+      isMin && useConcentrated.setState({ priceLower: price, priceLowerTick: nextTick })
+      !isMin && useConcentrated.setState({ priceUpper: price, priceUpperTick: nextTick })
+      return price
+    },
+    [coin1?.mint, coin2?.mint, currentAmmPool?.ammConfig.id, isFocus1, isCoin1Base]
   )
 
   const handleClickCreatePool = useCallback(() => {

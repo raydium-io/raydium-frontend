@@ -87,7 +87,7 @@ function calcConcentratedPairsAmount(slippageTolerance: Numberish): void {
   const inputAmountBN = isFocus1
     ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
     : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals))
-  const { liquidity, amountA, amountB } = AmmV3.getLiquidityAmountOutFromAmountIn({
+  const { liquidity, amountSlippageA, amountSlippageB } = AmmV3.getLiquidityAmountOutFromAmountIn({
     poolInfo: currentAmmPool.state,
     slippage: Number(toString(slippageTolerance)),
     inputA: isPairPoolDirectionEq,
@@ -99,11 +99,13 @@ function calcConcentratedPairsAmount(slippageTolerance: Numberish): void {
 
   if (isFocus1) {
     useConcentrated.setState({
-      coin2Amount: hasInput ? toTokenAmount(coin2, isCoin1Base ? amountB : amountA).toFixed() : undefined
+      coin2Amount: hasInput
+        ? toTokenAmount(coin2, isCoin1Base ? amountSlippageB : amountSlippageA).toFixed()
+        : undefined
     })
   } else {
     useConcentrated.setState({
-      coin1Amount: hasInput ? toTokenAmount(coin1, isCoin1Base ? amountA : amountB) : undefined
+      coin1Amount: hasInput ? toTokenAmount(coin1, isCoin1Base ? amountSlippageA : amountSlippageB) : undefined
     })
   }
 
