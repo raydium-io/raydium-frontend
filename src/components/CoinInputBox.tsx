@@ -1,46 +1,35 @@
 import React, {
-  CSSProperties,
-  ReactNode,
-  RefObject,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState
+  CSSProperties, ReactNode, RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState
 } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { usePools } from '@/application/pools/usePools'
+import {
+  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE, WSOLMint
+} from '@/application/token/quantumSOL'
 import { Token } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
-import {
-  isQuantumSOL,
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  SOL_BASE_BALANCE,
-  WSOLMint
-} from '@/application/token/quantumSOL'
 import useWallet from '@/application/wallet/useWallet'
+import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isTokenAmount } from '@/functions/judgers/dateType'
 import { gt, gte, lt } from '@/functions/numberish/compare'
 import { mul, sub } from '@/functions/numberish/operations'
+import { toString } from '@/functions/numberish/toString'
+import { useSignalState } from '@/hooks/useSignalState'
+import { MayArray, Numberish } from '@/types/constants'
 
 import Button from './Button'
 import CoinAvatar from './CoinAvatar'
+import DecimalInput from './DecimalInput'
 import Icon from './Icon'
 import Input from './Input'
 import Row from './Row'
-import toPubString from '@/functions/format/toMintString'
-import { toString } from '@/functions/numberish/toString'
-import { MayArray, Numberish } from '@/types/constants'
-import DecimalInput from './DecimalInput'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import { useSignalState } from '@/hooks/useSignalState'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -74,6 +63,7 @@ export interface CoinInputBoxProps {
   onInputAmountClampInBalanceChange?(info: { outOfMax: boolean; negative: boolean }): void
   onBlur?(input: string | undefined): void
   onPriceChange?(Fraction): void
+  onCustomMax?(): void
 
   // -------- customized ----------
   // customize component appearance
@@ -127,6 +117,7 @@ export default function CoinInputBox({
   onEnter,
   onBlur,
   onPriceChange,
+  onCustomMax,
 
   topLeftLabel,
   topRightLabel,
@@ -332,7 +323,12 @@ export default function CoinInputBox({
                 disabled={disabledInput}
                 className="py-0.5 px-1.5 rounded text-[rgba(171,196,255,.5)] font-bold bg-[#1B1659] bg-opacity-80 text-xs mobile:text-2xs transition"
                 onClick={() => {
-                  fillAmountWithBalance(1)
+                  if (onCustomMax) {
+                    onCustomMax()
+                    setInputedAmount(toString(maxValue))
+                  } else {
+                    fillAmountWithBalance(1)
+                  }
                 }}
               >
                 Max

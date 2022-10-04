@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
+import { AmmV3 } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import { routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
@@ -13,15 +16,17 @@ import Col from '@/components/Col'
 import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
+import toPubString from '@/functions/format/toMintString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
+import { div } from '@/functions/numberish/operations'
+import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useInit from '@/hooks/useInit'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
-import { routeTo } from '@/application/routeTools'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   useInit(() => {
@@ -43,8 +48,6 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)
   const originalCoin2Amount = useConcentrated((s) => s.coin2Amount)
   const focusSide = isMintEqual(coinBase?.mint, originalCoin1?.mint) ? 'coin1' : 'coin2'
-  const coinBaseAmount = focusSide === 'coin1' ? originalCoin1Amount : originalCoin2Amount
-  const coinQuoteAmount = focusSide === 'coin1' ? originalCoin2Amount : originalCoin1Amount
   const [amountBaseIsOutOfMax, setAmountBaseIsOutOfMax] = useState(false)
   const [amountBaseIsNegative, setAmountBaseIsNegative] = useState(false)
   const [amountQuoteIsOutOfMax, setAmountQuoteIsOutOfMax] = useState(false)
@@ -52,6 +55,13 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const liquidity = useConcentrated((s) => s.liquidity)
   const pendingYield = useConcentratedPendingYield(targetUserPositionAccount)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const [maxInfo, setMaxInfo] = useState<{
+    coin1Amount: string | undefined
+    coin2Amount: string | undefined
+  }>({
+    coin1Amount: undefined,
+    coin2Amount: undefined
+  })
 
   useEffect(() => {
     if (!currentAmmPool || !targetUserPositionAccount) return
@@ -64,6 +74,50 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       priceUpperTick: targetUserPositionAccount.tickUpper
     })
   }, [currentAmmPool, targetUserPositionAccount])
+
+  const position = useMemo(() => {
+    if (currentAmmPool && targetUserPositionAccount) {
+      return currentAmmPool.positionAccount?.find(
+        (p) => toPubString(p.nftMint) === toPubString(targetUserPositionAccount.nftMint)
+      )
+    }
+    return undefined
+  }, [currentAmmPool, targetUserPositionAccount])
+
+  const calculateMaxLiquidity = useCallback(() => {
+    if (!position || !currentAmmPool || !coinBase || !coinQuote) return
+    const amountFromLiquidity = AmmV3.getAmountsFromLiquidity({
+      poolInfo: currentAmmPool.state,
+      ownerPosition: position,
+      liquidity: position.liquidity,
+      slippage: 0, // always 0, for remove liquidity only
+      add: false
+    })
+
+    setMaxInfo({
+      coin1Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageA), 10 ** coinBase.decimals), {
+        decimalLength: 'auto 10'
+      }),
+      coin2Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageB), 10 ** coinQuote.decimals), {
+        decimalLength: 'auto 10'
+      })
+    })
+  }, [targetUserPositionAccount, currentAmmPool, position, coinBase, coinQuote])
+
+  useEffect(() => {
+    calculateMaxLiquidity()
+  }, [calculateMaxLiquidity])
+
+  const removeMaxLiquidity = useCallback(() => {
+    if (!position?.liquidity || !maxInfo.coin1Amount || !maxInfo.coin2Amount) return
+
+    useConcentrated.setState({
+      coin1Amount: maxInfo.coin1Amount,
+      coin2Amount: maxInfo.coin2Amount,
+      isInput: false,
+      liquidity: position.liquidity
+    })
+  }, [maxInfo, position])
 
   return (
     <ResponsiveDialogDrawer
@@ -100,10 +154,10 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               haveCoinIcon
               topLeftLabel={'Base'}
               topRightLabel={`Deposited: ${toString(targetUserPositionAccount?.amountA)}`}
-              maxValue={targetUserPositionAccount?.amountA}
+              maxValue={maxInfo.coin1Amount}
               canFillFullBalance
               token={coinBase}
-              value={toString(coinBaseAmount)}
+              value={toString(originalCoin1Amount)}
               onUserInput={(value) => {
                 useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
@@ -120,6 +174,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                 if (!input) return
                 buttonComponentRef.current?.click?.()
               }}
+              onCustomMax={() => {
+                removeMaxLiquidity()
+              }}
             />
 
             {/* input-container-box 2 */}
@@ -128,10 +185,10 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               haveCoinIcon
               topLeftLabel={'Quote'}
               topRightLabel={`Deposited: ${toString(targetUserPositionAccount?.amountB)}`}
-              maxValue={targetUserPositionAccount?.amountB}
+              maxValue={maxInfo.coin2Amount}
               canFillFullBalance
               token={coinQuote}
-              value={toString(coinQuoteAmount)}
+              value={toString(originalCoin2Amount)}
               onUserInput={(value) => {
                 useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
@@ -147,6 +204,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               onEnter={(input) => {
                 if (!input) return
                 buttonComponentRef.current?.click?.()
+              }}
+              onCustomMax={() => {
+                removeMaxLiquidity()
               }}
             />
             <ConcentratedLiquiditySlider />
