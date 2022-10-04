@@ -254,8 +254,8 @@ function ConcentratedCard() {
       const tickKey = isMin ? 'priceLowerTick' : 'priceUpperTick'
       if (userInput && side) {
         tickRef.current[isMin ? 'lower' : 'upper'] = res[tickKey]
-        isMin && useConcentrated.setState({ priceLowerTick: res[tickKey], priceLower: pos[side] })
-        !isMin && useConcentrated.setState({ priceUpperTick: res[tickKey], priceUpper: pos[side] })
+        isMin && useConcentrated.setState({ priceLowerTick: res[tickKey], priceLower: res.priceLower })
+        !isMin && useConcentrated.setState({ priceUpperTick: res[tickKey], priceUpper: res.priceUpper })
       } else {
         tickRef.current = { lower: res.priceLowerTick, upper: res.priceUpperTick }
         useConcentrated.setState(res)
@@ -290,6 +290,7 @@ function ConcentratedCard() {
         baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
         tick: nextTick
       })
+
       tickRef.current[tickKey] = nextTick
       isMin && useConcentrated.setState({ priceLower: price, priceLowerTick: nextTick })
       !isMin && useConcentrated.setState({ priceUpper: price, priceUpperTick: nextTick })
@@ -299,12 +300,6 @@ function ConcentratedCard() {
   )
 
   const handleClickCreatePool = useCallback(() => {
-    const position = chartRef.current?.getPosition()
-    if (!position) return
-    useConcentrated.setState({
-      priceLower: position.min,
-      priceUpper: position.max
-    })
     onConfirmOpen()
   }, [onConfirmOpen])
 

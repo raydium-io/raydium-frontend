@@ -38,8 +38,8 @@ export default function txCreateConcentrated({
         tokenAccounts: tokenAccountRawInfos,
         useSOLBalance: true
       },
-      priceLower: fractionToDecimal(toFraction(priceLower)),
-      priceUpper: fractionToDecimal(toFraction(priceUpper)),
+      priceLower: fractionToDecimal(toFraction(priceLower), 20),
+      priceUpper: fractionToDecimal(toFraction(priceUpper), 20),
       slippage: Number(toString(slippageTolerance))
     })
 
