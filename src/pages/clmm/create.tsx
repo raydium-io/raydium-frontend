@@ -296,7 +296,7 @@ function ConcentratedCard() {
       !isMin && useConcentrated.setState({ priceUpper: price, priceUpperTick: nextTick })
       return price
     },
-    [coin1?.mint, coin2?.mint, currentAmmPool?.ammConfig.id, isFocus1, isCoin1Base]
+    [coin1?.mint, coin2?.mint, currentAmmPool?.idString, isFocus1, isCoin1Base]
   )
 
   const handleClickCreatePool = useCallback(() => {

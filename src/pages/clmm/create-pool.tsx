@@ -30,7 +30,9 @@ import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRe
 import { PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 import { CreatePoolCard } from '@/pageComponents/createConcentratedPool/CreatePoolCard'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
+import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
 
@@ -70,7 +72,7 @@ function NavButtons({ className }: { className?: string }) {
 
 function WarningBoard({ className }: { className: string }) {
   const [needWarning, setNeedWarning] = useState(true)
-  const isMoblie = useAppSettings((s) => s.isMobile)
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <FadeInStable show={needWarning}>
       <Row className={className}>
@@ -89,7 +91,7 @@ function WarningBoard({ className }: { className: string }) {
           <Row className="gap-4">
             <Button
               className="frosted-glass-teal mobile:px-4"
-              size={isMoblie ? 'sm' : 'md'}
+              size={isMobile ? 'sm' : 'md'}
               onClick={() => {
                 setNeedWarning(false)
               }}
@@ -105,6 +107,8 @@ function WarningBoard({ className }: { className: string }) {
 
 export default function CreatePoolPage() {
   useConcentratedAmmConfigInfoLoader()
+  useConcentratedAmountCalculator()
+  useConcentratedAmmSelector()
 
   const rewards = useCreateFarms((s) => s.rewards)
   const meaningFullRewards = rewards.filter(
@@ -113,7 +117,7 @@ export default function CreatePoolPage() {
   const poolId = useCreateFarms((s) => s.poolId)
   const getBalance = useWallet((s) => s.getBalance)
   const walletConnected = useWallet((s) => s.connected)
-  const isMoblie = useAppSettings((s) => s.isMobile)
+  const isMobile = useAppSettings((s) => s.isMobile)
 
   const PoolIdInputBlockRef = useRef<PoolIdInputBlockHandle>()
 
@@ -139,7 +143,7 @@ export default function CreatePoolPage() {
       <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f]" />
 
       <div className={`pb-10 self-center transition-all duration-500 w-[min(840px,70vw)] mobile:w-[90vw] z-20`}>
-        {!isMoblie && (
+        {!isMobile && (
           <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Pool</div>
         )}
 
@@ -150,7 +154,7 @@ export default function CreatePoolPage() {
         <Col className="items-center my-8">
           <Button
             className="frosted-glass-teal mobile:w-full"
-            size={isMoblie ? 'sm' : 'lg'}
+            size={isMobile ? 'sm' : 'lg'}
             validators={[
               { should: coin1 && coin2 },
               { should: isMeaningfulNumber(userSettedCurrentPrice), fallbackProps: { children: 'Input Price' } },

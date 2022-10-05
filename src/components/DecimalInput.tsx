@@ -81,6 +81,8 @@ export default function DecimalInput({
   skipAutoDecrease,
   increaseFn,
   decreaseFn,
+  prefix,
+  suffix,
   ...restProps
 }: DecimalInputProps) {
   const [innerValue, setInnerValue, innerValueSignal] = useSignalState(defaultValue)
@@ -161,12 +163,14 @@ export default function DecimalInput({
         dangerousInput(v)
       }}
       prefix={
-        showPlusMinusControls ? (
+        prefix ||
+        (showPlusMinusControls ? (
           <Icon className="text-light-blue clickable" heroIconName="minus" size="xs" onClick={decrease} canLongClick />
-        ) : undefined
+        ) : undefined)
       }
       suffix={
-        showArrowControls ? (
+        suffix ||
+        (showArrowControls ? (
           <div>
             <Icon
               className="opacity-50 hover:opacity-100 clickable"
@@ -185,7 +189,7 @@ export default function DecimalInput({
           </div>
         ) : showPlusMinusControls ? (
           <Icon className="text-light-blue clickable" heroIconName="plus" size="xs" onClick={increase} canLongClick />
-        ) : undefined
+        ) : undefined)
       }
     />
   )
