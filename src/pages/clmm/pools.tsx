@@ -49,7 +49,8 @@ import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isInLocalhost } from '@/functions/judgers/isSSR'
-import { isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import { sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
@@ -902,46 +903,57 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     >
       {info.userPositionAccount ? (
         <>
-          {info.userPositionAccount.map((p) => {
-            let myPosition = '--'
-            const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
-            const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
-            const lower = toString(p.priceLower, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
-            const upper = toString(p.priceUpper, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
-
-            if (lower && upper) {
-              myPosition = lower + ' - ' + upper
-            }
-
-            const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
-            const coinBPrice = toTotalPrice(p.amountB, variousPrices[String(p.tokenB?.mint)] ?? null)
-
-            const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
-
-            const coinARewardPrice = toTotalPrice(p.tokenFeeAmountA, variousPrices[String(p.tokenA?.mint)] ?? null)
-            const coinBRewardPrice = toTotalPrice(p.tokenFeeAmountB, variousPrices[String(p.tokenB?.mint)] ?? null)
-            const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
-            const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
-
-            return (
-              <PoolCardDatabaseBodyCollapsePositionContent
-                key={p.nftMint.toString()}
-                poolInfo={info}
-                userPositionAccount={p}
-                myPosition={myPosition}
-                amountA={amountA}
-                amountB={amountB}
-                myPositionVolume={toUsdVolume(wholeLiquidity)}
-                coinAPrice={coinAPrice}
-                coinBPrice={coinBPrice}
-                inRange={p.inRange}
-                noBorderBottom={false}
-                rewardAPrice={coinARewardPrice}
-                rewardBPrice={coinBRewardPrice}
-                rewardTotalVolume={rewardTotalVolume}
-              />
+          {info.userPositionAccount
+            .sort((a: UserPositionAccount, b: UserPositionAccount) =>
+              Number(
+                toString(
+                  sub(
+                    a.getLiquidityVolume?.(tokenPrices).wholeLiquidity,
+                    b.getLiquidityVolume?.(tokenPrices).wholeLiquidity
+                  )
+                )
+              )
             )
-          })}
+            .map((p) => {
+              let myPosition = '--'
+              const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
+              const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
+              const lower = toString(p.priceLower, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
+              const upper = toString(p.priceUpper, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
+
+              if (lower && upper) {
+                myPosition = lower + ' - ' + upper
+              }
+
+              const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
+              const coinBPrice = toTotalPrice(p.amountB, variousPrices[String(p.tokenB?.mint)] ?? null)
+
+              const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
+
+              const coinARewardPrice = toTotalPrice(p.tokenFeeAmountA, variousPrices[String(p.tokenA?.mint)] ?? null)
+              const coinBRewardPrice = toTotalPrice(p.tokenFeeAmountB, variousPrices[String(p.tokenB?.mint)] ?? null)
+              const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
+              const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
+
+              return (
+                <PoolCardDatabaseBodyCollapsePositionContent
+                  key={p.nftMint.toString()}
+                  poolInfo={info}
+                  userPositionAccount={p}
+                  myPosition={myPosition}
+                  amountA={amountA}
+                  amountB={amountB}
+                  myPositionVolume={toUsdVolume(wholeLiquidity)}
+                  coinAPrice={coinAPrice}
+                  coinBPrice={coinBPrice}
+                  inRange={p.inRange}
+                  noBorderBottom={false}
+                  rewardAPrice={coinARewardPrice}
+                  rewardBPrice={coinBRewardPrice}
+                  rewardTotalVolume={rewardTotalVolume}
+                />
+              )
+            })}
 
           <AutoBox>{openNewPosition}</AutoBox>
         </>
