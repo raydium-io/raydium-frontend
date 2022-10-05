@@ -7,11 +7,10 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
+import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
 import useNotification from '@/application/notification/useNotification'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { usePools } from '@/application/pools/usePools'
@@ -49,6 +48,7 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
+import { isInLocalhost } from '@/functions/judgers/isSSR'
 import { isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
@@ -57,11 +57,10 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
-import { isInLocalhost } from '@/functions/judgers/isSSR'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
-
+  useConcentratedPoolUrlParser()
   useConcentratedAmountCalculator()
 
   return (
@@ -626,13 +625,13 @@ function PoolCard() {
 
 function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentratedInfo[] }) {
   const loading = useConcentrated((s) => s.loading)
-  const expandedPoolId = useConcentrated((s) => s.expandedPoolId)
+  const expandedItemIds = useConcentrated((s) => s.expandedItemIds)
   const [favouriteIds, setFavouriteIds] = useConcentratedFavoriteIds()
   return sortedData.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
         <List.Item key={info.idString}>
-          <Collapse open={expandedPoolId === info.idString ? true : false}>
+          <Collapse open={expandedItemIds.has(info.idString)}>
             <Collapse.Face>
               {(open) => (
                 <PoolCardDatabaseBodyCollapseItemFace
@@ -1190,8 +1189,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   onClick={() => {
                     useConcentrated.setState({
                       currentAmmPool: info,
-                      targetUserPositionAccount: p,
-                      expandedPoolId: info.idString
+                      targetUserPositionAccount: p
                     })
                     routeTo('/clmm/my-position')
                   }}

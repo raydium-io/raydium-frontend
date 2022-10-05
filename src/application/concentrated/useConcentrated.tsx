@@ -1,3 +1,5 @@
+import { Keypair, Signer, Transaction } from '@solana/web3.js'
+
 import BN from 'bn.js'
 import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
 import create from 'zustand'
@@ -8,14 +10,9 @@ import { Numberish } from '@/types/constants'
 import { SplToken } from '../token/type'
 
 import {
-  APIConcentratedInfo,
-  HydratedAmmV3ConfigInfo,
-  HydratedConcentratedInfo,
-  SDKParsedConcentratedInfo,
-  UICLMMRewardInfo,
+  APIConcentratedInfo, HydratedAmmV3ConfigInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo, UICLMMRewardInfo,
   UserPositionAccount
 } from './type'
-import { Signer, Keypair, Transaction } from '@solana/web3.js'
 
 export enum PoolsConcentratedTabs {
   ALL = 'All',
@@ -78,7 +75,7 @@ export type ConcentratedStore = {
   loading: boolean
   currentTab: PoolsConcentratedTabs
   searchText: string
-  expandedPoolId?: string
+  expandedItemIds: Set<string>
   tvl?: string | number // /api.raydium.io/v2/main/info
   volume24h?: string | number // /api.raydium.io/v2/main/info
   timeBasis: TimeBasis
@@ -121,6 +118,7 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   currentTab: PoolsConcentratedTabs.ALL,
   currentLayout: PoolsConcentratedLayout.LIST,
   searchText: '',
+  expandedItemIds: new Set(),
   timeBasis: TimeBasis.DAY,
 
   rewards: []
