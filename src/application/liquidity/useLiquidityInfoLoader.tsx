@@ -70,10 +70,9 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
 
   /** json infos ➡ sdkParsed infos (only wallet's LP)  */
   useRecordedEffect(
-    async ([prevDisabled, prevConnection, prevJsonInfos, prevUserExhibitionLiquidityIds, prevRefreshCount]) => {
+    async ([, , , prevUserExhibitionLiquidityIds, prevRefreshCount]) => {
       if (disabled) return
       if (!connection || !jsonInfos.length || !userExhibitionLiquidityIds.length) return
-
       if (
         prevRefreshCount == refreshCount &&
         areShallowEqual(prevUserExhibitionLiquidityIds, userExhibitionLiquidityIds)
@@ -84,9 +83,6 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
         jsonInfos.filter((i) => userExhibitionLiquidityIds.includes(i.id)),
         connection
       )
-
-      // load
-
       useLiquidity.setState({ sdkParsedInfos: shakeUndifindedItem(sdkParsedInfos) })
     },
     [disabled, connection, jsonInfos, userExhibitionLiquidityIds, refreshCount] as const

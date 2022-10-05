@@ -19,6 +19,7 @@ import {
   getLabel
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
+import { useEvent } from '@/hooks/useEvent'
 
 interface HighlightPoint extends ChartPoint {
   position?: number
@@ -47,6 +48,7 @@ interface Props {
   title?: ReactNode
   onPositionChange?: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
   onInDecrease?: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
+  onAdjustMin?: (props: { min: number; max: number }) => { price: number; tick: number }
 }
 
 export default forwardRef(function Chart(props: Props, ref) {
@@ -59,6 +61,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     height,
     onPositionChange,
     onInDecrease,
+    onAdjustMin,
     title,
     showCurrentPriceOnly,
     hideCurrentPriceLabel,
@@ -247,25 +250,28 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   let timer: number | undefined = undefined
 
-  const debounceUpdate = ({ side, ...pos }: { min: number; max: number; side: Range | string }) => {
-    timer && clearTimeout(timer)
-    timer = window.setTimeout(() => {
-      const res = onPositionChange?.(pos)
-      if (!res) return
-      if (side === 'area')
-        updatePosition({ min: Number(res.priceLower.toFixed(9)), max: Number(res.priceUpper.toFixed(9)) })
-      if (side === Range.Min)
-        updatePosition((pos) => ({
-          ...pos,
-          [Range.Min]: Number(res.priceLower.toFixed(9))
-        }))
-      if (side === Range.Max)
-        updatePosition((pos) => ({
-          ...pos,
-          [Range.Max]: Number(res.priceUpper.toFixed(9))
-        }))
-    }, 100)
-  }
+  const debounceUpdate = useCallback(
+    ({ side, ...pos }: { min: number; max: number; side: Range | string }) => {
+      timer && clearTimeout(timer)
+      timer = window.setTimeout(() => {
+        const res = onPositionChange?.(pos)
+        if (!res) return
+        if (side === 'area')
+          updatePosition({ min: Number(res.priceLower.toFixed(9)), max: Number(res.priceUpper.toFixed(9)) })
+        if (side === Range.Min)
+          updatePosition((pos) => ({
+            ...pos,
+            [Range.Min]: Number(res.priceLower.toFixed(9))
+          }))
+        if (side === Range.Max)
+          updatePosition((pos) => ({
+            ...pos,
+            [Range.Max]: Number(res.priceUpper.toFixed(9))
+          }))
+      }, 100)
+    },
+    [onPositionChange]
+  )
   const handleMove = useCallback(
     (e: any) => {
       if (!moveRef.current || !e) return
@@ -341,18 +347,6 @@ export default forwardRef(function Chart(props: Props, ref) {
     moveRef.current = 'area'
   }, [])
 
-  const handleBlurInput = useCallback(
-    (side: Range) => {
-      if (blurRef.current === undefined) return
-      const newVal = blurRef.current
-      blurTimerRef.current = window.setTimeout(() => {
-        updatePosition((p) => ({ ...p, [side]: newVal }))
-      }, 200)
-      blurRef.current = undefined
-    },
-    [updatePosition]
-  )
-
   const handlePriceChange = useCallback(
     ({ val, side }: { val?: number | string; side: Range }) => {
       const newVal = parseFloat(String(val!))
@@ -360,8 +354,10 @@ export default forwardRef(function Chart(props: Props, ref) {
       setPosition((p) => {
         setTimeout(() => {
           const res = onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
-          blurRef.current = res ? Number(isMin ? res.priceLower.toFixed(9) : res.priceUpper.toFixed(9)) : undefined
-        }, 200)
+          blurRef.current = res
+            ? Number(isMin ? res.priceLower.toFixed(decimals) : res.priceUpper.toFixed(decimals))
+            : undefined
+        }, 100)
         return { ...p, [side]: newVal }
       })
       if (!points.length) return
@@ -379,33 +375,58 @@ export default forwardRef(function Chart(props: Props, ref) {
         return filteredList
       })
     },
-    [tickGap, points, debounceUpdate]
+    [tickGap, points, debounceUpdate, decimals]
+  )
+
+  const checkMinMax = useEvent((pos?: Partial<{ min: number; max: number }>) => {
+    setPosition((p) => {
+      const newP = pos ? { ...p, ...pos } : p
+      if (newP[Range.Max] <= newP[Range.Min] && onAdjustMin) return { ...newP, [Range.Min]: onAdjustMin(newP).price }
+      return newP
+    })
+  })
+
+  const handleBlurInput = useCallback(
+    (side: Range) => {
+      if (blurRef.current === undefined) {
+        blurTimerRef.current = window.setTimeout(() => {
+          checkMinMax()
+        }, 200)
+        return
+      }
+      const newVal = blurRef.current
+      blurTimerRef.current = window.setTimeout(() => {
+        checkMinMax({ [side]: newVal })
+      }, 200)
+      blurRef.current = undefined
+    },
+    [updatePosition, onAdjustMin]
   )
 
   const handleInDecrease = useCallback(
-    (props: { val?: number | string; side: Range; isIncrease: boolean }): void => {
-      blurTimerRef.current && clearTimeout(blurTimerRef.current)
+    (props: { val?: number | string; side: Range; isIncrease: boolean }): number => {
+      if (blurTimerRef.current) clearTimeout(blurTimerRef.current)
       const { val = '', side, isIncrease } = props
       const isMin = side === Range.Min
+      let resultPosNum = Number(val)
       if (isIncrease) {
         setPosition((prePos) => {
           const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: true })
           const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
           if (hasPoints && !isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
             setDisplayList((list) => [...list, { x: posNum + tickGap, y: 0, extend: true }])
+          resultPosNum = posNum
           return { ...prePos, [side]: posNum }
         })
-        return
+        return resultPosNum
       }
       setPosition((prePos) => {
         const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: false })
         const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
-        if (isMin && posNum <= toFixedNumber(points[0].x, decimals))
-          return { ...prePos, [Range.Min]: toFixedNumber(points[0].x, decimals) } // when min < points[0].x
-        if (!isMin && posNum <= prePos[Range.Min]) return prePos // when max > max points
+        resultPosNum = posNum
         return { ...prePos, [side]: posNum }
       })
-      return
+      return resultPosNum
     },
     [points, hasPoints, tickGap, decimals]
   )
