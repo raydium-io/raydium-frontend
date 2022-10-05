@@ -906,8 +906,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             let myPosition = '--'
             const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
             const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
-            const lower = toString(p.priceLower, { decimalLength: 'auto 5' })
-            const upper = toString(p.priceUpper, { decimalLength: 'auto 5' })
+            const lower = toString(p.priceLower, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
+            const upper = toString(p.priceUpper, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
 
             if (lower && upper) {
               myPosition = lower + ' - ' + upper
