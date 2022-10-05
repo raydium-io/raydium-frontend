@@ -5,6 +5,7 @@ import Decimal from 'decimal.js'
 import {
   AmmV3PoolInfo,
   AmmV3PoolPersonalPosition,
+  ApiAmmV3ConfigInfo,
   ApiAmmV3PoolInfo,
   CurrencyAmount,
   Fraction,
@@ -155,4 +156,6 @@ export interface HydratedAmmV3ConfigInfo {
   protocolFeeRate: Percent
   tradeFeeRate: Percent
   tickSpacing: number
+
+  original: ApiAmmV3ConfigInfo
 }
