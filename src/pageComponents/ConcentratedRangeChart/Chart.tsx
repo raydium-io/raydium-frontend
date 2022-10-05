@@ -123,7 +123,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     setDisplayList([])
     boundaryRef.current = { min: 0, max: 100 }
     xAxisRef.current = []
-    if (poolIdRef.current !== poolFocusKey) {
+    if (poolIdRef.current !== poolFocusKey || showCurrentPriceOnly) {
       zoomRef.current = 0
       setXAxisDomain(DEFAULT_X_AXIS)
       setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
@@ -189,13 +189,17 @@ export default forwardRef(function Chart(props: Props, ref) {
   }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolFocusKey])
 
   useEffect(() => {
-    if ((!defaultMin && !defaultMax) || (hasPoints && poolIdRef.current && poolIdRef.current === poolFocusKey)) return
+    if (
+      (!defaultMin && !defaultMax) ||
+      (hasPoints && !showCurrentPriceOnly && poolIdRef.current && poolIdRef.current === poolFocusKey)
+    )
+      return
     poolIdRef.current = hasPoints ? poolFocusKey : undefined
     updatePosition({
       [Range.Min]: Number(defaultMin.toFixed(10)),
       [Range.Max]: Number(defaultMax.toFixed(10))
     })
-  }, [defaultMin, defaultMax, updatePosition, hasPoints, poolFocusKey])
+  }, [defaultMin, defaultMax, updatePosition, hasPoints, showCurrentPriceOnly, poolFocusKey, showCurrentPriceOnly])
 
   useEffect(() => {
     setXAxis(xAxisRef.current)
