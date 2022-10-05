@@ -15,6 +15,7 @@ import {
   UICLMMRewardInfo,
   UserPositionAccount
 } from './type'
+import { Signer, Keypair, Transaction } from '@solana/web3.js'
 
 export enum PoolsConcentratedTabs {
   ALL = 'All',
@@ -73,7 +74,7 @@ export type ConcentratedStore = {
   refreshCount: number
   refreshConcentrated: () => void
 
-  /** for list page */
+  /** data for hydrate is loading  */
   loading: boolean
   currentTab: PoolsConcentratedTabs
   searchText: string
@@ -85,6 +86,10 @@ export type ConcentratedStore = {
   availableAmmConfigFeeOptions?: HydratedAmmV3ConfigInfo[] // create pool
   userSelectedAmmConfigFeeOption?: HydratedAmmV3ConfigInfo // create pool
   userSettedCurrentPrice?: Numberish // create pool
+  tempDataCache?: {
+    transaction: Transaction // data store for create pool transaction
+    signers: (Signer | Keypair)[] // data store for create pool transaction
+  }
   rewards: UICLMMRewardInfo[] // TEMP
 }
 
