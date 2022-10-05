@@ -1100,10 +1100,12 @@ function PoolCardDatabaseBodyCollapsePositionContent({
           >
             <AutoBox
               is={isMobile ? 'div' : 'Row'}
-              className="flex-auto w-2/3 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center"
+              className={`${
+                !isMobile ? 'grid grid-cols-5' : 'flex-auto justify-between'
+              } w-2/3 mobile:w-full ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center`}
             >
               <Col
-                className="mobile:mb-2 mobile:pb-2"
+                className={`${!isMobile ? 'col-span-2' : ''} mobile:mb-2 mobile:pb-2`}
                 style={{ borderBottom: isMobile ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
               >
                 <div className="flex justify-start mobile:justify-between text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs">
@@ -1116,7 +1118,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   {info.quote?.symbol} per {info.base?.symbol}
                 </div>
               </Col>
-              <Col>
+              <Col className={`${!isMobile ? 'col-span-2' : ''}`}>
                 <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs gap-1">
                   My Position
                   {p ? (
@@ -1169,7 +1171,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               </Col>
               <AutoBox
                 is={isMobile ? 'Row' : 'Col'}
-                className={isMobile ? 'flex justify-center items-center pt-3' : ''}
+                className={isMobile ? 'flex justify-center items-center pt-3' : 'col-span-1'}
               >
                 <Button
                   className="frosted-glass-teal"
