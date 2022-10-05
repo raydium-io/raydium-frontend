@@ -7,7 +7,7 @@ interface Props {
   maxValue?: number | string
   onBlur?: (side: Range) => void
   onPriceChange: (props: { val: number | string | undefined; side: Range }) => void
-  onInDecrease: (props: { val?: number | string; side: Range; isIncrease: boolean }) => void
+  onInDecrease: (props: { val?: number | string; side: Range; isIncrease: boolean }) => number
 }
 
 export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceChange, onInDecrease, onBlur }: Props) {
@@ -22,14 +22,8 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         value={minValue}
         maxN={maxValue ? Number(maxValue) : undefined}
         onBlur={() => onBlur?.(Range.Min)}
-        increaseFn={() => {
-          onInDecrease({ val: minValue, side: Range.Min, isIncrease: true })
-          return undefined
-        }}
-        decreaseFn={() => {
-          onInDecrease({ val: minValue, side: Range.Min, isIncrease: false })
-          return undefined
-        }}
+        increaseFn={() => onInDecrease({ val: minValue, side: Range.Min, isIncrease: true })}
+        decreaseFn={() => onInDecrease({ val: minValue, side: Range.Min, isIncrease: false })}
         onUserInput={(val, { triggerBy }) => {
           const isClick = triggerBy === 'increase-decrease'
           if (!val || isClick) return
@@ -45,14 +39,8 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         value={maxValue}
         minN={minValue ? Number(minValue) : undefined}
         onBlur={() => onBlur?.(Range.Max)}
-        increaseFn={() => {
-          onInDecrease({ val: maxValue, side: Range.Max, isIncrease: true })
-          return undefined
-        }}
-        decreaseFn={() => {
-          onInDecrease({ val: maxValue, side: Range.Max, isIncrease: false })
-          return undefined
-        }}
+        increaseFn={() => onInDecrease({ val: maxValue, side: Range.Max, isIncrease: true })}
+        decreaseFn={() => onInDecrease({ val: maxValue, side: Range.Max, isIncrease: false })}
         onUserInput={(val, { triggerBy }) => {
           if (!val || triggerBy === 'increase-decrease') return
           onPriceChange({ val, side: Range.Max })

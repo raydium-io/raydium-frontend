@@ -17,11 +17,11 @@ import PageLayout from '@/components/PageLayout'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
+import toFraction from '@/functions/numberish/toFraction'
 import createContextStore from '@/functions/react/createContextStore'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
-import useToken from '@/application/token/useToken'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
@@ -47,6 +47,8 @@ import Icon from '@/components/Icon'
 import { inClient } from '@/functions/judgers/isSSR'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
 import usePrevious from '@/hooks/usePrevious'
+import { Fraction } from 'test-r-sdk'
+import { useEvent } from '@/hooks/useEvent'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -158,6 +160,10 @@ function ConcentratedCard() {
     if (isPairPoolDirectionEq) return formatPoints
     return formatPoints ? formatPoints.map((p) => ({ x: 1 / p.x, y: p.y })).reverse() : undefined
   }, [chartPoints, isPairPoolDirectionEq])
+  const tickDirection = useMemo(
+    () => Math.pow(-1, isCoin1Base ? (isFocus1 ? 0 : 1) : isFocus1 ? 1 : 0),
+    [isCoin1Base, isFocus1]
+  )
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
@@ -197,6 +203,15 @@ function ConcentratedCard() {
     coin1InputDisabled && useConcentrated.setState({ coin1Amount: '0' })
     coin2InputDisabled && useConcentrated.setState({ coin2Amount: '0' })
   }, [coin1InputDisabled, coin2InputDisabled])
+
+  useEffect(
+    () => () =>
+      useConcentrated.setState({
+        focusSide: 'coin1',
+        userCursorSide: 'coin1'
+      }),
+    []
+  )
 
   const haveEnoughCoin1 =
     coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
@@ -240,6 +255,23 @@ function ConcentratedCard() {
     coin2Amount
   })
 
+  const handleAdjustMin = useEvent((pos: { min: number; max: number }): { price: number; tick: number } => {
+    const originRes = { price: pos.min, tick: tickRef.current.lower! }
+    if (!currentAmmPool) return originRes
+    if (pos[Range.Min] >= pos[Range.Max]) {
+      const targetCoin = isFocus1 ? coin1 : coin2
+      const minTick = tickRef.current.upper! - currentAmmPool.state.tickSpacing * tickDirection
+      const { price, tick } = getTickPrice({
+        poolInfo: currentAmmPool.state,
+        baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
+        tick: minTick
+      })
+      tickRef.current.lower = tick
+      return { price: Number(price.toFixed(decimals)), tick }
+    }
+    return originRes
+  })
+
   const handlePosChange = useCallback(
     ({ side, userInput, ...pos }: { min: number; max: number; side?: Range; userInput?: boolean }) => {
       if (!currentAmmPool || !coin1 || !coin2 || !pos.min || !pos.max) return
@@ -270,33 +302,23 @@ function ConcentratedCard() {
       if (!currentAmmPool || !coin1 || !coin2) return
       const targetCoin = isFocus1 ? coin1 : coin2
       const tickKey = isMin ? 'lower' : 'upper'
-      if (tickRef.current[tickKey] === undefined) {
-        const res = getPriceTick({
-          p: p * 1.002,
-          coin1,
-          coin2,
-          reverse: !isFocus1,
-          ammPool: currentAmmPool
-        })
-        tickRef.current[tickKey] = res.tick
-      }
 
       const nextTick =
         tickRef.current[tickKey]! +
-        (isIncrease ? currentAmmPool.state.tickSpacing : -1 * currentAmmPool.state.tickSpacing) *
-          Math.pow(-1, isCoin1Base ? (isFocus1 ? 0 : 1) : isFocus1 ? 1 : 0)
-      const { price, tick } = getTickPrice({
+        (isIncrease ? currentAmmPool.state.tickSpacing : -1 * currentAmmPool.state.tickSpacing) * tickDirection
+      const { price } = getTickPrice({
         poolInfo: currentAmmPool.state,
         baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
         tick: nextTick
       })
+      if (isMin && Number(price.toFixed(decimals)) >= chartRef.current!.getPosition().max) return toFraction(p)
 
       tickRef.current[tickKey] = nextTick
       isMin && useConcentrated.setState({ priceLower: price, priceLowerTick: nextTick })
       !isMin && useConcentrated.setState({ priceUpper: price, priceUpperTick: nextTick })
       return price
     },
-    [coin1?.mint, coin2?.mint, currentAmmPool?.ammConfig.id, isFocus1, isCoin1Base]
+    [coin1?.mint, coin2?.mint, currentAmmPool?.idString, tickDirection, decimals]
   )
 
   const handleClickCreatePool = useCallback(() => {
@@ -498,6 +520,7 @@ function ConcentratedCard() {
             decimals={decimals}
             onPositionChange={handlePosChange}
             onInDecrease={handleClickInDecrease}
+            onAdjustMin={handleAdjustMin}
             showZoom
             height={200}
           />
