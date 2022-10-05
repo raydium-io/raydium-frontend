@@ -7,11 +7,10 @@ import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
+import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
 import useNotification from '@/application/notification/useNotification'
 import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { usePools } from '@/application/pools/usePools'
@@ -49,7 +48,9 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import { isInLocalhost } from '@/functions/judgers/isSSR'
+import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import { sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
@@ -57,11 +58,10 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
-import { isInLocalhost } from '@/functions/judgers/isSSR'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
-
+  useConcentratedPoolUrlParser()
   useConcentratedAmountCalculator()
 
   return (
@@ -626,13 +626,13 @@ function PoolCard() {
 
 function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentratedInfo[] }) {
   const loading = useConcentrated((s) => s.loading)
-  const expandedPoolId = useConcentrated((s) => s.expandedPoolId)
+  const expandedItemIds = useConcentrated((s) => s.expandedItemIds)
   const [favouriteIds, setFavouriteIds] = useConcentratedFavoriteIds()
   return sortedData.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
         <List.Item key={info.idString}>
-          <Collapse open={expandedPoolId === info.idString ? true : false}>
+          <Collapse open={expandedItemIds.has(info.idString)}>
             <Collapse.Face>
               {(open) => (
                 <PoolCardDatabaseBodyCollapseItemFace
@@ -903,46 +903,57 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     >
       {info.userPositionAccount ? (
         <>
-          {info.userPositionAccount.map((p) => {
-            let myPosition = '--'
-            const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
-            const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
-            const lower = toString(p.priceLower, { decimalLength: 'auto 5' })
-            const upper = toString(p.priceUpper, { decimalLength: 'auto 5' })
-
-            if (lower && upper) {
-              myPosition = lower + ' - ' + upper
-            }
-
-            const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
-            const coinBPrice = toTotalPrice(p.amountB, variousPrices[String(p.tokenB?.mint)] ?? null)
-
-            const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
-
-            const coinARewardPrice = toTotalPrice(p.tokenFeeAmountA, variousPrices[String(p.tokenA?.mint)] ?? null)
-            const coinBRewardPrice = toTotalPrice(p.tokenFeeAmountB, variousPrices[String(p.tokenB?.mint)] ?? null)
-            const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
-            const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
-
-            return (
-              <PoolCardDatabaseBodyCollapsePositionContent
-                key={p.nftMint.toString()}
-                poolInfo={info}
-                userPositionAccount={p}
-                myPosition={myPosition}
-                amountA={amountA}
-                amountB={amountB}
-                myPositionVolume={toUsdVolume(wholeLiquidity)}
-                coinAPrice={coinAPrice}
-                coinBPrice={coinBPrice}
-                inRange={p.inRange}
-                noBorderBottom={false}
-                rewardAPrice={coinARewardPrice}
-                rewardBPrice={coinBRewardPrice}
-                rewardTotalVolume={rewardTotalVolume}
-              />
+          {info.userPositionAccount
+            .sort((a: UserPositionAccount, b: UserPositionAccount) =>
+              Number(
+                toString(
+                  sub(
+                    a.getLiquidityVolume?.(tokenPrices).wholeLiquidity,
+                    b.getLiquidityVolume?.(tokenPrices).wholeLiquidity
+                  )
+                )
+              )
             )
-          })}
+            .map((p) => {
+              let myPosition = '--'
+              const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
+              const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
+              const lower = toString(p.priceLower, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
+              const upper = toString(p.priceUpper, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
+
+              if (lower && upper) {
+                myPosition = lower + ' - ' + upper
+              }
+
+              const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
+              const coinBPrice = toTotalPrice(p.amountB, variousPrices[String(p.tokenB?.mint)] ?? null)
+
+              const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
+
+              const coinARewardPrice = toTotalPrice(p.tokenFeeAmountA, variousPrices[String(p.tokenA?.mint)] ?? null)
+              const coinBRewardPrice = toTotalPrice(p.tokenFeeAmountB, variousPrices[String(p.tokenB?.mint)] ?? null)
+              const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
+              const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
+
+              return (
+                <PoolCardDatabaseBodyCollapsePositionContent
+                  key={p.nftMint.toString()}
+                  poolInfo={info}
+                  userPositionAccount={p}
+                  myPosition={myPosition}
+                  amountA={amountA}
+                  amountB={amountB}
+                  myPositionVolume={toUsdVolume(wholeLiquidity)}
+                  coinAPrice={coinAPrice}
+                  coinBPrice={coinBPrice}
+                  inRange={p.inRange}
+                  noBorderBottom={false}
+                  rewardAPrice={coinARewardPrice}
+                  rewardBPrice={coinBRewardPrice}
+                  rewardTotalVolume={rewardTotalVolume}
+                />
+              )
+            })}
 
           <AutoBox>{openNewPosition}</AutoBox>
         </>
@@ -1190,8 +1201,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   onClick={() => {
                     useConcentrated.setState({
                       currentAmmPool: info,
-                      targetUserPositionAccount: p,
-                      expandedPoolId: info.idString
+                      targetUserPositionAccount: p
                     })
                     routeTo('/clmm/my-position')
                   }}

@@ -1,3 +1,8 @@
+import { useImperativeHandle } from 'react'
+
+import { twMerge } from 'tailwind-merge'
+import { Fraction, Price, Token, TokenAmount } from 'test-r-sdk'
+
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
@@ -32,9 +37,6 @@ import Chart from '@/pageComponents/ConcentratedRangeChart/Chart'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
-import { useImperativeHandle } from 'react'
-import { twMerge } from 'tailwind-merge'
-import { Fraction, Price, Token, TokenAmount } from 'test-r-sdk'
 
 export default function MyPosition() {
   return (
@@ -518,7 +520,7 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
               <ColItem
                 className="gap-1 font-medium"
                 prefix={<div className="text-[#abc4ff80] min-w-[4em] mr-1">24h Fee</div>}
-                text={<div className="text-white">{toUsdVolume(currentAmmPool?.feeApr24h)}</div>}
+                text={<div className="text-white">{toUsdVolume(currentAmmPool?.volumeFee24h)}</div>}
               />
               <ColItem
                 className="gap-1 font-medium"
@@ -559,7 +561,7 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
                     </div>
                   </Row>
                 }
-              /> 
+              />
               <ColItem
                 className="gap-1 font-medium col-span-2"
                 prefix={
