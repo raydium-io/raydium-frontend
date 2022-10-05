@@ -55,6 +55,8 @@ import { HexAddress } from '@/types/constants'
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
+import useLiquidityInfoLoader from '@/application/liquidity/useLiquidityInfoLoader'
+import useAutoCleanLiquidityInfoCache from '@/application/liquidity/useAutoCleanLiquidityInfoCache'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -81,6 +83,8 @@ function LiquidityEffect() {
   useLiquidityUrlParser()
   useLiquidityInitCoinFiller()
   useLiquidityAmmSelector()
+  useLiquidityInfoLoader()
+  useAutoCleanLiquidityInfoCache()
   //  auto fresh  liquidity's coin1Amount and coin2Amount
   useLiquidityAmountCalculator()
   return null

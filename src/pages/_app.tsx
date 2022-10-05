@@ -54,7 +54,6 @@ import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionD
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 
 import '../styles/index.css'
-import useAutoCleanLiquidityInfoCache from '@/application/liquidity/useAutoCleanLiquidityInfoCache'
 import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import useConcentratedMyPositionUrlParser from '@/application/concentrated/useConcentratedMyPositionUrlParser'
 
@@ -168,10 +167,6 @@ function ApplicationsInitializations() {
   useTokenMintAutoRecord()
   useTokenListSettingsLocalStorage()
   useTokenGetterFnLoader()
-
-  /* ----- load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo) ----- */
-  useLiquidityInfoLoader()
-  useAutoCleanLiquidityInfoCache()
 
   /********************** pair Info (pools) **********************/
   usePoolsInfoLoader()

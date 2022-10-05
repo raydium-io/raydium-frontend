@@ -2,7 +2,7 @@ import useConnection from '@/application/connection/useConnection'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
-import { jsonInfo2PoolKeys, Liquidity, LiquidityPoolJsonInfo as LiquidityJsonInfo } from 'test-r-sdk'
+import { jsonInfo2PoolKeys, LiquidityPoolJsonInfo as LiquidityJsonInfo, TradeV2 } from 'test-r-sdk'
 
 import { SDKParsedLiquidityInfo } from './type'
 
@@ -24,10 +24,12 @@ export default async function sdkParseJsonLiquidityInfo(
   const allNeedSDKParsedLiquidityInfos = liquidityJsonInfos.filter((jsonInfo) => !allCachedIDs.includes(jsonInfo.id))
 
   const info = await (allNeedSDKParsedLiquidityInfos.length
-    ? Liquidity.fetchMultipleInfo({
+    ? TradeV2.fetchMultipleInfo({
         connection,
-        pools: allNeedSDKParsedLiquidityInfos.map(jsonInfo2PoolKeys)
-      }).catch(() => [])
+        pools: allNeedSDKParsedLiquidityInfos
+      })
+        .catch(() => [])
+        .then((res) => Object.values(res))
     : [])
 
   const sdkParsed: SDKParsedLiquidityInfo[] = info.map((sdkParsed, idx) => ({
