@@ -267,6 +267,7 @@ function ConcentratedCard() {
         tick: minTick
       })
       tickRef.current.lower = tick
+      useConcentrated.setState({ priceLowerTick: tick, priceLower: price })
       return { price: Number(price.toFixed(decimals)), tick }
     }
     return originRes
