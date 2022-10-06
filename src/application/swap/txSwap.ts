@@ -91,6 +91,6 @@ export default function txSwap() {
         }
       }
     ]) as TransactionQueue
-    transactionCollector.addQueue(queue, {})
+    transactionCollector.addQueue(queue)
   })
 }
