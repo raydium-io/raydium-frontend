@@ -14,7 +14,7 @@ const myPositionAmmIdName = 'MY_POSITION_AMM_ID'
 export default function useConcentratedMyPositionUrlParser() {
   const { pathname, query } = useRouter()
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
-  const hydrateConcentratedInfo = useConcentrated((s) => s.hydratedAmmPools)
+  const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
 
   const nftMint = toPubString(targetUserPositionAccount?.nftMint)
   const queryString = JSON.stringify(query) // compare flag
@@ -27,7 +27,7 @@ export default function useConcentratedMyPositionUrlParser() {
       const storagedNftMint = getSessionItem<string>(nftMintName)
       const ammId = getSessionItem<string>(myPositionAmmIdName)
 
-      const currentAmmPool = hydrateConcentratedInfo.find(({ id }) => isMintEqual(ammId, id))
+      const currentAmmPool = hydratedAmmPools.find(({ id }) => isMintEqual(ammId, id))
       const targetUserPositionAccount = currentAmmPool?.userPositionAccount?.find(({ nftMint }) =>
         isMintEqual(nftMint, storagedNftMint)
       )
@@ -38,7 +38,7 @@ export default function useConcentratedMyPositionUrlParser() {
         })
       }
     }
-  }, [nftMint, pathname, hydrateConcentratedInfo, queryString]) // nftMint is global unique (use nftMint to detect change)
+  }, [nftMint, pathname, hydratedAmmPools, queryString]) // nftMint is global unique (use nftMint to detect change)
 
   useRecordedEffect(
     ([prevPathname]) => {
@@ -47,7 +47,16 @@ export default function useConcentratedMyPositionUrlParser() {
       if (!prevPathname && pathname.includes('my-position') && !storagedNftMint && !ammId) {
         routeTo('/clmm/pools')
       }
+      if (hydratedAmmPools.length) {
+        const currentAmmPool = hydratedAmmPools.find(({ id }) => isMintEqual(ammId, id))
+        const targetUserPositionAccount = currentAmmPool?.userPositionAccount?.find(({ nftMint }) =>
+          isMintEqual(nftMint, storagedNftMint)
+        )
+        if (!targetUserPositionAccount) {
+          routeTo('/clmm/pools')
+        }
+      }
     },
-    [pathname]
+    [pathname, hydratedAmmPools]
   )
 }
