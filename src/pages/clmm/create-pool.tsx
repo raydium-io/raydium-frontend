@@ -161,7 +161,7 @@ export default function CreatePoolPage() {
 
   return (
     <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Create Farm">
-      <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f]" />
+      <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] mobile:hidden" />
 
       <div className={`pb-10 self-center transition-all duration-500 w-[min(840px,70vw)] mobile:w-[90vw] z-20`}>
         {!isMobile && (

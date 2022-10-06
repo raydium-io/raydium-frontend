@@ -46,7 +46,7 @@ function StepBadge(props: { n: number }) {
 
 function NavButtons({ className }: { className?: string }) {
   return (
-    <Row className={twMerge('items-center justify-between', className)}>
+    <Row className={twMerge('items-center justify-between mobile:hidden', className)}>
       <Button
         type="text"
         className="text-sm text-[#ABC4FF] opacity-50 px-0"

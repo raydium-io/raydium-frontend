@@ -41,7 +41,7 @@ import { Numberish } from '@/types/constants'
 export default function MyPosition() {
   return (
     <>
-      <PageLayout mobileBarTitle="Concentrated" metaTitle="Concentrated - Raydium">
+      <PageLayout mobileBarTitle="My Position" metaTitle="Concentrated - Raydium">
         <NavButtons />
         <MyPositionPageHead />
         <MyPositionCard />
@@ -56,7 +56,7 @@ function NavButtons() {
   return (
     <Row
       className={twMerge(
-        '-mt-4 mobile:mt-0 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] items-center justify-between'
+        '-mt-4 mobile:mt-0 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] mobile:hidden items-center justify-between'
       )}
     >
       <Button
@@ -104,7 +104,7 @@ function AsideNavButtons() {
 // const availableTabValues = ['Swap', 'Liquidity'] as const
 function MyPositionPageHead() {
   return (
-    <Row className="w-[min(912px,100%)] self-center mb-10 mobile:mb-2 font-medium text-2xl mobile:text-xl">
+    <Row className="w-[min(912px,100%)] self-center mb-10 mobile:mb-2 font-medium text-2xl mobile:text-xl mobile:hidden">
       My Position
     </Row>
   )
@@ -421,7 +421,7 @@ function MyPositionCardHeader({ className }: { className?: string }) {
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <Row className={twMerge('justify-between py-2 pb-5 mobile:py-1 mobile:pb-2 gap-2 flex-wrap', className)}>
+    <Row className={twMerge('justify-between py-2 pb-5 mobile:py-1 mobile:pb-3 gap-2 flex-wrap', className)}>
       <Row className="items-center gap-2">
         <CoinAvatarPair token1={currentAmmPool?.base} token2={currentAmmPool?.quote} size={isMobile ? 'md' : 'lg'} />
         <div className="font-medium text-xl mobile:text-lg text-white">
