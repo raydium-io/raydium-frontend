@@ -1,7 +1,7 @@
 import { Spl, TokenAmount } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import handleMultiTx, { AddSingleTxOptions, HandleMultiTxOptions } from '@/application/txTools/handleMultiTx'
+import handleMultiTx, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import { PublicKeyish } from '@/types/constants'
 import toPubString, { toPub } from '@/functions/format/toMintString'
@@ -19,7 +19,7 @@ export default async function txTransferToken(
 
     tokenAmount: TokenAmount
   } & AddSingleTxOptions &
-    HandleMultiTxOptions
+    HandleFnOptions
 ) {
   return handleMultiTx(
     async ({ transactionCollector, baseUtils: { owner, connection, tokenAccounts } }) => {
