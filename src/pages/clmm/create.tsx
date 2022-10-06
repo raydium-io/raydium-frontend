@@ -189,7 +189,7 @@ function ConcentratedCard() {
     : undefined
 
   const inputDisable =
-    currentAmmPool && currentPrice && priceUpper !== undefined && priceUpper !== undefined
+    currentAmmPool && currentPrice && priceLower !== undefined && priceUpper !== undefined
       ? [
           toBN(priceUpper || 0, decimals).lt(toBN(currentPrice || 0, decimals)),
           toBN(priceLower || 0, decimals).gt(toBN(currentPrice || 0, decimals))

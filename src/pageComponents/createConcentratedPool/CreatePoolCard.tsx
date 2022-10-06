@@ -13,11 +13,7 @@ import Row from '@/components/Row'
 import CoinInputBox from '@/components/CoinInputBox'
 import { toString } from '@/functions/numberish/toString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
-import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
-import { ConcentratedFeeSwitcher } from './ConcentratedFeeSwitcher'
-import SwitchFocusTabs from './SwitchFocusTabs'
-import PriceRangeInput from './PriceRangeInput'
+import toBN from '@/functions/numberish/toBN'
 import { Range } from './type'
 import { getPriceBoundary, getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import { Numberish } from '@/types/constants'
@@ -26,14 +22,29 @@ import { useEvent } from '@/hooks/useEvent'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import toFraction from '@/functions/numberish/toFraction'
+import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
+import { ConcentratedFeeSwitcher } from './ConcentratedFeeSwitcher'
+import SwitchFocusTabs from './SwitchFocusTabs'
+import PriceRangeInput from './PriceRangeInput'
+import EmptyCoinInput from './EmptyCoinInput'
+import InputLocked from './InputLocked'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
 
 export function CreatePoolCard() {
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const { currentAmmPool, coin1, coin2, coin1Amount, coin2Amount, focusSide, userSettedCurrentPrice } =
-    useConcentrated()
+  const {
+    currentAmmPool,
+    coin1,
+    coin2,
+    coin1Amount,
+    coin2Amount,
+    focusSide,
+    priceLower,
+    priceUpper,
+    userSettedCurrentPrice
+  } = useConcentrated()
   const tickRef = useRef<{ [Range.Low]?: number; [Range.Upper]?: number }>({
     [Range.Low]: undefined,
     [Range.Upper]: undefined
@@ -65,6 +76,17 @@ export function CreatePoolCard() {
     [isCoin1Base, isFocus1]
   )
 
+  const inputDisable =
+    currentAmmPool && userSettedCurrentPrice && priceLower !== undefined && priceUpper !== undefined
+      ? [
+          toBN(priceUpper || 0, decimals).lt(toBN(userSettedCurrentPrice || 0, decimals)),
+          toBN(priceLower || 0, decimals).gt(toBN(userSettedCurrentPrice || 0, decimals))
+        ]
+      : [false, false]
+
+  if (!isFocus1) inputDisable.reverse()
+  const [coin1InputDisabled, coin2InputDisabled] = inputDisable
+
   const swapElementBox1 = useRef<HTMLDivElement>(null)
   const swapElementBox2 = useRef<HTMLDivElement>(null)
   const [, { toggleSwap: toggleUISwap }] = useSwapTwoElements(swapElementBox1, swapElementBox2)
@@ -78,13 +100,6 @@ export function CreatePoolCard() {
   )
 
   const toFixedNumber = useCallback((val: Numberish): number => Number(toFraction(val).toFixed(decimals)), [decimals])
-  const currentPrice = currentAmmPool
-    ? decimalToFraction(
-        isPairPoolDirectionEq
-          ? currentAmmPool.state.currentPrice
-          : new Decimal(1).div(currentAmmPool.state.currentPrice)
-      )
-    : undefined
 
   const boundaryData = useMemo(() => {
     const res = getPriceBoundary({
@@ -219,54 +234,67 @@ export function CreatePoolCard() {
           <div className="font-medium text-[#abc4ff] my-1">Select Fee</div>
           <ConcentratedFeeSwitcher />
         </div>
-
+        <div className="text-secondary-title mt-5 mb-3">Deposit Amount</div>
         <div>
-          <CoinInputBox
-            className="mt-5 mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
-            disabled={isApprovePanelShown}
-            disabledInput={!currentAmmPool}
-            noDisableStyle
-            domRef={swapElementBox1}
-            value={currentAmmPool ? toString(coin1Amount) : undefined}
-            haveHalfButton
-            haveCoinIcon
-            topLeftLabel=""
-            onPriceChange={updatePrice1}
-            onUserInput={(amount) => {
-              useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
-            }}
-            token={coin1}
-          />
+          <div className="relative" ref={swapElementBox1}>
+            {coin1InputDisabled && <InputLocked />}
+            {coin1 ? (
+              <CoinInputBox
+                className="mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
+                disabled={isApprovePanelShown}
+                disabledInput={!currentAmmPool}
+                noDisableStyle
+                value={currentAmmPool ? toString(coin1Amount) : undefined}
+                haveHalfButton
+                haveCoinIcon
+                topLeftLabel=""
+                onPriceChange={updatePrice1}
+                onUserInput={(amount) => {
+                  useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
+                }}
+                token={coin1}
+              />
+            ) : (
+              <EmptyCoinInput />
+            )}
+          </div>
 
-          <CoinInputBox
-            className="py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
-            domRef={swapElementBox2}
-            disabled={isApprovePanelShown}
-            disabledInput={!currentAmmPool}
-            noDisableStyle
-            value={currentAmmPool ? toString(coin2Amount) : undefined}
-            haveHalfButton
-            haveCoinIcon
-            topLeftLabel=""
-            onPriceChange={updatePrice2}
-            onUserInput={(amount) => {
-              useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
-            }}
-            token={coin2}
-          />
+          <div className="relative" ref={swapElementBox2}>
+            {coin2InputDisabled && <InputLocked />}
+            {coin2 ? (
+              <CoinInputBox
+                className="py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
+                disabled={isApprovePanelShown}
+                disabledInput={!currentAmmPool}
+                noDisableStyle
+                value={currentAmmPool ? toString(coin2Amount) : undefined}
+                haveHalfButton
+                haveCoinIcon
+                topLeftLabel=""
+                onPriceChange={updatePrice2}
+                onUserInput={(amount) => {
+                  useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
+                }}
+                token={coin2}
+              />
+            ) : (
+              <EmptyCoinInput />
+            )}
+          </div>
         </div>
       </div>
 
       {/* right */}
       <div className="w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
         <div>
-          <div>
+          <div className="flex mb-6">
             <div className="font-medium text-[#abc4ff] my-1">Set Starting Price</div>
             <SwitchFocusTabs coin1={coin1} coin2={coin2} focusSide={focusSide} onChangeFocus={handleChangeFocus} />
           </div>
 
           <InputBox
             decimalMode
+            inputClassName="text-right"
             prefix={
               <span className="text-base text-secondary-title opacity-50">
                 Current {isFocus1 ? coin1?.symbol : coin2?.symbol} Price
@@ -283,7 +311,7 @@ export function CreatePoolCard() {
             }}
           />
         </div>
-
+        <div className="text-secondary-title mt-5 mb-3">Set Price Range</div>
         <PriceRangeInput
           decimals={decimals}
           minValue={toString(position[Range.Low])}

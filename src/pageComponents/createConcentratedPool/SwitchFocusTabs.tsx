@@ -41,7 +41,7 @@ export default function SwitchFocusTabs(props: Props) {
   )
 
   return (
-    <div className="flex justify-between items-center mb-[27px] mobile:flex-col mobile:items-baseline mobile:mb-3">
+    <div className="flex justify-between items-center mobile:flex-col mobile:items-baseline mobile:mb-3">
       {coin1 && coin2 && (
         <RectTabs
           classNames="ml-4 mobile:w-full mobile:ml-0"
