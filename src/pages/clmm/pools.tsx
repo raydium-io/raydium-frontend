@@ -1174,7 +1174,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 className={isMobile ? 'flex justify-center items-center pt-3' : 'col-span-1'}
               >
                 <Button
-                  className="frosted-glass-teal"
+                  className="frosted-glass-teal whitespace-normal"
                   size={isMobile ? 'xs' : undefined}
                   disabled={!p}
                   validators={[
