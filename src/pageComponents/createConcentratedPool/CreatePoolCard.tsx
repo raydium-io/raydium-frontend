@@ -155,7 +155,7 @@ export function CreatePoolCard() {
     ({ side, val }: { side: Range; val?: number | string }) => {
       if (!currentAmmPool || !coin1 || !coin2 || !val) return
       blurTimerRef.current = window.setTimeout(() => {
-        if (blurCheckTickRef) {
+        if (blurCheckTickRef.current) {
           const res = getPriceTick({
             p: val,
             coin1,

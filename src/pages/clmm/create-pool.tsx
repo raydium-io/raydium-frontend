@@ -34,6 +34,7 @@ import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
 import toFraction from '@/functions/numberish/toFraction'
@@ -121,6 +122,7 @@ export default function CreatePoolPage() {
   const poolId = useCreateFarms((s) => s.poolId)
   const getBalance = useWallet((s) => s.getBalance)
   const walletConnected = useWallet((s) => s.connected)
+  const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
 
@@ -151,6 +153,11 @@ export default function CreatePoolPage() {
   } = useConcentrated()
 
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
+
+  const haveEnoughCoin1 =
+    coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
+  const haveEnoughCoin2 =
+    coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }))
 
   return (
     <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Create Farm">
@@ -186,7 +193,15 @@ export default function CreatePoolPage() {
             validators={[
               { should: coin1 && coin2 },
               { should: isMeaningfulNumber(userSettedCurrentPrice), fallbackProps: { children: 'Input Price' } },
-              { should: userSelectedAmmConfigFeeOption, fallbackProps: { children: 'Select a fee option' } }
+              { should: userSelectedAmmConfigFeeOption, fallbackProps: { children: 'Select a fee option' } },
+              {
+                should: haveEnoughCoin1,
+                fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
+              },
+              {
+                should: haveEnoughCoin2,
+                fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
+              }
             ]}
             onClick={() => {
               onConfirmOpen()
