@@ -48,7 +48,6 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { isInLocalhost } from '@/functions/judgers/isSSR'
 import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -335,6 +334,7 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
 }
 
 function PoolCreateConcentratedPoolEntryBlock({ className }: { className?: string }) {
+  const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
   if (!isInLocalhost) return null
   return (
     <Row
