@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, useCallback, useMemo, useImperativeHandle, forwardRef, ReactNode } from 'react'
 import { Fraction } from 'test-r-sdk'
-import { ChartPoint, ChartRangeInputOption } from './ConcentratedRangeInputChartBody'
 import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
 import Icon from '@/components/Icon'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
 import {
+  ChartPoint,
+  ChartRangeInputOption,
   Range,
   DEFAULT_X_AXIS,
   HIGHLIGHT_COLOR,

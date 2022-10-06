@@ -1,7 +1,7 @@
 import { Keypair, Signer, Transaction } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
+import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo, Fraction } from 'test-r-sdk'
 import create from 'zustand'
 
 import useLocalStorageItem from '@/hooks/useLocalStorage'
@@ -10,7 +10,11 @@ import { Numberish } from '@/types/constants'
 import { SplToken } from '../token/type'
 
 import {
-  APIConcentratedInfo, HydratedAmmV3ConfigInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo, UICLMMRewardInfo,
+  APIConcentratedInfo,
+  HydratedAmmV3ConfigInfo,
+  HydratedConcentratedInfo,
+  SDKParsedConcentratedInfo,
+  UICLMMRewardInfo,
   UserPositionAccount
 } from './type'
 
@@ -54,6 +58,7 @@ export type ConcentratedStore = {
 
   priceLower?: Numberish
   priceUpper?: Numberish
+  totalDeposit?: Numberish
   //#endregion
 
   apiAmmPools: APIConcentratedInfo[]

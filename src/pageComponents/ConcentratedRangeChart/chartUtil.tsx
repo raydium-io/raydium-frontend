@@ -1,6 +1,20 @@
+import { Numberish } from '@/types/constants'
+
 export enum Range {
   Min = 'min',
   Max = 'max'
+}
+
+export type ChartPoint = {
+  x: number
+  y: number
+}
+export type ChartRangeInputOption = {
+  className?: string
+  points?: ChartPoint[]
+  careDecimalLength?: number
+  initMinBoundaryX?: Numberish
+  initMaxBoundaryX?: Numberish
 }
 export const smoothCount = 20
 export const ZOOM_INTERVAL = 15

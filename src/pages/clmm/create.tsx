@@ -245,7 +245,7 @@ function ConcentratedCard() {
   const [prices, setPrices] = useState<(string | undefined)[]>([])
   const updatePrice1 = useCallback((tokenP) => setPrices((p) => [tokenP?.toExact(), p[1]]), [])
   const updatePrice2 = useCallback((tokenP) => setPrices((p) => [p[0], tokenP?.toExact()]), [])
-  const totalDeposit = prices.filter((p) => !!p).reduce((acc, cur) => acc + parseFloat(cur!), 0)
+  const totalDeposit = prices.filter((p) => !!p).reduce((acc, cur) => acc.add(toFraction(cur!)), toFraction(0))
 
   const { ratio1, ratio2 } = calculateRatio({
     currentPrice,

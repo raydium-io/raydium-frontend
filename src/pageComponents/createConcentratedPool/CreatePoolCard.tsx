@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo, useEffect } from 'react'
+import { useState, useCallback, useRef, useMemo, useEffect, useImperativeHandle, RefObject } from 'react'
 import { twMerge } from 'tailwind-merge'
 import Decimal from 'decimal.js'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -10,7 +10,7 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
-import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
+import CoinInputBox from '@/components/CoinInputBox'
 import { toString } from '@/functions/numberish/toString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
@@ -19,32 +19,31 @@ import { ConcentratedFeeSwitcher } from './ConcentratedFeeSwitcher'
 import SwitchFocusTabs from './SwitchFocusTabs'
 import PriceRangeInput from './PriceRangeInput'
 import { Range } from './type'
-import {
-  getPriceBoundary,
-  getPriceTick,
-  getTickPrice,
-  calLowerUpper
-} from '@/application/concentrated/getNearistDataPoint'
+import { getPriceBoundary, getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import { Numberish } from '@/types/constants'
 import usePrevious from '@/hooks/usePrevious'
+import { useEvent } from '@/hooks/useEvent'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
+import toFraction from '@/functions/numberish/toFraction'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
 
 export function CreatePoolCard() {
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const { currentAmmPool, coin1, coin2, coin1Amount, coin2Amount, focusSide, priceLower } = useConcentrated()
-  const coinInputBox1ComponentRef = useRef<CoinInputBoxHandle>()
-  const coinInputBox2ComponentRef = useRef<CoinInputBoxHandle>()
+  const { currentAmmPool, coin1, coin2, coin1Amount, coin2Amount, focusSide, userSettedCurrentPrice } =
+    useConcentrated()
   const tickRef = useRef<{ [Range.Low]?: number; [Range.Upper]?: number }>({
     [Range.Low]: undefined,
     [Range.Upper]: undefined
   })
+  const blurTimerRef = useRef<number | undefined>()
 
   const [prices, setPrices] = useState<(string | undefined)[]>([])
   const [position, setPosition] = useState<{
-    [Range.Low]: undefined | Numberish
-    [Range.Upper]: undefined | Numberish
+    [Range.Low]: undefined | number
+    [Range.Upper]: undefined | number
   }>({
     [Range.Low]: undefined,
     [Range.Upper]: undefined
@@ -53,11 +52,32 @@ export function CreatePoolCard() {
   const updatePrice2 = useCallback((tokenP) => setPrices((p) => [p[0], tokenP?.toExact()]), [])
   const poolFocusKey = `${currentAmmPool?.idString}-${focusSide}`
   const prevFocusKey = usePrevious<string | undefined>(poolFocusKey)
-  const totalDeposit = prices.filter((p) => !!p).reduce((acc, cur) => acc + parseFloat(cur!), 0)
+  const totalDeposit = useMemo(
+    () => prices.filter((p) => !!p).reduce((acc, cur) => acc.add(toFraction(cur!)), toFraction(0)),
+    [prices]
+  )
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const isCoin1Base = isMintEqual(currentAmmPool?.state.mintA.mint, coin1)
   const isFocus1 = focusSide === 'coin1'
   const isPairPoolDirectionEq = (isFocus1 && isCoin1Base) || (!isCoin1Base && !isFocus1)
+  const tickDirection = useMemo(
+    () => Math.pow(-1, isCoin1Base ? (isFocus1 ? 0 : 1) : isFocus1 ? 1 : 0),
+    [isCoin1Base, isFocus1]
+  )
+
+  const swapElementBox1 = useRef<HTMLDivElement>(null)
+  const swapElementBox2 = useRef<HTMLDivElement>(null)
+  const [, { toggleSwap: toggleUISwap }] = useSwapTwoElements(swapElementBox1, swapElementBox2)
+  useRecordedEffect(
+    ([prevFocusSide]) => {
+      if (prevFocusSide && prevFocusSide !== focusSide) {
+        toggleUISwap()
+      }
+    },
+    [focusSide]
+  )
+
+  const toFixedNumber = useCallback((val: Numberish): number => Number(toFraction(val).toFixed(decimals)), [decimals])
   const currentPrice = currentAmmPool
     ? decimalToFraction(
         isPairPoolDirectionEq
@@ -78,44 +98,87 @@ export function CreatePoolCard() {
     return res
   }, [coin1, coin2, currentAmmPool, isPairPoolDirectionEq])
 
+  useEffect(
+    () => () =>
+      useConcentrated.setState({
+        focusSide: 'coin1',
+        userCursorSide: 'coin1',
+        totalDeposit: undefined
+      }),
+    []
+  )
+  useEffect(() => useConcentrated.setState({ totalDeposit }), [totalDeposit])
   useEffect(() => {
     if (poolFocusKey === prevFocusKey || !boundaryData) return
     useConcentrated.setState(boundaryData)
     setPosition({
-      [Range.Low]: boundaryData.priceLower,
-      [Range.Upper]: boundaryData.priceUpper
+      [Range.Low]: Number(boundaryData.priceLower.toFixed(decimals)),
+      [Range.Upper]: Number(boundaryData.priceUpper.toFixed(decimals))
     })
-  }, [boundaryData, poolFocusKey, prevFocusKey])
+  }, [boundaryData, poolFocusKey, prevFocusKey, decimals])
 
-  const blurRef = useRef<Range>()
+  const blurCheckTickRef = useRef<boolean>(false)
+  const isEmptyPoolData = !coin1 || !coin2 || !currentAmmPool
   const handleChangeFocus = useCallback((focusSide) => useConcentrated.setState({ focusSide }), [])
   const handleSelectToken = useCallback((token, tokenKey) => useConcentrated.setState({ [tokenKey!]: token }), [])
-  const handlePriceChange = useCallback(({ side, val }) => {
-    setPosition((p) => ({ ...p, [side]: val }))
-    blurRef.current = side
-  }, [])
+  const handlePriceChange = useEvent(({ side, val }) => {
+    if (isEmptyPoolData) return
+    const res = getPriceTick({
+      p: val,
+      coin1,
+      coin2,
+      reverse: !isFocus1,
+      ammPool: currentAmmPool
+    })
+    tickRef.current[side] = res.tick
+    setPosition((p) => ({ ...p, [side]: toFixedNumber(val) }))
+    blurCheckTickRef.current = true
+  })
+
+  const handleAdjustMin = useEvent((): void => {
+    if (!currentAmmPool || position[Range.Low] === undefined || position[Range.Upper] === undefined) return
+    if (position[Range.Low]! >= position[Range.Upper]!) {
+      const targetCoin = isFocus1 ? coin1 : coin2
+      const minTick = tickRef.current[Range.Upper]! - currentAmmPool.state.tickSpacing * tickDirection
+      const { price, tick } = getTickPrice({
+        poolInfo: currentAmmPool.state,
+        baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
+        tick: minTick
+      })
+      tickRef.current[Range.Low] = tick
+      useConcentrated.setState({ priceLowerTick: tick, priceLower: price })
+      setPosition((p) => ({ ...p, [Range.Low]: toFixedNumber(price) }))
+    }
+  })
 
   const handleBlur = useCallback(
     ({ side, val }: { side: Range; val?: number | string }) => {
-      if (!currentAmmPool || !coin1 || !coin2 || !blurRef.current || !val) return
-      blurRef.current = undefined
-      const res = getPriceTick({
-        p: val,
-        coin1,
-        coin2,
-        reverse: !isFocus1,
-        ammPool: currentAmmPool
-      })
-      tickRef.current[side] = res.tick
-      setPosition((p) => ({ ...p, [side]: res.price }))
-      useConcentrated.setState(getSideState({ side, price: res.price, tick: res.tick }))
+      if (!currentAmmPool || !coin1 || !coin2 || !val) return
+      blurTimerRef.current = window.setTimeout(() => {
+        if (blurCheckTickRef) {
+          const res = getPriceTick({
+            p: val,
+            coin1,
+            coin2,
+            reverse: !isFocus1,
+            ammPool: currentAmmPool
+          })
+          tickRef.current[side] = res.tick
+          setPosition((p) => ({ ...p, [side]: toFixedNumber(res.price) }))
+          useConcentrated.setState(getSideState({ side, price: res.price, tick: res.tick }))
+        }
+        blurCheckTickRef.current = false
+        handleAdjustMin()
+      }, 200)
     },
-    [coin1, coin2, currentAmmPool?.idString, isFocus1]
+    [coin1, coin2, currentAmmPool?.idString, isFocus1, toFixedNumber]
   )
 
-  const handleClickInDecrease = useCallback(
+  const handleClickInDecrease = useEvent(
     ({ val, side, isIncrease }: { val?: number | string; side: Range; isIncrease: boolean }) => {
-      if (!currentAmmPool || !coin1 || !coin2 || !val) return
+      if (!currentAmmPool || !coin1 || !coin2 || !val) return 0
+      blurTimerRef && clearTimeout(blurTimerRef.current)
+      blurCheckTickRef.current = false
       const targetCoin = isFocus1 ? coin1 : coin2
       const nextTick =
         tickRef.current[side]! +
@@ -126,12 +189,13 @@ export function CreatePoolCard() {
         baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
         tick: nextTick
       })
+      const priceNum = Number(price.toFixed(decimals))
+      if (side === Range.Low && priceNum >= position[Range.Upper]!) return Number(val)
       tickRef.current[side] = nextTick
       useConcentrated.setState(getSideState({ side, price, tick: nextTick }))
-      setPosition((p) => ({ ...p, [side]: price }))
-      return price
-    },
-    [coin1, coin2, currentAmmPool?.idString, isFocus1, isCoin1Base]
+      setPosition((p) => ({ ...p, [side]: priceNum }))
+      return priceNum
+    }
   )
 
   return (
@@ -162,7 +226,7 @@ export function CreatePoolCard() {
             disabled={isApprovePanelShown}
             disabledInput={!currentAmmPool}
             noDisableStyle
-            componentRef={coinInputBox1ComponentRef}
+            domRef={swapElementBox1}
             value={currentAmmPool ? toString(coin1Amount) : undefined}
             haveHalfButton
             haveCoinIcon
@@ -171,16 +235,12 @@ export function CreatePoolCard() {
             onUserInput={(amount) => {
               useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
             }}
-            onEnter={(input) => {
-              if (!input) return
-              if (!coin2) coinInputBox2ComponentRef.current?.selectToken?.()
-            }}
             token={coin1}
           />
 
           <CoinInputBox
             className="py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
-            componentRef={coinInputBox2ComponentRef}
+            domRef={swapElementBox2}
             disabled={isApprovePanelShown}
             disabledInput={!currentAmmPool}
             noDisableStyle
@@ -189,10 +249,6 @@ export function CreatePoolCard() {
             haveCoinIcon
             topLeftLabel=""
             onPriceChange={updatePrice2}
-            onEnter={(input) => {
-              if (!input) return
-              if (!coin1) coinInputBox1ComponentRef.current?.selectToken?.()
-            }}
             onUserInput={(amount) => {
               useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
             }}
@@ -221,12 +277,13 @@ export function CreatePoolCard() {
                 {isFocus1 ? coin2?.symbol : coin1?.symbol}
               </span>
             }
-            value={currentPrice?.toFixed(decimals)}
+            value={userSettedCurrentPrice ? toFixedNumber(userSettedCurrentPrice) : ''}
             onUserInput={(value) => {
               useConcentrated.setState({ userSettedCurrentPrice: value })
             }}
           />
         </div>
+
         <PriceRangeInput
           decimals={decimals}
           minValue={toString(position[Range.Low])}
