@@ -4,6 +4,7 @@ import { twMerge } from 'tailwind-merge'
 import { CurrencyAmount } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
+import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
@@ -12,7 +13,6 @@ import useConcentrated, {
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
 import useNotification from '@/application/notification/useNotification'
-import { isHydratedConcentratedItemInfo } from '@/application/pools/is'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
