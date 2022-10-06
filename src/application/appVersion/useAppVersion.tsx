@@ -1,7 +1,9 @@
+import { useEffect } from 'react'
+
+import create from 'zustand'
+
 import jFetch from '@/functions/dom/jFetch'
 import { inClient } from '@/functions/judgers/isSSR'
-import { useEffect } from 'react'
-import create from 'zustand'
 
 // frontend (client)
 const APP_VERSION = 'V2.7.35'
