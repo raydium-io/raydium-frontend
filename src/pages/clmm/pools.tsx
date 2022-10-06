@@ -1173,43 +1173,45 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 is={isMobile ? 'Row' : 'Col'}
                 className={isMobile ? 'flex justify-center items-center pt-3' : 'col-span-1'}
               >
-                <Button
-                  className="frosted-glass-teal whitespace-normal"
-                  size={isMobile ? 'xs' : undefined}
-                  disabled={!p}
-                  validators={[
-                    {
-                      should: walletConnected,
-                      forceActive: true,
-                      fallbackProps: {
-                        onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                        children: 'Connect Wallet'
+                <div className="flex justify-end shrink">
+                  <Button
+                    className="frosted-glass-teal"
+                    size={isMobile ? 'xs' : undefined}
+                    disabled={!p}
+                    validators={[
+                      {
+                        should: walletConnected,
+                        forceActive: true,
+                        fallbackProps: {
+                          onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                          children: 'Connect Wallet'
+                        }
+                      },
+                      {
+                        should: p,
+                        forceActive: true,
+                        fallbackProps: {
+                          onClick: () => {
+                            useConcentrated.setState({ coin1: info.base, coin2: info.quote })
+                            routeTo('/clmm/create', {
+                              queryProps: {}
+                            })
+                          },
+                          children: 'Create Position'
+                        }
                       }
-                    },
-                    {
-                      should: p,
-                      forceActive: true,
-                      fallbackProps: {
-                        onClick: () => {
-                          useConcentrated.setState({ coin1: info.base, coin2: info.quote })
-                          routeTo('/clmm/create', {
-                            queryProps: {}
-                          })
-                        },
-                        children: 'Create Position'
-                      }
-                    }
-                  ]}
-                  onClick={() => {
-                    useConcentrated.setState({
-                      currentAmmPool: info,
-                      targetUserPositionAccount: p
-                    })
-                    routeTo('/clmm/my-position')
-                  }}
-                >
-                  Manage
-                </Button>
+                    ]}
+                    onClick={() => {
+                      useConcentrated.setState({
+                        currentAmmPool: info,
+                        targetUserPositionAccount: p
+                      })
+                      routeTo('/clmm/my-position')
+                    }}
+                  >
+                    Manage
+                  </Button>
+                </div>
               </AutoBox>
             </AutoBox>
             <AutoBox
@@ -1296,7 +1298,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 className={isMobile ? 'flex justify-center items-center pt-3' : ''}
               >
                 <Button
-                  className="frosted-glass-teal"
+                  className="frosted-glass-teal "
                   size={isMobile ? 'xs' : undefined}
                   isLoading={isApprovePanelShown}
                   validators={[
