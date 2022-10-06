@@ -1,16 +1,17 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Percent } from 'test-r-sdk'
-
 import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
+import { Percent } from 'test-r-sdk'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import useFarms from '@/application/farms/useFarms'
 import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
+import useAutoCleanLiquidityInfoCache from '@/application/liquidity/useAutoCleanLiquidityInfoCache'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import useLiquidityAmmSelector from '@/application/liquidity/useLiquidityAmmSelector'
 import useLiquidityAmountCalculator from '@/application/liquidity/useLiquidityAmountCalculator'
+import useLiquidityInfoLoader from '@/application/liquidity/useLiquidityInfoLoader'
 import useLiquidityInitCoinFiller from '@/application/liquidity/useLiquidityInitCoinFiller'
 import useLiquidityUrlParser from '@/application/liquidity/useLiquidityUrlParser'
 import { routeTo } from '@/application/routeTools'
@@ -55,8 +56,6 @@ import { HexAddress } from '@/types/constants'
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
-import useLiquidityInfoLoader from '@/application/liquidity/useLiquidityInfoLoader'
-import useAutoCleanLiquidityInfoCache from '@/application/liquidity/useAutoCleanLiquidityInfoCache'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -83,8 +82,6 @@ function LiquidityEffect() {
   useLiquidityUrlParser()
   useLiquidityInitCoinFiller()
   useLiquidityAmmSelector()
-  useLiquidityInfoLoader()
-  useAutoCleanLiquidityInfoCache()
   //  auto fresh  liquidity's coin1Amount and coin2Amount
   useLiquidityAmountCalculator()
   return null

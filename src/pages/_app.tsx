@@ -6,21 +6,17 @@ import { PublicKey } from '@solana/web3.js'
 import NextNProgress from 'nextjs-progressbar'
 
 import {
-  useDefaultExplorerSyncer,
-  useDeviceInfoSyc,
-  useDisclaimerDataSyncer,
-  useGetSlotCountForSecond,
-  useRpcPerformance,
-  useSentryConfigurator,
-  useSlippageTolerenceSyncer,
-  useSlippageTolerenceValidator,
-  useThemeModeSync
+  useDefaultExplorerSyncer, useDeviceInfoSyc, useDisclaimerDataSyncer, useGetSlotCountForSecond, useRpcPerformance,
+  useSentryConfigurator, useSlippageTolerenceSyncer, useSlippageTolerenceValidator, useThemeModeSync
 } from '@/application/appSettings/initializationHooks'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
+import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
+import useConcentratedMyPositionUrlParser from '@/application/concentrated/useConcentratedMyPositionUrlParser'
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
 import useFreshChainTimeOffset from '@/application/connection/useFreshChainTimeOffset'
 import { useUserCustomizedEndpointInitLoad } from '@/application/connection/useUserCustomizedEndpointInitLoad'
 import useFarmInfoLoader from '@/application/farms/useFarmInfoLoader'
+import useAutoCleanLiquidityInfoCache from '@/application/liquidity/useAutoCleanLiquidityInfoCache'
 import useLiquidityInfoLoader from '@/application/liquidity/useLiquidityInfoLoader'
 import useMessageBoardFileLoader from '@/application/messageBoard/useMessageBoardFileLoader'
 import useMessageBoardReadedIdRecorder from '@/application/messageBoard/useMessageBoardReadedIdRecorder'
@@ -54,8 +50,6 @@ import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionD
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 
 import '../styles/index.css'
-import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
-import useConcentratedMyPositionUrlParser from '@/application/concentrated/useConcentratedMyPositionUrlParser'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -167,6 +161,10 @@ function ApplicationsInitializations() {
   useTokenMintAutoRecord()
   useTokenListSettingsLocalStorage()
   useTokenGetterFnLoader()
+
+  /* ----- load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo) ----- */
+  useLiquidityInfoLoader()
+  useAutoCleanLiquidityInfoCache()
 
   /********************** pair Info (pools) **********************/
   usePoolsInfoLoader()
