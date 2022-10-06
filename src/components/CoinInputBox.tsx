@@ -3,7 +3,6 @@ import React, {
 } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { I } from 'test-r-sdk/lib/farm-9d04a2e6'
 
 import useAppSettings from '@/application/appSettings/useAppSettings'
 import { usePools } from '@/application/pools/usePools'
