@@ -21,6 +21,7 @@ import usePrevious from '@/hooks/usePrevious'
 import { useEvent } from '@/hooks/useEvent'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
+import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import toFraction from '@/functions/numberish/toFraction'
 import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
 import { ConcentratedFeeSwitcher } from './ConcentratedFeeSwitcher'
@@ -76,11 +77,17 @@ export function CreatePoolCard() {
     [isCoin1Base, isFocus1]
   )
 
+  const currentPrice = currentAmmPool
+    ? decimalToFraction(
+        isCoin1Base ? currentAmmPool.state.currentPrice : new Decimal(1).div(currentAmmPool.state.currentPrice)
+      )
+    : undefined
+
   const inputDisable =
-    currentAmmPool && userSettedCurrentPrice && priceLower !== undefined && priceUpper !== undefined
+    currentAmmPool && currentPrice && priceLower !== undefined && priceUpper !== undefined
       ? [
-          toBN(priceUpper || 0, decimals).lt(toBN(userSettedCurrentPrice || 0, decimals)),
-          toBN(priceLower || 0, decimals).gt(toBN(userSettedCurrentPrice || 0, decimals))
+          toBN(priceUpper || 0, decimals).lt(toBN(currentPrice || 0, decimals)),
+          toBN(priceLower || 0, decimals).gt(toBN(currentPrice || 0, decimals))
         ]
       : [false, false]
 
@@ -305,7 +312,7 @@ export function CreatePoolCard() {
                 {isFocus1 ? coin2?.symbol : coin1?.symbol}
               </span>
             }
-            value={userSettedCurrentPrice ? toFixedNumber(userSettedCurrentPrice) : ''}
+            value={currentPrice ? toFixedNumber(currentPrice) : ''}
             onUserInput={(value) => {
               useConcentrated.setState({ userSettedCurrentPrice: value })
             }}
