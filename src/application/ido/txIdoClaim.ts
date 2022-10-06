@@ -1,7 +1,7 @@
 import { Spl, WSOL } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import handleMultiTx, { AddSingleTxOptions, HandleMultiTxOptions } from '@/application/txTools/handleMultiTx'
+import handleMultiTx, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import { toString } from '@/functions/numberish/toString'
 import { div } from '@/functions/numberish/operations'
@@ -10,7 +10,7 @@ import { Ido, Snapshot } from './sdk'
 import { HydratedIdoInfo } from './type'
 
 export default async function txIdoClaim(
-  options: { idoInfo: HydratedIdoInfo; side: 'base' | 'quote' } & AddSingleTxOptions & HandleMultiTxOptions
+  options: { idoInfo: HydratedIdoInfo; side: 'base' | 'quote' } & AddSingleTxOptions & HandleFnOptions
 ) {
   const { idoInfo, side, forceKeyPairs, ...restTxAddOptions } = options
   return handleMultiTx(

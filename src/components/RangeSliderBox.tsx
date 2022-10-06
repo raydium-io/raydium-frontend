@@ -6,6 +6,8 @@ import { twMerge } from 'tailwind-merge'
 
 import toPercentString from '@/functions/format/toPercentString'
 import { isArray } from '@/functions/judgers/dateType'
+import { div } from '@/functions/numberish/operations'
+import { toString } from '@/functions/numberish/toString'
 import mergeProps from '@/functions/react/mergeProps'
 
 import Row from './Row'
@@ -58,9 +60,9 @@ export default function RangeSliderBox(props: RangeSliderBoxProps) {
   )
 
   useEffect(() => {
-    const newCurrentPercentage = (liquidity?.toNumber() ?? 0) / max
+    const newCurrentPercentage = Number(toString(div(liquidity ?? 0, max), { decimalLength: 'auto 4' }))
     setCurrentPercentage(newCurrentPercentage > 1 ? 1 : newCurrentPercentage)
-    setCurrentValue(liquidity?.toNumber() ?? 0)
+    setCurrentValue(Number(toString(liquidity, { decimalLength: 'auto 2' })) ?? 0)
   }, [liquidity])
 
   return (
@@ -84,7 +86,7 @@ export default function RangeSliderBox(props: RangeSliderBoxProps) {
           {toPercentString(currentPercentage)}
         </div>
       </Row>
-      <SliderWrap currentValue={55} className={'mt-5'} max={max} onChange={onSliderChange} value={currentValue} />
+      <SliderWrap className={'mt-5'} max={max} onChange={onSliderChange} value={currentValue} />
     </div>
   )
 }
@@ -116,7 +118,6 @@ function PercentTag({
 }
 
 function SliderWrap({
-  currentValue,
   max,
   className,
   trackStyle,
@@ -127,7 +128,6 @@ function SliderWrap({
   defaultValue,
   ...restProps
 }: {
-  currentValue: number
   max: number
   className?: string
   trackStyle?: SliderProps['trackStyle']

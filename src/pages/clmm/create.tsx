@@ -1,54 +1,55 @@
+import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import Decimal from 'decimal.js'
+import { twMerge } from 'tailwind-merge'
+import { Fraction } from 'test-r-sdk'
+
 import useAppSettings from '@/application/appSettings/useAppSettings'
-import useConcentrated from '@/application/concentrated/useConcentrated'
+import {
+  calLowerUpper, getPriceBoundary, getPriceTick, getTickPrice
+} from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
+import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
-import toPercentString from '@/functions/format/toPercentString'
-import toPubString from '@/functions/format/toMintString'
+import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
+import useConcentratedLiquidityUrlParser from '@/application/concentrated/useConcentratedLiquidityUrlParser'
+import { routeBack, routeTo } from '@/application/routeTools'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
-import toBN from '@/functions/numberish/toBN'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import toUsdVolume from '@/functions/format/toUsdVolume'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
+import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import { FadeIn } from '@/components/FadeIn'
+import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
+import Row from '@/components/Row'
+import toPubString from '@/functions/format/toMintString'
+import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import toUsdVolume from '@/functions/format/toUsdVolume'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import { inClient } from '@/functions/judgers/isSSR'
 import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
-import { toString } from '@/functions/numberish/toString'
+import { div, sub } from '@/functions/numberish/operations'
+import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
+import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
+import { useEvent } from '@/hooks/useEvent'
+import usePrevious from '@/hooks/usePrevious'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
-import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
-import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  getPriceBoundary,
-  getPriceTick,
-  getTickPrice,
-  calLowerUpper
-} from '@/application/concentrated/getNearistDataPoint'
+import { canTokenPairBeSelected, PairInfoTitle, RemainSOLAlert, toXYChartFormat } from '@/pageComponents/Concentrated'
 import InputLocked from '@/pageComponents/Concentrated/InputLocked'
+import { calculateRatio } from '@/pageComponents/Concentrated/util'
+import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
+
+import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
-import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
-import { RemainSOLAlert, canTokenPairBeSelected, toXYChartFormat, PairInfoTitle } from '@/pageComponents/Concentrated'
-import Decimal from 'decimal.js'
-import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
-import { routeBack, routeTo } from '@/application/routeTools'
-import Row from '@/components/Row'
-import { FadeIn } from '@/components/FadeIn'
-import CoinAvatarPair from '@/components/CoinAvatarPair'
-import { div, sub } from '@/functions/numberish/operations'
-import { twMerge } from 'tailwind-merge'
-import Icon from '@/components/Icon'
-import { inClient } from '@/functions/judgers/isSSR'
-import { calculateRatio } from '@/pageComponents/Concentrated/util'
-import usePrevious from '@/hooks/usePrevious'
-import { Fraction } from 'test-r-sdk'
-import { useEvent } from '@/hooks/useEvent'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -121,6 +122,7 @@ function AsideNavButtons() {
 }
 
 function ConcentratedEffects() {
+  useConcentratedLiquidityUrlParser()
   useConcentratedAmmSelector()
   useConcentratedAmountCalculator()
   useConcentratedInitCoinFiller()
