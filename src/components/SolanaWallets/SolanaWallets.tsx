@@ -12,7 +12,7 @@ import {
 } from '@solana/wallet-adapter-wallets'
 import { clusterApiUrl } from '@solana/web3.js'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */

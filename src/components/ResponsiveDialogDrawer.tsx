@@ -1,4 +1,4 @@
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 
 import Dialog, { DialogProps } from './Dialog'
 import Drawer, { DrawerProps } from './Drawer'

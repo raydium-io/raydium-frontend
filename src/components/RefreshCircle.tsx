@@ -10,7 +10,7 @@ import { AnyFn } from '@/types/constants'
 import { useDocumentVisibility } from '../hooks/useDocumentVisibility'
 
 import { PopoverPlacement } from './Popover'
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { inServer } from '@/functions/judgers/isSSR'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { useSignalState } from '@/hooks/useSignalState'

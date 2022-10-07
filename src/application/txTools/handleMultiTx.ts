@@ -14,7 +14,7 @@ import {
 } from '@solana/web3.js'
 import produce from 'immer'
 import { noTailingPeriod } from '../../functions/format/noTailingPeriod'
-import useAppSettings from '../appSettings/useAppSettings'
+import useAppSettings from '../common/useAppSettings'
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 import useTxHistory, { TxHistoryInfo } from '../txHistory/useTxHistory'

@@ -2,7 +2,7 @@ import React, { ReactNode, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { useHover } from '@/hooks/useHover'
 
 import Row from './Row'

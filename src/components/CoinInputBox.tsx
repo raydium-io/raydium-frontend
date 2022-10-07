@@ -1,13 +1,24 @@
 import React, {
-  CSSProperties, ReactNode, RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState
+  CSSProperties,
+  ReactNode,
+  RefObject,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState
 } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { usePools } from '@/application/pools/usePools'
 import {
-  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE, WSOLMint
+  isQuantumSOL,
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  SOL_BASE_BALANCE,
+  WSOLMint
 } from '@/application/token/quantumSOL'
 import { Token } from '@/application/token/type'
 import useToken from '@/application/token/useToken'

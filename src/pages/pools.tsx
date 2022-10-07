@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useFarms from '@/application/farms/useFarms'
 import { isHydratedPoolItemInfo } from '@/application/pools/is'
 import { HydratedPairItemInfo } from '@/application/pools/type'

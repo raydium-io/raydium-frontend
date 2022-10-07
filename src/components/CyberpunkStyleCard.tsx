@@ -1,4 +1,4 @@
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { useMemo } from 'react'
 import { twMerge } from 'tailwind-merge'
 

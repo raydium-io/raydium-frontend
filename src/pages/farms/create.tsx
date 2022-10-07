@@ -3,7 +3,7 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import produce from 'immer'
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'

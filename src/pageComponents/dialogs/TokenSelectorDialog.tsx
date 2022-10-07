@@ -2,7 +2,7 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'rea
 
 import { PublicKeyish } from 'test-r-sdk'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
 import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
 import {

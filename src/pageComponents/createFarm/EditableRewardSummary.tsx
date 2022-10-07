@@ -24,7 +24,7 @@ import { TimeStamp } from '@/functions/date/interface'
 import { Numberish } from '@/types/constants'
 import Tooltip from '@/components/Tooltip'
 import Button from '@/components/Button'
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import toPubString from '@/functions/format/toMintString'
 
 export function EditableRewardSummary({

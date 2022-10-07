@@ -1,4 +1,4 @@
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Row from '@/components/Row'

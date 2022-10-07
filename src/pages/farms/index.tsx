@@ -4,7 +4,7 @@ import { PublicKeyish, TokenAmount } from 'test-r-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { isHydratedFarmInfo, isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
 import txFarmDeposit from '@/application/farms/txFarmDeposit'

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { AmmV3 } from 'test-r-sdk'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import { routeTo } from '@/application/routeTools'

@@ -4,7 +4,7 @@ import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
 import { Percent } from 'test-r-sdk'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useFarms from '@/application/farms/useFarms'
 import txAddLiquidity from '@/application/liquidity/txAddLiquidity'
 import useLiquidity from '@/application/liquidity/useLiquidity'

@@ -3,7 +3,7 @@ import { useImperativeHandle } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { Fraction, Price, Token, TokenAmount } from 'test-r-sdk'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'

@@ -1,4 +1,4 @@
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { isString } from '@/functions/judgers/dateType'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import useLocalStorageItem from '@/hooks/useLocalStorage'

@@ -4,9 +4,12 @@ import Decimal from 'decimal.js'
 import { twMerge } from 'tailwind-merge'
 import { Fraction } from 'test-r-sdk'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import {
-  calLowerUpper, getPriceBoundary, getPriceTick, getTickPrice
+  calLowerUpper,
+  getPriceBoundary,
+  getPriceTick,
+  getTickPrice
 } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'

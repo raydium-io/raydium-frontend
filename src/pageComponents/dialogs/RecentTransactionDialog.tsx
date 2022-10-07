@@ -1,6 +1,6 @@
 import React from 'react'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useTxHistory, { TxHistoryInfo } from '@/application/txHistory/useTxHistory'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'

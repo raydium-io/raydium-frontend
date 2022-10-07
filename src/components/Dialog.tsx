@@ -4,7 +4,7 @@ import { Dialog as _Dialog, Transition } from '@headlessui/react'
 
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import useTwoStateSyncer from '@/hooks/use2StateSyncer'
 import { MayFunction } from '@/types/generics'

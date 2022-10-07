@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { HydratedIdoInfo } from '@/application/ido/type'
 import useIdo from '@/application/ido/useIdo'
 import useWallet from '@/application/wallet/useWallet'

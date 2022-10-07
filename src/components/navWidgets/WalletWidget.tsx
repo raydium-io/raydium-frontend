@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useWallet from '@/application/wallet/useWallet'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import useToggle from '@/hooks/useToggle'

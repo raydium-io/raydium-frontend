@@ -1,4 +1,4 @@
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'

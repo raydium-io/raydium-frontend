@@ -3,7 +3,7 @@ import { useCallback, useMemo } from 'react'
 import BN from 'bn.js'
 import { AmmV3 } from 'test-r-sdk'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import RangeSliderBox from '@/components/RangeSliderBox'
 import assert from '@/functions/assert'

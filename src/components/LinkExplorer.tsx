@@ -1,6 +1,6 @@
 import { ReactNode, useMemo } from 'react'
 
-import useAppSettings, { ExplorerName } from '@/application/appSettings/useAppSettings'
+import useAppSettings, { ExplorerName } from '@/application/common/useAppSettings'
 
 import Link from './Link'
 

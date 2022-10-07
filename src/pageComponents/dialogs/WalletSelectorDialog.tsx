@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 
 import { WalletAdapter, WalletReadyState } from '@solana/wallet-adapter-base'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
 import useWallet from '@/application/wallet/useWallet'
 import { Badge } from '@/components/Badge'

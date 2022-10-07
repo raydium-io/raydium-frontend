@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 
 import { jsonInfo2PoolKeys, Liquidity, LiquidityPoolJsonInfo } from 'test-r-sdk'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { deUIToken, deUITokenAmount, toUITokenAmount } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import toPubString from '@/functions/format/toMintString'

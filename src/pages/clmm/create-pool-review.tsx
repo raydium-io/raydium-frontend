@@ -1,4 +1,4 @@
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import txCreateNewFarm from '@/application/createFarm/txCreateNewFarm'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'

@@ -1,23 +1,22 @@
 import useConnection from '@/application/connection/useConnection'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
-import useToken from '../token/useToken'
-import useWallet from './useWallet'
+import { QuantumSOL, toQuantumSolAmount, WSOL, WSOLMint } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
-import { WSOLMint, toQuantumSolAmount, QuantumSOL, WSOL } from '@/application/token/quantumSOL'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { add } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
-import { objectShakeNil, objectMap } from '@/functions/objectMethods'
+import { objectMap, objectShakeNil } from '@/functions/objectMethods'
 import { Numberish } from '@/types/constants'
 import { PublicKeyish, TokenAmount } from 'test-r-sdk'
+import useToken from '../token/useToken'
 import { ITokenAccount } from './type'
-import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
+import useWallet from './useWallet'
 
-/** it is base on tokenAccounts, so when tokenAccounts refresh, balance will auto refresh */
+/** ! refresh when tokenAccounts refresh */
 export default function useInitBalanceRefresher() {
   const tokenAccounts = useWallet((s) => s.tokenAccounts)
   const allTokenAccounts = useWallet((s) => s.allTokenAccounts) // to get wsol balance

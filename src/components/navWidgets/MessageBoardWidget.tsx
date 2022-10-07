@@ -12,7 +12,7 @@ import PageLayoutPopoverDrawer from '../PageLayoutPopoverDrawer'
 import ResponsiveDialogDrawer from '../ResponsiveDialogDrawer'
 import Row from '../Row'
 import linkTo from '@/functions/dom/linkTo'
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { Markdown } from '../Markdown'
 
 /**

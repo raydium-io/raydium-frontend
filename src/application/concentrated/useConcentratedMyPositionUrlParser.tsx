@@ -47,7 +47,7 @@ export default function useConcentratedMyPositionUrlParser() {
       if (!prevPathname && pathname.includes('my-position') && !storagedNftMint && !ammId) {
         routeTo('/clmm/pools')
       }
-      if (hydratedAmmPools.length) {
+      if (pathname === '/clmm/my-position' && hydratedAmmPools.length) {
         const currentAmmPool = hydratedAmmPools.find(({ id }) => isMintEqual(ammId, id))
         const targetUserPositionAccount = currentAmmPool?.userPositionAccount?.find(({ nftMint }) =>
           isMintEqual(nftMint, storagedNftMint)

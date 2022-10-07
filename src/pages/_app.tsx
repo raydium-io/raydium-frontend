@@ -5,11 +5,8 @@ import { PublicKey } from '@solana/web3.js'
 
 import NextNProgress from 'nextjs-progressbar'
 
-import {
-  useDefaultExplorerSyncer, useDeviceInfoSyc, useDisclaimerDataSyncer, useGetSlotCountForSecond, useRpcPerformance,
-  useSentryConfigurator, useSlippageTolerenceSyncer, useSlippageTolerenceValidator, useThemeModeSync
-} from '@/application/appSettings/initializationHooks'
-import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/appVersion/useAppVersion'
+import { useClientInitialization, useInnerAppInitialization } from '@/application/common/initializationHooks'
+import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/common/useAppVersion'
 import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import useConcentratedMyPositionUrlParser from '@/application/concentrated/useConcentratedMyPositionUrlParser'
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
@@ -44,7 +41,6 @@ import { SolanaWalletProviders } from '@/components/SolanaWallets/SolanaWallets'
 import { createDOMElement } from '@/functions/dom/createDOMElement'
 import toPubString from '@/functions/format/toMintString'
 import { inClient } from '@/functions/judgers/isSSR'
-import useHandleWindowTopError from '@/hooks/useHandleWindowTopError'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionDialog'
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
@@ -107,26 +103,13 @@ PublicKey.prototype.toJSON = function () {
 }
 
 function ClientInitialization() {
-  useHandleWindowTopError()
-
-  // sentry settings
-  useSentryConfigurator()
-
-  useThemeModeSync()
-
-  useDeviceInfoSyc()
-
-  useDisclaimerDataSyncer()
+  useClientInitialization()
 
   return null
 }
 
 function ApplicationsInitializations() {
-  useSlippageTolerenceValidator()
-  useSlippageTolerenceSyncer()
-  useDefaultExplorerSyncer()
-  useRpcPerformance()
-  useGetSlotCountForSecond()
+  useInnerAppInitialization()
 
   /********************** appVersion **********************/
   useAppInitVersionPostHeartBeat()

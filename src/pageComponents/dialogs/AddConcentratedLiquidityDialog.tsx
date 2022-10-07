@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 
 import { Price } from 'test-r-sdk'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import txIncreaseConcentrated from '@/application/concentrated/txIncreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'

@@ -12,7 +12,7 @@ import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { toString } from '@/functions/numberish/toString'
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { gt, gte } from '@/functions/numberish/compare'
 
 export function StakingPageStakeLpDialog() {

@@ -4,7 +4,7 @@
  * @todo not burn old yet
  */
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import { deUIToken, deUITokenAmount } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
@@ -153,7 +153,6 @@ function getSDKCacheInfos({
       sdkCaches.delete(key)
       return undefined
     })
-
     const poolInfosCache = TradeV2.fetchMultipleInfo({
       connection,
       pools: routes.needSimulate,
