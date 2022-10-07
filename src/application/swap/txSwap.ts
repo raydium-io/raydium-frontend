@@ -59,7 +59,8 @@ export default function txSwap() {
         wallet: owner,
         tokenAccounts: tokenAccountRawInfos,
         associatedOnly: true
-      }
+      },
+      checkTransaction: true
     })
 
     const signedTransactions = shakeUndifindedItem(
