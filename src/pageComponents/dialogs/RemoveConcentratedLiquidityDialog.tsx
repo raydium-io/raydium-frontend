@@ -255,16 +255,13 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                 txDecreaseConcentrated().then(({ allSuccess }) => {
                   if (allSuccess) {
                     onClose?.()
-                    closeDialog()
                     refreshConcentrated()
                     useConcentrated.setState({
                       isAddDialogOpen: false,
+                      isMyPositionDialogOpen: false,
                       coin1Amount: undefined,
                       coin2Amount: undefined
                     })
-                    setTimeout(() => {
-                      routeTo('/clmm/pools')
-                    }, 600)
                   }
                 })
               }}

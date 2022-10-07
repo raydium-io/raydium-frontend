@@ -61,6 +61,7 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
+import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -83,6 +84,7 @@ export default function PoolsConcentratedPage() {
     >
       <PoolHeader />
       <PoolCard />
+      <MyPositionDialog />
       <AddConcentratedLiquidityDialog />
       <RemoveConcentratedLiquidityDialog />
     </PageLayout>
@@ -1241,10 +1243,10 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     ]}
                     onClick={() => {
                       useConcentrated.setState({
+                        isMyPositionDialogOpen: true,
                         currentAmmPool: info,
                         targetUserPositionAccount: p
                       })
-                      routeTo('/clmm/my-position')
                     }}
                   >
                     Manage

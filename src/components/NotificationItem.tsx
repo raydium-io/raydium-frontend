@@ -15,7 +15,7 @@ export interface NotificationItemInfo {
   description?: ReactNode
 }
 
-const itemExistTime = process.env.NODE_ENV === 'development' ? 10 * 60 * 1000 : 3 * 1000 // (ms)
+const itemExistTime = process.env.NODE_ENV === 'development' ? 10 * 60 * 1000 : 4 * 1000 // (ms)
 
 const colors: Record<
   NotificationItemInfo['type'] & string,

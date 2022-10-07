@@ -90,9 +90,6 @@ export type PageRouteConfigs = {
   '/clmm/create': {
     queryProps?: any
   }
-  '/clmm/my-position': {
-    queryProps?: any
-  }
   '/clmm/create-pool': {
     queryProps?: any
   }

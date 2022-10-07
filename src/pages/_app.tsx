@@ -1,14 +1,10 @@
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
-
 import { PublicKey } from '@solana/web3.js'
-
 import NextNProgress from 'nextjs-progressbar'
-
 import { useClientInitialization, useInnerAppInitialization } from '@/application/common/initializationHooks'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/common/useAppVersion'
 import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
-import useConcentratedMyPositionUrlParser from '@/application/concentrated/useConcentratedMyPositionUrlParser'
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
 import useFreshChainTimeOffset from '@/application/connection/useFreshChainTimeOffset'
 import { useUserCustomizedEndpointInitLoad } from '@/application/connection/useUserCustomizedEndpointInitLoad'
@@ -154,7 +150,6 @@ function ApplicationsInitializations() {
 
   /********************** concentrated pools **********************/
   useConcentratedInfoLoader()
-  useConcentratedMyPositionUrlParser()
 
   /********************** farm **********************/
   useFarmInfoLoader()

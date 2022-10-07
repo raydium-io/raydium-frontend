@@ -68,6 +68,8 @@ export type ConcentratedStore = {
   isInput: boolean | undefined
   isRemoveDialogOpen: boolean
   isAddDialogOpen: boolean
+  isMyPositionDialogOpen: boolean
+
   targetUserPositionAccount?: UserPositionAccount
 
   scrollToInputBox: () => void
@@ -106,8 +108,9 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
 
   isAddDialogOpen: false,
   isRemoveDialogOpen: false,
-  isInput: undefined,
+  isMyPositionDialogOpen: false,
 
+  isInput: undefined,
   isSearchAmmDialogOpen: false,
   removeAmount: '',
   scrollToInputBox: () => {},

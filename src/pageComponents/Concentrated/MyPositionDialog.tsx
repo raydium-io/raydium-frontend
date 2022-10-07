@@ -1,5 +1,3 @@
-import { useImperativeHandle } from 'react'
-
 import { twMerge } from 'tailwind-merge'
 import { Fraction, Price, Token, TokenAmount } from 'test-r-sdk'
 
@@ -7,9 +5,7 @@ import useAppSettings from '@/application/common/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
-import { routeBack, routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
-import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
@@ -18,97 +14,22 @@ import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import { ColItem } from '@/components/ColItem'
 import Collapse from '@/components/Collapse'
-import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
-import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { RowItem } from '@/components/RowItem'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { inClient } from '@/functions/judgers/isSSR'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { toXYChartFormat } from '@/pageComponents/Concentrated'
 import Chart from '@/pageComponents/ConcentratedRangeChart/Chart'
-import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
-import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
-
-export default function MyPosition() {
-  return (
-    <>
-      <PageLayout mobileBarTitle="My Position" metaTitle="Concentrated - Raydium">
-        <NavButtons />
-        <MyPositionPageHead />
-        <MyPositionCard />
-        <AddConcentratedLiquidityDialog />
-        <RemoveConcentratedLiquidityDialog />
-      </PageLayout>
-    </>
-  )
-}
-
-function NavButtons() {
-  return (
-    <Row
-      className={twMerge(
-        '-mt-4 mobile:mt-0 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] mobile:hidden items-center justify-between'
-      )}
-    >
-      <Button
-        type="text"
-        className="text-sm text-[#ABC4FF] opacity-50 px-0"
-        prefix={<Icon heroIconName="chevron-left" size="sm" />}
-        onClick={() => {
-          if (inClient && window.history.length === 1) {
-            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
-            routeTo('/clmm/pools')
-          } else {
-            routeBack()
-          }
-        }}
-      >
-        Back to all pools
-      </Button>
-    </Row>
-  )
-}
-function AsideNavButtons() {
-  return (
-    <Row
-      className={twMerge(
-        '-mt-4 mobile:mt-4 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] items-center justify-between'
-      )}
-    >
-      <Button
-        type="text"
-        className="text-sm text-[#ABC4FF] px-0"
-        prefix={<Icon heroIconName="chevron-left" />}
-        onClick={() => {
-          if (inClient && window.history.length === 1) {
-            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
-            routeTo('/clmm/pools')
-          } else {
-            routeBack()
-          }
-        }}
-      ></Button>
-    </Row>
-  )
-}
-
-// const availableTabValues = ['Swap', 'Liquidity'] as const
-function MyPositionPageHead() {
-  return (
-    <Row className="w-[min(912px,100%)] self-center mb-10 mobile:mb-2 font-medium text-2xl mobile:text-xl mobile:hidden">
-      My Position
-    </Row>
-  )
-}
+import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
+import Card from '@/components/Card'
 
 function MyPositionCardTopInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
@@ -271,8 +192,6 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
   const totalVolume = rewardsVolume
     .concat(feesVolume)
     .reduce((acc, { volume }) => (volume ? add(acc ?? toFraction(0), volume) : acc), undefined as Fraction | undefined)
-
-  useImperativeHandle
   const isMobile = useAppSettings((s) => s.isMobile)
   const hasPendingReward = isMeaningfulNumber(totalVolume)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -421,10 +340,10 @@ function MyPositionCardHeader({ className }: { className?: string }) {
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <Row className={twMerge('justify-between py-2 pb-5 mobile:py-1 mobile:pb-3 gap-2 flex-wrap', className)}>
+    <Row className={twMerge('justify-between gap-2 flex-wrap', className)}>
       <Row className="items-center gap-2">
         <CoinAvatarPair token1={currentAmmPool?.base} token2={currentAmmPool?.quote} size={isMobile ? 'md' : 'lg'} />
-        <div className="font-medium text-xl mobile:text-lg text-white">
+        <div className="font-medium text-2xl mobile:text-xl text-white">
           {currentAmmPool?.base?.symbol ?? '--'} - {currentAmmPool?.quote?.symbol ?? '--'}
         </div>
         <RangeTag positionAccount={targetUserPositionAccount} />
@@ -465,26 +384,39 @@ function MyPositionCardHeader({ className }: { className?: string }) {
   )
 }
 
-function MyPositionCard() {
+export default function MyPositionDialog() {
+  const open = useConcentrated((s) => s.isMyPositionDialogOpen)
   return (
-    <CyberpunkStyleCard
-      wrapperClassName="relative w-[min(912px,100%)] self-center cyberpunk-bg-light"
-      className="py-5 px-6 mobile:py-3 mobile:px-3"
+    <ResponsiveDialogDrawer
+      placement="from-bottom"
+      open={open}
+      onClose={() => {
+        useConcentrated.setState({
+          isMyPositionDialogOpen: false
+        })
+      }}
     >
-      <div className="absolute -left-8 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <AsideNavButtons />
-      </div>
-      <MyPositionCardHeader />
+      {({ close: closeDialog }) => (
+        <Card
+          className="p-8 mobile:p-4 pb-2 rounded-3xl mobile:rounded-lg w-[min(912px,90vw)] max-h-[80vh] overflow-auto mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
+          size="lg"
+        >
+          <Row className="justify-between items-center gap-6 mobile:gap-3 mb-6 mobile:mb-3">
+            <MyPositionCardHeader className="grow" />
+            <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
+          </Row>
 
-      <Grid className="gap-3 mobile:gap-2 grid-cols-2 mobile:grid-cols-1 w-[min(912px,100%)]">
-        <MyPositionCardTopInfo className="col-span-full" />
-        <MyPositionCardChartInfo className="col-span-1 row-span-2" />
-        <MyPositionCardPendingRewardInfo />
-        {/* <MyPositionCardAPRInfo /> */}
-      </Grid>
+          <Grid className="gap-3 mobile:gap-2 grid-cols-2 mobile:grid-cols-1 w-[min(912px,100%)]">
+            <MyPositionCardTopInfo className="col-span-full" />
+            <MyPositionCardChartInfo className="col-span-1 row-span-2" />
+            <MyPositionCardPendingRewardInfo />
+            {/* <MyPositionCardAPRInfo /> */}
+          </Grid>
 
-      <MyPositionCardPoolOverview />
-    </CyberpunkStyleCard>
+          <MyPositionCardPoolOverview />
+        </Card>
+      )}
+    </ResponsiveDialogDrawer>
   )
 }
 
