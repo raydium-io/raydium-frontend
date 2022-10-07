@@ -70,11 +70,11 @@ export type LiquidityStore = {
   isRemoveDialogOpen: boolean
   isSearchAmmDialogOpen: boolean
   removeAmount: string
-  scrollToInputBox: () => void
+  scrollToInputBox(): void
 
   // just for trigger refresh
   refreshCount: number
-  refreshLiquidity: () => void
+  refreshLiquidity(): void
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useLiquidity.setState()` is enough

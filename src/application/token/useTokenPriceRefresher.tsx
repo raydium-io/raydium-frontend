@@ -11,16 +11,6 @@ export default function useTokenPriceRefresher() {
   const tokenJsonInfos = useToken((s) => s.tokenJsonInfos)
 
   const refreshTokenCount = useToken((s) => s.refreshTokenCount)
-  const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
-
-  useEffect(() => {
-    const timeIntervalId = setInterval(() => {
-      if (inServer) return
-      if (document.visibilityState === 'hidden') return
-      refreshTokenPrice()
-    }, 1000 * 60 * 2)
-    return () => clearInterval(timeIntervalId)
-  }, [])
 
   useAsyncEffect(async () => {
     if (!Object.values(tokenJsonInfos).length) return

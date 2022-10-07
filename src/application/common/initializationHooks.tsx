@@ -1,5 +1,5 @@
-import { useCallback, useEffect } from 'react'
 import { useRouter } from 'next/router'
+import { useCallback, useEffect } from 'react'
 
 import * as Sentry from '@sentry/nextjs'
 
@@ -7,19 +7,25 @@ import Link from '@/components/Link'
 import jFetch from '@/functions/dom/jFetch'
 import { getLocalItem } from '@/functions/dom/jStorage'
 import { inClient, inServer, isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
-import { eq, gt, lt, lte } from '@/functions/numberish/compare'
+import { eq, gt, lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import useDevice from '@/hooks/useDevice'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
-import { useAppVersion } from './useAppVersion'
 import useConnection from '../connection/useConnection'
 import { getSlotCountForSecond } from '../farms/useFarmInfoLoader'
 import useNotification from '../notification/useNotification'
 import useWallet from '../wallet/useWallet'
+import { useAppVersion } from './useAppVersion'
 
+import useConcentrated from '../concentrated/useConcentrated'
+import useFarms from '../farms/useFarms'
+import useLiquidity from '../liquidity/useLiquidity'
+import { usePools } from '../pools/usePools'
+import { useSwap } from '../swap/useSwap'
+import useToken from '../token/useToken'
 import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
 
 function useThemeModeSync() {
@@ -81,7 +87,7 @@ function useSlippageTolerenceSyncer() {
     }
   })
   useRecordedEffect(
-    ([prevSlippageTolerance, prevLocalStoredSlippaged]) => {
+    ([, prevLocalStoredSlippaged]) => {
       const slippageHasLoaded = prevLocalStoredSlippaged == null && localStoredSlippage != null
       if (slippageHasLoaded && !eq(slippageTolerance, localStoredSlippage)) {
         useAppSettings.setState({
@@ -117,22 +123,6 @@ function useSentryConfigurator() {
   useEffect(() => {
     Sentry.setTag('version', String(currentVersion))
   }, [currentVersion])
-}
-
-function useWelcomeDialog(options?: { force?: boolean }) {
-  const [haveReadWelcomDialog, setHaveReadWelcomDialog] = useLocalStorageItem<boolean>('HAVE_READ_WELCOME_DIALOG')
-  const { pathname } = useRouter()
-  useRecordedEffect(
-    ([prevPathname]) => {
-      if (haveReadWelcomDialog) return
-      if (!haveReadWelcomDialog && (prevPathname === '/' || !prevPathname) && pathname !== '/') {
-        setTimeout(() => {
-          popWelcomeDialogFn({ onConfirm: () => setHaveReadWelcomDialog(true) })
-        }, 600) // TODO: when done callback delay invoke, don't need setTimeout any more
-      }
-    },
-    [pathname]
-  )
 }
 
 function popWelcomeDialogFn(cb?: { onConfirm: () => void }) {
@@ -172,7 +162,7 @@ function useDefaultExplorerSyncer() {
     }
   })
   useRecordedEffect(
-    ([prevExplorer, prevLocalStoredExplorer]) => {
+    ([, prevLocalStoredExplorer]) => {
       const explorerHasLoaded = prevLocalStoredExplorer == null && localStoredExplorer != null
       if (explorerHasLoaded && explorerName !== localStoredExplorer) {
         // use local storage value
@@ -202,7 +192,8 @@ function useDefaultExplorerSyncer() {
 }
 
 function useRpcPerformance() {
-  const { connection, currentEndPoint } = useConnection()
+  const currentEndPoint = useConnection((s) => s.currentEndPoint)
+  const connection = useConnection((s) => s.connection)
 
   const MAX_TPS = 1500 // force settings
 
@@ -243,7 +234,7 @@ function useRpcPerformance() {
 }
 
 function useGetSlotCountForSecond() {
-  const { currentEndPoint } = useConnection()
+  const currentEndPoint = useConnection((s) => s.currentEndPoint)
 
   const getSlot = useCallback(async () => {
     await getSlotCountForSecond(currentEndPoint)
@@ -297,4 +288,42 @@ export function useInnerAppInitialization() {
   useSlippageTolerenceValidator()
 
   useSlippageTolerenceSyncer()
+
+  useGlobalRefresh()
+}
+
+function useGlobalRefresh() {
+  const { pathname } = useRouter()
+
+  // base (tokenAccount tokenPrice balance)
+  useEffect(() => {
+    let timeoutId: any = 0
+    setTimeout(() => {
+      timeoutId = setInterval(() => {
+        if (inServer) return
+        if (document.visibilityState === 'hidden') return
+
+        useWallet.getState().refreshWallet()
+        useToken.getState().refreshTokenPrice()
+      }, 1000 * 60)
+    }, 1000 * 15) // do not refresh base and specific pages at same time
+    return () => clearInterval(timeoutId)
+  }, [])
+
+  // specific pages (pool info, farm info)
+  useEffect(() => {
+    let timeoutId: any = 0
+    setTimeout(() => {
+      timeoutId = setInterval(() => {
+        if (inServer) return
+        if (document.visibilityState === 'hidden') return
+
+        if (pathname.startsWith('/farms')) useFarms.getState().refreshFarmInfos()
+        if (pathname.startsWith('/pools')) usePools.getState().refreshPools()
+        if (pathname.startsWith('/clmm')) useConcentrated.getState().refreshConcentrated()
+        if (pathname.startsWith('/liquidity')) useLiquidity.getState().refreshLiquidity()
+      }, 1000 * 60 * 2)
+    }, 1000 * 25)
+    return () => clearInterval(timeoutId)
+  }, [pathname])
 }
