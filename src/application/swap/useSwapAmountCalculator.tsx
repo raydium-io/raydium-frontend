@@ -6,7 +6,6 @@ import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useIdleEffect } from '@/hooks/useIdleEffect'
-import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { getAllSwapableRouteInfos } from '@/models/ammAndLiquidity'
 import { makeAbortable } from '@/models/makeAbortable'
 import { HexAddress } from '@/types/constants'
@@ -45,6 +44,7 @@ export function useSwapAmountCalculator() {
   // get preflight
   useIdleEffect(async () => {
     if (!coin1 || !coin2) return // not fullfilled
+    if (isMeaningfulNumber(userCoin1Amount) && isMeaningfulNumber(userCoin2Amount)) return // no need to check
     useSwap.setState({ preflightCalcResult: undefined, canFindPools: undefined, swapable: undefined })
     const { routeList: preflightCalcResult, bestResult } =
       (await getAllSwapableRouteInfos({
@@ -158,6 +158,7 @@ export function useSwapAmountCalculator() {
         useSwap.setState({
           fee,
           calcResult,
+          preflightCalcResult: calcResult,
           selectedCalcResult: bestResult,
           priceImpact,
           executionPrice,
