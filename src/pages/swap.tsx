@@ -1,4 +1,4 @@
-import { createRef, ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createRef, ReactNode, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 import { AmmV3PoolInfo, LiquidityPoolJsonInfo, RouteInfo } from 'test-r-sdk'
@@ -17,11 +17,7 @@ import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalcula
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  SOL_BASE_BALANCE,
-  SOLDecimals,
-  toUITokenAmount
+  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE, SOLDecimals, toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -59,6 +55,7 @@ import createContextStore from '@/functions/react/createContextStore'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import useResizeObserver from '@/hooks/useResizeObserver'
 import useToggle from '@/hooks/useToggle'
 import ConcentratedLiquiditySlider from '@/pageComponents/ConcentratedRangeChart/ConcentratedLiquiditySlider'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
@@ -881,11 +878,13 @@ function ArrowWithTag({ tagValue = '' }: { tagValue?: string }) {
   const ref = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
 
-  useLayoutEffect(() => {
-    if (ref && ref.current) {
-      setWidth(ref.current.offsetWidth)
-    }
-  }, [ref])
+  useResizeObserver(ref, ({ el, entry }) => {
+    setWidth(el.clientWidth)
+  })
+
+  useEffect(() => {
+    if (!tagValue) setWidth(12)
+  }, [tagValue])
 
   return (
     <div ref={ref} className="relative top-[-15px]" style={{ marginLeft: 4, marginRight: 4, maxHeight: 19 }}>
