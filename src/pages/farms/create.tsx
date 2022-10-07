@@ -3,7 +3,7 @@ import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import produce from 'immer'
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
@@ -46,7 +46,7 @@ function StepBadge(props: { n: number }) {
 
 function NavButtons({ className }: { className?: string }) {
   return (
-    <Row className={twMerge('items-center justify-between', className)}>
+    <Row className={twMerge('items-center justify-between mobile:hidden', className)}>
       <Button
         type="text"
         className="text-sm text-[#ABC4FF] opacity-50 px-0"

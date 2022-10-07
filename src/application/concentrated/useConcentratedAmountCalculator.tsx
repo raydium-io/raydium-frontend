@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo } from 'react'
 import BN from 'bn.js'
 import { AmmV3, ReturnTypeGetLiquidityAmountOutFromAmountIn } from 'test-r-sdk'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'

@@ -1,4 +1,4 @@
-import useAppSettings, { ExplorerName, ExplorerUrl } from '@/application/appSettings/useAppSettings'
+import useAppSettings, { ExplorerName, ExplorerUrl } from '@/application/common/useAppSettings'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 

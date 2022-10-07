@@ -2,7 +2,7 @@ import { Spl, WSOL } from 'test-r-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import handleMultiTx, { AddSingleTxOptions, HandleMultiTxOptions } from '@/application/txTools/handleMultiTx'
+import handleMultiTx, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleMultiTx'
 import assert from '@/functions/assert'
 import { mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
@@ -19,7 +19,7 @@ export default async function txIdoPurchase({
   idoInfo: HydratedIdoInfo
   ticketAmount: Numberish
 } & AddSingleTxOptions &
-  HandleMultiTxOptions) {
+  HandleFnOptions) {
   assert(idoInfo.state, 'opps sdk fail to load')
   return handleMultiTx(
     async ({ transactionCollector, baseUtils: { connection, owner, tokenAccounts } }) => {

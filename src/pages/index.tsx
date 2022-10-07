@@ -1,4 +1,4 @@
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { useHomeInfo } from '@/application/homeInfo'
 import Button from '@/components/Button'
 import Card from '@/components/Card'

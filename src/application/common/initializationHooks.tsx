@@ -14,7 +14,7 @@ import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
-import { useAppVersion } from '../appVersion/useAppVersion'
+import { useAppVersion } from './useAppVersion'
 import useConnection from '../connection/useConnection'
 import { getSlotCountForSecond } from '../farms/useFarmInfoLoader'
 import useNotification from '../notification/useNotification'
@@ -22,7 +22,7 @@ import useWallet from '../wallet/useWallet'
 
 import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
 
-export function useThemeModeSync() {
+function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
   useEffect(() => {
     globalThis.document?.documentElement.classList.remove('dark', 'light')
@@ -30,7 +30,7 @@ export function useThemeModeSync() {
   }, [themeMode])
 }
 
-export function useDeviceInfoSyc() {
+function useDeviceInfoSyc() {
   // device
   const { isMobile, isPc, isTablet } = useDevice()
   useIsomorphicLayoutEffect(() => {
@@ -47,7 +47,7 @@ export function useDeviceInfoSyc() {
   }, [])
 }
 
-export function useDisclaimerDataSyncer() {
+function useDisclaimerDataSyncer() {
   useIsomorphicLayoutEffect(() => {
     useAppSettings.setState({
       needPopDisclaimer: !getLocalItem<boolean>('USER_AGREE_DISCLAIMER')
@@ -55,7 +55,7 @@ export function useDisclaimerDataSyncer() {
   }, [])
 }
 
-export function useSlippageTolerenceValidator() {
+function useSlippageTolerenceValidator() {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
   useEffect(() => {
@@ -69,7 +69,7 @@ export function useSlippageTolerenceValidator() {
   }, [slippageTolerance])
 }
 
-export function useSlippageTolerenceSyncer() {
+function useSlippageTolerenceSyncer() {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
 
   const [localStoredSlippage, setLocalStoredSlippage] = useLocalStorageItem<string>('SLIPPAGE', {
@@ -105,7 +105,7 @@ Sentry.init({
   tracesSampleRate: 1.0
 })
 
-export function useSentryConfigurator() {
+function useSentryConfigurator() {
   const wallet = useWallet((s) => s.owner)
   const walletAdress = String(wallet) ?? '(not connected)'
   const { currentVersion } = useAppVersion()
@@ -119,7 +119,7 @@ export function useSentryConfigurator() {
   }, [currentVersion])
 }
 
-export function useWelcomeDialog(options?: { force?: boolean }) {
+function useWelcomeDialog(options?: { force?: boolean }) {
   const [haveReadWelcomDialog, setHaveReadWelcomDialog] = useLocalStorageItem<boolean>('HAVE_READ_WELCOME_DIALOG')
   const { pathname } = useRouter()
   useRecordedEffect(
@@ -135,7 +135,7 @@ export function useWelcomeDialog(options?: { force?: boolean }) {
   )
 }
 
-export function popWelcomeDialogFn(cb?: { onConfirm: () => void }) {
+function popWelcomeDialogFn(cb?: { onConfirm: () => void }) {
   useNotification.getState().popWelcomeDialog(
     <div>
       <div className="text-2xl text-white text-center m-4 mb-8">Welcome to Raydium V2</div>
@@ -160,7 +160,7 @@ export function popWelcomeDialogFn(cb?: { onConfirm: () => void }) {
   )
 }
 
-export function useDefaultExplorerSyncer() {
+function useDefaultExplorerSyncer() {
   const explorerName = useAppSettings((s) => s.explorerName)
 
   const [localStoredExplorer, setLocalStoredExplorer] = useLocalStorageItem<string>('EXPLORER', {
@@ -201,7 +201,7 @@ export function useDefaultExplorerSyncer() {
   )
 }
 
-export function useRpcPerformance() {
+function useRpcPerformance() {
   const { connection, currentEndPoint } = useConnection()
 
   const MAX_TPS = 1500 // force settings
@@ -242,7 +242,7 @@ export function useRpcPerformance() {
   }, [getPerformance])
 }
 
-export function useGetSlotCountForSecond() {
+function useGetSlotCountForSecond() {
   const { currentEndPoint } = useConnection()
 
   const getSlot = useCallback(async () => {
@@ -253,4 +253,48 @@ export function useGetSlotCountForSecond() {
   useEffect(() => {
     getSlot()
   }, [getSlot])
+}
+
+function useHandleWindowTopError() {
+  const { log } = useNotification.getState()
+  useEffect(() => {
+    globalThis.addEventListener?.('error', (event) => {
+      log({ type: 'error', title: String(event.error) })
+      console.error(event)
+      Sentry.captureException(event)
+      event.preventDefault()
+      event.stopPropagation()
+    })
+    globalThis.addEventListener?.('unhandledrejection', (event) => {
+      log({ type: 'error', title: String(event.reason) })
+      console.error(event)
+      Sentry.captureException(event)
+      event.preventDefault()
+      event.stopPropagation()
+    })
+  }, [])
+}
+
+export function useClientInitialization() {
+  useHandleWindowTopError()
+  // sentry settings
+  useSentryConfigurator()
+
+  useThemeModeSync()
+
+  useDeviceInfoSyc()
+
+  useDisclaimerDataSyncer()
+}
+
+export function useInnerAppInitialization() {
+  useGetSlotCountForSecond()
+
+  useRpcPerformance()
+
+  useDefaultExplorerSyncer()
+
+  useSlippageTolerenceValidator()
+
+  useSlippageTolerenceSyncer()
 }

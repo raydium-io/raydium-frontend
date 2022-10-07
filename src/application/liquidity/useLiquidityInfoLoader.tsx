@@ -9,6 +9,7 @@ import { gt } from '@/functions/numberish/compare'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress } from '@/types/constants'
+import { useRouter } from 'next/router'
 import { LiquidityPoolsJsonFile } from 'test-r-sdk'
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 import { liquidityMainnetListUrl } from '../token/rawTokenLists.config'
@@ -35,6 +36,8 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   const refreshCount = useLiquidity((s) => s.refreshCount)
   const connection = useConnection((s) => s.connection)
   const pureRawBalances = useWallet((s) => s.pureRawBalances)
+  const { pathname } = useRouter()
+  const isLiquidityPage = pathname === '/liquidity/add'
 
   /** fetch json info list  */
   useTransitionedEffect(async () => {
@@ -55,6 +58,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   useTransitionedEffect(async () => {
     // when refresh, it will refresh twice. one for rawBalance, one for liquidityRefreshCount
     if (disabled) return
+    if (!isLiquidityPage) return
     if (!jsonInfos) return
     const liquidityLpMints = new Set(jsonInfos.map((jsonInfo) => jsonInfo.lpMint))
     const allLpBalance = Object.entries(pureRawBalances).filter(
@@ -66,7 +70,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
       .map((jsonInfo) => jsonInfo.id)
 
     useLiquidity.setState({ userExhibitionLiquidityIds })
-  }, [disabled, jsonInfos, pureRawBalances, isLpToken, refreshCount])
+  }, [disabled, isLiquidityPage, jsonInfos, pureRawBalances, isLpToken, refreshCount])
 
   /** json infos ➡ sdkParsed infos (only wallet's LP)  */
   useRecordedEffect(

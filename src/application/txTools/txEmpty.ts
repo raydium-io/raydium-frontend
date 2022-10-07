@@ -1,7 +1,7 @@
-import handleMultiTx, { AddSingleTxOptions, HandleMultiTxOptions } from '@/application/txTools/handleMultiTx'
+import handleMultiTx, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleMultiTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 
-export default async function txEmpty(options: AddSingleTxOptions & HandleMultiTxOptions) {
+export default async function txEmpty(options: AddSingleTxOptions & HandleFnOptions) {
   return handleMultiTx(
     async ({ transactionCollector, baseUtils: { owner, connection, tokenAccounts } }) => {
       const piecesCollection = createTransactionCollector()

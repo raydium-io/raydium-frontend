@@ -6,7 +6,7 @@ import assert from '@/functions/assert'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { AmmV3 } from 'test-r-sdk'
-import useAppSettings from '../appSettings/useAppSettings'
+import useAppSettings from '../common/useAppSettings'
 import { HydratedConcentratedInfo } from './type'
 import useConcentrated from './useConcentrated'
 

@@ -1,7 +1,7 @@
 import React, { useRef } from 'react'
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import txRemoveLiquidity from '@/application/liquidity/txRemoveLiquidity'
 import { HydratedLiquidityInfo } from '@/application/liquidity/type'
 import useLiquidity from '@/application/liquidity/useLiquidity'

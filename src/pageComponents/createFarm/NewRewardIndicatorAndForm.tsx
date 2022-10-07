@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { RewardFormCardInputs } from './RewardFormInputs'
 import { NewAddedRewardSummary } from './NewAddedRewardSummary'
 import { RewardFormCard } from '../../pages/farms/create'
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { UIRewardInfo } from '@/application/createFarm/type'
 import RewardInputDialog from './RewardEditDialog'
 

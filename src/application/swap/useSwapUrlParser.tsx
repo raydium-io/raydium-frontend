@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { ParsedUrlQuery } from 'querystring'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import useNotification from '@/application/notification/useNotification'
 import { useSwap } from '@/application/swap/useSwap'

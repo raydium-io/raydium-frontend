@@ -4,9 +4,12 @@ import Decimal from 'decimal.js'
 import { twMerge } from 'tailwind-merge'
 import { Fraction } from 'test-r-sdk'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import {
-  calLowerUpper, getPriceBoundary, getPriceTick, getTickPrice
+  calLowerUpper,
+  getPriceBoundary,
+  getPriceTick,
+  getTickPrice
 } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -75,7 +78,7 @@ function NavButtons() {
   return (
     <Row
       className={twMerge(
-        '-mt-4 mobile:mt-0.5 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] items-center justify-between'
+        '-mt-4 mobile:mt-0.5 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] mobile:hidden items-center justify-between'
       )}
     >
       <Button
@@ -191,7 +194,7 @@ function ConcentratedCard() {
     : undefined
 
   const inputDisable =
-    currentAmmPool && currentPrice && priceUpper !== undefined && priceUpper !== undefined
+    currentAmmPool && currentPrice && priceLower !== undefined && priceUpper !== undefined
       ? [
           toBN(priceUpper || 0, decimals).lt(toBN(currentPrice || 0, decimals)),
           toBN(priceLower || 0, decimals).gt(toBN(currentPrice || 0, decimals))

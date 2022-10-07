@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useInitlyGetCreatedPoolExhibitionData from '@/application/createPool/useInitlyGetCreatedPoolExhibitionData'
 import txCreateAndInitNewPool from '@/application/createPool/txCreateAndInitNewPool'
 import useCreatePool from '@/application/createPool/useCreatePool'

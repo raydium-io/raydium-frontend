@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { twMerge } from 'tailwind-merge'
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'

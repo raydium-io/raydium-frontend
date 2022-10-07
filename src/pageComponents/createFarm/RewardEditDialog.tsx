@@ -1,4 +1,4 @@
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { MAX_DURATION, MIN_DURATION } from '@/application/farms/handleFarmInfo'
 import useWallet from '@/application/wallet/useWallet'

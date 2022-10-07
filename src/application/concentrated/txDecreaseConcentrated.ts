@@ -5,7 +5,7 @@ import toPubString from '@/functions/format/toMintString'
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 
-import useAppSettings from '../appSettings/useAppSettings'
+import useAppSettings from '../common/useAppSettings'
 import { loadTransaction } from '../txTools/createTransaction'
 import handleMultiTx from '../txTools/handleMultiTx'
 import useWallet from '../wallet/useWallet'

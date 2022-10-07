@@ -19,10 +19,6 @@ export type FarmStore = {
   expandedItemIds: Set<string>
   haveUpcomingFarms: boolean
 
-  // do not care it's value, just trigger React refresh
-  farmRefreshCount: number
-  refreshFarmInfos(): void
-
   onlySelfFarms: boolean
   onlySelfCreatedFarms: boolean
   currentTab: 'Raydium' | 'Fusion' | 'Ecosystem' | 'Staked'
@@ -34,6 +30,10 @@ export type FarmStore = {
   isStakeDialogOpen: boolean
   stakeDialogInfo: undefined | HydratedFarmInfo
   blockSlotCount: number
+
+  // do not care it's value, just trigger React refresh
+  farmRefreshCount: number
+  refreshFarmInfos(): void
 }
 
 const useFarms = create<FarmStore>((set) => ({
@@ -45,12 +45,6 @@ const useFarms = create<FarmStore>((set) => ({
   expandedItemIds: new Set(),
   haveUpcomingFarms: false,
 
-  farmRefreshCount: 0,
-  refreshFarmInfos: () => {
-    set((s) => ({ farmRefreshCount: s.farmRefreshCount + 1 }))
-    useToken.getState().refreshTokenPrice()
-  },
-
   onlySelfFarms: false,
   onlySelfCreatedFarms: false,
   currentTab: 'Raydium',
@@ -61,7 +55,13 @@ const useFarms = create<FarmStore>((set) => ({
   stakeDialogMode: 'deposit',
   isStakeDialogOpen: false,
   stakeDialogInfo: undefined,
-  blockSlotCount: 2
+  blockSlotCount: 2,
+
+  farmRefreshCount: 0,
+  refreshFarmInfos: () => {
+    set((s) => ({ farmRefreshCount: s.farmRefreshCount + 1 }))
+    useToken.getState().refreshTokenPrice()
+  }
 }))
 
 export const useFarmFavoriteIds = () => useLocalStorageItem<string[], null>('FAVOURITE_FARM_IDS', { emptyValue: null })

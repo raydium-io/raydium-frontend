@@ -1,7 +1,7 @@
 import React, { ReactNode, RefObject, useMemo, useRef } from 'react'
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 
 import HDrawer, { DrawerPlacement } from './HDrawer'

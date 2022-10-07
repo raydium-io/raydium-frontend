@@ -1,4 +1,4 @@
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import { SplToken } from '@/application/token/type'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'

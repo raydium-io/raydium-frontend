@@ -4,32 +4,15 @@ import { useRouter } from 'next/router'
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
 import {
-  BackpackWalletAdapter,
-  BitKeepWalletAdapter,
-  BitpieWalletAdapter,
-  CloverWalletAdapter,
-  Coin98WalletAdapter,
-  CoinbaseWalletAdapter,
-  CoinhubWalletAdapter,
-  ExodusWalletAdapter,
-  GlowWalletAdapter,
-  LedgerWalletAdapter,
-  MathWalletAdapter,
-  PhantomWalletAdapter,
-  SafePalWalletAdapter,
-  SlopeWalletAdapter,
-  SolflareWalletAdapter,
-  SolletExtensionWalletAdapter,
-  SolletWalletAdapter,
-  SolongWalletAdapter,
-  TokenPocketWalletAdapter,
-  TorusWalletAdapter,
-  TrustWalletAdapter,
-  WalletConnectWalletAdapter
+  BackpackWalletAdapter, BitKeepWalletAdapter, BitpieWalletAdapter, BraveWalletAdapter, CloverWalletAdapter,
+  Coin98WalletAdapter, CoinbaseWalletAdapter, CoinhubWalletAdapter, ExodusWalletAdapter, GlowWalletAdapter,
+  LedgerWalletAdapter, MathWalletAdapter, PhantomWalletAdapter, SafePalWalletAdapter, SlopeWalletAdapter,
+  SolflareWalletAdapter, SolletExtensionWalletAdapter, SolletWalletAdapter, SolongWalletAdapter,
+  TokenPocketWalletAdapter, TorusWalletAdapter, TrustWalletAdapter, WalletConnectWalletAdapter
 } from '@solana/wallet-adapter-wallets'
 import { clusterApiUrl } from '@solana/web3.js'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */
@@ -75,7 +58,8 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
             icons: ['https://raydium.io/logo/logo-only-icon.svg']
           }
         }
-      })
+      }),
+      new BraveWalletAdapter()
     ],
     [endpoint]
   )

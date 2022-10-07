@@ -1,31 +1,27 @@
-import { WalletAdapter } from '@solana/wallet-adapter-base'
+import { addItem } from '@/functions/arrayMethods'
+import assert from '@/functions/assert'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { mergeFunction } from '@/functions/merge'
+import { shrinkToValue } from '@/functions/shrinkToValue'
 import {
   Connection,
   Context,
   Keypair,
   PublicKey,
-  sendAndConfirmTransaction,
   SignatureResult,
   Transaction,
   TransactionError
 } from '@solana/web3.js'
-
-import assert from '@/functions/assert'
-
+import produce from 'immer'
+import { noTailingPeriod } from '../../functions/format/noTailingPeriod'
+import useAppSettings from '../common/useAppSettings'
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 import useTxHistory, { TxHistoryInfo } from '../txHistory/useTxHistory'
-import useWallet, { WalletStore } from '../wallet/useWallet'
-
-import subscribeTx from './subscribeTx'
-import { noTailingPeriod } from '../../functions/format/noTailingPeriod'
-import useAppSettings from '../appSettings/useAppSettings'
-import { mergeFunction } from '@/functions/merge'
-import { getRecentBlockhash } from './attachRecentBlockhash'
 import { getRichWalletTokenAccounts } from '../wallet/useTokenAccountsRefresher'
-import { shrinkToValue } from '@/functions/shrinkToValue'
-import PageLayout from '@/components/PageLayout'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import useWallet, { WalletStore } from '../wallet/useWallet'
+import { getRecentBlockhash } from './attachRecentBlockhash'
+import subscribeTx from './subscribeTx'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -91,16 +87,7 @@ type TxErrorCallback = (info: TxErrorInfo & MultiTxExtraInfo) => void
 type TxFinallyCallback = (info: TxFinalInfo & MultiTxExtraInfo) => void
 type TxSentSuccessCallback = (info: TxSentSuccessInfo & MultiTxExtraInfo) => void
 type TxSentErrorCallback = (info: TxSentErrorInfo & MultiTxExtraInfo) => void
-type TxSentFinallyCallback = () => // info: (
-//   | ({
-//       type: 'success'
-//     } & TxSentSuccessInfo)
-//   | ({
-//       type: 'error'
-//     } & TxSentErrorInfo)
-// ) &
-//   MultiTxExtraInfo
-void
+type TxSentFinallyCallback = () => void
 
 type AllSuccessCallback = (info: { txids: string[] }) => void
 type AnyErrorCallback = (info: { txids: string[] /* error at last txids */ }) => void
@@ -110,20 +97,6 @@ type TxKeypairDetective = {
 }
 
 //#endregion
-
-type TxOptionsCollection = {
-  txHistoryInfo: (Pick<TxHistoryInfo, 'title' | 'description'> | undefined)[]
-  /** if provided, error notification should respect this config */
-  txErrorNotificationDescription: (string | ((error: Error) => string))[]
-  txSuccess: (TxSuccessCallback | undefined)[]
-  txError: (TxErrorCallback | undefined)[]
-  txFinally: (TxFinallyCallback | undefined)[]
-  txSentSuccess: (TxSentSuccessCallback | undefined)[]
-  txSentError: (TxSentErrorCallback | undefined)[]
-  txSentFinally: (TxSentFinallyCallback | undefined)[]
-  txAllSuccess: (AllSuccessCallback | undefined)[]
-  txAnyError: (AnyErrorCallback | undefined)[]
-}
 
 export interface AddSingleTxOptions {
   txHistoryInfo?: Pick<TxHistoryInfo, 'title' | 'description'>
@@ -137,11 +110,21 @@ export interface AddSingleTxOptions {
   onTxSentFinally?: TxSentFinallyCallback
 }
 
-export type TransactionCollector = {
-  /**@deprecated for can't control */
-  addSets(...transactions: Transaction[]): void
+export interface AddMultiTxsOptions {
+  /**
+   * send next when prev is complete (default)
+   * send all at once
+   */
+  sendMode?: 'queue' | 'parallel'
+  onTxAllSuccess?: AllSuccessCallback
+  onTxAnyError?: AnyErrorCallback
+}
 
+export type TransactionQueue = ([transaction: Transaction, singleTxOptions?: AddSingleTxOptions] | Transaction)[]
+
+export type TransactionCollector = {
   add(transaction: Transaction, options?: AddSingleTxOptions): void
+  addQueue(transactionQueue: TransactionQueue, multiTxOptions?: AddMultiTxsOptions): void
 }
 
 // TODO: should also export addTxSuccessListener() and addTxErrorListener() and addTxFinallyListener()
@@ -152,12 +135,21 @@ export type TxResponseInfos = {
   // txList: (TxSuccessInfo | TxErrorInfo)[]
 }
 
-export type HandleMultiTxOptions = {
+export type HandleFnOptions = {
   /** if add this, handleTx's shadow mode will open,  */
   forceKeyPairs?: TxKeypairDetective
   /**
    * same key will success only once
    */
+  txKey?: string
+}
+
+export type SendTransactionPayload = {
+  signAllTransactions: WalletStore['signAllTransactions']
+  connection: Connection
+  // only if have been shadow open
+  signerkeyPair?: TxKeypairDetective
+  /** if provide, can't send twice */
   txKey?: string
 }
 
@@ -168,107 +160,95 @@ export type HandleMultiTxOptions = {
  */
 export default async function handleMultiTx(
   txAction: MultiTxAction,
-  options?: HandleMultiTxOptions
+  options?: HandleFnOptions
 ): Promise<TxResponseInfos> {
-  return new Promise((resolve, reject) =>
-    (async () => {
-      const callbackCollection: TxOptionsCollection = {
-        txHistoryInfo: [],
-        txErrorNotificationDescription: [],
-        txSuccess: [],
-        txError: [],
-        txFinally: [],
-        txSentSuccess: [],
-        txSentError: [],
-        txSentFinally: [],
-        txAllSuccess: [],
-        txAnyError: []
-      }
-
-      const innerTransactions = [] as Transaction[]
-      const transactionCollector: TransactionCollector = {
-        addSets(...transactions) {
-          innerTransactions.push(...transactions)
-        },
-        add(transaction, options) {
-          innerTransactions.push(transaction)
-          callbackCollection.txHistoryInfo.push(options?.txHistoryInfo)
-          callbackCollection.txSuccess.push(options?.onTxSuccess)
-          callbackCollection.txError.push(options?.onTxError)
-          callbackCollection.txFinally.push(options?.onTxFinally)
-          callbackCollection.txSentSuccess.push(options?.onTxSentSuccess)
-          callbackCollection.txSentError.push(options?.onTxSentError)
-          callbackCollection.txSentFinally.push(options?.onTxSentFinally)
+  const {
+    transactionCollector,
+    collected: { innerTransactions, singleTxOptions, multiTxOptions }
+  } = collectTxOptions()
+  useAppSettings.setState({ isApprovePanelShown: true })
+  try {
+    const { signAllTransactions, owner } = useWallet.getState()
+    const connection = useConnection.getState().connection
+    assert(connection, 'no rpc connection')
+    if (options?.forceKeyPairs?.ownerKeypair) {
+      // have force key pair info, no need to check wallet connect
+      const shadowWalletOwner = options.forceKeyPairs.ownerKeypair.publicKey
+      const tokenAccountInfos = await getRichWalletTokenAccounts({ owner: shadowWalletOwner, connection })
+      await txAction({
+        transactionCollector,
+        baseUtils: { connection, owner: shadowWalletOwner, ...tokenAccountInfos }
+      })
+    } else {
+      const { tokenAccounts, allTokenAccounts } = useWallet.getState()
+      assert(owner, 'Wallet not connected')
+      await txAction({
+        transactionCollector,
+        baseUtils: { connection, owner, tokenAccounts, allTokenAccounts }
+      })
+    }
+    // eslint-disable-next-line no-console
+    console.info('tx transactions: ', toHumanReadable(innerTransactions))
+    const finalInfos = await sendMultiTransaction({
+      transactions: innerTransactions,
+      singleOptionss: produce(singleTxOptions, (d) => {
+        const firstOption = d[0]
+        if (firstOption) {
+          firstOption.onTxSentFinally = mergeFunction(() => {
+            useAppSettings.setState({ isApprovePanelShown: false })
+          }, firstOption.onTxSentFinally)
         }
+      }),
+      multiOptions: multiTxOptions,
+      payload: {
+        connection,
+        signAllTransactions,
+        signerkeyPair: options?.forceKeyPairs,
+        txKey: options?.txKey
       }
+    })
+    useAppSettings.setState({ isApprovePanelShown: false })
+    return finalInfos
+  } catch (error) {
+    const { logError } = useNotification.getState()
+    console.warn(error)
+    const errorTitle = (singleTxOptions?.[0]?.txHistoryInfo?.title ?? '') + ' Error' // assume first instruction's txHistoryInfo is same as the second one
 
-      useAppSettings.setState({ isApprovePanelShown: true })
-      try {
-        const { signAllTransactions, owner } = useWallet.getState()
-        const connection = useConnection.getState().connection
-        assert(connection, 'no rpc connection')
-        if (options?.forceKeyPairs?.ownerKeypair) {
-          // have force key pair info, no need to check wallet connect
-          const shadowWalletOwner = options.forceKeyPairs.ownerKeypair.publicKey
-          const tokenAccountInfos = await getRichWalletTokenAccounts({ owner: shadowWalletOwner, connection })
-          await txAction({
-            transactionCollector,
-            baseUtils: { connection, owner: shadowWalletOwner, ...tokenAccountInfos }
-          })
-        } else {
-          const { tokenAccounts, allTokenAccounts } = useWallet.getState()
-          assert(owner, 'Wallet not connected')
-          await txAction({
-            transactionCollector,
-            baseUtils: { connection, owner, tokenAccounts, allTokenAccounts }
-          })
-        }
-        // eslint-disable-next-line no-console
-        console.info('tx transactions: ', toHumanReadable(innerTransactions))
-        const finalInfos = await sendMultiTransactionAndLogAndRecord({
-          transactions: innerTransactions,
-          txHistoryInfo: callbackCollection.txHistoryInfo,
-          optionsCollection: {
-            ...callbackCollection,
-            txSentFinally: [
-              mergeFunction(() => {
-                useAppSettings.setState({ isApprovePanelShown: false })
-              }, callbackCollection.txSentFinally[0]),
-              ...callbackCollection.txSentFinally.slice(1)
-            ]
-          },
-          payload: {
-            connection,
-            signAllTransactions,
-            signerkeyPair: options?.forceKeyPairs,
-            txKey: options?.txKey
-          }
-        })
-        resolve(finalInfos)
-      } catch (error) {
-        const { logError } = useNotification.getState()
-        console.warn(error)
-        const errorTitle = (callbackCollection.txHistoryInfo[0]?.title ?? '') + ' Error' // assume first instruction's txHistoryInfo is same as the second one
+    const systemErrorDescription = error instanceof Error ? noTailingPeriod(error.message) : String(error)
+    const userErrorDescription = shrinkToValue(singleTxOptions?.[0]?.txErrorNotificationDescription, [error]) as
+      | string
+      | undefined
+    const errorDescription = userErrorDescription || systemErrorDescription
 
-        const systemErrorDescription = error instanceof Error ? noTailingPeriod(error.message) : String(error)
-        const userErrorDescription = shrinkToValue(callbackCollection.txErrorNotificationDescription[0], [error]) as
-          | string
-          | undefined
-        const errorDescription = userErrorDescription || systemErrorDescription
-
-        logError(errorTitle, errorDescription)
-        resolve({
-          allSuccess: false,
-          txids: []
-        })
-      } finally {
-        useAppSettings.setState({ isApprovePanelShown: false })
-      }
-    })()
-  )
+    logError(errorTitle, errorDescription)
+    useAppSettings.setState({ isApprovePanelShown: false })
+    return {
+      allSuccess: false,
+      txids: []
+    }
+  }
 }
 
 const txSerializeCache = new Map<string, Buffer>()
+
+function collectTxOptions() {
+  const singleTxOptions = [] as AddSingleTxOptions[]
+  const multiTxOptions = {} as AddMultiTxsOptions
+  const innerTransactions = [] as Transaction[]
+  const add: TransactionCollector['add'] = (transaction, options) => {
+    innerTransactions.push(transaction)
+    singleTxOptions.push(options ?? {})
+  }
+  const addQueue: TransactionCollector['addQueue'] = (transactionQueue, options?) => {
+    transactionQueue.forEach((transaction) => {
+      const [singelTransation, singelOption] = Array.isArray(transaction) ? transaction : ([transaction] as const)
+      add(singelTransation, singelOption)
+    })
+    Object.assign(multiTxOptions, options)
+  }
+  const transactionCollector: TransactionCollector = { add, addQueue }
+  return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOptions } }
+}
 
 function getSerializedTx(transaction: Transaction, key?: string) {
   if (key && txSerializeCache.has(key)) {
@@ -279,135 +259,223 @@ function getSerializedTx(transaction: Transaction, key?: string) {
     return serialized
   }
 }
+
 /**
  * duty:
  * 1. provide txid and txCallback collectors for a tx action
  * 2. record tx to recentTxHistory
+ *
+ * so this fn will record txids
  */
-async function sendMultiTransactionAndLogAndRecord(options: {
+async function sendMultiTransaction({
+  transactions,
+  singleOptionss,
+  multiOptions,
+  payload
+}: {
   transactions: Transaction[]
-  txHistoryInfo?: (Pick<TxHistoryInfo, 'title' | 'description'> | undefined)[]
-  optionsCollection: TxOptionsCollection
-  payload: {
-    signAllTransactions: WalletStore['signAllTransactions']
-    connection: Connection
-    // only if have been shadow open
-    signerkeyPair?: TxKeypairDetective
-    /** if provide, can't send twice */
-    txKey?: string
-  }
+  singleOptionss: AddSingleTxOptions[]
+  multiOptions: AddMultiTxsOptions
+  payload: SendTransactionPayload
 }): Promise<TxResponseInfos> {
-  const { logError, logTxid } = useNotification.getState()
   return new Promise((resolve, reject) =>
     (async () => {
       try {
-        const txCallbackCollection = options.optionsCollection
         // const allSignedTransactions = await options.payload.signAllTransactions(options.transactions)
-        const allSignedTransactions = await (options.payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions
-          ? options.transactions
-          : options.payload.signAllTransactions(options.transactions))
-
-        const txids = [] as string[]
-
+        const allSignedTransactions = await (payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions
+          ? transactions
+          : payload.signAllTransactions(transactions))
         // eslint-disable-next-line no-inner-declarations
-        async function sendOneTransaction({
-          currentIndex = 0,
-          onSuccess = () => {}
-        }: {
-          currentIndex: number
-          onSuccess: () => void
-        }) {
-          const extraTxidInfo: MultiTxExtraInfo = {
-            multiTransaction: true,
-            multiTransactionLength: allSignedTransactions.length,
-            currentIndex: currentIndex
-          } as const
-          const transaction = allSignedTransactions[currentIndex]
-          try {
-            const txid = await (async () => {
-              if (options.payload.signerkeyPair?.ownerKeypair) {
-                // if have signer detected, no need signAllTransactions
-                transaction.recentBlockhash = await getRecentBlockhash(options.payload.connection)
-                transaction.feePayer =
-                  options.payload.signerkeyPair.payerKeypair?.publicKey ??
-                  options.payload.signerkeyPair.ownerKeypair.publicKey
 
-                return options.payload.connection.sendTransaction(transaction, [
-                  options.payload.signerkeyPair.payerKeypair ?? options.payload.signerkeyPair.ownerKeypair
-                ])
-              } else {
-                const tx = getSerializedTx(transaction, options.payload.txKey)
-                return await options.payload.connection.sendRawTransaction(tx, {
-                  skipPreflight: true
-                })
-              }
-            })()
-            txCallbackCollection.txSentSuccess[currentIndex]?.({
-              ...extraTxidInfo,
-              txid
-            })
-            logTxid(txid, `${options.txHistoryInfo?.[currentIndex]?.title ?? 'Action'} Transaction Sent`)
-
-            assert(txid, 'something went wrong')
-
-            txids.push(txid)
-
-            subscribeTx(txid, {
-              onTxSuccess(callbackParams) {
-                logTxid(txid, `${options.txHistoryInfo?.[currentIndex]?.title ?? 'Action'} Confirmed`, {
-                  isSuccess: true
-                })
-                txCallbackCollection.txSuccess[currentIndex]?.({
-                  ...callbackParams,
-                  ...extraTxidInfo
-                })
-                onSuccess?.()
-              },
-              onTxError(callbackParams) {
-                console.error(callbackParams.error)
+        const combined = combinedMultiTransaction({
+          transactions: allSignedTransactions,
+          multiOptions: produce(multiOptions, (multiOptions) => {
+            multiOptions.onTxAllSuccess = mergeFunction(
+              (({ txids }) => {
+                resolve({ allSuccess: true, txids })
+              }) as AllSuccessCallback,
+              multiOptions.onTxAllSuccess
+            )
+            multiOptions.onTxAnyError = mergeFunction(
+              (({ txids }) => {
                 resolve({ allSuccess: false, txids })
-                logError(
-                  `${options.txHistoryInfo?.[currentIndex]?.title ?? 'Action'} Failed`
-                  // `reason: ${JSON.stringify(callbackParams.error)}` // TEMPly no reason
-                )
-                txCallbackCollection.txError[currentIndex]?.({
-                  ...callbackParams,
-                  ...extraTxidInfo
-                })
-              },
-              onTxFinally(callbackParams) {
-                const { addHistoryItem } = useTxHistory.getState()
-                txCallbackCollection.txFinally[currentIndex]?.({
-                  ...callbackParams,
-                  ...extraTxidInfo
-                })
-                addHistoryItem({
-                  status: callbackParams.type === 'error' ? 'fail' : callbackParams.type,
-                  txid,
-                  time: Date.now(),
-                  title: txCallbackCollection.txHistoryInfo?.[currentIndex]?.title,
-                  description: txCallbackCollection.txHistoryInfo?.[currentIndex]?.description
-                })
-              }
-            })
-          } catch (err) {
-            console.error(err)
-            txCallbackCollection.txSentError[currentIndex]?.({ err, ...extraTxidInfo })
-          } finally {
-            txCallbackCollection.txSentFinally[currentIndex]?.()
-          }
-        }
-        const invokeList = Array.from({ length: allSignedTransactions.length }, () => undefined).reduceRight(
-          (acc, _i, idx) => () => sendOneTransaction({ onSuccess: acc, currentIndex: idx }),
-          () => {
-            resolve({ allSuccess: true, txids })
-          }
-        )
-        // start to send message
-        invokeList()
+              }) as AnyErrorCallback,
+              multiOptions.onTxAnyError
+            )
+          }),
+          singleOptionss,
+          payload
+        })
+        // invoke transaction
+        combined()
       } catch (err) {
         reject(err)
       }
     })()
   )
+}
+
+function combinedMultiTransaction({
+  transactions,
+  multiOptions,
+  singleOptionss,
+  payload
+}: {
+  transactions: Transaction[]
+  multiOptions: AddMultiTxsOptions
+  singleOptionss: AddSingleTxOptions[]
+  payload: SendTransactionPayload
+}): () => void {
+  const txids = [] as string[]
+
+  if (multiOptions.sendMode === 'parallel') {
+    const successTxids = [] as typeof txids
+    const pushSuccessTxid = (txid: string) => {
+      successTxids.push(txid)
+      if (successTxids.length === txids.length) {
+        multiOptions.onTxAllSuccess?.({ txids })
+      }
+    }
+    const parallelled = () => {
+      transactions.forEach((tx, idx) =>
+        sendOneTransactionWithLogWithRecord({
+          transaction: tx,
+          allTransactions: transactions,
+          payload,
+          singleOptions: produce(singleOptionss[idx], (d) => {
+            d.onTxSentSuccess = mergeFunction(
+              (({ txid }) => {
+                txids.push(txid)
+              }) as TxSentSuccessCallback,
+              d.onTxSentSuccess
+            )
+            d.onTxError = mergeFunction(
+              (() => {
+                multiOptions.onTxAnyError?.({ txids })
+              }) as TxErrorCallback,
+              d.onTxError
+            )
+            d.onTxSuccess = mergeFunction(
+              (({ txid }) => {
+                pushSuccessTxid(txid)
+              }) as TxSuccessCallback,
+              d.onTxSuccess
+            )
+          })
+        })
+      )
+    }
+    return parallelled
+  } else {
+    const queued = transactions.reduceRight(
+      (acc, tx, idx) => () =>
+        sendOneTransactionWithLogWithRecord({
+          transaction: tx,
+          allTransactions: transactions,
+          payload,
+          singleOptions: produce(singleOptionss[idx], (d) => {
+            d.onTxSentSuccess = mergeFunction(
+              (({ txid }) => {
+                txids.push(txid)
+              }) as TxSentSuccessCallback,
+              d.onTxSentSuccess
+            )
+            d.onTxSuccess = mergeFunction(acc as TxSentSuccessCallback, d.onTxSuccess)
+            d.onTxError = mergeFunction(
+              (() => {
+                multiOptions.onTxAnyError?.({ txids })
+              }) as TxErrorCallback,
+              d.onTxError
+            )
+          })
+        }),
+      () => {
+        multiOptions.onTxAllSuccess?.({ txids })
+      }
+    )
+    return queued
+  }
+}
+
+/**
+ * duty:
+ * 1. provide txid and txCallback collectors for a tx action
+ * 2. record tx to recentTxHistory
+ *
+ */
+async function sendOneTransactionWithLogWithRecord({
+  transaction,
+  allTransactions = [transaction],
+  singleOptions,
+  payload
+}: {
+  transaction: Transaction
+  allTransactions?: Transaction[]
+  singleOptions?: AddSingleTxOptions
+  payload: SendTransactionPayload
+}) {
+  const { logError, logTxid } = useNotification.getState()
+  const extraTxidInfo: MultiTxExtraInfo = {
+    multiTransaction: true,
+    multiTransactionLength: allTransactions.length,
+    currentIndex: allTransactions.indexOf(transaction)
+  } as const
+  try {
+    const txid = await sendOneTransactionCore(transaction, payload)
+    singleOptions?.onTxSentSuccess?.({ txid, ...extraTxidInfo })
+    logTxid(txid, `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Transaction Sent`)
+    assert(txid, 'something went wrong')
+    subscribeTx(txid, {
+      onTxSuccess(callbackParams) {
+        logTxid(txid, `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Confirmed`, {
+          isSuccess: true
+        })
+        singleOptions?.onTxSuccess?.({ ...callbackParams, ...extraTxidInfo })
+      },
+      onTxError(callbackParams) {
+        console.error('tx error: ', callbackParams.error)
+        logError(
+          `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Failed`
+          // `reason: ${JSON.stringify(callbackParams.error)}` // TEMPly no reason
+        )
+        singleOptions?.onTxError?.({ ...callbackParams, ...extraTxidInfo })
+      },
+      onTxFinally(callbackParams) {
+        singleOptions?.onTxFinally?.({
+          ...callbackParams,
+          ...extraTxidInfo
+        })
+        const { addHistoryItem } = useTxHistory.getState()
+        addHistoryItem({
+          status: callbackParams.type === 'error' ? 'fail' : callbackParams.type,
+          txid,
+          time: Date.now(),
+          title: singleOptions?.txHistoryInfo?.title,
+          description: singleOptions?.txHistoryInfo?.description
+        })
+      }
+    })
+  } catch (err) {
+    console.error('fail to send tx: ', err)
+    singleOptions?.onTxSentError?.({ err, ...extraTxidInfo })
+  } finally {
+    singleOptions?.onTxSentFinally?.()
+  }
+}
+
+async function sendOneTransactionCore(transaction: Transaction, payload: SendTransactionPayload) {
+  if (payload.signerkeyPair?.ownerKeypair) {
+    // if have signer detected, no need signAllTransactions
+    transaction.recentBlockhash = await getRecentBlockhash(payload.connection)
+    transaction.feePayer = payload.signerkeyPair.payerKeypair?.publicKey ?? payload.signerkeyPair.ownerKeypair.publicKey
+
+    return payload.connection.sendTransaction(transaction, [
+      payload.signerkeyPair.payerKeypair ?? payload.signerkeyPair.ownerKeypair
+    ])
+  } else {
+    const tx = getSerializedTx(transaction, payload.txKey)
+    return await payload.connection.sendRawTransaction(tx, {
+      skipPreflight: true
+    })
+  }
 }

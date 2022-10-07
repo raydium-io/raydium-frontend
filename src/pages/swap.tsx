@@ -3,7 +3,7 @@ import { createRef, ReactNode, useCallback, useEffect, useLayoutEffect, useMemo,
 import { twMerge } from 'tailwind-merge'
 import { AmmV3PoolInfo, LiquidityPoolJsonInfo, RouteInfo } from 'test-r-sdk'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import useNotification from '@/application/notification/useNotification'
 import { isLiquidityPoolJsonInfo } from '@/application/pools/is'

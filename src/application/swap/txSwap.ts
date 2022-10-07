@@ -5,12 +5,13 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { loadTransaction } from '../txTools/createTransaction'
-import handleMultiTx from '../txTools/handleMultiTx'
+import handleMultiTx, { AddSingleTxOptions, TransactionQueue } from '../txTools/handleMultiTx'
 import useWallet from '../wallet/useWallet'
 import { useSwap } from './useSwap'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import asyncMap from '@/functions/asyncMap'
+import { Transaction } from '@solana/web3.js'
 
 export default function txSwap() {
   return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
@@ -69,15 +70,27 @@ export default function txSwap() {
       })
     )
 
-    for (const signedTransaction of signedTransactions) {
-      transactionCollector.add(signedTransaction, {
+    // for (const signedTransaction of signedTransactions) {
+    //   transactionCollector.add(signedTransaction, {
+    //     txHistoryInfo: {
+    //       title: 'Swap',
+    //       description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
+    //         downCoin.symbol
+    //       }`
+    //     }
+    //   })
+    // }
+    const queue = signedTransactions.map((tx) => [
+      tx,
+      {
         txHistoryInfo: {
           title: 'Swap',
           description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
             downCoin.symbol
           }`
         }
-      })
-    }
+      }
+    ]) as TransactionQueue
+    transactionCollector.addQueue(queue)
   })
 }

@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import produce from 'immer'
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
+import useAppSettings from '@/application/common/useAppSettings'
 import {
   createNewUIRewardInfo,
   hasRewardBeenEdited,
@@ -46,7 +46,7 @@ function useAvailableCheck() {
 
 function NavButtons({ className }: { className?: string }) {
   return (
-    <Row className={twMerge('items-center justify-between', className)}>
+    <Row className={twMerge('items-center justify-between mobile:hidden', className)}>
       <Button
         type="text"
         className="text-sm text-[#ABC4FF] opacity-50 px-0"

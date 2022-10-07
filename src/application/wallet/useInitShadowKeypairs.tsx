@@ -1,7 +1,7 @@
 import jFetch from '@/functions/dom/jFetch'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { Keypair } from '@solana/web3.js'
-import useAppSettings from '../appSettings/useAppSettings'
+import useAppSettings from '../common/useAppSettings'
 import useWallet from './useWallet'
 
 async function getIKeyPairs(): Promise<Keypair[] | undefined> {

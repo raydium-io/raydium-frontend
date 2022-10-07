@@ -5,9 +5,9 @@ import { ZERO } from 'test-r-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
-import useAppSettings from '@/application/appSettings/useAppSettings'
-import { refreshWindow } from '@/application/appVersion/forceWindowRefresh'
-import { useAppVersion } from '@/application/appVersion/useAppVersion'
+import useAppSettings from '@/application/common/useAppSettings'
+import { refreshWindow } from '@/application/common/forceWindowRefresh'
+import { useAppVersion } from '@/application/common/useAppVersion'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import useWallet from '@/application/wallet/useWallet'

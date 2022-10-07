@@ -3,7 +3,7 @@ import { AmmV3, ZERO } from 'test-r-sdk'
 import assert from '@/functions/assert'
 import { toString } from '@/functions/numberish/toString'
 
-import useAppSettings from '../appSettings/useAppSettings'
+import useAppSettings from '../common/useAppSettings'
 import { loadTransaction } from '../txTools/createTransaction'
 import handleMultiTx from '../txTools/handleMultiTx'
 import useWallet from '../wallet/useWallet'
