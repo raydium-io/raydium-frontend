@@ -43,6 +43,8 @@ import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
+import { toUTC } from '@/functions/date/dateFormat'
+import { currentIsAfter } from '@/functions/date/judges'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
 import { shrinkAccount } from '@/functions/format/shrinkAccount'
@@ -542,6 +544,21 @@ function PoolCard() {
           />
         </Row>
 
+        <Row className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect">
+          Rewards
+          {/* <Icon
+            className="ml-1"
+            size="sm"
+            iconSrc={
+              sortConfig?.key.startsWith('fee') && sortConfig.mode !== 'none'
+                ? sortConfig?.mode === 'decrease'
+                  ? '/icons/msic-sort-down.svg'
+                  : '/icons/msic-sort-up.svg'
+                : '/icons/msic-sort.svg'
+            }
+          /> */}
+        </Row>
+
         {/* table head column: volume24h */}
         {/* <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
@@ -681,6 +698,23 @@ function PoolCardDatabaseBodyCollapseItemFace({
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = useConcentrated((s) => s.timeBasis)
 
+  const rewardsBadge = useMemo(() => {
+    const badges = info.rewardInfos.map((reward, idx) => {
+      const isRewardEnd = currentIsAfter(reward.endTime)
+      return (
+        <CoinAvatar
+          key={`${idx}-reward-badge-${toPubString(reward.tokenMint)}`}
+          size={isMobile ? 'sm' : 'smi'}
+          token={reward.rewardToken}
+          isRewardBadge
+          isRewardEnd={isRewardEnd}
+        />
+      )
+    })
+
+    return <div className="flex flex-wrap justify-start items-center gap-2">{badges}</div>
+  }, [info.rewardInfos])
+
   const pcCotent = (
     <Row
       type="grid-x"
@@ -744,6 +778,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             : undefined
         }
       />
+      <TextInfoItem name={`Rewards`} value={rewardsBadge} />
       {/* <TextInfoItem
         name={`APR(${timeBasis})`}
         value={
@@ -805,6 +840,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
                 : undefined
             }
           />
+          <TextInfoItem name="Rewards" value={'mobile TEST'} />
           {/* <TextInfoItem
             name={`APR(${timeBasis})`}
             value={
