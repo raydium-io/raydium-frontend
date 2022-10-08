@@ -1,18 +1,15 @@
+import {
+  Connection, Context, Keypair, PublicKey, SignatureResult, Transaction, TransactionError
+} from '@solana/web3.js'
+
+import produce from 'immer'
+
 import { addItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { mergeFunction } from '@/functions/merge'
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import {
-  Connection,
-  Context,
-  Keypair,
-  PublicKey,
-  SignatureResult,
-  Transaction,
-  TransactionError
-} from '@solana/web3.js'
-import produce from 'immer'
+
 import { noTailingPeriod } from '../../functions/format/noTailingPeriod'
 import useAppSettings from '../common/useAppSettings'
 import useConnection from '../connection/useConnection'
@@ -20,6 +17,8 @@ import useNotification from '../notification/useNotification'
 import useTxHistory, { TxHistoryInfo } from '../txHistory/useTxHistory'
 import { getRichWalletTokenAccounts } from '../wallet/useTokenAccountsRefresher'
 import useWallet, { WalletStore } from '../wallet/useWallet'
+
+import { getRecentBlockhash } from './attachRecentBlockhash'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 
@@ -59,11 +58,11 @@ export type TxSentErrorInfo = {
 
 export type TxFinalInfo =
   | ({
-      type: 'success'
-    } & TxSuccessInfo)
+    type: 'success'
+  } & TxSuccessInfo)
   | ({
-      type: 'error'
-    } & TxErrorInfo)
+    type: 'error'
+  } & TxErrorInfo)
 export type TxFinalBatchErrorInfo = {
   allSuccess: false
   errorAt: number
@@ -116,9 +115,9 @@ export interface AddMultiTxsOptions {
    * send all at once
    */
   sendMode?:
-    | 'queue'
-    | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
-    | 'parallel(batch-transactions)' /* it will in order */
+  | 'queue'
+  | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
+  | 'parallel(batch-transactions)' /* it will in order */
   onTxAllSuccess?: AllSuccessCallback
   onTxAnyError?: AnyErrorCallback
 }
@@ -428,7 +427,8 @@ async function sendOneTransactionWithRecordTxid({
     currentIndex: allSignedTransactions.indexOf(transaction)
   }
   try {
-    const txid = await sendTransactionCore(transaction, payload, isBatched ? { allSignedTransactions } : undefined)
+    const blockhashObject = await getRecentBlockhash(payload.connection)
+    const txid = await sendTransactionCore(transaction, payload, blockhashObject, isBatched ? { allSignedTransactions } : undefined)
     singleOptions?.onTxSentSuccess?.({ txid, ...extraTxidInfo })
     logTxid(txid, `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Transaction Sent`)
     assert(txid, 'something went wrong')

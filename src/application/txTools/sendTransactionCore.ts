@@ -1,8 +1,5 @@
-import asyncMap from '@/functions/asyncMap'
-import jFetch from '@/functions/dom/jFetch'
-import { groupItems } from '@/functions/groupItems'
-import { Connection, Message, Transaction } from '@solana/web3.js'
-import { getRecentBlockhash } from './attachRecentBlockhash'
+import { Connection, FeeCalculator, Message, Transaction } from '@solana/web3.js'
+
 import { SendTransactionPayload, serialize } from './handleMultiTx'
 
 type Txid = string
@@ -16,11 +13,9 @@ const tempBatchedTransactionsQueue: {
 export async function sendTransactionCore(
   transaction: Transaction,
   payload: SendTransactionPayload,
-  batchOptions?: {
-    allSignedTransactions: Transaction[]
-  }
+  blockhashObject: { blockhash: string; lastValidBlockHeight: number; },
+  batchOptions?: { allSignedTransactions: Transaction[] }
 ): Promise<Txid> {
-  const blockhashObject = await getRecentBlockhash(payload.connection)
   if (batchOptions && canBatchTransactions(blockhashObject, payload.connection, transaction)) {
     let resolveFn
     const newPromise = new Promise<string>((resolve) => {
@@ -73,15 +68,7 @@ async function sendSingleTransaction(
 const groupSize = 20
 
 function canBatchTransactions(
-  blockInfo:
-    | Readonly<{
-        blockhash: string
-        lastValidBlockHeight: number
-      }>
-    | {
-        blockhash: string
-        feeCalculator: unknown
-      },
+  blockInfo: { blockhash: string; lastValidBlockHeight: number; },
   connection: Connection,
   transaction: Transaction
 ): blockInfo is { blockhash: string; lastValidBlockHeight: number } {
@@ -96,32 +83,18 @@ async function sendBatchedTransactions(
   payload: SendTransactionPayload,
   blockInfo: { blockhash: string; lastValidBlockHeight: number }
 ): Promise<Txid[]> {
-  // console.log('params: ', { transactions, payload, blockInfo })
-  const postRequestBodyData = allSignedTransactions.map((tx, idx) => {
-    tx.recentBlockhash = blockInfo.blockhash
-    tx.lastValidBlockHeight = blockInfo.lastValidBlockHeight
-    // console.log('idx: ', idx)
-    return {
-      jsonrpc: '2.0',
-      id: idx,
-      method: 'sendTransaction',
-      params: [serialize(tx).toString('base64'), { encoding: 'base64' }]
-    }
+  const encodedTransactions = allSignedTransactions.map(i => {
+    if (!i.recentBlockhash) i.recentBlockhash = blockInfo.blockhash
+    return i.serialize().toString('base64')
   })
-  // console.log('postRequestBodyData: ', postRequestBodyData)
-  const res = jFetch(payload.connection.rpcEndpoint, { method: 'POST', body: JSON.stringify(postRequestBodyData) })
 
-  // console.log(
-  // 'res: ',
-  // res.then((r) => console.log('r: ', r))
-  // )
-  const results = asyncMap(groupItems(postRequestBodyData, groupSize), (groupedRequest) =>
-    // @ts-expect-error force
-    (payload.connection._rpcBatchRequest(groupedRequest) as Promise<any>).then((res) => {
-      // console.log('res: ', res)
-      return res.result.value
-    })
-  )
-  // console.log('results: ', results)
+  const batch = encodedTransactions.map((keys) => {
+    const args = payload.connection._buildArgs([keys], undefined, "base64");
+    return { methodName: "sendTransaction", args, };
+  });
+
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  const results = (await payload.connection._rpcBatchRequest(batch)).map(ii => ii.result.value)
   return results
 }
