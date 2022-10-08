@@ -20,7 +20,7 @@ import useNotification from '../notification/useNotification'
 import useTxHistory, { TxHistoryInfo } from '../txHistory/useTxHistory'
 import { getRichWalletTokenAccounts } from '../wallet/useTokenAccountsRefresher'
 import useWallet, { WalletStore } from '../wallet/useWallet'
-import { getRecentBlockhash } from './attachRecentBlockhash'
+import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 
 //#region ------------------- basic info -------------------
@@ -115,7 +115,10 @@ export interface AddMultiTxsOptions {
    * send next when prev is complete (default)
    * send all at once
    */
-  sendMode?: 'queue' | 'parallel'
+  sendMode?:
+    | 'queue'
+    | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
+    | 'parallel(batch-txs)' /* it will in order */
   onTxAllSuccess?: AllSuccessCallback
   onTxAnyError?: AnyErrorCallback
 }
@@ -250,7 +253,7 @@ function collectTxOptions() {
   return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOptions } }
 }
 
-function getSerializedTx(transaction: Transaction, key?: string) {
+export function getSerializedTx(transaction: Transaction, key?: string) {
   if (key && txSerializeCache.has(key)) {
     return txSerializeCache.get(key)!
   } else {
@@ -328,7 +331,10 @@ function combinedMultiTransaction({
 }): () => void {
   const txids = [] as string[]
 
-  if (multiOptions.sendMode === 'parallel') {
+  if (
+    multiOptions.sendMode === 'parallel(dangerous-without-order)' ||
+    multiOptions.sendMode === 'parallel(batch-txs)'
+  ) {
     const successTxids = [] as typeof txids
     const pushSuccessTxid = (txid: string) => {
       successTxids.push(txid)
@@ -342,24 +348,25 @@ function combinedMultiTransaction({
           transaction: tx,
           allTransactions: transactions,
           payload,
-          singleOptions: produce(singleOptionss[idx], (d) => {
-            d.onTxSentSuccess = mergeFunction(
+          isBatched: multiOptions.sendMode === 'parallel(batch-txs)',
+          singleOptions: produce(singleOptionss[idx], (draft) => {
+            draft.onTxSentSuccess = mergeFunction(
               (({ txid }) => {
                 txids.push(txid)
               }) as TxSentSuccessCallback,
-              d.onTxSentSuccess
+              draft.onTxSentSuccess
             )
-            d.onTxError = mergeFunction(
+            draft.onTxError = mergeFunction(
               (() => {
                 multiOptions.onTxAnyError?.({ txids })
               }) as TxErrorCallback,
-              d.onTxError
+              draft.onTxError
             )
-            d.onTxSuccess = mergeFunction(
+            draft.onTxSuccess = mergeFunction(
               (({ txid }) => {
                 pushSuccessTxid(txid)
               }) as TxSuccessCallback,
-              d.onTxSuccess
+              draft.onTxSuccess
             )
           })
         })
@@ -373,19 +380,19 @@ function combinedMultiTransaction({
           transaction: tx,
           allTransactions: transactions,
           payload,
-          singleOptions: produce(singleOptionss[idx], (d) => {
-            d.onTxSentSuccess = mergeFunction(
+          singleOptions: produce(singleOptionss[idx], (draft) => {
+            draft.onTxSentSuccess = mergeFunction(
               (({ txid }) => {
                 txids.push(txid)
               }) as TxSentSuccessCallback,
-              d.onTxSentSuccess
+              draft.onTxSentSuccess
             )
-            d.onTxSuccess = mergeFunction(acc as TxSentSuccessCallback, d.onTxSuccess)
-            d.onTxError = mergeFunction(
+            draft.onTxSuccess = mergeFunction(acc as TxSentSuccessCallback, draft.onTxSuccess)
+            draft.onTxError = mergeFunction(
               (() => {
                 multiOptions.onTxAnyError?.({ txids })
               }) as TxErrorCallback,
-              d.onTxError
+              draft.onTxError
             )
           })
         }),
@@ -407,21 +414,27 @@ async function sendOneTransactionWithLogWithRecord({
   transaction,
   allTransactions = [transaction],
   singleOptions,
-  payload
+  payload,
+  isBatched
 }: {
   transaction: Transaction
   allTransactions?: Transaction[]
   singleOptions?: AddSingleTxOptions
   payload: SendTransactionPayload
+  isBatched?: boolean
 }) {
   const { logError, logTxid } = useNotification.getState()
   const extraTxidInfo: MultiTxExtraInfo = {
     multiTransaction: true,
     multiTransactionLength: allTransactions.length,
     currentIndex: allTransactions.indexOf(transaction)
-  } as const
+  }
   try {
-    const txid = await sendOneTransactionCore(transaction, payload)
+    const txid = await sendTransactionCore(
+      transaction,
+      payload,
+      isBatched ? { totalLength: allTransactions.length } : undefined
+    )
     singleOptions?.onTxSentSuccess?.({ txid, ...extraTxidInfo })
     logTxid(txid, `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Transaction Sent`)
     assert(txid, 'something went wrong')
@@ -460,22 +473,5 @@ async function sendOneTransactionWithLogWithRecord({
     singleOptions?.onTxSentError?.({ err, ...extraTxidInfo })
   } finally {
     singleOptions?.onTxSentFinally?.()
-  }
-}
-
-async function sendOneTransactionCore(transaction: Transaction, payload: SendTransactionPayload) {
-  if (payload.signerkeyPair?.ownerKeypair) {
-    // if have signer detected, no need signAllTransactions
-    transaction.recentBlockhash = await getRecentBlockhash(payload.connection)
-    transaction.feePayer = payload.signerkeyPair.payerKeypair?.publicKey ?? payload.signerkeyPair.ownerKeypair.publicKey
-
-    return payload.connection.sendTransaction(transaction, [
-      payload.signerkeyPair.payerKeypair ?? payload.signerkeyPair.ownerKeypair
-    ])
-  } else {
-    const tx = getSerializedTx(transaction, payload.txKey)
-    return await payload.connection.sendRawTransaction(tx, {
-      skipPreflight: true
-    })
   }
 }

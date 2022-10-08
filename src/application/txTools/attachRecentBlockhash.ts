@@ -19,7 +19,7 @@ export async function attachRecentBlockhash(transactions: Transaction[], options
 
     if (!transaction.recentBlockhash) {
       // recentBlockhash may already attached by sdk
-      transaction.recentBlockhash = await getRecentBlockhash(connection)
+      transaction.recentBlockhash = (await getRecentBlockhash(connection)).blockhash
     }
     transaction.feePayer = owner
   }
@@ -27,8 +27,8 @@ export async function attachRecentBlockhash(transactions: Transaction[], options
 
 export async function getRecentBlockhash(connection: Connection) {
   try {
-    return (await connection.getLatestBlockhash?.())?.blockhash || (await connection.getRecentBlockhash()).blockhash
+    return (await connection.getLatestBlockhash?.()) || (await connection.getRecentBlockhash())
   } catch {
-    return (await connection.getRecentBlockhash()).blockhash
+    return await connection.getRecentBlockhash()
   }
 }
