@@ -118,7 +118,7 @@ export interface AddMultiTxsOptions {
   sendMode?:
     | 'queue'
     | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
-    | 'parallel(batch-txs)' /* it will in order */
+    | 'parallel(batch-transactions)' /* it will in order */
   onTxAllSuccess?: AllSuccessCallback
   onTxAnyError?: AnyErrorCallback
 }
@@ -141,10 +141,6 @@ export type TxResponseInfos = {
 export type HandleFnOptions = {
   /** if add this, handleTx's shadow mode will open,  */
   forceKeyPairs?: TxKeypairDetective
-  /**
-   * same key will success only once
-   */
-  txKey?: string
 }
 
 export type SendTransactionPayload = {
@@ -152,8 +148,6 @@ export type SendTransactionPayload = {
   connection: Connection
   // only if have been shadow open
   signerkeyPair?: TxKeypairDetective
-  /** if provide, can't send twice */
-  txKey?: string
 }
 
 /**
@@ -206,8 +200,7 @@ export default async function handleMultiTx(
       payload: {
         connection,
         signAllTransactions,
-        signerkeyPair: options?.forceKeyPairs,
-        txKey: options?.txKey
+        signerkeyPair: options?.forceKeyPairs
       }
     })
     useAppSettings.setState({ isApprovePanelShown: false })
@@ -253,11 +246,14 @@ function collectTxOptions() {
   return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOptions } }
 }
 
-export function getSerializedTx(transaction: Transaction, key?: string) {
+export function serialize(transaction: Transaction) {
+  const key = transaction.recentBlockhash
   if (key && txSerializeCache.has(key)) {
     return txSerializeCache.get(key)!
   } else {
+    // console.log('transaction: ', transaction)// BUG
     const serialized = transaction.serialize()
+    // console.log('344: ', 344)// BUG
     if (key) txSerializeCache.set(key, serialized)
     return serialized
   }
@@ -265,7 +261,7 @@ export function getSerializedTx(transaction: Transaction, key?: string) {
 
 /**
  * duty:
- * 1. provide txid and txCallback collectors for a tx action
+ * 1. signAllTransactions
  * 2. record tx to recentTxHistory
  *
  * so this fn will record txids
@@ -290,7 +286,7 @@ async function sendMultiTransaction({
           : payload.signAllTransactions(transactions))
         // eslint-disable-next-line no-inner-declarations
 
-        const combined = combinedMultiTransaction({
+        const combined = sendMultiTransactionWithCallback({
           transactions: allSignedTransactions,
           multiOptions: produce(multiOptions, (multiOptions) => {
             multiOptions.onTxAllSuccess = mergeFunction(
@@ -318,7 +314,7 @@ async function sendMultiTransaction({
   )
 }
 
-function combinedMultiTransaction({
+function sendMultiTransactionWithCallback({
   transactions,
   multiOptions,
   singleOptionss,
@@ -333,7 +329,7 @@ function combinedMultiTransaction({
 
   if (
     multiOptions.sendMode === 'parallel(dangerous-without-order)' ||
-    multiOptions.sendMode === 'parallel(batch-txs)'
+    multiOptions.sendMode === 'parallel(batch-transactions)'
   ) {
     const successTxids = [] as typeof txids
     const pushSuccessTxid = (txid: string) => {
@@ -344,11 +340,11 @@ function combinedMultiTransaction({
     }
     const parallelled = () => {
       transactions.forEach((tx, idx) =>
-        sendOneTransactionWithLogWithRecord({
+        sendOneTransactionWithRecordTxid({
           transaction: tx,
-          allTransactions: transactions,
+          allSignedTransactions: transactions,
           payload,
-          isBatched: multiOptions.sendMode === 'parallel(batch-txs)',
+          isBatched: multiOptions.sendMode === 'parallel(batch-transactions)',
           singleOptions: produce(singleOptionss[idx], (draft) => {
             draft.onTxSentSuccess = mergeFunction(
               (({ txid }) => {
@@ -376,9 +372,9 @@ function combinedMultiTransaction({
   } else {
     const queued = transactions.reduceRight(
       (acc, tx, idx) => () =>
-        sendOneTransactionWithLogWithRecord({
+        sendOneTransactionWithRecordTxid({
           transaction: tx,
-          allTransactions: transactions,
+          allSignedTransactions: transactions,
           payload,
           singleOptions: produce(singleOptionss[idx], (draft) => {
             draft.onTxSentSuccess = mergeFunction(
@@ -409,16 +405,18 @@ function combinedMultiTransaction({
  * 1. provide txid and txCallback collectors for a tx action
  * 2. record tx to recentTxHistory
  *
+ * it will subscribe txid
+ *
  */
-async function sendOneTransactionWithLogWithRecord({
+async function sendOneTransactionWithRecordTxid({
   transaction,
-  allTransactions = [transaction],
+  allSignedTransactions = [transaction],
   singleOptions,
   payload,
   isBatched
 }: {
   transaction: Transaction
-  allTransactions?: Transaction[]
+  allSignedTransactions?: Transaction[]
   singleOptions?: AddSingleTxOptions
   payload: SendTransactionPayload
   isBatched?: boolean
@@ -426,15 +424,11 @@ async function sendOneTransactionWithLogWithRecord({
   const { logError, logTxid } = useNotification.getState()
   const extraTxidInfo: MultiTxExtraInfo = {
     multiTransaction: true,
-    multiTransactionLength: allTransactions.length,
-    currentIndex: allTransactions.indexOf(transaction)
+    multiTransactionLength: allSignedTransactions.length,
+    currentIndex: allSignedTransactions.indexOf(transaction)
   }
   try {
-    const txid = await sendTransactionCore(
-      transaction,
-      payload,
-      isBatched ? { totalLength: allTransactions.length } : undefined
-    )
+    const txid = await sendTransactionCore(transaction, payload, isBatched ? { allSignedTransactions } : undefined)
     singleOptions?.onTxSentSuccess?.({ txid, ...extraTxidInfo })
     logTxid(txid, `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Transaction Sent`)
     assert(txid, 'something went wrong')

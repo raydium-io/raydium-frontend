@@ -55,23 +55,20 @@ export default function CreateFarmReviewPage() {
       size={isMobile ? 'sm' : 'lg'}
       validators={[{ should: haveOver300Ray, fallbackProps: { children: 'Insufficient RAY balance' } }]}
       onClick={async () => {
-        txCreateNewFarm(
-          {
-            onReceiveFarmId(farmId) {
-              useCreateFarms.setState({ farmId })
-            },
-            onTxSentFinally: () => {
-              turnOnCreated()
-              setInterval(
-                () => {
-                  useFarms.getState().refreshFarmInfos()
-                },
-                { loopCount: 3, intervalTime: 1000 * 60 }
-              )
-            }
+        txCreateNewFarm({
+          onReceiveFarmId(farmId) {
+            useCreateFarms.setState({ farmId })
           },
-          key
-        )
+          onTxSentFinally: () => {
+            turnOnCreated()
+            setInterval(
+              () => {
+                useFarms.getState().refreshFarmInfos()
+              },
+              { loopCount: 3, intervalTime: 1000 * 60 }
+            )
+          }
+        })
       }}
     >
       Create Farm

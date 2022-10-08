@@ -1,8 +1,9 @@
 import asyncMap from '@/functions/asyncMap'
+import jFetch from '@/functions/dom/jFetch'
 import { groupItems } from '@/functions/groupItems'
 import { Connection, Message, Transaction } from '@solana/web3.js'
 import { getRecentBlockhash } from './attachRecentBlockhash'
-import { SendTransactionPayload, getSerializedTx } from './handleMultiTx'
+import { SendTransactionPayload, serialize } from './handleMultiTx'
 
 type Txid = string
 
@@ -16,7 +17,7 @@ export async function sendTransactionCore(
   transaction: Transaction,
   payload: SendTransactionPayload,
   batchOptions?: {
-    totalLength: number
+    allSignedTransactions: Transaction[]
   }
 ): Promise<Txid> {
   const blockhashObject = await getRecentBlockhash(payload.connection)
@@ -27,7 +28,7 @@ export async function sendTransactionCore(
     })
     tempBatchedTransactionsQueue.push({ tx: transaction, txidPromise: newPromise, resolveFn })
     // once all tx load, start batch sending
-    if (tempBatchedTransactionsQueue.length === batchOptions.totalLength) {
+    if (tempBatchedTransactionsQueue.length === batchOptions.allSignedTransactions.length) {
       const txids = await sendBatchedTransactions(
         tempBatchedTransactionsQueue.map((b) => b.tx),
         payload,
@@ -62,7 +63,7 @@ async function sendSingleTransaction(
       payload.signerkeyPair.payerKeypair ?? payload.signerkeyPair.ownerKeypair
     ])
   } else {
-    const tx = getSerializedTx(transaction, payload.txKey)
+    const tx = serialize(transaction)
     return await payload.connection.sendRawTransaction(tx, {
       skipPreflight: true
     })
@@ -91,29 +92,30 @@ function canBatchTransactions(
 }
 
 async function sendBatchedTransactions(
-  transactions: Transaction[],
+  allSignedTransactions: Transaction[],
   payload: SendTransactionPayload,
   blockInfo: { blockhash: string; lastValidBlockHeight: number }
 ): Promise<Txid[]> {
   // console.log('params: ', { transactions, payload, blockInfo })
-  const requests = transactions.map((tx) => {
+  const postRequestBodyData = allSignedTransactions.map((tx, idx) => {
     tx.recentBlockhash = blockInfo.blockhash
     tx.lastValidBlockHeight = blockInfo.lastValidBlockHeight
-    // @ts-expect-error force
-    const signData = (tx._compile() as Message).serialize()
-    // console.log('signData: ', signData.toString('base64'))
-    // @ts-expect-error force
-    const encodedTransaction = (tx._serialize(signData) as Buffer).toString('base64')
-    // console.log('encodedTransaction: ', encodedTransaction)
-    const args = payload.connection._buildArgs([encodedTransaction], undefined, 'base64')
-    // console.log('payload.connection: ', payload.connection)
+    // console.log('idx: ', idx)
     return {
-      methodName: 'sendTransaction', // TEMP COPY
-      args
+      jsonrpc: '2.0',
+      id: idx,
+      method: 'sendTransaction',
+      params: [serialize(tx).toString('base64'), { encoding: 'base64' }]
     }
   })
+  // console.log('postRequestBodyData: ', postRequestBodyData)
+  const res = jFetch(payload.connection.rpcEndpoint, { method: 'POST', body: JSON.stringify(postRequestBodyData) })
 
-  const results = asyncMap(groupItems(requests, groupSize), (groupedRequest) =>
+  // console.log(
+  // 'res: ',
+  // res.then((r) => console.log('r: ', r))
+  // )
+  const results = asyncMap(groupItems(postRequestBodyData, groupSize), (groupedRequest) =>
     // @ts-expect-error force
     (payload.connection._rpcBatchRequest(groupedRequest) as Promise<any>).then((res) => {
       // console.log('res: ', res)

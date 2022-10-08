@@ -92,6 +92,6 @@ export default function txSwap() {
         }
       }
     ]) as TransactionQueue
-    transactionCollector.addQueue(queue, { sendMode: 'parallel(batch-txs)' })
+    transactionCollector.addQueue(queue, { sendMode: 'parallel(batch-transactions)' })
   })
 }
