@@ -32,6 +32,7 @@ const devRpcConfig: Omit<Config, 'success'> = {
     // { name: 'api.mainnet', url: 'https://api.mainnet.rpcpool.com/' }, // not support ws
     { name: 'genesysgo-dao', url: 'https://ssc-dao.genesysgo.net/' }, // only for bonsai, local may be crashed
     { name: 'tt', url: 'https://solana-api.tt-prod.net' }
+    // { name: 'free-rpc', url: 'https://solana-api.tt-prod.net' },
   ],
   strategy: 'speed'
 }

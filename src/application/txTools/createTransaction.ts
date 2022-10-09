@@ -54,8 +54,8 @@ const partialSignTransacion = async (
   signers?: Signer[],
   options?: { forceBlockHash?: string }
 ): Promise<Transaction> => {
+  await attachRecentBlockhash([transaction], options)
   if (signers?.length) {
-    await attachRecentBlockhash([transaction], options)
     transaction.partialSign(...signers)
     return transaction
   }
