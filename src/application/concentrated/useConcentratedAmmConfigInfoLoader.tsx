@@ -2,7 +2,7 @@ import jFetch from '@/functions/dom/jFetch'
 import { toPercent } from '@/functions/format/toPercent'
 import { div } from '@/functions/numberish/operations'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
-import { ApiAmmV3ConfigInfo } from 'test-r-sdk'
+import { ApiAmmV3ConfigInfo } from '@raydium-io/raydium-sdk'
 import useConcentrated from './useConcentrated'
 
 /**

@@ -28,7 +28,7 @@ import {
   ReturnTypeFetchMultiplePoolTickArrays,
   ReturnTypeGetAllRouteComputeAmountOut,
   TradeV2
-} from 'test-r-sdk'
+} from '@raydium-io/raydium-sdk'
 
 const apiCache = {} as {
   ammV3?: ApiAmmV3PoolInfo[]

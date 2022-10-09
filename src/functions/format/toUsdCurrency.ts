@@ -3,7 +3,7 @@ import BN from 'bn.js'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import toBN from '@/functions/numberish/toBN'
 import { Numberish } from '@/types/constants'
-import { CurrencyAmount, Fraction, TEN } from 'test-r-sdk'
+import { CurrencyAmount, Fraction, TEN } from '@raydium-io/raydium-sdk'
 
 import { usdCurrency } from './toTokenPrice'
 import toFraction from '../numberish/toFraction'

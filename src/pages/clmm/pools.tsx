@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { CurrencyAmount } from 'test-r-sdk'
+import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'

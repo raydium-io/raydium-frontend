@@ -10,7 +10,7 @@ import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
-import { Fraction } from 'test-r-sdk'
+import { Fraction } from '@raydium-io/raydium-sdk'
 
 interface Props {
   open: boolean

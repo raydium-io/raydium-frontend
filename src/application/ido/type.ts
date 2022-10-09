@@ -12,7 +12,7 @@ import {
 
 import { SplToken, TokenAmount } from '../token/type'
 import { IdoLedgerLayoutV3, IdoPoolBaseInfo, IdoStateLayoutV3, SnapshotStateLayoutV1 } from './sdk'
-import { Price } from 'test-r-sdk'
+import { Price } from '@raydium-io/raydium-sdk'
 
 export type BackendApiIdoListItem = {
   id: HexAddress

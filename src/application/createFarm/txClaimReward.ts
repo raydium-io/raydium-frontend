@@ -1,4 +1,4 @@
-import { Farm } from 'test-r-sdk'
+import { Farm } from '@raydium-io/raydium-sdk'
 import { Connection, Signer, TransactionInstruction } from '@solana/web3.js'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'

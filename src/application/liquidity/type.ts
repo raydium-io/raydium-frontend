@@ -9,7 +9,7 @@ import {
   ReplaceType,
   Token,
   TokenAmount
-} from 'test-r-sdk'
+} from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { SplToken } from '../token/type'

@@ -1,7 +1,7 @@
 import { SOLDecimals } from '@/application/token/quantumSOL'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { Numberish } from '@/types/constants'
-import { CurrencyAmount, Fraction, Percent, Price, TokenAmount, ZERO } from 'test-r-sdk'
+import { CurrencyAmount, Fraction, Percent, Price, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
 import tryCatch from '../tryCatch'
 
 export default function toFraction(value: Numberish): Fraction {

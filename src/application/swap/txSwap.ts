@@ -1,5 +1,4 @@
-import { TradeV2 } from 'test-r-sdk'
-
+import { TradeV2 } from '@raydium-io/raydium-sdk'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { gt } from '@/functions/numberish/compare'

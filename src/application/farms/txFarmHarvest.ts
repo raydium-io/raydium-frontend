@@ -1,4 +1,4 @@
-import { Farm, TokenAmount } from 'test-r-sdk'
+import { Farm, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import createAssociatedTokenAccountIfNotExist from '@/application/txTools/createAssociatedTokenAccountIfNotExist'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'

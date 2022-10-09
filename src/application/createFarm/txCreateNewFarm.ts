@@ -1,4 +1,4 @@
-import { Farm, FarmCreateInstructionParamsV6, FarmPoolJsonInfoV6 } from 'test-r-sdk'
+import { Farm, FarmCreateInstructionParamsV6, FarmPoolJsonInfoV6 } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 

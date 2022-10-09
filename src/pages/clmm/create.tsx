@@ -2,7 +2,7 @@ import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 're
 
 import Decimal from 'decimal.js'
 import { twMerge } from 'tailwind-merge'
-import { Fraction } from 'test-r-sdk'
+import { Fraction } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import {

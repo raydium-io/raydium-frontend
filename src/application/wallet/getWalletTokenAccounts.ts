@@ -1,4 +1,10 @@
-import { GetTokenAccountsByOwnerConfig, Logger, Spl, SPL_ACCOUNT_LAYOUT, TOKEN_PROGRAM_ID } from 'test-r-sdk'
+import {
+  GetTokenAccountsByOwnerConfig,
+  Logger,
+  Spl,
+  SPL_ACCOUNT_LAYOUT,
+  TOKEN_PROGRAM_ID
+} from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'

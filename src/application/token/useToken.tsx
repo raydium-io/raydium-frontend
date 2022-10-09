@@ -1,4 +1,4 @@
-import { Price, PublicKeyish } from 'test-r-sdk'
+import { Price, PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import produce from 'immer'
 import create from 'zustand'

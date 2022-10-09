@@ -1,4 +1,4 @@
-import { PublicKeyish, Token, TokenAmount, WSOL } from 'test-r-sdk'
+import { PublicKeyish, Token, TokenAmount, WSOL } from '@raydium-io/raydium-sdk'
 import { Adapter, WalletName } from '@solana/wallet-adapter-base'
 import { Wallet } from '@solana/wallet-adapter-react'
 import { Keypair, PublicKey, Transaction } from '@solana/web3.js'

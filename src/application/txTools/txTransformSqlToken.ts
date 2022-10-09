@@ -1,4 +1,4 @@
-import { Spl, TokenAmount } from 'test-r-sdk'
+import { Spl, TokenAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import handleMultiTx, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleMultiTx'

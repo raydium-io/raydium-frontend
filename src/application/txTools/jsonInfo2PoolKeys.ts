@@ -1,4 +1,4 @@
-import { Token, TokenAmount, Fraction, Currency, CurrencyAmount, Price, Percent } from 'test-r-sdk'
+import { Token, TokenAmount, Fraction, Currency, CurrencyAmount, Price, Percent } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
 

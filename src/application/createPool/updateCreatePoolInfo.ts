@@ -1,4 +1,4 @@
-import { Liquidity, MARKET_STATE_LAYOUT_V3, PublicKeyish, SPL_MINT_LAYOUT } from 'test-r-sdk'
+import { Liquidity, MARKET_STATE_LAYOUT_V3, PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'

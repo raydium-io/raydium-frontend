@@ -1,6 +1,6 @@
 import assert from '@/functions/assert'
 import toFraction from '@/functions/numberish/toFraction'
-import { AmmV3 } from 'test-r-sdk'
+import { AmmV3 } from '@raydium-io/raydium-sdk'
 import useConnection from '../connection/useConnection'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { ammV3ProgramId } from '../token/wellknownProgram.config'

@@ -1,7 +1,7 @@
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import toUsdCurrency from '@/functions/format/toUsdCurrency'
-import { TokenAmount } from 'test-r-sdk'
+import { TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { LpToken } from '../token/type'
 

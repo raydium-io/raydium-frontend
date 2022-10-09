@@ -12,7 +12,7 @@ import {
   Percent,
   Price,
   TokenAmount
-} from 'test-r-sdk'
+} from '@raydium-io/raydium-sdk'
 
 import { HexAddress, Numberish } from '@/types/constants'
 

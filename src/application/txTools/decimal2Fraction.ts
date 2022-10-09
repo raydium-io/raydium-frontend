@@ -1,10 +1,10 @@
 import { isDecimal, isFraction } from '@/functions/judgers/dateType'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
-import { Fraction, Token } from 'test-r-sdk'
+import { Fraction, Token } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
 import Decimal from 'decimal.js'
-import { Currency, CurrencyAmount, Percent, Price, TokenAmount, _100 } from 'test-r-sdk'
+import { Currency, CurrencyAmount, Percent, Price, TokenAmount, _100 } from '@raydium-io/raydium-sdk'
 
 export function decimalToFraction(n: undefined): undefined
 export function decimalToFraction(n: Decimal): Fraction

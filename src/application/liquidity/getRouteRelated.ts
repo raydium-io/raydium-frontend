@@ -1,4 +1,4 @@
-import { LiquidityPoolJsonInfo as LiquidityJsonInfo, PublicKeyish } from 'test-r-sdk'
+import { LiquidityPoolJsonInfo as LiquidityJsonInfo, PublicKeyish } from '@raydium-io/raydium-sdk'
 import toPubString from '@/functions/format/toMintString'
 import { WSOLMint } from '../token/quantumSOL'
 import {

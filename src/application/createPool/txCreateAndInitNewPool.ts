@@ -1,4 +1,4 @@
-import { Liquidity, SPL_MINT_LAYOUT, Token } from 'test-r-sdk'
+import { Liquidity, SPL_MINT_LAYOUT, Token } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import useToken from '@/application/token/useToken'

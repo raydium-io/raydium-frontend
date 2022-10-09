@@ -1,7 +1,7 @@
 import React, { ReactNode, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
-import { Fraction, TokenAmount, ZERO } from 'test-r-sdk'
+import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 

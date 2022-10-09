@@ -10,7 +10,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress } from '@/types/constants'
 import { useRouter } from 'next/router'
-import { LiquidityPoolsJsonFile } from 'test-r-sdk'
+import { LiquidityPoolsJsonFile } from '@raydium-io/raydium-sdk'
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 import { liquidityMainnetListUrl } from '../token/rawTokenLists.config'
 

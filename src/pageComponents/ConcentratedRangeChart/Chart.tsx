@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo, useImperativeHandle, forwardRef, ReactNode } from 'react'
-import { Fraction } from 'test-r-sdk'
+import { Fraction } from '@raydium-io/raydium-sdk'
 import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
 import Icon from '@/components/Icon'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'

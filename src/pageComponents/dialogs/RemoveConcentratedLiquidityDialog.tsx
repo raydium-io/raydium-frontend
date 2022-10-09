@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { AmmV3 } from 'test-r-sdk'
+import { AmmV3 } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'

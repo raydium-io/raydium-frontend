@@ -1,6 +1,6 @@
 import { FormatOptions } from '@/functions/format/formatNumber'
 import { Numberish } from '@/types/constants'
-import { Rounding } from 'test-r-sdk'
+import { Rounding } from '@raydium-io/raydium-sdk'
 import { autoSuffixNumberish } from './autoSuffixNumberish'
 
 /**

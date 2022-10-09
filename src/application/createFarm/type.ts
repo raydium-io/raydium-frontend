@@ -1,5 +1,5 @@
 import { HexAddress, Numberish } from '@/types/constants'
-import { Percent, TokenAmount } from 'test-r-sdk'
+import { Percent, TokenAmount } from '@raydium-io/raydium-sdk'
 import { SplToken } from '../token/type'
 
 export type UIRewardInfo = {

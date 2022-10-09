@@ -1,4 +1,4 @@
-import { jsonInfo2PoolKeys, Liquidity } from 'test-r-sdk'
+import { jsonInfo2PoolKeys, Liquidity } from '@raydium-io/raydium-sdk'
 
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'

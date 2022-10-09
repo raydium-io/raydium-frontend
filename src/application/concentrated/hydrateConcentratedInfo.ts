@@ -1,4 +1,4 @@
-import { AmmV3PoolPersonalPosition, Price } from 'test-r-sdk'
+import { AmmV3PoolPersonalPosition, Price } from '@raydium-io/raydium-sdk'
 
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'

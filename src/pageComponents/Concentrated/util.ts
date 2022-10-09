@@ -1,4 +1,4 @@
-import { ApiAmmV3Point } from 'test-r-sdk'
+import { ApiAmmV3Point } from '@raydium-io/raydium-sdk'
 import { SplToken } from '@/application/token/type'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { ChartPoint } from './type'
@@ -6,7 +6,7 @@ import { Numberish } from '@/types/constants'
 import { gt } from '@/functions/numberish/compare'
 import { div, sub, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
-import { Fraction } from 'test-r-sdk'
+import { Fraction } from '@raydium-io/raydium-sdk'
 
 export function canTokenPairBeSelected(targetToken: SplToken | undefined, candidateToken: SplToken | undefined) {
   return !isMintEqual(targetToken?.mint, candidateToken?.mint)

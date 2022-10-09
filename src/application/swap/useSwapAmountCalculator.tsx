@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { WSOL } from 'test-r-sdk'
+import { WSOL } from '@raydium-io/raydium-sdk'
 
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'

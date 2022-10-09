@@ -1,6 +1,6 @@
 import { currentIsAfter, currentIsBefore, isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { Percent } from 'test-r-sdk'
+import { Percent } from '@raydium-io/raydium-sdk'
 
 import { HydratedIdoInfo, SdkIdoInfo, TicketInfo, TicketTailNumberInfo } from './type'
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
