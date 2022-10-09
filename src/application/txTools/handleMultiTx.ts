@@ -1,10 +1,15 @@
 import {
-  Connection, Context, Keypair, PublicKey, SignatureResult, Transaction, TransactionError
+  Connection,
+  Context,
+  Keypair,
+  PublicKey,
+  SignatureResult,
+  Transaction,
+  TransactionError
 } from '@solana/web3.js'
 
 import produce from 'immer'
 
-import { addItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { mergeFunction } from '@/functions/merge'
@@ -18,7 +23,6 @@ import useTxHistory, { TxHistoryInfo } from '../txHistory/useTxHistory'
 import { getRichWalletTokenAccounts } from '../wallet/useTokenAccountsRefresher'
 import useWallet, { WalletStore } from '../wallet/useWallet'
 
-import { getRecentBlockhash } from './attachRecentBlockhash'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 
@@ -58,11 +62,11 @@ export type TxSentErrorInfo = {
 
 export type TxFinalInfo =
   | ({
-    type: 'success'
-  } & TxSuccessInfo)
+      type: 'success'
+    } & TxSuccessInfo)
   | ({
-    type: 'error'
-  } & TxErrorInfo)
+      type: 'error'
+    } & TxErrorInfo)
 export type TxFinalBatchErrorInfo = {
   allSuccess: false
   errorAt: number
@@ -115,9 +119,9 @@ export interface AddMultiTxsOptions {
    * send all at once
    */
   sendMode?:
-  | 'queue'
-  | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
-  | 'parallel(batch-transactions)' /* it will in order */
+    | 'queue'
+    | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
+    | 'parallel(batch-transactions)' /* it will in order */
   onTxAllSuccess?: AllSuccessCallback
   onTxAnyError?: AnyErrorCallback
 }
@@ -150,9 +154,13 @@ export type SendTransactionPayload = {
 }
 
 /**
- * duty:
+ * **DUTY:**
+ *
  * 1. provide tools for a tx action
+ *
  * 2. auto handle txError and txSuccess
+ *
+ * 3. hanle appSetting ---- isApprovePanelShown
  */
 export default async function handleMultiTx(
   txAction: MultiTxAction,
@@ -202,6 +210,7 @@ export default async function handleMultiTx(
         signerkeyPair: options?.forceKeyPairs
       }
     })
+
     useAppSettings.setState({ isApprovePanelShown: false })
     return finalInfos
   } catch (error) {
@@ -216,6 +225,7 @@ export default async function handleMultiTx(
     const errorDescription = userErrorDescription || systemErrorDescription
 
     logError(errorTitle, errorDescription)
+
     useAppSettings.setState({ isApprovePanelShown: false })
     return {
       allSuccess: false,
@@ -250,9 +260,7 @@ export function serialize(transaction: Transaction) {
   if (key && txSerializeCache.has(key)) {
     return txSerializeCache.get(key)!
   } else {
-    // console.log('transaction: ', transaction)// BUG
     const serialized = transaction.serialize()
-    // console.log('344: ', 344)// BUG
     if (key) txSerializeCache.set(key, serialized)
     return serialized
   }
@@ -427,8 +435,7 @@ async function sendOneTransactionWithRecordTxid({
     currentIndex: allSignedTransactions.indexOf(transaction)
   }
   try {
-    const blockhashObject = await getRecentBlockhash(payload.connection)
-    const txid = await sendTransactionCore(transaction, payload, blockhashObject, isBatched ? { allSignedTransactions } : undefined)
+    const txid = await sendTransactionCore(transaction, payload, isBatched ? { allSignedTransactions } : undefined)
     singleOptions?.onTxSentSuccess?.({ txid, ...extraTxidInfo })
     logTxid(txid, `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Transaction Sent`)
     assert(txid, 'something went wrong')

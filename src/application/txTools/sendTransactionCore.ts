@@ -1,4 +1,4 @@
-import { Connection, FeeCalculator, Message, Transaction } from '@solana/web3.js'
+import { Connection, Transaction } from '@solana/web3.js'
 
 import { SendTransactionPayload, serialize } from './handleMultiTx'
 
@@ -13,10 +13,9 @@ const tempBatchedTransactionsQueue: {
 export async function sendTransactionCore(
   transaction: Transaction,
   payload: SendTransactionPayload,
-  blockhashObject: { blockhash: string; lastValidBlockHeight: number; },
   batchOptions?: { allSignedTransactions: Transaction[] }
 ): Promise<Txid> {
-  if (batchOptions && canBatchTransactions(blockhashObject, payload.connection, transaction)) {
+  if (batchOptions && canBatchTransactions(payload.connection, transaction)) {
     let resolveFn
     const newPromise = new Promise<string>((resolve) => {
       resolveFn = resolve
@@ -26,32 +25,24 @@ export async function sendTransactionCore(
     if (tempBatchedTransactionsQueue.length === batchOptions.allSignedTransactions.length) {
       const txids = await sendBatchedTransactions(
         tempBatchedTransactionsQueue.map((b) => b.tx),
-        payload,
-        blockhashObject
+        payload
       )
-
       // fulfilled promise
       tempBatchedTransactionsQueue.forEach(({ resolveFn }, idx) => {
         resolveFn(txids[idx])
       })
-
       // clear queue
       tempBatchedTransactionsQueue.splice(0, tempBatchedTransactionsQueue.length)
     }
     return newPromise
   } else {
-    return sendSingleTransaction(transaction, payload, blockhashObject.blockhash)
+    return sendSingleTransaction(transaction, payload)
   }
 }
 
-async function sendSingleTransaction(
-  transaction: Transaction,
-  payload: SendTransactionPayload,
-  blockhash: string
-): Promise<Txid> {
+async function sendSingleTransaction(transaction: Transaction, payload: SendTransactionPayload): Promise<Txid> {
   if (payload.signerkeyPair?.ownerKeypair) {
     // if have signer detected, no need signAllTransactions
-    transaction.recentBlockhash = blockhash
     transaction.feePayer = payload.signerkeyPair.payerKeypair?.publicKey ?? payload.signerkeyPair.ownerKeypair.publicKey
 
     return payload.connection.sendTransaction(transaction, [
@@ -65,36 +56,25 @@ async function sendSingleTransaction(
   }
 }
 
-const groupSize = 20
-
-function canBatchTransactions(
-  blockInfo: { blockhash: string; lastValidBlockHeight: number; },
-  connection: Connection,
-  transaction: Transaction
-): blockInfo is { blockhash: string; lastValidBlockHeight: number } {
-  const isBlockInfoSatisfied = 'lastValidBlockHeight' in blockInfo
+function canBatchTransactions(connection: Connection, transaction: Transaction) {
   const isConnectionSatisfied = '_buildArgs' in connection && '_rpcBatchRequest' in connection
   const isTransactionSatisfied = '_compile' in transaction && '_serialize' in transaction
-  return isBlockInfoSatisfied && isConnectionSatisfied && isTransactionSatisfied
+  return isConnectionSatisfied && isTransactionSatisfied
 }
 
 async function sendBatchedTransactions(
   allSignedTransactions: Transaction[],
-  payload: SendTransactionPayload,
-  blockInfo: { blockhash: string; lastValidBlockHeight: number }
+  payload: SendTransactionPayload
 ): Promise<Txid[]> {
-  const encodedTransactions = allSignedTransactions.map(i => {
-    if (!i.recentBlockhash) i.recentBlockhash = blockInfo.blockhash
-    return i.serialize().toString('base64')
-  })
+  const encodedTransactions = allSignedTransactions.map((i) => i.serialize().toString('base64'))
 
   const batch = encodedTransactions.map((keys) => {
-    const args = payload.connection._buildArgs([keys], undefined, "base64");
-    return { methodName: "sendTransaction", args, };
-  });
+    const args = payload.connection._buildArgs([keys], undefined, 'base64')
+    return { methodName: 'sendTransaction', args }
+  })
 
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
-  const results = (await payload.connection._rpcBatchRequest(batch)).map(ii => ii.result.value)
+  const results = (await payload.connection._rpcBatchRequest(batch)).map((ii) => ii.result.value)
   return results
 }

@@ -2,6 +2,7 @@ import { Signer, Transaction, TransactionInstruction } from '@solana/web3.js'
 
 import { attachRecentBlockhash } from './attachRecentBlockhash'
 
+/** auto attach blockhash */
 export const loadTransaction = async (payload: { transaction: Transaction; signers?: Signer[] }) => {
   const { transaction, signers } = payload
   const signedTransaction = await partialSignTransacion(transaction, signers)

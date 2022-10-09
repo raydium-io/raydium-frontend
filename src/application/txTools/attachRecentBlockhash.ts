@@ -6,7 +6,7 @@ import useConnection from '../connection/useConnection'
 import useWallet from '../wallet/useWallet'
 
 const recentBlockhashCache: {
-  time: number | undefined,
+  time: number | undefined
   recentBlockhash: string
 } = {
   time: undefined,
