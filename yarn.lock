@@ -877,15 +877,16 @@
     bs58 "^4.0.1"
     eventemitter3 "^4.0.7"
 
-"@raydium-io/raydium-sdk@^1.1.0-beta.12":
-  version "1.1.0-beta.12"
-  resolved "https://registry.yarnpkg.com/@raydium-io/raydium-sdk/-/raydium-sdk-1.1.0-beta.12.tgz#839bb949e6e316cd663a095d880988ffd7eda588"
-  integrity sha512-pQxIEG4yGH4yV8cFMFTXCfhpsyod1pQT2G3jqkjSlVudX/7MNAaoreudZd9ei1gRpW0sa3nCKIkMe+NE2jN+Bw==
+"@raydium-io/raydium-sdk@^1.1.0-beta.14":
+  version "1.1.0-beta.14"
+  resolved "https://registry.yarnpkg.com/@raydium-io/raydium-sdk/-/raydium-sdk-1.1.0-beta.14.tgz#2dffeaa30718199c1d77e7d67a67baedc922262f"
+  integrity sha512-NPDiMQ09kEsjTVXMUFgD8cfb8uN494eaVVsFoqYE0t49oWwC1m04EHaddDFhJfFqYauiS6NgZI/ZsLq/1+dS5A==
   dependencies:
     "@colors/colors" "^1.5.0"
     "@solana/buffer-layout" "^4.0.0"
     "@solana/spl-token" "^0.1.8"
     big.js "^6.1.1"
+    decimal.js "^10.4.0"
     decimal.js-light "^2.5.1"
     fecha "^4.2.3"
     lodash "^4.17.21"
