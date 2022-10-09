@@ -1,7 +1,7 @@
 import { Spl } from '@raydium-io/raydium-sdk'
 
 import { createTransactionCollector } from '../txTools/createTransaction'
-import handleMultiTx from '../txTools/handleMultiTx'
+import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import { WSOL, WSOLMint } from '../token/quantumSOL'
@@ -15,7 +15,7 @@ import { toString } from '@/functions/numberish/toString'
 import toBN from '@/functions/numberish/toBN'
 
 export default function txUnwrapAllWSOL() {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { owner } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { owner } }) => {
     const piecesCollection = createTransactionCollector()
     const wsolTokenAccounts = useWallet
       .getState()
@@ -42,7 +42,7 @@ export default function txUnwrapAllWSOL() {
 export function txUnwrapWSOL({ amount }: { amount: Numberish }) {
   /** in BN */
   const inputAmount = mul(amount, 10 ** WSOL.decimals)
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const { allTokenAccounts, allWsolBalance } = useWallet.getState()
     assert(gte(allWsolBalance, inputAmount), `not enough wsol to unwrap`)
 

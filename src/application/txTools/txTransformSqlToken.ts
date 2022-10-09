@@ -1,7 +1,7 @@
 import { Spl, TokenAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import handleMultiTx, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleMultiTx'
+import txHandler, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import { PublicKeyish } from '@/types/constants'
 import toPubString, { toPub } from '@/functions/format/toMintString'
@@ -21,7 +21,7 @@ export default async function txTransferToken(
   } & AddSingleTxOptions &
     HandleFnOptions
 ) {
-  return handleMultiTx(
+  return txHandler(
     async ({ transactionCollector, baseUtils: { owner, connection, tokenAccounts } }) => {
       const from = toPub(options.from ?? options.forceKeyPairs?.ownerKeypair.publicKey ?? owner)
       const to = toPub(options.to)

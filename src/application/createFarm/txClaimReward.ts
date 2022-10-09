@@ -2,7 +2,7 @@ import { Farm } from '@raydium-io/raydium-sdk'
 import { Connection, Signer, TransactionInstruction } from '@solana/web3.js'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import handleMultiTx, { AddSingleTxOptions } from '@/application/txTools/handleMultiTx'
+import txHandler, { AddSingleTxOptions } from '@/application/txTools/handleTx'
 import assert from '@/functions/assert'
 import { asyncForEach } from '@/functions/asyncMap'
 import toPubString from '@/functions/format/toMintString'
@@ -21,7 +21,7 @@ export default async function txClaimReward({
   reward,
   ...txAddOptions
 }: { reward: MayArray<UIRewardInfo> } & AddSingleTxOptions) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { connection } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { connection } }) => {
     const piecesCollector = createTransactionCollector()
 
     // ---------- generate basic info ----------

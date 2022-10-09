@@ -1,6 +1,6 @@
 import { Connection, Transaction } from '@solana/web3.js'
 
-import { SendTransactionPayload, serialize } from './handleMultiTx'
+import { SendTransactionPayload, serialize } from './handleTx'
 
 type Txid = string
 
@@ -9,6 +9,12 @@ const tempBatchedTransactionsQueue: {
   txidPromise: Promise<string>
   resolveFn: (value: string) => void
 }[] = []
+
+function canBatchTransactions(connection: Connection, transaction: Transaction) {
+  const isConnectionSatisfied = '_buildArgs' in connection && '_rpcBatchRequest' in connection
+  const isTransactionSatisfied = '_compile' in transaction && '_serialize' in transaction
+  return isConnectionSatisfied && isTransactionSatisfied
+}
 
 export async function sendTransactionCore(
   transaction: Transaction,
@@ -54,12 +60,6 @@ async function sendSingleTransaction(transaction: Transaction, payload: SendTran
       skipPreflight: true
     })
   }
-}
-
-function canBatchTransactions(connection: Connection, transaction: Transaction) {
-  const isConnectionSatisfied = '_buildArgs' in connection && '_rpcBatchRequest' in connection
-  const isTransactionSatisfied = '_compile' in transaction && '_serialize' in transaction
-  return isConnectionSatisfied && isTransactionSatisfied
 }
 
 async function sendBatchedTransactions(

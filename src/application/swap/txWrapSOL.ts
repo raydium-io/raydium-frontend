@@ -1,7 +1,7 @@
 import { CurrencyAmount, Spl } from '@raydium-io/raydium-sdk'
 
 import { createTransactionCollector } from '../txTools/createTransaction'
-import handleMultiTx from '../txTools/handleMultiTx'
+import txHandler from '../txTools/handleTx'
 
 import { deUITokenAmount, QuantumSOLVersionSOL, WSOLMint } from '../token/quantumSOL'
 import { Numberish } from '@/types/constants'
@@ -22,7 +22,7 @@ export default function txWrapSOL({ amount }: { amount: Numberish }) {
     toTokenAmount(QuantumSOLVersionSOL, amount, { alreadyDecimaled: true })
   ) as CurrencyAmount
 
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const piecesCollection = createTransactionCollector()
 
     const { allTokenAccounts } = useWallet.getState()

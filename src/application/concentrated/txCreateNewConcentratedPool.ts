@@ -7,7 +7,7 @@ import { ammV3ProgramId } from '../token/wellknownProgram.config'
 import { SOLMint } from '../token/wellknownToken.config'
 import { loadTransaction } from '../txTools/createTransaction'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
-import handleMultiTx from '../txTools/handleMultiTx'
+import txHandler from '../txTools/handleTx'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
@@ -44,7 +44,7 @@ export async function createNewConcentratedPool() {
 }
 
 export default function txCreateNewConcentratedPool() {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
     const { tempDataCache } = useConcentrated.getState()
     assert(tempDataCache, 'should create pool first')
     const { transaction, signers } = tempDataCache

@@ -7,11 +7,11 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { PublicKeyish } from '@/types/constants'
 
 import useLiquidity from './useLiquidity'
-import handleMultiTx from '@/application/txTools/handleMultiTx'
+import txHandler from '@/application/txTools/handleTx'
 import { loadTransaction } from '@/application/txTools/createTransaction'
 
 export default function txRemoveLiquidity({ ammId: targetAmmId }: { ammId?: PublicKeyish } = {}) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     assert(targetAmmId, 'should provide ammId to remove liquidity')
 
     const { getTokenAccount, tokenAccountRawInfos } = useWallet.getState()

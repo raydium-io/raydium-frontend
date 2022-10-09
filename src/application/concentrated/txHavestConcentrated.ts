@@ -5,7 +5,7 @@ import { toString } from '@/functions/numberish/toString'
 
 import useAppSettings from '../common/useAppSettings'
 import { loadTransaction } from '../txTools/createTransaction'
-import handleMultiTx from '../txTools/handleMultiTx'
+import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
@@ -18,7 +18,7 @@ export default function txHavestConcentrated({
   currentAmmPool?: HydratedConcentratedInfo
   targetUserPositionAccount?: UserPositionAccount
 } = {}) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
     const { tokenAccountRawInfos } = useWallet.getState()
     const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')

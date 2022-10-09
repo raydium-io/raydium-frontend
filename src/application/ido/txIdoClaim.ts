@@ -1,7 +1,7 @@
 import { Spl, WSOL } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import handleMultiTx, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleMultiTx'
+import txHandler, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import { toString } from '@/functions/numberish/toString'
 import { div } from '@/functions/numberish/operations'
@@ -13,7 +13,7 @@ export default async function txIdoClaim(
   options: { idoInfo: HydratedIdoInfo; side: 'base' | 'quote' } & AddSingleTxOptions & HandleFnOptions
 ) {
   const { idoInfo, side, forceKeyPairs, ...restTxAddOptions } = options
-  return handleMultiTx(
+  return txHandler(
     async ({ transactionCollector, baseUtils: { owner, connection, tokenAccounts } }) => {
       if (!idoInfo.base || !idoInfo.quote) return
 

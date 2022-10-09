@@ -3,7 +3,7 @@ import { Farm, FarmCreateInstructionParamsV6, FarmRewardInfo } from '@raydium-io
 import assert from '@/functions/assert'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import handleMultiTx, { AddSingleTxOptions } from '@/application/txTools/handleMultiTx'
+import txHandler, { AddSingleTxOptions } from '@/application/txTools/handleTx'
 import asyncMap from '@/functions/asyncMap'
 import { setDateTimeSecondToZero } from '@/functions/date/dateFormat'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
@@ -25,7 +25,7 @@ import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import { validateUiRewardInfo } from './validateRewardInfo'
 
 export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOptions) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const piecesCollector = createTransactionCollector()
 
     // ---------- generate basic info ----------

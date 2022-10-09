@@ -3,7 +3,7 @@ import { Farm, FarmCreateInstructionParamsV6, FarmPoolJsonInfoV6 } from '@raydiu
 import assert from '@/functions/assert'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import handleMultiTx, { AddSingleTxOptions } from '@/application/txTools/handleMultiTx'
+import txHandler, { AddSingleTxOptions } from '@/application/txTools/handleTx'
 import { setDateTimeSecondToZero } from '@/functions/date/dateFormat'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
 import toPubString, { toPub } from '@/functions/format/toMintString'
@@ -30,7 +30,7 @@ export default async function txCreateNewFarm({
   onReceiveFarmId,
   ...txAddOptions
 }: AddSingleTxOptions & { onReceiveFarmId?: (farmId: string) => void }) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const { rewards: uiRewardInfos } = useCreateFarms.getState()
 
     // check input is valid

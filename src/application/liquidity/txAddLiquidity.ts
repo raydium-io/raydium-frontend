@@ -9,11 +9,11 @@ import { toString } from '@/functions/numberish/toString'
 import { PublicKeyish } from '@/types/constants'
 
 import useLiquidity from './useLiquidity'
-import handleMultiTx from '@/application/txTools/handleMultiTx'
+import txHandler from '@/application/txTools/handleTx'
 import { loadTransaction } from '@/application/txTools/createTransaction'
 
 export default function txAddLiquidity({ ammId: targetAmmId }: { ammId?: PublicKeyish } = {}) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
     const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
     const {
       coin1,

@@ -3,7 +3,7 @@ import { PublicKey } from '@solana/web3.js'
 
 import useToken from '@/application/token/useToken'
 import { loadTransaction } from '@/application/txTools/createTransaction'
-import handleMultiTx from '@/application/txTools/handleMultiTx'
+import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -17,7 +17,7 @@ import { recordCreatedPool } from './recordCreatedPool'
 import useCreatePool from './useCreatePool'
 
 export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSuccess?: () => void }) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     // setTxHistoryInfo({ title: 'Create a new pool' })
 
     const {

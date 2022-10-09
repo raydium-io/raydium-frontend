@@ -1,6 +1,6 @@
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
-import { TxErrorInfo, TxFinalInfo, TxSuccessInfo } from './handleMultiTx'
+import { TxErrorInfo, TxFinalInfo, TxSuccessInfo } from './handleTx'
 
 export interface SubscribeSignatureCallbacks {
   onTxSuccess?(ev: TxSuccessInfo): void

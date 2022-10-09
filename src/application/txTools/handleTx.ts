@@ -25,6 +25,7 @@ import useWallet, { WalletStore } from '../wallet/useWallet'
 
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
+import { MayPromise } from '@/types/constants'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -83,7 +84,7 @@ export type MultiTxAction = (providedTools: {
     tokenAccounts: WalletStore['tokenAccounts']
     allTokenAccounts: WalletStore['allTokenAccounts']
   }
-}) => void
+}) => MayPromise<void>
 //#region ------------------- callbacks -------------------
 type TxSuccessCallback = (info: TxSuccessInfo & MultiTxExtraInfo) => void
 type TxErrorCallback = (info: TxErrorInfo & MultiTxExtraInfo) => void
@@ -161,11 +162,11 @@ export type SendTransactionPayload = {
  * 2. auto handle txError and txSuccess
  *
  * 3. hanle appSetting ---- isApprovePanelShown
+ *
+ *
+ * path {@link txHandler} - {@link collectTxOptions}
  */
-export default async function handleMultiTx(
-  txAction: MultiTxAction,
-  options?: HandleFnOptions
-): Promise<TxResponseInfos> {
+export default async function txHandler(txAction: MultiTxAction, options?: HandleFnOptions): Promise<TxResponseInfos> {
   const {
     transactionCollector,
     collected: { innerTransactions, singleTxOptions, multiTxOptions }
@@ -193,7 +194,7 @@ export default async function handleMultiTx(
     }
     // eslint-disable-next-line no-console
     console.info('tx transactions: ', toHumanReadable(innerTransactions))
-    const finalInfos = await sendMultiTransaction({
+    const finalInfos = await handleMultiTxOptions({
       transactions: innerTransactions,
       singleOptionss: produce(singleTxOptions, (d) => {
         const firstOption = d[0]
@@ -273,7 +274,7 @@ export function serialize(transaction: Transaction) {
  *
  * so this fn will record txids
  */
-async function sendMultiTransaction({
+async function handleMultiTxOptions({
   transactions,
   singleOptionss,
   multiOptions,
@@ -286,33 +287,51 @@ async function sendMultiTransaction({
 }): Promise<TxResponseInfos> {
   return new Promise((resolve, reject) =>
     (async () => {
+      const txids = [] as string[]
+
+      const successTxids = [] as typeof txids
+      const pushSuccessTxid = (txid: string) => {
+        successTxids.push(txid)
+        if (successTxids.length === txids.length) {
+          multiOptions.onTxAllSuccess?.({ txids })
+          resolve({ allSuccess: true, txids })
+        }
+      }
+      const getSingleOptions = (originalSingleOptions: AddSingleTxOptions) =>
+        produce(originalSingleOptions, (draft) => {
+          draft.onTxSentSuccess = mergeFunction(
+            (({ txid }) => {
+              txids.push(txid)
+            }) as TxSentSuccessCallback,
+            draft.onTxSentSuccess
+          )
+          draft.onTxError = mergeFunction(
+            (() => {
+              multiOptions.onTxAnyError?.({ txids })
+              resolve({ allSuccess: false, txids })
+            }) as TxErrorCallback,
+            draft.onTxError
+          )
+          draft.onTxSuccess = mergeFunction(
+            (({ txid }) => {
+              pushSuccessTxid(txid)
+            }) as TxSuccessCallback,
+            draft.onTxSuccess
+          )
+        })
+
       try {
         // const allSignedTransactions = await options.payload.signAllTransactions(options.transactions)
         const allSignedTransactions = await (payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions
           ? transactions
           : payload.signAllTransactions(transactions))
-        // eslint-disable-next-line no-inner-declarations
-
-        const combined = sendMultiTransactionWithCallback({
+        const combined = composeWithDifferentSendMode({
           transactions: allSignedTransactions,
-          multiOptions: produce(multiOptions, (multiOptions) => {
-            multiOptions.onTxAllSuccess = mergeFunction(
-              (({ txids }) => {
-                resolve({ allSuccess: true, txids })
-              }) as AllSuccessCallback,
-              multiOptions.onTxAllSuccess
-            )
-            multiOptions.onTxAnyError = mergeFunction(
-              (({ txids }) => {
-                resolve({ allSuccess: false, txids })
-              }) as AnyErrorCallback,
-              multiOptions.onTxAnyError
-            )
-          }),
+          sendMode: multiOptions.sendMode,
           singleOptionss,
+          getSingleOptions,
           payload
         })
-        // invoke transaction
         combined()
       } catch (err) {
         reject(err)
@@ -321,57 +340,29 @@ async function sendMultiTransaction({
   )
 }
 
-function sendMultiTransactionWithCallback({
+function composeWithDifferentSendMode({
   transactions,
-  multiOptions,
+  sendMode,
   singleOptionss,
+  getSingleOptions,
   payload
 }: {
   transactions: Transaction[]
-  multiOptions: AddMultiTxsOptions
+  sendMode: AddMultiTxsOptions['sendMode']
   singleOptionss: AddSingleTxOptions[]
+
+  getSingleOptions(originalSingleOptions: AddSingleTxOptions): AddSingleTxOptions
   payload: SendTransactionPayload
 }): () => void {
-  const txids = [] as string[]
-
-  if (
-    multiOptions.sendMode === 'parallel(dangerous-without-order)' ||
-    multiOptions.sendMode === 'parallel(batch-transactions)'
-  ) {
-    const successTxids = [] as typeof txids
-    const pushSuccessTxid = (txid: string) => {
-      successTxids.push(txid)
-      if (successTxids.length === txids.length) {
-        multiOptions.onTxAllSuccess?.({ txids })
-      }
-    }
+  if (sendMode === 'parallel(dangerous-without-order)' || sendMode === 'parallel(batch-transactions)') {
     const parallelled = () => {
       transactions.forEach((tx, idx) =>
-        sendOneTransactionWithRecordTxid({
+        handleSingleTxOptions({
           transaction: tx,
           allSignedTransactions: transactions,
           payload,
-          isBatched: multiOptions.sendMode === 'parallel(batch-transactions)',
-          singleOptions: produce(singleOptionss[idx], (draft) => {
-            draft.onTxSentSuccess = mergeFunction(
-              (({ txid }) => {
-                txids.push(txid)
-              }) as TxSentSuccessCallback,
-              draft.onTxSentSuccess
-            )
-            draft.onTxError = mergeFunction(
-              (() => {
-                multiOptions.onTxAnyError?.({ txids })
-              }) as TxErrorCallback,
-              draft.onTxError
-            )
-            draft.onTxSuccess = mergeFunction(
-              (({ txid }) => {
-                pushSuccessTxid(txid)
-              }) as TxSuccessCallback,
-              draft.onTxSuccess
-            )
-          })
+          isBatched: sendMode === 'parallel(batch-transactions)',
+          singleOptions: getSingleOptions(singleOptionss[idx])
         })
       )
     }
@@ -379,29 +370,15 @@ function sendMultiTransactionWithCallback({
   } else {
     const queued = transactions.reduceRight(
       (acc, tx, idx) => () =>
-        sendOneTransactionWithRecordTxid({
+        handleSingleTxOptions({
           transaction: tx,
           allSignedTransactions: transactions,
           payload,
-          singleOptions: produce(singleOptionss[idx], (draft) => {
-            draft.onTxSentSuccess = mergeFunction(
-              (({ txid }) => {
-                txids.push(txid)
-              }) as TxSentSuccessCallback,
-              draft.onTxSentSuccess
-            )
+          singleOptions: produce(getSingleOptions(singleOptionss[idx]), (draft) => {
             draft.onTxSuccess = mergeFunction(acc as TxSentSuccessCallback, draft.onTxSuccess)
-            draft.onTxError = mergeFunction(
-              (() => {
-                multiOptions.onTxAnyError?.({ txids })
-              }) as TxErrorCallback,
-              draft.onTxError
-            )
           })
         }),
-      () => {
-        multiOptions.onTxAllSuccess?.({ txids })
-      }
+      () => {}
     )
     return queued
   }
@@ -415,7 +392,7 @@ function sendMultiTransactionWithCallback({
  * it will subscribe txid
  *
  */
-async function sendOneTransactionWithRecordTxid({
+async function handleSingleTxOptions({
   transaction,
   allSignedTransactions = [transaction],
   singleOptions,

@@ -2,7 +2,7 @@ import { Spl, WSOL } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import handleMultiTx, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleMultiTx'
+import txHandler, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleTx'
 import assert from '@/functions/assert'
 import { mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
@@ -21,7 +21,7 @@ export default async function txIdoPurchase({
 } & AddSingleTxOptions &
   HandleFnOptions) {
   assert(idoInfo.state, 'opps sdk fail to load')
-  return handleMultiTx(
+  return txHandler(
     async ({ transactionCollector, baseUtils: { connection, owner, tokenAccounts } }) => {
       if (!idoInfo.base || !idoInfo.quote) return
       const piecesCollector = createTransactionCollector()

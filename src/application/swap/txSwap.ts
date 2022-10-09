@@ -1,19 +1,18 @@
-import { TradeV2 } from '@raydium-io/raydium-sdk'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
+import asyncMap from '@/functions/asyncMap'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
+import { TradeV2 } from '@raydium-io/raydium-sdk'
 import { loadTransaction } from '../txTools/createTransaction'
-import handleMultiTx, { AddSingleTxOptions, TransactionQueue } from '../txTools/handleMultiTx'
+import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import { useSwap } from './useSwap'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import asyncMap from '@/functions/asyncMap'
-import { Transaction } from '@solana/web3.js'
 
 export default function txSwap() {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
     const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
     const {
       coin1,

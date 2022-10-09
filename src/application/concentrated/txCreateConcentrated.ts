@@ -1,6 +1,6 @@
 import { loadTransaction } from '@/application/txTools/createTransaction'
 import { fractionToDecimal } from '@/application/txTools/decimal2Fraction'
-import handleMultiTx from '@/application/txTools/handleMultiTx'
+import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import toFraction from '@/functions/numberish/toFraction'
@@ -15,7 +15,7 @@ export default function txCreateConcentrated({
 }: {
   currentAmmPool?: HydratedConcentratedInfo
 } = {}) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
     const { priceLower, priceUpper, coin1, coin2, coin1Amount, coin2Amount, liquidity } = useConcentrated.getState()
     const { tokenAccountRawInfos } = useWallet.getState()
     const { slippageTolerance } = useAppSettings.getState()

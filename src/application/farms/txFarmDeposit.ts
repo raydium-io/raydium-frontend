@@ -2,7 +2,7 @@ import { Farm, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import createAssociatedTokenAccountIfNotExist from '@/application/txTools/createAssociatedTokenAccountIfNotExist'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import handleMultiTx from '@/application/txTools/handleMultiTx'
+import txHandler from '@/application/txTools/handleTx'
 import {
   addWalletAccountChangeListener,
   removeWalletAccountChangeListener
@@ -17,7 +17,7 @@ export default async function txFarmDeposit(
   info: HydratedFarmInfo,
   options: { isStaking?: boolean; amount: TokenAmount }
 ) {
-  return handleMultiTx(async ({ transactionCollector, baseUtils: { owner } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { owner } }) => {
     const piecesCollector = createTransactionCollector()
     assert(owner, 'require connected wallet')
 
