@@ -70,17 +70,6 @@ export default function txSwap() {
         return loadTransaction({ transaction: transaction, signers })
       })
     )
-
-    // for (const signedTransaction of signedTransactions) {
-    //   transactionCollector.add(signedTransaction, {
-    //     txHistoryInfo: {
-    //       title: 'Swap',
-    //       description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
-    //         downCoin.symbol
-    //       }`
-    //     }
-    //   })
-    // }
     const queue = signedTransactions.map((tx) => [
       tx,
       {
@@ -92,6 +81,6 @@ export default function txSwap() {
         }
       }
     ]) as TransactionQueue
-    transactionCollector.addQueue(queue, { sendMode: 'parallel(batch-transactions)' })
+    transactionCollector.addQueue(queue, { sendMode: undefined /* temporary use old swap sendmode */ })
   })
 }
