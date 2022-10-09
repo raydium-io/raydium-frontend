@@ -6,17 +6,28 @@ import { eq } from './compare'
 import { trimTailingZero } from './handleZero'
 import { toFractionWithDecimals } from './toFraction'
 
-export function toString(
-  n: Numberish | null | undefined,
-  options?: {
-    /** @default 'auto' / 'auto [decimals]' */
-    decimalLength?: number | 'auto' | 'auto ' | `auto ${number}`
-    /** whether set zero decimal depends on how you get zero. if you get it from very samll number, */
-    zeroDecimalNotAuto?: boolean
-  }
-): string {
+export interface ToStringOptions {
+  /** @default 'auto' / 'auto [decimals]' */
+  decimalLength?: number | 'auto' | 'auto ' | `auto ${number}`
+  /** whether set zero decimal depends on how you get zero. if you get it from very samll number, */
+  zeroDecimalNotAuto?: boolean
+  /**
+   * ! this option have priority over decimal
+   **/
+  maxSignificantCount?: number
+}
+
+export function toString(n: Numberish | null | undefined, options?: ToStringOptions): string {
   if (n == null) return ''
   const { fr, decimals } = toFractionWithDecimals(n)
+
+  //#region ------------------- with significant count -------------------
+  if (options?.maxSignificantCount) {
+    return fr.toSignificant(Math.floor(options.maxSignificantCount))
+  }
+  //#endregion
+
+  //#region ------------------- with decimal length -------------------
   let result = ''
   const decimalLength = options?.decimalLength ?? (decimals != null ? `auto ${decimals}` : 'auto')
   if (decimalLength === 'auto' || decimalLength === 'auto ') {
@@ -35,4 +46,5 @@ export function toString(
     // for rest
     return result
   }
+  //#endregion
 }

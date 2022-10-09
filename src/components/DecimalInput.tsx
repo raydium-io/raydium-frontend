@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react'
 
 import { isNumberish } from '@/functions/judgers/dateType'
 import { add, clamp, minus } from '@/functions/numberish/operations'
-import { toString } from '@/functions/numberish/toString'
+import { toString, ToStringOptions } from '@/functions/numberish/toString'
 import mergeRef from '@/functions/react/mergeRef'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { useSignalState } from '@/hooks/useSignalState'
@@ -54,6 +54,8 @@ export interface DecimalInputProps extends Omit<InputProps, 'value' | 'defaultVa
   skipAutoDecrease?: boolean
   increaseFn?: (currentValue: Numberish) => Numberish | undefined
   decreaseFn?: (currentValue: Numberish) => Numberish | undefined
+  // only effect visual
+  valueToStringOptions?: ToStringOptions
 }
 
 function getRegexp(decimalCount: number) {
@@ -83,6 +85,7 @@ export default function DecimalInput({
   decreaseFn,
   prefix,
   suffix,
+  valueToStringOptions,
   ...restProps
 }: DecimalInputProps) {
   const [innerValue, setInnerValue, innerValueSignal] = useSignalState(defaultValue)
@@ -154,8 +157,8 @@ export default function DecimalInput({
       {...restProps}
       inputDomRef={mergeRef(inputDomRef, restProps.inputDomRef)}
       pattern={new RegExp(canNegative ? regexps.canNegativeRegexpString : regexps.decimalRegexpString)} // TODO: pattern should also accept function, so it can accept: (v, oldV)=> v.length < oldV.length
-      value={innerValue ? toString(innerValue) : ''}
-      defaultValue={toString(defaultValue)}
+      value={innerValue ? toString(innerValue, valueToStringOptions) : ''}
+      defaultValue={toString(defaultValue, valueToStringOptions)}
       onUserInput={(v) => {
         userInput(v)
       }}

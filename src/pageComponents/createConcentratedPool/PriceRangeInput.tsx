@@ -14,11 +14,14 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
   return (
     <div className="flex gap-2.5">
       <InputBox
-        className="grow border-1.5 border-[#abc4ff40]"
+        className="grow border-3 border-[#abc4ff40]"
         label="Min Price"
         decimalMode
         showPlusMinusControls
         decimalCount={decimals}
+        valueToStringOptions={{
+          maxSignificantCount: decimals
+        }}
         value={minValue}
         maxN={maxValue ? Number(maxValue) : undefined}
         onBlur={() => onBlur?.({ side: Range.Low, val: minValue })}
@@ -36,6 +39,9 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         decimalMode
         showPlusMinusControls
         decimalCount={decimals}
+        valueToStringOptions={{
+          maxSignificantCount: decimals
+        }}
         value={maxValue}
         minN={minValue ? Number(minValue) : undefined}
         onBlur={() => onBlur?.({ side: Range.Upper, val: maxValue })}

@@ -19,6 +19,9 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         decimalMode
         showPlusMinusControls
         decimalCount={decimals}
+        valueToStringOptions={{
+          maxSignificantCount: decimals
+        }}
         value={minValue}
         maxN={maxValue ? Number(maxValue) : undefined}
         onBlur={() => onBlur?.(Range.Min)}
@@ -36,6 +39,9 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         decimalMode
         showPlusMinusControls
         decimalCount={decimals}
+        valueToStringOptions={{
+          maxSignificantCount: decimals
+        }}
         value={maxValue}
         minN={minValue ? Number(minValue) : undefined}
         onBlur={() => onBlur?.(Range.Max)}
