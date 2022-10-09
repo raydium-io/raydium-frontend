@@ -1,4 +1,5 @@
 import { Connection, Transaction } from '@solana/web3.js'
+import { attachRecentBlockhash } from './attachRecentBlockhash'
 
 import { SendTransactionPayload, serialize } from './handleTx'
 
@@ -56,6 +57,7 @@ async function sendSingleTransaction(transaction: Transaction, payload: SendTran
     ])
   } else {
     const tx = serialize(transaction)
+    if (!transaction.recentBlockhash) await attachRecentBlockhash([transaction]) // ensure transaction has blockhash
     return await payload.connection.sendRawTransaction(tx, {
       skipPreflight: true
     })
