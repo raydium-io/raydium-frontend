@@ -16,10 +16,12 @@ export default function txCreateConcentrated({
   currentAmmPool?: HydratedConcentratedInfo
 } = {}) {
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
-    const { priceLower, priceUpper, coin1, coin2, coin1Amount, coin2Amount, liquidity } = useConcentrated.getState()
+    const { priceLower, priceUpper, coin1, coin2, coin1Amount, coin2Amount, liquidity, priceLowerTick, priceUpperTick } = useConcentrated.getState()
     const { tokenAccountRawInfos } = useWallet.getState()
     const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')
+    assert(priceUpperTick, 'not set priceUpperTick')
+    assert(priceLowerTick, 'not set priceLowerTick')
     assert(priceUpper, 'not set priceUpper')
     assert(priceLower, 'not set priceLower')
     assert(coin1, 'not set coin1')
@@ -38,9 +40,11 @@ export default function txCreateConcentrated({
         tokenAccounts: tokenAccountRawInfos,
         useSOLBalance: true
       },
-      priceLower: fractionToDecimal(toFraction(priceLower), 20),
-      priceUpper: fractionToDecimal(toFraction(priceUpper), 20),
-      slippage: Number(toString(slippageTolerance))
+      tickLower: priceLowerTick,
+      tickUpper: priceUpperTick,
+      // priceLower: fractionToDecimal(toFraction(priceLower), 20),
+      // priceUpper: fractionToDecimal(toFraction(priceUpper), 20),
+      slippage: 0.001
     })
 
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {

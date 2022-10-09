@@ -82,7 +82,7 @@ export default function useConcentratedAmountCalculator() {
           )
         : AmmV3.getLiquidityAmountOutFromAmountIn({
             poolInfo: currentAmmPool.state,
-            slippage: Number(toString(slippageTolerance)),
+            slippage: 0,
             inputA: isPairPoolDirectionEq,
             tickUpper: Math.max(priceUpperTick, priceLowerTick),
             tickLower: Math.min(priceLowerTick, priceUpperTick),
