@@ -257,13 +257,13 @@ function collectTxOptions() {
   return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOptions } }
 }
 
-export function serialize(transaction: Transaction) {
+export function serialize(transaction: Transaction, cache = true) {
   const key = transaction.recentBlockhash
   if (key && txSerializeCache.has(key)) {
     return txSerializeCache.get(key)!
   } else {
     const serialized = transaction.serialize()
-    if (key) txSerializeCache.set(key, serialized)
+    if (key && cache) txSerializeCache.set(key, serialized)
     return serialized
   }
 }
@@ -414,7 +414,7 @@ async function handleSingleTxOptions({
     currentIndex: allSignedTransactions.indexOf(transaction)
   }
   try {
-    const txid = await sendTransactionCore(transaction, payload, isBatched ? { allSignedTransactions } : undefined)
+    const txid = await sendTransactionCore(transaction, payload, isBatched ? { allSignedTransactions } : undefined, allSignedTransactions.length === 1)
     singleOptions?.onTxSentSuccess?.({ txid, ...extraTxidInfo })
     logTxid(txid, `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Transaction Sent`)
     assert(txid, 'something went wrong')

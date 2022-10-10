@@ -20,7 +20,8 @@ function canBatchTransactions(connection: Connection, transaction: Transaction) 
 export async function sendTransactionCore(
   transaction: Transaction,
   payload: SendTransactionPayload,
-  batchOptions?: { allSignedTransactions: Transaction[] }
+  batchOptions?: { allSignedTransactions: Transaction[] },
+  cache = true
 ): Promise<Txid> {
   if (batchOptions && canBatchTransactions(payload.connection, transaction)) {
     let resolveFn
@@ -43,11 +44,11 @@ export async function sendTransactionCore(
     }
     return newPromise
   } else {
-    return sendSingleTransaction(transaction, payload)
+    return sendSingleTransaction(transaction, payload, cache)
   }
 }
 
-async function sendSingleTransaction(transaction: Transaction, payload: SendTransactionPayload): Promise<Txid> {
+async function sendSingleTransaction(transaction: Transaction, payload: SendTransactionPayload, cache = true): Promise<Txid> {
   if (payload.signerkeyPair?.ownerKeypair) {
     // if have signer detected, no need signAllTransactions
     transaction.feePayer = payload.signerkeyPair.payerKeypair?.publicKey ?? payload.signerkeyPair.ownerKeypair.publicKey
@@ -56,8 +57,7 @@ async function sendSingleTransaction(transaction: Transaction, payload: SendTran
       payload.signerkeyPair.payerKeypair ?? payload.signerkeyPair.ownerKeypair
     ])
   } else {
-    const tx = serialize(transaction)
-    if (!transaction.recentBlockhash) await attachRecentBlockhash([transaction]) // ensure transaction has blockhash
+    const tx = serialize(transaction, cache)
     return await payload.connection.sendRawTransaction(tx, {
       skipPreflight: true
     })
