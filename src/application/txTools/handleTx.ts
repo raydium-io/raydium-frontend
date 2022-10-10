@@ -26,6 +26,7 @@ import useWallet, { WalletStore } from '../wallet/useWallet'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 import { MayPromise } from '@/types/constants'
+import { attachRecentBlockhash } from './attachRecentBlockhash'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -63,11 +64,11 @@ export type TxSentErrorInfo = {
 
 export type TxFinalInfo =
   | ({
-      type: 'success'
-    } & TxSuccessInfo)
+    type: 'success'
+  } & TxSuccessInfo)
   | ({
-      type: 'error'
-    } & TxErrorInfo)
+    type: 'error'
+  } & TxErrorInfo)
 export type TxFinalBatchErrorInfo = {
   allSuccess: false
   errorAt: number
@@ -120,9 +121,9 @@ export interface AddMultiTxsOptions {
    * send all at once
    */
   sendMode?:
-    | 'queue'
-    | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
-    | 'parallel(batch-transactions)' /* it will in order */
+  | 'queue'
+  | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
+  | 'parallel(batch-transactions)' /* it will in order */
   onTxAllSuccess?: AllSuccessCallback
   onTxAnyError?: AnyErrorCallback
 }
@@ -321,6 +322,7 @@ async function handleMultiTxOptions({
         })
 
       try {
+        await attachRecentBlockhash(transactions)
         // const allSignedTransactions = await options.payload.signAllTransactions(options.transactions)
         const allSignedTransactions = await (payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions
           ? transactions
@@ -378,7 +380,7 @@ function composeWithDifferentSendMode({
             draft.onTxSuccess = mergeFunction(acc as TxSentSuccessCallback, draft.onTxSuccess)
           })
         }),
-      () => {}
+      () => { }
     )
     return queued
   }
