@@ -673,10 +673,15 @@ function SwapCardPriceIndicator({ className }: { className?: string }) {
           <Row className={twMerge('font-medium text-sm text-[#ABC4FF]', className)}>
             <div className="whitespace-nowrap">
               {1} {innerPriceLeftCoin?.symbol ?? '--'} ≈{' '}
-              {toString(innerReversed ? div(1, executionPrice) : executionPrice, {
-                decimalLength: isMobile ? 'auto 2' : 'auto',
-                zeroDecimalNotAuto: true
-              })}{' '}
+              {toString(
+                innerReversed && parseInt(executionPrice?.numerator.toString()) !== 0
+                  ? div(1, executionPrice)
+                  : executionPrice,
+                {
+                  decimalLength: isMobile ? 'auto 2' : 'auto',
+                  zeroDecimalNotAuto: true
+                }
+              )}{' '}
               {innerPriceRightCoin?.symbol ?? '--'}
             </div>
             <div className="ml-2 clickable" onClick={() => setInnerReversed((b) => !b)}>
