@@ -47,9 +47,8 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
       new CoinhubWalletAdapter(),
       new BackpackWalletAdapter(),
       new WalletConnectWalletAdapter({
-        network: endpoint === clusterApiUrl('devnet') ? WalletAdapterNetwork.Devnet : WalletAdapterNetwork.Mainnet,
+        network: WalletAdapterNetwork.Mainnet, // const only, cannot use condition to use dev/main, guess is relative to walletconnect connection init
         options: {
-          // TODO: register project to walletconnect.com and obtain project ID
           projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PJ_ID,
           metadata: {
             name: 'Raydium',
