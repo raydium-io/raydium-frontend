@@ -1,3 +1,4 @@
+import { useAppVersion } from '@/application/common/useAppVersion'
 import { MayPromise } from '@/types/constants'
 
 import assert from '../assert'
@@ -63,7 +64,8 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
         ? Date.now() - resultCache.get(key)!.reponseTime < (options.cacheFreshTime ?? 2000)
         : false)
     if (!canUseCache) {
-      const response = fetch(input, options)
+      const { currentVersion } = useAppVersion.getState()
+      const response = fetch(input, { ...options, headers: { ...options?.headers, 'ui-version': currentVersion } }) // add version for debug
       resultCache.set(key, {
         rawText: response
           .then((r) => r.clone())
