@@ -187,7 +187,7 @@ export default async function txHandler(txAction: MultiTxAction, options?: Handl
       })
     } else {
       const { tokenAccounts, allTokenAccounts } = useWallet.getState()
-      assert(owner, 'Wallet not connected')
+      assert(owner, 'wallet not connected')
       await txAction({
         transactionCollector,
         baseUtils: { connection, owner, tokenAccounts, allTokenAccounts }

@@ -207,7 +207,7 @@ export default function CreatePoolPage() {
               onConfirmOpen()
             }}
           >
-            Create Pool
+            Preview Pool
           </Button>
         </Col>
       </div>

@@ -11,7 +11,7 @@ import {
   getPriceTick,
   getTickPrice
 } from '@/application/concentrated/getNearistDataPoint'
-import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
+import txCreateConcentrated from '@/application/concentrated/txCreateConcentratedPosition'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'

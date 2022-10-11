@@ -1,39 +1,42 @@
-import { useState, useCallback, useRef, useMemo, useEffect, useImperativeHandle, RefObject } from 'react'
-import { twMerge } from 'tailwind-merge'
-import Decimal from 'decimal.js'
+import useAppSettings from '@/application/common/useAppSettings'
+import { getPriceBoundary, getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
+import { useAutoCreateAmmv3Pool } from '@/application/concentrated/useAutoCreateAmmv3Pool'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import { SplToken } from '@/application/token/type'
-import useAppSettings from '@/application/common/useAppSettings'
+import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
+import CoinInputBox from '@/components/CoinInputBox'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
-import CoinInputBox from '@/components/CoinInputBox'
-import { toString } from '@/functions/numberish/toString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import toBN from '@/functions/numberish/toBN'
-import { Range } from './type'
-import { getPriceBoundary, getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
-import { Numberish } from '@/types/constants'
-import usePrevious from '@/hooks/usePrevious'
+import toFraction from '@/functions/numberish/toFraction'
+import { toString } from '@/functions/numberish/toString'
 import { useEvent } from '@/hooks/useEvent'
+import usePrevious from '@/hooks/usePrevious'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
-import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
-import toFraction from '@/functions/numberish/toFraction'
+import { Numberish } from '@/types/constants'
+import Decimal from 'decimal.js'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
 import { ConcentratedFeeSwitcher } from './ConcentratedFeeSwitcher'
-import SwitchFocusTabs from './SwitchFocusTabs'
-import PriceRangeInput from './PriceRangeInput'
 import EmptyCoinInput from './EmptyCoinInput'
 import InputLocked from './InputLocked'
+import PriceRangeInput from './PriceRangeInput'
+import SwitchFocusTabs from './SwitchFocusTabs'
+import { Range } from './type'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
 
 export function CreatePoolCard() {
+  useAutoCreateAmmv3Pool()
+
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const {
     currentAmmPool,
@@ -232,8 +235,8 @@ export function CreatePoolCard() {
         <div className="mb-8">
           <div className="font-medium text-[#abc4ff] my-1">Select Tokens</div>
           <Grid className="grid-cols-2 gap-4">
-            <SelectTokenItem title="Base Token" tokenKey="coin1" onSelectToken={handleSelectToken} />
-            <SelectTokenItem title="Quote Token" tokenKey="coin2" onSelectToken={handleSelectToken} />
+            <SelectTokenInputBox title="Base Token" tokenKey="coin1" onSelectToken={handleSelectToken} />
+            <SelectTokenInputBox title="Quote Token" tokenKey="coin2" onSelectToken={handleSelectToken} />
           </Grid>
         </div>
 
@@ -332,7 +335,7 @@ export function CreatePoolCard() {
   )
 }
 
-function SelectTokenItem({
+function SelectTokenInputBox({
   tokenKey,
   title,
   onSelectToken

@@ -91,8 +91,7 @@ export type ConcentratedStore = {
   userSelectedAmmConfigFeeOption?: HydratedAmmV3ConfigInfo // create pool
   userSettedCurrentPrice?: Numberish // create pool
   tempDataCache?: {
-    transaction: Transaction // data store for create pool transaction
-    signers: (Signer | Keypair)[] // data store for create pool transaction
+    signedTransaction: Transaction // data store for create pool transaction
   }
   rewards: UICLMMRewardInfo[] // TEMP
 }

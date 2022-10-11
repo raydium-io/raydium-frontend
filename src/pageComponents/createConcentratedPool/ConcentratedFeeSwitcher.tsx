@@ -11,7 +11,7 @@ import { twMerge } from 'tailwind-merge'
 
 export function ConcentratedFeeSwitcher({ className }: { className?: string }) {
   const selectableAmmPools = useConcentrated((s) => s.selectableAmmPools)
-  const selectableAmmPoolIds = selectableAmmPools?.map((i) => toPubString(i.id))
+  const selectableAmmPoolIds = selectableAmmPools?.map((i) => toPubString(i.ammConfig.id))
   const userSelectedAmmConfigFeeOption = useConcentrated((s) => s.userSelectedAmmConfigFeeOption)
   const availableAmmConfigFeeOptions = useConcentrated((s) => s.availableAmmConfigFeeOptions)
   return (
