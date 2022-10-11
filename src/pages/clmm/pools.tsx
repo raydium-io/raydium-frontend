@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { twMerge } from 'tailwind-merge'
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -20,6 +19,7 @@ import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -43,8 +43,9 @@ import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
-import { toUTC } from '@/functions/date/dateFormat'
-import { currentIsAfter } from '@/functions/date/judges'
+import { getDate, toUTC } from '@/functions/date/dateFormat'
+import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
+import { getCountDownTime } from '@/functions/date/parseDuration'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
 import { shrinkAccount } from '@/functions/format/shrinkAccount'
@@ -59,9 +60,9 @@ import { searchItems } from '@/functions/searchItems'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
-import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -699,18 +700,91 @@ function PoolCardDatabaseBodyCollapseItemFace({
   const isMobile = useAppSettings((s) => s.isMobile)
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = useConcentrated((s) => s.timeBasis)
+  const tokenListSettings = useToken((s) => s.tokenListSettings)
+  const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
 
   const rewardsBadge = useMemo(() => {
     const badges = info.rewardInfos.map((reward, idx) => {
       const isRewardEnd = currentIsAfter(reward.endTime)
+      const isRewardBeforeStart = currentIsBefore(reward.openTime)
+      const isRewardBefore24H = currentIsAfter(reward.openTime - 86400 * 1000)
+
       return (
-        <CoinAvatar
-          key={`${idx}-reward-badge-${toPubString(reward.tokenMint)}`}
-          size={isMobile ? 'sm' : 'smi'}
-          token={reward.rewardToken}
-          isRewardBadge
-          isRewardEnd={isRewardEnd}
-        />
+        <Tooltip key={`${idx}-reward-badge-tooltip-${toPubString(reward.tokenMint)}`} placement="bottom">
+          {/* {isRewardBeforeStart ? (
+            <div
+              className={`relative rounded-full`}
+              style={{
+                background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.2) 28.69%, rgba(171, 196, 255, 0) 100%)'
+              }}
+            >
+              <div className=" opacity-70">
+                <Icon heroIconName="dots-horizontal" />
+              </div>
+            </div>
+          ) : (
+            <CoinAvatar
+              key={`${idx}-reward-badge-${toPubString(reward.tokenMint)}`}
+              size={isMobile ? 'sm' : 'smi'}
+              token={reward.rewardToken}
+              isRewardBadge
+              isRewardEnd={isRewardEnd}
+            />
+          )} */}
+          <Row
+            className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
+              isRewardEnd ? 'opacity-30 contrast-40' : isRewardBeforeStart ? 'opacity-50' : ''
+            } `}
+          >
+            <div className="relative">
+              <CoinAvatar size="smi" token={reward.rewardToken} className={isRewardBeforeStart ? 'blur-sm' : ''} />
+              {isRewardEnd && (
+                <div className="absolute h-[1.5px] w-full top-1/2 -translate-y-1/2 rotate-45 bg-[#abc4ff80] scale-x-125"></div>
+              )}
+              {isRewardBeforeStart && (
+                <div className="absolute top-1/2 -translate-y-1/2 opacity-70">
+                  <Icon heroIconName="dots-horizontal" />
+                </div>
+              )}
+            </div>
+          </Row>
+
+          <Tooltip.Panel>
+            <div className="mb-1">
+              {reward.rewardToken?.symbol ?? '--'}{' '}
+              {reward.openTime &&
+                reward.endTime &&
+                (isRewardEnd ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period')}
+            </div>
+            {reward.openTime && isRewardBeforeStart && isRewardBefore24H && (
+              <div className="opacity-50">Start in {getCountDownTime(getDate(reward.openTime))}</div>
+            )}
+            {reward.openTime && reward.endTime && (
+              <div className="opacity-50">
+                {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
+              </div>
+            )}
+            {reward.tokenMint && (
+              <AddressItem
+                showDigitCount={6}
+                addressType="token"
+                canCopy
+                canExternalLink
+                textClassName="text-xs"
+                className="w-full opacity-50 mt-2 contrast-75"
+              >
+                {toPubString(reward.tokenMint)}
+              </AddressItem>
+            )}
+
+            {unnamedTokenMints?.has(toPubString(reward.tokenMint)) && (
+              <div className="max-w-[300px] mt-2">
+                This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
+                want to transact with.
+              </div>
+            )}
+          </Tooltip.Panel>
+        </Tooltip>
       )
     })
 
