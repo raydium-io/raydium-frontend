@@ -64,11 +64,11 @@ export type TxSentErrorInfo = {
 
 export type TxFinalInfo =
   | ({
-    type: 'success'
-  } & TxSuccessInfo)
+      type: 'success'
+    } & TxSuccessInfo)
   | ({
-    type: 'error'
-  } & TxErrorInfo)
+      type: 'error'
+    } & TxErrorInfo)
 export type TxFinalBatchErrorInfo = {
   allSuccess: false
   errorAt: number
@@ -121,9 +121,9 @@ export interface AddMultiTxsOptions {
    * send all at once
    */
   sendMode?:
-  | 'queue'
-  | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
-  | 'parallel(batch-transactions)' /* it will in order */
+    | 'queue'
+    | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
+    | 'parallel(batch-transactions)' /* it will in order */
   onTxAllSuccess?: AllSuccessCallback
   onTxAnyError?: AnyErrorCallback
 }
@@ -380,7 +380,7 @@ function composeWithDifferentSendMode({
             draft.onTxSuccess = mergeFunction(acc as TxSentSuccessCallback, draft.onTxSuccess)
           })
         }),
-      () => { }
+      () => {}
     )
     return queued
   }
@@ -414,7 +414,12 @@ async function handleSingleTxOptions({
     currentIndex: allSignedTransactions.indexOf(transaction)
   }
   try {
-    const txid = await sendTransactionCore(transaction, payload, isBatched ? { allSignedTransactions } : undefined, allSignedTransactions.length === 1)
+    const txid = await sendTransactionCore(
+      transaction,
+      payload,
+      isBatched ? { allSignedTransactions } : undefined,
+      allSignedTransactions.length === 1 // NOTE: will cache when has only one transaction, ortherwise it will not cache // TODO: should cache has manually detected key (prop:cacheKey in singleOptions)
+    )
     singleOptions?.onTxSentSuccess?.({ txid, ...extraTxidInfo })
     logTxid(txid, `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Transaction Sent`)
     assert(txid, 'something went wrong')
