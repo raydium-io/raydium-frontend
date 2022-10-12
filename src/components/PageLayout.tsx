@@ -1,12 +1,5 @@
-import React, { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-import { useRouter } from 'next/router'
-
-import { ZERO } from '@raydium-io/raydium-sdk'
-
-import { twMerge } from 'tailwind-merge'
-
-import useAppSettings from '@/application/common/useAppSettings'
 import { refreshWindow } from '@/application/common/forceWindowRefresh'
+import useAppSettings from '@/application/common/useAppSettings'
 import { useAppVersion } from '@/application/common/useAppVersion'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
@@ -18,10 +11,6 @@ import { setLocalItem } from '@/functions/dom/jStorage'
 import linkTo from '@/functions/dom/linkTo'
 import { isString } from '@/functions/judgers/dateType'
 import { inClient } from '@/functions/judgers/isSSR'
-import { eq } from '@/functions/numberish/compare'
-import { div, mul } from '@/functions/numberish/operations'
-import { toString } from '@/functions/numberish/toString'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useDocumentMetaTitle from '@/hooks/useDocumentMetaTitle'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
@@ -29,7 +18,10 @@ import { useUrlQuery } from '@/hooks/useUrlQuery'
 import SetExplorer from '@/pageComponents/settings/SetExplorer'
 import SetTolerance from '@/pageComponents/settings/SetTolerance'
 import { LinkAddress } from '@/types/constants'
-
+import { ZERO } from '@raydium-io/raydium-sdk'
+import { useRouter } from 'next/router'
+import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 import { Badge } from './Badge'
 import Button from './Button'
 import Card from './Card'
@@ -163,6 +155,7 @@ function VersionTooOldDialog() {
   const versionRefreshData = useAppVersion((s) => s.versionFresh)
   const isInBonsaiTest = useAppSettings((s) => s.isInBonsaiTest)
   const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
+  if (isInBonsaiTest || isInLocalhost) return null
   return (
     <Dialog open={versionRefreshData === 'too-old' && !isInLocalhost && !isInBonsaiTest} canClosedByMask={false}>
       {({ close }) => (

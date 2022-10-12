@@ -35,6 +35,8 @@ export type AppSettingsStore = {
   isInLocalhost?: boolean
   isInBonsaiTest?: boolean
 
+  inDev?: boolean
+
   /** sould block any update when approve panel shows on  */
   isApprovePanelShown: boolean
 
@@ -74,6 +76,7 @@ const useAppSettings = create<AppSettingsStore>(() => ({
   isTablet: false,
   isPc: true,
 
+  inDev: true,
   isApprovePanelShown: false,
 
   inCleanUrlMode: false,

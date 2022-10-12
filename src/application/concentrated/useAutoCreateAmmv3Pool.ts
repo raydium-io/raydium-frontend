@@ -6,7 +6,7 @@ import { Keypair } from '@solana/web3.js'
 import { useEffect } from 'react'
 import useConnection from '../connection/useConnection'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
-import { ammV3ProgramId } from '../token/wellknownProgram.config'
+import { getAmmV3ProgramId } from '../token/wellknownProgram.config'
 import { SOLMint } from '../token/wellknownToken.config'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
@@ -46,7 +46,7 @@ async function createNewConcentratedPool() {
   assert(userSettedCurrentPrice, 'not set userSettedCurrentPrice')
   const { transaction, signers, mockPoolInfo } = await AmmV3.makeCreatePoolTransaction({
     connection: connection,
-    programId: ammV3ProgramId,
+    programId: getAmmV3ProgramId(),
     mint1: { mint: isQuantumSOLVersionSOL(coin1) ? SOLMint : coin1.mint, decimals: coin1.decimals },
     mint2: { mint: isQuantumSOLVersionSOL(coin2) ? SOLMint : coin2.mint, decimals: coin2.decimals },
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original),
