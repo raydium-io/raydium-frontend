@@ -15,9 +15,15 @@ export default function txCreateNewConcentratedPool() {
     const newTx = new Transaction()
     newTx.add(...createPoolTx.instructions.slice(1, 3), ...openPositionTx.instructions)
 
-    const createAndOpenPositionTx = await loadTransaction({ transaction: newTx, signers: [...createPoolSigners, ...openPositionSigners] })
+    const createAndOpenPositionTx = await loadTransaction({
+      transaction: newTx,
+      signers: [...createPoolSigners, ...openPositionSigners]
+    })
     transactionCollector.addQueue([
-      [createAndOpenPositionTx, { txHistoryInfo: { title: 'Create pool And Open Position', description: `create clmm pool and open position` } }],
+      [
+        createAndOpenPositionTx,
+        { txHistoryInfo: { title: 'Create pool And Open Position', description: `create clmm pool and open position` } }
+      ]
     ])
   })
 }
