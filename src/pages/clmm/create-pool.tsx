@@ -1,13 +1,11 @@
-import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-
-import produce from 'immer'
-import { twMerge } from 'tailwind-merge'
-
 import useAppSettings from '@/application/common/useAppSettings'
-import useConnection from '@/application/connection/useConnection'
+import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
+import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
+import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
+import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
-import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
-import { MAX_DURATION, MIN_DURATION } from '@/application/farms/handleFarmInfo'
+import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { routeBack, routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
@@ -15,31 +13,20 @@ import Card from '@/components/Card'
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import FadeInStable from '@/components/FadeIn'
-import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
-import Link from '@/components/Link'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import { isDateAfter } from '@/functions/date/judges'
-import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
-import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
-import { div } from '@/functions/numberish/operations'
-import { PoolSelectCard } from '@/pageComponents/createConcentratedPool/PoolSelectCard'
-import { useChainDate } from '../../hooks/useChainDate'
-import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
-import { PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import toUsdVolume from '@/functions/format/toUsdVolume'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import toFraction from '@/functions/numberish/toFraction'
+import useToggle from '@/hooks/useToggle'
 import { CreatePoolCard } from '@/pageComponents/createConcentratedPool/CreatePoolCard'
 import CreatePoolConfirmDialog from '@/pageComponents/createConcentratedPool/CreatePoolConfirmDialog'
-import useConcentrated from '@/application/concentrated/useConcentrated'
-import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
-import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
-import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
-import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
-import toFraction from '@/functions/numberish/toFraction'
-import toUsdVolume from '@/functions/format/toUsdVolume'
-import useToggle from '@/hooks/useToggle'
+import produce from 'immer'
+import { useEffect, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
+import { PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -168,7 +155,7 @@ export default function CreatePoolPage() {
           <div className="pb-8 text-2xl mobile:text-lg font-semibold justify-self-start text-white">Create Pool</div>
         )}
 
-        <WarningBoard className="pb-16 w-full" />
+        <WarningBoard className="pb-6 w-full" />
 
         <CreatePoolCard />
 
@@ -194,6 +181,14 @@ export default function CreatePoolPage() {
               { should: coin1 && coin2 },
               { should: isMeaningfulNumber(userSettedCurrentPrice), fallbackProps: { children: 'Input Price' } },
               { should: userSelectedAmmConfigFeeOption, fallbackProps: { children: 'Select a fee option' } },
+              {
+                should: coin1Amount != null && isMeaningfulNumber(coin2Amount),
+                fallbackProps: { children: `Input ${coin1?.symbol ?? '--'} Amount` }
+              },
+              {
+                should: coin2Amount != null && isMeaningfulNumber(coin1Amount),
+                fallbackProps: { children: `Input ${coin2?.symbol ?? '--'} Amount` }
+              },
               {
                 should: haveEnoughCoin1,
                 fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }

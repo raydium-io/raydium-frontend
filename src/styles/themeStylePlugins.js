@@ -4,8 +4,6 @@ exports.cyberpunkLightBorders = plugin(({ addUtilities }) => {
   const cyberpunkLightBorders = {
     '.cyberpunk-border': {
       position: 'relative',
-      borderRadius: '20px',
-      border: '2px solid transparent',
       '&::after': {
         content: "''",
         position: 'absolute',
@@ -14,7 +12,7 @@ exports.cyberpunkLightBorders = plugin(({ addUtilities }) => {
         bottom: '0',
         left: '0',
         borderRadius: 'inherit',
-        border: 'inherit',
+        border: '2px solid transparent',
         background: 'linear-gradient(246deg, #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%) border-box',
         '-webkit-mask': 'linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0)',
         '-webkit-mask-composite': 'destination-out',
@@ -23,27 +21,6 @@ exports.cyberpunkLightBorders = plugin(({ addUtilities }) => {
     }
   }
   addUtilities(cyberpunkLightBorders, ['focus-within', 'hover', 'active'])
-
-  const roundedValueMap = {
-    '-sm': '0.125rem',
-    '': '0.25rem',
-    '-md': '0.375rem',
-    '-lg': '0.5rem',
-    '-xl': '0.75rem',
-    '-2xl': '1rem',
-    '-3xl': '1.25rem'
-  }
-  const resultMap = Object.fromEntries(
-    Object.entries(roundedValueMap).map(([roundClass, roundedValue]) => [
-      `.cyberpunk-border-rounded${roundClass}`,
-      {
-        '&::after': {
-          maskImage: `url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg'><rect width='100%' height='100%' rx='${roundedValue}' fill='none' stroke='black' stroke-width='2'/></svg>")`
-        }
-      }
-    ])
-  )
-  addUtilities(resultMap, ['focus-within', 'hover', 'active'])
 })
 
 exports.cyberpunkBgLight = plugin(({ addUtilities }) => {

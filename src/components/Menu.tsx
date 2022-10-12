@@ -45,7 +45,7 @@ export default function Menu({ children }: { children?: ReactNode }) {
           >
             <_Menu.Items
               static
-              className="absolute z-10 right-0 mt-2 w-max origin-top-right bg-ground-color-dark shadow-xl rounded-lg cyberpunk-border cyberpunk-border-rounded-lg p-4 grid gap-4"
+              className="absolute z-10 right-0 mt-2 w-max origin-top-right bg-ground-color-dark shadow-xl rounded-lg cyberpunk-border p-4 grid gap-4"
             >
               {allItems}
             </_Menu.Items>

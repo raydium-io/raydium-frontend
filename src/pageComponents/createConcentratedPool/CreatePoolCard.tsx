@@ -232,8 +232,8 @@ export function CreatePoolCard() {
     >
       {/* left */}
       <div className="w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
-        <div className="mb-8">
-          <div className="font-medium text-[#abc4ff] my-1">Select Tokens</div>
+        <div className="mb-5">
+          <div className="font-medium text-[#abc4ff] my-1 mb-3">Select Tokens</div>
           <Grid className="grid-cols-2 gap-4">
             <SelectTokenInputBox title="Base Token" tokenKey="coin1" onSelectToken={handleSelectToken} />
             <SelectTokenInputBox title="Quote Token" tokenKey="coin2" onSelectToken={handleSelectToken} />
@@ -241,7 +241,7 @@ export function CreatePoolCard() {
         </div>
 
         <div>
-          <div className="font-medium text-[#abc4ff] my-1">Select Fee</div>
+          <div className="font-medium text-[#abc4ff] my-1">Select Trade Fee Rate</div>
           <ConcentratedFeeSwitcher />
         </div>
         <div className="text-secondary-title mt-5 mb-3">Deposit Amount</div>
@@ -250,7 +250,7 @@ export function CreatePoolCard() {
             {coin1InputDisabled && <InputLocked />}
             {coin1 ? (
               <CoinInputBox
-                className="mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
+                className="mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2"
                 disabled={isApprovePanelShown}
                 disabledInput={!currentAmmPool}
                 noDisableStyle
@@ -273,7 +273,7 @@ export function CreatePoolCard() {
             {coin2InputDisabled && <InputLocked />}
             {coin2 ? (
               <CoinInputBox
-                className="py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
+                className="py-2 mobile:py-1 px-3 mobile:px-2"
                 disabled={isApprovePanelShown}
                 disabledInput={!currentAmmPool}
                 noDisableStyle
@@ -302,6 +302,11 @@ export function CreatePoolCard() {
             <SwitchFocusTabs coin1={coin1} coin2={coin2} focusSide={focusSide} onChangeFocus={handleChangeFocus} />
           </div>
 
+          <div className="text-xs bg-[#abc4ff14] p-3 rounded-xl text-[#abc4ff] leading-5 mb-8">
+            To initialize and create the pool, first set the starting price. Then, enter your price range and deposit
+            amounts.
+          </div>
+
           <InputBox
             decimalMode
             inputClassName="text-right"
@@ -321,15 +326,17 @@ export function CreatePoolCard() {
             }}
           />
         </div>
-        <div className="text-secondary-title mt-5 mb-3">Set Price Range</div>
-        <PriceRangeInput
-          decimals={decimals}
-          minValue={toString(position[Range.Low])}
-          maxValue={toString(position[Range.Upper])}
-          onBlur={handleBlur}
-          onPriceChange={handlePriceChange}
-          onInDecrease={handleClickInDecrease}
-        />
+        <div>
+          <div className="text-secondary-title mt-5 mb-3">Set Price Range</div>
+          <PriceRangeInput
+            decimals={decimals}
+            minValue={toString(position[Range.Low])}
+            maxValue={toString(position[Range.Upper])}
+            onBlur={handleBlur}
+            onPriceChange={handlePriceChange}
+            onInDecrease={handleClickInDecrease}
+          />
+        </div>
       </div>
     </Card>
   )
@@ -349,20 +356,20 @@ function SelectTokenInputBox({
   return (
     <>
       <Grid
-        className="bg-[#141041] rounded-xl py-2 cursor-pointer place-content-center"
+        className=" grid items-center bg-[#141041] rounded-xl h-[70px] cursor-pointer px-3"
         onClick={() => setIsSelectorOpen(true)}
       >
         {cachedToken ? (
           <div>
-            <div className="text-xs font-medium text-[#abc4ff80] my-1 text-center">{title}</div>
+            <div className="text-xs text-[#abc4ff80] my-1">{title}</div>
             <Row className="items-center gap-2">
               <CoinAvatar token={cachedToken} />
-              <div className="text-[#abc4ff] font-medium">{cachedToken.symbol ?? ''}</div>
+              <div className="text-[#abc4ff] font-medium text-lg">{cachedToken.symbol ?? ''}</div>
               <Icon size="sm" className="text-[#abc4ff]" heroIconName="chevron-down" />
             </Row>
           </div>
         ) : (
-          <div>{title}</div>
+          <div className="text-[#abc4ff80] text-center">{title}</div>
         )}
       </Grid>
       <TokenSelectorDialog
