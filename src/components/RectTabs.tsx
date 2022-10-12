@@ -1,4 +1,5 @@
-import { ReactNode, useCallback, MouseEvent } from 'react'
+import { MouseEvent, ReactNode, useCallback } from 'react'
+
 import { twMerge } from 'tailwind-merge'
 
 export interface TabItem {
@@ -36,7 +37,9 @@ export default function RectTabs(props: Props) {
             onClick={isSelected ? undefined : handleChange}
             data-val={tab.value}
             className={twMerge(
-              `flex text-xs ${isSelected ? 'bg-active-tab-bg text-active-cyan cursor-default' : 'cursor-pointer'}`,
+              `flex text-xs ${
+                isSelected ? 'bg-active-tab-bg text-active-cyan cursor-default' : 'cursor-pointer text-white/40'
+              }`,
               tab.className
             )}
           >

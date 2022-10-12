@@ -1,15 +1,13 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { Fraction } from '@raydium-io/raydium-sdk'
+
 import Decimal from 'decimal.js'
 import { twMerge } from 'tailwind-merge'
-import { Fraction } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import {
-  calLowerUpper,
-  getPriceBoundary,
-  getPriceTick,
-  getTickPrice
+  calLowerUpper, getPriceBoundary, getPriceTick, getTickPrice
 } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -435,7 +433,7 @@ function ConcentratedCard() {
               </div>
               <div className="flex justify-between">
                 <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
-                <span className="text-lg flex leading-[18px]">
+                <span className="text-base flex leading-[16px]">
                   {currentAmmPool && <CoinAvatarPair size="sm" token1={coin1} token2={coin2} />}
                   {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
                     ? `${ratio1}% / ${ratio2}%`
