@@ -2,6 +2,7 @@ import { twMerge } from 'tailwind-merge'
 import { Fraction, Price, Token, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
+import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
@@ -92,6 +93,7 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
 }
 
 function MyPositionCardChartInfo({ className }: { className?: string }) {
+  useConcentratedAmmSelector()
   const [currentAmmPool, chartPoints, coin1, coin2] = useConcentrated((s) => [
     s.currentAmmPool,
     s.chartPoints,
@@ -105,6 +107,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
     targetUserPositionAccount && toFraction(targetUserPositionAccount!.priceLower),
     targetUserPositionAccount && toFraction(targetUserPositionAccount!.priceUpper)
   ]
+
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
