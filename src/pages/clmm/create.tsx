@@ -230,21 +230,22 @@ function ConcentratedCard() {
     })
   }, [cardRef])
 
-  const boundaryData = useMemo(() => {
-    const res = getPriceBoundary({
-      coin1,
-      coin2,
-      ammPool: currentAmmPool,
-      reverse: !isPairPoolDirectionEq
-    })
-    tickRef.current.lower = res?.priceLowerTick
-    tickRef.current.upper = res?.priceUpperTick
-    return res
-  }, [coin1, coin2, currentAmmPool, isPairPoolDirectionEq])
+  const boundaryData = useMemo(
+    () =>
+      getPriceBoundary({
+        coin1,
+        coin2,
+        ammPool: currentAmmPool,
+        reverse: !isPairPoolDirectionEq
+      }),
+    [coin1, coin2, currentAmmPool, isPairPoolDirectionEq]
+  )
 
   useEffect(() => {
-    if (poolFocusKey === prevPoolId) return
-    boundaryData && useConcentrated.setState(boundaryData)
+    if (poolFocusKey === prevPoolId || !boundaryData) return
+    useConcentrated.setState(boundaryData)
+    tickRef.current.lower = boundaryData.priceLowerTick
+    tickRef.current.upper = boundaryData.priceUpperTick
   }, [boundaryData, poolFocusKey, prevPoolId])
 
   const [prices, setPrices] = useState<(string | undefined)[]>([])
