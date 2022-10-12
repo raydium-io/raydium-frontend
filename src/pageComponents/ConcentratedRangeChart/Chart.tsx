@@ -1,26 +1,20 @@
-import { useEffect, useRef, useState, useCallback, useMemo, useImperativeHandle, forwardRef, ReactNode } from 'react'
+import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+
 import { Fraction } from '@raydium-io/raydium-sdk'
-import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
+
+import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+
+import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
+import { FadeIn } from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
-import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
+import { useEvent } from '@/hooks/useEvent'
+
 import {
-  ChartPoint,
-  ChartRangeInputOption,
-  Range,
-  DEFAULT_X_AXIS,
-  HIGHLIGHT_COLOR,
-  unitColor,
-  ZOOM_INTERVAL,
-  AREA_CONFIG,
-  boundaryColor,
-  getStrokeFill,
-  toFixedNumber,
-  getConfig,
-  getLabel
+  AREA_CONFIG, boundaryColor, ChartPoint, ChartRangeInputOption, DEFAULT_X_AXIS, getConfig, getLabel, getStrokeFill,
+  HIGHLIGHT_COLOR, Range, toFixedNumber, unitColor, ZOOM_INTERVAL
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
-import { useEvent } from '@/hooks/useEvent'
 
 interface HighlightPoint extends ChartPoint {
   position?: number
@@ -47,6 +41,8 @@ interface Props {
   hideXAxis?: boolean
   height?: number
   title?: ReactNode
+  coin1InputDisabled?: boolean
+  coin2InputDisabled?: boolean
   onPositionChange?: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
   onInDecrease?: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
   onAdjustMin?: (props: { min: number; max: number }) => { price: number; tick: number }
@@ -69,7 +65,9 @@ export default forwardRef(function Chart(props: Props, ref) {
     hideRangeLine,
     hideRangeInput,
     showZoom,
-    hideXAxis
+    hideXAxis,
+    coin1InputDisabled,
+    coin2InputDisabled
   } = props
   const points: HighlightPoint[] = useMemo(() => Object.assign([], chartOptions?.points || []), [chartOptions?.points])
   const [defaultMin, defaultMax] = [
@@ -631,6 +629,17 @@ export default forwardRef(function Chart(props: Props, ref) {
           onPriceChange={handlePriceChange}
           onInDecrease={handleInDecrease}
         />
+      )}
+
+      {coin1InputDisabled || coin2InputDisabled ? (
+        <FadeIn>
+          <div className="flex items-center mt-3.5 p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
+            <Icon size="sm" className="mr-1.5" heroIconName="exclamation-circle" />
+            Your position will not trade or earn fees until price moves into your range.
+          </div>
+        </FadeIn>
+      ) : (
+        ''
       )}
     </>
   )
