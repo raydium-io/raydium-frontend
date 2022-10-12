@@ -1,4 +1,5 @@
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import useConcentrated from './useConcentrated'
 
@@ -8,8 +9,10 @@ export default function useConcentratedAmmSelector() {
   const coin2 = useConcentrated((s) => s.coin2)
   const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
+  const { pathname } = useRouter()
 
   useEffect(() => {
+    if (pathname.startsWith('/clmm/create-pool')) return
     useConcentrated.setState({
       currentAmmPool: undefined
     })

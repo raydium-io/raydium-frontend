@@ -56,7 +56,9 @@ const partialSignTransacion = async (
 ): Promise<Transaction> => {
   await attachRecentBlockhash([transaction], options)
   if (signers?.length) {
+    // console.log('55: ', 55) // BUG
     transaction.partialSign(...signers)
+    // console.log('66: ', 66)
     return transaction
   }
   return transaction

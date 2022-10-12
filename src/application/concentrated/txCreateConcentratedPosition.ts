@@ -63,5 +63,6 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
     // priceUpper: fractionToDecimal(toFraction(priceUpper), 20),
     slippage: 0.001
   })
-  return { signedTransaction: await loadTransaction({ transaction: transaction, signers: signers }) }
+  const signedTransaction = await loadTransaction({ transaction: transaction, signers: signers })
+  return { signedTransaction }
 }
