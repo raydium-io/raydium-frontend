@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { twMerge } from 'tailwind-merge'
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -59,9 +58,9 @@ import { searchItems } from '@/functions/searchItems'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
-import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -975,6 +974,14 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
               const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
 
+              const rewardInfoPrice = new Map<SplToken, CurrencyAmount>()
+              p.rewardInfos.forEach((rInfo) => {
+                rewardInfoPrice.set(
+                  rInfo.token,
+                  toTotalPrice(rInfo.penddingReward, variousPrices[String(rInfo.token.mint)] ?? null)
+                )
+              })
+
               return (
                 <PoolCardDatabaseBodyCollapsePositionContent
                   key={p.nftMint.toString()}
@@ -991,6 +998,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                   rewardAPrice={coinARewardPrice}
                   rewardBPrice={coinBRewardPrice}
                   rewardTotalVolume={rewardTotalVolume}
+                  rewardInfoPrice={rewardInfoPrice}
                 />
               )
             })}
@@ -1018,7 +1026,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   noAsset = false,
   rewardAPrice,
   rewardBPrice,
-  rewardTotalVolume
+  rewardTotalVolume,
+  rewardInfoPrice
 }: {
   poolInfo: HydratedConcentratedInfo
   userPositionAccount?: UserPositionAccount
@@ -1034,6 +1043,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   rewardAPrice?: CurrencyAmount
   rewardBPrice?: CurrencyAmount
   rewardTotalVolume?: string
+  rewardInfoPrice?: Map<SplToken, CurrencyAmount>
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -1265,13 +1275,14 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
                       <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
                       <Tooltip.Panel>
-                        <div className="max-w-[300px] py-[6px] px-5">
+                        <div className="min-w-[250px] py-[6px] px-5">
+                          {p.tokenFeeAmountA || p.tokenFeeAmountB ? <div className="pt-3 pb-1">Fees</div> : null}
                           {info.base && (
                             <TokenPositionInfo
                               token={info.base}
                               tokenAmount={toString(p.tokenFeeAmountA, { decimalLength: 'auto 5' })}
                               tokenPrice={rewardAPrice}
-                              suffix="Rewards"
+                              suffix=""
                             />
                           )}
                           {info.quote && (
@@ -1279,9 +1290,22 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                               token={info.quote}
                               tokenAmount={toString(p.tokenFeeAmountB, { decimalLength: 'auto 5' })}
                               tokenPrice={rewardBPrice}
-                              suffix="Rewards"
+                              suffix=""
                             />
                           )}
+                          {p.rewardInfos.length > 0 ? <div className="pt-3 pb-1">Rewards</div> : null}
+                          {p.rewardInfos &&
+                            p.rewardInfos.map((rInfo, rIdx) => {
+                              return (
+                                <TokenPositionInfo
+                                  key={`personal-rewardInfo-reward-${rIdx}-${toPubString(rInfo.token.mint)}`}
+                                  token={rInfo.token}
+                                  tokenAmount={toString(rInfo.penddingReward, { decimalLength: 'auto 5' })}
+                                  tokenPrice={rewardInfoPrice?.get(rInfo.token)}
+                                  suffix=""
+                                />
+                              )
+                            })}
                         </div>
                       </Tooltip.Panel>
                     </Tooltip>
