@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { twMerge } from 'tailwind-merge'
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -59,9 +58,9 @@ import { searchItems } from '@/functions/searchItems'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
-import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -227,18 +226,25 @@ function OpenNewPosition({ className }: { className?: string }) {
 
 function PoolLabelBlock({ className }: { className?: string }) {
   return (
-    <div className={className}>
-      <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
-      <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
-        Concentrate liquidity for increased captial efficiency.{' '}
-        <Link
-          className="inline-block"
-          href="https://docs.raydium.io/raydium/concentrated-liquidity/what-is-concentrated-liquidity"
-        >
-          Learn more
-        </Link>
-      </div>
-    </div>
+    <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
+      <Col>
+        <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
+        <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
+          Concentrate liquidity for increased captial efficiency.{' '}
+          <Link
+            className="inline-block"
+            href="https://docs.raydium.io/raydium/concentrated-liquidity/what-is-concentrated-liquidity"
+          >
+            Learn more
+          </Link>
+        </div>
+      </Col>
+
+      <Row className="gap-4 items-stretch">
+        <PoolTimeBasisSelectorBox />
+        <PoolSearchBlock className="h-[36px]" />
+      </Row>
+    </Row>
   )
 }
 
@@ -622,12 +628,10 @@ function PoolCard() {
     </div>
   ) : (
     <div>
-      <Row className={'justify-between pb-5 gap-16 gap-y-4 items-center flex-wrap'}>
-        <PoolLabelBlock />
+      <Row className={'w-full justify-between pb-5 items-center'}>
+        <PoolLabelBlock className="flex-grow" />
         <Row className="gap-4 items-stretch">
           <OpenNewPosition />
-          <PoolTimeBasisSelectorBox />
-          <PoolSearchBlock />
         </Row>
       </Row>
     </div>
