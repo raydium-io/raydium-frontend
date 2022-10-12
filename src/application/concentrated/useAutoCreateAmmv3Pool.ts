@@ -1,14 +1,13 @@
 import assert from '@/functions/assert'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { Keypair } from '@solana/web3.js'
 import { useEffect } from 'react'
 import useConnection from '../connection/useConnection'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { ammV3ProgramId } from '../token/wellknownProgram.config'
 import { SOLMint } from '../token/wellknownToken.config'
-import { loadTransaction } from '../txTools/createTransaction'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
@@ -54,10 +53,10 @@ async function createNewConcentratedPool() {
     initialPrice: fractionToDecimal(toFraction(userSettedCurrentPrice)),
     owner
   })
-  const signedTransaction = await loadTransaction({ transaction, signers })
   useConcentrated.setState({
     tempDataCache: {
-      signedTransaction
+      transaction,
+      signers: signers as Keypair[]
     }
   })
   useConcentrated.setState({ loading: true })
