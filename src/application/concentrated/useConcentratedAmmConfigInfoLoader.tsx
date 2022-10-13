@@ -22,11 +22,11 @@ export default function useConcentratedAmmConfigInfoLoader() {
     )
     if (response) {
       useConcentrated.setState({
-        availableAmmConfigFeeOptions: Object.values(response.data).map((i) => {
+        availableAmmConfigFeeOptions: Object.values(response.data).map((i, idx) => {
           const original = inDev
             ? {
                 ...i,
-                id: '85JxuepKfJsmb29ZKThuod3yeBS4dXmsCQUbeo1utpeX',
+                id: getDevAvaliableIdx(idx),
                 index: 0,
                 protocolFeeRate: 12000,
                 tradeFeeRate: 100,
@@ -44,3 +44,10 @@ export default function useConcentratedAmmConfigInfoLoader() {
     }
   }, [inDev])
 }
+
+const getDevAvaliableIdx = (index: number) =>
+  index % 3 === 0
+    ? '85JxuepKfJsmb29ZKThuod3yeBS4dXmsCQUbeo1utpeX'
+    : index % 3 === 1
+    ? 'ABPi23j9qDjCeK5WwutWn6XG8sMRV7AiG1Z5bP8cViuz'
+    : 'AjUvAGNuLJiXXGRQ1uiH4v6fBUJm1zwjBwyfK1qe27Ce'
