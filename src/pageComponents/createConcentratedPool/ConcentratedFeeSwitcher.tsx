@@ -1,20 +1,23 @@
 import { HydratedAmmV3ConfigInfo } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentratedInitFeeSelector from '@/application/concentrated/useConcentratedInitFeeSelector'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { gte } from '@/functions/numberish/compare'
 
 export function ConcentratedFeeSwitcher({ className }: { className?: string }) {
-  const selectableAmmPools = useConcentrated((s) => s.selectableAmmPools)
-  const selectableAmmPoolIds = selectableAmmPools?.map((i) => toPubString(i.ammConfig.id))
+  const existAmmPools = useConcentrated((s) => s.selectableAmmPools)
+  const existAmmPoolConfigIds = existAmmPools?.map((i) => toPubString(i.ammConfig.id))
   const userSelectedAmmConfigFeeOption = useConcentrated((s) => s.userSelectedAmmConfigFeeOption)
-  const availableAmmConfigFeeOptions = useConcentrated((s) => s.availableAmmConfigFeeOptions)
+  const ammConfigFeeOptions = useConcentrated((s) => s.availableAmmConfigFeeOptions)
+
+  useConcentratedInitFeeSelector()
   return (
     <ConcentratedFeeSwitcherContent
-      configs={availableAmmConfigFeeOptions}
+      configs={ammConfigFeeOptions}
       current={userSelectedAmmConfigFeeOption}
-      existIds={selectableAmmPoolIds}
+      existIds={existAmmPoolConfigIds}
     />
   )
 }
@@ -28,11 +31,13 @@ function ConcentratedFeeSwitcherContent({
   current?: HydratedAmmV3ConfigInfo
   existIds?: string[]
 }) {
+  const coin1 = useConcentrated((s) => s.coin1)
+  const coin2 = useConcentrated((s) => s.coin2)
   return (
     <Row className="py-4 gap-4">
       {configs?.map((config) => {
         const isCurrent = config.id === current?.id
-        const canSelect = !existIds?.includes(config.id)
+        const canSelect = coin1 && coin2 && !existIds?.includes(config.id)
         const text = gte(config.tradeFeeRate, 0.0025)
           ? 'Best for most pairs'
           : gte(config.tradeFeeRate, 0.0003)
