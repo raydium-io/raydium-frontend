@@ -258,7 +258,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                     onClose?.()
                     refreshConcentrated()
                     useConcentrated.setState({
-                      isAddDialogOpen: false,
+                      isRemoveDialogOpen: false,
                       isMyPositionDialogOpen: false,
                       coin1Amount: undefined,
                       coin2Amount: undefined
