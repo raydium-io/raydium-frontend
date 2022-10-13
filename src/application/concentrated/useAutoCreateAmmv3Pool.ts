@@ -60,6 +60,13 @@ async function createNewConcentratedPool() {
     }
   })
   useConcentrated.setState({ loading: true })
-  const hydratedInfo = hydrateConcentratedInfo({ state: mockPoolInfo })
-  useConcentrated.setState({ currentAmmPool: hydratedInfo, loading: false })
+
+  const hasReverse = coin1.mint !== mockPoolInfo.mintA.mint
+  if (hasReverse) {
+    useConcentrated.setState({
+      focusSide: hasReverse ? 'coin2' : 'coin1',
+      userCursorSide: hasReverse ? 'coin2' : 'coin1'
+    })
+  }
+  useConcentrated.setState({ currentAmmPool: hydrateConcentratedInfo({ state: mockPoolInfo }), loading: false })
 }
