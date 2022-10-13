@@ -48,6 +48,7 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
   assert(coin2, 'not set coin2')
   assert(coin2Amount, 'not set coin2Amount')
   assert(liquidity, 'not set liquidity')
+  const isSol = isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
   const { transaction, signers } = await AmmV3.makeOpenPositionTransaction({
     connection: connection,
     liquidity,
@@ -56,7 +57,7 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
       feePayer: owner,
       wallet: owner,
       tokenAccounts: tokenAccountRawInfos,
-      useSOLBalance: isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
+      useSOLBalance: isSol
     },
     tickLower: priceLowerTick,
     tickUpper: priceUpperTick,

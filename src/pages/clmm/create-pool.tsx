@@ -29,6 +29,7 @@ import { CreatePoolCard } from '@/pageComponents/createConcentratedPool/CreatePo
 import CreatePoolPreviewDialog from '@/pageComponents/createConcentratedPool/CreatePoolPreviewDialog'
 import produce from 'immer'
 import { useEffect, useRef, useState } from 'react'
+import { unstable_batchedUpdates } from 'react-dom'
 import { twMerge } from 'tailwind-merge'
 import { PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 
@@ -165,6 +166,17 @@ export default function CreatePoolPage() {
   const haveEnoughCoin2 =
     coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }))
 
+  const cleanAllInput = () => {
+    useConcentrated.setState({
+      coin1: undefined,
+      coin2: undefined,
+      coin1Amount: undefined,
+      coin2Amount: undefined,
+      focusSide: 'coin1',
+      userCursorSide: 'coin1',
+      tempDataCache: undefined
+    })
+  }
   return (
     <PageLayout metaTitle="Farms - Raydium" mobileBarTitle="Create Farm">
       <NavButtons className="mb-8 mobile:mb-2 sticky z-10 top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] mobile:hidden" />
@@ -201,8 +213,11 @@ export default function CreatePoolPage() {
                   cancelButtonText: 'Not Now',
                   onConfirm() {
                     closePreviewDialog()
+                    setTimeout(() => {
+                      cleanAllInput()
+                    }, 400)
                   }
-                }) // should move to allSuccess callback
+                })
               }
             })
           }}
