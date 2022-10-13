@@ -26,7 +26,7 @@ interface Props {
   onClose: () => void
 }
 
-export default function CreatePoolConfirmDialog({
+export default function CreatePoolPreviewDialog({
   open,
   coin1,
   coin2,

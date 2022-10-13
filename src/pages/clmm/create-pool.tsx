@@ -18,7 +18,7 @@ import FadeInStable from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import { getLocalItem, setLocalItem, setSessionItem } from '@/functions/dom/jStorage'
+import { getLocalItem, setLocalItem } from '@/functions/dom/jStorage'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
@@ -26,8 +26,7 @@ import toFraction from '@/functions/numberish/toFraction'
 import { useEvent } from '@/hooks/useEvent'
 import useToggle from '@/hooks/useToggle'
 import { CreatePoolCard } from '@/pageComponents/createConcentratedPool/CreatePoolCard'
-import CreatePoolConfirmDialog from '@/pageComponents/createConcentratedPool/CreatePoolConfirmDialog'
-import { UsersIcon } from '@heroicons/react/24/outline'
+import CreatePoolPreviewDialog from '@/pageComponents/createConcentratedPool/CreatePoolPreviewDialog'
 import produce from 'immer'
 import { useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
@@ -130,7 +129,7 @@ export default function CreatePoolPage() {
   const walletConnected = useWallet((s) => s.connected)
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
   const isMobile = useAppSettings((s) => s.isMobile)
-  const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
+  const [isPreviewDialogOn, { off: closePreviewDialog, on: openPreviewDialog }] = useToggle(false)
 
   const PoolIdInputBlockRef = useRef<PoolIdInputBlockHandle>()
   const { popConfirm } = useNotification()
@@ -179,8 +178,8 @@ export default function CreatePoolPage() {
 
         <CreatePoolCard />
 
-        <CreatePoolConfirmDialog
-          open={isConfirmOn}
+        <CreatePoolPreviewDialog
+          open={isPreviewDialogOn}
           coin1={coin1}
           coin2={coin2}
           coin1Amount={coin1Amount}
@@ -189,20 +188,23 @@ export default function CreatePoolPage() {
           currentPrice={toFraction(userSettedCurrentPrice!)}
           position={{ min: toFraction(priceLower!).toFixed(decimals), max: toFraction(priceUpper!).toFixed(decimals) }}
           totalDeposit={toUsdVolume(totalDeposit)}
-          onClose={onConfirmClose}
+          onClose={closePreviewDialog}
           onConfirm={() => {
-            popConfirm({
-              type: 'success',
-              title: 'Pool created successfully!',
-              description: 'Do you want to create a farm based on this pool?',
-              confirmButtonIsMainButton: true,
-              confirmButtonText: 'Back to all Pools',
-              cancelButtonText: 'Not Now',
-              onConfirm() {
-                onConfirmClose()
+            txCreateNewConcentratedPool().then(({ allSuccess }) => {
+              if (allSuccess) {
+                popConfirm({
+                  type: 'success',
+                  title: 'Pool created successfully!',
+                  description: 'Do you want to create a farm based on this pool?',
+                  confirmButtonIsMainButton: true,
+                  confirmButtonText: 'Back to all Pools',
+                  cancelButtonText: 'Not Now',
+                  onConfirm() {
+                    closePreviewDialog()
+                  }
+                }) // should move to allSuccess callback
               }
-            }) // should move to allSuccess callback
-            txCreateNewConcentratedPool().then(({ allSuccess }) => {})
+            })
           }}
         />
 
@@ -232,7 +234,7 @@ export default function CreatePoolPage() {
               }
             ]}
             onClick={() => {
-              onConfirmOpen()
+              openPreviewDialog()
             }}
           >
             Preview Pool

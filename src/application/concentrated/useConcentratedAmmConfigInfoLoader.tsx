@@ -23,12 +23,21 @@ export default function useConcentratedAmmConfigInfoLoader() {
     if (response) {
       useConcentrated.setState({
         availableAmmConfigFeeOptions: Object.values(response.data).map((i) => {
-          const original = { ...i, id: inDev ? '85JxuepKfJsmb29ZKThuod3yeBS4dXmsCQUbeo1utpeX' : i.id }
+          const original = inDev
+            ? {
+                ...i,
+                id: '85JxuepKfJsmb29ZKThuod3yeBS4dXmsCQUbeo1utpeX',
+                index: 0,
+                protocolFeeRate: 12000,
+                tradeFeeRate: 100,
+                tickSpacing: 10
+              }
+            : i
           return {
-            ...i,
+            ...original,
             original,
-            protocolFeeRate: toPercent(div(i.protocolFeeRate, 10 ** 4), { alreadyDecimaled: true }),
-            tradeFeeRate: toPercent(div(i.tradeFeeRate, 10 ** 4), { alreadyDecimaled: true })
+            protocolFeeRate: toPercent(div(original.protocolFeeRate, 10 ** 4), { alreadyDecimaled: true }),
+            tradeFeeRate: toPercent(div(original.tradeFeeRate, 10 ** 4), { alreadyDecimaled: true })
           }
         })
       })
