@@ -430,10 +430,10 @@ function ConcentratedCard() {
                     : '--'}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
-                <span className="text-base flex leading-[16px]">
-                  {currentAmmPool && <CoinAvatarPair size="sm" token1={coin1} token2={coin2} />}
+              <div className="flex justify-between items-center">
+                <span className="text-sm leading-[20px] text-secondary-title">Deposit Ratio</span>
+                <span className="text-base leading-[20px] flex items-center">
+                  {currentAmmPool && <CoinAvatarPair className="mr-1" size="sm" token1={coin1} token2={coin2} />}
                   {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
                     ? `${ratio1}% / ${ratio2}%`
                     : '--'}
