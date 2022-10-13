@@ -6,6 +6,7 @@ import { toString } from '@/functions/numberish/toString'
 import { AmmV3 } from '@raydium-io/raydium-sdk'
 import useAppSettings from '../common/useAppSettings'
 import useConnection from '../connection/useConnection'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { HydratedConcentratedInfo } from './type'
 import useConcentrated from './useConcentrated'
 
@@ -55,7 +56,7 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
       feePayer: owner,
       wallet: owner,
       tokenAccounts: tokenAccountRawInfos,
-      useSOLBalance: true
+      useSOLBalance: isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
     },
     tickLower: priceLowerTick,
     tickUpper: priceUpperTick,
