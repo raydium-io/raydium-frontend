@@ -38,17 +38,8 @@ export function CreatePoolCard() {
   useAutoCreateAmmv3Pool()
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const {
-    currentAmmPool,
-    coin1,
-    coin2,
-    coin1Amount,
-    coin2Amount,
-    focusSide,
-    priceLower,
-    priceUpper,
-    userSettedCurrentPrice
-  } = useConcentrated()
+  const { currentAmmPool, coin1, coin2, coin1Amount, coin2Amount, focusSide, priceLower, priceUpper } =
+    useConcentrated()
   const tickRef = useRef<{ [Range.Low]?: number; [Range.Upper]?: number }>({
     [Range.Low]: undefined,
     [Range.Upper]: undefined

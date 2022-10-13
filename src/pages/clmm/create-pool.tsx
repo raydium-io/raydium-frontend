@@ -29,7 +29,6 @@ import { CreatePoolCard } from '@/pageComponents/createConcentratedPool/CreatePo
 import CreatePoolPreviewDialog from '@/pageComponents/createConcentratedPool/CreatePoolPreviewDialog'
 import produce from 'immer'
 import { useEffect, useRef, useState } from 'react'
-import { unstable_batchedUpdates } from 'react-dom'
 import { twMerge } from 'tailwind-merge'
 import { PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 
@@ -120,33 +119,11 @@ export default function CreatePoolPage() {
   useConcentratedAmmConfigInfoLoader()
   useConcentratedAmountCalculator()
   useConcentratedAmmSelector()
-
-  const rewards = useCreateFarms((s) => s.rewards)
-  const meaningFullRewards = rewards.filter(
-    (r) => r.amount != null || r.startTime != null || r.endTime != null || r.token != null
-  )
-  const poolId = useCreateFarms((s) => s.poolId)
-  const getBalance = useWallet((s) => s.getBalance)
-  const walletConnected = useWallet((s) => s.connected)
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [isPreviewDialogOn, { off: closePreviewDialog, on: openPreviewDialog }] = useToggle(false)
-
-  const PoolIdInputBlockRef = useRef<PoolIdInputBlockHandle>()
   const { popConfirm } = useNotification()
 
-  useEffect(() => {
-    if (rewards.length <= 0) {
-      useCreateFarms.setState({
-        rewards: produce(rewards, (draft) => {
-          draft.push(createNewUIRewardInfo())
-        })
-      })
-    }
-  }, [])
-
-  // avoid input re-render if chain Date change
-  const [poolIdValid, setPoolIdValid] = useState(false)
   const {
     coin1,
     coin1Amount,
@@ -166,15 +143,33 @@ export default function CreatePoolPage() {
   const haveEnoughCoin2 =
     coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }))
 
-  const cleanAllInput = () => {
-    useConcentrated.setState({
-      coin1: undefined,
-      coin2: undefined,
-      coin1Amount: undefined,
-      coin2Amount: undefined,
-      focusSide: 'coin1',
-      userCursorSide: 'coin1',
-      tempDataCache: undefined
+  function popCongratulations() {
+    popConfirm({
+      type: 'success',
+      title: 'Pool created successfully!',
+      description: 'Do you want to create a farm based on this pool?',
+      confirmButtonIsMainButton: true,
+      confirmButtonText: 'Back to all Pools',
+      cancelButtonText: 'Not Now',
+      onConfirm() {
+        closePreviewDialog()
+        setTimeout(() => {
+          routeTo('/clmm/pools')
+        }, 200)
+        setTimeout(() => {
+          // clean inputs
+          useConcentrated.setState({
+            coin1: undefined,
+            coin2: undefined,
+            coin1Amount: undefined,
+            coin2Amount: undefined,
+            focusSide: 'coin1',
+            userCursorSide: 'coin1',
+            tempDataCache: undefined
+          })
+          useConcentrated.getState().refreshConcentrated()
+        }, 400)
+      }
     })
   }
   return (
@@ -204,20 +199,7 @@ export default function CreatePoolPage() {
           onConfirm={() => {
             txCreateNewConcentratedPool().then(({ allSuccess }) => {
               if (allSuccess) {
-                popConfirm({
-                  type: 'success',
-                  title: 'Pool created successfully!',
-                  description: 'Do you want to create a farm based on this pool?',
-                  confirmButtonIsMainButton: true,
-                  confirmButtonText: 'Back to all Pools',
-                  cancelButtonText: 'Not Now',
-                  onConfirm() {
-                    closePreviewDialog()
-                    setTimeout(() => {
-                      cleanAllInput()
-                    }, 400)
-                  }
-                })
+                popCongratulations()
               }
             })
           }}
