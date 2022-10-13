@@ -6,6 +6,7 @@ import useConcentratedAmmSelector from '@/application/concentrated/useConcentrat
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import useNotification from '@/application/notification/useNotification'
 import { routeBack, routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
@@ -114,6 +115,7 @@ export default function CreatePoolPage() {
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
 
   const PoolIdInputBlockRef = useRef<PoolIdInputBlockHandle>()
+  const { popConfirm } = useNotification()
 
   useEffect(() => {
     if (rewards.length <= 0) {
@@ -170,7 +172,20 @@ export default function CreatePoolPage() {
           position={{ min: toFraction(priceLower!).toFixed(decimals), max: toFraction(priceUpper!).toFixed(decimals) }}
           totalDeposit={toUsdVolume(totalDeposit)}
           onClose={onConfirmClose}
-          onConfirm={txCreateNewConcentratedPool}
+          onConfirm={() => {
+            popConfirm({
+              type: 'success',
+              title: 'Pool created successfully!',
+              description: 'Do you want to create a farm based on this pool?',
+              confirmButtonIsMainButton: true,
+              confirmButtonText: 'Back to all Pools',
+              cancelButtonText: 'Not Now',
+              onConfirm() {
+                onConfirmClose()
+              }
+            }) // should move to allSuccess callback
+            txCreateNewConcentratedPool().then(({ allSuccess }) => {})
+          }}
         />
 
         <Col className="items-center my-8">

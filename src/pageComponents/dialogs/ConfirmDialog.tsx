@@ -12,6 +12,7 @@ import Icon, { AppHeroIconName } from '../../components/Icon'
 
 export interface ConfirmDialogInfo {
   cardWidth?: 'md' | 'lg'
+
   type?: 'success' | 'warning' | 'error' | 'info' | 'no-head-icon'
   title?: ReactNode
   subtitle?: ReactNode
@@ -19,6 +20,9 @@ export interface ConfirmDialogInfo {
 
   additionalContent?: ReactNode
   onlyConfirmButton?: boolean
+
+  /** Defaultly cancel button is main button */
+  confirmButtonIsMainButton?: boolean
   confirmButtonText?: ReactNode
   cancelButtonText?: ReactNode
   onCancel?(): void
@@ -71,7 +75,7 @@ export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefO
   }, [_close])
 
   return (
-    <Dialog open={isOpen} onClose={close}>
+    <Dialog open={isOpen} onClose={_close}>
       {({ close: closeDialog }) => (
         <Card
           className={twMerge(
@@ -100,16 +104,23 @@ export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefO
               {props.additionalContent}
               <Col>
                 {!props.onlyConfirmButton && (
-                  <Button className="text-[#ABC4FF] frosted-glass-skygray" onClick={closeDialog}>
-                    {props.cancelButtonText ?? 'Cancel'}
+                  <Button
+                    className="text-[#ABC4FF] frosted-glass-skygray"
+                    onClick={props.confirmButtonIsMainButton ? confirm : close}
+                  >
+                    {props.confirmButtonIsMainButton
+                      ? props.confirmButtonText ?? 'OK'
+                      : props.cancelButtonText ?? 'Cancel'}
                   </Button>
                 )}
                 <Button
                   className={`text-[#ABC4FF] ${props.onlyConfirmButton ? 'frosted-glass-skygray' : ''}`}
                   type="text"
-                  onClick={confirm}
+                  onClick={props.confirmButtonIsMainButton ? close : confirm}
                 >
-                  {props.confirmButtonText ?? 'OK'}
+                  {props.confirmButtonIsMainButton
+                    ? props.cancelButtonText ?? 'Cancel'
+                    : props.confirmButtonText ?? 'OK'}
                 </Button>
               </Col>
             </div>

@@ -16,6 +16,7 @@ export default function txCreateNewConcentratedPool() {
     newTx.add(...createPoolTx.instructions.slice(1, 3), ...openPositionTx.instructions)
 
     const createAndOpenPositionTx = await loadTransaction({
+      // BUG hear <--
       transaction: newTx,
       signers: [...createPoolSigners, ...openPositionSigners]
     })
