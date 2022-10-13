@@ -9,7 +9,8 @@ export default function useConcentratedInitFeeSelector() {
   const selectableAmmConfigs = ammConfigFeeOptions?.filter(
     (ammConfigFeeOption) => !existAmmPoolConfigIds?.includes(ammConfigFeeOption.id)
   )
-  const key = selectableAmmConfigs?.map((i) => i.id).join('')
+  const key = selectableAmmConfigs?.map((i) => i.id).join('_')
+
   useEffect(() => {
     if (!selectableAmmConfigs) return
     const bestFeeOption = selectableAmmConfigs[selectableAmmConfigs.length - 1]

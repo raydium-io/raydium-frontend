@@ -11,19 +11,23 @@ import { routeBack, routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import { Checkbox } from '@/components/Checkbox'
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import FadeInStable from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
+import { getLocalItem, setLocalItem, setSessionItem } from '@/functions/dom/jStorage'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import toFraction from '@/functions/numberish/toFraction'
+import { useEvent } from '@/hooks/useEvent'
 import useToggle from '@/hooks/useToggle'
 import { CreatePoolCard } from '@/pageComponents/createConcentratedPool/CreatePoolCard'
 import CreatePoolConfirmDialog from '@/pageComponents/createConcentratedPool/CreatePoolConfirmDialog'
+import { UsersIcon } from '@heroicons/react/24/outline'
 import produce from 'immer'
 import { useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
@@ -64,8 +68,14 @@ function NavButtons({ className }: { className?: string }) {
 }
 
 function WarningBoard({ className }: { className: string }) {
-  const [needWarning, setNeedWarning] = useState(true)
+  const [needWarning, setNeedWarning] = useState(false)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const [checkIgnorePermanent, setCheckIgnorePermanent] = useState(false)
+  useEffect(() => {
+    const userSetIgnored = getLocalItem<boolean>('IGNORE_CREATE_CLMM_WARNING')
+    if (!userSetIgnored) setNeedWarning(true)
+  }, [])
+  const setIgnoreWarning = useEvent(() => setLocalItem('IGNORE_CREATE_CLMM_WARNING', true))
   return (
     <FadeInStable show={needWarning}>
       <Row className={className}>
@@ -87,10 +97,18 @@ function WarningBoard({ className }: { className: string }) {
               size={isMobile ? 'sm' : 'md'}
               onClick={() => {
                 setNeedWarning(false)
+                checkIgnorePermanent && setIgnoreWarning()
               }}
             >
               Got it
             </Button>
+
+            <Checkbox
+              checkBoxSize="sm"
+              className="my-2 w-max text-sm"
+              onChange={setCheckIgnorePermanent}
+              label={<div className="text-sm text-white font-medium">Do not show again</div>}
+            />
           </Row>
         </Card>
       </Row>
