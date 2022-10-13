@@ -1,15 +1,13 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { Fraction } from '@raydium-io/raydium-sdk'
+
 import Decimal from 'decimal.js'
 import { twMerge } from 'tailwind-merge'
-import { Fraction } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import {
-  calLowerUpper,
-  getPriceBoundary,
-  getPriceTick,
-  getTickPrice
+  calLowerUpper, getPriceBoundary, getPriceTick, getTickPrice
 } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -141,17 +139,17 @@ function ConcentratedCard() {
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
-  const {
-    coin1,
-    coin1Amount,
-    coin2,
-    coin2Amount,
-    focusSide,
-    currentAmmPool,
-    hydratedAmmPools,
-    priceUpper,
-    priceLower
-  } = useConcentrated()
+
+  const coin1 = useConcentrated((s) => s.coin1)
+  const coin1Amount = useConcentrated((s) => s.coin1Amount)
+  const coin2 = useConcentrated((s) => s.coin2)
+  const coin2Amount = useConcentrated((s) => s.coin2Amount)
+  const focusSide = useConcentrated((s) => s.focusSide)
+  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
+  const priceUpper = useConcentrated((s) => s.priceUpper)
+  const priceLower = useConcentrated((s) => s.priceLower)
+
   const poolFocusKey = `${currentAmmPool?.idString}-${focusSide}`
   const prevPoolId = usePrevious<string | undefined>(poolFocusKey)
   const chartRef = useRef<{ getPosition: () => { min: number; max: number } }>()
