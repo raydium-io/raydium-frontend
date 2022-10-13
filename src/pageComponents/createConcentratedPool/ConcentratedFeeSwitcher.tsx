@@ -1,6 +1,7 @@
 import { HydratedAmmV3ConfigInfo } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedInitFeeSelector from '@/application/concentrated/useConcentratedInitFeeSelector'
+import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
@@ -46,13 +47,23 @@ function ConcentratedFeeSwitcherContent({
         return (
           <div
             key={config.id}
-            className={`growitems-stretch p-3 gap-2 grow  ${
+            className={`relative grow items-stretch p-3 gap-2 ${
               isCurrent ? 'cyberpunk-border' : 'ring-inset ring-2 ring-[#abc4ff40]'
             } rounded-xl ${canSelect ? 'clickable-no-transform select-none' : 'opacity-50 pointer-events-none'}`}
             onClick={() => {
               useConcentrated.setState({ userSelectedAmmConfigFeeOption: config })
             }}
           >
+            {isCurrent ? (
+              <div
+                className="absolute p-0.5 rounded-full right-2 top-2 -translate-y-1/2 translate-x-1/2 z-10"
+                style={{
+                  background: 'linear-gradient(246deg, #da2eef 7.97%, #2b6aff 49.17%, #39d0d8 92.1%) border-box'
+                }}
+              >
+                <Icon heroIconName="check-circle" size="smi" />
+              </div>
+            ) : null}
             <div className="text-white font-medium">{toPercentString(config.tradeFeeRate, { fixed: 4 })}</div>
             <div className="text-[#abc4ff80] text-xs font-medium">{text}</div>
           </div>
