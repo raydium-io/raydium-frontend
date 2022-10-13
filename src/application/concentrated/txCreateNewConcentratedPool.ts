@@ -1,5 +1,4 @@
 import assert from '@/functions/assert'
-import { Transaction } from '@solana/web3.js'
 import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
 import { generateCreateClmmPositionTx } from './txCreateConcentratedPosition'
@@ -12,18 +11,21 @@ export default function txCreateNewConcentratedPool() {
     const { transaction: createPoolTx, signers: createPoolSigners } = tempDataCache
     const { transaction: openPositionTx, signers: openPositionSigners } = await generateCreateClmmPositionTx()
 
-    const newTx = new Transaction()
-    newTx.add(...createPoolTx.instructions.slice(1, 3), ...openPositionTx.instructions)
-
-    const createAndOpenPositionTx = await loadTransaction({
-      // BUG hear <--
-      transaction: newTx,
-      signers: [...createPoolSigners, ...openPositionSigners]
+    const createPoolTxSigners = await loadTransaction({
+      transaction: createPoolTx,
+      signers: createPoolSigners
     })
+
+    const openPositionTxSigners = await loadTransaction({
+      transaction: openPositionTx,
+      signers: openPositionSigners
+    })
+
     transactionCollector.addQueue([
+      [createPoolTxSigners, { txHistoryInfo: { title: 'Create pool', description: `create clmm pool` } }],
       [
-        createAndOpenPositionTx,
-        { txHistoryInfo: { title: 'Create pool And Open Position', description: `create clmm pool and open position` } }
+        openPositionTxSigners,
+        { txHistoryInfo: { title: 'Open pool position', description: `Open clmm pool position` } }
       ]
     ])
   })
