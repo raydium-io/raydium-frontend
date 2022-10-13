@@ -47,8 +47,8 @@ async function createNewConcentratedPool() {
   const { transaction, signers, mockPoolInfo } = await AmmV3.makeCreatePoolTransaction({
     connection: connection,
     programId: getAmmV3ProgramId(),
-    mint1: { mint: isQuantumSOLVersionSOL(coin1) ? SOLMint : coin1.mint, decimals: coin1.decimals },
-    mint2: { mint: isQuantumSOLVersionSOL(coin2) ? SOLMint : coin2.mint, decimals: coin2.decimals },
+    mint1: { mint: coin1.mint, decimals: coin1.decimals },
+    mint2: { mint: coin2.mint, decimals: coin2.decimals },
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original),
     initialPrice: fractionToDecimal(toFraction(userSettedCurrentPrice)),
     owner
