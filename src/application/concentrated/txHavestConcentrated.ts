@@ -10,6 +10,7 @@ import useWallet from '../wallet/useWallet'
 
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 
 export default function txHavestConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -20,6 +21,7 @@ export default function txHavestConcentrated({
 } = {}) {
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
     const { tokenAccountRawInfos } = useWallet.getState()
+    const { coin1, coin2 } = useConcentrated.getState()
     const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
@@ -31,7 +33,7 @@ export default function txHavestConcentrated({
         feePayer: owner,
         wallet: owner,
         tokenAccounts: tokenAccountRawInfos,
-        useSOLBalance: true,
+        useSOLBalance: isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2),
         closePosition: false
       },
       slippage: Number(toString(slippageTolerance)),
