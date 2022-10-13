@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { twMerge } from 'tailwind-merge'
 import { AmmV3 } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
@@ -101,7 +102,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
         decimalLength: `auto ${coinQuote.decimals}`
       })
     })
-  }, [targetUserPositionAccount, currentAmmPool, position, coinBase, coinQuote])
+  }, [currentAmmPool, position, coinBase, coinQuote])
 
   useEffect(() => {
     calculateMaxLiquidity()
@@ -112,7 +113,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
     useConcentrated.setState({
       coin1Amount: maxInfo.coin1Amount,
       coin2Amount: maxInfo.coin2Amount,
-      isInput: false,
+      isInput: true,
       liquidity: position.liquidity
     })
   }, [maxInfo, position])

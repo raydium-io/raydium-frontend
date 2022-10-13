@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useMemo } from 'react'
 
-import BN from 'bn.js'
 import { AmmV3, ReturnTypeGetLiquidityAmountOutFromAmountIn } from '@raydium-io/raydium-sdk'
+
+import BN from 'bn.js'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
@@ -20,19 +22,17 @@ import useConcentrated from './useConcentrated'
  */
 export default function useConcentratedAmountCalculator() {
   const slippageToleranceByConfig = useAppSettings((s) => s.slippageTolerance)
-  const {
-    coin1,
-    coin1Amount,
-    priceUpperTick,
-    coin2,
-    coin2Amount,
-    priceLowerTick,
-    userCursorSide,
-    isRemoveDialogOpen,
-    currentAmmPool,
-    targetUserPositionAccount,
-    isInput
-  } = useConcentrated()
+  const coin1 = useConcentrated((s) => s.coin1)
+  const coin1Amount = useConcentrated((s) => s.coin1Amount)
+  const priceUpperTick = useConcentrated((s) => s.priceUpperTick)
+  const coin2 = useConcentrated((s) => s.coin2)
+  const coin2Amount = useConcentrated((s) => s.coin2Amount)
+  const priceLowerTick = useConcentrated((s) => s.priceLowerTick)
+  const userCursorSide = useConcentrated((s) => s.userCursorSide)
+  const isRemoveDialogOpen = useConcentrated((s) => s.isRemoveDialogOpen)
+  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const isInput = useConcentrated((s) => s.isInput)
 
   const slippageTolerance = useMemo(() => {
     if (isRemoveDialogOpen) return 0
@@ -72,7 +72,8 @@ export default function useConcentratedAmountCalculator() {
       position &&
       targetUserPositionAccount &&
       targetUserPositionAccount.amountA &&
-      targetUserPositionAccount.amountB
+      targetUserPositionAccount.amountB &&
+      isMeaningfulNumber(position.liquidity)
         ? getRemoveLiquidityAmountOutFromAmountIn(
             inputAmountBN,
             position?.liquidity,

@@ -10,18 +10,12 @@ import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
-import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
 
-export default function txDecreaseConcentrated({
-  currentAmmPool = useConcentrated.getState().currentAmmPool,
-  targetUserPositionAccount = useConcentrated.getState().targetUserPositionAccount
-}: {
-  currentAmmPool?: HydratedConcentratedInfo
-  targetUserPositionAccount?: UserPositionAccount
-} = {}) {
+export default function txDecreaseConcentrated() {
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
-    const { coin1, coin2, coin1Amount, coin2Amount, liquidity, targetUserPositionAccount } = useConcentrated.getState()
+    const { coin1, coin2, coin1Amount, coin2Amount, liquidity, targetUserPositionAccount, currentAmmPool } =
+      useConcentrated.getState()
     const { tokenAccountRawInfos } = useWallet.getState()
     const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')
