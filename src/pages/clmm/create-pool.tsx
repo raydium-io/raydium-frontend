@@ -1,9 +1,11 @@
 import useAppSettings from '@/application/common/useAppSettings'
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
+import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
+import useConnection from '@/application/connection/useConnection'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useNotification from '@/application/notification/useNotification'
@@ -18,18 +20,24 @@ import FadeInStable from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
+import { isDateAfter } from '@/functions/date/judges'
+import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { getLocalItem, setLocalItem } from '@/functions/dom/jStorage'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
+import { div } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
 import { useEvent } from '@/hooks/useEvent'
 import useToggle from '@/hooks/useToggle'
 import { CreatePoolCard } from '@/pageComponents/createConcentratedPool/CreatePoolCard'
 import CreatePoolPreviewDialog from '@/pageComponents/createConcentratedPool/CreatePoolPreviewDialog'
-import produce from 'immer'
-import { useEffect, useRef, useState } from 'react'
+import { PoolSelectCard } from '@/pageComponents/createConcentratedPool/PoolSelectCard'
+import { useState, useEffect } from 'react'
 import { twMerge } from 'tailwind-merge'
+
+import { useChainDate } from '../../hooks/useChainDate'
+import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 
 // unless ido have move this component, it can't be renamed or move to /components
@@ -124,17 +132,18 @@ export default function CreatePoolPage() {
   const [isPreviewDialogOn, { off: closePreviewDialog, on: openPreviewDialog }] = useToggle(false)
   const { popConfirm } = useNotification()
 
-  const {
-    coin1,
-    coin1Amount,
-    coin2,
-    coin2Amount,
-    totalDeposit,
-    userSettedCurrentPrice,
-    priceLower,
-    priceUpper,
-    userSelectedAmmConfigFeeOption
-  } = useConcentrated()
+  // avoid input re-render if chain Date change
+  const [poolIdValid, setPoolIdValid] = useState(false)
+
+  const coin1 = useConcentrated((s) => s.coin1)
+  const coin1Amount = useConcentrated((s) => s.coin1Amount)
+  const coin2 = useConcentrated((s) => s.coin2)
+  const coin2Amount = useConcentrated((s) => s.coin2Amount)
+  const totalDeposit = useConcentrated((s) => s.totalDeposit)
+  const userSettedCurrentPrice = useConcentrated((s) => s.userSettedCurrentPrice)
+  const priceLower = useConcentrated((s) => s.priceLower)
+  const priceUpper = useConcentrated((s) => s.priceUpper)
+  const userSelectedAmmConfigFeeOption = useConcentrated((s) => s.userSelectedAmmConfigFeeOption)
 
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
 
