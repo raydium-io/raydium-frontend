@@ -43,6 +43,12 @@ export function useWalletConnectNotifaction() {
     })
     return () => {
       requestIdleCallback(() => {
+        adapter?.off('connect')
+      })
+      requestIdleCallback(() => {
+        adapter?.off('disconnect')
+      })
+      requestIdleCallback(() => {
         adapter?.off('error')
       })
 
