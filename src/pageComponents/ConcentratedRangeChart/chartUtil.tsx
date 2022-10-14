@@ -35,7 +35,7 @@ export const AREA_CONFIG: any = {
 
 export const getStrokeFill = (color: string) => ({
   fill: color,
-  stroke: color
+  stroke: 'transparent'
 })
 
 export const getConfig = (num: number, totalCount: number) => {

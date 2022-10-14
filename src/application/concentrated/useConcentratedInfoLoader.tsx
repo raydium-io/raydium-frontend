@@ -25,7 +25,7 @@ export default function useConcentratedInfoLoader() {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const refreshCount = useConcentrated((s) => s.refreshCount)
   const connection = useConnection((s) => s.connection)
-  const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
   const owner = useWallet((s) => s.owner)
   const tokens = useToken((s) => s.tokens)
@@ -46,6 +46,7 @@ export default function useConcentratedInfoLoader() {
   useTransitionedEffect(async () => {
     if (!pathname.includes('clmm')) return
     if (!connection) return
+    if (chainTimeOffset == null) return
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: apiAmmPools,
       connection,

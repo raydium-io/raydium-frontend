@@ -42,6 +42,7 @@ import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionD
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 
 import '../styles/index.css'
+import useAutoCleanSwapInfoCache from '@/application/swap/useAutoCleanLiquidityInfoCache'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -144,6 +145,7 @@ function ApplicationsInitializations() {
   /* ----- load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo) ----- */
   useLiquidityInfoLoader()
   useAutoCleanLiquidityInfoCache()
+  useAutoCleanSwapInfoCache()
 
   /********************** pair Info (pools) **********************/
   usePoolsInfoLoader()

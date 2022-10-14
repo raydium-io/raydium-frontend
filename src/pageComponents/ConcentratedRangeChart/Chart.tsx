@@ -132,15 +132,19 @@ export default forwardRef(function Chart(props: Props, ref) {
       setXAxisDomain(DEFAULT_X_AXIS)
       setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
     }
-    if (!points.length) return
-
-    const { smoothCount } = getConfig(points[0].x, points.length)
-    smoothCountRef.current = smoothCount
-    const displayList: HighlightPoint[] = []
     const [defaultMinNum, defaultMaxNum] = [
       defaultMin ? Number(defaultMin.toFixed(6)) : undefined,
       defaultMax ? Number(defaultMax.toFixed(6)) : undefined
     ]
+    if (!points.length) {
+      if (defaultMinNum === undefined || defaultMaxNum === undefined) return
+      points.push({ x: defaultMinNum, y: 0 }, { x: defaultMaxNum, y: 0 })
+    }
+
+    const { smoothCount } = getConfig(points[0].x, points.length)
+    smoothCountRef.current = smoothCount
+    const displayList: HighlightPoint[] = []
+
     const isInPositionRange = (x: number) =>
       !!(defaultMinNum && x >= defaultMinNum && defaultMaxNum && x <= defaultMaxNum)
 
@@ -156,14 +160,22 @@ export default forwardRef(function Chart(props: Props, ref) {
     let [foundDefaultMin, foundDefaultMax] = [false, false]
     let maxY = points[0].y
     for (let i = 0; i < pointMaxIndex; i++) {
-      const [point, nextPoint] = [points[i], points[i + 1]]
+      const [prePoint, point, nextPoint] = [points[i - 1], points[i], points[i + 1]]
       const pointXNum = toFixedNumber(point.x, decimals)
       if (defaultMinNum && pointXNum > defaultMinNum && !foundDefaultMin) {
-        displayList.push({ ...point, x: defaultMinNum })
+        const insertIdx = displayList.findIndex((p) => p.x > defaultMinNum)
+        displayList.splice(insertIdx === -1 ? displayList.length : insertIdx, 0, {
+          ...(prePoint || point),
+          x: defaultMinNum
+        })
         foundDefaultMin = true
       }
       if (defaultMaxNum && pointXNum > defaultMaxNum && !foundDefaultMax) {
-        displayList.push({ ...point, x: defaultMaxNum })
+        const insertIdx = displayList.findIndex((p) => p.x > defaultMaxNum)
+        displayList.splice(insertIdx === -1 ? displayList.length : insertIdx, 0, {
+          ...(prePoint || point),
+          x: defaultMaxNum
+        })
         foundDefaultMax = true
       }
       displayList.push({ ...point })
@@ -172,10 +184,10 @@ export default forwardRef(function Chart(props: Props, ref) {
       foundDefaultMax = foundDefaultMax || pointXNum === defaultMaxNum
       maxY = Math.max(maxY, point.y)
       // add more points to chart to smooth line
-      if (!showCurrentPriceOnly && smoothCount > 0) {
+      if (smoothCount > 0) {
         const gap = toFixedNumber((nextPoint.x - point.x) / smoothCount, decimals)
         for (let j = 1; j <= smoothCount; j++) {
-          const y = toFixedNumber(j > Math.floor(smoothCount / 2) ? nextPoint.y : point.y, decimals)
+          const y = toFixedNumber(point.y, decimals)
           displayList.push({ x: toFixedNumber(point.x + gap * j, decimals), y })
         }
       }

@@ -12,6 +12,7 @@ import useWallet from '../wallet/useWallet'
 
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 
 export default function txDecreaseConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -39,7 +40,7 @@ export default function txDecreaseConcentrated({
         feePayer: owner,
         wallet: owner,
         tokenAccounts: tokenAccountRawInfos,
-        useSOLBalance: true,
+        useSOLBalance: isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2),
         closePosition: eq(targetUserPositionAccount.sdkParsed.liquidity, liquidity)
       },
       slippage: Number(toString(slippageTolerance)),
@@ -48,9 +49,8 @@ export default function txDecreaseConcentrated({
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
         title: 'Liquidity Removed',
-        description: `Removed ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
-          coin2.symbol
-        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+        description: `Removed ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${coin2.symbol
+          } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
     })
   })

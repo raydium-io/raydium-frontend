@@ -4,6 +4,7 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { AmmV3 } from '@raydium-io/raydium-sdk'
 import useAppSettings from '../common/useAppSettings'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
@@ -36,7 +37,7 @@ export default function txIncreaseConcentrated({
         feePayer: owner,
         wallet: owner,
         tokenAccounts: tokenAccountRawInfos,
-        useSOLBalance: true
+        useSOLBalance: isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
       },
       slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed
@@ -44,9 +45,8 @@ export default function txIncreaseConcentrated({
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
         title: 'Liquidity Added',
-        description: `Added ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
-          coin2.symbol
-        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+        description: `Added ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${coin2.symbol
+          } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
     })
   })
