@@ -162,7 +162,6 @@ export default function CreatePoolPage() {
       cancelButtonText: 'Not Now',
       onConfirm() {
         routeTo('/clmm/pools')
-        closePreviewDialog()
         setTimeout(() => {
           // clean inputs
           useConcentrated.setState({
@@ -178,7 +177,6 @@ export default function CreatePoolPage() {
         }, 400)
       },
       onCancel() {
-        closePreviewDialog()
         setTimeout(() => {
           // clean inputs
           useConcentrated.setState({
@@ -221,7 +219,10 @@ export default function CreatePoolPage() {
           onClose={closePreviewDialog}
           onConfirm={() => {
             txCreateNewConcentratedPool().then(({ allSuccess }) => {
-              popCongratulations()
+              closePreviewDialog()
+              if (allSuccess) {
+                popCongratulations()
+              }
             })
           }}
         />

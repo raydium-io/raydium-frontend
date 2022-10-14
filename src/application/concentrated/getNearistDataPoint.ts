@@ -38,34 +38,38 @@ export type PriceBoundaryReturn =
 
 export function getPriceBoundary({ coin1, coin2, reverse, ammPool }: GetChartDataProps): PriceBoundaryReturn {
   if (!ammPool) return
-  const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
-  const currentPrice = decimalToFraction(ammPool?.state.currentPrice)
-  const trimMinX = getMax(currentPrice ? mul(currentPrice, 1 - 0.5) : 0, 1 / 10 ** decimals)
-  const trimMaxX = getMax(currentPrice ? mul(currentPrice, 1 + 0.5) : 0, 1 / 10 ** decimals)
-  const { price: priceMin, tick: tickMin } = getPriceAndTick({
-    poolInfo: ammPool.state,
-    baseIn: true,
-    price: fractionToDecimal(toFraction(trimMinX))
-  })
-  const { price: priceMax, tick: tickMax } = getPriceAndTick({
-    poolInfo: ammPool.state,
-    baseIn: true,
-    price: fractionToDecimal(toFraction(trimMaxX))
-  })
-  if (reverse) {
-    return {
-      priceLowerTick: tickMax,
-      priceLower: div(1, priceMax),
-      priceUpperTick: tickMin,
-      priceUpper: div(1, priceMin)
+  try {
+    const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
+    const currentPrice = decimalToFraction(ammPool?.state.currentPrice)
+    const trimMinX = getMax(currentPrice ? mul(currentPrice, 1 - 0.5) : 0, 1 / 10 ** decimals)
+    const trimMaxX = getMax(currentPrice ? mul(currentPrice, 1 + 0.5) : 0, 1 / 10 ** decimals)
+    const { price: priceMin, tick: tickMin } = getPriceAndTick({
+      poolInfo: ammPool.state,
+      baseIn: true,
+      price: fractionToDecimal(toFraction(trimMinX))
+    })
+    const { price: priceMax, tick: tickMax } = getPriceAndTick({
+      poolInfo: ammPool.state,
+      baseIn: true,
+      price: fractionToDecimal(toFraction(trimMaxX))
+    })
+    if (reverse) {
+      return {
+        priceLowerTick: tickMax,
+        priceLower: div(1, priceMax),
+        priceUpperTick: tickMin,
+        priceUpper: div(1, priceMin)
+      }
     }
-  }
 
-  return {
-    priceLowerTick: tickMin,
-    priceLower: priceMin,
-    priceUpperTick: tickMax,
-    priceUpper: priceMax
+    return {
+      priceLowerTick: tickMin,
+      priceLower: priceMin,
+      priceUpperTick: tickMax,
+      priceUpper: priceMax
+    }
+  } catch (err) {
+    return
   }
 }
 
@@ -80,12 +84,16 @@ export function getPriceTick({ p, coin1, coin2, reverse, ammPool }: GetPriceTick
   const targetCoin = !reverse ? coin1 : coin2
   const careDecimalLength = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const trimedX = getMax(p, 1 / 10 ** careDecimalLength)
-  const { price, tick } = getPriceAndTick({
-    poolInfo: ammPool.state,
-    baseIn: isMintEqual(ammPool.state.mintA.mint, targetCoin?.mint),
-    price: fractionToDecimal(toFraction(trimedX))
-  })
-  return { price, tick }
+  try {
+    const { price, tick } = getPriceAndTick({
+      poolInfo: ammPool.state,
+      baseIn: isMintEqual(ammPool.state.mintA.mint, targetCoin?.mint),
+      price: fractionToDecimal(toFraction(trimedX))
+    })
+    return { price, tick }
+  } catch (err) {
+    return
+  }
 }
 
 export function calLowerUpper({

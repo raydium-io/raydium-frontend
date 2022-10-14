@@ -156,6 +156,7 @@ export function CreatePoolCard() {
       reverse: !isFocus1,
       ammPool: currentAmmPool
     })
+    if (!res) return
     tickRef.current[side] = res.tick
     setPosition((p) => ({ ...p, [side]: toFixedNumber(val) }))
     blurCheckTickRef.current = true
@@ -189,6 +190,7 @@ export function CreatePoolCard() {
             reverse: !isFocus1,
             ammPool: currentAmmPool
           })
+          if (!res) return
           tickRef.current[side] = res.tick
           setPosition((p) => ({ ...p, [side]: toFixedNumber(res.price) }))
           useConcentrated.setState(getSideState({ side, price: res.price, tick: res.tick }))
