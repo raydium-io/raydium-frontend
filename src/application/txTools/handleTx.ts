@@ -293,7 +293,7 @@ async function handleMultiTxOptions({
       const successTxids = [] as typeof txids
       const pushSuccessTxid = (txid: string) => {
         successTxids.push(txid)
-        if (successTxids.length === txids.length) {
+        if (successTxids.length === transactions.length) {
           multiOptions.onTxAllSuccess?.({ txids })
           resolve({ allSuccess: true, txids })
         }

@@ -161,10 +161,24 @@ export default function CreatePoolPage() {
       confirmButtonText: 'Back to all Pools',
       cancelButtonText: 'Not Now',
       onConfirm() {
+        routeTo('/clmm/pools')
         closePreviewDialog()
         setTimeout(() => {
-          routeTo('/clmm/pools')
-        }, 200)
+          // clean inputs
+          useConcentrated.setState({
+            coin1: undefined,
+            coin2: undefined,
+            coin1Amount: undefined,
+            coin2Amount: undefined,
+            focusSide: 'coin1',
+            userCursorSide: 'coin1',
+            tempDataCache: undefined
+          })
+          useConcentrated.getState().refreshConcentrated()
+        }, 400)
+      },
+      onCancel() {
+        closePreviewDialog()
         setTimeout(() => {
           // clean inputs
           useConcentrated.setState({
@@ -207,9 +221,7 @@ export default function CreatePoolPage() {
           onClose={closePreviewDialog}
           onConfirm={() => {
             txCreateNewConcentratedPool().then(({ allSuccess }) => {
-              if (allSuccess) {
-                popCongratulations()
-              }
+              popCongratulations()
             })
           }}
         />

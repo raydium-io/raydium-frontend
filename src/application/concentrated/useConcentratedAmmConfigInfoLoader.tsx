@@ -20,34 +20,42 @@ export default function useConcentratedAmmConfigInfoLoader() {
     const response = await jFetch<{ data: Record<string, ApiAmmV3ConfigInfo> }>(
       'https://api.raydium.io/v2/ammV3/ammConfigs'
     )
-    if (response) {
+    const data = inDev // dev data
+      ? {
+          AjUvAGNuLJiXXGRQ1uiH4v6fBUJm1zwjBwyfK1qe27Ce: {
+            id: 'AjUvAGNuLJiXXGRQ1uiH4v6fBUJm1zwjBwyfK1qe27Ce',
+            index: 0,
+            protocolFeeRate: 12000,
+            tradeFeeRate: 100,
+            tickSpacing: 1
+          },
+          ABPi23j9qDjCeK5WwutWn6XG8sMRV7AiG1Z5bP8cViuz: {
+            id: 'ABPi23j9qDjCeK5WwutWn6XG8sMRV7AiG1Z5bP8cViuz',
+            index: 0,
+            protocolFeeRate: 12000,
+            tradeFeeRate: 2500,
+            tickSpacing: 60
+          },
+          '85JxuepKfJsmb29ZKThuod3yeBS4dXmsCQUbeo1utpeX': {
+            id: '85JxuepKfJsmb29ZKThuod3yeBS4dXmsCQUbeo1utpeX',
+            index: 0,
+            protocolFeeRate: 12000,
+            tradeFeeRate: 100,
+            tickSpacing: 10
+          }
+        }
+      : response?.data
+    if (data) {
       useConcentrated.setState({
-        availableAmmConfigFeeOptions: Object.values(response.data).map((i, idx) => {
-          const original = inDev
-            ? {
-                ...i,
-                id: getDevAvaliableIdx(idx),
-                index: 0,
-                protocolFeeRate: 12000,
-                tradeFeeRate: 100,
-                tickSpacing: 10
-              }
-            : i
+        availableAmmConfigFeeOptions: Object.values(data).map((i) => {
           return {
-            ...original,
-            original,
-            protocolFeeRate: toPercent(div(original.protocolFeeRate, 10 ** 4), { alreadyDecimaled: true }),
-            tradeFeeRate: toPercent(div(original.tradeFeeRate, 10 ** 4), { alreadyDecimaled: true })
+            ...i,
+            original: i,
+            protocolFeeRate: toPercent(div(i.protocolFeeRate, 10 ** 4), { alreadyDecimaled: true }),
+            tradeFeeRate: toPercent(div(i.tradeFeeRate, 10 ** 4), { alreadyDecimaled: true })
           }
         })
       })
     }
   }, [inDev])
 }
-
-const getDevAvaliableIdx = (index: number) =>
-  index % 3 === 0
-    ? '85JxuepKfJsmb29ZKThuod3yeBS4dXmsCQUbeo1utpeX'
-    : index % 3 === 1
-    ? 'ABPi23j9qDjCeK5WwutWn6XG8sMRV7AiG1Z5bP8cViuz'
-    : 'AjUvAGNuLJiXXGRQ1uiH4v6fBUJm1zwjBwyfK1qe27Ce'
