@@ -133,7 +133,6 @@ export default function CreatePoolPage() {
   const { popConfirm } = useNotification()
 
   // avoid input re-render if chain Date change
-  const [poolIdValid, setPoolIdValid] = useState(false)
 
   const coin1 = useConcentrated((s) => s.coin1)
   const coin1Amount = useConcentrated((s) => s.coin1Amount)
@@ -185,8 +184,7 @@ export default function CreatePoolPage() {
             coin1Amount: undefined,
             coin2Amount: undefined,
             focusSide: 'coin1',
-            userCursorSide: 'coin1',
-            tempDataCache: undefined
+            userCursorSide: 'coin1'
           })
           useConcentrated.getState().refreshConcentrated()
         }, 400)

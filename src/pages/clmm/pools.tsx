@@ -62,6 +62,7 @@ import useSort from '@/hooks/useSort'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
+import { isInBonsaiTest } from '@/functions/judgers/isSSR'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -341,7 +342,8 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
 
 function PoolCreateConcentratedPoolEntryBlock({ className }: { className?: string }) {
   const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
-  if (!isInLocalhost) return null
+  const isInBonsaiTest = useAppSettings((s) => s.isInBonsaiTest)
+  if (!isInLocalhost && !isInBonsaiTest) return null
   return (
     <Row
       className={twMerge(
