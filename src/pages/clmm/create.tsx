@@ -298,6 +298,7 @@ function ConcentratedCard() {
 
     useConcentrated.setState({ planCApr })
 
+    // eslint-disable-next-line no-console
     console.log(priceLowerTick, priceUpperTick)
   }, [priceLowerTick, priceUpperTick])
 
