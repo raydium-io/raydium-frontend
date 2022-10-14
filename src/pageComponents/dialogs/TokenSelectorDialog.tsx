@@ -1,15 +1,12 @@
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKeyish } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
 import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
 import {
-  isQuantumSOL,
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  QuantumSOLVersionSOL
+  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { SupportedTokenListSettingName } from '@/application/token/useToken'

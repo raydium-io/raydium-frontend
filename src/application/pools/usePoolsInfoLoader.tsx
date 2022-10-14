@@ -1,8 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
-import { Price } from '@raydium-io/raydium-sdk'
-
+import { Price } from 'test-r-sdk'
 import shallow from 'zustand/shallow'
 
 import { unifyItem } from '@/functions/arrayMethods'

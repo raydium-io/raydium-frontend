@@ -1,10 +1,10 @@
 import BN from 'bn.js'
+import { BigNumberish, TEN } from 'test-r-sdk'
 
 import { Numberish } from '@/types/constants'
-import { BigNumberish, TEN } from '@raydium-io/raydium-sdk'
 
-import toFraction from './toFraction'
 import { shakeFractionDecimal } from './shakeFractionDecimal'
+import toFraction from './toFraction'
 
 /**
  * only int part will become BN

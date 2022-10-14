@@ -3,16 +3,9 @@ import { PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
 import Decimal from 'decimal.js'
 import {
-  AmmV3PoolInfo,
-  AmmV3PoolPersonalPosition,
-  ApiAmmV3ConfigInfo,
-  ApiAmmV3PoolInfo,
-  CurrencyAmount,
-  Fraction,
-  Percent,
-  Price,
-  TokenAmount
-} from '@raydium-io/raydium-sdk'
+  AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3ConfigInfo, ApiAmmV3PoolInfo, CurrencyAmount, Fraction, Percent,
+  Price, TokenAmount
+} from 'test-r-sdk'
 
 import { HexAddress, Numberish } from '@/types/constants'
 

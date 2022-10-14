@@ -1,5 +1,8 @@
 import React, { useMemo, useState } from 'react'
-import { ZERO } from '@raydium-io/raydium-sdk'
+
+import { ZERO } from 'test-r-sdk'
+
+import useAppSettings from '@/application/common/useAppSettings'
 import txFarmDeposit from '@/application/farms/txFarmDeposit'
 import txFarmWithdraw from '@/application/farms/txFarmWithdraw'
 import useStaking from '@/application/staking/useStaking'
@@ -11,9 +14,8 @@ import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { toString } from '@/functions/numberish/toString'
-import useAppSettings from '@/application/common/useAppSettings'
 import { gt, gte } from '@/functions/numberish/compare'
+import { toString } from '@/functions/numberish/toString'
 
 export function StakingPageStakeLpDialog() {
   const connected = useWallet((s) => s.connected)

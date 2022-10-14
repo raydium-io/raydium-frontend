@@ -4,6 +4,13 @@
  * @todo not burn old yet
  */
 
+import { Connection, PublicKey } from '@solana/web3.js'
+
+import {
+  AmmV3, AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, PublicKeyish,
+  ReturnTypeFetchMultiplePoolTickArrays, ReturnTypeGetAllRouteComputeAmountOut, TradeV2
+} from 'test-r-sdk'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import { deUIToken, deUITokenAmount } from '@/application/token/quantumSOL'
@@ -17,18 +24,6 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isPubKeyish } from '@/functions/judgers/dateType'
 import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { Numberish } from '@/types/constants'
-import { Connection, PublicKey } from '@solana/web3.js'
-import {
-  AmmV3,
-  AmmV3PoolInfo,
-  AmmV3PoolPersonalPosition,
-  ApiAmmV3PoolInfo,
-  LiquidityPoolsJsonFile,
-  PublicKeyish,
-  ReturnTypeFetchMultiplePoolTickArrays,
-  ReturnTypeGetAllRouteComputeAmountOut,
-  TradeV2
-} from '@raydium-io/raydium-sdk'
 
 const apiCache = {} as {
   ammV3?: ApiAmmV3PoolInfo[]
@@ -60,7 +55,7 @@ export function clearApiCache() {
 }
 
 async function getAmmV3PoolKeys() {
-  const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
+  const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPoolsTest')
   if (response) {
     return response.data
   } else {

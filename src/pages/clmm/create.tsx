@@ -1,9 +1,8 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Fraction } from '@raydium-io/raydium-sdk'
-
 import Decimal from 'decimal.js'
 import { twMerge } from 'tailwind-merge'
+import { AmmV3, Fraction } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import {
@@ -15,7 +14,9 @@ import useConcentratedAmmSelector from '@/application/concentrated/useConcentrat
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import useConcentratedLiquidityUrlParser from '@/application/concentrated/useConcentratedLiquidityUrlParser'
+import useConnection from '@/application/connection/useConnection'
 import { routeBack, routeTo } from '@/application/routeTools'
+import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
@@ -140,6 +141,15 @@ function ConcentratedCard() {
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
 
+  const priceLowerTick = useConcentrated((s) => s.priceLowerTick)
+  const priceUpperTick = useConcentrated((s) => s.priceUpperTick)
+  const planAApr = useConcentrated((s) => s.planAApr)
+  const planBApr = useConcentrated((s) => s.planBApr)
+  const planCApr = useConcentrated((s) => s.planCApr)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const tokenPrice = useToken((s) => s.tokenPrices)
+  const tokens = useToken((s) => s.tokens)
+
   const coin1 = useConcentrated((s) => s.coin1)
   const coin1Amount = useConcentrated((s) => s.coin1Amount)
   const coin2 = useConcentrated((s) => s.coin2)
@@ -245,6 +255,51 @@ function ConcentratedCard() {
     tickRef.current.lower = boundaryData.priceLowerTick
     tickRef.current.upper = boundaryData.priceUpperTick
   }, [boundaryData, poolFocusKey, prevPoolId])
+
+  useEffect(() => {
+    if (
+      !currentAmmPool ||
+      priceLowerTick === undefined ||
+      priceUpperTick === undefined ||
+      chainTimeOffset === undefined
+    )
+      return
+    const _planAApr = {
+      feeApr: Number(currentAmmPool.feeApr24h.toFixed(4)),
+      rewardsApr: currentAmmPool.rewardApr24h.map((i) => Number(i.toFixed(4))),
+      apr: Number(currentAmmPool.totalApr24h.toFixed(4))
+    }
+    useConcentrated.setState({ planAApr: _planAApr })
+
+    const rewardMintDecimals = {}
+    for (const [mint, info] of Object.entries(tokens)) {
+      rewardMintDecimals[mint] = info.decimals
+    }
+    const planBApr = AmmV3.estimateAprsForPriceRange({
+      poolInfo: currentAmmPool.state,
+      aprType: 'day',
+      mintPrice: tokenPrice,
+      positionTickLowerIndex: priceLowerTick,
+      positionTickUpperIndex: priceUpperTick,
+      chainTime: (Date.now() + chainTimeOffset) / 1000,
+      rewardMintDecimals
+    })
+    const planCApr = AmmV3.estimateAprsForPriceRange1({
+      poolInfo: currentAmmPool.state,
+      aprType: 'day',
+      mintPrice: tokenPrice,
+      positionTickLowerIndex: priceLowerTick,
+      positionTickUpperIndex: priceUpperTick,
+      chainTime: (Date.now() + chainTimeOffset) / 1000,
+      rewardMintDecimals
+    })
+
+    useConcentrated.setState({ planBApr })
+
+    useConcentrated.setState({ planCApr })
+
+    console.log(priceLowerTick, priceUpperTick)
+  }, [priceLowerTick, priceUpperTick])
 
   const [prices, setPrices] = useState<(string | undefined)[]>([])
   const updatePrice1 = useCallback((tokenP) => setPrices((p) => [tokenP?.toExact(), p[1]]), [])
@@ -529,6 +584,10 @@ function ConcentratedCard() {
             showZoom
             height={200}
           />
+
+          <div>plan A {planAApr ? JSON.stringify(planAApr) : ''}</div>
+          <div>plan B {planAApr ? JSON.stringify(planBApr) : ''}</div>
+          <div>plan C {planAApr ? JSON.stringify(planCApr) : ''}</div>
         </div>
       </div>
       {/** coin selector panel */}

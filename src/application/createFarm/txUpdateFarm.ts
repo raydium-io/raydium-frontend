@@ -1,9 +1,10 @@
-import { Farm, FarmCreateInstructionParamsV6, FarmRewardInfo } from '@raydium-io/raydium-sdk'
+import { Connection } from '@solana/web3.js'
 
-import assert from '@/functions/assert'
+import { Farm, FarmCreateInstructionParamsV6, FarmRewardInfo } from 'test-r-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import txHandler, { AddSingleTxOptions } from '@/application/txTools/handleTx'
+import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
 import { setDateTimeSecondToZero } from '@/functions/date/dateFormat'
 import { parseDurationAbsolute } from '@/functions/date/parseDuration'
@@ -12,16 +13,17 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { padZero } from '@/functions/numberish/handleZero'
 import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
-import { Connection } from '@solana/web3.js'
+
 import { HydratedFarmInfo } from '../farms/type'
 import useFarms from '../farms/useFarms'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { SOLMint } from '../token/wellknownToken.config'
+import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
+
 import { hasRewardBeenEdited } from './parseRewardInfo'
 import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
-import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import { validateUiRewardInfo } from './validateRewardInfo'
 
 export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOptions) {

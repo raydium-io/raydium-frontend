@@ -1,9 +1,11 @@
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
+
+import { PublicKeyish } from 'test-r-sdk'
 
 import { SplToken, Token } from '@/application/token/type'
 
 import toPubString from '../format/toMintString'
+
 import { isObject, isUndefined } from './dateType'
 
 export function areEqual(v1: any, v2: any) {
@@ -18,7 +20,7 @@ export function areEqual(v1: any, v2: any) {
 export function areShallowEqual(v1: any, v2: any) {
   return isObject(v1) && isObject(v2)
     ? Object.keys(v1).length === Object.keys(v2).length &&
-        Object.entries(v1).every(([key, value]) => areEqual(value, v2[key]))
+    Object.entries(v1).every(([key, value]) => areEqual(value, v2[key]))
     : areEqual(v1, v2)
 }
 
@@ -30,7 +32,7 @@ export function areShallowEqual(v1: any, v2: any) {
 export function areShallowShallowEqual(v1: any, v2: any) {
   return isObject(v1) && isObject(v2)
     ? Object.keys(v1).length === Object.keys(v2).length &&
-        Object.entries(v1).every(([key, value]) => areShallowEqual(value, v2[key]))
+    Object.entries(v1).every(([key, value]) => areShallowEqual(value, v2[key]))
     : areShallowEqual(v1, v2)
 }
 

@@ -1,16 +1,18 @@
 import React, * as react from 'react'
-import { SplToken } from '@/application/token/type'
-import { toString } from '@/functions/numberish/toString'
-import { Numberish } from '@/types/constants'
+
 import { twMerge } from 'tailwind-merge'
-import CoinAvatar from '@/components/CoinAvatar'
+import { Fraction } from 'test-r-sdk'
+
+import { SplToken } from '@/application/token/type'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
-import { Fraction } from '@raydium-io/raydium-sdk'
+import { toString } from '@/functions/numberish/toString'
+import { Numberish } from '@/types/constants'
 
 interface Props {
   open: boolean

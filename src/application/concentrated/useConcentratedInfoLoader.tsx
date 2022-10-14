@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 
-import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from '@raydium-io/raydium-sdk'
+import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
 
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
@@ -36,7 +36,7 @@ export default function useConcentratedInfoLoader() {
     async ([, prevRefreshCount]) => {
       if (!pathname.includes('clmm')) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
-      const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
+      const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPoolsTest')
       if (response) useConcentrated.setState({ apiAmmPools: response.data })
     },
     [pathname, refreshCount]

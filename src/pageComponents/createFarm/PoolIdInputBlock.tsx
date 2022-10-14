@@ -1,3 +1,7 @@
+import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+
+import { LiquidityPoolJsonInfo } from 'test-r-sdk'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useLiquidity from '@/application/liquidity/useLiquidity'
@@ -16,8 +20,6 @@ import listToMap from '@/functions/format/listToMap'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isPubKey, isValidPublicKey } from '@/functions/judgers/dateType'
 import { useClickOutside } from '@/hooks/useClickOutside'
-import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
-import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
 export interface PoolIdInputBlockHandle {
   validate?: () => void
