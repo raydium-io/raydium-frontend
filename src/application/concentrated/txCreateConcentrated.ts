@@ -1,14 +1,12 @@
 import { loadTransaction } from '@/application/txTools/createTransaction'
-import { fractionToDecimal } from '@/application/txTools/decimal2Fraction'
 import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
-import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { AmmV3 } from '@raydium-io/raydium-sdk'
-import useAppSettings from '../common/useAppSettings'
 import { HydratedConcentratedInfo } from './type'
 import useConcentrated from './useConcentrated'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 
 export default function txCreateConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool
@@ -18,7 +16,6 @@ export default function txCreateConcentrated({
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
     const { priceLower, priceUpper, coin1, coin2, coin1Amount, coin2Amount, liquidity, priceLowerTick, priceUpperTick } = useConcentrated.getState()
     const { tokenAccountRawInfos } = useWallet.getState()
-    const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(priceUpperTick, 'not set priceUpperTick')
     assert(priceLowerTick, 'not set priceLowerTick')
@@ -38,7 +35,7 @@ export default function txCreateConcentrated({
         feePayer: owner,
         wallet: owner,
         tokenAccounts: tokenAccountRawInfos,
-        useSOLBalance: true
+        useSOLBalance: isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
       },
       tickLower: priceLowerTick,
       tickUpper: priceUpperTick,
