@@ -2,7 +2,7 @@ import assert from '@/functions/assert'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { AmmV3 } from '@raydium-io/raydium-sdk'
-import { Keypair } from '@solana/web3.js'
+import { Keypair, PublicKey } from '@solana/web3.js'
 import { useEffect } from 'react'
 import useConnection from '../connection/useConnection'
 import { getAmmV3ProgramId } from '../token/wellknownProgram.config'
@@ -18,7 +18,7 @@ export function useAutoCreateAmmv3Pool() {
   const owner = useWallet((s) => s.owner)
 
   useEffect(() => {
-    if (owner && connection && coin1 && coin2 && userSettedCurrentPrice && userSelectedAmmConfigFeeOption) {
+    if (connection && coin1 && coin2 && userSettedCurrentPrice && userSelectedAmmConfigFeeOption) {
       createNewConcentratedPool()
     }
   }, [
@@ -37,7 +37,6 @@ async function createNewConcentratedPool() {
   const { connection } = useConnection.getState()
   const { owner } = useWallet.getState()
   assert(connection, 'connection is not ready')
-  assert(owner, 'wallet is not connected')
   assert(coin1, 'not set coin1')
   assert(coin2, 'not set coin2')
   assert(userSelectedAmmConfigFeeOption, 'not set userSelectedAmmConfigFeeOption')
@@ -49,7 +48,7 @@ async function createNewConcentratedPool() {
     mint2: { mint: coin2.mint, decimals: coin2.decimals },
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original),
     initialPrice: fractionToDecimal(toFraction(userSettedCurrentPrice)),
-    owner
+    owner: owner ?? PublicKey.default
   })
   useConcentrated.setState({
     tempDataCache: {
