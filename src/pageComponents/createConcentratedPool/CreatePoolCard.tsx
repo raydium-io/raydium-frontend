@@ -33,6 +33,7 @@ import { Range } from './type'
 import { useAutoCreateAmmv3Pool } from '@/application/concentrated/useAutoCreateAmmv3Pool'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import toFraction from '@/functions/numberish/toFraction'
+import { mul } from '@/functions/numberish/operations'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -49,6 +50,8 @@ export function CreatePoolCard() {
   const focusSide = useConcentrated((s) => s.focusSide)
   const priceLower = useConcentrated((s) => s.priceLower)
   const priceUpper = useConcentrated((s) => s.priceUpper)
+  const userSettedCurrentPrice = useConcentrated((s) => s.userSettedCurrentPrice)
+  const prevUserSetCurrentPrice = usePrevious<Numberish | undefined>(userSettedCurrentPrice)
 
   const tickRef = useRef<{ [Range.Low]?: number; [Range.Upper]?: number }>({
     [Range.Low]: undefined,
@@ -88,7 +91,11 @@ export function CreatePoolCard() {
     : undefined
 
   const inputDisable =
-    currentAmmPool && currentPrice && priceLower !== undefined && priceUpper !== undefined
+    currentAmmPool &&
+    currentPrice &&
+    userSettedCurrentPrice !== undefined &&
+    priceLower !== undefined &&
+    priceUpper !== undefined
       ? [
           toBN(priceUpper || 0, decimals).lt(toBN(currentPrice || 0, decimals)),
           toBN(priceLower || 0, decimals).gt(toBN(currentPrice || 0, decimals))
@@ -161,6 +168,12 @@ export function CreatePoolCard() {
     setPosition((p) => ({ ...p, [side]: toFixedNumber(val) }))
     blurCheckTickRef.current = true
   })
+
+  useEffect(() => {
+    if (!prevUserSetCurrentPrice) return
+    handlePriceChange({ side: Range.Low, val: mul(userSettedCurrentPrice, 0.5) })
+    handlePriceChange({ side: Range.Upper, val: mul(userSettedCurrentPrice, 1.5) })
+  }, [prevUserSetCurrentPrice, userSettedCurrentPrice, handlePriceChange, poolFocusKey])
 
   const handleAdjustMin = useEvent((): void => {
     if (!currentAmmPool || position[Range.Low] === undefined || position[Range.Upper] === undefined) return
