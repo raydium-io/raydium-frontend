@@ -589,6 +589,8 @@ function ConcentratedCard() {
           <div>plan A {planAApr ? JSON.stringify(planAApr) : ''}</div>
           <div>plan B {planAApr ? JSON.stringify(planBApr) : ''}</div>
           <div>plan C {planAApr ? JSON.stringify(planCApr) : ''}</div>
+          <div>24 h min: {currentAmmPool?.state.day.priceMin}</div>
+          <div>24 h max: {currentAmmPool?.state.day.priceMax}</div>
         </div>
       </div>
       {/** coin selector panel */}
