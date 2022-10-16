@@ -115,18 +115,6 @@ export function CreatePoolCard() {
 
   const toFixedNumber = useCallback((val: Numberish): number => Number(toFraction(val).toFixed(decimals)), [decimals])
 
-  const boundaryData = useMemo(() => {
-    const res = getPriceBoundary({
-      coin1,
-      coin2,
-      ammPool: currentAmmPool,
-      reverse: !isPairPoolDirectionEq
-    })
-    tickRef.current[Range.Low] = res?.priceLowerTick
-    tickRef.current[Range.Upper] = res?.priceUpperTick
-    return res
-  }, [coin1, coin2, currentAmmPool, isPairPoolDirectionEq])
-
   useEffect(
     () => () =>
       useConcentrated.setState({
@@ -136,15 +124,27 @@ export function CreatePoolCard() {
       }),
     []
   )
+
   useEffect(() => useConcentrated.setState({ totalDeposit }), [totalDeposit])
-  useEffect(() => {
-    if (poolFocusKey === prevFocusKey || !boundaryData || !!userSettedCurrentPrice) return
-    useConcentrated.setState(boundaryData)
-    setPosition({
-      [Range.Low]: Number(boundaryData.priceLower.toFixed(decimals)),
-      [Range.Upper]: Number(boundaryData.priceUpper.toFixed(decimals))
-    })
-  }, [boundaryData, poolFocusKey, prevFocusKey, decimals, userSettedCurrentPrice])
+  // const boundaryData = useMemo(() => {
+  //   const res = getPriceBoundary({
+  //     coin1,
+  //     coin2,
+  //     ammPool: currentAmmPool,
+  //     reverse: !isPairPoolDirectionEq
+  //   })
+  //   return res
+  // }, [coin1, coin2, currentAmmPool, isPairPoolDirectionEq])
+  // useEffect(() => {
+  //   if (poolFocusKey === prevFocusKey || !boundaryData || !!userSettedCurrentPrice) return
+  //   tickRef.current[Range.Low] = boundaryData.priceLowerTick
+  //   tickRef.current[Range.Upper] = boundaryData.priceUpperTick
+  //   useConcentrated.setState(boundaryData)
+  //   setPosition({
+  //     [Range.Low]: Number(boundaryData.priceLower.toFixed(decimals)),
+  //     [Range.Upper]: Number(boundaryData.priceUpper.toFixed(decimals))
+  //   })
+  // }, [boundaryData, poolFocusKey, prevFocusKey, decimals, userSettedCurrentPrice])
 
   const blurCheckTickRef = useRef<boolean>(false)
   const isEmptyPoolData = !coin1 || !coin2 || !currentAmmPool
@@ -166,7 +166,13 @@ export function CreatePoolCard() {
   })
 
   useEffect(() => {
-    if (!prevUserSetCurrentPrice) return
+    if (!userSettedCurrentPrice) {
+      setPosition({
+        [Range.Low]: undefined,
+        [Range.Upper]: undefined
+      })
+      return
+    }
     handleBlur({
       side: Range.Low,
       val: mul(userSettedCurrentPrice, 0.5)?.toFixed(decimals),
@@ -179,7 +185,7 @@ export function CreatePoolCard() {
       skipCheck: true,
       noTimeOut: true
     })
-  }, [prevUserSetCurrentPrice, userSettedCurrentPrice, handlePriceChange, poolFocusKey, decimals])
+  }, [userSettedCurrentPrice, handlePriceChange, poolFocusKey, decimals])
 
   const handleAdjustMin = useEvent((): void => {
     if (!currentAmmPool || position[Range.Low] === undefined || position[Range.Upper] === undefined) return
