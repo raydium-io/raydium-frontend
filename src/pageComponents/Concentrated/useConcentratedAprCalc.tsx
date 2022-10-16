@@ -1,0 +1,27 @@
+import { UserPositionAccount } from '@/application/concentrated/type'
+import useConcentrated from '@/application/concentrated/useConcentrated'
+import useToken from '@/application/token/useToken'
+import { objectMap } from '@/functions/objectMethods'
+import useConnection from '@/application/connection/useConnection'
+import { useMemo } from 'react'
+
+export function useConcentratedAprCalc(positionAccount: UserPositionAccount | undefined) {
+  const timeBasis = useConcentrated((s) => s.timeBasis)
+  const tokenPrices = useToken((s) => s.tokenPrices)
+  const token = useToken((s) => s.tokens)
+  const tokenDecimals = objectMap(token, (i) => i.decimals)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const aprCalcMethod = useConcentrated((s) => s.aprCalcMode)
+  const apr = useMemo(
+    () =>
+      positionAccount?.getPositionApr({
+        tokenPrices,
+        tokenDecimals,
+        timeBasis: timeBasis.toLowerCase() as '24h' | '7d' | '30d',
+        planType: aprCalcMethod,
+        chainTimeOffsetMs: chainTimeOffset
+      }),
+    [chainTimeOffset, timeBasis, aprCalcMethod]
+  )
+  return apr
+}

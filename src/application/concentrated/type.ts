@@ -156,11 +156,12 @@ export interface UserPositionAccount {
     planType: 'A' | 'B' | 'C'
     chainTimeOffsetMs?: number | undefined
   }): {
-    feeApr: Percent
-    rewardsApr: Percent[]
+    fee: {
+      apr: Percent
+      percentInTotal: Percent
+    }
+    rewards: { apr: Percent; percentInTotal: Percent; token: SplToken | undefined }[]
     apr: Percent
-    feePercentInTotal: Percent
-    rewardsPercentInTotal: Percent[]
   }
   // liquidity: BN__default; // currently useless
   // feeGrowthInsideLastX64A: BN__default; // currently useless

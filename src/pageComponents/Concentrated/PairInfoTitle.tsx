@@ -21,13 +21,13 @@ export function PairInfoTitle(props: Props) {
     const tabs: TabItem[] = []
     coin1 &&
       tabs.push({
-        name: `${coin1.symbol || 'Unknown'} price`,
+        label: `${coin1.symbol || 'Unknown'} price`,
         value: coin1.id,
         className: tabClasses
       })
     coin2 &&
       tabs.push({
-        name: `${coin2.symbol || 'Unknown'} price`,
+        label: `${coin2.symbol || 'Unknown'} price`,
         value: coin2.id,
         className: tabClasses
       })
@@ -57,7 +57,7 @@ export function PairInfoTitle(props: Props) {
           <RectTabs
             classNames="ml-4 mobile:w-full mobile:ml-0"
             tabs={tabs}
-            selected={isFocus1 ? coin1.id : coin2?.id}
+            selectedValue={isFocus1 ? coin1.id : coin2?.id}
             onChange={handleChangeFocus}
           />
         )}

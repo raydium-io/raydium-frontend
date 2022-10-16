@@ -6,7 +6,10 @@ import { AmmV3, Fraction } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import {
-  calLowerUpper, getPriceBoundary, getPriceTick, getTickPrice
+  calLowerUpper,
+  getPriceBoundary,
+  getPriceTick,
+  getTickPrice
 } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -52,6 +55,12 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
+import { useConcentratedAprCalc } from '@/pageComponents/Concentrated/useConcentratedAprCalc'
+import Col from '@/components/Col'
+import Grid from '@/components/Grid'
+import { ConcentratedModifyTooltipIcon } from '@/pageComponents/Concentrated/ConcentratedModifyTooltipIcon'
+import { ConcentratedTimeBasisSwitcher } from '@/pageComponents/Concentrated/ConcentratedTimeBasisSwitcher'
+import { PositionAprChart } from '@/pageComponents/Concentrated/PositionAprChart'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -586,11 +595,7 @@ function ConcentratedCard() {
             height={200}
           />
 
-          <div>plan A {planAApr ? JSON.stringify(planAApr) : ''}</div>
-          <div>plan B {planAApr ? JSON.stringify(planBApr) : ''}</div>
-          <div>plan C {planAApr ? JSON.stringify(planCApr) : ''}</div>
-          <div>24 h min: {currentAmmPool?.state.day.priceMin}</div>
-          <div>24 h max: {currentAmmPool?.state.day.priceMax}</div>
+          <ConcentratedCardAPRInfo />
         </div>
       </div>
       {/** coin selector panel */}
@@ -638,5 +643,23 @@ function ConcentratedCard() {
         onClose={onConfirmClose}
       />
     </CyberpunkStyleCard>
+  )
+}
+
+function ConcentratedCardAPRInfo({ className }: { className?: string }) {
+  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const aprCalc = useConcentratedAprCalc(targetUserPositionAccount)
+  return (
+    <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
+      <Row className="items-center gap-2">
+        <div className="mobile:text-sm font-medium text-[#abc4ff]">Estimated APR</div>
+        <ConcentratedModifyTooltipIcon />
+        <div className="font-medium text-lg mobile:text-sm text-white">{toPercentString(aprCalc?.apr)}</div>
+        <ConcentratedTimeBasisSwitcher className="ml-auto" />
+      </Row>
+      <Grid className="border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl">
+        {targetUserPositionAccount && <PositionAprChart colCount={2} positionAccount={targetUserPositionAccount} />}
+      </Grid>
+    </Col>
   )
 }

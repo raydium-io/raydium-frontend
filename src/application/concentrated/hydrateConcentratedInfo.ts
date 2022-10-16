@@ -216,29 +216,44 @@ function hydrateUserPositionAccounnt(
           if (timeBasis === '24h') {
             const total = [ammPoolInfo.feeApr24h, ...ammPoolInfo.rewardApr24h].reduce((a, b) => add(a, b), toPercent(0))
             return {
-              feeApr: ammPoolInfo.feeApr24h,
-              rewardsApr: ammPoolInfo.rewardApr24h,
-              apr: ammPoolInfo.totalApr24h,
-              feePercentInTotal: toPercent(div(ammPoolInfo.feeApr24h, total)),
-              rewardsPercentInTotal: ammPoolInfo.rewardApr24h.map((i) => toPercent(div(i, total)))
+              fee: {
+                apr: ammPoolInfo.feeApr24h,
+                percentInTotal: toPercent(div(ammPoolInfo.feeApr24h, total))
+              },
+              rewards: ammPoolInfo.rewardApr30d.map((i, idx) => ({
+                percentInTotal: toPercent(div(i, total)),
+                apr: i,
+                token: idx === 0 ? tokenA : tokenB
+              })),
+              apr: ammPoolInfo.totalApr24h
             }
           } else if (timeBasis === '7d') {
             const total = [ammPoolInfo.feeApr7d, ...ammPoolInfo.rewardApr7d].reduce((a, b) => add(a, b), toPercent(0))
             return {
-              feeApr: ammPoolInfo.feeApr7d,
-              rewardsApr: ammPoolInfo.rewardApr7d,
-              apr: ammPoolInfo.totalApr7d,
-              feePercentInTotal: toPercent(div(ammPoolInfo.feeApr7d, total)),
-              rewardsPercentInTotal: ammPoolInfo.rewardApr7d.map((i) => toPercent(div(i, total)))
+              fee: {
+                apr: ammPoolInfo.feeApr7d,
+                percentInTotal: toPercent(div(ammPoolInfo.feeApr7d, total))
+              },
+              rewards: ammPoolInfo.rewardApr30d.map((i, idx) => ({
+                percentInTotal: toPercent(div(i, total)),
+                apr: i,
+                token: idx === 0 ? tokenA : tokenB
+              })),
+              apr: ammPoolInfo.totalApr7d
             }
           } else {
             const total = [ammPoolInfo.feeApr30d, ...ammPoolInfo.rewardApr30d].reduce((a, b) => add(a, b), toPercent(0))
             return {
-              feeApr: ammPoolInfo.feeApr30d,
-              rewardsApr: ammPoolInfo.rewardApr30d,
-              apr: ammPoolInfo.totalApr30d,
-              feePercentInTotal: toPercent(div(ammPoolInfo.feeApr30d, total)),
-              rewardsPercentInTotal: ammPoolInfo.rewardApr30d.map((i) => toPercent(div(i, total)))
+              fee: {
+                apr: ammPoolInfo.feeApr30d,
+                percentInTotal: toPercent(div(ammPoolInfo.feeApr30d, total))
+              },
+              rewards: ammPoolInfo.rewardApr30d.map((i, idx) => ({
+                percentInTotal: toPercent(div(i, total)),
+                apr: i,
+                token: idx === 0 ? tokenA : tokenB
+              })),
+              apr: ammPoolInfo.totalApr30d
             }
           }
         } else if (planType === 'B') {
@@ -253,11 +268,16 @@ function hydrateUserPositionAccounnt(
           })
           const total = [planBApr.feeApr, ...planBApr.rewardsApr].reduce((a, b) => a + b, 0)
           return {
-            feeApr: toPercent(planBApr.feeApr),
-            rewardsApr: planBApr.rewardsApr.map((i) => toPercent(i)),
-            apr: toPercent(planBApr.apr),
-            feePercentInTotal: toPercent(div(planBApr.feeApr, total)),
-            rewardsPercentInTotal: planBApr.rewardsApr.map((i) => toPercent(div(i, total)))
+            fee: {
+              apr: toPercent(planBApr.feeApr),
+              percentInTotal: toPercent(div(planBApr.feeApr, total))
+            },
+            rewards: planBApr.rewardsApr.map((i, idx) => ({
+              apr: toPercent(i),
+              percentInTotal: div(i, total),
+              token: idx === 0 ? tokenA : tokenB
+            })),
+            apr: toPercent(planBApr.apr)
           }
         } else {
           // (planType === 'C')
@@ -272,11 +292,16 @@ function hydrateUserPositionAccounnt(
           })
           const total = [planCApr.feeApr, ...planCApr.rewardsApr].reduce((a, b) => a + b, 0)
           return {
-            feeApr: toPercent(planCApr.feeApr),
-            rewardsApr: planCApr.rewardsApr.map((i) => toPercent(i)),
-            apr: toPercent(planCApr.apr),
-            feePercentInTotal: toPercent(div(planCApr.feeApr, total)),
-            rewardsPercentInTotal: planCApr.rewardsApr.map((i) => toPercent(div(i, total)))
+            fee: {
+              apr: toPercent(planCApr.feeApr),
+              percentInTotal: toPercent(div(planCApr.feeApr, total))
+            },
+            rewards: planCApr.rewardsApr.map((i, idx) => ({
+              apr: toPercent(i),
+              percentInTotal: div(i, total),
+              token: idx === 0 ? tokenA : tokenB
+            })),
+            apr: toPercent(planCApr.apr)
           }
         }
       }

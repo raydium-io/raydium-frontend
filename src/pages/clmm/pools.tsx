@@ -14,6 +14,7 @@ import useConcentrated, {
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
+import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
@@ -43,7 +44,6 @@ import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
-import { toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter } from '@/functions/date/judges'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
@@ -52,9 +52,10 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import { objectMap } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useOnceEffect from '@/hooks/useOnceEffect'
@@ -63,9 +64,8 @@ import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
-import { objectMap } from '@/functions/objectMethods'
-import useConnection from '@/application/connection/useConnection'
-import AprCalcDialog from '@/pageComponents/Concentrated/AprCalcDialog'
+import { ConcentratedModifyTooltipIcon } from '../../pageComponents/Concentrated/ConcentratedModifyTooltipIcon'
+import { PositionAprChart } from '../../pageComponents/Concentrated/PositionAprChart'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -578,34 +578,7 @@ function PoolCard() {
           }}
         >
           APR {timeBasis}
-          <Tooltip>
-            <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
-            <Tooltip.Panel className="max-w-[min(100vw,300px)]">
-              <Grid className="grid-cols-2-auto">
-                <div className="text-sm text-white font-medium">
-                  {aprCalcMode === 'A' ? 'A Method' : aprCalcMode === 'B' ? 'B Method' : 'C Method'}
-                </div>
-                <Button
-                  className="justify-end text-link-color"
-                  type="text"
-                  onClick={() => useConcentrated.setState((s) => ({ aprCalcMode: s.aprCalcMode === 'B' ? 'C' : 'B' }))}
-                >
-                  Switch
-                </Button>
-                <div className="col-span-full text-xs text-[#abc4ff80]">
-                  This APR is calculated by Multiplier Method. You can swith to Leverage Method if you think that is
-                  more reasonable.
-                  <Button
-                    type="text"
-                    className="p-0 ml-2 text-link-color"
-                    onClick={() => useConcentrated.setState({ isAprCalcPanelShown: true })}
-                  >
-                    Learn more
-                  </Button>
-                </div>
-              </Grid>
-            </Tooltip.Panel>
-          </Tooltip>
+          <ConcentratedModifyTooltipIcon></ConcentratedModifyTooltipIcon>
           <Icon
             className="ml-1"
             size="sm"
@@ -667,12 +640,10 @@ function PoolCard() {
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && TableHeaderBlock}
-      <AprCalcDialog />
       <PoolCardDatabaseBody sortedData={sortedData} />
     </CyberpunkStyleCard>
   )
 }
-
 function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentratedInfo[] }) {
   const loading = useConcentrated((s) => s.loading)
   const expandedItemIds = useConcentrated((s) => s.expandedItemIds)
@@ -1543,72 +1514,39 @@ function PositionAprIllustrator({
   poolInfo: HydratedConcentratedInfo
   positionInfo: UserPositionAccount
 }) {
+  const timeBasis = useConcentrated((s) => s.timeBasis)
   const tokenPrices = useToken((s) => s.tokenPrices)
   const token = useToken((s) => s.tokens)
   const tokenDecimals = objectMap(token, (i) => i.decimals)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const aprCalcMethod = useConcentrated((s) => s.aprCalcMode)
   const positionApr = useMemo(
     () =>
       positionInfo?.getPositionApr({
         tokenPrices,
         tokenDecimals,
-        timeBasis: '24h', // TEMP DEV
-        planType: 'B',
+        timeBasis: timeBasis.toLowerCase() as '24h' | '7d' | '30d',
+        planType: aprCalcMethod,
         chainTimeOffsetMs: chainTimeOffset
       }),
-    [positionInfo, chainTimeOffset]
+    [chainTimeOffset, timeBasis, aprCalcMethod]
   )
   return (
-    <Tooltip panelClassName="p-0 rounded-xl">
-      <Row className="items-center gap-2 mobile:gap-1 mt-1">
-        <div className="text-[#abc4ff80] text-sm font-medium mobile:text-xs">APR</div>
-        <div className="text-white text-sm font-medium mobile:text-xs">{toPercentString(positionApr?.apr)}</div>
-        {positionApr && <AprLine className="w-28" aprValues={[positionApr.feeApr, ...positionApr.rewardsApr]} />}
-      </Row>
-      <Tooltip.Panel>
-        <div className=" p-5">
+    <Row className="items-center gap-2">
+      <div className="text-[#abc4ff80] text-sm font-medium mobile:text-xs">APR</div>
+      <ConcentratedModifyTooltipIcon iconClassName="opacity-50" />
+      <div className="text-white text-sm font-medium mobile:text-xs">{toPercentString(positionApr?.apr)}</div>
+      <Tooltip panelClassName="p-0 rounded-xl">
+        <Row className="items-center gap-2 mobile:gap-1 mt-1">
           {positionApr && (
-            <Row className="gap-4">
-              {/* circle */}
-              <div
-                className="w-16 h-16 rounded-full"
-                style={{
-                  background: `conic-gradient(#abc4ff ${toPercentString(
-                    positionApr.feePercentInTotal
-                  )}, #37bbe0 ${toPercentString(add(positionApr.feePercentInTotal, 0.005))}, #37bbe0 ${toPercentString(
-                    add(positionApr.feePercentInTotal, positionApr.rewardsPercentInTotal[0])
-                  )}, #2b6aff ${toPercentString(
-                    add(add(positionApr.feePercentInTotal, positionApr.rewardsPercentInTotal[0]), 0.005)
-                  )})`,
-                  WebkitMaskImage: 'radial-gradient(transparent 50%, black 51%)',
-                  maskImage: 'radial-gradient(transparent 50%, black 51%)'
-                }}
-              ></div>
-              <Col className="justify-between">
-                <Row className="items-center gap-2">
-                  {/* dot */}
-                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: '#abc4ff' }}></div>
-                  <div className="w-18 text-[#abc4ff] text-sm mobile:text-xs">Trade Fee</div>
-                  <div className="text-sm">{toPercentString(positionApr.feePercentInTotal)}</div>
-                </Row>
-                {positionApr.rewardsPercentInTotal.map((rewardPercentInTotal, idx) => {
-                  const token = poolInfo.rewardInfos[idx].rewardToken
-                  const color = ['#37bbe0', '#2b6aff']
-                  return (
-                    <Row className="items-center gap-2" key={toPubString(token?.mint)}>
-                      {/* dot */}
-                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: color[idx] }}></div>
-                      <div className="w-18 text-[#abc4ff] text-sm mobile:text-xs">{token?.symbol}</div>
-                      <div className="text-sm">{toPercentString(rewardPercentInTotal)}</div>
-                    </Row>
-                  )
-                })}
-              </Col>
-            </Row>
+            <AprLine className="w-28" aprValues={[positionApr.fee.apr, ...positionApr.rewards.map((i) => i.apr)]} />
           )}
-        </div>
-      </Tooltip.Panel>
-    </Tooltip>
+        </Row>
+        <Tooltip.Panel>
+          <div className="p-5">{positionApr && <PositionAprChart colCount={2} positionAccount={positionInfo} />}</div>
+        </Tooltip.Panel>
+      </Tooltip>
+    </Row>
   )
 }
 
