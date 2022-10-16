@@ -76,7 +76,7 @@ const useAppSettings = create<AppSettingsStore>(() => ({
   isTablet: false,
   isPc: true,
 
-  inDev: true,
+  inDev: false,
   isApprovePanelShown: false,
 
   inCleanUrlMode: false,
