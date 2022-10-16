@@ -3,8 +3,15 @@ import { PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
 import Decimal from 'decimal.js'
 import {
-  AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3ConfigInfo, ApiAmmV3PoolInfo, CurrencyAmount, Fraction, Percent,
-  Price, TokenAmount
+  AmmV3PoolInfo,
+  AmmV3PoolPersonalPosition,
+  ApiAmmV3ConfigInfo,
+  ApiAmmV3PoolInfo,
+  CurrencyAmount,
+  Fraction,
+  Percent,
+  Price,
+  TokenAmount
 } from 'test-r-sdk'
 
 import { HexAddress, Numberish } from '@/types/constants'
@@ -131,10 +138,29 @@ export interface UserPositionAccount {
   positionPercentB: Percent
   tokenFeeAmountA?: TokenAmount
   tokenFeeAmountB?: TokenAmount
-  getLiquidityVolume: (tokenPrices: Record<string, Price>) => {
+  getLiquidityVolume(tokenPrices: Record<string, Price>): {
     wholeLiquidity: Fraction | undefined
     baseLiquidity: Fraction | undefined
     quoteLiquidity: Fraction | undefined
+  }
+  getPositionApr({
+    tokenPrices,
+    tokenDecimals,
+    timeBasis,
+    planType,
+    chainTimeOffsetMs
+  }: {
+    tokenPrices: Record<string, Price>
+    tokenDecimals: Record<string, number>
+    timeBasis: '24h' | '7d' | '30d'
+    planType: 'A' | 'B' | 'C'
+    chainTimeOffsetMs?: number | undefined
+  }): {
+    feeApr: Percent
+    rewardsApr: Percent[]
+    apr: Percent
+    feePercentInTotal: Percent
+    rewardsPercentInTotal: Percent[]
   }
   // liquidity: BN__default; // currently useless
   // feeGrowthInsideLastX64A: BN__default; // currently useless

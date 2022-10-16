@@ -8,7 +8,9 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -51,7 +53,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
-import { sub } from '@/functions/numberish/operations'
+import { add, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
@@ -60,6 +62,9 @@ import useSort from '@/hooks/useSort'
 import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
+import { Numberish } from '@/types/constants'
+import { objectMap } from '@/functions/objectMethods'
+import useConnection from '@/application/connection/useConnection'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -425,7 +430,7 @@ function PoolCard() {
     () => (
       <Row
         type="grid-x"
-        className="mb-3 h-12 justify-between sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl mobile:rounded-lg gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,.8fr,auto]"
+        className="mb-3 h-12 justify-between sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl mobile:rounded-lg gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,1fr,.8fr,auto]"
       >
         <Row
           className="group w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
@@ -560,7 +565,7 @@ function PoolCard() {
         </Row>
 
         {/* table head column: volume24h */}
-        {/* <Row
+        <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             setSortConfig({
@@ -571,10 +576,19 @@ function PoolCard() {
           }}
         >
           APR {timeBasis}
-          <Tooltip>
+          <Tooltip defaultOpen forceOpen>
             <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
             <Tooltip.Panel>
               Estimated APR based on trading fees earned by the pool in the past {timeBasis}
+              {/* TODO: DRAW Switch panel */}
+              <Grid>
+                <div>Leverage Method</div>
+                <Button>Switch</Button>
+                <div>
+                  This APR is calculated by Multiplier Method. You can swith to Leverage Method if you think that is
+                  more reasonable.<Button>Learn more</Button>
+                </div>
+              </Grid>
             </Tooltip.Panel>
           </Tooltip>
           <Icon
@@ -588,7 +602,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
-        </Row> */}
+        </Row>
 
         <PoolRefreshCircleBlock className="pr-8 self-center" />
       </Row>
@@ -715,10 +729,18 @@ function PoolCardDatabaseBodyCollapseItemFace({
     return <div className="flex flex-wrap justify-start items-center gap-2">{badges}</div>
   }, [info.rewardInfos])
 
+  const apr = isHydratedConcentratedItemInfo(info)
+    ? timeBasis === TimeBasis.DAY
+      ? { total: info.totalApr24h, itemList: [info.feeApr24h, ...info.rewardApr24h] }
+      : timeBasis === TimeBasis.WEEK
+      ? { total: info.totalApr7d, itemList: [info.feeApr7d, ...info.rewardApr7d] }
+      : { total: info.totalApr30d, itemList: [info.feeApr30d, ...info.rewardApr30d] }
+    : undefined
+
   const pcCotent = (
     <Row
       type="grid-x"
-      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-center gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,.8fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
+      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-center gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,1fr,.8fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       } transition-all`}
     >
@@ -779,18 +801,15 @@ function PoolCardDatabaseBodyCollapseItemFace({
         }
       />
       <TextInfoItem name={`Rewards`} value={rewardsBadge} />
-      {/* <TextInfoItem
+      <TextInfoItem
         name={`APR(${timeBasis})`}
         value={
-          isHydratedConcentratedItemInfo(info)
-            ? timeBasis === TimeBasis.DAY
-              ? toPercentString(info.totalApr24h)
-              : timeBasis === TimeBasis.WEEK
-              ? toPercentString(info.totalApr7d)
-              : toPercentString(info.totalApr30d)
-            : undefined
+          <div>
+            {toPercentString(apr?.total)}
+            <AprLine aprValues={apr?.itemList}></AprLine>
+          </div>
         }
-      /> */}
+      />
       <Grid className="w-9 h-9 mr-8 place-items-center">
         <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />
       </Grid>
@@ -841,18 +860,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             }
           />
           <TextInfoItem name="Rewards" value={'mobile TEST'} />
-          {/* <TextInfoItem
-            name={`APR(${timeBasis})`}
-            value={
-              isHydratedConcentratedItemInfo(info)
-                ? timeBasis === TimeBasis.DAY
-                  ? toPercentString(info.totalApr24h)
-                  : timeBasis === TimeBasis.WEEK
-                  ? toPercentString(info.totalApr7d)
-                  : toPercentString(info.totalApr30d)
-                : undefined
-            }
-          /> */}
+          <TextInfoItem name={`APR(${timeBasis})`} value={toPercentString(apr?.total)} />
 
           <Grid className="w-6 h-6 place-items-center">
             <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />
@@ -898,6 +906,26 @@ function PoolCardDatabaseBodyCollapseItemFace({
   )
 
   return isMobile ? mobileContent : pcCotent
+}
+
+function AprLine({ className, aprValues }: { className?: string; aprValues: Numberish[] | undefined }) {
+  const colors = ['#abc4ff', '#39d0d8', '#2b6aff']
+  if (!aprValues) return null
+  const totalApr = aprValues.reduce((a, b) => add(a, b), 0)
+  return (
+    <Row className={twMerge('w-full', className)}>
+      {aprValues?.map((aprValue, idx) => (
+        <div
+          key={idx}
+          className="h-2 rounded-full"
+          style={{
+            width: toPercentString(div(aprValue, totalApr)),
+            backgroundColor: colors[idx]
+          }}
+        ></div>
+      ))}
+    </Row>
+  )
 }
 
 function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedConcentratedInfo }) {
@@ -1035,7 +1063,22 @@ function PoolCardDatabaseBodyCollapsePositionContent({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const tokenPrices = useToken((s) => s.tokenPrices)
+  const token = useToken((s) => s.tokens)
+  const tokenDecimals = objectMap(token, (i) => i.decimals)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const unclaimedYield = useConcentratedPendingYield(p)
+  const positionApr = useMemo(
+    () =>
+      p?.getPositionApr({
+        tokenPrices,
+        tokenDecimals,
+        timeBasis: '24h', // TEMP DEV
+        planType: 'B',
+        chainTimeOffsetMs: chainTimeOffset
+      }),
+    [p, chainTimeOffset]
+  )
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
 
   const rangeTag = useMemo(() => {
@@ -1140,7 +1183,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               is={isMobile ? 'div' : 'Row'}
               className={`${
                 !isMobile ? 'grid grid-cols-5' : 'flex-auto justify-between'
-              } w-2/3 mobile:w-full ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center`}
+              } w-1/2 mobile:w-full ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center`}
             >
               <Col
                 className={`${!isMobile ? 'col-span-2' : ''} mobile:mb-2 mobile:pb-2`}
@@ -1254,7 +1297,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
             </AutoBox>
             <AutoBox
               is={isMobile ? 'div' : 'Row'}
-              className="flex-auto w-1/3 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center"
+              className="flex-auto w-1/2 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center"
             >
               <Col>
                 <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
@@ -1288,6 +1331,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 <div className="text-white font-medium text-base mobile:text-sm mt-3 mobile:mt-1">
                   ≈{toUsdVolume(unclaimedYield)}
                 </div>
+                {p && <PositionAprIllustrator poolInfo={info} positionInfo={p}></PositionAprIllustrator>}
+
                 {/* <AutoBox
                   is="Row"
                   className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2 mobile:mt-1"
@@ -1472,6 +1517,82 @@ function PoolCardDatabaseBodyCollapsePositionContent({
         </div>
       </Row>
     </AutoBox>
+  )
+}
+
+function PositionAprIllustrator({
+  poolInfo,
+  positionInfo
+}: {
+  poolInfo: HydratedConcentratedInfo
+  positionInfo: UserPositionAccount
+}) {
+  const tokenPrices = useToken((s) => s.tokenPrices)
+  const token = useToken((s) => s.tokens)
+  const tokenDecimals = objectMap(token, (i) => i.decimals)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const positionApr = useMemo(
+    () =>
+      positionInfo?.getPositionApr({
+        tokenPrices,
+        tokenDecimals,
+        timeBasis: '24h', // TEMP DEV
+        planType: 'B',
+        chainTimeOffsetMs: chainTimeOffset
+      }),
+    [positionInfo, chainTimeOffset]
+  )
+  return (
+    <Tooltip panelClassName="p-0 rounded-xl">
+      <Row className="items-center gap-2 mobile:gap-1 mt-1">
+        <div className="text-[#abc4ff80] text-sm font-medium mobile:text-xs">APR</div>
+        <div className="text-white text-sm font-medium mobile:text-xs">{toPercentString(positionApr?.apr)}</div>
+        {positionApr && <AprLine className="w-28" aprValues={[positionApr.feeApr, ...positionApr.rewardsApr]} />}
+      </Row>
+      <Tooltip.Panel>
+        <div className=" p-5">
+          {positionApr && (
+            <Row className="gap-4">
+              {/* circle */}
+              <div
+                className="w-16 h-16 rounded-full"
+                style={{
+                  background: `conic-gradient(#abc4ff ${toPercentString(
+                    positionApr.feePercentInTotal
+                  )}, #37bbe0 ${toPercentString(add(positionApr.feePercentInTotal, 0.005))}, #37bbe0 ${toPercentString(
+                    add(positionApr.feePercentInTotal, positionApr.rewardsPercentInTotal[0])
+                  )}, #2b6aff ${toPercentString(
+                    add(add(positionApr.feePercentInTotal, positionApr.rewardsPercentInTotal[0]), 0.005)
+                  )})`,
+                  WebkitMaskImage: 'radial-gradient(transparent 50%, black 51%)',
+                  maskImage: 'radial-gradient(transparent 50%, black 51%)'
+                }}
+              ></div>
+              <Col className="justify-between">
+                <Row className="items-center gap-2">
+                  {/* dot */}
+                  <div className="h-2 w-2 rounded-full" style={{ backgroundColor: '#abc4ff' }}></div>
+                  <div className="w-18 text-[#abc4ff] text-sm mobile:text-xs">Trade Fee</div>
+                  <div className="text-sm">{toPercentString(positionApr.feePercentInTotal)}</div>
+                </Row>
+                {positionApr.rewardsPercentInTotal.map((rewardPercentInTotal, idx) => {
+                  const token = poolInfo.rewardInfos[idx].rewardToken
+                  const color = ['#37bbe0', '#2b6aff']
+                  return (
+                    <Row className="items-center gap-2" key={toPubString(token?.mint)}>
+                      {/* dot */}
+                      <div className="h-2 w-2 rounded-full" style={{ backgroundColor: color[idx] }}></div>
+                      <div className="w-18 text-[#abc4ff] text-sm mobile:text-xs">{token?.symbol}</div>
+                      <div className="text-sm">{toPercentString(rewardPercentInTotal)}</div>
+                    </Row>
+                  )
+                })}
+              </Col>
+            </Row>
+          )}
+        </div>
+      </Tooltip.Panel>
+    </Tooltip>
   )
 }
 
