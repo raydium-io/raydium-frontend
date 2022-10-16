@@ -65,6 +65,7 @@ import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/Remo
 import { Numberish } from '@/types/constants'
 import { objectMap } from '@/functions/objectMethods'
 import useConnection from '@/application/connection/useConnection'
+import AprCalcDialog from '@/pageComponents/Concentrated/AprCalcDialog'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -368,6 +369,7 @@ function PoolCard() {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const searchText = useConcentrated((s) => s.searchText)
   const timeBasis = useConcentrated((s) => s.timeBasis)
+  const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
   const currentTab = useConcentrated((s) => s.currentTab)
 
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -576,17 +578,30 @@ function PoolCard() {
           }}
         >
           APR {timeBasis}
-          <Tooltip defaultOpen forceOpen>
+          <Tooltip>
             <Icon className="ml-1 cursor-help" size="sm" heroIconName="question-mark-circle" />
-            <Tooltip.Panel>
-              Estimated APR based on trading fees earned by the pool in the past {timeBasis}
-              {/* TODO: DRAW Switch panel */}
-              <Grid>
-                <div>Leverage Method</div>
-                <Button>Switch</Button>
-                <div>
+            <Tooltip.Panel className="max-w-[min(100vw,300px)]">
+              <Grid className="grid-cols-2-auto">
+                <div className="text-sm text-white font-medium">
+                  {aprCalcMode === 'A' ? 'A Method' : aprCalcMode === 'B' ? 'B Method' : 'C Method'}
+                </div>
+                <Button
+                  className="justify-end text-link-color"
+                  type="text"
+                  onClick={() => useConcentrated.setState((s) => ({ aprCalcMode: s.aprCalcMode === 'B' ? 'C' : 'B' }))}
+                >
+                  Switch
+                </Button>
+                <div className="col-span-full text-xs text-[#abc4ff80]">
                   This APR is calculated by Multiplier Method. You can swith to Leverage Method if you think that is
-                  more reasonable.<Button>Learn more</Button>
+                  more reasonable.
+                  <Button
+                    type="text"
+                    className="p-0 ml-2 text-link-color"
+                    onClick={() => useConcentrated.setState({ isAprCalcPanelShown: true })}
+                  >
+                    Learn more
+                  </Button>
                 </div>
               </Grid>
             </Tooltip.Panel>
@@ -607,7 +622,7 @@ function PoolCard() {
         <PoolRefreshCircleBlock className="pr-8 self-center" />
       </Row>
     ),
-    [sortConfig, timeBasis]
+    [sortConfig, timeBasis, aprCalcMode]
   )
 
   // NOTE: filter widgets
@@ -652,6 +667,7 @@ function PoolCard() {
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && TableHeaderBlock}
+      <AprCalcDialog />
       <PoolCardDatabaseBody sortedData={sortedData} />
     </CyberpunkStyleCard>
   )
