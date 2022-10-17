@@ -12,6 +12,7 @@ import useWallet from '../wallet/useWallet'
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
 import { div } from '@/functions/numberish/operations'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 
 export function useAutoCreateAmmv3Pool() {
   const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice } = useConcentrated()
@@ -43,7 +44,11 @@ async function createNewConcentratedPool() {
   assert(userSelectedAmmConfigFeeOption, 'not set userSelectedAmmConfigFeeOption')
   assert(userSettedCurrentPrice, 'not set userSettedCurrentPrice')
 
-  const currentPrice = focusSide === 'coin1' ? toFraction(userSettedCurrentPrice) : div(1, userSettedCurrentPrice)
+  const currentPrice = isMeaningfulNumber(userSettedCurrentPrice)
+    ? focusSide === 'coin1'
+      ? toFraction(userSettedCurrentPrice)
+      : div(1, userSettedCurrentPrice)
+    : toFraction(0)
 
   const { transaction, signers, mockPoolInfo } = await AmmV3.makeCreatePoolTransaction({
     connection: connection,
