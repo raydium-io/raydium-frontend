@@ -1,5 +1,8 @@
 import { HydratedAmmV3ConfigInfo } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
+import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
+import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import useConcentratedInitFeeSelector from '@/application/concentrated/useConcentratedInitFeeSelector'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
@@ -13,6 +16,9 @@ export function ConcentratedFeeSwitcher({ className }: { className?: string }) {
   const userSelectedAmmConfigFeeOption = useConcentrated((s) => s.userSelectedAmmConfigFeeOption)
   const ammConfigFeeOptions = useConcentrated((s) => s.availableAmmConfigFeeOptions)
 
+  useConcentratedInfoLoader()
+  useConcentratedAmmConfigInfoLoader()
+  useConcentratedAmmSelector()
   useConcentratedInitFeeSelector()
   return (
     <ConcentratedFeeSwitcherContent

@@ -5,6 +5,7 @@ import useConcentrated from './useConcentrated'
 export default function useConcentratedInitFeeSelector() {
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
+
   const existAmmPools = useConcentrated((s) => s.selectableAmmPools)
   const existAmmPoolConfigIds = existAmmPools?.map((i) => toPubString(i.ammConfig.id))
   const ammConfigFeeOptions = useConcentrated((s) => s.availableAmmConfigFeeOptions)
@@ -14,9 +15,11 @@ export default function useConcentratedInitFeeSelector() {
   const key = selectableAmmConfigs?.map((i) => i.id).join('_')
 
   useEffect(() => {
-    if (!selectableAmmConfigs) return
-    if (!coin1 || !coin2) return
-    const bestFeeOption = selectableAmmConfigs[selectableAmmConfigs.length - 1]
-    bestFeeOption && useConcentrated.setState({ userSelectedAmmConfigFeeOption: bestFeeOption })
+    if (!selectableAmmConfigs || !coin1 || !coin2) {
+      useConcentrated.setState({ userSelectedAmmConfigFeeOption: undefined })
+    } else {
+      const bestFeeOption = selectableAmmConfigs[selectableAmmConfigs.length - 1]
+      bestFeeOption && useConcentrated.setState({ userSelectedAmmConfigFeeOption: bestFeeOption })
+    }
   }, [key, coin1, coin2])
 }

@@ -276,8 +276,8 @@ export function CreatePoolCard() {
         <div className="mb-5">
           <div className="font-medium text-[#abc4ff] my-1 mb-3">Select Tokens</div>
           <Grid className="grid-cols-2 gap-4">
-            <SelectTokenInputBox title="Base Token" tokenKey="coin1" onSelectToken={handleSelectToken} />
-            <SelectTokenInputBox title="Quote Token" tokenKey="coin2" onSelectToken={handleSelectToken} />
+            <SelectTokenInputBox title="Base Token" tokenKey="coin1" onSelectToken={handleSelectToken} token={coin1} />
+            <SelectTokenInputBox title="Quote Token" tokenKey="coin2" onSelectToken={handleSelectToken} token={coin2} />
           </Grid>
         </div>
 
@@ -386,26 +386,27 @@ export function CreatePoolCard() {
 function SelectTokenInputBox({
   tokenKey,
   title,
+  token,
   onSelectToken
 }: {
   tokenKey?: string
   title?: string
+  token?: SplToken
   onSelectToken?: (token: SplToken, tokenKey?: string) => void
 }) {
   const [isSelectorOpen, setIsSelectorOpen] = useState(false)
-  const [cachedToken, setCachedToken] = useState<SplToken>()
   return (
     <>
       <Grid
         className=" grid items-center bg-[#141041] rounded-xl h-[70px] cursor-pointer px-3"
         onClick={() => setIsSelectorOpen(true)}
       >
-        {cachedToken ? (
+        {token ? (
           <div>
             <div className="text-xs text-[#abc4ff80] my-1">{title}</div>
             <Row className="items-center gap-2">
-              <CoinAvatar token={cachedToken} />
-              <div className="text-[#abc4ff] font-medium text-lg">{cachedToken.symbol ?? ''}</div>
+              <CoinAvatar token={token} />
+              <div className="text-[#abc4ff] font-medium text-lg">{token.symbol ?? ''}</div>
               <Icon size="sm" className="text-[#abc4ff]" heroIconName="chevron-down" />
             </Row>
           </div>
@@ -420,7 +421,6 @@ function SelectTokenInputBox({
         }}
         onSelectToken={(token) => {
           onSelectToken?.(token, tokenKey)
-          setCachedToken(token)
         }}
       />
     </>

@@ -1,5 +1,4 @@
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import useConcentrated from './useConcentrated'
 
@@ -7,16 +6,19 @@ import useConcentrated from './useConcentrated'
 export default function useConcentratedAmmSelector() {
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
-  const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
-  const { pathname } = useRouter()
 
   useEffect(() => {
-    if (pathname.startsWith('/clmm/create-pool')) return
     useConcentrated.setState({
       currentAmmPool: undefined
     })
-    if (!hydratedAmmPools.length || !coin1 || !coin2) return
+    if (!hydratedAmmPools.length || !coin1 || !coin2) {
+      useConcentrated.setState({
+        selectableAmmPools: undefined,
+        currentAmmPool: undefined
+      })
+      return
+    }
     const allSelectablePools = hydratedAmmPools.filter(
       (p) =>
         (isMintEqual(p.state.mintA.mint, coin1.mint) && isMintEqual(p.state.mintB.mint, coin2.mint)) ||
