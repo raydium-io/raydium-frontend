@@ -98,11 +98,12 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
 
 function MyPositionCardChartInfo({ className }: { className?: string }) {
   useConcentratedAmmSelector()
-  const [currentAmmPool, chartPoints, coin1, coin2] = useConcentrated((s) => [
+  const [currentAmmPool, chartPoints, coin1, coin2, timeBasis] = useConcentrated((s) => [
     s.currentAmmPool,
     s.chartPoints,
     s.coin1,
-    s.coin2
+    s.coin2,
+    s.timeBasis
   ])
   const isMobile = useAppSettings((s) => s.isMobile)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
@@ -136,6 +137,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
           hideRangeLine
           hideRangeInput
           showCurrentPriceOnly
+          timeBasis={timeBasis}
           height={isMobile ? 100 : 150}
         />
       </div>
