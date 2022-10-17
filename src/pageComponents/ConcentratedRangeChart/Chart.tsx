@@ -7,6 +7,7 @@ import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPo
 import Icon from '@/components/Icon'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 import { useEvent } from '@/hooks/useEvent'
+import { TimeBasis } from '@/application/concentrated/useConcentrated'
 
 import {
   AREA_CONFIG,
@@ -44,7 +45,6 @@ interface Props {
   currentPrice?: Fraction
   priceMin?: number
   priceMax?: number
-  priceLabel?: string
   showCurrentPriceOnly?: boolean
   showZoom?: boolean
   hideRangeLine?: boolean
@@ -53,6 +53,7 @@ interface Props {
   hideXAxis?: boolean
   height?: number
   title?: ReactNode
+  timeBasis: TimeBasis
   onPositionChange?: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
   onInDecrease?: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
   onAdjustMin?: (props: { min: number; max: number }) => { price: number; tick: number }
@@ -65,7 +66,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     currentPrice,
     priceMin,
     priceMax,
-    priceLabel,
+    timeBasis,
     decimals,
     height,
     onPositionChange,
@@ -73,7 +74,6 @@ export default forwardRef(function Chart(props: Props, ref) {
     onAdjustMin,
     title,
     showCurrentPriceOnly,
-    hideCurrentPriceLabel,
     hideRangeLine,
     hideRangeInput,
     showZoom,
@@ -539,10 +539,17 @@ export default forwardRef(function Chart(props: Props, ref) {
         )}
       </div>
       <div>
-        <div>
-          <span className="inline-block w-[8px] h-[2px] bg-white" />
-          Current Price {currentPrice?.toSignificant(decimals)}
+        <div className="flex items-center text-xs text-[#ABC4FF]">
+          <span className="inline-block w-[8px] h-[2px] bg-white mr-2" />
+          <span className="opacity-50 mr-2">Current Price</span> {currentPrice?.toSignificant(decimals)}
         </div>
+        {!showCurrentPriceOnly && (
+          <div className="flex items-center text-xs text-[#ABC4FF]">
+            <span className="inline-block w-[8px] h-[2px] bg-[#39D0D8] mr-2" />
+            <span className="opacity-50 mr-2">{timeBasis} Price Range</span> [{priceMin?.toFixed(decimals)},{' '}
+            {priceMax?.toFixed(decimals)}]
+          </div>
+        )}
       </div>
       <div className="w-full select-none" style={{ height: `${height || 140}px` }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -550,7 +557,7 @@ export default forwardRef(function Chart(props: Props, ref) {
             style={{ userSelect: 'none' }}
             width={500}
             height={400}
-            margin={{ top: 30 }}
+            margin={{ top: 15 }}
             defaultShowTooltip={false}
             data={displayList || []}
             onMouseDown={isMobile ? handleMouseDown(Range.Min) : undefined}

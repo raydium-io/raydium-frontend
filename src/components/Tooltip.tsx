@@ -1,4 +1,4 @@
-import React, { ComponentProps, ReactNode, RefObject, useImperativeHandle, useMemo } from 'react'
+import React, { ComponentProps, ReactNode, RefObject, useImperativeHandle, useMemo, useRef } from 'react'
 
 import { red } from 'bn.js'
 import { twMerge } from 'tailwind-merge'
@@ -7,7 +7,10 @@ import addPropsToReactElement from '@/functions/react/addPropsToReactElement'
 import { pickReactChild } from '@/functions/react/pickChild'
 
 import Card from './Card'
-import Popover, { PopoverPlacement, PopoverProps } from './Popover'
+import Popover, { PopoverHandles, PopoverPlacement, PopoverProps } from './Popover'
+import mergeRef from '@/functions/react/mergeRef'
+import { MayFunction } from '@/types/constants'
+import { shrinkToValue } from '@/functions/shrinkToValue'
 
 export type TooltipHandle = {
   open(): void
@@ -42,21 +45,22 @@ export default function Tooltip({
   defaultOpen,
   darkGradient = false
 }: TooltipProps) {
+  const innerComponentRef = useRef<PopoverHandles>()
   const content = useMemo(
     () =>
       pickReactChild(children, TooltipPanel, (el) =>
         addPropsToReactElement<ComponentProps<typeof TooltipPanel>>(el, {
-          $isRenderByMain: true
+          $isRenderByMain: true,
+          $popoverRef: innerComponentRef
         })
       ),
     [children]
   )
 
   const darkGradientMain = 'bg-[transparent]'
-
   return (
     <Popover
-      componentRef={componentRef}
+      componentRef={mergeRef(componentRef, innerComponentRef)}
       canOpen={!disable}
       placement={placement}
       defaultOpen={defaultOpen}
@@ -87,7 +91,7 @@ export default function Tooltip({
               }
             />
             <Card
-              className={twMerge('TooltipPanel p-4 bg-[#0C0926] rounded text-xs text-white', panelClassName)}
+              className={twMerge('TooltipPanel p-4 bg-[#0C0926] rounded-lg text-xs text-white', panelClassName)}
               style={{
                 background: darkGradient
                   ? 'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
@@ -115,14 +119,16 @@ export default function Tooltip({
  */
 export function TooltipPanel({
   $isRenderByMain,
+  $popoverRef,
   children,
   className
 }: {
   $isRenderByMain?: boolean
-  children?: ReactNode
+  $popoverRef?: React.MutableRefObject<PopoverHandles | undefined>
+  children?: MayFunction<ReactNode, [popoverHandles: PopoverHandles | undefined]>
   className?: string
 }) {
   if (!$isRenderByMain) return null
-  return <div className={className}>{children}</div>
+  return <div className={className}>{shrinkToValue(children, [$popoverRef?.current])}</div>
 }
 Tooltip.Panel = TooltipPanel

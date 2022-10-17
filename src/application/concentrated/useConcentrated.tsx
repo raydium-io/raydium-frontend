@@ -104,7 +104,7 @@ export type ConcentratedStore = {
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
-const useConcentrated = create<ConcentratedStore>((set, get) => ({
+export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   apiAmmPools: [],
   sdkParsedAmmPools: [],
   hydratedAmmPools: [],

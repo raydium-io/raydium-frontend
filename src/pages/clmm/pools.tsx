@@ -1057,7 +1057,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   const unclaimedYield = useConcentratedPendingYield(p)
   const positionApr = useMemo(
     () =>
-      p?.getPositionApr({
+      p?.getApr({
         tokenPrices,
         tokenDecimals,
         timeBasis: '24h', // TEMP DEV
@@ -1522,7 +1522,7 @@ function PositionAprIllustrator({
   const aprCalcMethod = useConcentrated((s) => s.aprCalcMode)
   const positionApr = useMemo(
     () =>
-      positionInfo?.getPositionApr({
+      positionInfo?.getApr({
         tokenPrices,
         tokenDecimals,
         timeBasis: timeBasis.toLowerCase() as '24h' | '7d' | '30d',
@@ -1543,7 +1543,7 @@ function PositionAprIllustrator({
           )}
         </Row>
         <Tooltip.Panel>
-          <div className="p-5">{positionApr && <PositionAprChart colCount={2} positionAccount={positionInfo} />}</div>
+          <div className="p-5">{positionApr && <PositionAprChart type='positionAccount' colCount={2} positionAccount={positionInfo} />}</div>
         </Tooltip.Panel>
       </Tooltip>
     </Row>

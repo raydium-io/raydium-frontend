@@ -6,10 +6,13 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
+import { useGlobInstanceDetector } from './useGlobInstanceDetector'
 
 export default function AprCalcDialog() {
   const open = useConcentrated((s) => s.isAprCalcPanelShown)
   const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
+  const { isFirstDetectedComponentInThisPage } = useGlobInstanceDetector(AprCalcDialog.name)
+  if (!isFirstDetectedComponentInThisPage) return null
   const choices: {
     aprCalcMethod: ConcentratedStore['aprCalcMode']
     title: string
@@ -18,12 +21,12 @@ export default function AprCalcDialog() {
     {
       aprCalcMethod: 'B',
       title: 'plan B',
-      description: 'This is how our calculation method work. I don’t know how but I believe it’s better.'
+      description: 'This is how Orca’s calculation method work. I don’t know how but we think it’s bullshit lol.'
     },
     {
       aprCalcMethod: 'C',
       title: 'plan C',
-      description: 'This is how Orca’s calculation method work. I don’t know how but we think it’s bullshit lol.'
+      description: 'This is how our calculation method work. I don’t know how but I believe it’s better.'
     }
   ]
   return (
