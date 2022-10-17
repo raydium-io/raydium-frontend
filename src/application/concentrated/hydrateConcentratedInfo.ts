@@ -300,8 +300,8 @@ function getAprCore({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
       mintPrice: tokenPrices,
-      positionTickLowerIndex: tickLower,
-      positionTickUpperIndex: tickUpper,
+      positionTickLowerIndex: Math.min(tickLower, tickUpper),
+      positionTickUpperIndex: Math.max(tickLower, tickUpper),
       chainTime: (Date.now() + chainTimeOffsetMs) / 1000,
       rewardMintDecimals: tokenDecimals
     })
@@ -325,8 +325,8 @@ function getAprCore({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
       mintPrice: tokenPrices,
-      positionTickLowerIndex: tickLower,
-      positionTickUpperIndex: tickUpper,
+      positionTickLowerIndex: Math.min(tickLower, tickUpper),
+      positionTickUpperIndex: Math.max(tickLower, tickUpper),
       chainTime: (Date.now() + chainTimeOffsetMs) / 1000,
       rewardMintDecimals: tokenDecimals
     })
