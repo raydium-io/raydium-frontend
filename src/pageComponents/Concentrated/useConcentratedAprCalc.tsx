@@ -1,8 +1,8 @@
-import { HydratedAmmV3ConfigInfo, HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
+import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
 import { objectMap } from '@/functions/objectMethods'
-import useConnection from '@/application/connection/useConnection'
 import { useMemo } from 'react'
 
 export function useConcentratedPositionAprCalc({
