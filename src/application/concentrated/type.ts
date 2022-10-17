@@ -111,6 +111,31 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   rewardApr24h: Percent[]
   rewardApr7d: Percent[]
   rewardApr30d: Percent[]
+
+  getApr({
+    tickLower,
+    tickUpper,
+    tokenPrices,
+    tokenDecimals,
+    timeBasis,
+    planType,
+    chainTimeOffsetMs
+  }: {
+    tickLower: number
+    tickUpper: number
+    tokenPrices: Record<string, Price>
+    tokenDecimals: Record<string, number>
+    timeBasis: '24h' | '7d' | '30d'
+    planType: 'A' | 'B' | 'C'
+    chainTimeOffsetMs?: number | undefined
+  }): {
+    fee: {
+      apr: Percent
+      percentInTotal: Percent
+    }
+    rewards: { apr: Percent; percentInTotal: Percent; token: SplToken | undefined }[]
+    apr: Percent
+  }
 }
 
 export interface UserPositionAccount {
@@ -143,7 +168,7 @@ export interface UserPositionAccount {
     baseLiquidity: Fraction | undefined
     quoteLiquidity: Fraction | undefined
   }
-  getPositionApr({
+  getApr({
     tokenPrices,
     tokenDecimals,
     timeBasis,

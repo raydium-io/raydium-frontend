@@ -647,19 +647,21 @@ function ConcentratedCard() {
 }
 
 function ConcentratedCardAPRInfo({ className }: { className?: string }) {
-  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
-  const aprCalc = useConcentratedAprCalc(targetUserPositionAccount)
+  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const aprCalc = useConcentratedAprCalc({ ammPool: currentAmmPool })
   return (
-    <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
+    <Col className={twMerge('bg-[#141041] py-3 my-1 rounded-xl gap-2', className)}>
       <Row className="items-center gap-2">
-        <div className="mobile:text-sm font-medium text-[#abc4ff]">Estimated APR</div>
+        <div className="text-base leading-[22px] text-secondary-title">Estimated APR</div>
         <ConcentratedModifyTooltipIcon />
-        <div className="font-medium text-lg mobile:text-sm text-white">{toPercentString(aprCalc?.apr)}</div>
+        <div className="font-medium text-base mobile:text-sm text-white">{toPercentString(aprCalc?.apr)}</div>
         <ConcentratedTimeBasisSwitcher className="ml-auto" />
       </Row>
-      <Grid className="border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl">
-        {targetUserPositionAccount && <PositionAprChart colCount={2} positionAccount={targetUserPositionAccount} />}
-      </Grid>
+      {currentAmmPool && (
+        <Grid className="border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl">
+          <PositionAprChart type="poolInfo" colCount={2} poolInfo={currentAmmPool} />
+        </Grid>
+      )}
     </Col>
   )
 }
