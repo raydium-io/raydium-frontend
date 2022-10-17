@@ -1,13 +1,8 @@
 import useAppSettings from '@/application/common/useAppSettings'
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
-import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
-import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
-import useConnection from '@/application/connection/useConnection'
-import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
-import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import useNotification from '@/application/notification/useNotification'
 import { routeBack, routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
@@ -20,25 +15,17 @@ import FadeInStable from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
-import { isDateAfter } from '@/functions/date/judges'
-import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { getLocalItem, setLocalItem } from '@/functions/dom/jStorage'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
-import { div } from '@/functions/numberish/operations'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import toFraction from '@/functions/numberish/toFraction'
 import { useEvent } from '@/hooks/useEvent'
 import useToggle from '@/hooks/useToggle'
 import { CreatePoolCard } from '@/pageComponents/createConcentratedPool/CreatePoolCard'
 import CreatePoolPreviewDialog from '@/pageComponents/createConcentratedPool/CreatePoolPreviewDialog'
-import { PoolSelectCard } from '@/pageComponents/createConcentratedPool/PoolSelectCard'
 import { useState, useEffect } from 'react'
 import { twMerge } from 'tailwind-merge'
-
-import { useChainDate } from '../../hooks/useChainDate'
-import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
-import { PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -126,7 +113,6 @@ function WarningBoard({ className }: { className: string }) {
 export default function CreatePoolPage() {
   useConcentratedAmmConfigInfoLoader()
   useConcentratedAmountCalculator()
-  useConcentratedAmmSelector()
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [isPreviewDialogOn, { off: closePreviewDialog, on: openPreviewDialog }] = useToggle(false)
