@@ -276,8 +276,20 @@ export function CreatePoolCard() {
         <div className="mb-5">
           <div className="font-medium text-[#abc4ff] my-1 mb-3">Select Tokens</div>
           <Grid className="grid-cols-2 gap-4">
-            <SelectTokenInputBox title="Base Token" tokenKey="coin1" onSelectToken={handleSelectToken} token={coin1} />
-            <SelectTokenInputBox title="Quote Token" tokenKey="coin2" onSelectToken={handleSelectToken} token={coin2} />
+            <SelectTokenInputBox
+              title="Base Token"
+              tokenKey="coin1"
+              onSelectToken={handleSelectToken}
+              token={coin1}
+              disableTokens={coin2 ? [coin2] : undefined}
+            />
+            <SelectTokenInputBox
+              title="Quote Token"
+              tokenKey="coin2"
+              onSelectToken={handleSelectToken}
+              token={coin2}
+              disableTokens={coin1 ? [coin1] : undefined}
+            />
           </Grid>
         </div>
 
@@ -387,11 +399,13 @@ function SelectTokenInputBox({
   tokenKey,
   title,
   token,
+  disableTokens,
   onSelectToken
 }: {
   tokenKey?: string
   title?: string
   token?: SplToken
+  disableTokens?: SplToken[]
   onSelectToken?: (token: SplToken, tokenKey?: string) => void
 }) {
   const [isSelectorOpen, setIsSelectorOpen] = useState(false)
@@ -419,6 +433,7 @@ function SelectTokenInputBox({
         onClose={() => {
           setIsSelectorOpen(false)
         }}
+        disableTokens={disableTokens}
         onSelectToken={(token) => {
           onSelectToken?.(token, tokenKey)
         }}

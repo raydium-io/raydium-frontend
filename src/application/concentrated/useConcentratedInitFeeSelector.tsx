@@ -13,7 +13,6 @@ export default function useConcentratedInitFeeSelector() {
     (ammConfigFeeOption) => !existAmmPoolConfigIds?.includes(ammConfigFeeOption.id)
   )
   const key = selectableAmmConfigs?.map((i) => i.id).join('_')
-
   useEffect(() => {
     if (!selectableAmmConfigs || !coin1 || !coin2) {
       useConcentrated.setState({ userSelectedAmmConfigFeeOption: undefined })
