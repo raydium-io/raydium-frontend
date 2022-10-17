@@ -173,20 +173,20 @@ function hydrateUserPositionAccounnt(
           idx === 0
             ? toPercent(ammPoolInfo.state.day.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-            ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
-            : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
+              ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
+              : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
         const apr7d =
           idx === 0
             ? toPercent(ammPoolInfo.state.week.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-            ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
-            : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
+              ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
+              : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
         const apr30d =
           idx === 0
             ? toPercent(ammPoolInfo.state.month.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-            ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
-            : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
+              ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
+              : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
         return { penddingReward, apr24h, apr7d, apr30d }
       })
       .filter((info) => Boolean(info?.penddingReward)) as UserPositionAccount['rewardInfos']
@@ -309,15 +309,15 @@ function getAprCore({
     const total = [planBApr.feeApr, ...slicedRewardApr].reduce((a, b) => a + b, 0)
     return {
       fee: {
-        apr: toPercent(planBApr.feeApr),
+        apr: toPercent(planBApr.feeApr, { alreadyDecimaled: true }),
         percentInTotal: toPercent(div(planBApr.feeApr, total))
       },
       rewards: slicedRewardApr.map((i, idx) => ({
-        apr: toPercent(i),
+        apr: toPercent(i, { alreadyDecimaled: true }),
         percentInTotal: div(i, total),
         token: getToken(poolRewardTokens[idx])
       })),
-      apr: toPercent(planBApr.apr)
+      apr: toPercent(planBApr.apr, { alreadyDecimaled: true })
     }
   } else {
     // (planType === 'C')
@@ -334,15 +334,15 @@ function getAprCore({
     const total = [planCApr.feeApr, ...slicedRewardApr].reduce((a, b) => a + b, 0)
     return {
       fee: {
-        apr: toPercent(planCApr.feeApr),
+        apr: toPercent(planCApr.feeApr, { alreadyDecimaled: true }),
         percentInTotal: toPercent(div(planCApr.feeApr, total))
       },
       rewards: slicedRewardApr.map((i, idx) => ({
-        apr: toPercent(i),
+        apr: toPercent(i, { alreadyDecimaled: true }),
         percentInTotal: div(i, total),
         token: getToken(poolRewardTokens[idx])
       })),
-      apr: toPercent(planCApr.apr)
+      apr: toPercent(planCApr.apr, { alreadyDecimaled: true })
     }
   }
 }

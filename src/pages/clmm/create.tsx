@@ -6,10 +6,7 @@ import { AmmV3, Fraction } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import {
-  calLowerUpper,
-  getPriceBoundary,
-  getPriceTick,
-  getTickPrice
+  calLowerUpper, getPriceBoundary, getPriceTick, getTickPrice
 } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -25,8 +22,10 @@ import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
+import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import { FadeIn } from '@/components/FadeIn'
+import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
@@ -48,19 +47,17 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
 import { canTokenPairBeSelected, PairInfoTitle, RemainSOLAlert, toXYChartFormat } from '@/pageComponents/Concentrated'
+import { ConcentratedModifyTooltipIcon } from '@/pageComponents/Concentrated/ConcentratedModifyTooltipIcon'
+import { ConcentratedTimeBasisSwitcher } from '@/pageComponents/Concentrated/ConcentratedTimeBasisSwitcher'
 import InputLocked from '@/pageComponents/Concentrated/InputLocked'
+import { PositionAprChart } from '@/pageComponents/Concentrated/PositionAprChart'
+import { useConcentratedAprCalc } from '@/pageComponents/Concentrated/useConcentratedAprCalc'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
-import { useConcentratedAprCalc } from '@/pageComponents/Concentrated/useConcentratedAprCalc'
-import Col from '@/components/Col'
-import Grid from '@/components/Grid'
-import { ConcentratedModifyTooltipIcon } from '@/pageComponents/Concentrated/ConcentratedModifyTooltipIcon'
-import { ConcentratedTimeBasisSwitcher } from '@/pageComponents/Concentrated/ConcentratedTimeBasisSwitcher'
-import { PositionAprChart } from '@/pageComponents/Concentrated/PositionAprChart'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -152,9 +149,6 @@ function ConcentratedCard() {
 
   const priceLowerTick = useConcentrated((s) => s.priceLowerTick)
   const priceUpperTick = useConcentrated((s) => s.priceUpperTick)
-  const planAApr = useConcentrated((s) => s.planAApr)
-  const planBApr = useConcentrated((s) => s.planBApr)
-  const planCApr = useConcentrated((s) => s.planCApr)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const tokenPrice = useToken((s) => s.tokenPrices)
   const tokens = useToken((s) => s.tokens)
@@ -264,52 +258,6 @@ function ConcentratedCard() {
     tickRef.current.lower = boundaryData.priceLowerTick
     tickRef.current.upper = boundaryData.priceUpperTick
   }, [boundaryData, poolFocusKey, prevPoolId])
-
-  useEffect(() => {
-    if (
-      !currentAmmPool ||
-      priceLowerTick === undefined ||
-      priceUpperTick === undefined ||
-      chainTimeOffset === undefined
-    )
-      return
-    const _planAApr = {
-      feeApr: Number(currentAmmPool.feeApr24h.toFixed(4)),
-      rewardsApr: currentAmmPool.rewardApr24h.map((i) => Number(i.toFixed(4))),
-      apr: Number(currentAmmPool.totalApr24h.toFixed(4))
-    }
-    useConcentrated.setState({ planAApr: _planAApr })
-
-    const rewardMintDecimals = {}
-    for (const [mint, info] of Object.entries(tokens)) {
-      rewardMintDecimals[mint] = info.decimals
-    }
-    const planBApr = AmmV3.estimateAprsForPriceRange({
-      poolInfo: currentAmmPool.state,
-      aprType: 'day',
-      mintPrice: tokenPrice,
-      positionTickLowerIndex: priceLowerTick,
-      positionTickUpperIndex: priceUpperTick,
-      chainTime: (Date.now() + chainTimeOffset) / 1000,
-      rewardMintDecimals
-    })
-    const planCApr = AmmV3.estimateAprsForPriceRange1({
-      poolInfo: currentAmmPool.state,
-      aprType: 'day',
-      mintPrice: tokenPrice,
-      positionTickLowerIndex: priceLowerTick,
-      positionTickUpperIndex: priceUpperTick,
-      chainTime: (Date.now() + chainTimeOffset) / 1000,
-      rewardMintDecimals
-    })
-
-    useConcentrated.setState({ planBApr })
-
-    useConcentrated.setState({ planCApr })
-
-    // eslint-disable-next-line no-console
-    console.log(priceLowerTick, priceUpperTick)
-  }, [priceLowerTick, priceUpperTick])
 
   const [prices, setPrices] = useState<(string | undefined)[]>([])
   const updatePrice1 = useCallback((tokenP) => setPrices((p) => [tokenP?.toExact(), p[1]]), [])
