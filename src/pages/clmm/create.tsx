@@ -7,7 +7,10 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import {
-  calLowerUpper, getPriceBoundary, getPriceTick, getTickPrice
+  calLowerUpper,
+  getPriceBoundary,
+  getPriceTick,
+  getTickPrice
 } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentratedPosition'
 import useConcentrated from '@/application/concentrated/useConcentrated'

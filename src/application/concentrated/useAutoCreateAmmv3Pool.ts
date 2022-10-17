@@ -11,6 +11,7 @@ import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
+import { div } from '@/functions/numberish/operations'
 
 export function useAutoCreateAmmv3Pool() {
   const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice } = useConcentrated()
@@ -33,7 +34,7 @@ export function useAutoCreateAmmv3Pool() {
 }
 
 async function createNewConcentratedPool() {
-  const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice } = useConcentrated.getState()
+  const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice, focusSide } = useConcentrated.getState()
   const { connection } = useConnection.getState()
   const { owner } = useWallet.getState()
   assert(connection, 'connection is not ready')
@@ -41,13 +42,16 @@ async function createNewConcentratedPool() {
   assert(coin2, 'not set coin2')
   assert(userSelectedAmmConfigFeeOption, 'not set userSelectedAmmConfigFeeOption')
   assert(userSettedCurrentPrice, 'not set userSettedCurrentPrice')
+
+  const currentPrice = focusSide === 'coin1' ? toFraction(userSettedCurrentPrice) : div(1, userSettedCurrentPrice)
+
   const { transaction, signers, mockPoolInfo } = await AmmV3.makeCreatePoolTransaction({
     connection: connection,
     programId: getAmmV3ProgramId(),
     mint1: { mint: coin1.mint, decimals: coin1.decimals },
     mint2: { mint: coin2.mint, decimals: coin2.decimals },
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original),
-    initialPrice: fractionToDecimal(toFraction(userSettedCurrentPrice)),
+    initialPrice: fractionToDecimal(currentPrice),
     owner: owner ?? PublicKey.default
   })
   useConcentrated.setState({
