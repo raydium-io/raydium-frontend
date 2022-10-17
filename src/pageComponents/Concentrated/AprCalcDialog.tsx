@@ -18,12 +18,12 @@ export default function AprCalcDialog() {
     {
       aprCalcMethod: 'B',
       title: 'plan B',
-      description: 'This is how our calculation method work. I don’t know how but I believe it’s better.'
+      description: 'This is how Orca’s calculation method work. I don’t know how but we think it’s bullshit lol.'
     },
     {
       aprCalcMethod: 'C',
       title: 'plan C',
-      description: 'This is how Orca’s calculation method work. I don’t know how but we think it’s bullshit lol.'
+      description: 'This is how our calculation method work. I don’t know how but I believe it’s better.'
     }
   ]
   return (
