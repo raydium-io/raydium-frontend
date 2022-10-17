@@ -1,26 +1,20 @@
-import { useEffect, useRef, useState, useCallback, useMemo, useImperativeHandle, forwardRef, ReactNode } from 'react'
+import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+
 import { Fraction } from '@raydium-io/raydium-sdk'
-import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
+
+import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+
+import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
+import { FadeIn } from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
-import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
+import { useEvent } from '@/hooks/useEvent'
+
 import {
-  ChartPoint,
-  ChartRangeInputOption,
-  Range,
-  DEFAULT_X_AXIS,
-  HIGHLIGHT_COLOR,
-  unitColor,
-  ZOOM_INTERVAL,
-  AREA_CONFIG,
-  boundaryColor,
-  getStrokeFill,
-  toFixedNumber,
-  getConfig,
-  getLabel
+  AREA_CONFIG, boundaryColor, ChartPoint, ChartRangeInputOption, DEFAULT_X_AXIS, getConfig, getLabel, getStrokeFill,
+  HIGHLIGHT_COLOR, Range, toFixedNumber, unitColor, ZOOM_INTERVAL
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
-import { useEvent } from '@/hooks/useEvent'
 
 interface HighlightPoint extends ChartPoint {
   position?: number
@@ -47,6 +41,8 @@ interface Props {
   hideXAxis?: boolean
   height?: number
   title?: ReactNode
+  coin1InputDisabled?: boolean
+  coin2InputDisabled?: boolean
   onPositionChange?: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
   onInDecrease?: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
   onAdjustMin?: (props: { min: number; max: number }) => { price: number; tick: number }
@@ -69,7 +65,9 @@ export default forwardRef(function Chart(props: Props, ref) {
     hideRangeLine,
     hideRangeInput,
     showZoom,
-    hideXAxis
+    hideXAxis,
+    coin1InputDisabled,
+    coin2InputDisabled
   } = props
   const points: HighlightPoint[] = useMemo(() => Object.assign([], chartOptions?.points || []), [chartOptions?.points])
   const [defaultMin, defaultMax] = [
@@ -504,29 +502,49 @@ export default forwardRef(function Chart(props: Props, ref) {
     [position]
   )
 
+  const chartControlStyle = {
+    width: 28,
+    height: 28,
+    background: `linear-gradient(126.6deg, rgba(57, 208, 216, 0.2) 28.69%, rgba(57, 208, 216, 0) 100%)`,
+    backdropFilter: `blur(2px)`,
+    borderRadius: 38,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
+
   return (
     <>
       <div className="flex justify-between text-base leading-[22px] text-secondary-title mb-2">
         {title}
         {showZoom && (
           <div className="flex gap-2 select-none">
-            <Icon
-              onClick={zoomReset}
-              className="saturate-50 brightness-125 cursor-pointer"
-              iconSrc="/icons/chart-add-white-space.svg"
-            />
-            <Icon
-              className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
-              onClick={zoomIn}
-              heroIconName="zoom-in"
-              canLongClick
-            />
-            <Icon
-              onClick={zoomOut}
-              className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
-              heroIconName="zoom-out"
-              canLongClick
-            />
+            <div style={chartControlStyle}>
+              <Icon
+                size="sm"
+                onClick={zoomReset}
+                className="saturate-50 brightness-125 cursor-pointer"
+                iconSrc="/icons/add-space.svg"
+              />
+            </div>
+            <div style={chartControlStyle}>
+              <Icon
+                size="sm"
+                onClick={zoomOut}
+                className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
+                iconSrc="/icons/zoom-out.svg"
+                canLongClick
+              />
+            </div>
+            <div style={chartControlStyle}>
+              <Icon
+                size="sm"
+                className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
+                onClick={zoomIn}
+                iconSrc="/icons/zoom-in.svg"
+                canLongClick
+              />
+            </div>
           </div>
         )}
       </div>
@@ -631,6 +649,17 @@ export default forwardRef(function Chart(props: Props, ref) {
           onPriceChange={handlePriceChange}
           onInDecrease={handleInDecrease}
         />
+      )}
+
+      {coin1InputDisabled || coin2InputDisabled ? (
+        <FadeIn>
+          <div className="flex items-center mt-3.5 p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
+            <Icon size="sm" className="mr-1.5" heroIconName="exclamation-circle" />
+            Your position will not trade or earn fees until price moves into your range.
+          </div>
+        </FadeIn>
+      ) : (
+        ''
       )}
     </>
   )
