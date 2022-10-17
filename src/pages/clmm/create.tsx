@@ -22,7 +22,6 @@ import Button, { ButtonHandle } from '@/components/Button'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
-import { FadeIn } from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
@@ -431,10 +430,10 @@ function ConcentratedCard() {
                     : '--'}
                 </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
-                <span className="text-lg flex leading-[18px]">
-                  {currentAmmPool && <CoinAvatarPair size="sm" token1={coin1} token2={coin2} />}
+              <div className="flex justify-between items-center">
+                <span className="text-sm leading-[20px] text-secondary-title">Deposit Ratio</span>
+                <span className="text-base leading-[20px] flex items-center">
+                  {currentAmmPool && <CoinAvatarPair className="mr-1" size="sm" token1={coin1} token2={coin2} />}
                   {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
                     ? `${ratio1}% / ${ratio2}%`
                     : '--'}
@@ -442,20 +441,10 @@ function ConcentratedCard() {
               </div>
             </div>
           </div>
-          {coin1InputDisabled || coin2InputDisabled ? (
-            <FadeIn>
-              <div className="flex items-center mt-3.5 p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
-                <Icon size="sm" className="mr-1.5" heroIconName="exclamation-circle" />
-                Your position will not trade or earn fees until price moves into your range.
-              </div>
-            </FadeIn>
-          ) : (
-            ''
-          )}
 
           {/* supply button */}
           <Button
-            className="frosted-glass-teal w-full mt-5"
+            className="frosted-glass-teal w-full mt-[26.1px]"
             componentRef={liquidityButtonComponentRef}
             isLoading={isApprovePanelShown}
             validators={[
@@ -528,6 +517,8 @@ function ConcentratedCard() {
             onAdjustMin={handleAdjustMin}
             showZoom
             height={200}
+            coin1InputDisabled={coin1InputDisabled}
+            coin2InputDisabled={coin2InputDisabled}
           />
         </div>
       </div>

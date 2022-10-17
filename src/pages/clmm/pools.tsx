@@ -228,18 +228,25 @@ function OpenNewPosition({ className }: { className?: string }) {
 
 function PoolLabelBlock({ className }: { className?: string }) {
   return (
-    <div className={className}>
-      <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
-      <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
-        Concentrate liquidity for increased captial efficiency.{' '}
-        <Link
-          className="inline-block"
-          href="https://docs.raydium.io/raydium/concentrated-liquidity/what-is-concentrated-liquidity"
-        >
-          Learn more
-        </Link>
-      </div>
-    </div>
+    <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
+      <Col>
+        <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
+        <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
+          Concentrate liquidity for increased captial efficiency.{' '}
+          <Link
+            className="inline-block"
+            href="https://docs.raydium.io/raydium/concentrated-liquidity/what-is-concentrated-liquidity"
+          >
+            Learn more
+          </Link>
+        </div>
+      </Col>
+
+      <Row className="gap-4 items-stretch">
+        <PoolTimeBasisSelectorBox />
+        <PoolSearchBlock className="h-[36px]" />
+      </Row>
+    </Row>
   )
 }
 
@@ -623,12 +630,10 @@ function PoolCard() {
     </div>
   ) : (
     <div>
-      <Row className={'justify-between pb-5 gap-16 gap-y-4 items-center flex-wrap'}>
-        <PoolLabelBlock />
+      <Row className={'w-full justify-between pb-5 items-center'}>
+        <PoolLabelBlock className="flex-grow" />
         <Row className="gap-4 items-stretch">
           <OpenNewPosition />
-          <PoolTimeBasisSelectorBox />
-          <PoolSearchBlock />
         </Row>
       </Row>
     </div>
