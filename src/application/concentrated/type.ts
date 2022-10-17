@@ -1,18 +1,11 @@
+import {
+  AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3ConfigInfo, ApiAmmV3PoolInfo, CurrencyAmount, Fraction, Percent,
+  Price, TokenAmount
+} from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
 import Decimal from 'decimal.js'
-import {
-  AmmV3PoolInfo,
-  AmmV3PoolPersonalPosition,
-  ApiAmmV3ConfigInfo,
-  ApiAmmV3PoolInfo,
-  CurrencyAmount,
-  Fraction,
-  Percent,
-  Price,
-  TokenAmount
-} from '@raydium-io/raydium-sdk'
 
 import { HexAddress, Numberish } from '@/types/constants'
 
@@ -117,6 +110,7 @@ export interface UserPositionAccount {
   /** transform to SDK function, should not used directlly in UI */
   sdkParsed: AmmV3PoolPersonalPosition
   rewardInfos: {
+    token: SplToken
     penddingReward: TokenAmount | undefined
     apr24h: Percent
     apr7d: Percent
