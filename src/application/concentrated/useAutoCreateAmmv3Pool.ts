@@ -58,12 +58,12 @@ async function createNewConcentratedPool() {
   })
   useConcentrated.setState({ loading: true })
 
-  const hasReverse = coin1.mint !== mockPoolInfo.mintA.mint
-  if (hasReverse) {
-    useConcentrated.setState({
-      focusSide: hasReverse ? 'coin2' : 'coin1',
-      userCursorSide: hasReverse ? 'coin2' : 'coin1'
-    })
-  }
+  // const hasReverse = coin1.mint !== mockPoolInfo.mintA.mint
+  // if (hasReverse) {
+  //   useConcentrated.setState({
+  //     focusSide: hasReverse ? 'coin2' : 'coin1',
+  //     userCursorSide: hasReverse ? 'coin2' : 'coin1'
+  //   })
+  // }
   useConcentrated.setState({ currentAmmPool: hydrateConcentratedInfo({ state: mockPoolInfo }), loading: false })
 }
