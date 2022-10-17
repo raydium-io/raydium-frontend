@@ -62,7 +62,7 @@ export function PositionAprChart(
             }}
           ></div>
           <div className="w-18 text-[#abc4ff] text-sm mobile:text-xs">Trade Fee</div>
-          <div className="text-sm">{toPercentString(aprInfo.fee.percentInTotal)}</div>
+          <div className="text-sm">{toPercentString(aprInfo.fee.apr)}</div>
         </Row>
         {aprInfo.rewards.map(({ token, apr }, idx) => {
           const dotColors = positionAprLineColors.slice(1)
