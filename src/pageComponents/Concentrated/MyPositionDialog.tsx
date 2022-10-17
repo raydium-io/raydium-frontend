@@ -292,7 +292,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
       </Row>
       <div className="font-medium text-2xl mobile:text-lg text-white">{toPercentString(aprCalc?.apr)}</div>
       <Grid className="border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl">
-        {targetUserPositionAccount && <PositionAprChart positionAccount={targetUserPositionAccount} />}
+        {targetUserPositionAccount && <PositionAprChart positionAccount={targetUserPositionAccount} colCount={2} />}
       </Grid>
     </Col>
   )

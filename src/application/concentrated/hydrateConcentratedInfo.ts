@@ -12,8 +12,6 @@ import useToken from '../token/useToken'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
-import { p } from 'test-r-sdk/lib/farm-8939b64c'
-import { time } from 'console'
 
 export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConcentratedInfo): HydratedConcentratedInfo {
   const ammPoolInfo = mergeObject(
@@ -149,6 +147,32 @@ function hydrateUserPositionAccounnt(
     const positionPercentB = toPercent(div(innerVolumeB, add(innerVolumeA, innerVolumeB)))
     const inRange = checkIsInRange(ammPoolInfo, info)
     const poolRewardInfos = ammPoolInfo.state.rewardInfos
+    const positionRewardInfos = info.rewardInfos
+      .map((info, idx) => {
+        const token = getToken(poolRewardInfos[idx]?.tokenMint)
+        const penddingReward = token ? toTokenAmount(token, info.peddingReward) : undefined
+        if (!penddingReward) return
+        const apr24h =
+          idx === 0
+            ? toPercent(ammPoolInfo.state.day.rewardApr.A, { alreadyDecimaled: true })
+            : idx === 1
+            ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
+        const apr7d =
+          idx === 0
+            ? toPercent(ammPoolInfo.state.week.rewardApr.A, { alreadyDecimaled: true })
+            : idx === 1
+            ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
+        const apr30d =
+          idx === 0
+            ? toPercent(ammPoolInfo.state.month.rewardApr.A, { alreadyDecimaled: true })
+            : idx === 1
+            ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
+        return { penddingReward, apr24h, apr7d, apr30d }
+      })
+      .filter((info) => Boolean(info?.penddingReward)) as UserPositionAccount['rewardInfos']
     return {
       sdkParsed: info,
       ...recursivelyDecimalToFraction(info),
@@ -163,32 +187,7 @@ function hydrateUserPositionAccounnt(
       tokenFeeAmountA,
       tokenFeeAmountB,
       inRange,
-      rewardInfos: info.rewardInfos
-        .map((info, idx) => {
-          const token = getToken(poolRewardInfos[idx]?.tokenMint)
-          const penddingReward = token ? toTokenAmount(token, info.peddingReward) : undefined
-          if (!penddingReward) return
-          const apr24h =
-            idx === 0
-              ? toPercent(ammPoolInfo.state.day.rewardApr.A, { alreadyDecimaled: true })
-              : idx === 1
-              ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
-          const apr7d =
-            idx === 0
-              ? toPercent(ammPoolInfo.state.week.rewardApr.A, { alreadyDecimaled: true })
-              : idx === 1
-              ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
-          const apr30d =
-            idx === 0
-              ? toPercent(ammPoolInfo.state.month.rewardApr.A, { alreadyDecimaled: true })
-              : idx === 1
-              ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
-          return { penddingReward, apr24h, apr7d, apr30d }
-        })
-        .filter((info) => Boolean(info?.penddingReward)) as UserPositionAccount['rewardInfos'],
+      rewardInfos: positionRewardInfos,
       getLiquidityVolume: (tokenPrices: Record<string, Price>) => {
         const aPrice = tokenPrices[toPubString(tokenA?.mint)]
         const bPrice = tokenPrices[toPubString(tokenB?.mint)]
@@ -223,7 +222,7 @@ function hydrateUserPositionAccounnt(
               rewards: ammPoolInfo.rewardApr30d.map((i, idx) => ({
                 percentInTotal: toPercent(div(i, total)),
                 apr: i,
-                token: idx === 0 ? tokenA : tokenB
+                token: getToken(poolRewardInfos[idx]?.tokenMint)
               })),
               apr: ammPoolInfo.totalApr24h
             }
@@ -237,7 +236,7 @@ function hydrateUserPositionAccounnt(
               rewards: ammPoolInfo.rewardApr30d.map((i, idx) => ({
                 percentInTotal: toPercent(div(i, total)),
                 apr: i,
-                token: idx === 0 ? tokenA : tokenB
+                token: getToken(poolRewardInfos[idx]?.tokenMint)
               })),
               apr: ammPoolInfo.totalApr7d
             }
@@ -251,7 +250,7 @@ function hydrateUserPositionAccounnt(
               rewards: ammPoolInfo.rewardApr30d.map((i, idx) => ({
                 percentInTotal: toPercent(div(i, total)),
                 apr: i,
-                token: idx === 0 ? tokenA : tokenB
+                token: getToken(poolRewardInfos[idx]?.tokenMint)
               })),
               apr: ammPoolInfo.totalApr30d
             }
@@ -266,16 +265,17 @@ function hydrateUserPositionAccounnt(
             chainTime: (Date.now() + chainTimeOffsetMs) / 1000,
             rewardMintDecimals: tokenDecimals
           })
-          const total = [planBApr.feeApr, ...planBApr.rewardsApr].reduce((a, b) => a + b, 0)
+          const slicedRewardApr = planBApr.rewardsApr.slice(0, poolRewardInfos.length)
+          const total = [planBApr.feeApr, ...slicedRewardApr].reduce((a, b) => a + b, 0)
           return {
             fee: {
               apr: toPercent(planBApr.feeApr),
               percentInTotal: toPercent(div(planBApr.feeApr, total))
             },
-            rewards: planBApr.rewardsApr.map((i, idx) => ({
+            rewards: slicedRewardApr.map((i, idx) => ({
               apr: toPercent(i),
               percentInTotal: div(i, total),
-              token: idx === 0 ? tokenA : tokenB
+              token: getToken(poolRewardInfos[idx]?.tokenMint)
             })),
             apr: toPercent(planBApr.apr)
           }
@@ -290,16 +290,17 @@ function hydrateUserPositionAccounnt(
             chainTime: (Date.now() + chainTimeOffsetMs) / 1000,
             rewardMintDecimals: tokenDecimals
           })
-          const total = [planCApr.feeApr, ...planCApr.rewardsApr].reduce((a, b) => a + b, 0)
+          const slicedRewardApr = planCApr.rewardsApr.slice(0, poolRewardInfos.length)
+          const total = [planCApr.feeApr, ...slicedRewardApr].reduce((a, b) => a + b, 0)
           return {
             fee: {
               apr: toPercent(planCApr.feeApr),
               percentInTotal: toPercent(div(planCApr.feeApr, total))
             },
-            rewards: planCApr.rewardsApr.map((i, idx) => ({
+            rewards: slicedRewardApr.map((i, idx) => ({
               apr: toPercent(i),
               percentInTotal: div(i, total),
-              token: idx === 0 ? tokenA : tokenB
+              token: getToken(poolRewardInfos[idx]?.tokenMint)
             })),
             apr: toPercent(planCApr.apr)
           }
