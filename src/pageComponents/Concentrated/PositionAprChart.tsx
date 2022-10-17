@@ -2,11 +2,12 @@ import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/con
 import Grid from '@/components/Grid'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
+import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { add } from '@/functions/numberish/operations'
 import { useConcentratedAprCalc, useConcentratedPositionAprCalc } from './useConcentratedAprCalc'
 
-const colors = ['#abc4ff', '#37bbe0', '#2b6aff', '#335095']
+const positionAprLineColors = ['#abc4ff', '#37bbe0', '#2b6aff', '#335095']
 
 export function PositionAprChart(
   option:
@@ -29,20 +30,24 @@ export function PositionAprChart(
       : useConcentratedAprCalc({ ammPool: option.poolInfo })
 
   if (!aprInfo) return null
+
+  const percentInTotalList = [aprInfo.fee.percentInTotal, ...aprInfo.rewards.map((i) => i.percentInTotal)]
   return (
     <Row className="gap-4">
       {/* circle */}
       <div
         className="w-16 h-16 rounded-full"
         style={{
-          // TODO: this conic-gradient is wrong, for not  use Map
-          background: `conic-gradient(${colors[0]} ${toPercentString(aprInfo.fee.percentInTotal)}, ${
-            colors[1]
-          } ${toPercentString(add(aprInfo.fee.percentInTotal, 0.005))}, ${colors[1]} ${toPercentString(
-            add(aprInfo.fee.percentInTotal, aprInfo.rewards[0]?.percentInTotal)
-          )}, ${colors[2]} ${toPercentString(
-            add(add(aprInfo.fee.percentInTotal, aprInfo.rewards[0]?.percentInTotal), 0.005)
-          )})`,
+          background: `conic-gradient(${percentInTotalList
+            .map((percent, idx) => {
+              const startAt = percentInTotalList.slice(0, idx).reduce((a, b) => toPercent(add(a, b)), toPercent(0))
+              const endAt = toPercent(add(startAt, percent))
+              return [
+                `${positionAprLineColors[idx]} ${toPercentString(startAt)}`,
+                `${positionAprLineColors[idx]} ${toPercentString(endAt)}`
+              ].join(', ')
+            })
+            .join(', ')})`,
           WebkitMaskImage: 'radial-gradient(transparent 50%, black 51%)',
           maskImage: 'radial-gradient(transparent 50%, black 51%)'
         }}
@@ -60,7 +65,7 @@ export function PositionAprChart(
           <div className="text-sm">{toPercentString(aprInfo.fee.percentInTotal)}</div>
         </Row>
         {aprInfo.rewards.map(({ token, apr }, idx) => {
-          const dotColors = colors.slice(1)
+          const dotColors = positionAprLineColors.slice(1)
           return (
             <Row className="items-center gap-2" key={toPubString(token?.mint)}>
               {/* dot */}
