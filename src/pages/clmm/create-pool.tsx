@@ -4,6 +4,12 @@ import produce from 'immer'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
+import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
+import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
+import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
+import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
+import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConnection from '@/application/connection/useConnection'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
@@ -22,24 +28,19 @@ import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import { isDateAfter } from '@/functions/date/judges'
 import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import toUsdVolume from '@/functions/format/toUsdVolume'
 import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
+import toFraction from '@/functions/numberish/toFraction'
+import useToggle from '@/hooks/useToggle'
+import { CreatePoolCard } from '@/pageComponents/createConcentratedPool/CreatePoolCard'
+import CreatePoolConfirmDialog from '@/pageComponents/createConcentratedPool/CreatePoolConfirmDialog'
 import { PoolSelectCard } from '@/pageComponents/createConcentratedPool/PoolSelectCard'
+
 import { useChainDate } from '../../hooks/useChainDate'
 import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
-import { CreatePoolCard } from '@/pageComponents/createConcentratedPool/CreatePoolCard'
-import CreatePoolConfirmDialog from '@/pageComponents/createConcentratedPool/CreatePoolConfirmDialog'
-import useConcentrated from '@/application/concentrated/useConcentrated'
-import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
-import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
-import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
-import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
-import toFraction from '@/functions/numberish/toFraction'
-import toUsdVolume from '@/functions/format/toUsdVolume'
-import useToggle from '@/hooks/useToggle'
 
 // unless ido have move this component, it can't be renamed or move to /components
 function StepBadge(props: { n: number }) {
@@ -140,17 +141,16 @@ export default function CreatePoolPage() {
 
   // avoid input re-render if chain Date change
   const [poolIdValid, setPoolIdValid] = useState(false)
-  const {
-    coin1,
-    coin1Amount,
-    coin2,
-    coin2Amount,
-    totalDeposit,
-    userSettedCurrentPrice,
-    priceLower,
-    priceUpper,
-    userSelectedAmmConfigFeeOption
-  } = useConcentrated()
+
+  const coin1 = useConcentrated((s) => s.coin1)
+  const coin1Amount = useConcentrated((s) => s.coin1Amount)
+  const coin2 = useConcentrated((s) => s.coin2)
+  const coin2Amount = useConcentrated((s) => s.coin2Amount)
+  const totalDeposit = useConcentrated((s) => s.totalDeposit)
+  const userSettedCurrentPrice = useConcentrated((s) => s.userSettedCurrentPrice)
+  const priceLower = useConcentrated((s) => s.priceLower)
+  const priceUpper = useConcentrated((s) => s.priceUpper)
+  const userSelectedAmmConfigFeeOption = useConcentrated((s) => s.userSelectedAmmConfigFeeOption)
 
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
 
