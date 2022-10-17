@@ -3,15 +3,16 @@ import { useEffect } from 'react'
 import useConcentrated from './useConcentrated'
 
 /** coin1 coin2 ammId */
-export default function useConcentratedAmmSelector() {
+export default function useConcentratedAmmSelector(notCleanPool?: boolean) {
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
 
   useEffect(() => {
-    useConcentrated.setState({
-      currentAmmPool: undefined
-    })
+    !notCleanPool &&
+      useConcentrated.setState({
+        currentAmmPool: undefined
+      })
     if (!hydratedAmmPools.length || !coin1 || !coin2) {
       useConcentrated.setState({
         selectableAmmPools: undefined,
@@ -24,11 +25,15 @@ export default function useConcentratedAmmSelector() {
         (isMintEqual(p.state.mintA.mint, coin1.mint) && isMintEqual(p.state.mintB.mint, coin2.mint)) ||
         (isMintEqual(p.state.mintA.mint, coin2.mint) && isMintEqual(p.state.mintB.mint, coin1.mint))
     )
-    useConcentrated.setState({
-      selectableAmmPools: allSelectablePools,
-      currentAmmPool: allSelectablePools[0] // TEST
-    })
-  }, [coin1, coin2, hydratedAmmPools])
+    useConcentrated.setState(
+      notCleanPool
+        ? { selectableAmmPools: allSelectablePools }
+        : {
+            selectableAmmPools: allSelectablePools,
+            currentAmmPool: allSelectablePools[0] // TEST
+          }
+    )
+  }, [coin1, coin2, hydratedAmmPools, notCleanPool])
 
   // /** update `coin1` and `coin2` (to match `ammId`) */
   // useEffect(() => {

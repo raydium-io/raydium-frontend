@@ -18,7 +18,7 @@ export function ConcentratedFeeSwitcher({ className }: { className?: string }) {
 
   useConcentratedInfoLoader()
   useConcentratedAmmConfigInfoLoader()
-  useConcentratedAmmSelector()
+  useConcentratedAmmSelector(true)
   useConcentratedInitFeeSelector()
   return (
     <ConcentratedFeeSwitcherContent
