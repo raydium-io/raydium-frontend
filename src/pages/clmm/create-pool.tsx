@@ -234,12 +234,8 @@ export default function CreatePoolPage() {
               { should: isMeaningfulNumber(userSettedCurrentPrice), fallbackProps: { children: 'Input Price' } },
               { should: userSelectedAmmConfigFeeOption, fallbackProps: { children: 'Select a fee option' } },
               {
-                should: isMeaningfulNumber(coin1Amount),
-                fallbackProps: { children: `Input ${coin1?.symbol ?? '--'} Amount` }
-              },
-              {
-                should: isMeaningfulNumber(coin2Amount),
-                fallbackProps: { children: `Input ${coin2?.symbol ?? '--'} Amount` }
+                should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
+                fallbackProps: { children: 'Input Token Amount' }
               },
               {
                 should: haveEnoughCoin1,
