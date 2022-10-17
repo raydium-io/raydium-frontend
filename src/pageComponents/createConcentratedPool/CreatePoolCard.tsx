@@ -81,13 +81,6 @@ export function CreatePoolCard() {
 
   useEffect(
     () => () => {
-      useConcentrated.setState({ userSettedCurrentPrice: '' })
-    },
-    [currentAmmPool?.idString]
-  )
-
-  useEffect(
-    () => () => {
       if (!useConcentrated.getState().userSettedCurrentPrice) return
       useConcentrated.setState({
         userSettedCurrentPrice: div(1, useConcentrated.getState().userSettedCurrentPrice)
@@ -217,7 +210,7 @@ export function CreatePoolCard() {
           useConcentrated.setState(getSideState({ side, price: res.price, tick: res.tick }))
         }
         blurCheckTickRef.current = false
-        handleAdjustMin()
+        !skipCheck && handleAdjustMin()
         return undefined
       }
       blurTimerRef.current = noTimeOut ? fn() : window.setTimeout(fn, 200)
