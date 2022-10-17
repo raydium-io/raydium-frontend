@@ -13,12 +13,12 @@ export function ConcentratedModifyTooltipIcon({ iconClassName }: { iconClassName
       <Icon className={twMerge('ml-1 cursor-help', iconClassName)} size="sm" iconSrc="/icons/clmm-modify.svg" />
       <AprCalcDialog />
       <Tooltip.Panel className="max-w-[min(100vw,300px)]">
-        <Grid className="grid-cols-2-auto items-center">
+        <Grid className="grid-cols-2-auto items-center gap-y-2">
           <div className="text-sm text-white font-medium">
             {aprCalcMode === 'A' ? 'A Method' : aprCalcMode === 'B' ? 'B Method' : 'C Method'}
           </div>
           <Button
-            className="justify-end text-link-color"
+            className="justify-end text-link-color p-0 no-clicable-transform-effect"
             type="text"
             onClick={() =>
               useConcentrated.setState((s) => ({
@@ -26,7 +26,7 @@ export function ConcentratedModifyTooltipIcon({ iconClassName }: { iconClassName
               }))
             }
           >
-            <Icon size="sm" iconSrc="/icons/msic-swap.svg" />
+            <Icon size="sm" heroIconName="x-switch" />
             Switch
           </Button>
           <div className="col-span-full text-xs text-[#abc4ff80]">

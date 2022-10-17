@@ -23,12 +23,12 @@ export function PositionAprChart(
 ) {
   const colCount = option.colCount ?? 1
 
-  const apr =
+  const aprInfo =
     option.type === 'positionAccount'
       ? useConcentratedPositionAprCalc({ positionAccount: option.positionAccount })
       : useConcentratedAprCalc({ ammPool: option.poolInfo })
 
-  if (!apr) return null
+  if (!aprInfo) return null
   return (
     <Row className="gap-4">
       {/* circle */}
@@ -36,12 +36,12 @@ export function PositionAprChart(
         className="w-16 h-16 rounded-full"
         style={{
           // TODO: this conic-gradient is wrong, for not  use Map
-          background: `conic-gradient(${colors[0]} ${toPercentString(apr.fee.percentInTotal)}, ${
+          background: `conic-gradient(${colors[0]} ${toPercentString(aprInfo.fee.percentInTotal)}, ${
             colors[1]
-          } ${toPercentString(add(apr.fee.percentInTotal, 0.005))}, ${colors[1]} ${toPercentString(
-            add(apr.fee.percentInTotal, apr.rewards[0]?.percentInTotal)
+          } ${toPercentString(add(aprInfo.fee.percentInTotal, 0.005))}, ${colors[1]} ${toPercentString(
+            add(aprInfo.fee.percentInTotal, aprInfo.rewards[0]?.percentInTotal)
           )}, ${colors[2]} ${toPercentString(
-            add(add(apr.fee.percentInTotal, apr.rewards[0]?.percentInTotal), 0.005)
+            add(add(aprInfo.fee.percentInTotal, aprInfo.rewards[0]?.percentInTotal), 0.005)
           )})`,
           WebkitMaskImage: 'radial-gradient(transparent 50%, black 51%)',
           maskImage: 'radial-gradient(transparent 50%, black 51%)'
@@ -57,9 +57,9 @@ export function PositionAprChart(
             }}
           ></div>
           <div className="w-18 text-[#abc4ff] text-sm mobile:text-xs">Trade Fee</div>
-          <div className="text-sm">{toPercentString(apr.fee.percentInTotal)}</div>
+          <div className="text-sm">{toPercentString(aprInfo.fee.percentInTotal)}</div>
         </Row>
-        {apr.rewards.map(({ percentInTotal, token }, idx) => {
+        {aprInfo.rewards.map(({ token, apr }, idx) => {
           const dotColors = colors.slice(1)
           return (
             <Row className="items-center gap-2" key={toPubString(token?.mint)}>
@@ -71,7 +71,7 @@ export function PositionAprChart(
                 }}
               ></div>
               <div className="w-18 text-[#abc4ff] text-sm mobile:text-xs">{token?.symbol}</div>
-              <div className="text-sm">{toPercentString(percentInTotal)}</div>
+              <div className="text-sm">{toPercentString(apr)}</div>
             </Row>
           )
         })}
