@@ -12,7 +12,7 @@ import {
   getTickPrice
 } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentrated from '@/application/concentrated/txCreateConcentrated'
-import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
@@ -155,6 +155,7 @@ function ConcentratedCard() {
   const planAApr = useConcentrated((s) => s.planAApr)
   const planBApr = useConcentrated((s) => s.planBApr)
   const planCApr = useConcentrated((s) => s.planCApr)
+  const timeBasis = useConcentrated((s) => s.timeBasis)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const tokenPrice = useToken((s) => s.tokenPrices)
   const tokens = useToken((s) => s.tokens)
@@ -186,6 +187,21 @@ function ConcentratedCard() {
     () => Math.pow(-1, isCoin1Base ? (isFocus1 ? 0 : 1) : isFocus1 ? 1 : 0),
     [isCoin1Base, isFocus1]
   )
+
+  const timeMap = {
+    [TimeBasis.DAY]: 'day',
+    [TimeBasis.WEEK]: 'week',
+    [TimeBasis.MONTH]: 'month'
+  }
+
+  let [priceMin, priceMax] = currentAmmPool
+    ? [currentAmmPool.state[timeMap[timeBasis]].priceMin, currentAmmPool.state[timeMap[timeBasis]].priceMax]
+    : [undefined, undefined]
+
+  if (!isPairPoolDirectionEq) {
+    priceMin = priceMin ? 1 / priceMin : priceMin
+    priceMax = priceMax ? 1 / priceMax : priceMax
+  }
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
@@ -586,6 +602,8 @@ function ConcentratedCard() {
             ref={chartRef}
             chartOptions={chartOptions}
             currentPrice={currentPrice}
+            priceMin={priceMin}
+            priceMax={priceMax}
             priceLabel={isFocus1 ? `${coin2?.symbol} per ${coin1?.symbol}` : `${coin1?.symbol} per ${coin2?.symbol}`}
             decimals={decimals}
             onPositionChange={handlePosChange}

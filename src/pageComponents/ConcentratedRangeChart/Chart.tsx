@@ -9,8 +9,20 @@ import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 import { useEvent } from '@/hooks/useEvent'
 
 import {
-  AREA_CONFIG, boundaryColor, ChartPoint, ChartRangeInputOption, DEFAULT_X_AXIS, getConfig, getLabel, getStrokeFill,
-  HIGHLIGHT_COLOR, Range, toFixedNumber, unitColor, ZOOM_INTERVAL
+  AREA_CONFIG,
+  boundaryColor,
+  ChartPoint,
+  ChartRangeInputOption,
+  DEFAULT_X_AXIS,
+  getConfig,
+  getLabel,
+  getStrokeFill,
+  HIGHLIGHT_COLOR,
+  Range,
+  toFixedNumber,
+  unitColor,
+  ZOOM_INTERVAL,
+  getPriceLabel
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
 
@@ -30,6 +42,8 @@ interface Props {
   className?: string
   chartOptions?: ChartRangeInputOption
   currentPrice?: Fraction
+  priceMin?: number
+  priceMax?: number
   priceLabel?: string
   showCurrentPriceOnly?: boolean
   showZoom?: boolean
@@ -49,6 +63,8 @@ export default forwardRef(function Chart(props: Props, ref) {
     poolFocusKey,
     chartOptions,
     currentPrice,
+    priceMin,
+    priceMax,
     priceLabel,
     decimals,
     height,
@@ -522,8 +538,11 @@ export default forwardRef(function Chart(props: Props, ref) {
           </div>
         )}
       </div>
-      <div className="text-[#ABC4FF] text-sm text-center">
-        {hideCurrentPriceLabel ? undefined : `Current Price: ${currentPrice?.toSignificant(4)} ${priceLabel || ''}`}
+      <div>
+        <div>
+          <span className="inline-block w-[8px] h-[2px] bg-white" />
+          Current Price {currentPrice?.toSignificant(decimals)}
+        </div>
       </div>
       <div className="w-full select-none" style={{ height: `${height || 140}px` }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -531,7 +550,7 @@ export default forwardRef(function Chart(props: Props, ref) {
             style={{ userSelect: 'none' }}
             width={500}
             height={400}
-            margin={{ top: 10 }}
+            margin={{ top: 30 }}
             defaultShowTooltip={false}
             data={displayList || []}
             onMouseDown={isMobile ? handleMouseDown(Range.Min) : undefined}
@@ -588,11 +607,17 @@ export default forwardRef(function Chart(props: Props, ref) {
             {currentPrice && (
               <ReferenceLine
                 isFront={true}
-                x={currentPrice?.toSignificant(4)}
+                x={currentPrice?.toSignificant(decimals)}
                 stroke="#FFF"
                 strokeDasharray="4"
                 strokeWidth={2}
               />
+            )}
+            {!showCurrentPriceOnly && priceMin && (
+              <ReferenceLine isFront={true} x={priceMin} stroke="#39D0D8" strokeDasharray="4" strokeWidth={2} />
+            )}
+            {!showCurrentPriceOnly && priceMax && (
+              <ReferenceLine isFront={true} x={priceMax} stroke="#39D0D8" strokeDasharray="4" strokeWidth={2} />
             )}
             {hasPoints && !showCurrentPriceOnly && (
               <ReferenceArea
