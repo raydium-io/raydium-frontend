@@ -1,7 +1,7 @@
 import assert from '@/functions/assert'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
-import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { AmmV3 } from 'test-r-sdk'
 import { Keypair, PublicKey } from '@solana/web3.js'
 import { useEffect } from 'react'
 import useConnection from '../connection/useConnection'
