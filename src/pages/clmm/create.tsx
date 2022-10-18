@@ -52,6 +52,9 @@ import { formatDecimal } from '@/functions/numberish/formatDecimal'
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
+import { CreateFeeSwitcher } from '@/pageComponents/createConcentratedPool/CreateFeeSwitcher'
+import { ConcentratedFeeSwitcher } from '@/pageComponents/Concentrated/ConcentratedFeeSwitcher'
+import Col from '@/components/Col'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -373,15 +376,15 @@ function ConcentratedCard() {
       />
 
       <div className="flex flex-col sm:flex-row flex-gap-1 gap-3 mb-3">
-        <div className="bg-dark-blue rounded-xl flex flex-col justify-between w-full sm:w-1/2 px-3 py-4">
+        <Col className="gap-3 bg-dark-blue rounded-xl flex flex-col justify-between w-full sm:w-1/2 px-3 py-4">
           <div>
-            <div className="text-base leading-[22px] text-secondary-title mb-5">Deposit Amount</div>
+            <div className="text-base leading-[22px] text-secondary-title mb-3">Deposit Amount</div>
 
             {/* input twin */}
             <div ref={swapElementBox1} className="relative">
               {coin1InputDisabled && <InputLocked />}
               <CoinInputBox
-                className="mt-5 mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
+                className="mb-4 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
                 disabled={isApprovePanelShown}
                 disabledInput={!currentAmmPool || coin1InputDisabled}
                 noDisableStyle
@@ -436,30 +439,16 @@ function ConcentratedCard() {
                 token={coin2}
               />
             </div>
-
-            <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
-              <div className="flex justify-between mb-4">
-                <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
-                <span className="text-lg leading-[18px]">
-                  {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
-                    ? toUsdVolume(totalDeposit)
-                    : '--'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
-                <span className="text-lg flex leading-[18px]">
-                  {currentAmmPool && <CoinAvatarPair size="sm" token1={coin1} token2={coin2} />}
-                  {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
-                    ? `${ratio1}% / ${ratio2}%`
-                    : '--'}
-                </span>
-              </div>
-            </div>
           </div>
+
+          <div>
+            <div className="text-base leading-[22px] text-secondary-title mb-3">Fee</div>
+            <ConcentratedFeeSwitcher />
+          </div>
+
           {coin1InputDisabled || coin2InputDisabled ? (
             <FadeIn>
-              <div className="flex items-center mt-3.5 p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
+              <div className="flex items-center p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
                 <Icon size="sm" className="mr-1.5" heroIconName="exclamation-circle" />
                 Your position will not trade or earn fees until price moves into your range.
               </div>
@@ -470,7 +459,7 @@ function ConcentratedCard() {
 
           {/* supply button */}
           <Button
-            className="frosted-glass-teal w-full mt-5"
+            className="frosted-glass-teal w-full mt-2"
             componentRef={liquidityButtonComponentRef}
             isLoading={isApprovePanelShown}
             validators={[
@@ -518,7 +507,7 @@ function ConcentratedCard() {
             Preview
           </Button>
           <RemainSOLAlert />
-        </div>
+        </Col>
 
         <div
           className={`relative bg-dark-blue min-h-[180px] rounded-xl w-full sm:w-1/2 px-3 py-4 ${
@@ -544,6 +533,25 @@ function ConcentratedCard() {
             showZoom
             height={200}
           />
+          <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
+            <div className="flex justify-between mb-4">
+              <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
+              <span className="text-lg leading-[18px]">
+                {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
+                  ? toUsdVolume(totalDeposit)
+                  : '--'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
+              <span className="text-lg flex leading-[18px]">
+                {currentAmmPool && <CoinAvatarPair size="sm" token1={coin1} token2={coin2} />}
+                {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
+                  ? `${ratio1}% / ${ratio2}%`
+                  : '--'}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
       {/** coin selector panel */}

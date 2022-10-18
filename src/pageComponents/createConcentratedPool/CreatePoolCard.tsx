@@ -24,7 +24,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import { Numberish } from '@/types/constants'
 import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
-import { ConcentratedFeeSwitcher } from './ConcentratedFeeSwitcher'
+import { CreateFeeSwitcher } from './CreateFeeSwitcher'
 import EmptyCoinInput from './EmptyCoinInput'
 import InputLocked from './InputLocked'
 import PriceRangeInput from './PriceRangeInput'
@@ -283,7 +283,7 @@ export function CreatePoolCard() {
 
         <div>
           <div className="font-medium text-[#abc4ff] mb-2">Select Trade Fee Rate</div>
-          <ConcentratedFeeSwitcher />
+          <CreateFeeSwitcher />
         </div>
 
         <div>

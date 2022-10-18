@@ -2,7 +2,7 @@ import toPubString from '@/functions/format/toMintString'
 import { useEffect } from 'react'
 import useConcentrated from './useConcentrated'
 
-export default function useConcentratedInitFeeSelector() {
+export default function useConcentratedCreateInitFeeSelector() {
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
 
