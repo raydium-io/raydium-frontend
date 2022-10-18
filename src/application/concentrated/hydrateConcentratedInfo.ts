@@ -101,7 +101,18 @@ function hydratePoolInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
   const { getToken } = useToken.getState()
   const base = getToken(sdkConcentratedInfo.state.mintA.mint)
   const quote = getToken(sdkConcentratedInfo.state.mintB.mint)
-  const name = (base ? base.symbol : 'unknown') + '-' + (quote ? quote?.symbol : 'unknown')
+  const name =
+    (base
+      ? base.symbol
+      : sdkConcentratedInfo.state.mintA.mint
+      ? toPubString(sdkConcentratedInfo.state.mintA.mint).substring(0, 6)
+      : 'unknown') +
+    '-' +
+    (quote
+      ? quote?.symbol
+      : sdkConcentratedInfo.state.mintB.mint
+      ? toPubString(sdkConcentratedInfo.state.mintB.mint).substring(0, 6)
+      : 'unknown')
 
   return {
     id: sdkConcentratedInfo.state.id,
