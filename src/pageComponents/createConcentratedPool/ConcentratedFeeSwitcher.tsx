@@ -9,6 +9,7 @@ import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { gte } from '@/functions/numberish/compare'
+import { twMerge } from 'tailwind-merge'
 
 export function ConcentratedFeeSwitcher({ className }: { className?: string }) {
   const existAmmPools = useConcentrated((s) => s.selectableAmmPools)
@@ -25,6 +26,7 @@ export function ConcentratedFeeSwitcher({ className }: { className?: string }) {
       configs={ammConfigFeeOptions}
       current={userSelectedAmmConfigFeeOption}
       existIds={existAmmPoolConfigIds}
+      className={className}
     />
   )
 }
@@ -32,16 +34,18 @@ export function ConcentratedFeeSwitcher({ className }: { className?: string }) {
 function ConcentratedFeeSwitcherContent({
   configs,
   current,
-  existIds
+  existIds,
+  className
 }: {
   configs?: HydratedAmmV3ConfigInfo[]
   current?: HydratedAmmV3ConfigInfo
   existIds?: string[]
+  className?: string
 }) {
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
   return (
-    <Row className="py-4 gap-4">
+    <Row className={twMerge('gap-4', className)}>
       {configs?.map((config) => {
         const isCurrent = config.id === current?.id
         const canSelect = coin1 && coin2 && !existIds?.includes(config.id)
