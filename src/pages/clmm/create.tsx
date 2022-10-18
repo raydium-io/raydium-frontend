@@ -47,6 +47,7 @@ import { canTokenPairBeSelected, PairInfoTitle, RemainSOLAlert, toXYChartFormat 
 import InputLocked from '@/pageComponents/Concentrated/InputLocked'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
+import { formatDecimal } from '@/functions/numberish/formatDecimal'
 
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
@@ -136,6 +137,7 @@ function ConcentratedCard() {
     s.loadChartPointsAct,
     s.lazyLoadChart
   ])
+  const hasChartPoints = !!chartPoints && chartPoints.length > 0
   const connected = useWallet((s) => s.connected)
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -222,8 +224,7 @@ function ConcentratedCard() {
       useConcentrated.setState({
         lazyLoadChart: false,
         focusSide: 'coin1',
-        userCursorSide: 'coin1',
-        chartPoints: []
+        userCursorSide: 'coin1'
       }),
     []
   )
@@ -284,7 +285,7 @@ function ConcentratedCard() {
       })
       tickRef.current.lower = tick
       useConcentrated.setState({ priceLowerTick: tick, priceLower: price })
-      return { price: Number(price.toFixed(decimals)), tick }
+      return { price: formatDecimal({ val: price.toFixed(10), decimals }), tick }
     }
     return originRes
   })
@@ -301,6 +302,7 @@ function ConcentratedCard() {
       })!
       const isMin = side === Range.Min
       const tickKey = isMin ? 'priceLowerTick' : 'priceUpperTick'
+
       if (userInput && side) {
         tickRef.current[isMin ? 'lower' : 'upper'] = res[tickKey]
         isMin && useConcentrated.setState({ priceLowerTick: res[tickKey], priceLower: res.priceLower })
@@ -328,7 +330,8 @@ function ConcentratedCard() {
         baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
         tick: nextTick
       })
-      if (isMin && Number(price.toFixed(decimals)) >= chartRef.current!.getPosition().max) return toFraction(p)
+      if (isMin && formatDecimal({ val: price.toFixed(20), decimals }) >= chartRef.current!.getPosition().max)
+        return toFraction(p)
 
       tickRef.current[tickKey] = nextTick
       isMin && useConcentrated.setState({ priceLower: price, priceLowerTick: nextTick })

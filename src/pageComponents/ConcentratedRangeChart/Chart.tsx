@@ -21,6 +21,7 @@ import {
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
 import { useEvent } from '@/hooks/useEvent'
+import { formatDecimal } from '@/functions/numberish/formatDecimal'
 
 interface HighlightPoint extends ChartPoint {
   position?: number
@@ -108,16 +109,16 @@ export default forwardRef(function Chart(props: Props, ref) {
         setPosition((prePos) => {
           const newPos = nextStateOrCbk(prePos)
           return {
-            [Range.Min]: toFixedNumber(getSafeMin(newPos[Range.Min]), decimals),
-            [Range.Max]: toFixedNumber(newPos[Range.Max], decimals)
+            [Range.Min]: formatDecimal({ val: getSafeMin(newPos[Range.Min]), decimals }),
+            [Range.Max]: formatDecimal({ val: newPos[Range.Max], decimals })
           }
         })
         return
       }
 
       setPosition({
-        [Range.Min]: toFixedNumber(getSafeMin(nextStateOrCbk[Range.Min]), decimals),
-        [Range.Max]: toFixedNumber(nextStateOrCbk[Range.Max], decimals)
+        [Range.Min]: formatDecimal({ val: getSafeMin(nextStateOrCbk[Range.Min]), decimals }),
+        [Range.Max]: formatDecimal({ val: nextStateOrCbk[Range.Max], decimals })
       })
     },
     [decimals, points]
@@ -131,9 +132,10 @@ export default forwardRef(function Chart(props: Props, ref) {
       setXAxisDomain(DEFAULT_X_AXIS)
       setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
     }
+
     const [defaultMinNum, defaultMaxNum] = [
-      defaultMin ? Number(defaultMin.toFixed(6)) : undefined,
-      defaultMax ? Number(defaultMax.toFixed(6)) : undefined
+      defaultMin ? Number(defaultMin.toFixed(8)) : undefined,
+      defaultMax ? Number(defaultMax.toFixed(8)) : undefined
     ]
     if (!points.length) {
       if (defaultMinNum === undefined || defaultMaxNum === undefined) return
@@ -161,7 +163,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     let maxY = points[0].y
     for (let i = 0; i < pointMaxIndex; i++) {
       const [prePoint, point, nextPoint] = [points[i - 1], points[i], points[i + 1]]
-      const pointXNum = toFixedNumber(point.x, decimals)
+      const pointXNum = formatDecimal({ val: point.x, decimals })
       if (defaultMinNum && pointXNum > defaultMinNum && !foundDefaultMin) {
         const insertIdx = displayList.findIndex((p) => p.x > defaultMinNum)
         displayList.splice(insertIdx === -1 ? displayList.length : insertIdx, 0, {
@@ -185,10 +187,10 @@ export default forwardRef(function Chart(props: Props, ref) {
       maxY = Math.max(maxY, point.y)
       // add more points to chart to smooth line
       if (smoothCount > 0) {
-        const gap = toFixedNumber((nextPoint.x - point.x) / smoothCount, decimals)
+        const gap = formatDecimal({ val: (nextPoint.x - point.x) / smoothCount, decimals })
         for (let j = 1; j <= smoothCount; j++) {
           const y = toFixedNumber(point.y, decimals)
-          displayList.push({ x: toFixedNumber(point.x + gap * j, decimals), y })
+          displayList.push({ x: formatDecimal({ val: point.x + gap * j, decimals }), y })
         }
       }
     }
@@ -371,7 +373,9 @@ export default forwardRef(function Chart(props: Props, ref) {
         setTimeout(() => {
           const res = onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
           blurRef.current = res
-            ? Number(isMin ? res.priceLower.toFixed(decimals) : res.priceUpper.toFixed(decimals))
+            ? isMin
+              ? formatDecimal({ val: res.priceLower.toFixed(8), decimals })
+              : formatDecimal({ val: res.priceUpper.toFixed(8), decimals })
             : undefined
         }, 100)
         return { ...p, [side]: newVal }
@@ -428,7 +432,9 @@ export default forwardRef(function Chart(props: Props, ref) {
       if (isIncrease) {
         setPosition((prePos) => {
           const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: true })
-          const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
+          const posNum = newPos
+            ? formatDecimal({ val: newPos.toFixed(10), decimals })
+            : formatDecimal({ val: Number(val) + tickGap, decimals })
           if (hasPoints && !isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
             setDisplayList((list) => [...list, { x: posNum + tickGap, y: 0, extend: true }])
           resultPosNum = posNum
@@ -438,7 +444,9 @@ export default forwardRef(function Chart(props: Props, ref) {
       }
       setPosition((prePos) => {
         const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: false })
-        const posNum = newPos ? parseFloat(newPos.toFixed(decimals)) : toFixedNumber(Number(val) + tickGap, decimals)
+        const posNum = newPos
+          ? formatDecimal({ val: newPos.toFixed(10), decimals })
+          : formatDecimal({ val: Number(val) + tickGap, decimals })
         resultPosNum = posNum
         return { ...prePos, [side]: posNum }
       })
@@ -627,7 +635,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       </div>
       {!hideRangeInput && (
         <PriceRangeInput
-          decimals={decimals + 2}
+          decimals={Math.max(8, decimals)}
           minValue={position.min}
           maxValue={position.max}
           onBlur={handleBlurInput}
