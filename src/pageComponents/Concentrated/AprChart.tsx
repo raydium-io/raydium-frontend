@@ -5,7 +5,11 @@ import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { add } from '@/functions/numberish/operations'
-import { useConcentratedAprCalc, useConcentratedPositionAprCalc } from './useConcentratedAprCalc'
+import {
+  useConcentratedTickAprCalc,
+  useConcentratedPositionAprCalc,
+  useConcentratedPoolAprCalc
+} from './useConcentratedAprCalc'
 
 const aprLineColors = ['#abc4ff', '#37bbe0', '#2b6aff', '#335095']
 
@@ -15,6 +19,11 @@ export function AprChart(
         type: 'positionAccount'
         colCount?: 1 | 2
         positionAccount: UserPositionAccount
+      }
+    | {
+        type: 'poolTickInfo'
+        colCount?: 1 | 2
+        poolInfo: HydratedConcentratedInfo
       }
     | {
         type: 'poolInfo'
@@ -27,7 +36,9 @@ export function AprChart(
   const aprInfo =
     option.type === 'positionAccount'
       ? useConcentratedPositionAprCalc({ positionAccount: option.positionAccount })
-      : useConcentratedAprCalc({ ammPool: option.poolInfo })
+      : option.type === 'poolTickInfo'
+      ? useConcentratedTickAprCalc({ ammPool: option.poolInfo })
+      : useConcentratedPoolAprCalc({ ammPool: option.poolInfo })
 
   if (!aprInfo) return null
 

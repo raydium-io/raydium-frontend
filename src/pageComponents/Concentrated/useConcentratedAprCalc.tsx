@@ -2,6 +2,8 @@ import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/con
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
+import { toPercent } from '@/functions/format/toPercent'
+import { div } from '@/functions/numberish/operations'
 import { objectMap } from '@/functions/objectMethods'
 import { useMemo } from 'react'
 
@@ -30,7 +32,7 @@ export function useConcentratedPositionAprCalc({
   return apr
 }
 
-export function useConcentratedAprCalc({ ammPool }: { ammPool: HydratedConcentratedInfo | undefined }) {
+export function useConcentratedTickAprCalc({ ammPool }: { ammPool: HydratedConcentratedInfo | undefined }) {
   const tickLower = useConcentrated((s) => s.priceLowerTick)
   const tickUpper = useConcentrated((s) => s.priceUpperTick)
   const timeBasis = useConcentrated((s) => s.timeBasis)
@@ -55,4 +57,23 @@ export function useConcentratedAprCalc({ ammPool }: { ammPool: HydratedConcentra
     [chainTimeOffset, timeBasis, aprCalcMethod, tokens, tickLower, tickUpper, ammPool]
   )
   return apr
+}
+export function useConcentratedPoolAprCalc({ ammPool }: { ammPool: HydratedConcentratedInfo | undefined }) {
+  const timeBasis = useConcentrated((s) => s.timeBasis)
+  if (!ammPool) return
+  const feeApr = ammPool[timeBasis === '24H' ? 'feeApr24h' : timeBasis === '7D' ? 'feeApr7d' : 'feeApr30d']
+  const rewardsApr = ammPool[timeBasis === '24H' ? 'rewardApr24h' : timeBasis === '7D' ? 'rewardApr7d' : 'rewardApr30d']
+  const totalApr = ammPool[timeBasis === '24H' ? 'totalApr24h' : timeBasis === '7D' ? 'totalApr7d' : 'totalApr30d']
+  return {
+    fee: {
+      apr: feeApr,
+      percentInTotal: toPercent(div(feeApr, totalApr))
+    },
+    rewards: rewardsApr.map((ra, idx) => ({
+      apr: ra,
+      percentInTotal: toPercent(div(feeApr, totalApr)),
+      token: ammPool.rewardInfos[idx]?.rewardToken
+    })),
+    apr: totalApr
+  }
 }

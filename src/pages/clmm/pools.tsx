@@ -796,10 +796,19 @@ function PoolCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name={`APR(${timeBasis})`}
         value={
-          <div>
-            {toPercentString(apr?.total)}
-            <AprLine aprValues={apr?.itemList}></AprLine>
-          </div>
+          <Tooltip panelClassName="p-0 rounded-xl">
+            <div>
+              {toPercentString(apr?.total)}
+              <Row className="items-center gap-2 mobile:gap-1 mt-1">
+                {apr && <AprLine className="w-28" aprValues={apr.itemList} />}
+              </Row>
+            </div>
+            <Tooltip.Panel>
+              <div className="p-5">
+                <AprChart type="poolInfo" colCount={2} poolInfo={info} />
+              </div>
+            </Tooltip.Panel>
+          </Tooltip>
         }
       />
       <Grid className="w-9 h-9 mr-8 place-items-center">
