@@ -1,10 +1,12 @@
+import { Percent } from 'test-r-sdk'
+
 import { Numberish } from '@/types/constants'
-import { Percent } from '@raydium-io/raydium-sdk'
 
 import { eq, gt } from '../numberish/compare'
 import { mul } from '../numberish/operations'
 import toFraction from '../numberish/toFraction'
 import { toString } from '../numberish/toString'
+
 import formatNumber from './formatNumber'
 
 /**

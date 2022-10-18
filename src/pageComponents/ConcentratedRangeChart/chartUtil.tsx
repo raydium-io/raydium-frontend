@@ -96,7 +96,7 @@ export const getPriceLabel = (price?: number | string) => (props) => {
         textAnchor="middle"
         dominantBaseline="middle"
       >
-        Current Price:
+        Current Price
       </text>
       <text
         className="break-words"
@@ -108,6 +108,30 @@ export const getPriceLabel = (price?: number | string) => (props) => {
           fontSize: 12
         }}
         textAnchor="middle"
+        dominantBaseline="middle"
+      >
+        {price}
+      </text>
+    </g>
+  ) : (
+    <g></g>
+  )
+}
+
+export const getMinMaxPriceLabel = (side: 'min' | 'max', price?: number | string) => (props) => {
+  return price ? (
+    <g>
+      <text
+        className="break-words"
+        fill="#39D0D8"
+        fillOpacity="0.5"
+        y={props.viewBox.y - 5}
+        x={props.viewBox.x - 2}
+        style={{
+          fontWeight: '500',
+          fontSize: 12
+        }}
+        textAnchor={side === 'min' ? 'end' : 'start'}
         dominantBaseline="middle"
       >
         {price}

@@ -10,6 +10,7 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import useTwoStateSyncer from '@/hooks/use2StateSyncer'
 import { MayFunction } from '@/types/constants'
 import { useSignalState } from '@/hooks/useSignalState'
+import useGlobInstanceDetector from '@/hooks/useGlobInstanceDetector'
 
 export const DRAWER_STACK_ID = 'drawer-stack'
 
@@ -33,6 +34,8 @@ const placementClasses = {
 }
 
 export interface DrawerProps {
+  /** set this will force only one instance in page */
+  pageComponentName?: string
   className?: string
   style?: React.CSSProperties
   children?: MayFunction<ReactNode, [{ close(): void }]>
@@ -62,6 +65,7 @@ const DrawerStackPortal = ({ children }) => {
 }
 
 export default function Drawer({
+  pageComponentName,
   className,
   style,
   children,
@@ -80,6 +84,8 @@ export default function Drawer({
   // during leave transition, open is still true, but innerOpen is false, so transaction will happen without props:open has change (if open is false, React may destory this component immediately)
   const [innerOpen, setInnerOpen] = useSignalState(open)
 
+  const { isFirstDetectedComponentInThisPage } = useGlobInstanceDetector(pageComponentName)
+  const componentCanExist = !pageComponentName || isFirstDetectedComponentInThisPage
   useEffect(() => {
     if (open) onOpen?.()
   }, [open])
@@ -95,6 +101,7 @@ export default function Drawer({
     }
   })
 
+  if (!componentCanExist) return null
   return (
     <DrawerStackPortal>
       <Transition as={Fragment} appear show={innerOpen} beforeLeave={onCloseImmediately} afterLeave={onClose}>

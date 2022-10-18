@@ -1,9 +1,12 @@
-import { toPub } from '@/functions/format/toMintString'
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
 import { Connection } from '@solana/web3.js'
+
+import { PublicKeyish } from 'test-r-sdk'
+
+import { toPub } from '@/functions/format/toMintString'
+
 import { SplToken } from '../token/type'
-import { parseBalanceFromTokenAccount } from '../wallet/useBalanceRefresher'
 import { getWalletTokenAccounts } from '../wallet/getWalletTokenAccounts'
+import { parseBalanceFromTokenAccount } from '../wallet/useBalanceRefresher'
 
 export async function getWalletBalance({
   walletPublickeyish,

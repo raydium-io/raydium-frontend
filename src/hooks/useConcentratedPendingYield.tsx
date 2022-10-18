@@ -1,9 +1,8 @@
 import { useMemo } from 'react'
 
-import { Fraction, Token } from '@raydium-io/raydium-sdk'
+import { Fraction, Token } from 'test-r-sdk'
 
 import { UserPositionAccount } from '@/application/concentrated/type'
-import useConcentrated from '@/application/concentrated/useConcentrated'
 import useToken from '@/application/token/useToken'
 import toPubString from '@/functions/format/toMintString'
 import { add, mul } from '@/functions/numberish/operations'

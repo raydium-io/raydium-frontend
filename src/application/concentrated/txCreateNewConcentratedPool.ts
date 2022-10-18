@@ -1,8 +1,18 @@
+import { AmmV3 } from 'test-r-sdk'
+
 import assert from '@/functions/assert'
+import toFraction from '@/functions/numberish/toFraction'
+import useConnection from '../connection/useConnection'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
+import { ammV3ProgramId } from '../token/wellknownProgram.config'
+import { SOLMint } from '../token/wellknownToken.config'
 import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
-import { generateCreateClmmPositionTx } from './txCreateConcentratedPosition'
+import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
+import useWallet from '../wallet/useWallet'
+import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
+import { generateCreateClmmPositionTx } from './txCreateConcentratedPosition'
 
 export default function txCreateNewConcentratedPool() {
   return txHandler(async ({ transactionCollector }) => {

@@ -1,5 +1,4 @@
-import { LiquidityPoolJsonInfo as LiquidityJsonInfo, PublicKeyish } from '@raydium-io/raydium-sdk'
-
+import { LiquidityPoolJsonInfo as LiquidityJsonInfo, PublicKeyish } from 'test-r-sdk'
 import create from 'zustand'
 
 import toPubString, { toPub } from '@/functions/format/toMintString'
@@ -9,9 +8,9 @@ import { div } from '@/functions/numberish/operations'
 import { toDataMint } from '../token/quantumSOL'
 import { SplToken } from '../token/type'
 
+import { getRouteRelated } from './getRouteRelated'
 import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
 import { HydratedLiquidityInfo, SDKParsedLiquidityInfo } from './type'
-import { getRouteRelated } from './getRouteRelated'
 
 export type LiquidityStore = {
   // too tedius

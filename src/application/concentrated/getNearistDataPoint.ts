@@ -1,14 +1,19 @@
-import { div, getMax, mul } from '@/functions/numberish/operations'
-import { fractionToDecimal } from '@/application/txTools/decimal2Fraction'
-import { recursivelyDecimalToFraction, decimalToFraction } from '@/application/txTools/decimal2Fraction'
+import { AmmV3, Fraction } from 'test-r-sdk'
+
+import {
+  decimalToFraction,
+  fractionToDecimal,
+  recursivelyDecimalToFraction
+} from '@/application/txTools/decimal2Fraction'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { div, getMax, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
-import { Fraction } from '@raydium-io/raydium-sdk'
-import { AmmV3 } from '@raydium-io/raydium-sdk'
-import { SplToken } from '../token/type'
-import { HydratedConcentratedInfo } from './type'
-import { Numberish } from '@/types/constants'
 import { Range } from '@/pageComponents/ConcentratedRangeChart/chartUtil'
+import { Numberish } from '@/types/constants'
+
+import { SplToken } from '../token/type'
+
+import { HydratedConcentratedInfo } from './type'
 
 export function getPriceAndTick(info: Parameters<typeof AmmV3['getPriceAndTick']>[0]) {
   const result = AmmV3.getPriceAndTick(info)
@@ -83,12 +88,11 @@ interface GetPriceTick {
 export function getPriceTick({ p, coin1, coin2, reverse, ammPool }: GetPriceTick & { p: Numberish }) {
   const targetCoin = !reverse ? coin1 : coin2
   const careDecimalLength = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
-  const trimedX = getMax(p, 1 / 10 ** careDecimalLength)
   try {
     const { price, tick } = getPriceAndTick({
       poolInfo: ammPool.state,
       baseIn: isMintEqual(ammPool.state.mintA.mint, targetCoin?.mint),
-      price: fractionToDecimal(toFraction(trimedX))
+      price: fractionToDecimal(toFraction(p))
     })
     return { price, tick }
   } catch (err) {

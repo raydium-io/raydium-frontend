@@ -1,16 +1,18 @@
 import { useEffect } from 'react'
 
+import { SplTokenJsonInfo } from 'test-r-sdk'
+
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { getLocalItem, setLocalItem } from '@/functions/dom/jStorage'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { objectMap } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
+
 import useConnection from '../connection/useConnection'
 
 import { getTokenFromLocalStorage } from './getTokenFromLocalStorage'
 import { SOLANA_TOKEN_LIST_NAME, USER_ADDED_TOKEN_LIST_NAME, useToken } from './useToken'
-import { SplTokenJsonInfo } from '@raydium-io/raydium-sdk'
 
 export default function useTokenListSettingsLocalStorage() {
   const connection = useConnection((s) => s.connection)

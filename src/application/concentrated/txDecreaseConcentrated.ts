@@ -1,4 +1,4 @@
-import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { AmmV3 } from 'test-r-sdk'
 
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
@@ -6,13 +6,13 @@ import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 
 import useAppSettings from '../common/useAppSettings'
+import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
-import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 
 export default function txDecreaseConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,

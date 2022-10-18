@@ -1,5 +1,6 @@
+import { LiquidityPoolJsonInfo } from 'test-r-sdk'
+
 import { PublicKeyish } from '@/types/constants'
-import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
 
 import searchJsonLiquidityInfo from './searchJsonLiquidityInfo'
 

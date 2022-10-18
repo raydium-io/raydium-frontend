@@ -1,8 +1,10 @@
+import { shrinkToValue } from '@/functions/shrinkToValue'
+import { MayFunction } from '@/types/constants'
 import { ReactNode, useCallback, MouseEvent } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 export interface TabItem {
-  name: ReactNode
+  label: ReactNode
   className?: string
   value: string | number
 }
@@ -10,14 +12,15 @@ export interface TabItem {
 interface Props {
   classNames?: string
   tabs: TabItem[]
-  selected?: string | number
+  tabClassName?: MayFunction<string, [selected: boolean]>
+  selectedValue?: string | number
   onChange?: (tab: TabItem) => void
 }
 
 //active-tab-bg
 
 export default function RectTabs(props: Props) {
-  const { classNames, tabs, selected, onChange } = props
+  const { classNames, tabs, selectedValue, onChange, tabClassName } = props
 
   const handleChange = useCallback(
     (e: MouseEvent<HTMLDivElement>) => {
@@ -27,20 +30,23 @@ export default function RectTabs(props: Props) {
   )
 
   return (
-    <div className={twMerge(classNames, 'flex rounded-lg p-1 bg-dark-blue')}>
+    <div className={twMerge('flex rounded-lg p-1 bg-dark-blue', classNames)}>
       {tabs.map((tab) => {
-        const isSelected = selected === tab.value
+        const isSelected = selectedValue === tab.value
         return (
           <div
             key={tab.value}
             onClick={isSelected ? undefined : handleChange}
             data-val={tab.value}
             className={twMerge(
-              `flex text-xs ${isSelected ? 'bg-active-tab-bg text-active-cyan cursor-default' : 'cursor-pointer'}`,
+              `flex text-xs ${
+                isSelected ? 'bg-active-tab-bg text-[#39d0d8] cursor-default' : 'text-[#39d0d880] cursor-pointer'
+              }`,
+              shrinkToValue(tabClassName, [isSelected]),
               tab.className
             )}
           >
-            <div className="py-1 px-2.5">{tab.name}</div>
+            <div className="py-1 px-2.5">{tab.label}</div>
           </div>
         )
       })}

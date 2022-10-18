@@ -1,31 +1,25 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Fraction } from '@raydium-io/raydium-sdk'
-
 import Decimal from 'decimal.js'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
-import {
-  calLowerUpper,
-  getPriceBoundary,
-  getPriceTick,
-  getTickPrice
-} from '@/application/concentrated/getNearistDataPoint'
-import txCreateConcentrated from '@/application/concentrated/txCreateConcentratedPosition'
-import useConcentrated from '@/application/concentrated/useConcentrated'
+import { calLowerUpper, getPriceBoundary, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
+import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import useConcentratedLiquidityUrlParser from '@/application/concentrated/useConcentratedLiquidityUrlParser'
+import useConnection from '@/application/connection/useConnection'
 import { routeBack, routeTo } from '@/application/routeTools'
+import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
-import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import { FadeIn } from '@/components/FadeIn'
+import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
@@ -36,6 +30,7 @@ import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { inClient } from '@/functions/judgers/isSSR'
 import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { formatDecimal } from '@/functions/numberish/formatDecimal'
 import { div, sub } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
@@ -47,13 +42,20 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
 import { canTokenPairBeSelected, PairInfoTitle, RemainSOLAlert, toXYChartFormat } from '@/pageComponents/Concentrated'
+import { AprChart } from '@/pageComponents/Concentrated/AprChart'
+import { ConcentratedModifyTooltipIcon } from '@/pageComponents/Concentrated/ConcentratedModifyTooltipIcon'
+import { ConcentratedTimeBasisSwitcher } from '@/pageComponents/Concentrated/ConcentratedTimeBasisSwitcher'
 import InputLocked from '@/pageComponents/Concentrated/InputLocked'
+import { useConcentratedTickAprCalc } from '@/pageComponents/Concentrated/useConcentratedAprCalc'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 
+import Col from '@/components/Col'
+import { ConcentratedFeeSwitcher } from '@/pageComponents/Concentrated/ConcentratedFeeSwitcher'
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
+import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -134,7 +136,12 @@ function ConcentratedEffects() {
 }
 
 function ConcentratedCard() {
-  const chartPoints = useConcentrated((s) => s.chartPoints)
+  const [chartPoints, loadChartPointsAct, lazyLoadChart] = useConcentrated((s) => [
+    s.chartPoints,
+    s.loadChartPointsAct,
+    s.lazyLoadChart
+  ])
+  const hasChartPoints = !!chartPoints && chartPoints.length > 0
   const connected = useWallet((s) => s.connected)
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -142,6 +149,16 @@ function ConcentratedCard() {
   // it is for coin selector panel
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
+
+  const priceLowerTick = useConcentrated((s) => s.priceLowerTick)
+  const priceUpperTick = useConcentrated((s) => s.priceUpperTick)
+  const planAApr = useConcentrated((s) => s.planAApr)
+  const planBApr = useConcentrated((s) => s.planBApr)
+  const planCApr = useConcentrated((s) => s.planCApr)
+  const timeBasis = useConcentrated((s) => s.timeBasis)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const tokenPrice = useToken((s) => s.tokenPrices)
+  const tokens = useToken((s) => s.tokens)
 
   const coin1 = useConcentrated((s) => s.coin1)
   const coin1Amount = useConcentrated((s) => s.coin1Amount)
@@ -170,6 +187,22 @@ function ConcentratedCard() {
     () => Math.pow(-1, isCoin1Base ? (isFocus1 ? 0 : 1) : isFocus1 ? 1 : 0),
     [isCoin1Base, isFocus1]
   )
+
+  const timeMap = {
+    [TimeBasis.DAY]: 'day',
+    [TimeBasis.WEEK]: 'week',
+    [TimeBasis.MONTH]: 'month'
+  }
+
+  const priceRange = currentAmmPool
+    ? [currentAmmPool.state[timeMap[timeBasis]].priceMin, currentAmmPool.state[timeMap[timeBasis]].priceMax]
+    : [undefined, undefined]
+
+  if (!isPairPoolDirectionEq) {
+    priceRange.reverse()
+    priceRange[0] = priceRange[0] ? 1 / priceRange[0] : priceRange[0]
+    priceRange[1] = priceRange[1] ? 1 / priceRange[1] : priceRange[1]
+  }
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
@@ -208,6 +241,10 @@ function ConcentratedCard() {
   const [coin1InputDisabled, coin2InputDisabled] = inputDisable
 
   useEffect(() => {
+    lazyLoadChart && currentAmmPool && loadChartPointsAct(currentAmmPool.idString)
+  }, [currentAmmPool?.idString, loadChartPointsAct, lazyLoadChart])
+
+  useEffect(() => {
     coin1InputDisabled && useConcentrated.setState({ coin1Amount: '0' })
     coin2InputDisabled && useConcentrated.setState({ coin2Amount: '0' })
   }, [coin1InputDisabled, coin2InputDisabled])
@@ -215,6 +252,7 @@ function ConcentratedCard() {
   useEffect(
     () => () =>
       useConcentrated.setState({
+        lazyLoadChart: false,
         focusSide: 'coin1',
         userCursorSide: 'coin1'
       }),
@@ -277,7 +315,7 @@ function ConcentratedCard() {
       })
       tickRef.current.lower = tick
       useConcentrated.setState({ priceLowerTick: tick, priceLower: price })
-      return { price: Number(price.toFixed(decimals)), tick }
+      return { price: formatDecimal({ val: price.toFixed(10), decimals }), tick }
     }
     return originRes
   })
@@ -294,6 +332,7 @@ function ConcentratedCard() {
       })!
       const isMin = side === Range.Min
       const tickKey = isMin ? 'priceLowerTick' : 'priceUpperTick'
+
       if (userInput && side) {
         tickRef.current[isMin ? 'lower' : 'upper'] = res[tickKey]
         isMin && useConcentrated.setState({ priceLowerTick: res[tickKey], priceLower: res.priceLower })
@@ -321,7 +360,8 @@ function ConcentratedCard() {
         baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
         tick: nextTick
       })
-      if (isMin && Number(price.toFixed(decimals)) >= chartRef.current!.getPosition().max) return toFraction(p)
+      if (isMin && formatDecimal({ val: price.toFixed(20), decimals }) >= chartRef.current!.getPosition().max)
+        return toFraction(p)
 
       tickRef.current[tickKey] = nextTick
       isMin && useConcentrated.setState({ priceLower: price, priceLowerTick: nextTick })
@@ -363,15 +403,15 @@ function ConcentratedCard() {
       />
 
       <div className="flex flex-col sm:flex-row flex-gap-1 gap-3 mb-3">
-        <div className="bg-dark-blue rounded-xl flex flex-col justify-between w-full sm:w-1/2 px-3 py-4">
+        <Col className="gap-3 bg-dark-blue rounded-xl flex flex-col justify-between w-full sm:w-1/2 px-3 py-4">
           <div>
-            <div className="text-base leading-[22px] text-secondary-title mb-5">Deposit Amount</div>
+            <div className="text-base leading-[22px] text-secondary-title mb-3">Deposit Amount</div>
 
             {/* input twin */}
             <div ref={swapElementBox1} className="relative">
               {coin1InputDisabled && <InputLocked />}
               <CoinInputBox
-                className="mt-5 mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
+                className="mb-4 py-2 mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
                 disabled={isApprovePanelShown}
                 disabledInput={!currentAmmPool || coin1InputDisabled}
                 noDisableStyle
@@ -426,30 +466,16 @@ function ConcentratedCard() {
                 token={coin2}
               />
             </div>
-
-            <div className="mt-4 border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
-              <div className="flex justify-between mb-4">
-                <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
-                <span className="text-lg leading-[18px]">
-                  {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
-                    ? toUsdVolume(totalDeposit)
-                    : '--'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
-                <span className="text-lg flex leading-[18px]">
-                  {currentAmmPool && <CoinAvatarPair size="sm" token1={coin1} token2={coin2} />}
-                  {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
-                    ? `${ratio1}% / ${ratio2}%`
-                    : '--'}
-                </span>
-              </div>
-            </div>
           </div>
+
+          <div>
+            <div className="text-base leading-[22px] text-secondary-title mb-3">Fee</div>
+            <ConcentratedFeeSwitcher />
+          </div>
+
           {coin1InputDisabled || coin2InputDisabled ? (
             <FadeIn>
-              <div className="flex items-center mt-3.5 p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
+              <div className="flex items-center p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
                 <Icon size="sm" className="mr-1.5" heroIconName="exclamation-circle" />
                 Your position will not trade or earn fees until price moves into your range.
               </div>
@@ -460,7 +486,7 @@ function ConcentratedCard() {
 
           {/* supply button */}
           <Button
-            className="frosted-glass-teal w-full mt-5"
+            className="frosted-glass-teal w-full mt-2"
             componentRef={liquidityButtonComponentRef}
             isLoading={isApprovePanelShown}
             validators={[
@@ -508,7 +534,7 @@ function ConcentratedCard() {
             Preview
           </Button>
           <RemainSOLAlert />
-        </div>
+        </Col>
 
         <div
           className={`relative bg-dark-blue min-h-[180px] rounded-xl w-full sm:w-1/2 px-3 py-4 ${
@@ -526,7 +552,9 @@ function ConcentratedCard() {
             ref={chartRef}
             chartOptions={chartOptions}
             currentPrice={currentPrice}
-            priceLabel={isFocus1 ? `${coin2?.symbol} per ${coin1?.symbol}` : `${coin1?.symbol} per ${coin2?.symbol}`}
+            priceMin={priceRange[0]}
+            priceMax={priceRange[1]}
+            timeBasis={timeBasis}
             decimals={decimals}
             onPositionChange={handlePosChange}
             onInDecrease={handleClickInDecrease}
@@ -574,12 +602,33 @@ function ConcentratedCard() {
             : undefined
         }
         onConfirm={(close) =>
-          txCreateConcentrated().then(({ allSuccess }) => {
+          txCreateNewConcentratedPool().then(({ allSuccess }) => {
             if (allSuccess) close()
           })
         }
         onClose={onConfirmClose}
       />
     </CyberpunkStyleCard>
+  )
+}
+
+function ConcentratedCardAPRInfo({ className }: { className?: string }) {
+  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const aprCalc = useConcentratedTickAprCalc({ ammPool: currentAmmPool })
+  const isMobile = useAppSettings((s) => s.isMobile)
+  return (
+    <Col className={twMerge('bg-[#141041] py-3 my-1 rounded-xl gap-2', className)}>
+      <Row className="items-center gap-2">
+        <div className="text-base leading-[22px] text-secondary-title">Estimated APR</div>
+        <ConcentratedModifyTooltipIcon />
+        <div className="font-medium text-base mobile:text-sm text-white">{toPercentString(aprCalc?.apr)}</div>
+        <ConcentratedTimeBasisSwitcher className="ml-auto" />
+      </Row>
+      {currentAmmPool && (
+        <Grid className="border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl">
+          <AprChart type="poolTickInfo" colCount={isMobile ? 1 : 2} poolInfo={currentAmmPool} />
+        </Grid>
+      )}
+    </Col>
   )
 }

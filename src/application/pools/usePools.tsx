@@ -1,5 +1,4 @@
-import { Price } from '@raydium-io/raydium-sdk'
-
+import { Price } from 'test-r-sdk'
 import create from 'zustand'
 
 import useLocalStorageItem from '@/hooks/useLocalStorage'

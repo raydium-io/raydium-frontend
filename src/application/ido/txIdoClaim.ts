@@ -1,11 +1,13 @@
-import { Spl, WSOL } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import txHandler, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleTx'
+import { Spl, WSOL } from 'test-r-sdk'
+
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import { toString } from '@/functions/numberish/toString'
-import { div } from '@/functions/numberish/operations'
+import txHandler, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleTx'
 import { padZero } from '@/functions/numberish/handleZero'
+import { div } from '@/functions/numberish/operations'
+import { toString } from '@/functions/numberish/toString'
+
 import { Ido, Snapshot } from './sdk'
 import { HydratedIdoInfo } from './type'
 
@@ -94,11 +96,10 @@ export default async function txIdoClaim(
           description:
             side === 'base'
               ? `Claim ${toString(idoInfo.userAllocation)} ${idoInfo.base.symbol ?? '--'}`
-              : `Claim ${
-                  idoInfo.quote && idoInfo.ledger
-                    ? toString(div(idoInfo.ledger?.quoteDeposited, padZero(1, idoInfo.quote?.decimals ?? 0)))
-                    : ''
-                } ${idoInfo.quote.symbol ?? '--'}`
+              : `Claim ${idoInfo.quote && idoInfo.ledger
+                ? toString(div(idoInfo.ledger?.quoteDeposited, padZero(1, idoInfo.quote?.decimals ?? 0)))
+                : ''
+              } ${idoInfo.quote.symbol ?? '--'}`
         }
       })
     },

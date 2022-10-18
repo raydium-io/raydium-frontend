@@ -1,3 +1,16 @@
+import BN from 'bn.js'
+import {
+  CurrencyAmount,
+  Farm,
+  FarmFetchMultipleInfoParams,
+  Fraction,
+  ONE,
+  Price,
+  TEN,
+  TokenAmount,
+  ZERO
+} from 'test-r-sdk'
+
 import { ConnectionStore } from '@/application/connection/useConnection'
 import { findAmmId } from '@/application/liquidity/miscToolFns'
 import { LiquidityStore } from '@/application/liquidity/useLiquidity'
@@ -18,18 +31,8 @@ import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { unionArr } from '@/types/generics'
-import {
-  CurrencyAmount,
-  Farm,
-  FarmFetchMultipleInfoParams,
-  Fraction,
-  ONE,
-  Price,
-  TEN,
-  TokenAmount
-} from '@raydium-io/raydium-sdk'
-import BN from 'bn.js'
 import { SplToken } from '../token/type'
+
 import { APIRewardInfo, FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
 
 function getMaxOpenTime(i: APIRewardInfo[]) {

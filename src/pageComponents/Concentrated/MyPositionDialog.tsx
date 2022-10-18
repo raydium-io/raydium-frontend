@@ -1,15 +1,16 @@
 import { twMerge } from 'tailwind-merge'
-import { Fraction, Price, Token, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Fraction, Price, Token, TokenAmount } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
-import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
-import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
+import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
+import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
@@ -17,6 +18,7 @@ import { ColItem } from '@/components/ColItem'
 import Collapse from '@/components/Collapse'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
+import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import { RowItem } from '@/components/RowItem'
 import toPubString from '@/functions/format/toMintString'
@@ -29,8 +31,10 @@ import { toString } from '@/functions/numberish/toString'
 import { toXYChartFormat } from '@/pageComponents/Concentrated'
 import Chart from '@/pageComponents/ConcentratedRangeChart/Chart'
 import { Numberish } from '@/types/constants'
-import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
-import Card from '@/components/Card'
+import { AprChart } from './AprChart'
+import { ConcentratedModifyTooltipIcon } from './ConcentratedModifyTooltipIcon'
+import { ConcentratedTimeBasisSwitcher } from './ConcentratedTimeBasisSwitcher'
+import { useConcentratedPositionAprCalc } from './useConcentratedAprCalc'
 
 function MyPositionCardTopInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
@@ -94,11 +98,12 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
 
 function MyPositionCardChartInfo({ className }: { className?: string }) {
   useConcentratedAmmSelector()
-  const [currentAmmPool, chartPoints, coin1, coin2] = useConcentrated((s) => [
+  const [currentAmmPool, chartPoints, coin1, coin2, timeBasis] = useConcentrated((s) => [
     s.currentAmmPool,
     s.chartPoints,
     s.coin1,
-    s.coin2
+    s.coin2,
+    s.timeBasis
   ])
   const isMobile = useAppSettings((s) => s.isMobile)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
@@ -132,6 +137,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
           hideRangeLine
           hideRangeInput
           showCurrentPriceOnly
+          timeBasis={timeBasis}
           height={isMobile ? 100 : 150}
         />
       </div>
@@ -236,7 +242,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
         <div>
           <div className="mobile:text-sm font-medium text-[#abc4ff] mt-2 mb-4">Fees</div>
           <Grid className="grow grid-cols-1 gap-2 mobile:gap-1">
-            {feesVolume.map(({ token, volume, amount }) => (
+            {feesVolume.map(({ token, amount }) => (
               <RowItem
                 key={toPubString(token?.mint)}
                 prefix={
@@ -254,7 +260,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
           <div className="mobile:text-sm font-medium text-[#abc4ff] mt-2 mb-4">Rewards</div>
           <Grid className="grow grid-cols-1 gap-2">
             {rewardsVolume.length ? (
-              rewardsVolume.map(({ token, volume, amount }) => (
+              rewardsVolume.map(({ token, amount }) => (
                 <RowItem
                   key={toPubString(token?.mint)}
                   prefix={
@@ -277,62 +283,21 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
 }
 
 function MyPositionCardAPRInfo({ className }: { className?: string }) {
-  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
-  const timeBasis = useConcentrated((s) => s.timeBasis)
+  const aprCalc = useConcentratedPositionAprCalc({ positionAccount: targetUserPositionAccount })
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
         <div className="mobile:text-sm font-medium text-[#abc4ff]">Estimated APR</div>
+        <ConcentratedModifyTooltipIcon />
+        <ConcentratedTimeBasisSwitcher className="ml-auto" />
       </Row>
-      <Row className="items-center gap-4">
-        <div className="font-medium text-2xl text-white">
-          {toPercentString(
-            currentAmmPool?.[
-              timeBasis === TimeBasis.DAY ? 'totalApr24h' : timeBasis === TimeBasis.WEEK ? 'totalApr7d' : 'totalApr30d'
-            ]
-          )}
-        </div>
-      </Row>
-      <Grid className="grid-cols-1 border-1.5 border-[#abc4ff40] py-3 px-4 gap-2 rounded-xl">
-        <div className="mobile:text-sm font-medium text-[#abc4ff] mt-2 mb-4">Yield</div>
-        <Grid className="grow grid-cols-2 gap-2">
-          <RowItem
-            prefix={
-              <Row className="items-center gap-2">
-                <Icon iconSrc="/icons/entry-icon-trade.svg" size="md" className="scale-75 " />
-                <div className="text-[#abc4ff80] min-w-[4em] mr-1">Trade Fee</div>
-              </Row>
-            }
-            text={
-              <div className="text-white justify-end">
-                {toPercentString(
-                  currentAmmPool?.[
-                    timeBasis === TimeBasis.DAY ? 'feeApr24h' : timeBasis === TimeBasis.WEEK ? 'fee7d' : 'feeApr30d'
-                  ]
-                )}
-              </div>
-            }
-          />
-          {targetUserPositionAccount?.rewardInfos.map(({ penddingReward, apr30d, apr24h, apr7d }) => (
-            <RowItem
-              key={toPubString(penddingReward?.token.mint)}
-              prefix={
-                <Row className="items-center gap-2">
-                  <CoinAvatar token={penddingReward?.token} size="smi" />
-                  <div className="text-[#abc4ff80] min-w-[4em] mr-1">{penddingReward?.token?.symbol ?? '--'}</div>
-                </Row>
-              }
-              text={
-                <div className="text-white justify-end">
-                  {toPercentString(
-                    timeBasis === TimeBasis.DAY ? apr24h : timeBasis === TimeBasis.WEEK ? apr7d : apr30d
-                  )}
-                </div>
-              } // TEMP
-            />
-          ))}
-        </Grid>
+      <div className="font-medium text-2xl mobile:text-lg text-white">{toPercentString(aprCalc?.apr)}</div>
+      <Grid className="border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl">
+        {targetUserPositionAccount && (
+          <AprChart type="positionAccount" positionAccount={targetUserPositionAccount} colCount={isMobile ? 1 : 2} />
+        )}
       </Grid>
     </Col>
   )
@@ -413,7 +378,7 @@ export default function MyPositionDialog() {
             <MyPositionCardTopInfo className="col-span-full" />
             <MyPositionCardChartInfo className="col-span-1 row-span-2" />
             <MyPositionCardPendingRewardInfo />
-            {/* <MyPositionCardAPRInfo /> */}
+            <MyPositionCardAPRInfo />
           </Grid>
 
           <MyPositionCardPoolOverview />
@@ -424,11 +389,7 @@ export default function MyPositionDialog() {
 }
 
 function MyPositionCardPoolOverview({ className }: { className?: string }) {
-  const tokenPrices = useToken((s) => s.tokenPrices)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
-  const basePrice: Price | undefined = tokenPrices[toPubString(currentAmmPool?.base?.mint)]
-  const quotePrice: Price | undefined = tokenPrices[toPubString(currentAmmPool?.quote?.mint)]
-  const timeBasis = useConcentrated((s) => s.timeBasis)
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Collapse openDirection="upwards" className="w-full mt-4">

@@ -1,10 +1,11 @@
+import { ApiAmmV3ConfigInfo } from 'test-r-sdk'
+
 import jFetch from '@/functions/dom/jFetch'
 import { toPercent } from '@/functions/format/toPercent'
 import { div } from '@/functions/numberish/operations'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
-import { ApiAmmV3ConfigInfo } from '@raydium-io/raydium-sdk'
-import useAppSettings from '../common/useAppSettings'
 import useConcentrated from './useConcentrated'
+import useAppSettings from '../common/useAppSettings'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)

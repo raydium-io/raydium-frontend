@@ -1,10 +1,12 @@
+import { Connection } from '@solana/web3.js'
+
+import BN from 'bn.js'
+import { Farm, PublicKeyish } from 'test-r-sdk'
+
 import jFetch from '@/functions/dom/jFetch'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { isString } from '@/functions/judgers/dateType'
 import toBN from '@/functions/numberish/toBN'
-import { Farm, PublicKeyish } from '@raydium-io/raydium-sdk'
-import { Connection } from '@solana/web3.js'
-import BN from 'bn.js'
 
 type WalletMigrateHistory = {
   success: boolean

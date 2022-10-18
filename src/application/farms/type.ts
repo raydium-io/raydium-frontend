@@ -1,21 +1,14 @@
-import BN from 'bn.js'
-
-import {
-  CurrencyAmount,
-  FarmStateV3,
-  FarmStateV5,
-  FarmStateV6,
-  Percent,
-  Price,
-  SplAccount,
-  Token,
-  TokenAmount
-} from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import { SplToken } from '../token/type'
+import BN from 'bn.js'
+import {
+  CurrencyAmount, FarmStateV3, FarmStateV5, FarmStateV6, Percent, Price, SplAccount, Token, TokenAmount
+} from 'test-r-sdk'
+
 import { HexAddress } from '@/types/constants'
 import { UnionCover } from '@/types/generics'
+
+import { SplToken } from '../token/type'
 
 export interface APIRewardInfo {
   rewardMint: string
@@ -86,7 +79,7 @@ type SdkParsedFarmInfoBase = {
 export type SdkParsedFarmInfo = UnionCover<
   FarmPoolJsonInfo,
   SdkParsedFarmInfoBase &
-    ({ version: 6; state: FarmStateV6 } | { version: 3; state: FarmStateV3 } | { version: 5; state: FarmStateV5 })
+  ({ version: 6; state: FarmStateV6 } | { version: 3; state: FarmStateV3 } | { version: 5; state: FarmStateV5 })
 >
 
 export type HydratedRewardInfo = {

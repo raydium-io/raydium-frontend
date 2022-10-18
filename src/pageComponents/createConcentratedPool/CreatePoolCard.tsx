@@ -1,37 +1,39 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
+import { useAutoCreateAmmv3Pool } from '@/application/concentrated/useAutoCreateAmmv3Pool'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import { SplToken } from '@/application/token/type'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
 import CoinInputBox from '@/components/CoinInputBox'
+import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
+import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { useEvent } from '@/hooks/useEvent'
-import usePrevious from '@/hooks/usePrevious'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
-import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
-
 import { Numberish } from '@/types/constants'
-import { ConcentratedFeeSwitcher } from './ConcentratedFeeSwitcher'
+import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
+import { CreateFeeSwitcher } from './CreateFeeSwitcher'
 import EmptyCoinInput from './EmptyCoinInput'
 import InputLocked from './InputLocked'
 import PriceRangeInput from './PriceRangeInput'
 import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
-import { useAutoCreateAmmv3Pool } from '@/application/concentrated/useAutoCreateAmmv3Pool'
-import toFraction from '@/functions/numberish/toFraction'
-import { mul, div } from '@/functions/numberish/operations'
+import CoinAvatarPair from '@/components/CoinAvatarPair'
+import toUsdVolume from '@/functions/format/toUsdVolume'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { calculateRatio } from '../Concentrated'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -242,6 +244,14 @@ export function CreatePoolCard() {
     }
   )
 
+  const { ratio1, ratio2 } = calculateRatio({
+    currentPrice: userSettedCurrentPrice != null ? toFraction(userSettedCurrentPrice) : userSettedCurrentPrice,
+    coin1InputDisabled,
+    coin2InputDisabled,
+    coin1Amount,
+    coin2Amount
+  })
+
   return (
     <Card
       className={twMerge(
@@ -250,9 +260,9 @@ export function CreatePoolCard() {
       size="lg"
     >
       {/* left */}
-      <div className="w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
-        <div className="mb-5">
-          <div className="font-medium text-[#abc4ff] my-1 mb-3">Select Tokens</div>
+      <Col className="gap-6 w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
+        <div>
+          <div className="font-medium text-[#abc4ff] mb-2">Select Tokens</div>
           <Grid className="grid-cols-2 gap-4">
             <SelectTokenInputBox
               title="Base Token"
@@ -272,70 +282,13 @@ export function CreatePoolCard() {
         </div>
 
         <div>
-          <div className="font-medium text-[#abc4ff] my-1">Select Trade Fee Rate</div>
-          <ConcentratedFeeSwitcher />
+          <div className="font-medium text-[#abc4ff] mb-2">Select Trade Fee Rate</div>
+          <CreateFeeSwitcher />
         </div>
-        <div className="text-secondary-title mt-5 mb-3">Deposit Amount</div>
-        <div>
-          <div className="relative" ref={swapElementBox1}>
-            {coin1InputDisabled && <InputLocked />}
-            {coin1 ? (
-              <CoinInputBox
-                className="mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2"
-                disabled={isApprovePanelShown}
-                disabledInput={!currentAmmPool}
-                noDisableStyle
-                value={currentAmmPool ? toString(coin1Amount) : undefined}
-                haveHalfButton
-                haveCoinIcon
-                topLeftLabel=""
-                onPriceChange={updatePrice1}
-                onUserInput={(amount) => {
-                  useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
-                }}
-                token={coin1}
-              />
-            ) : (
-              <EmptyCoinInput />
-            )}
-          </div>
 
-          <div className="relative" ref={swapElementBox2}>
-            {coin2InputDisabled && <InputLocked />}
-            {coin2 ? (
-              <CoinInputBox
-                className="py-2 mobile:py-1 px-3 mobile:px-2"
-                disabled={isApprovePanelShown}
-                disabledInput={!currentAmmPool}
-                noDisableStyle
-                value={currentAmmPool ? toString(coin2Amount) : undefined}
-                haveHalfButton
-                haveCoinIcon
-                topLeftLabel=""
-                onPriceChange={updatePrice2}
-                onUserInput={(amount) => {
-                  useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
-                }}
-                token={coin2}
-              />
-            ) : (
-              <EmptyCoinInput />
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* right */}
-      <div className="w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
         <div>
-          <div className="flex mb-6">
+          <div className="flex mb-1">
             <div className="font-medium text-[#abc4ff] my-1">Set Starting Price</div>
-            <SwitchFocusTabs coin1={coin1} coin2={coin2} focusSide={focusSide} onChangeFocus={handleChangeFocus} />
-          </div>
-
-          <div className="text-xs bg-[#abc4ff14] p-3 rounded-xl text-[#abc4ff] leading-5 mb-8">
-            To initialize and create the pool, first set the starting price. Then, enter your price range and deposit
-            amounts.
           </div>
 
           <InputBox
@@ -359,7 +312,7 @@ export function CreatePoolCard() {
           />
         </div>
         <div>
-          <div className="text-secondary-title mt-5 mb-3">Set Price Range</div>
+          <div className="text-secondary-title font-medium mb-2">Set Price Range</div>
           <PriceRangeInput
             decimals={decimals}
             minValue={toString(position[Range.Low])}
@@ -369,7 +322,88 @@ export function CreatePoolCard() {
             onInDecrease={handleClickInDecrease}
           />
         </div>
-      </div>
+      </Col>
+
+      {/* right */}
+      <Col className="gap-6 w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
+        <div>
+          <Row className="text-secondary-title justify-between mb-2">
+            <div className="font-medium text-[#abc4ff] my-1">Deposit Amount</div>
+            <SwitchFocusTabs coin1={coin1} coin2={coin2} focusSide={focusSide} onChangeFocus={handleChangeFocus} />
+          </Row>
+          <div>
+            <div className="relative" ref={swapElementBox1}>
+              {coin1InputDisabled && <InputLocked />}
+              {coin1 ? (
+                <CoinInputBox
+                  className="mb-4 mobile:mt-0 py-2 mobile:py-1 px-3 mobile:px-2"
+                  disabled={isApprovePanelShown}
+                  disabledInput={!currentAmmPool}
+                  noDisableStyle
+                  value={currentAmmPool ? toString(coin1Amount) : undefined}
+                  haveHalfButton
+                  haveCoinIcon
+                  topLeftLabel=""
+                  onPriceChange={updatePrice1}
+                  onUserInput={(amount) => {
+                    useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
+                  }}
+                  token={coin1}
+                />
+              ) : (
+                <EmptyCoinInput />
+              )}
+            </div>
+
+            <div className="relative" ref={swapElementBox2}>
+              {coin2InputDisabled && <InputLocked />}
+              {coin2 ? (
+                <CoinInputBox
+                  className="py-2 mobile:py-1 px-3 mobile:px-2"
+                  disabled={isApprovePanelShown}
+                  noDisableStyle
+                  value={currentAmmPool ? toString(coin2Amount) : undefined}
+                  haveHalfButton
+                  haveCoinIcon
+                  topLeftLabel=""
+                  onPriceChange={updatePrice2}
+                  onUserInput={(amount) => {
+                    useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
+                  }}
+                  token={coin2}
+                />
+              ) : (
+                <EmptyCoinInput />
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
+          <div className="flex justify-between mb-4">
+            <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
+            <span className="text-lg leading-[18px]">
+              {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
+                ? toUsdVolume(totalDeposit)
+                : '--'}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
+            <span className="text-lg flex leading-[18px]">
+              {currentAmmPool && <CoinAvatarPair size="sm" token1={coin1} token2={coin2} />}
+              {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
+                ? `${ratio1}% / ${ratio2}%`
+                : '--'}
+            </span>
+          </div>
+        </div>
+
+        <div className="text-xs bg-[#abc4ff14] p-3 rounded-xl text-[#abc4ff] leading-5">
+          To initialize and create the pool, first set the starting price. Then, enter your price range and deposit
+          amounts.
+        </div>
+      </Col>
     </Card>
   )
 }

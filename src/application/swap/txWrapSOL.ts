@@ -1,16 +1,17 @@
-import { CurrencyAmount, Spl } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
-import { createTransactionCollector } from '../txTools/createTransaction'
-import txHandler from '../txTools/handleTx'
+import { CurrencyAmount, Spl } from 'test-r-sdk'
+
+import toPubString from '@/functions/format/toMintString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { lt } from '@/functions/numberish/compare'
+import { toString } from '@/functions/numberish/toString'
+import { Numberish } from '@/types/constants'
 
 import { deUITokenAmount, QuantumSOLVersionSOL, WSOLMint } from '../token/quantumSOL'
-import { Numberish } from '@/types/constants'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { PublicKey } from '@solana/web3.js'
-import { toString } from '@/functions/numberish/toString'
+import { createTransactionCollector } from '../txTools/createTransaction'
+import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
-import toPubString from '@/functions/format/toMintString'
-import { lt } from '@/functions/numberish/compare'
 
 /**
  * it will create non-ATA wsol account

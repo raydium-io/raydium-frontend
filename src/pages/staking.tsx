@@ -1,9 +1,9 @@
 import React, { ReactNode, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
-import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
-
+import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
+import { Fraction, TokenAmount, ZERO } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txFarmHarvest from '@/application/farms/txFarmHarvest'
@@ -18,8 +18,10 @@ import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import FadeInStable from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
+import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
@@ -31,11 +33,9 @@ import toUsdVolume from '@/functions/format/toUsdVolume'
 import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import LoadingCircle from '@/components/LoadingCircle'
-import { StakingPageStakeLpDialog } from '../pageComponents/dialogs/StakingPageStakeLpDialog'
-import BN from 'bn.js'
-import FadeInStable from '@/components/FadeIn'
 import useAsyncValue from '@/hooks/useAsyncValue'
+
+import { StakingPageStakeLpDialog } from '../pageComponents/dialogs/StakingPageStakeLpDialog'
 import { MigrateStakingHistory } from '../pageComponents/staking/MigrateStakingHistory'
 
 export default function StakingPage() {

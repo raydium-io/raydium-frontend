@@ -1,4 +1,4 @@
-import { LiquidityPoolJsonInfo, PublicKeyish } from '@raydium-io/raydium-sdk'
+import { LiquidityPoolJsonInfo, PublicKeyish } from 'test-r-sdk'
 
 import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
 

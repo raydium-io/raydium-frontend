@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 
 import BN from 'bn.js'
-import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { AmmV3 } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConcentrated from '@/application/concentrated/useConcentrated'

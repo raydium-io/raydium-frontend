@@ -1,7 +1,7 @@
 import BN from 'bn.js'
+import { Percent } from 'test-r-sdk'
 
 import { Numberish } from '@/types/constants'
-import { Percent } from '@raydium-io/raydium-sdk'
 
 import parseNumberInfo from '../numberish/parseNumberInfo'
 

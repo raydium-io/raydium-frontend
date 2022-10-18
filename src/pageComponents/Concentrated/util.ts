@@ -1,12 +1,13 @@
-import { ApiAmmV3Point } from '@raydium-io/raydium-sdk'
+import { ApiAmmV3Point, Fraction } from 'test-r-sdk'
+
 import { SplToken } from '@/application/token/type'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { ChartPoint } from './type'
-import { Numberish } from '@/types/constants'
 import { gt } from '@/functions/numberish/compare'
-import { div, sub, mul } from '@/functions/numberish/operations'
+import { div, mul, sub } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
-import { Fraction } from '@raydium-io/raydium-sdk'
+import { Numberish } from '@/types/constants'
+
+import { ChartPoint } from './type'
 
 export function canTokenPairBeSelected(targetToken: SplToken | undefined, candidateToken: SplToken | undefined) {
   return !isMintEqual(targetToken?.mint, candidateToken?.mint)
@@ -40,8 +41,8 @@ export function calculateRatio({
     ? amount1HasVal
       ? mul(amount1, currentPrice).add(amount2Fraction)
       : amount2HasVal
-      ? amount2Fraction
-      : toFraction(1)
+        ? amount2Fraction
+        : toFraction(1)
     : toFraction(1)
 
   return {

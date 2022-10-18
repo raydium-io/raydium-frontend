@@ -1,40 +1,21 @@
-import {
-  getMultipleAccountsInfoWithCustomFlags,
-  AccountMeta,
-  AccountMetaReadonly,
-  BigNumberish,
-  findProgramAddress,
-  GetMultipleAccountsInfoConfig,
-  Logger,
-  parseBigNumberish,
-  PublicKeyish,
-  struct,
-  SYSTEM_PROGRAM_ID,
-  SYSVAR_CLOCK_PUBKEY,
-  SYSVAR_RENT_PUBKEY,
-  Token,
-  TOKEN_PROGRAM_ID,
-  TokenAmount,
-  u64,
-  u8,
-  validateAndParsePublicKey
-} from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey, TransactionInstruction } from '@solana/web3.js'
 
+import {
+  AccountMeta, AccountMetaReadonly, BigNumberish, findProgramAddress, GetMultipleAccountsInfoConfig,
+  getMultipleAccountsInfoWithCustomFlags, Logger, parseBigNumberish, PublicKeyish, struct, SYSTEM_PROGRAM_ID,
+  SYSVAR_CLOCK_PUBKEY, SYSVAR_RENT_PUBKEY, Token, TOKEN_PROGRAM_ID, TokenAmount, u64, u8, validateAndParsePublicKey
+} from 'test-r-sdk'
+
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
+import toPubString from '@/functions/format/toMintString'
+import { toString } from '@/functions/numberish/toString'
 
 import { IDO_PROGRAMID_TO_VERSION, IDO_VERSION_TO_PROGRAMID } from './id'
 import {
-  IDO_VERSION_TO_LEDGER_LAYOUT,
-  IDO_VERSION_TO_STATE_LAYOUT,
-  IdoLedgerLayout,
-  IdoStateLayout,
-  SnapshotStateLayout
+  IDO_VERSION_TO_LEDGER_LAYOUT, IDO_VERSION_TO_STATE_LAYOUT, IdoLedgerLayout, IdoStateLayout, SnapshotStateLayout
 } from './layout'
 import { Snapshot } from './snapshot'
 import { IdoVersion, SnapshotVersion } from './type'
-import { toString } from '@/functions/numberish/toString'
-import toPubString from '@/functions/format/toMintString'
 
 const logger = new Logger('NFT')
 
@@ -110,7 +91,7 @@ export interface GetIdoMultipleInfoParams extends Omit<GetIdoInfoParams, 'poolCo
 }
 
 export class Ido {
-  constructor(public readonly poolConfig: IdoPoolConfig, public info: IdoInfo) {}
+  constructor(public readonly poolConfig: IdoPoolConfig, public info: IdoInfo) { }
 
   async load(params: IdoLoadParams) {
     const { connection, poolConfig, owner, config } = params

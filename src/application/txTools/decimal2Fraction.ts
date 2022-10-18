@@ -1,10 +1,11 @@
-import { isDecimal, isFraction } from '@/functions/judgers/dateType'
-import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
-import { Fraction, Token } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
+
 import BN from 'bn.js'
 import Decimal from 'decimal.js'
-import { Currency, CurrencyAmount, Percent, Price, TokenAmount, _100 } from '@raydium-io/raydium-sdk'
+import { _100, Currency, CurrencyAmount, Fraction, Percent, Price, Token, TokenAmount } from 'test-r-sdk'
+
+import { isDecimal, isFraction } from '@/functions/judgers/dateType'
+import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 
 export function decimalToFraction(n: undefined): undefined
 export function decimalToFraction(n: Decimal): Fraction
@@ -54,12 +55,12 @@ type Primitive = boolean | number | string | null | undefined | PublicKey
  */
 export type ReplaceType<Old, From, To> = {
   [T in keyof Old]: Old[T] extends From // to avoid case: Old[T] is an Object,
-    ? Exclude<Old[T], From> | To // when match,  directly replace
-    : Old[T] extends Primitive // judge whether need recursively replace
-    ? From extends Old[T] // it's an Object
-      ? Exclude<Old[T], From> | To // directly replace
-      : Old[T] // stay same
-    : ReplaceType<Old[T], From, To> // recursively replace
+  ? Exclude<Old[T], From> | To // when match,  directly replace
+  : Old[T] extends Primitive // judge whether need recursively replace
+  ? From extends Old[T] // it's an Object
+  ? Exclude<Old[T], From> | To // directly replace
+  : Old[T] // stay same
+  : ReplaceType<Old[T], From, To> // recursively replace
 }
 const baseInnerObjects = [Token, TokenAmount, PublicKey, Fraction, BN, Currency, CurrencyAmount, Price, Percent]
 
@@ -72,18 +73,18 @@ export function recursivelyDecimalToFraction<T>(info: T): ReplaceType<T, Decimal
   return isDecimal(info)
     ? decimalToFraction(info)
     : Array.isArray(info)
-    ? info.map((k) => recursivelyDecimalToFraction(k))
-    : notInnerObject(info)
-    ? Object.fromEntries(Object.entries(info).map(([k, v]) => [k, recursivelyDecimalToFraction(v)]))
-    : info
+      ? info.map((k) => recursivelyDecimalToFraction(k))
+      : notInnerObject(info)
+        ? Object.fromEntries(Object.entries(info).map(([k, v]) => [k, recursivelyDecimalToFraction(v)]))
+        : info
 }
 export function recursivelyFractionToDecimal<T>(info: T, decimalLength?: number): ReplaceType<T, Fraction, Decimal> {
   // @ts-expect-error no need type for inner code
   return isFraction(info)
     ? fractionToDecimal(info, decimalLength)
     : Array.isArray(info)
-    ? info.map((k) => recursivelyFractionToDecimal(k, decimalLength))
-    : notInnerObject(info)
-    ? Object.fromEntries(Object.entries(info).map(([k, v]) => [k, recursivelyFractionToDecimal(v, decimalLength)]))
-    : info
+      ? info.map((k) => recursivelyFractionToDecimal(k, decimalLength))
+      : notInnerObject(info)
+        ? Object.fromEntries(Object.entries(info).map(([k, v]) => [k, recursivelyFractionToDecimal(v, decimalLength)]))
+        : info
 }
