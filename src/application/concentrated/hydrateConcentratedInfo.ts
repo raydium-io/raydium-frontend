@@ -1,4 +1,6 @@
-import { AmmV3, AmmV3PoolPersonalPosition, Price, PublicKeyish } from 'test-r-sdk'
+import { PublicKey } from '@solana/web3.js'
+
+import { AmmV3, AmmV3PoolPersonalPosition, Price, PublicKeyish, Token } from 'test-r-sdk'
 
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
@@ -8,7 +10,9 @@ import { mergeObject } from '@/functions/merge'
 import { gt, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
 
+import { SplToken } from '../token/type'
 import useToken from '../token/useToken'
+import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
@@ -116,10 +120,20 @@ function hydrateAprGetter(
  * part of {@link hydrateConcentratedInfo}
  */
 function hydratePoolInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial<HydratedConcentratedInfo> {
-  const { getToken } = useToken.getState()
-  const base = getToken(sdkConcentratedInfo.state.mintA.mint)
-  const quote = getToken(sdkConcentratedInfo.state.mintB.mint)
-  const name = (base ? base.symbol : 'unknown') + '-' + (quote ? quote?.symbol : 'unknown')
+  const base = getTokenEvenUnknow(sdkConcentratedInfo.state.mintA.mint, sdkConcentratedInfo.state.mintA.decimals)
+  const quote = getTokenEvenUnknow(sdkConcentratedInfo.state.mintB.mint, sdkConcentratedInfo.state.mintB.decimals)
+  const name =
+    (base
+      ? base.symbol
+      : sdkConcentratedInfo.state.mintA.mint
+      ? toPubString(sdkConcentratedInfo.state.mintA.mint).substring(0, 6)
+      : 'unknown') +
+    '-' +
+    (quote
+      ? quote?.symbol
+      : sdkConcentratedInfo.state.mintB.mint
+      ? toPubString(sdkConcentratedInfo.state.mintB.mint).substring(0, 6)
+      : 'unknown')
 
   return {
     id: sdkConcentratedInfo.state.id,
@@ -358,4 +372,21 @@ function checkIsInRange(
   const priceLower = decimalToFraction(userPositionAccount.priceLower)
   const priceUpper = decimalToFraction(userPositionAccount.priceUpper)
   return gt(currentPrice, priceLower) && lt(currentPrice, priceUpper)
+}
+
+function getTokenEvenUnknow(mint: PublicKey, decimal?: number): SplToken | undefined {
+  const { getToken } = useToken.getState()
+  const candidateToken = getToken(mint)
+  if (candidateToken) {
+    return candidateToken
+  } else if (decimal === undefined) {
+    return undefined
+  } else {
+    const tokenSymbolString = toPubString(mint).substring(0, 6)
+    return createSplToken({
+      mint: toPubString(mint),
+      decimals: decimal,
+      symbol: tokenSymbolString
+    })
+  }
 }

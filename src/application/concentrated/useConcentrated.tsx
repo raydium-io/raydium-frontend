@@ -36,6 +36,12 @@ export enum TimeBasis {
   MONTH = '30D'
 }
 
+export const timeMap = {
+  [TimeBasis.DAY]: 'day',
+  [TimeBasis.WEEK]: 'week',
+  [TimeBasis.MONTH]: 'month'
+}
+
 export type ConcentratedStore = {
   //#region ------------------- input data -------------------
   selectableAmmPools?: HydratedConcentratedInfo[]

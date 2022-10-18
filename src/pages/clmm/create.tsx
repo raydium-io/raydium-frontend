@@ -1,7 +1,7 @@
 import useAppSettings from '@/application/common/useAppSettings'
 import { calLowerUpper, getPriceBoundary, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
+import useConcentrated, { timeMap } from '@/application/concentrated/useConcentrated'
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
-import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
@@ -184,12 +184,6 @@ function ConcentratedCard() {
     () => Math.pow(-1, isCoin1Base ? (isFocus1 ? 0 : 1) : isFocus1 ? 1 : 0),
     [isCoin1Base, isFocus1]
   )
-
-  const timeMap = {
-    [TimeBasis.DAY]: 'day',
-    [TimeBasis.WEEK]: 'week',
-    [TimeBasis.MONTH]: 'month'
-  }
 
   const priceRange = currentAmmPool
     ? [currentAmmPool.state[timeMap[timeBasis]].priceMin, currentAmmPool.state[timeMap[timeBasis]].priceMax]

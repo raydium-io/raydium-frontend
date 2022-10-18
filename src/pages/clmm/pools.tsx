@@ -8,9 +8,7 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -1038,7 +1036,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               coin2: info.quote,
               chartPoints: [],
               lazyLoadChart: true,
-              currentAmmPool: undefined
+              currentAmmPool: info
             })
             routeTo('/clmm/create')
           }}
@@ -1374,7 +1372,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         forceActive: true,
                         fallbackProps: {
                           onClick: () => {
-                            useConcentrated.setState({ coin1: info.base, coin2: info.quote })
+                            useConcentrated.setState({ coin1: info.base, coin2: info.quote, currentAmmPool: info })
                             routeTo('/clmm/create', {
                               queryProps: {}
                             })
