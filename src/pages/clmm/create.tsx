@@ -53,7 +53,7 @@ import { canTokenPairBeSelected, PairInfoTitle, RemainSOLAlert, toXYChartFormat 
 import { ConcentratedModifyTooltipIcon } from '@/pageComponents/Concentrated/ConcentratedModifyTooltipIcon'
 import { ConcentratedTimeBasisSwitcher } from '@/pageComponents/Concentrated/ConcentratedTimeBasisSwitcher'
 import InputLocked from '@/pageComponents/Concentrated/InputLocked'
-import { PositionAprChart } from '@/pageComponents/Concentrated/PositionAprChart'
+import { AprChart } from '@/pageComponents/Concentrated/AprChart'
 import { useConcentratedAprCalc } from '@/pageComponents/Concentrated/useConcentratedAprCalc'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
@@ -622,6 +622,7 @@ function ConcentratedCard() {
 function ConcentratedCardAPRInfo({ className }: { className?: string }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const aprCalc = useConcentratedAprCalc({ ammPool: currentAmmPool })
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Col className={twMerge('bg-[#141041] py-3 my-1 rounded-xl gap-2', className)}>
       <Row className="items-center gap-2">
@@ -632,7 +633,7 @@ function ConcentratedCardAPRInfo({ className }: { className?: string }) {
       </Row>
       {currentAmmPool && (
         <Grid className="border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl">
-          <PositionAprChart type="poolInfo" colCount={2} poolInfo={currentAmmPool} />
+          <AprChart type="poolInfo" colCount={isMobile ? 1 : 2} poolInfo={currentAmmPool} />
         </Grid>
       )}
     </Col>

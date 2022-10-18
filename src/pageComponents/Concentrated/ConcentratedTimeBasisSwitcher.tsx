@@ -6,7 +6,7 @@ export function ConcentratedTimeBasisSwitcher({ className }: { className?: strin
   const timeBasis = useConcentrated((s) => s.timeBasis)
   return (
     <RectTabs
-      classNames={twMerge('bg-[#181753] ml-4 mobile:w-full mobile:ml-0', className)}
+      classNames={twMerge('bg-[#181753] ml-4', className)}
       tabs={[
         { label: '24H', value: '24H' },
         { label: '7D', value: '7D' },

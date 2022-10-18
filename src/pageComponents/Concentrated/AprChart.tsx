@@ -7,9 +7,9 @@ import toPercentString from '@/functions/format/toPercentString'
 import { add } from '@/functions/numberish/operations'
 import { useConcentratedAprCalc, useConcentratedPositionAprCalc } from './useConcentratedAprCalc'
 
-const positionAprLineColors = ['#abc4ff', '#37bbe0', '#2b6aff', '#335095']
+const aprLineColors = ['#abc4ff', '#37bbe0', '#2b6aff', '#335095']
 
-export function PositionAprChart(
+export function AprChart(
   option:
     | {
         type: 'positionAccount'
@@ -43,8 +43,8 @@ export function PositionAprChart(
               const startAt = percentInTotalList.slice(0, idx).reduce((a, b) => toPercent(add(a, b)), toPercent(0))
               const endAt = toPercent(add(startAt, percent))
               return [
-                `${positionAprLineColors[idx]} ${toPercentString(startAt)}`,
-                `${positionAprLineColors[idx]} ${toPercentString(endAt)}`
+                `${aprLineColors[idx]} ${toPercentString(startAt)}`,
+                `${aprLineColors[idx]} ${toPercentString(endAt)}`
               ].join(', ')
             })
             .join(', ')})`,
@@ -65,7 +65,7 @@ export function PositionAprChart(
           <div className="text-sm">{toPercentString(aprInfo.fee.apr)}</div>
         </Row>
         {aprInfo.rewards.map(({ token, apr }, idx) => {
-          const dotColors = positionAprLineColors.slice(1)
+          const dotColors = aprLineColors.slice(1)
           return (
             <Row className="items-center gap-2" key={toPubString(token?.mint)}>
               {/* dot */}

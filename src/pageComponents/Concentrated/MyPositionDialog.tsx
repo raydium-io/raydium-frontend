@@ -31,7 +31,7 @@ import { toString } from '@/functions/numberish/toString'
 import { toXYChartFormat } from '@/pageComponents/Concentrated'
 import Chart from '@/pageComponents/ConcentratedRangeChart/Chart'
 import { Numberish } from '@/types/constants'
-import { PositionAprChart } from './PositionAprChart'
+import { AprChart } from './AprChart'
 import { ConcentratedModifyTooltipIcon } from './ConcentratedModifyTooltipIcon'
 import { ConcentratedTimeBasisSwitcher } from './ConcentratedTimeBasisSwitcher'
 import { useConcentratedPositionAprCalc } from './useConcentratedAprCalc'
@@ -285,6 +285,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
 function MyPositionCardAPRInfo({ className }: { className?: string }) {
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const aprCalc = useConcentratedPositionAprCalc({ positionAccount: targetUserPositionAccount })
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
@@ -295,7 +296,7 @@ function MyPositionCardAPRInfo({ className }: { className?: string }) {
       <div className="font-medium text-2xl mobile:text-lg text-white">{toPercentString(aprCalc?.apr)}</div>
       <Grid className="border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl">
         {targetUserPositionAccount && (
-          <PositionAprChart type="positionAccount" positionAccount={targetUserPositionAccount} colCount={2} />
+          <AprChart type="positionAccount" positionAccount={targetUserPositionAccount} colCount={isMobile ? 1 : 2} />
         )}
       </Grid>
     </Col>

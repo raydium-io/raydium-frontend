@@ -65,7 +65,7 @@ import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConc
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
 import { ConcentratedModifyTooltipIcon } from '../../pageComponents/Concentrated/ConcentratedModifyTooltipIcon'
-import { PositionAprChart } from '../../pageComponents/Concentrated/PositionAprChart'
+import { AprChart } from '../../pageComponents/Concentrated/AprChart'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -1543,7 +1543,9 @@ function PositionAprIllustrator({
           )}
         </Row>
         <Tooltip.Panel>
-          <div className="p-5">{positionApr && <PositionAprChart type='positionAccount' colCount={2} positionAccount={positionInfo} />}</div>
+          <div className="p-5">
+            {positionApr && <AprChart type="positionAccount" colCount={2} positionAccount={positionInfo} />}
+          </div>
         </Tooltip.Panel>
       </Tooltip>
     </Row>
