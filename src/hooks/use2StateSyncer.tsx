@@ -5,12 +5,14 @@ import { areShallowEqual } from '@/functions/judgers/areEqual'
 
 /** can't judege which is newer is firstTime, U counld set conflictMasterSide, ('auto' will respect larger one) */
 export default function useTwoStateSyncer<T>({
+  disabled,
   state1,
   onState2Changed,
   state2,
   onState1Changed,
   conflictMasterSide = 'state1'
 }: {
+  disabled?: boolean
   state1: T | undefined
   onState2Changed?: (pairValue: T | undefined) => void
   state2: T | undefined
@@ -19,6 +21,7 @@ export default function useTwoStateSyncer<T>({
 }) {
   useRecordedEffect(
     ([prevState1, prevState2]) => {
+      if (disabled) return
       if (areShallowEqual(state1, state2)) return
 
       const canInitlySync =

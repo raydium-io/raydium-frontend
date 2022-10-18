@@ -2,7 +2,9 @@ import { useEffect, useId } from 'react'
 
 const pageInstances = new Map<string, Set<string>>()
 
-export default function useGlobInstanceDetector(componentName: string) {
+export default function useGlobInstanceDetector(componentName: string | undefined) {
+  if (!componentName) return { isFirstDetectedComponentInThisPage: false }
+  const componentId = useId()
   const instanceSet = (() => {
     if (pageInstances.has(componentName)) {
       return pageInstances.get(componentName)!
@@ -12,7 +14,6 @@ export default function useGlobInstanceDetector(componentName: string) {
       return newInstanceSet
     }
   })()
-  const componentId = useId()
   instanceSet.add(componentId)
   useEffect(
     () => () => {

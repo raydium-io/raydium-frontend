@@ -6,13 +6,10 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
-import useGlobInstanceDetector from '@/hooks/useGlobInstanceDetector'
 
 export default function AprCalcDialog() {
   const open = useConcentrated((s) => s.isAprCalcPanelShown)
   const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
-  const { isFirstDetectedComponentInThisPage } = useGlobInstanceDetector(AprCalcDialog.name)
-  if (!isFirstDetectedComponentInThisPage) return null
   const choices: {
     aprCalcMethod: ConcentratedStore['aprCalcMode']
     title: string
@@ -31,6 +28,7 @@ export default function AprCalcDialog() {
   ]
   return (
     <ResponsiveDialogDrawer
+      pageComponentName={AprCalcDialog.name}
       placement="from-bottom"
       open={open}
       onClose={() => {
