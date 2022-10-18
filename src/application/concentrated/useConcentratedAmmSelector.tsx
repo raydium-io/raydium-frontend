@@ -13,17 +13,21 @@ export default function useConcentratedAmmSelector(notCleanPool?: boolean) {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
 
-  const checkCurrentPoolSelectable = useCallback(
-    (allSelectablePools: HydratedConcentratedInfo[]) => {
-      const result =
-        currentAmmPool !== undefined &&
-        allSelectablePools.filter((p) => toPubString(p.state.id) === currentAmmPool.idString).length === 1
-      return result
-    },
-    [currentAmmPool]
-  )
+  // const checkCurrentPoolSelectable = useCallback(
+  //   (allSelectablePools: HydratedConcentratedInfo[]) => {
+  //     const result =
+  //       currentAmmPool !== undefined &&
+  //       allSelectablePools.filter((p) => toPubString(p.state.id) === currentAmmPool.idString).length === 1
+  //     return result
+  //   },
+  //   [currentAmmPool]
+  // )
 
   useEffect(() => {
+    !notCleanPool &&
+      useConcentrated.setState({
+        currentAmmPool: undefined
+      })
     if (!hydratedAmmPools.length || !coin1 || !coin2) {
       useConcentrated.setState({
         selectableAmmPools: undefined,
@@ -37,15 +41,15 @@ export default function useConcentratedAmmSelector(notCleanPool?: boolean) {
         (isMintEqual(p.state.mintA.mint, coin2.mint) && isMintEqual(p.state.mintB.mint, coin1.mint))
     )
 
-    const currentPoolIsSelectable = checkCurrentPoolSelectable(allSelectablePools)
+    // const currentPoolIsSelectable = checkCurrentPoolSelectable(allSelectablePools)
 
     useConcentrated.setState(
-      notCleanPool || currentPoolIsSelectable
+      notCleanPool
         ? { selectableAmmPools: allSelectablePools }
         : {
             selectableAmmPools: allSelectablePools,
-            currentAmmPool: undefined
+            currentAmmPool: allSelectablePools[allSelectablePools.length - 1]
           }
     )
-  }, [coin1, coin2, hydratedAmmPools, notCleanPool, checkCurrentPoolSelectable])
+  }, [coin1, coin2, hydratedAmmPools, notCleanPool])
 }
