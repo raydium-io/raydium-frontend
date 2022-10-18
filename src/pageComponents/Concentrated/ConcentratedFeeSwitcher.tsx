@@ -18,9 +18,7 @@ export function ConcentratedFeeSwitcher({ className }: { className?: string }) {
   const existAmmPoolIds = selectableAmmPools?.map((p) => toPubString(p.ammConfig.id))
   const unexistAmmPoolConfigIds = ammConfigFeeOptions?.filter((i) => !existAmmPoolIds?.includes(i.id)).map((i) => i.id)
 
-  useConcentratedInfoLoader()
   useConcentratedAmmConfigInfoLoader()
-  useConcentratedAmmSelector(true)
   return (
     <ConcentratedFeeSwitcherContent
       availableAmmPools={selectableAmmPools}
@@ -64,12 +62,10 @@ function ConcentratedFeeSwitcherContent({
               isCurrent ? 'ring-inset ring-1.5 ring-[#abc4ff]' : 'ring-inset ring-1.5 ring-[#abc4ff40]'
             } rounded-xl ${canSelect ? 'clickable-no-transform select-none' : 'opacity-50 pointer-events-none'}`}
             onClick={() => {
-              if (!isCurrent) {
-                const newAmmPool = availableAmmPools?.find((p) => isMintEqual(p.ammConfig.id, config.id))
-                useConcentrated.setState({
-                  currentAmmPool: newAmmPool
-                })
-              }
+              const newAmmPool = availableAmmPools?.find((p) => isMintEqual(p.ammConfig.id, config.id))
+              useConcentrated.setState({
+                currentAmmPool: newAmmPool
+              })
             }}
           >
             {isCurrent ? (
