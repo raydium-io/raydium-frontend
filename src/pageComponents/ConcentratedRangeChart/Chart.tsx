@@ -108,7 +108,7 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   const updatePosition = useCallback(
     (nextStateOrCbk: PositionState | ((prePos: PositionState) => PositionState)) => {
-      const getSafeMin = (val) => Math.max(boundaryRef.current.min, val)
+      const getSafeMin = (val) => Math.max(boundaryRef.current.min, val, 0)
       if (typeof nextStateOrCbk === 'function') {
         setPosition((prePos) => {
           const newPos = nextStateOrCbk(prePos)
@@ -138,8 +138,8 @@ export default forwardRef(function Chart(props: Props, ref) {
     }
 
     const [defaultMinNum, defaultMaxNum] = [
-      defaultMin ? Number(defaultMin.toFixed(8)) : undefined,
-      defaultMax ? Number(defaultMax.toFixed(8)) : undefined
+      defaultMin ? Number(defaultMin.toFixed(Math.max(8, decimals))) : undefined,
+      defaultMax ? Number(defaultMax.toFixed(Math.max(8, decimals))) : undefined
     ]
     if (!points.length) {
       if (defaultMinNum === undefined || defaultMaxNum === undefined) return
@@ -155,12 +155,10 @@ export default forwardRef(function Chart(props: Props, ref) {
 
     const gap = Math.abs(points[1].x - points[0].x)
     // if chart points not include position point, we auto add them to point list
-    if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(decimals)) + gap) {
+    if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(Math.max(8, decimals))) + gap)
       points.unshift({ x: defaultMinNum - gap, y: 0 })
-    }
-    if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(decimals)) - gap) {
+    if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(Math.max(8, decimals))) - gap)
       points.push({ x: defaultMaxNum + gap * 2, y: 0 })
-    }
 
     const pointMaxIndex = points.length - 1
     let [foundDefaultMin, foundDefaultMax] = [false, false]
@@ -199,7 +197,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       }
     }
     if (pointMaxIndex > 0) displayList.push(points[pointMaxIndex])
-    if (displayList[0].x + gap * 2 > (defaultMinNum || 0)) displayList.unshift({ x: displayList[0].x * 0.9, y: 0 })
+    if (displayList[0].x + gap * 3 > (defaultMinNum || 0)) displayList.unshift({ x: displayList[0].x * 0.8, y: 0 })
     if (defaultMaxNum && displayList[displayList.length - 1].x - gap > defaultMaxNum)
       displayList.push({ x: displayList[displayList.length - 1].x * 1.05, y: 0 })
 
@@ -323,18 +321,19 @@ export default forwardRef(function Chart(props: Props, ref) {
         return
       }
       updatePosition((pos) => {
+        const val = Math.max(activeLabel, 0)
         // when min line > max line
-        if (moveRef.current === Range.Min && e.activeLabel >= pos[Range.Max]) {
+        if (moveRef.current === Range.Min && val >= pos[Range.Max]) {
           moveRef.current = Range.Max
-          return { ...pos, [Range.Max]: activeLabel }
+          return { ...pos, [Range.Max]: val }
         }
         // when max line < min line
-        if (moveRef.current === Range.Max && e.activeLabel <= pos[Range.Min]) {
+        if (moveRef.current === Range.Max && val <= pos[Range.Min]) {
           moveRef.current = Range.Min
-          return { ...pos, [Range.Min]: activeLabel }
+          return { ...pos, [Range.Min]: val }
         }
-        debounceUpdate({ ...pos, [moveRef.current]: activeLabel, side: moveRef.current })
-        return { ...pos, [moveRef.current]: activeLabel }
+        debounceUpdate({ ...pos, [moveRef.current]: val, side: moveRef.current })
+        return { ...pos, [moveRef.current]: val }
       })
     },
     [updatePosition, onPositionChange, xAxisDomain]
@@ -616,7 +615,7 @@ export default forwardRef(function Chart(props: Props, ref) {
               dataKey="x"
             />
             <YAxis allowDataOverflow domain={['dataMin', 'dataMax']} type="number" hide={true} />
-            {!hideRangeLine && position[Range.Min] && (
+            {!hideRangeLine && !isNaN(position[Range.Min]) && (
               <ReferenceLine
                 {...getMouseEvent(Range.Min)}
                 stroke={boundaryColor}
@@ -627,7 +626,7 @@ export default forwardRef(function Chart(props: Props, ref) {
                 label={getLabel({ side: Range.Min, ...getMouseEvent(Range.Min) })}
               />
             )}
-            {!hideRangeLine && position[Range.Max] && (
+            {!hideRangeLine && !isNaN(position[Range.Max]) && (
               <ReferenceLine
                 {...getMouseEvent(Range.Max)}
                 stroke={boundaryColor}

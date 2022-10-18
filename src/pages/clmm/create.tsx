@@ -313,7 +313,7 @@ function ConcentratedCard() {
 
   const handlePosChange = useCallback(
     ({ side, userInput, ...pos }: { min: number; max: number; side?: Range; userInput?: boolean }) => {
-      if (!currentAmmPool || !coin1 || !coin2 || !pos.min || !pos.max) return
+      if (!currentAmmPool || !coin1 || !coin2 || isNaN(pos.min) || isNaN(pos.max)) return
       const res = calLowerUpper({
         ...pos,
         coin1,

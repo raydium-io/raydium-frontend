@@ -87,12 +87,11 @@ interface GetPriceTick {
 
 export function getPriceTick({ p, coin1, coin2, reverse, ammPool }: GetPriceTick & { p: Numberish }) {
   const targetCoin = !reverse ? coin1 : coin2
-  const careDecimalLength = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   try {
     const { price, tick } = getPriceAndTick({
       poolInfo: ammPool.state,
       baseIn: isMintEqual(ammPool.state.mintA.mint, targetCoin?.mint),
-      price: fractionToDecimal(toFraction(p))
+      price: fractionToDecimal(toFraction(Math.max(Number(p), 0.000001)))
     })
     return { price, tick }
   } catch (err) {
