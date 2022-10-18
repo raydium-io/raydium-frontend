@@ -313,7 +313,7 @@ function getAprCore({
       }
     }
   } else if (planType === 'B') {
-    const planBApr = AmmV3.estimateAprsForPriceRange({
+    const planBApr = AmmV3.estimateAprsForPriceRangeOrca({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
       mintPrice: tokenPrices,
@@ -338,14 +338,11 @@ function getAprCore({
     }
   } else {
     // (planType === 'C')
-    const planCApr = AmmV3.estimateAprsForPriceRange1({
+    const planCApr = AmmV3.estimateAprsForPriceRange({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
-      mintPrice: tokenPrices,
       positionTickLowerIndex: Math.min(tickLower, tickUpper),
-      positionTickUpperIndex: Math.max(tickLower, tickUpper),
-      chainTime: (Date.now() + chainTimeOffsetMs) / 1000,
-      rewardMintDecimals: tokenDecimals
+      positionTickUpperIndex: Math.max(tickLower, tickUpper)
     })
     const slicedRewardApr = planCApr.rewardsApr.slice(0, poolRewardTokens.length)
     const total = [planCApr.feeApr, ...slicedRewardApr].reduce((a, b) => a + b, 0)
