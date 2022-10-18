@@ -194,6 +194,8 @@ function ConcentratedCard() {
       )
     : undefined
 
+  const currentPriceReal = currentAmmPool ? decimalToFraction(currentAmmPool.state.currentPrice) : undefined
+
   const inputDisable =
     currentAmmPool && currentPrice && priceLower !== undefined && priceUpper !== undefined
       ? [
@@ -255,7 +257,7 @@ function ConcentratedCard() {
   const totalDeposit = prices.filter((p) => !!p).reduce((acc, cur) => acc.add(toFraction(cur!)), toFraction(0))
 
   const { ratio1, ratio2 } = calculateRatio({
-    currentPrice,
+    currentPrice: currentPriceReal,
     coin1InputDisabled,
     coin2InputDisabled,
     coin1Amount,
