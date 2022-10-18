@@ -11,6 +11,7 @@ import Popover, { PopoverHandles, PopoverPlacement, PopoverProps } from './Popov
 import mergeRef from '@/functions/react/mergeRef'
 import { MayFunction } from '@/types/constants'
 import { shrinkToValue } from '@/functions/shrinkToValue'
+import useAppSettings from '@/application/common/useAppSettings'
 
 export type TooltipHandle = {
   open(): void
@@ -40,7 +41,7 @@ export default function Tooltip({
   children,
   forceOpen,
   placement = 'top',
-  triggerBy = 'hover',
+  triggerBy,
   disable,
   defaultOpen,
   darkGradient = false
@@ -56,6 +57,7 @@ export default function Tooltip({
       ),
     [children]
   )
+  const isMobile = useAppSettings((s) => s.isMobile)
 
   const darkGradientMain = 'bg-[transparent]'
   return (
@@ -64,7 +66,7 @@ export default function Tooltip({
       canOpen={!disable}
       placement={placement}
       defaultOpen={defaultOpen}
-      triggerBy={triggerBy}
+      triggerBy={isMobile ? triggerBy ?? 'click' : triggerBy ?? 'hover'}
       forceOpen={forceOpen}
       className={className}
       triggerDelay={100}
