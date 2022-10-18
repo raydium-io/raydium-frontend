@@ -466,7 +466,7 @@ function ConcentratedCard() {
           </div>
 
           <div>
-            <div className="text-base leading-[22px] text-secondary-title mb-3">Fee</div>
+            <div className="text-base leading-[22px] text-secondary-title mb-3">Select Fee</div>
             <ConcentratedFeeSwitcher />
           </div>
 
@@ -480,11 +480,6 @@ function ConcentratedCard() {
           ) : (
             ''
           )}
-
-          <div>
-            <div className="text-base leading-[22px] text-secondary-title mb-3">Fee</div>
-            <ConcentratedFeeSwitcher />
-          </div>
 
           {/* supply button */}
           <Button
