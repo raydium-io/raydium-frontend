@@ -260,7 +260,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       xAxisRef.current.push(val)
     }
 
-    const initDecimals = val < 1 ? 2 : 1
+    const initDecimals = Math.abs(val) < 1 ? 2 : 1
 
     let tick = Number(val.toFixed(initDecimals)).toString()
     for (let i = initDecimals; i < 5 && labels.indexOf(tick) !== -1; i++) {
@@ -568,13 +568,15 @@ export default forwardRef(function Chart(props: Props, ref) {
       <div>
         <div className="flex items-center text-xs text-[#ABC4FF]">
           <span className="inline-block w-[8px] h-[2px] bg-white mr-2" />
-          <span className="opacity-50 mr-2">Current Price</span> {currentPrice?.toSignificant(decimals)}
+          <span className="opacity-50 mr-2">Current Price</span>{' '}
+          {formatDecimal({ val: currentPrice?.toSignificant(Math.max(decimals, 8)) || 0, decimals: 6 })}
         </div>
         {!showCurrentPriceOnly && (
           <div className="flex items-center text-xs text-[#ABC4FF]">
             <span className="inline-block w-[8px] h-[2px] bg-[#39D0D8] mr-2" />
-            <span className="opacity-50 mr-2">{timeBasis} Price Range</span> [{priceMin?.toFixed(decimals)},{' '}
-            {priceMax?.toFixed(decimals)}]
+            <span className="opacity-50 mr-2">{timeBasis} Price Range</span> [
+            {formatDecimal({ val: priceMin?.toFixed(Math.max(decimals, 8)) || 0, decimals: 6 })},{' '}
+            {formatDecimal({ val: priceMax?.toFixed(Math.max(decimals, 8)) || 0, decimals: 6 })}]
           </div>
         )}
       </div>
