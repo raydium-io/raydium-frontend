@@ -115,6 +115,7 @@ export default function CreatePoolPage() {
   useConcentratedAmountCalculator()
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const connected = useWallet((s) => s.connected)
   const [isPreviewDialogOn, { off: closePreviewDialog, on: openPreviewDialog }] = useToggle(false)
   const { popConfirm } = useNotification()
 
@@ -218,6 +219,14 @@ export default function CreatePoolPage() {
             className="frosted-glass-teal mobile:w-full"
             size={isMobile ? 'sm' : 'lg'}
             validators={[
+              {
+                should: connected,
+                forceActive: true,
+                fallbackProps: {
+                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                  children: 'Connect Wallet'
+                }
+              },
               { should: coin1 && coin2 },
               { should: isMeaningfulNumber(userSettedCurrentPrice), fallbackProps: { children: 'Input Price' } },
               { should: userSelectedAmmConfigFeeOption, fallbackProps: { children: 'Select a fee option' } },
