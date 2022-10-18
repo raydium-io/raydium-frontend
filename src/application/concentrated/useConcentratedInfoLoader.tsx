@@ -14,6 +14,7 @@ import useWallet from '../wallet/useWallet'
 
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -84,4 +85,9 @@ export default function useConcentratedInfoLoader() {
     if (!chartResponse) return
     useConcentrated.setState({ chartPoints: chartResponse.data })
   }, [currentAmmPool, pathname, tokens])
+
+  // auto clean chart data
+  useAsyncEffect(async () => {
+    useConcentrated.setState({ chartPoints: undefined })
+  }, [pathname])
 }
