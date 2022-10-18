@@ -4,7 +4,7 @@ import { Fraction, Price, Token, TokenAmount } from 'test-r-sdk'
 import useAppSettings from '@/application/common/useAppSettings'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
-import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConcentrated, { timeMap } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
@@ -113,6 +113,10 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
     targetUserPositionAccount && toFraction(targetUserPositionAccount!.priceUpper)
   ]
 
+  const priceRange = currentAmmPool
+    ? [currentAmmPool.state[timeMap[timeBasis]].priceMin, currentAmmPool.state[timeMap[timeBasis]].priceMax]
+    : [undefined, undefined]
+
   return (
     <Col className={twMerge('bg-[#141041] py-3 px-4 rounded-xl gap-4', className)}>
       <Row className="items-center gap-2">
@@ -132,6 +136,8 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
             initMinBoundaryX,
             initMaxBoundaryX
           }}
+          priceMin={priceRange[0]}
+          priceMax={priceRange[1]}
           currentPrice={currentAmmPool ? currentAmmPool.currentPrice : undefined}
           decimals={decimals}
           hideRangeLine

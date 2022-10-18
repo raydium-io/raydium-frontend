@@ -22,8 +22,7 @@ import {
   Range,
   toFixedNumber,
   unitColor,
-  ZOOM_INTERVAL,
-  getPriceLabel
+  ZOOM_INTERVAL
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
 import { formatDecimal } from '@/functions/numberish/formatDecimal'
@@ -555,14 +554,12 @@ export default forwardRef(function Chart(props: Props, ref) {
           <span className="opacity-50 mr-2">Current Price</span>{' '}
           {formatDecimal({ val: currentPrice?.toSignificant(Math.max(decimals, 8)) || 0, decimals: 6 })}
         </div>
-        {!showCurrentPriceOnly && (
-          <div className="flex items-center text-xs text-[#ABC4FF]">
-            <span className="inline-block w-[8px] h-[2px] bg-[#39D0D8] mr-2" />
-            <span className="opacity-50 mr-2">{timeBasis} Price Range</span> [
-            {formatDecimal({ val: priceMin?.toFixed(Math.max(decimals, 8)) || 0, decimals: 6 })},{' '}
-            {formatDecimal({ val: priceMax?.toFixed(Math.max(decimals, 8)) || 0, decimals: 6 })}]
-          </div>
-        )}
+        <div className="flex items-center text-xs text-[#ABC4FF]">
+          <span className="inline-block w-[8px] h-[2px] bg-[#39D0D8] mr-2" />
+          <span className="opacity-50 mr-2">{timeBasis} Price Range</span> [
+          {formatDecimal({ val: priceMin?.toFixed(Math.max(decimals, 8)) || 0, decimals: 6 })},{' '}
+          {formatDecimal({ val: priceMax?.toFixed(Math.max(decimals, 8)) || 0, decimals: 6 })}]
+        </div>
       </div>
       <div className="w-full select-none" style={{ height: `${height || 140}px` }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -633,10 +630,10 @@ export default forwardRef(function Chart(props: Props, ref) {
                 strokeWidth={2}
               />
             )}
-            {!showCurrentPriceOnly && priceMin && (
+            {priceMin && (
               <ReferenceLine isFront={true} x={priceMin} stroke="#39D0D8" strokeDasharray="4" strokeWidth={2} />
             )}
-            {!showCurrentPriceOnly && priceMax && (
+            {priceMax && (
               <ReferenceLine isFront={true} x={priceMax} stroke="#39D0D8" strokeDasharray="4" strokeWidth={2} />
             )}
             {hasPoints && !showCurrentPriceOnly && (
