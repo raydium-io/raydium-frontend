@@ -65,7 +65,9 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
         : false)
     if (!canUseCache) {
       const { currentVersion } = useAppVersion.getState()
-      const response = fetch(input, { ...options, headers: { ...options?.headers, 'ui-version': currentVersion } }) // add version for debug
+      const response = key.includes('api.raydium.io')
+        ? fetch(input, { ...options, headers: { ...options?.headers, 'ui-version': currentVersion } })
+        : fetch(input, options) // add version for debug
       resultCache.set(key, {
         rawText: response
           .then((r) => r.clone())

@@ -1,6 +1,6 @@
-import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayFunction } from '@/types/constants'
-import { ReactNode, useCallback, MouseEvent } from 'react'
+import { MouseEvent, ReactNode, useCallback } from 'react'
+
 import { twMerge } from 'tailwind-merge'
 
 export interface TabItem {
@@ -39,10 +39,7 @@ export default function RectTabs(props: Props) {
             onClick={isSelected ? undefined : handleChange}
             data-val={tab.value}
             className={twMerge(
-              `flex text-xs ${
-                isSelected ? 'bg-active-tab-bg text-[#39d0d8] cursor-default' : 'text-[#39d0d880] cursor-pointer'
-              }`,
-              shrinkToValue(tabClassName, [isSelected]),
+              `flex text-xs ${isSelected ? 'bg-active-tab-bg text-active-cyan cursor-default' : 'cursor-pointer'}`,
               tab.className
             )}
           >
