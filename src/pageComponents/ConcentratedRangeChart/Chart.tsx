@@ -1,26 +1,31 @@
-import { useEffect, useRef, useState, useCallback, useMemo, useImperativeHandle, forwardRef, ReactNode } from 'react'
-import { Fraction } from '@raydium-io/raydium-sdk'
-import { AreaChart, Area, XAxis, YAxis, ReferenceLine, ResponsiveContainer, ReferenceArea, Tooltip } from 'recharts'
+import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+
+import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Fraction } from 'test-r-sdk'
+
+import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
 import Icon from '@/components/Icon'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
-import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
+import { useEvent } from '@/hooks/useEvent'
+import { TimeBasis } from '@/application/concentrated/useConcentrated'
+
 import {
-  ChartPoint,
-  ChartRangeInputOption,
-  Range,
-  DEFAULT_X_AXIS,
-  HIGHLIGHT_COLOR,
-  unitColor,
-  ZOOM_INTERVAL,
   AREA_CONFIG,
   boundaryColor,
-  getStrokeFill,
-  toFixedNumber,
+  ChartPoint,
+  ChartRangeInputOption,
+  DEFAULT_X_AXIS,
   getConfig,
-  getLabel
+  getLabel,
+  getStrokeFill,
+  HIGHLIGHT_COLOR,
+  Range,
+  toFixedNumber,
+  unitColor,
+  ZOOM_INTERVAL,
+  getPriceLabel
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
-import { useEvent } from '@/hooks/useEvent'
 import { formatDecimal } from '@/functions/numberish/formatDecimal'
 
 interface HighlightPoint extends ChartPoint {
@@ -39,7 +44,8 @@ interface Props {
   className?: string
   chartOptions?: ChartRangeInputOption
   currentPrice?: Fraction
-  priceLabel?: string
+  priceMin?: number
+  priceMax?: number
   showCurrentPriceOnly?: boolean
   showZoom?: boolean
   hideRangeLine?: boolean
@@ -48,6 +54,7 @@ interface Props {
   hideXAxis?: boolean
   height?: number
   title?: ReactNode
+  timeBasis: TimeBasis
   onPositionChange?: (props: { min: number; max: number; side?: Range; userInput?: boolean }) => PriceBoundaryReturn
   onInDecrease?: (props: { p: number; isMin: boolean; isIncrease: boolean }) => Fraction | undefined
   onAdjustMin?: (props: { min: number; max: number }) => { price: number; tick: number }
@@ -58,7 +65,9 @@ export default forwardRef(function Chart(props: Props, ref) {
     poolFocusKey,
     chartOptions,
     currentPrice,
-    priceLabel,
+    priceMin,
+    priceMax,
+    timeBasis,
     decimals,
     height,
     onPositionChange,
@@ -66,7 +75,6 @@ export default forwardRef(function Chart(props: Props, ref) {
     onAdjustMin,
     title,
     showCurrentPriceOnly,
-    hideCurrentPriceLabel,
     hideRangeLine,
     hideRangeInput,
     showZoom,
@@ -541,8 +549,18 @@ export default forwardRef(function Chart(props: Props, ref) {
           </div>
         )}
       </div>
-      <div className="text-[#ABC4FF] text-sm text-center">
-        {hideCurrentPriceLabel ? undefined : `Current Price: ${currentPrice?.toSignificant(4)} ${priceLabel || ''}`}
+      <div>
+        <div className="flex items-center text-xs text-[#ABC4FF]">
+          <span className="inline-block w-[8px] h-[2px] bg-white mr-2" />
+          <span className="opacity-50 mr-2">Current Price</span> {currentPrice?.toSignificant(decimals)}
+        </div>
+        {!showCurrentPriceOnly && (
+          <div className="flex items-center text-xs text-[#ABC4FF]">
+            <span className="inline-block w-[8px] h-[2px] bg-[#39D0D8] mr-2" />
+            <span className="opacity-50 mr-2">{timeBasis} Price Range</span> [{priceMin?.toFixed(decimals)},{' '}
+            {priceMax?.toFixed(decimals)}]
+          </div>
+        )}
       </div>
       <div className="w-full select-none" style={{ height: `${height || 140}px` }}>
         <ResponsiveContainer width="100%" height="100%">
@@ -550,7 +568,7 @@ export default forwardRef(function Chart(props: Props, ref) {
             style={{ userSelect: 'none' }}
             width={500}
             height={400}
-            margin={{ top: 10 }}
+            margin={{ top: 15 }}
             defaultShowTooltip={false}
             data={displayList || []}
             onMouseDown={isMobile ? handleMouseDown(Range.Min) : undefined}
@@ -607,11 +625,17 @@ export default forwardRef(function Chart(props: Props, ref) {
             {currentPrice && (
               <ReferenceLine
                 isFront={true}
-                x={currentPrice?.toSignificant(4)}
+                x={currentPrice?.toSignificant(decimals)}
                 stroke="#FFF"
                 strokeDasharray="4"
                 strokeWidth={2}
               />
+            )}
+            {!showCurrentPriceOnly && priceMin && (
+              <ReferenceLine isFront={true} x={priceMin} stroke="#39D0D8" strokeDasharray="4" strokeWidth={2} />
+            )}
+            {!showCurrentPriceOnly && priceMax && (
+              <ReferenceLine isFront={true} x={priceMax} stroke="#39D0D8" strokeDasharray="4" strokeWidth={2} />
             )}
             {hasPoints && !showCurrentPriceOnly && (
               <ReferenceArea

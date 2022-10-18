@@ -1,4 +1,4 @@
-import { SplTokenJsonInfo, Token } from '@raydium-io/raydium-sdk'
+import { SplTokenJsonInfo, Token } from 'test-r-sdk'
 
 import { HexAddress, SrcAddress } from '@/types/constants'
 
@@ -85,4 +85,4 @@ export interface TokenListFetchConfigItemWithMethods {
   name: string
 }
 
-export { Token, TokenAmount } from '@raydium-io/raydium-sdk'
+export { Token, TokenAmount } from 'test-r-sdk'

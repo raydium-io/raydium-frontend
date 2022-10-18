@@ -1,7 +1,8 @@
-import { Numberish } from '@/types/constants'
-import { Fraction } from '@raydium-io/raydium-sdk'
-import { gt, lt } from './compare'
+import { Fraction } from 'test-r-sdk'
 
+import { Numberish } from '@/types/constants'
+
+import { gt, lt } from './compare'
 import toFraction from './toFraction'
 
 export function mul(a: Numberish, b: Numberish): Fraction

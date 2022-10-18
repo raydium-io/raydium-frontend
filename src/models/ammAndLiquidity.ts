@@ -4,11 +4,19 @@
  * @todo not burn old yet
  */
 
-import {
-  AmmV3, AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, PublicKeyish,
-  ReturnTypeFetchMultiplePoolTickArrays, ReturnTypeGetAllRouteComputeAmountOut, TradeV2
-} from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
+
+import {
+  AmmV3,
+  AmmV3PoolInfo,
+  AmmV3PoolPersonalPosition,
+  ApiAmmV3PoolInfo,
+  LiquidityPoolsJsonFile,
+  PublicKeyish,
+  ReturnTypeFetchMultiplePoolTickArrays,
+  ReturnTypeGetAllRouteComputeAmountOut,
+  TradeV2
+} from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'

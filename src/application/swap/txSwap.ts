@@ -1,3 +1,5 @@
+import { TradeV2 } from 'test-r-sdk'
+
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
@@ -5,10 +7,11 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
-import { TradeV2 } from '@raydium-io/raydium-sdk'
+
 import { loadTransaction } from '../txTools/createTransaction'
 import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
+
 import { useSwap } from './useSwap'
 
 export default function txSwap() {
@@ -73,9 +76,8 @@ export default function txSwap() {
       {
         txHistoryInfo: {
           title: 'Swap',
-          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
-            downCoin.symbol
-          }`
+          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${downCoin.symbol
+            }`
         }
       }
     ]) as TransactionQueue

@@ -1,10 +1,10 @@
 import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 
-import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
-
 import { twMerge } from 'tailwind-merge'
+import { PublicKeyish, TokenAmount } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
+import useConnection from '@/application/connection/useConnection'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { isHydratedFarmInfo, isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
 import txFarmDeposit from '@/application/farms/txFarmDeposit'
@@ -68,7 +68,6 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
-import useConnection from '@/application/connection/useConnection'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()

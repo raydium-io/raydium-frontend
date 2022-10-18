@@ -1,5 +1,6 @@
-import { Farm } from '@raydium-io/raydium-sdk'
 import { Connection, Signer, TransactionInstruction } from '@solana/web3.js'
+
+import { Farm } from 'test-r-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import txHandler, { AddSingleTxOptions } from '@/application/txTools/handleTx'
@@ -8,12 +9,14 @@ import { asyncForEach } from '@/functions/asyncMap'
 import toPubString from '@/functions/format/toMintString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { MayArray } from '@/types/constants'
+
 import { HydratedFarmInfo } from '../farms/type'
 import useFarms from '../farms/useFarms'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { SOLMint } from '../token/wellknownToken.config'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
+
 import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
 

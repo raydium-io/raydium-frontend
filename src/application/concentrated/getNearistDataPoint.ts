@@ -1,14 +1,17 @@
-import { div, getMax, mul } from '@/functions/numberish/operations'
-import { fractionToDecimal } from '@/application/txTools/decimal2Fraction'
-import { recursivelyDecimalToFraction, decimalToFraction } from '@/application/txTools/decimal2Fraction'
+import { AmmV3, Fraction } from 'test-r-sdk'
+
+import {
+  decimalToFraction, fractionToDecimal, recursivelyDecimalToFraction
+} from '@/application/txTools/decimal2Fraction'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { div, getMax, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
-import { Fraction } from '@raydium-io/raydium-sdk'
-import { AmmV3 } from '@raydium-io/raydium-sdk'
-import { SplToken } from '../token/type'
-import { HydratedConcentratedInfo } from './type'
-import { Numberish } from '@/types/constants'
 import { Range } from '@/pageComponents/ConcentratedRangeChart/chartUtil'
+import { Numberish } from '@/types/constants'
+
+import { SplToken } from '../token/type'
+
+import { HydratedConcentratedInfo } from './type'
 
 export function getPriceAndTick(info: Parameters<typeof AmmV3['getPriceAndTick']>[0]) {
   const result = AmmV3.getPriceAndTick(info)
@@ -29,11 +32,11 @@ interface GetChartDataProps {
 
 export type PriceBoundaryReturn =
   | {
-      priceLowerTick: number
-      priceLower: Fraction
-      priceUpperTick: number
-      priceUpper: Fraction
-    }
+    priceLowerTick: number
+    priceLower: Fraction
+    priceUpperTick: number
+    priceUpper: Fraction
+  }
   | undefined
 
 export function getPriceBoundary({ coin1, coin2, reverse, ammPool }: GetChartDataProps): PriceBoundaryReturn {
@@ -103,7 +106,7 @@ export function calLowerUpper({
   coin2,
   reverse,
   ammPool
-}: GetPriceTick & { [Range.Min]: number; [Range.Max]: number }): PriceBoundaryReturn {
+}: GetPriceTick & { [Range.Min]: number;[Range.Max]: number }): PriceBoundaryReturn {
   const resLower = getPriceTick({
     p: min,
     coin1,

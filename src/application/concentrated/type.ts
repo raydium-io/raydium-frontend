@@ -12,7 +12,7 @@ import {
   Percent,
   Price,
   TokenAmount
-} from '@raydium-io/raydium-sdk'
+} from 'test-r-sdk'
 
 import { HexAddress, Numberish } from '@/types/constants'
 
@@ -111,6 +111,31 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   rewardApr24h: Percent[]
   rewardApr7d: Percent[]
   rewardApr30d: Percent[]
+
+  getApr({
+    tickLower,
+    tickUpper,
+    tokenPrices,
+    tokenDecimals,
+    timeBasis,
+    planType,
+    chainTimeOffsetMs
+  }: {
+    tickLower: number
+    tickUpper: number
+    tokenPrices: Record<string, Price>
+    tokenDecimals: Record<string, number>
+    timeBasis: '24h' | '7d' | '30d'
+    planType: 'A' | 'B' | 'C'
+    chainTimeOffsetMs?: number | undefined
+  }): {
+    fee: {
+      apr: Percent
+      percentInTotal: Percent
+    }
+    rewards: { apr: Percent; percentInTotal: Percent; token: SplToken | undefined }[]
+    apr: Percent
+  }
 }
 
 export interface UserPositionAccount {
@@ -138,10 +163,30 @@ export interface UserPositionAccount {
   positionPercentB: Percent
   tokenFeeAmountA?: TokenAmount
   tokenFeeAmountB?: TokenAmount
-  getLiquidityVolume: (tokenPrices: Record<string, Price>) => {
+  getLiquidityVolume(tokenPrices: Record<string, Price>): {
     wholeLiquidity: Fraction | undefined
     baseLiquidity: Fraction | undefined
     quoteLiquidity: Fraction | undefined
+  }
+  getApr({
+    tokenPrices,
+    tokenDecimals,
+    timeBasis,
+    planType,
+    chainTimeOffsetMs
+  }: {
+    tokenPrices: Record<string, Price>
+    tokenDecimals: Record<string, number>
+    timeBasis: '24h' | '7d' | '30d'
+    planType: 'A' | 'B' | 'C'
+    chainTimeOffsetMs?: number | undefined
+  }): {
+    fee: {
+      apr: Percent
+      percentInTotal: Percent
+    }
+    rewards: { apr: Percent; percentInTotal: Percent; token: SplToken | undefined }[]
+    apr: Percent
   }
   // liquidity: BN__default; // currently useless
   // feeGrowthInsideLastX64A: BN__default; // currently useless

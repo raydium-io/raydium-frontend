@@ -1,15 +1,16 @@
+import { Percent } from 'test-r-sdk'
+
+import useConnection from '@/application/connection/useConnection'
 import { currentIsAfter, currentIsBefore, isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { Percent } from '@raydium-io/raydium-sdk'
+import toTokenPrice from '@/functions/format/toTokenPrice'
+import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { padZero } from '@/functions/numberish/handleZero'
+import { div, getMin, mul } from '@/functions/numberish/operations'
+import toBN from '@/functions/numberish/toBN'
+import { objectShakeFalsy } from '@/functions/objectMethods'
 
 import { HydratedIdoInfo, SdkIdoInfo, TicketInfo, TicketTailNumberInfo } from './type'
-import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
-import { div, getMin, mul } from '@/functions/numberish/operations'
-import toTokenPrice from '@/functions/format/toTokenPrice'
-import { objectShakeFalsy } from '@/functions/objectMethods'
-import toBN from '@/functions/numberish/toBN'
-import useConnection from '@/application/connection/useConnection'
-import { padZero } from '@/functions/numberish/handleZero'
 
 function getDepositedTickets(idoInfo: SdkIdoInfo): TicketInfo[] {
   if (!idoInfo.ledger) return []
@@ -130,8 +131,8 @@ export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
   const filled = updatedIdoInfo.state // SDK
     ? new Percent(updatedIdoInfo.state.raisedLotteries, updatedIdoInfo.state.maxWinLotteries).toFixed()
     : updatedIdoInfo.raisedLotteries && updatedIdoInfo.maxWinLotteries // API
-    ? updatedIdoInfo.raisedLotteries / updatedIdoInfo.maxWinLotteries
-    : undefined
+      ? updatedIdoInfo.raisedLotteries / updatedIdoInfo.maxWinLotteries
+      : undefined
 
   return {
     ...updatedIdoInfo,

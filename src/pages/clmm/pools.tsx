@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { CurrencyAmount } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
@@ -14,6 +14,7 @@ import useConcentrated, {
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
+import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
@@ -43,7 +44,6 @@ import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
-import { toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter } from '@/functions/date/judges'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
@@ -52,17 +52,20 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
-import { sub } from '@/functions/numberish/operations'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { add, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import { objectMap } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
-import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
-import { isInBonsaiTest } from '@/functions/judgers/isSSR'
+import { AprChart } from '@/pageComponents/Concentrated/AprChart'
+import { ConcentratedModifyTooltipIcon } from '@/pageComponents/Concentrated/ConcentratedModifyTooltipIcon'
+import { Numberish } from '@/types/constants'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -367,6 +370,7 @@ function PoolCard() {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const searchText = useConcentrated((s) => s.searchText)
   const timeBasis = useConcentrated((s) => s.timeBasis)
+  const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
   const currentTab = useConcentrated((s) => s.currentTab)
 
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -429,7 +433,7 @@ function PoolCard() {
     () => (
       <Row
         type="grid-x"
-        className="mb-3 h-12 justify-between sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl mobile:rounded-lg gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,.8fr,auto]"
+        className="mb-3 h-12 justify-between sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl mobile:rounded-lg gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,1fr,.8fr,auto]"
       >
         <Row
           className="group w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
@@ -564,7 +568,7 @@ function PoolCard() {
         </Row>
 
         {/* table head column: volume24h */}
-        {/* <Row
+        <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
             setSortConfig({
@@ -592,12 +596,12 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
-        </Row> */}
+        </Row>
 
         <PoolRefreshCircleBlock className="pr-8 self-center" />
       </Row>
     ),
-    [sortConfig, timeBasis]
+    [sortConfig, timeBasis, aprCalcMode]
   )
 
   // NOTE: filter widgets
@@ -646,7 +650,6 @@ function PoolCard() {
     </CyberpunkStyleCard>
   )
 }
-
 function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentratedInfo[] }) {
   const loading = useConcentrated((s) => s.loading)
   const expandedItemIds = useConcentrated((s) => s.expandedItemIds)
@@ -719,10 +722,18 @@ function PoolCardDatabaseBodyCollapseItemFace({
     return <div className="flex flex-wrap justify-start items-center gap-2">{badges}</div>
   }, [info.rewardInfos])
 
+  const apr = isHydratedConcentratedItemInfo(info)
+    ? timeBasis === TimeBasis.DAY
+      ? { total: info.totalApr24h, itemList: [info.feeApr24h, ...info.rewardApr24h] }
+      : timeBasis === TimeBasis.WEEK
+      ? { total: info.totalApr7d, itemList: [info.feeApr7d, ...info.rewardApr7d] }
+      : { total: info.totalApr30d, itemList: [info.feeApr30d, ...info.rewardApr30d] }
+    : undefined
+
   const pcCotent = (
     <Row
       type="grid-x"
-      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-center gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,.8fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
+      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-center gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,1fr,.8fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       } transition-all`}
     >
@@ -783,18 +794,24 @@ function PoolCardDatabaseBodyCollapseItemFace({
         }
       />
       <TextInfoItem name={`Rewards`} value={rewardsBadge} />
-      {/* <TextInfoItem
+      <TextInfoItem
         name={`APR(${timeBasis})`}
         value={
-          isHydratedConcentratedItemInfo(info)
-            ? timeBasis === TimeBasis.DAY
-              ? toPercentString(info.totalApr24h)
-              : timeBasis === TimeBasis.WEEK
-              ? toPercentString(info.totalApr7d)
-              : toPercentString(info.totalApr30d)
-            : undefined
+          <Tooltip panelClassName="p-0 rounded-xl">
+            <div>
+              {toPercentString(apr?.total)}
+              <Row className="items-center gap-2 mobile:gap-1 mt-1">
+                {apr && <AprLine className="w-28" aprValues={apr.itemList} />}
+              </Row>
+            </div>
+            <Tooltip.Panel>
+              <div className="p-5">
+                <AprChart type="poolInfo" colCount={2} poolInfo={info} />
+              </div>
+            </Tooltip.Panel>
+          </Tooltip>
         }
-      /> */}
+      />
       <Grid className="w-9 h-9 mr-8 place-items-center">
         <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />
       </Grid>
@@ -845,18 +862,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             }
           />
           <TextInfoItem name="Rewards" value={'mobile TEST'} />
-          {/* <TextInfoItem
-            name={`APR(${timeBasis})`}
-            value={
-              isHydratedConcentratedItemInfo(info)
-                ? timeBasis === TimeBasis.DAY
-                  ? toPercentString(info.totalApr24h)
-                  : timeBasis === TimeBasis.WEEK
-                  ? toPercentString(info.totalApr7d)
-                  : toPercentString(info.totalApr30d)
-                : undefined
-            }
-          /> */}
+          <TextInfoItem name={`APR(${timeBasis})`} value={toPercentString(apr?.total)} />
 
           <Grid className="w-6 h-6 place-items-center">
             <Icon size="sm" heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`} />
@@ -902,6 +908,26 @@ function PoolCardDatabaseBodyCollapseItemFace({
   )
 
   return isMobile ? mobileContent : pcCotent
+}
+
+function AprLine({ className, aprValues }: { className?: string; aprValues: Numberish[] | undefined }) {
+  const colors = ['#abc4ff', '#39d0d8', '#2b6aff']
+  if (!aprValues) return null
+  const totalApr = aprValues.reduce((a, b) => add(a, b), 0)
+  return (
+    <Row className={twMerge('w-full', className)}>
+      {aprValues?.map((aprValue, idx) => (
+        <div
+          key={idx}
+          className="h-2 rounded-full"
+          style={{
+            width: toPercentString(div(aprValue, totalApr)),
+            backgroundColor: colors[idx]
+          }}
+        ></div>
+      ))}
+    </Row>
+  )
 }
 
 function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedConcentratedInfo }) {
@@ -1045,7 +1071,22 @@ function PoolCardDatabaseBodyCollapsePositionContent({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const tokenPrices = useToken((s) => s.tokenPrices)
+  const token = useToken((s) => s.tokens)
+  const tokenDecimals = objectMap(token, (i) => i.decimals)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const unclaimedYield = useConcentratedPendingYield(p)
+  const positionApr = useMemo(
+    () =>
+      p?.getApr({
+        tokenPrices,
+        tokenDecimals,
+        timeBasis: '24h', // TEMP DEV
+        planType: 'B',
+        chainTimeOffsetMs: chainTimeOffset
+      }),
+    [p, chainTimeOffset]
+  )
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
 
   const rangeTag = useMemo(() => {
@@ -1150,7 +1191,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               is={isMobile ? 'div' : 'Row'}
               className={`${
                 !isMobile ? 'grid grid-cols-5' : 'flex-auto justify-between'
-              } w-2/3 mobile:w-full ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center`}
+              } w-1/2 mobile:w-full ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center`}
             >
               <Col
                 className={`${!isMobile ? 'col-span-2' : ''} mobile:mb-2 mobile:pb-2`}
@@ -1264,7 +1305,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
             </AutoBox>
             <AutoBox
               is={isMobile ? 'div' : 'Row'}
-              className="flex-auto w-1/3 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center"
+              className="flex-auto w-1/2 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center"
             >
               <Col>
                 <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
@@ -1298,6 +1339,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 <div className="text-white font-medium text-base mobile:text-sm mt-3 mobile:mt-1">
                   ≈{toUsdVolume(unclaimedYield)}
                 </div>
+                {p && <PositionAprIllustrator poolInfo={info} positionInfo={p}></PositionAprIllustrator>}
+
                 {/* <AutoBox
                   is="Row"
                   className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2 mobile:mt-1"
@@ -1482,6 +1525,51 @@ function PoolCardDatabaseBodyCollapsePositionContent({
         </div>
       </Row>
     </AutoBox>
+  )
+}
+
+function PositionAprIllustrator({
+  poolInfo,
+  positionInfo
+}: {
+  poolInfo: HydratedConcentratedInfo
+  positionInfo: UserPositionAccount
+}) {
+  const timeBasis = useConcentrated((s) => s.timeBasis)
+  const tokenPrices = useToken((s) => s.tokenPrices)
+  const token = useToken((s) => s.tokens)
+  const tokenDecimals = objectMap(token, (i) => i.decimals)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const aprCalcMethod = useConcentrated((s) => s.aprCalcMode)
+  const positionApr = useMemo(
+    () =>
+      positionInfo?.getApr({
+        tokenPrices,
+        tokenDecimals,
+        timeBasis: timeBasis.toLowerCase() as '24h' | '7d' | '30d',
+        planType: aprCalcMethod,
+        chainTimeOffsetMs: chainTimeOffset
+      }),
+    [chainTimeOffset, timeBasis, aprCalcMethod]
+  )
+  return (
+    <Row className="items-center gap-2">
+      <div className="text-[#abc4ff80] text-sm font-medium mobile:text-xs">APR</div>
+      <ConcentratedModifyTooltipIcon iconClassName="opacity-50" />
+      <div className="text-white text-sm font-medium mobile:text-xs">{toPercentString(positionApr?.apr)}</div>
+      <Tooltip panelClassName="p-0 rounded-xl">
+        <Row className="items-center gap-2 mobile:gap-1 mt-1">
+          {positionApr && (
+            <AprLine className="w-28" aprValues={[positionApr.fee.apr, ...positionApr.rewards.map((i) => i.apr)]} />
+          )}
+        </Row>
+        <Tooltip.Panel>
+          <div className="p-5">
+            {positionApr && <AprChart type="positionAccount" colCount={2} positionAccount={positionInfo} />}
+          </div>
+        </Tooltip.Panel>
+      </Tooltip>
+    </Row>
   )
 }
 

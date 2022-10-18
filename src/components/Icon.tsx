@@ -78,6 +78,7 @@ export type AppHeroIconName =
   | 'zoom-in'
   | 'zoom-out'
   | 'lock-closed'
+  | 'x-switch'
   | ' '
 
 export interface IconProps {
@@ -190,6 +191,8 @@ export default function Icon({
         ? MagnifyingGlassMinusIcon
         : heroIconName === 'lock-closed'
         ? LockClosedIcon
+        : heroIconName === 'x-switch'
+        ? ArrowsRightLeftIcon
         : heroIconName === ' '
         ? ({ className }: { className?: string }) => <div className={className} />
         : Fragment

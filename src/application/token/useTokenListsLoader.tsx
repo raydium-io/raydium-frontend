@@ -1,3 +1,5 @@
+import { LiquidityPoolsJsonFile, Token, WSOL } from 'test-r-sdk'
+
 import { asyncMapAllSettled } from '@/functions/asyncMap'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
@@ -6,33 +8,24 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress, PublicKeyish, SrcAddress } from '@/types/constants'
-import { LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
+
 import { objectMap, replaceValue } from '../../functions/objectMethods'
 import useFarms from '../farms/useFarms'
 import useLiquidity from '../liquidity/useLiquidity'
 import { usePools } from '../pools/usePools'
 import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
+
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
 import {
-  isRaydiumDevTokenListName,
-  isRaydiumMainnetTokenListName,
-  liquidityMainnetListUrl,
-  rawTokenListConfigs
+  isRaydiumDevTokenListName, isRaydiumMainnetTokenListName, liquidityMainnetListUrl, rawTokenListConfigs
 } from './rawTokenLists.config'
 import {
-  RaydiumDevTokenListJsonInfo,
-  RaydiumTokenListJsonInfo,
-  SplToken,
-  TokenJson,
-  TokenListFetchConfigItem
+  RaydiumDevTokenListJsonInfo, RaydiumTokenListJsonInfo, SplToken, TokenJson, TokenListFetchConfigItem
 } from './type'
 import useToken, {
-  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME,
-  RAYDIUM_DEV_TOKEN_LIST_NAME,
-  RAYDIUM_MAINNET_TOKEN_LIST_NAME,
-  RAYDIUM_UNNAMED_TOKEN_LIST_NAME,
-  SOLANA_TOKEN_LIST_NAME
+  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME, RAYDIUM_DEV_TOKEN_LIST_NAME, RAYDIUM_MAINNET_TOKEN_LIST_NAME,
+  RAYDIUM_UNNAMED_TOKEN_LIST_NAME, SOLANA_TOKEN_LIST_NAME
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
 

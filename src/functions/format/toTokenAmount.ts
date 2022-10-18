@@ -1,18 +1,13 @@
 import BN from 'bn.js'
+import { Fraction, Token, TokenAmount } from 'test-r-sdk'
 
-import { HydratedTokenJsonInfo } from '@/application/token/type'
 import {
-  isQuantumSOL,
-  isQuantumSOLVersionSOL,
-  QuantumSOLAmount,
-  QuantumSOLToken,
-  toQuantumSolAmount,
-  WSOLMint
+  isQuantumSOL, isQuantumSOLVersionSOL, QuantumSOLAmount, QuantumSOLToken, toQuantumSolAmount, WSOLMint
 } from '@/application/token/quantumSOL'
+import { HydratedTokenJsonInfo } from '@/application/token/type'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import toBN from '@/functions/numberish/toBN'
 import { Numberish } from '@/types/constants'
-import { Fraction, Token, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { isToken } from '../judgers/dateType'
 import toFraction from '../numberish/toFraction'
@@ -69,11 +64,11 @@ export function toTokenAmount(
   const amountBigNumber = toBN(
     options?.alreadyDecimaled
       ? new Fraction(numberDetails.numerator, numberDetails.denominator).mul(
-          new BN(10).pow(new BN(parsedToken.decimals))
-        )
+        new BN(10).pow(new BN(parsedToken.decimals))
+      )
       : amount
-      ? toFraction(amount)
-      : toFraction(0)
+        ? toFraction(amount)
+        : toFraction(0)
   )
 
   const iswsol =

@@ -8,8 +8,11 @@ import useAppSettings from '@/application/common/useAppSettings'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import useTwoStateSyncer from '@/hooks/use2StateSyncer'
 import { MayFunction } from '@/types/generics'
+import useGlobInstanceDetector from '@/hooks/useGlobInstanceDetector'
 
 export interface DialogProps {
+  /** set this will force only one instance in page */
+  pageComponentName?: string
   open: boolean
   /** this is the className of modal card */
   className?: string
@@ -26,6 +29,7 @@ export interface DialogProps {
 }
 
 export default function Dialog({
+  pageComponentName,
   open,
   children,
   className,
@@ -41,8 +45,12 @@ export default function Dialog({
   const [innerOpen, setInnerOpen] = useState(open)
   const isMobile = useAppSettings((s) => s.isMobile)
 
+  const { isFirstDetectedComponentInThisPage } = useGlobInstanceDetector(pageComponentName)
+  const componentCanExist = !pageComponentName || isFirstDetectedComponentInThisPage
+
   const openDialog = () => setInnerOpen(true)
   const closeDialog = () => setInnerOpen(false)
+
   useTwoStateSyncer({
     state1: open,
     state2: innerOpen,
@@ -51,6 +59,7 @@ export default function Dialog({
     }
   })
 
+  if (!componentCanExist) return null
   return (
     <Transition as={Fragment} show={innerOpen} beforeLeave={onCloseImmediately} afterLeave={onClose}>
       <_Dialog className="fixed inset-0 z-model overflow-y-auto" onClose={closeDialog}>

@@ -1,5 +1,6 @@
-import { Spl, WSOL } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
+
+import { Spl, WSOL } from 'test-r-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import txHandler, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleTx'
@@ -7,6 +8,7 @@ import assert from '@/functions/assert'
 import { mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { Numberish } from '@/types/constants'
+
 import { Ido, Snapshot } from './sdk'
 import { HydratedIdoInfo } from './type'
 

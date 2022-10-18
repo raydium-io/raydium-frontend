@@ -1,7 +1,7 @@
 import { Keypair, Signer, Transaction } from '@solana/web3.js'
 import jFetch from '@/functions/dom/jFetch'
 import BN from 'bn.js'
-import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo, Fraction } from '@raydium-io/raydium-sdk'
+import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo, Fraction } from 'test-r-sdk'
 import create from 'zustand'
 
 import useLocalStorageItem from '@/hooks/useLocalStorage'
@@ -37,7 +37,7 @@ export enum TimeBasis {
 }
 
 export type ConcentratedStore = {
-  //#region ------------------- data -------------------
+  //#region ------------------- input data -------------------
   selectableAmmPools?: HydratedConcentratedInfo[]
   currentAmmPool?: HydratedConcentratedInfo
   /** user need manually select one */
@@ -71,6 +71,7 @@ export type ConcentratedStore = {
   isRemoveDialogOpen: boolean
   isAddDialogOpen: boolean
   isMyPositionDialogOpen: boolean
+  isAprCalcPanelShown: boolean
 
   targetUserPositionAccount?: UserPositionAccount
 
@@ -88,6 +89,7 @@ export type ConcentratedStore = {
   tvl?: string | number // /api.raydium.io/v2/main/info
   volume24h?: string | number // /api.raydium.io/v2/main/info
   timeBasis: TimeBasis
+  aprCalcMode: 'A' | 'B' | 'C'
 
   availableAmmConfigFeeOptions?: HydratedAmmV3ConfigInfo[] // create pool
   userSelectedAmmConfigFeeOption?: HydratedAmmV3ConfigInfo // create pool
@@ -97,10 +99,14 @@ export type ConcentratedStore = {
     signers: Keypair[]
   }
   rewards: UICLMMRewardInfo[] // TEMP
+
+  planAApr?: { feeApr: number; rewardsApr: number[]; apr: number }
+  planBApr?: { feeApr: number; rewardsApr: number[]; apr: number }
+  planCApr?: { feeApr: number; rewardsApr: number[]; apr: number }
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
-const useConcentrated = create<ConcentratedStore>((set, get) => ({
+export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   apiAmmPools: [],
   sdkParsedAmmPools: [],
   hydratedAmmPools: [],
@@ -112,6 +118,7 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   isAddDialogOpen: false,
   isRemoveDialogOpen: false,
   isMyPositionDialogOpen: false,
+  isAprCalcPanelShown: false,
 
   isInput: undefined,
   isSearchAmmDialogOpen: false,
@@ -140,8 +147,13 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   searchText: '',
   expandedItemIds: new Set(),
   timeBasis: TimeBasis.DAY,
+  aprCalcMode: 'B',
 
-  rewards: []
+  rewards: [],
+
+  planAApr: { feeApr: 0, rewardsApr: [], apr: 0 },
+  planBApr: { feeApr: 0, rewardsApr: [], apr: 0 },
+  planCApr: { feeApr: 0, rewardsApr: [], apr: 0 }
 }))
 
 export default useConcentrated

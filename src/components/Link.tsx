@@ -1,5 +1,6 @@
-import _Link from 'next/link'
 import { ReactNode } from 'react'
+import _Link from 'next/link'
+
 import { twMerge } from 'tailwind-merge'
 
 import { PageRouteName, routeTo } from '@/application/routeTools'
@@ -27,7 +28,7 @@ export default function Link({
     <span
       tabIndex={0}
       className={twMerge(
-        `Link clickable ${noTextStyle ? '' : 'text-link-color hover:underline underline-offset-1'}`,
+        `Link clickable ${noTextStyle ? '' : ' text-[#39D0D8] hover:underline underline-offset-1'}`,
         className
       )}
       onClick={() => {
@@ -43,7 +44,7 @@ export default function Link({
       rel="nofollow noopener noreferrer"
       target="_blank"
       className={twMerge(
-        `Link clickable ${noTextStyle ? '' : 'text-link-color hover:underline underline-offset-1'}`,
+        `Link clickable ${noTextStyle ? '' : 'text-[#39D0D8] hover:underline underline-offset-1'}`,
         className
       )}
       href={href}

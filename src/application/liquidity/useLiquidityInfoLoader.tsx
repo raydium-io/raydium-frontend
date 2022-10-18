@@ -1,3 +1,7 @@
+import { useRouter } from 'next/router'
+
+import { LiquidityPoolsJsonFile } from 'test-r-sdk'
+
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
@@ -9,8 +13,7 @@ import { gt } from '@/functions/numberish/compare'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress } from '@/types/constants'
-import { useRouter } from 'next/router'
-import { LiquidityPoolsJsonFile } from '@raydium-io/raydium-sdk'
+
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
 import { liquidityMainnetListUrl } from '../token/rawTokenLists.config'
 

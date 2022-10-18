@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
-import { WSOL } from '@raydium-io/raydium-sdk'
+import { useRouter } from 'next/router'
+
+import { WSOL } from 'test-r-sdk'
 
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
@@ -9,12 +11,13 @@ import { useIdleEffect } from '@/hooks/useIdleEffect'
 import { getAllSwapableRouteInfos } from '@/models/ammAndLiquidity'
 import { makeAbortable } from '@/models/makeAbortable'
 import { HexAddress } from '@/types/constants'
-import { useRouter } from 'next/router'
+
 import useAppSettings from '../common/useAppSettings'
 import useConnection from '../connection/useConnection'
 import { SDKParsedLiquidityInfo } from '../liquidity/type'
 import useLiquidity from '../liquidity/useLiquidity'
 import useWallet from '../wallet/useWallet'
+
 import { useSwap } from './useSwap'
 
 export function useSwapAmountCalculator() {

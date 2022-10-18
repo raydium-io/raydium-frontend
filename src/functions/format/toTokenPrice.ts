@@ -1,9 +1,9 @@
 import BN from 'bn.js'
+import { Currency, Price, TEN, Token } from 'test-r-sdk'
 
 import { TokenJson } from '@/application/token/type'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { Numberish } from '@/types/constants'
-import { Currency, Price, TEN, Token } from '@raydium-io/raydium-sdk'
 
 export const usdCurrency = new Currency(6, 'usd', 'usd')
 
