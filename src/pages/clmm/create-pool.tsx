@@ -124,6 +124,7 @@ export default function CreatePoolPage() {
   const coin1Amount = useConcentrated((s) => s.coin1Amount)
   const coin2 = useConcentrated((s) => s.coin2)
   const coin2Amount = useConcentrated((s) => s.coin2Amount)
+  const focusSide = useConcentrated((s) => s.focusSide)
   const totalDeposit = useConcentrated((s) => s.totalDeposit)
   const userSettedCurrentPrice = useConcentrated((s) => s.userSettedCurrentPrice)
   const priceLower = useConcentrated((s) => s.priceLower)
@@ -196,6 +197,7 @@ export default function CreatePoolPage() {
           coin2={coin2}
           coin1Amount={coin1Amount}
           coin2Amount={coin2Amount}
+          focusSide={focusSide}
           decimals={decimals}
           currentPrice={toFraction(userSettedCurrentPrice!)}
           position={{ min: toFraction(priceLower!).toFixed(decimals), max: toFraction(priceUpper!).toFixed(decimals) }}

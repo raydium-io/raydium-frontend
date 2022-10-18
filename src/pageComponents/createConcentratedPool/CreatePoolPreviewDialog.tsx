@@ -13,6 +13,7 @@ import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
+import { ConcentratedStore } from '@/application/concentrated/useConcentrated'
 
 interface Props {
   open: boolean
@@ -20,6 +21,7 @@ interface Props {
   coin2?: SplToken
   coin1Amount?: Numberish
   coin2Amount?: Numberish
+  focusSide?: ConcentratedStore['focusSide']
   decimals: number
   currentPrice?: Fraction
   position?: { min: string; max: string }
@@ -34,6 +36,7 @@ export default function CreatePoolPreviewDialog({
   coin2,
   coin1Amount,
   coin2Amount,
+  focusSide,
   decimals,
   currentPrice,
   position,
@@ -100,8 +103,8 @@ export default function CreatePoolPreviewDialog({
               <span className="text-sm leading-[18px] text-secondary-title">Selected Range</span>
               <div className="text-sm flex items-end leading-[18px] font-medium mobile:text-xs">
                 <span className="flex text-[#abc4ff80] mr-2">Current Price</span>
-                {currentPrice ? toString(currentPrice, { decimalLength: decimalPlace }) : '0'} {coin2?.symbol} per{' '}
-                {coin1?.symbol}
+                {currentPrice ? toString(currentPrice, { decimalLength: decimalPlace }) : '0'}{' '}
+                {(focusSide === 'coin1' ? coin2 : coin1)?.symbol} per {(focusSide === 'coin1' ? coin1 : coin2)?.symbol}
               </div>
             </div>
 
