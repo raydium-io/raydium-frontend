@@ -1,14 +1,12 @@
-import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-
-import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Fraction } from 'test-r-sdk'
-
 import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
+import { TimeBasis } from '@/application/concentrated/useConcentrated'
 import Icon from '@/components/Icon'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
+import { formatDecimal } from '@/functions/numberish/formatDecimal'
 import { useEvent } from '@/hooks/useEvent'
-import { TimeBasis } from '@/application/concentrated/useConcentrated'
-
+import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Fraction } from 'test-r-sdk'
 import {
   AREA_CONFIG,
   boundaryColor,
@@ -22,11 +20,9 @@ import {
   Range,
   toFixedNumber,
   unitColor,
-  ZOOM_INTERVAL,
-  getPriceLabel
+  ZOOM_INTERVAL
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
-import { formatDecimal } from '@/functions/numberish/formatDecimal'
 
 interface HighlightPoint extends ChartPoint {
   position?: number
@@ -523,29 +519,49 @@ export default forwardRef(function Chart(props: Props, ref) {
     [position]
   )
 
+  const chartControlStyle = {
+    width: 28,
+    height: 28,
+    background: `linear-gradient(126.6deg, rgba(57, 208, 216, 0.2) 28.69%, rgba(57, 208, 216, 0) 100%)`,
+    backdropFilter: `blur(2px)`,
+    borderRadius: 38,
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
+
   return (
     <>
       <div className="flex justify-between text-base leading-[22px] text-secondary-title mb-2">
         {title}
         {showZoom && (
           <div className="flex gap-2 select-none">
-            <Icon
-              onClick={zoomReset}
-              className="saturate-50 brightness-125 cursor-pointer"
-              iconSrc="/icons/chart-add-white-space.svg"
-            />
-            <Icon
-              className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
-              onClick={zoomIn}
-              heroIconName="zoom-in"
-              canLongClick
-            />
-            <Icon
-              onClick={zoomOut}
-              className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
-              heroIconName="zoom-out"
-              canLongClick
-            />
+            <div style={chartControlStyle}>
+              <Icon
+                size="sm"
+                onClick={zoomReset}
+                className="saturate-50 brightness-125 cursor-pointer"
+                iconSrc="/icons/add-space.svg"
+              />
+            </div>
+            <div style={chartControlStyle}>
+              <Icon
+                size="sm"
+                onClick={zoomOut}
+                className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
+                iconSrc="/icons/zoom-out.svg"
+                canLongClick
+              />
+            </div>
+            <div style={chartControlStyle}>
+              <Icon
+                size="sm"
+                className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
+                onClick={zoomIn}
+                iconSrc="/icons/zoom-in.svg"
+                canLongClick
+              />
+            </div>
           </div>
         )}
       </div>

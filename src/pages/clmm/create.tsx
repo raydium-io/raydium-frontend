@@ -1,10 +1,6 @@
-import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-import Decimal from 'decimal.js'
-import { twMerge } from 'tailwind-merge'
-
 import useAppSettings from '@/application/common/useAppSettings'
 import { calLowerUpper, getPriceBoundary, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
+import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
 import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
@@ -17,6 +13,7 @@ import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
+import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
@@ -43,19 +40,19 @@ import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
 import { canTokenPairBeSelected, PairInfoTitle, RemainSOLAlert, toXYChartFormat } from '@/pageComponents/Concentrated'
 import { AprChart } from '@/pageComponents/Concentrated/AprChart'
+import { ConcentratedFeeSwitcher } from '@/pageComponents/Concentrated/ConcentratedFeeSwitcher'
 import { ConcentratedModifyTooltipIcon } from '@/pageComponents/Concentrated/ConcentratedModifyTooltipIcon'
 import { ConcentratedTimeBasisSwitcher } from '@/pageComponents/Concentrated/ConcentratedTimeBasisSwitcher'
 import InputLocked from '@/pageComponents/Concentrated/InputLocked'
 import { useConcentratedTickAprCalc } from '@/pageComponents/Concentrated/useConcentratedAprCalc'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
-
-import Col from '@/components/Col'
-import { ConcentratedFeeSwitcher } from '@/pageComponents/Concentrated/ConcentratedFeeSwitcher'
+import Decimal from 'decimal.js'
+import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
-import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -469,7 +466,7 @@ function ConcentratedCard() {
           </div>
 
           <div>
-            <div className="text-base leading-[22px] text-secondary-title mb-3">Fee</div>
+            <div className="text-base leading-[22px] text-secondary-title mb-3">Select Fee</div>
             <ConcentratedFeeSwitcher />
           </div>
 

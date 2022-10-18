@@ -19,6 +19,7 @@ import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -42,7 +43,9 @@ import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
-import { currentIsAfter } from '@/functions/date/judges'
+import { getDate, toUTC } from '@/functions/date/dateFormat'
+import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
+import { getCountDownTime } from '@/functions/date/parseDuration'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
 import { shrinkAccount } from '@/functions/format/shrinkAccount'
@@ -229,18 +232,25 @@ function OpenNewPosition({ className }: { className?: string }) {
 
 function PoolLabelBlock({ className }: { className?: string }) {
   return (
-    <div className={className}>
-      <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
-      <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
-        Concentrate liquidity for increased captial efficiency.{' '}
-        <Link
-          className="inline-block"
-          href="https://docs.raydium.io/raydium/concentrated-liquidity/what-is-concentrated-liquidity"
-        >
-          Learn more
-        </Link>
-      </div>
-    </div>
+    <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
+      <Col>
+        <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
+        <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
+          Concentrate liquidity for increased captial efficiency.{' '}
+          <Link
+            className="inline-block"
+            href="https://docs.raydium.io/raydium/concentrated-liquidity/what-is-concentrated-liquidity"
+          >
+            Learn more
+          </Link>
+        </div>
+      </Col>
+
+      <Row className="gap-4 items-stretch">
+        <PoolTimeBasisSelectorBox />
+        <PoolSearchBlock className="h-[36px]" />
+      </Row>
+    </Row>
   )
 }
 
@@ -626,12 +636,10 @@ function PoolCard() {
     </div>
   ) : (
     <div>
-      <Row className={'justify-between pb-5 gap-16 gap-y-4 items-center flex-wrap'}>
-        <PoolLabelBlock />
+      <Row className={'w-full justify-between pb-5 items-center'}>
+        <PoolLabelBlock className="flex-grow" />
         <Row className="gap-4 items-stretch">
           <OpenNewPosition />
-          <PoolTimeBasisSelectorBox />
-          <PoolSearchBlock />
         </Row>
       </Row>
     </div>
@@ -702,18 +710,91 @@ function PoolCardDatabaseBodyCollapseItemFace({
   const isMobile = useAppSettings((s) => s.isMobile)
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = useConcentrated((s) => s.timeBasis)
+  const tokenListSettings = useToken((s) => s.tokenListSettings)
+  const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
 
   const rewardsBadge = useMemo(() => {
     const badges = info.rewardInfos.map((reward, idx) => {
       const isRewardEnd = currentIsAfter(reward.endTime)
+      const isRewardBeforeStart = currentIsBefore(reward.openTime)
+      const isRewardBefore24H = currentIsAfter(reward.openTime - 86400 * 1000)
+
       return (
-        <CoinAvatar
-          key={`${idx}-reward-badge-${toPubString(reward.tokenMint)}`}
-          size={isMobile ? 'sm' : 'smi'}
-          token={reward.rewardToken}
-          isRewardBadge
-          isRewardEnd={isRewardEnd}
-        />
+        <Tooltip key={`${idx}-reward-badge-tooltip-${toPubString(reward.tokenMint)}`} placement="bottom">
+          {/* {isRewardBeforeStart ? (
+            <div
+              className={`relative rounded-full`}
+              style={{
+                background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.2) 28.69%, rgba(171, 196, 255, 0) 100%)'
+              }}
+            >
+              <div className=" opacity-70">
+                <Icon heroIconName="dots-horizontal" />
+              </div>
+            </div>
+          ) : (
+            <CoinAvatar
+              key={`${idx}-reward-badge-${toPubString(reward.tokenMint)}`}
+              size={isMobile ? 'sm' : 'smi'}
+              token={reward.rewardToken}
+              isRewardBadge
+              isRewardEnd={isRewardEnd}
+            />
+          )} */}
+          <Row
+            className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
+              isRewardEnd ? 'opacity-30 contrast-40' : isRewardBeforeStart ? 'opacity-50' : ''
+            } `}
+          >
+            <div className="relative">
+              <CoinAvatar size="smi" token={reward.rewardToken} className={isRewardBeforeStart ? 'blur-sm' : ''} />
+              {isRewardEnd && (
+                <div className="absolute h-[1.5px] w-full top-1/2 -translate-y-1/2 rotate-45 bg-[#abc4ff80] scale-x-125"></div>
+              )}
+              {isRewardBeforeStart && (
+                <div className="absolute top-1/2 -translate-y-1/2 opacity-70">
+                  <Icon heroIconName="dots-horizontal" />
+                </div>
+              )}
+            </div>
+          </Row>
+
+          <Tooltip.Panel>
+            <div className="mb-1">
+              {reward.rewardToken?.symbol ?? '--'}{' '}
+              {reward.openTime &&
+                reward.endTime &&
+                (isRewardEnd ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period')}
+            </div>
+            {reward.openTime && isRewardBeforeStart && isRewardBefore24H && (
+              <div className="opacity-50">Start in {getCountDownTime(getDate(reward.openTime))}</div>
+            )}
+            {reward.openTime && reward.endTime && (
+              <div className="opacity-50">
+                {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
+              </div>
+            )}
+            {reward.tokenMint && (
+              <AddressItem
+                showDigitCount={6}
+                addressType="token"
+                canCopy
+                canExternalLink
+                textClassName="text-xs"
+                className="w-full opacity-50 mt-2 contrast-75"
+              >
+                {toPubString(reward.tokenMint)}
+              </AddressItem>
+            )}
+
+            {unnamedTokenMints?.has(toPubString(reward.tokenMint)) && (
+              <div className="max-w-[300px] mt-2">
+                This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
+                want to transact with.
+              </div>
+            )}
+          </Tooltip.Panel>
+        </Tooltip>
       )
     })
 
@@ -1007,6 +1088,14 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
               const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
 
+              const rewardInfoPrice = new Map<SplToken, CurrencyAmount>()
+              p.rewardInfos.forEach((rInfo) => {
+                rewardInfoPrice.set(
+                  rInfo.token,
+                  toTotalPrice(rInfo.penddingReward, variousPrices[String(rInfo.token.mint)] ?? null)
+                )
+              })
+
               return (
                 <PoolCardDatabaseBodyCollapsePositionContent
                   key={p.nftMint.toString()}
@@ -1023,6 +1112,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                   rewardAPrice={coinARewardPrice}
                   rewardBPrice={coinBRewardPrice}
                   rewardTotalVolume={rewardTotalVolume}
+                  rewardInfoPrice={rewardInfoPrice}
                 />
               )
             })}
@@ -1050,7 +1140,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   noAsset = false,
   rewardAPrice,
   rewardBPrice,
-  rewardTotalVolume
+  rewardTotalVolume,
+  rewardInfoPrice
 }: {
   poolInfo: HydratedConcentratedInfo
   userPositionAccount?: UserPositionAccount
@@ -1066,6 +1157,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   rewardAPrice?: CurrencyAmount
   rewardBPrice?: CurrencyAmount
   rewardTotalVolume?: string
+  rewardInfoPrice?: Map<SplToken, CurrencyAmount>
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -1312,13 +1404,14 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
                       <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
                       <Tooltip.Panel>
-                        <div className="max-w-[300px] py-[6px] px-5">
+                        <div className="min-w-[250px] py-[6px] px-5">
+                          {p.tokenFeeAmountA || p.tokenFeeAmountB ? <div className="pt-3 pb-1">Fees</div> : null}
                           {info.base && (
                             <TokenPositionInfo
                               token={info.base}
                               tokenAmount={toString(p.tokenFeeAmountA, { decimalLength: 'auto 5' })}
                               tokenPrice={rewardAPrice}
-                              suffix="Rewards"
+                              suffix=""
                             />
                           )}
                           {info.quote && (
@@ -1326,9 +1419,22 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                               token={info.quote}
                               tokenAmount={toString(p.tokenFeeAmountB, { decimalLength: 'auto 5' })}
                               tokenPrice={rewardBPrice}
-                              suffix="Rewards"
+                              suffix=""
                             />
                           )}
+                          {p.rewardInfos.length > 0 ? <div className="pt-3 pb-1">Rewards</div> : null}
+                          {p.rewardInfos &&
+                            p.rewardInfos.map((rInfo, rIdx) => {
+                              return (
+                                <TokenPositionInfo
+                                  key={`personal-rewardInfo-reward-${rIdx}-${toPubString(rInfo.token.mint)}`}
+                                  token={rInfo.token}
+                                  tokenAmount={toString(rInfo.penddingReward, { decimalLength: 'auto 5' })}
+                                  tokenPrice={rewardInfoPrice?.get(rInfo.token)}
+                                  suffix=""
+                                />
+                              )
+                            })}
                         </div>
                       </Tooltip.Panel>
                     </Tooltip>

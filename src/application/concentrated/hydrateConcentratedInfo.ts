@@ -160,6 +160,9 @@ function hydrateFeeRate(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial
 /**
  * part of {@link hydrateConcentratedInfo}
  */
+/**
+ * part of {@link hydrateConcentratedInfo}
+ */
 function hydrateUserPositionAccounnt(
   ammPoolInfo: Omit<HydratedConcentratedInfo, 'userPositionAccount'>
 ): HydratedConcentratedInfo['userPositionAccount'] {
