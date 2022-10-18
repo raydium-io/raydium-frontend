@@ -21,9 +21,8 @@ export default function txCreateConcentrated({
     transactionCollector.add(await loadTransaction({ transaction, signers }), {
       txHistoryInfo: {
         title: 'Position Created',
-        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
-          coin2?.symbol ?? '--'
-        }`
+        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${coin2?.symbol ?? '--'
+          }`
       }
     })
   })
@@ -59,8 +58,8 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
       tokenAccounts: tokenAccountRawInfos,
       useSOLBalance: isSol
     },
-    tickLower: priceLowerTick,
-    tickUpper: priceUpperTick,
+    tickLower: Math.min(priceLowerTick, priceUpperTick),
+    tickUpper: Math.max(priceLowerTick, priceUpperTick),
     // priceLower: fractionToDecimal(toFraction(priceLower), 20),
     // priceUpper: fractionToDecimal(toFraction(priceUpper), 20),
     slippage: 0.001
