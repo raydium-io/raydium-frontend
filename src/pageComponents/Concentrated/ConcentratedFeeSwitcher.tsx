@@ -12,10 +12,10 @@ import { gte } from '@/functions/numberish/compare'
 import { twMerge } from 'tailwind-merge'
 
 export function ConcentratedFeeSwitcher({ className }: { className?: string }) {
-  const existAmmPools = useConcentrated((s) => s.selectableAmmPools)
+  const selectableAmmPools = useConcentrated((s) => s.selectableAmmPools)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const ammConfigFeeOptions = useConcentrated((s) => s.availableAmmConfigFeeOptions)
-  const existAmmPoolIds = existAmmPools?.map((p) => toPubString(p.ammConfig.id))
+  const existAmmPoolIds = selectableAmmPools?.map((p) => toPubString(p.ammConfig.id))
   const unexistAmmPoolConfigIds = ammConfigFeeOptions?.filter((i) => !existAmmPoolIds?.includes(i.id)).map((i) => i.id)
 
   useConcentratedInfoLoader()
@@ -23,6 +23,7 @@ export function ConcentratedFeeSwitcher({ className }: { className?: string }) {
   useConcentratedAmmSelector(true)
   return (
     <ConcentratedFeeSwitcherContent
+      availableAmmPools={selectableAmmPools}
       configs={ammConfigFeeOptions}
       currentPool={currentAmmPool}
       unavailableIds={unexistAmmPoolConfigIds}
@@ -63,9 +64,12 @@ function ConcentratedFeeSwitcherContent({
               isCurrent ? 'ring-inset ring-1.5 ring-[#abc4ff]' : 'ring-inset ring-1.5 ring-[#abc4ff40]'
             } rounded-xl ${canSelect ? 'clickable-no-transform select-none' : 'opacity-50 pointer-events-none'}`}
             onClick={() => {
-              useConcentrated.setState({
-                currentAmmPool: availableAmmPools?.find((p) => isMintEqual(p.ammConfig.id, config.id))
-              })
+              if (!isCurrent) {
+                const newAmmPool = availableAmmPools?.find((p) => isMintEqual(p.ammConfig.id, config.id))
+                useConcentrated.setState({
+                  currentAmmPool: newAmmPool
+                })
+              }
             }}
           >
             {isCurrent ? (

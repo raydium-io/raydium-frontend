@@ -76,10 +76,7 @@ exports.imix = plugin(({ addUtilities, addBase }) => {
       }
     },
     '.clickable-no-transform': {
-      cursor: 'pointer',
-      '&:active': {
-        transform: 'scale(0.97)'
-      }
+      cursor: 'pointer'
     },
     '.clickable-filter-effect': {
       transition: '175ms',
