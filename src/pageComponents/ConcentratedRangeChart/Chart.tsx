@@ -108,7 +108,7 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   const updatePosition = useCallback(
     (nextStateOrCbk: PositionState | ((prePos: PositionState) => PositionState)) => {
-      const getSafeMin = (val) => Math.max(boundaryRef.current.min, val)
+      const getSafeMin = (val) => Math.max(boundaryRef.current.min, val, 0)
       if (typeof nextStateOrCbk === 'function') {
         setPosition((prePos) => {
           const newPos = nextStateOrCbk(prePos)
@@ -323,18 +323,19 @@ export default forwardRef(function Chart(props: Props, ref) {
         return
       }
       updatePosition((pos) => {
+        const val = Math.max(activeLabel, 0)
         // when min line > max line
-        if (moveRef.current === Range.Min && e.activeLabel >= pos[Range.Max]) {
+        if (moveRef.current === Range.Min && val >= pos[Range.Max]) {
           moveRef.current = Range.Max
-          return { ...pos, [Range.Max]: activeLabel }
+          return { ...pos, [Range.Max]: val }
         }
         // when max line < min line
-        if (moveRef.current === Range.Max && e.activeLabel <= pos[Range.Min]) {
+        if (moveRef.current === Range.Max && val <= pos[Range.Min]) {
           moveRef.current = Range.Min
-          return { ...pos, [Range.Min]: activeLabel }
+          return { ...pos, [Range.Min]: val }
         }
-        debounceUpdate({ ...pos, [moveRef.current]: activeLabel, side: moveRef.current })
-        return { ...pos, [moveRef.current]: activeLabel }
+        debounceUpdate({ ...pos, [moveRef.current]: val, side: moveRef.current })
+        return { ...pos, [moveRef.current]: val }
       })
     },
     [updatePosition, onPositionChange, xAxisDomain]
