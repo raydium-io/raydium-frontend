@@ -8,7 +8,9 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -1079,22 +1081,30 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 myPosition = lower + ' - ' + upper
               }
 
-              const coinAPrice = toTotalPrice(p.amountA, variousPrices[String(p.tokenA?.mint)] ?? null)
-              const coinBPrice = toTotalPrice(p.amountB, variousPrices[String(p.tokenB?.mint)] ?? null)
+              const coinAPrice = toTotalPrice(p.amountA, variousPrices[toPubString(p.tokenA?.mint)] ?? null)
+              const coinBPrice = toTotalPrice(p.amountB, variousPrices[toPubString(p.tokenB?.mint)] ?? null)
 
               const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
 
-              const coinARewardPrice = toTotalPrice(p.tokenFeeAmountA, variousPrices[String(p.tokenA?.mint)] ?? null)
-              const coinBRewardPrice = toTotalPrice(p.tokenFeeAmountB, variousPrices[String(p.tokenB?.mint)] ?? null)
+              const coinARewardPrice = toTotalPrice(
+                p.tokenFeeAmountA,
+                variousPrices[toPubString(p.tokenA?.mint)] ?? null
+              )
+              const coinBRewardPrice = toTotalPrice(
+                p.tokenFeeAmountB,
+                variousPrices[toPubString(p.tokenB?.mint)] ?? null
+              )
               const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
               const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
 
               const rewardInfoPrice = new Map<SplToken, CurrencyAmount>()
               p.rewardInfos.forEach((rInfo) => {
-                rewardInfoPrice.set(
-                  rInfo.token,
-                  toTotalPrice(rInfo.penddingReward, variousPrices[String(rInfo.token.mint)] ?? null)
-                )
+                if (rInfo.token) {
+                  rewardInfoPrice.set(
+                    rInfo.token,
+                    toTotalPrice(rInfo.penddingReward, variousPrices[toPubString(rInfo.token.mint)] ?? null)
+                  )
+                }
               })
 
               return (
@@ -1428,10 +1438,10 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                             p.rewardInfos.map((rInfo, rIdx) => {
                               return (
                                 <TokenPositionInfo
-                                  key={`personal-rewardInfo-reward-${rIdx}-${toPubString(rInfo.token.mint)}`}
+                                  key={`personal-rewardInfo-reward-${rIdx}-${toPubString(rInfo.token?.mint)}`}
                                   token={rInfo.token}
                                   tokenAmount={toString(rInfo.penddingReward, { decimalLength: 'auto 5' })}
-                                  tokenPrice={rewardInfoPrice?.get(rInfo.token)}
+                                  tokenPrice={rInfo.token && rewardInfoPrice?.get(rInfo.token)}
                                   suffix=""
                                 />
                               )

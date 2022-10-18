@@ -142,7 +142,7 @@ export interface UserPositionAccount {
   /** transform to SDK function, should not used directlly in UI */
   sdkParsed: AmmV3PoolPersonalPosition
   rewardInfos: {
-    token: SplToken
+    token: SplToken | undefined
     penddingReward: TokenAmount | undefined
     apr24h: Percent
     apr7d: Percent
