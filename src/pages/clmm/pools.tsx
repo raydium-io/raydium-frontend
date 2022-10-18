@@ -925,7 +925,13 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         <Button
           className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
           onClick={() => {
-            useConcentrated.setState({ coin1: info.base, coin2: info.quote })
+            useConcentrated.setState({
+              coin1: info.base,
+              coin2: info.quote,
+              chartPoints: [],
+              lazyLoadChart: true,
+              currentAmmPool: undefined
+            })
             routeTo('/clmm/create')
           }}
         >

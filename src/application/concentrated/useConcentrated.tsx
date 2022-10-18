@@ -1,5 +1,5 @@
 import { Keypair, Signer, Transaction } from '@solana/web3.js'
-
+import jFetch from '@/functions/dom/jFetch'
 import BN from 'bn.js'
 import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo, Fraction } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
@@ -42,6 +42,8 @@ export type ConcentratedStore = {
   currentAmmPool?: HydratedConcentratedInfo
   /** user need manually select one */
   chartPoints?: ApiAmmV3Point[]
+  lazyLoadChart: boolean
+  loadChartPointsAct: (poolId: string) => void
   liquidity?: BN // from SDK, just store in UI
 
   coin1?: SplToken
@@ -106,6 +108,7 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   focusSide: 'coin1',
   userCursorSide: 'coin1',
 
+  lazyLoadChart: false,
   isAddDialogOpen: false,
   isRemoveDialogOpen: false,
   isMyPositionDialogOpen: false,
@@ -113,6 +116,15 @@ const useConcentrated = create<ConcentratedStore>((set, get) => ({
   isInput: undefined,
   isSearchAmmDialogOpen: false,
   removeAmount: '',
+  loadChartPointsAct: async (poolId: string) => {
+    const chartResponse = await jFetch<{ data: ApiAmmV3Point[] }>(
+      `https://api.raydium.io/v2/ammV3/positionLine?pool_id=${poolId}`
+    )
+
+    const currentAmmPool = get().currentAmmPool
+    if (!chartResponse || poolId !== currentAmmPool?.idString) return
+    set({ chartPoints: chartResponse.data })
+  },
   scrollToInputBox: () => {},
   refreshCount: 0,
   refreshConcentrated: () => {

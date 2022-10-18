@@ -1,7 +1,4 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-import { Fraction } from '@raydium-io/raydium-sdk'
-
 import Decimal from 'decimal.js'
 import { twMerge } from 'tailwind-merge'
 
@@ -134,7 +131,11 @@ function ConcentratedEffects() {
 }
 
 function ConcentratedCard() {
-  const chartPoints = useConcentrated((s) => s.chartPoints)
+  const [chartPoints, loadChartPointsAct, lazyLoadChart] = useConcentrated((s) => [
+    s.chartPoints,
+    s.loadChartPointsAct,
+    s.lazyLoadChart
+  ])
   const connected = useWallet((s) => s.connected)
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -208,6 +209,10 @@ function ConcentratedCard() {
   const [coin1InputDisabled, coin2InputDisabled] = inputDisable
 
   useEffect(() => {
+    lazyLoadChart && currentAmmPool && loadChartPointsAct(currentAmmPool.idString)
+  }, [currentAmmPool?.idString, loadChartPointsAct, lazyLoadChart])
+
+  useEffect(() => {
     coin1InputDisabled && useConcentrated.setState({ coin1Amount: '0' })
     coin2InputDisabled && useConcentrated.setState({ coin2Amount: '0' })
   }, [coin1InputDisabled, coin2InputDisabled])
@@ -215,8 +220,10 @@ function ConcentratedCard() {
   useEffect(
     () => () =>
       useConcentrated.setState({
+        lazyLoadChart: false,
         focusSide: 'coin1',
-        userCursorSide: 'coin1'
+        userCursorSide: 'coin1',
+        chartPoints: []
       }),
     []
   )

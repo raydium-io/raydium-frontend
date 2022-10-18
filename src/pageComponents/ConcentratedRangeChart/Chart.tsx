@@ -126,7 +126,6 @@ export default forwardRef(function Chart(props: Props, ref) {
   useEffect(() => {
     setDisplayList([])
     boundaryRef.current = { min: 0, max: 100 }
-    xAxisRef.current = []
     if (poolIdRef.current !== poolFocusKey || showCurrentPriceOnly) {
       zoomRef.current = 0
       setXAxisDomain(DEFAULT_X_AXIS)
@@ -148,13 +147,14 @@ export default forwardRef(function Chart(props: Props, ref) {
     const isInPositionRange = (x: number) =>
       !!(defaultMinNum && x >= defaultMinNum && defaultMaxNum && x <= defaultMaxNum)
 
-    const gap = points[1].x - points[0].x
+    const gap = Math.abs(points[1].x - points[0].x)
     // if chart points not include position point, we auto add them to point list
     if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(decimals)) + gap) {
-      points.unshift({ x: Math.max(defaultMinNum - gap, 0), y: 0 })
+      points.unshift({ x: defaultMinNum - gap, y: 0 })
     }
-    if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(decimals)) - gap)
+    if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(decimals)) - gap) {
       points.push({ x: defaultMaxNum + gap * 2, y: 0 })
+    }
 
     const pointMaxIndex = points.length - 1
     let [foundDefaultMin, foundDefaultMax] = [false, false]
@@ -193,6 +193,9 @@ export default forwardRef(function Chart(props: Props, ref) {
       }
     }
     if (pointMaxIndex > 0) displayList.push(points[pointMaxIndex])
+    if (displayList[0].x + gap * 2 > (defaultMinNum || 0)) displayList.unshift({ x: displayList[0].x * 0.9, y: 0 })
+    if (defaultMaxNum && displayList[displayList.length - 1].x - gap > defaultMaxNum)
+      displayList.push({ x: displayList[displayList.length - 1].x * 1.05, y: 0 })
 
     setDisplayList(
       showCurrentPriceOnly
@@ -487,10 +490,10 @@ export default forwardRef(function Chart(props: Props, ref) {
     zoomRef.current = zoomRef.current - 1
     const center = Number(currentPrice?.toFixed(decimals)) || (position[Range.Max] + position[Range.Min]) / 2
     const [min, max] = [
-      Math.min(center - (ZOOM_INTERVAL - zoomRef.current) * tickGap, xAxis[0] + zoomRef.current * tickGap),
+      Math.min(center - (ZOOM_INTERVAL - zoomRef.current) * tickGap, (xAxis[0] || 0) + zoomRef.current * tickGap),
       Math.max(
         center + (ZOOM_INTERVAL - zoomRef.current) * tickGap,
-        xAxis[xAxis.length - 1] - zoomRef.current * tickGap
+        (xAxis[xAxis.length - 1] || displayList[displayList.length - 1].x) - zoomRef.current * tickGap
       )
     ]
     setupXAxis({ min, max })
@@ -624,7 +627,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       </div>
       {!hideRangeInput && (
         <PriceRangeInput
-          decimals={decimals}
+          decimals={decimals + 2}
           minValue={position.min}
           maxValue={position.max}
           onBlur={handleBlurInput}

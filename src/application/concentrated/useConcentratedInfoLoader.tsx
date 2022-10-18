@@ -1,5 +1,5 @@
 import { useRouter } from 'next/router'
-
+import { useCallback } from 'react'
 import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from '@raydium-io/raydium-sdk'
 
 import useToken from '@/application/token/useToken'
@@ -24,6 +24,8 @@ export default function useConcentratedInfoLoader() {
   const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const refreshCount = useConcentrated((s) => s.refreshCount)
+  const lazyLoadChart = useConcentrated((s) => s.lazyLoadChart)
+  const loadChartPointsAct = useConcentrated((s) => s.loadChartPointsAct)
   const connection = useConnection((s) => s.connection)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
@@ -73,15 +75,12 @@ export default function useConcentratedInfoLoader() {
 
   /** select pool chart data */
   useTransitionedEffect(async () => {
-    if (!pathname.includes('clmm')) return
+    if (!pathname.includes('clmm') || lazyLoadChart) return
     if (!currentAmmPool) {
       useConcentrated.setState({ chartPoints: [] })
       return
     }
-    const chartResponse = await jFetch<{ data: ApiAmmV3Point[] }>(
-      `https://api.raydium.io/v2/ammV3/positionLine?pool_id=${toPubString(currentAmmPool.state.id)}`
-    )
-    if (!chartResponse) return
-    useConcentrated.setState({ chartPoints: chartResponse.data })
-  }, [currentAmmPool, pathname, tokens])
+
+    loadChartPointsAct(toPubString(currentAmmPool.state.id))
+  }, [currentAmmPool?.idString, tokens, pathname, lazyLoadChart, loadChartPointsAct])
 }
