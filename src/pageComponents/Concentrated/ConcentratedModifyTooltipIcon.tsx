@@ -10,7 +10,11 @@ export function ConcentratedModifyTooltipIcon({ iconClassName }: { iconClassName
   const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
   return (
     <Tooltip>
-      <Icon className={twMerge('ml-1 cursor-help', iconClassName)} size="sm" iconSrc="/icons/clmm-modify.svg" />
+      <Icon
+        className={twMerge('ml-1 cursor-help', iconClassName)}
+        size="sm"
+        iconSrc={aprCalcMode === 'B' ? '/icons/clmm-modify-l.svg' : '/icons/clmm-modity-m'}
+      />
       <AprCalcDialog />
       <Tooltip.Panel className="max-w-[min(100vw,300px)]">
         {(handlers) => (
