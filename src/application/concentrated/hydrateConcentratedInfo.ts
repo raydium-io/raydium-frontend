@@ -1,4 +1,5 @@
-import { AmmV3PoolPersonalPosition, Price } from '@raydium-io/raydium-sdk'
+import { AmmV3PoolPersonalPosition, Price, Token } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
@@ -8,7 +9,9 @@ import { mergeObject } from '@/functions/merge'
 import { gt, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
 
+import { SplToken } from '../token/type'
 import useToken from '../token/useToken'
+import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
@@ -98,9 +101,8 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
  * part of {@link hydrateConcentratedInfo}
  */
 function hydratePoolInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial<HydratedConcentratedInfo> {
-  const { getToken } = useToken.getState()
-  const base = getToken(sdkConcentratedInfo.state.mintA.mint)
-  const quote = getToken(sdkConcentratedInfo.state.mintB.mint)
+  const base = getTokenEvenUnknow(sdkConcentratedInfo.state.mintA.mint, sdkConcentratedInfo.state.mintA.decimals)
+  const quote = getTokenEvenUnknow(sdkConcentratedInfo.state.mintB.mint, sdkConcentratedInfo.state.mintB.decimals)
   const name =
     (base
       ? base.symbol
@@ -221,4 +223,21 @@ function checkIsInRange(
   const priceLower = decimalToFraction(userPositionAccount.priceLower)
   const priceUpper = decimalToFraction(userPositionAccount.priceUpper)
   return gt(currentPrice, priceLower) && lt(currentPrice, priceUpper)
+}
+
+function getTokenEvenUnknow(mint: PublicKey, decimal?: number): SplToken | undefined {
+  const { getToken } = useToken.getState()
+  const candidateToken = getToken(mint)
+  if (candidateToken) {
+    return candidateToken
+  } else if (decimal === undefined) {
+    return undefined
+  } else {
+    const tokenSymbolString = toPubString(mint).substring(0, 6)
+    return createSplToken({
+      mint: toPubString(mint),
+      decimals: decimal,
+      symbol: tokenSymbolString
+    })
+  }
 }

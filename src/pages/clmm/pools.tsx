@@ -1,16 +1,15 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import { twMerge } from 'tailwind-merge'
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -43,7 +42,6 @@ import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
-import { toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter } from '@/functions/date/judges'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import formatNumber from '@/functions/format/formatNumber'
@@ -59,10 +57,9 @@ import { searchItems } from '@/functions/searchItems'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
-import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
-import { isInBonsaiTest } from '@/functions/judgers/isSSR'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -925,7 +922,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         <Button
           className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
           onClick={() => {
-            useConcentrated.setState({ coin1: info.base, coin2: info.quote })
+            useConcentrated.setState({ coin1: info.base, coin2: info.quote, currentAmmPool: info })
             routeTo('/clmm/create')
           }}
         >
@@ -1234,7 +1231,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         forceActive: true,
                         fallbackProps: {
                           onClick: () => {
-                            useConcentrated.setState({ coin1: info.base, coin2: info.quote })
+                            useConcentrated.setState({ coin1: info.base, coin2: info.quote, currentAmmPool: info })
                             routeTo('/clmm/create', {
                               queryProps: {}
                             })
