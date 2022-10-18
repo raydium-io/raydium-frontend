@@ -1,7 +1,9 @@
 import { AmmV3, Fraction } from 'test-r-sdk'
 
 import {
-  decimalToFraction, fractionToDecimal, recursivelyDecimalToFraction
+  decimalToFraction,
+  fractionToDecimal,
+  recursivelyDecimalToFraction
 } from '@/application/txTools/decimal2Fraction'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { div, getMax, mul } from '@/functions/numberish/operations'
@@ -32,11 +34,11 @@ interface GetChartDataProps {
 
 export type PriceBoundaryReturn =
   | {
-    priceLowerTick: number
-    priceLower: Fraction
-    priceUpperTick: number
-    priceUpper: Fraction
-  }
+      priceLowerTick: number
+      priceLower: Fraction
+      priceUpperTick: number
+      priceUpper: Fraction
+    }
   | undefined
 
 export function getPriceBoundary({ coin1, coin2, reverse, ammPool }: GetChartDataProps): PriceBoundaryReturn {
@@ -86,12 +88,11 @@ interface GetPriceTick {
 export function getPriceTick({ p, coin1, coin2, reverse, ammPool }: GetPriceTick & { p: Numberish }) {
   const targetCoin = !reverse ? coin1 : coin2
   const careDecimalLength = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
-  const trimedX = getMax(p, 1 / 10 ** careDecimalLength)
   try {
     const { price, tick } = getPriceAndTick({
       poolInfo: ammPool.state,
       baseIn: isMintEqual(ammPool.state.mintA.mint, targetCoin?.mint),
-      price: fractionToDecimal(toFraction(trimedX))
+      price: fractionToDecimal(toFraction(p))
     })
     return { price, tick }
   } catch (err) {
@@ -106,7 +107,7 @@ export function calLowerUpper({
   coin2,
   reverse,
   ammPool
-}: GetPriceTick & { [Range.Min]: number;[Range.Max]: number }): PriceBoundaryReturn {
+}: GetPriceTick & { [Range.Min]: number; [Range.Max]: number }): PriceBoundaryReturn {
   const resLower = getPriceTick({
     p: min,
     coin1,
