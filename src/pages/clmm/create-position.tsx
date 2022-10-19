@@ -566,6 +566,7 @@ function ConcentratedCard() {
             currentPrice={currentPrice}
             priceMin={priceRange[0]}
             priceMax={priceRange[1]}
+            priceLabel={isFocus1 ? `${coin2?.symbol} per ${coin1?.symbol}` : `${coin1?.symbol} per ${coin2?.symbol}`}
             timeBasis={timeBasis}
             decimals={decimals}
             onPositionChange={handlePosChange}

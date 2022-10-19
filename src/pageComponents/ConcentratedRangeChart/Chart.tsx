@@ -40,13 +40,13 @@ interface Props {
   className?: string
   chartOptions?: ChartRangeInputOption
   currentPrice?: Fraction
+  priceLabel?: string
   priceMin?: number
   priceMax?: number
   showCurrentPriceOnly?: boolean
   showZoom?: boolean
   hideRangeLine?: boolean
   hideRangeInput?: boolean
-  hideCurrentPriceLabel?: boolean
   hideXAxis?: boolean
   height?: number
   title?: ReactNode
@@ -63,6 +63,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     currentPrice,
     priceMin,
     priceMax,
+    priceLabel,
     timeBasis,
     decimals,
     height,
@@ -569,6 +570,7 @@ export default forwardRef(function Chart(props: Props, ref) {
           <span className="inline-block w-[8px] h-[2px] bg-white mr-2" />
           <span className="opacity-50 mr-2">Current Price</span>{' '}
           {formatDecimal({ val: currentPrice?.toSignificant(Math.max(decimals, 8)) || 0, decimals: 6 })}
+          <span className="ml-1">{priceLabel}</span>
         </div>
         <div className="flex items-center text-xs text-[#ABC4FF]">
           <span className="inline-block w-[8px] h-[2px] bg-[#39D0D8] mr-2" />
