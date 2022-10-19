@@ -1,7 +1,7 @@
 import useAppSettings from '@/application/common/useAppSettings'
 import { calLowerUpper, getPriceBoundary, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
+import txCreateConcentratedPosotion from '@/application/concentrated/txCreateConcentratedPosition'
 import useConcentrated, { timeMap } from '@/application/concentrated/useConcentrated'
-import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
@@ -594,7 +594,7 @@ function ConcentratedCard() {
             : undefined
         }
         onConfirm={(close) =>
-          txCreateNewConcentratedPool().then(({ allSuccess }) => {
+          txCreateConcentratedPosotion().then(({ allSuccess }) => {
             if (allSuccess) close()
           })
         }

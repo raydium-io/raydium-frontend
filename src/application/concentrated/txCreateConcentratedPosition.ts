@@ -10,7 +10,7 @@ import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { HydratedConcentratedInfo } from './type'
 import useConcentrated from './useConcentrated'
 
-export default function txCreateConcentrated({
+export default function txCreateConcentratedPosotion({
   currentAmmPool = useConcentrated.getState().currentAmmPool
 }: {
   currentAmmPool?: HydratedConcentratedInfo
@@ -21,8 +21,9 @@ export default function txCreateConcentrated({
     transactionCollector.add(await loadTransaction({ transaction, signers }), {
       txHistoryInfo: {
         title: 'Position Created',
-        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${coin2?.symbol ?? '--'
-          }`
+        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
+          coin2?.symbol ?? '--'
+        }`
       }
     })
   })
