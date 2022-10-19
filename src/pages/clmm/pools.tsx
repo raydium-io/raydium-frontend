@@ -8,7 +8,9 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -1159,22 +1161,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const tokenPrices = useToken((s) => s.tokenPrices)
-  const token = useToken((s) => s.tokens)
-  const tokenDecimals = objectMap(token, (i) => i.decimals)
-  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const unclaimedYield = useConcentratedPendingYield(p)
-  const positionApr = useMemo(
-    () =>
-      p?.getApr({
-        tokenPrices,
-        tokenDecimals,
-        timeBasis: '24h', // TEMP DEV
-        planType: 'B',
-        chainTimeOffsetMs: chainTimeOffset
-      }),
-    [p, chainTimeOffset]
-  )
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
 
   const rangeTag = useMemo(() => {

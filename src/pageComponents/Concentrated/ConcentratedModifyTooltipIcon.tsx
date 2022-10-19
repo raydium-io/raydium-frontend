@@ -19,9 +19,7 @@ export function ConcentratedModifyTooltipIcon({ iconClassName }: { iconClassName
       <Tooltip.Panel className="max-w-[min(100vw,300px)]">
         {(handlers) => (
           <Grid className="grid-cols-2-auto items-center gap-y-2">
-            <div className="text-sm text-white font-medium">
-              {aprCalcMode === 'A' ? 'A Method' : aprCalcMode === 'B' ? 'B Method' : 'C Method'}
-            </div>
+            <div className="text-sm text-white font-medium">{aprCalcMode === 'B' ? 'B Method' : 'C Method'}</div>
             <Button
               className="justify-end text-link-color p-0 no-clicable-transform-effect"
               type="text"
