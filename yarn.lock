@@ -8402,10 +8402,10 @@ temp@^0.8.4:
   dependencies:
     rimraf "~2.6.2"
 
-test-r-sdk@^1.2.88:
-  version "1.2.88"
-  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.88.tgz#0abda33364a8d492161191d87cd13a4e21bd9e6e"
-  integrity sha512-gh6m2a81h+H9pwBZRRXnq0/XwNXW7WnC6Tz/SxtsZPJlCPeKR4S+A3xKLmlMW+j8LCSsT/VzI1pcq3FfCcRu4A==
+test-r-sdk@^1.2.95:
+  version "1.2.95"
+  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.95.tgz#6f4d4bcba52e6d3b9c995507a091e2fcded0f05f"
+  integrity sha512-TGXDgaRrzFQlwGgIzZCY/eOAh6S5qNS7dlfsziAtzY4sVGutaikA6utz+hsZf1i/q4zVXkup8tRpCfKu0vKJeg==
   dependencies:
     "@colors/colors" "^1.5.0"
     "@solana/buffer-layout" "^4.0.0"
