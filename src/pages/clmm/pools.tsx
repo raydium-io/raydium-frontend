@@ -8,9 +8,7 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -724,39 +722,23 @@ function PoolCardDatabaseBodyCollapseItemFace({
 
       return (
         <Tooltip key={`${idx}-reward-badge-tooltip-${toPubString(reward.tokenMint)}`} placement="bottom">
-          {/* {isRewardBeforeStart ? (
-            <div
-              className={`relative rounded-full`}
-              style={{
-                background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.2) 28.69%, rgba(171, 196, 255, 0) 100%)'
-              }}
-            >
-              <div className=" opacity-70">
-                <Icon heroIconName="dots-horizontal" />
-              </div>
-            </div>
-          ) : (
-            <CoinAvatar
-              key={`${idx}-reward-badge-${toPubString(reward.tokenMint)}`}
-              size={isMobile ? 'sm' : 'smi'}
-              token={reward.rewardToken}
-              isRewardBadge
-              isRewardEnd={isRewardEnd}
-            />
-          )} */}
           <Row
             className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
               isRewardEnd ? 'opacity-30 contrast-40' : isRewardBeforeStart ? 'opacity-50' : ''
             } `}
           >
             <div className="relative">
-              <CoinAvatar size="smi" token={reward.rewardToken} className={isRewardBeforeStart ? 'blur-sm' : ''} />
+              <CoinAvatar
+                size={isMobile ? 'xs' : 'smi'}
+                token={reward.rewardToken}
+                className={isRewardBeforeStart ? 'blur-sm' : ''}
+              />
               {isRewardEnd && (
                 <div className="absolute h-[1.5px] w-full top-1/2 -translate-y-1/2 rotate-45 bg-[#abc4ff80] scale-x-125"></div>
               )}
               {isRewardBeforeStart && (
                 <div className="absolute top-1/2 -translate-y-1/2 opacity-70">
-                  <Icon heroIconName="dots-horizontal" />
+                  <Icon heroIconName="dots-horizontal" size={isMobile ? 'sm' : 'md'} />
                 </div>
               )}
             </div>
@@ -801,7 +783,11 @@ function PoolCardDatabaseBodyCollapseItemFace({
       )
     })
 
-    return <div className="flex flex-wrap justify-start items-center gap-2">{badges}</div>
+    return (
+      <div className={twMerge(`flex flex-wrap justify-start items-center gap-2`, badges.length === 0 ? 'h-8' : '')}>
+        {badges}
+      </div>
+    )
   }, [info.rewardInfos])
 
   const apr = isHydratedConcentratedItemInfo(info)
@@ -943,7 +929,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
                 : undefined
             }
           />
-          <TextInfoItem name="Rewards" value={'mobile TEST'} />
+          <TextInfoItem name="Rewards" value={rewardsBadge} />
           <TextInfoItem name={`APR(${timeBasis})`} value={toPercentString(apr?.total)} />
 
           <Grid className="w-6 h-6 place-items-center">
