@@ -9,7 +9,7 @@ import { toString } from '@/functions/numberish/toString'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useIdleEffect } from '@/hooks/useIdleEffect'
 import { getAllSwapableRouteInfos } from '@/models/ammAndLiquidity'
-import { makeAbortable } from '@/models/makeAbortable'
+import { makeAbortable } from '@/functions/makeAbortable'
 import { HexAddress } from '@/types/constants'
 
 import useAppSettings from '../common/useAppSettings'
