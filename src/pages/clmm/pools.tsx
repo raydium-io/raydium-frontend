@@ -8,9 +8,7 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -1395,7 +1393,9 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                       useConcentrated.setState({
                         isMyPositionDialogOpen: true,
                         currentAmmPool: info,
-                        targetUserPositionAccount: p
+                        targetUserPositionAccount: p,
+                        coin1: info.base,
+                        coin2: info.quote
                       })
                     }}
                   >
