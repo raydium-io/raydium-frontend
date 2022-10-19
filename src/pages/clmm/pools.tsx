@@ -788,7 +788,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
         {badges}
       </div>
     )
-  }, [info.rewardInfos])
+  }, [info.rewardInfos, isMobile])
 
   const apr = isHydratedConcentratedItemInfo(info)
     ? timeBasis === TimeBasis.DAY
