@@ -1670,18 +1670,20 @@ function PositionAprIllustrator({
       <div className="text-[#abc4ff80] text-sm font-medium mobile:text-xs">APR</div>
       <ConcentratedModifyTooltipIcon iconClassName="opacity-50" />
       <div className="text-white text-sm font-medium mobile:text-xs">{toPercentString(positionApr?.apr)}</div>
-      <Tooltip panelClassName="p-0 rounded-xl">
-        <Row className="items-center gap-2 mobile:gap-1 mt-1">
-          {positionApr && (
-            <AprLine className="w-28" aprValues={[positionApr.fee.apr, ...positionApr.rewards.map((i) => i.apr)]} />
-          )}
-        </Row>
-        <Tooltip.Panel>
-          <div className="p-5">
-            {positionApr && <AprChart type="positionAccount" colCount={2} positionAccount={positionInfo} />}
-          </div>
-        </Tooltip.Panel>
-      </Tooltip>
+      {isMeaningfulNumber(positionApr.apr) && (
+        <Tooltip panelClassName="p-0 rounded-xl">
+          <Row className="items-center gap-2 mobile:gap-1 mt-1">
+            {positionApr && (
+              <AprLine className="w-28" aprValues={[positionApr.fee.apr, ...positionApr.rewards.map((i) => i.apr)]} />
+            )}
+          </Row>
+          <Tooltip.Panel>
+            <div className="p-5">
+              {positionApr && <AprChart type="positionAccount" colCount={2} positionAccount={positionInfo} />}
+            </div>
+          </Tooltip.Panel>
+        </Tooltip>
+      )}
     </Row>
   )
 }
