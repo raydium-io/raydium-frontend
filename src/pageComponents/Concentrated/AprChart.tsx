@@ -47,7 +47,7 @@ export function AprChart(
     <Row className="gap-4">
       {/* circle */}
       <div
-        className="w-16 h-16 rounded-full"
+        className="w-16 h-16 rounded-full flex-none"
         style={{
           background: `conic-gradient(${percentInTotalList
             .map((percent, idx) => {
@@ -63,7 +63,7 @@ export function AprChart(
           maskImage: 'radial-gradient(transparent 50%, black 51%)'
         }}
       ></div>
-      <Grid className={`content-around ${colCount === 1 ? 'grid-cols-1' : 'grid-cols-[3fr,2fr]'} gap-x-4`}>
+      <Grid className={`content-around ${colCount === 1 ? 'grid-cols-1' : 'grid-cols-2-auto'} gap-x-4`}>
         <Row className="items-center gap-2">
           {/* dot */}
           <div
