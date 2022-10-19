@@ -11,6 +11,7 @@ import {
   Fraction,
   Percent,
   Price,
+  PublicKeyish,
   TokenAmount
 } from 'test-r-sdk'
 
@@ -112,23 +113,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   rewardApr7d: Percent[]
   rewardApr30d: Percent[]
 
-  getApr({
-    tickLower,
-    tickUpper,
-    tokenPrices,
-    tokenDecimals,
-    timeBasis,
-    planType,
-    chainTimeOffsetMs
-  }: {
-    tickLower: number
-    tickUpper: number
-    tokenPrices: Record<string, Price>
-    tokenDecimals: Record<string, number>
-    timeBasis: '24h' | '7d' | '30d'
-    planType: 'A' | 'B' | 'C'
-    chainTimeOffsetMs?: number | undefined
-  }): {
+  getApr({ timeBasis }: { timeBasis: '24h' | '7d' | '30d' }): {
     fee: {
       apr: Percent
       percentInTotal: Percent

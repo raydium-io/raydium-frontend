@@ -108,7 +108,7 @@ function hydrateAprGetter(
   ammPoolInfo: Omit<HydratedConcentratedInfo, 'userPositionAccount'>
 ): Partial<HydratedConcentratedInfo> {
   return {
-    getApr: (args: Omit<GetAprParameters, 'ammPoolInfo' | 'poolRewardInfos'>) =>
+    getApr: (args: Omit<GetAprParameters, 'ammPoolInfo'>) =>
       getAprCore({
         ...args,
         ammPoolInfo,
@@ -232,12 +232,11 @@ function hydrateUserPositionAccounnt(
           quoteLiquidity: mul(wholeLiquidity, positionPercentB)
         }
       },
-      getApr(args: Omit<GetAprParameters, 'tickLower' | 'tickUpper' | 'ammPoolInfo' | 'poolRewardInfos'>) {
-        return getAprCore({
+      getApr(args: Omit<GetAprPositionParameters, 'tickLower' | 'tickUpper' | 'ammPoolInfo' | 'poolRewardInfos'>) {
+        return getPositonAprCore({
           ...args,
-          tickLower: info.tickLower,
-          tickUpper: info.tickUpper,
           ammPoolInfo,
+          positionAccount: info,
           poolRewardTokens: poolRewardInfos.map((i) => i.tokenMint)
         })
       }
@@ -245,82 +244,89 @@ function hydrateUserPositionAccounnt(
   })
 }
 type GetAprParameters = {
-  tickLower: number
-  tickUpper: number
   ammPoolInfo: Omit<HydratedConcentratedInfo, 'userPositionAccount'>
+  poolRewardTokens: PublicKeyish[]
+  timeBasis: '24h' | '7d' | '30d'
+}
+
+function getAprCore({ ammPoolInfo, poolRewardTokens, timeBasis }: GetAprParameters) {
+  const { getToken } = useToken.getState()
+  if (timeBasis === '24h') {
+    const total = [ammPoolInfo.feeApr24h, ...ammPoolInfo.rewardApr24h].reduce((a, b) => add(a, b), toPercent(0))
+    return {
+      fee: {
+        apr: ammPoolInfo.feeApr24h,
+        percentInTotal: toPercent(div(ammPoolInfo.feeApr24h, total))
+      },
+      rewards: ammPoolInfo.rewardApr24h.map((i, idx) => ({
+        percentInTotal: toPercent(div(i, total)),
+        apr: i,
+        token: getToken(poolRewardTokens[idx])
+      })),
+      apr: ammPoolInfo.totalApr24h
+    }
+  } else if (timeBasis === '7d') {
+    const total = [ammPoolInfo.feeApr7d, ...ammPoolInfo.rewardApr7d].reduce((a, b) => add(a, b), toPercent(0))
+    return {
+      fee: {
+        apr: ammPoolInfo.feeApr7d,
+        percentInTotal: toPercent(div(ammPoolInfo.feeApr7d, total))
+      },
+      rewards: ammPoolInfo.rewardApr7d.map((i, idx) => ({
+        percentInTotal: toPercent(div(i, total)),
+        apr: i,
+        token: getToken(poolRewardTokens[idx])
+      })),
+      apr: ammPoolInfo.totalApr7d
+    }
+  } else {
+    const total = [ammPoolInfo.feeApr30d, ...ammPoolInfo.rewardApr30d].reduce((a, b) => add(a, b), toPercent(0))
+    return {
+      fee: {
+        apr: ammPoolInfo.feeApr30d,
+        percentInTotal: toPercent(div(ammPoolInfo.feeApr30d, total))
+      },
+      rewards: ammPoolInfo.rewardApr30d.map((i, idx) => ({
+        percentInTotal: toPercent(div(i, total)),
+        apr: i,
+        token: getToken(poolRewardTokens[idx])
+      })),
+      apr: ammPoolInfo.totalApr30d
+    }
+  }
+}
+type GetAprPositionParameters = {
+  ammPoolInfo: Omit<HydratedConcentratedInfo, 'userPositionAccount'>
+  positionAccount: AmmV3PoolPersonalPosition
   poolRewardTokens: PublicKeyish[]
   tokenPrices: Record<string, Price>
   tokenDecimals: Record<string, number>
   timeBasis: '24h' | '7d' | '30d'
-  planType: 'A' | 'B' | 'C'
+  planType: 'B' | 'C'
   chainTimeOffsetMs?: number
 }
 
-function getAprCore({
-  tickLower,
-  tickUpper,
+function getPositonAprCore({
   ammPoolInfo,
+  positionAccount,
   poolRewardTokens,
   tokenPrices,
   tokenDecimals,
   timeBasis,
   planType,
   chainTimeOffsetMs = 0
-}: GetAprParameters) {
+}: GetAprPositionParameters) {
   const { getToken } = useToken.getState()
-  if (planType === 'A') {
-    if (timeBasis === '24h') {
-      const total = [ammPoolInfo.feeApr24h, ...ammPoolInfo.rewardApr24h].reduce((a, b) => add(a, b), toPercent(0))
-      return {
-        fee: {
-          apr: ammPoolInfo.feeApr24h,
-          percentInTotal: toPercent(div(ammPoolInfo.feeApr24h, total))
-        },
-        rewards: ammPoolInfo.rewardApr30d.map((i, idx) => ({
-          percentInTotal: toPercent(div(i, total)),
-          apr: i,
-          token: getToken(poolRewardTokens[idx])
-        })),
-        apr: ammPoolInfo.totalApr24h
-      }
-    } else if (timeBasis === '7d') {
-      const total = [ammPoolInfo.feeApr7d, ...ammPoolInfo.rewardApr7d].reduce((a, b) => add(a, b), toPercent(0))
-      return {
-        fee: {
-          apr: ammPoolInfo.feeApr7d,
-          percentInTotal: toPercent(div(ammPoolInfo.feeApr7d, total))
-        },
-        rewards: ammPoolInfo.rewardApr30d.map((i, idx) => ({
-          percentInTotal: toPercent(div(i, total)),
-          apr: i,
-          token: getToken(poolRewardTokens[idx])
-        })),
-        apr: ammPoolInfo.totalApr7d
-      }
-    } else {
-      const total = [ammPoolInfo.feeApr30d, ...ammPoolInfo.rewardApr30d].reduce((a, b) => add(a, b), toPercent(0))
-      return {
-        fee: {
-          apr: ammPoolInfo.feeApr30d,
-          percentInTotal: toPercent(div(ammPoolInfo.feeApr30d, total))
-        },
-        rewards: ammPoolInfo.rewardApr30d.map((i, idx) => ({
-          percentInTotal: toPercent(div(i, total)),
-          apr: i,
-          token: getToken(poolRewardTokens[idx])
-        })),
-        apr: ammPoolInfo.totalApr30d
-      }
-    }
-  } else if (planType === 'B') {
-    const planBApr = AmmV3.estimateAprsForPriceRangeOrca({
+  if (planType === 'B') {
+    const planBApr = AmmV3.estimateAprsForPriceRangeOrcaUpdate({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
       mintPrice: tokenPrices,
-      positionTickLowerIndex: Math.min(tickLower, tickUpper),
-      positionTickUpperIndex: Math.max(tickLower, tickUpper),
+      positionTickLowerIndex: Math.min(positionAccount.tickLower, positionAccount.tickUpper),
+      positionTickUpperIndex: Math.max(positionAccount.tickLower, positionAccount.tickUpper),
       chainTime: (Date.now() + chainTimeOffsetMs) / 1000,
-      rewardMintDecimals: tokenDecimals
+      rewardMintDecimals: tokenDecimals,
+      liquidity: positionAccount.liquidity
     })
     const slicedRewardApr = planBApr.rewardsApr.slice(0, poolRewardTokens.length)
     const total = [planBApr.feeApr, ...slicedRewardApr].reduce((a, b) => a + b, 0)
@@ -341,8 +347,8 @@ function getAprCore({
     const planCApr = AmmV3.estimateAprsForPriceRange({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
-      positionTickLowerIndex: Math.min(tickLower, tickUpper),
-      positionTickUpperIndex: Math.max(tickLower, tickUpper)
+      positionTickLowerIndex: Math.min(positionAccount.tickLower, positionAccount.tickUpper),
+      positionTickUpperIndex: Math.max(positionAccount.tickLower, positionAccount.tickUpper)
     })
     const slicedRewardApr = planCApr.rewardsApr.slice(0, poolRewardTokens.length)
     const total = [planCApr.feeApr, ...slicedRewardApr].reduce((a, b) => a + b, 0)
