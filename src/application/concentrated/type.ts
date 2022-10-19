@@ -164,7 +164,7 @@ export interface UserPositionAccount {
     tokenPrices: Record<string, Price>
     tokenDecimals: Record<string, number>
     timeBasis: '24h' | '7d' | '30d'
-    planType: 'A' | 'B' | 'C'
+    planType: 'A' | 'D' | 'C'
     chainTimeOffsetMs?: number | undefined
   }): {
     fee: {

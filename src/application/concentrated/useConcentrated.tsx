@@ -95,7 +95,7 @@ export type ConcentratedStore = {
   tvl?: string | number // /api.raydium.io/v2/main/info
   volume24h?: string | number // /api.raydium.io/v2/main/info
   timeBasis: TimeBasis
-  aprCalcMode: 'A' | 'B' | 'C'
+  aprCalcMode: 'A' | 'D' | 'C'
 
   availableAmmConfigFeeOptions?: HydratedAmmV3ConfigInfo[] // create pool
   userSelectedAmmConfigFeeOption?: HydratedAmmV3ConfigInfo // create pool
@@ -153,7 +153,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   searchText: '',
   expandedItemIds: new Set(),
   timeBasis: TimeBasis.DAY,
-  aprCalcMode: 'B',
+  aprCalcMode: 'D',
 
   rewards: [],
 

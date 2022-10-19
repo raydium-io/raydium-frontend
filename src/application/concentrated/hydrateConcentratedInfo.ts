@@ -302,7 +302,7 @@ type GetAprPositionParameters = {
   tokenPrices: Record<string, Price>
   tokenDecimals: Record<string, number>
   timeBasis: '24h' | '7d' | '30d'
-  planType: 'B' | 'C'
+  planType: 'D' | 'C'
   chainTimeOffsetMs?: number
 }
 
@@ -317,7 +317,7 @@ function getPositonAprCore({
   chainTimeOffsetMs = 0
 }: GetAprPositionParameters) {
   const { getToken } = useToken.getState()
-  if (planType === 'B') {
+  if (planType === 'D') {
     const planBApr = AmmV3.estimateAprsForPriceRangeOrcaUpdate({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',

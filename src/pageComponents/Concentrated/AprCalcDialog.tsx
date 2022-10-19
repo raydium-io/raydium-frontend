@@ -16,13 +16,13 @@ export default function AprCalcDialog() {
     description: string
   }[] = [
     {
-      aprCalcMethod: 'B',
-      title: 'plan B',
+      aprCalcMethod: 'D',
+      title: 'Delta',
       description: 'This is how Orca’s calculation method work. I don’t know how but we think it’s bullshit lol.'
     },
     {
       aprCalcMethod: 'C',
-      title: 'plan C',
+      title: 'Multiplier',
       description: 'This is how our calculation method work. I don’t know how but I believe it’s better.'
     }
   ]
