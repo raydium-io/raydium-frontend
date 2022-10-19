@@ -394,7 +394,7 @@ function ConcentratedCard() {
       />
 
       <div className="flex flex-col sm:flex-row flex-gap-1 gap-3 mb-3">
-        <Col className="gap-3 bg-dark-blue rounded-xl flex flex-col justify-between w-full sm:w-1/2 px-3 py-4">
+        <Col className="gap-5 bg-dark-blue rounded-xl flex flex-col w-full sm:w-1/2 px-3 py-4">
           <div>
             <div className="text-base leading-[22px] text-secondary-title mb-3">Deposit Amount</div>
 
@@ -477,7 +477,7 @@ function ConcentratedCard() {
 
           {/* supply button */}
           <Button
-            className="frosted-glass-teal w-full mt-2"
+            className="frosted-glass-teal w-full mt-auto"
             componentRef={liquidityButtonComponentRef}
             isLoading={isApprovePanelShown}
             validators={[
@@ -553,6 +553,7 @@ function ConcentratedCard() {
             showZoom
             height={200}
           />
+          <ConcentratedCardAPRInfo />
         </div>
       </div>
       {/** coin selector panel */}
