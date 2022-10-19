@@ -1001,33 +1001,46 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
   const { lpPrices } = usePools()
   const tokenPrices = useToken((s) => s.tokenPrices)
 
-  const variousPrices = useMemo(() => {
-    return { ...lpPrices, ...tokenPrices }
-  }, [lpPrices, tokenPrices])
+  const variousPrices = useMemo(() => ({ ...lpPrices, ...tokenPrices }), [lpPrices, tokenPrices])
 
   const openNewPosition = useMemo(() => {
     return (
-      <AutoBox
-        is={'Col'}
-        className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}
-      >
+      <Col className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
         <div className="mb-2 text-xs">Want to open a new position?</div>
-        <Button
-          className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
-          onClick={() => {
-            useConcentrated.setState({
-              coin1: info.base,
-              coin2: info.quote,
-              chartPoints: [],
-              lazyLoadChart: true,
-              currentAmmPool: info
-            })
-            routeTo('/clmm/create-position')
-          }}
-        >
-          Create Position
-        </Button>
-      </AutoBox>
+        <Row className={`justify-center items-center gap-2`}>
+          <Button
+            className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+            onClick={() => {
+              useConcentrated.setState({
+                coin1: info.base,
+                coin2: info.quote,
+                chartPoints: [],
+                lazyLoadChart: true,
+                currentAmmPool: info
+              })
+              routeTo('/clmm/create-position')
+            }}
+          >
+            Create Position
+          </Button>
+          <Tooltip>
+            <Icon
+              size="sm"
+              iconSrc="/icons/msic-swap-h.svg"
+              className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+              onClick={() => {
+                routeTo('/swap', {
+                  queryProps: {
+                    coin1: info.base,
+                    coin2: info.quote
+                  }
+                })
+              }}
+            />
+            <Tooltip.Panel>Swap</Tooltip.Panel>
+          </Tooltip>
+        </Row>
+      </Col>
     )
   }, [info])
 
@@ -1101,10 +1114,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                   coinAPrice={coinAPrice}
                   coinBPrice={coinBPrice}
                   inRange={p.inRange}
-                  noBorderBottom={false}
                   rewardAPrice={coinARewardPrice}
                   rewardBPrice={coinBRewardPrice}
-                  rewardTotalVolume={rewardTotalVolume}
                   rewardInfoPrice={rewardInfoPrice}
                 />
               )
@@ -1113,7 +1124,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           <AutoBox>{openNewPosition}</AutoBox>
         </>
       ) : (
-        <PoolCardDatabaseBodyCollapsePositionContent poolInfo={info} noBorderBottom={true} />
+        <AutoBox>{openNewPosition}</AutoBox>
       )}
     </AutoBox>
   )
@@ -1129,11 +1140,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   coinAPrice,
   coinBPrice,
   inRange,
-  noBorderBottom = false,
-  noAsset = false,
   rewardAPrice,
   rewardBPrice,
-  rewardTotalVolume,
   rewardInfoPrice
 }: {
   poolInfo: HydratedConcentratedInfo
@@ -1145,11 +1153,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   coinAPrice?: CurrencyAmount
   coinBPrice?: CurrencyAmount
   inRange?: boolean
-  noBorderBottom?: boolean
-  noAsset?: boolean
   rewardAPrice?: CurrencyAmount
   rewardBPrice?: CurrencyAmount
-  rewardTotalVolume?: string
   rewardInfoPrice?: Map<SplToken, CurrencyAmount>
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -1264,7 +1269,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
       <Row className={`w-full pt-5 px-8 mobile:py-3 mobile:px-2 mobile:m-0`}>
         <div
           className={`flex w-full pb-5 ${isMobile ? 'flex-col' : 'flex-row'}`}
-          style={{ borderBottom: !noBorderBottom ? '1px solid rgba(171, 196, 255, .1)' : 'none' }}
+          style={{ borderBottom: '1px solid rgba(171, 196, 255, .1)' }}
         >
           <AutoBox
             is={isMobile ? 'Col' : 'Row'}
@@ -1524,19 +1529,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               <Row className="gap-5 mobile:gap-4">
                 <Icon
                   size="sm"
-                  iconSrc="/icons/msic-swap-h.svg"
-                  className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
-                  onClick={() => {
-                    routeTo('/swap', {
-                      queryProps: {
-                        coin1: info.base,
-                        coin2: info.quote
-                      }
-                    })
-                  }}
-                />
-                <Icon
-                  size="sm"
                   heroIconName="plus"
                   className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] opacity-100 clickable clickable-filter-effect ${
                     p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
@@ -1566,22 +1558,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               </Row>
             ) : (
               <>
-                <Tooltip>
-                  <Icon
-                    size="sm"
-                    iconSrc="/icons/msic-swap-h.svg"
-                    className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
-                    onClick={() => {
-                      routeTo('/swap', {
-                        queryProps: {
-                          coin1: info.base,
-                          coin2: info.quote
-                        }
-                      })
-                    }}
-                  />
-                  <Tooltip.Panel>Swap</Tooltip.Panel>
-                </Tooltip>
                 <Tooltip>
                   <Icon
                     size="smi"
