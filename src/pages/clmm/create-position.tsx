@@ -12,6 +12,7 @@ import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
+import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
@@ -456,6 +457,26 @@ function ConcentratedCard() {
                 }}
                 token={coin2}
               />
+            </div>
+          </div>
+
+          <div className="border-1.5 border-[#abc4ff40]  rounded-xl px-3 py-4">
+            <div className="flex justify-between mb-4">
+              <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
+              <span className="text-lg leading-[18px]">
+                {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
+                  ? toUsdVolume(totalDeposit)
+                  : '--'}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
+              <span className="text-lg flex leading-[18px]">
+                {currentAmmPool && <CoinAvatarPair size="sm" token1={coin1} token2={coin2} />}
+                {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
+                  ? `${ratio1}% / ${ratio2}%`
+                  : '--'}
+              </span>
             </div>
           </div>
 
