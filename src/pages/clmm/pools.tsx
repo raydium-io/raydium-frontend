@@ -1421,17 +1421,15 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                           )}
                           {p.rewardInfos.length > 0 ? <div className="pt-3 pb-1">Rewards</div> : null}
                           {p.rewardInfos &&
-                            p.rewardInfos.map((rInfo, rIdx) => {
-                              return (
-                                <TokenPositionInfo
-                                  key={`personal-rewardInfo-reward-${rIdx}-${toPubString(rInfo.token?.mint)}`}
-                                  token={rInfo.token}
-                                  tokenAmount={toString(rInfo.penddingReward, { decimalLength: 'auto 5' })}
-                                  tokenPrice={rInfo.token && rewardInfoPrice?.get(rInfo.token)}
-                                  suffix=""
-                                />
-                              )
-                            })}
+                            p.rewardInfos.map((rInfo, rIdx) => (
+                              <TokenPositionInfo
+                                key={`personal-rewardInfo-reward-${rIdx}-${toPubString(rInfo.token?.mint)}`}
+                                token={rInfo.token}
+                                tokenAmount={toString(rInfo.penddingReward, { decimalLength: 'auto 5' })}
+                                tokenPrice={rInfo.token && rewardInfoPrice?.get(rInfo.token)}
+                                suffix=""
+                              />
+                            ))}
                         </div>
                       </Tooltip.Panel>
                     </Tooltip>
@@ -1658,18 +1656,20 @@ function PositionAprIllustrator({
       <div className="text-[#abc4ff80] text-sm font-medium mobile:text-xs">APR</div>
       <ConcentratedModifyTooltipIcon iconClassName="opacity-50" />
       <div className="text-white text-sm font-medium mobile:text-xs">{toPercentString(positionApr?.apr)}</div>
-      <Tooltip panelClassName="p-0 rounded-xl">
-        <Row className="items-center gap-2 mobile:gap-1 mt-1">
-          {positionApr && (
-            <AprLine className="w-28" aprValues={[positionApr.fee.apr, ...positionApr.rewards.map((i) => i.apr)]} />
-          )}
-        </Row>
-        <Tooltip.Panel>
-          <div className="p-5">
-            {positionApr && <AprChart type="positionAccount" colCount={2} positionAccount={positionInfo} />}
-          </div>
-        </Tooltip.Panel>
-      </Tooltip>
+      {isMeaningfulNumber(positionApr.apr) && (
+        <Tooltip panelClassName="p-0 rounded-xl">
+          <Row className="items-center gap-2 mobile:gap-1 mt-1">
+            {positionApr && (
+              <AprLine className="w-28" aprValues={[positionApr.fee.apr, ...positionApr.rewards.map((i) => i.apr)]} />
+            )}
+          </Row>
+          <Tooltip.Panel>
+            <div className="p-5">
+              {positionApr && <AprChart type="positionAccount" colCount={2} positionAccount={positionInfo} />}
+            </div>
+          </Tooltip.Panel>
+        </Tooltip>
+      )}
     </Row>
   )
 }
@@ -1696,7 +1696,7 @@ function TokenPositionInfo({
   return (
     <Row className={twMerge('py-2 gap-8 justify-between items-center font-medium text-[12px] ', className)}>
       <Row className="flex items-center justify-start gap-[6px]">
-        {customIcon ? customIcon : <CoinAvatar token={token} size="smi" />}{' '}
+        {customIcon ? customIcon : <CoinAvatar token={token} size="smi" />}
         <div className=" text-[#ABC4FF]">
           {customKey ? customKey : token ? token!.symbol : null} {suffix}
         </div>

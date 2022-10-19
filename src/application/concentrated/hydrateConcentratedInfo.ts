@@ -204,7 +204,7 @@ function hydrateUserPositionAccounnt(
             : idx === 1
             ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
             : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
-        return { penddingReward, apr24h, apr7d, apr30d }
+        return { penddingReward, apr24h, apr7d, apr30d, token }
       })
       .filter((info) => Boolean(info?.penddingReward)) as UserPositionAccount['rewardInfos']
     return {
