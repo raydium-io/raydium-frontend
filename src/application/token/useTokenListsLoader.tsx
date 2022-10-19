@@ -3,13 +3,15 @@ import { LiquidityPoolsJsonFile, Token, WSOL } from 'test-r-sdk'
 import { asyncMapAllSettled } from '@/functions/asyncMap'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
-import toPubString from '@/functions/format/toMintString'
+import toPubString, { toPub } from '@/functions/format/toMintString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress, PublicKeyish, SrcAddress } from '@/types/constants'
 
 import { objectMap, replaceValue } from '../../functions/objectMethods'
+import { SDKParsedConcentratedInfo } from '../concentrated/type'
+import useConcentrated from '../concentrated/useConcentrated'
 import useFarms from '../farms/useFarms'
 import useLiquidity from '../liquidity/useLiquidity'
 import { usePools } from '../pools/usePools'
@@ -36,10 +38,20 @@ export default function useTokenListsLoader() {
   // both farms pages and stake pages
   const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
   const poolRefreshCount = usePools((s) => s.refreshCount)
+  const clmmRefreshCount = useConcentrated((s) => s.refreshCount)
+  const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
 
   useTransitionedEffect(() => {
     loadTokens()
-  }, [walletRefreshCount, swapRefreshCount, liquidityRefreshCount, farmRefreshCount, poolRefreshCount])
+  }, [
+    walletRefreshCount,
+    swapRefreshCount,
+    liquidityRefreshCount,
+    farmRefreshCount,
+    poolRefreshCount,
+    clmmRefreshCount,
+    sdkParsedAmmPools
+  ])
 }
 
 function deleteFetchedNativeSOLToken(tokenJsons: TokenJson[]) {
@@ -54,37 +66,85 @@ interface UltraLiquidityPoolsJsonfile extends LiquidityPoolsJsonFile {
   lpDecimals: number
 }
 
-function excludeAlreadyKnownMints(knownMints: string[], liquidityPools: UltraLiquidityPoolsJsonfile): TokenJson[] {
+enum InputPoolType {
+  CLASSIC,
+  CLMM
+}
+
+function excludeAlreadyKnownMints(
+  knownMints: string[],
+  liquidityPools: UltraLiquidityPoolsJsonfile | SDKParsedConcentratedInfo[],
+  poolType: InputPoolType
+): TokenJson[] {
   const currentMints = [...knownMints]
   const remainTokenJsons: TokenJson[] = []
-  liquidityPools.unOfficial.forEach((pool) => {
-    if (!currentMints.includes(pool.baseMint)) {
-      currentMints.push(pool.baseMint)
-      remainTokenJsons.push({
-        symbol: pool.baseMint.substring(0, 6),
-        name: pool.baseMint.substring(0, 6),
-        mint: pool.baseMint,
-        decimals: (pool as unknown as UltraLiquidityPoolsJsonfile).baseDecimals,
-        extensions: {
-          coingeckoId: ''
-        },
-        icon: ''
+  switch (poolType) {
+    case InputPoolType.CLASSIC:
+      ;(liquidityPools as UltraLiquidityPoolsJsonfile).unOfficial.forEach((pool) => {
+        if (!currentMints.includes(pool.baseMint)) {
+          currentMints.push(pool.baseMint)
+          remainTokenJsons.push({
+            symbol: pool.baseMint.substring(0, 6),
+            name: pool.baseMint.substring(0, 6),
+            mint: pool.baseMint,
+            decimals: (pool as unknown as UltraLiquidityPoolsJsonfile).baseDecimals,
+            extensions: {
+              coingeckoId: ''
+            },
+            icon: ''
+          })
+        }
+        if (!currentMints.includes(pool.quoteMint)) {
+          currentMints.push(pool.quoteMint)
+          remainTokenJsons.push({
+            symbol: pool.quoteMint.substring(0, 6),
+            name: pool.quoteMint.substring(0, 6),
+            mint: pool.quoteMint,
+            decimals: (pool as unknown as UltraLiquidityPoolsJsonfile).quoteDecimals,
+            extensions: {
+              coingeckoId: ''
+            },
+            icon: ''
+          })
+        }
       })
-    }
-    if (!currentMints.includes(pool.quoteMint)) {
-      currentMints.push(pool.quoteMint)
-      remainTokenJsons.push({
-        symbol: pool.quoteMint.substring(0, 6),
-        name: pool.quoteMint.substring(0, 6),
-        mint: pool.quoteMint,
-        decimals: (pool as unknown as UltraLiquidityPoolsJsonfile).quoteDecimals,
-        extensions: {
-          coingeckoId: ''
-        },
-        icon: ''
+      break
+    case InputPoolType.CLMM:
+      ;(liquidityPools as SDKParsedConcentratedInfo[]).forEach((pool) => {
+        const mintAString = toPubString(pool.state.mintA.mint)
+        const mintBString = toPubString(pool.state.mintB.mint)
+        if (!currentMints.includes(mintAString)) {
+          currentMints.push(mintAString)
+          remainTokenJsons.push({
+            symbol: mintAString.substring(0, 6),
+            name: mintAString.substring(0, 6),
+            mint: mintAString,
+            decimals: pool.state.mintA.decimals,
+            extensions: {
+              coingeckoId: ''
+            },
+            icon: ''
+          })
+        }
+        if (!currentMints.includes(mintBString)) {
+          currentMints.push(mintBString)
+          remainTokenJsons.push({
+            symbol: mintBString.substring(0, 6),
+            name: mintBString.substring(0, 6),
+            mint: mintBString,
+            decimals: pool.state.mintB.decimals,
+            extensions: {
+              coingeckoId: ''
+            },
+            icon: ''
+          })
+        }
       })
-    }
-  })
+      break
+
+    default:
+      break
+  }
 
   return remainTokenJsons
 }
@@ -98,6 +158,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
   tokens: TokenJson[]
   blacklist: string[]
 }> {
+  const clmmSdkParsed = useConcentrated.getState().sdkParsedAmmPools
   const devMints: string[] = []
   const unOfficialMints: string[] = []
   const officialMints: string[] = []
@@ -127,16 +188,25 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
 
   // we wait other token(mints above) finished their fetching, then cross match liquidity pool unofficial pool list
   // to find out the 'unknown' token, and add them to the list
+  let currentKknownMints = devMints.concat(unOfficialMints).concat(officialMints).concat(unNamedMints)
   const liquidityPoolResponse = await jFetch<UltraLiquidityPoolsJsonfile>(liquidityMainnetListUrl)
   const excludesTokenJson = liquidityPoolResponse
-    ? excludeAlreadyKnownMints(
-        devMints.concat(unOfficialMints).concat(officialMints).concat(unNamedMints),
-        liquidityPoolResponse
-      )
+    ? excludeAlreadyKnownMints(currentKknownMints, liquidityPoolResponse, InputPoolType.CLASSIC)
     : undefined
 
   excludesTokenJson && otherLiquiditySupportedMints.push(...excludesTokenJson.map(({ mint }) => mint))
   excludesTokenJson && tokens.push(...excludesTokenJson)
+
+  // below is for clmm pool unknown tokens (if clmm has loaded)
+  if (clmmSdkParsed && clmmSdkParsed.length > 0) {
+    currentKknownMints = currentKknownMints.concat(otherLiquiditySupportedMints)
+    const excludesClmmTokenJson = clmmSdkParsed
+      ? excludeAlreadyKnownMints(currentKknownMints, clmmSdkParsed, InputPoolType.CLMM)
+      : undefined
+    excludesClmmTokenJson && otherLiquiditySupportedMints.push(...excludesClmmTokenJson.map(({ mint }) => mint))
+    excludesClmmTokenJson && tokens.push(...excludesClmmTokenJson)
+  }
+
   // eslint-disable-next-line no-console
   console.info('tokenList end fetching')
 
@@ -197,11 +267,13 @@ async function loadTokens() {
   const solanaTokenOriginalMintsLength = tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.size
   const devOriginalMintsLength = tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.size
   const unnamedOriginalMintsLength = tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.size
+  const otherOriginalMintsLength = tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME].mints?.size
   if (
     devMints.length === devOriginalMintsLength &&
     officialMints.length === mainnetOriginalMintsLength &&
     unOfficialMints.length === solanaTokenOriginalMintsLength &&
-    unNamedMints.length === unnamedOriginalMintsLength
+    unNamedMints.length === unnamedOriginalMintsLength &&
+    otherLiquiditySupportedMints.length === otherOriginalMintsLength
   )
     return
 
