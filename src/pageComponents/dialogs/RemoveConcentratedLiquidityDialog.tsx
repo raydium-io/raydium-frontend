@@ -101,7 +101,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
         decimalLength: `auto ${coinQuote.decimals}`
       })
     })
-  }, [targetUserPositionAccount, currentAmmPool, position, coinBase, coinQuote])
+  }, [currentAmmPool, position, coinBase, coinQuote])
 
   useEffect(() => {
     calculateMaxLiquidity()
@@ -112,7 +112,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
     useConcentrated.setState({
       coin1Amount: maxInfo.coin1Amount,
       coin2Amount: maxInfo.coin2Amount,
-      isInput: false,
+      isInput: true,
       liquidity: position.liquidity
     })
   }, [maxInfo, position])
@@ -257,7 +257,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                     onClose?.()
                     refreshConcentrated()
                     useConcentrated.setState({
-                      isAddDialogOpen: false,
+                      isRemoveDialogOpen: false,
                       isMyPositionDialogOpen: false,
                       coin1Amount: undefined,
                       coin2Amount: undefined
