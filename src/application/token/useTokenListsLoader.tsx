@@ -1,4 +1,4 @@
-import { LiquidityPoolsJsonFile, Token, WSOL } from 'test-r-sdk'
+import { ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, Token, WSOL } from 'test-r-sdk'
 
 import { asyncMapAllSettled } from '@/functions/asyncMap'
 import jFetch from '@/functions/dom/jFetch'
@@ -20,7 +20,8 @@ import useWallet from '../wallet/useWallet'
 
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
 import {
-  isRaydiumDevTokenListName, isRaydiumMainnetTokenListName, liquidityMainnetListUrl, rawTokenListConfigs
+  clmmPoolListUrl, isRaydiumDevTokenListName, isRaydiumMainnetTokenListName, liquidityMainnetListUrl,
+  rawTokenListConfigs
 } from './rawTokenLists.config'
 import {
   RaydiumDevTokenListJsonInfo, RaydiumTokenListJsonInfo, SplToken, TokenJson, TokenListFetchConfigItem
@@ -73,7 +74,7 @@ enum InputPoolType {
 
 function excludeAlreadyKnownMints(
   knownMints: string[],
-  liquidityPools: UltraLiquidityPoolsJsonfile | SDKParsedConcentratedInfo[],
+  liquidityPools: UltraLiquidityPoolsJsonfile | ApiAmmV3PoolInfo[],
   poolType: InputPoolType
 ): TokenJson[] {
   const currentMints = [...knownMints]
@@ -110,29 +111,27 @@ function excludeAlreadyKnownMints(
       })
       break
     case InputPoolType.CLMM:
-      ;(liquidityPools as SDKParsedConcentratedInfo[]).forEach((pool) => {
-        const mintAString = toPubString(pool.state.mintA.mint)
-        const mintBString = toPubString(pool.state.mintB.mint)
-        if (!currentMints.includes(mintAString)) {
-          currentMints.push(mintAString)
+      ;(liquidityPools as ApiAmmV3PoolInfo[]).forEach((pool) => {
+        if (!currentMints.includes(pool.mintA)) {
+          currentMints.push(pool.mintA)
           remainTokenJsons.push({
-            symbol: mintAString.substring(0, 6),
-            name: mintAString.substring(0, 6),
-            mint: mintAString,
-            decimals: pool.state.mintA.decimals,
+            symbol: pool.mintA.substring(0, 6),
+            name: pool.mintA.substring(0, 6),
+            mint: pool.mintA,
+            decimals: pool.mintDecimalsA,
             extensions: {
               coingeckoId: ''
             },
             icon: ''
           })
         }
-        if (!currentMints.includes(mintBString)) {
-          currentMints.push(mintBString)
+        if (!currentMints.includes(pool.mintB)) {
+          currentMints.push(pool.mintB)
           remainTokenJsons.push({
-            symbol: mintBString.substring(0, 6),
-            name: mintBString.substring(0, 6),
-            mint: mintBString,
-            decimals: pool.state.mintB.decimals,
+            symbol: pool.mintB.substring(0, 6),
+            name: pool.mintB.substring(0, 6),
+            mint: pool.mintB,
+            decimals: pool.mintDecimalsB,
             extensions: {
               coingeckoId: ''
             },
@@ -188,24 +187,34 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
 
   // we wait other token(mints above) finished their fetching, then cross match liquidity pool unofficial pool list
   // to find out the 'unknown' token, and add them to the list
-  let currentKknownMints = devMints.concat(unOfficialMints).concat(officialMints).concat(unNamedMints)
+  let currentKnownMints = devMints.concat(unOfficialMints).concat(officialMints).concat(unNamedMints)
   const liquidityPoolResponse = await jFetch<UltraLiquidityPoolsJsonfile>(liquidityMainnetListUrl)
   const excludesTokenJson = liquidityPoolResponse
-    ? excludeAlreadyKnownMints(currentKknownMints, liquidityPoolResponse, InputPoolType.CLASSIC)
+    ? excludeAlreadyKnownMints(currentKnownMints, liquidityPoolResponse, InputPoolType.CLASSIC)
     : undefined
 
   excludesTokenJson && otherLiquiditySupportedMints.push(...excludesTokenJson.map(({ mint }) => mint))
   excludesTokenJson && tokens.push(...excludesTokenJson)
 
   // below is for clmm pool unknown tokens (if clmm has loaded)
-  if (clmmSdkParsed && clmmSdkParsed.length > 0) {
-    currentKknownMints = currentKknownMints.concat(otherLiquiditySupportedMints)
-    const excludesClmmTokenJson = clmmSdkParsed
-      ? excludeAlreadyKnownMints(currentKknownMints, clmmSdkParsed, InputPoolType.CLMM)
-      : undefined
-    excludesClmmTokenJson && otherLiquiditySupportedMints.push(...excludesClmmTokenJson.map(({ mint }) => mint))
-    excludesClmmTokenJson && tokens.push(...excludesClmmTokenJson)
-  }
+  currentKnownMints = currentKnownMints.concat(otherLiquiditySupportedMints)
+  const clmmPoolresponse = await jFetch<{ data: ApiAmmV3PoolInfo[] }>(clmmPoolListUrl)
+  const clmmExcludesTokenJson = clmmPoolresponse
+    ? excludeAlreadyKnownMints(currentKnownMints, clmmPoolresponse.data, InputPoolType.CLMM)
+    : undefined
+
+  clmmExcludesTokenJson && otherLiquiditySupportedMints.push(...clmmExcludesTokenJson.map(({ mint }) => mint))
+  clmmExcludesTokenJson && tokens.push(...clmmExcludesTokenJson)
+
+  // below is for clmm pool unknown tokens (if clmm has loaded)
+  // if (clmmSdkParsed && clmmSdkParsed.length > 0) {
+  //   currentKknownMints = currentKknownMints.concat(otherLiquiditySupportedMints)
+  //   const excludesClmmTokenJson = clmmSdkParsed
+  //     ? excludeAlreadyKnownMints(currentKknownMints, clmmSdkParsed, InputPoolType.CLMM)
+  //     : undefined
+  //   excludesClmmTokenJson && otherLiquiditySupportedMints.push(...excludesClmmTokenJson.map(({ mint }) => mint))
+  //   excludesClmmTokenJson && tokens.push(...excludesClmmTokenJson)
+  // }
 
   // eslint-disable-next-line no-console
   console.info('tokenList end fetching')
