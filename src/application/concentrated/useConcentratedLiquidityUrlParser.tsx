@@ -35,8 +35,8 @@ export default function useConcentratedLiquidityUrlParser() {
   )
 
   useEffect(() => {
-    // when not /clmm/create page, reset flag
-    if (!pathname.includes('/clmm/create')) {
+    // when not /clmm/create-position page, reset flag
+    if (!pathname.includes('/clmm/create-position')) {
       setHaveInit(false)
     }
   }, [pathname])
@@ -51,7 +51,7 @@ export default function useConcentratedLiquidityUrlParser() {
   // From url
   useAsyncEffect(async () => {
     // only get data from url when /liquidity page is route from other page
-    if (!pathname.includes('/clmm/create')) return
+    if (!pathname.includes('/clmm/create-position')) return
     if (!connection) return // parse must relay on connection
     // not in 'from url' period
     if (haveInit) return
@@ -97,7 +97,7 @@ export default function useConcentratedLiquidityUrlParser() {
     [replace]
   )
   useRecordedEffect(() => {
-    if (!pathname.includes('/clmm/create')) return
+    if (!pathname.includes('/clmm/create-position')) return
 
     // not in 'from url' period
     if (!haveInit) return

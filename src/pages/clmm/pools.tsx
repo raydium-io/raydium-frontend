@@ -223,7 +223,7 @@ function OpenNewPosition({ className }: { className?: string }) {
     <Button
       className={twMerge('frosted-glass-teal mobile:text-2xs', className)}
       onClick={() => {
-        routeTo('/clmm/create')
+        routeTo('/clmm/create-position')
       }}
       size={isMobile ? 'xs' : 'sm'}
     >
@@ -1040,7 +1040,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               lazyLoadChart: true,
               currentAmmPool: info
             })
-            routeTo('/clmm/create')
+            routeTo('/clmm/create-position')
           }}
         >
           Create Position
@@ -1383,7 +1383,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         fallbackProps: {
                           onClick: () => {
                             useConcentrated.setState({ coin1: info.base, coin2: info.quote, currentAmmPool: info })
-                            routeTo('/clmm/create', {
+                            routeTo('/clmm/create-position', {
                               queryProps: {}
                             })
                           },

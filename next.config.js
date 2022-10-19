@@ -45,11 +45,11 @@ const moduleExports = {
         destination: '/acceleraytor',
         permanent: false
       },
-      // {
-      //   source: '/acceleraytor',
-      //   destination: 'https://v1.raydium.io/acceleRaytor',
-      //   permanent: false
-      // }
+      {
+        source: '/create',
+        destination: '/create-position',
+        permanent: false
+      }
     ]
   }
   // async redirects() {

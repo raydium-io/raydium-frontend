@@ -87,13 +87,10 @@ export type PageRouteConfigs = {
   '/farms/edit-review': {
     queryProps?: any
   }
-  '/clmm/create': {
+  '/clmm/create-position': {
     queryProps?: any
   }
   '/clmm/create-pool': {
-    queryProps?: any
-  }
-  '/clmm/create-pool-review': {
     queryProps?: any
   }
   '/clmm/edit-pool': {
