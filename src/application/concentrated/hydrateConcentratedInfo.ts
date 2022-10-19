@@ -160,9 +160,6 @@ function hydrateFeeRate(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial
 /**
  * part of {@link hydrateConcentratedInfo}
  */
-/**
- * part of {@link hydrateConcentratedInfo}
- */
 function hydrateUserPositionAccounnt(
   ammPoolInfo: Omit<HydratedConcentratedInfo, 'userPositionAccount'>
 ): HydratedConcentratedInfo['userPositionAccount'] {
@@ -318,7 +315,7 @@ function getPositonAprCore({
 }: GetAprPositionParameters) {
   const { getToken } = useToken.getState()
   if (planType === 'D') {
-    const planBApr = AmmV3.estimateAprsForPriceRangeOrcaUpdate({
+    const planBApr = AmmV3.estimateAprsForPriceRangeDelta({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
       mintPrice: tokenPrices,
@@ -344,7 +341,7 @@ function getPositonAprCore({
     }
   } else {
     // (planType === 'C')
-    const planCApr = AmmV3.estimateAprsForPriceRange({
+    const planCApr = AmmV3.estimateAprsForPriceRangeMultiplier({
       poolInfo: ammPoolInfo.state,
       aprType: timeBasis === '24h' ? 'day' : timeBasis === '7d' ? 'week' : 'month',
       positionTickLowerIndex: Math.min(positionAccount.tickLower, positionAccount.tickUpper),
