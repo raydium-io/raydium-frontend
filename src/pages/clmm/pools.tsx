@@ -723,7 +723,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
       return (
         <Tooltip key={`${idx}-reward-badge-tooltip-${toPubString(reward.tokenMint)}`} placement="bottom">
           <Row
-            className={`ring-1 ring-inset ring-[#abc4ff80] p-1 rounded-full items-center gap-2 overflow-hidden ${
+            className={`ring-1 ring-inset ring-[#abc4ff80] p-1 mobile:p-[1px] rounded-full items-center gap-2 overflow-hidden ${
               isRewardEnd ? 'opacity-30 contrast-40' : isRewardBeforeStart ? 'opacity-50' : ''
             } `}
           >
@@ -784,7 +784,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
     })
 
     return (
-      <div className={twMerge(`flex flex-wrap justify-start items-center gap-2`, badges.length === 0 ? 'h-8' : '')}>
+      <div className={twMerge(`flex flex-wrap justify-start items-center gap-2`, badges.length === 0 ? 'h-4' : '')}>
         {badges}
       </div>
     )
