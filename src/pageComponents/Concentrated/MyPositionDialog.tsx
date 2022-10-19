@@ -139,6 +139,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
           priceMin={priceRange[0]}
           priceMax={priceRange[1]}
           currentPrice={currentAmmPool ? currentAmmPool.currentPrice : undefined}
+          priceLabel={`${coin2?.symbol} per ${coin1?.symbol}`}
           decimals={decimals}
           hideRangeLine
           hideRangeInput
