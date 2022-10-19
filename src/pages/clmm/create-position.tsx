@@ -411,7 +411,6 @@ function ConcentratedCard() {
                 value={currentAmmPool ? toString(coin1Amount) : undefined}
                 haveHalfButton
                 haveCoinIcon
-                showTokenSelectIcon
                 topLeftLabel=""
                 onPriceChange={updatePrice1}
                 onTryToTokenSelect={() => {
@@ -440,7 +439,6 @@ function ConcentratedCard() {
                 value={currentAmmPool ? toString(coin2Amount) : undefined}
                 haveHalfButton
                 haveCoinIcon
-                showTokenSelectIcon
                 topLeftLabel=""
                 onPriceChange={updatePrice2}
                 onTryToTokenSelect={() => {
@@ -480,10 +478,10 @@ function ConcentratedCard() {
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <div className="text-base leading-[22px] text-secondary-title mb-3">Select Fee</div>
             <ConcentratedFeeSwitcher />
-          </div>
+          </div> */}
 
           {coin1InputDisabled || coin2InputDisabled ? (
             <FadeIn>

@@ -8,7 +8,9 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -630,7 +632,6 @@ function PoolCard() {
                 : clearSortConfig()
             }}
           />
-          <OpenNewPosition />
         </Grid>
         <ToolsButton className="self-center" />
       </Row>
@@ -639,9 +640,6 @@ function PoolCard() {
     <div>
       <Row className={'w-full justify-between pb-5 items-center'}>
         <PoolLabelBlock className="flex-grow" />
-        <Row className="gap-4 items-stretch">
-          <OpenNewPosition />
-        </Row>
       </Row>
     </div>
   )

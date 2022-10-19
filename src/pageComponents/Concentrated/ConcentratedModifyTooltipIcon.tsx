@@ -35,7 +35,7 @@ export function ConcentratedModifyTooltipIcon({ iconClassName }: { iconClassName
               Switch
             </Button>
             <div className="col-span-full text-xs text-[#abc4ff80]">
-              This APR is calculated by Multiplier Method. You can swith to Leverage Method if you think that is more
+              This APR is calculated by Multiplier Method. You can switch to Leverage Method if you think that is more
               reasonable.
               <Button
                 type="text"
