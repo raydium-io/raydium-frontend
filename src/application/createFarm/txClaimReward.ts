@@ -3,7 +3,7 @@ import { Connection, Signer, TransactionInstruction } from '@solana/web3.js'
 import { Farm } from 'test-r-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import txHandler, { AddSingleTxOptions } from '@/application/txTools/handleTx'
+import txHandler, { SingleTxOptions } from '@/application/txTools/handleTx'
 import assert from '@/functions/assert'
 import { asyncForEach } from '@/functions/asyncMap'
 import toPubString from '@/functions/format/toMintString'
@@ -23,7 +23,7 @@ import useCreateFarms from './useCreateFarm'
 export default async function txClaimReward({
   reward,
   ...txAddOptions
-}: { reward: MayArray<UIRewardInfo> } & AddSingleTxOptions) {
+}: { reward: MayArray<UIRewardInfo> } & SingleTxOptions) {
   return txHandler(async ({ transactionCollector, baseUtils: { connection } }) => {
     const piecesCollector = createTransactionCollector()
 

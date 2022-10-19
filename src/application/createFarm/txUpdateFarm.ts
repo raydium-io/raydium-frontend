@@ -3,7 +3,7 @@ import { Connection } from '@solana/web3.js'
 import { Farm, FarmCreateInstructionParamsV6, FarmRewardInfo } from 'test-r-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import txHandler, { AddSingleTxOptions } from '@/application/txTools/handleTx'
+import txHandler, { SingleTxOptions } from '@/application/txTools/handleTx'
 import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
 import { setDateTimeSecondToZero } from '@/functions/date/dateFormat'
@@ -26,7 +26,7 @@ import { UIRewardInfo } from './type'
 import useCreateFarms from './useCreateFarm'
 import { validateUiRewardInfo } from './validateRewardInfo'
 
-export default async function txUpdateEdited({ ...txAddOptions }: AddSingleTxOptions) {
+export default async function txUpdateEdited({ ...txAddOptions }: SingleTxOptions) {
   return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const piecesCollector = createTransactionCollector()
 
