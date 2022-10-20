@@ -76,11 +76,12 @@ export default function txSwap() {
       {
         txHistoryInfo: {
           title: 'Swap',
-          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${downCoin.symbol
-            }`
+          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
+            downCoin.symbol
+          }`
         }
       }
     ]) as TransactionQueue
-    transactionCollector.addQueue(queue, { sendMode: undefined /* temporary use old swap sendmode */ })
+    transactionCollector.addQueue(queue, { sendMode: 'queue(all-settle)' })
   })
 }

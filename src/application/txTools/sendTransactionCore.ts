@@ -1,5 +1,4 @@
 import { Connection, Transaction } from '@solana/web3.js'
-import { attachRecentBlockhash } from './attachRecentBlockhash'
 
 import { SendTransactionPayload, serialize } from './handleTx'
 
@@ -48,7 +47,11 @@ export async function sendTransactionCore(
   }
 }
 
-async function sendSingleTransaction(transaction: Transaction, payload: SendTransactionPayload, cache = true): Promise<Txid> {
+async function sendSingleTransaction(
+  transaction: Transaction,
+  payload: SendTransactionPayload,
+  cache = true
+): Promise<Txid> {
   if (payload.signerkeyPair?.ownerKeypair) {
     // if have signer detected, no need signAllTransactions
     transaction.feePayer = payload.signerkeyPair.payerKeypair?.publicKey ?? payload.signerkeyPair.ownerKeypair.publicKey
@@ -64,6 +67,7 @@ async function sendSingleTransaction(transaction: Transaction, payload: SendTran
   }
 }
 
+/** @deprecated */
 async function sendBatchedTransactions(
   allSignedTransactions: Transaction[],
   payload: SendTransactionPayload

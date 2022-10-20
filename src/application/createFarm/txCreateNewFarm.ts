@@ -1,7 +1,7 @@
 import { Farm, FarmCreateInstructionParamsV6, FarmPoolJsonInfoV6 } from 'test-r-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import txHandler, { AddSingleTxOptions } from '@/application/txTools/handleTx'
+import txHandler, { SingleTxOptions } from '@/application/txTools/handleTx'
 import { addItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
@@ -30,7 +30,7 @@ export const userCreatedFarmKey = 'USER_CREATED_FARMS'
 export default async function txCreateNewFarm({
   onReceiveFarmId,
   ...txAddOptions
-}: AddSingleTxOptions & { onReceiveFarmId?: (farmId: string) => void }) {
+}: SingleTxOptions & { onReceiveFarmId?: (farmId: string) => void }) {
   return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     const { rewards: uiRewardInfos } = useCreateFarms.getState()
 

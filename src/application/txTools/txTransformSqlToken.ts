@@ -3,7 +3,7 @@ import { PublicKey } from '@solana/web3.js'
 import { Spl, TokenAmount } from 'test-r-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import txHandler, { AddSingleTxOptions, HandleFnOptions } from '@/application/txTools/handleTx'
+import txHandler, { SingleTxOptions, HandleFnOptions } from '@/application/txTools/handleTx'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toString } from '@/functions/numberish/toString'
 import { PublicKeyish } from '@/types/constants'
@@ -20,7 +20,7 @@ export default async function txTransferToken(
     from?: PublicKeyish // source
 
     tokenAmount: TokenAmount
-  } & AddSingleTxOptions &
+  } & SingleTxOptions &
     HandleFnOptions
 ) {
   return txHandler(

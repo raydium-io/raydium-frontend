@@ -77,7 +77,7 @@ export type TxFinalBatchErrorInfo = {
 
 //#endregion
 
-export type MultiTxAction = (providedTools: {
+export type TxFn = (providedTools: {
   transactionCollector: TransactionCollector
   baseUtils: {
     connection: Connection
@@ -103,7 +103,7 @@ type TxKeypairDetective = {
 
 //#endregion
 
-export interface AddSingleTxOptions {
+export interface SingleTxOptions {
   txHistoryInfo?: Pick<TxHistoryInfo, 'title' | 'description'>
   /** if provided, error notification should respect this config */
   txErrorNotificationDescription?: string | ((error: Error) => string)
@@ -113,26 +113,39 @@ export interface AddSingleTxOptions {
   onTxSentSuccess?: TxSentSuccessCallback
   onTxSentError?: TxSentErrorCallback
   onTxSentFinally?: TxSentFinallyCallback
+
+  /**
+   * for multi-mode
+   *
+   * will send this transaction even prev has error
+   *
+   * (will ignore in first tx)
+   *
+   * @default 'success' when sendMode is 'queue'
+   * @default 'finally' when sendMode is 'queue(all-settle)'
+   */
+  continueWhenPreviousTx?: 'success' | 'error' | 'finally'
 }
 
-export interface AddMultiTxsOptions {
+export interface MultiTxsOptions {
   /**
    * send next when prev is complete (default)
    * send all at once
    */
   sendMode?:
     | 'queue'
+    | 'queue(all-settle)'
     | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
     | 'parallel(batch-transactions)' /* it will in order */
   onTxAllSuccess?: AllSuccessCallback
   onTxAnyError?: AnyErrorCallback
 }
 
-export type TransactionQueue = ([transaction: Transaction, singleTxOptions?: AddSingleTxOptions] | Transaction)[]
+export type TransactionQueue = ([transaction: Transaction, singleTxOptions?: SingleTxOptions] | Transaction)[]
 
 export type TransactionCollector = {
-  add(transaction: Transaction, options?: AddSingleTxOptions): void
-  addQueue(transactionQueue: TransactionQueue, multiTxOptions?: AddMultiTxsOptions): void
+  add(transaction: Transaction, options?: SingleTxOptions): void
+  addQueue(transactionQueue: TransactionQueue, multiTxOptions?: MultiTxsOptions): void
 }
 
 // TODO: should also export addTxSuccessListener() and addTxErrorListener() and addTxFinallyListener()
@@ -167,7 +180,7 @@ export type SendTransactionPayload = {
  *
  * path {@link txHandler} - {@link collectTxOptions}
  */
-export default async function txHandler(txAction: MultiTxAction, options?: HandleFnOptions): Promise<TxResponseInfos> {
+export default async function txHandler(txAction: TxFn, options?: HandleFnOptions): Promise<TxResponseInfos> {
   const {
     transactionCollector,
     collected: { innerTransactions, singleTxOptions, multiTxOptions }
@@ -239,8 +252,8 @@ export default async function txHandler(txAction: MultiTxAction, options?: Handl
 const txSerializeCache = new Map<string, Buffer>()
 
 function collectTxOptions() {
-  const singleTxOptions = [] as AddSingleTxOptions[]
-  const multiTxOptions = {} as AddMultiTxsOptions
+  const singleTxOptions = [] as SingleTxOptions[]
+  const multiTxOptions = {} as MultiTxsOptions
   const innerTransactions = [] as Transaction[]
   const add: TransactionCollector['add'] = (transaction, options) => {
     innerTransactions.push(transaction)
@@ -282,8 +295,8 @@ async function handleMultiTxOptions({
   payload
 }: {
   transactions: Transaction[]
-  singleOptionss: AddSingleTxOptions[]
-  multiOptions: AddMultiTxsOptions
+  singleOptionss: SingleTxOptions[]
+  multiOptions: MultiTxsOptions
   payload: SendTransactionPayload
 }): Promise<TxResponseInfos> {
   return new Promise((resolve, reject) =>
@@ -298,7 +311,7 @@ async function handleMultiTxOptions({
           resolve({ allSuccess: true, txids })
         }
       }
-      const getSingleOptions = (originalSingleOptions: AddSingleTxOptions) =>
+      const getSingleOptions = (originalSingleOptions: SingleTxOptions) =>
         produce(originalSingleOptions, (draft) => {
           draft.onTxSentSuccess = mergeFunction(
             (({ txid }) => {
@@ -350,10 +363,9 @@ function composeWithDifferentSendMode({
   payload
 }: {
   transactions: Transaction[]
-  sendMode: AddMultiTxsOptions['sendMode']
-  singleOptionss: AddSingleTxOptions[]
-
-  getSingleOptions(originalSingleOptions: AddSingleTxOptions): AddSingleTxOptions
+  sendMode: MultiTxsOptions['sendMode']
+  singleOptionss: SingleTxOptions[]
+  getSingleOptions(originalSingleOptions: SingleTxOptions): SingleTxOptions
   payload: SendTransactionPayload
 }): () => void {
   if (sendMode === 'parallel(dangerous-without-order)' || sendMode === 'parallel(batch-transactions)') {
@@ -371,18 +383,30 @@ function composeWithDifferentSendMode({
     return parallelled
   } else {
     const queued = transactions.reduceRight(
-      (acc, tx, idx) => () =>
-        handleSingleTxOptions({
-          transaction: tx,
-          allSignedTransactions: transactions,
-          payload,
-          singleOptions: produce(getSingleOptions(singleOptionss[idx]), (draft) => {
-            draft.onTxSuccess = mergeFunction(acc as TxSentSuccessCallback, draft.onTxSuccess)
-          })
-        }),
-      () => {}
+      ({ fn, method }, tx, idx) => {
+        const singleOptions = getSingleOptions(singleOptionss[idx])
+        return {
+          fn: () =>
+            handleSingleTxOptions({
+              transaction: tx,
+              allSignedTransactions: transactions,
+              payload,
+              singleOptions: produce(singleOptions, (draft) => {
+                if (method === 'finally') {
+                  draft.onTxFinally = mergeFunction(fn, draft.onTxFinally)
+                } else if (method === 'error') {
+                  draft.onTxError = mergeFunction(fn, draft.onTxSuccess)
+                } else if (method === 'success') {
+                  draft.onTxSuccess = mergeFunction(fn, draft.onTxSuccess)
+                }
+              })
+            }),
+          method: singleOptions.continueWhenPreviousTx ?? (sendMode === 'queue' ? 'success' : 'finally')
+        }
+      },
+      { fn: () => {}, method: 'success' }
     )
-    return queued
+    return queued.fn
   }
 }
 
@@ -403,7 +427,7 @@ async function handleSingleTxOptions({
 }: {
   transaction: Transaction
   allSignedTransactions?: Transaction[]
-  singleOptions?: AddSingleTxOptions
+  singleOptions?: SingleTxOptions
   payload: SendTransactionPayload
   isBatched?: boolean
 }) {
