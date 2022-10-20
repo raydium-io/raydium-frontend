@@ -872,7 +872,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             </div>
             <Tooltip.Panel>
               <div className="p-5">
-                <AprChart type="poolInfo" colCount={2} poolInfo={info} />
+                <AprChart type="poolInfo" poolInfo={info} />
               </div>
             </Tooltip.Panel>
           </Tooltip>
