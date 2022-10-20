@@ -211,6 +211,7 @@ export interface HydratedAmmV3ConfigInfo {
   protocolFeeRate: Percent
   tradeFeeRate: Percent
   tickSpacing: number
+  description: string
 
   original: ApiAmmV3ConfigInfo
 }

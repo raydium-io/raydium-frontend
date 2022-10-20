@@ -1,7 +1,7 @@
 import assert from '@/functions/assert'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
-import { AmmV3 } from 'test-r-sdk'
+import { AmmV3, AmmV3ConfigInfo } from 'test-r-sdk'
 import { Keypair, PublicKey } from '@solana/web3.js'
 import { useEffect } from 'react'
 import useConnection from '../connection/useConnection'
@@ -55,7 +55,7 @@ async function createNewConcentratedPool() {
     programId: getAmmV3ProgramId(),
     mint1: { mint: coin1.mint, decimals: coin1.decimals },
     mint2: { mint: coin2.mint, decimals: coin2.decimals },
-    ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original),
+    ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
     initialPrice: fractionToDecimal(currentPrice),
     owner: owner ?? PublicKey.default
   })

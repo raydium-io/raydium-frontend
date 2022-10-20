@@ -49,12 +49,6 @@ function CreateFeeSwitcherContent({
       {configs?.map((config) => {
         const isCurrent = config.id === current?.id
         const canSelect = coin1 && coin2 && !existIds?.includes(config.id)
-        const text = [
-          { value: 0.01, description: 'Best for exotic pairs' },
-          { value: 0.0025, description: 'Best for most pairs' },
-          { value: 0.0005, description: 'Best for stable pairs' },
-          { value: 0.0001, description: 'Best for very stable pairs' }
-        ]
         return (
           <div
             key={config.id}
@@ -73,9 +67,7 @@ function CreateFeeSwitcherContent({
             <div className="text-white font-medium text-sm mb-2">
               {toPercentString(config.tradeFeeRate, { fixed: 4 })}
             </div>
-            <div className="text-[#abc4ff80] text-xs">
-              {text.find(({ value }) => gte(config.tradeFeeRate, value))?.description}
-            </div>
+            <div className="text-[#abc4ff80] text-xs">{config.description}</div>
           </div>
         )
       })}
