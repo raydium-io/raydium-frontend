@@ -121,6 +121,30 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
     rewards: { apr: Percent; percentInTotal: Percent; token: SplToken | undefined }[]
     apr: Percent
   }
+  getTickApr({
+    tickLower,
+    tickUpper,
+    tokenPrices,
+    tokenDecimals,
+    timeBasis,
+    planType,
+    chainTimeOffsetMs
+  }: {
+    tickLower: number
+    tickUpper: number
+    tokenPrices: Record<string, Price>
+    tokenDecimals: Record<string, number>
+    timeBasis: '24h' | '7d' | '30d'
+    planType: 'A' | 'D' | 'C'
+    chainTimeOffsetMs?: number | undefined
+  }): {
+    fee: {
+      apr: Percent
+      percentInTotal: Percent
+    }
+    rewards: { apr: Percent; percentInTotal: Percent; token: SplToken | undefined }[]
+    apr: Percent
+  }
 }
 
 export interface UserPositionAccount {

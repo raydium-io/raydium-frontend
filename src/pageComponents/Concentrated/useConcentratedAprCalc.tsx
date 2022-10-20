@@ -36,14 +36,24 @@ export function useConcentratedTickAprCalc({ ammPool }: { ammPool: HydratedConce
   const tickLower = useConcentrated((s) => s.priceLowerTick)
   const tickUpper = useConcentrated((s) => s.priceUpperTick)
   const timeBasis = useConcentrated((s) => s.timeBasis)
+  const planType = useConcentrated((s) => s.aprCalcMode)
   const tokens = useToken((s) => s.tokens)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const aprCalcMethod = useConcentrated((s) => s.aprCalcMode)
+  const tokenPrices = useToken((s) => s.tokenPrices)
+  const token = useToken((s) => s.tokens)
+  const tokenDecimals = objectMap(token, (i) => i.decimals)
   const apr = useMemo(
     () =>
       tickLower && tickUpper && ammPool
-        ? ammPool.getApr({
-            timeBasis: timeBasis.toLowerCase() as '24h' | '7d' | '30d'
+        ? ammPool.getTickApr({
+            timeBasis: timeBasis.toLowerCase() as '24h' | '7d' | '30d',
+            tickLower,
+            tickUpper,
+            chainTimeOffsetMs: chainTimeOffset,
+            planType,
+            tokenDecimals,
+            tokenPrices
           })
         : undefined,
     [chainTimeOffset, timeBasis, aprCalcMethod, tokens, tickLower, tickUpper, ammPool]
