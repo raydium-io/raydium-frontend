@@ -4,7 +4,7 @@ import { RAYDIUM_DEV_TOKEN_LIST_NAME, RAYDIUM_MAINNET_TOKEN_LIST_NAME } from './
 const raydiumMainnetTokenListUrl = 'https://api.raydium.io/v2/sdk/token/raydium.mainnet.json'
 const customTokenListUrl = '/custom-token-list.json'
 export const liquidityMainnetListUrl = 'https://api.raydium.io/v2/sdk/liquidity/mainnet.json'
-export const clmmPoolListUrl = 'https://api.raydium.io/v2/ammV3/ammPoolsTest'
+export const clmmPoolListUrl = 'https://api.raydium.io/v2/ammV3/ammPools'
 export const rawTokenListConfigs = [
   {
     url: raydiumMainnetTokenListUrl,
