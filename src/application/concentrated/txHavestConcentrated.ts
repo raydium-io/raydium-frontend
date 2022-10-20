@@ -1,4 +1,4 @@
-import { AmmV3, ZERO } from 'test-r-sdk'
+import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 import { toString } from '@/functions/numberish/toString'

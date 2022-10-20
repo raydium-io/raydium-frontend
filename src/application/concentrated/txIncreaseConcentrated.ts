@@ -1,4 +1,4 @@
-import { AmmV3 } from 'test-r-sdk'
+import { AmmV3 } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
@@ -48,8 +48,9 @@ export default function txIncreaseConcentrated({
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
         title: 'Liquidity Added',
-        description: `Added ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${coin2.symbol
-          } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+        description: `Added ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
+          coin2.symbol
+        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
     })
   })

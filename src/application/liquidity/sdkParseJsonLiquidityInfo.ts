@@ -1,4 +1,4 @@
-import { jsonInfo2PoolKeys, LiquidityPoolJsonInfo as LiquidityJsonInfo, TradeV2 } from 'test-r-sdk'
+import { jsonInfo2PoolKeys, LiquidityPoolJsonInfo as LiquidityJsonInfo, TradeV2 } from '@raydium-io/raydium-sdk'
 
 import useConnection from '@/application/connection/useConnection'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -26,11 +26,11 @@ export default async function sdkParseJsonLiquidityInfo(
 
   const info = await (allNeedSDKParsedLiquidityInfos.length
     ? TradeV2.fetchMultipleInfo({
-      connection,
-      pools: allNeedSDKParsedLiquidityInfos
-    })
-      .catch(() => [])
-      .then((res) => Object.values(res))
+        connection,
+        pools: allNeedSDKParsedLiquidityInfos
+      })
+        .catch(() => [])
+        .then((res) => Object.values(res))
     : [])
 
   const sdkParsed: SDKParsedLiquidityInfo[] = info.map((sdkParsed, idx) => ({

@@ -3,7 +3,7 @@ import { Wallet } from '@solana/wallet-adapter-react'
 import { Keypair, PublicKey, Transaction } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import { PublicKeyish, Token, TokenAmount, WSOL } from 'test-r-sdk'
+import { PublicKeyish, Token, TokenAmount, WSOL } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 
 import toPubString from '@/functions/format/toMintString'

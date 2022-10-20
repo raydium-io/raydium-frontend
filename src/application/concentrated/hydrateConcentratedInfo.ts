@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
 
-import { AmmV3PoolPersonalPosition, Price, Token } from 'test-r-sdk'
+import { AmmV3PoolPersonalPosition, Price, Token } from '@raydium-io/raydium-sdk'
 
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'

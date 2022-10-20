@@ -1,8 +1,14 @@
 import BN from 'bn.js'
-import { Price } from 'test-r-sdk'
+import { Price } from '@raydium-io/raydium-sdk'
 
 import {
-  DateInfo, HexAddress, LinkAddress, Numberish, PercentString, SrcAddress, StringNumber
+  DateInfo,
+  HexAddress,
+  LinkAddress,
+  Numberish,
+  PercentString,
+  SrcAddress,
+  StringNumber
 } from '@/types/constants'
 
 import { SplToken, TokenAmount } from '../token/type'

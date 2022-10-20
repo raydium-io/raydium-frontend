@@ -1,7 +1,7 @@
 import { Connection } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import { Farm, PublicKeyish } from 'test-r-sdk'
+import { Farm, PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import jFetch from '@/functions/dom/jFetch'
 import toPubString, { toPub } from '@/functions/format/toMintString'

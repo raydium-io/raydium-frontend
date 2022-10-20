@@ -1,7 +1,7 @@
 import { PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import { Currency, CurrencyAmount, PublicKeyish, Token, TokenAmount, ZERO } from 'test-r-sdk'
+import { Currency, CurrencyAmount, PublicKeyish, Token, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
 
 import toPubString from '@/functions/format/toMintString'
 import { isToken, isTokenAmount } from '@/functions/judgers/dateType'
@@ -122,8 +122,8 @@ export const toQuantumSolAmount = ({
     wsolRawAmount && !solRawAmount
       ? QuantumSOLVersionWSOL
       : !wsolRawAmount && solRawAmount
-        ? QuantumSOLVersionSOL
-        : QuantumSOL
+      ? QuantumSOLVersionSOL
+      : QuantumSOL
   const tempTokenAmount = new TokenAmount(quantumSol, solRawAmount ?? wsolRawAmount ?? ZERO)
   // @ts-expect-error force
   return Object.assign(tempTokenAmount, { solBalance: solRawAmount, wsolBalance: wsolRawAmount })

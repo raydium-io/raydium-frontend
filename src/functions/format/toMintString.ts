@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
 
-import { PublicKeyish, Token } from 'test-r-sdk'
+import { PublicKeyish, Token } from '@raydium-io/raydium-sdk'
 
 import { isArray, isObject, isString } from '../judgers/dateType'
 import { objectMap } from '../objectMethods'
@@ -33,10 +33,10 @@ export function toPub(mint: PublicKeyish | undefined): PublicKey | undefined {
 export function tryToPub<T>(v: T): T | PublicKey {
   return isString(v)
     ? tryCatch(
-      () => new PublicKey(v),
-      // @ts-expect-error public or string
-      () => v
-    )
+        () => new PublicKey(v),
+        // @ts-expect-error public or string
+        () => v
+      )
     : v
 }
 

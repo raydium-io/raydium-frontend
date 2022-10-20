@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 
-import { Price } from 'test-r-sdk'
+import { Price } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txIncreaseConcentrated from '@/application/concentrated/txIncreaseConcentrated'

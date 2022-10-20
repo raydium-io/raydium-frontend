@@ -1,4 +1,4 @@
-import { ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, Token, WSOL } from 'test-r-sdk'
+import { ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
 
 import { asyncMapAllSettled } from '@/functions/asyncMap'
 import jFetch from '@/functions/dom/jFetch'
@@ -20,15 +20,25 @@ import useWallet from '../wallet/useWallet'
 
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
 import {
-  clmmPoolListUrl, isRaydiumDevTokenListName, isRaydiumMainnetTokenListName, liquidityMainnetListUrl,
+  clmmPoolListUrl,
+  isRaydiumDevTokenListName,
+  isRaydiumMainnetTokenListName,
+  liquidityMainnetListUrl,
   rawTokenListConfigs
 } from './rawTokenLists.config'
 import {
-  RaydiumDevTokenListJsonInfo, RaydiumTokenListJsonInfo, SplToken, TokenJson, TokenListFetchConfigItem
+  RaydiumDevTokenListJsonInfo,
+  RaydiumTokenListJsonInfo,
+  SplToken,
+  TokenJson,
+  TokenListFetchConfigItem
 } from './type'
 import useToken, {
-  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME, RAYDIUM_DEV_TOKEN_LIST_NAME, RAYDIUM_MAINNET_TOKEN_LIST_NAME,
-  RAYDIUM_UNNAMED_TOKEN_LIST_NAME, SOLANA_TOKEN_LIST_NAME
+  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME,
+  RAYDIUM_DEV_TOKEN_LIST_NAME,
+  RAYDIUM_MAINNET_TOKEN_LIST_NAME,
+  RAYDIUM_UNNAMED_TOKEN_LIST_NAME,
+  SOLANA_TOKEN_LIST_NAME
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
 

@@ -1,7 +1,7 @@
 import { createRef, ReactNode, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { AmmV3PoolInfo, LiquidityPoolJsonInfo, RouteInfo } from 'test-r-sdk'
+import { AmmV3PoolInfo, LiquidityPoolJsonInfo, RouteInfo } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useLiquidity from '@/application/liquidity/useLiquidity'
@@ -17,7 +17,11 @@ import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalcula
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
-  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE, SOLDecimals, toUITokenAmount
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  SOL_BASE_BALANCE,
+  SOLDecimals,
+  toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { Token } from 'test-r-sdk'
+import { Token } from '@raydium-io/raydium-sdk'
 
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'

@@ -1,4 +1,4 @@
-import { SPL_MINT_LAYOUT } from 'test-r-sdk'
+import { SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
 
 import { toPub } from '@/functions/format/toMintString'
 import { PublicKeyish } from '@/types/constants'

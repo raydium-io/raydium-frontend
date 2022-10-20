@@ -1,7 +1,7 @@
 import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { PublicKeyish, TokenAmount } from 'test-r-sdk'
+import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'

@@ -1,4 +1,4 @@
-import { Percent } from 'test-r-sdk'
+import { Percent } from '@raydium-io/raydium-sdk'
 
 import useConnection from '@/application/connection/useConnection'
 import { currentIsAfter, currentIsBefore, isDateAfter, isDateBefore } from '@/functions/date/judges'
@@ -131,8 +131,8 @@ export function hydrateIdoInfo(idoInfo: SdkIdoInfo): HydratedIdoInfo {
   const filled = updatedIdoInfo.state // SDK
     ? new Percent(updatedIdoInfo.state.raisedLotteries, updatedIdoInfo.state.maxWinLotteries).toFixed()
     : updatedIdoInfo.raisedLotteries && updatedIdoInfo.maxWinLotteries // API
-      ? updatedIdoInfo.raisedLotteries / updatedIdoInfo.maxWinLotteries
-      : undefined
+    ? updatedIdoInfo.raisedLotteries / updatedIdoInfo.maxWinLotteries
+    : undefined
 
   return {
     ...updatedIdoInfo,

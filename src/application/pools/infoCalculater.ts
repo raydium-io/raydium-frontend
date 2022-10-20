@@ -1,4 +1,4 @@
-import { Token, TokenAmount } from 'test-r-sdk'
+import { Token, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { SplToken } from '@/application/token/type'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -24,14 +24,14 @@ export default function computeUserLedgerInfo(
   const basePooled =
     additionalTools.baseToken && sharePercent
       ? toTokenAmount(additionalTools.baseToken, sharePercent.mul(toFraction(pairInfo.tokenAmountBase)), {
-        alreadyDecimaled: true
-      })
+          alreadyDecimaled: true
+        })
       : undefined
   const quotePooled =
     additionalTools.quoteToken && sharePercent
       ? toTokenAmount(additionalTools.quoteToken, sharePercent.mul(toFraction(pairInfo.tokenAmountQuote)), {
-        alreadyDecimaled: true
-      })
+          alreadyDecimaled: true
+        })
       : undefined
 
   return {

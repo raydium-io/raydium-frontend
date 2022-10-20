@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react'
 
 import BN from 'bn.js'
-import { AmmV3, ReturnTypeGetLiquidityAmountOutFromAmountIn } from 'test-r-sdk'
+import { AmmV3, ReturnTypeGetLiquidityAmountOutFromAmountIn } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import assert from '@/functions/assert'

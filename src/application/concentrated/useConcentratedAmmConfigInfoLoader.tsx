@@ -1,4 +1,4 @@
-import { ApiAmmV3ConfigInfo } from 'test-r-sdk'
+import { ApiAmmV3ConfigInfo } from '@raydium-io/raydium-sdk'
 
 import jFetch from '@/functions/dom/jFetch'
 import { toPercent } from '@/functions/format/toPercent'

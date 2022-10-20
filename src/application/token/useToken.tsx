@@ -1,7 +1,7 @@
 import { PublicKey } from '@solana/web3.js'
 
 import produce from 'immer'
-import { Price, PublicKeyish } from 'test-r-sdk'
+import { Price, PublicKeyish } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 
 import { addItem, removeItem, shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -13,8 +13,14 @@ import { HexAddress, SrcAddress } from '@/types/constants'
 import useWallet from '../wallet/useWallet'
 
 import {
-  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLToken, QuantumSOLVersionSOL,
-  QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint
+  isQuantumSOL,
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  QuantumSOLToken,
+  QuantumSOLVersionSOL,
+  QuantumSOLVersionWSOL,
+  SOLUrlMint,
+  WSOLMint
 } from './quantumSOL'
 import { LpToken, SplToken, TokenJson } from './type'
 import { RAYMint } from './wellknownToken.config'
