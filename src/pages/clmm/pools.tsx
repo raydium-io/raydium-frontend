@@ -981,17 +981,19 @@ function AprLine({ className, aprValues }: { className?: string; aprValues: Numb
   if (!aprValues) return null
   const totalApr = aprValues.reduce((a, b) => add(a, b), 0)
   return (
-    <Row className={twMerge('w-full', className)}>
-      {aprValues?.map((aprValue, idx) => (
-        <div
-          key={idx}
-          className="h-2 rounded-full"
-          style={{
-            width: toPercentString(div(aprValue, totalApr)),
-            backgroundColor: colors[idx]
-          }}
-        ></div>
-      ))}
+    <Row className={twMerge('w-full gap-1', className)}>
+      {aprValues
+        .filter((i) => isMeaningfulNumber(i))
+        .map((aprValue, idx) => (
+          <div
+            key={idx}
+            className="h-2 rounded-full"
+            style={{
+              width: toPercentString(div(aprValue, totalApr)),
+              backgroundColor: colors[idx]
+            }}
+          ></div>
+        ))}
     </Row>
   )
 }
