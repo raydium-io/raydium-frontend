@@ -1,3 +1,4 @@
+import useAppSettings from '@/application/common/useAppSettings'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import Button from '@/components/Button'
 import Grid from '@/components/Grid'
@@ -8,6 +9,7 @@ import { twMerge } from 'tailwind-merge'
 
 export function ConcentratedModifyTooltipIcon({ iconClassName }: { iconClassName?: string }) {
   const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
+  const isMobile = useAppSettings((s) => s.isMobile)
   const text = {
     D: {
       title: 'Delta Method',
@@ -26,6 +28,14 @@ export function ConcentratedModifyTooltipIcon({ iconClassName }: { iconClassName
         className={twMerge('ml-1 cursor-help', iconClassName)}
         size="sm"
         iconSrc={aprCalcMode === 'D' ? '/icons/clmm-modify-d.svg' : '/icons/clmm-modify-m.svg'}
+        onClick={
+          isMobile
+            ? undefined
+            : () =>
+                useConcentrated.setState((s) => ({
+                  aprCalcMode: s.aprCalcMode === 'D' ? 'C' : 'D'
+                }))
+        }
       />
       <AprCalcDialog />
       <Tooltip.Panel className="max-w-[min(100vw,300px)]">
