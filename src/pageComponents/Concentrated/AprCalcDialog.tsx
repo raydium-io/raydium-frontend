@@ -50,8 +50,8 @@ export default function AprCalcDialog() {
           </Row>
 
           <div className="text-[#abc4ff]">
-            Two methods for calculating estimated APR is are available, based on historical trade fees and emissions.
-            Only positions in range earn yield. Past performance is not indicative of future results. <br />
+            Two methods for calculating estimated APR are available, based on historical trade fees and emissions. Only
+            positions in range earn yield. Past performance is not indicative of future results. <br />
             <p className="text-[#DA2EEF] mt-3">Calculations are an estimate and only for reference.</p>
           </div>
 
