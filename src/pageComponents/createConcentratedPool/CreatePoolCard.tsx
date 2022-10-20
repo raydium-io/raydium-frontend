@@ -283,7 +283,7 @@ export function CreatePoolCard() {
         </div>
 
         <div>
-          <div className="font-medium text-[#abc4ff] mb-2">Select Trade Fee Rate</div>
+          <div className="font-medium text-[#abc4ff] mb-2">Select Fee</div>
           <CreateFeeSwitcher />
         </div>
 
