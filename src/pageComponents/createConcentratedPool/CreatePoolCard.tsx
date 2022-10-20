@@ -35,12 +35,17 @@ import CoinAvatarPair from '@/components/CoinAvatarPair'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { calculateRatio } from '../Concentrated'
+import useWallet from '@/application/wallet/useWallet'
+import Button from '@/components/Button'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
 
 export function CreatePoolCard() {
   useAutoCreateAmmv3Pool()
+
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const connected = useWallet((s) => s.connected)
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
@@ -52,6 +57,7 @@ export function CreatePoolCard() {
   const priceLower = useConcentrated((s) => s.priceLower)
   const priceUpper = useConcentrated((s) => s.priceUpper)
   const userSettedCurrentPrice = useConcentrated((s) => s.userSettedCurrentPrice)
+  const userSelectedAmmConfigFeeOption = useConcentrated((s) => s.userSelectedAmmConfigFeeOption)
 
   const tickRef = useRef<{ [Range.Low]?: number; [Range.Upper]?: number }>({
     [Range.Low]: undefined,
@@ -253,6 +259,11 @@ export function CreatePoolCard() {
     coin2Amount
   })
 
+  const haveEnoughCoin1 =
+    coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
+  const haveEnoughCoin2 =
+    coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }))
+
   return (
     <Card
       className={twMerge(
@@ -416,6 +427,41 @@ export function CreatePoolCard() {
         ) : (
           ''
         )}
+
+        <Button
+          className="frosted-glass-teal mobile:w-full mt-auto"
+          size={isMobile ? 'sm' : 'lg'}
+          validators={[
+            {
+              should: connected,
+              forceActive: true,
+              fallbackProps: {
+                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                children: 'Connect Wallet'
+              }
+            },
+            { should: coin1 && coin2 },
+            { should: isMeaningfulNumber(userSettedCurrentPrice), fallbackProps: { children: 'Input Price' } },
+            { should: userSelectedAmmConfigFeeOption, fallbackProps: { children: 'Select a fee option' } },
+            {
+              should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
+              fallbackProps: { children: 'Input Token Amount' }
+            },
+            {
+              should: haveEnoughCoin1,
+              fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
+            },
+            {
+              should: haveEnoughCoin2,
+              fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
+            }
+          ]}
+          onClick={() => {
+            openPreviewDialog()
+          }}
+        >
+          Add Position
+        </Button>
       </Col>
     </Card>
   )
@@ -469,4 +515,15 @@ function SelectTokenInputBox({
       />
     </>
   )
+}
+function checkWalletHasEnoughBalance(arg0: any) {
+  throw new Error('Function not implemented.')
+}
+
+function toTokenAmount(coin1: SplToken, coin1Amount: Numberish | undefined, arg2: { alreadyDecimaled: boolean }): any {
+  throw new Error('Function not implemented.')
+}
+
+function openPreviewDialog() {
+  throw new Error('Function not implemented.')
 }

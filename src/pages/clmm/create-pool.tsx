@@ -113,9 +113,7 @@ function WarningBoard({ className }: { className: string }) {
 export default function CreatePoolPage() {
   useConcentratedAmmConfigInfoLoader()
   useConcentratedAmountCalculator()
-  const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
   const isMobile = useAppSettings((s) => s.isMobile)
-  const connected = useWallet((s) => s.connected)
   const [isPreviewDialogOn, { off: closePreviewDialog, on: openPreviewDialog }] = useToggle(false)
   const { popConfirm } = useNotification()
 
@@ -130,14 +128,8 @@ export default function CreatePoolPage() {
   const userSettedCurrentPrice = useConcentrated((s) => s.userSettedCurrentPrice)
   const priceLower = useConcentrated((s) => s.priceLower)
   const priceUpper = useConcentrated((s) => s.priceUpper)
-  const userSelectedAmmConfigFeeOption = useConcentrated((s) => s.userSelectedAmmConfigFeeOption)
 
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
-
-  const haveEnoughCoin1 =
-    coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
-  const haveEnoughCoin2 =
-    coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }))
 
   function popCongratulations() {
     popConfirm({
@@ -214,42 +206,7 @@ export default function CreatePoolPage() {
           }}
         />
 
-        <Col className="items-center my-8">
-          <Button
-            className="frosted-glass-teal mobile:w-full"
-            size={isMobile ? 'sm' : 'lg'}
-            validators={[
-              {
-                should: connected,
-                forceActive: true,
-                fallbackProps: {
-                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                  children: 'Connect Wallet'
-                }
-              },
-              { should: coin1 && coin2 },
-              { should: isMeaningfulNumber(userSettedCurrentPrice), fallbackProps: { children: 'Input Price' } },
-              { should: userSelectedAmmConfigFeeOption, fallbackProps: { children: 'Select a fee option' } },
-              {
-                should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
-                fallbackProps: { children: 'Input Token Amount' }
-              },
-              {
-                should: haveEnoughCoin1,
-                fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
-              },
-              {
-                should: haveEnoughCoin2,
-                fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
-              }
-            ]}
-            onClick={() => {
-              openPreviewDialog()
-            }}
-          >
-            Preview Pool
-          </Button>
-        </Col>
+        <Col className="items-center my-8"></Col>
       </div>
     </PageLayout>
   )
