@@ -472,7 +472,7 @@ function ConcentratedCard() {
               <span className="text-lg flex leading-[18px]">
                 {currentAmmPool && <CoinAvatarPair size="sm" token1={coin1} token2={coin2} />}
                 {Boolean(currentAmmPool) && (isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount))
-                  ? `${ratio1}% / ${ratio2}%`
+                  ? `${ratio1 ?? '--'}% / ${ratio2 ?? '--'}%`
                   : '--'}
               </span>
             </div>

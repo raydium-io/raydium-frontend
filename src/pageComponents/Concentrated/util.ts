@@ -33,7 +33,7 @@ export function calculateRatio({
   currentPrice,
   coin1InputDisabled,
   coin2InputDisabled
-}: CalculateProps): { ratio1: string; ratio2: string } {
+}: CalculateProps): { ratio1?: string; ratio2?: string } {
   const [amount1, amount2] = [(coin1InputDisabled ? '0' : coin1Amount) || '0', coin2InputDisabled ? '0' : coin2Amount]
   const [amount1HasVal, amount2HasVal] = [gt(amount1, 0), gt(amount2, 0)]
   const amount2Fraction = toFraction(amount2 || '0')
@@ -41,12 +41,15 @@ export function calculateRatio({
     ? amount1HasVal
       ? mul(amount1, currentPrice).add(amount2Fraction)
       : amount2HasVal
-        ? amount2Fraction
-        : toFraction(1)
+      ? amount2Fraction
+      : toFraction(1)
     : toFraction(1)
 
-  return {
-    ratio1: currentPrice ? mul(amount1, currentPrice).div(denominator).mul(100).toFixed(1) : '0',
-    ratio2: currentPrice ? div(amount2Fraction, denominator).mul(100).toFixed(1) : '0'
+  try {
+    const ratio1 = currentPrice ? div(mul(amount1, currentPrice), denominator).mul(100).toFixed(1) : '0'
+    const ratio2 = currentPrice ? div(amount2Fraction, denominator).mul(100).toFixed(1) : '0'
+    return { ratio1, ratio2 }
+  } catch {
+    return {}
   }
 }
