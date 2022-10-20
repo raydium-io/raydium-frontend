@@ -17,13 +17,15 @@ export default function AprCalcDialog() {
   }[] = [
     {
       aprCalcMethod: 'D',
-      title: 'Delta',
-      description: 'This is how Orca’s calculation method work. I don’t know how but we think it’s bullshit lol.'
+      title: 'Delta Method',
+      description:
+        'This method uses the implied change (delta) in pool liquidity, as determined by the user’s price range and position size, to calculate estimated APR.'
     },
     {
       aprCalcMethod: 'C',
-      title: 'Multiplier',
-      description: 'This is how our calculation method work. I don’t know how but I believe it’s better.'
+      title: 'Multiplier Method',
+      description:
+        'This method applies a multiplier, determined by the intersection of user price range and the historical price range of the pool, to calculate estimated APR.'
     }
   ]
   return (
