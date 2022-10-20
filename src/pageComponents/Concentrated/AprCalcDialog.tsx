@@ -41,7 +41,7 @@ export default function AprCalcDialog() {
     >
       {({ close: closeDialog }) => (
         <Card
-          className="p-8 mobile:p-4 rounded-3xl mobile:rounded-lg w-[min(456px,90vw)] max-h-[80vh] overflow-auto mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
+          className="p-8 mobile:p-4 rounded-3xl mobile:rounded-lg w-[min(480px,90vw)] max-h-[80vh] overflow-auto mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
           size="lg"
         >
           <Row className="justify-between items-center mb-4 mobile:mb-2">
@@ -50,9 +50,9 @@ export default function AprCalcDialog() {
           </Row>
 
           <div className="text-[#abc4ff]">
-            We provide 2 different ways to calculate APR and you can choose the one you prefer to use. Please note that
-            both of the 2 methods are just{' '}
-            <span className="text-[#DA2EEF]">rough estimations and are only for your reference.</span>
+            Two methods for calculating estimated APR is are available, based on historical trade fees and emissions.
+            Only positions in range earn yield. Past performance is not indicative of future results. <br />
+            <p className="text-[#DA2EEF] mt-3">Calculations are an estimate and only for reference.</p>
           </div>
 
           <Col className="gap-2 my-4">
