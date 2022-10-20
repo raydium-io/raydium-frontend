@@ -12,6 +12,7 @@ import CoinInputBox from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
+import { FadeIn } from '@/components/FadeIn'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
 import { isMintEqual } from '@/functions/judgers/areEqual'
@@ -398,6 +399,17 @@ export function CreatePoolCard() {
             </span>
           </div>
         </div>
+
+        {coin1InputDisabled || coin2InputDisabled ? (
+          <FadeIn>
+            <div className="flex items-center p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
+              <Icon size="sm" className="mr-1.5" heroIconName="exclamation-circle" />
+              Your position will not trade or earn fees until price moves into your range.
+            </div>
+          </FadeIn>
+        ) : (
+          ''
+        )}
 
         <div className="text-xs bg-[#abc4ff14] p-3 rounded-xl text-[#abc4ff] leading-5">
           To initialize and create the pool, first set the starting price. Then, enter your price range and deposit
