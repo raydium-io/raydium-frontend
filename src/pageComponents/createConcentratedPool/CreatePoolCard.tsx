@@ -37,6 +37,12 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { calculateRatio } from '../Concentrated'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import useToggle from '@/hooks/useToggle'
+import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
+import CreatePoolPreviewDialog from './CreatePoolPreviewDialog'
+import { routeTo } from '@/application/routeTools'
+import useNotification from '@/application/notification/useNotification'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -46,6 +52,10 @@ export function CreatePoolCard() {
 
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
+  const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
+  const [isPreviewDialogOn, { off: closePreviewDialog, on: openPreviewDialog }] = useToggle(false)
+
+  const popConfirm = useNotification((s) => s.popConfirm)
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
@@ -264,6 +274,46 @@ export function CreatePoolCard() {
   const haveEnoughCoin2 =
     coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }))
 
+  function popCongratulations() {
+    popConfirm({
+      type: 'success',
+      title: 'Pool created successfully!',
+      description: 'Do you want to create a farm based on this pool?',
+      confirmButtonIsMainButton: true,
+      confirmButtonText: 'Back to all Pools',
+      cancelButtonText: 'Not Now',
+      onConfirm() {
+        routeTo('/clmm/pools')
+        setTimeout(() => {
+          // clean inputs
+          useConcentrated.setState({
+            coin1: undefined,
+            coin2: undefined,
+            coin1Amount: undefined,
+            coin2Amount: undefined,
+            focusSide: 'coin1',
+            userCursorSide: 'coin1',
+            tempDataCache: undefined
+          })
+          useConcentrated.getState().refreshConcentrated()
+        }, 400)
+      },
+      onCancel() {
+        setTimeout(() => {
+          // clean inputs
+          useConcentrated.setState({
+            coin1: undefined,
+            coin2: undefined,
+            coin1Amount: undefined,
+            coin2Amount: undefined,
+            focusSide: 'coin1',
+            userCursorSide: 'coin1'
+          })
+          useConcentrated.getState().refreshConcentrated()
+        }, 400)
+      }
+    })
+  }
   return (
     <Card
       className={twMerge(
@@ -463,6 +513,28 @@ export function CreatePoolCard() {
           Add Position
         </Button>
       </Col>
+
+      <CreatePoolPreviewDialog
+        open={isPreviewDialogOn}
+        coin1={coin1}
+        coin2={coin2}
+        coin1Amount={coin1Amount}
+        coin2Amount={coin2Amount}
+        focusSide={focusSide}
+        decimals={decimals}
+        currentPrice={toFraction(userSettedCurrentPrice!)}
+        position={{ min: toFraction(priceLower!).toFixed(decimals), max: toFraction(priceUpper!).toFixed(decimals) }}
+        totalDeposit={toUsdVolume(totalDeposit)}
+        onClose={closePreviewDialog}
+        onConfirm={() => {
+          txCreateNewConcentratedPool().then(({ allSuccess }) => {
+            closePreviewDialog()
+            if (allSuccess) {
+              popCongratulations()
+            }
+          })
+        }}
+      />
     </Card>
   )
 }
@@ -515,15 +587,4 @@ function SelectTokenInputBox({
       />
     </>
   )
-}
-function checkWalletHasEnoughBalance(arg0: any) {
-  throw new Error('Function not implemented.')
-}
-
-function toTokenAmount(coin1: SplToken, coin1Amount: Numberish | undefined, arg2: { alreadyDecimaled: boolean }): any {
-  throw new Error('Function not implemented.')
-}
-
-function openPreviewDialog() {
-  throw new Error('Function not implemented.')
 }

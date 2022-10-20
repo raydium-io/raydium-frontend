@@ -114,7 +114,7 @@ export default function CreatePoolPage() {
   useConcentratedAmmConfigInfoLoader()
   useConcentratedAmountCalculator()
   const isMobile = useAppSettings((s) => s.isMobile)
-  const [isPreviewDialogOn, { off: closePreviewDialog, on: openPreviewDialog }] = useToggle(false)
+
   const { popConfirm } = useNotification()
 
   // avoid input re-render if chain Date change
@@ -183,28 +183,6 @@ export default function CreatePoolPage() {
         <WarningBoard className="pb-6 w-full" />
 
         <CreatePoolCard />
-
-        <CreatePoolPreviewDialog
-          open={isPreviewDialogOn}
-          coin1={coin1}
-          coin2={coin2}
-          coin1Amount={coin1Amount}
-          coin2Amount={coin2Amount}
-          focusSide={focusSide}
-          decimals={decimals}
-          currentPrice={toFraction(userSettedCurrentPrice!)}
-          position={{ min: toFraction(priceLower!).toFixed(decimals), max: toFraction(priceUpper!).toFixed(decimals) }}
-          totalDeposit={toUsdVolume(totalDeposit)}
-          onClose={closePreviewDialog}
-          onConfirm={() => {
-            txCreateNewConcentratedPool().then(({ allSuccess }) => {
-              closePreviewDialog()
-              if (allSuccess) {
-                popCongratulations()
-              }
-            })
-          }}
-        />
 
         <Col className="items-center my-8"></Col>
       </div>
