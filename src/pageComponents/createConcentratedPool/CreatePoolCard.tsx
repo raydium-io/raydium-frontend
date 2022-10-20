@@ -287,9 +287,15 @@ export function CreatePoolCard() {
           <CreateFeeSwitcher />
         </div>
 
-        <div>
-          <div className="flex mb-1">
+        <Col className="gap-4">
+          <Row className="mb-1 justify-between">
             <div className="font-medium text-[#abc4ff] my-1">Set Starting Price</div>
+            <SwitchFocusTabs coin1={coin1} coin2={coin2} focusSide={focusSide} onChangeFocus={handleChangeFocus} />
+          </Row>
+
+          <div className="text-xs bg-[#abc4ff14] p-3 rounded-xl text-[#abc4ff] leading-5">
+            To initialize and create the pool, first set the starting price. Then, enter your price range and deposit
+            amounts.
           </div>
 
           <InputBox
@@ -311,8 +317,9 @@ export function CreatePoolCard() {
               useConcentrated.setState({ userSettedCurrentPrice: value })
             }}
           />
-        </div>
-        <div>
+        </Col>
+
+        <div className={currentAmmPool ? '' : 'opacity-50'}>
           <div className="text-secondary-title font-medium mb-2">Set Price Range</div>
           <PriceRangeInput
             decimals={decimals}
@@ -327,10 +334,9 @@ export function CreatePoolCard() {
 
       {/* right */}
       <Col className="gap-6 w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
-        <div>
+        <div className={currentAmmPool ? '' : 'opacity-50'}>
           <Row className="text-secondary-title justify-between mb-2">
             <div className="font-medium text-[#abc4ff] my-1">Deposit Amount</div>
-            <SwitchFocusTabs coin1={coin1} coin2={coin2} focusSide={focusSide} onChangeFocus={handleChangeFocus} />
           </Row>
           <div>
             <div className="relative" ref={swapElementBox1}>
@@ -380,7 +386,7 @@ export function CreatePoolCard() {
           </div>
         </div>
 
-        <div className="border-1.5 border-secondary-title border-opacity-50  rounded-xl px-3 py-4">
+        <div className={`${currentAmmPool ? '' : 'opacity-50'} border-1.5 border-[#abc4ff80]  rounded-xl px-3 py-4`}>
           <div className="flex justify-between mb-4">
             <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
             <span className="text-lg leading-[18px]">
@@ -410,11 +416,6 @@ export function CreatePoolCard() {
         ) : (
           ''
         )}
-
-        <div className="text-xs bg-[#abc4ff14] p-3 rounded-xl text-[#abc4ff] leading-5">
-          To initialize and create the pool, first set the starting price. Then, enter your price range and deposit
-          amounts.
-        </div>
       </Col>
     </Card>
   )
