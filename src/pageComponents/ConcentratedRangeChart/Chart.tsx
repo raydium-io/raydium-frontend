@@ -659,12 +659,8 @@ export default forwardRef(function Chart(props: Props, ref) {
                 style={{ cursor: hideRangeLine ? 'default' : 'pointer' }}
                 onPointerDown={isMobile && !hideRangeLine ? handleAreaMouseDown : undefined}
                 onMouseDown={!hideRangeLine ? handleAreaMouseDown : undefined}
-                x1={Math.max(position[Range.Min], displayList[0]?.x || 0, xAxis[0] || 0)}
-                x2={Math.min(
-                  position[Range.Max],
-                  displayList[displayList.length - 1]?.x || Number.MAX_SAFE_INTEGER,
-                  xAxis[xAxis.length - 1] || Number.MAX_SAFE_INTEGER
-                )}
+                x1={Math.max(position[Range.Min], xAxis[0] || 0)}
+                x2={Math.min(position[Range.Max], xAxis[xAxis.length - 1] || Number.MAX_SAFE_INTEGER)}
                 fill={HIGHLIGHT_COLOR}
                 fillOpacity="0.3"
               />
