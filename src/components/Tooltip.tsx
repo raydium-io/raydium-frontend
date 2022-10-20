@@ -29,6 +29,7 @@ export interface TooltipProps {
   disable?: boolean
   placement?: PopoverPlacement
   triggerBy?: PopoverProps['triggerBy']
+  closeBy?: PopoverProps['closeBy']
   defaultOpen?: PopoverProps['defaultOpen']
   darkGradient?: boolean
 }
@@ -42,6 +43,7 @@ export default function Tooltip({
   forceOpen,
   placement = 'top',
   triggerBy,
+  closeBy = 'click-outside-but-trigger',
   disable,
   defaultOpen,
   darkGradient = false
@@ -70,6 +72,7 @@ export default function Tooltip({
       forceOpen={forceOpen}
       className={className}
       triggerDelay={100}
+      closeBy={closeBy}
       closeDelay={200}
     >
       <Popover.Button>{children}</Popover.Button>

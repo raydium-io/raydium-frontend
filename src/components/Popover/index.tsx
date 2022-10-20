@@ -24,7 +24,7 @@ import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { MayFunction } from '@/types/constants'
 
 import { PopupLocationInfo, usePopoverLocation } from './useLocationCalculator'
-import { PopoverTiggerBy, PopoverTriggerControls, usePopoverTrigger } from './usePopoverTrigger'
+import { PopoverCloseBy, PopoverTiggerBy, PopoverTriggerControls, usePopoverTrigger } from './usePopoverTrigger'
 
 export type PopoverPlacement =
   | 'left'
@@ -50,6 +50,7 @@ export interface PopoverProps {
   triggerBy?: PopoverTiggerBy
   /** after delay time, `<Popover>` will be trigger */
   triggerDelay?: number
+  closeBy?: PopoverCloseBy
   closeDelay?: number
   className?: string
   children?: ReactNode
@@ -132,6 +133,7 @@ export default function Popover({
   triggerBy,
   triggerDelay,
   closeDelay,
+  closeBy,
   canOpen = true,
   defaultOpen,
   componentRef,
@@ -153,6 +155,7 @@ export default function Popover({
     disabled: !canOpen,
     defaultOpen,
     triggerDelay,
+    closeBy,
     closeDelay,
     triggerBy
   })

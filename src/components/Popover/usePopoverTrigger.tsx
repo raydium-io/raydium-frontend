@@ -13,6 +13,7 @@ export type PopoverTriggerControls = {
 }
 
 export type PopoverTiggerBy = MayArray<'hover' | 'click' | 'focus'>
+export type PopoverCloseBy = MayArray<'click-outside' | 'click-outside-but-trigger'>
 
 export function usePopoverTrigger(
   buttonRef: RefObject<HTMLElement | undefined | null>,
@@ -22,8 +23,10 @@ export function usePopoverTrigger(
     disabled?: boolean
     triggerDelay?: number
     closeDelay?: number
-    /** @default click */
+    /** @default 'click' */
     triggerBy?: PopoverTiggerBy
+    /** @default 'click-outside' */
+    closeBy?: PopoverCloseBy
   }
 ): { isPanelShowed: boolean; controls: { off(): void; on(): void; toggle(): void } } {
   const { closeDelay = 600, triggerBy = 'click', triggerDelay, disabled } = options ?? {}
@@ -63,7 +66,7 @@ export function usePopoverTrigger(
   //   // onBlur: delayOff
   // })
 
-  useClickOutside(panelRef, {
+  useClickOutside(options?.closeBy === 'click-outside-but-trigger' ? [buttonRef, panelRef] : panelRef, {
     disable: disabled || !isPanelShowedRef.current,
     onClickOutSide: () => {
       if (isPanelShowedRef.current === true) {
