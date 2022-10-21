@@ -751,7 +751,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
                   <CoinAvatar size={isMobile ? 'xs' : 'smi'} token={reward.rewardToken} />
                   {isRewardEnd ? null : (
                     <>
-                      <span className="text-white">{toString(reward.rewardPerWeek)}</span>
+                      <span className="text-white">{formatNumber(toString(reward.rewardPerWeek))}</span>
                       <span className="text-[#ABC4FF]">{reward.rewardToken?.symbol ?? '--'} per week</span>
                     </>
                   )}
@@ -759,7 +759,8 @@ function PoolCardDatabaseBodyCollapseItemFace({
                 {isRewardEnd ? null : (
                   <span className="text-white/50">
                     {toUsdVolume(
-                      toTotalPrice(reward.rewardPerWeek, variousPrices[toPubString(reward.rewardToken?.mint)] ?? null)
+                      toTotalPrice(reward.rewardPerWeek, variousPrices[toPubString(reward.rewardToken?.mint)] ?? null),
+                      { decimalPlace: 0 }
                     )}
                   </span>
                 )}
