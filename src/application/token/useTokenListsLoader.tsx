@@ -20,25 +20,15 @@ import useWallet from '../wallet/useWallet'
 
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
 import {
-  clmmPoolListUrl,
-  isRaydiumDevTokenListName,
-  isRaydiumMainnetTokenListName,
-  liquidityMainnetListUrl,
+  clmmPoolListUrl, isRaydiumDevTokenListName, isRaydiumMainnetTokenListName, liquidityMainnetListUrl,
   rawTokenListConfigs
 } from './rawTokenLists.config'
 import {
-  RaydiumDevTokenListJsonInfo,
-  RaydiumTokenListJsonInfo,
-  SplToken,
-  TokenJson,
-  TokenListFetchConfigItem
+  RaydiumDevTokenListJsonInfo, RaydiumTokenListJsonInfo, SplToken, TokenJson, TokenListFetchConfigItem
 } from './type'
 import useToken, {
-  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME,
-  RAYDIUM_DEV_TOKEN_LIST_NAME,
-  RAYDIUM_MAINNET_TOKEN_LIST_NAME,
-  RAYDIUM_UNNAMED_TOKEN_LIST_NAME,
-  SOLANA_TOKEN_LIST_NAME
+  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME, RAYDIUM_DEV_TOKEN_LIST_NAME, RAYDIUM_MAINNET_TOKEN_LIST_NAME,
+  RAYDIUM_UNNAMED_TOKEN_LIST_NAME, SOLANA_TOKEN_LIST_NAME
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
 
@@ -70,11 +60,18 @@ function deleteFetchedNativeSOLToken(tokenJsons: TokenJson[]) {
 }
 
 // function uniqueItems<T>(items: T[], mapper?: (old: S)=>):T
+function isLiquidityPoolsJsonfile(inputObject: any) {
+  return inputObject !== undefined && 'official' in inputObject && 'unOfficial' in inputObject
+}
 
-interface UltraLiquidityPoolsJsonfile extends LiquidityPoolsJsonFile {
-  baseDecimals: number
-  quoteDecimals: number
-  lpDecimals: number
+function isApiAmmV3PoolInfoArray(inputObject: any) {
+  return (
+    inputObject !== undefined &&
+    Array.isArray(inputObject) &&
+    inputObject.length > 0 &&
+    'mintA' in inputObject[0] &&
+    'mintDecimalsA' in inputObject[0]
+  )
 }
 
 enum InputPoolType {
@@ -84,21 +81,24 @@ enum InputPoolType {
 
 function excludeAlreadyKnownMints(
   knownMints: string[],
-  liquidityPools: UltraLiquidityPoolsJsonfile | ApiAmmV3PoolInfo[],
+  liquidityPools: LiquidityPoolsJsonFile | ApiAmmV3PoolInfo[] | undefined,
   poolType: InputPoolType
 ): TokenJson[] {
   const currentMints = [...knownMints]
   const remainTokenJsons: TokenJson[] = []
+  if (liquidityPools === undefined) return remainTokenJsons
+
   switch (poolType) {
     case InputPoolType.CLASSIC:
-      ;(liquidityPools as UltraLiquidityPoolsJsonfile).unOfficial.forEach((pool) => {
+      if (!isLiquidityPoolsJsonfile(liquidityPools)) break
+      for (const pool of (liquidityPools as LiquidityPoolsJsonFile).unOfficial) {
         if (!currentMints.includes(pool.baseMint)) {
           currentMints.push(pool.baseMint)
           remainTokenJsons.push({
             symbol: pool.baseMint.substring(0, 6),
             name: pool.baseMint.substring(0, 6),
             mint: pool.baseMint,
-            decimals: (pool as unknown as UltraLiquidityPoolsJsonfile).baseDecimals,
+            decimals: pool.baseDecimals,
             extensions: {
               coingeckoId: ''
             },
@@ -111,17 +111,18 @@ function excludeAlreadyKnownMints(
             symbol: pool.quoteMint.substring(0, 6),
             name: pool.quoteMint.substring(0, 6),
             mint: pool.quoteMint,
-            decimals: (pool as unknown as UltraLiquidityPoolsJsonfile).quoteDecimals,
+            decimals: pool.quoteDecimals,
             extensions: {
               coingeckoId: ''
             },
             icon: ''
           })
         }
-      })
+      }
       break
     case InputPoolType.CLMM:
-      ;(liquidityPools as ApiAmmV3PoolInfo[]).forEach((pool) => {
+      if (!isApiAmmV3PoolInfoArray(liquidityPools)) break
+      for (const pool of liquidityPools as ApiAmmV3PoolInfo[]) {
         if (!currentMints.includes(pool.mintA)) {
           currentMints.push(pool.mintA)
           remainTokenJsons.push({
@@ -148,7 +149,7 @@ function excludeAlreadyKnownMints(
             icon: ''
           })
         }
-      })
+      }
       break
 
     default:
@@ -198,7 +199,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
   // we wait other token(mints above) finished their fetching, then cross match liquidity pool unofficial pool list
   // to find out the 'unknown' token, and add them to the list
   let currentKnownMints = devMints.concat(unOfficialMints).concat(officialMints).concat(unNamedMints)
-  const liquidityPoolResponse = await jFetch<UltraLiquidityPoolsJsonfile>(liquidityMainnetListUrl)
+  const liquidityPoolResponse = await jFetch<LiquidityPoolsJsonFile>(liquidityMainnetListUrl)
   const excludesTokenJson = liquidityPoolResponse
     ? excludeAlreadyKnownMints(currentKnownMints, liquidityPoolResponse, InputPoolType.CLASSIC)
     : undefined
