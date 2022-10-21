@@ -27,6 +27,7 @@ import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 import { MayPromise } from '@/types/constants'
 import { attachRecentBlockhash } from './attachRecentBlockhash'
+import { SnowflakeSafeWalletAdapter } from '@snowflake-so/wallet-adapter-snowflake'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -187,7 +188,7 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
   } = collectTxOptions()
   useAppSettings.setState({ isApprovePanelShown: true })
   try {
-    const { signAllTransactions, owner } = useWallet.getState()
+    const { signAllTransactions, owner, adapter } = useWallet.getState()
     const connection = useConnection.getState().connection
     assert(connection, 'no rpc connection')
     if (options?.forceKeyPairs?.ownerKeypair) {
@@ -206,6 +207,13 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
         baseUtils: { connection, owner, tokenAccounts, allTokenAccounts }
       })
     }
+
+    // eslint-disable-next-line no-console
+    const _snowflakeAdapter = adapter as SnowflakeSafeWalletAdapter;
+    if (singleTxOptions[0].txHistoryInfo?.description && _snowflakeAdapter.isSnowflakeSafe){
+      _snowflakeAdapter.setProposalName(singleTxOptions[0].txHistoryInfo.description)
+    }
+
     // eslint-disable-next-line no-console
     console.info('tx transactions: ', toHumanReadable(innerTransactions))
     const finalInfos = await handleMultiTxOptions({
@@ -384,7 +392,7 @@ function composeWithDifferentSendMode({
   } else {
     const queued = transactions.reduceRight(
       ({ fn, method }, tx, idx) => {
-        const singleOptions = getSingleOptions(singleOptionss[idx])
+        const singleOptions = getSingleOptions(singleOptionss[idx] || singleOptionss[0]);
         return {
           fn: () =>
             handleSingleTxOptions({
