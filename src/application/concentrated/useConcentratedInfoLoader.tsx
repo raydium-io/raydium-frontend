@@ -31,6 +31,7 @@ export default function useConcentratedInfoLoader() {
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
   const owner = useWallet((s) => s.owner)
+  const tokenAccountsOwner = useWallet((s) => s.tokenAccountsOwner)
   const tokens = useToken((s) => s.tokens)
   const { pathname } = useRouter()
 
@@ -45,12 +46,12 @@ export default function useConcentratedInfoLoader() {
     [pathname, refreshCount]
   )
 
-  const tokenAccountsLength = tokenAccounts.length
   /**  api json info list ➡ SDK info list */
-  useTransitionedEffect(async () => {
+  useAsyncEffect(async () => {
     if (!pathname.includes('clmm')) return
     if (!connection) return
     if (chainTimeOffset == null) return
+    if (owner && tokenAccountsOwner && toPubString(owner) !== toPubString(tokenAccountsOwner)) return
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: apiAmmPools,
       connection,
@@ -58,7 +59,7 @@ export default function useConcentratedInfoLoader() {
       chainTime: (Date.now() + chainTimeOffset) / 1000
     })
     if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
-  }, [apiAmmPools, connection, tokenAccountsLength, toPubString(owner), pathname, chainTimeOffset])
+  }, [apiAmmPools, connection, toPubString(owner), toPubString(tokenAccountsOwner), pathname, chainTimeOffset])
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {

@@ -1,12 +1,10 @@
 import useNotification from '@/application/notification/useNotification'
-import { throttle } from '@/functions/debounce'
 import toPubString from '@/functions/format/toMintString'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { requestIdleCallback } from '@/functions/lazyMap'
-import useCallbackRef from '@/hooks/useCallbackRef'
 import { useEvent } from '@/hooks/useEvent'
 import { PublicKeyish } from '@/types/constants'
-import { useEffect, useCallback } from 'react'
+import { useEffect } from 'react'
 import useWallet from './useWallet'
 
 export function useWalletConnectNotifaction() {

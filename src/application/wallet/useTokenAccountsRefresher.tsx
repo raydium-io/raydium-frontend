@@ -54,10 +54,7 @@ export default function useTokenAccountsRefresher(): void {
 /** if all tokenAccount amount is not changed (which may happen in 'confirmed'), auto fetch second time in 'finalized'*/
 const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, options?: { noSecondTry?: boolean }) => {
   const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
-    await getRichWalletTokenAccounts({
-      connection,
-      owner: new PublicKey(owner)
-    })
+    await getRichWalletTokenAccounts({ connection, owner })
 
   //#region ------------------- diff -------------------
   const pastTokenAccounts = listToJSMap(
@@ -77,6 +74,7 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
 
   if (options?.noSecondTry || hasWalletTokenAccountChanged || diffCount === 0) {
     useWallet.setState({
+      tokenAccountsOwner: owner,
       tokenAccountRawInfos,
       nativeTokenAccount,
       tokenAccounts,
@@ -87,11 +85,9 @@ const fetchTokenAccounts = async (connection: Connection, owner: PublicKey, opti
     addWalletAccountChangeListener(
       async () => {
         const { allTokenAccounts, tokenAccountRawInfos, tokenAccounts, nativeTokenAccount } =
-          await getRichWalletTokenAccounts({
-            connection,
-            owner: new PublicKey(owner)
-          })
+          await getRichWalletTokenAccounts({ connection, owner })
         useWallet.setState({
+          tokenAccountsOwner: owner,
           tokenAccountRawInfos,
           nativeTokenAccount,
           tokenAccounts,
