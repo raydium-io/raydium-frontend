@@ -749,14 +749,20 @@ function PoolCardDatabaseBodyCollapseItemFace({
               <Row className="text-sm justify-between items-center min-w-[260px] gap-4">
                 <Row className="gap-1.5 items-center">
                   <CoinAvatar size={isMobile ? 'xs' : 'smi'} token={reward.rewardToken} />
-                  <span className="text-white">{toString(reward.rewardPerWeek)}</span>
-                  <span className="text-[#ABC4FF]">{reward.rewardToken?.symbol ?? '--'} per week</span>
-                </Row>
-                <span className="text-white/50">
-                  {toUsdVolume(
-                    toTotalPrice(reward.rewardPerWeek, variousPrices[toPubString(reward.rewardToken?.mint)] ?? null)
+                  {isRewardEnd ? null : (
+                    <>
+                      <span className="text-white">{toString(reward.rewardPerWeek)}</span>
+                      <span className="text-[#ABC4FF]">{reward.rewardToken?.symbol ?? '--'} per week</span>
+                    </>
                   )}
-                </span>
+                </Row>
+                {isRewardEnd ? null : (
+                  <span className="text-white/50">
+                    {toUsdVolume(
+                      toTotalPrice(reward.rewardPerWeek, variousPrices[toPubString(reward.rewardToken?.mint)] ?? null)
+                    )}
+                  </span>
+                )}
               </Row>
               <div className="mb-1 mt-1">
                 {reward.openTime &&
