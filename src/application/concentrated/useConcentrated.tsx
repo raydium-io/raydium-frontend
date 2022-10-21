@@ -95,7 +95,7 @@ export type ConcentratedStore = {
   tvl?: string | number // /api.raydium.io/v2/main/info
   volume24h?: string | number // /api.raydium.io/v2/main/info
   timeBasis: TimeBasis
-  aprCalcMode: 'A' | 'D' | 'C'
+  aprCalcMode: 'D' | 'C'
 
   availableAmmConfigFeeOptions?: HydratedAmmV3ConfigInfo[] // create pool
   userSelectedAmmConfigFeeOption?: HydratedAmmV3ConfigInfo // create pool

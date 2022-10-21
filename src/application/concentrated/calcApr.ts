@@ -3,6 +3,7 @@ import { toPercent } from '@/functions/format/toPercent'
 import { add, div } from '@/functions/numberish/operations'
 import useToken from '../token/useToken'
 import { HydratedConcentratedInfo } from './type'
+import BN from 'bn.js'
 
 export type GetAprParameters = {
   ammPoolInfo: Omit<HydratedConcentratedInfo, 'userPositionAccount'>
@@ -65,6 +66,7 @@ export type GetAprPoolTickParameters = {
   timeBasis: '24h' | '7d' | '30d'
   planType: 'D' | 'C'
   chainTimeOffsetMs?: number
+  liquidity: BN
 }
 export function getPoolTickAprCore({
   ammPoolInfo,
@@ -75,7 +77,8 @@ export function getPoolTickAprCore({
   tokenDecimals,
   timeBasis,
   planType,
-  chainTimeOffsetMs = 0
+  chainTimeOffsetMs = 0,
+  liquidity
 }: GetAprPoolTickParameters) {
   const { getToken } = useToken.getState()
   if (planType === 'D') {
@@ -87,7 +90,7 @@ export function getPoolTickAprCore({
       positionTickUpperIndex: Math.max(tickLower, tickUpper),
       chainTime: (Date.now() + chainTimeOffsetMs) / 1000,
       rewardMintDecimals: tokenDecimals,
-      liquidity: ammPoolInfo.state.liquidity
+      liquidity
     })
     const slicedRewardApr = planBApr.rewardsApr.slice(0, poolRewardTokens.length)
     const total = [planBApr.feeApr, ...slicedRewardApr].reduce((a, b) => a + b, 0)
