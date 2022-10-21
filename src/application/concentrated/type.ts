@@ -64,6 +64,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   tradeFeeRate: Percent
   base: SplToken | undefined
   quote: SplToken | undefined
+  liquidity: BN
   id: PublicKey
   userPositionAccount?: UserPositionAccount[]
   name: string
@@ -85,6 +86,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
     emissionsPerSecondX64: BN
     rewardGrowthGlobalX64: BN
     perSecond: BN
+    rewardPerWeek: TokenAmount | undefined
   }[]
   tvl: CurrencyAmount
   feeApr24h: Percent

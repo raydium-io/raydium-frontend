@@ -1,7 +1,8 @@
 import { useCallback, useMemo } from 'react'
 
-import BN from 'bn.js'
 import { AmmV3 } from '@raydium-io/raydium-sdk'
+
+import BN from 'bn.js'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -10,7 +11,8 @@ import assert from '@/functions/assert'
 import { throttle } from '@/functions/debounce'
 import toPubString from '@/functions/format/toMintString'
 import { isArray } from '@/functions/judgers/dateType'
-import { div } from '@/functions/numberish/operations'
+import { div, mul } from '@/functions/numberish/operations'
+import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 
@@ -36,13 +38,18 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
     return undefined
   }, [currentAmmPool, targetUserPositionAccount])
 
+  const tick = useMemo(() => {
+    return div(position?.liquidity, 100) ?? toFraction(0)
+  }, [position?.liquidity])
+
   const onSliderChange = useCallback(
-    (value) => {
+    (value: number | number[]) => {
       if (isArray(value) || !currentAmmPool || !position) return // ignore array (for current version)
+      const bnValue = toBN(mul(value, tick))
       const amountFromLiquidity = AmmV3.getAmountsFromLiquidity({
         poolInfo: currentAmmPool.state,
         ownerPosition: position,
-        liquidity: new BN(value),
+        liquidity: bnValue,
         slippage: 0, // always 0, for remove liquidity only
         add: false
       })
@@ -54,15 +61,16 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
           decimalLength: 'auto 10'
         }),
         isInput: false,
-        liquidity: new BN(value)
+        liquidity: bnValue
       })
     },
-    [currentAmmPool, coin1, coin2]
+    [currentAmmPool, coin1, coin2, tick]
   )
-
+  // TODO: dirty fixed tick
   return (
     <RangeSliderBox
-      max={position?.liquidity.toNumber() ?? 0}
+      max={100}
+      tick={tick}
       className="py-3 px-3 ring-1 mobile:ring-1 ring-[#abc4ff40] rounded-xl mobile:rounded-xl "
       onChange={throttle(onSliderChange)}
       liquidity={liquidity}

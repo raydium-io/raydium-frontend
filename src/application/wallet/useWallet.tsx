@@ -41,22 +41,22 @@ export type WalletStore = {
   /** this is a some of wsol's tokenAccounts's amount (sol / wsol is special) */
   allWsolBalance?: BN | undefined
 
+  //#region ------------------- tokenAccount -------------------
+  // for owner change but tokenAccount still belong to old owner
+  tokenAccountsOwner?: PublicKey | undefined
   /** only include ATA (for this app only accept ATA account, no old tokenAccount ) */
   tokenAccounts: ITokenAccount[]
-
   /** pass to SDK */
   tokenAccountRawInfos: TokenAccountRawInfo[]
-
   /** SOL  */
   nativeTokenAccount: ITokenAccount | undefined
-
   /** raw: include no ATA (only use it in migrate detect) */
   allTokenAccounts: ITokenAccount[]
-
   // it can consider QuantumSOL
   // QuantumSOL(default) / QuantumSOL(VersionSOL) will get undefined tokenAccount
   // QuantumSOL(VersionWSOL) will get WSOL tokenAccount
   getTokenAccount(target: Token | PublicKeyish | undefined): ITokenAccount | undefined
+  //#endregion
 
   /**
    * has QuantumSOL,
