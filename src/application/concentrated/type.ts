@@ -64,6 +64,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   tradeFeeRate: Percent
   base: SplToken | undefined
   quote: SplToken | undefined
+  liquidity: BN
   id: PublicKey
   userPositionAccount?: UserPositionAccount[]
   name: string

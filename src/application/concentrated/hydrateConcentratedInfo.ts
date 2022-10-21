@@ -15,7 +15,11 @@ import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
 import {
-  GetAprParameters, GetAprPoolTickParameters, GetAprPositionParameters, getPoolAprCore, getPoolTickAprCore,
+  GetAprParameters,
+  GetAprPoolTickParameters,
+  GetAprPositionParameters,
+  getPoolAprCore,
+  getPoolTickAprCore,
   getPositonAprCore
 } from './calcApr'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
@@ -151,7 +155,8 @@ function hydratePoolInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     id: sdkConcentratedInfo.state.id,
     base,
     quote,
-    name
+    name,
+    liquidity: sdkConcentratedInfo.state.liquidity
   }
 }
 
