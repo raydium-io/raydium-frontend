@@ -84,6 +84,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
     authority: PublicKey
     emissionsPerSecondX64: BN
     rewardGrowthGlobalX64: BN
+    perSecond: BN
   }[]
   tvl: CurrencyAmount
   feeApr24h: Percent

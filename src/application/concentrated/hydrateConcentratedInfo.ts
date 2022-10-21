@@ -9,6 +9,7 @@ import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import { mergeObject } from '@/functions/merge'
 import { gt, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
+import toBN from '@/functions/numberish/toBN'
 
 import { SplToken } from '../token/type'
 import useToken from '../token/useToken'
@@ -55,6 +56,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
       const rewardToken = getToken(r.tokenMint)
       return {
         ...r,
+        perSecond: toBN(r.perSecond.toString()),
         rewardToken,
         openTime: r.openTime.toNumber() * 1000,
         endTime: r.endTime.toNumber() * 1000,
