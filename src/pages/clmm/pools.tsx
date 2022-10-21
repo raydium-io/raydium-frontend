@@ -9,7 +9,9 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -19,7 +21,6 @@ import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
-import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
@@ -69,6 +70,7 @@ import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
+import { FadeIn } from '@/components/FadeIn'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -1028,8 +1030,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
 
   const variousPrices = useMemo(() => ({ ...lpPrices, ...tokenPrices }), [lpPrices, tokenPrices])
 
-  const openNewPosition = useMemo(() => {
-    return (
+  const openNewPosition = useMemo(
+    () => (
       <Col className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
         <div className="mb-2 text-xs">Want to open a new position?</div>
         <Row className={`justify-center items-center gap-2`}>
@@ -1066,8 +1068,9 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           </Tooltip>
         </Row>
       </Col>
-    )
-  }, [info])
+    ),
+    [info]
+  )
 
   return (
     <AutoBox
@@ -1077,80 +1080,67 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.12), rgb(171 196 255 / 4%) 100%)'
       }}
     >
-      {info.userPositionAccount ? (
-        <>
-          {info.userPositionAccount
-            .sort((a: UserPositionAccount, b: UserPositionAccount) =>
-              Number(
-                toString(
-                  sub(
-                    a.getLiquidityVolume?.(tokenPrices).wholeLiquidity,
-                    b.getLiquidityVolume?.(tokenPrices).wholeLiquidity
-                  )
-                )
+      {info.userPositionAccount
+        ?.sort((a: UserPositionAccount, b: UserPositionAccount) =>
+          Number(
+            toString(
+              sub(
+                a.getLiquidityVolume?.(tokenPrices).wholeLiquidity,
+                b.getLiquidityVolume?.(tokenPrices).wholeLiquidity
               )
             )
-            .map((p) => {
-              let myPosition = '--'
-              const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
-              const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
-              const lower = toString(p.priceLower, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
-              const upper = toString(p.priceUpper, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
+          )
+        )
+        .map((p) => {
+          let myPosition = '--'
+          const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
+          const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
+          const lower = toString(p.priceLower, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
+          const upper = toString(p.priceUpper, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
 
-              if (lower && upper) {
-                myPosition = lower + ' - ' + upper
-              }
+          if (lower && upper) {
+            myPosition = lower + ' - ' + upper
+          }
 
-              const coinAPrice = toTotalPrice(p.amountA, variousPrices[toPubString(p.tokenA?.mint)] ?? null)
-              const coinBPrice = toTotalPrice(p.amountB, variousPrices[toPubString(p.tokenB?.mint)] ?? null)
+          const coinAPrice = toTotalPrice(p.amountA, variousPrices[toPubString(p.tokenA?.mint)] ?? null)
+          const coinBPrice = toTotalPrice(p.amountB, variousPrices[toPubString(p.tokenB?.mint)] ?? null)
 
-              const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
+          const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
 
-              const coinARewardPrice = toTotalPrice(
-                p.tokenFeeAmountA,
-                variousPrices[toPubString(p.tokenA?.mint)] ?? null
+          const coinARewardPrice = toTotalPrice(p.tokenFeeAmountA, variousPrices[toPubString(p.tokenA?.mint)] ?? null)
+          const coinBRewardPrice = toTotalPrice(p.tokenFeeAmountB, variousPrices[toPubString(p.tokenB?.mint)] ?? null)
+          const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
+          const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
+
+          const rewardInfoPrice = new Map<SplToken, CurrencyAmount>()
+          p.rewardInfos.forEach((rInfo) => {
+            if (rInfo.token) {
+              rewardInfoPrice.set(
+                rInfo.token,
+                toTotalPrice(rInfo.penddingReward, variousPrices[toPubString(rInfo.token.mint)] ?? null)
               )
-              const coinBRewardPrice = toTotalPrice(
-                p.tokenFeeAmountB,
-                variousPrices[toPubString(p.tokenB?.mint)] ?? null
-              )
-              const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
-              const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
+            }
+          })
 
-              const rewardInfoPrice = new Map<SplToken, CurrencyAmount>()
-              p.rewardInfos.forEach((rInfo) => {
-                if (rInfo.token) {
-                  rewardInfoPrice.set(
-                    rInfo.token,
-                    toTotalPrice(rInfo.penddingReward, variousPrices[toPubString(rInfo.token.mint)] ?? null)
-                  )
-                }
-              })
-
-              return (
-                <PoolCardDatabaseBodyCollapsePositionContent
-                  key={p.nftMint.toString()}
-                  poolInfo={info}
-                  userPositionAccount={p}
-                  myPosition={myPosition}
-                  amountA={amountA}
-                  amountB={amountB}
-                  myPositionVolume={toUsdVolume(wholeLiquidity)}
-                  coinAPrice={coinAPrice}
-                  coinBPrice={coinBPrice}
-                  inRange={p.inRange}
-                  rewardAPrice={coinARewardPrice}
-                  rewardBPrice={coinBRewardPrice}
-                  rewardInfoPrice={rewardInfoPrice}
-                />
-              )
-            })}
-
-          <AutoBox>{openNewPosition}</AutoBox>
-        </>
-      ) : (
-        <AutoBox>{openNewPosition}</AutoBox>
-      )}
+          return (
+            <PoolCardDatabaseBodyCollapsePositionContent
+              key={p.nftMint.toString()}
+              poolInfo={info}
+              userPositionAccount={p}
+              myPosition={myPosition}
+              amountA={amountA}
+              amountB={amountB}
+              myPositionVolume={toUsdVolume(wholeLiquidity)}
+              coinAPrice={coinAPrice}
+              coinBPrice={coinBPrice}
+              inRange={p.inRange}
+              rewardAPrice={coinARewardPrice}
+              rewardBPrice={coinBRewardPrice}
+              rewardInfoPrice={rewardInfoPrice}
+            />
+          )
+        })}
+      <AutoBox>{openNewPosition}</AutoBox>
     </AutoBox>
   )
 }
@@ -1454,47 +1444,47 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                 {p && <PositionAprIllustrator poolInfo={info} positionInfo={p}></PositionAprIllustrator>}
 
                 {/* <AutoBox
-                  is="Row"
-                  className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2 mobile:mt-1"
-                >
-                  <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
-                  {p ? (
-                    <>
-                      <Col className="text-white">{yieldInfo.apr}</Col>
-                      <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
-                        <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
-                        <Tooltip.Panel>
-                          <div className="max-w-[300px] py-3 px-5">
-                            <TokenPositionInfo
-                              customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
-                              customKey="Trade Fees"
-                              customValue={yieldInfo.tradeFeesApr}
-                              className="gap-32"
-                            />
-                            {info.base && (
+                    is="Row"
+                    className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2 mobile:mt-1"
+                  >
+                    <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
+                    {p ? (
+                      <>
+                        <Col className="text-white">{yieldInfo.apr}</Col>
+                        <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
+                          <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
+                          <Tooltip.Panel>
+                            <div className="max-w-[300px] py-3 px-5">
                               <TokenPositionInfo
-                                token={info.base}
-                                customValue={yieldInfo.rewardsAprA}
-                                suffix="Rewards"
+                                customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
+                                customKey="Trade Fees"
+                                customValue={yieldInfo.tradeFeesApr}
                                 className="gap-32"
                               />
-                            )}
-                            {info.quote && (
-                              <TokenPositionInfo
-                                token={info.quote}
-                                customValue={yieldInfo.rewardsAprB}
-                                suffix="Rewards"
-                                className="gap-32"
-                              />
-                            )}
-                          </div>
-                        </Tooltip.Panel>
-                      </Tooltip>
-                    </>
-                  ) : (
-                    <div className="text-sm font-medium text-white">--</div>
-                  )}
-                </AutoBox> */}
+                              {info.base && (
+                                <TokenPositionInfo
+                                  token={info.base}
+                                  customValue={yieldInfo.rewardsAprA}
+                                  suffix="Rewards"
+                                  className="gap-32"
+                                />
+                              )}
+                              {info.quote && (
+                                <TokenPositionInfo
+                                  token={info.quote}
+                                  customValue={yieldInfo.rewardsAprB}
+                                  suffix="Rewards"
+                                  className="gap-32"
+                                />
+                              )}
+                            </div>
+                          </Tooltip.Panel>
+                        </Tooltip>
+                      </>
+                    ) : (
+                      <div className="text-sm font-medium text-white">--</div>
+                    )}
+                  </AutoBox> */}
               </Col>
               <AutoBox
                 is={isMobile ? 'Row' : 'Col'}

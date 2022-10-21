@@ -46,7 +46,10 @@ export type CollapseProps = {
 
 /**
  * default **uncontrolled** Kit
+ *
  * once set open, compnent becomes **controlled** Kit
+ *
+ * NOTE a component who wrapped by `<Collapse>` must have real height when init
  */
 export default function Collapse({
   id,
@@ -140,12 +143,12 @@ export default function Collapse({
             collapseBodyRef.current?.style.removeProperty('position')
 
             collapseBodyRef.current?.style.removeProperty('height')
-            const height = collapseBodyRef.current?.clientHeight
+            const trueHeight = collapseBodyRef.current?.clientHeight
             collapseBodyRef.current?.style.setProperty('height', '0px')
             // get a layout property to manually to force the browser to layout the above code.
             // So trick. But have to.🤯🤯🤯🤯
             collapseBodyRef.current?.clientHeight
-            collapseBodyRef.current?.style.setProperty('height', height + 'px')
+            collapseBodyRef.current?.style.setProperty('height', trueHeight + 'px')
             collapseBodyRef.current?.style.removeProperty('visibility')
           })
         }}
@@ -155,9 +158,9 @@ export default function Collapse({
         }}
         beforeLeave={() => {
           setTimeout(() => {
-            const height = collapseBodyRef.current?.clientHeight
+            const trueHeight = collapseBodyRef.current?.clientHeight
             // force <CollapseBody> to have height. which is the base of transition
-            collapseBodyRef.current?.style.setProperty('height', height + 'px')
+            collapseBodyRef.current?.style.setProperty('height', trueHeight + 'px')
 
             // get a layout property to manually to force the browser to layout the above code.
             // So trick. But have to.🤯🤯🤯🤯
