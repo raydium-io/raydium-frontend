@@ -1,6 +1,5 @@
-import { PublicKey } from '@solana/web3.js'
-
 import { AmmV3PoolPersonalPosition, Price, Token } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
@@ -15,15 +14,11 @@ import useToken from '../token/useToken'
 import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
-import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
 import {
-  GetAprParameters,
-  getPoolAprCore,
-  GetAprPoolTickParameters,
-  getPoolTickAprCore,
-  GetAprPositionParameters,
+  GetAprParameters, GetAprPoolTickParameters, GetAprPositionParameters, getPoolAprCore, getPoolTickAprCore,
   getPositonAprCore
 } from './calcApr'
+import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
 
 export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConcentratedInfo): HydratedConcentratedInfo {
   const rawAmmPoolInfo = mergeObject(
@@ -60,7 +55,10 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
         endTime: r.endTime.toNumber() * 1000,
         lastUpdateTime: r.lastUpdateTime.toNumber() * 1000,
         rewardClaimed: rewardToken ? toTokenAmount(rewardToken, r.rewardClaimed) : undefined,
-        rewardTotalEmissioned: rewardToken ? toTokenAmount(rewardToken, r.rewardTotalEmissioned) : undefined
+        rewardTotalEmissioned: rewardToken ? toTokenAmount(rewardToken, r.rewardTotalEmissioned) : undefined,
+        rewardPerWeek: rewardToken
+          ? toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400 * 7))
+          : undefined
       }
     }),
 
