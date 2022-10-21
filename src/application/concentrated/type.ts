@@ -1,7 +1,5 @@
 import { PublicKey } from '@solana/web3.js'
 
-import BN from 'bn.js'
-import Decimal from 'decimal.js'
 import {
   AmmV3PoolInfo,
   AmmV3PoolPersonalPosition,
@@ -11,13 +9,14 @@ import {
   Fraction,
   Percent,
   Price,
-  PublicKeyish,
   TokenAmount
 } from '@raydium-io/raydium-sdk'
+import BN from 'bn.js'
 
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
+import { GetAprPoolTickParameters, GetAprPositionParameters } from './calcApr'
 
 export type APIConcentratedInfo = ApiAmmV3PoolInfo
 
@@ -121,23 +120,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
     rewards: { apr: Percent; percentInTotal: Percent; token: SplToken | undefined }[]
     apr: Percent
   }
-  getTickApr({
-    tickLower,
-    tickUpper,
-    tokenPrices,
-    tokenDecimals,
-    timeBasis,
-    planType,
-    chainTimeOffsetMs
-  }: {
-    tickLower: number
-    tickUpper: number
-    tokenPrices: Record<string, Price>
-    tokenDecimals: Record<string, number>
-    timeBasis: '24h' | '7d' | '30d'
-    planType: 'A' | 'D' | 'C'
-    chainTimeOffsetMs?: number | undefined
-  }): {
+  getTickApr(args: Omit<GetAprPoolTickParameters, 'ammPoolInfo' | 'poolRewardTokens'>): {
     fee: {
       apr: Percent
       percentInTotal: Percent
@@ -178,19 +161,7 @@ export interface UserPositionAccount {
     baseLiquidity: Fraction | undefined
     quoteLiquidity: Fraction | undefined
   }
-  getApr({
-    tokenPrices,
-    tokenDecimals,
-    timeBasis,
-    planType,
-    chainTimeOffsetMs
-  }: {
-    tokenPrices: Record<string, Price>
-    tokenDecimals: Record<string, number>
-    timeBasis: '24h' | '7d' | '30d'
-    planType: 'A' | 'D' | 'C'
-    chainTimeOffsetMs?: number | undefined
-  }): {
+  getApr(args: Omit<GetAprPositionParameters, 'positionAccount' | 'ammPoolInfo' | 'poolRewardTokens'>): {
     fee: {
       apr: Percent
       percentInTotal: Percent

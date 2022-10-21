@@ -376,7 +376,6 @@ function PoolCreateConcentratedPoolEntryBlock({ className }: { className?: strin
 }
 
 function PoolCard() {
-  const balances = useWallet((s) => s.balances)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const searchText = useConcentrated((s) => s.searchText)
   const timeBasis = useConcentrated((s) => s.timeBasis)

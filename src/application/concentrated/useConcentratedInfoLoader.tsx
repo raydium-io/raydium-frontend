@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 
-import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from '@raydium-io/raydium-sdk'
+import { AmmV3, ApiAmmV3PoolInfo } from '@raydium-io/raydium-sdk'
 
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
@@ -45,6 +45,7 @@ export default function useConcentratedInfoLoader() {
     [pathname, refreshCount]
   )
 
+  const tokenAccountsLength = tokenAccounts.length
   /**  api json info list ➡ SDK info list */
   useTransitionedEffect(async () => {
     if (!pathname.includes('clmm')) return
@@ -57,7 +58,7 @@ export default function useConcentratedInfoLoader() {
       chainTime: (Date.now() + chainTimeOffset) / 1000
     })
     if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
-  }, [apiAmmPools, connection, tokenAccounts, owner, pathname, chainTimeOffset])
+  }, [apiAmmPools, connection, tokenAccountsLength, toPubString(owner), pathname, chainTimeOffset])
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {
