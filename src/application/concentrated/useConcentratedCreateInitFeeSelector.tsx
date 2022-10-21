@@ -1,4 +1,5 @@
 import toPubString from '@/functions/format/toMintString'
+import { eq } from '@/functions/numberish/compare'
 import { useEffect } from 'react'
 import useConcentrated from './useConcentrated'
 
@@ -17,8 +18,8 @@ export default function useConcentratedCreateInitFeeSelector() {
     if (!selectableAmmConfigs || !coin1 || !coin2) {
       useConcentrated.setState({ userSelectedAmmConfigFeeOption: undefined })
     } else {
-      const bestFeeOption = selectableAmmConfigs[selectableAmmConfigs.length - 1]
-      bestFeeOption && useConcentrated.setState({ userSelectedAmmConfigFeeOption: bestFeeOption })
+      const defaultFeeOption = selectableAmmConfigs.find((config) => eq(config.tradeFeeRate, 0.0025))
+      useConcentrated.setState({ userSelectedAmmConfigFeeOption: defaultFeeOption })
     }
-  }, [key, coin1, coin2])
+  }, [key, coin1, coin2, selectableAmmConfigs?.length])
 }

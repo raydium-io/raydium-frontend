@@ -510,7 +510,7 @@ export function CreatePoolCard() {
             openPreviewDialog()
           }}
         >
-          Add Position
+          Preview Pool
         </Button>
       </Col>
 
@@ -556,7 +556,7 @@ function SelectTokenInputBox({
   return (
     <>
       <Grid
-        className="grid items-center bg-[#141041] rounded-xl p-3 cursor-pointer px-3"
+        className="grid items-center bg-[#141041] rounded-xl py-2 cursor-pointer px-3"
         onClick={() => setIsSelectorOpen(true)}
       >
         {token ? (
