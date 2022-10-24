@@ -68,6 +68,9 @@ export default function txSwap() {
       await asyncMap(transactions, (merged) => {
         if (!merged) return
         const { transaction, signer: signers } = merged
+
+        transactionCollector.addSigners(signers);
+
         return loadTransaction({ transaction: transaction, signers })
       })
     )
@@ -82,6 +85,7 @@ export default function txSwap() {
         }
       }
     ]) as TransactionQueue
+
     transactionCollector.addQueue(queue, { sendMode: 'queue(all-settle)' })
   })
 }

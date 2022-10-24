@@ -4,6 +4,7 @@ import {
   Keypair,
   PublicKey,
   SignatureResult,
+  Signer,
   Transaction,
   TransactionError
 } from '@solana/web3.js'
@@ -147,6 +148,7 @@ export type TransactionQueue = ([transaction: Transaction, singleTxOptions?: Sin
 export type TransactionCollector = {
   add(transaction: Transaction, options?: SingleTxOptions): void
   addQueue(transactionQueue: TransactionQueue, multiTxOptions?: MultiTxsOptions): void
+  addSigners(signers: Signer[]) : void
 }
 
 // TODO: should also export addTxSuccessListener() and addTxErrorListener() and addTxFinallyListener()
@@ -184,7 +186,7 @@ export type SendTransactionPayload = {
 export default async function txHandler(txAction: TxFn, options?: HandleFnOptions): Promise<TxResponseInfos> {
   const {
     transactionCollector,
-    collected: { innerTransactions, singleTxOptions, multiTxOptions }
+    collected: { innerTransactions, singleTxOptions, multiTxOptions, innerSigners }
   } = collectTxOptions()
   useAppSettings.setState({ isApprovePanelShown: true })
   try {
@@ -212,6 +214,7 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
     const _snowflakeAdapter = adapter as SnowflakeSafeWalletAdapter;
     if (singleTxOptions[0].txHistoryInfo?.description && _snowflakeAdapter.isSnowflakeSafe){
       _snowflakeAdapter.setProposalName(singleTxOptions[0].txHistoryInfo.description)
+      _snowflakeAdapter.setSigners(innerSigners);
     }
 
     // eslint-disable-next-line no-console
@@ -263,6 +266,8 @@ function collectTxOptions() {
   const singleTxOptions = [] as SingleTxOptions[]
   const multiTxOptions = {} as MultiTxsOptions
   const innerTransactions = [] as Transaction[]
+  const innerSigners = [] as Signer[]
+
   const add: TransactionCollector['add'] = (transaction, options) => {
     innerTransactions.push(transaction)
     singleTxOptions.push(options ?? {})
@@ -274,8 +279,12 @@ function collectTxOptions() {
     })
     Object.assign(multiTxOptions, options)
   }
-  const transactionCollector: TransactionCollector = { add, addQueue }
-  return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOptions } }
+  const addSigners: TransactionCollector['addSigners'] = (signers) => {
+    innerSigners.push(...signers);
+  }
+
+  const transactionCollector: TransactionCollector = { add, addQueue, addSigners }
+  return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOptions, innerSigners } }
 }
 
 export function serialize(transaction: Transaction, cache = true) {

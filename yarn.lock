@@ -1049,22 +1049,22 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-5.3.0.tgz#0ec9264cf54a527671d990eb874e030b55b70dcc"
   integrity sha512-CX6t4SYQ37lzxicAqsBtxA3OseeoVrh9cSJ5PFYam0GksYlupRfy1A+Q4aYD3zvcfECLc0zO2u+ZnR2UYKvCrw==
 
-"@snowflake-so/safe-apps-sdk@^1.1.8-beta":
-  version "1.1.8-beta"
-  resolved "https://registry.yarnpkg.com/@snowflake-so/safe-apps-sdk/-/safe-apps-sdk-1.1.8-beta.tgz#0816786d22d56d2793edf2e8df4cbaec813c6b35"
-  integrity sha512-R2dSUUsLXnhsR3jyhAvuTjUzIpZdyX7w9ta+woboBmQA4K2ILx5eyv3AB5uzLKOTA1bCVihJ9lcb175wKOaSNQ==
+"@snowflake-so/safe-apps-sdk@^1.1.8":
+  version "1.1.8"
+  resolved "https://registry.yarnpkg.com/@snowflake-so/safe-apps-sdk/-/safe-apps-sdk-1.1.8.tgz#f626a14d2b29d442d61d35d4965d846c53d654bb"
+  integrity sha512-I0GgPI5wJjqF/E7Zd6YQ7VNijh+TT8dnSNrRqoFSDXSXs4B5ZcXEd9yQfQ+3xHZyoCVpb73UV7T3J1S1PbBshw==
   dependencies:
     "@solana/wallet-adapter-base" "^0.9.5"
     rimraf "^3.0.2"
     ts-node "^10.8.1"
     uglifyjs-folder "^3.0.0"
 
-"@snowflake-so/wallet-adapter-snowflake@^1.0.14":
-  version "1.0.14"
-  resolved "https://registry.yarnpkg.com/@snowflake-so/wallet-adapter-snowflake/-/wallet-adapter-snowflake-1.0.14.tgz#2e3a61fef57084dcc1d3ea8ea0315b3807b566fd"
-  integrity sha512-BqdZQ3/T4JAAbKq2A6WXB8QoyXpsavXplucs8R4SHCANAIjkpiRCcDnlcxK8ilYUhQIuv30KCU69e4aFBBpefw==
+"@snowflake-so/wallet-adapter-snowflake@^1.0.15":
+  version "1.0.15"
+  resolved "https://registry.yarnpkg.com/@snowflake-so/wallet-adapter-snowflake/-/wallet-adapter-snowflake-1.0.15.tgz#f45c0fa300f0ee11c2fd99e12e72487d300af5ff"
+  integrity sha512-/1eOtBdp7F5x0Z2Wa+m4D580rsERL572o2Saz48N2/SkwVNKW6e7arVPHEuzh3vR7NpbVBG5SxhBJxqWb6BG2g==
   dependencies:
-    "@snowflake-so/safe-apps-sdk" "^1.1.8-beta"
+    "@snowflake-so/safe-apps-sdk" "^1.1.8"
     "@solana/wallet-adapter-base" "^0.9.12"
 
 "@socket.io/component-emitter@~3.1.0":
