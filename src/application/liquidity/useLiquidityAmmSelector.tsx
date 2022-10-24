@@ -37,29 +37,36 @@ export default function useLiquidityAmmSelector() {
   /** update `ammId` (to match `coin1` and `coin2`) */
   useAsyncEffect(async () => {
     if (!coin1 || !coin2) return
-    const { ammId, jsonInfos } = useLiquidity.getState()
+    const { ammId: oldAmmId, jsonInfos } = useLiquidity.getState()
     const jsonMap = listToMap(jsonInfos, (i) => toPubString(i.id))
+
+    const oldPoolInfo = oldAmmId ? jsonMap[oldAmmId] : undefined
+
+    // current is right, no need to sync again
+    if (isMintEqual(coin1?.mint, oldPoolInfo?.baseMint) && isMintEqual(coin2?.mint, oldPoolInfo?.quoteMint)) return
+    if (isMintEqual(coin1?.mint, oldPoolInfo?.quoteMint) && isMintEqual(coin2?.mint, oldPoolInfo?.baseMint)) return
+
     const best = await getAddLiquidityDefaultPool({ mint1: coin1.mint, mint2: coin2.mint })
-    const resultPool = ammId ? jsonMap[ammId] || best : best
-    if (resultPool) {
+    if (best) {
       // current is right, no need to sync again
-      if (ammId === resultPool?.id) return
+      if (oldAmmId === best?.id) return
       useLiquidity.setState({
-        ammId: resultPool?.id,
-        currentJsonInfo: resultPool
+        ammId: best?.id
       })
     } else {
       // should clear ammId and currentJsonInfo
       useLiquidity.setState({
-        ammId: undefined,
-        currentJsonInfo: undefined
+        ammId: undefined
       })
     }
   }, [coin1, coin2])
 
   // update `currentJsonInfo` (to match `ammId`)
   useEffect(() => {
-    if (!ammId) return
+    if (!ammId) {
+      useLiquidity.setState({ currentJsonInfo: undefined })
+      return
+    }
     const { jsonInfos, currentJsonInfo } = useLiquidity.getState()
 
     const alreadyMatched = currentJsonInfo?.id === ammId
@@ -72,7 +79,10 @@ export default function useLiquidityAmmSelector() {
   // update `ammId` (to match `currentJsonInfo`)
   useEffect(() => {
     const { currentJsonInfo } = useLiquidity.getState()
-    if (!currentJsonInfo) return
+    if (!currentJsonInfo) {
+      useLiquidity.setState({ ammId: undefined })
+      return
+    }
     const { ammId: currentAmmId } = useLiquidity.getState()
 
     const alreadyMatched = currentJsonInfo?.id === currentAmmId
