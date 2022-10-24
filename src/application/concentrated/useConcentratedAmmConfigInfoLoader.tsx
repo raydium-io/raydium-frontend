@@ -4,8 +4,10 @@ import jFetch from '@/functions/dom/jFetch'
 import { toPercent } from '@/functions/format/toPercent'
 import { div } from '@/functions/numberish/operations'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
-import useConcentrated from './useConcentrated'
+
 import useAppSettings from '../common/useAppSettings'
+
+import useConcentrated from './useConcentrated'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -22,32 +24,7 @@ export default function useConcentratedAmmConfigInfoLoader() {
       'https://api.raydium.io/v2/ammV3/ammConfigs'
     )
     const data = inDev // dev data
-      ? {
-          AjUvAGNuLJiXXGRQ1uiH4v6fBUJm1zwjBwyfK1qe27Ce: {
-            id: 'AjUvAGNuLJiXXGRQ1uiH4v6fBUJm1zwjBwyfK1qe27Ce',
-            index: 0,
-            protocolFeeRate: 12000,
-            tradeFeeRate: 100,
-            tickSpacing: 1,
-            description: 'Dev'
-          },
-          ABPi23j9qDjCeK5WwutWn6XG8sMRV7AiG1Z5bP8cViuz: {
-            id: 'ABPi23j9qDjCeK5WwutWn6XG8sMRV7AiG1Z5bP8cViuz',
-            index: 0,
-            protocolFeeRate: 12000,
-            tradeFeeRate: 2500,
-            tickSpacing: 60,
-            description: 'Dev'
-          },
-          '85JxuepKfJsmb29ZKThuod3yeBS4dXmsCQUbeo1utpeX': {
-            id: '85JxuepKfJsmb29ZKThuod3yeBS4dXmsCQUbeo1utpeX',
-            index: 0,
-            protocolFeeRate: 12000,
-            tradeFeeRate: 100,
-            tickSpacing: 10,
-            description: 'Dev'
-          }
-        }
+      ? {}
       : response?.data
     if (data) {
       useConcentrated.setState({
