@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
+import useConcentrated from '@/application/concentrated/useConcentrated'
 import Row from '@/components/Row'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import CoinAvatar from '@/components/CoinAvatar'
@@ -253,7 +254,9 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
                 noComponentCss
                 disabled={!hasUnClaimed || isApprovePanelShown}
                 onClick={() => {
-                  txCollectReward({ currentAmmPool: pool, rewardMint: reward.tokenMint })
+                  txCollectReward({ currentAmmPool: pool, rewardMint: reward.tokenMint }).then(() => {
+                    useConcentrated.getState().refreshConcentrated()
+                  })
                 }}
                 className={`flex flex-1 gap-1 justify-center items-center text-secondary-title text-xs font-medium ${
                   hasUnClaimed && !isApprovePanelShown ? 'clickable' : 'cursor-default opacity-50'

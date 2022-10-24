@@ -14,7 +14,7 @@ import txSetRewards from '@/application/concentrated/txSetRewards'
 
 export default function EditFarm() {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const walletConnected = useWallet((s) => s.connected)
+  const [walletConnected, owner] = useWallet((s) => [s.connected, s.owner])
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const [editedReward, setEditedReward] = useState<{ updateReward?: Map<string, UpdateData>; newReward?: NewReward }>(
     {}
@@ -92,15 +92,21 @@ export default function EditFarm() {
             onClick={handleClick}
             validators={[
               {
-                should: editedReward.updateReward?.size || editedReward.newReward
-              },
-              {
                 should: walletConnected,
                 forceActive: true,
                 fallbackProps: {
                   onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
                   children: 'Connect wallet'
                 }
+              },
+              {
+                should: owner && currentAmmPool?.state.creator.equals(owner),
+                fallbackProps: {
+                  children: 'not owner'
+                }
+              },
+              {
+                should: editedReward.updateReward?.size || editedReward.newReward
               },
               {
                 should: !newRewardError,

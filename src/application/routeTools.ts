@@ -93,6 +93,9 @@ export type PageRouteConfigs = {
   '/clmm/create-pool': {
     queryProps?: any
   }
+  '/clmm/edit-farm': {
+    queryProps?: any
+  }
   '/clmm/edit-pool': {
     queryProps?: any
   }

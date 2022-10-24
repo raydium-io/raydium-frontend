@@ -1022,16 +1022,37 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
   // eslint-disable-next-line no-console
   // console.log('info: ', info)
 
+  const owner = useWallet((s) => s.owner)
   const { lpPrices } = usePools()
   const tokenPrices = useToken((s) => s.tokenPrices)
 
   const variousPrices = useMemo(() => ({ ...lpPrices, ...tokenPrices }), [lpPrices, tokenPrices])
-
   const openNewPosition = useMemo(() => {
     return (
       <Col className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
         <div className="mb-2 text-xs">Want to open a new position?</div>
         <Row className={`justify-center items-center gap-2`}>
+          {owner && info.state.creator.equals(owner) && (
+            <Button
+              className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+              onClick={() => {
+                useConcentrated.setState({
+                  coin1: info.base,
+                  coin2: info.quote,
+                  chartPoints: [],
+                  lazyLoadChart: true,
+                  currentAmmPool: info
+                })
+                routeTo('/clmm/edit-farm', {
+                  queryProps: {
+                    farmId: info.idString
+                  }
+                })
+              }}
+            >
+              Edit Farm
+            </Button>
+          )}
           <Button
             className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
             onClick={() => {
