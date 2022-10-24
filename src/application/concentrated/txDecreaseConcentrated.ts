@@ -13,10 +13,21 @@ import useWallet from '../wallet/useWallet'
 
 import useConcentrated from './useConcentrated'
 
+export const MANUAL_ADJUST = 0.99 // ask Rudy for detail
+
 export default function txDecreaseConcentrated() {
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
-    const { coin1, coin2, coin1Amount, coin2Amount, liquidity, targetUserPositionAccount, currentAmmPool } =
-      useConcentrated.getState()
+    const {
+      coin1,
+      coin2,
+      coin1Amount,
+      coin2Amount,
+      liquidity,
+      targetUserPositionAccount,
+      currentAmmPool,
+      amountMinA,
+      amountMinB
+    } = useConcentrated.getState()
     const { tokenAccountRawInfos } = useWallet.getState()
     const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')
@@ -37,14 +48,17 @@ export default function txDecreaseConcentrated() {
         useSOLBalance: true,
         closePosition: eq(targetUserPositionAccount.sdkParsed.liquidity, liquidity)
       },
+      amountMinA: amountMinA,
+      amountMinB: amountMinB,
       slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed
     })
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
         title: 'Liquidity Removed',
-        description: `Removed ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${coin2.symbol
-          } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+        description: `Removed ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
+          coin2.symbol
+        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
     })
   })
