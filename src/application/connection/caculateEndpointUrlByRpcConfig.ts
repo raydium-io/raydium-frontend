@@ -1,4 +1,4 @@
-import { Config, Endpoint } from './useConnectionInitialization'
+import { Config, Endpoint } from './type'
 
 export default async function caculateEndpointUrlByRpcConfig({ strategy, rpcs }: Config): Promise<string> {
   return strategy === 'weight' ? getEndpointUrlByWeight(rpcs) : getEndpointUrlBySpeed(rpcs)

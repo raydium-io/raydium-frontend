@@ -138,6 +138,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       coin1: upCoin,
       coin2: downCoin,
       ammId,
+      currentJsonInfo: undefined, // wait for auto select
       isRemoveDialogOpen: mode === 'removeLiquidity'
     })
     router.push({ pathname: '/liquidity/add' })

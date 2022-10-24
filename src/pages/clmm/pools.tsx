@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CurrencyAmount } from 'test-r-sdk'
+
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
@@ -981,7 +982,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             name="Fees(7d)"
             value={
               isHydratedConcentratedItemInfo(info)
-                ? toUsdVolume(info.feeApr7d, { autoSuffix: true, decimalPlace: 0 })
+                ? toUsdVolume(info.volumeFee7d, { autoSuffix: true, decimalPlace: 0 })
                 : undefined
             }
           />

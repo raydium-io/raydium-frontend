@@ -43,6 +43,7 @@ import PageLayoutPopoverDrawer from './PageLayoutPopoverDrawer'
 import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
 import Row from './Row'
 import Tooltip from './Tooltip'
+import { extractRPCName } from '@/application/connection/extractRPCName'
 
 /**
  * for easier to code and read
@@ -361,10 +362,12 @@ function Navbar({
   onOpenMenu?: () => void
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
+  const inDev = useAppSettings((s) => s.inDev) // show dev logo
+
   const pcNavContent = (
     <Row className="justify-between items-center">
       <Link href="/">
-        <Image className="cursor-pointer" src="/logo/logo-with-text.svg" />
+        <Image className={`cursor-pointer ${inDev ? 'hue-rotate-60' : ''}`} src="/logo/logo-with-text.svg" />
       </Link>
 
       <Row className="gap-8 items-center">
@@ -500,6 +503,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
   const sideMenuRef = useRef<HTMLDivElement>(null)
   const latestVersion = useAppVersion((s) => s.latest)
   const currentVersion = useAppVersion((s) => s.currentVersion)
+  const inDev = useAppSettings((s) => s.inDev) // show dev logo
 
   useEffect(() => {
     if (!inClient) return
@@ -528,7 +532,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
         {isMobile && (
           <Row className="items-center justify-between p-6 mobile:p-4 mobile:pl-8">
             <Link href="/">
-              <Image src="/logo/logo-with-text.svg" className="mobile:scale-75" />
+              <Image src="/logo/logo-with-text.svg" className={`mobile:scale-75 ${inDev ? 'hue-rotate-60' : ''}`} />
             </Link>
             <Icon
               size={isMobile ? 'sm' : 'md'}
@@ -873,7 +877,6 @@ function RpcConnectionFace() {
   const currentEndPoint = useConnection((s) => s.currentEndPoint)
   const isLoading = useConnection((s) => s.isLoading)
   const loadingCustomizedEndPoint = useConnection((s) => s.loadingCustomizedEndPoint)
-  const extractConnectionName = useConnection((s) => s.extractConnectionName)
   const isMobile = useAppSettings((s) => s.isMobile)
 
   return (
@@ -898,9 +901,9 @@ function RpcConnectionFace() {
           {currentEndPoint
             ? isLoading
               ? `RPC (${
-                  (loadingCustomizedEndPoint?.name ?? extractConnectionName(loadingCustomizedEndPoint?.url ?? '')) || ''
+                  (loadingCustomizedEndPoint?.name ?? extractRPCName(loadingCustomizedEndPoint?.url ?? '')) || ''
                 })`
-              : `RPC (${(currentEndPoint?.name ?? extractConnectionName(currentEndPoint.url)) || ''})`
+              : `RPC (${(currentEndPoint?.name ?? extractRPCName(currentEndPoint.url)) || ''})`
             : '--'}
         </span>
         <Icon size={isMobile ? 'xs' : 'sm'} heroIconName="chevron-right" iconClassName="text-[#ACE3E6]" />
@@ -910,6 +913,7 @@ function RpcConnectionFace() {
 }
 function RpcConnectionPanelPopover({ close: closePanel }: { close: () => void }) {
   const availableEndPoints = useConnection((s) => s.availableEndPoints)
+  const availableDevEndPoints = useConnection((s) => s.availableDevEndPoints)
   const currentEndPoint = useConnection((s) => s.currentEndPoint)
   const autoChoosedEndPoint = useConnection((s) => s.autoChoosedEndPoint)
   const userCostomizedUrlText = useConnection((s) => s.userCostomizedUrlText)
@@ -917,15 +921,13 @@ function RpcConnectionPanelPopover({ close: closePanel }: { close: () => void })
   const switchRpc = useConnection((s) => s.switchRpc)
   const deleteRpc = useConnection((s) => s.deleteRpc)
   const isLoading = useConnection((s) => s.isLoading)
-  const isMobile = useAppSettings((s) => s.isMobile)
-
   return (
     <>
       <div className="pt-3 -mb-1 mobile:mb-2 px-6 mobile:px-3 text-[rgba(171,196,255,0.5)] text-xs mobile:text-sm">
         RPC CONNECTION
       </div>
       <div className="gap-3 divide-y-1.5">
-        {availableEndPoints.map((endPoint) => {
+        {availableEndPoints.concat(availableDevEndPoints ?? []).map((endPoint) => {
           const isCurrentEndPoint = currentEndPoint?.url === endPoint.url
           return (
             <Row

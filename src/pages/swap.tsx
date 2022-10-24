@@ -52,7 +52,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isArray } from '@/functions/judgers/dateType'
-import { eq, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
@@ -661,8 +661,9 @@ function SwapCardPriceIndicator({ className }: { className?: string }) {
   const executionPrice = useSwap((s) => s.executionPrice)
   const priceImpact = useSwap((s) => s.priceImpact)
 
-  const isDangerousPrice = useMemo(() => priceImpact != null && gte(priceImpact, 0.05), [priceImpact])
-  const isWarningPrice = useMemo(() => priceImpact != null && gte(priceImpact, 0.01), [priceImpact])
+  const isDangerousPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.05), [priceImpact])
+  const isWarningPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.01), [priceImpact])
+
   const isMobile = useAppSettings((s) => s.isMobile)
   const innerPriceLeftCoin = innerReversed ? downCoin : upCoin
   const innerPriceRightCoin = innerReversed ? upCoin : downCoin
@@ -727,8 +728,8 @@ function SwapCardInfo({ className }: { className?: string }) {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
   const getToken = useToken((s) => s.getToken)
 
-  const isDangerousPrice = useMemo(() => priceImpact != null && gte(priceImpact, 0.05), [priceImpact])
-  const isWarningPrice = useMemo(() => priceImpact != null && gte(priceImpact, 0.01), [priceImpact])
+  const isDangerousPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.05), [priceImpact])
+  const isWarningPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.01), [priceImpact])
 
   const swapThrough =
     upCoin && downCoin ? (
