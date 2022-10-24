@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import { Endpoint } from '@/application/connection/fetchRPCConfig'
+import { Endpoint } from '@/application/connection/type'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import jFetch from '@/functions/dom/jFetch'

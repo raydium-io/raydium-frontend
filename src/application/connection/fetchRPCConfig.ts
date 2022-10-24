@@ -1,23 +1,6 @@
 import assert from '@/functions/assert'
 import jFetch from '@/functions/dom/jFetch'
-
-export interface UserCustomizedEndpoint {
-  name: string
-  url: string
-  isUserCustomized: true
-}
-export interface Endpoint {
-  name?: string
-  url: string
-  weight?: number
-  isUserCustomized?: true
-}
-
-export interface Config {
-  strategy: 'speed' | 'weight'
-  success: boolean
-  rpcs: Endpoint[]
-}
+import { Config } from './type'
 
 // this will increase only when there is an error on fetch raydium api
 let fetchingAttemptsCount = 0
