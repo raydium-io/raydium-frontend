@@ -241,7 +241,7 @@ export default function AddMoreDialog({
 
             <Row className="justify-between items-center mb-6 mobile:mb-2">
               <Button
-                className="frosted-glass-teal"
+                className="frosted-glass-teal min-w-[120px]"
                 validators={[
                   {
                     should: walletConnected,
@@ -269,12 +269,12 @@ export default function AddMoreDialog({
                       children: 'Confirm emission time setup'
                     }
                   },
-                  // {
-                  //   should: haveBalance,
-                  //   fallbackProps: {
-                  //     children: `Insufficient ${reward?.rewardToken?.symbol} balance`
-                  //   }
-                  // },
+                  {
+                    should: haveBalance,
+                    fallbackProps: {
+                      children: `Insufficient ${reward?.rewardToken?.symbol} balance`
+                    }
+                  },
                   {
                     should: values.openTime && isDateBefore(currentBlockChainDate, values.openTime),
                     fallbackProps: {
@@ -296,7 +296,7 @@ export default function AddMoreDialog({
               >
                 Save
               </Button>
-              <Button type="text" className="text-sm text-[#ABC4FF] bg-cancel-bg" onClick={closeDialog}>
+              <Button type="text" className="text-sm text-[#ABC4FF] bg-cancel-bg min-w-[120px]" onClick={closeDialog}>
                 Cancel
               </Button>
             </Row>

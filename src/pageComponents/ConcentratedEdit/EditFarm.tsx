@@ -81,7 +81,7 @@ export default function EditFarm() {
       {showPreview && editedReward.newReward && (
         <>
           <div className="text-sm text-secondary-title mb-3">New farm rewards</div>
-          <NewRewardTable newRewards={[editedReward.newReward]} />
+          <NewRewardTable tvl={currentAmmPool?.tvl} newRewards={[editedReward.newReward]} />
         </>
       )}
 

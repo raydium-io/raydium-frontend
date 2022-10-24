@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import useToken from '@/application/token/useToken'
 import Row from '@/components/Row'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import CoinAvatar from '@/components/CoinAvatar'
@@ -9,19 +10,19 @@ import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import ListTable from '@/components/ListTable'
 import { Badge } from '@/components/Badge'
-import { mul, div, add } from '@/functions/numberish/operations'
+import { mul, div } from '@/functions/numberish/operations'
 import { toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import formatNumber from '@/functions/format/formatNumber'
 import toPercentString from '@/functions/format/toPercentString'
 import parseDuration, { getDuration } from '@/functions/date/parseDuration'
 import Button from '@/components/Button'
-import toFraction from '@/functions/numberish/toFraction'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import Icon from '@/components/Icon'
 import { Unpacked } from '@/types/generics'
 import AddMoreDialog, { UpdateData } from './AddMoreDialog'
 import txCollectReward from '@/application/concentrated/txCollectReward'
+import { DAY_SECONDS } from './utils'
 
 interface Props {
   pool: HydratedConcentratedInfo
@@ -32,6 +33,7 @@ interface Props {
 export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }: Props) {
   const [isMobile, isApprovePanelShown] = useAppSettings((s) => [s.isMobile, s.isApprovePanelShown])
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const tokenPrices = useToken((s) => s.tokenPrices)
   const [currentReward, setCurrentReward] = useState<
     (Unpacked<HydratedConcentratedInfo['rewardInfos']> & { isRewardEnded: boolean }) | undefined
   >()
@@ -225,13 +227,25 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
                       })}
                       /day
                     </div>
+                    <div>
+                      {toPercentString(
+                        div(
+                          mul(
+                            mul(div(updateReward.perSecond, 10 ** (rewardToken?.decimals || 6)), DAY_SECONDS * 365),
+                            tokenPrices[reward.tokenMint.toBase58()] || 0
+                          ),
+                          pool.tvl
+                        )
+                      )}{' '}
+                      APR
+                    </div>
                   </Col>
                 )}
               </Grid>
             )
           }
         }}
-        renderItemActionButtons={({ index, itemData: reward }) => {
+        renderItemActionButtons={({ itemData: reward }) => {
           const hasUnClaimed = isMeaningfulNumber(reward.remainingRewards)
           const { endTime } = reward
           const isRewardEnded = Boolean(endTime && isDateAfter(onlineCurrentDate, endTime))

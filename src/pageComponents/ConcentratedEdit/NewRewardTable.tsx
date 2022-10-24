@@ -1,4 +1,6 @@
+import { CurrencyAmount } from 'test-r-sdk'
 import useAppSettings from '@/application/common/useAppSettings'
+import useToken from '@/application/token/useToken'
 import Row from '@/components/Row'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
@@ -7,16 +9,21 @@ import ListTable from '@/components/ListTable'
 import parseDuration, { getDuration } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
 import { toUTC } from '@/functions/date/dateFormat'
-import { mul } from '@/functions/numberish/operations'
+import { mul, div } from '@/functions/numberish/operations'
+import toPercentString from '@/functions/format/toPercentString'
 import { NewReward } from './AddNewReward'
 import { DAY_SECONDS } from './utils'
+import BN from 'bn.js'
 
 interface Props {
   newRewards: NewReward[]
+  tvl?: CurrencyAmount
 }
 
-export default function NewRewardTable({ newRewards }: Props) {
+export default function NewRewardTable({ newRewards, tvl }: Props) {
   const isMobile = useAppSettings((s) => s.isMobile)
+  const tokenPrices = useToken((s) => s.tokenPrices)
+
   return (
     <ListTable
       list={newRewards}
@@ -107,8 +114,11 @@ export default function NewRewardTable({ newRewards }: Props) {
             <Grid className="gap-4 h-full">
               <Col className="grow justify-center text-xs">
                 <div>
-                  {formatNumber(perDay, { fractionLength: token?.decimals || 6 })}
+                  {formatNumber(perDay, { fractionLength: token!.decimals || 6 })}
                   /day
+                </div>
+                <div>
+                  {toPercentString(div(mul(mul(perDay, tokenPrices[token!.mint.toBase58()] || 0), 365), tvl || 0))} APR
                 </div>
               </Col>
             </Grid>
