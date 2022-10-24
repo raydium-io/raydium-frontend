@@ -9,7 +9,7 @@ import {
   ReplaceType,
   Token,
   TokenAmount
-} from '@raydium-io/raydium-sdk'
+} from 'test-r-sdk'
 
 import { HexAddress, Numberish } from '@/types/constants'
 

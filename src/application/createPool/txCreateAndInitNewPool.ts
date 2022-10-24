@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
 
-import { Liquidity, SPL_MINT_LAYOUT, Token } from '@raydium-io/raydium-sdk'
+import { Liquidity, SPL_MINT_LAYOUT, Token } from 'test-r-sdk'
 
 import { deUITokenAmount, WSOLMint } from '@/application/token/quantumSOL'
 import useToken from '@/application/token/useToken'

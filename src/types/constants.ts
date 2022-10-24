@@ -1,7 +1,7 @@
 import { PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import { Fraction } from '@raydium-io/raydium-sdk'
+import { Fraction } from 'test-r-sdk'
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type EnumStr = string & {}

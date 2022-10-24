@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 
 import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
-import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
+import { Fraction, TokenAmount, ZERO } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txFarmHarvest from '@/application/farms/txFarmHarvest'

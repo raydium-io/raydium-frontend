@@ -1,6 +1,6 @@
 import { GetStructureSchema } from '@solana/buffer-layout'
 
-import { publicKey, seq, struct, u64 } from '@raydium-io/raydium-sdk'
+import { publicKey, seq, struct, u64 } from 'test-r-sdk'
 
 import { IdoVersion, SnapshotVersion } from './type'
 

@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 
-import { LiquidityPoolsJsonFile } from '@raydium-io/raydium-sdk'
+import { LiquidityPoolsJsonFile } from 'test-r-sdk'
 
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'

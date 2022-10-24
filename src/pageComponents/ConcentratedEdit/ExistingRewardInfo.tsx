@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import Row from '@/components/Row'
@@ -19,18 +19,43 @@ import toFraction from '@/functions/numberish/toFraction'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import Icon from '@/components/Icon'
 import { Unpacked } from '@/types/generics'
-import AddMoreDialog from './AddMoreDialog'
+import AddMoreDialog, { UpdateData } from './AddMoreDialog'
+import txCollectReward from '@/application/concentrated/txCollectReward'
 
 interface Props {
   pool: HydratedConcentratedInfo
+  onUpdateReward: (data: { updateReward: Map<string, UpdateData> }) => void
+  previewMode: boolean
 }
 
-export default function ExistingRewardInfo({ pool }: Props) {
-  const isMobile = useAppSettings((s) => s.isMobile)
+export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }: Props) {
+  const [isMobile, isApprovePanelShown] = useAppSettings((s) => [s.isMobile, s.isApprovePanelShown])
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
-  const [currentReward, setCurrentReward] = useState<Unpacked<HydratedConcentratedInfo['rewardInfos']> | undefined>()
-
+  const [currentReward, setCurrentReward] = useState<
+    (Unpacked<HydratedConcentratedInfo['rewardInfos']> & { isRewardEnded: boolean }) | undefined
+  >()
+  const [updateData, setUpdateData] = useState<Map<string, UpdateData>>(new Map())
+  const onlineCurrentDate = Date.now() + (chainTimeOffset ?? 0)
   const handleClose = useCallback(() => setCurrentReward(undefined), [])
+
+  const handleUpdateData = useCallback((props: { rewardMint: string; data: UpdateData }) => {
+    const { rewardMint, data } = props
+    setUpdateData((preData) => {
+      preData.set(rewardMint, data)
+      return new Map(Array.from(preData))
+    })
+  }, [])
+
+  const handleReset = useCallback((mint: string) => {
+    setUpdateData((preData) => {
+      preData.delete(mint)
+      return new Map(Array.from(preData))
+    })
+  }, [])
+
+  useEffect(() => {
+    onUpdateReward({ updateReward: updateData })
+  }, [updateData, onUpdateReward])
 
   return (
     <>
@@ -38,18 +63,18 @@ export default function ExistingRewardInfo({ pool }: Props) {
         list={pool.rewardInfos}
         type={isMobile ? 'item-card' : 'list-table'}
         className={isMobile ? 'gap-4' : ''}
-        getItemKey={(r) => `${r.tokenMint.toBase58()}-${r.authority.toBase58()}`}
+        getItemKey={(r) => `${r.tokenMint.toBase58()}-${r.creator.toBase58()}`}
         labelMapper={[
           {
             label: 'Asset',
-            cssGridItemWidth: '.9fr'
+            cssGridItemWidth: '.7fr'
           },
           {
             label: 'Amount'
           },
           {
             label: 'Duration',
-            cssGridItemWidth: '.6fr'
+            cssGridItemWidth: '1fr'
           },
           {
             label: 'Period',
@@ -61,19 +86,43 @@ export default function ExistingRewardInfo({ pool }: Props) {
         ]}
         renderRowItem={({ item: reward, label, index }) => {
           const { openTime, endTime, rewardToken, perSecond } = reward
-          const onlineCurrentDate = Date.now() + (chainTimeOffset ?? 0)
           const isRewardBeforeStart = Boolean(openTime && isDateBefore(onlineCurrentDate, openTime))
           const isRewardEnded = Boolean(endTime && isDateAfter(onlineCurrentDate, endTime))
           const isRewarding = (!openTime && !endTime) || (!isRewardEnded && !isRewardBeforeStart)
           const rewardDuration = getDuration(endTime, openTime)
-          function getDurationText() {
-            const duration = parseDuration(rewardDuration)
+          function getDurationText(val) {
+            const duration = parseDuration(val)
             return duration.hours ? `${duration.days}D ${duration.hours}H` : `${duration.days}D`
+          }
+
+          const updateReward = updateData.get(reward.rewardToken!.mint.toBase58())
+          const updateDuration = updateReward ? getDuration(updateReward.endTime, updateReward.openTime) : 0
+
+          const getRewardBadge = () => {
+            if (isRewardEnded)
+              return (
+                <Badge className="w-fit" cssColor="#da2Eef">
+                  Ended
+                </Badge>
+              )
+            if (isRewardBeforeStart)
+              return (
+                <Badge className="w-fit" cssColor="#abc4ff">
+                  Upcoming
+                </Badge>
+              )
+            if (isRewarding)
+              return (
+                <Badge className="w-fit" cssColor="#39d0d8">
+                  Ongoing
+                </Badge>
+              )
+            return null
           }
 
           if (label === 'Asset') {
             return reward.rewardToken ? (
-              <Col className="h-full justify-center">
+              <Col className="h-full gap-1 justify-center">
                 <Row className="gap-1 items-center">
                   <CoinAvatar token={reward.rewardToken} size="sm" />
                   <div>{reward.rewardToken.symbol ?? 'UNKNOWN'}</div>
@@ -92,28 +141,47 @@ export default function ExistingRewardInfo({ pool }: Props) {
                     {formatNumber(
                       mul(div(perSecond, 10 ** (rewardToken?.decimals || 6)), Math.floor(rewardDuration / 1000)),
                       {
-                        fractionLength: reward.rewardToken?.decimals ?? 6
+                        fractionLength: rewardToken?.decimals ?? 6
                       }
                     )}
                   </Col>
                 ) : undefined}
+                {updateReward && (
+                  <Col className="grow justify-center text-[#39d0d8]">
+                    {formatNumber(
+                      mul(
+                        div(updateReward.perSecond, 10 ** (rewardToken?.decimals || 6)),
+                        Math.floor(updateDuration / 1000)
+                      ),
+                      {
+                        fractionLength: reward.rewardToken?.decimals ?? 6
+                      }
+                    )}
+                  </Col>
+                )}
               </Grid>
             )
           }
 
           if (label === 'Duration') {
             return (
-              <Grid className="h-full">
+              <Grid className="h-full gap-3">
                 {openTime && endTime ? (
-                  <>
-                    <Col className="grow break-all justify-center">{getDurationText()}</Col>
-                    <Row className="gap-1 flex-wrap mt-1">
-                      {isRewardEnded && <Badge cssColor="#da2Eef">Ended</Badge>}
-                      {isRewardBeforeStart && <Badge cssColor="#abc4ff">Upcoming</Badge>}
-                      {isRewarding && <Badge cssColor="#39d0d8">Ongoing</Badge>}
+                  <Col className="justify-center">
+                    <Row className="break-all items-center gap-1">
+                      {getDurationText(rewardDuration)}
+                      {getRewardBadge()}
                     </Row>
-                  </>
+                  </Col>
                 ) : undefined}
+                {updateReward && (
+                  <Col className="grow justify-center text-[#39d0d8]">
+                    <Row className="break-all items-center gap-1">
+                      {getDurationText(updateDuration)}
+                      <Badge cssColor="#39d0d8">New</Badge>
+                    </Row>
+                  </Col>
+                )}
               </Grid>
             )
           }
@@ -121,11 +189,17 @@ export default function ExistingRewardInfo({ pool }: Props) {
           if (label === 'Period') {
             if (!openTime || !endTime) return
             return (
-              <Grid className={`gap-4 h-full`}>
+              <Grid className="gap-4 h-full">
                 <Col className="grow justify-center">
                   <div>{toUTC(openTime)}</div>
                   <div>{toUTC(endTime)}</div>
                 </Col>
+                {updateReward && (
+                  <Col className="grow justify-center text-[#39d0d8]">
+                    <div>{toUTC(updateReward.openTime)}</div>
+                    <div>{toUTC(updateReward.endTime)}</div>
+                  </Col>
+                )}
               </Grid>
             )
           }
@@ -133,68 +207,91 @@ export default function ExistingRewardInfo({ pool }: Props) {
           if (label === 'Rate') {
             return (
               <Grid className="gap-4 h-full">
-                {
-                  <Col className="grow justify-center text-xs">
+                <Col className="grow justify-center text-xs">
+                  <div>
+                    {formatNumber(mul(div(perSecond, 10 ** (rewardToken?.decimals || 6)), 3600 * 24), {
+                      fractionLength: reward.rewardToken?.decimals ?? 6
+                    })}
+                    /day
+                  </div>
+                  {pool.rewardApr24h[index] && <div>{toPercentString(pool.rewardApr24h[index])} APR</div>}
+                </Col>
+                {updateReward && (
+                  <Col className="grow justify-center text-[#39d0d8]">
                     <div>
-                      {formatNumber(mul(div(perSecond, 10 ** (rewardToken?.decimals || 6)), 3600 * 24), {
+                      {formatNumber(mul(div(updateReward.perSecond, 10 ** (rewardToken?.decimals || 6)), 3600 * 24), {
                         fractionLength: reward.rewardToken?.decimals ?? 6
                       })}
                       /day
                     </div>
-                    {pool.rewardApr24h[index] && <div>{toPercentString(pool.rewardApr24h[index])} APR</div>}
                   </Col>
-                }
+                )}
               </Grid>
             )
           }
         }}
         renderItemActionButtons={({ index, itemData: reward }) => {
-          const unClaimed = pool.userPositionAccount?.[index].rewardInfos.reduce(
-            (acc, cur) => add(acc, cur.penddingReward || 0),
-            toFraction(0)
-          )
-          const hasUnClaimed = !!unClaimed && isMeaningfulNumber(unClaimed)
+          const hasUnClaimed = isMeaningfulNumber(reward.remainingRewards)
+          const { endTime } = reward
+          const isRewardEnded = Boolean(endTime && isDateAfter(onlineCurrentDate, endTime))
+          const canAddMore =
+            endTime - onlineCurrentDate <= 1000 * 3600 * 24 * 3 && !updateData.get(reward.rewardToken!.mint.toBase58())
 
-          return (
-            <div className="flex bg-[#abc4ff1a] mobile:bg-transparent rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
-              <Button
-                onClick={() => setCurrentReward(reward)}
-                noComponentCss
-                className="flex flex-1 justify-center text-secondary-title text-xs font-medium clickable mobile:py-4"
-              >
-                <Icon heroIconName="plus" size="sm" />
-                Add more rewards
-              </Button>
-              {hasUnClaimed && (
+          return canAddMore || hasUnClaimed ? (
+            <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
+              {canAddMore && (
                 <Button
+                  onClick={() => setCurrentReward({ ...reward, isRewardEnded })}
                   noComponentCss
-                  disabled={!hasUnClaimed}
-                  className="flex flex-1 justify-center items-center text-secondary-title text-xs font-medium clickable mobile:py-4"
+                  className="flex flex-1 justify-center text-secondary-title text-xs font-medium clickable mobile:py-4"
                 >
-                  <img className="mr-2.5" src="/icons/rollback.svg" />
-                  <Col className="items-start">
-                    Claim unemmitted rewards
-                    <span className="text-[#abc4ff80]">
-                      {div(unClaimed, 10 ** (reward.rewardToken?.decimals || 6))?.toSignificant(
-                        reward.rewardToken?.decimals || 6
-                      )}{' '}
-                      {reward.rewardToken?.symbol}
-                    </span>
-                  </Col>
+                  <Icon heroIconName="plus" size="sm" />
+                  Add more rewards
                 </Button>
               )}
+              <Button
+                noComponentCss
+                disabled={!hasUnClaimed || isApprovePanelShown}
+                onClick={() => {
+                  txCollectReward({ currentAmmPool: pool, rewardMint: reward.tokenMint })
+                }}
+                className={`flex flex-1 gap-1 justify-center items-center text-secondary-title text-xs font-medium ${
+                  hasUnClaimed && !isApprovePanelShown ? 'clickable' : 'cursor-default opacity-50'
+                } mobile:py-4`}
+              >
+                <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
+                <Col className="items-start">
+                  Claim unemmitted rewards
+                  <span className="text-[#abc4ff80]">
+                    {div(reward.remainingRewards, 10 ** (reward.rewardToken?.decimals || 6))?.toSignificant(
+                      reward.rewardToken?.decimals || 6
+                    )}{' '}
+                    {reward.rewardToken?.symbol}
+                  </span>
+                </Col>
+              </Button>
             </div>
-          )
+          ) : null
         }}
-        renderControlButtons={({ changeSelf, itemData: reward }) => {
-          return (
-            <Badge className="cursor-pointer" cssColor="#abc4ff">
-              reset
+        renderControlButtons={({ itemData: reward }) => {
+          return updateData.get(reward.rewardToken!.mint.toBase58()) ? (
+            <Badge
+              className="cursor-pointer"
+              cssColor={previewMode ? '#39d0d8' : '#abc4ff'}
+              onClick={previewMode ? undefined : () => handleReset(reward.rewardToken!.mint.toBase58())}
+            >
+              {previewMode ? 'Added' : 'reset'}
             </Badge>
-          )
+          ) : null
         }}
       />
-      <AddMoreDialog open={!!currentReward} reward={currentReward} onClose={handleClose} />
+      <AddMoreDialog
+        open={!!currentReward}
+        reward={currentReward}
+        chainTimeOffset={chainTimeOffset}
+        onClose={handleClose}
+        onConfirm={handleUpdateData}
+      />
     </>
   )
 }

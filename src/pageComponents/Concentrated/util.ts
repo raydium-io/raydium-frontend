@@ -1,4 +1,4 @@
-import { ApiAmmV3Point, Fraction } from '@raydium-io/raydium-sdk'
+import { ApiAmmV3Point, Fraction } from 'test-r-sdk'
 
 import { SplToken } from '@/application/token/type'
 import { isMintEqual } from '@/functions/judgers/areEqual'

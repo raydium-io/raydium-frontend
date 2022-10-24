@@ -11,7 +11,7 @@ import {
   SplAccount,
   Token,
   TokenAmount
-} from '@raydium-io/raydium-sdk'
+} from 'test-r-sdk'
 
 import { HexAddress } from '@/types/constants'
 import { UnionCover } from '@/types/generics'

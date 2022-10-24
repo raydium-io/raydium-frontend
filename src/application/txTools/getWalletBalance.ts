@@ -1,6 +1,6 @@
 import { Connection } from '@solana/web3.js'
 
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKeyish } from 'test-r-sdk'
 
 import { toPub } from '@/functions/format/toMintString'
 

@@ -1,4 +1,4 @@
-import { TokenAmount } from '@raydium-io/raydium-sdk'
+import { TokenAmount } from 'test-r-sdk'
 
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'

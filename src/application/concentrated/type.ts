@@ -10,7 +10,7 @@ import {
   Percent,
   Price,
   TokenAmount
-} from '@raydium-io/raydium-sdk'
+} from 'test-r-sdk'
 import BN from 'bn.js'
 
 import { HexAddress, Numberish } from '@/types/constants'
@@ -82,11 +82,12 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
     rewardClaimed: TokenAmount | undefined
     tokenMint: PublicKey
     tokenVault: PublicKey
-    authority: PublicKey
+    creator: PublicKey
     emissionsPerSecondX64: BN
     rewardGrowthGlobalX64: BN
     perSecond: BN
     rewardPerWeek: TokenAmount | undefined
+    remainingRewards?: BN
   }[]
   tvl: CurrencyAmount
   feeApr24h: Percent

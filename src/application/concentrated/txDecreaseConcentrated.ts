@@ -1,4 +1,4 @@
-import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { AmmV3 } from 'test-r-sdk'
 
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
@@ -43,8 +43,9 @@ export default function txDecreaseConcentrated() {
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
         title: 'Liquidity Removed',
-        description: `Removed ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${coin2.symbol
-          } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+        description: `Removed ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
+          coin2.symbol
+        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
     })
   })

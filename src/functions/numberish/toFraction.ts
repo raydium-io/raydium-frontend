@@ -1,4 +1,4 @@
-import { CurrencyAmount, Fraction, Percent, Price, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, Fraction, Percent, Price, TokenAmount, ZERO } from 'test-r-sdk'
 
 import { SOLDecimals } from '@/application/token/quantumSOL'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'

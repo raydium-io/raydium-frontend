@@ -1,4 +1,4 @@
-import { jsonInfo2PoolKeys, LiquidityPoolJsonInfo as LiquidityJsonInfo, TradeV2 } from '@raydium-io/raydium-sdk'
+import { jsonInfo2PoolKeys, LiquidityPoolJsonInfo as LiquidityJsonInfo, TradeV2 } from 'test-r-sdk'
 
 import useConnection from '@/application/connection/useConnection'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'

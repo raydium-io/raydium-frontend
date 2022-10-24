@@ -1,4 +1,4 @@
-import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { AmmV3 } from 'test-r-sdk'
 
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'

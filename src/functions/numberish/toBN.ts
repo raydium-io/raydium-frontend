@@ -1,5 +1,5 @@
 import BN from 'bn.js'
-import { BigNumberish, TEN } from '@raydium-io/raydium-sdk'
+import { BigNumberish, TEN } from 'test-r-sdk'
 
 import { Numberish } from '@/types/constants'
 

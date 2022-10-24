@@ -1,7 +1,7 @@
 import { isString } from '@sentry/utils'
 import { Connection } from '@solana/web3.js'
 
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKeyish } from 'test-r-sdk'
 
 import jFetch from '@/functions/dom/jFetch'
 import { toPub, tryToPub } from '@/functions/format/toMintString'

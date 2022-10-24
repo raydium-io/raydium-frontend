@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CurrencyAmount } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount } from 'test-r-sdk'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'

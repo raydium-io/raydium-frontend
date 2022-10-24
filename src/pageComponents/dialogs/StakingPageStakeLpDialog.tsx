@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 
-import { ZERO } from '@raydium-io/raydium-sdk'
+import { ZERO } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txFarmDeposit from '@/application/farms/txFarmDeposit'

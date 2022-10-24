@@ -16,7 +16,7 @@ import {
   ReturnTypeFetchMultiplePoolTickArrays,
   ReturnTypeGetAllRouteComputeAmountOut,
   TradeV2
-} from '@raydium-io/raydium-sdk'
+} from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'

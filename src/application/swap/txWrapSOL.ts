@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
 
-import { CurrencyAmount, Spl } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, Spl } from 'test-r-sdk'
 
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'

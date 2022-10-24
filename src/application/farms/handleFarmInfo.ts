@@ -9,7 +9,7 @@ import {
   TEN,
   TokenAmount,
   ZERO
-} from '@raydium-io/raydium-sdk'
+} from 'test-r-sdk'
 
 import { ConnectionStore } from '@/application/connection/useConnection'
 import { findAmmId } from '@/application/liquidity/miscToolFns'
@@ -75,12 +75,12 @@ export async function mergeSdkFarmInfo(
   const rawInfos = await Farm.fetchMultipleInfoAndUpdate(options)
   const result = options.pools.map(
     (pool, idx) =>
-    ({
-      ...payload.jsonInfos[idx],
-      ...pool,
-      ...rawInfos[String(pool.id)],
-      jsonInfo: payload.jsonInfos[idx]
-    } as unknown as SdkParsedFarmInfo)
+      ({
+        ...payload.jsonInfos[idx],
+        ...pool,
+        ...rawInfos[String(pool.id)],
+        jsonInfo: payload.jsonInfos[idx]
+      } as unknown as SdkParsedFarmInfo)
   )
   return result
 }
@@ -150,74 +150,74 @@ export function hydrateFarmInfo(
   const rewards: HydratedFarmInfo['rewards'] =
     farmInfo.version === 6
       ? shakeUndifindedItem(
-        farmInfo.state.rewardInfos.map((rewardInfo, idx, rewardInfos) => {
-          const { rewardOpenTime: openTime, rewardEndTime: endTime, rewardPerSecond } = rewardInfo
-          // ------------ reward time -----------------
-          const rewardOpenTime = openTime.toNumber()
-            ? new Date(openTime.toNumber() * 1000 + (payload.chainTimeOffset ?? 0))
-            : undefined // chain time
-          const rewardEndTime = endTime.toNumber()
-            ? new Date(endTime.toNumber() * 1000 + (payload.chainTimeOffset ?? 0))
-            : undefined // chain time
-          const onlineCurrentDate = Date.now() + (payload.chainTimeOffset ?? 0)
-          if (!rewardOpenTime && !rewardEndTime) return undefined // if reward is not any state, return undefined to delete it
+          farmInfo.state.rewardInfos.map((rewardInfo, idx, rewardInfos) => {
+            const { rewardOpenTime: openTime, rewardEndTime: endTime, rewardPerSecond } = rewardInfo
+            // ------------ reward time -----------------
+            const rewardOpenTime = openTime.toNumber()
+              ? new Date(openTime.toNumber() * 1000 + (payload.chainTimeOffset ?? 0))
+              : undefined // chain time
+            const rewardEndTime = endTime.toNumber()
+              ? new Date(endTime.toNumber() * 1000 + (payload.chainTimeOffset ?? 0))
+              : undefined // chain time
+            const onlineCurrentDate = Date.now() + (payload.chainTimeOffset ?? 0)
+            if (!rewardOpenTime && !rewardEndTime) return undefined // if reward is not any state, return undefined to delete it
 
-          const token = payload.getToken(toPubString(rewardInfo.rewardMint ?? farmInfo.rewardInfos[idx]?.rewardMint))
-          const isRewardBeforeStart = Boolean(rewardOpenTime && isDateBefore(onlineCurrentDate, rewardOpenTime))
-          const isRewardEnded = Boolean(rewardEndTime && isDateAfter(onlineCurrentDate, rewardEndTime))
-          const isRewarding = (!rewardOpenTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
-          const isRwardingBeforeEnd72h =
-            isRewarding &&
-            isDateAfter(
-              onlineCurrentDate,
-              offsetDateTime(rewardEndTime, { seconds: -(farmInfo.jsonInfo.rewardPeriodExtend ?? 72 * 60 * 60) })
-            )
-          const claimableRewards =
-            token && toTokenAmount(token, sub(rewardInfo.totalReward, rewardInfo.totalRewardEmissioned))
+            const token = payload.getToken(toPubString(rewardInfo.rewardMint ?? farmInfo.rewardInfos[idx]?.rewardMint))
+            const isRewardBeforeStart = Boolean(rewardOpenTime && isDateBefore(onlineCurrentDate, rewardOpenTime))
+            const isRewardEnded = Boolean(rewardEndTime && isDateAfter(onlineCurrentDate, rewardEndTime))
+            const isRewarding = (!rewardOpenTime && !rewardEndTime) || (!isRewardEnded && !isRewardBeforeStart)
+            const isRwardingBeforeEnd72h =
+              isRewarding &&
+              isDateAfter(
+                onlineCurrentDate,
+                offsetDateTime(rewardEndTime, { seconds: -(farmInfo.jsonInfo.rewardPeriodExtend ?? 72 * 60 * 60) })
+              )
+            const claimableRewards =
+              token && toTokenAmount(token, sub(rewardInfo.totalReward, rewardInfo.totalRewardEmissioned))
 
+            const pendingReward = pendingRewards?.[idx]
+            const apr = aprs[idx]
+            const usedTohaveReward = Boolean(rewardEndTime)
+
+            const jsonRewardInfo = farmInfo.rewardInfos[idx]
+
+            return {
+              ...jsonRewardInfo,
+              ...rewardInfo,
+              owner: jsonRewardInfo?.rewardSender,
+              apr: apr,
+              token,
+              userPendingReward: pendingReward,
+              userHavedReward: usedTohaveReward,
+              perSecond: token && toString(toTokenAmount(token, rewardPerSecond)),
+              openTime: rewardOpenTime,
+              endTime: rewardEndTime,
+              isOptionToken: rewardInfo.rewardType === 'Option tokens',
+              isRewardBeforeStart,
+              isRewardEnded,
+              isRewarding,
+              isRwardingBeforeEnd72h,
+              claimableRewards,
+              version: 6
+            }
+          })
+        )
+      : unionArr(farmInfo.state.rewardInfos).map((rewardInfo, idx) => {
           const pendingReward = pendingRewards?.[idx]
           const apr = aprs[idx]
-          const usedTohaveReward = Boolean(rewardEndTime)
+          const token = rewardTokens[idx]
+          const { perSlotReward } = rewardInfo
 
-          const jsonRewardInfo = farmInfo.rewardInfos[idx]
-
+          const usedTohaveReward = isMeaningfulNumber(pendingReward) || isMeaningfulNumber(perSlotReward)
           return {
-            ...jsonRewardInfo,
             ...rewardInfo,
-            owner: jsonRewardInfo?.rewardSender,
-            apr: apr,
+            apr,
             token,
             userPendingReward: pendingReward,
             userHavedReward: usedTohaveReward,
-            perSecond: token && toString(toTokenAmount(token, rewardPerSecond)),
-            openTime: rewardOpenTime,
-            endTime: rewardEndTime,
-            isOptionToken: rewardInfo.rewardType === 'Option tokens',
-            isRewardBeforeStart,
-            isRewardEnded,
-            isRewarding,
-            isRwardingBeforeEnd72h,
-            claimableRewards,
-            version: 6
+            version: farmInfo.version
           }
         })
-      )
-      : unionArr(farmInfo.state.rewardInfos).map((rewardInfo, idx) => {
-        const pendingReward = pendingRewards?.[idx]
-        const apr = aprs[idx]
-        const token = rewardTokens[idx]
-        const { perSlotReward } = rewardInfo
-
-        const usedTohaveReward = isMeaningfulNumber(pendingReward) || isMeaningfulNumber(perSlotReward)
-        return {
-          ...rewardInfo,
-          apr,
-          token,
-          userPendingReward: pendingReward,
-          userHavedReward: usedTohaveReward,
-          version: farmInfo.version
-        }
-      })
   const userStakedLpAmount =
     lpToken && farmInfo.ledger?.deposited ? new TokenAmount(lpToken, farmInfo.ledger?.deposited) : undefined
 

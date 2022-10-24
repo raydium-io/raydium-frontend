@@ -1,4 +1,4 @@
-import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
+import { PublicKeyish, TokenAmount } from 'test-r-sdk'
 
 import useConnection from '@/application/connection/useConnection'
 import { QuantumSOL, toQuantumSolAmount, WSOL, WSOLMint } from '@/application/token/quantumSOL'

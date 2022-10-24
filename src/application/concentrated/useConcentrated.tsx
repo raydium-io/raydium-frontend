@@ -1,7 +1,7 @@
 import { Keypair, Signer, Transaction } from '@solana/web3.js'
 import jFetch from '@/functions/dom/jFetch'
 import BN from 'bn.js'
-import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo, Fraction } from '@raydium-io/raydium-sdk'
+import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo, Fraction } from 'test-r-sdk'
 import create from 'zustand'
 
 import useLocalStorageItem from '@/hooks/useLocalStorage'

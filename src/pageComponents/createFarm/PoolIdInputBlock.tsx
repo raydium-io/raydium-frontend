@@ -1,6 +1,6 @@
 import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
-import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
+import { LiquidityPoolJsonInfo } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'

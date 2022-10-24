@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { ZERO } from '@raydium-io/raydium-sdk'
+import { ZERO } from 'test-r-sdk'
 
 import formatNumber, { FormatOptions } from '@/functions/format/formatNumber'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'

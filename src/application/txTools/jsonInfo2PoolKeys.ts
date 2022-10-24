@@ -1,7 +1,7 @@
 import { PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import { Currency, CurrencyAmount, Fraction, Percent, Price, Token, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Currency, CurrencyAmount, Fraction, Percent, Price, Token, TokenAmount } from 'test-r-sdk'
 
 type Primitive = boolean | number | string | null | undefined | PublicKey
 

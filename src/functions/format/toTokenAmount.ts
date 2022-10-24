@@ -1,5 +1,5 @@
 import BN from 'bn.js'
-import { Fraction, Token, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Fraction, Token, TokenAmount } from 'test-r-sdk'
 
 import {
   isQuantumSOL,

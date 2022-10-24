@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKeyish } from 'test-r-sdk'
 
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import toPubString from '@/functions/format/toMintString'

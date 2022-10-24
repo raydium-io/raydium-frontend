@@ -1,7 +1,7 @@
 import React, * as react from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { Fraction } from '@raydium-io/raydium-sdk'
+import { Fraction } from 'test-r-sdk'
 
 import { SplToken } from '@/application/token/type'
 import Button from '@/components/Button'

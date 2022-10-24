@@ -6,7 +6,7 @@ import { formatDecimal } from '@/functions/numberish/formatDecimal'
 import { useEvent } from '@/hooks/useEvent'
 import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Fraction } from '@raydium-io/raydium-sdk'
+import { Fraction } from 'test-r-sdk'
 import {
   AREA_CONFIG,
   boundaryColor,

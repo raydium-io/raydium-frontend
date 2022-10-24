@@ -1,4 +1,4 @@
-import { Percent } from '@raydium-io/raydium-sdk'
+import { Percent } from 'test-r-sdk'
 
 import { Numberish } from '@/types/constants'
 

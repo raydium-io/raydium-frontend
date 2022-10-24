@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 
-import { AmmV3, ApiAmmV3PoolInfo } from '@raydium-io/raydium-sdk'
+import { AmmV3, ApiAmmV3PoolInfo } from 'test-r-sdk'
 
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'

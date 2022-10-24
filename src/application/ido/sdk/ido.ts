@@ -20,7 +20,7 @@ import {
   u64,
   u8,
   validateAndParsePublicKey
-} from '@raydium-io/raydium-sdk'
+} from 'test-r-sdk'
 
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import toPubString from '@/functions/format/toMintString'

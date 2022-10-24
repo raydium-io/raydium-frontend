@@ -1,7 +1,7 @@
 import { createRef, ReactNode, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-import { AmmV3PoolInfo, LiquidityPoolJsonInfo, RouteInfo } from '@raydium-io/raydium-sdk'
+import { AmmV3PoolInfo, LiquidityPoolJsonInfo, RouteInfo } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useLiquidity from '@/application/liquidity/useLiquidity'

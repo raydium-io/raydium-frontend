@@ -1,4 +1,4 @@
-import { Percent } from '@raydium-io/raydium-sdk'
+import { Percent } from 'test-r-sdk'
 
 import useConnection from '@/application/connection/useConnection'
 import { currentIsAfter, currentIsBefore, isDateAfter, isDateBefore } from '@/functions/date/judges'

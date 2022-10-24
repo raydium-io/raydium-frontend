@@ -1,4 +1,4 @@
-import { CurrencyAmount, Price } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, Price } from 'test-r-sdk'
 
 import { Numberish } from '@/types/constants'
 
