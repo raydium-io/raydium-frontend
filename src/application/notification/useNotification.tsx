@@ -2,7 +2,7 @@ import { ReactNode } from 'react'
 import create from 'zustand'
 
 import { ConfirmDialogInfo } from '@/pageComponents/dialogs/ConfirmDialog'
-import { NormalNotificationItemInfo } from '@/components/NotificationItem'
+import { NormalNotificationItemInfo } from '@/components/NotificationItem/type'
 
 //! params base on <NotificationItem>
 export interface NotificationStore {

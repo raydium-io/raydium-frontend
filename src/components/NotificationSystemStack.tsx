@@ -8,13 +8,18 @@ import WelcomeBetaDialog from '../pageComponents/dialogs/WelcomeBetaDialog'
 
 import Col from './Col'
 import LinkExplorer from './LinkExplorer'
-import NotificationItem, { NormalNotificationItemInfo } from './NotificationItem'
+import NotificationItem from './NotificationItem'
+import { NormalNotificationItemInfo, TxNotificationItemInfo } from './NotificationItem/type'
 
 //#region ------------------- core definition -------------------
 type PopInfo =
   | {
       is: 'notificationItem'
       info: NormalNotificationItemInfo
+    }
+  | {
+      is: 'txItem(s)'
+      info: TxNotificationItemInfo
     }
   | {
       is: 'confirmDialog'
@@ -30,8 +35,13 @@ export default function NotificationSystemStack() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const explorerName = useAppSettings((s) => s.explorerName)
 
+  //
   const notificationItemInfos = useMemo(
-    () => stack.filter((i) => i.is === 'notificationItem').map((i) => i.info) as NormalNotificationItemInfo[],
+    () =>
+      stack.filter((i) => i.is === 'notificationItem' || i.is === 'txItem(s)').map((i) => i.info) as (
+        | NormalNotificationItemInfo
+        | TxNotificationItemInfo
+      )[],
     [stack]
   )
   const confirmDialogInfos = useMemo(
@@ -49,6 +59,9 @@ export default function NotificationSystemStack() {
   useEffect(() => {
     const log = (info: NormalNotificationItemInfo) => {
       setStack((s) => s.concat({ is: 'notificationItem', info }))
+    }
+    const logTxs = (info: TxNotificationItemInfo) => {
+      setStack((s) => s.concat({ is: 'txItem(s)', info }))
     }
     const popConfirm = (info: ConfirmDialogInfo) => {
       setStack((s) => s.concat({ is: 'confirmDialog', info }))
