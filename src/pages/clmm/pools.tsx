@@ -1184,6 +1184,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const unclaimedYield = useConcentratedPendingYield(p)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+  const logInfo = useNotification((s) => s.logInfo)
+  const walletConnected = useWallet((s) => s.connected)
 
   const rangeTag = useMemo(() => {
     let bgColor = 'bg-[#142B45]'
@@ -1219,58 +1221,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
       </Tooltip>
     )
   }, [inRange, info.currentPrice, info.base?.symbol, info.quote?.symbol])
-  const { logInfo } = useNotification.getState()
-  const walletConnected = useWallet((s) => s.connected)
-  const timeBasis = useConcentrated((s) => s.timeBasis)
-  const [yieldInfo, setYieldInfo] = useState<{
-    apr: string
-    tradeFeesApr: string
-    rewardsAprA: string
-    rewardsAprB: string
-    rewardsAprC: string
-  }>({
-    apr: '--',
-    tradeFeesApr: '--',
-    rewardsAprA: '--',
-    rewardsAprB: '--',
-    rewardsAprC: '--'
-  })
-
-  useEffect(() => {
-    if (timeBasis === TimeBasis.DAY) {
-      setYieldInfo({
-        apr: toPercentString(info.totalApr24h),
-        tradeFeesApr: toPercentString(info.feeApr24h),
-        rewardsAprA: toPercentString(info.rewardApr24h[0]),
-        rewardsAprB: toPercentString(info.rewardApr24h[1]),
-        rewardsAprC: toPercentString(info.rewardApr24h[2])
-      })
-    } else if (timeBasis === TimeBasis.WEEK) {
-      setYieldInfo({
-        apr: toPercentString(info.totalApr7d),
-        tradeFeesApr: toPercentString(info.feeApr7d),
-        rewardsAprA: toPercentString(info.rewardApr7d[0]),
-        rewardsAprB: toPercentString(info.rewardApr7d[1]),
-        rewardsAprC: toPercentString(info.rewardApr7d[2])
-      })
-    } else if (timeBasis === TimeBasis.MONTH) {
-      setYieldInfo({
-        apr: toPercentString(info.totalApr30d),
-        tradeFeesApr: toPercentString(info.feeApr30d),
-        rewardsAprA: toPercentString(info.rewardApr30d[0]),
-        rewardsAprB: toPercentString(info.rewardApr30d[1]),
-        rewardsAprC: toPercentString(info.rewardApr30d[2])
-      })
-    } else {
-      setYieldInfo({
-        apr: '--',
-        tradeFeesApr: '--',
-        rewardsAprA: '--',
-        rewardsAprB: '--',
-        rewardsAprC: '--'
-      })
-    }
-  }, [timeBasis])
 
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
@@ -1450,49 +1400,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   ≈{toUsdVolume(unclaimedYield)}
                 </div>
                 {p && <PositionAprIllustrator poolInfo={info} positionInfo={p}></PositionAprIllustrator>}
-
-                {/* <AutoBox
-                  is="Row"
-                  className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2 mobile:mt-1"
-                >
-                  <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
-                  {p ? (
-                    <>
-                      <Col className="text-white">{yieldInfo.apr}</Col>
-                      <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
-                        <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
-                        <Tooltip.Panel>
-                          <div className="max-w-[300px] py-3 px-5">
-                            <TokenPositionInfo
-                              customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
-                              customKey="Trade Fees"
-                              customValue={yieldInfo.tradeFeesApr}
-                              className="gap-32"
-                            />
-                            {info.base && (
-                              <TokenPositionInfo
-                                token={info.base}
-                                customValue={yieldInfo.rewardsAprA}
-                                suffix="Rewards"
-                                className="gap-32"
-                              />
-                            )}
-                            {info.quote && (
-                              <TokenPositionInfo
-                                token={info.quote}
-                                customValue={yieldInfo.rewardsAprB}
-                                suffix="Rewards"
-                                className="gap-32"
-                              />
-                            )}
-                          </div>
-                        </Tooltip.Panel>
-                      </Tooltip>
-                    </>
-                  ) : (
-                    <div className="text-sm font-medium text-white">--</div>
-                  )}
-                </AutoBox> */}
               </Col>
               <AutoBox
                 is={isMobile ? 'Row' : 'Col'}
