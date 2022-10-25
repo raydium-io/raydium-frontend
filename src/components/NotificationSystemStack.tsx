@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useMemo, useState } from 'react'
+import { ReactNode, useEffect, useMemo, useState } from 'react'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
@@ -7,15 +7,14 @@ import ConfirmDialog, { ConfirmDialogInfo } from '../pageComponents/dialogs/Conf
 import WelcomeBetaDialog from '../pageComponents/dialogs/WelcomeBetaDialog'
 
 import Col from './Col'
-import Link from './Link'
 import LinkExplorer from './LinkExplorer'
-import NotificationItem, { NotificationItemInfo } from './NotificationItem'
+import NotificationItem, { NormalNotificationItemInfo } from './NotificationItem'
 
 //#region ------------------- core definition -------------------
 type PopInfo =
   | {
       is: 'notificationItem'
-      info: NotificationItemInfo
+      info: NormalNotificationItemInfo
     }
   | {
       is: 'confirmDialog'
@@ -32,7 +31,7 @@ export default function NotificationSystemStack() {
   const explorerName = useAppSettings((s) => s.explorerName)
 
   const notificationItemInfos = useMemo(
-    () => stack.filter((i) => i.is === 'notificationItem').map((i) => i.info) as NotificationItemInfo[],
+    () => stack.filter((i) => i.is === 'notificationItem').map((i) => i.info) as NormalNotificationItemInfo[],
     [stack]
   )
   const confirmDialogInfos = useMemo(
@@ -48,7 +47,7 @@ export default function NotificationSystemStack() {
     [stack]
   )
   useEffect(() => {
-    const log = (info: NotificationItemInfo) => {
+    const log = (info: NormalNotificationItemInfo) => {
       setStack((s) => s.concat({ is: 'notificationItem', info }))
     }
     const popConfirm = (info: ConfirmDialogInfo) => {

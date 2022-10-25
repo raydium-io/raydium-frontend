@@ -2,11 +2,11 @@ import { ReactNode } from 'react'
 import create from 'zustand'
 
 import { ConfirmDialogInfo } from '@/pageComponents/dialogs/ConfirmDialog'
-import { NotificationItemInfo } from '@/components/NotificationItem'
+import { NormalNotificationItemInfo } from '@/components/NotificationItem'
 
 //! params base on <NotificationItem>
 export interface NotificationStore {
-  log(info: NotificationItemInfo): void
+  log(info: NormalNotificationItemInfo): void
   logTxid(txid: string, title: string, options?: { isSuccess: boolean }): void
   logError(title: unknown, description?: ReactNode): void
   logWarning(title: string, description?: ReactNode): void

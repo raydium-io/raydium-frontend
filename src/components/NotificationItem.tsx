@@ -7,18 +7,29 @@ import { Transition } from '@headlessui/react'
 import Card from './Card'
 import Icon, { AppHeroIconName } from './Icon'
 import Row from './Row'
+import { TxHistoryInfo } from '@/application/txHistory/useTxHistory'
 
-export interface NotificationItemInfo {
+export interface NormalNotificationItemInfo {
   type?: 'success' | 'warning' | 'error' | 'info'
   title?: ReactNode
   subtitle?: ReactNode
   description?: ReactNode
 }
+export interface TxNotificationItemInfo {
+  txMode: true
+  txInfos: {
+    historyInfo: TxHistoryInfo
+    state: 'success' | 'error' | 'aborted' | 'queueing' | 'loading'
+    txid: string
+  }[]
+}
 
-const itemExistTime = process.env.NODE_ENV === 'development' ? 10 * 60 * 1000 : 4 * 1000 // (ms)
+const normalItemExistTotalTime = process.env.NODE_ENV === 'development' ? 10 * 60 * 1000 : 4 * 1000 // (ms)
+
+const txItemExistTotalTime = process.env.NODE_ENV === 'development' ? 10 * 60 * 1000 : 2 * 60 * 1000 // (ms)
 
 const colors: Record<
-  NotificationItemInfo['type'] & string,
+  NormalNotificationItemInfo['type'] & string,
   { heroIconName: AppHeroIconName; ring: string; bg: string; text: string }
 > = {
   success: {
@@ -47,22 +58,20 @@ const colors: Record<
   }
 }
 
-export default function NotificationItem({ description, title, subtitle, type = 'info' }: NotificationItemInfo) {
-  const [isOpen, { off: close }] = useToggle(true)
-  const [nodeExist, { off: destory }] = useToggle(true)
+function NotificationItemCard(props: { itemInfo: NormalNotificationItemInfo; close: () => void }) {
+  const {
+    itemInfo: { title, description, type = 'info', subtitle },
+    close
+  } = props
+
   const [isTimePassing, { off: pauseTimeline, on: resumeTimeline }] = useToggle(true)
-
-  const timeoutController = useRef(spawnTimeoutControllers({ callback: close, totalDuration: itemExistTime }))
+  const timeoutController = useRef(
+    spawnTimeoutControllers({ callback: close, totalDuration: normalItemExistTotalTime })
+  )
   const itemRef = useRef<HTMLDivElement>(null)
-
-  // for transition
-  const itemWrapperRef = useRef<HTMLDivElement>(null)
-
   useEffect(() => {
     timeoutController.current.start()
   }, [])
-
-  // TODO: just useHoverRef or <Hoverable>
   useHover(itemRef, {
     onHover({ is: now }) {
       if (now === 'start') {
@@ -74,6 +83,60 @@ export default function NotificationItem({ description, title, subtitle, type = 
       }
     }
   })
+
+  return (
+    <Card
+      domRef={itemRef}
+      className={`min-w-[260px] relative rounded-xl ring-1.5 ring-inset ${colors[type].ring} bg-[#1B1659] py-4 pl-5 pr-10 mx-4 my-2 overflow-hidden pointer-events-auto`}
+    >
+      {/* timeline */}
+      <div className="h-1 absolute top-0 left-0 right-0">
+        {/* track */}
+        <div className={`opacity-5 ${colors[type].bg} absolute inset-0`} />
+        {/* remain-line */}
+        <div
+          className={`${colors[type].bg} absolute inset-0`}
+          style={{
+            animation: `shrink ${normalItemExistTotalTime}ms linear forwards`,
+            animationPlayState: isTimePassing ? 'running' : 'paused'
+          }}
+        />
+      </div>
+
+      <Icon
+        size="sm"
+        heroIconName="x"
+        className="absolute right-3 top-3 clickable text-[rgba(171,196,255,0.5)]"
+        onClick={() => {
+          timeoutController.current.cancel()
+          close()
+        }}
+      />
+      {/* <Icon
+     heroIconName="x"
+     onClick={close}
+     className="rounded-full absolute top-3 right-1 h-5 w-5 text-secondary cursor-pointer"
+    /> */}
+      <Row className="gap-3">
+        <Icon heroIconName={colors[type].heroIconName} className={colors[type].text} />
+        <div>
+          <div className="font-medium text-base text-white">{title}</div>
+          {subtitle && <div className="font-normal text-base mobile:text-sm text-[#ABC4FF]">{subtitle}</div>}
+          {description && (
+            <div className="font-medium text-sm mobile:text-xs text-[rgba(171,196,255,0.5)]">{description}</div>
+          )}
+        </div>
+      </Row>
+    </Card>
+  )
+}
+
+export default function NotificationItem(itemInfo: NormalNotificationItemInfo) {
+  const [isOpen, { off: close }] = useToggle(true)
+  const [nodeExist, { off: destory }] = useToggle(true)
+
+  // for transition
+  const itemWrapperRef = useRef<HTMLDivElement>(null)
 
   if (!nodeExist) return null
   return (
@@ -121,49 +184,7 @@ export default function NotificationItem({ description, title, subtitle, type = 
     >
       {/* U have to gen another <div> to have the gap between <NotificationItem> */}
       <div ref={itemWrapperRef} className={`overflow-hidden mobile:w-screen transition-all duration-500`}>
-        <Card
-          domRef={itemRef}
-          className={`min-w-[260px] relative rounded-xl ring-1.5 ring-inset ${colors[type].ring} bg-[#1B1659] py-4 pl-5 pr-10 mx-4 my-2 overflow-hidden pointer-events-auto`}
-        >
-          {/* timeline */}
-          <div className="h-1 absolute top-0 left-0 right-0">
-            {/* track */}
-            <div className={`opacity-5 ${colors[type].bg} absolute inset-0`} />
-            {/* remain-line */}
-            <div
-              className={`${colors[type].bg} absolute inset-0`}
-              style={{
-                animation: `shrink ${itemExistTime}ms linear forwards`,
-                animationPlayState: isTimePassing ? 'running' : 'paused'
-              }}
-            />
-          </div>
-
-          <Icon
-            size="sm"
-            heroIconName="x"
-            className="absolute right-3 top-3 clickable text-[rgba(171,196,255,0.5)]"
-            onClick={() => {
-              timeoutController.current.cancel()
-              close()
-            }}
-          />
-          {/* <Icon
-            heroIconName="x"
-            onClick={close}
-            className="rounded-full absolute top-3 right-1 h-5 w-5 text-secondary cursor-pointer"
-          /> */}
-          <Row className="gap-3">
-            <Icon heroIconName={colors[type].heroIconName} className={colors[type].text} />
-            <div>
-              <div className="font-medium text-base text-white">{title}</div>
-              {subtitle && <div className="font-normal text-base mobile:text-sm text-[#ABC4FF]">{subtitle}</div>}
-              {description && (
-                <div className="font-medium text-sm mobile:text-xs text-[rgba(171,196,255,0.5)]">{description}</div>
-              )}
-            </div>
-          </Row>
-        </Card>
+        <NotificationItemCard itemInfo={itemInfo} close={close}></NotificationItemCard>
       </div>
     </Transition>
   )
