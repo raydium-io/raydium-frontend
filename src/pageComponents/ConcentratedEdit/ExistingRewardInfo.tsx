@@ -26,7 +26,7 @@ import { DAY_SECONDS } from './utils'
 
 interface Props {
   pool: HydratedConcentratedInfo
-  onUpdateReward: (data: { updateReward: Map<string, UpdateData> }) => void
+  onUpdateReward: (data: Map<string, UpdateData>) => void
   previewMode: boolean
 }
 
@@ -57,7 +57,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
   }, [])
 
   useEffect(() => {
-    onUpdateReward({ updateReward: updateData })
+    onUpdateReward(updateData)
   }, [updateData, onUpdateReward])
 
   return (

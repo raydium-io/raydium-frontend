@@ -4,6 +4,7 @@ import useToken from '@/application/token/useToken'
 import Row from '@/components/Row'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
+import Icon from '@/components/Icon'
 import CoinAvatar from '@/components/CoinAvatar'
 import ListTable from '@/components/ListTable'
 import parseDuration, { getDuration } from '@/functions/date/parseDuration'
@@ -13,14 +14,16 @@ import { mul, div } from '@/functions/numberish/operations'
 import toPercentString from '@/functions/format/toPercentString'
 import { NewReward } from './AddNewReward'
 import { DAY_SECONDS } from './utils'
-import BN from 'bn.js'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 
 interface Props {
   newRewards: NewReward[]
   tvl?: CurrencyAmount
+  onClickRow?: (dataIdx: number) => void
+  onDelete?: (dataIdx: number) => void
 }
 
-export default function NewRewardTable({ newRewards, tvl }: Props) {
+export default function NewRewardTable({ newRewards, tvl, onClickRow, onDelete }: Props) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const tokenPrices = useToken((s) => s.tokenPrices)
 
@@ -29,7 +32,7 @@ export default function NewRewardTable({ newRewards, tvl }: Props) {
       list={newRewards}
       type={isMobile ? 'item-card' : 'list-table'}
       className={isMobile ? 'gap-4 mb-8' : 'mb-8'}
-      getItemKey={(r) => r.token?.mint.toBase58()}
+      getItemKey={() => Date.now()}
       labelMapper={[
         {
           label: 'Asset',
@@ -50,9 +53,12 @@ export default function NewRewardTable({ newRewards, tvl }: Props) {
           label: 'Rate'
         }
       ]}
+      rowClassName={() => (onClickRow ? 'clickable hover:backdrop-brightness-95' : '')}
+      onClickRow={({ index }) => onClickRow?.(index)}
       renderRowItem={({ item: reward, label }) => {
         const { openTime, endTime, perDay, token } = reward
-        const rewardDuration = getDuration(endTime!, openTime!)
+        const rewardDuration = getDuration(endTime || 0, openTime || 0)
+        const hasPerDay = isMeaningfulNumber(perDay)
         function getDurationText(val) {
           const duration = parseDuration(val)
           return duration.hours ? `${duration.days}D ${duration.hours}H` : `${duration.days}D`
@@ -72,9 +78,9 @@ export default function NewRewardTable({ newRewards, tvl }: Props) {
         }
 
         if (label === 'Amount') {
-          return (
+          return isMeaningfulNumber(rewardDuration) ? (
             <Grid className="gap-4 h-full">
-              {perDay ? (
+              {hasPerDay ? (
                 <Col className="grow break-all justify-center">
                   {formatNumber(mul(perDay, Math.floor(rewardDuration / 1000) / DAY_SECONDS), {
                     fractionLength: token?.decimals ?? 6
@@ -82,7 +88,7 @@ export default function NewRewardTable({ newRewards, tvl }: Props) {
                 </Col>
               ) : undefined}
             </Grid>
-          )
+          ) : null
         }
 
         if (label === 'Duration') {
@@ -110,20 +116,28 @@ export default function NewRewardTable({ newRewards, tvl }: Props) {
         }
 
         if (label === 'Rate') {
-          return (
+          return hasPerDay ? (
             <Grid className="gap-4 h-full">
               <Col className="grow justify-center text-xs">
                 <div>
-                  {formatNumber(perDay, { fractionLength: token!.decimals || 6 })}
+                  {formatNumber(perDay, { fractionLength: token?.decimals || 6 })}
                   /day
                 </div>
                 <div>
-                  {toPercentString(div(mul(mul(perDay, tokenPrices[token!.mint.toBase58()] || 0), 365), tvl || 0))} APR
+                  {toPercentString(
+                    div(mul(mul(perDay, token ? tokenPrices[token.mint.toBase58()] : 0), 365), tvl || 0)
+                  )}{' '}
+                  APR
                 </div>
               </Col>
             </Grid>
-          )
+          ) : null
         }
+      }}
+      renderControlButtons={({ index }) => {
+        return onDelete ? (
+          <Icon className="cursor-pointer" heroIconName="trash" size="sm" onClick={() => onDelete(index)} />
+        ) : null
       }}
     />
   )
