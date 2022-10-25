@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 
@@ -6,7 +6,7 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
-import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
+import txHavestConcentrated, { txHavestAllConcentrated } from '@/application/concentrated/txHavestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
   PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
@@ -174,6 +174,7 @@ function ToolsButton({ className }: { className?: string }) {
               <Grid className="grid-cols-1 items-center gap-2">
                 <PoolRefreshCircleBlock />
                 <PoolTimeBasisSelectorBox />
+                <HarvestAll />
                 <PoolCreateConcentratedPoolEntryBlock />
               </Grid>
             </Card>
@@ -231,7 +232,57 @@ function OpenNewPosition({ className }: { className?: string }) {
   )
 }
 
+function HarvestAll() {
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const walletConnected = useWallet((s) => s.connected)
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+  const sdkParsed = useConcentrated((s) => s.sdkParsedAmmPools)
+
+  const hasPosition = useMemo(() => {
+    let result = false
+    for (const pool of sdkParsed) {
+      if (pool && pool.positionAccount) {
+        result = true
+        break
+      }
+    }
+
+    return result
+  }, [sdkParsed])
+  return (
+    <Button
+      className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs h-9"
+      isLoading={isApprovePanelShown}
+      validators={[
+        {
+          should: walletConnected,
+          forceActive: true,
+          fallbackProps: {
+            onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+            children: 'Connect Wallet'
+          }
+        },
+        { should: hasPosition }
+      ]}
+      onClick={() =>
+        txHavestAllConcentrated().then(({ allSuccess }) => {
+          if (allSuccess) {
+            refreshConcentrated()
+          }
+        })
+      }
+    >
+      Harvest All
+    </Button>
+  )
+}
+
 function PoolLabelBlock({ className }: { className?: string }) {
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const walletConnected = useWallet((s) => s.connected)
+  const sdkParsed = useConcentrated((s) => s.sdkParsedAmmPools)
+
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
       <Col>
@@ -248,6 +299,7 @@ function PoolLabelBlock({ className }: { className?: string }) {
       </Col>
 
       <Row className="gap-4 items-stretch">
+        <HarvestAll />
         <PoolTimeBasisSelectorBox />
         <PoolSearchBlock className="h-[36px]" />
       </Row>

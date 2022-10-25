@@ -1,12 +1,13 @@
 import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
 
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
+import asyncMap from '@/functions/asyncMap'
 import { toString } from '@/functions/numberish/toString'
 
 import useAppSettings from '../common/useAppSettings'
-import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { loadTransaction } from '../txTools/createTransaction'
-import txHandler from '../txTools/handleTx'
+import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
@@ -45,5 +46,47 @@ export default function txHavestConcentrated({
         description: `Havested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
       }
     })
+  })
+}
+
+export function txHavestAllConcentrated() {
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
+    const { originSdkParsedAmmPools } = useConcentrated.getState()
+    const { tokenAccountRawInfos } = useWallet.getState()
+
+    // eslint-disable-next-line no-console
+    console.log('originSdkParsedAmmPools: ', originSdkParsedAmmPools)
+    // eslint-disable-next-line no-console
+    console.log('tokenAccountRawInfos: ', tokenAccountRawInfos)
+    const { transactions, address } = await AmmV3.makeHarvestAllRewardTransaction({
+      connection: connection,
+      fetchPoolInfos: originSdkParsedAmmPools,
+      ownerInfo: {
+        feePayer: owner,
+        wallet: owner,
+        tokenAccounts: tokenAccountRawInfos,
+        useSOLBalance: true
+      },
+      associatedOnly: true
+    })
+    // eslint-disable-next-line no-console
+    console.log('SHOULD SHOW IS LINE IF CALL SDK SUCCESSFULLY')
+    const signedTransactions = shakeUndifindedItem(
+      await asyncMap(transactions, (merged) => {
+        if (!merged) return
+        const { transaction, signer: signers } = merged
+        return loadTransaction({ transaction: transaction, signers })
+      })
+    )
+    const queue = signedTransactions.map((tx, idx) => [
+      tx,
+      {
+        txHistoryInfo: {
+          title: 'Havested Rewards',
+          description: `Havested: ${(idx + 1) / queue.length}`
+        }
+      }
+    ]) as TransactionQueue
+    transactionCollector.addQueue(queue)
   })
 }
