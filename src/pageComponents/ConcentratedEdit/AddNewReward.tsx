@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from 'react'
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
+import useWallet from '@/application/wallet/useWallet'
 import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
 import InputBox from '@/components/InputBox'
 import DateInput from '@/components/DateInput'
@@ -9,7 +10,7 @@ import Grid from '@/components/Grid'
 import Row from '@/components/Row'
 import { offsetDateTime, getDate } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
-import { isMeaningfulNumber, isMeaninglessNumber, gt, lt } from '@/functions/numberish/compare'
+import { isMeaningfulNumber, isMeaninglessNumber, gt, lt, gte } from '@/functions/numberish/compare'
 import { getDuration } from '@/functions/date/parseDuration'
 import { trimTailingZero } from '@/functions/numberish/handleZero'
 import { div, mul } from '@/functions/numberish/operations'
@@ -37,9 +38,9 @@ export default function AddNewReward(props: Props) {
   const { dataIndex, defaultData, disableTokens, onValidateChange, onUpdateReward } = props
   const isMobile = useAppSettings((s) => s.isMobile)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const getBalance = useWallet((s) => s.getBalance)
   const [newReward, setNewReward] = useState<NewReward>(defaultData || {})
   const indexRef = useRef(dataIndex)
-  const animateRef = useRef(true)
 
   const currentBlockChainDate = new Date(Date.now() + (chainTimeOffset || 0))
 
@@ -50,11 +51,15 @@ export default function AddNewReward(props: Props) {
           10 ** newReward.token.decimals
         )
       : undefined
-
   const noTokenError = !newReward.token ? 'Confirm reward token' : undefined
   const noAmountError = isMeaninglessNumber(newReward.amount)
     ? `Enter ${newReward.token?.symbol} token amount`
     : undefined
+
+  const balanceError =
+    !newReward.token || gte(getBalance(newReward.token), newReward.amount)
+      ? undefined
+      : `Insufficient ${newReward.token.symbol} balance`
   const needShowAmountAlert =
     newReward.amount && lt(newReward.amount, minBoundary) ? 'Emission rewards is lower than min required' : undefined
 
@@ -66,8 +71,17 @@ export default function AddNewReward(props: Props) {
   }, [newReward.duration, newReward.openTime])
 
   useEffect(() => {
-    onValidateChange(dataIndex, noTokenError || noAmountError || needShowAmountAlert || timeError)
-  }, [noTokenError, noAmountError, timeError, needShowAmountAlert, newReward.amount, onValidateChange, dataIndex])
+    onValidateChange(dataIndex, noTokenError || noAmountError || balanceError || needShowAmountAlert || timeError)
+  }, [
+    noTokenError,
+    noAmountError,
+    timeError,
+    needShowAmountAlert,
+    balanceError,
+    newReward.amount,
+    onValidateChange,
+    dataIndex
+  ])
 
   useEffect(() => {
     setNewReward((values) => {
@@ -96,10 +110,6 @@ export default function AddNewReward(props: Props) {
     if (indexRef.current !== dataIndex && defaultData) setNewReward(defaultData)
     indexRef.current = dataIndex
   }, [defaultData, dataIndex])
-
-  useEffect(() => {
-    animateRef.current = false
-  }, [])
 
   return (
     <Card
