@@ -58,14 +58,15 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
       }
     }
 
+    /* eslint-disable */
     console.log('====add more rewards======')
-
     updatedRewardInfos.forEach((r) => {
       console.log('**mint**', r.mint.toBase58())
       console.log('perSecond', r.perSecond.toString())
       console.log('openTime', r.openTime)
       console.log('endTime', r.endTime)
     })
+    /* eslint-enable */
 
     if (updatedRewardInfos.length) {
       const { transaction: setRewardTx, signers: setRewardTxSigners } = await AmmV3.makeSetRewardsTransaction({
@@ -81,14 +82,15 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
       })
     }
 
+    /* eslint-disable */
     console.log('====new rewards======')
-
     newRewardInfos.forEach((r) => {
       console.log('**mint**', r.mint.toBase58())
       console.log('perSecond', r.perSecond.toString())
       console.log('openTime', r.openTime)
       console.log('endTime', r.endTime)
     })
+    /* eslint-enable */
 
     if (newRewardInfos.length) {
       const { transaction: addRewardTx, signers: addRewardSigners } = await AmmV3.makeInitRewardsTransaction({
