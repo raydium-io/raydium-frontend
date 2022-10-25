@@ -252,18 +252,16 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           const canAddMore =
             endTime - onlineCurrentDate <= 1000 * 3600 * 24 * 3 && !updateData.get(reward.rewardToken!.mint.toBase58())
 
-          return canAddMore || hasUnClaimed ? (
+          return canAddMore ? (
             <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
-              {canAddMore && (
-                <Button
-                  onClick={() => setCurrentReward({ ...reward, isRewardEnded })}
-                  noComponentCss
-                  className="flex flex-1 justify-center text-secondary-title text-xs font-medium clickable mobile:py-4"
-                >
-                  <Icon heroIconName="plus" size="sm" />
-                  Add more rewards
-                </Button>
-              )}
+              <Button
+                onClick={() => setCurrentReward({ ...reward, isRewardEnded })}
+                noComponentCss
+                className="flex flex-1 justify-center text-secondary-title text-xs font-medium clickable mobile:py-4"
+              >
+                <Icon heroIconName="plus" size="sm" />
+                Add more rewards
+              </Button>
               <Button
                 noComponentCss
                 disabled={!hasUnClaimed || isApprovePanelShown}
