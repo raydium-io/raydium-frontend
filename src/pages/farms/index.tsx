@@ -757,7 +757,8 @@ function FarmPendingRewardBadge({
         )}
         {!isTokenAmount(reward) && reward.openTime && reward.endTime && (
           <div className="opacity-50">
-            {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
+            {toUTC(reward.openTime, { hideHourMinuteSecond: true })} ~{' '}
+            {toUTC(reward.endTime, { hideHourMinuteSecond: true })}
           </div>
         )}
         {reward.token?.mint && (

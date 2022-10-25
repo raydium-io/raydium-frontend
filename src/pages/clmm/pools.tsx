@@ -6,7 +6,11 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
-import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
+import {
+  HydratedConcentratedInfo,
+  HydratedConcentratedRewardInfo,
+  UserPositionAccount
+} from '@/application/concentrated/type'
 import useConcentrated, {
   PoolsConcentratedTabs,
   TimeBasis,
@@ -25,7 +29,7 @@ import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
-import CoinAvatar from '@/components/CoinAvatar'
+import CoinAvatar, { CoinAvatarProps } from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
@@ -69,6 +73,7 @@ import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
+import { isMintEqual, isPubEqual } from '@/functions/judgers/areEqual'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -722,27 +727,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
 
       return (
         <Tooltip key={`${info.idString}-reward-badge-id-${idx}`}>
-          <Row
-            className={`ring-1 ring-inset ring-[#abc4ff80] p-1 mobile:p-[1px] rounded-full items-center gap-2 overflow-hidden ${
-              isRewardEnd ? 'opacity-30 contrast-40' : isRewardBeforeStart ? 'opacity-50' : ''
-            } `}
-          >
-            <div className="relative">
-              <CoinAvatar
-                size={isMobile ? 'xs' : 'smi'}
-                token={reward.rewardToken}
-                className={isRewardBeforeStart ? 'blur-sm' : ''}
-              />
-              {isRewardEnd && (
-                <div className="absolute h-[1.5px] w-full top-1/2 -translate-y-1/2 rotate-45 bg-[#abc4ff80] scale-x-125"></div>
-              )}
-              {isRewardBeforeStart && (
-                <div className="absolute top-1/2 -translate-y-1/2 opacity-70">
-                  <Icon heroIconName="dots-horizontal" size={isMobile ? 'sm' : 'md'} />
-                </div>
-              )}
-            </div>
-          </Row>
+          <RewardAvatar rewardInfo={reward}></RewardAvatar>
           <Tooltip.Panel>
             <div key={`${info.idString}-reward-detail-content-id-${idx}`}>
               <Row className="text-sm justify-between items-center min-w-[260px] gap-4">
@@ -774,7 +759,8 @@ function PoolCardDatabaseBodyCollapseItemFace({
               )}
               {reward.openTime && reward.endTime && (
                 <div className="opacity-50">
-                  {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
+                  {toUTC(reward.openTime, { hideHourMinuteSecond: true })} ~{' '}
+                  {toUTC(reward.endTime, { hideHourMinuteSecond: true })}
                 </div>
               )}
               {reward.tokenMint && (
@@ -996,6 +982,41 @@ function PoolCardDatabaseBodyCollapseItemFace({
   return isMobile ? mobileContent : pcCotent
 }
 
+function RewardAvatar({
+  rewardInfo,
+  size
+}: {
+  rewardInfo: HydratedConcentratedRewardInfo
+  size?: CoinAvatarProps['size']
+}) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const isRewardEnd = currentIsAfter(rewardInfo.endTime)
+  const isRewardBeforeStart = currentIsBefore(rewardInfo.openTime)
+  return (
+    <Row
+      className={`ring-1 ring-inset ring-[#abc4ff80] p-1 mobile:p-[1px] rounded-full items-center gap-2 overflow-hidden ${
+        isRewardEnd ? 'opacity-30 contrast-40' : isRewardBeforeStart ? 'opacity-50' : ''
+      } `}
+    >
+      <div className="relative">
+        <CoinAvatar
+          size={size ?? (isMobile ? 'xs' : 'smi')}
+          token={rewardInfo.rewardToken}
+          className={isRewardBeforeStart ? 'blur-sm' : ''}
+        />
+        {isRewardEnd && (
+          <div className="absolute h-[1.5px] w-full top-1/2 -translate-y-1/2 rotate-45 bg-[#abc4ff80] scale-x-125"></div>
+        )}
+        {isRewardBeforeStart && (
+          <div className="absolute top-1/2 -translate-y-1/2 opacity-70">
+            <Icon heroIconName="dots-horizontal" size={isMobile ? 'sm' : 'md'} />
+          </div>
+        )}
+      </div>
+    </Row>
+  )
+}
+
 function AprLine({ className, aprValues }: { className?: string; aprValues: Numberish[] | undefined }) {
   const colors = ['#abc4ff', '#39d0d8', '#2b6aff']
   if (!aprValues) return null
@@ -1027,12 +1048,77 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
   const tokenPrices = useToken((s) => s.tokenPrices)
 
   const variousPrices = useMemo(() => ({ ...lpPrices, ...tokenPrices }), [lpPrices, tokenPrices])
-  const openNewPosition = useMemo(() => {
-    return (
-      <Col className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
-        <div className="mb-2 text-xs">Want to open a new position?</div>
-        <Row className={`justify-center items-center gap-2`}>
-          {owner && info.state.creator.equals(owner) && (
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const openNewPosition = useMemo(
+    () => (
+      <AutoBox is={isMobile ? 'Col' : 'Row'} className={`justify-center items-center gap-2 p-6 mobile:p-2`}>
+        {/* {isPubEqual(owner, info.creator) && ( */}
+        {true && (
+          <div className="grow mobile:w-full">
+            <Row className="items-center gap-2 mb-5 mobile:mb-2">
+              <Icon size={isMobile ? 'xs' : 'sm'} iconSrc="/icons/entry-icon-farms.svg" className="opacity-75" />
+              <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80]">Linked Farm</div>
+            </Row>
+            <AutoBox
+              is={isMobile ? 'Col' : 'Row'}
+              className="justify-between items-center ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-5 mobile:p-2 gap-8 mobile:gap-4"
+            >
+              {/* reward */}
+              <div>
+                <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80] mb-2">Daily Rate</div>
+                <Row className="flex-wrap gap-8 mobile:gap-2">
+                  {info.rewardInfos.map((r) => (
+                    <Col key={toPubString(r.tokenMint)} className="gap-1 mobile:gap-0.5">
+                      <Row className="items-center gap-2">
+                        <RewardAvatar rewardInfo={r} size={isMobile ? 'xs' : 'sm'} />
+                        <Row className="items-center gap-1">
+                          <div className="font-medium mobile:text-sm text-white">
+                            {formatNumber(r.rewardPerDay, { fractionLength: 0 })}
+                          </div>
+                          <div className="font-medium mobile:text-sm text-[#abc4ff80]">
+                            {r.rewardToken?.symbol ?? '--'}
+                          </div>
+                        </Row>
+                      </Row>
+                      <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80]">
+                        {toUTC(r.openTime, { hideUTCBadge: true, hideHourMinuteSecond: true })} -{' '}
+                        {toUTC(r.endTime, { hideUTCBadge: true, hideHourMinuteSecond: true })}
+                      </div>
+                    </Col>
+                  ))}
+                </Row>
+              </div>
+
+              <Button
+                className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+                onClick={() => {
+                  useConcentrated.setState({
+                    coin1: info.base,
+                    coin2: info.quote,
+                    chartPoints: [],
+                    lazyLoadChart: true,
+                    currentAmmPool: info
+                  })
+                  routeTo('/clmm/edit-farm', {
+                    queryProps: {
+                      farmId: info.idString
+                    }
+                  })
+                }}
+              >
+                Edit Farm
+              </Button>
+            </AutoBox>
+          </div>
+        )}
+        {/* create position button */}
+        <Col className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
+          <div className="mb-2 text-xs">Want to open a new position?</div>
+          <Row className={`justify-center items-center gap-2`}>
+            {/* {isPubEqual(owner, info.creator) && ( */}
+            {
+              // temp true for dev
+            }
             <Button
               className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
               onClick={() => {
@@ -1043,51 +1129,33 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                   lazyLoadChart: true,
                   currentAmmPool: info
                 })
-                routeTo('/clmm/edit-farm', {
-                  queryProps: {
-                    farmId: info.idString
-                  }
-                })
+                routeTo('/clmm/create-position')
               }}
             >
-              Edit Farm
+              Create Position
             </Button>
-          )}
-          <Button
-            className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
-            onClick={() => {
-              useConcentrated.setState({
-                coin1: info.base,
-                coin2: info.quote,
-                chartPoints: [],
-                lazyLoadChart: true,
-                currentAmmPool: info
-              })
-              routeTo('/clmm/create-position')
-            }}
-          >
-            Create Position
-          </Button>
-          <Tooltip>
-            <Icon
-              size="sm"
-              iconSrc="/icons/msic-swap-h.svg"
-              className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
-              onClick={() => {
-                routeTo('/swap', {
-                  queryProps: {
-                    coin1: info.base,
-                    coin2: info.quote
-                  }
-                })
-              }}
-            />
-            <Tooltip.Panel>Swap</Tooltip.Panel>
-          </Tooltip>
-        </Row>
-      </Col>
-    )
-  }, [info])
+            <Tooltip>
+              <Icon
+                size="sm"
+                iconSrc="/icons/msic-swap-h.svg"
+                className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
+                onClick={() => {
+                  routeTo('/swap', {
+                    queryProps: {
+                      coin1: info.base,
+                      coin2: info.quote
+                    }
+                  })
+                }}
+              />
+              <Tooltip.Panel>Swap</Tooltip.Panel>
+            </Tooltip>
+          </Row>
+        </Col>
+      </AutoBox>
+    ),
+    [info, isMobile]
+  )
 
   return (
     <AutoBox
@@ -1428,7 +1496,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               className="flex-auto w-1/2 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center"
             >
               <Col>
-                <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
+                <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs gap-1">
                   Pending Yield
                   {p ? (
                     <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">

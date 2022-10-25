@@ -44,6 +44,12 @@ export function isMintEqual(p1: Token | PublicKeyish | undefined, p2: Token | Pu
   return toPubString(publicKeyish1) === toPubString(publicKeyish2)
 }
 
+export function isPubEqual(p1: PublicKeyish | undefined, p2: PublicKeyish | undefined) {
+  if (p1 == undefined || p2 == undefined) return false
+  if (p1 instanceof PublicKey && p2 instanceof PublicKey) return p1.equals(p2)
+  return toPubString(p1) === toPubString(p2)
+}
+
 export function areEqualToken(token1?: SplToken | Token, token2?: SplToken | Token) {
   return isMintEqual(token1?.mint, token2?.mint)
 }

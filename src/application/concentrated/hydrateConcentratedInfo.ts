@@ -50,7 +50,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
   return {
     ammConfig: sdkConcentratedInfo.state.ammConfig,
     currentPrice,
-
+    creator: sdkConcentratedInfo.state.creator,
     rewardInfos: sdkConcentratedInfo.state.rewardInfos.map((r) => {
       const rewardToken = getToken(r.tokenMint)
       return {
@@ -59,12 +59,12 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
         rewardToken,
         openTime: r.openTime.toNumber() * 1000,
         endTime: r.endTime.toNumber() * 1000,
+        creator: sdkConcentratedInfo.state.creator,
         lastUpdateTime: r.lastUpdateTime.toNumber() * 1000,
         rewardClaimed: rewardToken ? toTokenAmount(rewardToken, r.rewardClaimed) : undefined,
         rewardTotalEmissioned: rewardToken ? toTokenAmount(rewardToken, r.rewardTotalEmissioned) : undefined,
-        rewardPerWeek: rewardToken
-          ? toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400 * 7))
-          : undefined
+        rewardPerWeek: rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400 * 7)),
+        rewardPerDay: rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400))
       }
     }),
 
