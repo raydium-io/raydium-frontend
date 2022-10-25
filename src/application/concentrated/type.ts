@@ -59,6 +59,23 @@ export type UICLMMRewardInfo = {
   originData?: Omit<UICLMMRewardInfo, 'originData'> // only edit have this
 }
 
+export interface HydratedConcentratedRewardInfo {
+  rewardToken: SplToken | undefined
+  rewardState: number
+  openTime: number
+  endTime: number
+  lastUpdateTime: number
+  rewardTotalEmissioned: TokenAmount | undefined
+  rewardClaimed: TokenAmount | undefined
+  tokenMint: PublicKey
+  tokenVault: PublicKey
+  creator: PublicKey
+  perSecond: BN
+  rewardPerWeek: TokenAmount | undefined
+  rewardPerDay: TokenAmount | undefined
+  remainingRewards?: BN
+}
+
 export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   protocolFeeRate: Percent
   tradeFeeRate: Percent
@@ -66,29 +83,14 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   quote: SplToken | undefined
   liquidity: BN
   id: PublicKey
+  creator: PublicKey
   userPositionAccount?: UserPositionAccount[]
   name: string
   idString: string
 
   ammConfig: AmmV3PoolInfo['ammConfig']
   currentPrice: Fraction
-  rewardInfos: {
-    rewardToken: SplToken | undefined
-    rewardState: number
-    openTime: number
-    endTime: number
-    lastUpdateTime: number
-    rewardTotalEmissioned: TokenAmount | undefined
-    rewardClaimed: TokenAmount | undefined
-    tokenMint: PublicKey
-    tokenVault: PublicKey
-    creator: PublicKey
-    emissionsPerSecondX64: BN
-    rewardGrowthGlobalX64: BN
-    perSecond: BN
-    rewardPerWeek: TokenAmount | undefined
-    remainingRewards?: BN
-  }[]
+  rewardInfos: HydratedConcentratedRewardInfo[]
   tvl: CurrencyAmount
   feeApr24h: Percent
   feeApr7d: Percent
