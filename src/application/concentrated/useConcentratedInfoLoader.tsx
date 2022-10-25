@@ -1,6 +1,7 @@
 import { useRouter } from 'next/router'
 
-import { AmmV3, ApiAmmV3PoolInfo } from 'test-r-sdk'
+import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from 'test-r-sdk'
+import { useCallback } from 'react'
 
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
@@ -31,7 +32,6 @@ export default function useConcentratedInfoLoader() {
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
   const owner = useWallet((s) => s.owner)
-  const tokenAccountsOwner = useWallet((s) => s.tokenAccountsOwner)
   const tokens = useToken((s) => s.tokens)
   const { pathname } = useRouter()
 
@@ -40,18 +40,17 @@ export default function useConcentratedInfoLoader() {
     async ([, prevRefreshCount]) => {
       if (!pathname.includes('clmm')) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
-      const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
+      const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPoolsTest')
       if (response) useConcentrated.setState({ apiAmmPools: response.data })
     },
     [pathname, refreshCount]
   )
 
   /**  api json info list ➡ SDK info list */
-  useAsyncEffect(async () => {
+  useTransitionedEffect(async () => {
     if (!pathname.includes('clmm')) return
     if (!connection) return
     if (chainTimeOffset == null) return
-    if (owner && tokenAccountsOwner && toPubString(owner) !== toPubString(tokenAccountsOwner)) return
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: apiAmmPools,
       connection,
@@ -59,7 +58,7 @@ export default function useConcentratedInfoLoader() {
       chainTime: (Date.now() + chainTimeOffset) / 1000
     })
     if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
-  }, [apiAmmPools, connection, toPubString(owner), toPubString(tokenAccountsOwner), pathname, chainTimeOffset])
+  }, [apiAmmPools, connection, tokenAccounts, owner, pathname, chainTimeOffset])
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {

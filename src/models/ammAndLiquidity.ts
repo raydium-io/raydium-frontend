@@ -62,7 +62,7 @@ export function clearApiCache() {
 }
 
 async function getAmmV3PoolKeys() {
-  const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
+  const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPoolsTest')
   if (response) {
     return response.data
   } else {
