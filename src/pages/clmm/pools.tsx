@@ -6,7 +6,7 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
-import txHavestConcentrated, { txHavestAllConcentrated } from '@/application/concentrated/txHavestConcentrated'
+import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
   PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
@@ -238,34 +238,17 @@ function HarvestAll() {
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const sdkParsed = useConcentrated((s) => s.sdkParsedAmmPools)
 
-  const hasPosition = useMemo(() => {
-    let result = false
-    for (const pool of sdkParsed) {
-      if (pool && pool.positionAccount) {
-        result = true
-        break
-      }
-    }
-
-    return result
-  }, [sdkParsed])
   return (
     <Button
       className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs h-9"
       isLoading={isApprovePanelShown}
       validators={[
         {
-          should: walletConnected,
-          forceActive: true,
-          fallbackProps: {
-            onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-            children: 'Connect Wallet'
-          }
-        },
-        { should: hasPosition }
+          should: walletConnected
+        }
       ]}
       onClick={() =>
-        txHavestAllConcentrated().then(({ allSuccess }) => {
+        txHarvestAllConcentrated().then(({ allSuccess }) => {
           if (allSuccess) {
             refreshConcentrated()
           }
@@ -1566,7 +1549,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     { should: isMeaningfulNumber(unclaimedYield) }
                   ]}
                   onClick={() =>
-                    txHavestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(
+                    txHarvestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(
                       ({ allSuccess }) => {
                         if (allSuccess) {
                           refreshConcentrated()

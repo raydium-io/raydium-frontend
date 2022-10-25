@@ -1,8 +1,9 @@
-import { twMerge } from 'tailwind-merge'
 import { Fraction, Price, Token, TokenAmount } from '@raydium-io/raydium-sdk'
 
+import { twMerge } from 'tailwind-merge'
+
 import useAppSettings from '@/application/common/useAppSettings'
-import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
+import txHarvestConcentrated from '@/application/concentrated/txHarvestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, { timeMap } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
@@ -31,6 +32,7 @@ import { toString } from '@/functions/numberish/toString'
 import { toXYChartFormat } from '@/pageComponents/Concentrated'
 import Chart from '@/pageComponents/ConcentratedRangeChart/Chart'
 import { Numberish } from '@/types/constants'
+
 import { AprChart } from './AprChart'
 import { ConcentratedModifyTooltipIcon } from './ConcentratedModifyTooltipIcon'
 import { ConcentratedTimeBasisSwitcher } from './ConcentratedTimeBasisSwitcher'
@@ -223,7 +225,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
           size={isMobile ? 'sm' : undefined}
           isLoading={isApprovePanelShown}
           onClick={() =>
-            txHavestConcentrated().then(({ allSuccess }) => {
+            txHarvestConcentrated().then(({ allSuccess }) => {
               if (allSuccess) {
                 refreshConcentrated()
               }
