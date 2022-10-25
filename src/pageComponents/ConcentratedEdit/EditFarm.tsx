@@ -21,7 +21,7 @@ export default function EditFarm() {
   )
   const [showPreview, setShowPreview] = useState(false)
   const [newRewardError, setNewRewardError] = useState<string | undefined>()
-  const canAddRewardToken = !showPreview && currentAmmPool?.rewardInfos.length === 1
+  const canAddRewardToken = !showPreview && !!currentAmmPool && currentAmmPool.rewardInfos.length <= 1
 
   const handleNewRewardError = useCallback((err: string | undefined) => {
     setNewRewardError(err)
@@ -62,12 +62,12 @@ export default function EditFarm() {
       <div className="text-sm text-secondary-title mb-3">Pool</div>
       <PoolInfo pool={currentAmmPool} />
 
-      {currentAmmPool?.rewardInfos && currentAmmPool.rewardInfos.length && (
+      {currentAmmPool?.rewardInfos && currentAmmPool.rewardInfos.length ? (
         <div className="mb-8">
           <div className="text-sm text-secondary-title mb-3">Existing Farming rewards</div>
           <ExistingRewardInfo pool={currentAmmPool} previewMode={showPreview} onUpdateReward={handleUpdateReward} />
         </div>
-      )}
+      ) : null}
 
       {canAddRewardToken && (
         <AddNewReward
