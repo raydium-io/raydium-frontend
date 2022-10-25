@@ -7,7 +7,7 @@ import { ParsedUrlQuery } from 'querystring'
 import { addItem } from '@/functions/arrayMethods'
 import { cleanQuery } from '@/functions/dom/getURLQueryEntries'
 import toPubString from '@/functions/format/toMintString'
-import { isMintEqual } from '@/functions/judgers/areEqual'
+import { areEqualToken, isMintEqual } from '@/functions/judgers/areEqual'
 import { objectShakeFalsy, objectShakeNil } from '@/functions/objectMethods'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { HexAddress, MayFunction } from '@/types/constants'
@@ -113,6 +113,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
   const options = shrinkToValue(opts, [{ currentPageQuery: router.query }])
   historicalRouterLength++
   if (toPage === '/swap') {
+    const { coin1: oldCoin1, coin2: oldCoin2 } = useSwap.getState()
     const coin1 =
       options?.queryProps?.coin1 ??
       (router.pathname.includes('/liquidity/add') ? useLiquidity.getState().coin1 : undefined)
@@ -120,10 +121,18 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       options?.queryProps?.coin2 ??
       (router.pathname.includes('/liquidity/add') ? useLiquidity.getState().coin2 : undefined)
     const isSwapDirectionReversed = useSwap.getState().directionReversed
-    const targetState = objectShakeFalsy(isSwapDirectionReversed ? { coin2: coin1, coin1: coin2 } : { coin1, coin2 })
-    useSwap.setState(targetState)
+
+    useSwap.setState(objectShakeFalsy(isSwapDirectionReversed ? { coin2: coin1, coin1: coin2 } : { coin1, coin2 }))
+
+    // reset token amount
+    if (!areEqualToken(oldCoin1, coin1) || !areEqualToken(oldCoin2, coin2)) {
+      useSwap.setState({ coin1Amount: undefined, coin2Amount: undefined })
+    }
+
     router.push({ pathname: '/swap' })
   } else if (toPage === '/liquidity/add') {
+    const { coin1: oldCoin1, coin2: oldCoin2 } = useLiquidity.getState()
+
     /** get info from queryProp */
     const ammId = options?.queryProps?.ammId
     const coin1 =
@@ -141,6 +150,12 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       currentJsonInfo: undefined, // wait for auto select
       isRemoveDialogOpen: mode === 'removeLiquidity'
     })
+
+    // reset  token amount
+    if (!areEqualToken(oldCoin1, coin1) || !areEqualToken(oldCoin2, coin2)) {
+      useLiquidity.setState({ coin1Amount: undefined, coin2Amount: undefined })
+    }
+
     router.push({ pathname: '/liquidity/add' })
   } else if (toPage === '/farms') {
     return router.push({ pathname: '/farms' }).then(() => {
