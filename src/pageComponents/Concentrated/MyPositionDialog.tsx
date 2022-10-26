@@ -10,6 +10,7 @@ import useConcentratedAmmSelector from '@/application/concentrated/useConcentrat
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
+import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
@@ -247,7 +248,10 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
         </Button>
       </Row>
 
-      <Grid className="grid-cols-2 gap-6 mobile:gap-2 border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl">
+      <AutoBox
+        is={isMobile ? 'Col' : 'Grid'}
+        className="grid-cols-2 gap-6 mobile:gap-2 border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl"
+      >
         <div>
           <div className="mobile:text-sm font-medium text-[#abc4ff] mt-2 mb-4">Fees</div>
           <Grid className="grow grid-cols-1 gap-2 mobile:gap-1">
@@ -257,7 +261,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
                 prefix={
                   <Row className="items-center gap-2">
                     <CoinAvatar token={token} size="smi" />
-                    <div className="text-[#abc4ff80] min-w-[4em] mr-1">{token?.symbol ?? '--'}</div>
+                    <div className="text-[#abc4ff80] min-w-[2em] mr-1">{token?.symbol ?? '--'}</div>
                   </Row>
                 }
                 text={<div className="text-white justify-end text-end">{toString(amount)}</div>}
@@ -275,7 +279,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
                   prefix={
                     <Row className="items-center gap-2">
                       <CoinAvatar token={token} size="smi" />
-                      <div className="text-[#abc4ff80] min-w-[4em] mr-1">{token?.symbol ?? '--'}</div>
+                      <div className="text-[#abc4ff80] min-w-[2em] mr-1">{token?.symbol ?? '--'}</div>
                     </Row>
                   }
                   text={<div className="text-white justify-end text-end">{toString(amount)}</div>}
@@ -286,7 +290,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
             )}
           </Grid>
         </div>
-      </Grid>
+      </AutoBox>
     </Col>
   )
 }
