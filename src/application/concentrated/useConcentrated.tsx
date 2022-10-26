@@ -1,20 +1,19 @@
+import {
+  ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo, Fraction, ReturnTypeFetchMultiplePoolInfos
+} from '@raydium-io/raydium-sdk'
 import { Keypair, Signer, Transaction } from '@solana/web3.js'
-import jFetch from '@/functions/dom/jFetch'
+
 import BN from 'bn.js'
-import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo, Fraction } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 
+import jFetch from '@/functions/dom/jFetch'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
 
 import {
-  APIConcentratedInfo,
-  HydratedAmmV3ConfigInfo,
-  HydratedConcentratedInfo,
-  SDKParsedConcentratedInfo,
-  UICLMMRewardInfo,
+  APIConcentratedInfo, HydratedAmmV3ConfigInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo, UICLMMRewardInfo,
   UserPositionAccount
 } from './type'
 
@@ -71,6 +70,7 @@ export type ConcentratedStore = {
 
   apiAmmPools: APIConcentratedInfo[]
   sdkParsedAmmPools: SDKParsedConcentratedInfo[]
+  originSdkParsedAmmPools: ReturnTypeFetchMultiplePoolInfos
   hydratedAmmPools: HydratedConcentratedInfo[]
 
   isInput: boolean | undefined
@@ -115,6 +115,7 @@ export type ConcentratedStore = {
 export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   apiAmmPools: [],
   sdkParsedAmmPools: [],
+  originSdkParsedAmmPools: {},
   hydratedAmmPools: [],
 
   focusSide: 'coin1',

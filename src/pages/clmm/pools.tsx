@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 
@@ -6,10 +6,12 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
-import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
+import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -174,6 +176,7 @@ function ToolsButton({ className }: { className?: string }) {
               <Grid className="grid-cols-1 items-center gap-2">
                 <PoolRefreshCircleBlock />
                 <PoolTimeBasisSelectorBox />
+                <HarvestAll />
                 <PoolCreateConcentratedPoolEntryBlock />
               </Grid>
             </Card>
@@ -231,6 +234,34 @@ function OpenNewPosition({ className }: { className?: string }) {
   )
 }
 
+function HarvestAll() {
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const walletConnected = useWallet((s) => s.connected)
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+  const isMobile = useAppSettings((s) => s.isMobile)
+  return (
+    <Button
+      className="frosted-glass-teal"
+      isLoading={isApprovePanelShown}
+      validators={[
+        {
+          should: walletConnected
+        }
+      ]}
+      onClick={() =>
+        txHarvestAllConcentrated().then(({ allSuccess }) => {
+          if (allSuccess) {
+            refreshConcentrated()
+          }
+        })
+      }
+      size={isMobile ? 'xs' : 'sm'}
+    >
+      Harvest All
+    </Button>
+  )
+}
+
 function PoolLabelBlock({ className }: { className?: string }) {
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
@@ -247,7 +278,8 @@ function PoolLabelBlock({ className }: { className?: string }) {
         </div>
       </Col>
 
-      <Row className="gap-4 items-stretch">
+      <Row className="gap-4 items-center">
+        <HarvestAll />
         <PoolTimeBasisSelectorBox />
         <PoolSearchBlock className="h-[36px]" />
       </Row>
@@ -1423,7 +1455,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     { should: isMeaningfulNumber(unclaimedYield) }
                   ]}
                   onClick={() =>
-                    txHavestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(
+                    txHarvestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(
                       ({ allSuccess }) => {
                         if (allSuccess) {
                           refreshConcentrated()

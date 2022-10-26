@@ -1,21 +1,15 @@
+import {
+  AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3ConfigInfo, ApiAmmV3PoolInfo, CurrencyAmount, Fraction, Percent,
+  Price, TokenAmount
+} from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import {
-  AmmV3PoolInfo,
-  AmmV3PoolPersonalPosition,
-  ApiAmmV3ConfigInfo,
-  ApiAmmV3PoolInfo,
-  CurrencyAmount,
-  Fraction,
-  Percent,
-  Price,
-  TokenAmount
-} from '@raydium-io/raydium-sdk'
 import BN from 'bn.js'
 
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
+
 import { GetAprPoolTickParameters, GetAprPositionParameters } from './calcApr'
 
 export type APIConcentratedInfo = ApiAmmV3PoolInfo
@@ -82,7 +76,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
     rewardClaimed: TokenAmount | undefined
     tokenMint: PublicKey
     tokenVault: PublicKey
-    authority: PublicKey
+    authority?: PublicKey
     emissionsPerSecondX64: BN
     rewardGrowthGlobalX64: BN
     rewardPerWeek: TokenAmount | undefined
