@@ -20,25 +20,15 @@ import useWallet from '../wallet/useWallet'
 
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
 import {
-  clmmPoolListUrl,
-  isRaydiumDevTokenListName,
-  isRaydiumMainnetTokenListName,
-  liquidityMainnetListUrl,
+  clmmPoolListUrl, isRaydiumDevTokenListName, isRaydiumMainnetTokenListName, liquidityMainnetListUrl,
   rawTokenListConfigs
 } from './rawTokenLists.config'
 import {
-  RaydiumDevTokenListJsonInfo,
-  RaydiumTokenListJsonInfo,
-  SplToken,
-  TokenJson,
-  TokenListFetchConfigItem
+  RaydiumDevTokenListJsonInfo, RaydiumTokenListJsonInfo, SplToken, TokenJson, TokenListFetchConfigItem
 } from './type'
 import useToken, {
-  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME,
-  RAYDIUM_DEV_TOKEN_LIST_NAME,
-  RAYDIUM_MAINNET_TOKEN_LIST_NAME,
-  RAYDIUM_UNNAMED_TOKEN_LIST_NAME,
-  SOLANA_TOKEN_LIST_NAME
+  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME, RAYDIUM_DEV_TOKEN_LIST_NAME, RAYDIUM_MAINNET_TOKEN_LIST_NAME,
+  RAYDIUM_UNNAMED_TOKEN_LIST_NAME, SOLANA_TOKEN_LIST_NAME
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
 
@@ -374,27 +364,10 @@ async function loadTokens() {
     )
   }))
 
-  /** NOTE -  getToken place 1 */
-  /**
-   * exact mode: 'so111111112' will be QSOl_WSOL; 'sol' will be QSOL_SOL
-   * not exact mode: 'so111111112' will be QSOl(sol); 'sol' will be QSOL_SOL
-   *
-   */
-  function getToken(mint: PublicKeyish | undefined, options?: { exact?: boolean }): SplToken | undefined {
-    if (mint === SOLUrlMint || isMintEqual(mint, SOLMint) || (!options?.exact && isMintEqual(mint, WSOLMint))) {
-      return QuantumSOLVersionSOL
-    }
-    if (options?.exact && isMintEqual(mint, WSOLMint)) {
-      return QuantumSOLVersionWSOL
-    }
-    return tokens[toPubString(mint)]
-  }
-
   useToken.setState({
     tokenJsonInfos: listToMap(allTokens, (i) => i.mint),
     tokens,
     pureTokens,
-    verboseTokens,
-    getToken
+    verboseTokens
   })
 }
