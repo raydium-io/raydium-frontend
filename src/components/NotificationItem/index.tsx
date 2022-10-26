@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 
 import useToggle from '@/hooks/useToggle'
 import { Transition } from '@headlessui/react'
@@ -7,12 +7,21 @@ import { PopInfoNormalNotificationItem, PopInfoTxNotificationItem } from '../Not
 import { NormalNotificationItemCard } from './NormalNotificationItemCard'
 import { TxNotificationItemCard } from './TxNotificationItemCard'
 
-export default function NotificationItem({ info, is }: PopInfoNormalNotificationItem | PopInfoTxNotificationItem) {
+export default function NotificationItem(props: PopInfoNormalNotificationItem | PopInfoTxNotificationItem) {
   const [isOpen, { off: close }] = useToggle(true)
   const [nodeExist, { off: destory }] = useToggle(true)
 
   // for transition
   const itemWrapperRef = useRef<HTMLDivElement>(null)
+
+  // for tx notification controller
+  const controller = useRef(null)
+  // load controller
+  useEffect(() => {
+    if (props.is === 'txItem(s)' && controller.current) {
+      Object.assign(props.controllerCollect, controller.current)
+    }
+  }, [])
 
   if (!nodeExist) return null
   return (
@@ -60,10 +69,10 @@ export default function NotificationItem({ info, is }: PopInfoNormalNotification
     >
       {/* U have to gen another <div> to have the gap between <NotificationItem> */}
       <div ref={itemWrapperRef} className={`overflow-hidden mobile:w-screen transition-all duration-500`}>
-        {is === 'txItem(s)' ? (
-          <TxNotificationItemCard info={info} close={close}></TxNotificationItemCard>
+        {props.is === 'txItem(s)' ? (
+          <TxNotificationItemCard info={props.info} componentRef={controller} close={close} />
         ) : (
-          <NormalNotificationItemCard info={info} close={close}></NormalNotificationItemCard>
+          <NormalNotificationItemCard info={props.info} close={close} />
         )}
       </div>
     </Transition>

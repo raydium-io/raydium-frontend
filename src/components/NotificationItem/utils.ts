@@ -1,10 +1,10 @@
-export function spawnTimeoutControllers(options: { callback: () => void; totalDuration: number }) {
+export function spawnTimeoutControllers(options: { onEnd: () => void; totalDuration: number }) {
   let dead = false
   let startTimestamp: number
   let remainTime = options.totalDuration
   let id: any
   const timeFunction = () => {
-    options.callback()
+    options.onEnd()
     dead = true
   }
   function start() {
@@ -17,9 +17,6 @@ export function spawnTimeoutControllers(options: { callback: () => void; totalDu
     remainTime -= endTimestamp - startTimestamp
     globalThis.clearTimeout(id)
   }
-  function resume() {
-    start()
-  }
   function cancel() {
     globalThis.clearTimeout(id)
     dead = true
@@ -29,7 +26,7 @@ export function spawnTimeoutControllers(options: { callback: () => void; totalDu
     remainTime,
     start,
     pause,
-    resume,
+    resume: start,
     cancel
   }
 }

@@ -42,7 +42,7 @@ export function NormalNotificationItemCard({ info, close }: { info: NormalNotifi
   const { title, description, type = 'info', subtitle } = info
 
   const [isTimePassing, { off: pauseTimeline, on: resumeTimeline }] = useToggle(true)
-  const timeoutController = useRef(spawnTimeoutControllers({ callback: close, totalDuration: existMs }))
+  const timeoutController = useRef(spawnTimeoutControllers({ onEnd: close, totalDuration: existMs }))
   const itemRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     timeoutController.current.start()

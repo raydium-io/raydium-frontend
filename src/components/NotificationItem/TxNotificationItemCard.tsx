@@ -1,12 +1,14 @@
 import { useHover } from '@/hooks/useHover'
+import { useSignalState } from '@/hooks/useSignalState'
 import useToggle from '@/hooks/useToggle'
-import { useEffect, useRef } from 'react'
+import produce from 'immer'
+import { RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import Card from '../Card'
 import Icon from '../Icon'
 import LinkExplorer from '../LinkExplorer'
 import LoadingCircleSmall from '../LoadingCircleSmall'
 import Row from '../Row'
-import { TxNotificationItemInfo } from './type'
+import { TxNotificationController, TxNotificationItemInfo } from './type'
 import { spawnTimeoutControllers } from './utils'
 
 const existMs = process.env.NODE_ENV === 'development' ? 10 * 60 * 1000 : 2 * 60 * 1000 // (ms)
@@ -40,22 +42,38 @@ const colors = {
 
 export function TxNotificationItemCard({
   info: { txInfos },
+  componentRef,
   close
 }: {
+  componentRef: RefObject<any>
   info: TxNotificationItemInfo
   close: () => void
 }) {
-  // const [txAllProcessed, setTxAllProcessed] = useState(false)
+  // cache for componentRef to change it
+  const [innerTxInfos, setInnerTxInfos, innerTxInfosSignal] = useSignalState(txInfos)
 
-  const [isTimePassing, { off: pauseTimeline, on: resumeTimeline }] = useToggle(true)
-  const timeoutController = useRef(spawnTimeoutControllers({ callback: close, totalDuration: existMs }))
+  const [txAllProcessed, setTxAllProcessed, txAllProcessedSignal] = useSignalState(false)
+  const [isTimePassing, { off: pauseTimeline, on: resumeTimeline }] = useToggle(false)
+
+  const timeoutController = useRef(
+    spawnTimeoutControllers({
+      onEnd: close,
+      totalDuration: existMs
+    })
+  )
+
   const itemRef = useRef<HTMLDivElement>(null)
-  // useEffect(() => {
-  //   if (txAllProcessed) timeoutController.current.start()
-  // }, [txAllProcessed])
+
+  useEffect(() => {
+    if (txAllProcessed) {
+      timeoutController.current.start()
+      resumeTimeline()
+    }
+  }, [txAllProcessed])
 
   useHover(itemRef, {
     onHover({ is: now }) {
+      if (!txAllProcessedSignal()) return
       if (now === 'start') {
         timeoutController.current.pause()
         pauseTimeline()
@@ -70,6 +88,25 @@ export function TxNotificationItemCard({
     const txAllProcessed = txInfos.every(({ state }) => state && state !== 'processing' && state !== 'queuing')
     if (txAllProcessed) timeoutController.current.start()
   }, [txInfos])
+
+  useImperativeHandle(
+    componentRef,
+    () =>
+      ({
+        changeItemInfo(newInfo, { transaction: targetTransaction }) {
+          const mutated = produce(innerTxInfosSignal(), (txInfos) => {
+            const targetIdx = txInfos.findIndex(
+              ({ transaction: candidateTransaction }) => candidateTransaction === targetTransaction
+            )
+            if (targetIdx < 0) {
+              throw 'cannot get correct idx'
+            }
+            txInfos[targetIdx] = { ...txInfos[targetIdx], ...newInfo }
+          })
+          setInnerTxInfos(mutated)
+        }
+      } as TxNotificationController)
+  )
 
   return (
     <Card
@@ -106,13 +143,20 @@ export function TxNotificationItemCard({
           /> */}
       <Row className="gap-3">
         <div>
-          <div className="font-medium text-base text-white">Confirming transactions</div>
-          {txInfos.map(({ historyInfo, state, txid }, idx) => (
+          <div className="font-medium text-base mobile:text-sm text-white">{innerTxInfos[0].historyInfo.title}</div>
+          {innerTxInfos.map(({ historyInfo, state, txid }, idx) => (
             <div key={idx}>
               <Row className="items-center">
-                <LoadingCircleSmall />
-                <LinkExplorer hrefDetail={`tx/${txid}`}>Transaction {idx}</LinkExplorer>:{' '}
-                <div className="font-normal text-base mobile:text-sm text-[#ABC4FF]">{historyInfo.title}</div>
+                <div className="h-8 w-8 flex-none">
+                  {state === 'processing' ? (
+                    <LoadingCircleSmall />
+                  ) : state === 'success' ? (
+                    <Icon heroIconName="check-circle" className="text-[#39d0d8]" />
+                  ) : state === 'error' ? (
+                    <Icon heroIconName="exclamation-circle" className="text-[#DA2EEF]" />
+                  ) : null}
+                </div>
+                {txid ? <LinkExplorer hrefDetail={`tx/${txid}`}>Step {idx}</LinkExplorer> : <div>Step {idx}</div>}
               </Row>
               <div className="font-medium text-sm mobile:text-xs text-[rgba(171,196,255,0.5)]">
                 {historyInfo.description}

@@ -9,17 +9,24 @@ export interface NormalNotificationItemInfo {
   description?: ReactNode
 }
 
+type TxNotificationSingleItemInfo = {
+  transaction: Transaction
+  historyInfo: TxHistoryInfo
+  /** @default 'queuing' */
+  state?: 'success' | 'error' | 'aborted' | 'queuing' | 'processing'
+  /** not txid when not send */
+  txid?: string
+  /** only for error */
+  error?: unknown
+}
+
 export interface TxNotificationItemInfo {
-  txInfos: {
-    transaction: Transaction
-    historyInfo: TxHistoryInfo
-    /** @default 'queuing' */
-    state?: 'success' | 'error' | 'aborted' | 'queuing' | 'processing'
-    /** not txid when not send */
-    txid?: string
-  }[]
+  txInfos: TxNotificationSingleItemInfo[]
 }
 
 export type TxNotificationController = {
-  changeTxid(txid: string, options: { transaction: Transaction }): void
+  changeItemInfo(
+    info: Omit<Partial<TxNotificationSingleItemInfo>, 'transaction'>,
+    options: { transaction: Transaction }
+  ): void
 }

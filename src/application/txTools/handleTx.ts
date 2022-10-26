@@ -337,6 +337,7 @@ async function handleMultiTxOptions({
 
       try {
         await attachRecentBlockhash(transactions)
+
         // const allSignedTransactions = await options.payload.signAllTransactions(options.transactions)
         const allSignedTransactions = await (payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions
           ? transactions
@@ -399,7 +400,16 @@ function composeWithDifferentSendMode({
           allSignedTransactions: transactions,
           payload,
           isBatched: sendMode === 'parallel(batch-transactions)',
-          singleOption: singleOptionConcator(singleOptions[idx])
+          singleOption: singleOptionConcator(singleOptions[idx]),
+          onTxSendSuccess({ txid, transaction }) {
+            txLoggerController.changeItemInfo?.({ txid, state: 'processing' }, { transaction })
+          },
+          onTxError({ txid, transaction, error }) {
+            txLoggerController.changeItemInfo?.({ txid, state: 'error', error }, { transaction })
+          },
+          onTxSuccess({ txid, transaction }) {
+            txLoggerController.changeItemInfo?.({ txid, state: 'success' }, { transaction })
+          }
         })
       )
     }
@@ -422,7 +432,16 @@ function composeWithDifferentSendMode({
                 } else if (method === 'success') {
                   draft.onTxSuccess = mergeFunction(fn, draft.onTxSuccess)
                 }
-              })
+              }),
+              onTxSendSuccess({ txid, transaction }) {
+                txLoggerController.changeItemInfo?.({ txid, state: 'processing' }, { transaction })
+              },
+              onTxError({ txid, transaction, error }) {
+                txLoggerController.changeItemInfo?.({ txid, state: 'error', error }, { transaction })
+              },
+              onTxSuccess({ txid, transaction }) {
+                txLoggerController.changeItemInfo?.({ txid, state: 'success' }, { transaction })
+              }
             }),
           method: singleOption.continueWhenPreviousTx ?? (sendMode === 'queue' ? 'success' : 'finally')
         }
