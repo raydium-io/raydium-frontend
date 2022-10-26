@@ -143,6 +143,8 @@ export interface UserPositionAccount {
   priceUpper: Numberish
   amountA?: TokenAmount
   amountB?: TokenAmount
+  originAmountA?: TokenAmount
+  originAmountB?: TokenAmount
   tokenA?: SplToken
   tokenB?: SplToken
   leverage: number
