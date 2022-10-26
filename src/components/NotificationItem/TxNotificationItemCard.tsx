@@ -1,9 +1,11 @@
+import useAppSettings from '@/application/common/useAppSettings'
 import { useHover } from '@/hooks/useHover'
 import { useSignalState } from '@/hooks/useSignalState'
 import useToggle from '@/hooks/useToggle'
 import produce from 'immer'
 import { RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import Card from '../Card'
+import Col from '../Col'
 import Icon from '../Icon'
 import LinkExplorer from '../LinkExplorer'
 import LoadingCircleSmall from '../LoadingCircleSmall'
@@ -11,7 +13,7 @@ import Row from '../Row'
 import { TxNotificationController, TxNotificationItemInfo } from './type'
 import { spawnTimeoutControllers } from './utils'
 
-const existMs = process.env.NODE_ENV === 'development' ? 10 * 60 * 1000 : 2 * 60 * 1000 // (ms)
+const existMs = process.env.NODE_ENV === 'development' ? 1 * 60 * 1000 : 1 * 60 * 1000 // (ms)
 
 const colors = {
   success: {
@@ -49,10 +51,20 @@ export function TxNotificationItemCard({
   info: TxNotificationItemInfo
   close: () => void
 }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const explorerName = useAppSettings((s) => s.explorerName)
   // cache for componentRef to change it
   const [innerTxInfos, setInnerTxInfos, innerTxInfosSignal] = useSignalState(txInfos)
+  const [, setTxAllProcessed, txAllProcessedSignal] = useSignalState(false)
+  useEffect(() => {
+    const txAllProcessed = innerTxInfos.every(({ state }) => state && state !== 'processing' && state !== 'queuing')
+    if (txAllProcessed) {
+      setTxAllProcessed(txAllProcessed)
+      timeoutController.current.start()
+      resumeTimeline()
+    }
+  }, [innerTxInfos])
 
-  const [txAllProcessed, setTxAllProcessed, txAllProcessedSignal] = useSignalState(false)
   const [isTimePassing, { off: pauseTimeline, on: resumeTimeline }] = useToggle(false)
 
   const timeoutController = useRef(
@@ -63,13 +75,6 @@ export function TxNotificationItemCard({
   )
 
   const itemRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (txAllProcessed) {
-      timeoutController.current.start()
-      resumeTimeline()
-    }
-  }, [txAllProcessed])
 
   useHover(itemRef, {
     onHover({ is: now }) {
@@ -83,11 +88,6 @@ export function TxNotificationItemCard({
       }
     }
   })
-
-  useEffect(() => {
-    const txAllProcessed = txInfos.every(({ state }) => state && state !== 'processing' && state !== 'queuing')
-    if (txAllProcessed) timeoutController.current.start()
-  }, [txInfos])
 
   useImperativeHandle(
     componentRef,
@@ -108,18 +108,23 @@ export function TxNotificationItemCard({
       } as TxNotificationController)
   )
 
+  const wholeItemState = innerTxInfos.every(({ state }) => state === 'success')
+    ? 'success'
+    : innerTxInfos.some(({ state }) => state === 'error')
+    ? 'error'
+    : 'info'
   return (
     <Card
       domRef={itemRef}
-      className={`min-w-[260px] relative rounded-xl ring-1.5 ring-inset ${colors['success'].ring} bg-[#1B1659] py-4 pl-5 pr-10 mx-4 my-2 overflow-hidden pointer-events-auto`}
+      className={`min-w-[260px] relative rounded-xl ring-1.5 ring-inset ${colors[wholeItemState].ring} bg-[#1B1659] py-4 pl-5 pr-10 mx-4 my-2 overflow-hidden pointer-events-auto transition`}
     >
       {/* timeline */}
       <div className="h-1 absolute top-0 left-0 right-0">
         {/* track */}
-        <div className={`opacity-5 ${colors['success'].bg} absolute inset-0`} />
+        <div className={`opacity-5 ${colors[wholeItemState].bg} absolute inset-0 transition`} />
         {/* remain-line */}
         <div
-          className={`${colors['success'].bg} absolute inset-0`}
+          className={`${colors[wholeItemState].bg} absolute inset-0`}
           style={{
             animation: `shrink ${existMs}ms linear forwards`,
             animationPlayState: isTimePassing ? 'running' : 'paused'
@@ -136,33 +141,53 @@ export function TxNotificationItemCard({
           close()
         }}
       />
-      {/* <Icon
-           heroIconName="x"
-           onClick={close}
-           className="rounded-full absolute top-3 right-1 h-5 w-5 text-secondary cursor-pointer"
-          /> */}
-      <Row className="gap-3">
+      <Row className="gap-3 px-2 mobile:px-0">
         <div>
-          <div className="font-medium text-base mobile:text-sm text-white">{innerTxInfos[0].historyInfo.title}</div>
-          {innerTxInfos.map(({ historyInfo, state, txid }, idx) => (
-            <div key={idx}>
-              <Row className="items-center">
-                <div className="h-8 w-8 flex-none">
-                  {state === 'processing' ? (
-                    <LoadingCircleSmall />
-                  ) : state === 'success' ? (
-                    <Icon heroIconName="check-circle" className="text-[#39d0d8]" />
-                  ) : state === 'error' ? (
-                    <Icon heroIconName="exclamation-circle" className="text-[#DA2EEF]" />
-                  ) : null}
-                </div>
-                {txid ? <LinkExplorer hrefDetail={`tx/${txid}`}>Step {idx}</LinkExplorer> : <div>Step {idx}</div>}
-              </Row>
-              <div className="font-medium text-sm mobile:text-xs text-[rgba(171,196,255,0.5)]">
-                {historyInfo.description}
-              </div>
+          <div className="mb-2">
+            <div className="font-medium text-lg  mobile:p-0 mobile:text-sm text-white">
+              {innerTxInfos[0].historyInfo.title}
             </div>
-          ))}
+            <div className="font-medium text-sm mobile:text-sm text-[rgba(171,196,255,0.5)]">
+              {innerTxInfos[0].historyInfo.description}
+            </div>
+          </div>
+          <Col className="gap-3 mobile:gap-2">
+            {innerTxInfos.map(({ state, txid }, idx) => (
+              <Row key={idx} className="items-center gap-2 mobile:gap-1">
+                <div>
+                  {state === 'processing' ? (
+                    <LoadingCircleSmall className="h-6 w-6 mobile:h-4 mobile:w-4 scale-75" />
+                  ) : state === 'success' ? (
+                    <Icon heroIconName="check-circle" size={isMobile ? 'sm' : 'md'} className="text-[#39d0d8]" />
+                  ) : state === 'error' ? (
+                    <Icon heroIconName="exclamation-circle" size={isMobile ? 'sm' : 'md'} className="text-[#DA2EEF]" />
+                  ) : (
+                    <div className="h-6 w-6 mobile:h-4 mobile:w-4"></div>
+                  )}
+                </div>
+
+                <Row className="text-sm mobile:text-xs text-[#abc4ff80] gap-2">
+                  {innerTxInfos.length > 1 ? (
+                    <>
+                      <div>Step {idx + 1}</div>
+                      {txid && (
+                        <>
+                          <div className="opacity-50">{'|'}</div>
+                          <div>
+                            View on <LinkExplorer hrefDetail={`tx/${txid}`}>{explorerName}</LinkExplorer>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <div>
+                      View on <LinkExplorer hrefDetail={`tx/${txid}`}>{explorerName}</LinkExplorer>
+                    </div>
+                  )}
+                </Row>
+              </Row>
+            ))}
+          </Col>
         </div>
       </Row>
     </Card>
