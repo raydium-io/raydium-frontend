@@ -8403,22 +8403,6 @@ temp@^0.8.4:
   dependencies:
     rimraf "~2.6.2"
 
-test-r-sdk@^1.2.102:
-  version "1.2.102"
-  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.102.tgz#4f746fd07b6a65aa8326aa963c4527a22b1f9f44"
-  integrity sha512-b/yG+fRfQm/I3zsyOEaii9FVsjM9b41OmFtthZtaFUVVC3xbMX6IpVuT/K7Is4jY1AjfJYacMnpYdVuOTytP1Q==
-  dependencies:
-    "@colors/colors" "^1.5.0"
-    "@solana/buffer-layout" "^4.0.0"
-    "@solana/spl-token" "^0.1.8"
-    axios "^0.27.2"
-    big.js "^6.1.1"
-    decimal.js "^10.4.0"
-    decimal.js-light "^2.5.1"
-    fecha "^4.2.3"
-    lodash "^4.17.21"
-    toformat "^2.0.0"
-
 text-encoding-utf-8@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/text-encoding-utf-8/-/text-encoding-utf-8-1.0.2.tgz#585b62197b0ae437e3c7b5d0af27ac1021e10d13"

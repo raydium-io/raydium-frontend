@@ -9,7 +9,9 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -236,11 +238,10 @@ function HarvestAll() {
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const walletConnected = useWallet((s) => s.connected)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
-  const sdkParsed = useConcentrated((s) => s.sdkParsedAmmPools)
-
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Button
-      className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs h-9"
+      className="frosted-glass-teal"
       isLoading={isApprovePanelShown}
       validators={[
         {
@@ -254,6 +255,7 @@ function HarvestAll() {
           }
         })
       }
+      size={isMobile ? 'xs' : 'sm'}
     >
       Harvest All
     </Button>
@@ -261,11 +263,6 @@ function HarvestAll() {
 }
 
 function PoolLabelBlock({ className }: { className?: string }) {
-  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
-  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const walletConnected = useWallet((s) => s.connected)
-  const sdkParsed = useConcentrated((s) => s.sdkParsedAmmPools)
-
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
       <Col>
@@ -281,7 +278,7 @@ function PoolLabelBlock({ className }: { className?: string }) {
         </div>
       </Col>
 
-      <Row className="gap-4 items-stretch">
+      <Row className="gap-4 items-center">
         <HarvestAll />
         <PoolTimeBasisSelectorBox />
         <PoolSearchBlock className="h-[36px]" />
