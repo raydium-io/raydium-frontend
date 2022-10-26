@@ -1,13 +1,13 @@
-import React, { useRef } from 'react'
+import { useRef } from 'react'
 
 import useToggle from '@/hooks/useToggle'
 import { Transition } from '@headlessui/react'
 
+import { PopInfoNormalNotificationItem, PopInfoTxNotificationItem } from '../NotificationSystemStack'
 import { NormalNotificationItemCard } from './NormalNotificationItemCard'
 import { TxNotificationItemCard } from './TxNotificationItemCard'
-import { NormalNotificationItemInfo, TxNotificationItemInfo } from './type'
 
-export default function NotificationItem(itemInfo: NormalNotificationItemInfo | TxNotificationItemInfo) {
+export default function NotificationItem({ info, is }: PopInfoNormalNotificationItem | PopInfoTxNotificationItem) {
   const [isOpen, { off: close }] = useToggle(true)
   const [nodeExist, { off: destory }] = useToggle(true)
 
@@ -60,10 +60,10 @@ export default function NotificationItem(itemInfo: NormalNotificationItemInfo | 
     >
       {/* U have to gen another <div> to have the gap between <NotificationItem> */}
       <div ref={itemWrapperRef} className={`overflow-hidden mobile:w-screen transition-all duration-500`}>
-        {'isTx' in itemInfo ? (
-          <TxNotificationItemCard info={itemInfo} close={close}></TxNotificationItemCard>
+        {is === 'txItem(s)' ? (
+          <TxNotificationItemCard info={info} close={close}></TxNotificationItemCard>
         ) : (
-          <NormalNotificationItemCard info={itemInfo} close={close}></NormalNotificationItemCard>
+          <NormalNotificationItemCard info={info} close={close}></NormalNotificationItemCard>
         )}
       </div>
     </Transition>

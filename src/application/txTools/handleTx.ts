@@ -27,6 +27,7 @@ import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 import { MayPromise } from '@/types/constants'
 import { attachRecentBlockhash } from './attachRecentBlockhash'
+import { TxNotificationController, TxNotificationItemInfo } from '@/components/NotificationItem/type'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -103,7 +104,7 @@ type TxKeypairDetective = {
 
 //#endregion
 
-export interface SingleTxOptions {
+export interface SingleTxOption {
   txHistoryInfo?: Pick<TxHistoryInfo, 'title' | 'description'>
   /** if provided, error notification should respect this config */
   txErrorNotificationDescription?: string | ((error: Error) => string)
@@ -127,7 +128,7 @@ export interface SingleTxOptions {
   continueWhenPreviousTx?: 'success' | 'error' | 'finally'
 }
 
-export interface MultiTxsOptions {
+export interface MultiTxsOption {
   /**
    * send next when prev is complete (default)
    * send all at once
@@ -141,11 +142,11 @@ export interface MultiTxsOptions {
   onTxAnyError?: AnyErrorCallback
 }
 
-export type TransactionQueue = ([transaction: Transaction, singleTxOptions?: SingleTxOptions] | Transaction)[]
+export type TransactionQueue = ([transaction: Transaction, singleTxOptions?: SingleTxOption] | Transaction)[]
 
 export type TransactionCollector = {
-  add(transaction: Transaction, options?: SingleTxOptions): void
-  addQueue(transactionQueue: TransactionQueue, multiTxOptions?: MultiTxsOptions): void
+  add(transaction: Transaction, options?: SingleTxOption): void
+  addQueue(transactionQueue: TransactionQueue, multiTxOptions?: MultiTxsOption): void
 }
 
 // TODO: should also export addTxSuccessListener() and addTxErrorListener() and addTxFinallyListener()
@@ -183,7 +184,7 @@ export type SendTransactionPayload = {
 export default async function txHandler(txAction: TxFn, options?: HandleFnOptions): Promise<TxResponseInfos> {
   const {
     transactionCollector,
-    collected: { innerTransactions, singleTxOptions, multiTxOptions }
+    collected: { innerTransactions, singleTxOption, multiTxOption }
   } = collectTxOptions()
   useAppSettings.setState({ isApprovePanelShown: true })
   try {
@@ -210,7 +211,7 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
     console.info('tx transactions: ', toHumanReadable(innerTransactions))
     const finalInfos = await handleMultiTxOptions({
       transactions: innerTransactions,
-      singleOptionss: produce(singleTxOptions, (d) => {
+      singleOptions: produce(singleTxOption, (d) => {
         const firstOption = d[0]
         if (firstOption) {
           firstOption.onTxSentFinally = mergeFunction(() => {
@@ -218,7 +219,7 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
           }, firstOption.onTxSentFinally)
         }
       }),
-      multiOptions: multiTxOptions,
+      multiOption: multiTxOption,
       payload: {
         connection,
         signAllTransactions,
@@ -231,10 +232,10 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
   } catch (error) {
     const { logError } = useNotification.getState()
     console.warn(error)
-    const errorTitle = (singleTxOptions?.[0]?.txHistoryInfo?.title ?? '') + ' Error' // assume first instruction's txHistoryInfo is same as the second one
+    const errorTitle = (singleTxOption?.[0]?.txHistoryInfo?.title ?? '') + ' Error' // assume first instruction's txHistoryInfo is same as the second one
 
     const systemErrorDescription = error instanceof Error ? noTailingPeriod(error.message) : String(error)
-    const userErrorDescription = shrinkToValue(singleTxOptions?.[0]?.txErrorNotificationDescription, [error]) as
+    const userErrorDescription = shrinkToValue(singleTxOption?.[0]?.txErrorNotificationDescription, [error]) as
       | string
       | undefined
     const errorDescription = userErrorDescription || systemErrorDescription
@@ -252,22 +253,22 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
 const txSerializeCache = new Map<string, Buffer>()
 
 function collectTxOptions() {
-  const singleTxOptions = [] as SingleTxOptions[]
-  const multiTxOptions = {} as MultiTxsOptions
+  const singleTxOption = [] as SingleTxOption[]
+  const multiTxOption = {} as MultiTxsOption
   const innerTransactions = [] as Transaction[]
   const add: TransactionCollector['add'] = (transaction, options) => {
     innerTransactions.push(transaction)
-    singleTxOptions.push(options ?? {})
+    singleTxOption.push(options ?? {})
   }
   const addQueue: TransactionCollector['addQueue'] = (transactionQueue, options?) => {
     transactionQueue.forEach((transaction) => {
       const [singelTransation, singelOption] = Array.isArray(transaction) ? transaction : ([transaction] as const)
       add(singelTransation, singelOption)
     })
-    Object.assign(multiTxOptions, options)
+    Object.assign(multiTxOption, options)
   }
   const transactionCollector: TransactionCollector = { add, addQueue }
-  return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOptions } }
+  return { transactionCollector, collected: { innerTransactions, singleTxOption, multiTxOption } }
 }
 
 export function serialize(transaction: Transaction, cache = true) {
@@ -290,13 +291,13 @@ export function serialize(transaction: Transaction, cache = true) {
  */
 async function handleMultiTxOptions({
   transactions,
-  singleOptionss,
-  multiOptions,
+  singleOptions,
+  multiOption,
   payload
 }: {
   transactions: Transaction[]
-  singleOptionss: SingleTxOptions[]
-  multiOptions: MultiTxsOptions
+  singleOptions: SingleTxOption[]
+  multiOption: MultiTxsOption
   payload: SendTransactionPayload
 }): Promise<TxResponseInfos> {
   return new Promise((resolve, reject) =>
@@ -307,11 +308,11 @@ async function handleMultiTxOptions({
       const pushSuccessTxid = (txid: string) => {
         successTxids.push(txid)
         if (successTxids.length === transactions.length) {
-          multiOptions.onTxAllSuccess?.({ txids })
+          multiOption.onTxAllSuccess?.({ txids })
           resolve({ allSuccess: true, txids })
         }
       }
-      const getSingleOptions = (originalSingleOptions: SingleTxOptions) =>
+      const singleOptionConcator = (originalSingleOptions: SingleTxOption) =>
         produce(originalSingleOptions, (draft) => {
           draft.onTxSentSuccess = mergeFunction(
             (({ txid }) => {
@@ -321,7 +322,7 @@ async function handleMultiTxOptions({
           )
           draft.onTxError = mergeFunction(
             (() => {
-              multiOptions.onTxAnyError?.({ txids })
+              multiOption.onTxAnyError?.({ txids })
               resolve({ allSuccess: false, txids })
             }) as TxErrorCallback,
             draft.onTxError
@@ -340,14 +341,19 @@ async function handleMultiTxOptions({
         const allSignedTransactions = await (payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions
           ? transactions
           : payload.signAllTransactions(transactions))
-        const combined = composeWithDifferentSendMode({
+
+        // pop tx notification
+        const controller = loadBasicTxNotificationLog({ transactions: allSignedTransactions, singleOptions })
+
+        const combinedTxFn = composeWithDifferentSendMode({
+          txLoggerController: controller,
           transactions: allSignedTransactions,
-          sendMode: multiOptions.sendMode,
-          singleOptionss,
-          getSingleOptions,
+          sendMode: multiOption.sendMode,
+          singleOptions,
+          singleOptionConcator,
           payload
         })
-        combined()
+        combinedTxFn()
       } catch (err) {
         reject(err)
       }
@@ -355,18 +361,35 @@ async function handleMultiTxOptions({
   )
 }
 
+function loadBasicTxNotificationLog({
+  transactions,
+  singleOptions
+}: {
+  transactions: Transaction[]
+  singleOptions: SingleTxOption[]
+}): Partial<TxNotificationController> {
+  const txInfos = singleOptions.map(({ txHistoryInfo }, idx) => ({
+    transaction: transactions[idx],
+    historyInfo: txHistoryInfo
+  })) as TxNotificationItemInfo['txInfos']
+  const txLoggerController = useNotification.getState().logTxid({ txInfos })
+  return txLoggerController
+}
+
 function composeWithDifferentSendMode({
   transactions,
   sendMode,
-  singleOptionss,
-  getSingleOptions,
-  payload
+  singleOptions,
+  singleOptionConcator,
+  payload,
+  txLoggerController
 }: {
   transactions: Transaction[]
-  sendMode: MultiTxsOptions['sendMode']
-  singleOptionss: SingleTxOptions[]
-  getSingleOptions(originalSingleOptions: SingleTxOptions): SingleTxOptions
+  sendMode: MultiTxsOption['sendMode']
+  singleOptions: SingleTxOption[]
+  singleOptionConcator(originalSingleOptions: SingleTxOption): SingleTxOption
   payload: SendTransactionPayload
+  txLoggerController: Partial<TxNotificationController>
 }): () => void {
   if (sendMode === 'parallel(dangerous-without-order)' || sendMode === 'parallel(batch-transactions)') {
     const parallelled = () => {
@@ -376,7 +399,7 @@ function composeWithDifferentSendMode({
           allSignedTransactions: transactions,
           payload,
           isBatched: sendMode === 'parallel(batch-transactions)',
-          singleOptions: getSingleOptions(singleOptionss[idx])
+          singleOption: singleOptionConcator(singleOptions[idx])
         })
       )
     }
@@ -384,14 +407,14 @@ function composeWithDifferentSendMode({
   } else {
     const queued = transactions.reduceRight(
       ({ fn, method }, tx, idx) => {
-        const singleOptions = getSingleOptions(singleOptionss[idx])
+        const singleOption = singleOptionConcator(singleOptions[idx])
         return {
           fn: () =>
             handleSingleTxOptions({
               transaction: tx,
               allSignedTransactions: transactions,
               payload,
-              singleOptions: produce(singleOptions, (draft) => {
+              singleOption: produce(singleOption, (draft) => {
                 if (method === 'finally') {
                   draft.onTxFinally = mergeFunction(fn, draft.onTxFinally)
                 } else if (method === 'error') {
@@ -401,7 +424,7 @@ function composeWithDifferentSendMode({
                 }
               })
             }),
-          method: singleOptions.continueWhenPreviousTx ?? (sendMode === 'queue' ? 'success' : 'finally')
+          method: singleOption.continueWhenPreviousTx ?? (sendMode === 'queue' ? 'success' : 'finally')
         }
       },
       { fn: () => {}, method: 'success' }
@@ -421,17 +444,22 @@ function composeWithDifferentSendMode({
 async function handleSingleTxOptions({
   transaction,
   allSignedTransactions = [transaction],
-  singleOptions,
+  singleOption,
   payload,
-  isBatched
+  isBatched,
+  onTxError,
+  onTxSuccess,
+  onTxSendSuccess
 }: {
   transaction: Transaction
   allSignedTransactions?: Transaction[]
-  singleOptions?: SingleTxOptions
+  singleOption?: SingleTxOption
   payload: SendTransactionPayload
   isBatched?: boolean
+  onTxSuccess?: (info: { txid: string; transaction: Transaction; singleOption?: SingleTxOption }) => void
+  onTxError?: (info: { txid: string; transaction: Transaction; singleOption?: SingleTxOption; error: unknown }) => void
+  onTxSendSuccess?: (info: { txid: string; transaction: Transaction; singleOption?: SingleTxOption }) => void
 }) {
-  const { logError, logTxid } = useNotification.getState()
   const extraTxidInfo: MultiTxExtraInfo = {
     multiTransaction: true,
     multiTransactionLength: allSignedTransactions.length,
@@ -444,26 +472,21 @@ async function handleSingleTxOptions({
       isBatched ? { allSignedTransactions } : undefined,
       allSignedTransactions.length === 1 // NOTE: will cache when has only one transaction, ortherwise it will not cache // TODO: should cache has manually detected key (prop:cacheKey in singleOptions)
     )
-    singleOptions?.onTxSentSuccess?.({ txid, ...extraTxidInfo })
-    logTxid(txid, `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Transaction Sent`)
-    assert(txid, 'something went wrong')
+    assert(txid, 'something went wrong in sending transaction')
+    singleOption?.onTxSentSuccess?.({ txid, ...extraTxidInfo })
+    onTxSendSuccess?.({ transaction, txid, singleOption })
     subscribeTx(txid, {
       onTxSuccess(callbackParams) {
-        logTxid(txid, `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Confirmed`, {
-          isSuccess: true
-        })
-        singleOptions?.onTxSuccess?.({ ...callbackParams, ...extraTxidInfo })
+        onTxSuccess?.({ transaction, txid, singleOption })
+        singleOption?.onTxSuccess?.({ ...callbackParams, ...extraTxidInfo })
       },
       onTxError(callbackParams) {
         console.error('tx error: ', callbackParams.error)
-        logError(
-          `${singleOptions?.txHistoryInfo?.title ?? 'Action'} Failed`
-          // `reason: ${JSON.stringify(callbackParams.error)}` // TEMPly no reason
-        )
-        singleOptions?.onTxError?.({ ...callbackParams, ...extraTxidInfo })
+        onTxError?.({ transaction, txid, singleOption, error: callbackParams.error })
+        singleOption?.onTxError?.({ ...callbackParams, ...extraTxidInfo })
       },
       onTxFinally(callbackParams) {
-        singleOptions?.onTxFinally?.({
+        singleOption?.onTxFinally?.({
           ...callbackParams,
           ...extraTxidInfo
         })
@@ -472,15 +495,15 @@ async function handleSingleTxOptions({
           status: callbackParams.type === 'error' ? 'fail' : callbackParams.type,
           txid,
           time: Date.now(),
-          title: singleOptions?.txHistoryInfo?.title,
-          description: singleOptions?.txHistoryInfo?.description
+          title: singleOption?.txHistoryInfo?.title,
+          description: singleOption?.txHistoryInfo?.description
         })
       }
     })
   } catch (err) {
     console.error('fail to send tx: ', err)
-    singleOptions?.onTxSentError?.({ err, ...extraTxidInfo })
+    singleOption?.onTxSentError?.({ err, ...extraTxidInfo })
   } finally {
-    singleOptions?.onTxSentFinally?.()
+    singleOption?.onTxSentFinally?.()
   }
 }
