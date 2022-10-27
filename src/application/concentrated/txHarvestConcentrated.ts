@@ -104,7 +104,7 @@ export async function txHarvestAllConcentrated() {
       {
         txHistoryInfo: {
           title: 'Harvested All Rewards',
-          description: `red: ${idx + 1}/ ${signedTransactions.length}`
+          description: `Harvested all CLMM rewards`
         }
       }
     ]) as TransactionQueue
