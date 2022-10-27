@@ -183,14 +183,15 @@ export type SendTransactionPayload = {
   signerkeyPair?: TxKeypairDetective
 }
 
-/** a smater wrapper version of {@link txHandler}
+/**
+ * a **params smarter**  {@link txHandler}
  *
- * easier to invoke / to write tx fn base on it
+ * easier to invoke / write tx fn base on it
  */
 export function createTxHandler<Arg extends Record<string, any>>(
-  highTxAction: (arg: Arg) => TxFn,
+  highTxAction: (arg?: Arg) => TxFn,
   options?: HandleFnOptions
-): (arg: Arg & SingleTxCallbacks & MultiTxCallbacks) => Promise<TxResponseInfos> {
+): (arg?: Arg & SingleTxCallbacks & MultiTxCallbacks) => Promise<TxResponseInfos> {
   return (arg) =>
     txHandler(
       highTxAction(arg),

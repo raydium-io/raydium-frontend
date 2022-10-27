@@ -7,7 +7,7 @@ import { isExist } from './judgers/nil'
  * _mergeObjects([{a: 3, b: 2, c: undefined}, {a: 1, d: undefined}]) // {a: 1, b: 2}
  * _mergeObjects([{a: 3, b: 2}, {a: 1, b: 3}], (key, v1, v2) => (key === 'a') ? [v1, v2] : v2) // {a: [3,1], b: 3}
  */
-export function _mergeObjects<T extends ObjectNotArray>(
+export function _shallowMergeObjects<T extends ObjectNotArray>(
   objs: T[],
   transformer: (key: string, valueA: unknown, valueB: unknown) => unknown
 ): T {
@@ -61,10 +61,10 @@ export function mergeFunction<T extends AnyFn>(...fns: T[]): (...params: Paramet
 }
 
 export function mergeObject<T>(...objs: [T, ...any[]]): T {
-  return _mergeObjects(objs, (propertyName, v1, v2) => {
+  return _shallowMergeObjects(objs, (propertyName, v1, v2) => {
     if (isArray(v1) && isArray(v2)) return [...v1, ...v2]
-    if (isObject(v1) && isObject(v2)) return { ...v1, ...v2 }
+    if (isObject(v1) && isObject(v2)) return mergeObject(v1, v2)
     if (isFunction(v1) && isFunction(v2)) return mergeFunction(v1, v2)
-    return v2
+    return v2 == null ? v1 : v2
   })
 }
