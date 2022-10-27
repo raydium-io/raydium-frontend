@@ -2,14 +2,13 @@ import { useCallback, useMemo } from 'react'
 
 import { AmmV3 } from '@raydium-io/raydium-sdk'
 
-import BN from 'bn.js'
-
-import useAppSettings from '@/application/common/useAppSettings'
+import { MANUAL_ADJUST } from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import RangeSliderBox from '@/components/RangeSliderBox'
 import assert from '@/functions/assert'
 import { throttle } from '@/functions/debounce'
 import toPubString from '@/functions/format/toMintString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isArray } from '@/functions/judgers/dateType'
 import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
@@ -21,10 +20,7 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
   const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
-  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
   const liquidity = useConcentrated((s) => s.liquidity)
-  const isInput = useConcentrated((s) => s.isInput)
-  const isRemoveDialogOpen = useConcentrated((s) => s.isRemoveDialogOpen)
 
   assert(coin1, 'base token not been set')
   assert(coin2, 'quote token not been set')
@@ -53,13 +49,20 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
         slippage: 0, // always 0, for remove liquidity only
         add: false
       })
+
       useConcentrated.setState({
-        coin1Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageA), 10 ** coin1.decimals), {
-          decimalLength: 'auto 10'
-        }),
-        coin2Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageB), 10 ** coin2.decimals), {
-          decimalLength: 'auto 10'
-        }),
+        coin1Amount: toString(
+          toTokenAmount(currentAmmPool.base!, mul(amountFromLiquidity.amountSlippageA, MANUAL_ADJUST)),
+          {
+            decimalLength: `auto ${currentAmmPool.base!.decimals}`
+          }
+        ),
+        coin2Amount: toString(
+          toTokenAmount(currentAmmPool.quote!, mul(amountFromLiquidity.amountSlippageB, MANUAL_ADJUST)),
+          {
+            decimalLength: `auto ${currentAmmPool.quote!.decimals}`
+          }
+        ),
         isInput: false,
         liquidity: bnValue
       })

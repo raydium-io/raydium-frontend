@@ -1,20 +1,18 @@
-import { Keypair, Signer, Transaction } from '@solana/web3.js'
-import jFetch from '@/functions/dom/jFetch'
+import { ApiAmmV3Point, ReturnTypeFetchMultiplePoolInfos } from '@raydium-io/raydium-sdk'
+import { Keypair, Transaction } from '@solana/web3.js'
+
 import BN from 'bn.js'
-import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo, Fraction } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 
+import jFetch from '@/functions/dom/jFetch'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
 
+import toBN from '@/functions/numberish/toBN'
 import {
-  APIConcentratedInfo,
-  HydratedAmmV3ConfigInfo,
-  HydratedConcentratedInfo,
-  SDKParsedConcentratedInfo,
-  UICLMMRewardInfo,
+  APIConcentratedInfo, HydratedAmmV3ConfigInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo, UICLMMRewardInfo,
   UserPositionAccount
 } from './type'
 
@@ -71,6 +69,7 @@ export type ConcentratedStore = {
 
   apiAmmPools: APIConcentratedInfo[]
   sdkParsedAmmPools: SDKParsedConcentratedInfo[]
+  originSdkParsedAmmPools: ReturnTypeFetchMultiplePoolInfos
   hydratedAmmPools: HydratedConcentratedInfo[]
 
   isInput: boolean | undefined
@@ -109,12 +108,16 @@ export type ConcentratedStore = {
   planAApr?: { feeApr: number; rewardsApr: number[]; apr: number }
   planBApr?: { feeApr: number; rewardsApr: number[]; apr: number }
   planCApr?: { feeApr: number; rewardsApr: number[]; apr: number }
+
+  amountMinA: BN
+  amountMinB: BN
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
 export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   apiAmmPools: [],
   sdkParsedAmmPools: [],
+  originSdkParsedAmmPools: {},
   hydratedAmmPools: [],
 
   focusSide: 'coin1',
@@ -159,7 +162,10 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
 
   planAApr: { feeApr: 0, rewardsApr: [], apr: 0 },
   planBApr: { feeApr: 0, rewardsApr: [], apr: 0 },
-  planCApr: { feeApr: 0, rewardsApr: [], apr: 0 }
+  planCApr: { feeApr: 0, rewardsApr: [], apr: 0 },
+
+  amountMinA: toBN(0),
+  amountMinB: toBN(0)
 }))
 
 export default useConcentrated
