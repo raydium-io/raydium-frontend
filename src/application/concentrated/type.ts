@@ -1,5 +1,3 @@
-import { PublicKey } from '@solana/web3.js'
-
 import {
   AmmV3PoolInfo,
   AmmV3PoolPersonalPosition,
@@ -11,11 +9,14 @@ import {
   Price,
   TokenAmount
 } from 'test-r-sdk'
+import { PublicKey } from '@solana/web3.js'
+
 import BN from 'bn.js'
 
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
+
 import { GetAprPoolTickParameters, GetAprPositionParameters } from './calcApr'
 
 export type APIConcentratedInfo = ApiAmmV3PoolInfo
@@ -153,6 +154,8 @@ export interface UserPositionAccount {
   priceUpper: Numberish
   amountA?: TokenAmount
   amountB?: TokenAmount
+  originAmountA?: TokenAmount
+  originAmountB?: TokenAmount
   tokenA?: SplToken
   tokenB?: SplToken
   leverage: number

@@ -4,8 +4,10 @@ import jFetch from '@/functions/dom/jFetch'
 import { toPercent } from '@/functions/format/toPercent'
 import { div } from '@/functions/numberish/operations'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
-import useConcentrated from './useConcentrated'
+
 import useAppSettings from '../common/useAppSettings'
+
+import useConcentrated from './useConcentrated'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)

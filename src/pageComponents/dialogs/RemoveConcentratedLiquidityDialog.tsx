@@ -4,9 +4,8 @@ import { twMerge } from 'tailwind-merge'
 import { AmmV3 } from 'test-r-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
-import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
+import txDecreaseConcentrated, { MANUAL_ADJUST } from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import { routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
@@ -16,10 +15,12 @@ import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
-import { div } from '@/functions/numberish/operations'
+import { div, mul } from '@/functions/numberish/operations'
+import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
@@ -93,14 +94,24 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       add: false
     })
 
+    const coin1Amount = toString(
+      toTokenAmount(currentAmmPool.base!, mul(amountFromLiquidity.amountSlippageA, MANUAL_ADJUST)),
+      {
+        decimalLength: `auto ${currentAmmPool.base!.decimals}`
+      }
+    )
+    const coin2Amount = toString(
+      toTokenAmount(currentAmmPool.quote!, mul(amountFromLiquidity.amountSlippageB, MANUAL_ADJUST)),
+      {
+        decimalLength: `auto ${currentAmmPool.quote!.decimals}`
+      }
+    )
     setMaxInfo({
-      coin1Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageA), 10 ** coinBase.decimals), {
-        decimalLength: `auto ${coinBase.decimals}`
-      }),
-      coin2Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageB), 10 ** coinQuote.decimals), {
-        decimalLength: `auto ${coinQuote.decimals}`
-      })
+      coin1Amount: coin1Amount,
+      coin2Amount: coin2Amount
     })
+
+    useConcentrated.setState({ amountMinA: toBN(coin1Amount), amountMinB: toBN(coin2Amount) })
   }, [currentAmmPool, position, coinBase, coinQuote])
 
   useEffect(() => {
@@ -155,7 +166,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               maxValue={maxInfo.coin1Amount}
               canFillFullBalance
               token={coinBase}
-              value={toString(originalCoin1Amount, { decimalLength: `auto ${(coinBase?.decimals ?? 10) + 1}` })}
+              value={toString(originalCoin1Amount, { decimalLength: `auto ${coinBase?.decimals ?? 10}` })}
               onUserInput={(value) => {
                 useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
@@ -186,7 +197,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               maxValue={maxInfo.coin2Amount}
               canFillFullBalance
               token={coinQuote}
-              value={toString(originalCoin2Amount, { decimalLength: `auto ${(coinQuote?.decimals ?? 10) + 1}` })}
+              value={toString(originalCoin2Amount, { decimalLength: `auto ${coinQuote?.decimals ?? 10}` })}
               onUserInput={(value) => {
                 useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
