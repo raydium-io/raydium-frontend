@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import useWallet from '@/application/wallet/useWallet'
 import toPubString from '@/functions/format/toMintString'
