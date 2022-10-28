@@ -12,9 +12,9 @@ import LinkExplorer from '../LinkExplorer'
 import LoadingCircleSmall from '../LoadingCircleSmall'
 import Row from '../Row'
 import { TxNotificationController, TxNotificationItemInfo } from './type'
-import { spawnTimeoutControllers } from './utils'
+import { spawnTimeoutControllers, TimeoutController } from './utils'
 
-const existMs = process.env.NODE_ENV === 'development' ? 2 * 60 * 1000 : 10 * 1000 // (ms)
+const existMs = process.env.NODE_ENV === 'development' ? 4 * 1000 : 10 * 1000 // (ms)
 
 const colors = {
   success: {
@@ -68,21 +68,25 @@ export function TxNotificationItemCard({
     return txAllProcessed
   })
 
+  const timeoutController = useRef<TimeoutController>()
+
+  useEffect(() => {
+    const controller = spawnTimeoutControllers({
+      onEnd: close,
+      totalDuration: existMs
+    })
+    timeoutController.current = controller
+    return controller.abort
+  }, [close, existMs])
+
   useEffect(() => {
     if (wholeItemState === 'success') {
-      timeoutController.current.start()
+      timeoutController.current?.start()
       resumeTimeline()
     }
   }, [wholeItemState])
 
   const [isTimePassing, { off: pauseTimeline, on: resumeTimeline }] = useToggle(false)
-
-  const timeoutController = useRef(
-    spawnTimeoutControllers({
-      onEnd: close,
-      totalDuration: existMs
-    })
-  )
 
   const itemRef = useRef<HTMLDivElement>(null)
 
@@ -90,10 +94,10 @@ export function TxNotificationItemCard({
     onHover({ is: now }) {
       if (!isAllProcessed()) return
       if (now === 'start') {
-        timeoutController.current.pause()
+        timeoutController.current?.pause()
         pauseTimeline()
       } else {
-        timeoutController.current.resume()
+        timeoutController.current?.resume()
         resumeTimeline()
       }
     }
@@ -142,7 +146,7 @@ export function TxNotificationItemCard({
         heroIconName="x"
         className="absolute right-3 top-4 clickable text-[#abc4ff] opacity-50 mobile:opacity-100 hover:opacity-100 transition-opacity"
         onClick={() => {
-          timeoutController.current.cancel()
+          timeoutController.current?.abort()
           close()
         }}
       />

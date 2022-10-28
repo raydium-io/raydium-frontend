@@ -4,7 +4,7 @@ import useToggle from '@/hooks/useToggle'
 import Card from '../Card'
 import Icon, { AppHeroIconName } from '../Icon'
 import Row from '../Row'
-import { spawnTimeoutControllers } from './utils'
+import { spawnTimeoutControllers, TimeoutController } from './utils'
 import { NormalNotificationItemInfo } from './type'
 
 const existMs = process.env.NODE_ENV === 'development' ? 2 * 60 * 1000 : 4 * 1000 // (ms)
@@ -42,18 +42,30 @@ export function NormalNotificationItemCard({ info, close }: { info: NormalNotifi
   const { title, description, type = 'info', subtitle } = info
 
   const [isTimePassing, { off: pauseTimeline, on: resumeTimeline }] = useToggle(true)
-  const timeoutController = useRef(spawnTimeoutControllers({ onEnd: close, totalDuration: existMs }))
-  const itemRef = useRef<HTMLDivElement>(null)
+  const timeoutController = useRef<TimeoutController>()
+
   useEffect(() => {
-    timeoutController.current.start()
+    const controller = spawnTimeoutControllers({
+      onEnd: close,
+      totalDuration: existMs
+    })
+    timeoutController.current = controller
+    return controller.abort
+  }, [close, existMs])
+
+  useEffect(() => {
+    timeoutController.current?.start()
   }, [])
+
+  const itemRef = useRef<HTMLDivElement>(null)
+
   useHover(itemRef, {
     onHover({ is: now }) {
       if (now === 'start') {
-        timeoutController.current.pause()
+        timeoutController.current?.pause()
         pauseTimeline()
       } else {
-        timeoutController.current.resume()
+        timeoutController.current?.resume()
         resumeTimeline()
       }
     }
@@ -83,7 +95,7 @@ export function NormalNotificationItemCard({ info, close }: { info: NormalNotifi
         heroIconName="x"
         className="absolute right-3 top-3 clickable text-[rgba(171,196,255,0.5)] opacity-50 mobile:opacity-100 hover:opacity-100 transition-opacity"
         onClick={() => {
-          timeoutController.current.cancel()
+          timeoutController.current?.abort()
           close()
         }}
       />

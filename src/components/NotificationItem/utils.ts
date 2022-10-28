@@ -1,4 +1,18 @@
-export function spawnTimeoutControllers(options: { onEnd: () => void; totalDuration: number }) {
+export interface TimeoutController {
+  dead: boolean
+  remainTime: number
+  start: () => void
+  pause: () => void
+  resume: () => void
+  abort: () => void
+}
+
+export interface SpawnTimeoutControllerOptions {
+  onEnd: () => void
+  totalDuration: number
+}
+
+export function spawnTimeoutControllers(options: SpawnTimeoutControllerOptions): TimeoutController {
   let dead = false
   let startTimestamp: number
   let remainTime = options.totalDuration
@@ -17,7 +31,7 @@ export function spawnTimeoutControllers(options: { onEnd: () => void; totalDurat
     remainTime -= endTimestamp - startTimestamp
     globalThis.clearTimeout(id)
   }
-  function cancel() {
+  function abort() {
     globalThis.clearTimeout(id)
     dead = true
   }
@@ -27,6 +41,6 @@ export function spawnTimeoutControllers(options: { onEnd: () => void; totalDurat
     start,
     pause,
     resume: start,
-    cancel
+    abort
   }
 }
