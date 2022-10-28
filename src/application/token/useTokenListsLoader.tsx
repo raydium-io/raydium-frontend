@@ -37,7 +37,6 @@ export default function useTokenListsLoader() {
   const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
   const poolRefreshCount = usePools((s) => s.refreshCount)
   const clmmRefreshCount = useConcentrated((s) => s.refreshCount)
-  const sdkParsedAmmPools = useConcentrated((s) => s.sdkParsedAmmPools)
   const tokenListSettings = useToken((s) => s.tokenListSettings)
 
   const loadTokens = useCallback(async () => {
@@ -155,8 +154,7 @@ export default function useTokenListsLoader() {
     liquidityRefreshCount,
     farmRefreshCount,
     poolRefreshCount,
-    clmmRefreshCount,
-    sdkParsedAmmPools
+    clmmRefreshCount
   ])
 }
 
