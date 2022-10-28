@@ -1,6 +1,6 @@
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import jFetch from '@/functions/dom/jFetch'
-import { getAddLiquidityDefaultPool } from '@/models/ammAndLiquidity'
+import { getAddLiquidityDefaultPool } from '@/application/ammV3PoolInfoAndLiquidity/ammAndLiquidity'
 import { HexAddress, StringNumber } from '@/types/constants'
 
 import { useSwap } from './useSwap'

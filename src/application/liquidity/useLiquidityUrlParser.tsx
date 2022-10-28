@@ -7,7 +7,7 @@ import { areShallowEqual, isStringInsensitivelyEqual } from '@/functions/judgers
 import { objectShakeFalsy } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-import { getAddLiquidityDefaultPool } from '@/models/ammAndLiquidity'
+import { getAddLiquidityDefaultPool } from '@/application/ammV3PoolInfoAndLiquidity/ammAndLiquidity'
 import { EnumStr } from '@/types/constants'
 import { useRouter } from 'next/router'
 import { ParsedUrlQuery } from 'querystring'
