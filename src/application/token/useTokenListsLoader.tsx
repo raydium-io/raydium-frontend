@@ -173,6 +173,7 @@ function isAnIncludedMint(collector: TokenInfoCollector, mint: string) {
 }
 
 async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
+  if (!response.official || !response.unOfficial || !response.blacklist || !response.unNamed) return
   const tmpDelNativeSolToken = deleteFetchedNativeSOLToken(response.official)
   collector.officialMints.push(...tmpDelNativeSolToken.map(({ mint }) => mint))
   collector.unOfficialMints.push(...response.unOfficial.map(({ mint }) => mint))
@@ -195,6 +196,7 @@ async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: Tok
 }
 
 async function DevTokenFetch(response: RaydiumDevTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
+  if (!response.tokens) return
   collector.devMints.push(...response.tokens.map(({ mint }) => mint))
   collector.tokens.push(...response.tokens)
 }
@@ -203,6 +205,7 @@ async function UnofficialLiquidityPoolTokenFetch(
   response: LiquidityPoolsJsonFile,
   collector: TokenInfoCollector
 ): Promise<void> {
+  if (!response.unOfficial) return
   const targets = [
     {
       mint: 'baseMint',
@@ -231,7 +234,11 @@ async function UnofficialLiquidityPoolTokenFetch(
     }
   })
 }
-async function ClmmLiquidityPoolTokenFetch(response: ApiAmmV3PoolInfo[], collector: TokenInfoCollector): Promise<void> {
+async function ClmmLiquidityPoolTokenFetch(
+  response: { data: ApiAmmV3PoolInfo[] },
+  collector: TokenInfoCollector
+): Promise<void> {
+  if (!response || !response.data) return
   const targets = [
     {
       mint: 'mintA',
@@ -242,7 +249,7 @@ async function ClmmLiquidityPoolTokenFetch(response: ApiAmmV3PoolInfo[], collect
       decimal: 'mintDecimalsB'
     }
   ]
-  response.forEach((pool) => {
+  response.data.forEach((pool) => {
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
         collector.otherLiquiditySupportedMints.push(pool[target.mint])
@@ -312,7 +319,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
           await UnofficialLiquidityPoolTokenFetch(response as LiquidityPoolsJsonFile, tokenCollector)
           break
         case TokenListConfigType.LIQUIDITY_V3:
-          await ClmmLiquidityPoolTokenFetch((response as { data: ApiAmmV3PoolInfo[] }).data, tokenCollector)
+          await ClmmLiquidityPoolTokenFetch(response as { data: ApiAmmV3PoolInfo[] }, tokenCollector)
           break
         default:
           console.warn('token list type undetected, did you forgot to create this type of case?')
