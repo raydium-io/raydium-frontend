@@ -2,14 +2,9 @@ import { Connection } from '@solana/web3.js'
 
 import create from 'zustand'
 
-import { unifyByKey } from '@/functions/arrayMethods'
-import assert from '@/functions/assert'
-import { setLocalItem, setSessionItem } from '@/functions/dom/jStorage'
-import { inServer } from '@/functions/judgers/isSSR'
-
-import useNotification from '../notification/useNotification'
-
-import { Endpoint, UserCustomizedEndpoint } from './fetchRPCConfig'
+import { Endpoint } from './type'
+import { switchRpc } from './switchRpc'
+import { deleteRpc } from './deleteRpc'
 
 export const CONNECT_ERROR_VERSION_TOO_OLD = 'CONNECT_ERROR_VERSION_TOO_OLD'
 export const CONNECT_ERROR_NETWORK_ERROR = 'CONNECT_ERROR_NETWORK_ERROR'
@@ -26,6 +21,7 @@ export type ConnectionStore = {
   version?: string | number
 
   availableEndPoints: Endpoint[]
+  availableDevEndPoints?: Endpoint[] // for debug
 
   // for online chain time is later than UTC
   chainTimeOffset?: number // UTCTime + onlineChainTimeOffset = onLineTime
@@ -58,14 +54,12 @@ export type ConnectionStore = {
    * undefined: get result but not target endpoint (maybe user have another choice)
    */
   deleteRpc: (endPointUrl: Endpoint['url']) => Promise<boolean | undefined>
-
-  extractConnectionName: (url: string) => string
   getChainDate: () => Date
 }
 export const LOCALSTORAGE_KEY_USER_RPC = 'USER_RPC'
 export const SESSION_STORAGE_USER_SELECTED_RPC = 'user-selected-rpc'
 /** zustand store hooks */
-const useConnection = create<ConnectionStore>((set, get) => ({
+export const useConnection = create<ConnectionStore>((set, get) => ({
   connection: undefined,
 
   availableEndPoints: [],
@@ -78,95 +72,8 @@ const useConnection = create<ConnectionStore>((set, get) => ({
 
   userCostomizedUrlText: 'https://',
 
-  switchRpc: async (customizedEndPoint) => {
-    try {
-      if (!customizedEndPoint.url.replace(/.*:\/\//, '')) return
-      // set loading
-      set({ isLoading: true, loadingCustomizedEndPoint: customizedEndPoint })
-      const response = await fetch(customizedEndPoint.url, {
-        headers: {
-          'content-type': 'application/json'
-        },
-        method: 'POST',
-        body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getEpochInfo' })
-      })
-      assert(response.ok)
-      const newConnection = new Connection(customizedEndPoint.url, 'confirmed')
-      set({ connection: newConnection, currentEndPoint: customizedEndPoint, switchConnectionFailed: false })
-
-      const { currentEndPoint } = get()
-      if (currentEndPoint === customizedEndPoint) {
-        const rpcName = customizedEndPoint.name ?? get().extractConnectionName(customizedEndPoint.url)
-        const newEndPoint = { ...customizedEndPoint, name: rpcName }
-        // cancel loading status
-        set({ isLoading: false, switchConnectionFailed: false })
-
-        const { logSuccess } = useNotification.getState()
-        logSuccess('RPC Switch Success ', `new rpc: ${newEndPoint.name}`)
-
-        // record selection to senssionStorage
-        setSessionItem(SESSION_STORAGE_USER_SELECTED_RPC, newEndPoint)
-
-        const isUserAdded = !get()
-          .availableEndPoints.map((i) => i.url)
-          .includes(newEndPoint.url)
-
-        if (isUserAdded) {
-          // record userAdded to localStorage
-          setLocalItem(LOCALSTORAGE_KEY_USER_RPC, (v) =>
-            unifyByKey(
-              [{ ...newEndPoint, isUserCustomized: true } as UserCustomizedEndpoint, ...(v ?? [])],
-              (i) => i.url
-            )
-          )
-        }
-
-        set((s) => {
-          const unified = unifyByKey(
-            [...(s.availableEndPoints ?? []), { ...newEndPoint, isUserCustomized: true } as UserCustomizedEndpoint],
-            (i) => i.url
-          )
-          return {
-            currentEndPoint: newEndPoint,
-            availableEndPoints: unified
-          }
-        })
-
-        return true
-      }
-      return undefined
-    } catch {
-      const { currentEndPoint } = get()
-      // cancel loading status
-      set({ isLoading: false, loadingCustomizedEndPoint: undefined, switchConnectionFailed: true })
-      const { logError } = useNotification.getState()
-      logError('RPC Switch Failed')
-      return false
-    }
-  },
-  deleteRpc: async (endPointUrl) => {
-    setLocalItem(LOCALSTORAGE_KEY_USER_RPC, (v: UserCustomizedEndpoint[] | undefined) =>
-      (v ?? []).filter((i) => i.url !== endPointUrl)
-    )
-    set({
-      availableEndPoints: (get()?.availableEndPoints ?? []).filter((i) => i.url !== endPointUrl)
-    })
-    return true
-  },
-
-  extractConnectionName: (url: string) => {
-    const matchedLocalhost = url.match(/(https:\/\/|http:\/\/)?localhost.*/)
-    if (matchedLocalhost) return 'localhost'
-
-    if (inServer) return ''
-    try {
-      const urlObj = new globalThis.URL(url)
-      return urlObj.hostname
-    } catch {
-      return '--'
-    }
-  },
-
+  switchRpc,
+  deleteRpc,
   getChainDate() {
     return new Date(Date.now() + (get().chainTimeOffset ?? 0))
   }

@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+
+import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
-import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
-import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
+import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
   PoolsConcentratedTabs,
@@ -175,6 +176,7 @@ function ToolsButton({ className }: { className?: string }) {
               <Grid className="grid-cols-1 items-center gap-2">
                 <PoolRefreshCircleBlock />
                 <PoolTimeBasisSelectorBox />
+                <HarvestAll />
                 <PoolCreateConcentratedPoolEntryBlock />
               </Grid>
             </Card>
@@ -232,6 +234,34 @@ function OpenNewPosition({ className }: { className?: string }) {
   )
 }
 
+function HarvestAll() {
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const walletConnected = useWallet((s) => s.connected)
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+  const isMobile = useAppSettings((s) => s.isMobile)
+  return (
+    <Button
+      className="frosted-glass-teal"
+      isLoading={isApprovePanelShown}
+      validators={[
+        {
+          should: walletConnected
+        }
+      ]}
+      onClick={() =>
+        txHarvestAllConcentrated().then(({ allSuccess }) => {
+          if (allSuccess) {
+            refreshConcentrated()
+          }
+        })
+      }
+      size={isMobile ? 'xs' : 'sm'}
+    >
+      Harvest All
+    </Button>
+  )
+}
+
 function PoolLabelBlock({ className }: { className?: string }) {
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
@@ -248,7 +278,8 @@ function PoolLabelBlock({ className }: { className?: string }) {
         </div>
       </Col>
 
-      <Row className="gap-4 items-stretch">
+      <Row className="gap-4 items-center">
+        <HarvestAll />
         <PoolTimeBasisSelectorBox />
         <PoolSearchBlock className="h-[36px]" />
       </Row>
@@ -376,7 +407,6 @@ function PoolCreateConcentratedPoolEntryBlock({ className }: { className?: strin
 }
 
 function PoolCard() {
-  const balances = useWallet((s) => s.balances)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const searchText = useConcentrated((s) => s.searchText)
   const timeBasis = useConcentrated((s) => s.timeBasis)
@@ -711,6 +741,9 @@ function PoolCardDatabaseBodyCollapseItemFace({
   const timeBasis = useConcentrated((s) => s.timeBasis)
   const tokenListSettings = useToken((s) => s.tokenListSettings)
   const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
+  const { lpPrices } = usePools()
+  const tokenPrices = useToken((s) => s.tokenPrices)
+  const variousPrices = useMemo(() => ({ ...lpPrices, ...tokenPrices }), [lpPrices, tokenPrices])
 
   const rewardsBadge = useMemo(() => {
     const badges = info.rewardInfos.map((reward, idx) => {
@@ -719,7 +752,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
       const isRewardBefore24H = currentIsAfter(reward.openTime - 86400 * 1000)
 
       return (
-        <Tooltip key={`${idx}-reward-badge-tooltip-${toPubString(reward.tokenMint)}`} placement="bottom">
+        <Tooltip key={`${info.idString}-reward-badge-id-${idx}`}>
           <Row
             className={`ring-1 ring-inset ring-[#abc4ff80] p-1 mobile:p-[1px] rounded-full items-center gap-2 overflow-hidden ${
               isRewardEnd ? 'opacity-30 contrast-40' : isRewardBeforeStart ? 'opacity-50' : ''
@@ -741,41 +774,59 @@ function PoolCardDatabaseBodyCollapseItemFace({
               )}
             </div>
           </Row>
-
           <Tooltip.Panel>
-            <div className="mb-1">
-              {reward.rewardToken?.symbol ?? '--'}{' '}
-              {reward.openTime &&
-                reward.endTime &&
-                (isRewardEnd ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period')}
+            <div key={`${info.idString}-reward-detail-content-id-${idx}`}>
+              <Row className="text-sm justify-between items-center min-w-[260px] gap-4">
+                <Row className="gap-1.5 items-center">
+                  <CoinAvatar size={isMobile ? 'xs' : 'smi'} token={reward.rewardToken} />
+                  {isRewardEnd ? null : (
+                    <>
+                      <span className="text-white">{formatNumber(toString(reward.rewardPerWeek))}</span>
+                      <span className="text-[#ABC4FF]">{reward.rewardToken?.symbol ?? '--'} per week</span>
+                    </>
+                  )}
+                </Row>
+                {isRewardEnd ? null : (
+                  <span className="text-white/50">
+                    {toUsdVolume(
+                      toTotalPrice(reward.rewardPerWeek, variousPrices[toPubString(reward.rewardToken?.mint)] ?? null),
+                      { decimalPlace: 0 }
+                    )}
+                  </span>
+                )}
+              </Row>
+              <div className="mb-1 mt-1">
+                {reward.openTime &&
+                  reward.endTime &&
+                  (isRewardEnd ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period')}
+              </div>
+              {reward.openTime && isRewardBeforeStart && isRewardBefore24H && (
+                <div className="opacity-50">Start in {getCountDownTime(getDate(reward.openTime))}</div>
+              )}
+              {reward.openTime && reward.endTime && (
+                <div className="opacity-50">
+                  {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
+                </div>
+              )}
+              {reward.tokenMint && (
+                <AddressItem
+                  showDigitCount={6}
+                  addressType="token"
+                  canCopy
+                  canExternalLink
+                  textClassName="text-xs"
+                  className="w-full opacity-50 mt-2 contrast-75"
+                >
+                  {toPubString(reward.tokenMint)}
+                </AddressItem>
+              )}
+              {unnamedTokenMints?.has(toPubString(reward.tokenMint)) && (
+                <div className="max-w-[300px] mt-2">
+                  This token does not currently have a ticker symbol. Check the mint address to ensure it is the token
+                  you want to transact with.
+                </div>
+              )}
             </div>
-            {reward.openTime && isRewardBeforeStart && isRewardBefore24H && (
-              <div className="opacity-50">Start in {getCountDownTime(getDate(reward.openTime))}</div>
-            )}
-            {reward.openTime && reward.endTime && (
-              <div className="opacity-50">
-                {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
-              </div>
-            )}
-            {reward.tokenMint && (
-              <AddressItem
-                showDigitCount={6}
-                addressType="token"
-                canCopy
-                canExternalLink
-                textClassName="text-xs"
-                className="w-full opacity-50 mt-2 contrast-75"
-              >
-                {toPubString(reward.tokenMint)}
-              </AddressItem>
-            )}
-
-            {unnamedTokenMints?.has(toPubString(reward.tokenMint)) && (
-              <div className="max-w-[300px] mt-2">
-                This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
-                want to transact with.
-              </div>
-            )}
           </Tooltip.Panel>
         </Tooltip>
       )
@@ -786,7 +837,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
         {badges}
       </div>
     )
-  }, [info.rewardInfos, isMobile])
+  }, [info.idString, info.rewardInfos, isMobile, variousPrices])
 
   const apr = isHydratedConcentratedItemInfo(info)
     ? timeBasis === TimeBasis.DAY
@@ -863,19 +914,21 @@ function PoolCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name={`APR(${timeBasis})`}
         value={
-          <Tooltip panelClassName="p-0 rounded-xl">
-            <div>
-              {toPercentString(apr?.total)}
-              <Row className="items-center gap-2 mobile:gap-1 mt-1">
-                {apr && <AprLine className="w-28" aprValues={apr.itemList} />}
-              </Row>
-            </div>
-            <Tooltip.Panel>
-              <div className="p-5">
-                <AprChart type="poolInfo" poolInfo={info} />
+          <div style={{ display: 'inline-block' }}>
+            <Tooltip panelClassName="p-0 rounded-xl">
+              <div>
+                {toPercentString(apr?.total)}
+                <Row className="items-center gap-2 mobile:gap-1 mt-1">
+                  {apr && <AprLine className="w-28" aprValues={apr.itemList} />}
+                </Row>
               </div>
-            </Tooltip.Panel>
-          </Tooltip>
+              <Tooltip.Panel>
+                <div className="p-5">
+                  <AprChart type="poolInfo" poolInfo={info} />
+                </div>
+              </Tooltip.Panel>
+            </Tooltip>
+          </div>
         }
       />
       <Grid className="w-9 h-9 mr-8 place-items-center">
@@ -962,7 +1015,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             name="Fees(7d)"
             value={
               isHydratedConcentratedItemInfo(info)
-                ? toUsdVolume(info.feeApr7d, { autoSuffix: true, decimalPlace: 0 })
+                ? toUsdVolume(info.volumeFee7d, { autoSuffix: true, decimalPlace: 0 })
                 : undefined
             }
           />
@@ -1165,6 +1218,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const unclaimedYield = useConcentratedPendingYield(p)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+  const logInfo = useNotification((s) => s.logInfo)
+  const walletConnected = useWallet((s) => s.connected)
 
   const rangeTag = useMemo(() => {
     let bgColor = 'bg-[#142B45]'
@@ -1200,58 +1255,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
       </Tooltip>
     )
   }, [inRange, info.currentPrice, info.base?.symbol, info.quote?.symbol])
-  const { logInfo } = useNotification.getState()
-  const walletConnected = useWallet((s) => s.connected)
-  const timeBasis = useConcentrated((s) => s.timeBasis)
-  const [yieldInfo, setYieldInfo] = useState<{
-    apr: string
-    tradeFeesApr: string
-    rewardsAprA: string
-    rewardsAprB: string
-    rewardsAprC: string
-  }>({
-    apr: '--',
-    tradeFeesApr: '--',
-    rewardsAprA: '--',
-    rewardsAprB: '--',
-    rewardsAprC: '--'
-  })
-
-  useEffect(() => {
-    if (timeBasis === TimeBasis.DAY) {
-      setYieldInfo({
-        apr: toPercentString(info.totalApr24h),
-        tradeFeesApr: toPercentString(info.feeApr24h),
-        rewardsAprA: toPercentString(info.rewardApr24h[0]),
-        rewardsAprB: toPercentString(info.rewardApr24h[1]),
-        rewardsAprC: toPercentString(info.rewardApr24h[2])
-      })
-    } else if (timeBasis === TimeBasis.WEEK) {
-      setYieldInfo({
-        apr: toPercentString(info.totalApr7d),
-        tradeFeesApr: toPercentString(info.feeApr7d),
-        rewardsAprA: toPercentString(info.rewardApr7d[0]),
-        rewardsAprB: toPercentString(info.rewardApr7d[1]),
-        rewardsAprC: toPercentString(info.rewardApr7d[2])
-      })
-    } else if (timeBasis === TimeBasis.MONTH) {
-      setYieldInfo({
-        apr: toPercentString(info.totalApr30d),
-        tradeFeesApr: toPercentString(info.feeApr30d),
-        rewardsAprA: toPercentString(info.rewardApr30d[0]),
-        rewardsAprB: toPercentString(info.rewardApr30d[1]),
-        rewardsAprC: toPercentString(info.rewardApr30d[2])
-      })
-    } else {
-      setYieldInfo({
-        apr: '--',
-        tradeFeesApr: '--',
-        rewardsAprA: '--',
-        rewardsAprB: '--',
-        rewardsAprC: '--'
-      })
-    }
-  }, [timeBasis])
 
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
@@ -1431,49 +1434,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   ≈{toUsdVolume(unclaimedYield)}
                 </div>
                 {p && <PositionAprIllustrator poolInfo={info} positionInfo={p}></PositionAprIllustrator>}
-
-                {/* <AutoBox
-                  is="Row"
-                  className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2 mobile:mt-1"
-                >
-                  <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
-                  {p ? (
-                    <>
-                      <Col className="text-white">{yieldInfo.apr}</Col>
-                      <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
-                        <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
-                        <Tooltip.Panel>
-                          <div className="max-w-[300px] py-3 px-5">
-                            <TokenPositionInfo
-                              customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
-                              customKey="Trade Fees"
-                              customValue={yieldInfo.tradeFeesApr}
-                              className="gap-32"
-                            />
-                            {info.base && (
-                              <TokenPositionInfo
-                                token={info.base}
-                                customValue={yieldInfo.rewardsAprA}
-                                suffix="Rewards"
-                                className="gap-32"
-                              />
-                            )}
-                            {info.quote && (
-                              <TokenPositionInfo
-                                token={info.quote}
-                                customValue={yieldInfo.rewardsAprB}
-                                suffix="Rewards"
-                                className="gap-32"
-                              />
-                            )}
-                          </div>
-                        </Tooltip.Panel>
-                      </Tooltip>
-                    </>
-                  ) : (
-                    <div className="text-sm font-medium text-white">--</div>
-                  )}
-                </AutoBox> */}
               </Col>
               <AutoBox
                 is={isMobile ? 'Row' : 'Col'}
@@ -1495,7 +1455,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     { should: isMeaningfulNumber(unclaimedYield) }
                   ]}
                   onClick={() =>
-                    txHavestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(
+                    txHarvestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(
                       ({ allSuccess }) => {
                         if (allSuccess) {
                           refreshConcentrated()

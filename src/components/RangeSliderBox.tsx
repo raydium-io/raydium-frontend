@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 
+import { Fraction } from '@raydium-io/raydium-sdk'
+
 import BN from 'bn.js'
 import Slider, { SliderProps } from 'rc-slider'
 import { twMerge } from 'tailwind-merge'
 
 import toPercentString from '@/functions/format/toPercentString'
 import { isArray } from '@/functions/judgers/dateType'
-import { div } from '@/functions/numberish/operations'
+import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import mergeProps from '@/functions/react/mergeProps'
 
@@ -14,6 +16,7 @@ import Row from './Row'
 
 import 'rc-slider/assets/index.css'
 
+// TODO: dirty fixed tick
 export interface RangeSliderBoxProps {
   id?: string
   title?: string
@@ -25,6 +28,7 @@ export interface RangeSliderBoxProps {
   max: number
   onChange?: (value: number | number[]) => void
   liquidity?: BN
+  tick: Fraction
 }
 
 // this component is actually for remove liquidity purpose
@@ -34,7 +38,7 @@ export default function RangeSliderBox(props: RangeSliderBoxProps) {
   const [currentPercentage, setCurrentPercentage] = useState<number>(0)
   const [currentValue, setCurrentValue] = useState<number>(0)
 
-  const { id, title, max, className, titleClassName, tagClassName, onChange, liquidity } = mergeProps(
+  const { id, title, max, className, titleClassName, tagClassName, onChange, liquidity, tick } = mergeProps(
     props,
     fallbackProps
   )
@@ -60,9 +64,10 @@ export default function RangeSliderBox(props: RangeSliderBoxProps) {
   )
 
   useEffect(() => {
-    const newCurrentPercentage = Number(toString(div(liquidity ?? 0, max), { decimalLength: 'auto 4' }))
-    setCurrentPercentage(newCurrentPercentage > 1 ? 1 : newCurrentPercentage)
-    setCurrentValue(Number(toString(liquidity, { decimalLength: 'auto 2' })) ?? 0)
+    let newCurrentPercentage = Number(toString(div(liquidity ?? 0, mul(max, tick)), { decimalLength: 'auto 4' }))
+    newCurrentPercentage = newCurrentPercentage > 1 ? 1 : newCurrentPercentage
+    setCurrentPercentage(newCurrentPercentage)
+    setCurrentValue(Number(toString(newCurrentPercentage * max, { decimalLength: 'auto 2' })) ?? 0)
   }, [liquidity])
 
   return (
@@ -142,7 +147,7 @@ function SliderWrap({
       <Slider
         min={0}
         max={max}
-        step={0.1}
+        step={0.01}
         value={value ?? undefined}
         trackStyle={{ backgroundColor: '#36B9E2', height: 2, ...trackStyle }}
         handleStyle={{

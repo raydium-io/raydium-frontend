@@ -1,23 +1,16 @@
+import {
+  AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3ConfigInfo, ApiAmmV3PoolInfo, CurrencyAmount, Fraction, Percent,
+  Price, TokenAmount
+} from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import Decimal from 'decimal.js'
-import {
-  AmmV3PoolInfo,
-  AmmV3PoolPersonalPosition,
-  ApiAmmV3ConfigInfo,
-  ApiAmmV3PoolInfo,
-  CurrencyAmount,
-  Fraction,
-  Percent,
-  Price,
-  PublicKeyish,
-  TokenAmount
-} from '@raydium-io/raydium-sdk'
 
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
+
+import { GetAprPoolTickParameters, GetAprPositionParameters } from './calcApr'
 
 export type APIConcentratedInfo = ApiAmmV3PoolInfo
 
@@ -65,6 +58,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   tradeFeeRate: Percent
   base: SplToken | undefined
   quote: SplToken | undefined
+  liquidity: BN
   id: PublicKey
   userPositionAccount?: UserPositionAccount[]
   name: string
@@ -82,9 +76,10 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
     rewardClaimed: TokenAmount | undefined
     tokenMint: PublicKey
     tokenVault: PublicKey
-    authority: PublicKey
+    authority?: PublicKey
     emissionsPerSecondX64: BN
     rewardGrowthGlobalX64: BN
+    rewardPerWeek: TokenAmount | undefined
   }[]
   tvl: CurrencyAmount
   feeApr24h: Percent
@@ -121,23 +116,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
     rewards: { apr: Percent; percentInTotal: Percent; token: SplToken | undefined }[]
     apr: Percent
   }
-  getTickApr({
-    tickLower,
-    tickUpper,
-    tokenPrices,
-    tokenDecimals,
-    timeBasis,
-    planType,
-    chainTimeOffsetMs
-  }: {
-    tickLower: number
-    tickUpper: number
-    tokenPrices: Record<string, Price>
-    tokenDecimals: Record<string, number>
-    timeBasis: '24h' | '7d' | '30d'
-    planType: 'A' | 'D' | 'C'
-    chainTimeOffsetMs?: number | undefined
-  }): {
+  getTickApr(args: Omit<GetAprPoolTickParameters, 'ammPoolInfo' | 'poolRewardTokens'>): {
     fee: {
       apr: Percent
       percentInTotal: Percent
@@ -164,6 +143,8 @@ export interface UserPositionAccount {
   priceUpper: Numberish
   amountA?: TokenAmount
   amountB?: TokenAmount
+  originAmountA?: TokenAmount
+  originAmountB?: TokenAmount
   tokenA?: SplToken
   tokenB?: SplToken
   leverage: number
@@ -178,19 +159,7 @@ export interface UserPositionAccount {
     baseLiquidity: Fraction | undefined
     quoteLiquidity: Fraction | undefined
   }
-  getApr({
-    tokenPrices,
-    tokenDecimals,
-    timeBasis,
-    planType,
-    chainTimeOffsetMs
-  }: {
-    tokenPrices: Record<string, Price>
-    tokenDecimals: Record<string, number>
-    timeBasis: '24h' | '7d' | '30d'
-    planType: 'A' | 'D' | 'C'
-    chainTimeOffsetMs?: number | undefined
-  }): {
+  getApr(args: Omit<GetAprPositionParameters, 'positionAccount' | 'ammPoolInfo' | 'poolRewardTokens'>): {
     fee: {
       apr: Percent
       percentInTotal: Percent

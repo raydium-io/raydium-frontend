@@ -1,11 +1,12 @@
 import { useRouter } from 'next/router'
 
-import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from '@raydium-io/raydium-sdk'
+import { AmmV3, ApiAmmV3PoolInfo } from '@raydium-io/raydium-sdk'
 
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
 import toPubString from '@/functions/format/toMintString'
 import { lazyMap } from '@/functions/lazyMap'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 
@@ -14,7 +15,6 @@ import useWallet from '../wallet/useWallet'
 
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -31,6 +31,7 @@ export default function useConcentratedInfoLoader() {
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
   const owner = useWallet((s) => s.owner)
+  const tokenAccountsOwner = useWallet((s) => s.tokenAccountsOwner)
   const tokens = useToken((s) => s.tokens)
   const { pathname } = useRouter()
 
@@ -46,18 +47,24 @@ export default function useConcentratedInfoLoader() {
   )
 
   /**  api json info list ➡ SDK info list */
-  useTransitionedEffect(async () => {
+  useAsyncEffect(async () => {
     if (!pathname.includes('clmm')) return
     if (!connection) return
     if (chainTimeOffset == null) return
+    if (owner && tokenAccountsOwner && toPubString(owner) !== toPubString(tokenAccountsOwner)) return
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: apiAmmPools,
       connection,
       ownerInfo: owner ? { tokenAccounts: tokenAccounts, wallet: owner } : undefined,
       chainTime: (Date.now() + chainTimeOffset) / 1000
     })
-    if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
-  }, [apiAmmPools, connection, tokenAccounts, owner, pathname, chainTimeOffset])
+    if (sdkParsed) {
+      useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })
+    }
+
+    // eslint-disable-next-line no-console
+    console.log('sdkParsed: ', sdkParsed)
+  }, [apiAmmPools, connection, toPubString(owner), toPubString(tokenAccountsOwner), pathname, chainTimeOffset])
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {
