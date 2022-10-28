@@ -79,9 +79,9 @@ export function NormalNotificationItemCard({ info, close }: { info: NormalNotifi
       </div>
 
       <Icon
-        size="sm"
+        size="smi"
         heroIconName="x"
-        className="absolute right-3 top-3 clickable text-[rgba(171,196,255,0.5)]"
+        className="absolute right-3 top-3 clickable text-[rgba(171,196,255,0.5)] opacity-50 mobile:opacity-100 hover:opacity-100 transition-opacity"
         onClick={() => {
           timeoutController.current.cancel()
           close()

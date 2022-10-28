@@ -14,7 +14,7 @@ import Row from '../Row'
 import { TxNotificationController, TxNotificationItemInfo } from './type'
 import { spawnTimeoutControllers } from './utils'
 
-const existMs = process.env.NODE_ENV === 'development' ? 2 * 60 * 1000 : 6 * 1000 // (ms)
+const existMs = process.env.NODE_ENV === 'development' ? 2 * 60 * 1000 : 10 * 1000 // (ms)
 
 const colors = {
   success: {
@@ -140,7 +140,7 @@ export function TxNotificationItemCard({
       <Icon
         size="smi"
         heroIconName="x"
-        className="absolute right-3 top-4 clickable text-[#abc4ff]"
+        className="absolute right-3 top-4 clickable text-[#abc4ff] opacity-50 mobile:opacity-100 hover:opacity-100 transition-opacity"
         onClick={() => {
           timeoutController.current.cancel()
           close()
