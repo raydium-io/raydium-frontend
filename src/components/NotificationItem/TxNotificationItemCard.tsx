@@ -121,7 +121,7 @@ export function TxNotificationItemCard({
   return (
     <Card
       domRef={itemRef}
-      className={`min-w-[260px] relative rounded-xl ring-1.5 ring-inset ${colors[wholeItemState].ring} bg-[#1B1659] p-6 mx-4 my-2 overflow-hidden pointer-events-auto transition`}
+      className={`min-w-[260px] relative rounded-xl ring-1.5 ring-inset ${colors[wholeItemState].ring} bg-[#1B1659] p-6 py-5 mx-4 my-2 overflow-hidden pointer-events-auto transition`}
     >
       {/* timeline */}
       <div className="h-1 absolute top-0 left-0 right-0">
@@ -138,9 +138,9 @@ export function TxNotificationItemCard({
       </div>
 
       <Icon
-        size="sm"
+        size="smi"
         heroIconName="x"
-        className="absolute right-6 top-6 clickable text-[#abc4ff]"
+        className="absolute right-3 top-4 clickable text-[#abc4ff]"
         onClick={() => {
           timeoutController.current.cancel()
           close()
@@ -158,7 +158,7 @@ export function TxNotificationItemCard({
                   ? `${innerTxInfos[0].historyInfo.title} Error!`
                   : `Confirming transaction...(${processedTransactionLength + 1}/${totalTransactionLength})`}
               </div>
-              <div className="font-medium text-sm mobile:text-sm text-[rgba(171,196,255,0.5)] mt-1">
+              <div className="font-medium text-sm mobile:text-sm text-[#abc4ff] mt-1">
                 {innerTxInfos[0].historyInfo.description}
               </div>
             </div>
