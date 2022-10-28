@@ -1,7 +1,6 @@
 import { useCallback } from 'react'
 
 import { ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
-import { s } from '@raydium-io/raydium-sdk/lib/farm-4cdb07c0'
 
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
@@ -325,9 +324,7 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
   }
 
   // eslint-disable-next-line no-console
-  console.info('tokenList end fetching')
-  // eslint-disable-next-line no-console
-  console.info('tokenCollector length:', tokenCollector.tokens.length)
+  console.info('tokenList end fetching, total tokens #: ', tokenCollector.tokens.length)
 
   return tokenCollector
 }
