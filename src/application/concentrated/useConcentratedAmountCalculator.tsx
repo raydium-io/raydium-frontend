@@ -15,7 +15,6 @@ import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 
-import { MANUAL_ADJUST } from './txDecreaseConcentrated'
 import useConcentrated from './useConcentrated'
 
 /**
@@ -79,8 +78,8 @@ export default function useConcentratedAmountCalculator() {
         ? getRemoveLiquidityAmountOutFromAmountIn(
             inputAmountBN,
             position?.liquidity,
-            toBN(mul(position.amountA, MANUAL_ADJUST)),
-            toBN(mul(position.amountB, MANUAL_ADJUST)),
+            toBN(position.amountA),
+            toBN(position.amountB),
             isFocus1
           )
         : AmmV3.getLiquidityAmountOutFromAmountIn({

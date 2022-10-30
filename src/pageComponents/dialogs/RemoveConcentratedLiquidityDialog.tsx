@@ -49,6 +49,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const originalCoin1 = useConcentrated((s) => s.coin1)
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)
   const originalCoin2Amount = useConcentrated((s) => s.coin2Amount)
+  const originalCoin1AmountMin = useConcentrated((s) => s.coin1AmountMin)
+  const originalCoin2AmountMin = useConcentrated((s) => s.coin2AmountMin)
   const focusSide = isMintEqual(coinBase?.mint, originalCoin1?.mint) ? 'coin1' : 'coin2'
   const [amountBaseIsOutOfMax, setAmountBaseIsOutOfMax] = useState(false)
   const [amountBaseIsNegative, setAmountBaseIsNegative] = useState(false)
@@ -77,6 +79,17 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
     })
   }, [currentAmmPool, targetUserPositionAccount])
 
+  useEffect(() => {
+    useConcentrated.setState({
+      coin1AmountMin: mul(originalCoin1Amount, MANUAL_ADJUST)
+    })
+  }, [originalCoin1Amount])
+  useEffect(() => {
+    useConcentrated.setState({
+      coin2AmountMin: mul(originalCoin2Amount, MANUAL_ADJUST)
+    })
+  }, [originalCoin2Amount])
+
   const position = useMemo(() => {
     if (currentAmmPool && targetUserPositionAccount) {
       return currentAmmPool.positionAccount?.find(
@@ -96,24 +109,16 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       add: false
     })
 
-    const coin1Amount = toString(
-      toTokenAmount(currentAmmPool.base!, mul(amountFromLiquidity.amountSlippageA, MANUAL_ADJUST)),
-      {
-        decimalLength: `auto ${currentAmmPool.base!.decimals}`
-      }
-    )
-    const coin2Amount = toString(
-      toTokenAmount(currentAmmPool.quote!, mul(amountFromLiquidity.amountSlippageB, MANUAL_ADJUST)),
-      {
-        decimalLength: `auto ${currentAmmPool.quote!.decimals}`
-      }
-    )
+    const coin1Amount = toString(toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA), {
+      decimalLength: `auto ${currentAmmPool.base!.decimals}`
+    })
+    const coin2Amount = toString(toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB), {
+      decimalLength: `auto ${currentAmmPool.quote!.decimals}`
+    })
     setMaxInfo({
       coin1Amount: coin1Amount,
       coin2Amount: coin2Amount
     })
-
-    useConcentrated.setState({ amountMinA: toBN(coin1Amount), amountMinB: toBN(coin2Amount) })
   }, [currentAmmPool, position, coinBase, coinQuote])
 
   useEffect(() => {
@@ -223,8 +228,31 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
             <ConcentratedLiquiditySlider />
             <div className="py-3 px-3 ring-1 mobile:ring-1 ring-[#abc4ff40] rounded-xl mobile:rounded-xl ">
               <Row className="flex justify-between items-center text-[#ABC4FF] font-medium text-sm">
-                <div className="text-base mobile:text-sm">Pending Yield</div>
-                <div className="text-lg text-white">{toUsdVolume(pendingYield)}</div>
+                <div>
+                  <div className="text-base mobile:text-sm">Pending Yield</div>
+                  <div className="text-lg text-white">{toUsdVolume(pendingYield)}</div>
+                </div>
+
+                <div>
+                  <div className="text-base mobile:text-sm">
+                    Min {coinBase?.symbol ?? coinBase?.mint.toString().slice(0, 6) + '..'}
+                  </div>
+                  <div className="text-lg text-white">
+                    {toString(originalCoin1AmountMin, {
+                      decimalLength: `auto ${coinBase?.decimals ?? 10}`
+                    })}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-base mobile:text-sm">
+                    Min {coinQuote?.symbol ?? coinQuote?.mint.toString().slice(0, 6) + '..'}
+                  </div>
+                  <div className="text-lg text-white">
+                    {toString(originalCoin2AmountMin, {
+                      decimalLength: `auto ${coinQuote?.decimals ?? 10}`
+                    })}
+                  </div>
+                </div>
               </Row>
             </div>
           </Col>
