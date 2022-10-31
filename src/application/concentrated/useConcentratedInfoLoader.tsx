@@ -61,9 +61,6 @@ export default function useConcentratedInfoLoader() {
     if (sdkParsed) {
       useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })
     }
-
-    // eslint-disable-next-line no-console
-    console.log('sdkParsed: ', sdkParsed)
   }, [apiAmmPools, connection, toPubString(owner), toPubString(tokenAccountsOwner), pathname, chainTimeOffset])
 
   /** SDK info list ➡ hydrated info list */
