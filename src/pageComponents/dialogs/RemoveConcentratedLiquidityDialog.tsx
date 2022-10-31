@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { AmmV3, Token, TokenAccount, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -8,14 +8,19 @@ import useAppSettings from '@/application/common/useAppSettings'
 import txDecreaseConcentrated, { MANUAL_ADJUST } from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import { routeTo } from '@/application/routeTools'
+import { SplToken } from '@/application/token/type'
 import useWallet from '@/application/wallet/useWallet'
+import AutoBox from '@/components/AutoBox'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatar from '@/components/CoinAvatar'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
+import FadeInStable from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
+import Tooltip from '@/components/Tooltip'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
@@ -27,6 +32,7 @@ import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useInit from '@/hooks/useInit'
+import { Numberish } from '@/types/constants'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
@@ -227,33 +233,30 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
             />
             <ConcentratedLiquiditySlider />
             <div className="py-3 px-3 ring-1 mobile:ring-1 ring-[#abc4ff40] rounded-xl mobile:rounded-xl ">
-              <Row className="flex justify-between items-center text-[#ABC4FF] font-medium text-sm">
-                <div>
+              <Col>
+                <Row className="flex justify-start items-center text-[#ABC4FF] font-medium text-sm">
                   <div className="text-base mobile:text-sm">Pending Yield</div>
+                </Row>
+                <Row className="flex justify-end items-center text-[#ABC4FF] font-medium text-sm">
                   <div className="text-lg text-white">{toUsdVolume(pendingYield)}</div>
-                </div>
-
-                <div>
-                  <div className="text-base mobile:text-sm">
-                    Min {coinBase?.symbol ?? coinBase?.mint.toString().slice(0, 6) + '..'}
-                  </div>
-                  <div className="text-lg text-white">
-                    {toString(originalCoin1AmountMin, {
-                      decimalLength: `auto ${coinBase?.decimals ?? 10}`
-                    })}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-base mobile:text-sm">
-                    Min {coinQuote?.symbol ?? coinQuote?.mint.toString().slice(0, 6) + '..'}
-                  </div>
-                  <div className="text-lg text-white">
-                    {toString(originalCoin2AmountMin, {
-                      decimalLength: `auto ${coinQuote?.decimals ?? 10}`
-                    })}
-                  </div>
-                </div>
-              </Row>
+                </Row>
+                <FadeInStable show={originalCoin1AmountMin && originalCoin2AmountMin}>
+                  <Row className="flex justify-start gap-1 items-center text-[#ABC4FF] font-medium text-sm">
+                    Minimum Received
+                    <Tooltip>
+                      <Icon size="xs" heroIconName="question-mark-circle" className="cursor-help" />
+                      <Tooltip.Panel>
+                        <div className="max-w-[30em]">The least amount of tokens you will recieve in this withdraw</div>
+                      </Tooltip.Panel>
+                    </Tooltip>
+                  </Row>
+                  <AutoBox is={isMobile ? 'Col' : 'Col'} className="pt-2 gap-2">
+                    <MinWithdrawAmount token={coinBase} amount={originalCoin1AmountMin} className="px-1" />
+                    <MinWithdrawAmount token={coinQuote} amount={originalCoin2AmountMin} className="px-1" />
+                  </AutoBox>
+                </FadeInStable>
+              </Col>
+              <Row className="flex justify-between items-center text-[#ABC4FF] font-medium text-sm"></Row>
             </div>
           </Col>
           <Row className="flex-col gap-1">
@@ -321,5 +324,31 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
         </Card>
       )}
     </ResponsiveDialogDrawer>
+  )
+}
+
+function MinWithdrawAmount({
+  token,
+  amount,
+  className
+}: {
+  token: Token | SplToken | undefined
+  amount: Numberish | undefined
+  className?: string
+}) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+
+  return (
+    <Row className={twMerge('w-full justify-between', className)}>
+      <Row className="gap-2 items-center">
+        <CoinAvatar size={isMobile ? 'xs' : 'md'} token={token} />
+        {token?.symbol ?? token?.mint.toString().slice(0, 6)}
+      </Row>
+      <Row className="text-lg text-white items-center">
+        {toString(amount ?? 0, {
+          decimalLength: `auto ${token?.decimals ?? 10}`
+        })}
+      </Row>
+    </Row>
   )
 }
