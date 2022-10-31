@@ -52,9 +52,9 @@ export default function useConcentratedAmountCalculator() {
   const calcConcentratedPairsAmount = useCallback(() => {
     assert(currentAmmPool, 'not pool info')
     assert(coin1, 'not set coin1')
-    assert(priceUpperTick, 'not set priceUpperTick')
+    assert(priceUpperTick !== undefined, 'not set priceUpperTick')
     assert(coin2, 'not set coin2')
-    assert(priceLowerTick, 'not set priceLowerTick')
+    assert(priceLowerTick !== undefined, 'not set priceLowerTick')
 
     if (isRemoveDialogOpen && isInput === false) return // while removing liquidity, need to know the source is from input or from slider
 

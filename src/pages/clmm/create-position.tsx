@@ -138,7 +138,6 @@ function ConcentratedCard() {
     s.loadChartPointsAct,
     s.lazyLoadChart
   ])
-  const hasChartPoints = !!chartPoints && chartPoints.length > 0
   const connected = useWallet((s) => s.connected)
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
@@ -147,15 +146,7 @@ function ConcentratedCard() {
   const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
 
-  const priceLowerTick = useConcentrated((s) => s.priceLowerTick)
-  const priceUpperTick = useConcentrated((s) => s.priceUpperTick)
-  const planAApr = useConcentrated((s) => s.planAApr)
-  const planBApr = useConcentrated((s) => s.planBApr)
-  const planCApr = useConcentrated((s) => s.planCApr)
   const timeBasis = useConcentrated((s) => s.timeBasis)
-  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
-  const tokenPrice = useToken((s) => s.tokenPrices)
-  const tokens = useToken((s) => s.tokens)
 
   const coin1 = useConcentrated((s) => s.coin1)
   const coin1Amount = useConcentrated((s) => s.coin1Amount)
