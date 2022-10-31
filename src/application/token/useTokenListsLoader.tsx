@@ -37,118 +37,10 @@ export default function useTokenListsLoader() {
   const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
   const poolRefreshCount = usePools((s) => s.refreshCount)
   const clmmRefreshCount = useConcentrated((s) => s.refreshCount)
-  const tokenListSettings = useToken((s) => s.tokenListSettings)
-
-  const loadTokens = useCallback(async () => {
-    const customTokenIcons = await fetchTokenIconInfoList()
-    const {
-      devMints,
-      unOfficialMints,
-      officialMints,
-      otherLiquiditySupportedMints,
-      unNamedMints,
-      tokens: allTokens,
-      blacklist: _blacklist
-    } = await fetchTokenLists(rawTokenListConfigs)
-    // if length has not changed, don't parse again
-
-    const mainnetOriginalMintsLength = tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.size
-    const solanaTokenOriginalMintsLength = tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.size
-    const devOriginalMintsLength = tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.size
-    const unnamedOriginalMintsLength = tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.size
-    const otherOriginalMintsLength = tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME].mints?.size
-    if (
-      devMints.length === devOriginalMintsLength &&
-      officialMints.length === mainnetOriginalMintsLength &&
-      unOfficialMints.length === solanaTokenOriginalMintsLength &&
-      unNamedMints.length === unnamedOriginalMintsLength &&
-      otherLiquiditySupportedMints.length === otherOriginalMintsLength
-    )
-      return
-
-    const blacklist = new Set(_blacklist)
-    const unsortedTokenInfos = allTokens
-      /* shake off tokens in raydium blacklist */
-      .filter((info) => !blacklist.has(info.mint))
-
-    const startWithSymbol = (s: string) => !/^[a-zA-Z]/.test(s)
-    const splTokenJsonInfos = listToMap(
-      unsortedTokenInfos.sort((a, b) => {
-        const aPriorityOrder = officialMints.includes(a.mint) ? 1 : unOfficialMints.includes(a.mint) ? 2 : 3
-        const bPriorityOrder = officialMints.includes(b.mint) ? 1 : unOfficialMints.includes(b.mint) ? 2 : 3
-        const priorityOrderDiff = aPriorityOrder - bPriorityOrder
-        if (priorityOrderDiff === 0) {
-          const aStartWithSymbol = startWithSymbol(a.symbol)
-          const bStartWithSymbol = startWithSymbol(b.symbol)
-          if (aStartWithSymbol && !bStartWithSymbol) return 1
-          if (!aStartWithSymbol && bStartWithSymbol) return -1
-          return a.symbol.localeCompare(b.symbol)
-        } else {
-          return priorityOrderDiff
-        }
-      }),
-      (i) => i.mint
-    )
-
-    const pureTokens = objectMap(splTokenJsonInfos, (tokenJsonInfo) => createSplToken(tokenJsonInfo, customTokenIcons))
-
-    /** have QSOL */
-    const tokens = { ...pureTokens, [toPubString(QuantumSOL.mint)]: QuantumSOL }
-
-    const verboseTokens = [
-      QuantumSOLVersionSOL,
-      ...Object.values(replaceValue(pureTokens, (v, k) => k === String(WSOL.mint), QuantumSOLVersionWSOL))
-    ]
-
-    useToken.setState((s) => ({
-      canFlaggedTokenMints: new Set(
-        Object.values(tokens)
-          .filter((token) => !s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.has(String(token.mint)))
-          .map((token) => String(token.mint))
-      ),
-      blacklist: _blacklist,
-      tokenListSettings: {
-        ...s.tokenListSettings,
-
-        [RAYDIUM_MAINNET_TOKEN_LIST_NAME]: {
-          ...s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME],
-          mints: new Set([
-            ...(s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.values() ?? []),
-            ...officialMints
-          ])
-        },
-        [SOLANA_TOKEN_LIST_NAME]: {
-          ...s.tokenListSettings[SOLANA_TOKEN_LIST_NAME],
-          mints: new Set([...(s.tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.values() ?? []), ...unOfficialMints])
-        },
-
-        [RAYDIUM_DEV_TOKEN_LIST_NAME]: {
-          ...s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME],
-          mints: new Set([...(s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.values() ?? []), ...devMints])
-        },
-        [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
-          ...s.tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME],
-          mints: new Set(otherLiquiditySupportedMints)
-        },
-        [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
-          ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
-          mints: new Set([
-            ...(s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.values() ?? []),
-            ...unNamedMints
-          ])
-        }
-      },
-      tokenJsonInfos: listToMap(allTokens, (i) => i.mint),
-      tokens,
-      pureTokens,
-      verboseTokens
-    }))
-  }, [tokenListSettings])
 
   useTransitionedEffect(() => {
     loadTokens()
   }, [
-    loadTokens,
     walletRefreshCount,
     swapRefreshCount,
     liquidityRefreshCount,
@@ -369,4 +261,111 @@ export function toSplTokenInfo(splToken: SplToken): TokenJson {
     extensions: splToken.extensions,
     icon: splToken.icon
   }
+}
+
+async function loadTokens() {
+  const { tokenListSettings } = useToken.getState()
+  const customTokenIcons = await fetchTokenIconInfoList()
+  const {
+    devMints,
+    unOfficialMints,
+    officialMints,
+    otherLiquiditySupportedMints,
+    unNamedMints,
+    tokens: allTokens,
+    blacklist: _blacklist
+  } = await fetchTokenLists(rawTokenListConfigs)
+  // if length has not changed, don't parse again
+
+  const mainnetOriginalMintsLength = tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.size
+  const solanaTokenOriginalMintsLength = tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.size
+  const devOriginalMintsLength = tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.size
+  const unnamedOriginalMintsLength = tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.size
+  const otherOriginalMintsLength = tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME].mints?.size
+  if (
+    devMints.length === devOriginalMintsLength &&
+    officialMints.length === mainnetOriginalMintsLength &&
+    unOfficialMints.length === solanaTokenOriginalMintsLength &&
+    unNamedMints.length === unnamedOriginalMintsLength &&
+    otherLiquiditySupportedMints.length === otherOriginalMintsLength
+  )
+    return
+
+  const blacklist = new Set(_blacklist)
+  const unsortedTokenInfos = allTokens
+    /* shake off tokens in raydium blacklist */
+    .filter((info) => !blacklist.has(info.mint))
+
+  const startWithSymbol = (s: string) => !/^[a-zA-Z]/.test(s)
+  const splTokenJsonInfos = listToMap(
+    unsortedTokenInfos.sort((a, b) => {
+      const aPriorityOrder = officialMints.includes(a.mint) ? 1 : unOfficialMints.includes(a.mint) ? 2 : 3
+      const bPriorityOrder = officialMints.includes(b.mint) ? 1 : unOfficialMints.includes(b.mint) ? 2 : 3
+      const priorityOrderDiff = aPriorityOrder - bPriorityOrder
+      if (priorityOrderDiff === 0) {
+        const aStartWithSymbol = startWithSymbol(a.symbol)
+        const bStartWithSymbol = startWithSymbol(b.symbol)
+        if (aStartWithSymbol && !bStartWithSymbol) return 1
+        if (!aStartWithSymbol && bStartWithSymbol) return -1
+        return a.symbol.localeCompare(b.symbol)
+      } else {
+        return priorityOrderDiff
+      }
+    }),
+    (i) => i.mint
+  )
+
+  const pureTokens = objectMap(splTokenJsonInfos, (tokenJsonInfo) => createSplToken(tokenJsonInfo, customTokenIcons))
+
+  /** have QSOL */
+  const tokens = { ...pureTokens, [toPubString(QuantumSOL.mint)]: QuantumSOL }
+
+  const verboseTokens = [
+    QuantumSOLVersionSOL,
+    ...Object.values(replaceValue(pureTokens, (v, k) => k === String(WSOL.mint), QuantumSOLVersionWSOL))
+  ]
+
+  useToken.setState((s) => ({
+    canFlaggedTokenMints: new Set(
+      Object.values(tokens)
+        .filter((token) => !s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.has(String(token.mint)))
+        .map((token) => String(token.mint))
+    ),
+    blacklist: _blacklist,
+    tokenListSettings: {
+      ...s.tokenListSettings,
+
+      [RAYDIUM_MAINNET_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME],
+        mints: new Set([
+          ...(s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.values() ?? []),
+          ...officialMints
+        ])
+      },
+      [SOLANA_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[SOLANA_TOKEN_LIST_NAME],
+        mints: new Set([...(s.tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.values() ?? []), ...unOfficialMints])
+      },
+
+      [RAYDIUM_DEV_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME],
+        mints: new Set([...(s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.values() ?? []), ...devMints])
+      },
+      [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME],
+        mints: new Set(otherLiquiditySupportedMints)
+      },
+      [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
+        mints: new Set([
+          ...(s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.values() ?? []),
+          ...unNamedMints
+        ])
+      }
+    },
+    tokenJsonInfos: listToMap(allTokens, (i) => i.mint),
+    tokens,
+    pureTokens,
+    verboseTokens
+  }))
 }
