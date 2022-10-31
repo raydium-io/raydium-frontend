@@ -1,4 +1,4 @@
-import { AmmV3PoolPersonalPosition, Price, Token } from '@raydium-io/raydium-sdk'
+import { AmmV3PoolPersonalPosition, Price } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import toPubString from '@/functions/format/toMintString'
@@ -8,15 +8,19 @@ import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import { mergeObject } from '@/functions/merge'
 import { gt, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
-import { toString } from '@/functions/numberish/toString'
 
 import { SplToken } from '../token/type'
 import useToken from '../token/useToken'
 import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
+import { BN } from 'bn.js'
 import {
-  GetAprParameters, GetAprPoolTickParameters, GetAprPositionParameters, getPoolAprCore, getPoolTickAprCore,
+  GetAprParameters,
+  GetAprPoolTickParameters,
+  GetAprPositionParameters,
+  getPoolAprCore,
+  getPoolTickAprCore,
   getPositonAprCore
 } from './calcApr'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
@@ -139,14 +143,14 @@ function hydratePoolInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     (base
       ? base.symbol
       : sdkConcentratedInfo.state.mintA.mint
-        ? toPubString(sdkConcentratedInfo.state.mintA.mint).substring(0, 6)
-        : 'unknown') +
+      ? toPubString(sdkConcentratedInfo.state.mintA.mint).substring(0, 6)
+      : 'unknown') +
     '-' +
     (quote
       ? quote?.symbol
       : sdkConcentratedInfo.state.mintB.mint
-        ? toPubString(sdkConcentratedInfo.state.mintB.mint).substring(0, 6)
-        : 'unknown')
+      ? toPubString(sdkConcentratedInfo.state.mintB.mint).substring(0, 6)
+      : 'unknown')
 
   return {
     id: sdkConcentratedInfo.state.id,
@@ -171,6 +175,7 @@ function hydrateFeeRate(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial
   }
 }
 
+const u64 = new BN(1).shln(64)
 /**
  * part of {@link hydrateConcentratedInfo}
  */
@@ -197,26 +202,27 @@ function hydrateUserPositionAccounnt(
     const positionRewardInfos = info.rewardInfos
       .map((info, idx) => {
         const token = getToken(poolRewardInfos[idx]?.tokenMint)
-        const penddingReward = token ? toTokenAmount(token, info.pendingReward) : undefined
+        const pendingRewardAmount = gt(info.pendingReward, u64) ? 0 : info.pendingReward // if tooo large, it should be zero, it's just rpc's calculation error
+        const penddingReward = token ? toTokenAmount(token, pendingRewardAmount) : undefined
         if (!penddingReward) return
         const apr24h =
           idx === 0
             ? toPercent(ammPoolInfo.state.day.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-              ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
+            ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
         const apr7d =
           idx === 0
             ? toPercent(ammPoolInfo.state.week.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-              ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
+            ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
         const apr30d =
           idx === 0
             ? toPercent(ammPoolInfo.state.month.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-              ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
+            ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
         return { penddingReward, apr24h, apr7d, apr30d, token }
       })
       .filter((info) => Boolean(info?.penddingReward)) as UserPositionAccount['rewardInfos']
