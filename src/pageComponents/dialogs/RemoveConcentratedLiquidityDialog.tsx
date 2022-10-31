@@ -240,7 +240,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                 <Row className="flex justify-end items-center text-[#ABC4FF] font-medium text-sm">
                   <div className="text-lg text-white">{toUsdVolume(pendingYield)}</div>
                 </Row>
-                <FadeInStable show={originalCoin1AmountMin && originalCoin2AmountMin}>
+                <FadeInStable show={gt(originalCoin1AmountMin, 0) && gt(originalCoin2AmountMin, 0)}>
                   <Row className="flex justify-start gap-1 items-center text-[#ABC4FF] font-medium text-sm">
                     Minimum Received
                     <Tooltip>
@@ -250,10 +250,10 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                       </Tooltip.Panel>
                     </Tooltip>
                   </Row>
-                  <AutoBox is={isMobile ? 'Col' : 'Col'} className="pt-2 gap-2">
+                  <Col className="pt-2 gap-2">
                     <MinWithdrawAmount token={coinBase} amount={originalCoin1AmountMin} className="px-1" />
                     <MinWithdrawAmount token={coinQuote} amount={originalCoin2AmountMin} className="px-1" />
-                  </AutoBox>
+                  </Col>
                 </FadeInStable>
               </Col>
               <Row className="flex justify-between items-center text-[#ABC4FF] font-medium text-sm"></Row>
@@ -337,6 +337,9 @@ function MinWithdrawAmount({
   className?: string
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
+
+  // eslint-disable-next-line no-console
+  console.log('amount: ', amount)
 
   return (
     <Row className={twMerge('w-full justify-between', className)}>
