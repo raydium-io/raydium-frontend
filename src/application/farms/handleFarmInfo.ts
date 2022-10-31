@@ -9,7 +9,7 @@ import {
   TEN,
   TokenAmount,
   ZERO
-} from 'test-r-sdk'
+} from '@raydium-io/raydium-sdk'
 
 import { ConnectionStore } from '@/application/connection/useConnection'
 import { findAmmId } from '@/application/liquidity/miscToolFns'

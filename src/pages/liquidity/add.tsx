@@ -2,7 +2,7 @@ import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState
 
 import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
-import { Percent } from 'test-r-sdk'
+import { Percent } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useFarms from '@/application/farms/useFarms'

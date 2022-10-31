@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
 
-import { Spl } from 'test-r-sdk'
+import { Spl } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'

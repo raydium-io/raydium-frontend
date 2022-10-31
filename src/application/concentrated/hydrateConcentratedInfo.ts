@@ -1,7 +1,6 @@
-import { AmmV3PoolPersonalPosition, Price, Token } from 'test-r-sdk'
+import { AmmV3PoolPersonalPosition, Price, Token } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import { MANUAL_ADJUST } from '@/application/concentrated/txDecreaseConcentrated'
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -188,8 +187,8 @@ function hydrateUserPositionAccounnt(
   const tokenB = getToken(ammPoolInfo.state.mintB.mint)
   const currentPrice = decimalToFraction(ammPoolInfo.state.currentPrice)
   return ammPoolInfo.positionAccount?.map((info) => {
-    const amountA = tokenA ? toTokenAmount(tokenA, mul(info.amountA, MANUAL_ADJUST)) : undefined
-    const amountB = tokenB ? toTokenAmount(tokenB, mul(info.amountB, MANUAL_ADJUST)) : undefined
+    const amountA = tokenA ? toTokenAmount(tokenA, info.amountA) : undefined
+    const amountB = tokenB ? toTokenAmount(tokenB, info.amountB) : undefined
     const originAmountA = tokenA ? toTokenAmount(tokenA, info.amountA) : undefined
     const originAmountB = tokenB ? toTokenAmount(tokenB, info.amountB) : undefined
     const tokenFeeAmountA = tokenA ? toTokenAmount(tokenA, info.tokenFeeAmountA) : undefined
@@ -203,7 +202,7 @@ function hydrateUserPositionAccounnt(
     const positionRewardInfos = info.rewardInfos
       .map((info, idx) => {
         const token = getToken(poolRewardInfos[idx]?.tokenMint)
-        const penddingReward = token ? toTokenAmount(token, info.peddingReward) : undefined
+        const penddingReward = token ? toTokenAmount(token, info.pendingReward) : undefined
         if (!penddingReward) return
         const apr24h =
           idx === 0

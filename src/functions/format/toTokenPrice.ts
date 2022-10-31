@@ -1,5 +1,5 @@
 import BN from 'bn.js'
-import { Currency, Price, TEN, Token } from 'test-r-sdk'
+import { Currency, Price, TEN, Token } from '@raydium-io/raydium-sdk'
 
 import { TokenJson } from '@/application/token/type'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'

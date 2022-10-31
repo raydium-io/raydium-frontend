@@ -2,7 +2,7 @@ import React, { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState }
 import { useRouter } from 'next/router'
 
 import { twMerge } from 'tailwind-merge'
-import { ZERO } from 'test-r-sdk'
+import { ZERO } from '@raydium-io/raydium-sdk'
 
 import { refreshWindow } from '@/application/common/forceWindowRefresh'
 import useAppSettings from '@/application/common/useAppSettings'

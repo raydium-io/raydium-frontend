@@ -1,6 +1,6 @@
 import { Connection, Signer, TransactionInstruction } from '@solana/web3.js'
 
-import { Farm } from 'test-r-sdk'
+import { Farm } from '@raydium-io/raydium-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import txHandler, { SingleTxOptions } from '@/application/txTools/handleTx'

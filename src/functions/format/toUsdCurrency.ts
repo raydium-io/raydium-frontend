@@ -1,5 +1,5 @@
 import BN from 'bn.js'
-import { CurrencyAmount, Fraction, TEN } from 'test-r-sdk'
+import { CurrencyAmount, Fraction, TEN } from '@raydium-io/raydium-sdk'
 
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import toBN from '@/functions/numberish/toBN'

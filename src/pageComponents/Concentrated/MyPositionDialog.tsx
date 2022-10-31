@@ -1,5 +1,5 @@
 import { twMerge } from 'tailwind-merge'
-import { Fraction, Token, TokenAmount } from 'test-r-sdk'
+import { Fraction, Token, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txHarvestConcentrated from '@/application/concentrated/txHarvestConcentrated'

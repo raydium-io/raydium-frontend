@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { CurrencyAmount } from 'test-r-sdk'
+import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 

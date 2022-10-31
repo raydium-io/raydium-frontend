@@ -1,4 +1,4 @@
-import { Token, TokenAmount } from 'test-r-sdk'
+import { Token, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { SplToken } from '@/application/token/type'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'

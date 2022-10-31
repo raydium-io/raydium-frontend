@@ -1,20 +1,17 @@
-import { useEffect } from 'react'
 import { useRouter } from 'next/router'
 
-import { WSOL } from 'test-r-sdk'
+import { WSOL } from '@raydium-io/raydium-sdk'
 
+import { getAllSwapableRouteInfos } from '@/application/ammV3PoolInfoAndLiquidity/ammAndLiquidity'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { makeAbortable } from '@/functions/makeAbortable'
 import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useIdleEffect } from '@/hooks/useIdleEffect'
-import { getAllSwapableRouteInfos } from '@/models/ammAndLiquidity'
-import { makeAbortable } from '@/functions/makeAbortable'
-import { HexAddress } from '@/types/constants'
 
 import useAppSettings from '../common/useAppSettings'
 import useConnection from '../connection/useConnection'
-import { SDKParsedLiquidityInfo } from '../liquidity/type'
 import useLiquidity from '../liquidity/useLiquidity'
 import useWallet from '../wallet/useWallet'
 
@@ -40,9 +37,6 @@ export function useSwapAmountCalculator() {
   const downCoinAmount = (directionReversed ? userCoin1Amount : userCoin2Amount) || '0'
 
   const jsonInfos = useLiquidity((s) => s.jsonInfos)
-  useEffect(() => {
-    cleanCalcCache()
-  }, [refreshCount])
 
   // get preflight
   useIdleEffect(async () => {
@@ -201,10 +195,4 @@ export function useSwapAmountCalculator() {
     connected, // init fetch data
     jsonInfos
   ])
-}
-
-const sdkParsedInfoCache = new Map<HexAddress, SDKParsedLiquidityInfo[]>()
-
-function cleanCalcCache() {
-  sdkParsedInfoCache.clear()
 }

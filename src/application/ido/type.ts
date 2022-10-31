@@ -1,5 +1,5 @@
 import BN from 'bn.js'
-import { Price } from 'test-r-sdk'
+import { Price } from '@raydium-io/raydium-sdk'
 
 import {
   DateInfo,

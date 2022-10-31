@@ -1,4 +1,4 @@
-import { TradeV2 } from 'test-r-sdk'
+import { TradeV2 } from '@raydium-io/raydium-sdk'
 
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'

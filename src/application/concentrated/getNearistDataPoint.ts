@@ -1,4 +1,4 @@
-import { AmmV3, Fraction } from 'test-r-sdk'
+import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
 
 import {
   decimalToFraction,

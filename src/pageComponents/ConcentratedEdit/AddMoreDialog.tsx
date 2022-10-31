@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Fraction } from 'test-r-sdk'
+import { Fraction } from '@raydium-io/raydium-sdk'
 import useAppSettings from '@/application/common/useAppSettings'
 import useWallet from '@/application/wallet/useWallet'
 import Row from '@/components/Row'

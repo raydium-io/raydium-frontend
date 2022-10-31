@@ -1,4 +1,4 @@
-import { LiquidityPoolJsonInfo } from 'test-r-sdk'
+import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
 
 export default function searchJsonConcentratedInfo(
   partialJsonInfo: Partial<LiquidityPoolJsonInfo>,

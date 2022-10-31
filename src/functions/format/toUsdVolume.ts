@@ -1,4 +1,4 @@
-import { Rounding } from 'test-r-sdk'
+import { Rounding } from '@raydium-io/raydium-sdk'
 
 import { FormatOptions } from '@/functions/format/formatNumber'
 import { Numberish } from '@/types/constants'

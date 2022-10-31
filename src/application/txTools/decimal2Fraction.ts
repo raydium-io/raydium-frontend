@@ -2,7 +2,7 @@ import { PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
 import Decimal from 'decimal.js'
-import { _100, Currency, CurrencyAmount, Fraction, Percent, Price, Token, TokenAmount } from 'test-r-sdk'
+import { _100, Currency, CurrencyAmount, Fraction, Percent, Price, Token, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { isDecimal, isFraction } from '@/functions/judgers/dateType'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'

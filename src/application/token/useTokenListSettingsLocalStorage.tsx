@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { SplTokenJsonInfo } from 'test-r-sdk'
+import { SplTokenJsonInfo } from '@raydium-io/raydium-sdk'
 
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { getLocalItem, setLocalItem } from '@/functions/dom/jStorage'

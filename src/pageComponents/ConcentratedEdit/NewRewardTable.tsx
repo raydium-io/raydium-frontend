@@ -1,4 +1,4 @@
-import { CurrencyAmount } from 'test-r-sdk'
+import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 import useAppSettings from '@/application/common/useAppSettings'
 import useToken from '@/application/token/useToken'
 import Row from '@/components/Row'

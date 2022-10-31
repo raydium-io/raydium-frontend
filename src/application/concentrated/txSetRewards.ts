@@ -1,4 +1,4 @@
-import { AmmV3, Fraction } from 'test-r-sdk'
+import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import assert from '@/functions/assert'
 import { loadTransaction } from '../txTools/createTransaction'

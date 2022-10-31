@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo } from 'react'
 
 import BN from 'bn.js'
-import { AmmV3, ReturnTypeGetLiquidityAmountOutFromAmountIn } from 'test-r-sdk'
+import { AmmV3, ReturnTypeGetLiquidityAmountOutFromAmountIn } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import assert from '@/functions/assert'
@@ -14,7 +14,6 @@ import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 
-import { MANUAL_ADJUST } from './txDecreaseConcentrated'
 import useConcentrated from './useConcentrated'
 
 /**
@@ -78,8 +77,8 @@ export default function useConcentratedAmountCalculator() {
         ? getRemoveLiquidityAmountOutFromAmountIn(
             inputAmountBN,
             position?.liquidity,
-            toBN(mul(position.amountA, MANUAL_ADJUST)),
-            toBN(mul(position.amountB, MANUAL_ADJUST)),
+            toBN(position.amountA),
+            toBN(position.amountB),
             isFocus1
           )
         : AmmV3.getLiquidityAmountOutFromAmountIn({

@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
 
-import { Spl, WSOL } from 'test-r-sdk'
+import { Spl, WSOL } from '@raydium-io/raydium-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import txHandler, { SingleTxOptions, HandleFnOptions } from '@/application/txTools/handleTx'

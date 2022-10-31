@@ -1,4 +1,4 @@
-import { ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, Token, WSOL } from 'test-r-sdk'
+import { ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
 
 import { asyncMapAllSettled } from '@/functions/asyncMap'
 import jFetch from '@/functions/dom/jFetch'

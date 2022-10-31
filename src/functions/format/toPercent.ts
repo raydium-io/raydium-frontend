@@ -1,5 +1,5 @@
 import BN from 'bn.js'
-import { Percent } from 'test-r-sdk'
+import { Percent } from '@raydium-io/raydium-sdk'
 
 import { Numberish } from '@/types/constants'
 

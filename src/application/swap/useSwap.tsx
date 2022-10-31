@@ -1,4 +1,11 @@
-import { CurrencyAmount, Price, ReturnTypeGetAllRouteComputeAmountOut, RouteInfo, RouteType, TradeV2 } from 'test-r-sdk'
+import {
+  CurrencyAmount,
+  Price,
+  ReturnTypeGetAllRouteComputeAmountOut,
+  RouteInfo,
+  RouteType,
+  TradeV2
+} from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 
 import { Numberish } from '@/types/constants'
