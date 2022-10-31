@@ -74,6 +74,7 @@ import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConc
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
 import { isMintEqual, isPubEqual } from '@/functions/judgers/areEqual'
+import { Badge } from '@/components/Badge'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -1099,25 +1100,33 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
               <div>
                 <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80] mb-2">Daily Rate</div>
                 <Row className="flex-wrap gap-8 mobile:gap-2">
-                  {info.rewardInfos.map((r) => (
-                    <Col key={toPubString(r.tokenMint)} className="gap-1 mobile:gap-0.5">
-                      <Row className="items-center gap-2">
-                        <RewardAvatar rewardInfo={r} size={isMobile ? 'xs' : 'sm'} />
-                        <Row className="items-center gap-1">
-                          <div className="font-medium mobile:text-sm text-white">
-                            {formatNumber(r.rewardPerDay, { fractionLength: 0 })}
-                          </div>
-                          <div className="font-medium mobile:text-sm text-[#abc4ff80]">
-                            {r.rewardToken?.symbol ?? '--'}
-                          </div>
+                  {info.rewardInfos.map((r) => {
+                    const isRewardEnded = currentIsAfter(r.endTime)
+                    return (
+                      <Col key={toPubString(r.tokenMint)} className="gap-1 mobile:gap-0.5">
+                        <Row className="items-center gap-2">
+                          <RewardAvatar rewardInfo={r} size={isMobile ? 'xs' : 'sm'} />
+                          <Row className="items-center gap-1">
+                            <div className="font-medium mobile:text-sm text-white">
+                              {isRewardEnded ? '--' : formatNumber(r.rewardPerDay, { fractionLength: 0 })}
+                            </div>
+                            <div className="font-medium mobile:text-sm text-[#abc4ff80]">
+                              {r.rewardToken?.symbol ?? '--'}
+                            </div>
+                            {isRewardEnded && (
+                              <Badge className="ml-1" cssColor="#DA2EEF">
+                                Ended
+                              </Badge>
+                            )}
+                          </Row>
                         </Row>
-                      </Row>
-                      <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80]">
-                        {toUTC(r.openTime, { hideUTCBadge: true, hideHourMinuteSecond: true })} -{' '}
-                        {toUTC(r.endTime, { hideUTCBadge: true, hideHourMinuteSecond: true })}
-                      </div>
-                    </Col>
-                  ))}
+                        <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80]">
+                          {toUTC(r.openTime, { hideUTCBadge: true, hideHourMinuteSecond: true })} -{' '}
+                          {toUTC(r.endTime, { hideUTCBadge: true, hideHourMinuteSecond: true })}
+                        </div>
+                      </Col>
+                    )
+                  })}
                 </Row>
               </div>
 
