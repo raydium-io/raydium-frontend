@@ -1,18 +1,21 @@
 import { useEffect } from 'react'
+
 import toPubString from '@/functions/format/toMintString'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { PublicKeyish } from '@/types/constants'
+
+import { QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
 import { SplToken } from './type'
 import useToken from './useToken'
-import { QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint } from './quantumSOL'
-import { isMintEqual } from '@/functions/judgers/areEqual'
 import { SOLMint } from './wellknownToken.config'
 
 export function useTokenGetterFnLoader() {
   const tokens = useToken((s) => s.tokens)
   const pureTokens = useToken((s) => s.pureTokens)
   const userAddedTokens = useToken((s) => s.userAddedTokens)
+  const lpTokens = useToken((s) => s.lpTokens)
 
-  /** NOTE -  getToken place 3 */
+  /** NOTE -  set getToken function into useToken store */
   useEffect(() => {
     /** exact mode: 'so111111112' will be QSOL-WSOL 'sol' will be QSOL-SOL */
     function getToken(mint: PublicKeyish | undefined, options?: { exact?: boolean }): SplToken | undefined {
@@ -22,11 +25,11 @@ export function useTokenGetterFnLoader() {
       if (options?.exact && isMintEqual(mint, WSOLMint)) {
         return QuantumSOLVersionWSOL
       }
-      return tokens[toPubString(mint)] ?? userAddedTokens[toPubString(mint)]
+      return tokens[toPubString(mint)] ?? userAddedTokens[toPubString(mint)] ?? lpTokens[toPubString(mint)]
     }
 
     useToken.setState({
       getToken
     })
-  }, [tokens, pureTokens, userAddedTokens])
+  }, [tokens, pureTokens, userAddedTokens, lpTokens])
 }
