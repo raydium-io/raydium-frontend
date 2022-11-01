@@ -13,7 +13,12 @@ export function useTokenGetterFnLoader() {
   const tokens = useToken((s) => s.tokens)
   const pureTokens = useToken((s) => s.pureTokens)
   const userAddedTokens = useToken((s) => s.userAddedTokens)
-  const lpTokens = useToken((s) => s.lpTokens)
+  const lpTokens = useToken(
+    (s) => s.lpTokens,
+    (oldRecord, newRecord) => {
+      return Object.keys(oldRecord).length === Object.keys(newRecord).length
+    }
+  )
 
   /** NOTE -  set getToken function into useToken store */
   useEffect(() => {

@@ -2,6 +2,7 @@ import { useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
 import { Price } from '@raydium-io/raydium-sdk'
+
 import shallow from 'zustand/shallow'
 
 import { unifyItem } from '@/functions/arrayMethods'
@@ -90,5 +91,5 @@ export default function usePoolsInfoLoader() {
         })
     })
     usePools.setState({ hydratedInfos, loading: hydratedInfos.length === 0 })
-  }, [jsonInfos, balances, stableLiquidityJsonInfoLpMints, userCustomTokenSymbol])
+  }, [jsonInfos, getLpToken, balances, stableLiquidityJsonInfoLpMints, userCustomTokenSymbol])
 }
