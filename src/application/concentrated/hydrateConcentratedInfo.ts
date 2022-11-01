@@ -1,7 +1,6 @@
-import { AmmV3PoolPersonalPosition, Price, Token } from '@raydium-io/raydium-sdk'
+import { AmmV3PoolPersonalPosition, Price } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import { MANUAL_ADJUST } from '@/application/concentrated/txDecreaseConcentrated'
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -9,15 +8,19 @@ import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import { mergeObject } from '@/functions/merge'
 import { gt, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
-import { toString } from '@/functions/numberish/toString'
 
 import { SplToken } from '../token/type'
 import useToken from '../token/useToken'
 import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
+import { BN } from 'bn.js'
 import {
-  GetAprParameters, GetAprPoolTickParameters, GetAprPositionParameters, getPoolAprCore, getPoolTickAprCore,
+  GetAprParameters,
+  GetAprPoolTickParameters,
+  GetAprPositionParameters,
+  getPoolAprCore,
+  getPoolTickAprCore,
   getPositonAprCore
 } from './calcApr'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
@@ -172,6 +175,7 @@ function hydrateFeeRate(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial
   }
 }
 
+const u64 = new BN(1).shln(64)
 /**
  * part of {@link hydrateConcentratedInfo}
  */
@@ -183,8 +187,8 @@ function hydrateUserPositionAccounnt(
   const tokenB = getToken(ammPoolInfo.state.mintB.mint)
   const currentPrice = decimalToFraction(ammPoolInfo.state.currentPrice)
   return ammPoolInfo.positionAccount?.map((info) => {
-    const amountA = tokenA ? toTokenAmount(tokenA, mul(info.amountA, MANUAL_ADJUST)) : undefined
-    const amountB = tokenB ? toTokenAmount(tokenB, mul(info.amountB, MANUAL_ADJUST)) : undefined
+    const amountA = tokenA ? toTokenAmount(tokenA, info.amountA) : undefined
+    const amountB = tokenB ? toTokenAmount(tokenB, info.amountB) : undefined
     const originAmountA = tokenA ? toTokenAmount(tokenA, info.amountA) : undefined
     const originAmountB = tokenB ? toTokenAmount(tokenB, info.amountB) : undefined
     const tokenFeeAmountA = tokenA ? toTokenAmount(tokenA, info.tokenFeeAmountA) : undefined
@@ -198,7 +202,8 @@ function hydrateUserPositionAccounnt(
     const positionRewardInfos = info.rewardInfos
       .map((info, idx) => {
         const token = getToken(poolRewardInfos[idx]?.tokenMint)
-        const penddingReward = token ? toTokenAmount(token, info.peddingReward) : undefined
+        const pendingRewardAmount = gt(info.pendingReward, u64) ? 0 : info.pendingReward // if tooo large, it should be zero, it's just rpc's calculation error
+        const penddingReward = token ? toTokenAmount(token, pendingRewardAmount) : undefined
         if (!penddingReward) return
         const apr24h =
           idx === 0

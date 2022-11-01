@@ -1,8 +1,6 @@
 import { HydratedAmmV3ConfigInfo, HydratedConcentratedInfo } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
-import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
-import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'

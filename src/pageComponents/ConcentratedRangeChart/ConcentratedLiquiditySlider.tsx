@@ -2,7 +2,6 @@ import { useCallback, useMemo } from 'react'
 
 import { AmmV3 } from '@raydium-io/raydium-sdk'
 
-import { MANUAL_ADJUST } from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import RangeSliderBox from '@/components/RangeSliderBox'
 import assert from '@/functions/assert'
@@ -51,18 +50,12 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
       })
 
       useConcentrated.setState({
-        coin1Amount: toString(
-          toTokenAmount(currentAmmPool.base!, mul(amountFromLiquidity.amountSlippageA, MANUAL_ADJUST)),
-          {
-            decimalLength: `auto ${currentAmmPool.base!.decimals}`
-          }
-        ),
-        coin2Amount: toString(
-          toTokenAmount(currentAmmPool.quote!, mul(amountFromLiquidity.amountSlippageB, MANUAL_ADJUST)),
-          {
-            decimalLength: `auto ${currentAmmPool.quote!.decimals}`
-          }
-        ),
+        coin1Amount: toString(toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA), {
+          decimalLength: `auto ${currentAmmPool.base!.decimals}`
+        }),
+        coin2Amount: toString(toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB), {
+          decimalLength: `auto ${currentAmmPool.quote!.decimals}`
+        }),
         isInput: false,
         liquidity: bnValue
       })

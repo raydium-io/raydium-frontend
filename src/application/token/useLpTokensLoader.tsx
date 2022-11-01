@@ -14,7 +14,6 @@ import useToken from './useToken'
 
 export default function useLpTokensLoader() {
   const ammJsonInfos = useLiquidity((s) => s.jsonInfos)
-  const tokens = useToken((s) => s.tokens)
   const userAddedTokens = useToken((s) => s.userAddedTokens)
   const getToken = useToken((s) => s.getToken)
 
@@ -53,5 +52,5 @@ export default function useLpTokensLoader() {
     // console.timeEnd('inner') // too slow
     const lpTokens = listToMap(shakeUndifindedItem(lpTokenItems), (t) => toPubString(t.mint))
     useToken.setState({ lpTokens, getLpToken: (mint) => lpTokens[toPubString(mint)] })
-  }, [ammJsonInfos, tokens, userAddedTokens])
+  }, [ammJsonInfos, getToken, userAddedTokens])
 }
