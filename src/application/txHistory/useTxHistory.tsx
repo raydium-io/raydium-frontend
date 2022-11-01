@@ -9,7 +9,10 @@ export interface TxHistoryInfo {
   txid: HexAddress
   title?: string
   block?: number
+  /** record and  exist in recent transaction dialog  */
   description?: string
+  /** exist in tx notification but won't record */
+  notificationDetail?: string
   status: 'success' | 'droped' | 'pending' | 'fail'
   time: DateInfo
 }

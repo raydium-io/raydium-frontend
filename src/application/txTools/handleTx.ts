@@ -398,9 +398,10 @@ function loadBasicTxNotificationLog({
   transactions: Transaction[]
   singleOptions: SingleTxOption[]
 }): Partial<TxNotificationController> {
-  const txInfos = singleOptions.map(({ txHistoryInfo }, idx) => ({
+  const txInfos = singleOptions.map(({ txHistoryInfo, ...restSingleOptions }, idx) => ({
     transaction: transactions[idx],
-    historyInfo: txHistoryInfo
+    historyInfo: txHistoryInfo,
+    ...restSingleOptions
   })) as TxNotificationItemInfo['txInfos']
   const txLoggerController = useNotification.getState().logTxid({ txInfos })
   return txLoggerController

@@ -14,7 +14,7 @@ import Row from '../Row'
 import { TxNotificationController, TxNotificationItemInfo } from './type'
 import { spawnTimeoutControllers, TimeoutController } from './utils'
 
-const existMs = process.env.NODE_ENV === 'development' ? 4 * 1000 : 10 * 1000 // (ms)
+const existMs = process.env.NODE_ENV === 'development' ? 60 * 4 * 1000 : 10 * 1000 // (ms)
 
 const colors = {
   success: {
@@ -170,43 +170,51 @@ export function TxNotificationItemCard({
             </div>
           </Row>
           <Col className="gap-2 mobile:gap-2 max-h-[252px] mobile:max-h-[140px] overflow-y-auto px-2 -mx-2 ">
-            {innerTxInfos.map(({ state, txid }, idx) => (
-              <Row key={idx} className="justify-between items-center p-3 gap-20 mobile:gap-1 bg-[#141041] rounded-lg">
-                <Row className="gap-1.5">
-                  {/* item icon */}
-                  <div>
-                    {state === 'success' ? (
-                      <Icon heroIconName="check-circle" size={isMobile ? 'sm' : 'smi'} className="text-[#39d0d8]" />
-                    ) : state === 'error' ? (
-                      <Icon
-                        heroIconName="exclamation-circle"
-                        size={isMobile ? 'sm' : 'smi'}
-                        className="text-[#DA2EEF]"
-                      />
-                    ) : (
-                      <LoadingCircleSmall className="h-5 w-5 mobile:h-4 mobile:w-4 scale-75" />
-                    )}
-                  </div>
-
-                  {/* item text */}
-                  <div className="text-sm mobile:text-xs font-medium text-[#abc4ff]">Transaction {idx + 1}</div>
-                </Row>
-
-                <Row className="text-sm mobile:text-xs text-[#abc4ff] gap-2">
-                  {txid ? (
-                    <Row className="items-center gap-1.5 opacity-50 mobile:opacity-100 hover:opacity-100 transition-opacity">
-                      <div>
-                        View on <LinkExplorer hrefDetail={`tx/${txid}`}>{explorerName}</LinkExplorer>
-                      </div>
-                      <Icon heroIconName="external-link" size="xs" className="text-[#abc4ff]" />
-                    </Row>
-                  ) : (
-                    <div className="text-[#abc4ff] text-xs opacity-50 mobile:opacity-100 transition-opacity">
-                      Waiting...
+            {innerTxInfos.map(({ state, txid, historyInfo }, idx) => (
+              <Col key={idx}>
+                <Row className="justify-between items-center p-3 gap-20 mobile:gap-1 bg-[#141041] rounded-lg">
+                  <Row className="gap-1.5">
+                    {/* item icon */}
+                    <div>
+                      {state === 'success' ? (
+                        <Icon heroIconName="check-circle" size={isMobile ? 'sm' : 'smi'} className="text-[#39d0d8]" />
+                      ) : state === 'error' ? (
+                        <Icon
+                          heroIconName="exclamation-circle"
+                          size={isMobile ? 'sm' : 'smi'}
+                          className="text-[#DA2EEF]"
+                        />
+                      ) : (
+                        <LoadingCircleSmall className="h-5 w-5 mobile:h-4 mobile:w-4 scale-75" />
+                      )}
                     </div>
-                  )}
+                    {/* item text */}
+                    <div className="text-sm mobile:text-xs font-medium text-[#abc4ff]">
+                      {historyInfo.notificationDetail ? (
+                        <div>{historyInfo.notificationDetail}</div>
+                      ) : (
+                        <div>Transaction {idx + 1}</div>
+                      )}
+                    </div>
+                  </Row>
+                  <Row className="text-sm mobile:text-xs text-[#abc4ff] gap-2">
+                    {txid ? (
+                      <Row className="items-center gap-1.5 opacity-50 mobile:opacity-100 hover:opacity-100 transition-opacity">
+                        <div>
+                          View on <LinkExplorer hrefDetail={`tx/${txid}`}>{explorerName}</LinkExplorer>
+                        </div>
+                        <Icon heroIconName="external-link" size="xs" className="text-[#abc4ff]" />
+                      </Row>
+                    ) : (
+                      <div className="text-[#abc4ff] text-xs opacity-50 mobile:opacity-100 transition-opacity">
+                        Waiting...
+                      </div>
+                    )}
+                  </Row>
                 </Row>
-              </Row>
+
+                {/* additional description text */}
+              </Col>
             ))}
           </Col>
         </div>

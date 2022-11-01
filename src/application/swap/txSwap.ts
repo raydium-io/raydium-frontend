@@ -13,6 +13,7 @@ import { createTxHandler, TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import { useSwap } from './useSwap'
+import { TxHistoryInfo } from '../txHistory/useTxHistory'
 
 const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
   const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
@@ -70,15 +71,16 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
       return loadTransaction({ transaction: transaction, signers })
     })
   )
-  const queue = signedTransactions.map((tx) => [
+  const queue = signedTransactions.map((tx, idx) => [
     tx,
     {
       txHistoryInfo: {
         title: 'Swap',
         description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
           downCoin.symbol
-        }`
-      }
+        }`,
+        notificationDetail: `swap ${idx + 1} balabala`
+      } as TxHistoryInfo
     }
   ]) as TransactionQueue
   transactionCollector.addQueue(queue, { sendMode: 'queue(all-settle)' })
