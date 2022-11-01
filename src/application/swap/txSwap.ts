@@ -81,7 +81,7 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
         description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
           downCoin.symbol
         }`,
-        notificationTitle: translationSwapTx(tx)
+        subtransactionDescription: translationSwapTx(tx)
       } as TxHistoryInfo
     }
   ]) as TransactionQueue

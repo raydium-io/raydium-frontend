@@ -7,14 +7,14 @@ import useWallet from '../wallet/useWallet'
 
 export interface TxHistoryInfo {
   txid: HexAddress
-  /** only used in multi mode */
-  relatedHeadTxid?: HexAddress
+  /** only used in multi mode, it's length is transaction length */
+  relativeTxids?: HexAddress[]
   title?: string
   block?: number
-  /** record and  exist in recent transaction dialog  */
   description?: string
-  /** exist in tx notification but won't record */
-  notificationTitle?: string
+  isMulti?: boolean
+  /** only for multi-mode (isMulti should be true) */
+  subtransactionDescription?: string
   status: 'success' | 'droped' | 'pending' | 'fail'
   time: DateInfo
 }
