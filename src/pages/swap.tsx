@@ -62,6 +62,7 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
+import { toPercent } from '@/functions/format/toPercent'
 
 function SwapEffect() {
   useSwapInitCoinFiller()

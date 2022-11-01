@@ -7,6 +7,8 @@ import useWallet from '../wallet/useWallet'
 
 export interface TxHistoryInfo {
   txid: HexAddress
+  /** only used in multi mode */
+  relatedHeadTxid?: HexAddress
   title?: string
   block?: number
   /** record and  exist in recent transaction dialog  */
@@ -20,38 +22,47 @@ export interface TxHistoryInfo {
 export type TxHistoryStore = {
   alltxHistory: Record<HexAddress /* wallet publickey */, Record<TxHistoryInfo['txid'], TxHistoryInfo>>
   txHistory: TxHistoryInfo[]
-  addHistoryItem(item: TxHistoryInfo): Promise<void>
-  updateExistingHistoryItem(
-    txid: HexAddress,
-    piece: MayFunction<Partial<TxHistoryInfo>, [old: TxHistoryInfo]>
-  ): Promise<void>
+  addHistoryItem: typeof addHistoryItem
+  updateExistingHistoryItem: typeof updateExistingHistoryItem
+}
+
+type TxHistoryController = {
+  updateExistingHistoryItem: typeof updateExistingHistoryItem
+}
+
+function addHistoryItem(item: TxHistoryInfo): Promise<TxHistoryController> {
+  const owner = useWallet.getState().owner
+  const addedTxHistoryOfOwner = useTxHistory.getState().txHistory.slice(0, 18).concat(item)
+  useTxHistory.setState((s) => ({
+    alltxHistory: {
+      ...s.alltxHistory,
+      [String(owner)]: Object.fromEntries(addedTxHistoryOfOwner.map((item) => [item.txid, item]))
+    }
+  }))
+  return Promise.resolve({
+    updateExistingHistoryItem
+  })
+}
+
+async function updateExistingHistoryItem(
+  txid: HexAddress,
+  piece: MayFunction<Partial<TxHistoryInfo>, [old: TxHistoryInfo]>
+) {
+  return new Promise((resolve, reject) => {
+    const oldHistoryItem = useTxHistory.getState().txHistory[txid]
+    if (!oldHistoryItem) {
+      reject()
+    }
+    resolve(useTxHistory.getState().addHistoryItem({ ...oldHistoryItem, ...shrinkToValue(piece, [oldHistoryItem]) }))
+  })
 }
 
 export const useTxHistory = create<TxHistoryStore>((set, get) => ({
   alltxHistory: {},
   txHistory: [],
 
-  addHistoryItem: (item: TxHistoryInfo) => {
-    const owner = useWallet.getState().owner
-    const addedTxHistoryOfOwner = get().txHistory.slice(0, 18).concat(item)
-    set((s) => ({
-      alltxHistory: {
-        ...s.alltxHistory,
-        [String(owner)]: Object.fromEntries(addedTxHistoryOfOwner.map((item) => [item.txid, item]))
-      }
-    }))
-    return Promise.resolve()
-  },
-
-  async updateExistingHistoryItem(txid: HexAddress, piece: MayFunction<Partial<TxHistoryInfo>, [old: TxHistoryInfo]>) {
-    return new Promise((resolve, reject) => {
-      const oldHistoryItem = get().txHistory[txid]
-      if (!oldHistoryItem) {
-        reject()
-      }
-      resolve(get().addHistoryItem({ ...oldHistoryItem, ...shrinkToValue(piece, [oldHistoryItem]) }))
-    })
-  }
+  addHistoryItem,
+  updateExistingHistoryItem
 }))
 
 export default useTxHistory

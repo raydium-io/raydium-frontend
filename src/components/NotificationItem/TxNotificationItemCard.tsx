@@ -14,7 +14,7 @@ import Row from '../Row'
 import { TxNotificationController, TxNotificationItemInfo } from './type'
 import { spawnTimeoutControllers, TimeoutController } from './utils'
 
-const existMs = process.env.NODE_ENV === 'development' ? 60 * 4 * 1000 : 10 * 1000 // (ms)
+const existMs = process.env.NODE_ENV === 'development' ? 6 * 1000 : 10 * 1000 // (ms)
 
 const colors = {
   success: {
