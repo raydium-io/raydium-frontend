@@ -191,7 +191,7 @@ export function TxNotificationItemCard({
                     {/* item text */}
                     <div className="text-sm mobile:text-xs font-medium text-[#abc4ff]">
                       Transaction {idx + 1}
-                      {historyInfo.notificationTitle ? ` : ${historyInfo.notificationTitle}` : ''}
+                      {historyInfo.notificationTitle ? `: ${historyInfo.notificationTitle}` : ''}
                     </div>
                   </Row>
                   <Row className="text-sm mobile:text-xs text-[#abc4ff] gap-2">
