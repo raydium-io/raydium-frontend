@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import create from 'zustand'
 
 // frontend (client)
-const APP_VERSION = 'V2.8.19'
+const APP_VERSION = 'V2.8.20'
 
 const APP_VERSION_CHECKING_DELAY_TIME = 1000 * 60 * 1
 
