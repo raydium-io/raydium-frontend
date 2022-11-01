@@ -4,12 +4,14 @@ import shallow from 'zustand/shallow'
 
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConnection from '@/application/connection/useConnection'
+import useToken from '@/application/token/useToken'
 import PageLayout from '@/components/PageLayout'
 import EditFarm from '@/pageComponents/ConcentratedEdit/EditFarm'
 import NavButtons from '@/pageComponents/ConcentratedEdit/NavButtons'
 
 export default function EditFarmPage() {
   const connection = useConnection((s) => s.connection)
+  const getToken = useToken((s) => s.getToken)
   const [hydratedAmmPools, fetchWhitelistRewards] = useConcentrated(
     (s) => [s.hydratedAmmPools, s.fetchWhitelistRewards],
     shallow
@@ -26,8 +28,8 @@ export default function EditFarmPage() {
   }, [farmId, hydratedAmmPools])
 
   useEffect(() => {
-    connection && fetchWhitelistRewards()
-  }, [fetchWhitelistRewards, connection])
+    connection && !!getToken && fetchWhitelistRewards()
+  }, [fetchWhitelistRewards, connection, getToken])
 
   return (
     <PageLayout metaTitle="Concentrated Pools - Raydium">

@@ -47,11 +47,12 @@ export default function EditFarm() {
     () =>
       currentAmmPool?.rewardInfos.some((reward) => whiteListMints.has(reward.tokenMint.toBase58())) ||
       editedReward.newRewards.some((reward) => whiteListMints.has(reward.token?.mint.toBase58())),
-    [currentAmmPool, editedReward.newRewards, whiteListMints]
+    [currentAmmPool, editedReward, whiteListMints]
   )
 
   const enableTokens =
-    hasRewards && !hasWhiteListRewards
+    hasRewards &&
+    ((!hasWhiteListRewards && remainRewardsCount === 0) || editedReward.newRewards[newRewardIdx]?.isWhiteListReward)
       ? shakeUndifindedItem(
           whitelistRewards
             .map((reward) => getToken(reward))
@@ -89,23 +90,29 @@ export default function EditFarm() {
     setEditedReward((preValues) => ({ ...preValues, updateReward: data }))
   }, [])
 
-  const handleUpdateNewReward = useCallback((data: NewReward, rewardIdx: number) => {
-    setEditedReward((preValues) => {
-      const newRewards = [...preValues.newRewards]
-      newRewards[rewardIdx] = data
-      return { ...preValues, newRewards }
-    })
-  }, [])
+  const handleUpdateNewReward = useCallback(
+    (data: NewReward, rewardIdx: number) => {
+      setEditedReward((preValues) => {
+        const newRewards = [...preValues.newRewards]
+        newRewards[rewardIdx] = data
+        if (newRewards.filter((r) => !!r.token).length > 1 && !newRewards.find((r) => r.isWhiteListReward)) {
+          const target = newRewards.findIndex((reward) => whiteListMints.has(reward.token?.mint.toBase58()))
+          if (target > -1) newRewards[target].isWhiteListReward = true
+        }
+        return { ...preValues, newRewards }
+      })
+    },
+    [hasWhiteListRewards, whiteListMints]
+  )
 
-  const handleClickNewReward = useCallback((rewardIdx: number) => {
-    setNewRewardIdx(rewardIdx)
-  }, [])
+  const handleClickNewReward = useCallback((rewardIdx: number) => setNewRewardIdx(rewardIdx), [])
 
   const handleDeleteNewReward = useCallback(
     (rewardIdx: number) => {
       setEditedReward((preValues) => {
         const newRewards = [...preValues.newRewards]
         newRewards.splice(rewardIdx, 1)
+        newRewards.forEach((reward) => (reward.isWhiteListReward = false))
         setNewRewardIdx(newRewards.length - 1)
         return { ...preValues, newRewards }
       })

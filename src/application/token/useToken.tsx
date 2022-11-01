@@ -1,7 +1,7 @@
 import { PublicKey } from '@solana/web3.js'
 
 import produce from 'immer'
-import { Price, PublicKeyish } from '@raydium-io/raydium-sdk'
+import { Price, PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 
 import { addItem, removeItem, shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -77,7 +77,7 @@ export type TokenStore = {
   userAddedTokens: Record<HexAddress /* mint */, SplToken>
   canFlaggedTokenMints: Set<HexAddress>
   userFlaggedTokenMints: Set<HexAddress /* mint */> // flagged must in user added
-  sortTokens(tokens: SplToken[]): SplToken[]
+  sortTokens(tokens: SplToken[], useInputTokensOnly?: boolean): SplToken[]
   toggleFlaggedToken(token: SplToken): void
   allSelectableTokens: SplToken[]
   addUserAddedToken(token: SplToken): void
@@ -204,7 +204,7 @@ export const useToken = create<TokenStore>((set, get) => ({
   },
   allSelectableTokens: [],
 
-  sortTokens(tokens: SplToken[]) {
+  sortTokens(tokens: SplToken[], useInputTokensOnly?: boolean) {
     const { getToken } = get()
     const RAY = getToken(RAYMint)
 
@@ -218,17 +218,23 @@ export const useToken = create<TokenStore>((set, get) => ({
       (token) => !isQuantumSOLVersionSOL(token) && !whiteListMints.includes(String(token.mint))
     )
 
-    const result = [
-      ...whiteList,
-      ...notInWhiteListToken
-        .filter((token) => pureBalances[String(token.mint)])
-        .sort((tokenA, tokenB) => {
-          const balanceA = pureBalances[String(tokenA.mint)].raw
-          const balanceB = pureBalances[String(tokenB.mint)].raw
+    const result = useInputTokensOnly
+      ? tokens.sort((tokenA, tokenB) => {
+          const balanceA = pureBalances[String(tokenA.mint)]?.raw || new TokenAmount(tokenA, 0).raw
+          const balanceB = pureBalances[String(tokenB.mint)]?.raw || new TokenAmount(tokenB, 0).raw
           return balanceA.lte(balanceB) ? 1 : -1
-        }),
-      ...notInWhiteListToken.filter((token) => !pureBalances[String(token.mint)])
-    ]
+        })
+      : [
+          ...whiteList,
+          ...notInWhiteListToken
+            .filter((token) => pureBalances[String(token.mint)])
+            .sort((tokenA, tokenB) => {
+              const balanceA = pureBalances[String(tokenA.mint)].raw
+              const balanceB = pureBalances[String(tokenB.mint)].raw
+              return balanceA.lte(balanceB) ? 1 : -1
+            }),
+          ...notInWhiteListToken.filter((token) => !pureBalances[String(token.mint)])
+        ]
     return result
   },
 

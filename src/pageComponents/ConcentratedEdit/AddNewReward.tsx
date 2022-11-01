@@ -33,6 +33,7 @@ export interface NewReward {
   openTime?: Date
   endTime?: Date
   perDay?: string
+  isWhiteListReward?: boolean
 }
 
 export default function AddNewReward(props: Props) {
@@ -43,6 +44,7 @@ export default function AddNewReward(props: Props) {
   const [newReward, setNewReward] = useState<NewReward>(defaultData || {})
   const indexRef = useRef(dataIndex)
 
+  const hasInput = Object.keys(newReward).length > 0
   const currentBlockChainDate = new Date(Date.now() + (chainTimeOffset || 0))
 
   const minBoundary =
@@ -58,11 +60,13 @@ export default function AddNewReward(props: Props) {
     : undefined
 
   const balanceError =
-    !newReward.token || gte(getBalance(newReward.token), newReward.amount)
+    !newReward.token || !newReward.amount || gte(getBalance(newReward.token), newReward.amount)
       ? undefined
       : `Insufficient ${newReward.token.symbol} balance`
   const needShowAmountAlert =
     newReward.amount && lt(newReward.amount, minBoundary) ? 'Emission rewards is lower than min required' : undefined
+
+  const topError = hasInput ? noTokenError || noAmountError || balanceError || needShowAmountAlert : undefined
 
   const timeError = useMemo(() => {
     if (!newReward.openTime || !newReward.duration) return 'Confirm emission time setup'
@@ -85,6 +89,7 @@ export default function AddNewReward(props: Props) {
   ])
 
   useEffect(() => {
+    if (!hasInput) return
     setNewReward((values) => {
       const decimals = values.token?.decimals || 6
       return {
@@ -101,7 +106,7 @@ export default function AddNewReward(props: Props) {
             : '0'
       }
     })
-  }, [newReward.duration, newReward.openTime, newReward.amount])
+  }, [newReward.duration, newReward.openTime, newReward.amount, hasInput])
 
   useEffect(() => {
     onUpdateReward(newReward, dataIndex)
@@ -130,7 +135,9 @@ export default function AddNewReward(props: Props) {
             disableTokens={disableTokens}
             value={newReward.amount || ''}
             token={newReward.token}
-            onSelectToken={(token) => setNewReward((values) => ({ ...values, token }))}
+            onSelectToken={(token) =>
+              setNewReward((values) => ({ ...values, token, isWhiteListReward: !!enableTokens }))
+            }
             onUserInput={(amount) => {
               setNewReward((values) => ({ ...values, amount }))
             }}
@@ -152,13 +159,7 @@ export default function AddNewReward(props: Props) {
             onUserInput={(duration) => setNewReward((values) => ({ ...values, duration }))}
           />
         </Row>
-        <>
-          {newReward.amount && needShowAmountAlert && (
-            <div className="text-[#DA2EEF] text-right text-sm font-medium px-2">
-              Emission rewards is lower than min required
-            </div>
-          )}
-        </>
+        {topError ? <div className="text-[#DA2EEF] text-right text-sm font-medium px-2">{topError}</div> : null}
         <Row className="gap-3 mobile:flex-col">
           <DateInput
             className="flex-[3] mobile:w-full rounded-md px-4"
@@ -214,7 +215,7 @@ export default function AddNewReward(props: Props) {
           />
         </Row>
         <div>
-          {newReward.duration && newReward.openTime && (
+          {hasInput && (
             <div>
               {gt(newReward.duration, MAX_DURATION) ? (
                 <div className="text-[#DA2EEF] text-sm font-medium  pl-2">

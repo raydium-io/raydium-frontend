@@ -4,8 +4,10 @@ import BN from 'bn.js'
 import { ApiAmmV3Point, ReturnTypeFetchMultiplePoolInfos } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 import useConnection from '@/application/connection/useConnection'
+import useToken from '@/application/token/useToken'
 import { AmmV3 } from 'test-r-sdk'
 import { ammV3ProgramId } from '@/application/token/wellknownProgram.config'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 import jFetch from '@/functions/dom/jFetch'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
@@ -175,11 +177,16 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   fetchWhitelistRewards: () => {
     const connection = useConnection.getState().connection
     if (!connection || get().whitelistRewards.length > 0) return
+    const { sortTokens, getToken } = useToken.getState()
     AmmV3.getWhiteListMint({
       connection,
       programId: ammV3ProgramId
     }).then((data) => {
-      set({ whitelistRewards: data })
+      set({
+        whitelistRewards: sortTokens(shakeUndifindedItem(data.map((pub) => getToken(pub))), true).map(
+          (token) => token.mint
+        )
+      })
     })
   },
   whitelistRewards: []
