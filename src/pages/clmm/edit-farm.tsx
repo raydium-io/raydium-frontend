@@ -1,9 +1,10 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import PageLayout from '@/components/PageLayout'
-import NavButtons from '@/pageComponents/ConcentratedEdit/NavButtons'
 import EditFarm from '@/pageComponents/ConcentratedEdit/EditFarm'
+import NavButtons from '@/pageComponents/ConcentratedEdit/NavButtons'
 
 export default function EditFarmPage() {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
@@ -21,7 +22,9 @@ export default function EditFarmPage() {
   return (
     <PageLayout metaTitle="Concentrated Pools - Raydium">
       <NavButtons />
-      <EditFarm />
+      <div className="w-full flex justify-center items-center">
+        <EditFarm />
+      </div>
     </PageLayout>
   )
 }

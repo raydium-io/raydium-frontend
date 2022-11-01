@@ -1,17 +1,19 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+
 import useAppSettings from '@/application/common/useAppSettings'
-import useWallet from '@/application/wallet/useWallet'
+import txSetRewards from '@/application/concentrated/txSetRewards'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import Row from '@/components/Row'
-import PoolInfo from './PoolInfo'
-import ExistingRewardInfo from './ExistingRewardInfo'
-import { UpdateData } from './AddMoreDialog'
-import AddNewReward, { NewReward } from './AddNewReward'
-import NewRewardTable from './NewRewardTable'
+import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Icon from '@/components/Icon'
-import txSetRewards from '@/application/concentrated/txSetRewards'
+import Row from '@/components/Row'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
+
+import { UpdateData } from './AddMoreDialog'
+import AddNewReward, { NewReward } from './AddNewReward'
+import ExistingRewardInfo from './ExistingRewardInfo'
+import NewRewardTable from './NewRewardTable'
+import PoolInfo from './PoolInfo'
 
 export default function EditFarm() {
   const isMobile = useAppSettings((s) => s.isMobile)
