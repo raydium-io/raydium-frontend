@@ -21,6 +21,7 @@ interface Props {
   defaultData?: NewReward
   chainTimeOffset?: number
   disableTokens?: SplToken[]
+  enableTokens?: SplToken[]
   onValidateChange: (idx: number, err?: string) => void
   onUpdateReward: (data: NewReward, rewardIdx: number) => void
 }
@@ -35,7 +36,7 @@ export interface NewReward {
 }
 
 export default function AddNewReward(props: Props) {
-  const { dataIndex, defaultData, disableTokens, onValidateChange, onUpdateReward } = props
+  const { dataIndex, defaultData, enableTokens, disableTokens, onValidateChange, onUpdateReward } = props
   const isMobile = useAppSettings((s) => s.isMobile)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const getBalance = useWallet((s) => s.getBalance)
@@ -125,6 +126,7 @@ export default function AddNewReward(props: Props) {
             haveHalfButton
             hasPlaceholder
             topLeftLabel="Token"
+            enableTokens={enableTokens}
             disableTokens={disableTokens}
             value={newReward.amount || ''}
             token={newReward.token}

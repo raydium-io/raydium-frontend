@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
-
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import shallow from 'zustand/shallow'
 import useAppSettings from '@/application/common/useAppSettings'
 import txSetRewards from '@/application/concentrated/txSetRewards'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useWallet from '@/application/wallet/useWallet'
+import useToken from '@/application/token/useToken'
 import Button from '@/components/Button'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
@@ -18,7 +19,8 @@ import PoolInfo from './PoolInfo'
 export default function EditFarm() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const walletConnected = useWallet((s) => s.connected)
-  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const getToken = useToken((s) => s.getToken)
+  const [currentAmmPool, whitelistRewards] = useConcentrated((s) => [s.currentAmmPool, s.whitelistRewards], shallow)
   const [editedReward, setEditedReward] = useState<{ updateReward?: Map<string, UpdateData>; newRewards: NewReward[] }>(
     { newRewards: [] }
   )
@@ -27,6 +29,40 @@ export default function EditFarm() {
 
   const [newRewardIdx, setNewRewardIdx] = useState(-1)
   const [remainRewardsCount, setRemainRewardsCount] = useState<number>(2 - (currentAmmPool?.rewardInfos.length || 0))
+
+  const hasRewards =
+    (currentAmmPool?.rewardInfos || []).length > 0 ||
+    editedReward.newRewards.filter((reward) => !!reward.token).length > 0
+
+  const whiteListMints = useMemo(
+    () =>
+      new Set([
+        ...whitelistRewards.map((pub) => pub.toBase58()),
+        currentAmmPool?.base?.mint.toBase58(),
+        currentAmmPool?.quote?.mint.toBase58()
+      ]),
+    [whitelistRewards, currentAmmPool]
+  )
+  const hasWhiteListRewards = useMemo(
+    () =>
+      currentAmmPool?.rewardInfos.some((reward) => whiteListMints.has(reward.tokenMint.toBase58())) ||
+      editedReward.newRewards.some((reward) => whiteListMints.has(reward.token?.mint.toBase58())),
+    [currentAmmPool, editedReward.newRewards, whiteListMints]
+  )
+
+  const enableTokens =
+    hasRewards && !hasWhiteListRewards
+      ? shakeUndifindedItem(
+          whitelistRewards
+            .map((reward) => getToken(reward))
+            .filter(
+              (token) =>
+                !currentAmmPool ||
+                (token && !currentAmmPool.rewardInfos.some((reward) => reward.tokenMint.equals(token.mint)))
+            )
+            .filter((token) => !editedReward.newRewards.some((reward) => reward.token?.mint.equals(token!.mint)))
+        )
+      : undefined
 
   const errorIdx = newRewardError.findIndex((e) => !!e)
   const canClickAddBtn = remainRewardsCount > 0 && errorIdx === -1
@@ -74,7 +110,12 @@ export default function EditFarm() {
         return { ...preValues, newRewards }
       })
       setRemainRewardsCount((count) => count + 1)
-      handleNewRewardError(rewardIdx)
+
+      setNewRewardError((prevErr) => {
+        const errors = [...prevErr]
+        errors.splice(rewardIdx, 1)
+        return errors
+      })
     },
     [handleNewRewardError]
   )
@@ -126,8 +167,9 @@ export default function EditFarm() {
           {newRewardIdx !== -1 ? (
             <AddNewReward
               key={newRewardIdx}
+              enableTokens={enableTokens}
               disableTokens={shakeUndifindedItem([
-                ...currentAmmPool.rewardInfos.map((r) => r.rewardToken),
+                ...(currentAmmPool ? currentAmmPool.rewardInfos.map((r) => r.rewardToken) : []),
                 ...editedReward.newRewards.map((r) => r.token)
               ])}
               dataIndex={newRewardIdx}

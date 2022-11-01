@@ -1,13 +1,19 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
+import shallow from 'zustand/shallow'
 
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConnection from '@/application/connection/useConnection'
 import PageLayout from '@/components/PageLayout'
 import EditFarm from '@/pageComponents/ConcentratedEdit/EditFarm'
 import NavButtons from '@/pageComponents/ConcentratedEdit/NavButtons'
 
 export default function EditFarmPage() {
-  const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
+  const connection = useConnection((s) => s.connection)
+  const [hydratedAmmPools, fetchWhitelistRewards] = useConcentrated(
+    (s) => [s.hydratedAmmPools, s.fetchWhitelistRewards],
+    shallow
+  )
   const { query } = useRouter()
   const farmId = query?.farmId
 
@@ -18,6 +24,10 @@ export default function EditFarmPage() {
       currentAmmPool: poolFarm
     })
   }, [farmId, hydratedAmmPools])
+
+  useEffect(() => {
+    connection && fetchWhitelistRewards()
+  }, [fetchWhitelistRewards, connection])
 
   return (
     <PageLayout metaTitle="Concentrated Pools - Raydium">

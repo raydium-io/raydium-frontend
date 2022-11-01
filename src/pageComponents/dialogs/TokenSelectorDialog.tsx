@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useMemo, useState } from 'react'
 
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
@@ -40,6 +40,7 @@ export type TokenSelectorProps = {
   onClose?: () => void
   onSelectToken?: (token: SplToken) => unknown
   disableTokens?: (SplToken | PublicKeyish)[]
+  enableTokens?: SplToken[]
   /**
    * if it select WSOL it can also select SOL, if it select SOL, can also select WSOL\
    * usually used with `disableTokens`
@@ -65,6 +66,7 @@ function TokenSelectorDialogContent({
   open,
   onClose: closePanel,
   onSelectToken,
+  enableTokens,
   disableTokens,
   canSelectQuantumSOL
 }: TokenSelectorProps) {
@@ -86,6 +88,7 @@ function TokenSelectorDialogContent({
   }, [])
 
   function isTokenDisabled(candidateToken: SplToken): boolean {
+    if (enableTokens) return !enableTokens.some((token) => token.mint.equals(candidateToken.mint))
     return disableTokens
       ? disableTokens.some((disableToken) => {
           if (canSelectQuantumSOL && isQuantumSOL(disableToken)) {
@@ -98,7 +101,8 @@ function TokenSelectorDialogContent({
       : false
   }
 
-  const sourceTokens = useToken((s) => s.allSelectableTokens)
+  const allSelectableTokens = useToken((s) => s.allSelectableTokens)
+  const sourceTokens = enableTokens || allSelectableTokens
   const sortedTokens = disableTokens?.length ? sourceTokens.filter((token) => !isTokenDisabled(token)) : sourceTokens
 
   // by user's search text

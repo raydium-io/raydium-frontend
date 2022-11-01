@@ -1,11 +1,13 @@
-import { Keypair, Transaction } from '@solana/web3.js'
+import { Keypair, PublicKey, Transaction } from '@solana/web3.js'
 
 import BN from 'bn.js'
 import { ApiAmmV3Point, ReturnTypeFetchMultiplePoolInfos } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
+import useConnection from '@/application/connection/useConnection'
+import { AmmV3 } from 'test-r-sdk'
+import { ammV3ProgramId } from '@/application/token/wellknownProgram.config'
 
 import jFetch from '@/functions/dom/jFetch'
-import toBN from '@/functions/numberish/toBN'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { Numberish } from '@/types/constants'
 
@@ -114,6 +116,9 @@ export type ConcentratedStore = {
   planAApr?: { feeApr: number; rewardsApr: number[]; apr: number }
   planBApr?: { feeApr: number; rewardsApr: number[]; apr: number }
   planCApr?: { feeApr: number; rewardsApr: number[]; apr: number }
+
+  fetchWhitelistRewards: () => void
+  whitelistRewards: PublicKey[]
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
@@ -165,7 +170,19 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
 
   planAApr: { feeApr: 0, rewardsApr: [], apr: 0 },
   planBApr: { feeApr: 0, rewardsApr: [], apr: 0 },
-  planCApr: { feeApr: 0, rewardsApr: [], apr: 0 }
+  planCApr: { feeApr: 0, rewardsApr: [], apr: 0 },
+
+  fetchWhitelistRewards: () => {
+    const connection = useConnection.getState().connection
+    if (!connection || get().whitelistRewards.length > 0) return
+    AmmV3.getWhiteListMint({
+      connection,
+      programId: ammV3ProgramId
+    }).then((data) => {
+      set({ whitelistRewards: data })
+    })
+  },
+  whitelistRewards: []
 }))
 
 export default useConcentrated
