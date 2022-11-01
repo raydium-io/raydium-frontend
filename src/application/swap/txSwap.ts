@@ -15,6 +15,7 @@ import useWallet from '../wallet/useWallet'
 import { useSwap } from './useSwap'
 import { TxHistoryInfo } from '../txHistory/useTxHistory'
 import { Transaction } from '@solana/web3.js'
+import { dangerousTempProgramIds } from '../token/wellknownProgram.config'
 
 const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
   const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
@@ -72,13 +73,15 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
       return loadTransaction({ transaction: transaction, signers })
     })
   )
-  const queue = signedTransactions.map((tx, idx) => [
+  const queue = signedTransactions.map((tx) => [
     tx,
     {
       txHistoryInfo: {
         title: 'Swap',
-        description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${downCoin.symbol}`,
-        notificationDetail: translationSwapTx(tx, idx + 1)
+        description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
+          downCoin.symbol
+        }`,
+        notificationTitle: translationSwapTx(tx)
       } as TxHistoryInfo
     }
   ]) as TransactionQueue
@@ -87,20 +90,10 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
 
 export default txSwap
 
-function translationSwapTx(tx: Transaction, index: number) {
-  const swapProgramId = [
-    'routeUGWgWzqBWFcrCfv8tritsqukccJPu3q5GPP3xS',
-    'RVKd61ztZW9GUwhRbbLoYVRE5Xf1B2tVscKqwZqXgEr',
-    '27haf8L6oxUeXrHrgEgsexjSY5hbVUWEmvv9Nyxg8vQv',
-    '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8',
-    '5quBtoiQqxF9Jv6KYKctB59NT3gtJD2Y65kdnB1Uev3h',
-    'CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK',
-  ]
-  if (tx.instructions.find(i => swapProgramId.includes(i.programId.toString()))) {
-    return `Transaction ${index}: Swap`
-  } else if (tx.instructions.find(i => i.programId.toString() === TOKEN_PROGRAM_ID.toString() && i.data[0] === 9)) {
-    return `Transaction ${index}: Cleanup`
-  } else {
-    return `Transaction ${index}: Setup`
-  }
+function translationSwapTx(tx: Transaction) {
+  const isTransactionMainSwap = tx.instructions.find((i) => dangerousTempProgramIds.includes(i.programId.toString()))
+  const isTransactionCleanUp = tx.instructions.find(
+    (i) => i.programId.toString() === TOKEN_PROGRAM_ID.toString() && i.data[0] === 9
+  )
+  return isTransactionMainSwap ? `Swap` : isTransactionCleanUp ? `Cleanup` : `Setup`
 }

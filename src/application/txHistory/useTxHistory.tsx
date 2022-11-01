@@ -12,7 +12,7 @@ export interface TxHistoryInfo {
   /** record and  exist in recent transaction dialog  */
   description?: string
   /** exist in tx notification but won't record */
-  notificationDetail?: string
+  notificationTitle?: string
   status: 'success' | 'droped' | 'pending' | 'fail'
   time: DateInfo
 }
