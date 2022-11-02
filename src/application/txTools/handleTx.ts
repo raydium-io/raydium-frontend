@@ -319,7 +319,7 @@ function collectTxOptions(
   }
 
   const transactionCollector: TransactionCollector = { add, addQueue, addSigners }
-  return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOptions, innerSigners } }
+  return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOption, innerSigners } }
 }
 
 export function serialize(transaction: Transaction, cache = true) {
