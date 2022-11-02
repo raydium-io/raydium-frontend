@@ -121,7 +121,7 @@ export default function NewRewardTable({ newRewards, tvl, onClickRow, onDelete }
               <Col className="grow justify-center text-xs">
                 <div>
                   {formatNumber(mul(perDay, 7), { fractionLength: token?.decimals || 6 })}
-                  /day
+                  /week
                 </div>
                 <div>
                   {toPercentString(
