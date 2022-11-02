@@ -1,5 +1,5 @@
 .lds-roller-sm {
-  display: inline-block;
+  display: block;
   position: relative;
   aspect-ratio: 1;
 }
