@@ -441,17 +441,16 @@ function recordTxNotification({
 
   const mutated2 = produce(mutated1, (options) => {
     options.forEach((option) => {
-      const { title, description } = option.txHistoryInfo ?? {}
+      const { ...restInfo } = option.txHistoryInfo ?? {}
       option.onTxFinally = mergeFunction(
         (({ txid, type, passedMultiTxid, isMulti }) => {
           useTxHistory.getState().addHistoryItem({
             status: type === 'error' ? 'fail' : type,
             txid,
             time: Date.now(),
-            title,
-            description,
             isMulti,
-            relativeTxids: passedMultiTxid
+            relativeTxids: passedMultiTxid,
+            ...restInfo
           })
         }) as TxFinallyCallback,
         option.onTxFinally

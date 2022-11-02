@@ -1,9 +1,6 @@
-import React from 'react'
-
 import useAppSettings from '@/application/common/useAppSettings'
 import useTxHistory, { TxHistoryInfo } from '@/application/txHistory/useTxHistory'
 import useWallet from '@/application/wallet/useWallet'
-import Button from '@/components/Button'
 import Card from '@/components/Card'
 import Dialog from '@/components/Dialog'
 import Icon, { AppHeroIconName } from '@/components/Icon'
@@ -11,9 +8,11 @@ import LinkExplorer from '@/components/LinkExplorer'
 import Row from '@/components/Row'
 import { toUTC } from '@/functions/date/dateFormat'
 import toPubString from '@/functions/format/toMintString'
-
-import Drawer from '../../components/Drawer'
-import Link from '../../components/Link'
+import Drawer from '@/components/Drawer'
+import { Fragment, useMemo } from 'react'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { isArray } from '@/functions/judgers/dateType'
+import Collapse from '@/components/Collapse'
 
 const iconSettings: Record<
   'success' | 'fail' | 'droped' | 'pending',
@@ -47,19 +46,19 @@ export default function RecentTransactionDialog() {
       open={isRecentTransactionDialogShown}
       onClose={() => useAppSettings.setState({ isRecentTransactionDialogShown: false })}
     >
-      {({ close }) => <PanelContent onClickX={close} historyItems={txHistory} />}
+      {({ close }) => <PanelContent onClose={close} historyItems={txHistory} />}
     </Drawer>
   ) : (
     <Dialog
       open={isRecentTransactionDialogShown}
       onClose={() => useAppSettings.setState({ isRecentTransactionDialogShown: false })}
     >
-      {({ close }) => <PanelContent onClickX={close} historyItems={txHistory} />}
+      {({ close }) => <PanelContent onClose={close} historyItems={txHistory} />}
     </Dialog>
   )
 }
-// new icon of history item
-function RecentTransactionItem({ txInfo }: { txInfo: TxHistoryInfo }) {
+
+function SingleRecentTransactionItem({ txInfo }: { txInfo: TxHistoryInfo }) {
   return (
     <LinkExplorer hrefDetail={`tx/${txInfo.txid}`} noTextStyle>
       <Row
@@ -85,7 +84,95 @@ function RecentTransactionItem({ txInfo }: { txInfo: TxHistoryInfo }) {
   )
 }
 
-function PanelContent({ historyItems, onClickX }: { historyItems: TxHistoryInfo[]; onClickX(): void }) {
+function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInfo[] }) {
+  const wholeItemState = txInfoGroup.every(({ status }) => status === 'success')
+    ? 'success'
+    : txInfoGroup.some(({ status }) => status === 'fail')
+    ? 'fail'
+    : 'info'
+  const headTx = { ...txInfoGroup[0], status: wholeItemState }
+  return (
+    <Collapse>
+      <Collapse.Face>
+        {(open) => (
+          <Row
+            type="grid-x"
+            className="gap-[3.5vw] grid-cols-[1fr,2fr,1fr] py-4 px-4 clickable clickable-filter-effect items-center"
+          >
+            {/* table head column: Transaction type */}
+            <Row className="font-medium text-[#ABC4FF] text-xs gap-2">
+              <Icon
+                size="sm"
+                heroIconName={(iconSettings[headTx.status] as any)?.heroIconName}
+                iconSrc={(iconSettings[headTx.status] as any).iconSrc}
+                className={(iconSettings[headTx.status] as any).textColor}
+              />
+              <Icon size="sm" heroIconName={open ? 'chevron-up' : 'chevron-down'} />
+              <div>{headTx.title ?? ''}</div>
+            </Row>
+            {/* table head column: Details */}
+            <div className="font-medium text-[#ABC4FF] text-xs">{headTx.description}</div>
+            {/* table head column: Date and time */}
+            <div className="font-medium text-[#ABC4FF] text-xs">{toUTC(headTx.time)}</div>
+          </Row>
+        )}
+      </Collapse.Face>
+      <Collapse.Body>
+        {txInfoGroup.map((txInfo, idx) => (
+          <LinkExplorer hrefDetail={`tx/${txInfo.txid}`} noTextStyle key={txInfo.txid}>
+            <Row
+              type="grid-x"
+              className="gap-[3.5vw] grid-cols-[1fr,2fr,1fr] py-4 px-4 clickable clickable-filter-effect items-center"
+            >
+              {/* table head column: Transaction type */}
+              <Row className="font-medium text-[#ABC4FF] text-xs gap-2 pl-12">
+                <Icon
+                  size="sm"
+                  heroIconName={(iconSettings[txInfo.status] as any)?.heroIconName}
+                  iconSrc={(iconSettings[txInfo.status] as any).iconSrc}
+                  className={(iconSettings[txInfo.status] as any).textColor}
+                />
+              </Row>
+              {/* table head column: Details */}
+              <div className="font-medium text-[#ABC4FF] text-xs">{txInfo.subtransactionDescription}</div>
+              {/* table head column: Date and time */}
+              <div className="font-medium text-[#ABC4FF] text-xs">{toUTC(txInfo.time)}</div>
+            </Row>
+          </LinkExplorer>
+        ))}
+      </Collapse.Body>
+    </Collapse>
+  )
+}
+
+// new icon of history item
+function RecentTransactionItems({ txHistoryInfos }: { txHistoryInfos: TxHistoryInfo[] }) {
+  // make it: `{'txid': TxHistoryInfo, 'txidB': [TxHistoryInfo, TxHistoryInfo, TxHistoryInfo]}` structure
+  const groupedTransactionInfos = useMemo(() => {
+    const resultGroup = {} as Record<string, TxHistoryInfo | TxHistoryInfo[]>
+    for (const infoItem of txHistoryInfos) {
+      const relativeHeadTx = infoItem.relativeTxids?.[0] ?? infoItem.txid
+      resultGroup[relativeHeadTx] = infoItem.isMulti
+        ? shakeUndifindedItem([resultGroup[relativeHeadTx]].flat()).concat(infoItem)
+        : infoItem
+    }
+    return resultGroup
+  }, [txHistoryInfos])
+
+  return (
+    <>
+      {Object.entries(groupedTransactionInfos).map(([key, info]) =>
+        isArray(info) ? (
+          <MultiTransactionGroupItems txInfoGroup={info} />
+        ) : (
+          <SingleRecentTransactionItem txInfo={info} />
+        )
+      )}
+    </>
+  )
+}
+
+function PanelContent({ historyItems, onClose }: { historyItems: TxHistoryInfo[]; onClose(): void }) {
   const owner = useWallet((s) => s.owner)
   return (
     <Card
@@ -94,7 +181,7 @@ function PanelContent({ historyItems, onClickX }: { historyItems: TxHistoryInfo[
     >
       <Row className="justify-between items-center p-8">
         <div className="text-xl font-semibold text-white">Recent transactions</div>
-        <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={onClickX} />
+        <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={onClose} />
       </Row>
 
       <Row
@@ -111,9 +198,7 @@ function PanelContent({ historyItems, onClickX }: { historyItems: TxHistoryInfo[
 
       <div className="overflow-y-auto flex-1 mx-4" /* let scrollbar have some space */>
         {historyItems.length > 0 ? (
-          historyItems.map((txInfo) => (
-            <RecentTransactionItem key={txInfo.txid} txInfo={txInfo}></RecentTransactionItem>
-          ))
+          <RecentTransactionItems txHistoryInfos={historyItems}></RecentTransactionItems>
         ) : (
           <div className="font-medium text-[rgba(171,196,255,0.3)] text-sm py-4 text-center">
             No recent transactions on Raydium
