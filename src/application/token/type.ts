@@ -2,6 +2,12 @@ import { SplTokenJsonInfo, Token } from '@raydium-io/raydium-sdk'
 
 import { HexAddress, SrcAddress } from '@/types/constants'
 
+export enum TokenListConfigType {
+  RAYDIUM_MAIN,
+  RAYDIUM_DEV,
+  LIQUIDITY_V2,
+  LIQUIDITY_V3
+}
 export interface TokenJson {
   symbol: string
   name: string
@@ -77,12 +83,7 @@ export interface TokenList {
 
 export interface TokenListFetchConfigItem {
   url: SrcAddress
-  name: string
-}
-
-export interface TokenListFetchConfigItemWithMethods {
-  url: SrcAddress
-  name: string
+  type: TokenListConfigType
 }
 
 export { Token, TokenAmount } from '@raydium-io/raydium-sdk'

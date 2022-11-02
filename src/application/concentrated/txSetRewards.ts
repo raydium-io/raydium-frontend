@@ -23,7 +23,7 @@ interface Props {
     token: SplToken
     openTime: Date
     endTime: Date
-    perDay: string
+    perWeek: string
   }[]
   onTxSuccess?: () => void
 }
@@ -45,7 +45,7 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
       mint: r.token.mint,
       openTime: Math.floor(r.openTime.valueOf() / 1000),
       endTime: Math.floor(r.endTime.valueOf() / 1000),
-      perSecond: toBN(div(mul(r.perDay || 0, 10 ** (r.token.decimals || 6)), 60 * 60 * 24))
+      perSecond: toBN(div(mul(r.perWeek || 0, 10 ** (r.token.decimals || 6)), 7 * 60 * 60 * 24))
     }))
 
     const commonParams = {

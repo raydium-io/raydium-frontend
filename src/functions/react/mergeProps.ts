@@ -2,7 +2,7 @@ import { AnyFn, AnyObj, Primitive } from '@/types/constants'
 import { twMerge } from 'tailwind-merge'
 
 import { isArray, isFunction, isObject } from '../judgers/dateType'
-import { _mergeObjects, mergeFunction } from '../merge'
+import { _shallowMergeObjects, mergeFunction } from '../merge'
 import parallelSwitch from '../parallelSwitch'
 import mergeRef from './mergeRef'
 
@@ -23,7 +23,7 @@ export default function mergeProps<P extends AnyProp | undefined>(...propsObjs: 
   const trimedProps = propsObjs.flat(Infinity).filter(isObject) as any[]
   if (trimedProps.length === 0) return {} as any
   if (trimedProps.length === 1) return trimedProps[0]
-  return _mergeObjects(trimedProps, (key, v1: any, v2: any) =>
+  return _shallowMergeObjects(trimedProps, (key, v1: any, v2: any) =>
     parallelSwitch<string, any>(
       key,
       [

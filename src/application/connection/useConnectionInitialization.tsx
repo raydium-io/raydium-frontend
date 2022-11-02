@@ -11,17 +11,7 @@ import { getSessionItem } from '@/functions/dom/jStorage'
 import useAppSettings from '../common/useAppSettings'
 
 const mockRPCConfig: Omit<Config, 'success'> = {
-  rpcs: [
-    // { name: 'genesysgo', url: 'https://raydium.genesysgo.net', weight: 0 }
-    // { name: 'rpcpool', url: 'https://raydium.rpcpool.com', weight: 100 }
-    // { url: 'https://arbirgis.rpcpool.com/', weight: 100 },
-    // { url: 'https://solana-api.projectserum.com', weight: 100 }
-    { name: 'beta-mainnet', url: 'https://api.mainnet-beta.solana.com/' },
-    // { name: 'api.mainnet', url: 'https://api.mainnet.rpcpool.com/' }, // not support ws
-    { name: 'genesysgo-dao', url: 'https://ssc-dao.genesysgo.net/' }, // only for bonsai, local may be crashed
-    { name: 'tt', url: 'https://solana-api.tt-prod.net' }
-    // { name: 'free-rpc', url: 'https://solana-api.tt-prod.net' },
-  ],
+  rpcs: [{ name: 'beta-mainnet', url: 'https://api.mainnet-beta.solana.com/' }],
   devrpcs: [{ name: 'devnet', url: 'https://api.devnet.solana.com/', net: 'devnet' }],
 
   strategy: 'speed'

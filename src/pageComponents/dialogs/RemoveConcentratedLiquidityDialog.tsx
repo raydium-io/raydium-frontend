@@ -331,9 +331,6 @@ function MinWithdrawAmount({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
 
-  // eslint-disable-next-line no-console
-  console.log('amount: ', amount)
-
   return (
     <Row className={twMerge('w-full justify-between', className)}>
       <Row className="gap-2 items-center">

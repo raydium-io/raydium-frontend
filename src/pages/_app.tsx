@@ -1,9 +1,14 @@
 import { AppProps } from 'next/app'
 import { useRouter } from 'next/router'
+
 import { PublicKey } from '@solana/web3.js'
+
 import NextNProgress from 'nextjs-progressbar'
+
+import useAutoCleanSwapInfoCache from '@/application/ammV3PoolInfoAndLiquidity/useAutoCleanLiquidityInfoCache'
 import { useClientInitialization, useInnerAppInitialization } from '@/application/common/initializationHooks'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/common/useAppVersion'
+import { useConcentratedAprCalcMethodSyncer } from '@/application/concentrated/useConcentratedAprCalcMethodSyncer'
 import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import useConnectionInitialization from '@/application/connection/useConnectionInitialization'
 import useFreshChainTimeOffset from '@/application/connection/useFreshChainTimeOffset'
@@ -16,7 +21,6 @@ import useMessageBoardReadedIdRecorder from '@/application/messageBoard/useMessa
 import usePoolsInfoLoader from '@/application/pools/usePoolsInfoLoader'
 import useStealDataFromFarm from '@/application/staking/useStealDataFromFarm'
 import useAutoUpdateSelectableTokens from '@/application/token/useAutoUpdateSelectableTokens'
-import { useLpTokenMethodsLoad } from '@/application/token/useLpTokenMethodsLoad'
 import useLpTokensLoader from '@/application/token/useLpTokensLoader'
 import useTokenMintAutoRecord from '@/application/token/useTokenFlaggedMintAutoRecorder'
 import { useTokenGetterFnLoader } from '@/application/token/useTokenGetterFnLoader'
@@ -42,8 +46,6 @@ import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionD
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 
 import '../styles/index.css'
-import useAutoCleanSwapInfoCache from '@/application/ammV3PoolInfoAndLiquidity/useAutoCleanLiquidityInfoCache'
-import { useConcentratedAprCalcMethodSyncer } from '@/application/concentrated/useConcentratedAprCalcMethodSyncer'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -137,7 +139,6 @@ function ApplicationsInitializations() {
   useAutoUpdateSelectableTokens()
   useTokenListsLoader()
   useLpTokensLoader()
-  useLpTokenMethodsLoad()
   useTokenPriceRefresher()
   useTokenMintAutoRecord()
   useTokenListSettingsLocalStorage()

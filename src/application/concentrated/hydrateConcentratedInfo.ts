@@ -1,4 +1,4 @@
-import { AmmV3PoolPersonalPosition, Price, Token } from '@raydium-io/raydium-sdk'
+import { AmmV3PoolPersonalPosition, Price } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import toPubString from '@/functions/format/toMintString'
@@ -8,13 +8,14 @@ import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import { mergeObject } from '@/functions/merge'
 import { gt, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
-import toBN from '@/functions/numberish/toBN'
+import toFraction from '@/functions/numberish/toFraction'
 
 import { SplToken } from '../token/type'
 import useToken from '../token/useToken'
 import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
+import { BN } from 'bn.js'
 import {
   GetAprParameters,
   GetAprPoolTickParameters,
@@ -47,6 +48,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
   const tokenA = getToken(sdkConcentratedInfo.state.mintA.mint)
   const tokenB = getToken(sdkConcentratedInfo.state.mintB.mint)
   const rewardLength = sdkConcentratedInfo.state.rewardInfos.length
+
   return {
     ammConfig: sdkConcentratedInfo.state.ammConfig,
     currentPrice,
@@ -55,7 +57,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
       const rewardToken = getToken(r.tokenMint)
       return {
         ...r,
-        perSecond: toBN(r.perSecond.toString()),
+        perSecond: toFraction(r.perSecond.toString()),
         rewardToken,
         openTime: r.openTime.toNumber() * 1000,
         endTime: r.endTime.toNumber() * 1000,
@@ -176,6 +178,7 @@ function hydrateFeeRate(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial
   }
 }
 
+const u64 = new BN(1).shln(64)
 /**
  * part of {@link hydrateConcentratedInfo}
  */
@@ -202,7 +205,8 @@ function hydrateUserPositionAccounnt(
     const positionRewardInfos = info.rewardInfos
       .map((info, idx) => {
         const token = getToken(poolRewardInfos[idx]?.tokenMint)
-        const penddingReward = token ? toTokenAmount(token, info.pendingReward) : undefined
+        const pendingRewardAmount = gt(info.pendingReward, u64) ? 0 : info.pendingReward // if tooo large, it should be zero, it's just rpc's calculation error
+        const penddingReward = token ? toTokenAmount(token, pendingRewardAmount) : undefined
         if (!penddingReward) return
         const apr24h =
           idx === 0

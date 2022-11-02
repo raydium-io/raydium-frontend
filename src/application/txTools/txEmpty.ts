@@ -1,7 +1,7 @@
-import txHandler, { SingleTxOptions, HandleFnOptions } from '@/application/txTools/handleTx'
+import txHandler, { SingleTxOption, HandleFnOptions } from '@/application/txTools/handleTx'
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 
-export default async function txEmpty(options: SingleTxOptions & HandleFnOptions) {
+export default async function txEmpty(options: SingleTxOption & HandleFnOptions) {
   return txHandler(
     async ({ transactionCollector, baseUtils: { owner, connection, tokenAccounts } }) => {
       const piecesCollection = createTransactionCollector()

@@ -396,7 +396,7 @@ export function CreatePoolCard() {
 
       {/* right */}
       <Col className="gap-6 w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
-        <div className={currentAmmPool ? '' : 'opacity-50'}>
+        <div className={currentAmmPool ? '' : 'opacity-50 pointer-events-none'}>
           <Row className="text-secondary-title justify-between mb-2">
             <div className="font-medium text-[#abc4ff] my-1">Deposit Amount</div>
           </Row>
@@ -448,7 +448,11 @@ export function CreatePoolCard() {
           </div>
         </div>
 
-        <div className={`${currentAmmPool ? '' : 'opacity-50'} border-1.5 border-[#abc4ff80]  rounded-xl px-3 py-4`}>
+        <div
+          className={`${
+            currentAmmPool ? '' : 'opacity-50 pointer-events-none'
+          } border-1.5 border-[#abc4ff80]  rounded-xl px-3 py-4`}
+        >
           <div className="flex justify-between mb-4">
             <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
             <span className="text-lg leading-[18px]">

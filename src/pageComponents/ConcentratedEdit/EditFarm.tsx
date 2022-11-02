@@ -144,7 +144,7 @@ export default function EditFarm() {
               token: r.token!,
               openTime: r.openTime!,
               endTime: r.endTime!,
-              perDay: r.perDay!
+              perWeek: r.perWeek!
             }))
           : []
     })

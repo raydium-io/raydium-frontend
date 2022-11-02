@@ -13,6 +13,7 @@ import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
 import { div } from '@/functions/numberish/operations'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export function useAutoCreateAmmv3Pool() {
   const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice } = useConcentrated()
@@ -65,14 +66,5 @@ async function createNewConcentratedPool() {
       signers: signers as Keypair[]
     }
   })
-  useConcentrated.setState({ loading: true })
-
-  // const hasReverse = coin1.mint !== mockPoolInfo.mintA.mint
-  // if (hasReverse) {
-  //   useConcentrated.setState({
-  //     focusSide: hasReverse ? 'coin2' : 'coin1',
-  //     userCursorSide: hasReverse ? 'coin2' : 'coin1'
-  //   })
-  // }
-  useConcentrated.setState({ currentAmmPool: hydrateConcentratedInfo({ state: mockPoolInfo }), loading: false })
+  useConcentrated.setState({ currentAmmPool: hydrateConcentratedInfo({ state: mockPoolInfo }) })
 }
