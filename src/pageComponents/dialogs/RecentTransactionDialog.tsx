@@ -2,17 +2,17 @@ import useAppSettings from '@/application/common/useAppSettings'
 import useTxHistory, { TxHistoryInfo } from '@/application/txHistory/useTxHistory'
 import useWallet from '@/application/wallet/useWallet'
 import Card from '@/components/Card'
+import Collapse from '@/components/Collapse'
 import Dialog from '@/components/Dialog'
+import Drawer from '@/components/Drawer'
 import Icon, { AppHeroIconName } from '@/components/Icon'
 import LinkExplorer from '@/components/LinkExplorer'
 import Row from '@/components/Row'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
 import toPubString from '@/functions/format/toMintString'
-import Drawer from '@/components/Drawer'
-import { Fragment, useMemo } from 'react'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { isArray } from '@/functions/judgers/dateType'
-import Collapse from '@/components/Collapse'
+import { useMemo } from 'react'
 
 const iconSettings: Record<
   'success' | 'fail' | 'droped' | 'pending',
@@ -59,16 +59,17 @@ export default function RecentTransactionDialog() {
 }
 
 function SingleRecentTransactionItem({ txInfo }: { txInfo: TxHistoryInfo }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <LinkExplorer hrefDetail={`tx/${txInfo.txid}`} noTextStyle>
       <Row
         type="grid-x"
-        className="gap-[3.5vw] grid-cols-[1fr,2fr,1fr] py-4 px-4 clickable clickable-filter-effect items-center"
+        className="group gap-[3.5vw] grid-cols-[1fr,1.8fr,1.4fr] rounded-lg py-4 px-4 hover:bg-[#14104180] items-center"
       >
         {/* table head column: Transaction type */}
-        <Row className="font-medium text-[#ABC4FF] text-xs gap-2">
+        <Row className="group-hover:underline underline-offset-1 items-center font-medium text-[#ABC4FF] text-xs gap-2">
           <Icon
-            size="sm"
+            size={isMobile ? 'sm' : 'smi'}
             heroIconName={(iconSettings[txInfo.status] as any)?.heroIconName}
             iconSrc={(iconSettings[txInfo.status] as any).iconSrc}
             className={(iconSettings[txInfo.status] as any).textColor}
@@ -91,57 +92,62 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
     ? 'fail'
     : 'info'
   const headTx = { ...txInfoGroup[0], status: wholeItemState }
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <Collapse>
-      <Collapse.Face>
-        {(open) => (
-          <Row
-            type="grid-x"
-            className="gap-[3.5vw] grid-cols-[1fr,2fr,1fr] py-4 px-4 clickable clickable-filter-effect items-center"
-          >
-            {/* table head column: Transaction type */}
-            <Row className="font-medium text-[#ABC4FF] text-xs gap-2">
-              <Icon
-                size="sm"
-                heroIconName={(iconSettings[headTx.status] as any)?.heroIconName}
-                iconSrc={(iconSettings[headTx.status] as any).iconSrc}
-                className={(iconSettings[headTx.status] as any).textColor}
-              />
-              <Icon size="sm" heroIconName={open ? 'chevron-up' : 'chevron-down'} />
-              <div>{headTx.title ?? ''}</div>
-            </Row>
-            {/* table head column: Details */}
-            <div className="font-medium text-[#ABC4FF] text-xs">{headTx.description}</div>
-            {/* table head column: Date and time */}
-            <div className="font-medium text-[#ABC4FF] text-xs">{toUTC(headTx.time)}</div>
-          </Row>
-        )}
-      </Collapse.Face>
-      <Collapse.Body>
-        {txInfoGroup.map((txInfo, idx) => (
-          <LinkExplorer hrefDetail={`tx/${txInfo.txid}`} noTextStyle key={txInfo.txid}>
-            <Row
-              type="grid-x"
-              className="gap-[3.5vw] grid-cols-[1fr,2fr,1fr] py-4 px-4 clickable clickable-filter-effect items-center"
-            >
+    <div className="rounded-lg hover:bg-[#14104180] ">
+      <Collapse>
+        <Collapse.Face>
+          {(open) => (
+            <Row type="grid-x" className="gap-[3.5vw] grid-cols-[1fr,1.8fr,1.4fr] py-4 px-4 items-center">
               {/* table head column: Transaction type */}
-              <Row className="font-medium text-[#ABC4FF] text-xs gap-2 pl-12">
+              <Row className="items-center font-medium text-[#ABC4FF] text-xs gap-2">
                 <Icon
-                  size="sm"
-                  heroIconName={(iconSettings[txInfo.status] as any)?.heroIconName}
-                  iconSrc={(iconSettings[txInfo.status] as any).iconSrc}
-                  className={(iconSettings[txInfo.status] as any).textColor}
+                  size={isMobile ? 'sm' : 'smi'}
+                  heroIconName={(iconSettings[headTx.status] as any)?.heroIconName}
+                  iconSrc={(iconSettings[headTx.status] as any).iconSrc}
+                  className={(iconSettings[headTx.status] as any).textColor}
+                />
+                <div>{headTx.title ?? ''}</div>
+                <Icon
+                  className="ml-1"
+                  size={isMobile ? 'sm' : 'smi'}
+                  heroIconName={open ? 'chevron-up' : 'chevron-down'}
                 />
               </Row>
               {/* table head column: Details */}
-              <div className="font-medium text-[#ABC4FF] text-xs">{txInfo.subtransactionDescription}</div>
+              <div className="font-medium text-[#ABC4FF] text-xs">{headTx.description}</div>
               {/* table head column: Date and time */}
-              <div className="font-medium text-[#ABC4FF] text-xs">{toUTC(txInfo.time)}</div>
+              <div className="font-medium text-[#ABC4FF] text-xs">{toUTC(headTx.time)}</div>
             </Row>
-          </LinkExplorer>
-        ))}
-      </Collapse.Body>
-    </Collapse>
+          )}
+        </Collapse.Face>
+        <Collapse.Body className="pb-2">
+          {txInfoGroup.map((txInfo) => (
+            <LinkExplorer hrefDetail={`tx/${txInfo.txid}`} noTextStyle key={txInfo.txid}>
+              <Row
+                type="grid-x"
+                className="group gap-[3.5vw] grid-cols-[1fr,1.8fr,1.4fr] rounded-lg py-2 px-4  items-center"
+              >
+                {/* table head column: Transaction type */}
+                <Row></Row>
+                {/* table head column: Details */}
+                <Row className="group-hover:underline underline-offset-1 gap-2 items-center font-medium text-[#ABC4FF80] text-xs">
+                  <Icon
+                    size="sm"
+                    heroIconName={(iconSettings[txInfo.status] as any)?.heroIconName}
+                    iconSrc={(iconSettings[txInfo.status] as any).iconSrc}
+                    className={(iconSettings[txInfo.status] as any).textColor}
+                  />
+                  <div>{txInfo.subtransactionDescription}</div>
+                </Row>
+                {/* table head column: Date and time */}
+                <div className="font-medium text-[#ABC4FF80] text-xs">{toUTC(txInfo.time)}</div>
+              </Row>
+            </LinkExplorer>
+          ))}
+        </Collapse.Body>
+      </Collapse>
+    </div>
   )
 }
 
@@ -186,7 +192,7 @@ function PanelContent({ historyItems, onClose }: { historyItems: TxHistoryInfo[]
 
       <Row
         type="grid-x"
-        className="gap-[3.5vw] grid-cols-[1fr,2fr,1fr] pb-3 px-8 border-b-1.5 border-[rgba(171,196,255,0.2)]"
+        className="gap-[3.5vw] grid-cols-[1fr,1.8fr,1.4fr] pb-3 px-8 border-b-1.5 border-[rgba(171,196,255,0.2)]"
       >
         {/* table head column: Transaction type */}
         <div className="font-medium text-[rgba(171,196,255,0.5)] text-xs">Transaction type</div>
@@ -196,7 +202,7 @@ function PanelContent({ historyItems, onClose }: { historyItems: TxHistoryInfo[]
         <div className="font-medium text-[rgba(171,196,255,0.5)] text-xs">Date and time</div>
       </Row>
 
-      <div className="overflow-y-auto flex-1 mx-4" /* let scrollbar have some space */>
+      <div className="overflow-y-auto flex-1 mx-4 my-2" /* let scrollbar have some space */>
         {historyItems.length > 0 ? (
           <RecentTransactionItems txHistoryInfos={historyItems}></RecentTransactionItems>
         ) : (
