@@ -32,7 +32,7 @@ export interface NewReward {
   duration?: string
   openTime?: Date
   endTime?: Date
-  perDay?: string
+  perWeek?: string
   isWhiteListReward?: boolean
 }
 
@@ -92,6 +92,10 @@ export default function AddNewReward(props: Props) {
     if (!hasInput) return
     setNewReward((values) => {
       const decimals = values.token?.decimals || 6
+      const perWeek =
+        isMeaningfulNumber(values.amount) && isMeaningfulNumber(values.duration)
+          ? trimTailingZero(mul(div(values.amount, values.duration), 7).toFixed(decimals))
+          : '0'
       return {
         ...values,
         endTime:
@@ -100,10 +104,7 @@ export default function AddNewReward(props: Props) {
                 milliseconds: Number(values.duration) * DAY_SECONDS * 1000
               })
             : values.endTime,
-        perDay:
-          isMeaningfulNumber(values.amount) && isMeaningfulNumber(values.duration)
-            ? trimTailingZero(div(values.amount, values.duration).toFixed(decimals))
-            : '0'
+        perWeek
       }
     })
   }, [newReward.duration, newReward.openTime, newReward.amount, hasInput])
@@ -205,18 +206,18 @@ export default function AddNewReward(props: Props) {
             disableDateBeforeCurrent
           />
           <InputBox
-            label="Estimated rewards / day"
+            label="Estimated rewards / week"
             className="flex-[3]"
-            onUserInput={(perDay) =>
+            onUserInput={(perWeek) =>
               setNewReward((values) => ({
                 ...values,
-                perDay,
+                perWeek,
                 amount: isMeaningfulNumber(values.duration)
-                  ? trimTailingZero(mul(perDay, values.duration).toFixed(values.token?.decimals || 6))
+                  ? trimTailingZero(mul(div(perWeek, 7), values.duration).toFixed(values.token?.decimals || 6))
                   : '0'
               }))
             }
-            value={newReward.perDay}
+            value={newReward.perWeek}
           />
         </Row>
         <div>
