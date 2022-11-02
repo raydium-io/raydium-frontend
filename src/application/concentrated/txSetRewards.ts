@@ -25,9 +25,10 @@ interface Props {
     endTime: Date
     perDay: string
   }[]
+  onTxSuccess?: () => void
 }
 
-export default function txSetRewards({ currentAmmPool, updateRewards, newRewards }: Props) {
+export default function txSetRewards({ currentAmmPool, updateRewards, newRewards, onTxSuccess }: Props) {
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
     const { tokenAccountRawInfos } = useWallet.getState()
 
@@ -58,16 +59,6 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
       }
     }
 
-    /* eslint-disable */
-    console.log('====add more rewards======')
-    updatedRewardInfos.forEach((r) => {
-      console.log('**mint**', r.mint.toBase58())
-      console.log('perSecond', r.perSecond.toString())
-      console.log('openTime', r.openTime)
-      console.log('endTime', r.endTime)
-    })
-    /* eslint-enable */
-
     if (updatedRewardInfos.length) {
       const { transaction: setRewardTx, signers: setRewardTxSigners } = await AmmV3.makeSetRewardsTransaction({
         ...commonParams,
@@ -78,19 +69,10 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
         txHistoryInfo: {
           title: 'Update rewards',
           description: `Update rewards in ${currentAmmPool.idString.slice(0, 6)}`
-        }
+        },
+        onTxSuccess: !newRewardInfos.length ? onTxSuccess : undefined
       })
     }
-
-    /* eslint-disable */
-    console.log('====new rewards======')
-    newRewardInfos.forEach((r) => {
-      console.log('**mint**', r.mint.toBase58())
-      console.log('perSecond', r.perSecond.toString())
-      console.log('openTime', r.openTime)
-      console.log('endTime', r.endTime)
-    })
-    /* eslint-enable */
 
     if (newRewardInfos.length) {
       const { transaction: addRewardTx, signers: addRewardSigners } = await AmmV3.makeInitRewardsTransaction({
@@ -104,7 +86,8 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
             0,
             6
           )}`
-        }
+        },
+        onTxSuccess
       })
     }
   })

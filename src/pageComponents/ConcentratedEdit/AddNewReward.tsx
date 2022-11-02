@@ -9,7 +9,7 @@ import Card from '@/components/Card'
 import Grid from '@/components/Grid'
 import Row from '@/components/Row'
 import { offsetDateTime, getDate } from '@/functions/date/dateFormat'
-import { isDateAfter, isDateBefore } from '@/functions/date/judges'
+import { isDateAfter, isDateBefore, isDateEqual } from '@/functions/date/judges'
 import { isMeaningfulNumber, isMeaninglessNumber, gt, lt, gte } from '@/functions/numberish/compare'
 import { getDuration } from '@/functions/date/parseDuration'
 import { trimTailingZero } from '@/functions/numberish/handleZero'
@@ -173,7 +173,12 @@ export default function AddNewReward(props: Props) {
             disableDateBeforeCurrent
             isValidDate={(date) => {
               return (
-                isDateAfter(date, currentBlockChainDate) &&
+                isDateAfter(
+                  date,
+                  offsetDateTime(currentBlockChainDate, {
+                    seconds: -DAY_SECONDS
+                  })
+                ) &&
                 isDateBefore(
                   date,
                   offsetDateTime(newReward.openTime || currentBlockChainDate, {

@@ -221,19 +221,16 @@ export default function AddMoreDialog({
               <InputBox
                 label="Estimated rewards / day"
                 className="flex-[2]"
-                disabled={!isRewardEnded}
                 onUserInput={(val) =>
-                  isRewardEnded
-                    ? setValues((preValues) => ({
-                        ...preValues,
-                        perDay: val,
-                        amount: isRewardEnded
-                          ? isMeaningfulNumber(val) && isMeaningfulNumber(preValues.duration)
-                            ? mul(val, preValues.duration).toFixed(decimals)
-                            : '0'
-                          : preValues.amount
-                      }))
-                    : undefined
+                  setValues((preValues) => ({
+                    ...preValues,
+                    perDay: val,
+                    amount: isRewardEnded
+                      ? isMeaningfulNumber(val) && isMeaningfulNumber(preValues.duration)
+                        ? mul(val, preValues.duration).toFixed(decimals)
+                        : '0'
+                      : preValues.amount
+                  }))
                 }
                 value={isRewardEnded ? values.perDay : estimatedValueDay}
               />

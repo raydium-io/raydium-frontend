@@ -5,9 +5,11 @@ import txSetRewards from '@/application/concentrated/txSetRewards'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useWallet from '@/application/wallet/useWallet'
 import useToken from '@/application/token/useToken'
+import { routeTo } from '@/application/routeTools'
 import Button from '@/components/Button'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
+import Tooltip from '@/components/Tooltip'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 import { UpdateData } from './AddMoreDialog'
@@ -24,12 +26,15 @@ export default function EditFarm() {
   const [editedReward, setEditedReward] = useState<{ updateReward?: Map<string, UpdateData>; newRewards: NewReward[] }>(
     { newRewards: [] }
   )
+
+  const [txSuccess, setTxSuccess] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [newRewardError, setNewRewardError] = useState<(string | undefined)[]>([])
 
   const [newRewardIdx, setNewRewardIdx] = useState(-1)
   const [remainRewardsCount, setRemainRewardsCount] = useState<number>(2 - (currentAmmPool?.rewardInfos.length || 0))
 
+  const isEditFarm = currentAmmPool && currentAmmPool?.rewardInfos.length > 0
   const hasRewards =
     (currentAmmPool?.rewardInfos || []).length > 0 ||
     editedReward.newRewards.filter((reward) => !!reward.token).length > 0
@@ -54,7 +59,7 @@ export default function EditFarm() {
     hasRewards &&
     ((!hasWhiteListRewards && remainRewardsCount === 0) || editedReward.newRewards[newRewardIdx]?.isWhiteListReward)
       ? shakeUndifindedItem(
-          whitelistRewards
+          Array.from(whiteListMints)
             .map((reward) => getToken(reward))
             .filter(
               (token) =>
@@ -130,6 +135,7 @@ export default function EditFarm() {
   const handleSendRewardText = () => {
     const { newRewards, updateReward } = editedReward
     txSetRewards({
+      onTxSuccess: () => setTxSuccess(true),
       currentAmmPool: currentAmmPool!,
       updateRewards: updateReward || new Map(),
       newRewards:
@@ -144,10 +150,18 @@ export default function EditFarm() {
     })
   }
 
+  const handleClickAddNewReward = useCallback(() => setNewRewardIdx((idx) => idx + 1), [])
+
+  useEffect(() => {
+    if (currentAmmPool && !currentAmmPool.rewardInfos.length && newRewardIdx === -1) {
+      handleClickAddNewReward()
+    }
+  }, [currentAmmPool, newRewardIdx, handleClickAddNewReward])
+
   return (
     <div className="max-w-[720px]">
-      <div className="text-2xl mb-10">Edit Farm</div>
-      <div className="text-sm text-secondary-title mb-3">Pool</div>
+      <div className="text-2xl mb-10">{isEditFarm ? 'Edit' : 'Create'} Farm</div>
+      <div className="text-sm text-secondary-title mb-3">Concentrated liquidity Pool</div>
       <PoolInfo pool={currentAmmPool} />
 
       {currentAmmPool?.rewardInfos && currentAmmPool.rewardInfos.length > 0 ? (
@@ -157,9 +171,9 @@ export default function EditFarm() {
         </div>
       ) : null}
 
-      {(editedReward.newRewards.length > 1 || showPreview) && (
+      {editedReward.newRewards.length > 0 && showPreview && (
         <>
-          <div className="text-sm text-secondary-title mb-3">New farm rewards</div>
+          <div className="text-sm text-secondary-title mb-3">New farming rewards</div>
           <NewRewardTable
             tvl={currentAmmPool?.tvl}
             newRewards={editedReward.newRewards}
@@ -172,25 +186,39 @@ export default function EditFarm() {
       {canAddRewardToken && (
         <>
           {newRewardIdx !== -1 ? (
-            <AddNewReward
-              key={newRewardIdx}
-              enableTokens={enableTokens}
-              disableTokens={shakeUndifindedItem([
-                ...(currentAmmPool ? currentAmmPool.rewardInfos.map((r) => r.rewardToken) : []),
-                ...editedReward.newRewards.map((r) => r.token)
-              ])}
-              dataIndex={newRewardIdx}
-              defaultData={editedReward.newRewards[newRewardIdx]}
-              onValidateChange={handleNewRewardError}
-              onUpdateReward={handleUpdateNewReward}
-            />
+            <>
+              <div className="flex items-center gap-1 text-sm text-secondary-title mb-3">
+                New farming rewards
+                <Tooltip>
+                  <Icon size="sm" heroIconName="question-mark-circle" />
+                  <Tooltip.Panel>
+                    <div className="max-w-[300px]">
+                      Two reward tokens can be added to a farm. The first can be any SPL token. <br />
+                      If two tokens are added, at least one should be from the token pair of the pool.
+                    </div>
+                  </Tooltip.Panel>
+                </Tooltip>
+              </div>
+              <AddNewReward
+                key={newRewardIdx}
+                enableTokens={enableTokens}
+                disableTokens={shakeUndifindedItem([
+                  ...(currentAmmPool ? currentAmmPool.rewardInfos.map((r) => r.rewardToken) : []),
+                  ...editedReward.newRewards.map((r) => r.token)
+                ])}
+                dataIndex={newRewardIdx}
+                defaultData={editedReward.newRewards[newRewardIdx]}
+                onValidateChange={handleNewRewardError}
+                onUpdateReward={handleUpdateNewReward}
+              />
+            </>
           ) : null}
           <Row
             className={`items-center w-fit mb-2 ${!canClickAddBtn ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
-            onClick={canClickAddBtn ? () => setNewRewardIdx((idx) => idx + 1) : undefined}
+            onClick={canClickAddBtn ? handleClickAddNewReward : undefined}
           >
             <Icon className="text-[#abc4ff]" heroIconName="plus-circle" size="sm" />
-            <div className="ml-1.5 text-[#abc4ff] font-base mobile:text-sm">Add another reward token</div>
+            <div className="ml-1.5 text-[#abc4ff] font-base mobile:text-sm">Add reward token</div>
             <div className="ml-1.5 text-[#abc4ff80] font-base mobile:text-sm">({remainRewardsCount} more)</div>
           </Row>
         </>
@@ -227,9 +255,19 @@ export default function EditFarm() {
       )}
       {showPreview && (
         <Row className="justify-center gap-2">
-          <Button className="frosted-glass-teal w-fit" onClick={handleSendRewardText}>
-            Confirm Farm Changes
-          </Button>
+          {txSuccess ? (
+            <Button
+              className="frosted-glass-skygray w-fit"
+              size={isMobile ? 'sm' : 'lg'}
+              onClick={() => routeTo('/clmm/pools')}
+            >
+              Back to Pools
+            </Button>
+          ) : (
+            <Button className="frosted-glass-teal w-fit" onClick={handleSendRewardText}>
+              Confirm Farm Changes
+            </Button>
+          )}
           <Button
             className="frosted-glass-skygray w-fit"
             size={isMobile ? 'sm' : 'lg'}
