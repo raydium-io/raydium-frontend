@@ -1,21 +1,31 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
+import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
 import { useAutoCreateAmmv3Pool } from '@/application/concentrated/useAutoCreateAmmv3Pool'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import useNotification from '@/application/notification/useNotification'
+import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
+import useWallet from '@/application/wallet/useWallet'
+import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
+import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox from '@/components/CoinInputBox'
 import Col from '@/components/Col'
+import { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
-import { FadeIn } from '@/components/FadeIn'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
@@ -23,26 +33,19 @@ import { toString } from '@/functions/numberish/toString'
 import { useEvent } from '@/hooks/useEvent'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
+import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
+
+import { calculateRatio } from '../Concentrated'
 import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
+
 import { CreateFeeSwitcher } from './CreateFeeSwitcher'
+import CreatePoolPreviewDialog from './CreatePoolPreviewDialog'
 import EmptyCoinInput from './EmptyCoinInput'
 import InputLocked from './InputLocked'
 import PriceRangeInput from './PriceRangeInput'
 import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
-import CoinAvatarPair from '@/components/CoinAvatarPair'
-import toUsdVolume from '@/functions/format/toUsdVolume'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
-import { calculateRatio } from '../Concentrated'
-import useWallet from '@/application/wallet/useWallet'
-import Button from '@/components/Button'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import useToggle from '@/hooks/useToggle'
-import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
-import CreatePoolPreviewDialog from './CreatePoolPreviewDialog'
-import { routeTo } from '@/application/routeTools'
-import useNotification from '@/application/notification/useNotification'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -280,23 +283,21 @@ export function CreatePoolCard() {
       title: 'Pool created successfully!',
       description: 'Do you want to create a farm based on this pool?',
       confirmButtonIsMainButton: true,
-      confirmButtonText: 'Back to all Pools',
+      confirmButtonText: 'Create Farm',
       cancelButtonText: 'Not Now',
       onConfirm() {
-        routeTo('/clmm/pools')
-        setTimeout(() => {
-          // clean inputs
-          useConcentrated.setState({
-            coin1: undefined,
-            coin2: undefined,
-            coin1Amount: undefined,
-            coin2Amount: undefined,
-            focusSide: 'coin1',
-            userCursorSide: 'coin1',
-            tempDataCache: undefined
-          })
-          useConcentrated.getState().refreshConcentrated()
-        }, 400)
+        useConcentrated.setState({
+          coin1: currentAmmPool?.base,
+          coin2: currentAmmPool?.quote,
+          chartPoints: [],
+          lazyLoadChart: true,
+          currentAmmPool: currentAmmPool
+        })
+        routeTo('/clmm/edit-farm', {
+          queryProps: {
+            farmId: currentAmmPool?.idString
+          }
+        })
       },
       onCancel() {
         setTimeout(() => {
