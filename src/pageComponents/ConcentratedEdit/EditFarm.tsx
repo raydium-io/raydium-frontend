@@ -171,7 +171,7 @@ export default function EditFarm() {
         </div>
       ) : null}
 
-      {editedReward.newRewards.length > 0 && showPreview && (
+      {(editedReward.newRewards.length > 1 || (showPreview && editedReward.newRewards.length > 0)) && (
         <>
           <div className="text-sm text-secondary-title mb-3">New farming rewards</div>
           <NewRewardTable
