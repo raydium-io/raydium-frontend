@@ -4,6 +4,7 @@ import {
   Keypair,
   PublicKey,
   SignatureResult,
+  Signer,
   Transaction,
   TransactionError
 } from '@solana/web3.js'
@@ -26,6 +27,7 @@ import useWallet, { WalletStore } from '../wallet/useWallet'
 import { TxNotificationItemInfo } from '@/components/NotificationItem/type'
 import { MayPromise } from '@/types/constants'
 import { attachRecentBlockhash } from './attachRecentBlockhash'
+import { SnowflakeSafeWalletAdapter } from '@snowflake-so/wallet-adapter-snowflake'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 
@@ -164,6 +166,7 @@ export type TransactionQueue = ([transaction: Transaction, singleTxOptions?: Sin
 export type TransactionCollector = {
   add(transaction: Transaction, options?: SingleTxOption): void
   addQueue(transactionQueue: TransactionQueue, multiTxOptions?: MultiTxsOption): void
+  addSigners(signers: Signer[]) : void
 }
 
 // TODO: should also export addTxSuccessListener() and addTxErrorListener() and addTxFinallyListener()
@@ -216,11 +219,11 @@ export function createTxHandler<Arg extends Record<string, any>>(
 export default async function txHandler(txAction: TxFn, options?: HandleFnOptions): Promise<TxResponseInfos> {
   const {
     transactionCollector,
-    collected: { innerTransactions, singleTxOptions, multiTxOption }
+    collected: { innerTransactions, singleTxOptions, multiTxOption, innerSigners }
   } = collectTxOptions(options)
   useAppSettings.setState({ isApprovePanelShown: true })
   try {
-    const { signAllTransactions, owner } = useWallet.getState()
+    const { signAllTransactions, owner, adapter } = useWallet.getState()
     const connection = useConnection.getState().connection
     assert(connection, 'no rpc connection')
     if (options?.forceKeyPairs?.ownerKeypair) {
@@ -239,6 +242,14 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
         baseUtils: { connection, owner, tokenAccounts, allTokenAccounts }
       })
     }
+
+    // eslint-disable-next-line no-console
+    const _snowflakeAdapter = adapter as SnowflakeSafeWalletAdapter;
+    if (singleTxOptions[0].txHistoryInfo?.description && _snowflakeAdapter.isSnowflakeSafe){
+      _snowflakeAdapter.setProposalName(singleTxOptions[0].txHistoryInfo.description)
+      _snowflakeAdapter.setSigners(innerSigners);
+    }
+
     // eslint-disable-next-line no-console
     console.info('tx transactions: ', toHumanReadable(innerTransactions))
 
@@ -289,6 +300,8 @@ function collectTxOptions(
   const singleTxOptions = [] as SingleTxOption[]
   const multiTxOption = {} as MultiTxsOption
   const innerTransactions = [] as Transaction[]
+  const innerSigners = [] as Signer[]
+
   const { additionalSingleOptionCallback, additionalMultiOptionCallback } = additionOptions ?? {}
   const add: TransactionCollector['add'] = (transaction, options) => {
     innerTransactions.push(transaction)
@@ -301,8 +314,12 @@ function collectTxOptions(
     })
     Object.assign(multiTxOption, mergeObject(options ?? {}, additionalMultiOptionCallback))
   }
-  const transactionCollector: TransactionCollector = { add, addQueue }
-  return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOption } }
+  const addSigners: TransactionCollector['addSigners'] = (signers) => {
+    innerSigners.push(...signers);
+  }
+
+  const transactionCollector: TransactionCollector = { add, addQueue, addSigners }
+  return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOption, innerSigners } }
 }
 
 export function serialize(transaction: Transaction, cache = true) {
@@ -494,7 +511,7 @@ function composeWithDifferentSendMode({
   } else {
     const queued = transactions.reduceRight(
       ({ fn, method }, tx, idx) => {
-        const singleOption = singleOptions[idx]
+        const singleOption = singleOptions[idx] || singleOptions[0];
         return {
           fn: () =>
             handleSingleTxOptions({

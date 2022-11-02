@@ -14,6 +14,7 @@ import { clusterApiUrl } from '@solana/web3.js'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
+import { SnowflakeSafeWalletAdapter } from '@snowflake-so/wallet-adapter-snowflake'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */
 export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
@@ -58,7 +59,8 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
           }
         }
       }),
-      new BraveWalletAdapter()
+      new BraveWalletAdapter(),
+      new SnowflakeSafeWalletAdapter()
     ],
     [endpoint]
   )

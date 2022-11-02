@@ -64,6 +64,9 @@ export default function txAddLiquidity({ ammId: targetAmmId }: { ammId?: PublicK
       amountInB: deUITokenAmount(coin2TokenAmount),
       fixedSide: focusSide === 'coin1' ? 'a' : 'b'
     })
+
+    transactionCollector.addSigners(signers);
+
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
         title: 'Add Liquidity',

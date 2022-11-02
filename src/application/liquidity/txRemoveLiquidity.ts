@@ -37,6 +37,9 @@ export default function txRemoveLiquidity({ ammId: targetAmmId }: { ammId?: Publ
       userKeys: { owner, tokenAccounts: tokenAccountRawInfos },
       amountIn: removeTokenAmount
     })
+
+    transactionCollector.addSigners(signers);
+
     transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
       txHistoryInfo: {
         title: 'Remove liquidity',
