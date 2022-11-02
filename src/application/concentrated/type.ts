@@ -72,7 +72,7 @@ export interface HydratedConcentratedRewardInfo {
   tokenMint: PublicKey
   tokenVault: PublicKey
   creator: PublicKey
-  perSecond: Fraction
+  perSecond: BN
   rewardPerSecond: Decimal
   rewardPerWeek: TokenAmount | undefined
   rewardPerDay: TokenAmount | undefined
