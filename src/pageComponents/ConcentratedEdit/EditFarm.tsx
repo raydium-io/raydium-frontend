@@ -22,6 +22,7 @@ export default function EditFarm() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const walletConnected = useWallet((s) => s.connected)
   const getToken = useToken((s) => s.getToken)
+  const sortTokens = useToken((s) => s.sortTokens)
   const [currentAmmPool, whitelistRewards] = useConcentrated((s) => [s.currentAmmPool, s.whitelistRewards], shallow)
   const [editedReward, setEditedReward] = useState<{ updateReward?: Map<string, UpdateData>; newRewards: NewReward[] }>(
     { newRewards: [] }
@@ -58,15 +59,18 @@ export default function EditFarm() {
   const enableTokens =
     hasRewards &&
     ((!hasWhiteListRewards && remainRewardsCount === 0) || editedReward.newRewards[newRewardIdx]?.isWhiteListReward)
-      ? shakeUndifindedItem(
-          Array.from(whiteListMints)
-            .map((reward) => getToken(reward))
-            .filter(
-              (token) =>
-                !currentAmmPool ||
-                (token && !currentAmmPool.rewardInfos.some((reward) => reward.tokenMint.equals(token.mint)))
-            )
-            .filter((token) => !editedReward.newRewards.some((reward) => reward.token?.mint.equals(token!.mint)))
+      ? sortTokens(
+          shakeUndifindedItem(
+            Array.from(whiteListMints)
+              .map((reward) => getToken(reward))
+              .filter(
+                (token) =>
+                  !currentAmmPool ||
+                  (token && !currentAmmPool.rewardInfos.some((reward) => reward.tokenMint.equals(token.mint)))
+              )
+              .filter((token) => !editedReward.newRewards.some((reward) => reward.token?.mint.equals(token!.mint)))
+          ),
+          true
         )
       : undefined
 

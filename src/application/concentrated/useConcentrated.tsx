@@ -176,15 +176,13 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   fetchWhitelistRewards: () => {
     const connection = useConnection.getState().connection
     if (!connection || get().whitelistRewards.length > 0) return
-    const { sortTokens, getToken } = useToken.getState()
+    const { getToken } = useToken.getState()
     AmmV3.getWhiteListMint({
       connection,
       programId: ammV3ProgramId
     }).then((data) => {
       set({
-        whitelistRewards: sortTokens(shakeUndifindedItem(data.map((pub) => getToken(pub))), true).map(
-          (token) => token.mint
-        )
+        whitelistRewards: shakeUndifindedItem(data.map((pub) => getToken(pub))).map((token) => token.mint)
       })
     })
   },

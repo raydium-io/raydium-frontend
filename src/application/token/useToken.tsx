@@ -212,7 +212,7 @@ export const useToken = create<TokenStore>((set, get) => ({
     // noQuantumSOL
     const whiteListMints = whiteList.filter((token) => !isQuantumSOL(token)).map((token) => String(token.mint))
 
-    const { pureBalances } = useWallet.getState()
+    const { pureBalances, balances } = useWallet.getState()
 
     const notInWhiteListToken = Object.values(tokens).filter(
       (token) => !isQuantumSOLVersionSOL(token) && !whiteListMints.includes(String(token.mint))
@@ -220,8 +220,12 @@ export const useToken = create<TokenStore>((set, get) => ({
 
     const result = useInputTokensOnly
       ? tokens.sort((tokenA, tokenB) => {
-          const balanceA = pureBalances[String(tokenA.mint)]?.raw || new TokenAmount(tokenA, 0).raw
-          const balanceB = pureBalances[String(tokenB.mint)]?.raw || new TokenAmount(tokenB, 0).raw
+          const balanceA =
+            (isQuantumSOL(tokenA) ? balances[WSOLMint.toBase58()]?.raw : pureBalances[String(tokenA.mint)]?.raw) ||
+            new TokenAmount(tokenA, 0).raw
+          const balanceB =
+            (isQuantumSOL(tokenB) ? balances[WSOLMint.toBase58()]?.raw : pureBalances[String(tokenB.mint)]?.raw) ||
+            new TokenAmount(tokenB, 0).raw
           return balanceA.lte(balanceB) ? 1 : -1
         })
       : [
