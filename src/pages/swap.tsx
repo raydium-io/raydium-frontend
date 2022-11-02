@@ -1,10 +1,9 @@
-import { createRef, ReactNode, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { RouteInfo } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
-import { AmmV3PoolInfo, LiquidityPoolJsonInfo, RouteInfo } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
-import useLiquidity from '@/application/liquidity/useLiquidity'
 import useNotification from '@/application/notification/useNotification'
 import { isLiquidityPoolJsonInfo } from '@/application/pools/is'
 import { routeTo } from '@/application/routeTools'
@@ -19,8 +18,8 @@ import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
   isQuantumSOLVersionSOL,
   isQuantumSOLVersionWSOL,
-  SOL_BASE_BALANCE,
   SOLDecimals,
+  SOL_BASE_BALANCE,
   toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
@@ -46,13 +45,11 @@ import RowTabs from '@/components/RowTabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
-import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { isArray } from '@/functions/judgers/dateType'
-import { eq, gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
@@ -61,11 +58,11 @@ import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import useResizeObserver from '@/hooks/useResizeObserver'
 import useToggle from '@/hooks/useToggle'
-import ConcentratedLiquiditySlider from '@/pageComponents/ConcentratedRangeChart/ConcentratedLiquiditySlider'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
+import { toPercent } from '@/functions/format/toPercent'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
