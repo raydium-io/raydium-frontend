@@ -14,7 +14,6 @@ import { mul, div } from '@/functions/numberish/operations'
 import { toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import formatNumber from '@/functions/format/formatNumber'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toPercentString from '@/functions/format/toPercentString'
 import parseDuration, { getDuration } from '@/functions/date/parseDuration'
 import Button from '@/components/Button'
@@ -89,7 +88,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           }
         ]}
         renderRowItem={({ item: reward, label, index }) => {
-          const { openTime, endTime, rewardToken, rewardPerSecond, rewardPerWeek } = reward
+          const { openTime, endTime, rewardToken, perSecond, rewardPerWeek } = reward
           const isRewardBeforeStart = Boolean(openTime && isDateBefore(onlineCurrentDate, openTime))
           const isRewardEnded = Boolean(endTime && isDateAfter(onlineCurrentDate, endTime))
           const isRewarding = (!openTime && !endTime) || (!isRewardEnded && !isRewardBeforeStart)
@@ -99,6 +98,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
             return duration.hours ? `${duration.days}D ${duration.hours}H` : `${duration.days}D`
           }
 
+          const rewardDecimals = rewardToken?.decimals || 6
           const updateReward = updateData.get(reward.rewardToken!.mint.toBase58())
           const updateDuration = updateReward ? getDuration(updateReward.endTime, updateReward.openTime) : 0
 
@@ -140,15 +140,15 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           if (label === 'Amount') {
             return (
               <Grid className="gap-4 h-full">
-                {rewardPerSecond ? (
+                {perSecond ? (
                   <Col className="grow break-all justify-center">
                     {formatNumber(
                       mul(
-                        div(rewardPerSecond.toString(), 10 ** (rewardToken?.decimals || 6)),
+                        div(perSecond.toFixed(rewardDecimals), 10 ** rewardDecimals),
                         Math.floor(rewardDuration / 1000)
                       ),
                       {
-                        fractionLength: rewardToken?.decimals || 6
+                        fractionLength: rewardDecimals
                       }
                     )}
                   </Col>
@@ -156,12 +156,9 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
                 {updateReward && (
                   <Col className="grow justify-center text-[#39d0d8]">
                     {formatNumber(
-                      mul(
-                        div(updateReward.perSecond, 10 ** (rewardToken?.decimals || 6)),
-                        Math.floor(updateDuration / 1000)
-                      ),
+                      mul(div(updateReward.perSecond, 10 ** rewardDecimals), Math.floor(updateDuration / 1000)),
                       {
-                        fractionLength: reward.rewardToken?.decimals ?? 6
+                        fractionLength: rewardDecimals
                       }
                     )}
                   </Col>
@@ -224,19 +221,16 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
                 {updateReward && (
                   <Col className="grow justify-center text-[#39d0d8]">
                     <div>
-                      {formatNumber(
-                        mul(div(updateReward.perSecond, 10 ** (rewardToken?.decimals || 6)), 3600 * 24 * 7),
-                        {
-                          fractionLength: reward.rewardToken?.decimals ?? 6
-                        }
-                      )}
+                      {formatNumber(mul(div(updateReward.perSecond, 10 ** rewardDecimals), 3600 * 24 * 7), {
+                        fractionLength: reward.rewardToken?.decimals ?? 6
+                      })}
                       /week
                     </div>
                     <div>
                       {toPercentString(
                         div(
                           mul(
-                            mul(div(updateReward.perSecond, 10 ** (rewardToken?.decimals || 6)), DAY_SECONDS * 365),
+                            mul(div(updateReward.perSecond, 10 ** rewardDecimals), DAY_SECONDS * 365),
                             tokenPrices[reward.tokenMint.toBase58()] || 0
                           ),
                           pool.tvl
