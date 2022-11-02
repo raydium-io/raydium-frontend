@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Fraction } from '@raydium-io/raydium-sdk'
 import useAppSettings from '@/application/common/useAppSettings'
 import useWallet from '@/application/wallet/useWallet'
@@ -55,6 +55,7 @@ export default function AddMoreDialog({
     amount: '',
     perDay: ''
   })
+  const perDayRef = useRef(false)
   const decimals = reward?.rewardToken?.decimals || 6
   const currentBlockChainDate = new Date(Date.now() + (chainTimeOffset || 0))
   const { isRewardEnded } = reward || {}
@@ -221,7 +222,7 @@ export default function AddMoreDialog({
               <InputBox
                 label="Estimated rewards / day"
                 className="flex-[2]"
-                onUserInput={(val) =>
+                onUserInput={(val) => {
                   setValues((preValues) => ({
                     ...preValues,
                     perDay: val,
@@ -231,8 +232,8 @@ export default function AddMoreDialog({
                         : '0'
                       : preValues.amount
                   }))
-                }
-                value={isRewardEnded ? values.perDay : estimatedValueDay}
+                }}
+                value={values.perDay}
               />
             </Row>
 

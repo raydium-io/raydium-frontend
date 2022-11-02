@@ -14,6 +14,7 @@ import { mul, div } from '@/functions/numberish/operations'
 import { toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import formatNumber from '@/functions/format/formatNumber'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toPercentString from '@/functions/format/toPercentString'
 import parseDuration, { getDuration } from '@/functions/date/parseDuration'
 import Button from '@/components/Button'
@@ -88,7 +89,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           }
         ]}
         renderRowItem={({ item: reward, label, index }) => {
-          const { openTime, endTime, rewardToken, perSecond } = reward
+          const { openTime, endTime, rewardToken, rewardPerSecond, rewardPerWeek } = reward
           const isRewardBeforeStart = Boolean(openTime && isDateBefore(onlineCurrentDate, openTime))
           const isRewardEnded = Boolean(endTime && isDateAfter(onlineCurrentDate, endTime))
           const isRewarding = (!openTime && !endTime) || (!isRewardEnded && !isRewardBeforeStart)
@@ -139,12 +140,15 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           if (label === 'Amount') {
             return (
               <Grid className="gap-4 h-full">
-                {perSecond ? (
+                {rewardPerSecond ? (
                   <Col className="grow break-all justify-center">
                     {formatNumber(
-                      mul(div(perSecond, 10 ** (rewardToken?.decimals || 6)), Math.floor(rewardDuration / 1000)),
+                      mul(
+                        div(rewardPerSecond.toString(), 10 ** (rewardToken?.decimals || 6)),
+                        Math.floor(rewardDuration / 1000)
+                      ),
                       {
-                        fractionLength: rewardToken?.decimals ?? 6
+                        fractionLength: rewardToken?.decimals || 6
                       }
                     )}
                   </Col>
@@ -212,20 +216,21 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
               <Grid className="gap-4 h-full">
                 <Col className="grow justify-center text-xs">
                   <div>
-                    {formatNumber(mul(div(perSecond, 10 ** (rewardToken?.decimals || 6)), 3600 * 24), {
-                      fractionLength: reward.rewardToken?.decimals ?? 6
-                    })}
-                    /day
+                    {formatNumber(rewardPerWeek)}
+                    /week
                   </div>
                   {pool.rewardApr24h[index] && <div>{toPercentString(pool.rewardApr24h[index])} APR</div>}
                 </Col>
                 {updateReward && (
                   <Col className="grow justify-center text-[#39d0d8]">
                     <div>
-                      {formatNumber(mul(div(updateReward.perSecond, 10 ** (rewardToken?.decimals || 6)), 3600 * 24), {
-                        fractionLength: reward.rewardToken?.decimals ?? 6
-                      })}
-                      /day
+                      {formatNumber(
+                        mul(div(updateReward.perSecond, 10 ** (rewardToken?.decimals || 6)), 3600 * 24 * 7),
+                        {
+                          fractionLength: reward.rewardToken?.decimals ?? 6
+                        }
+                      )}
+                      /week
                     </div>
                     <div>
                       {toPercentString(

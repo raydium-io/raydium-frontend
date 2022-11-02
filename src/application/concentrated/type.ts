@@ -12,6 +12,7 @@ import {
 import { PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
+import Decimal from 'decimal.js'
 
 import { HexAddress, Numberish } from '@/types/constants'
 
@@ -71,7 +72,8 @@ export interface HydratedConcentratedRewardInfo {
   tokenMint: PublicKey
   tokenVault: PublicKey
   creator: PublicKey
-  perSecond: BN
+  perSecond: Fraction
+  rewardPerSecond: Decimal
   rewardPerWeek: TokenAmount | undefined
   rewardPerDay: TokenAmount | undefined
   remainingRewards?: BN

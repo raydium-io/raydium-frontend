@@ -120,7 +120,7 @@ export default function NewRewardTable({ newRewards, tvl, onClickRow, onDelete }
             <Grid className="gap-4 h-full">
               <Col className="grow justify-center text-xs">
                 <div>
-                  {formatNumber(perDay, { fractionLength: token?.decimals || 6 })}
+                  {formatNumber(mul(perDay, 7), { fractionLength: token?.decimals || 6 })}
                   /day
                 </div>
                 <div>

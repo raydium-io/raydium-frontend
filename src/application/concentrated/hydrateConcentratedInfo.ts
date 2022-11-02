@@ -63,6 +63,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
         lastUpdateTime: r.lastUpdateTime.toNumber() * 1000,
         rewardClaimed: rewardToken ? toTokenAmount(rewardToken, r.rewardClaimed) : undefined,
         rewardTotalEmissioned: rewardToken ? toTokenAmount(rewardToken, r.rewardTotalEmissioned) : undefined,
+        rewardPerSecond: r.perSecond,
         rewardPerWeek: rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400 * 7)),
         rewardPerDay: rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400))
       }
