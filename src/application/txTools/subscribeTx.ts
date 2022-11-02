@@ -1,6 +1,7 @@
+import { Transaction } from '@solana/web3.js'
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
-import { TxErrorInfo, TxFinalInfo, TxSuccessInfo } from './handleTx'
+import { MultiTxExtraInfo, TxErrorInfo, TxFinalInfo, TxSuccessInfo } from './handleTx'
 
 export interface SubscribeSignatureCallbacks {
   onTxSuccess?(ev: TxSuccessInfo): void
@@ -8,7 +9,17 @@ export interface SubscribeSignatureCallbacks {
   onTxFinally?(ev: TxFinalInfo): void
 }
 
-export default function subscribeTx(txid: string, callbacks?: SubscribeSignatureCallbacks) {
+export default function subscribeTx({
+  txid,
+  transaction,
+  extraTxidInfo,
+  callbacks
+}: {
+  txid: string
+  transaction: Transaction
+  extraTxidInfo: MultiTxExtraInfo
+  callbacks?: SubscribeSignatureCallbacks
+}) {
   const { connection } = useConnection.getState()
   const { logError } = useNotification.getState()
   if (!connection) {
@@ -19,11 +30,25 @@ export default function subscribeTx(txid: string, callbacks?: SubscribeSignature
     txid,
     (signatureResult, context) => {
       if (signatureResult.err) {
-        callbacks?.onTxError?.({ txid: txid, signatureResult, context, error: signatureResult.err })
-        callbacks?.onTxFinally?.({ txid: txid, signatureResult, context, type: 'error' })
+        callbacks?.onTxError?.({
+          txid: txid,
+          transaction,
+          signatureResult,
+          context,
+          error: signatureResult.err,
+          ...extraTxidInfo
+        })
+        callbacks?.onTxFinally?.({ txid: txid, transaction, signatureResult, context, type: 'error', ...extraTxidInfo })
       } else {
-        callbacks?.onTxSuccess?.({ txid: txid, signatureResult, context })
-        callbacks?.onTxFinally?.({ txid: txid, signatureResult, context, type: 'success' })
+        callbacks?.onTxSuccess?.({ txid: txid, transaction, signatureResult, context, ...extraTxidInfo })
+        callbacks?.onTxFinally?.({
+          txid: txid,
+          transaction,
+          signatureResult,
+          context,
+          type: 'success',
+          ...extraTxidInfo
+        })
       }
     },
     'processed'

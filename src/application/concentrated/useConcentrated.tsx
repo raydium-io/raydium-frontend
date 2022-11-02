@@ -5,12 +5,12 @@ import BN from 'bn.js'
 import create from 'zustand'
 
 import jFetch from '@/functions/dom/jFetch'
+import toBN from '@/functions/numberish/toBN'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
 
-import toBN from '@/functions/numberish/toBN'
 import {
   APIConcentratedInfo, HydratedAmmV3ConfigInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo, UICLMMRewardInfo,
   UserPositionAccount
@@ -52,9 +52,11 @@ export type ConcentratedStore = {
 
   coin1?: SplToken
   coin1Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
+  coin1AmountMin?: Numberish
 
   coin2?: SplToken
   coin2Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
+  coin2AmountMin?: Numberish
 
   priceUpperTick?: number // from SDK, just store in UI
   priceLowerTick?: number // from SDK, just store in UI
@@ -108,9 +110,6 @@ export type ConcentratedStore = {
   planAApr?: { feeApr: number; rewardsApr: number[]; apr: number }
   planBApr?: { feeApr: number; rewardsApr: number[]; apr: number }
   planCApr?: { feeApr: number; rewardsApr: number[]; apr: number }
-
-  amountMinA: BN
-  amountMinB: BN
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
@@ -162,10 +161,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
 
   planAApr: { feeApr: 0, rewardsApr: [], apr: 0 },
   planBApr: { feeApr: 0, rewardsApr: [], apr: 0 },
-  planCApr: { feeApr: 0, rewardsApr: [], apr: 0 },
-
-  amountMinA: toBN(0),
-  amountMinB: toBN(0)
+  planCApr: { feeApr: 0, rewardsApr: [], apr: 0 }
 }))
 
 export default useConcentrated

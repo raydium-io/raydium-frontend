@@ -7,7 +7,7 @@ import useAsyncEffect from '@/hooks/useAsyncEffect'
 import useLiquidity from './useLiquidity'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
-import { getAddLiquidityDefaultPool } from '@/models/ammAndLiquidity'
+import { getAddLiquidityDefaultPool } from '@/application/ammV3PoolInfoAndLiquidity/ammAndLiquidity'
 
 /** coin1 coin2 ammId */
 export default function useLiquidityAmmSelector() {
