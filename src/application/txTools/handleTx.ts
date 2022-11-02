@@ -164,8 +164,8 @@ export type MultiTxCallbacks = {
 export type TransactionQueue = ([transaction: Transaction, singleTxOptions?: SingleTxOption] | Transaction)[]
 
 export type TransactionCollector = {
-  add(transaction: Transaction, options?: SingleTxOptions): void
-  addQueue(transactionQueue: TransactionQueue, multiTxOptions?: MultiTxsOptions): void
+  add(transaction: Transaction, options?: SingleTxOption): void
+  addQueue(transactionQueue: TransactionQueue, multiTxOptions?: MultiTxsOption): void
   addSigners(signers: Signer[]) : void
 }
 
@@ -219,7 +219,7 @@ export function createTxHandler<Arg extends Record<string, any>>(
 export default async function txHandler(txAction: TxFn, options?: HandleFnOptions): Promise<TxResponseInfos> {
   const {
     transactionCollector,
-    collected: { innerTransactions, singleTxOptions, multiTxOptions, innerSigners }
+    collected: { innerTransactions, singleTxOptions, multiTxOption, innerSigners }
   } = collectTxOptions(options)
   useAppSettings.setState({ isApprovePanelShown: true })
   try {
