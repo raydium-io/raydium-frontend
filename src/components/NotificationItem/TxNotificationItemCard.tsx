@@ -4,7 +4,7 @@ import { useHover } from '@/hooks/useHover'
 import { useSignalState } from '@/hooks/useSignalState'
 import useToggle from '@/hooks/useToggle'
 import produce from 'immer'
-import { RefObject, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { RefObject, useEffect, useImperativeHandle, useRef } from 'react'
 import Card from '../Card'
 import Col from '../Col'
 import Icon from '../Icon'
@@ -14,7 +14,7 @@ import Row from '../Row'
 import { TxNotificationController, TxNotificationItemInfo } from './type'
 import { spawnTimeoutControllers, TimeoutController } from './utils'
 
-const existMs = process.env.NODE_ENV === 'development' ? 6 * 1000 : 10 * 1000 // (ms)
+const existMs = process.env.NODE_ENV === 'development' ? 2 * 60 * 1000 : 15 * 1000 // (ms)
 
 const colors = {
   success: {
@@ -79,18 +79,11 @@ export function TxNotificationItemCard({
     return controller.abort
   }, [close, existMs])
 
-  useEffect(() => {
-    if (wholeItemState === 'success') {
-      timeoutController.current?.start()
-      resumeTimeline()
-    }
-  }, [wholeItemState])
-
   const [isTimePassing, { off: pauseTimeline, on: resumeTimeline }] = useToggle(false)
 
   const itemRef = useRef<HTMLDivElement>(null)
 
-  useHover(itemRef, {
+  const isHovering = useHover(itemRef, {
     onHover({ is: now }) {
       if (!isAllProcessed()) return
       if (now === 'start') {
@@ -102,6 +95,13 @@ export function TxNotificationItemCard({
       }
     }
   })
+
+  useEffect(() => {
+    if (wholeItemState === 'success' && !isHovering) {
+      timeoutController.current?.start()
+      resumeTimeline()
+    }
+  }, [wholeItemState])
 
   useImperativeHandle(
     componentRef,
