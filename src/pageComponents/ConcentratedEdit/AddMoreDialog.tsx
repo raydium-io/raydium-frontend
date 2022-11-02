@@ -228,7 +228,7 @@ export default function AddMoreDialog({
                     perWeek: val,
                     amount: isRewardEnded
                       ? isMeaningfulNumber(val) && isMeaningfulNumber(preValues.duration)
-                        ? mul(val, preValues.duration).toFixed(decimals)
+                        ? mul(div(val, 7), preValues.duration).toFixed(decimals)
                         : '0'
                       : preValues.amount
                   }))
