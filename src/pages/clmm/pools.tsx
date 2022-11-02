@@ -1,20 +1,17 @@
 import { useMemo } from 'react'
+
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
-import {
-  HydratedConcentratedInfo,
-  HydratedConcentratedRewardInfo,
-  UserPositionAccount
-} from '@/application/concentrated/type'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
+import {
+  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
+} from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -27,6 +24,7 @@ import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
+import { Badge } from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar, { CoinAvatarProps } from '@/components/CoinAvatar'
@@ -59,6 +57,7 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
+import { isMintEqual, isPubEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -73,8 +72,6 @@ import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
-import { isMintEqual, isPubEqual } from '@/functions/judgers/areEqual'
-import { Badge } from '@/components/Badge'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -1098,7 +1095,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             >
               {/* reward */}
               <div>
-                <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80] mb-2">Daily Rate</div>
+                <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80] mb-2">Weekly Rate</div>
                 <Row className="flex-wrap gap-8 mobile:gap-2">
                   {info.rewardInfos.map((r) => {
                     const isRewardEnded = currentIsAfter(r.endTime)
@@ -1108,7 +1105,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                           <RewardAvatar rewardInfo={r} size={isMobile ? 'xs' : 'sm'} />
                           <Row className="items-center gap-1">
                             <div className="font-medium mobile:text-sm text-white">
-                              {isRewardEnded ? '--' : formatNumber(r.rewardPerDay, { fractionLength: 0 })}
+                              {isRewardEnded ? '--' : formatNumber(r.rewardPerWeek, { fractionLength: 0 })}
                             </div>
                             <div className="font-medium mobile:text-sm text-[#abc4ff80]">
                               {r.rewardToken?.symbol ?? '--'}
