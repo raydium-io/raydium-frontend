@@ -1,7 +1,7 @@
+import { useCallback } from 'react'
 import { useRouter } from 'next/router'
 
 import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from '@raydium-io/raydium-sdk'
-import { useCallback } from 'react'
 
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
@@ -60,9 +60,6 @@ export default function useConcentratedInfoLoader() {
     if (sdkParsed) {
       useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })
     }
-
-    // eslint-disable-next-line no-console
-    console.log('sdkParsed: ', sdkParsed)
   }, [apiAmmPools, connection, toPubString(owner), pathname, chainTimeOffset])
 
   /** SDK info list ➡ hydrated info list */
