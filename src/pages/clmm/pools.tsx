@@ -1098,7 +1098,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             >
               {/* reward */}
               <div>
-                <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80] mb-2">Daily Rate</div>
+                <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80] mb-2">Weekly Rate</div>
                 <Row className="flex-wrap gap-8 mobile:gap-2">
                   {info.rewardInfos.map((r) => {
                     const isRewardEnded = currentIsAfter(r.endTime)
@@ -1108,7 +1108,9 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                           <RewardAvatar rewardInfo={r} size={isMobile ? 'xs' : 'sm'} />
                           <Row className="items-center gap-1">
                             <div className="font-medium mobile:text-sm text-white">
-                              {isRewardEnded ? '--' : formatNumber(r.rewardPerDay, { fractionLength: 0 })}
+                              {isRewardEnded
+                                ? '--'
+                                : formatNumber(r.rewardPerWeek, { fractionLength: r.rewardToken?.decimals || 6 })}
                             </div>
                             <div className="font-medium mobile:text-sm text-[#abc4ff80]">
                               {r.rewardToken?.symbol ?? '--'}
