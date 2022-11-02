@@ -220,7 +220,7 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
   const {
     transactionCollector,
     collected: { innerTransactions, singleTxOptions, multiTxOptions, innerSigners }
-  } = collectTxOptions()
+  } = collectTxOptions(options)
   useAppSettings.setState({ isApprovePanelShown: true })
   try {
     const { signAllTransactions, owner, adapter } = useWallet.getState()
