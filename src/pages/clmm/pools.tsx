@@ -1236,7 +1236,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.12), rgb(171 196 255 / 4%) 100%)'
       }}
     >
-      {info.userPositionAccount ? (
+      {info.userPositionAccount && (
         <>
           {info.userPositionAccount
             .sort((a: UserPositionAccount, b: UserPositionAccount) =>
@@ -1304,9 +1304,10 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 />
               )
             })}
-
-          <AutoBox is={isMobile ? 'Col' : 'Row'}>{linkedFarm}</AutoBox>
         </>
+      )}
+      {info.rewardInfos.length > 0 ? (
+        <AutoBox is={isMobile ? 'Col' : 'Row'}>{linkedFarm}</AutoBox>
       ) : (
         <AutoBox>{openNewPosition}</AutoBox>
       )}
