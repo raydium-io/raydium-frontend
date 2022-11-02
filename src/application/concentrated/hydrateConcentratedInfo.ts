@@ -1,4 +1,4 @@
-import { AmmV3PoolPersonalPosition, Price, Token } from '@raydium-io/raydium-sdk'
+import { AmmV3PoolPersonalPosition, Price } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import toPubString from '@/functions/format/toMintString'
@@ -15,6 +15,7 @@ import useToken from '../token/useToken'
 import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
+import { BN } from 'bn.js'
 import {
   GetAprParameters,
   GetAprPoolTickParameters,
@@ -177,6 +178,7 @@ function hydrateFeeRate(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partial
   }
 }
 
+const u64 = new BN(1).shln(64)
 /**
  * part of {@link hydrateConcentratedInfo}
  */
@@ -203,7 +205,8 @@ function hydrateUserPositionAccounnt(
     const positionRewardInfos = info.rewardInfos
       .map((info, idx) => {
         const token = getToken(poolRewardInfos[idx]?.tokenMint)
-        const penddingReward = token ? toTokenAmount(token, info.pendingReward) : undefined
+        const pendingRewardAmount = gt(info.pendingReward, u64) ? 0 : info.pendingReward // if tooo large, it should be zero, it's just rpc's calculation error
+        const penddingReward = token ? toTokenAmount(token, pendingRewardAmount) : undefined
         if (!penddingReward) return
         const apr24h =
           idx === 0

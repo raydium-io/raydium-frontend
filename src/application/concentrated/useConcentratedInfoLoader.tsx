@@ -31,6 +31,7 @@ export default function useConcentratedInfoLoader() {
   const connection = useConnection((s) => s.connection)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const tokenAccounts = useWallet((s) => s.tokenAccountRawInfos)
+  const tokenAccountsOwner = useWallet((s) => s.tokenAccountsOwner)
   const owner = useWallet((s) => s.owner)
   const tokens = useToken((s) => s.tokens)
   const { pathname } = useRouter()
@@ -63,7 +64,8 @@ export default function useConcentratedInfoLoader() {
 
     // eslint-disable-next-line no-console
     console.log('sdkParsed: ', sdkParsed)
-  }, [apiAmmPools, connection, toPubString(owner), pathname, chainTimeOffset])
+    // }, [apiAmmPools, connection, toPubString(owner), pathname, chainTimeOffset])
+  }, [apiAmmPools, connection, toPubString(owner), toPubString(tokenAccountsOwner), pathname, chainTimeOffset])
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {

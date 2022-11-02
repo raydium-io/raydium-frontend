@@ -7,7 +7,7 @@ import { HydratedConcentratedInfo } from './type'
 import useConcentrated from './useConcentrated'
 
 /** coin1 coin2 ammId */
-export default function useConcentratedAmmSelector(donotCleanPool?: boolean) {
+export default function useConcentratedAmmSelector(donotClearAmm?: boolean) {
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
@@ -40,17 +40,12 @@ export default function useConcentratedAmmSelector(donotCleanPool?: boolean) {
     const currentPoolIsSelectable = checkCurrentPoolSelectable(allSelectablePools)
 
     useConcentrated.setState(
-      allSelectablePools.length === 0
-        ? {
-            selectableAmmPools: undefined,
-            currentAmmPool: undefined
-          }
-        : donotCleanPool || currentPoolIsSelectable
+      donotClearAmm || currentPoolIsSelectable
         ? { selectableAmmPools: allSelectablePools }
         : {
             selectableAmmPools: allSelectablePools,
             currentAmmPool: allSelectablePools[0]
           }
     )
-  }, [coin1, coin2, hydratedAmmPools, donotCleanPool])
+  }, [coin1, coin2, hydratedAmmPools, donotClearAmm])
 }
