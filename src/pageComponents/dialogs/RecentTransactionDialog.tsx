@@ -108,11 +108,9 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
                   className={(iconSettings[headTx.status] as any).textColor}
                 />
                 <div>{headTx.title ?? ''}</div>
-                <Icon
-                  className="ml-1 opacity-50 group-hover:opacity-100"
-                  size="sm"
-                  heroIconName={open ? 'chevron-up' : 'chevron-down'}
-                />
+                <div className="ml-0.5 grid place-items-center h-4 w-4 rounded-full bg-[#abc4ff40] text-[#abc4ff]">
+                  <Icon size="xs" heroIconName={open ? 'chevron-up' : 'chevron-down'} />
+                </div>
               </Row>
               {/* table head column: Details */}
               <div className="font-medium text-[#ABC4FF] text-xs">{headTx.description}</div>
@@ -121,30 +119,32 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
             </Row>
           )}
         </Collapse.Face>
-        <Collapse.Body className="pb-2">
-          {txInfoGroup.map((txInfo) => (
-            <LinkExplorer hrefDetail={`tx/${txInfo.txid}`} noTextStyle key={txInfo.txid}>
-              <Row
-                type="grid-x"
-                className="group gap-[3.5vw] grid-cols-[1fr,1.8fr,1.4fr] rounded-lg py-2 px-4  items-center"
-              >
-                {/* table head column: Transaction type */}
-                <Row></Row>
-                {/* table head column: Details */}
-                <Row className="group-hover:underline underline-offset-1 gap-2 items-center font-medium text-[#ABC4FF80] text-xs">
-                  <Icon
-                    size="sm"
-                    heroIconName={(iconSettings[txInfo.status] as any)?.heroIconName}
-                    iconSrc={(iconSettings[txInfo.status] as any).iconSrc}
-                    className={(iconSettings[txInfo.status] as any).textColor}
-                  />
-                  <div>{txInfo.subtransactionDescription}</div>
+        <Collapse.Body>
+          <div className="pb-2">
+            {txInfoGroup.map((txInfo) => (
+              <LinkExplorer hrefDetail={`tx/${txInfo.txid}`} noTextStyle key={txInfo.txid}>
+                <Row
+                  type="grid-x"
+                  className="group gap-[3.5vw] grid-cols-[1fr,1.8fr,1.4fr] rounded-lg py-2 px-4  items-center"
+                >
+                  {/* table head column: Transaction type */}
+                  <Row></Row>
+                  {/* table head column: Details */}
+                  <Row className="group-hover:underline underline-offset-1 gap-2 items-center font-medium text-[#ABC4FF80] text-xs">
+                    <Icon
+                      size="sm"
+                      heroIconName={(iconSettings[txInfo.status] as any)?.heroIconName}
+                      iconSrc={(iconSettings[txInfo.status] as any).iconSrc}
+                      className={(iconSettings[txInfo.status] as any).textColor}
+                    />
+                    <div>{txInfo.subtransactionDescription}</div>
+                  </Row>
+                  {/* table head column: Date and time */}
+                  <div className="font-medium text-[#ABC4FF80] text-xs">{toUTC(txInfo.time)}</div>
                 </Row>
-                {/* table head column: Date and time */}
-                <div className="font-medium text-[#ABC4FF80] text-xs">{toUTC(txInfo.time)}</div>
-              </Row>
-            </LinkExplorer>
-          ))}
+              </LinkExplorer>
+            ))}
+          </div>
         </Collapse.Body>
       </Collapse>
     </div>
