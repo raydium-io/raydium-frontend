@@ -56,7 +56,8 @@ export default function NewRewardTable({ newRewards, tvl, onClickRow, onDelete }
       rowClassName={() => (onClickRow ? 'clickable hover:backdrop-brightness-95' : '')}
       onClickRow={({ index }) => onClickRow?.(index)}
       renderRowItem={({ item: reward, label }) => {
-        const { openTime, endTime, perDay, token } = reward
+        const { openTime, endTime, perWeek, token } = reward
+        const perDay = div(perWeek, 7)
         const rewardDuration = getDuration(endTime || 0, openTime || 0)
         const hasPerDay = isMeaningfulNumber(perDay)
         function getDurationText(val) {
