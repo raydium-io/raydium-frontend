@@ -1,6 +1,6 @@
 import fs from 'fs'
 
-import { getMultipleAccountsInfo } from 'test-r-sdk'
+import { getMultipleAccountsInfo } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
 import { Ido, IDO_POOLS, IdoPoolJsonInfo, Snapshot } from '../src/utils/sdk'
@@ -11,7 +11,7 @@ function writeJson(fileName: string, context: any) {
   fs.writeFileSync(fileName, `${JSON.stringify(context, null, 2)}\n`)
 }
 
-;(async () => {
+; (async () => {
   const connection = new Connection('https://free.rpcpool.com')
 
   // fetch ido pools

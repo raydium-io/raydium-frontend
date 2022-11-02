@@ -891,14 +891,15 @@
     bs58 "^4.0.1"
     eventemitter3 "^4.0.7"
 
-"@raydium-io/raydium-sdk@1.1.0-beta.33":
-  version "1.1.0-beta.33"
-  resolved "https://registry.yarnpkg.com/@raydium-io/raydium-sdk/-/raydium-sdk-1.1.0-beta.33.tgz#d1270a840f75e4c18dd50221a961882195a06e5a"
-  integrity sha512-BXAg+Qy6xrVETaKdr4rcKzhToT7EWFQdpbtaYvTxRxls84OGBoYE5xjkH7ebi3d1xIbqBduPInsHsM3XiqykMQ==
+"@raydium-io/raydium-sdk@npm:test-r-sdk@^1.2.110":
+  version "1.2.110"
+  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.110.tgz#c23ca7dbf9cdaf0aed4cf014754bad2d7d175968"
+  integrity sha512-3MO4Cf8520DmGp6/jOkYSBJI72g2zBRpowvZYDFtIc6wU7/VhQHtj4CkQjKDL33RN3nA2ByUa3O+7f/GpPlXBg==
   dependencies:
     "@colors/colors" "^1.5.0"
     "@solana/buffer-layout" "^4.0.0"
     "@solana/spl-token" "^0.1.8"
+    axios "^0.27.2"
     big.js "^6.1.1"
     decimal.js "^10.4.0"
     decimal.js-light "^2.5.1"
@@ -8425,22 +8426,6 @@ temp@^0.8.4:
   integrity sha512-s0ZZzd0BzYv5tLSptZooSjK8oj6C+c19p7Vqta9+6NPOf7r+fxq0cJe6/oN4LTC79sy5NY8ucOJNgwsKCSbfqg==
   dependencies:
     rimraf "~2.6.2"
-
-test-r-sdk@^1.2.110:
-  version "1.2.110"
-  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.110.tgz#c23ca7dbf9cdaf0aed4cf014754bad2d7d175968"
-  integrity sha512-3MO4Cf8520DmGp6/jOkYSBJI72g2zBRpowvZYDFtIc6wU7/VhQHtj4CkQjKDL33RN3nA2ByUa3O+7f/GpPlXBg==
-  dependencies:
-    "@colors/colors" "^1.5.0"
-    "@solana/buffer-layout" "^4.0.0"
-    "@solana/spl-token" "^0.1.8"
-    axios "^0.27.2"
-    big.js "^6.1.1"
-    decimal.js "^10.4.0"
-    decimal.js-light "^2.5.1"
-    fecha "^4.2.3"
-    lodash "^4.17.21"
-    toformat "^2.0.0"
 
 text-encoding-utf-8@^1.0.2:
   version "1.0.2"
