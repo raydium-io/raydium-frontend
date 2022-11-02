@@ -102,6 +102,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const blurTimerRef = useRef<number | undefined>()
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
+  const currentPriceNum = currentPrice?.toFixed(decimals)
 
   boundaryRef.current = xAxisDomain.length
     ? { min: Number(xAxisDomain[0]) || 0, max: Number(xAxisDomain[xAxisDomain.length - 1]) || 100 }
@@ -210,7 +211,15 @@ export default forwardRef(function Chart(props: Props, ref) {
           }))
         : displayList
     )
-  }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolFocusKey])
+    if (currentPriceNum !== undefined) {
+      setXAxisDomain([
+        parseFloat(currentPriceNum) * 0.3,
+        defaultMaxNum && defaultMaxNum > parseFloat(currentPriceNum) * 1.7
+          ? defaultMaxNum * 1.2
+          : parseFloat(currentPriceNum) * 1.7
+      ])
+    }
+  }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolFocusKey, currentPriceNum])
 
   useEffect(() => {
     if (
