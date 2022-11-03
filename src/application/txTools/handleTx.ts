@@ -425,6 +425,10 @@ function recordTxNotification({
       option.onTxError = mergeFunction(
         (({ txid, transaction, error }) => {
           txLoggerController.changeItemInfo?.({ txid, state: 'error', error }, { transaction })
+          const txIndex = transactions.indexOf(transaction)
+          transactions.slice(txIndex + 1).forEach((transaction) => {
+            txLoggerController.changeItemInfo?.({ state: 'aborted' }, { transaction })
+          })
         }) as TxErrorCallback,
         option.onTxError
       )
@@ -504,14 +508,12 @@ function composeWithDifferentSendMode({
               singleOption: produce(singleOption, (draft) => {
                 if (method === 'finally') {
                   draft.onTxFinally = mergeFunction(fn, draft.onTxFinally)
-                } else if (method === 'error') {
-                  draft.onTxError = mergeFunction(fn, draft.onTxError)
                 } else if (method === 'success') {
                   draft.onTxSuccess = mergeFunction(fn, draft.onTxSuccess)
                 }
               })
             }),
-          method: singleOption.continueWhenPreviousTx ?? (sendMode === 'queue' ? 'success' : 'finally')
+          method: singleOption.continueWhenPreviousTx ?? (sendMode === 'queue(all-settle)' ? 'finally' : 'success')
         }
       },
       { fn: () => {}, method: 'success' }
