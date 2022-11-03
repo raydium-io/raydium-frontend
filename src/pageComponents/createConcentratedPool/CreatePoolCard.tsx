@@ -46,6 +46,7 @@ import InputLocked from './InputLocked'
 import PriceRangeInput from './PriceRangeInput'
 import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
+import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -77,6 +78,7 @@ export function CreatePoolCard() {
     [Range.Upper]: undefined
   })
   const blurTimerRef = useRef<number | undefined>()
+  const currentPoolRef = useRef<HydratedConcentratedInfo | undefined>()
 
   const [prices, setPrices] = useState<(string | undefined)[]>([])
   const [position, setPosition] = useState<{
@@ -100,6 +102,11 @@ export function CreatePoolCard() {
     () => Math.pow(-1, isCoin1Base ? (isFocus1 ? 0 : 1) : isFocus1 ? 1 : 0),
     [isCoin1Base, isFocus1]
   )
+
+  useEffect(() => {
+    if (!currentAmmPool) return
+    currentPoolRef.current = currentAmmPool
+  }, [currentAmmPool])
 
   useEffect(
     () => () => {
@@ -287,15 +294,15 @@ export function CreatePoolCard() {
       cancelButtonText: 'Not Now',
       onConfirm() {
         useConcentrated.setState({
-          coin1: currentAmmPool?.base,
-          coin2: currentAmmPool?.quote,
+          coin1: currentPoolRef.current?.base,
+          coin2: currentPoolRef.current?.quote,
           chartPoints: [],
           lazyLoadChart: true,
-          currentAmmPool: currentAmmPool
+          currentAmmPool: currentPoolRef.current
         })
         routeTo('/clmm/edit-farm', {
           queryProps: {
-            farmId: currentAmmPool?.idString
+            farmId: currentPoolRef.current?.idString
           }
         })
       },
@@ -535,6 +542,7 @@ export function CreatePoolCard() {
           txCreateNewConcentratedPool().then(({ allSuccess }) => {
             closePreviewDialog()
             if (allSuccess) {
+              useConcentrated.getState().refreshConcentrated()
               popCongratulations()
             }
           })

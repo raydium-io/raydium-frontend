@@ -22,9 +22,10 @@ export default function EditFarmPage() {
   useEffect(() => {
     if (!farmId) return
     const poolFarm = hydratedAmmPools.find((pool) => pool.idString === farmId)
-    useConcentrated.setState({
-      currentAmmPool: poolFarm
-    })
+    if (poolFarm)
+      useConcentrated.setState({
+        currentAmmPool: poolFarm
+      })
   }, [farmId, hydratedAmmPools])
 
   useEffect(() => {

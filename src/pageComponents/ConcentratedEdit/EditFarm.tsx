@@ -38,7 +38,7 @@ export default function EditFarm() {
   const isEditFarm = currentAmmPool && currentAmmPool?.rewardInfos.length > 0
   const hasRewards =
     (currentAmmPool?.rewardInfos || []).length > 0 ||
-    editedReward.newRewards.filter((reward) => !!reward.token).length > 0
+    editedReward.newRewards.filter((reward) => !!reward?.token).length > 0
 
   const whiteListMints = useMemo(
     () =>
@@ -104,7 +104,7 @@ export default function EditFarm() {
       setEditedReward((preValues) => {
         const newRewards = [...preValues.newRewards]
         newRewards[rewardIdx] = data
-        if (newRewards.filter((r) => !!r.token).length > 1 && !newRewards.find((r) => r.isWhiteListReward)) {
+        if (newRewards.filter((r) => !!r?.token).length > 1 && !newRewards.find((r) => r.isWhiteListReward)) {
           const target = newRewards.findIndex((reward) => whiteListMints.has(reward.token?.mint.toBase58()))
           if (target > -1) newRewards[target].isWhiteListReward = true
         }
@@ -289,7 +289,7 @@ export default function EditFarm() {
             <div className="text-[#abc4ff] font-base mobile:text-sm">How to add more rewards?</div>
             <div className="flex my-3">
               <span>1.</span>
-              You can add additional rewards to the farm 24 hrs prior to rewards ending, but this can only be done if
+              You can add additional rewards to the farm 72 hrs prior to rewards ending, but this can only be done if
               rate of rewards for that specific reward token doesn’t change.
             </div>
             <div className="flex">
