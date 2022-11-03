@@ -42,6 +42,7 @@ import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
+import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { getDate, toUTC } from '@/functions/date/dateFormat'
@@ -54,6 +55,7 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -275,7 +277,26 @@ function HarvestAll() {
   )
 }
 
-function PoolLabelBlock({ className, sortedData }: { className?: string; sortedData: HydratedConcentratedInfo[] }) {
+function ShowCreated() {
+  const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
+
+  return (
+    <Row className="justify-self-end  mobile:justify-self-auto items-center">
+      <span className="text-[rgba(196,214,255,0.5)] whitespace-nowrap font-medium text-sm mobile:text-xs">
+        Show Created
+      </span>
+      <Switcher
+        className="ml-2 "
+        defaultChecked={ownedPoolOnly}
+        onToggle={(isOnly) => useConcentrated.setState({ ownedPoolOnly: isOnly })}
+      />
+    </Row>
+  )
+}
+
+function PoolLabelBlock({ className }: { className?: string }) {
+  const owner = useWallet((s) => s.owner)
+
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
       <Col>
@@ -292,6 +313,7 @@ function PoolLabelBlock({ className, sortedData }: { className?: string; sortedD
       </Col>
 
       <Row className="gap-4 items-center">
+        {Boolean(owner) && <ShowCreated />}
         <HarvestAll />
         <PoolTimeBasisSelectorBox />
         <PoolSearchBlock className="h-[36px]" />
@@ -425,6 +447,8 @@ function PoolCard() {
   const timeBasis = useConcentrated((s) => s.timeBasis)
   const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
   const currentTab = useConcentrated((s) => s.currentTab)
+  const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
+  const owner = useWallet((s) => s.owner)
 
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
@@ -440,9 +464,13 @@ function PoolCard() {
     [searchText, hydratedAmmPools, currentTab]
   )
 
+  const applyFiltersDataSource = useMemo(() => {
+    return dataSource.filter((i) => (ownedPoolOnly && owner ? isMintEqual(i.creator, owner) : true))
+  }, [dataSource, ownedPoolOnly, owner])
+
   const searched = useMemo(
     () =>
-      searchItems(dataSource, {
+      searchItems(applyFiltersDataSource, {
         text: searchText,
         matchConfigs: (i) => [
           { text: i.idString, entirely: false },
@@ -454,7 +482,7 @@ function PoolCard() {
           i.quote?.name
         ]
       }),
-    [dataSource, searchText]
+    [applyFiltersDataSource, searchText]
   )
 
   const {
@@ -682,7 +710,7 @@ function PoolCard() {
   ) : (
     <div>
       <Row className={'w-full justify-between pb-5 items-center'}>
-        <PoolLabelBlock className="flex-grow" sortedData={sortedData} />
+        <PoolLabelBlock className="flex-grow" />
       </Row>
     </div>
   )

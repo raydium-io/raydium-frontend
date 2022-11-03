@@ -1,7 +1,8 @@
 import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 
-import { twMerge } from 'tailwind-merge'
 import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
@@ -218,7 +219,7 @@ function FarmStakedOnlyBlock({ className }: { className?: string }) {
   )
 }
 
-function FarmSlefCreatedOnlyBlock({ className }: { className?: string }) {
+function FarmSelfCreatedOnlyBlock({ className }: { className?: string }) {
   const onlySelfCreatedFarms = useFarms((s) => s.onlySelfCreatedFarms)
   return (
     <Row className="justify-self-end  mobile:justify-self-auto items-center">
@@ -398,7 +399,7 @@ function FarmCard() {
         .filter((i) =>
           onlySelfFarms && isHydratedFarmInfo(i) ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true
         ) // Switch
-        .filter((i) => (i.version === 6 && onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) : true)) // Switch
+        .filter((i) => (onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) && i.version === 6 : true)) // Switch
         .filter((i) =>
           i.version === 6 && isHydratedFarmInfo(i)
             ? tokenType === 'Option tokens'
@@ -518,8 +519,10 @@ function FarmCard() {
         <div className="font-medium text-[rgba(196,214,255,.5)] text-base ">{farmCardTitleInfo.description}</div>
       </div>
       <Row className="grow flex-wrap justify-end items-stretch gap-6">
-        {haveSelfCreatedFarm && <FarmSlefCreatedOnlyBlock />}
-        <FarmStakedOnlyBlock />
+        {Boolean(owner) && (currentTab === 'Ecosystem' || currentTab === 'Staked') ? (
+          <FarmSelfCreatedOnlyBlock />
+        ) : null}
+        {/* <FarmStakedOnlyBlock /> */}
         {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
         <FarmTimeBasisSelector />
         <FarmSearchBlock />

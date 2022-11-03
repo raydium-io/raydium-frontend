@@ -63,6 +63,7 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   userPositionAccount?: UserPositionAccount[]
   name: string
   idString: string
+  creator: PublicKey
 
   ammConfig: AmmV3PoolInfo['ammConfig']
   currentPrice: Fraction

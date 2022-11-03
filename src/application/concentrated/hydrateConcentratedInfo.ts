@@ -1,6 +1,8 @@
 import { AmmV3PoolPersonalPosition, Price } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
+import { BN } from 'bn.js'
+
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -14,13 +16,8 @@ import useToken from '../token/useToken'
 import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
-import { BN } from 'bn.js'
 import {
-  GetAprParameters,
-  GetAprPoolTickParameters,
-  GetAprPositionParameters,
-  getPoolAprCore,
-  getPoolTickAprCore,
+  GetAprParameters, GetAprPoolTickParameters, GetAprPositionParameters, getPoolAprCore, getPoolTickAprCore,
   getPositonAprCore
 } from './calcApr'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
@@ -66,7 +63,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
           : undefined
       }
     }),
-
+    creator: sdkConcentratedInfo.state.creator,
     idString: toPubString(sdkConcentratedInfo.state.id),
     tvl: toUsdCurrency(sdkConcentratedInfo.state.tvl),
 
