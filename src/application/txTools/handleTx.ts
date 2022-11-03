@@ -505,7 +505,7 @@ function composeWithDifferentSendMode({
                 if (method === 'finally') {
                   draft.onTxFinally = mergeFunction(fn, draft.onTxFinally)
                 } else if (method === 'error') {
-                  draft.onTxError = mergeFunction(fn, draft.onTxSuccess)
+                  draft.onTxError = mergeFunction(fn, draft.onTxError)
                 } else if (method === 'success') {
                   draft.onTxSuccess = mergeFunction(fn, draft.onTxSuccess)
                 }
