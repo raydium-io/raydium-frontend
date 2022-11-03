@@ -8,6 +8,7 @@ import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import { mergeObject } from '@/functions/merge'
 import { gt, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
+import toBN from '@/functions/numberish/toBN'
 
 import { SplToken } from '../token/type'
 import useToken from '../token/useToken'
@@ -15,7 +16,11 @@ import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
 import {
-  GetAprParameters, GetAprPoolTickParameters, GetAprPositionParameters, getPoolAprCore, getPoolTickAprCore,
+  GetAprParameters,
+  GetAprPoolTickParameters,
+  GetAprPositionParameters,
+  getPoolAprCore,
+  getPoolTickAprCore,
   getPositonAprCore
 } from './calcApr'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
@@ -45,20 +50,21 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
   return {
     ammConfig: sdkConcentratedInfo.state.ammConfig,
     currentPrice,
-
+    creator: sdkConcentratedInfo.state.creator,
     rewardInfos: sdkConcentratedInfo.state.rewardInfos.map((r) => {
       const rewardToken = getToken(r.tokenMint)
       return {
         ...r,
+        perSecond: toBN(r.perSecond.toString()),
         rewardToken,
         openTime: r.openTime.toNumber() * 1000,
         endTime: r.endTime.toNumber() * 1000,
+        creator: sdkConcentratedInfo.state.creator,
         lastUpdateTime: r.lastUpdateTime.toNumber() * 1000,
         rewardClaimed: rewardToken ? toTokenAmount(rewardToken, r.rewardClaimed) : undefined,
         rewardTotalEmissioned: rewardToken ? toTokenAmount(rewardToken, r.rewardTotalEmissioned) : undefined,
-        rewardPerWeek: rewardToken
-          ? toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400 * 7))
-          : undefined
+        rewardPerWeek: rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400 * 7)),
+        rewardPerDay: rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400))
       }
     }),
 
@@ -151,7 +157,8 @@ function hydratePoolInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     id: sdkConcentratedInfo.state.id,
     base,
     quote,
-    name
+    name,
+    liquidity: sdkConcentratedInfo.state.liquidity
   }
 }
 
@@ -182,6 +189,8 @@ function hydrateUserPositionAccounnt(
   return ammPoolInfo.positionAccount?.map((info) => {
     const amountA = tokenA ? toTokenAmount(tokenA, info.amountA) : undefined
     const amountB = tokenB ? toTokenAmount(tokenB, info.amountB) : undefined
+    const originAmountA = tokenA ? toTokenAmount(tokenA, info.amountA) : undefined
+    const originAmountB = tokenB ? toTokenAmount(tokenB, info.amountB) : undefined
     const tokenFeeAmountA = tokenA ? toTokenAmount(tokenA, info.tokenFeeAmountA) : undefined
     const tokenFeeAmountB = tokenB ? toTokenAmount(tokenB, info.tokenFeeAmountB) : undefined
     const innerVolumeA = mul(currentPrice, amountA) ?? 0
@@ -193,7 +202,7 @@ function hydrateUserPositionAccounnt(
     const positionRewardInfos = info.rewardInfos
       .map((info, idx) => {
         const token = getToken(poolRewardInfos[idx]?.tokenMint)
-        const penddingReward = token ? toTokenAmount(token, info.peddingReward) : undefined
+        const penddingReward = token ? toTokenAmount(token, info.pendingReward) : undefined
         if (!penddingReward) return
         const apr24h =
           idx === 0
@@ -221,6 +230,8 @@ function hydrateUserPositionAccounnt(
       ...recursivelyDecimalToFraction(info),
       amountA,
       amountB,
+      originAmountA,
+      originAmountB,
       nftMint: info.nftMint, // need this or nftMint will be buggy, this is only quick fixed
       liquidity: info.liquidity,
       tokenA,

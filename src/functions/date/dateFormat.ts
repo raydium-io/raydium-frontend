@@ -8,12 +8,12 @@ import parseDuration from './parseDuration'
  */
 export function toUTC(
   timestamp?: TimeStamp,
-  options?: { hideUTCBadge?: boolean; showSeconds?: boolean; hideTimeDetail?: boolean }
+  options?: { hideUTCBadge?: boolean; showSeconds?: boolean; hideHourMinuteSecond?: boolean }
 ): string {
   const utcString = (timestamp ? new Date(Number(timestamp)) : new Date()).toISOString() // '2021-09-09T10:32:32.498Z'
   const matchInfo = utcString.match(/^([\d-]+)T(\d+):(\d+):(\d+)/)
   const [, date, hour, minutes, seconds] = matchInfo ?? []
-  return options?.hideTimeDetail
+  return options?.hideHourMinuteSecond
     ? `${date}`
     : options?.showSeconds
     ? `${date} ${hour}:${minutes}:${seconds}${options.hideUTCBadge ? '' : ' UTC'}`

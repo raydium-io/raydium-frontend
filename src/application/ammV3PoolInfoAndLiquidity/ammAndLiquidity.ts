@@ -31,6 +31,7 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isPubKeyish } from '@/functions/judgers/dateType'
 import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { Numberish } from '@/types/constants'
+import { areShallowEqual } from '@/functions/judgers/areEqual'
 
 const apiCache = {} as {
   ammV3?: ApiAmmV3PoolInfo[]

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 
@@ -6,7 +6,7 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
-import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
+import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
   PoolsConcentratedTabs,
@@ -44,7 +44,7 @@ import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import RowTabs from '@/components/RowTabs'
 import Select from '@/components/Select'
-import Tooltip, { TooltipPanel } from '@/components/Tooltip'
+import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { getDate, toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
@@ -70,7 +70,6 @@ import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
-import { FadeIn } from '@/components/FadeIn'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -177,6 +176,7 @@ function ToolsButton({ className }: { className?: string }) {
               <Grid className="grid-cols-1 items-center gap-2">
                 <PoolRefreshCircleBlock />
                 <PoolTimeBasisSelectorBox />
+                <HarvestAll />
                 <PoolCreateConcentratedPoolEntryBlock />
               </Grid>
             </Card>
@@ -234,7 +234,50 @@ function OpenNewPosition({ className }: { className?: string }) {
   )
 }
 
-function PoolLabelBlock({ className }: { className?: string }) {
+function HarvestAll() {
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const walletConnected = useWallet((s) => s.connected)
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
+
+  const canHarvestAll = useMemo(() => {
+    let result = false
+    for (const pool of hydratedAmmPools) {
+      if (pool.userPositionAccount && pool.userPositionAccount.length > 0) {
+        result = true
+        break
+      }
+    }
+
+    return result
+  }, [hydratedAmmPools])
+
+  return (
+    <Button
+      className="frosted-glass-teal"
+      isLoading={isApprovePanelShown}
+      validators={[
+        {
+          should: walletConnected
+        },
+        { should: canHarvestAll }
+      ]}
+      onClick={() =>
+        txHarvestAllConcentrated().then(({ allSuccess }) => {
+          if (allSuccess) {
+            refreshConcentrated()
+          }
+        })
+      }
+      size={isMobile ? 'xs' : 'sm'}
+    >
+      Harvest All
+    </Button>
+  )
+}
+
+function PoolLabelBlock({ className, sortedData }: { className?: string; sortedData: HydratedConcentratedInfo[] }) {
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
       <Col>
@@ -250,7 +293,8 @@ function PoolLabelBlock({ className }: { className?: string }) {
         </div>
       </Col>
 
-      <Row className="gap-4 items-stretch">
+      <Row className="gap-4 items-center">
+        <HarvestAll />
         <PoolTimeBasisSelectorBox />
         <PoolSearchBlock className="h-[36px]" />
       </Row>
@@ -378,7 +422,6 @@ function PoolCreateConcentratedPoolEntryBlock({ className }: { className?: strin
 }
 
 function PoolCard() {
-  const balances = useWallet((s) => s.balances)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const searchText = useConcentrated((s) => s.searchText)
   const timeBasis = useConcentrated((s) => s.timeBasis)
@@ -641,7 +684,7 @@ function PoolCard() {
   ) : (
     <div>
       <Row className={'w-full justify-between pb-5 items-center'}>
-        <PoolLabelBlock className="flex-grow" />
+        <PoolLabelBlock className="flex-grow" sortedData={sortedData} />
       </Row>
     </div>
   )
@@ -777,7 +820,8 @@ function PoolCardDatabaseBodyCollapseItemFace({
               )}
               {reward.openTime && reward.endTime && (
                 <div className="opacity-50">
-                  {toUTC(reward.openTime, { hideTimeDetail: true })} ~ {toUTC(reward.endTime, { hideTimeDetail: true })}
+                  {toUTC(reward.openTime, { hideHourMinuteSecond: true })} ~{' '}
+                  {toUTC(reward.endTime, { hideHourMinuteSecond: true })}
                 </div>
               )}
               {reward.tokenMint && (
@@ -886,19 +930,21 @@ function PoolCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name={`APR(${timeBasis})`}
         value={
-          <Tooltip panelClassName="p-0 rounded-xl">
-            <div>
-              {toPercentString(apr?.total)}
-              <Row className="items-center gap-2 mobile:gap-1 mt-1">
-                {apr && <AprLine className="w-28" aprValues={apr.itemList} />}
-              </Row>
-            </div>
-            <Tooltip.Panel>
-              <div className="p-5">
-                <AprChart type="poolInfo" poolInfo={info} />
+          <div style={{ display: 'inline-block' }}>
+            <Tooltip panelClassName="p-0 rounded-xl">
+              <div>
+                {toPercentString(apr?.total)}
+                <Row className="items-center gap-2 mobile:gap-1 mt-1">
+                  {apr && <AprLine className="w-28" aprValues={apr.itemList} />}
+                </Row>
               </div>
-            </Tooltip.Panel>
-          </Tooltip>
+              <Tooltip.Panel>
+                <div className="p-5">
+                  <AprChart type="poolInfo" poolInfo={info} />
+                </div>
+              </Tooltip.Panel>
+            </Tooltip>
+          </div>
         }
       />
       <Grid className="w-9 h-9 mr-8 place-items-center">
@@ -985,7 +1031,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             name="Fees(7d)"
             value={
               isHydratedConcentratedItemInfo(info)
-                ? toUsdVolume(info.feeApr7d, { autoSuffix: true, decimalPlace: 0 })
+                ? toUsdVolume(info.volumeFee7d, { autoSuffix: true, decimalPlace: 0 })
                 : undefined
             }
           />
@@ -1030,8 +1076,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
 
   const variousPrices = useMemo(() => ({ ...lpPrices, ...tokenPrices }), [lpPrices, tokenPrices])
 
-  const openNewPosition = useMemo(
-    () => (
+  const openNewPosition = useMemo(() => {
+    return (
       <Col className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
         <div className="mb-2 text-xs">Want to open a new position?</div>
         <Row className={`justify-center items-center gap-2`}>
@@ -1068,9 +1114,8 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
           </Tooltip>
         </Row>
       </Col>
-    ),
-    [info]
-  )
+    )
+  }, [info])
 
   return (
     <AutoBox
@@ -1080,67 +1125,80 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.12), rgb(171 196 255 / 4%) 100%)'
       }}
     >
-      {info.userPositionAccount
-        ?.sort((a: UserPositionAccount, b: UserPositionAccount) =>
-          Number(
-            toString(
-              sub(
-                a.getLiquidityVolume?.(tokenPrices).wholeLiquidity,
-                b.getLiquidityVolume?.(tokenPrices).wholeLiquidity
+      {info.userPositionAccount ? (
+        <>
+          {info.userPositionAccount
+            .sort((a: UserPositionAccount, b: UserPositionAccount) =>
+              Number(
+                toString(
+                  sub(
+                    a.getLiquidityVolume?.(tokenPrices).wholeLiquidity,
+                    b.getLiquidityVolume?.(tokenPrices).wholeLiquidity
+                  )
+                )
               )
             )
-          )
-        )
-        .map((p) => {
-          let myPosition = '--'
-          const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
-          const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
-          const lower = toString(p.priceLower, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
-          const upper = toString(p.priceUpper, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
+            .map((p) => {
+              let myPosition = '--'
+              const amountA = toString(p.amountA, { decimalLength: 'auto 5' })
+              const amountB = toString(p.amountB, { decimalLength: 'auto 5' })
+              const lower = toString(p.priceLower, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
+              const upper = toString(p.priceUpper, { decimalLength: `auto ${p.tokenB?.decimals ?? 5}` })
 
-          if (lower && upper) {
-            myPosition = lower + ' - ' + upper
-          }
+              if (lower && upper) {
+                myPosition = lower + ' - ' + upper
+              }
 
-          const coinAPrice = toTotalPrice(p.amountA, variousPrices[toPubString(p.tokenA?.mint)] ?? null)
-          const coinBPrice = toTotalPrice(p.amountB, variousPrices[toPubString(p.tokenB?.mint)] ?? null)
+              const coinAPrice = toTotalPrice(p.amountA, variousPrices[toPubString(p.tokenA?.mint)] ?? null)
+              const coinBPrice = toTotalPrice(p.amountB, variousPrices[toPubString(p.tokenB?.mint)] ?? null)
 
-          const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
+              const { wholeLiquidity } = p.getLiquidityVolume?.(tokenPrices) ?? {}
 
-          const coinARewardPrice = toTotalPrice(p.tokenFeeAmountA, variousPrices[toPubString(p.tokenA?.mint)] ?? null)
-          const coinBRewardPrice = toTotalPrice(p.tokenFeeAmountB, variousPrices[toPubString(p.tokenB?.mint)] ?? null)
-          const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
-          const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
-
-          const rewardInfoPrice = new Map<SplToken, CurrencyAmount>()
-          p.rewardInfos.forEach((rInfo) => {
-            if (rInfo.token) {
-              rewardInfoPrice.set(
-                rInfo.token,
-                toTotalPrice(rInfo.penddingReward, variousPrices[toPubString(rInfo.token.mint)] ?? null)
+              const coinARewardPrice = toTotalPrice(
+                p.tokenFeeAmountA,
+                variousPrices[toPubString(p.tokenA?.mint)] ?? null
               )
-            }
-          })
+              const coinBRewardPrice = toTotalPrice(
+                p.tokenFeeAmountB,
+                variousPrices[toPubString(p.tokenB?.mint)] ?? null
+              )
+              const rewardTotalPrice = coinARewardPrice.add(coinBRewardPrice)
+              const rewardTotalVolume = rewardTotalPrice ? toUsdVolume(rewardTotalPrice) : '--'
 
-          return (
-            <PoolCardDatabaseBodyCollapsePositionContent
-              key={p.nftMint.toString()}
-              poolInfo={info}
-              userPositionAccount={p}
-              myPosition={myPosition}
-              amountA={amountA}
-              amountB={amountB}
-              myPositionVolume={toUsdVolume(wholeLiquidity)}
-              coinAPrice={coinAPrice}
-              coinBPrice={coinBPrice}
-              inRange={p.inRange}
-              rewardAPrice={coinARewardPrice}
-              rewardBPrice={coinBRewardPrice}
-              rewardInfoPrice={rewardInfoPrice}
-            />
-          )
-        })}
-      <AutoBox>{openNewPosition}</AutoBox>
+              const rewardInfoPrice = new Map<SplToken, CurrencyAmount>()
+              p.rewardInfos.forEach((rInfo) => {
+                if (rInfo.token) {
+                  rewardInfoPrice.set(
+                    rInfo.token,
+                    toTotalPrice(rInfo.penddingReward, variousPrices[toPubString(rInfo.token.mint)] ?? null)
+                  )
+                }
+              })
+
+              return (
+                <PoolCardDatabaseBodyCollapsePositionContent
+                  key={p.nftMint.toString()}
+                  poolInfo={info}
+                  userPositionAccount={p}
+                  myPosition={myPosition}
+                  amountA={amountA}
+                  amountB={amountB}
+                  myPositionVolume={toUsdVolume(wholeLiquidity)}
+                  coinAPrice={coinAPrice}
+                  coinBPrice={coinBPrice}
+                  inRange={p.inRange}
+                  rewardAPrice={coinARewardPrice}
+                  rewardBPrice={coinBRewardPrice}
+                  rewardInfoPrice={rewardInfoPrice}
+                />
+              )
+            })}
+
+          <AutoBox>{openNewPosition}</AutoBox>
+        </>
+      ) : (
+        <AutoBox>{openNewPosition}</AutoBox>
+      )}
     </AutoBox>
   )
 }
@@ -1176,6 +1234,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const unclaimedYield = useConcentratedPendingYield(p)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+  const logInfo = useNotification((s) => s.logInfo)
+  const walletConnected = useWallet((s) => s.connected)
 
   const rangeTag = useMemo(() => {
     let bgColor = 'bg-[#142B45]'
@@ -1211,58 +1271,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
       </Tooltip>
     )
   }, [inRange, info.currentPrice, info.base?.symbol, info.quote?.symbol])
-  const { logInfo } = useNotification.getState()
-  const walletConnected = useWallet((s) => s.connected)
-  const timeBasis = useConcentrated((s) => s.timeBasis)
-  const [yieldInfo, setYieldInfo] = useState<{
-    apr: string
-    tradeFeesApr: string
-    rewardsAprA: string
-    rewardsAprB: string
-    rewardsAprC: string
-  }>({
-    apr: '--',
-    tradeFeesApr: '--',
-    rewardsAprA: '--',
-    rewardsAprB: '--',
-    rewardsAprC: '--'
-  })
-
-  useEffect(() => {
-    if (timeBasis === TimeBasis.DAY) {
-      setYieldInfo({
-        apr: toPercentString(info.totalApr24h),
-        tradeFeesApr: toPercentString(info.feeApr24h),
-        rewardsAprA: toPercentString(info.rewardApr24h[0]),
-        rewardsAprB: toPercentString(info.rewardApr24h[1]),
-        rewardsAprC: toPercentString(info.rewardApr24h[2])
-      })
-    } else if (timeBasis === TimeBasis.WEEK) {
-      setYieldInfo({
-        apr: toPercentString(info.totalApr7d),
-        tradeFeesApr: toPercentString(info.feeApr7d),
-        rewardsAprA: toPercentString(info.rewardApr7d[0]),
-        rewardsAprB: toPercentString(info.rewardApr7d[1]),
-        rewardsAprC: toPercentString(info.rewardApr7d[2])
-      })
-    } else if (timeBasis === TimeBasis.MONTH) {
-      setYieldInfo({
-        apr: toPercentString(info.totalApr30d),
-        tradeFeesApr: toPercentString(info.feeApr30d),
-        rewardsAprA: toPercentString(info.rewardApr30d[0]),
-        rewardsAprB: toPercentString(info.rewardApr30d[1]),
-        rewardsAprC: toPercentString(info.rewardApr30d[2])
-      })
-    } else {
-      setYieldInfo({
-        apr: '--',
-        tradeFeesApr: '--',
-        rewardsAprA: '--',
-        rewardsAprB: '--',
-        rewardsAprC: '--'
-      })
-    }
-  }, [timeBasis])
 
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
@@ -1442,49 +1450,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   ≈{toUsdVolume(unclaimedYield)}
                 </div>
                 {p && <PositionAprIllustrator poolInfo={info} positionInfo={p}></PositionAprIllustrator>}
-
-                {/* <AutoBox
-                    is="Row"
-                    className="items-center gap-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs mt-2 mobile:mt-1"
-                  >
-                    <Col className="text-[rgba(171,196,255,0.5)]">APR</Col>
-                    {p ? (
-                      <>
-                        <Col className="text-white">{yieldInfo.apr}</Col>
-                        <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
-                          <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
-                          <Tooltip.Panel>
-                            <div className="max-w-[300px] py-3 px-5">
-                              <TokenPositionInfo
-                                customIcon={<CoinAvatar iconSrc="/icons/exchange-black.svg" size="smi" />}
-                                customKey="Trade Fees"
-                                customValue={yieldInfo.tradeFeesApr}
-                                className="gap-32"
-                              />
-                              {info.base && (
-                                <TokenPositionInfo
-                                  token={info.base}
-                                  customValue={yieldInfo.rewardsAprA}
-                                  suffix="Rewards"
-                                  className="gap-32"
-                                />
-                              )}
-                              {info.quote && (
-                                <TokenPositionInfo
-                                  token={info.quote}
-                                  customValue={yieldInfo.rewardsAprB}
-                                  suffix="Rewards"
-                                  className="gap-32"
-                                />
-                              )}
-                            </div>
-                          </Tooltip.Panel>
-                        </Tooltip>
-                      </>
-                    ) : (
-                      <div className="text-sm font-medium text-white">--</div>
-                    )}
-                  </AutoBox> */}
               </Col>
               <AutoBox
                 is={isMobile ? 'Row' : 'Col'}
@@ -1506,7 +1471,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     { should: isMeaningfulNumber(unclaimedYield) }
                   ]}
                   onClick={() =>
-                    txHavestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(
+                    txHarvestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(
                       ({ allSuccess }) => {
                         if (allSuccess) {
                           refreshConcentrated()

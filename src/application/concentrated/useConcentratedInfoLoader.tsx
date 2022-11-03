@@ -1,11 +1,13 @@
 import { useRouter } from 'next/router'
 
 import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from '@raydium-io/raydium-sdk'
+import { useCallback } from 'react'
 
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
 import toPubString from '@/functions/format/toMintString'
 import { lazyMap } from '@/functions/lazyMap'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 
@@ -14,7 +16,6 @@ import useWallet from '../wallet/useWallet'
 
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -56,8 +57,13 @@ export default function useConcentratedInfoLoader() {
       ownerInfo: owner ? { tokenAccounts: tokenAccounts, wallet: owner } : undefined,
       chainTime: (Date.now() + chainTimeOffset) / 1000
     })
-    if (sdkParsed) useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed) })
-  }, [apiAmmPools, connection, tokenAccounts, owner, pathname, chainTimeOffset])
+    if (sdkParsed) {
+      useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })
+    }
+
+    // eslint-disable-next-line no-console
+    console.log('sdkParsed: ', sdkParsed)
+  }, [apiAmmPools, connection, toPubString(owner), pathname, chainTimeOffset])
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {

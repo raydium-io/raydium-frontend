@@ -1,9 +1,11 @@
-import { Keypair, Signer, Transaction } from '@solana/web3.js'
-import jFetch from '@/functions/dom/jFetch'
+import { Keypair, Transaction } from '@solana/web3.js'
+
 import BN from 'bn.js'
-import { ApiAmmV3ConfigInfo, ApiAmmV3Point, ApiAmmV3PoolInfo, Fraction } from '@raydium-io/raydium-sdk'
+import { ApiAmmV3Point, ReturnTypeFetchMultiplePoolInfos } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 
+import jFetch from '@/functions/dom/jFetch'
+import toBN from '@/functions/numberish/toBN'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { Numberish } from '@/types/constants'
 
@@ -54,9 +56,11 @@ export type ConcentratedStore = {
 
   coin1?: SplToken
   coin1Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
+  coin1AmountMin?: Numberish
 
   coin2?: SplToken
   coin2Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
+  coin2AmountMin?: Numberish
 
   priceUpperTick?: number // from SDK, just store in UI
   priceLowerTick?: number // from SDK, just store in UI
@@ -71,6 +75,7 @@ export type ConcentratedStore = {
 
   apiAmmPools: APIConcentratedInfo[]
   sdkParsedAmmPools: SDKParsedConcentratedInfo[]
+  originSdkParsedAmmPools: ReturnTypeFetchMultiplePoolInfos
   hydratedAmmPools: HydratedConcentratedInfo[]
 
   isInput: boolean | undefined
@@ -95,7 +100,7 @@ export type ConcentratedStore = {
   tvl?: string | number // /api.raydium.io/v2/main/info
   volume24h?: string | number // /api.raydium.io/v2/main/info
   timeBasis: TimeBasis
-  aprCalcMode: 'A' | 'D' | 'C'
+  aprCalcMode: 'D' | 'C'
 
   availableAmmConfigFeeOptions?: HydratedAmmV3ConfigInfo[] // create pool
   userSelectedAmmConfigFeeOption?: HydratedAmmV3ConfigInfo // create pool
@@ -115,6 +120,7 @@ export type ConcentratedStore = {
 export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   apiAmmPools: [],
   sdkParsedAmmPools: [],
+  originSdkParsedAmmPools: {},
   hydratedAmmPools: [],
 
   focusSide: 'coin1',

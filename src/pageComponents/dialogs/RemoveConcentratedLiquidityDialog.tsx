@@ -1,31 +1,33 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
+import { AmmV3, Token } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
-import { AmmV3 } from '@raydium-io/raydium-sdk'
-
 import useAppSettings from '@/application/common/useAppSettings'
-import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
+import txDecreaseConcentrated, { MANUAL_ADJUST } from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import { routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatar from '@/components/CoinAvatar'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
+import FadeInStable from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
+import Tooltip from '@/components/Tooltip'
 import toPubString from '@/functions/format/toMintString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
-import { div } from '@/functions/numberish/operations'
-import toFraction from '@/functions/numberish/toFraction'
+import { mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useInit from '@/hooks/useInit'
+import { Numberish } from '@/types/constants'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
+import { SplToken } from '@/application/token/type'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   useInit(() => {
@@ -46,6 +48,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const originalCoin1 = useConcentrated((s) => s.coin1)
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)
   const originalCoin2Amount = useConcentrated((s) => s.coin2Amount)
+  const originalCoin1AmountMin = useConcentrated((s) => s.coin1AmountMin)
+  const originalCoin2AmountMin = useConcentrated((s) => s.coin2AmountMin)
   const focusSide = isMintEqual(coinBase?.mint, originalCoin1?.mint) ? 'coin1' : 'coin2'
   const [amountBaseIsOutOfMax, setAmountBaseIsOutOfMax] = useState(false)
   const [amountBaseIsNegative, setAmountBaseIsNegative] = useState(false)
@@ -74,6 +78,17 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
     })
   }, [currentAmmPool, targetUserPositionAccount])
 
+  useEffect(() => {
+    useConcentrated.setState({
+      coin1AmountMin: mul(originalCoin1Amount, MANUAL_ADJUST)
+    })
+  }, [originalCoin1Amount])
+  useEffect(() => {
+    useConcentrated.setState({
+      coin2AmountMin: mul(originalCoin2Amount, MANUAL_ADJUST)
+    })
+  }, [originalCoin2Amount])
+
   const position = useMemo(() => {
     if (currentAmmPool && targetUserPositionAccount) {
       return currentAmmPool.positionAccount?.find(
@@ -93,13 +108,15 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       add: false
     })
 
+    const coin1Amount = toString(toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA), {
+      decimalLength: `auto ${currentAmmPool.base!.decimals}`
+    })
+    const coin2Amount = toString(toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB), {
+      decimalLength: `auto ${currentAmmPool.quote!.decimals}`
+    })
     setMaxInfo({
-      coin1Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageA), 10 ** coinBase.decimals), {
-        decimalLength: `auto ${coinBase.decimals}`
-      }),
-      coin2Amount: toString(div(toFraction(amountFromLiquidity.amountSlippageB), 10 ** coinQuote.decimals), {
-        decimalLength: `auto ${coinQuote.decimals}`
-      })
+      coin1Amount: coin1Amount,
+      coin2Amount: coin2Amount
     })
   }, [currentAmmPool, position, coinBase, coinQuote])
 
@@ -155,7 +172,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               maxValue={maxInfo.coin1Amount}
               canFillFullBalance
               token={coinBase}
-              value={toString(originalCoin1Amount, { decimalLength: `auto ${(coinBase?.decimals ?? 10) + 1}` })}
+              value={toString(originalCoin1Amount, { decimalLength: `auto ${coinBase?.decimals ?? 10}` })}
               onUserInput={(value) => {
                 useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
@@ -186,7 +203,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
               maxValue={maxInfo.coin2Amount}
               canFillFullBalance
               token={coinQuote}
-              value={toString(originalCoin2Amount, { decimalLength: `auto ${(coinQuote?.decimals ?? 10) + 1}` })}
+              value={toString(originalCoin2Amount, { decimalLength: `auto ${coinQuote?.decimals ?? 10}` })}
               onUserInput={(value) => {
                 useConcentrated.setState({ isInput: true })
                 if (focusSide === 'coin1') {
@@ -209,10 +226,30 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
             />
             <ConcentratedLiquiditySlider />
             <div className="py-3 px-3 ring-1 mobile:ring-1 ring-[#abc4ff40] rounded-xl mobile:rounded-xl ">
-              <Row className="flex justify-between items-center text-[#ABC4FF] font-medium text-sm">
-                <div className="text-base mobile:text-sm">Pending Yield</div>
-                <div className="text-lg text-white">{toUsdVolume(pendingYield)}</div>
-              </Row>
+              <Col>
+                <Row className="flex justify-start items-center text-[#ABC4FF] font-medium text-sm">
+                  <div className="text-base mobile:text-sm">Pending Yield</div>
+                </Row>
+                <Row className="flex justify-end items-center text-[#ABC4FF] font-medium text-sm">
+                  <div className="text-lg text-white">{toUsdVolume(pendingYield)}</div>
+                </Row>
+                <FadeInStable show={gt(originalCoin1AmountMin, 0) && gt(originalCoin2AmountMin, 0)}>
+                  <Row className="flex justify-start gap-1 items-center text-[#ABC4FF] font-medium text-sm">
+                    Minimum Received
+                    <Tooltip>
+                      <Icon size="xs" heroIconName="question-mark-circle" className="cursor-help" />
+                      <Tooltip.Panel>
+                        <div className="max-w-[30em]">The least amount of tokens you will recieve in this withdraw</div>
+                      </Tooltip.Panel>
+                    </Tooltip>
+                  </Row>
+                  <Col className="pt-2 gap-2">
+                    <MinWithdrawAmount token={coinBase} amount={originalCoin1AmountMin} className="px-1" />
+                    <MinWithdrawAmount token={coinQuote} amount={originalCoin2AmountMin} className="px-1" />
+                  </Col>
+                </FadeInStable>
+              </Col>
+              <Row className="flex justify-between items-center text-[#ABC4FF] font-medium text-sm"></Row>
             </div>
           </Col>
           <Row className="flex-col gap-1">
@@ -280,5 +317,34 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
         </Card>
       )}
     </ResponsiveDialogDrawer>
+  )
+}
+
+function MinWithdrawAmount({
+  token,
+  amount,
+  className
+}: {
+  token: Token | SplToken | undefined
+  amount: Numberish | undefined
+  className?: string
+}) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+
+  // eslint-disable-next-line no-console
+  console.log('amount: ', amount)
+
+  return (
+    <Row className={twMerge('w-full justify-between', className)}>
+      <Row className="gap-2 items-center">
+        <CoinAvatar size={isMobile ? 'xs' : 'md'} token={token} />
+        {token?.symbol ?? token?.mint.toString().slice(0, 6)}
+      </Row>
+      <Row className="text-lg text-white items-center">
+        {toString(amount ?? 0, {
+          decimalLength: `auto ${token?.decimals ?? 10}`
+        })}
+      </Row>
+    </Row>
   )
 }

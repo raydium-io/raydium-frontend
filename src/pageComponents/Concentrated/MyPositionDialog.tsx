@@ -1,14 +1,15 @@
 import { twMerge } from 'tailwind-merge'
-import { Fraction, Price, Token, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Fraction, Token, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
-import txHavestConcentrated from '@/application/concentrated/txHavestConcentrated'
+import txHarvestConcentrated from '@/application/concentrated/txHarvestConcentrated'
 import { UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, { timeMap } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
+import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
@@ -31,6 +32,7 @@ import { toString } from '@/functions/numberish/toString'
 import { toXYChartFormat } from '@/pageComponents/Concentrated'
 import Chart from '@/pageComponents/ConcentratedRangeChart/Chart'
 import { Numberish } from '@/types/constants'
+
 import { AprChart } from './AprChart'
 import { ConcentratedModifyTooltipIcon } from './ConcentratedModifyTooltipIcon'
 import { ConcentratedTimeBasisSwitcher } from './ConcentratedTimeBasisSwitcher'
@@ -223,7 +225,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
           size={isMobile ? 'sm' : undefined}
           isLoading={isApprovePanelShown}
           onClick={() =>
-            txHavestConcentrated().then(({ allSuccess }) => {
+            txHarvestConcentrated().then(({ allSuccess }) => {
               if (allSuccess) {
                 refreshConcentrated()
               }
@@ -245,7 +247,10 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
         </Button>
       </Row>
 
-      <Grid className="grid-cols-2 gap-6 mobile:gap-2 border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl">
+      <AutoBox
+        is={isMobile ? 'Col' : 'Grid'}
+        className="grid-cols-2 gap-6 mobile:gap-2 border-1.5 border-[#abc4ff40] py-3 px-4 rounded-xl"
+      >
         <div>
           <div className="mobile:text-sm font-medium text-[#abc4ff] mt-2 mb-4">Fees</div>
           <Grid className="grow grid-cols-1 gap-2 mobile:gap-1">
@@ -255,7 +260,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
                 prefix={
                   <Row className="items-center gap-2">
                     <CoinAvatar token={token} size="smi" />
-                    <div className="text-[#abc4ff80] min-w-[4em] mr-1">{token?.symbol ?? '--'}</div>
+                    <div className="text-[#abc4ff80] min-w-[2em] mr-1">{token?.symbol ?? '--'}</div>
                   </Row>
                 }
                 text={<div className="text-white justify-end text-end">{toString(amount)}</div>}
@@ -273,7 +278,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
                   prefix={
                     <Row className="items-center gap-2">
                       <CoinAvatar token={token} size="smi" />
-                      <div className="text-[#abc4ff80] min-w-[4em] mr-1">{token?.symbol ?? '--'}</div>
+                      <div className="text-[#abc4ff80] min-w-[2em] mr-1">{token?.symbol ?? '--'}</div>
                     </Row>
                   }
                   text={<div className="text-white justify-end text-end">{toString(amount)}</div>}
@@ -284,7 +289,7 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
             )}
           </Grid>
         </div>
-      </Grid>
+      </AutoBox>
     </Col>
   )
 }

@@ -7,7 +7,7 @@ import { areShallowEqual, isStringInsensitivelyEqual } from '@/functions/judgers
 import { objectShakeFalsy } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-import { getAddLiquidityDefaultPool } from '@/models/ammAndLiquidity'
+import { getAddLiquidityDefaultPool } from '@/application/ammV3PoolInfoAndLiquidity/ammAndLiquidity'
 import { EnumStr } from '@/types/constants'
 import { useRouter } from 'next/router'
 import { ParsedUrlQuery } from 'querystring'
@@ -36,6 +36,7 @@ export default function useLiquidityUrlParser() {
   const connection = useConnection((s) => s.connection)
   const getToken = useToken((s) => s.getToken)
   const toUrlMint = useToken((s) => s.toUrlMint)
+  const fromUrlString = useToken((s) => s.fromUrlString)
   const inCleanUrlMode = useAppSettings((s) => s.inCleanUrlMode)
 
   // flag: 'get info from url' period  or  'affect info to url' period
@@ -89,7 +90,10 @@ export default function useLiquidityUrlParser() {
       const matchedLiquidityJsonInfo = urlAmmId
         ? findLiquidityInfoByAmmId(urlAmmId)
         : urlCoin1 && urlCoin2
-        ? await getAddLiquidityDefaultPool({ mint1: urlCoin1Mint, mint2: urlCoin2Mint })
+        ? await getAddLiquidityDefaultPool({
+            mint1: fromUrlString(urlCoin1Mint).mint,
+            mint2: fromUrlString(urlCoin2Mint).mint
+          })
         : undefined
 
       const coin1 = getToken(matchedLiquidityJsonInfo?.baseMint) ?? urlCoin1

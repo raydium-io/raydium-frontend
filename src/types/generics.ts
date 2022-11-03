@@ -61,3 +61,5 @@ type MergeArr<Arr> = (Arr extends (infer T)[] ? T : never)[]
  * type Wrong = A | B // { hello: string; version: 3 }[] | { hello: string; version: 5 }[] // <= this type can't have auto type intelligense of array.map
  */
 export const unionArr = <T>(arr: T) => arr as unknown as MergeArr<T>
+
+export type Unpacked<T> = T extends (infer U)[] ? U : T

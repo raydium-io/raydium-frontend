@@ -134,7 +134,8 @@ const config = {
         'popup-bg':
           'linear-gradient(139.48deg, rgba(0, 182, 191, 0.15) 1.07%, rgba(27, 22, 89, 0.1) 86.75%), linear-gradient(321.17deg, #18134D 0%, #1B1659 98.97%)',
         'cyberpunk-card-bg':
-          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)'
+          'linear-gradient(140.14deg, rgba(0, 182, 191, 0.15) 0%, rgba(27, 22, 89, 0.1) 86.61%), linear-gradient(321.82deg, #18134D 0%, #1B1659 100%)',
+        'cancel-bg': 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.2) 28.69%, rgba(171, 196, 255, 0) 100%)'
       },
       boxShadow: {
         'cyberpunk-card': '0px 8px 48px rgba(171, 196, 255, 0.12)'

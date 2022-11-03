@@ -33,7 +33,7 @@ export default function txHavestConcentrated({
         feePayer: owner,
         wallet: owner,
         tokenAccounts: tokenAccountRawInfos,
-        useSOLBalance: isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2),
+        useSOLBalance: true,
         closePosition: false
       },
       slippage: Number(toString(slippageTolerance)),
