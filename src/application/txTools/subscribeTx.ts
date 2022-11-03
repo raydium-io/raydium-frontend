@@ -31,18 +31,18 @@ export default function subscribeTx({
     (signatureResult, context) => {
       if (signatureResult.err) {
         callbacks?.onTxError?.({
-          txid: txid,
+          txid,
           transaction,
           signatureResult,
           context,
           error: signatureResult.err,
           ...extraTxidInfo
         })
-        callbacks?.onTxFinally?.({ txid: txid, transaction, signatureResult, context, type: 'error', ...extraTxidInfo })
+        callbacks?.onTxFinally?.({ txid, transaction, signatureResult, context, type: 'error', ...extraTxidInfo })
       } else {
-        callbacks?.onTxSuccess?.({ txid: txid, transaction, signatureResult, context, ...extraTxidInfo })
+        callbacks?.onTxSuccess?.({ txid, transaction, signatureResult, context, ...extraTxidInfo })
         callbacks?.onTxFinally?.({
-          txid: txid,
+          txid,
           transaction,
           signatureResult,
           context,
