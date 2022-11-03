@@ -9,9 +9,7 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -239,6 +237,20 @@ function HarvestAll() {
   const walletConnected = useWallet((s) => s.connected)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
+
+  const canHarvestAll = useMemo(() => {
+    let result = false
+    for (const pool of hydratedAmmPools) {
+      if (pool.userPositionAccount && pool.userPositionAccount.length > 0) {
+        result = true
+        break
+      }
+    }
+
+    return result
+  }, [hydratedAmmPools])
+
   return (
     <Button
       className="frosted-glass-teal"
@@ -246,7 +258,8 @@ function HarvestAll() {
       validators={[
         {
           should: walletConnected
-        }
+        },
+        { should: canHarvestAll }
       ]}
       onClick={() =>
         txHarvestAllConcentrated().then(({ allSuccess }) => {
@@ -262,7 +275,7 @@ function HarvestAll() {
   )
 }
 
-function PoolLabelBlock({ className }: { className?: string }) {
+function PoolLabelBlock({ className, sortedData }: { className?: string; sortedData: HydratedConcentratedInfo[] }) {
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
       <Col>
@@ -669,7 +682,7 @@ function PoolCard() {
   ) : (
     <div>
       <Row className={'w-full justify-between pb-5 items-center'}>
-        <PoolLabelBlock className="flex-grow" />
+        <PoolLabelBlock className="flex-grow" sortedData={sortedData} />
       </Row>
     </div>
   )
