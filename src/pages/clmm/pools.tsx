@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 
@@ -7,7 +7,11 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
-import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
+import {
+  HydratedConcentratedInfo,
+  HydratedConcentratedRewardInfo,
+  UserPositionAccount
+} from '@/application/concentrated/type'
 import useConcentrated, {
   PoolsConcentratedTabs,
   TimeBasis,
@@ -24,9 +28,10 @@ import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
+import { Badge } from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
-import CoinAvatar from '@/components/CoinAvatar'
+import CoinAvatar, { CoinAvatarProps } from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
@@ -56,6 +61,7 @@ import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
+import { isMintEqual, isPubEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -239,25 +245,15 @@ function HarvestAll() {
   const walletConnected = useWallet((s) => s.connected)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const isMobile = useAppSettings((s) => s.isMobile)
-  const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
-
-  const canHarvestAll = useMemo(() => {
-    let result = false
-    for (const pool of hydratedAmmPools) {
-      if (pool.userPositionAccount && pool.userPositionAccount.length > 0) {
-        result = true
-        break
-      }
-    }
-
-    return result
-  }, [hydratedAmmPools])
-
   return (
     <Button
       className="frosted-glass-teal"
       isLoading={isApprovePanelShown}
-      validators={[{ should: walletConnected }, { should: canHarvestAll }]}
+      validators={[
+        {
+          should: walletConnected
+        }
+      ]}
       onClick={() =>
         txHarvestAllConcentrated().then(({ allSuccess }) => {
           if (allSuccess) {
@@ -272,7 +268,7 @@ function HarvestAll() {
   )
 }
 
-function PoolLabelBlock({ className, sortedData }: { className?: string; sortedData: HydratedConcentratedInfo[] }) {
+function PoolLabelBlock({ className }: { className?: string }) {
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
       <Col>
@@ -679,7 +675,7 @@ function PoolCard() {
   ) : (
     <div>
       <Row className={'w-full justify-between pb-5 items-center'}>
-        <PoolLabelBlock className="flex-grow" sortedData={sortedData} />
+        <PoolLabelBlock className="flex-grow" />
       </Row>
     </div>
   )
@@ -763,27 +759,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
 
       return (
         <Tooltip key={`${info.idString}-reward-badge-id-${idx}`}>
-          <Row
-            className={`ring-1 ring-inset ring-[#abc4ff80] p-1 mobile:p-[1px] rounded-full items-center gap-2 overflow-hidden ${
-              isRewardEnd ? 'opacity-30 contrast-40' : isRewardBeforeStart ? 'opacity-50' : ''
-            } `}
-          >
-            <div className="relative">
-              <CoinAvatar
-                size={isMobile ? 'xs' : 'smi'}
-                token={reward.rewardToken}
-                className={isRewardBeforeStart ? 'blur-sm' : ''}
-              />
-              {isRewardEnd && (
-                <div className="absolute h-[1.5px] w-full top-1/2 -translate-y-1/2 rotate-45 bg-[#abc4ff80] scale-x-125"></div>
-              )}
-              {isRewardBeforeStart && (
-                <div className="absolute top-1/2 -translate-y-1/2 opacity-70">
-                  <Icon heroIconName="dots-horizontal" size={isMobile ? 'sm' : 'md'} />
-                </div>
-              )}
-            </div>
-          </Row>
+          <RewardAvatar rewardInfo={reward}></RewardAvatar>
           <Tooltip.Panel>
             <div key={`${info.idString}-reward-detail-content-id-${idx}`}>
               <Row className="text-sm justify-between items-center min-w-[260px] gap-4">
@@ -1040,6 +1016,41 @@ function PoolCardDatabaseBodyCollapseItemFace({
   return isMobile ? mobileContent : pcCotent
 }
 
+function RewardAvatar({
+  rewardInfo,
+  size
+}: {
+  rewardInfo: HydratedConcentratedRewardInfo
+  size?: CoinAvatarProps['size']
+}) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const isRewardEnd = currentIsAfter(rewardInfo.endTime)
+  const isRewardBeforeStart = currentIsBefore(rewardInfo.openTime)
+  return (
+    <Row
+      className={`ring-1 ring-inset ring-[#abc4ff80] p-1 mobile:p-[1px] rounded-full items-center gap-2 overflow-hidden ${
+        isRewardEnd ? 'opacity-30 contrast-40' : isRewardBeforeStart ? 'opacity-50' : ''
+      } `}
+    >
+      <div className="relative">
+        <CoinAvatar
+          size={size ?? (isMobile ? 'xs' : 'smi')}
+          token={rewardInfo.rewardToken}
+          className={isRewardBeforeStart ? 'blur-sm' : ''}
+        />
+        {isRewardEnd && (
+          <div className="absolute h-[1.5px] w-full top-1/2 -translate-y-1/2 rotate-45 bg-[#abc4ff80] scale-x-125"></div>
+        )}
+        {isRewardBeforeStart && (
+          <div className="absolute top-1/2 -translate-y-1/2 opacity-70">
+            <Icon heroIconName="dots-horizontal" size={isMobile ? 'sm' : 'md'} />
+          </div>
+        )}
+      </div>
+    </Row>
+  )
+}
+
 function AprLine({ className, aprValues }: { className?: string; aprValues: Numberish[] | undefined }) {
   const colors = ['#abc4ff', '#39d0d8', '#2b6aff']
   if (!aprValues) return null
@@ -1066,16 +1077,44 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
   // eslint-disable-next-line no-console
   // console.log('info: ', info)
 
+  const owner = useWallet((s) => s.owner) // keep it, will use when we are in production for farm create/edit
   const { lpPrices } = usePools()
   const tokenPrices = useToken((s) => s.tokenPrices)
 
   const variousPrices = useMemo(() => ({ ...lpPrices, ...tokenPrices }), [lpPrices, tokenPrices])
-
+  const isMobile = useAppSettings((s) => s.isMobile)
   const openNewPosition = useMemo(() => {
+    const hasRewardInfos = info.rewardInfos.length > 0
+
     return (
       <Col className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
-        <div className="mb-2 text-xs">Want to open a new position?</div>
+        <div className="mb-3 text-xs">
+          {hasRewardInfos
+            ? 'Want to open a new position?'
+            : 'You created this pool. You can create a farm, or create a new position'}
+        </div>
         <Row className={`justify-center items-center gap-2`}>
+          {!hasRewardInfos && (
+            <Button
+              className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+              onClick={() => {
+                useConcentrated.setState({
+                  coin1: info.base,
+                  coin2: info.quote,
+                  chartPoints: [],
+                  lazyLoadChart: true,
+                  currentAmmPool: info
+                })
+                routeTo('/clmm/edit-farm', {
+                  queryProps: {
+                    farmId: info.idString
+                  }
+                })
+              }}
+            >
+              Create Farm
+            </Button>
+          )}
           <Button
             className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
             onClick={() => {
@@ -1110,7 +1149,88 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         </Row>
       </Col>
     )
-  }, [info])
+  }, [info, isMobile])
+  const linkedFarm = useMemo(() => {
+    return (
+      <Col className="w-full pl-8 pt-5 pb-5 mobile:py-2 mobile:px-2">
+        <Row className="items-center gap-2 mb-5 mobile:mb-2">
+          <Icon size={isMobile ? 'xs' : 'sm'} iconSrc="/icons/entry-icon-farms.svg" className="opacity-75" />
+          <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80]">Linked Farm</div>
+        </Row>
+        <AutoBox is={isMobile ? 'Col' : 'Row'} className="w-full justify-between items-center">
+          {/* get the width like "my position row" ==> 124px: add/remove icon, 32px: pl-8, 4px: gap-2 */}
+          <AutoBox
+            is={isMobile ? 'Col' : 'Row'}
+            className={`${
+              isMobile ? '' : 'flex justify-between'
+            }  mobile:w-full ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3 items-center`}
+            style={
+              info.rewardInfos.length === 1 ? { minWidth: 'calc((100% - 124px - 32px - 4px) / 2)' } : { width: '100%' }
+            }
+          >
+            {/* reward */}
+            <div style={{ width: `${isMobile ? '100%' : 'default'}` }}>
+              <Row className="font-medium text-sm mobile:text-xs text-[#abc4ff80] mb-2 mobile:w-full">Weekly Rate</Row>
+              <Row className="flex-wrap gap-8 mobile:gap-3">
+                {info.rewardInfos.map((r) => {
+                  const isRewardEnded = currentIsAfter(r.endTime)
+                  return (
+                    <Col
+                      key={toPubString(r.tokenMint)}
+                      className="gap-1 mobile:gap-0.5 mobile:w-full mobile:items-center"
+                    >
+                      <Row className="items-center gap-2">
+                        <RewardAvatar rewardInfo={r} size={isMobile ? 'xs' : 'sm'} />
+                        <Row className="items-center gap-1">
+                          <div className="font-medium mobile:text-sm text-white">
+                            {isRewardEnded ? '--' : formatNumber(r.rewardPerWeek, { fractionLength: 0 })}
+                          </div>
+                          <div className="font-medium mobile:text-sm text-[#abc4ff80]">
+                            {r.rewardToken?.symbol ?? '--'}
+                          </div>
+                          {isRewardEnded && (
+                            <Badge className="ml-1" cssColor="#DA2EEF">
+                              Ended
+                            </Badge>
+                          )}
+                        </Row>
+                      </Row>
+                      <div className="font-medium text-sm mobile:text-xs text-[#abc4ff80]">
+                        {toUTC(r.openTime, { hideUTCBadge: true, hideHourMinuteSecond: true })} -{' '}
+                        {toUTC(r.endTime, { hideUTCBadge: true, hideHourMinuteSecond: true })}
+                      </div>
+                    </Col>
+                  )
+                })}
+              </Row>
+            </div>
+
+            <Button
+              className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs mobile:mt-3"
+              onClick={() => {
+                useConcentrated.setState({
+                  coin1: info.base,
+                  coin2: info.quote,
+                  chartPoints: [],
+                  lazyLoadChart: true,
+                  currentAmmPool: info
+                })
+                routeTo('/clmm/edit-farm', {
+                  queryProps: {
+                    farmId: info.idString
+                  }
+                })
+              }}
+            >
+              Edit Farm
+            </Button>
+          </AutoBox>
+
+          {openNewPosition}
+        </AutoBox>
+      </Col>
+    )
+  }, [openNewPosition, isMobile, info])
 
   return (
     <AutoBox
@@ -1120,7 +1240,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
         background: 'linear-gradient(126.6deg, rgba(171, 196, 255, 0.12), rgb(171 196 255 / 4%) 100%)'
       }}
     >
-      {info.userPositionAccount ? (
+      {info.userPositionAccount && (
         <>
           {info.userPositionAccount
             .sort((a: UserPositionAccount, b: UserPositionAccount) =>
@@ -1188,9 +1308,10 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                 />
               )
             })}
-
-          <AutoBox>{openNewPosition}</AutoBox>
         </>
+      )}
+      {info.rewardInfos.length > 0 ? (
+        <AutoBox is={isMobile ? 'Col' : 'Row'}>{linkedFarm}</AutoBox>
       ) : (
         <AutoBox>{openNewPosition}</AutoBox>
       )}
@@ -1401,7 +1522,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
               className="flex-auto w-1/2 mobile:w-full justify-between ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-3xl mobile:rounded-lg p-6 mobile:p-3  items-center"
             >
               <Col>
-                <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs gap-1">
+                <div className="flex justify-start items-center text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-xs gap-1">
                   Pending Yield
                   {p ? (
                     <Tooltip darkGradient={true} panelClassName="p-0 rounded-xl">
