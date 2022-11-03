@@ -211,7 +211,6 @@ export function CreatePoolCard() {
       setPosition((p) => ({ ...p, [Range.Low]: toFixedNumber(price) }))
     }
   })
-  console.log(123123, toPercentString(userSelectedAmmConfigFeeOption?.tradeFeeRate))
 
   const handleBlur = useCallback(
     ({
