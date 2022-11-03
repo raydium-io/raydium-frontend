@@ -8,6 +8,8 @@ import { SplToken } from '@/application/token/type'
 import { HydratedConcentratedInfo } from './type'
 import { mul, div } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
+import Decimal from 'decimal.js'
+import { fractionToDecimal } from '../txTools/decimal2Fraction'
 
 interface Props {
   currentAmmPool: HydratedConcentratedInfo
@@ -38,14 +40,14 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
       mint: new PublicKey(r[0]),
       openTime: Math.floor(r[1].openTime.valueOf() / 1000),
       endTime: Math.floor(r[1].endTime.valueOf() / 1000),
-      perSecond: toBN(r[1].perSecond)
+      perSecond: fractionToDecimal(r[1].perSecond, 20)
     }))
 
     const newRewardInfos = newRewards.map((r) => ({
       mint: r.token.mint,
       openTime: Math.floor(r.openTime.valueOf() / 1000),
       endTime: Math.floor(r.endTime.valueOf() / 1000),
-      perSecond: toBN(div(mul(r.perWeek || 0, 10 ** (r.token.decimals || 6)), 7 * 60 * 60 * 24))
+      perSecond: fractionToDecimal(div(mul(r.perWeek || 0, 10 ** (r.token.decimals || 6)), 7 * 60 * 60 * 24), 20)
     }))
 
     const commonParams = {
