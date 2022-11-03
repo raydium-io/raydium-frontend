@@ -92,6 +92,7 @@ export default function EditFarm() {
   }, [])
 
   const handleClick = useCallback(() => {
+    setTxSuccess(false)
     setShowPreview(true)
   }, [])
 
@@ -275,7 +276,10 @@ export default function EditFarm() {
           <Button
             className="frosted-glass-skygray w-fit"
             size={isMobile ? 'sm' : 'lg'}
-            onClick={() => setShowPreview(false)}
+            onClick={() => {
+              setShowPreview(false)
+              setTxSuccess(false)
+            }}
           >
             Edit
           </Button>
