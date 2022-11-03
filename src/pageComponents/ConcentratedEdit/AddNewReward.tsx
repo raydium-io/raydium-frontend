@@ -9,7 +9,7 @@ import Card from '@/components/Card'
 import Grid from '@/components/Grid'
 import Row from '@/components/Row'
 import { offsetDateTime, getDate } from '@/functions/date/dateFormat'
-import { isDateAfter, isDateBefore } from '@/functions/date/judges'
+import { isDateAfter, isDateBefore, isDateEqual } from '@/functions/date/judges'
 import { isMeaningfulNumber, isMeaninglessNumber, gt, lt, gte } from '@/functions/numberish/compare'
 import { getDuration } from '@/functions/date/parseDuration'
 import { trimTailingZero } from '@/functions/numberish/handleZero'
@@ -21,6 +21,7 @@ interface Props {
   defaultData?: NewReward
   chainTimeOffset?: number
   disableTokens?: SplToken[]
+  enableTokens?: SplToken[]
   onValidateChange: (idx: number, err?: string) => void
   onUpdateReward: (data: NewReward, rewardIdx: number) => void
 }
@@ -31,17 +32,19 @@ export interface NewReward {
   duration?: string
   openTime?: Date
   endTime?: Date
-  perDay?: string
+  perWeek?: string
+  isWhiteListReward?: boolean
 }
 
 export default function AddNewReward(props: Props) {
-  const { dataIndex, defaultData, disableTokens, onValidateChange, onUpdateReward } = props
+  const { dataIndex, defaultData, enableTokens, disableTokens, onValidateChange, onUpdateReward } = props
   const isMobile = useAppSettings((s) => s.isMobile)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const getBalance = useWallet((s) => s.getBalance)
   const [newReward, setNewReward] = useState<NewReward>(defaultData || {})
   const indexRef = useRef(dataIndex)
 
+  const hasInput = Object.keys(newReward).length > 0
   const currentBlockChainDate = new Date(Date.now() + (chainTimeOffset || 0))
 
   const minBoundary =
@@ -57,11 +60,13 @@ export default function AddNewReward(props: Props) {
     : undefined
 
   const balanceError =
-    !newReward.token || gte(getBalance(newReward.token), newReward.amount)
+    !newReward.token || !newReward.amount || gte(getBalance(newReward.token), newReward.amount)
       ? undefined
       : `Insufficient ${newReward.token.symbol} balance`
   const needShowAmountAlert =
     newReward.amount && lt(newReward.amount, minBoundary) ? 'Emission rewards is lower than min required' : undefined
+
+  const topError = hasInput ? noTokenError || noAmountError || balanceError || needShowAmountAlert : undefined
 
   const timeError = useMemo(() => {
     if (!newReward.openTime || !newReward.duration) return 'Confirm emission time setup'
@@ -84,8 +89,13 @@ export default function AddNewReward(props: Props) {
   ])
 
   useEffect(() => {
+    if (!hasInput) return
     setNewReward((values) => {
       const decimals = values.token?.decimals || 6
+      const perWeek =
+        isMeaningfulNumber(values.amount) && isMeaningfulNumber(values.duration)
+          ? trimTailingZero(mul(div(values.amount, values.duration), 7).toFixed(decimals))
+          : '0'
       return {
         ...values,
         endTime:
@@ -94,13 +104,10 @@ export default function AddNewReward(props: Props) {
                 milliseconds: Number(values.duration) * DAY_SECONDS * 1000
               })
             : values.endTime,
-        perDay:
-          isMeaningfulNumber(values.amount) && isMeaningfulNumber(values.duration)
-            ? trimTailingZero(div(values.amount, values.duration).toFixed(decimals))
-            : '0'
+        perWeek
       }
     })
-  }, [newReward.duration, newReward.openTime, newReward.amount])
+  }, [newReward.duration, newReward.openTime, newReward.amount, hasInput])
 
   useEffect(() => {
     onUpdateReward(newReward, dataIndex)
@@ -125,10 +132,13 @@ export default function AddNewReward(props: Props) {
             haveHalfButton
             hasPlaceholder
             topLeftLabel="Token"
+            enableTokens={enableTokens}
             disableTokens={disableTokens}
             value={newReward.amount || ''}
             token={newReward.token}
-            onSelectToken={(token) => setNewReward((values) => ({ ...values, token }))}
+            onSelectToken={(token) =>
+              setNewReward((values) => ({ ...values, token, isWhiteListReward: !!enableTokens }))
+            }
             onUserInput={(amount) => {
               setNewReward((values) => ({ ...values, amount }))
             }}
@@ -150,13 +160,7 @@ export default function AddNewReward(props: Props) {
             onUserInput={(duration) => setNewReward((values) => ({ ...values, duration }))}
           />
         </Row>
-        <>
-          {newReward.amount && needShowAmountAlert && (
-            <div className="text-[#DA2EEF] text-right text-sm font-medium px-2">
-              Emission rewards is lower than min required
-            </div>
-          )}
-        </>
+        {topError ? <div className="text-[#DA2EEF] text-right text-sm font-medium px-2">{topError}</div> : null}
         <Row className="gap-3 mobile:flex-col">
           <DateInput
             className="flex-[3] mobile:w-full rounded-md px-4"
@@ -170,7 +174,12 @@ export default function AddNewReward(props: Props) {
             disableDateBeforeCurrent
             isValidDate={(date) => {
               return (
-                isDateAfter(date, currentBlockChainDate) &&
+                isDateAfter(
+                  date,
+                  offsetDateTime(currentBlockChainDate, {
+                    seconds: -DAY_SECONDS
+                  })
+                ) &&
                 isDateBefore(
                   date,
                   offsetDateTime(newReward.openTime || currentBlockChainDate, {
@@ -197,22 +206,22 @@ export default function AddNewReward(props: Props) {
             disableDateBeforeCurrent
           />
           <InputBox
-            label="Estimated rewards / day"
+            label="Estimated rewards / week"
             className="flex-[3]"
-            onUserInput={(perDay) =>
+            onUserInput={(perWeek) =>
               setNewReward((values) => ({
                 ...values,
-                perDay,
+                perWeek,
                 amount: isMeaningfulNumber(values.duration)
-                  ? trimTailingZero(mul(perDay, values.duration).toFixed(values.token?.decimals || 6))
+                  ? trimTailingZero(mul(div(perWeek, 7), values.duration).toFixed(values.token?.decimals || 6))
                   : '0'
               }))
             }
-            value={newReward.perDay}
+            value={newReward.perWeek}
           />
         </Row>
         <div>
-          {newReward.duration && newReward.openTime && (
+          {hasInput && (
             <div>
               {gt(newReward.duration, MAX_DURATION) ? (
                 <div className="text-[#DA2EEF] text-sm font-medium  pl-2">

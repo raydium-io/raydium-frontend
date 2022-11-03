@@ -1,30 +1,78 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import shallow from 'zustand/shallow'
 import useAppSettings from '@/application/common/useAppSettings'
-import useWallet from '@/application/wallet/useWallet'
+import txSetRewards from '@/application/concentrated/txSetRewards'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import Row from '@/components/Row'
-import PoolInfo from './PoolInfo'
-import ExistingRewardInfo from './ExistingRewardInfo'
-import { UpdateData } from './AddMoreDialog'
-import AddNewReward, { NewReward } from './AddNewReward'
-import NewRewardTable from './NewRewardTable'
+import useWallet from '@/application/wallet/useWallet'
+import useToken from '@/application/token/useToken'
+import { routeTo } from '@/application/routeTools'
 import Button from '@/components/Button'
 import Icon from '@/components/Icon'
-import txSetRewards from '@/application/concentrated/txSetRewards'
+import Row from '@/components/Row'
+import Tooltip from '@/components/Tooltip'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
+
+import { UpdateData } from './AddMoreDialog'
+import AddNewReward, { NewReward } from './AddNewReward'
+import ExistingRewardInfo from './ExistingRewardInfo'
+import NewRewardTable from './NewRewardTable'
+import PoolInfo from './PoolInfo'
 
 export default function EditFarm() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const walletConnected = useWallet((s) => s.connected)
-  const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
+  const getToken = useToken((s) => s.getToken)
+  const sortTokens = useToken((s) => s.sortTokens)
+  const [currentAmmPool, whitelistRewards] = useConcentrated((s) => [s.currentAmmPool, s.whitelistRewards], shallow)
   const [editedReward, setEditedReward] = useState<{ updateReward?: Map<string, UpdateData>; newRewards: NewReward[] }>(
     { newRewards: [] }
   )
+
+  const [txSuccess, setTxSuccess] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [newRewardError, setNewRewardError] = useState<(string | undefined)[]>([])
 
   const [newRewardIdx, setNewRewardIdx] = useState(-1)
   const [remainRewardsCount, setRemainRewardsCount] = useState<number>(2 - (currentAmmPool?.rewardInfos.length || 0))
+
+  const isEditFarm = currentAmmPool && currentAmmPool?.rewardInfos.length > 0
+  const hasRewards =
+    (currentAmmPool?.rewardInfos || []).length > 0 ||
+    editedReward.newRewards.filter((reward) => !!reward?.token).length > 0
+
+  const whiteListMints = useMemo(
+    () =>
+      new Set([
+        ...whitelistRewards.map((pub) => pub.toBase58()),
+        currentAmmPool?.base?.mint.toBase58(),
+        currentAmmPool?.quote?.mint.toBase58()
+      ]),
+    [whitelistRewards, currentAmmPool]
+  )
+  const hasWhiteListRewards = useMemo(
+    () =>
+      currentAmmPool?.rewardInfos.some((reward) => whiteListMints.has(reward.tokenMint.toBase58())) ||
+      editedReward.newRewards.some((reward) => whiteListMints.has(reward.token?.mint.toBase58())),
+    [currentAmmPool, editedReward, whiteListMints]
+  )
+
+  const enableTokens =
+    hasRewards &&
+    ((!hasWhiteListRewards && remainRewardsCount === 0) || editedReward.newRewards[newRewardIdx]?.isWhiteListReward)
+      ? sortTokens(
+          shakeUndifindedItem(
+            Array.from(whiteListMints)
+              .map((reward) => getToken(reward))
+              .filter(
+                (token) =>
+                  !currentAmmPool ||
+                  (token && !currentAmmPool.rewardInfos.some((reward) => reward.tokenMint.equals(token.mint)))
+              )
+              .filter((token) => !editedReward.newRewards.some((reward) => reward.token?.mint.equals(token!.mint)))
+          ),
+          true
+        )
+      : undefined
 
   const errorIdx = newRewardError.findIndex((e) => !!e)
   const canClickAddBtn = remainRewardsCount > 0 && errorIdx === -1
@@ -51,28 +99,39 @@ export default function EditFarm() {
     setEditedReward((preValues) => ({ ...preValues, updateReward: data }))
   }, [])
 
-  const handleUpdateNewReward = useCallback((data: NewReward, rewardIdx: number) => {
-    setEditedReward((preValues) => {
-      const newRewards = [...preValues.newRewards]
-      newRewards[rewardIdx] = data
-      return { ...preValues, newRewards }
-    })
-  }, [])
+  const handleUpdateNewReward = useCallback(
+    (data: NewReward, rewardIdx: number) => {
+      setEditedReward((preValues) => {
+        const newRewards = [...preValues.newRewards]
+        newRewards[rewardIdx] = data
+        if (newRewards.filter((r) => !!r?.token).length > 1 && !newRewards.find((r) => r.isWhiteListReward)) {
+          const target = newRewards.findIndex((reward) => whiteListMints.has(reward.token?.mint.toBase58()))
+          if (target > -1) newRewards[target].isWhiteListReward = true
+        }
+        return { ...preValues, newRewards }
+      })
+    },
+    [hasWhiteListRewards, whiteListMints]
+  )
 
-  const handleClickNewReward = useCallback((rewardIdx: number) => {
-    setNewRewardIdx(rewardIdx)
-  }, [])
+  const handleClickNewReward = useCallback((rewardIdx: number) => setNewRewardIdx(rewardIdx), [])
 
   const handleDeleteNewReward = useCallback(
     (rewardIdx: number) => {
       setEditedReward((preValues) => {
         const newRewards = [...preValues.newRewards]
         newRewards.splice(rewardIdx, 1)
+        newRewards.forEach((reward) => (reward.isWhiteListReward = false))
         setNewRewardIdx(newRewards.length - 1)
         return { ...preValues, newRewards }
       })
       setRemainRewardsCount((count) => count + 1)
-      handleNewRewardError(rewardIdx)
+
+      setNewRewardError((prevErr) => {
+        const errors = [...prevErr]
+        errors.splice(rewardIdx, 1)
+        return errors
+      })
     },
     [handleNewRewardError]
   )
@@ -80,6 +139,7 @@ export default function EditFarm() {
   const handleSendRewardText = () => {
     const { newRewards, updateReward } = editedReward
     txSetRewards({
+      onTxSuccess: () => setTxSuccess(true),
       currentAmmPool: currentAmmPool!,
       updateRewards: updateReward || new Map(),
       newRewards:
@@ -88,16 +148,24 @@ export default function EditFarm() {
               token: r.token!,
               openTime: r.openTime!,
               endTime: r.endTime!,
-              perDay: r.perDay!
+              perWeek: r.perWeek!
             }))
           : []
     })
   }
 
+  const handleClickAddNewReward = useCallback(() => setNewRewardIdx((idx) => idx + 1), [])
+
+  useEffect(() => {
+    if (currentAmmPool && !currentAmmPool.rewardInfos.length && newRewardIdx === -1) {
+      handleClickAddNewReward()
+    }
+  }, [currentAmmPool, newRewardIdx, handleClickAddNewReward])
+
   return (
     <div className="max-w-[720px]">
-      <div className="text-2xl mb-10">Edit Farm</div>
-      <div className="text-sm text-secondary-title mb-3">Pool</div>
+      <div className="text-2xl mb-10">{isEditFarm ? 'Edit' : 'Create'} Farm</div>
+      <div className="text-sm text-secondary-title mb-3">Concentrated liquidity Pool</div>
       <PoolInfo pool={currentAmmPool} />
 
       {currentAmmPool?.rewardInfos && currentAmmPool.rewardInfos.length > 0 ? (
@@ -107,9 +175,9 @@ export default function EditFarm() {
         </div>
       ) : null}
 
-      {(editedReward.newRewards.length > 1 || showPreview) && (
+      {(editedReward.newRewards.length > 1 || (showPreview && editedReward.newRewards.length > 0)) && (
         <>
-          <div className="text-sm text-secondary-title mb-3">New farm rewards</div>
+          <div className="text-sm text-secondary-title mb-3">New farming rewards</div>
           <NewRewardTable
             tvl={currentAmmPool?.tvl}
             newRewards={editedReward.newRewards}
@@ -122,24 +190,39 @@ export default function EditFarm() {
       {canAddRewardToken && (
         <>
           {newRewardIdx !== -1 ? (
-            <AddNewReward
-              key={newRewardIdx}
-              disableTokens={shakeUndifindedItem([
-                ...currentAmmPool.rewardInfos.map((r) => r.rewardToken),
-                ...editedReward.newRewards.map((r) => r.token)
-              ])}
-              dataIndex={newRewardIdx}
-              defaultData={editedReward.newRewards[newRewardIdx]}
-              onValidateChange={handleNewRewardError}
-              onUpdateReward={handleUpdateNewReward}
-            />
+            <>
+              <div className="flex items-center gap-1 text-sm text-secondary-title mb-3">
+                New farming rewards
+                <Tooltip>
+                  <Icon size="sm" heroIconName="question-mark-circle" />
+                  <Tooltip.Panel>
+                    <div className="max-w-[300px]">
+                      Two reward tokens can be added to a farm. The first can be any SPL token. <br />
+                      If two tokens are added, at least one should be from the token pair of the pool.
+                    </div>
+                  </Tooltip.Panel>
+                </Tooltip>
+              </div>
+              <AddNewReward
+                key={newRewardIdx}
+                enableTokens={enableTokens}
+                disableTokens={shakeUndifindedItem([
+                  ...(currentAmmPool ? currentAmmPool.rewardInfos.map((r) => r.rewardToken) : []),
+                  ...editedReward.newRewards.map((r) => r.token)
+                ])}
+                dataIndex={newRewardIdx}
+                defaultData={editedReward.newRewards[newRewardIdx]}
+                onValidateChange={handleNewRewardError}
+                onUpdateReward={handleUpdateNewReward}
+              />
+            </>
           ) : null}
           <Row
             className={`items-center w-fit mb-2 ${!canClickAddBtn ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
-            onClick={canClickAddBtn ? () => setNewRewardIdx((idx) => idx + 1) : undefined}
+            onClick={canClickAddBtn ? handleClickAddNewReward : undefined}
           >
             <Icon className="text-[#abc4ff]" heroIconName="plus-circle" size="sm" />
-            <div className="ml-1.5 text-[#abc4ff] font-base mobile:text-sm">Add another reward token</div>
+            <div className="ml-1.5 text-[#abc4ff] font-base mobile:text-sm">Add reward token</div>
             <div className="ml-1.5 text-[#abc4ff80] font-base mobile:text-sm">({remainRewardsCount} more)</div>
           </Row>
         </>
@@ -176,9 +259,19 @@ export default function EditFarm() {
       )}
       {showPreview && (
         <Row className="justify-center gap-2">
-          <Button className="frosted-glass-teal w-fit" onClick={handleSendRewardText}>
-            Confirm Farm Changes
-          </Button>
+          {txSuccess ? (
+            <Button
+              className="frosted-glass-skygray w-fit"
+              size={isMobile ? 'sm' : 'lg'}
+              onClick={() => routeTo('/clmm/pools')}
+            >
+              Back to Pools
+            </Button>
+          ) : (
+            <Button className="frosted-glass-teal w-fit" onClick={handleSendRewardText}>
+              Confirm Farm Changes
+            </Button>
+          )}
           <Button
             className="frosted-glass-skygray w-fit"
             size={isMobile ? 'sm' : 'lg'}
@@ -196,7 +289,7 @@ export default function EditFarm() {
             <div className="text-[#abc4ff] font-base mobile:text-sm">How to add more rewards?</div>
             <div className="flex my-3">
               <span>1.</span>
-              You can add additional rewards to the farm 24 hrs prior to rewards ending, but this can only be done if
+              You can add additional rewards to the farm 72 hrs prior to rewards ending, but this can only be done if
               rate of rewards for that specific reward token doesn’t change.
             </div>
             <div className="flex">

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Fraction } from '@raydium-io/raydium-sdk'
 import useAppSettings from '@/application/common/useAppSettings'
 import useWallet from '@/application/wallet/useWallet'
@@ -39,7 +39,7 @@ interface State {
   duration?: string
   openTime?: Date
   endTime?: Date
-  perDay: string
+  perWeek: string
 }
 
 export default function AddMoreDialog({
@@ -53,7 +53,7 @@ export default function AddMoreDialog({
   const [getBalance, walletConnected] = useWallet((s) => [s.getBalance, s.connected])
   const [values, setValues] = useState<State>({
     amount: '',
-    perDay: ''
+    perWeek: ''
   })
   const decimals = reward?.rewardToken?.decimals || 6
   const currentBlockChainDate = new Date(Date.now() + (chainTimeOffset || 0))
@@ -71,21 +71,22 @@ export default function AddMoreDialog({
       setValues({
         amount: '',
         openTime: reward.isRewardEnded ? undefined : getDate(reward.endTime),
-        perDay: trimTailingZero(mul(div(reward?.perSecond, 10 ** decimals), DAY_SECONDS)?.toFixed(decimals))
+        perWeek: trimTailingZero(mul(div(reward?.perSecond, 10 ** decimals), DAY_SECONDS * 7)?.toFixed(decimals))
       })
     }
   }, [reward, decimals])
 
   useEffect(() => {
-    setValues(({ duration, perDay, ...preValues }) => {
+    setValues(({ duration, perWeek, ...preValues }) => {
       if (isRewardEnded) {
+        const perWeek =
+          isMeaningfulNumber(preValues.amount) && isMeaningfulNumber(duration)
+            ? trimTailingZero(mul(div(preValues.amount, duration), 7).toFixed(decimals))
+            : ''
         return {
           ...preValues,
           duration,
-          perDay:
-            isMeaningfulNumber(preValues.amount) && isMeaningfulNumber(duration)
-              ? trimTailingZero(div(preValues.amount, duration).toFixed(decimals))
-              : '',
+          perWeek,
           endTime:
             isMeaningfulNumber(preValues.openTime?.valueOf()) && isMeaningfulNumber(values.duration)
               ? offsetDateTime(preValues.openTime, {
@@ -97,8 +98,8 @@ export default function AddMoreDialog({
       return {
         ...preValues,
         duration,
-        perDay,
-        amount: perDay && duration ? trimTailingZero(mul(perDay, Number(duration)).toFixed(decimals)) : '0',
+        perWeek,
+        amount: perWeek && duration ? trimTailingZero(mul(div(perWeek, 7), Number(duration)).toFixed(decimals)) : '0',
         endTime:
           isMeaningfulNumber(reward?.endTime.valueOf()) && isMeaningfulNumber(values.duration)
             ? offsetDateTime(reward?.endTime, {
@@ -107,7 +108,7 @@ export default function AddMoreDialog({
             : preValues.endTime
       }
     })
-  }, [values.duration, values.perDay, isRewardEnded, decimals, reward?.endTime])
+  }, [values.duration, values.perWeek, isRewardEnded, decimals, reward?.endTime])
 
   return (
     <>
@@ -133,9 +134,9 @@ export default function AddMoreDialog({
                   setValues((preValues) => ({
                     ...preValues,
                     amount,
-                    perDay:
+                    perWeek:
                       isMeaningfulNumber(amount) && isMeaningfulNumber(preValues.duration)
-                        ? trimTailingZero(div(amount, preValues.duration).toFixed(decimals))
+                        ? trimTailingZero(mul(div(amount, preValues.duration), 7).toFixed(decimals))
                         : ''
                   }))
                 }
@@ -219,23 +220,20 @@ export default function AddMoreDialog({
                 }}
               />
               <InputBox
-                label="Estimated rewards / day"
+                label="Estimated rewards / week"
                 className="flex-[2]"
-                disabled={!isRewardEnded}
-                onUserInput={(val) =>
-                  isRewardEnded
-                    ? setValues((preValues) => ({
-                        ...preValues,
-                        perDay: val,
-                        amount: isRewardEnded
-                          ? isMeaningfulNumber(val) && isMeaningfulNumber(preValues.duration)
-                            ? mul(val, preValues.duration).toFixed(decimals)
-                            : '0'
-                          : preValues.amount
-                      }))
-                    : undefined
-                }
-                value={isRewardEnded ? values.perDay : estimatedValueDay}
+                onUserInput={(val) => {
+                  setValues((preValues) => ({
+                    ...preValues,
+                    perWeek: val,
+                    amount: isRewardEnded
+                      ? isMeaningfulNumber(val) && isMeaningfulNumber(preValues.duration)
+                        ? mul(div(val, 7), preValues.duration).toFixed(decimals)
+                        : '0'
+                      : preValues.amount
+                  }))
+                }}
+                value={values.perWeek}
               />
             </Row>
 
@@ -288,7 +286,7 @@ export default function AddMoreDialog({
                     data: {
                       openTime: values.openTime!.valueOf(),
                       endTime: values.endTime!.valueOf(),
-                      perSecond: toFraction(div(mul(values.perDay, 10 ** decimals), DAY_SECONDS))
+                      perSecond: toFraction(div(mul(div(values.perWeek, 7), 10 ** decimals), DAY_SECONDS))
                     }
                   })
                   closeDialog()
