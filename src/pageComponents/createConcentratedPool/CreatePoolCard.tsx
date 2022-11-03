@@ -47,6 +47,7 @@ import PriceRangeInput from './PriceRangeInput'
 import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
+import toPercentString from '@/functions/format/toPercentString'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -210,6 +211,7 @@ export function CreatePoolCard() {
       setPosition((p) => ({ ...p, [Range.Low]: toFixedNumber(price) }))
     }
   })
+  console.log(123123, toPercentString(userSelectedAmmConfigFeeOption?.tradeFeeRate))
 
   const handleBlur = useCallback(
     ({
@@ -538,6 +540,8 @@ export function CreatePoolCard() {
         position={{ min: toFraction(priceLower!).toFixed(decimals), max: toFraction(priceUpper!).toFixed(decimals) }}
         totalDeposit={toUsdVolume(totalDeposit)}
         onClose={closePreviewDialog}
+        inRange={!inputDisable.find((disabled) => disabled)}
+        feeRate={toPercentString(userSelectedAmmConfigFeeOption?.tradeFeeRate)}
         onConfirm={() => {
           txCreateNewConcentratedPool().then(({ allSuccess }) => {
             closePreviewDialog()

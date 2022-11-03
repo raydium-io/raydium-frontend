@@ -12,6 +12,7 @@ import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import { toString } from '@/functions/numberish/toString'
+import formatNumber from '@/functions/format/formatNumber'
 import { Numberish } from '@/types/constants'
 import { ConcentratedStore } from '@/application/concentrated/useConcentrated'
 
@@ -26,6 +27,8 @@ interface Props {
   currentPrice?: Fraction
   position?: { min: string; max: string }
   totalDeposit: string
+  inRange: boolean
+  feeRate: string
   onConfirm?: (close: () => void) => void
   onClose: () => void
 }
@@ -41,6 +44,8 @@ export default function CreatePoolPreviewDialog({
   currentPrice,
   position,
   totalDeposit,
+  inRange,
+  feeRate,
   onConfirm,
   onClose
 }: Props) {
@@ -99,13 +104,30 @@ export default function CreatePoolPreviewDialog({
           </div>
 
           <div className="mt-4 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
+            <div className="text-sm flex justify-between leading-[18px] mb-2 font-medium mobile:text-xs">
+              <span className="flex text-sm leading-[18px] text-secondary-title mr-2">Current Price</span>
+              {currentPrice ? formatNumber(toString(currentPrice, { decimalLength: decimalPlace })) : '0'}{' '}
+              {(focusSide === 'coin1' ? coin2 : coin1)?.symbol} per {(focusSide === 'coin1' ? coin1 : coin2)?.symbol}
+            </div>
             <div className="flex justify-between mb-3">
               <span className="text-sm leading-[18px] text-secondary-title">Selected Range</span>
-              <div className="text-sm flex items-end leading-[18px] font-medium mobile:text-xs">
-                <span className="flex text-[#abc4ff80] mr-2">Current Price</span>
-                {currentPrice ? toString(currentPrice, { decimalLength: decimalPlace }) : '0'}{' '}
-                {(focusSide === 'coin1' ? coin2 : coin1)?.symbol} per {(focusSide === 'coin1' ? coin1 : coin2)?.symbol}
-              </div>
+              <span>
+                {inRange ? (
+                  <Row className="items-center bg-[#142B45] rounded text-xs text-[#39D0D8] py-0.5 px-1 ml-2">
+                    <Icon size="xs" iconSrc={'/icons/check-circle.svg'} />
+                    <div className="mobile:text-2xs font-normal" style={{ marginLeft: 4 }}>
+                      In Range
+                    </div>
+                  </Row>
+                ) : (
+                  <Row className="items-center bg-[#DA2EEF]/10 rounded text-xs text-[#DA2EEF] py-0.5 px-1 ml-2">
+                    <Icon size="xs" iconSrc={'/icons/warn-stick.svg'} />
+                    <div className="mobile:text-2xs font-normal" style={{ marginLeft: 4 }}>
+                      Out of Range
+                    </div>
+                  </Row>
+                )}
+              </span>
             </div>
 
             <div className="flex gap-3">
@@ -136,7 +158,7 @@ export default function CreatePoolPreviewDialog({
             <div className="self-stretch">
               <Col>
                 <Button className={`frosted-glass-teal`} onClick={() => confirm(close)}>
-                  Confirm Deposit
+                  Create Pool and Deposit
                 </Button>
               </Col>
             </div>

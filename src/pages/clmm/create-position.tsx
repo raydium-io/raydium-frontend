@@ -6,9 +6,7 @@ import useConcentratedAmmSelector from '@/application/concentrated/useConcentrat
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import useConcentratedLiquidityUrlParser from '@/application/concentrated/useConcentratedLiquidityUrlParser'
-import useConnection from '@/application/connection/useConnection'
 import { routeBack, routeTo } from '@/application/routeTools'
-import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
@@ -468,11 +466,6 @@ function ConcentratedCard() {
             </div>
           </div>
 
-          {/* <div>
-            <div className="text-base leading-[22px] text-secondary-title mb-3">Select Fee</div>
-            <ConcentratedFeeSwitcher />
-          </div> */}
-
           {coin1InputDisabled || coin2InputDisabled ? (
             <FadeIn>
               <div className="flex items-center p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
@@ -596,6 +589,8 @@ function ConcentratedCard() {
         decimals={decimals}
         position={chartRef.current?.getPosition()}
         totalDeposit={toUsdVolume(totalDeposit)}
+        feeRate={currentAmmPool?.ammConfig.tradeFeeRate}
+        inRange={!inputDisable.some((disabled) => disabled)}
         currentPrice={
           currentAmmPool
             ? decimalToFraction(
