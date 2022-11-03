@@ -108,7 +108,7 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
                   className={(iconSettings[headTx.status] as any).textColor}
                 />
                 <div>{headTx.title ?? ''}</div>
-                <div className="ml-0.5 grid place-items-center h-4 w-4 rounded-full bg-[#abc4ff40] text-[#abc4ff]">
+                <div className="flex-none ml-0.5 grid place-items-center h-4 w-4 rounded-full bg-[#abc4ff40] text-[#abc4ff]">
                   <Icon size="xs" heroIconName={open ? 'chevron-up' : 'chevron-down'} />
                 </div>
               </Row>
@@ -121,7 +121,7 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
         </Collapse.Face>
         <Collapse.Body>
           <div className="pb-2">
-            {txInfoGroup.map((txInfo) => (
+            {txInfoGroup.map((txInfo, idx) => (
               <LinkExplorer hrefDetail={`tx/${txInfo.txid}`} noTextStyle key={txInfo.txid}>
                 <Row
                   type="grid-x"
@@ -137,7 +137,7 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
                       iconSrc={(iconSettings[txInfo.status] as any).iconSrc}
                       className={(iconSettings[txInfo.status] as any).textColor}
                     />
-                    <div>{txInfo.subtransactionDescription}</div>
+                    <div>{txInfo.subtransactionDescription ?? `Transaction ${idx + 1}`}</div>
                   </Row>
                   {/* table head column: Date and time */}
                   <div className="font-medium text-[#ABC4FF80] text-xs">{toUTC(txInfo.time)}</div>
