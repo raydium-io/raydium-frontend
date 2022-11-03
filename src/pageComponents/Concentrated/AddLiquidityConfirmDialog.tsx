@@ -14,6 +14,7 @@ import Row from '@/components/Row'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
 import toPercentString from '@/functions/format/toPercentString'
+import { shakeZero } from '@/functions/numberish/shakeZero'
 
 interface Props {
   open: boolean
@@ -107,8 +108,8 @@ export default function AddLiquidityConfirmDialog({
           <div className="mt-4 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
             <div className="text-sm flex justify-between items-end leading-[18px] font-medium mb-2 mobile:text-xs">
               <span className="flex text-sm text-secondary-title leading-[18px] mr-2">Current Price</span>
-              {currentPrice ? toString(currentPrice, { decimalLength: decimalPlace }) : '0'} {coin2?.symbol} per{' '}
-              {coin1?.symbol}
+              {currentPrice ? shakeZero(toString(currentPrice, { decimalLength: decimalPlace })) : '0'} {coin2?.symbol}{' '}
+              per {coin1?.symbol}
             </div>
             <div className="flex justify-between mb-3">
               <span className="text-sm leading-[18px] text-secondary-title">Selected Range</span>

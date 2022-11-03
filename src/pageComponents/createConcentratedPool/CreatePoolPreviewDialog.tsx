@@ -12,9 +12,9 @@ import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import { toString } from '@/functions/numberish/toString'
-import formatNumber from '@/functions/format/formatNumber'
 import { Numberish } from '@/types/constants'
 import { ConcentratedStore } from '@/application/concentrated/useConcentrated'
+import { shakeZero } from '@/functions/numberish/shakeZero'
 
 interface Props {
   open: boolean
@@ -100,13 +100,17 @@ export default function CreatePoolPreviewDialog({
                   {toString(coin2Amount)} {coin2?.symbol}
                 </span>
               </div>
+              <div className="flex justify-between mt-2 pl-1">
+                <span className="flex items-center text-sm text-[#abc4ff]">Fee tier</span>
+                <span>{feeRate}</span>
+              </div>
             </div>
           </div>
 
           <div className="mt-4 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
             <div className="text-sm flex justify-between leading-[18px] mb-2 font-medium mobile:text-xs">
               <span className="flex text-sm leading-[18px] text-secondary-title mr-2">Current Price</span>
-              {currentPrice ? formatNumber(toString(currentPrice, { decimalLength: decimalPlace })) : '0'}{' '}
+              {currentPrice ? shakeZero(toString(currentPrice, { decimalLength: decimalPlace })) : '0'}{' '}
               {(focusSide === 'coin1' ? coin2 : coin1)?.symbol} per {(focusSide === 'coin1' ? coin1 : coin2)?.symbol}
             </div>
             <div className="flex justify-between mb-3">
