@@ -178,7 +178,7 @@ export function TxNotificationItemCard({
                     <div>
                       {state === 'success' ? (
                         <Icon heroIconName="check-circle" size={isMobile ? 'sm' : 'smi'} className="text-[#39d0d8]" />
-                      ) : state === 'error' ? (
+                      ) : state === 'error' || state === 'aborted' ? (
                         <Icon
                           heroIconName="exclamation-circle"
                           size={isMobile ? 'sm' : 'smi'}

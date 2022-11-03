@@ -13,6 +13,7 @@ import { SplToken } from '../token/type'
 import useToken from '../token/useToken'
 import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
+
 import {
   GetAprParameters,
   GetAprPoolTickParameters,
@@ -66,7 +67,6 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
         rewardPerDay: rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400))
       }
     }),
-
     idString: toPubString(sdkConcentratedInfo.state.id),
     tvl: toUsdCurrency(sdkConcentratedInfo.state.tvl),
 

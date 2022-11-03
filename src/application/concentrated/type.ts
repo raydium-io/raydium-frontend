@@ -85,10 +85,10 @@ export interface HydratedConcentratedInfo extends SDKParsedConcentratedInfo {
   quote: SplToken | undefined
   liquidity: BN
   id: PublicKey
-  creator: PublicKey
   userPositionAccount?: UserPositionAccount[]
   name: string
   idString: string
+  creator: PublicKey
 
   ammConfig: AmmV3PoolInfo['ammConfig']
   currentPrice: Fraction
