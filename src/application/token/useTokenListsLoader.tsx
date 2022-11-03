@@ -283,6 +283,7 @@ async function loadTokens() {
   const unnamedOriginalMintsLength = tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.size
   const otherOriginalMintsLength = tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME].mints?.size
   if (
+    (officialMints.length === 0 || unOfficialMints.length === 0 || otherLiquiditySupportedMints.length === 0) && // fetch might failed, if failed, do not use empty array to update the current token list in dapp
     devMints.length === devOriginalMintsLength &&
     officialMints.length === mainnetOriginalMintsLength &&
     unOfficialMints.length === solanaTokenOriginalMintsLength &&
