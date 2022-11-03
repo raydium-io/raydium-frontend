@@ -491,8 +491,16 @@ export function CreatePoolCard() {
           ''
         )}
 
+        <div className="flex items-center text-xs p-[12px] rounded-lg text-secondary-title bg-[rgba(171,196,255,0.08)] mt-auto -mb-2.5">
+          <Icon size="sm" heroIconName="information-circle" />
+          <div className="ml-2.5">
+            <span className="font-medium">SOL network fee</span>: Estimated transaction fee for creating a pool is
+            approximately 0.3 SOL, but may vary depending on transaction size.
+          </div>
+        </div>
+
         <Button
-          className="frosted-glass-teal mobile:w-full mt-auto"
+          className="frosted-glass-teal mobile:w-full"
           size={isMobile ? 'sm' : 'lg'}
           validators={[
             {
