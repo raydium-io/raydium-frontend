@@ -24,6 +24,7 @@ import {
   getPositonAprCore
 } from './calcApr'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
+import toBN from '@/functions/numberish/toBN'
 
 export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConcentratedInfo): HydratedConcentratedInfo {
   const rawAmmPoolInfo = mergeObject(
