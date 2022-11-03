@@ -519,7 +519,9 @@ function FarmCard() {
         <div className="font-medium text-[rgba(196,214,255,.5)] text-base ">{farmCardTitleInfo.description}</div>
       </div>
       <Row className="grow flex-wrap justify-end items-stretch gap-6">
-        {currentTab === 'Ecosystem' || currentTab === 'Staked' ? <FarmSelfCreatedOnlyBlock /> : null}
+        {Boolean(owner) && (currentTab === 'Ecosystem' || currentTab === 'Staked') ? (
+          <FarmSelfCreatedOnlyBlock />
+        ) : null}
         {/* <FarmStakedOnlyBlock /> */}
         {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
         <FarmTimeBasisSelector />

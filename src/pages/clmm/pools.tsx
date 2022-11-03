@@ -293,6 +293,8 @@ function ShowCreated() {
 }
 
 function PoolLabelBlock({ className }: { className?: string }) {
+  const owner = useWallet((s) => s.owner)
+
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
       <Col>
@@ -309,7 +311,7 @@ function PoolLabelBlock({ className }: { className?: string }) {
       </Col>
 
       <Row className="gap-4 items-center">
-        <ShowCreated />
+        {Boolean(owner) && <ShowCreated />}
         <HarvestAll />
         <PoolTimeBasisSelectorBox />
         <PoolSearchBlock className="h-[36px]" />
