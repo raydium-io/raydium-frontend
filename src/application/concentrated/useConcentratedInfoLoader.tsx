@@ -1,7 +1,7 @@
+import { useCallback } from 'react'
 import { useRouter } from 'next/router'
 
 import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from '@raydium-io/raydium-sdk'
-import { useCallback } from 'react'
 
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'

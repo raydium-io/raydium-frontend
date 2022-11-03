@@ -1,6 +1,3 @@
-import { AmmV3PoolPersonalPosition, Price } from '@raydium-io/raydium-sdk'
-import { PublicKey } from '@solana/web3.js'
-
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -8,13 +5,14 @@ import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import { mergeObject } from '@/functions/merge'
 import { gt, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
-
+import toFraction from '@/functions/numberish/toFraction'
+import { AmmV3PoolPersonalPosition, Price } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
+import { BN } from 'bn.js'
 import { SplToken } from '../token/type'
 import useToken from '../token/useToken'
 import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
-
-import { BN } from 'bn.js'
 import {
   GetAprParameters,
   GetAprPoolTickParameters,
@@ -24,7 +22,6 @@ import {
   getPositonAprCore
 } from './calcApr'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
-import toBN from '@/functions/numberish/toBN'
 
 export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConcentratedInfo): HydratedConcentratedInfo {
   const rawAmmPoolInfo = mergeObject(
@@ -48,6 +45,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
   const tokenA = getToken(sdkConcentratedInfo.state.mintA.mint)
   const tokenB = getToken(sdkConcentratedInfo.state.mintB.mint)
   const rewardLength = sdkConcentratedInfo.state.rewardInfos.length
+
   return {
     ammConfig: sdkConcentratedInfo.state.ammConfig,
     currentPrice,
@@ -56,7 +54,7 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
       const rewardToken = getToken(r.tokenMint)
       return {
         ...r,
-        perSecond: toBN(r.perSecond.toString()),
+        perSecond: toFraction(r.perSecond.toString()),
         rewardToken,
         openTime: r.openTime.toNumber() * 1000,
         endTime: r.endTime.toNumber() * 1000,
