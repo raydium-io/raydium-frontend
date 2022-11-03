@@ -25,7 +25,7 @@ import {
 } from './type'
 import useToken, {
   OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME, RAYDIUM_DEV_TOKEN_LIST_NAME, RAYDIUM_MAINNET_TOKEN_LIST_NAME,
-  RAYDIUM_UNNAMED_TOKEN_LIST_NAME, SOLANA_TOKEN_LIST_NAME
+  RAYDIUM_UNNAMED_TOKEN_LIST_NAME, SOLANA_TOKEN_LIST_NAME, SupportedTokenListSettingName
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
 
@@ -170,7 +170,18 @@ interface TokenInfoCollector {
   tokens: TokenJson[]
 }
 
-async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Promise<{
+async function fetchTokenLists(
+  rawListConfigs: TokenListFetchConfigItem[],
+  tokenListSettings: {
+    [N in SupportedTokenListSettingName]: {
+      mints?: Set<HexAddress> // TODO
+      disableUserConfig?: boolean
+      isOn: boolean
+      icon?: SrcAddress
+      cannotbBeSeen?: boolean
+    }
+  }
+): Promise<{
   devMints: string[]
   unOfficialMints: string[]
   officialMints: string[]
@@ -223,6 +234,22 @@ async function fetchTokenLists(rawListConfigs: TokenListFetchConfigItem[]): Prom
   // eslint-disable-next-line no-console
   console.info('tokenList end fetching, total tokens #: ', tokenCollector.tokens.length)
 
+  // check if any of fetchings is failed (has response, but not code: 200)
+  // then replace it w/ current list value (if current list is not undefined)
+  const checkMapping = [
+    { collector: 'devMints', settings: RAYDIUM_DEV_TOKEN_LIST_NAME },
+    { collector: 'officialMints', settings: RAYDIUM_MAINNET_TOKEN_LIST_NAME },
+    { collector: 'unOfficialMints', settings: SOLANA_TOKEN_LIST_NAME },
+    { collector: 'unNamedMints', settings: RAYDIUM_UNNAMED_TOKEN_LIST_NAME },
+    { collector: 'otherLiquiditySupportedMints', settings: OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME }
+  ]
+
+  for (const pair of checkMapping) {
+    if (tokenCollector[pair.collector].length === 0 && tokenListSettings[pair.settings].mints) {
+      tokenCollector[pair.collector] = Array.from(tokenListSettings[pair.settings].mints.values())
+    }
+  }
+
   return tokenCollector
 }
 
@@ -274,7 +301,7 @@ async function loadTokens() {
     unNamedMints,
     tokens: allTokens,
     blacklist: _blacklist
-  } = await fetchTokenLists(rawTokenListConfigs)
+  } = await fetchTokenLists(rawTokenListConfigs, tokenListSettings)
   // if length has not changed, don't parse again
 
   const mainnetOriginalMintsLength = tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.size
@@ -282,8 +309,8 @@ async function loadTokens() {
   const devOriginalMintsLength = tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.size
   const unnamedOriginalMintsLength = tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.size
   const otherOriginalMintsLength = tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME].mints?.size
+
   if (
-    (officialMints.length === 0 || unOfficialMints.length === 0 || otherLiquiditySupportedMints.length === 0) && // fetch might failed, if failed, do not use empty array to update the current token list in dapp
     devMints.length === devOriginalMintsLength &&
     officialMints.length === mainnetOriginalMintsLength &&
     unOfficialMints.length === solanaTokenOriginalMintsLength &&
