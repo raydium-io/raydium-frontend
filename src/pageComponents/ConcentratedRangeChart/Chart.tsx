@@ -271,7 +271,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     const initDecimals = Math.abs(val) < 1 ? 2 : 1
 
     let tick = Number(val.toFixed(initDecimals)).toString()
-    for (let i = initDecimals; i < 5 && labels.indexOf(tick) !== -1; i++) {
+    for (let i = initDecimals; i < 10 && labels.indexOf(tick) !== -1; i++) {
       tick = Number(val.toFixed(i)).toString()
     }
     labels.push(tick)

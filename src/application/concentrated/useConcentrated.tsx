@@ -86,6 +86,7 @@ export type ConcentratedStore = {
   isAddDialogOpen: boolean
   isMyPositionDialogOpen: boolean
   isAprCalcPanelShown: boolean
+  ownedPoolOnly: boolean
 
   targetUserPositionAccount?: UserPositionAccount
 
@@ -137,6 +138,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   isRemoveDialogOpen: false,
   isMyPositionDialogOpen: false,
   isAprCalcPanelShown: false,
+  ownedPoolOnly: false,
 
   isInput: undefined,
   isSearchAmmDialogOpen: false,
