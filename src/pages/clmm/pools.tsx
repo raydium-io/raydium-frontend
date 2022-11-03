@@ -8,14 +8,10 @@ import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo,
-  HydratedConcentratedRewardInfo,
-  UserPositionAccount
+  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -1347,7 +1343,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             })}
         </>
       )}
-      {info.rewardInfos.length > 0 ? (
+      {info.rewardInfos.length > 0 && owner && info.rewardInfos.find((i) => i.creator.equals(owner)) ? (
         <AutoBox is={isMobile ? 'Col' : 'Row'}>{linkedFarm}</AutoBox>
       ) : (
         <AutoBox>{openNewPosition}</AutoBox>
