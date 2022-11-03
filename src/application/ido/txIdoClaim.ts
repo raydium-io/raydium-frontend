@@ -3,7 +3,7 @@ import { PublicKey } from '@solana/web3.js'
 import { Spl, WSOL } from '@raydium-io/raydium-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import txHandler, { SingleTxOptions, HandleFnOptions } from '@/application/txTools/handleTx'
+import txHandler, { SingleTxOption, HandleFnOptions } from '@/application/txTools/handleTx'
 import { padZero } from '@/functions/numberish/handleZero'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -12,7 +12,7 @@ import { Ido, Snapshot } from './sdk'
 import { HydratedIdoInfo } from './type'
 
 export default async function txIdoClaim(
-  options: { idoInfo: HydratedIdoInfo; side: 'base' | 'quote' } & SingleTxOptions & HandleFnOptions
+  options: { idoInfo: HydratedIdoInfo; side: 'base' | 'quote' } & SingleTxOption & HandleFnOptions
 ) {
   const { idoInfo, side, forceKeyPairs, ...restTxAddOptions } = options
   return txHandler(

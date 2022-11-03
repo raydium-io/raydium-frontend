@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 
 import useWallet from '@/application/wallet/useWallet'
 import toPubString from '@/functions/format/toMintString'
@@ -57,7 +57,9 @@ export default function useAutoUpdateSelectableTokens() {
   // have sorted
   const sortedTokens = useMemo(() => sortTokens(settingsFiltedTokens), [settingsFiltedTokens, sortTokens, balances])
 
-  useToken.setState({
-    allSelectableTokens: sortedTokens
-  })
+  useEffect(() => {
+    useToken.setState({
+      allSelectableTokens: sortedTokens
+    })
+  }, [sortedTokens])
 }
