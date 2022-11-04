@@ -264,7 +264,14 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
                     <div className="text-[#abc4ff80] min-w-[2em] mr-1">{token?.symbol ?? '--'}</div>
                   </Row>
                 }
-                text={<div className="text-white justify-end text-end">{toString(amount)}</div>}
+                suffix={
+                  <div
+                    title={toString(amount)}
+                    className="grow overflow-hidden text-ellipsis text-white justify-end text-end"
+                  >
+                    {toString(amount)}
+                  </div>
+                }
               />
             ))}
           </Grid>
@@ -282,7 +289,14 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
                       <div className="text-[#abc4ff80] min-w-[2em] mr-1">{token?.symbol ?? '--'}</div>
                     </Row>
                   }
-                  text={<div className="text-white justify-end text-end">{toString(amount)}</div>}
+                  suffix={
+                    <div
+                      title={toString(amount)}
+                      className="grow overflow-hidden text-ellipsis text-white justify-end text-end"
+                    >
+                      {toString(amount)}
+                    </div>
+                  }
                 />
               ))
             ) : (
