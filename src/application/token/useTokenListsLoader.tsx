@@ -356,7 +356,12 @@ async function loadTokens() {
   useToken.setState((s) => ({
     canFlaggedTokenMints: new Set(
       Object.values(tokens)
-        .filter((token) => !s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.has(String(token.mint)))
+        .filter(
+          (token) =>
+            !officialMints.includes(String(token.mint)) &&
+            !devMints.includes(String(token.mint)) &&
+            !unNamedMints.includes(String(token.mint))
+        )
         .map((token) => String(token.mint))
     ),
     blacklist: _blacklist,
