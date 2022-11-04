@@ -1,6 +1,6 @@
 import { Connection, Transaction } from '@solana/web3.js'
 
-import { SendTransactionPayload, serialize } from './handleTx'
+import { SendTransactionPayload, serialize } from '.'
 
 type Txid = string
 
