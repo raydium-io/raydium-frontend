@@ -16,12 +16,17 @@ function canBatchTransactions(connection: Connection, transaction: Transaction) 
   return isConnectionSatisfied && isTransactionSatisfied
 }
 
-export async function sendTransactionCore(
-  transaction: Transaction,
-  payload: SendTransactionPayload,
-  batchOptions?: { allSignedTransactions: Transaction[] },
+export async function sendTransactionCore({
+  transaction,
+  payload,
+  batchOptions,
   cache = true
-): Promise<Txid> {
+}: {
+  transaction: Transaction
+  payload: SendTransactionPayload
+  batchOptions?: { allSignedTransactions: Transaction[] }
+  cache?: boolean
+}): Promise<Txid> {
   if (batchOptions && canBatchTransactions(payload.connection, transaction)) {
     let resolveFn
     const newPromise = new Promise<string>((resolve) => {
@@ -50,7 +55,7 @@ export async function sendTransactionCore(
 async function sendSingleTransaction(
   transaction: Transaction,
   payload: SendTransactionPayload,
-  cache = true
+  cache: boolean
 ): Promise<Txid> {
   if (payload.signerkeyPair?.ownerKeypair) {
     // if have signer detected, no need signAllTransactions

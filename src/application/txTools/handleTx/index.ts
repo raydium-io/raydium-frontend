@@ -131,6 +131,9 @@ export type SingleTxOption = {
    * @default 'finally' when sendMode is 'queue(all-settle)'
    */
   continueWhenPreviousTx?: 'success' | 'error' | 'finally'
+
+  /** send multi same recentBlockhash tx will only send first one */
+  cacheTransaction?: boolean
 } & SingleTxCallbacks
 
 export type SingleTxCallbacks = {
@@ -305,7 +308,7 @@ function collectTxOptions(
   return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOption } }
 }
 
-export function serialize(transaction: Transaction, cache = true) {
+export function serialize(transaction: Transaction, cache: boolean) {
   const key = transaction.recentBlockhash
   if (key && txSerializeCache.has(key)) {
     return txSerializeCache.get(key)!
@@ -552,12 +555,12 @@ async function dealWithSingleTxOptions({
     currentIndex
   }
   try {
-    const txid = await sendTransactionCore(
+    const txid = await sendTransactionCore({
       transaction,
       payload,
-      isBatched ? { allSignedTransactions: wholeTxidInfo.transactions } : undefined,
-      wholeTxidInfo.transactions.length === 1 // NOTE: will cache when has only one transaction, ortherwise it will not cache // TODO: should cache has manually detected key (prop:cacheKey in singleOptions)
-    )
+      batchOptions: isBatched ? { allSignedTransactions: wholeTxidInfo.transactions } : undefined,
+      cache: Boolean(singleOption?.cacheTransaction)
+    })
     assert(txid, 'something went wrong in sending transaction')
     singleOption?.onTxSentSuccess?.({ transaction, txid, ...extraTxidInfo })
     wholeTxidInfo.passedMultiTxid[currentIndex] = txid //! 💩 bad method! it's mutate method!
