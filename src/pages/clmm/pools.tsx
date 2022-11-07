@@ -281,23 +281,12 @@ function ShowCreated() {
   const owner = useWallet((s) => s.owner)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
 
-  if (hydratedAmmPools && hydratedAmmPools.length > 0) {
-    /* eslint-disable */
-    console.log('hydratedAmmPools:', hydratedAmmPools[3].creator.toString())
-  }
-
   const hasCreatedPool = useMemo(() => {
     let result = false
 
     if (owner) {
-      /* eslint-disable */
-      console.log('has owner')
       for (const pool of hydratedAmmPools) {
         if (isMintEqual(pool.creator, owner)) {
-          /* eslint-disable */
-          console.log('pool.creator:', toPubString(pool.creator))
-          /* eslint-disable */
-          console.log('owner:', toPubString(owner))
           result = true
           break
         }
