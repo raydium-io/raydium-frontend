@@ -141,3 +141,12 @@ export const getMinMaxPriceLabel = (side: 'min' | 'max', price?: number | string
     <g></g>
   )
 }
+
+export function parseFirstDigit(num?: number) {
+  if (num === undefined) return 0
+  let p = 0
+  while (num * 10 ** p < 1) {
+    p++
+  }
+  return p
+}

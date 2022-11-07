@@ -20,7 +20,7 @@ import {
   Range,
   toFixedNumber,
   unitColor,
-  ZOOM_INTERVAL
+  parseFirstDigit
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
 
@@ -270,7 +270,9 @@ export default forwardRef(function Chart(props: Props, ref) {
       xAxisRef.current.push(val)
     }
 
-    const initDecimals = Math.abs(val) < 1 ? 2 : 1
+    const gap = points[1]?.x - points[0]?.x
+    const gapPrecision = parseFirstDigit(gap)
+    const initDecimals = gapPrecision > 3 ? gapPrecision - 1 : 1
 
     let tick = Number(val.toFixed(initDecimals)).toString()
     for (let i = initDecimals; i < 10 && labels.indexOf(tick) !== -1; i++) {
