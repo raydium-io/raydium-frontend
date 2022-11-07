@@ -161,7 +161,9 @@ function PoolsTabBlock({ className }: { className?: string }) {
   )
 }
 
-function ToolsButton({ className }: { className?: string }) {
+function ToolsButton({ className, hasUserCreatedPool }: { className?: string; hasUserCreatedPool: boolean }) {
+  const owner = useWallet((s) => s.owner)
+
   return (
     <>
       <Popover placement="bottom-right">
@@ -178,6 +180,7 @@ function ToolsButton({ className }: { className?: string }) {
             >
               <Grid className="grid-cols-1 items-center gap-2">
                 <PoolRefreshCircleBlock />
+                {Boolean(owner) && <ShowCreated hasUserCreatedPool={hasUserCreatedPool} />}
                 <PoolTimeBasisSelectorBox />
                 <HarvestAll />
                 <PoolCreateConcentratedPoolEntryBlock />
@@ -275,7 +278,7 @@ function HarvestAll() {
   )
 }
 
-function ShowCreated() {
+function ShowCreated({ hasUserCreatedPool }: { hasUserCreatedPool: boolean }) {
   const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
 
   return (
@@ -284,6 +287,7 @@ function ShowCreated() {
         Show Created
       </span>
       <Switcher
+        disable={!hasUserCreatedPool}
         className="ml-2 "
         defaultChecked={ownedPoolOnly}
         onToggle={(isOnly) => useConcentrated.setState({ ownedPoolOnly: isOnly })}
@@ -292,7 +296,7 @@ function ShowCreated() {
   )
 }
 
-function PoolLabelBlock({ className }: { className?: string }) {
+function PoolLabelBlock({ className, hasUserCreatedPool }: { className?: string; hasUserCreatedPool: boolean }) {
   const owner = useWallet((s) => s.owner)
 
   return (
@@ -311,7 +315,7 @@ function PoolLabelBlock({ className }: { className?: string }) {
       </Col>
 
       <Row className="gap-4 items-center">
-        {Boolean(owner) && <ShowCreated />}
+        {Boolean(owner) && <ShowCreated hasUserCreatedPool={hasUserCreatedPool} />}
         <HarvestAll />
         <PoolTimeBasisSelectorBox />
         <PoolSearchBlock className="h-[36px]" />
@@ -482,6 +486,18 @@ function PoolCard() {
       }),
     [applyFiltersDataSource, searchText]
   )
+
+  const hasUserCreatedPool = useMemo(() => {
+    let result = false
+    for (const pool of searched) {
+      if (isMintEqual(pool.creator, owner)) {
+        result = true
+        break
+      }
+    }
+
+    return result
+  }, [searched])
 
   const {
     sortedData,
@@ -702,13 +718,13 @@ function PoolCard() {
             }}
           />
         </Grid>
-        <ToolsButton className="self-center" />
+        <ToolsButton className="self-center" hasUserCreatedPool={hasUserCreatedPool} />
       </Row>
     </div>
   ) : (
     <div>
       <Row className={'w-full justify-between pb-5 items-center'}>
-        <PoolLabelBlock className="flex-grow" />
+        <PoolLabelBlock className="flex-grow" hasUserCreatedPool={hasUserCreatedPool} />
       </Row>
     </div>
   )
