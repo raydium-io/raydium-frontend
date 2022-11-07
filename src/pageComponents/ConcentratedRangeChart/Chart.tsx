@@ -100,6 +100,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const xAxisRef = useRef<number[]>([])
   const blurRef = useRef<number | undefined>()
   const blurTimerRef = useRef<number | undefined>()
+  const xAxisDomainRef = useRef<number[]>([0, 100])
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
   const currentPriceNum = currentPrice?.toFixed(decimals)
@@ -212,12 +213,13 @@ export default forwardRef(function Chart(props: Props, ref) {
         : displayList
     )
     if (currentPriceNum !== undefined) {
-      setXAxisDomain([
+      xAxisDomainRef.current = [
         parseFloat(currentPriceNum) * 0.3,
         defaultMaxNum && defaultMaxNum > parseFloat(currentPriceNum) * 1.7
           ? defaultMaxNum * 1.2
           : parseFloat(currentPriceNum) * 1.7
-      ])
+      ]
+      setXAxisDomain(xAxisDomainRef.current)
     }
   }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolFocusKey, currentPriceNum])
 
@@ -486,7 +488,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const zoomReset = () => {
     zoomRef.current = 0
     setDisplayList((list) => list.filter((p) => !p.extend))
-    setXAxisDomain(DEFAULT_X_AXIS)
+    setXAxisDomain(xAxisDomainRef.current)
     boundaryRef.current = {
       min: hasPoints ? displayList[0].x : 10,
       max: hasPoints ? displayList[displayList.length - 1].x : 100
@@ -499,9 +501,9 @@ export default forwardRef(function Chart(props: Props, ref) {
   }
   const zoomIn = () => {
     if (!hasPoints) return
-    const center = Number(currentPrice!.toFixed(decimals))
-    const min = center - (ZOOM_INTERVAL - zoomRef.current) * tickGap
-    const max = center + (ZOOM_INTERVAL - zoomRef.current) * tickGap
+    const min = xAxisDomainRef.current[0] + (zoomRef.current + 1) * tickGap
+    const max = xAxisDomainRef.current[xAxisDomainRef.current.length - 1] - (zoomRef.current + 1) * tickGap
+
     if (min >= max) return
     zoomRef.current = zoomRef.current + 1
     setupXAxis({ min, max })
@@ -509,14 +511,8 @@ export default forwardRef(function Chart(props: Props, ref) {
   const zoomOut = () => {
     if (!hasPoints) return
     zoomRef.current = zoomRef.current - 1
-    const center = Number(currentPrice?.toFixed(decimals)) || (position[Range.Max] + position[Range.Min]) / 2
-    const [min, max] = [
-      Math.min(center - (ZOOM_INTERVAL - zoomRef.current) * tickGap, (xAxis[0] || 0) + zoomRef.current * tickGap),
-      Math.max(
-        center + (ZOOM_INTERVAL - zoomRef.current) * tickGap,
-        (xAxis[xAxis.length - 1] || displayList[displayList.length - 1].x) - zoomRef.current * tickGap
-      )
-    ]
+    const min = xAxisDomainRef.current[0] + zoomRef.current * tickGap
+    const max = xAxisDomainRef.current[xAxisDomainRef.current.length - 1] - zoomRef.current * tickGap
     setupXAxis({ min, max })
   }
 
