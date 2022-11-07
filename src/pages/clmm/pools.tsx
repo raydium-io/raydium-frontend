@@ -161,9 +161,7 @@ function PoolsTabBlock({ className }: { className?: string }) {
   )
 }
 
-function ToolsButton({ className, hasUserCreatedPool }: { className?: string; hasUserCreatedPool: boolean }) {
-  const owner = useWallet((s) => s.owner)
-
+function ToolsButton({ className }: { className?: string }) {
   return (
     <>
       <Popover placement="bottom-right">
@@ -180,7 +178,7 @@ function ToolsButton({ className, hasUserCreatedPool }: { className?: string; ha
             >
               <Grid className="grid-cols-1 items-center gap-2">
                 <PoolRefreshCircleBlock />
-                {Boolean(owner) && <ShowCreated hasUserCreatedPool={hasUserCreatedPool} />}
+                <ShowCreated />
                 <PoolTimeBasisSelectorBox />
                 <HarvestAll />
                 <PoolCreateConcentratedPoolEntryBlock />
@@ -278,8 +276,36 @@ function HarvestAll() {
   )
 }
 
-function ShowCreated({ hasUserCreatedPool }: { hasUserCreatedPool: boolean }) {
+function ShowCreated() {
   const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
+  const owner = useWallet((s) => s.owner)
+  const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
+
+  if (hydratedAmmPools && hydratedAmmPools.length > 0) {
+    /* eslint-disable */
+    console.log('hydratedAmmPools:', hydratedAmmPools[3].creator.toString())
+  }
+
+  const hasCreatedPool = useMemo(() => {
+    let result = false
+
+    if (owner) {
+      /* eslint-disable */
+      console.log('has owner')
+      for (const pool of hydratedAmmPools) {
+        if (isMintEqual(pool.creator, owner)) {
+          /* eslint-disable */
+          console.log('pool.creator:', toPubString(pool.creator))
+          /* eslint-disable */
+          console.log('owner:', toPubString(owner))
+          result = true
+          break
+        }
+      }
+    }
+
+    return result
+  }, [owner, hydratedAmmPools])
 
   return (
     <Row className="justify-self-end  mobile:justify-self-auto items-center">
@@ -287,7 +313,7 @@ function ShowCreated({ hasUserCreatedPool }: { hasUserCreatedPool: boolean }) {
         Show Created
       </span>
       <Switcher
-        disable={!hasUserCreatedPool}
+        disable={!hasCreatedPool}
         className="ml-2 "
         defaultChecked={ownedPoolOnly}
         onToggle={(isOnly) => useConcentrated.setState({ ownedPoolOnly: isOnly })}
@@ -296,9 +322,7 @@ function ShowCreated({ hasUserCreatedPool }: { hasUserCreatedPool: boolean }) {
   )
 }
 
-function PoolLabelBlock({ className, hasUserCreatedPool }: { className?: string; hasUserCreatedPool: boolean }) {
-  const owner = useWallet((s) => s.owner)
-
+function PoolLabelBlock({ className }: { className?: string }) {
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
       <Col>
@@ -315,7 +339,7 @@ function PoolLabelBlock({ className, hasUserCreatedPool }: { className?: string;
       </Col>
 
       <Row className="gap-4 items-center">
-        {Boolean(owner) && <ShowCreated hasUserCreatedPool={hasUserCreatedPool} />}
+        <ShowCreated />
         <HarvestAll />
         <PoolTimeBasisSelectorBox />
         <PoolSearchBlock className="h-[36px]" />
@@ -486,18 +510,6 @@ function PoolCard() {
       }),
     [applyFiltersDataSource, searchText]
   )
-
-  const hasUserCreatedPool = useMemo(() => {
-    let result = false
-    for (const pool of searched) {
-      if (isMintEqual(pool.creator, owner)) {
-        result = true
-        break
-      }
-    }
-
-    return result
-  }, [searched])
 
   const {
     sortedData,
@@ -718,13 +730,13 @@ function PoolCard() {
             }}
           />
         </Grid>
-        <ToolsButton className="self-center" hasUserCreatedPool={hasUserCreatedPool} />
+        <ToolsButton className="self-center" />
       </Row>
     </div>
   ) : (
     <div>
       <Row className={'w-full justify-between pb-5 items-center'}>
-        <PoolLabelBlock className="flex-grow" hasUserCreatedPool={hasUserCreatedPool} />
+        <PoolLabelBlock className="flex-grow" />
       </Row>
     </div>
   )
