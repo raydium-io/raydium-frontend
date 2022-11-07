@@ -1,7 +1,7 @@
 import useAppSettings from '@/application/common/useAppSettings'
 import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
-import { routeBack, routeTo } from '@/application/routeTools'
+import { routeBackTo } from '@/application/routeTools'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import { Checkbox } from '@/components/Checkbox'
@@ -26,12 +26,7 @@ function NavButtons({ className }: { className?: string }) {
         className="text-sm text-[#ABC4FF] opacity-50 px-0"
         prefix={<Icon heroIconName="chevron-left" size="sm" />}
         onClick={() => {
-          if (window.history.length === 1) {
-            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
-            routeTo('/clmm/pools')
-          } else {
-            routeBack()
-          }
+          routeBackTo('/clmm/pools')
         }}
       >
         Back to Concentrated pools

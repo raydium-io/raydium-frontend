@@ -6,7 +6,7 @@ import useConcentratedAmmSelector from '@/application/concentrated/useConcentrat
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import useConcentratedLiquidityUrlParser from '@/application/concentrated/useConcentratedLiquidityUrlParser'
-import { routeBack, routeTo } from '@/application/routeTools'
+import { routeBack, routeBackTo, routeTo } from '@/application/routeTools'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
@@ -84,12 +84,7 @@ function NavButtons() {
         className="text-sm text-[#ABC4FF] opacity-50 px-0"
         prefix={<Icon heroIconName="chevron-left" size="sm" />}
         onClick={() => {
-          if (inClient && window.history.length === 1) {
-            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
-            routeTo('/clmm/pools')
-          } else {
-            routeBack()
-          }
+          routeBackTo('/clmm/pools')
         }}
       >
         Back to all pools
@@ -110,12 +105,7 @@ function AsideNavButtons() {
         className="text-sm text-[#ABC4FF] px-0"
         prefix={<Icon heroIconName="chevron-left" />}
         onClick={() => {
-          if (inClient && window.history.length === 1) {
-            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
-            routeTo('/clmm/pools')
-          } else {
-            routeBack()
-          }
+          routeBackTo('/clmm/pools')
         }}
       ></Button>
     </Row>

@@ -1,5 +1,4 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-
 import produce from 'immer'
 import { twMerge } from 'tailwind-merge'
 
@@ -8,7 +7,7 @@ import useConnection from '@/application/connection/useConnection'
 import { createNewUIRewardInfo } from '@/application/createFarm/parseRewardInfo'
 import useCreateFarms, { cleanStoreEmptyRewards } from '@/application/createFarm/useCreateFarm'
 import { MAX_DURATION, MIN_DURATION } from '@/application/farms/handleFarmInfo'
-import { routeBack, routeReplace, routeTo } from '@/application/routeTools'
+import { routeBackTo, routeTo } from '@/application/routeTools'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -25,9 +24,7 @@ import { isDateAfter } from '@/functions/date/judges'
 import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
-import { toString } from '@/functions/numberish/toString'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
-
 import { useChainDate } from '../../hooks/useChainDate'
 import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
@@ -52,12 +49,7 @@ function NavButtons({ className }: { className?: string }) {
         className="text-sm text-[#ABC4FF] opacity-50 px-0"
         prefix={<Icon heroIconName="chevron-left" size="sm" />}
         onClick={() => {
-          if (window.history.length === 1) {
-            // user jump directly into /farms/create page by clicking a link, we "goback" to /farms
-            routeTo('/farms')
-          } else {
-            routeBack()
-          }
+          routeBackTo('/farms')
         }}
       >
         Back to Farms

@@ -106,7 +106,7 @@ export type PageRouteConfigs = {
 
 export type PageRouteName = keyof PageRouteConfigs
 
-let historicalRouterLength = 0
+const innerRouteStack = [] as { url: string }[]
 
 // TODO: parse url query function (can have prevState of zustand store)
 export function routeTo<ToPage extends keyof PageRouteConfigs>(
@@ -114,7 +114,8 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
   opts?: MayFunction<PageRouteConfigs[ToPage], [{ currentPageQuery: ParsedUrlQuery }]>
 ) {
   const options = shrinkToValue(opts, [{ currentPageQuery: router.query }])
-  historicalRouterLength++
+  innerRouteStack.push({ url: toPage })
+
   if (toPage === '/swap') {
     const { coin1: oldCoin1, coin2: oldCoin2 } = useSwap.getState()
     const coin1 =
@@ -251,10 +252,22 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
   return
 }
 
-export const routeBack = () => router.back()
+export const routeBack = () => {
+  innerRouteStack.pop()
+  router.back()
+}
+
+export const routeBackTo = (url: keyof PageRouteConfigs) => {
+  const lastIsTarget = innerRouteStack[innerRouteStack.length - 2]?.url === url
+  if (lastIsTarget) {
+    routeBack()
+  } else {
+    routeTo(url)
+  }
+}
 
 export const routeReplace = (url: string) => router.replace(url)
 
 export function getRouterStackLength() {
-  return historicalRouterLength
+  return innerRouteStack.length
 }
