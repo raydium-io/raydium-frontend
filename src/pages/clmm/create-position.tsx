@@ -357,11 +357,12 @@ function ConcentratedCard() {
 
   const chartOptions = useMemo(
     () => ({
+      isStable: currentAmmPool?.ammConfig.tradeFeeRate === 100,
       points: points || [],
       initMinBoundaryX: boundaryData?.priceLower,
       initMaxBoundaryX: boundaryData?.priceUpper
     }),
-    [points, boundaryData]
+    [points, boundaryData, currentAmmPool?.ammConfig.tradeFeeRate]
   )
 
   return (

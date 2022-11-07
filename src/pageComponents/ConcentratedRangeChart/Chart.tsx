@@ -5,6 +5,7 @@ import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 import { formatDecimal } from '@/functions/numberish/formatDecimal'
 import { useEvent } from '@/hooks/useEvent'
 import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { mul } from '@/functions/numberish/operations'
 import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Fraction } from '@raydium-io/raydium-sdk'
 import {
@@ -78,10 +79,13 @@ export default forwardRef(function Chart(props: Props, ref) {
     hideXAxis
   } = props
   const points: HighlightPoint[] = useMemo(() => Object.assign([], chartOptions?.points || []), [chartOptions?.points])
-  const [defaultMin, defaultMax] = [
-    chartOptions?.initMinBoundaryX as Fraction,
-    chartOptions?.initMaxBoundaryX as Fraction
-  ]
+  const [defaultMin, defaultMax] = useMemo(
+    () =>
+      chartOptions?.isStable
+        ? [mul(currentPrice || 0, 0.95), mul(currentPrice || 100, 1.05)]
+        : [chartOptions?.initMinBoundaryX as Fraction, chartOptions?.initMaxBoundaryX as Fraction],
+    [chartOptions, currentPrice]
+  )
   const poolIdRef = useRef<string | undefined>()
   const hasPoints = points.length > 0
   const { isMobile } = getPlatformInfo() || {}
@@ -213,15 +217,16 @@ export default forwardRef(function Chart(props: Props, ref) {
         : displayList
     )
     if (currentPriceNum !== undefined) {
+      const rate = chartOptions?.isStable ? [0.9, 1.1] : [0.3, 1.7]
       xAxisDomainRef.current = [
-        parseFloat(currentPriceNum) * 0.3,
-        defaultMaxNum && defaultMaxNum > parseFloat(currentPriceNum) * 1.7
+        parseFloat(currentPriceNum) * rate[0],
+        defaultMaxNum && defaultMaxNum > parseFloat(currentPriceNum) * rate[1]
           ? defaultMaxNum * 1.2
-          : parseFloat(currentPriceNum) * 1.7
+          : parseFloat(currentPriceNum) * rate[1]
       ]
       setXAxisDomain(xAxisDomainRef.current)
     }
-  }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolFocusKey, currentPriceNum])
+  }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolFocusKey, currentPriceNum, chartOptions?.isStable])
 
   useEffect(() => {
     if (
@@ -272,7 +277,7 @@ export default forwardRef(function Chart(props: Props, ref) {
 
     const gap = points[1]?.x - points[0]?.x
     const gapPrecision = parseFirstDigit(gap)
-    const initDecimals = gapPrecision > 3 ? gapPrecision - 1 : 1
+    const initDecimals = chartOptions?.isStable ? 3 : gapPrecision > 3 ? gapPrecision - 1 : 1
 
     let tick = Number(val.toFixed(initDecimals)).toString()
     for (let i = initDecimals; i < 10 && labels.indexOf(tick) !== -1; i++) {
