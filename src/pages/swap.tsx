@@ -1,6 +1,7 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { RouteInfo } from '@raydium-io/raydium-sdk'
+
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
@@ -16,11 +17,8 @@ import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalcula
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  SOLDecimals,
-  SOL_BASE_BALANCE,
-  toUITokenAmount
+  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOL_BASE_BALANCE,
+  SOLDecimals, toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -46,10 +44,11 @@ import Tooltip from '@/components/Tooltip'
 import { addItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
+import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { eq, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
@@ -62,7 +61,6 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
-import { toPercent } from '@/functions/format/toPercent'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -174,6 +172,42 @@ function SwapHead() {
   )
 }
 
+function AllUnwrapSOLToSol() {
+  const owner = useWallet((s) => s.owner)
+  const getBalance = useWallet((s) => s.getBalance)
+
+  const wsolAmount = useMemo(() => {
+    if (!owner) {
+      return toTokenAmount(QuantumSOLVersionWSOL, 0)
+    } else {
+      return getBalance(QuantumSOLVersionWSOL)
+    }
+  }, [owner, getBalance])
+
+  const UnWrapAllWsol = useCallback(() => {}, [])
+
+  if (gt(toString(wsolAmount), 0)) {
+    return (
+      <Row
+        className="rounded-lg p-3 bg-[#141041] flex justify-center items-center gap-1 mobile:mb-5"
+        style={{ background: 'linear-gradient(245.22deg, rgb(43, 106, 255), rgb(57, 208, 216))' }}
+      >
+        <Icon size="sm" heroIconName="exclamation-circle" className="ml-2 text-white" />
+        <Row>
+          <p className="text-xs mobile:text-2xs text-[white]">
+            You have <span className="text-white">{toString(wsolAmount)}</span> wrapped SOL that you can{' '}
+            <span className="text-[#39D0D8] cursor-pointer font-semibold" onClick={UnWrapAllWsol}>
+              Unwrap
+            </span>
+          </p>
+        </Row>
+      </Row>
+    )
+  } else {
+    return null
+  }
+}
+
 function SwapCard() {
   const { connected: walletConnected } = useWallet()
   const coin1 = useSwap((s) => s.coin1)
@@ -245,6 +279,7 @@ function SwapCard() {
       className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
     >
       {/* input twin */}
+      <AllUnwrapSOLToSol />
       <div className="space-y-5 mt-5 mobile:mt-0">
         <CoinInputBox
           domRef={swapElementBox1}
