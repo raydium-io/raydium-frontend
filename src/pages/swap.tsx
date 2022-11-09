@@ -1,6 +1,7 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { RouteInfo } from '@raydium-io/raydium-sdk'
+
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
@@ -16,11 +17,7 @@ import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalcula
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  SOLDecimals,
-  SOL_BASE_BALANCE,
-  toUITokenAmount
+  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE, SOLDecimals, toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -56,13 +53,11 @@ import createContextStore from '@/functions/react/createContextStore'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-import useResizeObserver from '@/hooks/useResizeObserver'
 import useToggle from '@/hooks/useToggle'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
-import { toPercent } from '@/functions/format/toPercent'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -881,25 +876,31 @@ function SwappingThrough({
   )
 }
 
-function ArrowWithTag({ tagValue = '' }: { tagValue?: string }) {
+function ArrowWithTag({ tagValue }: { tagValue: string | undefined }) {
   const ref = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
 
-  useResizeObserver(ref, ({ el, entry }) => {
-    setWidth(el.clientWidth)
-  })
+  const getWidth = () => {
+    if (ref.current) {
+      setWidth(ref.current.clientWidth)
+    }
+  }
 
   useEffect(() => {
+    getWidth()
     if (!tagValue) setWidth(12)
   }, [tagValue])
 
   return (
-    <div ref={ref} className="relative top-[-15px]" style={{ marginLeft: 4, marginRight: 4, maxHeight: 19 }}>
-      {tagValue ? (
-        <Badge className="self-center text-[8px] px-1">{tagValue}</Badge>
-      ) : (
-        <div style={{ height: 19, width: 12 }}></div>
-      )}
+    <div className="relative top-[-15px]" style={{ marginLeft: 4, marginRight: 4, maxHeight: 19 }}>
+      <div ref={ref}>
+        {tagValue ? (
+          <Badge className="justify-center text-[8px] px-1">{tagValue}</Badge>
+        ) : (
+          <div style={{ height: 19, width: 12 }}></div>
+        )}
+      </div>
+
       <Arrow className="" width={width} />
     </div>
   )
