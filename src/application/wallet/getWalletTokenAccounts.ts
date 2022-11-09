@@ -1,13 +1,11 @@
+import {
+  GetTokenAccountsByOwnerConfig, Logger, Spl, SPL_ACCOUNT_LAYOUT, TOKEN_PROGRAM_ID
+} from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import {
-  GetTokenAccountsByOwnerConfig,
-  Logger,
-  Spl,
-  SPL_ACCOUNT_LAYOUT,
-  TOKEN_PROGRAM_ID
-} from '@raydium-io/raydium-sdk'
+
+import toBN from '@/functions/numberish/toBN'
 
 import { ITokenAccount, TokenAccountRawInfo } from './type'
 
@@ -55,7 +53,7 @@ export async function getWalletTokenAccounts({
 
   if (solResp) {
     accounts.push({
-      amount: new BN(String(solResp.lamports)),
+      amount: toBN(String(solResp.lamports)),
       isNative: true
     })
   }
