@@ -174,6 +174,7 @@ function SwapHead() {
 
 function AllUnwrapSOLToSol() {
   const allWsolBalance = useWallet((s) => s.allWsolBalance)
+  const refreshSwap = useSwap((s) => s.refreshSwap)
 
   if (gt(allWsolBalance, 0)) {
     return (
@@ -187,7 +188,16 @@ function AllUnwrapSOLToSol() {
             You have{' '}
             <span className="text-white">{toString(toTokenAmount(QuantumSOLVersionWSOL, allWsolBalance))}</span> WSOL
             that you can{' '}
-            <span className="text-[#39D0D8] cursor-pointer font-semibold" onClick={txUnwrapAllWSOL}>
+            <span
+              className="text-[#39D0D8] cursor-pointer font-semibold"
+              onClick={() =>
+                txUnwrapAllWSOL().then(({ allSuccess }) => {
+                  if (allSuccess) {
+                    refreshSwap()
+                  }
+                })
+              }
+            >
               Unwrap
             </span>
           </p>

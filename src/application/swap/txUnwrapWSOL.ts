@@ -52,15 +52,12 @@ export default function txUnwrapAllWSOL() {
       })
     )
 
-    /* eslint-disable */
-    console.log('wsol amount: ', toTokenAmount(QuantumSOLVersionWSOL, amount))
-
     const queue = signedTransactions.map((tx, idx) => [
       tx,
       {
         txHistoryInfo: {
           title: 'Unwrapped all WSOL',
-          description: `Unwrapped total ${toTokenAmount(QuantumSOLVersionWSOL, amount)} WSOL`
+          description: `Unwrapped total ${toString(toTokenAmount(QuantumSOLVersionWSOL, amount))} WSOL`
         }
       }
     ]) as TransactionQueue
