@@ -263,6 +263,24 @@ function SwapCard() {
   }, [])
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+
+  const disabledTokens = useMemo(() => {
+    if (targetCoinNo === '1' && coin2) {
+      if (coin2.symbol === QuantumSOLVersionSOL.symbol) {
+        return [QuantumSOLVersionWSOL]
+      } else if (coin2.symbol === QuantumSOLVersionWSOL.symbol) {
+        return [QuantumSOLVersionSOL]
+      }
+    } else if (targetCoinNo === '2' && coin1) {
+      if (coin1.symbol === QuantumSOLVersionSOL.symbol) {
+        return [QuantumSOLVersionWSOL]
+      } else if (coin1.symbol === QuantumSOLVersionWSOL.symbol) {
+        return [QuantumSOLVersionSOL]
+      }
+    }
+    return []
+  }, [targetCoinNo, coin1, coin2])
+
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
@@ -506,6 +524,7 @@ function SwapCard() {
           turnOffCoinSelector()
         }}
         onClose={turnOffCoinSelector}
+        disableTokens={disabledTokens}
       />
     </CyberpunkStyleCard>
   )
