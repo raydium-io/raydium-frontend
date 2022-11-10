@@ -157,6 +157,7 @@ export default async function txCreateNewFarm({
     piecesCollector.addSigner(...createFarmInstruction.newAccounts)
     transactionCollector.add(await piecesCollector.spawnTransaction(), {
       ...txAddOptions,
+      cacheTransaction: true,
       txHistoryInfo: {
         title: 'Create New Farm',
         description: `Farm ID: ${createdFarmId.slice(0, 4)}...${createdFarmId.slice(-4)}`

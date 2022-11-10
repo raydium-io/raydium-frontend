@@ -20,12 +20,20 @@ import useWallet from '../wallet/useWallet'
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from './quantumSOL'
 import { rawTokenListConfigs } from './rawTokenLists.config'
 import {
-  RaydiumDevTokenListJsonInfo, RaydiumTokenListJsonInfo, SplToken, TokenJson, TokenListConfigType,
+  RaydiumDevTokenListJsonInfo,
+  RaydiumTokenListJsonInfo,
+  SplToken,
+  TokenJson,
+  TokenListConfigType,
   TokenListFetchConfigItem
 } from './type'
 import useToken, {
-  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME, RAYDIUM_DEV_TOKEN_LIST_NAME, RAYDIUM_MAINNET_TOKEN_LIST_NAME,
-  RAYDIUM_UNNAMED_TOKEN_LIST_NAME, SOLANA_TOKEN_LIST_NAME, SupportedTokenListSettingName
+  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME,
+  RAYDIUM_DEV_TOKEN_LIST_NAME,
+  RAYDIUM_MAINNET_TOKEN_LIST_NAME,
+  RAYDIUM_UNNAMED_TOKEN_LIST_NAME,
+  SOLANA_TOKEN_LIST_NAME,
+  SupportedTokenListSettingName
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
 
@@ -350,14 +358,14 @@ async function loadTokens() {
 
   const verboseTokens = [
     QuantumSOLVersionSOL,
-    ...Object.values(replaceValue(pureTokens, (v, k) => k === String(WSOL.mint), QuantumSOLVersionWSOL))
+    ...Object.values(replaceValue(pureTokens, (v, k) => k === toPubString(WSOL.mint), QuantumSOLVersionWSOL))
   ]
 
   useToken.setState((s) => ({
     canFlaggedTokenMints: new Set(
       Object.values(tokens)
-        .filter((token) => !s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.has(String(token.mint)))
-        .map((token) => String(token.mint))
+        .filter((token) => !officialMints.includes(toPubString(token.mint)))
+        .map((token) => toPubString(token.mint))
     ),
     blacklist: _blacklist,
     tokenListSettings: {

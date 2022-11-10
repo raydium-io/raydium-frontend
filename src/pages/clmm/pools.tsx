@@ -9,7 +9,9 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import { HydratedConcentratedInfo, UserPositionAccount } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -313,7 +315,6 @@ function PoolLabelBlock({ className }: { className?: string }) {
       </Col>
 
       <Row className="gap-4 items-center">
-        {Boolean(owner) && <ShowCreated />}
         <HarvestAll />
         <PoolTimeBasisSelectorBox />
         <PoolSearchBlock className="h-[36px]" />
