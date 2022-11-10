@@ -10,7 +10,7 @@ import { isLiquidityPoolJsonInfo } from '@/application/pools/is'
 import { routeTo } from '@/application/routeTools'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
-import { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
+import txUnwrapAllWSOL, { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
 import txWrapSOL from '@/application/swap/txWrapSOL'
 import { useSwap } from '@/application/swap/useSwap'
 import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
@@ -18,7 +18,7 @@ import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
   isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOL_BASE_BALANCE,
-  SOLDecimals, toUITokenAmount
+  SOLDecimals, toUITokenAmount, WSOLMint
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -173,20 +173,9 @@ function SwapHead() {
 }
 
 function AllUnwrapSOLToSol() {
-  const owner = useWallet((s) => s.owner)
-  const getBalance = useWallet((s) => s.getBalance)
+  const allWsolBalance = useWallet((s) => s.allWsolBalance)
 
-  const wsolAmount = useMemo(() => {
-    if (!owner) {
-      return toTokenAmount(QuantumSOLVersionWSOL, 0)
-    } else {
-      return getBalance(QuantumSOLVersionWSOL)
-    }
-  }, [owner, getBalance])
-
-  const UnWrapAllWsol = useCallback(() => {}, [])
-
-  if (gt(toString(wsolAmount), 0)) {
+  if (gt(allWsolBalance, 0)) {
     return (
       <Row
         className="rounded-lg p-3 bg-[#141041] flex justify-center items-center gap-1 mobile:mb-5"
@@ -195,8 +184,10 @@ function AllUnwrapSOLToSol() {
         <Icon size="sm" heroIconName="exclamation-circle" className="ml-2 text-white" />
         <Row>
           <p className="text-xs mobile:text-2xs text-[white]">
-            You have <span className="text-white">{toString(wsolAmount)}</span> wrapped SOL that you can{' '}
-            <span className="text-[#39D0D8] cursor-pointer font-semibold" onClick={UnWrapAllWsol}>
+            You have{' '}
+            <span className="text-white">{toString(toTokenAmount(QuantumSOLVersionWSOL, allWsolBalance))}</span> WSOL
+            that you can{' '}
+            <span className="text-[#39D0D8] cursor-pointer font-semibold" onClick={txUnwrapAllWSOL}>
               Unwrap
             </span>
           </p>
