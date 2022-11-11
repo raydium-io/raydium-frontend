@@ -5,9 +5,25 @@ import { groupItems } from './groupItems'
 const invokedRecord = new Map<string, (LazyMapSettings<any, any> & { idleId: number })[]>()
 
 type LazyMapSettings<T, U> = {
-  sourceKey: string
+  sourceKey: string // for action key for cacheMap to identify
   source: T[]
   loopFn: (item: T, index: number, source: readonly T[]) => U
+  /**
+   * @default 'lazier-idleCallback'
+   */
+  method?: 'hurrier-promise' | 'lazier-idleCallback'
+  options?: {
+    /**
+     * the larger the more important .
+     * default is 0
+     * @todo imply it !!!
+     **/
+    // priority?: 0 | 1
+    /**
+     * default is 16
+     */
+    oneGroupTasksSize?: number
+  }
 }
 
 /**
@@ -16,22 +32,19 @@ type LazyMapSettings<T, U> = {
  * @param settings.source arr
  * @param settings.sourceKey flag for todo queue
  * @param settings.loopFn like js: array::map
+ * @param settings.options like js: array::map
  */
 export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
   return new Promise((resolve) => {
     const idleId = requestIdleCallback(async () => {
-      // console.time(`lazy map (${setting.sourceKey})`)
-
-      // const result = setting.source.map(setting.loopFn)
-      const result = await lazyMapCoreMap(setting.source, setting.loopFn)
+      const result = await lazyMapCoreMap(setting)
       resolve(result)
-      // console.timeEnd(`lazy map (${setting.sourceKey})`)
     })
 
-    // cancel the last idle callback, and record new setting
-    const currentKeySettings = invokedRecord.get(setting.sourceKey) ?? []
-    const lastIdleId = currentKeySettings[currentKeySettings.length - 1]?.idleId
+    // re-invoke will auto cancel the last idle callback, and record new setting
+    const lastIdleId = invokedRecord.get(setting.sourceKey)?.at(-1)?.idleId
     if (lastIdleId) cancelIdleCallback(lastIdleId)
+
     invokedRecord.set(setting.sourceKey, addItem(invokedRecord.get(setting.sourceKey) ?? [], { ...setting, idleId }))
   })
 }
@@ -44,18 +57,21 @@ export function cancelIdleCallback(handleId: number): void {
   return window.cancelIdleCallback ? window.cancelIdleCallback?.(handleId) : window.clearTimeout(handleId)
 }
 
-async function lazyMapCoreMap<T, U>(
-  arr: T[],
-  mapFn: (item: T, index: number, source: readonly T[]) => U
-): Promise<U[]> {
+async function lazyMapCoreMap<T, U>({
+  source,
+  options,
+  loopFn,
+  method: coreMethod
+}: LazyMapSettings<T, U>): Promise<U[]> {
   const wholeResult: U[] = []
-  for (const blockList of groupItems(arr)) {
+  for (const blockList of groupItems(source, options?.oneGroupTasksSize)) {
     await new Promise((resolve) => {
-      requestIdleCallback(() => {
-        const newResultList = blockList.map(mapFn)
+      const invokeTasks = () => {
+        const newResultList = blockList.map(loopFn)
         wholeResult.push(...newResultList)
         resolve(undefined)
-      })
+      }
+      coreMethod === 'hurrier-promise' ? invokeTasks() : requestIdleCallback(invokeTasks)
     }) // forcely use microtask
   }
   return wholeResult
