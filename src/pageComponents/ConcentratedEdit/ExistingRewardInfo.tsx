@@ -265,23 +265,24 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
             !updateData.get(reward.rewardToken!.mint.toBase58()) &&
             !previewMode
 
+          if (!isRewardEnded && endTime - onlineCurrentDate <= 1000 * DAY_SECONDS * 3) {
+            return (
+              <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
+                <Button
+                  onClick={() =>
+                    setAdjustReward({ ...reward, apr: toPercentString(pool.rewardApr24h[index]), tvl: pool.tvl })
+                  }
+                  noComponentCss
+                  className="flex flex-1 justify-center items-center text-secondary-title text-xs font-medium clickable mobile:py-4"
+                >
+                  <Icon className="mr-1" heroIconName="pencil" size="xs" />
+                  Adjust rewards
+                </Button>
+              </div>
+            )
+          }
+
           if (canAddMore) {
-            if (!isRewardEnded) {
-              return (
-                <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
-                  <Button
-                    onClick={() =>
-                      setAdjustReward({ ...reward, apr: toPercentString(pool.rewardApr24h[index]), tvl: pool.tvl })
-                    }
-                    noComponentCss
-                    className="flex flex-1 justify-center items-center text-secondary-title text-xs font-medium clickable mobile:py-4"
-                  >
-                    <Icon className="mr-1" heroIconName="pencil" size="xs" />
-                    Adjust rewards
-                  </Button>
-                </div>
-              )
-            }
             return (
               <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
                 <Button
