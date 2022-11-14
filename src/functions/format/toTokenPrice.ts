@@ -1,9 +1,12 @@
-import BN from 'bn.js'
 import { Currency, Price, TEN, Token } from '@raydium-io/raydium-sdk'
+
+import BN from 'bn.js'
 
 import { TokenJson } from '@/application/token/type'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { Numberish } from '@/types/constants'
+
+import toBN from '../numberish/toBN'
 
 export const usdCurrency = new Currency(6, 'usd', 'usd')
 
@@ -21,8 +24,8 @@ export default function toTokenPrice(
   options?: { alreadyDecimaled?: boolean }
 ): Price {
   const { numerator, denominator } = parseNumberInfo(numberPrice)
-  const parsedNumerator = options?.alreadyDecimaled ? new BN(numerator).mul(TEN.pow(new BN(token.decimals))) : numerator
-  const parsedDenominator = new BN(denominator).mul(TEN.pow(new BN(usdCurrency.decimals)))
+  const parsedNumerator = options?.alreadyDecimaled ? toBN(numerator).mul(TEN.pow(toBN(token.decimals))) : numerator
+  const parsedDenominator = toBN(denominator).mul(TEN.pow(toBN(usdCurrency.decimals)))
   return new Price(
     usdCurrency,
     parsedDenominator.toString(),
