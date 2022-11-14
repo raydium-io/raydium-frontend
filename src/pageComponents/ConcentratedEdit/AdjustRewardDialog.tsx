@@ -214,7 +214,7 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
 
             <div className="text-secondary-title text-sm mb-3">Updated rewards</div>
             <ListTable
-              list={reward ? [reward] : []}
+              list={reward && values.amount && values.daysExtend ? [reward] : []}
               type={isMobile ? 'item-card' : 'list-table'}
               className={isMobile ? 'gap-4' : ''}
               getItemKey={(r) => `${r.tokenMint.toBase58()}-${r.creator.toBase58()}`}
@@ -258,7 +258,7 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                           <div>
                             {toUsdVolume(
                               toTotalPrice(
-                                mul(div(perSecond.toFixed(rewardDecimals), 10 ** rewardDecimals), remainSeconds),
+                                plus(values.amount, remainAmount).toFixed(rewardDecimals),
                                 tokenPrices[String(rewardToken?.mint)]
                               )
                             )}
@@ -330,13 +330,13 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                   },
                   {
                     should: errMsg !== ERROR_MSG.DECREASE_ERROR
-                  },
-                  {
-                    should: haveBalance,
-                    fallbackProps: {
-                      children: `Insufficient ${reward?.rewardToken?.symbol} balance`
-                    }
                   }
+                  // {
+                  //   should: haveBalance,
+                  //   fallbackProps: {
+                  //     children: `Insufficient ${reward?.rewardToken?.symbol} balance`
+                  //   }
+                  // }
                 ]}
                 onClick={() => {
                   onConfirm({
