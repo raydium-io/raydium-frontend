@@ -265,7 +265,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
             !updateData.get(reward.rewardToken!.mint.toBase58()) &&
             !previewMode
 
-          if (!isRewardEnded && endTime - onlineCurrentDate <= 1000 * DAY_SECONDS * 3) {
+          if (!isRewardEnded) {
             return (
               <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
                 <Button
