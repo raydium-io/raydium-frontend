@@ -1,5 +1,3 @@
-import { useEffect } from 'react'
-
 import { Token } from '@raydium-io/raydium-sdk'
 
 import useLiquidity from '@/application/liquidity/useLiquidity'
@@ -9,19 +7,21 @@ import toPubString from '@/functions/format/toMintString'
 import { lazyMap } from '@/functions/lazyMap'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 
-import { LpToken } from './type'
+import { LpToken, SplToken } from './type'
 import useToken from './useToken'
 
 export default function useLpTokensLoader() {
   const ammJsonInfos = useLiquidity((s) => s.jsonInfos)
   const userAddedTokens = useToken((s) => s.userAddedTokens)
-  const getToken = useToken((s) => s.getToken)
+  const { getToken } = useToken.getState()
+  const tokens = useToken((s) => s.tokens)
 
   useAsyncEffect(async () => {
     // console.time('inner') // too slow
     const lpTokenItems = await lazyMap({
       source: ammJsonInfos,
       sourceKey: 'load lp token',
+      method: 'hurrier-promise',
       loopFn: (ammJsonInfo) => {
         // console.time('info') // too slow
         const baseToken = getToken(ammJsonInfo.baseMint) ?? userAddedTokens[ammJsonInfo.baseMint] // depends on raw user Added tokens for avoid re-render
@@ -51,6 +51,15 @@ export default function useLpTokensLoader() {
     })
     // console.timeEnd('inner') // too slow
     const lpTokens = listToMap(shakeUndifindedItem(lpTokenItems), (t) => toPubString(t.mint))
-    useToken.setState({ lpTokens, getLpToken: (mint) => lpTokens[toPubString(mint)] })
-  }, [ammJsonInfos, getToken, userAddedTokens])
+    const sameAsPrevious =
+      useToken.getState().lpTokens && toTokenKeys(useToken.getState().lpTokens) == toTokenKeys(lpTokens)
+    if (Object.values(lpTokens).length < 1 || sameAsPrevious) return
+    useToken.setState((s) => ({ lpTokens, getLpToken: s.getLpToken.bind(undefined) }))
+  }, [ammJsonInfos, tokens, userAddedTokens])
+}
+
+function toTokenKeys(tokens: Record<string, SplToken>): string {
+  return Object.keys(tokens)
+    .map((k) => k.slice(0, 2))
+    .join(',')
 }

@@ -41,8 +41,8 @@ export async function getWalletTokenAccounts({
 
     const rawResult = SPL_ACCOUNT_LAYOUT.decode(account.data)
     const { mint, amount } = rawResult
-    const associatedTokenAddress = await Spl.getAssociatedTokenAccount({ mint, owner })
 
+    const associatedTokenAddress = await Spl.getAssociatedTokenAccount({ mint, owner })
     accounts.push({
       publicKey: pubkey,
       mint,
@@ -55,7 +55,7 @@ export async function getWalletTokenAccounts({
 
   if (solResp) {
     accounts.push({
-      amount: new BN(solResp.lamports),
+      amount: new BN(String(solResp.lamports)),
       isNative: true
     })
   }
