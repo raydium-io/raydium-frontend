@@ -1140,7 +1140,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     return (
       <Col className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
         <div className="mb-3 text-xs">
-          {hasRewardInfos
+          {hasRewardInfos && info.creator.equals(owner ?? PublicKey.default)
             ? 'Want to open a new position?'
             : 'You created this pool. You can create a farm, or create a new position'}
         </div>
