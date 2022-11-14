@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Fraction } from '@raydium-io/raydium-sdk'
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -21,6 +22,7 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import Icon from '@/components/Icon'
 import { Unpacked } from '@/types/generics'
 import AddMoreDialog, { UpdateData } from './AddMoreDialog'
+import AdjustRewardDialog from './AdjustRewardDialog'
 import txCollectReward from '@/application/concentrated/txCollectReward'
 import { DAY_SECONDS } from './utils'
 
@@ -37,9 +39,13 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
   const [currentReward, setCurrentReward] = useState<
     (Unpacked<HydratedConcentratedInfo['rewardInfos']> & { isRewardEnded: boolean }) | undefined
   >()
+  const [adjustReward, setAdjustReward] = useState<
+    (Unpacked<HydratedConcentratedInfo['rewardInfos']> & { apr: string; tvl: Fraction }) | undefined
+  >()
   const [updateData, setUpdateData] = useState<Map<string, UpdateData>>(new Map())
   const onlineCurrentDate = Date.now() + (chainTimeOffset ?? 0)
   const handleClose = useCallback(() => setCurrentReward(undefined), [])
+  const handleCloseAdjust = useCallback(() => setAdjustReward(undefined), [])
 
   const handleUpdateData = useCallback((props: { rewardMint: string; data: UpdateData }) => {
     const { rewardMint, data } = props
@@ -244,12 +250,30 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
             )
           }
         }}
-        renderItemActionButtons={({ itemData: reward }) => {
+        renderItemActionButtons={({ itemData: reward, index }) => {
           const hasUnClaimed = isMeaningfulNumber(reward.remainingRewards)
           const { endTime } = reward
           const isRewardEnded = Boolean(endTime && isDateAfter(onlineCurrentDate, endTime))
           const canAddMore =
-            endTime - onlineCurrentDate <= 1000 * 3600 * 24 * 3 && !updateData.get(reward.rewardToken!.mint.toBase58())
+            endTime - onlineCurrentDate <= 1000 * DAY_SECONDS * 3 &&
+            !updateData.get(reward.rewardToken!.mint.toBase58())
+
+          if (!isRewardEnded) {
+            return (
+              <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
+                <Button
+                  onClick={() =>
+                    setAdjustReward({ ...reward, apr: toPercentString(pool.rewardApr24h[index]), tvl: pool.tvl })
+                  }
+                  noComponentCss
+                  className="flex flex-1 justify-center items-center text-secondary-title text-xs font-medium clickable mobile:py-4"
+                >
+                  <Icon className="mr-1" heroIconName="pencil" size="xs" />
+                  Adjust rewards
+                </Button>
+              </div>
+            )
+          }
 
           return canAddMore ? (
             <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
@@ -304,6 +328,12 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
         reward={currentReward}
         chainTimeOffset={chainTimeOffset}
         onClose={handleClose}
+        onConfirm={handleUpdateData}
+      />
+      <AdjustRewardDialog
+        reward={adjustReward}
+        chainTimeOffset={chainTimeOffset}
+        onClose={handleCloseAdjust}
         onConfirm={handleUpdateData}
       />
     </>
