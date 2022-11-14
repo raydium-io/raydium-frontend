@@ -24,6 +24,8 @@ export interface UpdateData {
   openTime: number
   endTime: number
   perSecond: Fraction
+  amount?: string
+  daysExtend?: string
 }
 interface Props {
   open: boolean

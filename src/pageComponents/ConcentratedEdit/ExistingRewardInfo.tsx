@@ -108,6 +108,8 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           const updateReward = updateData.get(reward.rewardToken!.mint.toBase58())
           const updateDuration = updateReward ? getDuration(updateReward.endTime, updateReward.openTime) : 0
 
+          const showUpdateOnly = !isRewardEnded && !!updateReward
+
           const getRewardBadge = () => {
             if (isRewardEnded)
               return (
@@ -146,7 +148,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           if (label === 'Amount') {
             return (
               <Grid className="gap-4 h-full">
-                {perSecond ? (
+                {!showUpdateOnly && perSecond ? (
                   <Col className="grow break-all justify-center">
                     {formatNumber(
                       mul(
@@ -176,7 +178,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           if (label === 'Duration') {
             return (
               <Grid className="h-full gap-3">
-                {openTime && endTime ? (
+                {!showUpdateOnly && openTime && endTime ? (
                   <Col className="justify-center">
                     <Row className="break-all items-center gap-1">
                       {getDurationText(rewardDuration)}
@@ -188,7 +190,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
                   <Col className="grow justify-center text-[#39d0d8]">
                     <Row className="break-all items-center gap-1">
                       {getDurationText(updateDuration)}
-                      <Badge cssColor="#39d0d8">New</Badge>
+                      <Badge cssColor="#39d0d8">{showUpdateOnly ? 'Updated' : 'New'}</Badge>
                     </Row>
                   </Col>
                 )}
@@ -200,10 +202,12 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
             if (!openTime || !endTime) return
             return (
               <Grid className="gap-4 h-full">
-                <Col className="grow justify-center">
-                  <div>{toUTC(openTime)}</div>
-                  <div>{toUTC(endTime)}</div>
-                </Col>
+                {!showUpdateOnly && (
+                  <Col className="grow justify-center">
+                    <div>{toUTC(openTime)}</div>
+                    <div>{toUTC(endTime)}</div>
+                  </Col>
+                )}
                 {updateReward && (
                   <Col className="grow justify-center text-[#39d0d8]">
                     <div>{toUTC(updateReward.openTime)}</div>
@@ -217,13 +221,15 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           if (label === 'Rate') {
             return (
               <Grid className="gap-4 h-full">
-                <Col className="grow justify-center text-xs">
-                  <div>
-                    {formatNumber(rewardPerWeek)}
-                    /week
-                  </div>
-                  {pool.rewardApr24h[index] && <div>{toPercentString(pool.rewardApr24h[index])} APR</div>}
-                </Col>
+                {!showUpdateOnly && (
+                  <Col className="grow justify-center text-xs">
+                    <div>
+                      {formatNumber(rewardPerWeek)}
+                      /week
+                    </div>
+                    {pool.rewardApr24h[index] && <div>{toPercentString(pool.rewardApr24h[index])} APR</div>}
+                  </Col>
+                )}
                 {updateReward && (
                   <Col className="grow justify-center text-[#39d0d8]">
                     <div>
@@ -256,69 +262,76 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           const isRewardEnded = Boolean(endTime && isDateAfter(onlineCurrentDate, endTime))
           const canAddMore =
             endTime - onlineCurrentDate <= 1000 * DAY_SECONDS * 3 &&
-            !updateData.get(reward.rewardToken!.mint.toBase58())
+            !updateData.get(reward.rewardToken!.mint.toBase58()) &&
+            !previewMode
 
-          if (canAddMore && !isRewardEnded) {
+          if (canAddMore) {
+            if (!isRewardEnded) {
+              return (
+                <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
+                  <Button
+                    onClick={() =>
+                      setAdjustReward({ ...reward, apr: toPercentString(pool.rewardApr24h[index]), tvl: pool.tvl })
+                    }
+                    noComponentCss
+                    className="flex flex-1 justify-center items-center text-secondary-title text-xs font-medium clickable mobile:py-4"
+                  >
+                    <Icon className="mr-1" heroIconName="pencil" size="xs" />
+                    Adjust rewards
+                  </Button>
+                </div>
+              )
+            }
             return (
               <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
                 <Button
-                  onClick={() =>
-                    setAdjustReward({ ...reward, apr: toPercentString(pool.rewardApr24h[index]), tvl: pool.tvl })
-                  }
+                  onClick={() => setCurrentReward({ ...reward, isRewardEnded })}
                   noComponentCss
-                  className="flex flex-1 justify-center items-center text-secondary-title text-xs font-medium clickable mobile:py-4"
+                  className="flex flex-1 justify-center text-secondary-title text-xs font-medium clickable mobile:py-4"
                 >
-                  <Icon className="mr-1" heroIconName="pencil" size="xs" />
-                  Adjust rewards
+                  <Icon heroIconName="plus" size="sm" />
+                  Add more rewards
+                </Button>
+                <Button
+                  noComponentCss
+                  disabled={!hasUnClaimed || isApprovePanelShown}
+                  onClick={() => {
+                    txCollectReward({ currentAmmPool: pool, rewardMint: reward.tokenMint }).then(() => {
+                      useConcentrated.getState().refreshConcentrated()
+                    })
+                  }}
+                  className={`flex flex-1 gap-1 justify-center items-center text-secondary-title text-xs font-medium ${
+                    hasUnClaimed && !isApprovePanelShown ? 'clickable' : 'cursor-default opacity-50'
+                  } mobile:py-4`}
+                >
+                  <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
+                  <Col className="items-start">
+                    Claim unemmitted rewards
+                    <span className="text-[#abc4ff80]">
+                      {div(reward.remainingRewards, 10 ** (reward.rewardToken?.decimals || 6))?.toSignificant(
+                        reward.rewardToken?.decimals || 6
+                      )}{' '}
+                      {reward.rewardToken?.symbol}
+                    </span>
+                  </Col>
                 </Button>
               </div>
             )
           }
 
-          return canAddMore ? (
-            <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
-              <Button
-                onClick={() => setCurrentReward({ ...reward, isRewardEnded })}
-                noComponentCss
-                className="flex flex-1 justify-center text-secondary-title text-xs font-medium clickable mobile:py-4"
-              >
-                <Icon heroIconName="plus" size="sm" />
-                Add more rewards
-              </Button>
-              <Button
-                noComponentCss
-                disabled={!hasUnClaimed || isApprovePanelShown}
-                onClick={() => {
-                  txCollectReward({ currentAmmPool: pool, rewardMint: reward.tokenMint }).then(() => {
-                    useConcentrated.getState().refreshConcentrated()
-                  })
-                }}
-                className={`flex flex-1 gap-1 justify-center items-center text-secondary-title text-xs font-medium ${
-                  hasUnClaimed && !isApprovePanelShown ? 'clickable' : 'cursor-default opacity-50'
-                } mobile:py-4`}
-              >
-                <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
-                <Col className="items-start">
-                  Claim unemmitted rewards
-                  <span className="text-[#abc4ff80]">
-                    {div(reward.remainingRewards, 10 ** (reward.rewardToken?.decimals || 6))?.toSignificant(
-                      reward.rewardToken?.decimals || 6
-                    )}{' '}
-                    {reward.rewardToken?.symbol}
-                  </span>
-                </Col>
-              </Button>
-            </div>
-          ) : null
+          return null
         }}
         renderControlButtons={({ itemData: reward }) => {
+          const isRewardEnded = Boolean(reward.endTime && isDateAfter(onlineCurrentDate, reward.endTime))
+          const updateReward = updateData.get(reward.rewardToken!.mint.toBase58())
+          const showUpdateOnly = !isRewardEnded && !!updateReward
           return updateData.get(reward.rewardToken!.mint.toBase58()) ? (
             <Badge
               className="cursor-pointer"
               cssColor={previewMode ? '#39d0d8' : '#abc4ff'}
               onClick={previewMode ? undefined : () => handleReset(reward.rewardToken!.mint.toBase58())}
             >
-              {previewMode ? 'Added' : 'reset'}
+              {previewMode ? (showUpdateOnly ? 'Updated' : 'Added') : 'reset'}
             </Badge>
           ) : null
         }}
@@ -331,6 +344,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
         onConfirm={handleUpdateData}
       />
       <AdjustRewardDialog
+        defaultData={adjustReward ? updateData.get(adjustReward.rewardToken!.mint.toBase58()) : undefined}
         reward={adjustReward}
         chainTimeOffset={chainTimeOffset}
         onClose={handleCloseAdjust}

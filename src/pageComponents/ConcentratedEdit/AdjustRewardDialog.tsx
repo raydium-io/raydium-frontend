@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Fraction } from '@raydium-io/raydium-sdk'
 import useToken from '@/application/token/useToken'
 import useAppSettings from '@/application/common/useAppSettings'
@@ -14,27 +14,23 @@ import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Card from '@/components/Card'
 import { Unpacked } from '@/types/generics'
 import { toUTC } from '@/functions/date/dateFormat'
-import { div, sub, mul, plus } from '@/functions/numberish/operations'
+import { div, mul, plus } from '@/functions/numberish/operations'
 import { lt } from '@/functions/numberish/compare'
 import { offsetDateTime } from '@/functions/date/dateFormat'
 import { isMeaningfulNumber, gte, lte } from '@/functions/numberish/compare'
 import formatNumber from '@/functions/format/formatNumber'
 import toPercentString from '@/functions/format/toPercentString'
-import { MIN_DURATION, MAX_DURATION, DAY_SECONDS, getDurationFromString } from './utils'
+import { MIN_DURATION, MAX_DURATION, DAY_SECONDS } from './utils'
 import ListTable from '@/components/ListTable'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import toTotalPrice from '@/functions/format/toTotalPrice'
-
-export interface UpdateData {
-  openTime: number
-  endTime: number
-  perSecond: Fraction
-}
+import { UpdateData } from './AddMoreDialog'
 interface Props {
   onClose: () => void
   onConfirm: (props: { rewardMint: string; data: UpdateData }) => void
   chainTimeOffset?: number
   disableEndTimeInput?: boolean
+  defaultData?: UpdateData
   reward?: Unpacked<HydratedConcentratedInfo['rewardInfos']> & { apr: string; tvl: Fraction }
 }
 
@@ -48,7 +44,7 @@ const ERROR_MSG = {
   DECREASE: 'Decreasing the reward rate is permitted within 72 hours of current farm end time.'
 }
 
-export default function AdjustRewardDialog({ reward, chainTimeOffset, onClose, onConfirm }: Props) {
+export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffset, onClose, onConfirm }: Props) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const tokenPrices = useToken((s) => s.tokenPrices)
   const onlineCurrentDate = Date.now() + (chainTimeOffset ?? 0)
@@ -85,6 +81,16 @@ export default function AdjustRewardDialog({ reward, chainTimeOffset, onClose, o
     if (!isWithin72hrs) errMsg = ERROR_MSG.DECREASE_ERROR
     else errMsg = ERROR_MSG.DECREASE
   }
+
+  useEffect(() => {
+    if (!defaultData) return
+    const { amount = '', daysExtend = '' } = defaultData || {}
+    setValues({
+      amount,
+      daysExtend
+    })
+    return () => setValues({ amount: '', daysExtend: '' })
+  }, [defaultData])
 
   return (
     <>
@@ -336,6 +342,7 @@ export default function AdjustRewardDialog({ reward, chainTimeOffset, onClose, o
                   onConfirm({
                     rewardMint: reward?.rewardToken?.mint.toBase58() || '',
                     data: {
+                      ...values,
                       openTime: reward!.openTime,
                       endTime: offsetDateTime(endTime, { days: Number(values.daysExtend) }).valueOf(),
                       perSecond: mul(newPerSecond, 10 ** rewardDecimals)
