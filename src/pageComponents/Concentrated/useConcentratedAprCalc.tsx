@@ -46,7 +46,7 @@ export function useConcentratedTickAprCalc({ ammPool }: { ammPool: HydratedConce
   const tokenDecimals = objectMap(token, (i) => i.decimals)
   const apr = useMemo(
     () =>
-      tickLower && tickUpper && ammPool && liquidity
+      tickLower != null && tickUpper != null && ammPool && liquidity
         ? ammPool.getTickApr({
             timeBasis: timeBasis.toLowerCase() as '24h' | '7d' | '30d',
             tickLower,
