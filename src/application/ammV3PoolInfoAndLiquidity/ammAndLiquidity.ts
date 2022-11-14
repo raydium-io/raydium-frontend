@@ -4,19 +4,11 @@
  * @todo not burn old yet
  */
 
-import { Connection, PublicKey } from '@solana/web3.js'
-
 import {
-  AmmV3,
-  AmmV3PoolInfo,
-  AmmV3PoolPersonalPosition,
-  ApiAmmV3PoolInfo,
-  LiquidityPoolsJsonFile,
-  PublicKeyish,
-  ReturnTypeFetchMultiplePoolTickArrays,
-  ReturnTypeGetAllRouteComputeAmountOut,
-  TradeV2
+  AmmV3, AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, PublicKeyish,
+  ReturnTypeFetchMultiplePoolTickArrays, ReturnTypeGetAllRouteComputeAmountOut, TradeV2
 } from '@raydium-io/raydium-sdk'
+import { Connection, PublicKey } from '@solana/web3.js'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
@@ -28,10 +20,10 @@ import listToMap from '@/functions/format/listToMap'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { areShallowEqual } from '@/functions/judgers/areEqual'
 import { isPubKeyish } from '@/functions/judgers/dateType'
 import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { Numberish } from '@/types/constants'
-import { areShallowEqual } from '@/functions/judgers/areEqual'
 
 const apiCache = {} as {
   ammV3?: ApiAmmV3PoolInfo[]
@@ -63,7 +55,7 @@ export function clearApiCache() {
 }
 
 async function getAmmV3PoolKeys() {
-  const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPoolsTest')
+  const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
   if (response) {
     return response.data
   } else {
