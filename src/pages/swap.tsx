@@ -36,6 +36,7 @@ import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import FadeInStable, { FadeIn } from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
+import LoadingCircleSmall from '@/components/LoadingCircleSmall'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
@@ -172,34 +173,35 @@ function SwapHead() {
 }
 
 function AllUnwrapSOLToSol() {
-  const allWsolBalance = useWallet((s) => s.allWsolBalance)
+  const wsolBalance = useWallet((s) => s.wsolBalance)
   const refreshSwap = useSwap((s) => s.refreshSwap)
+  const connected = useWallet((s) => s.connected)
+  const [loading, setLoading] = useState(false)
 
-  if (gt(allWsolBalance, 0)) {
+  if (gt(wsolBalance, 0) && connected) {
     return (
-      <Row
-        className="rounded-lg p-3 bg-[#141041] flex justify-center items-center gap-1 mobile:mb-5"
-        style={{ background: 'linear-gradient(245.22deg, rgb(43, 106, 255), rgb(57, 208, 216))' }}
-      >
+      <Row className="rounded-lg p-3 bg-[#4069BB] flex justify-center items-center gap-1 mobile:mb-5">
         <Icon size="sm" heroIconName="exclamation-circle" className="ml-2 text-white" />
         <Row>
           <p className="text-xs mobile:text-2xs text-[white]">
-            You have{' '}
-            <span className="text-white">{toString(toTokenAmount(QuantumSOLVersionWSOL, allWsolBalance))}</span> WSOL
-            that you can{' '}
+            You have <span className="text-white">{toString(toTokenAmount(QuantumSOLVersionWSOL, wsolBalance))}</span>{' '}
+            WSOL that you can{' '}
             <span
               className="text-[#39D0D8] cursor-pointer font-semibold"
-              onClick={() =>
+              onClick={() => {
+                setLoading(true)
                 txUnwrapAllWSOL().then(({ allSuccess }) => {
                   if (allSuccess) {
                     refreshSwap()
                   }
+                  setLoading(false)
                 })
-              }
+              }}
             >
               Unwrap
             </span>
           </p>
+          {loading && <LoadingCircleSmall className="w-3 h-3 ml-2" />}
         </Row>
       </Row>
     )
