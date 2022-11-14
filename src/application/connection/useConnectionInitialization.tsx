@@ -2,16 +2,23 @@ import { useEffect } from 'react'
 
 import { Connection } from '@solana/web3.js'
 
-import useConnection, { SESSION_STORAGE_USER_SELECTED_RPC } from './useConnection'
-import { Config, Endpoint } from './type'
-import caculateEndpointUrlByRpcConfig from './caculateEndpointUrlByRpcConfig'
 import { unifyByKey } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import { getSessionItem } from '@/functions/dom/jStorage'
+
 import useAppSettings from '../common/useAppSettings'
 
+import caculateEndpointUrlByRpcConfig from './caculateEndpointUrlByRpcConfig'
+import { Config, Endpoint } from './type'
+import useConnection, { SESSION_STORAGE_USER_SELECTED_RPC } from './useConnection'
+
 const mockRPCConfig: Omit<Config, 'success'> = {
-  rpcs: [{ name: 'beta-mainnet', url: 'https://api.mainnet-beta.solana.com/' }],
+  rpcs: [
+    {
+      name: 'test-mainnet',
+      url: 'https://multi-quaint-patron.solana-mainnet.discover.quiknode.pro/8b60f508adbef181893fafabe27790c8aeb35a4c/'
+    }
+  ],
   devrpcs: [{ name: 'devnet', url: 'https://api.devnet.solana.com/', net: 'devnet' }],
 
   strategy: 'speed'
