@@ -21,6 +21,7 @@ export default function useLpTokensLoader() {
     const lpTokenItems = await lazyMap({
       source: ammJsonInfos,
       sourceKey: 'load lp token',
+      method: 'hurrier-promise',
       loopFn: (ammJsonInfo) => {
         // console.time('info') // too slow
         const baseToken = getToken(ammJsonInfo.baseMint) ?? userAddedTokens[ammJsonInfo.baseMint] // depends on raw user Added tokens for avoid re-render
