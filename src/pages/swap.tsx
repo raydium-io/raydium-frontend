@@ -55,7 +55,6 @@ import createContextStore from '@/functions/react/createContextStore'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-import useResizeObserver from '@/hooks/useResizeObserver'
 import useToggle from '@/hooks/useToggle'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
@@ -936,25 +935,31 @@ function SwappingThrough({
   )
 }
 
-function ArrowWithTag({ tagValue = '' }: { tagValue?: string }) {
+function ArrowWithTag({ tagValue }: { tagValue: string | undefined }) {
   const ref = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
 
-  useResizeObserver(ref, ({ el, entry }) => {
-    setWidth(el.clientWidth)
-  })
+  const getWidth = () => {
+    if (ref.current) {
+      setWidth(ref.current.clientWidth)
+    }
+  }
 
   useEffect(() => {
+    getWidth()
     if (!tagValue) setWidth(12)
   }, [tagValue])
 
   return (
-    <div ref={ref} className="relative top-[-15px]" style={{ marginLeft: 4, marginRight: 4, maxHeight: 19 }}>
-      {tagValue ? (
-        <Badge className="self-center text-[8px] px-1">{tagValue}</Badge>
-      ) : (
-        <div style={{ height: 19, width: 12 }}></div>
-      )}
+    <div className="relative top-[-15px]" style={{ marginLeft: 4, marginRight: 4, maxHeight: 19 }}>
+      <div ref={ref}>
+        {tagValue ? (
+          <Badge className="justify-center text-[8px] px-1">{tagValue}</Badge>
+        ) : (
+          <div style={{ height: 19, width: 12 }}></div>
+        )}
+      </div>
+
       <Arrow className="" width={width} />
     </div>
   )
