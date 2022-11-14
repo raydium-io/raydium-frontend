@@ -54,7 +54,7 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
     daysExtend: ''
   })
 
-  const { openTime, endTime, rewardToken, perSecond, apr, rewardPerWeek, tvl } = reward || {}
+  const { endTime, rewardToken, perSecond, apr, rewardPerWeek, tvl } = reward || {}
 
   const haveBalance = Boolean(rewardToken && gte(getBalance(rewardToken), values.amount))
   const rewardDecimals = rewardToken?.decimals || 6
@@ -63,13 +63,10 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
   const remainDays = Math.ceil(remainSeconds / DAY_SECONDS)
   const remainAmount = mul(div(perSecond?.toFixed(rewardDecimals) || 0, 10 ** rewardDecimals), remainSeconds)
 
-  const originTotalSeconds = ((endTime || 0) - (openTime || 0)) / 1000
-  const totalAmount = plus(
-    mul(div(perSecond?.toFixed(rewardDecimals) || 0, 10 ** rewardDecimals) || 0, originTotalSeconds),
-    values.amount
+  const newPerSecond = div(
+    plus(remainAmount, values.amount || 0),
+    plus(remainSeconds, mul(values.daysExtend || 0, DAY_SECONDS))
   )
-  const totalSeconds = Number(plus(originTotalSeconds, mul(values.daysExtend || 0, DAY_SECONDS)).toFixed(0))
-  const newPerSecond = div(totalAmount, totalSeconds)
   const newPerWeek = mul(newPerSecond, DAY_SECONDS * 7)
   const isWithin72hrs = remainSeconds >= 0 && remainSeconds <= 3600 * 72
   const isDecreaseSpeed = reward
@@ -343,7 +340,7 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                     rewardMint: reward?.rewardToken?.mint.toBase58() || '',
                     data: {
                       ...values,
-                      openTime: reward!.openTime,
+                      openTime: onlineCurrentDate,
                       endTime: offsetDateTime(endTime, { days: Number(values.daysExtend) }).valueOf(),
                       perSecond: mul(newPerSecond, 10 ** rewardDecimals)
                     }
