@@ -15,17 +15,17 @@ import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { mergeFunction, mergeObject } from '@/functions/merge'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 
-import { noTailingPeriod } from '../../functions/format/noTailingPeriod'
-import useAppSettings from '../common/useAppSettings'
-import useConnection from '../connection/useConnection'
-import useNotification from '../notification/useNotification'
-import useTxHistory, { TxHistoryInfo } from '../txHistory/useTxHistory'
-import { getRichWalletTokenAccounts } from '../wallet/useTokenAccountsRefresher'
-import useWallet, { WalletStore } from '../wallet/useWallet'
+import { noTailingPeriod } from '../../../functions/format/noTailingPeriod'
+import useAppSettings from '../../common/useAppSettings'
+import useConnection from '../../connection/useConnection'
+import useNotification from '../../notification/useNotification'
+import useTxHistory, { TxHistoryInfo } from '../../txHistory/useTxHistory'
+import { getRichWalletTokenAccounts } from '../../wallet/useTokenAccountsRefresher'
+import useWallet, { WalletStore } from '../../wallet/useWallet'
 
 import { TxNotificationItemInfo } from '@/components/NotificationItem/type'
 import { MayPromise } from '@/types/constants'
-import { attachRecentBlockhash } from './attachRecentBlockhash'
+import { attachRecentBlockhash } from '../attachRecentBlockhash'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 
@@ -131,6 +131,9 @@ export type SingleTxOption = {
    * @default 'finally' when sendMode is 'queue(all-settle)'
    */
   continueWhenPreviousTx?: 'success' | 'error' | 'finally'
+
+  /** send multi same recentBlockhash tx will only send first one */
+  cacheTransaction?: boolean
 } & SingleTxCallbacks
 
 export type SingleTxCallbacks = {
@@ -242,7 +245,7 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
     // eslint-disable-next-line no-console
     console.info('tx transactions: ', toHumanReadable(innerTransactions))
 
-    const finalInfos = await handleMultiTxOptions({
+    const finalInfos = await dealWithMultiTxOptions({
       transactions: innerTransactions,
       singleOptions: produce(singleTxOptions, (options) => {
         if (options[0]) {
@@ -305,7 +308,7 @@ function collectTxOptions(
   return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOption } }
 }
 
-export function serialize(transaction: Transaction, cache = true) {
+export function serialize(transaction: Transaction, cache: boolean) {
   const key = transaction.recentBlockhash
   if (key && txSerializeCache.has(key)) {
     return txSerializeCache.get(key)!
@@ -323,7 +326,7 @@ export function serialize(transaction: Transaction, cache = true) {
  *
  * so this fn will record txids
  */
-async function handleMultiTxOptions({
+async function dealWithMultiTxOptions({
   transactions,
   singleOptions,
   multiOption,
@@ -426,6 +429,7 @@ function recordTxNotification({
         (({ txid, transaction, error }) => {
           txLoggerController.changeItemInfo?.({ txid, state: 'error', error }, { transaction })
           const txIndex = transactions.indexOf(transaction)
+          if (txIndex < 0) return
           transactions.slice(txIndex + 1).forEach((transaction) => {
             txLoggerController.changeItemInfo?.({ state: 'aborted' }, { transaction })
           })
@@ -485,7 +489,7 @@ function composeWithDifferentSendMode({
   if (sendMode === 'parallel(dangerous-without-order)' || sendMode === 'parallel(batch-transactions)') {
     const parallelled = () => {
       transactions.forEach((tx, idx) =>
-        handleSingleTxOptions({
+        dealWithSingleTxOptions({
           transaction: tx,
           wholeTxidInfo,
           payload,
@@ -501,13 +505,15 @@ function composeWithDifferentSendMode({
         const singleOption = singleOptions[idx]
         return {
           fn: () =>
-            handleSingleTxOptions({
+            dealWithSingleTxOptions({
               transaction: tx,
               wholeTxidInfo,
               payload,
               singleOption: produce(singleOption, (draft) => {
                 if (method === 'finally') {
                   draft.onTxFinally = mergeFunction(fn, draft.onTxFinally)
+                } else if (method === 'error') {
+                  draft.onTxError = mergeFunction(fn, draft.onTxError)
                 } else if (method === 'success') {
                   draft.onTxSuccess = mergeFunction(fn, draft.onTxSuccess)
                 }
@@ -530,7 +536,7 @@ function composeWithDifferentSendMode({
  * it will subscribe txid
  *
  */
-async function handleSingleTxOptions({
+async function dealWithSingleTxOptions({
   transaction,
   wholeTxidInfo,
   singleOption,
@@ -549,12 +555,12 @@ async function handleSingleTxOptions({
     currentIndex
   }
   try {
-    const txid = await sendTransactionCore(
+    const txid = await sendTransactionCore({
       transaction,
       payload,
-      isBatched ? { allSignedTransactions: wholeTxidInfo.transactions } : undefined,
-      wholeTxidInfo.transactions.length === 1 // NOTE: will cache when has only one transaction, ortherwise it will not cache // TODO: should cache has manually detected key (prop:cacheKey in singleOptions)
-    )
+      batchOptions: isBatched ? { allSignedTransactions: wholeTxidInfo.transactions } : undefined,
+      cache: Boolean(singleOption?.cacheTransaction)
+    })
     assert(txid, 'something went wrong in sending transaction')
     singleOption?.onTxSentSuccess?.({ transaction, txid, ...extraTxidInfo })
     wholeTxidInfo.passedMultiTxid[currentIndex] = txid //! 💩 bad method! it's mutate method!

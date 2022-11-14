@@ -1,13 +1,11 @@
+import {
+  GetTokenAccountsByOwnerConfig, Logger, Spl, SPL_ACCOUNT_LAYOUT, TOKEN_PROGRAM_ID
+} from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import {
-  GetTokenAccountsByOwnerConfig,
-  Logger,
-  Spl,
-  SPL_ACCOUNT_LAYOUT,
-  TOKEN_PROGRAM_ID
-} from '@raydium-io/raydium-sdk'
+
+import toBN from '@/functions/numberish/toBN'
 
 import { ITokenAccount, TokenAccountRawInfo } from './type'
 
@@ -41,8 +39,8 @@ export async function getWalletTokenAccounts({
 
     const rawResult = SPL_ACCOUNT_LAYOUT.decode(account.data)
     const { mint, amount } = rawResult
-    const associatedTokenAddress = await Spl.getAssociatedTokenAccount({ mint, owner })
 
+    const associatedTokenAddress = await Spl.getAssociatedTokenAccount({ mint, owner })
     accounts.push({
       publicKey: pubkey,
       mint,
@@ -55,7 +53,7 @@ export async function getWalletTokenAccounts({
 
   if (solResp) {
     accounts.push({
-      amount: new BN(solResp.lamports),
+      amount: toBN(String(solResp.lamports)),
       isNative: true
     })
   }

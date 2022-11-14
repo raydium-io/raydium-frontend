@@ -245,11 +245,7 @@ function TokenSelectorDialogContent({
               onClick={off}
             />
             <div className="text-xl font-semibold text-white">Token List Settings</div>
-            <Icon
-              className="text-[#ABC4FF] cursor-pointer clickable clickable-mask-offset-2"
-              heroIconName="x"
-              onClick={closeAndClean}
-            />
+            <div></div>
           </Row>
           <List className="p-2 grid mt-2 overflow-auto max-h-[70vh]">
             {Object.entries(tokenListSettings)

@@ -1,7 +1,7 @@
 import { Transaction } from '@solana/web3.js'
-import useConnection from '../connection/useConnection'
-import useNotification from '../notification/useNotification'
-import { MultiTxExtraInfo, TxErrorInfo, TxFinalInfo, TxSuccessInfo } from './handleTx'
+import useConnection from '../../connection/useConnection'
+import useNotification from '../../notification/useNotification'
+import { MultiTxExtraInfo, TxErrorInfo, TxFinalInfo, TxSuccessInfo } from '.'
 
 export interface SubscribeSignatureCallbacks {
   onTxSuccess?(ev: TxSuccessInfo): void

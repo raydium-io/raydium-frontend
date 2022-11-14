@@ -23,7 +23,8 @@ import {
   WSOLMint
 } from './quantumSOL'
 import { LpToken, SplToken, TokenJson } from './type'
-import { RAYMint } from './wellknownToken.config'
+import { RAYMint, SOLMint } from './wellknownToken.config'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
@@ -133,9 +134,20 @@ export const useToken = create<TokenStore>((set, get) => ({
   // lpToken have not SOL, no need pure and verbose
   lpTokens: {},
 
-  getToken: () => undefined,
+  getToken(mint: PublicKeyish | undefined, options?: { exact?: boolean }) {
+    /** exact mode: 'so111111112' will be QSOL-WSOL 'sol' will be QSOL-SOL */
+    if (mint === SOLUrlMint || isMintEqual(mint, SOLMint) || (!options?.exact && isMintEqual(mint, WSOLMint))) {
+      return QuantumSOLVersionSOL
+    }
+    if (options?.exact && isMintEqual(mint, WSOLMint)) {
+      return QuantumSOLVersionWSOL
+    }
+    return (
+      get().tokens[toPubString(mint)] ?? get().userAddedTokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)]
+    )
+  },
 
-  getLpToken: () => undefined,
+  getLpToken: (mint) => get().lpTokens[toPubString(mint)],
 
   toUrlMint: (token: SplToken | QuantumSOLToken | undefined) =>
     isQuantumSOL(token) ? (isQuantumSOLVersionWSOL(token) ? String(WSOLMint) : SOLUrlMint) : String(token?.mint ?? ''),

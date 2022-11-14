@@ -61,12 +61,9 @@ export function TxNotificationItemCard({
     : innerTxInfos.some(({ state }) => state === 'error')
     ? 'error'
     : 'info'
+  const isWholeStateSuccess = useEvent(() => wholeItemState === 'success')
   const totalTransactionLength = innerTxInfos.length
   const processedTransactionLength = innerTxInfos.filter(({ state }) => state === 'success' || state === 'error').length
-  const isAllProcessed = useEvent(() => {
-    const txAllProcessed = processedTransactionLength === totalTransactionLength
-    return txAllProcessed
-  })
 
   const timeoutController = useRef<TimeoutController>()
 
@@ -85,7 +82,7 @@ export function TxNotificationItemCard({
 
   const isHovering = useHover(itemRef, {
     onHover({ is: now }) {
-      if (!isAllProcessed()) return
+      if (!isWholeStateSuccess()) return
       if (now === 'start') {
         timeoutController.current?.pause()
         pauseTimeline()

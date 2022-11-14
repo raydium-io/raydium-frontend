@@ -136,8 +136,9 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   useTransitionedEffect(async () => {
     if (disabled) return
     if (connection && currentJsonInfo) {
+      const determainedResult = (await sdkParseJsonLiquidityInfo([currentJsonInfo], connection))?.[0]
       useLiquidity.setState({
-        currentSdkParsedInfo: (await sdkParseJsonLiquidityInfo([currentJsonInfo], connection))?.[0]
+        currentSdkParsedInfo: determainedResult
       })
     } else {
       useLiquidity.setState({ currentSdkParsedInfo: undefined })

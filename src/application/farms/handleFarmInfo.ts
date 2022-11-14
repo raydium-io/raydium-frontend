@@ -1,15 +1,8 @@
-import BN from 'bn.js'
 import {
-  CurrencyAmount,
-  Farm,
-  FarmFetchMultipleInfoParams,
-  Fraction,
-  ONE,
-  Price,
-  TEN,
-  TokenAmount,
-  ZERO
+  CurrencyAmount, Farm, FarmFetchMultipleInfoParams, Fraction, ONE, Price, TEN, TokenAmount, ZERO
 } from '@raydium-io/raydium-sdk'
+
+import BN from 'bn.js'
 
 import { ConnectionStore } from '@/application/connection/useConnection'
 import { findAmmId } from '@/application/liquidity/miscToolFns'
@@ -31,6 +24,7 @@ import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { unionArr } from '@/types/generics'
+
 import { SplToken } from '../token/type'
 
 import { APIRewardInfo, FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
@@ -275,7 +269,7 @@ function calculateFarmPoolAprs(
       if (!rewardTokenPrice) return undefined
       const rewardtotalPricePerYear = toTotalPrice(
         new Fraction(rewardPerSecond, ONE)
-          .div(TEN.pow(new BN(rewardToken.decimals || 1)))
+          .div(TEN.pow(toBN(rewardToken.decimals || 1)))
           .mul(new BN(60 * 60 * 24 * 365)),
         rewardTokenPrice
       )
@@ -292,8 +286,8 @@ function calculateFarmPoolAprs(
       if (!rewardTokenPrice) return undefined
       const rewardtotalPricePerYear = toTotalPrice(
         new Fraction(perSlotReward, ONE)
-          .div(TEN.pow(new BN(rewardToken.decimals || 1)))
-          .mul(new BN(payload.blockSlotCountForSecond * 60 * 60 * 24 * 365)),
+          .div(TEN.pow(toBN(rewardToken.decimals || 1)))
+          .mul(toBN(payload.blockSlotCountForSecond * 60 * 60 * 24 * 365)),
         rewardTokenPrice
       )
       if (!payload.tvl) return undefined
