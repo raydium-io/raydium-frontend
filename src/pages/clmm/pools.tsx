@@ -1399,7 +1399,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const unclaimedYield = useConcentratedPendingYield(p)
+  const { pendingTotalVolume, isHarvestable } = useConcentratedPendingYield(p)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const logInfo = useNotification((s) => s.logInfo)
   const walletConnected = useWallet((s) => s.connected)
@@ -1614,7 +1614,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   ) : null}
                 </div>
                 <div className="text-white font-medium text-base mobile:text-sm mt-3 mobile:mt-1">
-                  ≈{toUsdVolume(unclaimedYield)}
+                  ≈{toUsdVolume(pendingTotalVolume)}
                 </div>
                 {p && <PositionAprIllustrator poolInfo={info} positionInfo={p}></PositionAprIllustrator>}
               </Col>
@@ -1635,7 +1635,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         children: 'Connect Wallet'
                       }
                     },
-                    { should: isMeaningfulNumber(unclaimedYield) }
+                    { should: isHarvestable }
                   ]}
                   onClick={() =>
                     txHarvestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(
