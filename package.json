@@ -35,7 +35,7 @@
   "dependencies": {
     "@headlessui/react": "^1.7.1",
     "@heroicons/react": "^2.0.11",
-    "@raydium-io/raydium-sdk": "npm:test-r-sdk@^1.2.118",
+    "@raydium-io/raydium-sdk": "npm:test-r-sdk@^1.2.119",
     "@sentry/nextjs": "^7.12.1",
     "@solana/wallet-adapter-base": "^0.9.18",
     "@solana/wallet-adapter-react": "0.15.8",
