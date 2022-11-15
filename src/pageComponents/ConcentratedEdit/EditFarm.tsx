@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+
 import shallow from 'zustand/shallow'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import txSetRewards from '@/application/concentrated/txSetRewards'
 import useConcentrated from '@/application/concentrated/useConcentrated'
-import useWallet from '@/application/wallet/useWallet'
-import useToken from '@/application/token/useToken'
 import { routeTo } from '@/application/routeTools'
+import useToken from '@/application/token/useToken'
+import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 
 import { UpdateData } from './AddMoreDialog'
 import AddNewReward, { NewReward } from './AddNewReward'
@@ -24,6 +27,7 @@ export default function EditFarm() {
   const getToken = useToken((s) => s.getToken)
   const sortTokens = useToken((s) => s.sortTokens)
   const [currentAmmPool, whitelistRewards] = useConcentrated((s) => [s.currentAmmPool, s.whitelistRewards], shallow)
+  const owner = useWallet((s) => s.owner)
   const [editedReward, setEditedReward] = useState<{ updateReward?: Map<string, UpdateData>; newRewards: NewReward[] }>(
     { newRewards: [] }
   )
@@ -163,152 +167,176 @@ export default function EditFarm() {
     }
   }, [currentAmmPool, newRewardIdx, handleClickAddNewReward])
 
-  return (
-    <div className="max-w-[720px]">
-      <div className="text-2xl mb-10">{isEditFarm ? 'Edit' : 'Create'} Farm</div>
-      <div className="text-sm text-secondary-title mb-3">Concentrated liquidity Pool</div>
-      <PoolInfo pool={currentAmmPool} />
+  if (walletConnected && owner && isMintEqual(currentAmmPool?.creator, owner)) {
+    return (
+      <div className="max-w-[720px]">
+        <div className="text-2xl mb-10">{isEditFarm ? 'Edit' : 'Create'} Farm</div>
+        <div className="text-sm text-secondary-title mb-3">Concentrated liquidity Pool</div>
+        <PoolInfo pool={currentAmmPool} />
 
-      {currentAmmPool?.rewardInfos && currentAmmPool.rewardInfos.length > 0 ? (
-        <div className="mb-8">
-          <div className="text-sm text-secondary-title mb-3">Existing Farming rewards</div>
-          <ExistingRewardInfo pool={currentAmmPool} previewMode={showPreview} onUpdateReward={handleUpdateReward} />
-        </div>
-      ) : null}
+        {currentAmmPool?.rewardInfos && currentAmmPool.rewardInfos.length > 0 ? (
+          <div className="mb-8">
+            <div className="text-sm text-secondary-title mb-3">Existing Farming rewards</div>
+            <ExistingRewardInfo pool={currentAmmPool} previewMode={showPreview} onUpdateReward={handleUpdateReward} />
+          </div>
+        ) : null}
 
-      {(editedReward.newRewards.length > 1 || (showPreview && editedReward.newRewards.length > 0)) && (
-        <>
-          <div className="text-sm text-secondary-title mb-3">New farming rewards</div>
-          <NewRewardTable
-            tvl={currentAmmPool?.tvl}
-            newRewards={editedReward.newRewards}
-            onClickRow={showPreview ? undefined : handleClickNewReward}
-            onDelete={showPreview ? undefined : handleDeleteNewReward}
-          />
-        </>
-      )}
+        {(editedReward.newRewards.length > 1 || (showPreview && editedReward.newRewards.length > 0)) && (
+          <>
+            <div className="text-sm text-secondary-title mb-3">New farming rewards</div>
+            <NewRewardTable
+              tvl={currentAmmPool?.tvl}
+              newRewards={editedReward.newRewards}
+              onClickRow={showPreview ? undefined : handleClickNewReward}
+              onDelete={showPreview ? undefined : handleDeleteNewReward}
+            />
+          </>
+        )}
 
-      {canAddRewardToken && (
-        <>
-          {newRewardIdx !== -1 ? (
-            <>
-              <div className="flex items-center gap-1 text-sm text-secondary-title mb-3">
-                New farming rewards
-                <Tooltip>
-                  <Icon size="sm" heroIconName="question-mark-circle" />
-                  <Tooltip.Panel>
-                    <div className="max-w-[300px]">
-                      Two reward tokens can be added to a farm. The first can be any SPL token. <br />
-                      If two tokens are added, at least one should be from the token pair of the pool.
-                    </div>
-                  </Tooltip.Panel>
-                </Tooltip>
-              </div>
-              <AddNewReward
-                key={newRewardIdx}
-                enableTokens={enableTokens}
-                disableTokens={shakeUndifindedItem([
-                  ...(currentAmmPool ? currentAmmPool.rewardInfos.map((r) => r.rewardToken) : []),
-                  ...editedReward.newRewards.map((r) => r.token)
-                ])}
-                dataIndex={newRewardIdx}
-                defaultData={editedReward.newRewards[newRewardIdx]}
-                onValidateChange={handleNewRewardError}
-                onUpdateReward={handleUpdateNewReward}
-              />
-            </>
-          ) : null}
-          <Row
-            className={`items-center w-fit mb-2 ${!canClickAddBtn ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
-            onClick={canClickAddBtn ? handleClickAddNewReward : undefined}
-          >
-            <Icon className="text-[#abc4ff]" heroIconName="plus-circle" size="sm" />
-            <div className="ml-1.5 text-[#abc4ff] font-base mobile:text-sm">Add reward token</div>
-            <div className="ml-1.5 text-[#abc4ff80] font-base mobile:text-sm">({remainRewardsCount} more)</div>
-          </Row>
-        </>
-      )}
+        {canAddRewardToken && (
+          <>
+            {newRewardIdx !== -1 ? (
+              <>
+                <div className="flex items-center gap-1 text-sm text-secondary-title mb-3">
+                  New farming rewards
+                  <Tooltip>
+                    <Icon size="sm" heroIconName="question-mark-circle" />
+                    <Tooltip.Panel>
+                      <div className="max-w-[300px]">
+                        Two reward tokens can be added to a farm. The first can be any SPL token. <br />
+                        If two tokens are added, at least one should be from the token pair of the pool.
+                      </div>
+                    </Tooltip.Panel>
+                  </Tooltip>
+                </div>
+                <AddNewReward
+                  key={newRewardIdx}
+                  enableTokens={enableTokens}
+                  disableTokens={shakeUndifindedItem([
+                    ...(currentAmmPool ? currentAmmPool.rewardInfos.map((r) => r.rewardToken) : []),
+                    ...editedReward.newRewards.map((r) => r.token)
+                  ])}
+                  dataIndex={newRewardIdx}
+                  defaultData={editedReward.newRewards[newRewardIdx]}
+                  onValidateChange={handleNewRewardError}
+                  onUpdateReward={handleUpdateNewReward}
+                />
+              </>
+            ) : null}
+            <Row
+              className={`items-center w-fit mb-2 ${!canClickAddBtn ? 'opacity-50 cursor-default' : 'cursor-pointer'}`}
+              onClick={canClickAddBtn ? handleClickAddNewReward : undefined}
+            >
+              <Icon className="text-[#abc4ff]" heroIconName="plus-circle" size="sm" />
+              <div className="ml-1.5 text-[#abc4ff] font-base mobile:text-sm">Add reward token</div>
+              <div className="ml-1.5 text-[#abc4ff80] font-base mobile:text-sm">({remainRewardsCount} more)</div>
+            </Row>
+          </>
+        )}
 
-      {!showPreview && (
-        <div className="text-center">
-          <Button
-            className="frosted-glass-teal mt-12 w-auto"
-            onClick={handleClick}
-            validators={[
-              {
-                should: walletConnected,
-                forceActive: true,
-                fallbackProps: {
-                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                  children: 'Connect wallet'
+        {!showPreview && (
+          <div className="text-center">
+            <Button
+              className="frosted-glass-teal mt-12 w-auto"
+              onClick={handleClick}
+              validators={[
+                {
+                  should: walletConnected,
+                  forceActive: true,
+                  fallbackProps: {
+                    onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                    children: 'Connect wallet'
+                  }
+                },
+                {
+                  should: editedReward.updateReward?.size || editedReward.newRewards.length > 0
+                },
+                {
+                  should: errorIdx === -1,
+                  fallbackProps: {
+                    children: newRewardError[errorIdx]
+                  }
                 }
-              },
-              {
-                should: editedReward.updateReward?.size || editedReward.newRewards.length > 0
-              },
-              {
-                should: errorIdx === -1,
-                fallbackProps: {
-                  children: newRewardError[errorIdx]
-                }
-              }
-            ]}
-          >
-            Review Changes
-          </Button>
-        </div>
-      )}
-      {showPreview && (
-        <Row className="justify-center gap-2">
-          {txSuccess ? (
+              ]}
+            >
+              Review Changes
+            </Button>
+          </div>
+        )}
+        {showPreview && (
+          <Row className="justify-center gap-2">
+            {txSuccess ? (
+              <Button
+                className="frosted-glass-skygray w-fit"
+                size={isMobile ? 'sm' : 'lg'}
+                onClick={() => routeTo('/clmm/pools')}
+              >
+                Back to Pools
+              </Button>
+            ) : (
+              <Button className="frosted-glass-teal w-fit" onClick={handleSendRewardText}>
+                Confirm Farm Changes
+              </Button>
+            )}
             <Button
               className="frosted-glass-skygray w-fit"
               size={isMobile ? 'sm' : 'lg'}
-              onClick={() => routeTo('/clmm/pools')}
+              onClick={() => {
+                setShowPreview(false)
+                setTxSuccess(false)
+              }}
             >
-              Back to Pools
+              Edit
             </Button>
-          ) : (
-            <Button className="frosted-glass-teal w-fit" onClick={handleSendRewardText}>
-              Confirm Farm Changes
-            </Button>
-          )}
-          <Button
-            className="frosted-glass-skygray w-fit"
-            size={isMobile ? 'sm' : 'lg'}
-            onClick={() => {
-              setShowPreview(false)
-              setTxSuccess(false)
-            }}
-          >
-            Edit
-          </Button>
-        </Row>
-      )}
+          </Row>
+        )}
 
-      {!showPreview && (
-        <div className="flex mt-12">
-          <Icon className="text-[#abc4ff] mr-[15px]" heroIconName="exclamation-circle" size="md" />
-          <div className="p-6 bg-[#1B1659] rounded-[20px] border-1.5 border-[rgba(171,196,255,0.2)] text-left text-sm text-[rgba(196,214,255,0.5)]">
-            <div className="text-[#ABC4FF] font-medium font-base mobile:text-sm">How to adjust existing rewards?</div>
-            <div className="flex mt-2">
-              <span className="mr-1">1.</span>
-              Rewards allocated to farms <span className="px-1 underline">cannot be withdrawn</span> after farming
-              starts.
-            </div>
-            <div className="flex mt-2">
-              <span className="mr-1">2.</span>
-              If you want to increase the reward rate, additional rewards can be added while a farm is still running.
-              The period must be extended by at least 7 days.
-            </div>
-            <div className="flex mt-2">
-              <span className="mr-1">3.</span>
-              If you want to decrease the rewards rate, this can only be done 72 hours before the end of the current
-              farming period, and the period must be extended by at least 7 days.
+        {!showPreview && (
+          <div className="flex mt-12">
+            <Icon className="text-[#abc4ff] mr-[15px]" heroIconName="exclamation-circle" size="md" />
+            <div className="p-6 bg-[#1B1659] rounded-[20px] border-1.5 border-[rgba(171,196,255,0.2)] text-left text-sm text-[rgba(196,214,255,0.5)]">
+              <div className="text-[#ABC4FF] font-medium font-base mobile:text-sm">How to adjust existing rewards?</div>
+              <div className="flex mt-2">
+                <span className="mr-1">1.</span>
+                Rewards allocated to farms <span className="px-1 underline">cannot be withdrawn</span> after farming
+                starts.
+              </div>
+              <div className="flex mt-2">
+                <span className="mr-1">2.</span>
+                If you want to increase the reward rate, additional rewards can be added while a farm is still running.
+                The period must be extended by at least 7 days.
+              </div>
+              <div className="flex mt-2">
+                <span className="mr-1">3.</span>
+                If you want to decrease the rewards rate, this can only be done 72 hours before the end of the current
+                farming period, and the period must be extended by at least 7 days.
+              </div>
             </div>
           </div>
+        )}
+      </div>
+    )
+  } else if (!walletConnected) {
+    return (
+      <div className="max-w-[720px]">
+        <div className="text-xl mb-10 text-secondary-title">
+          You must connect your wallet before {isEditFarm ? 'Edit' : 'Create'} Farm
         </div>
-      )}
-    </div>
-  )
+        <Button
+          className="w-full frosted-glass-teal mt-5"
+          onClick={() => useAppSettings.setState({ isWalletSelectorShown: true })}
+        >
+          Connect Wallet
+        </Button>
+      </div>
+    )
+  } else {
+    return (
+      <div className="max-w-[720px]">
+        <div className="text-xl mb-10 text-secondary-title">
+          Opps! Only pool's owner can {isEditFarm ? 'Edit' : 'Create'} farm reward
+        </div>
+      </div>
+    )
+  }
 }
