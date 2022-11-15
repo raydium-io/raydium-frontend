@@ -172,7 +172,7 @@ export default function EditFarm() {
     return (
       <div className="max-w-[720px]">
         <div className="text-2xl mb-4">{isEditFarm ? 'Edit' : 'Create'} Farm</div>
-        <div className="text-[#C4D6FF] text-sm mb-">
+        <div className="text-[#C4D6FF] text-sm mb-4">
           Before creating a farm, make sure to check the
           <Link
             className="ml-1"
