@@ -281,6 +281,7 @@ function ShowCreated() {
   const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
   const owner = useWallet((s) => s.owner)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
+  const connected = useWallet((s) => s.connected)
 
   const hasCreatedPool = useMemo(() => {
     let result = false
@@ -297,19 +298,22 @@ function ShowCreated() {
     return result
   }, [owner, hydratedAmmPools])
 
-  return (
-    <Row className="justify-self-end  mobile:justify-self-auto items-center">
-      <span className="text-[rgba(196,214,255,0.5)] whitespace-nowrap font-medium text-sm mobile:text-xs">
-        Show Created
-      </span>
-      <Switcher
-        disable={!hasCreatedPool}
-        className="ml-2 "
-        defaultChecked={ownedPoolOnly}
-        onToggle={(isOnly) => useConcentrated.setState({ ownedPoolOnly: isOnly })}
-      />
-    </Row>
-  )
+  if (!connected || !hasCreatedPool) {
+    return null
+  } else {
+    return (
+      <Row className="justify-self-end  mobile:justify-self-auto items-center">
+        <span className="text-[rgba(196,214,255,0.5)] whitespace-nowrap font-medium text-sm mobile:text-xs">
+          Show Created
+        </span>
+        <Switcher
+          className="ml-2 "
+          defaultChecked={ownedPoolOnly}
+          onToggle={(isOnly) => useConcentrated.setState({ ownedPoolOnly: isOnly })}
+        />
+      </Row>
+    )
+  }
 }
 
 function PoolLabelBlock({ className }: { className?: string }) {
@@ -1145,7 +1149,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             : 'You created this pool. You can create a farm, or create a new position'}
         </div>
         <Row className={`justify-center items-center gap-2`}>
-          {info.creator.equals(owner ?? PublicKey.default) && (
+          {!hasRewardInfos && info.creator.equals(owner ?? PublicKey.default) && (
             <Button
               className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
               onClick={() => {
@@ -1399,7 +1403,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const unclaimedYield = useConcentratedPendingYield(p)
+  const { pendingTotalVolume, isHarvestable } = useConcentratedPendingYield(p)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const logInfo = useNotification((s) => s.logInfo)
   const walletConnected = useWallet((s) => s.connected)
@@ -1614,7 +1618,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   ) : null}
                 </div>
                 <div className="text-white font-medium text-base mobile:text-sm mt-3 mobile:mt-1">
-                  ≈{toUsdVolume(unclaimedYield)}
+                  ≈{toUsdVolume(pendingTotalVolume)}
                 </div>
                 {p && <PositionAprIllustrator poolInfo={info} positionInfo={p}></PositionAprIllustrator>}
               </Col>
@@ -1635,7 +1639,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         children: 'Connect Wallet'
                       }
                     },
-                    { should: isMeaningfulNumber(unclaimedYield) }
+                    { should: isHarvestable }
                   ]}
                   onClick={() =>
                     txHarvestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(

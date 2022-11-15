@@ -1,9 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import { AmmV3, Token } from '@raydium-io/raydium-sdk'
+
 import { twMerge } from 'tailwind-merge'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import txDecreaseConcentrated, { MANUAL_ADJUST } from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
+import { SplToken } from '@/application/token/type'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
@@ -27,7 +31,6 @@ import useInit from '@/hooks/useInit'
 import { Numberish } from '@/types/constants'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
-import { SplToken } from '@/application/token/type'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   useInit(() => {
@@ -56,7 +59,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const [amountQuoteIsOutOfMax, setAmountQuoteIsOutOfMax] = useState(false)
   const [amountQuoteIsNegative, setAmountQuoteIsNegative] = useState(false)
   const liquidity = useConcentrated((s) => s.liquidity)
-  const pendingYield = useConcentratedPendingYield(targetUserPositionAccount)
+  const { pendingTotalVolume } = useConcentratedPendingYield(targetUserPositionAccount)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [maxInfo, setMaxInfo] = useState<{
     coin1Amount: string | undefined
@@ -231,7 +234,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                   <div className="text-base mobile:text-sm">Pending Yield</div>
                 </Row>
                 <Row className="flex justify-end items-center text-[#ABC4FF] font-medium text-sm">
-                  <div className="text-lg text-white">{toUsdVolume(pendingYield)}</div>
+                  <div className="text-lg text-white">{toUsdVolume(pendingTotalVolume)}</div>
                 </Row>
                 <FadeInStable show={gt(originalCoin1AmountMin, 0) && gt(originalCoin2AmountMin, 0)}>
                   <Row className="flex justify-start gap-1 items-center text-[#ABC4FF] font-medium text-sm">
