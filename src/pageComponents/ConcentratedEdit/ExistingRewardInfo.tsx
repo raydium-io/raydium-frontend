@@ -265,7 +265,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
             !updateData.get(reward.rewardToken!.mint.toBase58()) &&
             !previewMode
 
-          if (!isRewardEnded) {
+          if (!isRewardEnded && !previewMode) {
             return (
               <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
                 <Button
