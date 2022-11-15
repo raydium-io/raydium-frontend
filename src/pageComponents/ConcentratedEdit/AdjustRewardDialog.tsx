@@ -13,6 +13,7 @@ import CoinInputBox from '@/components/CoinInputBox'
 import InputBox from '@/components/InputBox'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Card from '@/components/Card'
+import Tooltip from '@/components/Tooltip'
 import { Unpacked } from '@/types/generics'
 import { toUTC } from '@/functions/date/dateFormat'
 import { div, mul, plus } from '@/functions/numberish/operations'
@@ -189,7 +190,19 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                 }}
               />
 
-              <div className="text-secondary-title text-sm mt-5 mb-3">Rewards adjustment</div>
+              <div className="flex items-center text-secondary-title text-sm mt-5 mb-3">
+                Additional rewards adjustment
+                <Tooltip>
+                  <Icon iconClassName="ml-1" size="sm" heroIconName="question-mark-circle" />
+                  <Tooltip.Panel>
+                    <div className="max-w-[300px]">
+                      Rewards entered below are in addition to rewards remaining in the current rewards period above.
+                      Additional rewards will be deposited in the farm from your wallet balance and combined with
+                      existing remaining rewards.
+                    </div>
+                  </Tooltip.Panel>
+                </Tooltip>
+              </div>
               <Row className="gap-4 mb-4">
                 <CoinInputBox
                   className="py-2 flex-[2] border-none mobile:py-1 px-3 mobile:px-2 border-1.5 border-[#abc4ff40]"
@@ -218,7 +231,18 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
 
               {errMsg && <div className="text-style-color-fuchsia mb-4">{errMsg}</div>}
 
-              <div className="text-secondary-title text-sm mb-3">Updated rewards</div>
+              <div className="flex items-center text-secondary-title text-sm mb-3">
+                Updated rewards period
+                <Tooltip>
+                  <Icon iconClassName="ml-1" size="sm" heroIconName="question-mark-circle" />
+                  <Tooltip.Panel>
+                    <div className="max-w-[300px]">
+                      Updated rewards combines remaining current rewards and additional rewards entered above.
+                      Calculations are for the adjusted farming period time and rewards rate.
+                    </div>
+                  </Tooltip.Panel>
+                </Tooltip>
+              </div>
               <ListTable
                 list={reward && values.amount && values.daysExtend ? [reward] : []}
                 type={isMobile ? 'item-card' : 'list-table'}
