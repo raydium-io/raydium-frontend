@@ -1,17 +1,18 @@
+import { PublicKeyish, Token, TokenAmount, WSOL } from '@raydium-io/raydium-sdk'
 import { Adapter, WalletName } from '@solana/wallet-adapter-base'
 import { Wallet } from '@solana/wallet-adapter-react'
 import { Keypair, PublicKey, Transaction } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import { PublicKeyish, Token, TokenAmount, WSOL } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 
 import toPubString from '@/functions/format/toMintString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isToken } from '@/functions/judgers/dateType'
 import { gte } from '@/functions/numberish/compare'
 import { HexAddress } from '@/types/constants'
 
-import { isQuantumSOL, QuantumSOLAmount, WSOLMint } from '../token/quantumSOL'
+import { isQuantumSOL, QuantumSOLAmount, QuantumSOLVersionWSOL, WSOLMint } from '../token/quantumSOL'
 
 import { ITokenAccount, TokenAccountRawInfo } from './type'
 
@@ -36,6 +37,7 @@ export type WalletStore = {
   /** only for Dev */
   inSimulateMode: boolean
 
+  wsolBalance?: BN | undefined
   solBalance?: BN | undefined
 
   /** this is a some of wsol's tokenAccounts's amount (sol / wsol is special) */
@@ -139,7 +141,7 @@ const useWallet = create<WalletStore>((set, get) => ({
   getBalance(target) {
     if (!target) return undefined
     if (isQuantumSOL(target) && target.collapseTo === 'wsol') {
-      return get().pureBalances[toPubString(WSOLMint)]
+      return toTokenAmount(QuantumSOLVersionWSOL, get().wsolBalance)
     } else {
       const mint = isToken(target) ? toPubString(target.mint) : toPubString(target)
       return get().balances[mint]

@@ -40,13 +40,14 @@ export default function useInitBalanceRefresher() {
     }
 
     // from tokenAccount to tokenAmount
-    const { solBalance, allWsolBalance, balances, rawBalances, pureBalances, pureRawBalances } =
+    const { wsolBalance, solBalance, allWsolBalance, balances, rawBalances, pureBalances, pureRawBalances } =
       parseBalanceFromTokenAccount({
         getPureToken: (mint) => getToken(mint, { exact: true }),
         allTokenAccounts
       })
 
     useWallet.setState({
+      wsolBalance,
       solBalance,
       allWsolBalance,
       balances,
@@ -105,7 +106,9 @@ export function parseBalanceFromTokenAccount({
   const solBalance = nativeTokenAccount?.amount
 
   // wsol balance (for QuantumSOL)
-  const wsolBalance = tokenAccounts.find((ta) => String(ta.mint) === String(WSOLMint))?.amount
+  const wsolBalance = tokenAccounts.find(
+    (ta) => String(ta.mint) === String(WSOLMint) && ta.isAssociated === true
+  )?.amount
 
   // QuantumSOL balance
   const quantumSOLBalance = toQuantumSolAmount({ solRawAmount: solBalance, wsolRawAmount: wsolBalance })
@@ -115,5 +118,14 @@ export function parseBalanceFromTokenAccount({
 
   // use BN (QuantumSOL)
   const rawBalances = objectMap(balances, (balance) => balance.raw)
-  return { solBalance, allWsolBalance, balances, rawBalances, pureBalances, pureRawBalances, nativeTokenAccount }
+  return {
+    wsolBalance,
+    solBalance,
+    allWsolBalance,
+    balances,
+    rawBalances,
+    pureBalances,
+    pureRawBalances,
+    nativeTokenAccount
+  }
 }

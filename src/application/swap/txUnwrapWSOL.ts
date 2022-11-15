@@ -1,39 +1,68 @@
+import { Spl, TokenAccount, unwarpSol } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import { Spl } from '@raydium-io/raydium-sdk'
-
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
+import asyncMap from '@/functions/asyncMap'
 import toPubString from '@/functions/format/toMintString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, lt } from '@/functions/numberish/compare'
 import { mul, sub } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
 
-import { WSOL, WSOLMint } from '../token/quantumSOL'
-import { createTransactionCollector } from '../txTools/createTransaction'
-import txHandler from '../txTools/handleTx'
+import { QuantumSOLVersionWSOL, WSOL, WSOLMint } from '../token/quantumSOL'
+import { createTransactionCollector, loadTransaction } from '../txTools/createTransaction'
+import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 export default function txUnwrapAllWSOL() {
   return txHandler(async ({ transactionCollector, baseUtils: { owner } }) => {
-    const piecesCollection = createTransactionCollector()
-    const wsolTokenAccounts = useWallet
-      .getState()
-      .allTokenAccounts.filter((tokenAccount) => toPubString(tokenAccount.mint) === toPubString(WSOLMint))
+    const { allTokenAccounts, tokenAccountRawInfos } = useWallet.getState()
 
-    for (const wsolTokenAccount of wsolTokenAccounts) {
-      const pubkey = wsolTokenAccount.publicKey
-      if (!pubkey) continue
-      piecesCollection.addInstruction(Spl.makeCloseAccountInstruction({ owner, payer: owner, tokenAccount: pubkey }))
-    }
-
-    transactionCollector.add(await piecesCollection.spawnTransaction(), {
-      txHistoryInfo: {
-        title: 'Unwrap ALL WSOL',
-        description: `closed all WSOL accounts`
+    const wsolITokenAccounts = allTokenAccounts.filter(
+      (tokenAccount) => toPubString(tokenAccount.mint) === toPubString(WSOLMint)
+    )
+    const wsolTokenAccounts = tokenAccountRawInfos.filter((tokenAccount) => {
+      let result = false
+      for (const wsolITokenAccount of wsolITokenAccounts) {
+        if (toPubString(wsolITokenAccount.publicKey) === toPubString(tokenAccount.pubkey)) {
+          result = true
+          break
+        }
       }
+      return result
     })
+
+    const { transactions, amount } = unwarpSol({
+      ownerInfo: {
+        wallet: owner,
+        payer: owner
+      },
+      tokenAccounts: wsolTokenAccounts
+    })
+
+    const signedTransactions = shakeUndifindedItem(
+      await asyncMap(transactions, (merged) => {
+        if (!merged) return
+        const { transaction, signer: signers } = merged
+        return loadTransaction({ transaction: transaction, signers })
+      })
+    )
+
+    const queue = signedTransactions.map((tx, idx) => [
+      tx,
+      {
+        txHistoryInfo: {
+          title: 'Unwrapped all WSOL',
+          description: `Unwrapped total ${toString(toTokenAmount(QuantumSOLVersionWSOL, amount))} WSOL`
+        }
+      }
+    ]) as TransactionQueue
+
+    transactionCollector.addQueue(queue)
   })
 }
 

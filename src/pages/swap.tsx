@@ -10,14 +10,15 @@ import { isLiquidityPoolJsonInfo } from '@/application/pools/is'
 import { routeTo } from '@/application/routeTools'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
-import { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
+import txUnwrapAllWSOL, { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
 import txWrapSOL from '@/application/swap/txWrapSOL'
 import { useSwap } from '@/application/swap/useSwap'
 import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
-  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, SOL_BASE_BALANCE, SOLDecimals, toUITokenAmount
+  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOL_BASE_BALANCE,
+  SOLDecimals, toUITokenAmount, WSOLMint
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -35,6 +36,7 @@ import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import FadeInStable, { FadeIn } from '@/components/FadeIn'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
+import LoadingCircleSmall from '@/components/LoadingCircleSmall'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
@@ -43,10 +45,11 @@ import Tooltip from '@/components/Tooltip'
 import { addItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
+import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { eq, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
@@ -169,6 +172,45 @@ function SwapHead() {
   )
 }
 
+function AllUnwrapSOLToSol() {
+  const allWsolBalance = useWallet((s) => s.allWsolBalance)
+  const refreshSwap = useSwap((s) => s.refreshSwap)
+  const connected = useWallet((s) => s.connected)
+  const [loading, setLoading] = useState(false)
+
+  if (gt(allWsolBalance, 0) && connected) {
+    return (
+      <Row className="rounded-lg p-3 bg-[#4069BB] flex justify-center items-center gap-1 mobile:mb-5">
+        <Icon size="sm" heroIconName="exclamation-circle" className="ml-2 text-white" />
+        <Row>
+          <p className="text-xs mobile:text-2xs text-[white]">
+            You have{' '}
+            <span className="text-white">{toString(toTokenAmount(QuantumSOLVersionWSOL, allWsolBalance))}</span> WSOL
+            that you can{' '}
+            <span
+              className="text-[#39D0D8] cursor-pointer font-semibold"
+              onClick={() => {
+                setLoading(true)
+                txUnwrapAllWSOL().then(({ allSuccess }) => {
+                  if (allSuccess) {
+                    refreshSwap()
+                  }
+                  setLoading(false)
+                })
+              }}
+            >
+              Unwrap
+            </span>
+          </p>
+          {loading && <LoadingCircleSmall className="w-3 h-3 ml-2" />}
+        </Row>
+      </Row>
+    )
+  } else {
+    return null
+  }
+}
+
 function SwapCard() {
   const { connected: walletConnected } = useWallet()
   const coin1 = useSwap((s) => s.coin1)
@@ -233,6 +275,24 @@ function SwapCard() {
   }, [])
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+
+  const disabledTokens = useMemo(() => {
+    if (targetCoinNo === '1' && coin2) {
+      if (coin2.symbol === QuantumSOLVersionSOL.symbol) {
+        return [QuantumSOLVersionWSOL]
+      } else if (coin2.symbol === QuantumSOLVersionWSOL.symbol) {
+        return [QuantumSOLVersionSOL]
+      }
+    } else if (targetCoinNo === '2' && coin1) {
+      if (coin1.symbol === QuantumSOLVersionSOL.symbol) {
+        return [QuantumSOLVersionWSOL]
+      } else if (coin1.symbol === QuantumSOLVersionWSOL.symbol) {
+        return [QuantumSOLVersionSOL]
+      }
+    }
+    return []
+  }, [targetCoinNo, coin1, coin2])
+
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
@@ -240,6 +300,7 @@ function SwapCard() {
       className="py-8 pt-4 px-6 mobile:py-5 mobile:px-3"
     >
       {/* input twin */}
+      <AllUnwrapSOLToSol />
       <div className="space-y-5 mt-5 mobile:mt-0">
         <CoinInputBox
           domRef={swapElementBox1}
@@ -475,6 +536,7 @@ function SwapCard() {
           turnOffCoinSelector()
         }}
         onClose={turnOffCoinSelector}
+        disableTokens={disabledTokens}
       />
     </CyberpunkStyleCard>
   )
