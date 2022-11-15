@@ -338,16 +338,16 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                     fallbackProps: {
                       children: 'Insufficient days extended'
                     }
+                  },
+                  {
+                    should: errMsg !== ERROR_MSG.DECREASE_ERROR
+                  },
+                  {
+                    should: haveBalance,
+                    fallbackProps: {
+                      children: `Insufficient ${reward?.rewardToken?.symbol} balance`
+                    }
                   }
-                  // {
-                  //   should: errMsg !== ERROR_MSG.DECREASE_ERROR
-                  // }
-                  // {
-                  //   should: haveBalance,
-                  //   fallbackProps: {
-                  //     children: `Insufficient ${reward?.rewardToken?.symbol} balance`
-                  //   }
-                  // }
                 ]}
                 onClick={() => {
                   onConfirm({
