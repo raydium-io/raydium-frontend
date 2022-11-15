@@ -281,6 +281,7 @@ function ShowCreated() {
   const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
   const owner = useWallet((s) => s.owner)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
+  const connected = useWallet((s) => s.connected)
 
   const hasCreatedPool = useMemo(() => {
     let result = false
@@ -297,19 +298,22 @@ function ShowCreated() {
     return result
   }, [owner, hydratedAmmPools])
 
-  return (
-    <Row className="justify-self-end  mobile:justify-self-auto items-center">
-      <span className="text-[rgba(196,214,255,0.5)] whitespace-nowrap font-medium text-sm mobile:text-xs">
-        Show Created
-      </span>
-      <Switcher
-        disable={!hasCreatedPool}
-        className="ml-2 "
-        defaultChecked={ownedPoolOnly}
-        onToggle={(isOnly) => useConcentrated.setState({ ownedPoolOnly: isOnly })}
-      />
-    </Row>
-  )
+  if (!connected || !hasCreatedPool) {
+    return null
+  } else {
+    return (
+      <Row className="justify-self-end  mobile:justify-self-auto items-center">
+        <span className="text-[rgba(196,214,255,0.5)] whitespace-nowrap font-medium text-sm mobile:text-xs">
+          Show Created
+        </span>
+        <Switcher
+          className="ml-2 "
+          defaultChecked={ownedPoolOnly}
+          onToggle={(isOnly) => useConcentrated.setState({ ownedPoolOnly: isOnly })}
+        />
+      </Row>
+    )
+  }
 }
 
 function PoolLabelBlock({ className }: { className?: string }) {
