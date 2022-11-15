@@ -160,8 +160,12 @@ export default function AddMoreDialog({
                 disableDateBeforeCurrent
                 isValidDate={(date) => {
                   return (
-                    isDateAfter(date, currentBlockChainDate) &&
-                    isDateBefore(date, offsetDateTime(values.openTime, { seconds: MAX_DURATION * DAY_SECONDS }))
+                    isDateAfter(
+                      date,
+                      offsetDateTime(currentBlockChainDate, {
+                        seconds: -DAY_SECONDS
+                      })
+                    ) && isDateBefore(date, offsetDateTime(values.openTime, { seconds: MAX_DURATION * DAY_SECONDS }))
                   )
                 }}
                 onDateChange={(selectedDate) => {
