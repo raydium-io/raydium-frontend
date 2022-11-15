@@ -214,7 +214,8 @@ export default function ListTable<T extends AnyObj>({
   return type === 'list-table' ? (
     <Card
       className={twMerge(
-        'grid overflow-hidden bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]',
+        'grid bg-cyberpunk-card-bg border-1.5 border-[rgba(171,196,255,0.2)]',
+        list?.length > 0 ? '' : 'rounded-bl-none rounded-br-none',
         className
       )}
       size="lg"
