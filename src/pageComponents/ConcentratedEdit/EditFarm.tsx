@@ -12,6 +12,7 @@ import Button from '@/components/Button'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
+import Link from '@/components/Link'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 
@@ -170,7 +171,17 @@ export default function EditFarm() {
   if (walletConnected && owner && isMintEqual(currentAmmPool?.creator, owner)) {
     return (
       <div className="max-w-[720px]">
-        <div className="text-2xl mb-10">{isEditFarm ? 'Edit' : 'Create'} Farm</div>
+        <div className="text-2xl mb-4">{isEditFarm ? 'Edit' : 'Create'} Farm</div>
+        <div className="text-[#C4D6FF] text-sm mb-">
+          Before creating a farm, make sure to check the
+          <Link
+            className="ml-1"
+            href="https://docs.raydium.io/raydium/concentrated-liquidity/creating-a-clmm-pool-and-farm"
+          >
+            detailed guide
+          </Link>
+          .
+        </div>
         <div className="text-sm text-secondary-title mb-3">Concentrated liquidity Pool</div>
         <PoolInfo pool={currentAmmPool} />
 
