@@ -1,14 +1,11 @@
 import {
-  RaydiumDevTokenListJsonInfo,
-  RaydiumTokenListJsonInfo,
-  TokenListConfigType,
-  TokenListFetchConfigItem
+  RaydiumDevTokenListJsonInfo, RaydiumTokenListJsonInfo, TokenListConfigType, TokenListFetchConfigItem
 } from './type'
 
 const raydiumMainnetTokenListUrl = 'https://api.raydium.io/v2/sdk/token/raydium.mainnet.json'
 const customTokenListUrl = '/custom-token-list.json'
 export const liquidityMainnetListUrl = 'https://api.raydium.io/v2/sdk/liquidity/mainnet.json'
-export const clmmPoolListUrl = 'https://api.raydium.io/v2/ammV3/ammPools'
+export const clmmPoolListUrl = 'https://api.raydium.io/v2/ammV3/ammPoolsTest'
 
 export const rawTokenListConfigs = [
   {

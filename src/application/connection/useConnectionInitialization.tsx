@@ -13,12 +13,7 @@ import { Config, Endpoint } from './type'
 import useConnection, { SESSION_STORAGE_USER_SELECTED_RPC } from './useConnection'
 
 const mockRPCConfig: Omit<Config, 'success'> = {
-  rpcs: [
-    {
-      name: 'test-mainnet',
-      url: 'https://multi-quaint-patron.solana-mainnet.discover.quiknode.pro/8b60f508adbef181893fafabe27790c8aeb35a4c/'
-    }
-  ],
+  rpcs: [{ name: 'beta-mainnet', url: 'https://api.mainnet-beta.solana.com/' }],
   devrpcs: [{ name: 'devnet', url: 'https://api.devnet.solana.com/', net: 'devnet' }],
 
   strategy: 'speed'
