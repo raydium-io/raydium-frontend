@@ -290,20 +290,21 @@ export default function EditFarm() {
         <div className="flex mt-12">
           <Icon className="text-[#abc4ff] mr-[15px]" heroIconName="exclamation-circle" size="md" />
           <div className="p-6 bg-[#1B1659] rounded-[20px] border-1.5 border-[rgba(171,196,255,0.2)] text-left text-sm text-[rgba(196,214,255,0.5)]">
-            <div className="text-[#DA2EEF] font-medium font-base mobile:text-sm">Important!</div>
+            <div className="text-[#ABC4FF] font-medium font-base mobile:text-sm">How to adjust existing rewards?</div>
             <div className="flex mt-2">
               <span className="mr-1">1.</span>
-              Rewards allocated to farms<span className="underline mx-1">cannot be withdrawn</span>after farming starts.
+              Rewards allocated to farms <span className="px-1 underline">cannot be withdrawn</span> after farming
+              starts.
             </div>
             <div className="flex mt-2">
               <span className="mr-1">2.</span>
-              Additional rewards can be added to the farm 72 hrs prior to rewards ending, but this can only be done if
-              rate of rewards for that specific reward token doesn’t change.
+              If you want to increase the reward rate, additional rewards can be added while a farm is still running.
+              The period must be extended by at least 7 days.
             </div>
             <div className="flex mt-2">
               <span className="mr-1">3.</span>
-              If you want to increase or decrease the rewards rate, you must wait until the previous rewards period ends
-              before starting a new period and rewards amount.
+              If you want to decrease the rewards rate, this can only be done 72 hours before the end of the current
+              farming period, and the period must be extended by at least 7 days.
             </div>
           </div>
         </div>
