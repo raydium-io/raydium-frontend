@@ -1145,7 +1145,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             : 'You created this pool. You can create a farm, or create a new position'}
         </div>
         <Row className={`justify-center items-center gap-2`}>
-          {info.creator.equals(owner ?? PublicKey.default) && (
+          {!hasRewardInfos && info.creator.equals(owner ?? PublicKey.default) && (
             <Button
               className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
               onClick={() => {
