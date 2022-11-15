@@ -16,11 +16,11 @@ export default function useConcentratedPendingYield(targetUserPositionAccount?: 
   return useMemo(() => {
     if (!targetUserPositionAccount) return { pendingTotalVolume: toFraction(0), isHarvestable: false }
 
-    let hasTokenAmount = false
+    let hasRewardTokenAmount = false
     const rewardsVolume: { token?: Token; volume?: Numberish }[] =
       targetUserPositionAccount?.rewardInfos.map((info) => {
         if (gt(info.penddingReward, 0)) {
-          hasTokenAmount = true
+          hasRewardTokenAmount = true
         }
 
         return {
@@ -29,6 +29,14 @@ export default function useConcentratedPendingYield(targetUserPositionAccount?: 
         }
       }) ?? []
 
+    let hasFeeTokenAmount = false
+    if (
+      targetUserPositionAccount &&
+      ((targetUserPositionAccount.tokenFeeAmountA && gt(targetUserPositionAccount.tokenFeeAmountA, 0)) ||
+        (targetUserPositionAccount.tokenFeeAmountB && gt(targetUserPositionAccount.tokenFeeAmountB, 0)))
+    ) {
+      hasFeeTokenAmount = true
+    }
     const feesVolume: { token?: Token; volume?: Numberish }[] = targetUserPositionAccount
       ? [
           {
@@ -54,7 +62,7 @@ export default function useConcentratedPendingYield(targetUserPositionAccount?: 
         undefined as Fraction | undefined
       )
 
-    const isHarvestable = gt(pendingTotalVolume, 0) || hasTokenAmount ? true : false
+    const isHarvestable = gt(pendingTotalVolume, 0) || hasRewardTokenAmount || hasFeeTokenAmount ? true : false
 
     return { pendingTotalVolume: pendingTotalVolume, isHarvestable: isHarvestable }
   }, [tokenPrices, targetUserPositionAccount])
