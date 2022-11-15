@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -8,14 +9,10 @@ import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo,
-  HydratedConcentratedRewardInfo,
-  UserPositionAccount
+  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -1143,12 +1140,12 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     return (
       <Col className={`py-5 px-8 mobile:py-2 justify-center rounded-b-3xl mobile:rounded-b-lg items-center`}>
         <div className="mb-3 text-xs">
-          {hasRewardInfos
+          {!info.creator.equals(owner ?? PublicKey.default)
             ? 'Want to open a new position?'
             : 'You created this pool. You can create a farm, or create a new position'}
         </div>
         <Row className={`justify-center items-center gap-2`}>
-          {!hasRewardInfos && (
+          {info.creator.equals(owner ?? PublicKey.default) && (
             <Button
               className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
               onClick={() => {
