@@ -173,19 +173,20 @@ function SwapHead() {
 }
 
 function AllUnwrapSOLToSol() {
-  const wsolBalance = useWallet((s) => s.wsolBalance)
+  const allWsolBalance = useWallet((s) => s.allWsolBalance)
   const refreshSwap = useSwap((s) => s.refreshSwap)
   const connected = useWallet((s) => s.connected)
   const [loading, setLoading] = useState(false)
 
-  if (gt(wsolBalance, 0) && connected) {
+  if (gt(allWsolBalance, 0) && connected) {
     return (
       <Row className="rounded-lg p-3 bg-[#4069BB] flex justify-center items-center gap-1 mobile:mb-5">
         <Icon size="sm" heroIconName="exclamation-circle" className="ml-2 text-white" />
         <Row>
           <p className="text-xs mobile:text-2xs text-[white]">
-            You have <span className="text-white">{toString(toTokenAmount(QuantumSOLVersionWSOL, wsolBalance))}</span>{' '}
-            WSOL that you can{' '}
+            You have{' '}
+            <span className="text-white">{toString(toTokenAmount(QuantumSOLVersionWSOL, allWsolBalance))}</span> WSOL
+            that you can{' '}
             <span
               className="text-[#39D0D8] cursor-pointer font-semibold"
               onClick={() => {
