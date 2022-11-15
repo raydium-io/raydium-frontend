@@ -63,11 +63,17 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
   const remainDays = Math.ceil(remainSeconds / DAY_SECONDS)
   const remainAmount = mul(div(perSecond?.toFixed(rewardDecimals) || 0, 10 ** rewardDecimals), remainSeconds)
 
-  const newPerSecond = div(
+  // planA: amount/dayExtended
+  const newPerSecondA = div(values.amount || 0, mul(values.daysExtend || 0, DAY_SECONDS))
+  // planB: (remain amount + amount)/(remain days + dayExtended)
+  const newPerSecondB = div(
     plus(remainAmount, values.amount || 0),
     plus(remainSeconds, mul(values.daysExtend || 0, DAY_SECONDS))
   )
+  // new per second = Math.min(planA, planB)
+  const newPerSecond = lt(newPerSecondA, newPerSecondB) ? newPerSecondA : newPerSecondB
   const newPerWeek = mul(newPerSecond, DAY_SECONDS * 7)
+
   const isWithin72hrs = remainSeconds >= 0 && remainSeconds <= 3600 * 72
   const isDecreaseSpeed = reward
     ? lt(newPerSecond.toFixed(rewardDecimals), div(perSecond || 0, 10 ** rewardDecimals).toFixed(rewardDecimals))
@@ -248,9 +254,14 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                       {perSecond ? (
                         <Col className="grow gap-2 break-all justify-center text-xs">
                           <div className="text-white text-base">
-                            {formatNumber(plus(values.amount, remainAmount).toFixed(rewardDecimals), {
-                              fractionLength: rewardDecimals
-                            })}
+                            {formatNumber(
+                              isDecreaseSpeed
+                                ? plus(values.amount, mul(newPerSecond, remainSeconds)).toFixed(rewardDecimals)
+                                : plus(values.amount, remainAmount).toFixed(rewardDecimals),
+                              {
+                                fractionLength: rewardDecimals
+                              }
+                            )}
                           </div>
                           <div>
                             {toUsdVolume(
@@ -324,10 +335,10 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                     fallbackProps: {
                       children: 'Insufficient days extended'
                     }
-                  },
-                  {
-                    should: errMsg !== ERROR_MSG.DECREASE_ERROR
                   }
+                  // {
+                  //   should: errMsg !== ERROR_MSG.DECREASE_ERROR
+                  // }
                   // {
                   //   should: haveBalance,
                   //   fallbackProps: {
