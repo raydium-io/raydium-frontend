@@ -245,6 +245,10 @@ export default function EditFarm() {
           </>
         )}
 
+        {txSuccess ? (
+          <div className="mb-4 text-[#DA2EEF] text-center text-sm">Farming rewards successfully updated</div>
+        ) : null}
+
         {!showPreview && (
           <div className="text-center">
             <Button
@@ -293,6 +297,10 @@ export default function EditFarm() {
               className="frosted-glass-skygray w-fit"
               size={isMobile ? 'sm' : 'lg'}
               onClick={() => {
+                if (txSuccess) {
+                  window.location.reload()
+                  return
+                }
                 setShowPreview(false)
                 setTxSuccess(false)
               }}
