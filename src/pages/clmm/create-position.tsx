@@ -76,7 +76,7 @@ function NavButtons() {
   return (
     <Row
       className={twMerge(
-        '-mt-4 mobile:mt-0.5 mb-8 mobile:mb-2 sticky z-10 -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] mobile:hidden items-center justify-between'
+        '-mt-4 mobile:mt-0.5 mb-8 mobile:mb-2 sticky z-auto -top-4 mobile:top-0 mobile:-translate-y-2 mobile:bg-[#0f0b2f] mobile:hidden items-center justify-between'
       )}
     >
       <Button
