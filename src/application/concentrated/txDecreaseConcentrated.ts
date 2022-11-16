@@ -50,7 +50,7 @@ export default function txDecreaseConcentrated() {
         title: 'Liquidity Removed',
         description: `Removed ${toString(coin1AmountMin)} ${coin1.symbol} and ${toString(coin2AmountMin)} ${
           coin2.symbol
-        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+        } from ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
     })
   })
