@@ -5,8 +5,15 @@
  */
 
 import {
-  AmmV3, AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, PublicKeyish,
-  ReturnTypeFetchMultiplePoolTickArrays, ReturnTypeGetAllRouteComputeAmountOut, TradeV2
+  AmmV3,
+  AmmV3PoolInfo,
+  AmmV3PoolPersonalPosition,
+  ApiAmmV3PoolInfo,
+  LiquidityPoolsJsonFile,
+  PublicKeyish,
+  ReturnTypeFetchMultiplePoolTickArrays,
+  ReturnTypeGetAllRouteComputeAmountOut,
+  TradeV2
 } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
@@ -55,7 +62,7 @@ export function clearApiCache() {
 }
 
 async function getAmmV3PoolKeys() {
-  const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools')
+  const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools') // note: previously Rudy has Test API for dev
   if (response) {
     return response.data
   } else {
