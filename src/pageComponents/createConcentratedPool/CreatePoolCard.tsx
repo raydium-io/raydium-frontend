@@ -36,7 +36,7 @@ import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
 
-import { calculateRatio } from '../Concentrated'
+import { calculateRatio, RemainSOLAlert } from '../Concentrated'
 import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
 
 import { CreateFeeSwitcher } from './CreateFeeSwitcher'
@@ -491,48 +491,52 @@ export function CreatePoolCard() {
           ''
         )}
 
-        <div className="flex items-center text-xs p-[12px] rounded-lg text-secondary-title bg-[rgba(171,196,255,0.08)] mt-auto -mb-2.5">
-          <Icon size="sm" heroIconName="information-circle" />
-          <div className="ml-2.5">
-            <span className="font-medium">SOL network fee</span>: Estimated transaction fee for creating a pool is
-            approximately 0.3 SOL, but may vary depending on transaction size.
+        <Col className="gap-4 mt-auto">
+          <div className="flex items-center text-xs p-[12px] rounded-lg text-secondary-title bg-[rgba(171,196,255,0.08)] mt-auto">
+            <Icon size="sm" heroIconName="information-circle" />
+            <div className="ml-2.5">
+              <span className="font-medium">SOL network fee</span>: Estimated transaction fee for creating a pool is
+              approximately 0.3 SOL, but may vary depending on transaction size.
+            </div>
           </div>
-        </div>
 
-        <Button
-          className="frosted-glass-teal mobile:w-full"
-          size={isMobile ? 'sm' : 'lg'}
-          validators={[
-            {
-              should: connected,
-              forceActive: true,
-              fallbackProps: {
-                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                children: 'Connect Wallet'
+          <Button
+            className="frosted-glass-teal mobile:w-full"
+            size={isMobile ? 'sm' : 'lg'}
+            validators={[
+              {
+                should: connected,
+                forceActive: true,
+                fallbackProps: {
+                  onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+                  children: 'Connect Wallet'
+                }
+              },
+              { should: coin1 && coin2 },
+              { should: isMeaningfulNumber(userSettedCurrentPrice), fallbackProps: { children: 'Input Price' } },
+              { should: userSelectedAmmConfigFeeOption, fallbackProps: { children: 'Select a fee option' } },
+              {
+                should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
+                fallbackProps: { children: 'Input Token Amount' }
+              },
+              {
+                should: haveEnoughCoin1,
+                fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
+              },
+              {
+                should: haveEnoughCoin2,
+                fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
               }
-            },
-            { should: coin1 && coin2 },
-            { should: isMeaningfulNumber(userSettedCurrentPrice), fallbackProps: { children: 'Input Price' } },
-            { should: userSelectedAmmConfigFeeOption, fallbackProps: { children: 'Select a fee option' } },
-            {
-              should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
-              fallbackProps: { children: 'Input Token Amount' }
-            },
-            {
-              should: haveEnoughCoin1,
-              fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
-            },
-            {
-              should: haveEnoughCoin2,
-              fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
-            }
-          ]}
-          onClick={() => {
-            openPreviewDialog()
-          }}
-        >
-          Preview Pool
-        </Button>
+            ]}
+            onClick={() => {
+              openPreviewDialog()
+            }}
+          >
+            Preview Pool
+          </Button>
+
+          <RemainSOLAlert solLeastBalance={1} className="my-0" />
+        </Col>
       </Col>
 
       <CreatePoolPreviewDialog
