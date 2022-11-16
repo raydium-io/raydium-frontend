@@ -20,7 +20,7 @@ export function RemainSOLAlert({
   tooltipText?: string
 }) {
   const rawsolBalance = useWallet((s) => s.solBalance)
-  const solBalance = div(rawsolBalance ?? 0, 10 ** SOLDecimals)
+  const solBalance = div(rawsolBalance, 10 ** SOLDecimals)
   return (
     <FadeIn>
       {solBalance && lt(solBalance, solLeastBalance ?? SOL_BASE_BALANCE) && gte(solBalance, 0) && (
