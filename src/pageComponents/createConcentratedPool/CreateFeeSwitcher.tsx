@@ -55,10 +55,10 @@ function CreateFeeSwitcherContent({
           <Tooltip key={config.id} disable={!isAlreadyCreated}>
             <div
               className={`relative grow items-stretch px-1.5 py-2 ${
-                isCurrent ? 'ring-inset ring-1.5 ring-[#abc4ff]' : 'ring-inset ring-1.5 ring-[#abc4ff40]'
-              } rounded-xl ${canSelect ? 'clickable-no-transform select-none' : 'opacity-50 cursor-not-allowed'}`}
+                isCurrent ? 'ring-inset ring-1.5 ring-[#abc4ff]' : 'ring-inset ring-1.5 ring-[#abc4ff60]'
+              } rounded-xl ${canSelect ? 'clickable-no-transform select-none' : 'opacity-30 cursor-not-allowed'}`}
               onClick={() => {
-                useConcentrated.setState({ userSelectedAmmConfigFeeOption: config })
+                if (canSelect) useConcentrated.setState({ userSelectedAmmConfigFeeOption: config })
               }}
             >
               {isCurrent ? (

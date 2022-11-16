@@ -57,13 +57,15 @@ function ConcentratedFeeSwitcherContent({
           <div
             key={config.id}
             className={`relative grow items-stretch p-3 gap-2 ${
-              isCurrent ? 'ring-inset ring-1.5 ring-[#abc4ff]' : 'ring-inset ring-1.5 ring-[#abc4ff40]'
-            } rounded-xl ${canSelect ? 'clickable-no-transform select-none' : 'opacity-50 pointer-events-none'}`}
+              isCurrent ? 'ring-inset ring-1.5 ring-[#abc4ff]' : 'ring-inset ring-1.5 ring-[#abc4ff60]'
+            } rounded-xl ${canSelect ? 'clickable-no-transform select-none' : 'opacity-30 pointer-events-none'}`}
             onClick={() => {
-              const newAmmPool = availableAmmPools?.find((p) => isMintEqual(p.ammConfig.id, config.id))
-              useConcentrated.setState({
-                currentAmmPool: newAmmPool
-              })
+              if (canSelect) {
+                const newAmmPool = availableAmmPools?.find((p) => isMintEqual(p.ammConfig.id, config.id))
+                useConcentrated.setState({
+                  currentAmmPool: newAmmPool
+                })
+              }
             }}
           >
             {isCurrent ? (
