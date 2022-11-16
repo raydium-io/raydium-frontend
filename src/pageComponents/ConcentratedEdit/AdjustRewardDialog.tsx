@@ -42,13 +42,15 @@ interface State {
 }
 
 const ERROR_MSG = {
-  DECREASE_ERROR: 'This change decreases the reward rate. Please extend the period or add more tokens.',
+  DURATION: 'Time extended must be a minimum 7 days and maximum 90 days.',
+  DECREASE_ERROR: 'Decreasing reward rate is permitted within 72 hrs of current farm end time. Try adding more tokens.',
   DECREASE: 'Decreasing the reward rate is permitted within 72 hours of current farm end time.'
 }
 
 export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffset, onClose, onConfirm }: Props) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const tokenPrices = useToken((s) => s.tokenPrices)
+  const [dirty, setDirty] = useState(!!defaultData)
   const onlineCurrentDate = Date.now() + (chainTimeOffset ?? 0)
   const [getBalance, walletConnected] = useWallet((s) => [s.getBalance, s.connected])
   const [values, setValues] = useState<State>({
@@ -81,8 +83,14 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
     ? lt(newPerSecond.toFixed(rewardDecimals), div(perSecond || 0, 10 ** rewardDecimals).toFixed(rewardDecimals))
     : false
 
+  const isDaysSufficient =
+    isMeaningfulNumber(values.daysExtend) &&
+    gte(values.daysExtend, MIN_DURATION) &&
+    lte(values.daysExtend, MAX_DURATION)
   let errMsg = ''
-  if (isDecreaseSpeed) {
+  if (dirty && !isDaysSufficient) {
+    errMsg = ERROR_MSG.DURATION
+  } else if (isDecreaseSpeed) {
     if (!isWithin72hrs) errMsg = ERROR_MSG.DECREASE_ERROR
     else errMsg = ERROR_MSG.DECREASE
   }
@@ -210,7 +218,10 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                   haveHalfButton
                   haveCoinIcon
                   topLeftLabel="Asset"
-                  onUserInput={(amount) => setValues((preValues) => ({ ...preValues, amount }))}
+                  onUserInput={(amount) => {
+                    setValues((preValues) => ({ ...preValues, amount }))
+                    setDirty(true)
+                  }}
                   token={reward?.rewardToken}
                 />
                 <InputBox
@@ -225,7 +236,10 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                   placeholder="7-90"
                   suffix={<span className="text-[#abc4ff80] text-xs">Days</span>}
                   value={values.daysExtend}
-                  onUserInput={(daysExtend) => setValues((preValues) => ({ ...preValues, daysExtend }))}
+                  onUserInput={(daysExtend) => {
+                    setValues((preValues) => ({ ...preValues, daysExtend }))
+                    setDirty(true)
+                  }}
                 />
               </Row>
 
@@ -355,10 +369,7 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                     }
                   },
                   {
-                    should:
-                      isMeaningfulNumber(values.daysExtend) &&
-                      gte(values.daysExtend, MIN_DURATION) &&
-                      lte(values.daysExtend, MAX_DURATION),
+                    should: isDaysSufficient,
                     fallbackProps: {
                       children: 'Insufficient days extended'
                     }
