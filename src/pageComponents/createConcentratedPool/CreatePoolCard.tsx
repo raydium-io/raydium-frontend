@@ -535,7 +535,11 @@ export function CreatePoolCard() {
             Preview Pool
           </Button>
 
-          <RemainSOLAlert solLeastBalance={1} className="my-0" />
+          <RemainSOLAlert
+            tooltipText="SOL is needed for Solana network fees. A minimum balance of 1 SOL is recommended when creating a pool to avoid failed transactions."
+            solLeastBalance={1}
+            className="my-0"
+          />
         </Col>
       </Col>
 
