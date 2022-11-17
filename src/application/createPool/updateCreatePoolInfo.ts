@@ -1,6 +1,5 @@
-import { PublicKey } from '@solana/web3.js'
-
 import { Liquidity, MARKET_STATE_LAYOUT_V3, PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
@@ -73,11 +72,14 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     // find associated poolKeys for market
     const associatedPoolKeys = await Liquidity.getAssociatedPoolKeys({
       version: 4,
+      marketVersion: 4,
       baseMint,
       quoteMint,
       baseDecimals,
       quoteDecimals,
-      marketId: new PublicKey(txParam.marketId)
+      marketId: new PublicKey(txParam.marketId),
+      programId: new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'),
+      marketProgramId: new PublicKey('srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX')
     })
     const { id: ammId, lpMint } = associatedPoolKeys
     useCreatePool.setState({ sdkAssociatedPoolKeys: associatedPoolKeys })
