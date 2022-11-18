@@ -26,6 +26,7 @@ import Input from '@/components/Input'
 import InputBox from '@/components/InputBox'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
+import { OpenBookTip } from '@/components/OpenBookTip'
 import PageLayout from '@/components/PageLayout'
 import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
@@ -1045,6 +1046,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | 
           )}
         </Row>
         {info?.isStablePool && <Badge className="self-center">Stable</Badge>}
+        {info?.isOpenBook && <OpenBookTip></OpenBookTip>}
       </Row>
     </AutoBox>
   )

@@ -27,6 +27,7 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     assert(owner, 'require connect wallet')
     const marketBufferInfo = await connection.getAccountInfo(new PublicKey(txParam.marketId))
     assert(marketBufferInfo?.data, `can't find market ${txParam.marketId}`)
+    assert(marketBufferInfo.owner.toString() === 'srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX', `market program id is not OpenBook program id`)
     const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
     const baseDecimals = await getOnlineTokenDecimals(baseMint)
     const quoteDecimals = await getOnlineTokenDecimals(quoteMint)

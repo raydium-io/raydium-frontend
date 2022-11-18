@@ -16,6 +16,7 @@ export function hydratedPairInfo(
     lpToken?: LpToken
     lpBalance?: TokenAmount
     isStable?: boolean
+    isOpenBook?: boolean
     userCustomTokenSymbol: { [x: string]: { symbol: string; name: string } }
   }
 ): HydratedPairItemInfo {
@@ -89,6 +90,7 @@ export function hydratedPairInfo(
       sharePercent: calcLpUserLedgerInfoResult?.sharePercent,
       price: base ? toTokenPrice(base, pair.price) : null,
       isStablePool: Boolean(payload.isStable),
+      isOpenBook: Boolean(payload.isOpenBook),
       name: newPairName ? newPairName : pair.name
     }
   }

@@ -75,4 +75,5 @@ export interface HydratedPairItemInfo {
   sharePercent: Fraction | undefined // user's wallet must has pool's lp
 
   isStablePool: boolean
+  isOpenBook: boolean
 }
