@@ -64,7 +64,7 @@ async function getAmmV3PoolKeys() {
 }
 
 async function getOldKeys() {
-  const response = await jFetch<LiquidityPoolsJsonFile>('https://api.raydium.io/v2/sdk/liquidity/mainnetTest.json')
+  const response = await jFetch<LiquidityPoolsJsonFile>('https://api.raydium.io/v2/sdk/liquidity/mainnet.json')
   return response
 }
 
