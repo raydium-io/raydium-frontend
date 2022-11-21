@@ -6,7 +6,7 @@ import jFetch from '@/functions/dom/jFetch'
 import { inClient } from '@/functions/judgers/isSSR'
 
 // frontend (client)
-const APP_VERSION = 'V2.9.1'
+const APP_VERSION = 'V2.9.2'
 
 const APP_VERSION_CHECKING_DELAY_TIME = 1000 * 60 * 1
 
