@@ -15,6 +15,7 @@ import { FarmPoolJsonInfo, HydratedFarmInfo, HydratedRewardInfo } from '@/applic
 import useFarmResetSelfCreatedByOwner from '@/application/farms/useFarmResetSelfCreatedByOwner'
 import useFarms, { useFarmFavoriteIds } from '@/application/farms/useFarms'
 import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
+import useLiquidity from '@/application/liquidity/useLiquidity'
 import useNotification from '@/application/notification/useNotification'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
@@ -40,6 +41,7 @@ import LinkExplorer from '@/components/LinkExplorer'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
 import LoadingCircleSmall from '@/components/LoadingCircleSmall'
+import { OpenBookTip } from '@/components/OpenBookTip'
 import PageLayout from '@/components/PageLayout'
 import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
@@ -1513,6 +1515,9 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
   const getToken = useToken((s) => s.getToken)
   const isStable = isJsonFarmInfo(info) ? false : info.isStablePool
 
+  const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
+  const liquidity = liquidityJsonInfos.find((i) => i.lpMint === info.lpMint)
+
   if (isJsonFarmInfo(info)) {
     const lpToken = getLpToken(info.lpMint) // TODO: may be token can cache?
     const name = lpToken ? `${lpToken.base.symbol ?? '--'} - ${lpToken.quote.symbol ?? '--'}` : '--' // TODO: rule of get farm name should be a issolate function
@@ -1552,6 +1557,9 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       {info.isDualFusionPool && info.version !== 6 && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
       {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
       {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
+      {liquidity && liquidity.marketProgramId === 'srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX' && (
+        <OpenBookTip></OpenBookTip>
+      )}
     </AutoBox>
   )
 }

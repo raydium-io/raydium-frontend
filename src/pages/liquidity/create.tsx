@@ -4,12 +4,13 @@ import { useRouter } from 'next/router'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
-import useInitlyGetCreatedPoolExhibitionData from '@/application/createPool/useInitlyGetCreatedPoolExhibitionData'
 import txCreateAndInitNewPool from '@/application/createPool/txCreateAndInitNewPool'
-import useCreatePool from '@/application/createPool/useCreatePool'
 import { updateCreatePoolInfo } from '@/application/createPool/updateCreatePoolInfo'
+import useCreatePool from '@/application/createPool/useCreatePool'
+import useInitlyGetCreatedPoolExhibitionData from '@/application/createPool/useInitlyGetCreatedPoolExhibitionData'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
+import { createSplToken } from '@/application/token/useTokenListsLoader'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -26,9 +27,8 @@ import SetpIndicator from '@/components/SetpIndicator'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
-import useToggle from '@/hooks/useToggle'
-import { createSplToken } from '@/application/token/useTokenListsLoader'
 import { toString } from '@/functions/numberish/toString'
+import useToggle from '@/hooks/useToggle'
 
 /**
  * @see https://uiwjs.github.io/#/components/date-input
@@ -68,7 +68,7 @@ function PanelContent({ close }: { close(): void }) {
         <Link href="https://raydium.gitbook.io/raydium/permissionless/creating-a-pool">detailed guide</Link>
       </div>
       <InputBox
-        label="Serum Market ID:"
+        label="OpenBook Market ID:"
         className="mb-5"
         onUserInput={(value) => useCreatePool.setState({ marketId: value })}
       />
@@ -111,7 +111,7 @@ function PanelContent({ close }: { close(): void }) {
       {/* text */}
       {/* info panel */}
       <Col className="my-12 mobile:my-6 py-4 px-6 flex-grow ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-xl items-center gap-3 mobile:gap-1">
-        <AddressItem fieldName="Serum Market ID:" fieldValue={marketId ?? '--'} />
+        <AddressItem fieldName="OpenBook Market ID:" fieldValue={marketId ?? '--'} />
         <AddressItem fieldName="Base Token Mint Address:" fieldValue={baseMint ?? '--'} autoShowTokenSymbol />
         <AddressItem fieldName="Quote Token Mint Address:" fieldValue={quoteMint ?? '--'} autoShowTokenSymbol />
         <AddressItem fieldName="AMM ID:" fieldValue={ammId ?? '--'} />
@@ -183,7 +183,7 @@ function PanelContent({ close }: { close(): void }) {
       {/* text */}
       {/* info panel */}
       <Col className="my-12 mobile:my-6 py-4 px-6 flex-grow ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-xl items-center gap-3 mobile:gap-1">
-        <AddressItem fieldName="Serum Market ID:" fieldValue={marketId ?? '--'} />
+        <AddressItem fieldName="OpenBook Market ID:" fieldValue={marketId ?? '--'} />
         <AddressItem fieldName="AMM ID:" fieldValue={ammId ?? '--'} />
         <AddressItem fieldName="Base Mint:" fieldValue={baseMint ?? '--'} autoShowTokenSymbol />
         <AddressItem fieldName="Quote Mint:" fieldValue={quoteMint ?? '--'} autoShowTokenSymbol />
@@ -233,7 +233,7 @@ function PanelContent({ close }: { close(): void }) {
           stepInfos={[
             {
               stepNumber: 1,
-              stepContent: 'Import Serum Market ID'
+              stepContent: 'Import OpenBook Market ID'
             },
             {
               stepNumber: 2,

@@ -1,6 +1,5 @@
-import { PublicKey } from '@solana/web3.js'
-
 import { Liquidity, MARKET_STATE_LAYOUT_V3, PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
@@ -28,6 +27,7 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     assert(owner, 'require connect wallet')
     const marketBufferInfo = await connection.getAccountInfo(new PublicKey(txParam.marketId))
     assert(marketBufferInfo?.data, `can't find market ${txParam.marketId}`)
+    assert(marketBufferInfo.owner.toString() === 'srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX', `market program id is not OpenBook program id`)
     const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
     const baseDecimals = await getOnlineTokenDecimals(baseMint)
     const quoteDecimals = await getOnlineTokenDecimals(quoteMint)
@@ -73,11 +73,14 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     // find associated poolKeys for market
     const associatedPoolKeys = await Liquidity.getAssociatedPoolKeys({
       version: 4,
+      marketVersion: 4,
       baseMint,
       quoteMint,
       baseDecimals,
       quoteDecimals,
-      marketId: new PublicKey(txParam.marketId)
+      marketId: new PublicKey(txParam.marketId),
+      programId: new PublicKey('675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8'),
+      marketProgramId: new PublicKey('srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX')
     })
     const { id: ammId, lpMint } = associatedPoolKeys
     useCreatePool.setState({ sdkAssociatedPoolKeys: associatedPoolKeys })

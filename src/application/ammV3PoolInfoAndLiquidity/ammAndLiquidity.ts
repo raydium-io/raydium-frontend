@@ -5,15 +5,8 @@
  */
 
 import {
-  AmmV3,
-  AmmV3PoolInfo,
-  AmmV3PoolPersonalPosition,
-  ApiAmmV3PoolInfo,
-  LiquidityPoolsJsonFile,
-  PublicKeyish,
-  ReturnTypeFetchMultiplePoolTickArrays,
-  ReturnTypeGetAllRouteComputeAmountOut,
-  TradeV2
+  AmmV3, AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, PublicKeyish,
+  ReturnTypeFetchMultiplePoolTickArrays, ReturnTypeGetAllRouteComputeAmountOut, TradeV2
 } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
@@ -71,7 +64,7 @@ async function getAmmV3PoolKeys() {
 }
 
 async function getOldKeys() {
-  const response = await jFetch<LiquidityPoolsJsonFile>('https://api.raydium.io/v2/sdk/liquidity/mainnet.json')
+  const response = await jFetch<LiquidityPoolsJsonFile>('https://api.raydium.io/v2/sdk/liquidity/mainnetTest.json')
   return response
 }
 

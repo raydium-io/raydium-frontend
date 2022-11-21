@@ -1,19 +1,21 @@
 import React, { useRef } from 'react'
+
 import { twMerge } from 'tailwind-merge'
 
+import { findTokenMintByAmmId, findTokenMintByMarketId } from '@/application/liquidity/miscToolFns'
 import useLiquidity from '@/application/liquidity/useLiquidity'
+import useNotification from '@/application/notification/useNotification'
+import { getUserTokenEvenNotExist } from '@/application/token/getUserTokenEvenNotExist'
+import useToken from '@/application/token/useToken'
 import Button, { ButtonHandle } from '@/components/Button'
 import Card from '@/components/Card'
 import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
-import useToken from '@/application/token/useToken'
 import assert from '@/functions/assert'
 import { isValidPublicKey } from '@/functions/judgers/dateType'
-import { findTokenMintByAmmId, findTokenMintByMarketId } from '@/application/liquidity/miscToolFns'
-import useNotification from '@/application/notification/useNotification'
+
 import InputBox from '../../components/InputBox'
-import { getUserTokenEvenNotExist } from '@/application/token/getUserTokenEvenNotExist'
 
 export function SearchAmmDialog({
   open,
@@ -73,7 +75,7 @@ export function SearchAmmDialog({
 
           <InputBox
             className="mb-6"
-            label="AMM ID or Serum market ID"
+            label="AMM ID, OpenBook or Serum market ID"
             onUserInput={setSearchText}
             onEnter={(currentValue) => {
               parseTokensFromSearchInput(currentValue)

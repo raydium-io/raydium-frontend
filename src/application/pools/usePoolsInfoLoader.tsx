@@ -87,6 +87,9 @@ export default function usePoolsInfoLoader() {
           lpToken: getLpToken(pair.lpMint),
           lpBalance: balances[String(pair.lpMint)],
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
+          isOpenBook:
+            liquidityJsonInfos.find((i) => i.id === pair.ammId)?.marketProgramId ===
+            'srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX',
           userCustomTokenSymbol: userCustomTokenSymbol
         })
     })

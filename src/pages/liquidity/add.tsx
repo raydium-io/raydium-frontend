@@ -1,8 +1,9 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { Percent } from '@raydium-io/raydium-sdk'
+
 import BN from 'bn.js'
 import { twMerge } from 'tailwind-merge'
-import { Percent } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useFarms from '@/application/farms/useFarms'
@@ -31,6 +32,7 @@ import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Link from '@/components/Link'
 import List from '@/components/List'
+import { OpenBookTip } from '@/components/OpenBookTip'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
@@ -601,6 +603,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
     : undefined
 
   const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
+  const isOpenBook = currentHydratedInfo?.jsonInfo.marketProgramId === 'srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX'
 
   return (
     <Col
@@ -649,6 +652,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
           fieldValue={
             <Row className="items-center gap-2">
               {isStable && <Badge className="self-center">Stable</Badge>}
+              {/* {isOpenBook && <OpenBookTip></OpenBookTip>} */}
               <div>
                 {currentHydratedInfo?.lpToken
                   ? `${formatNumber(
