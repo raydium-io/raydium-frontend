@@ -15,7 +15,6 @@ import useConnection, { SESSION_STORAGE_USER_SELECTED_RPC } from './useConnectio
 const mockRPCConfig: Omit<Config, 'success'> = {
   rpcs: [{ name: 'beta-mainnet', url: 'https://api.mainnet-beta.solana.com/' }],
   devrpcs: [{ name: 'devnet', url: 'https://api.devnet.solana.com/', net: 'devnet' }],
-
   strategy: 'speed'
 }
 

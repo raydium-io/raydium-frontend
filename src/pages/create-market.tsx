@@ -187,13 +187,13 @@ function SelectTokenInputBox({
             <Row className="items-center gap-2">
               <CoinAvatar token={token} />
               <div className="text-[#abc4ff] font-medium text-lg">{token.symbol ?? ''}</div>
-              <Icon size="sm" className="text-[#abc4ff]" heroIconName="chevron-down" />
+              <Icon size="sm" className="text-[#abc4ff] ml-auto mr-4" heroIconName="chevron-down" />
             </Row>
           </div>
         ) : (
           <Row className="text-[#abc4ff80] text-center gap-1.5 items-center px-3 py-2">
             <div>{title}</div>
-            <Icon size="sm" className="text-[#abc4ff80]" heroIconName="chevron-down" />
+            <Icon size="sm" className="text-[#abc4ff80] ml-auto mr-4" heroIconName="chevron-down" />
           </Row>
         )}
       </Grid>
