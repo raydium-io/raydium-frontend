@@ -76,7 +76,8 @@ function InputCreateMarketCard() {
         name="Minimum order size"
         renderFormItem={
           <Input
-            className="p-3 rounded-lg bg-[#141041]"
+            disabled
+            className="p-3"
             validators={{ should: (n) => gt(n, 0) }}
             value={toString(minimumOrderSize)}
             onUserInput={(n) => useCreateMarket.setState({ minimumOrderSize: n })}
@@ -87,7 +88,8 @@ function InputCreateMarketCard() {
         name="Ticket size"
         renderFormItem={
           <Input
-            className="p-3 rounded-lg bg-[#141041]"
+            disabled
+            className="p-3"
             validators={{ should: (n) => gt(n, 0) }}
             value={toString(tickSize)}
             onUserInput={(n) => useCreateMarket.setState({ tickSize: n })}
