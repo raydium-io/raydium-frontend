@@ -6,9 +6,11 @@ import useConnection from '../connection/useConnection'
 import useWallet from '../wallet/useWallet'
 
 const recentBlockhashCache: {
+  timeReq: number | undefined
   time: number | undefined
   recentBlockhash: string
 } = {
+  timeReq: undefined,
   time: undefined,
   recentBlockhash: ''
 }
@@ -28,9 +30,15 @@ export async function attachRecentBlockhash(transactions: Transaction[], options
     if (!transaction.recentBlockhash) {
       // recentBlockhash may already attached by sdk
       // console.log('recentBlockhash.time: ', recentBlockhashCache.time)
+      if (recentBlockhashCache.timeReq !== undefined && recentBlockhashCache.timeReq > new Date().getTime() - 1000 * 2) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * 1))
+      }
+
       if (!recentBlockhashCache.time || recentBlockhashCache.time < new Date().getTime() - 1000 * 1) {
-        recentBlockhashCache.time = new Date().getTime()
+        recentBlockhashCache.timeReq = new Date().getTime()
         recentBlockhashCache.recentBlockhash = (await getRecentBlockhash(connection)).blockhash
+        recentBlockhashCache.timeReq = undefined
+        recentBlockhashCache.time = new Date().getTime()
       }
       // transaction.recentBlockhash = (await getRecentBlockhash(connection)).blockhash
       transaction.recentBlockhash = recentBlockhashCache.recentBlockhash
