@@ -42,11 +42,14 @@ function InputCreateMarketCard() {
 
   return (
     <Col className="gap-8 mx-auto w-[min(800px,100%)]">
-      <Fieldset name="Program id" renderFormItem={<Input disabled value={programId} />} />
+      <Fieldset
+        name="Program id"
+        renderFormItem={<Input disabled className="pointer-events-none" value={programId} />}
+      />
       <Fieldset
         name="Select tokens"
         renderFormItem={
-          <Grid className="grid-cols-2 gap-4">
+          <Grid className={`grid-cols-2 ${newCreatedMarketId ? 'opacity-50 pointer-events-none' : ''} gap-4`}>
             <SelectTokenInputBox
               title="Base Token"
               tokenKey="baseToken"
@@ -76,8 +79,8 @@ function InputCreateMarketCard() {
         name="Minimum order size"
         renderFormItem={
           <Input
-            disabled
-            className="p-3"
+            disabled={Boolean(newCreatedMarketId)}
+            className={`p-3 ${newCreatedMarketId ? 'opacity-50 pointer-events-none' : ''} rounded-lg bg-[#141041]`}
             validators={{ should: (n) => gt(n, 0) }}
             value={toString(minimumOrderSize)}
             onUserInput={(n) => useCreateMarket.setState({ minimumOrderSize: n })}
@@ -88,8 +91,8 @@ function InputCreateMarketCard() {
         name="Ticket size"
         renderFormItem={
           <Input
-            disabled
-            className="p-3"
+            disabled={Boolean(newCreatedMarketId)}
+            className={`p-3 ${newCreatedMarketId ? 'opacity-50 pointer-events-none' : ''} rounded-lg bg-[#141041]`}
             validators={{ should: (n) => gt(n, 0) }}
             value={toString(tickSize)}
             onUserInput={(n) => useCreateMarket.setState({ tickSize: n })}

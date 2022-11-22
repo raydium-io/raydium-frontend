@@ -19,5 +19,7 @@ export type CreateMarket = {
 export const useCreateMarket = create<CreateMarket>((set) => ({
   programId: toPubString(getCreateNewMarketProgramId()),
   minimumOrderSize: 1,
-  tickSize: 0.01
+  tickSize: 0.01,
+
+  newCreatedMarketId: 'sdfsdf'
 }))
