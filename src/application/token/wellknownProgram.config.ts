@@ -1,4 +1,5 @@
 import { toPub } from '@/functions/format/toMintString'
+
 import useAppSettings from '../common/useAppSettings'
 
 const ammV3ProgramId = toPub('CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK')
@@ -7,8 +8,8 @@ export const getAmmV3ProgramId = () => (useAppSettings.getState().inDev ? ammV3D
 
 const createNewMarketPargramId = toPub('EoTcMgcDRTJVZDMZWBoU6rhYHZfkNTVEAfz3uUJRcYGj')
 const createNewMarketDevPargramId = toPub('srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX')
-export const getCreateNewMarketProgramId = () =>
-  useAppSettings.getState().inDev ? createNewMarketDevPargramId : createNewMarketPargramId
+export const getCreateNewMarketProgramId = () => createNewMarketPargramId
+// useAppSettings.getState().inDev ? createNewMarketDevPargramId : createNewMarketPargramId
 
 /** not only swap, it's just a temporary hack */
 export const dangerousTempProgramIds = [
