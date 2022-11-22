@@ -6,10 +6,10 @@ const ammV3ProgramId = toPub('CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK')
 const ammV3DevProgramId = toPub('DEVeYuwvQnhz1roDpSwqmnWtoKTeYftM7Qt7gFPMF3tj')
 export const getAmmV3ProgramId = () => (useAppSettings.getState().inDev ? ammV3DevProgramId : ammV3ProgramId)
 
-const createNewMarketPargramId = toPub('EoTcMgcDRTJVZDMZWBoU6rhYHZfkNTVEAfz3uUJRcYGj')
-const createNewMarketDevPargramId = toPub('srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX')
-export const getCreateNewMarketProgramId = () => createNewMarketPargramId
-// useAppSettings.getState().inDev ? createNewMarketDevPargramId : createNewMarketPargramId
+const createNewMarketDevPargramId = toPub('EoTcMgcDRTJVZDMZWBoU6rhYHZfkNTVEAfz3uUJRcYGj')
+const createNewMarketPargramId = toPub('srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX')
+export const getCreateNewMarketProgramId = () =>
+  useAppSettings.getState().inDev ? createNewMarketDevPargramId : createNewMarketPargramId
 
 /** not only swap, it's just a temporary hack */
 export const dangerousTempProgramIds = [
