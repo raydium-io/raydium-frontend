@@ -46,8 +46,8 @@ const txCreateMarket = createTxHandler(() => async ({ transactionCollector, base
     tx,
     {
       txHistoryInfo: {
-        title: 'Create Farm',
-        description: `creating new farm: ${toPubString(address.id)}`
+        title: 'Create Market',
+        description: `created new Market: ${toPubString(address.id).slice(0, 6)}...`
       } as TxHistoryInfo
     }
   ]) as TransactionQueue
