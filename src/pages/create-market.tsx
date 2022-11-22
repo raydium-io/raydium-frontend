@@ -101,14 +101,6 @@ function InputCreateMarketCard() {
           <AddressItem textClassName="text-lg text-[#fff]" showDigitCount="all" canCopy>
             {newCreatedMarketId}
           </AddressItem>
-          <Button
-            className="frosted-glass-teal"
-            onClick={() => {
-              useCreateMarket.setState({ newCreatedMarketId: undefined })
-            }}
-          >
-            Create another
-          </Button>
         </Row>
       ) : (
         <Button
