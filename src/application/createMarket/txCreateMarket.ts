@@ -1,14 +1,17 @@
+import { MarketV2 } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
+
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toString } from '@/functions/numberish/toString'
-import { MarketV2 } from '@raydium-io/raydium-sdk'
-import { PublicKey } from '@solana/web3.js'
+
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { TxHistoryInfo } from '../txHistory/useTxHistory'
 import { loadTransaction } from '../txTools/createTransaction'
 import { createTxHandler, TransactionQueue } from '../txTools/handleTx'
+
 import { useCreateMarket } from './useCreateMarket'
 
 const txCreateMarket = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
@@ -23,11 +26,11 @@ const txCreateMarket = createTxHandler(() => async ({ transactionCollector, base
     connection,
     dexProgramId: toPub(programId),
     baseInfo: {
-      mint: isQuantumSOLVersionSOL(baseToken) ? PublicKey.default : baseToken.mint,
+      mint: baseToken.mint,
       decimals: baseToken.decimals
     },
     quoteInfo: {
-      mint: isQuantumSOLVersionSOL(quoteToken) ? PublicKey.default : quoteToken.mint,
+      mint: quoteToken.mint,
       decimals: quoteToken.decimals
     },
     lotSize: Number.parseFloat(toString(minimumOrderSize)),
