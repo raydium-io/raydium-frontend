@@ -19,7 +19,7 @@ export function decimalToFraction(n: Decimal | undefined): Fraction | undefined 
 export function fractionToDecimal(n: undefined, decimalLength?: number): undefined
 export function fractionToDecimal(n: Fraction, decimalLength?: number): Decimal
 export function fractionToDecimal(n: Fraction | undefined, decimalLength?: number): Decimal | undefined
-export function fractionToDecimal(n: Fraction | undefined, decimalLength = 6): Decimal | undefined {
+export function fractionToDecimal(n: Fraction | undefined, decimalLength = 12): Decimal | undefined {
   if (n == null) return undefined
   return new Decimal(n.toFixed(decimalLength))
 }
