@@ -1,12 +1,12 @@
 import { Keypair, PublicKey, Transaction } from '@solana/web3.js'
 
-import BN from 'bn.js'
-import { AmmV3, ApiAmmV3Point, ReturnTypeFetchMultiplePoolInfos } from '@raydium-io/raydium-sdk'
-import create from 'zustand'
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
-import { ammV3ProgramId } from '@/application/token/wellknownProgram.config'
+import { getAmmV3ProgramId } from '@/application/token/wellknownProgram.config'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { AmmV3, ApiAmmV3Point, ReturnTypeFetchMultiplePoolInfos } from '@raydium-io/raydium-sdk'
+import BN from 'bn.js'
+import create from 'zustand'
 
 import jFetch from '@/functions/dom/jFetch'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
@@ -181,7 +181,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
     const { getToken } = useToken.getState()
     AmmV3.getWhiteListMint({
       connection,
-      programId: ammV3ProgramId
+      programId: getAmmV3ProgramId()
     }).then((data) => {
       set({
         whitelistRewards: shakeUndifindedItem(data.map((pub) => getToken(pub))).map((token) => token.mint)
