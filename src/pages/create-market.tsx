@@ -43,10 +43,10 @@ function InputCreateMarketCard() {
 
   return (
     <Col className="gap-8 mx-auto w-[min(800px,100%)]">
-      {/* <Fieldset
+      <Fieldset
         name="OpenBook Program id"
         renderFormItem={<Input disabled className="pointer-events-none" value={programId} />}
-      /> */}
+      />
       <Fieldset
         name="Select tokens"
         renderFormItem={
