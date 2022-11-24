@@ -78,7 +78,7 @@ function InputCreateMarketCard() {
       />
       <Fieldset
         name="Minimum order size"
-        tooltip="This is the smallest allowed order size. For a SOL/USDTC market, this would be in units of SOL, a.k.a. the Lot size."
+        tooltip="This is the smallest allowed order size. For a SOL/USDC market, this would be in units of SOL, a.k.a. the Lot size."
         renderFormItem={
           <Input
             disabled={Boolean(newCreatedMarketId)}
