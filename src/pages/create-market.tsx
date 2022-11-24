@@ -12,6 +12,7 @@ import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
+import Tooltip from '@/components/Tooltip'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
@@ -22,7 +23,7 @@ export default function SettingsPage() {
   return (
     <PageLayout mobileBarTitle="Settings" metaTitle="Settings - Raydium" contentButtonPaddingShorter>
       <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white mb-4">
-        Create Market
+        Create OpenBook Market
       </div>
       <InputCreateMarketCard />
     </PageLayout>
@@ -77,6 +78,7 @@ function InputCreateMarketCard() {
       />
       <Fieldset
         name="Minimum order size"
+        tooltip="This is the smallest allowed order size. For a SOL/USDTC market, this would be in units of SOL, a.k.a. the Lot size."
         renderFormItem={
           <Input
             disabled={Boolean(newCreatedMarketId)}
@@ -88,7 +90,8 @@ function InputCreateMarketCard() {
         }
       />
       <Fieldset
-        name="Ticket size"
+        name="Minimum price ticket size"
+        tooltip="This is the smallest amount by which prices can move. For a SOL/USDC market, this would be in units of USDC, a.k.a. the price increment."
         renderFormItem={
           <Input
             disabled={Boolean(newCreatedMarketId)}
@@ -149,10 +152,21 @@ function InputCreateMarketCard() {
   )
 }
 
-function Fieldset({ name, renderFormItem }: { name: string; renderFormItem: ReactNode }) {
+function Fieldset({ name, tooltip, renderFormItem }: { name: string; tooltip?: string; renderFormItem: ReactNode }) {
   return (
-    <Grid className="grid-cols-[12em,1fr] gap-8">
-      <div className="justify-self-end text-lg mobile:text-sm text-[#abc4ff]">{name}: </div>
+    <Grid className="grid-cols-[18em,1fr] gap-8">
+      <Row className="justify-self-end items-center">
+        <div className="text-lg mobile:text-sm text-[#abc4ff]">{name}</div>
+        {tooltip && (
+          <Tooltip panelClassName="bg-[#3b4146]" arrowClassName="bg-[#3b4146]">
+            <Icon size="sm" heroIconName="question-mark-circle" className="mx-1 cursor-help text-[#abc4ff]" />
+            <Tooltip.Panel>
+              <p className="w-80">{tooltip}</p>
+            </Tooltip.Panel>
+          </Tooltip>
+        )}
+        <div className="text-lg mobile:text-sm text-[#abc4ff]">: </div>
+      </Row>
       {renderFormItem}
     </Grid>
   )

@@ -22,6 +22,7 @@ export interface TooltipProps {
   componentRef?: RefObject<any>
   className?: string
   panelClassName?: string
+  arrowClassName?: string
   children?: ReactNode
   /** usually it's for debug */
   forceOpen?: boolean
@@ -39,6 +40,7 @@ export default function Tooltip({
   componentRef,
   className,
   panelClassName,
+  arrowClassName,
   children,
   forceOpen,
   placement = 'top',
@@ -82,7 +84,8 @@ export default function Tooltip({
             <div
               className={twMerge(
                 'w-2 h-2 absolute bg-[#0C0926] rotate-45 -translate-x-1 -translate-y-1',
-                darkGradient ? darkGradientMain : ''
+                darkGradient ? darkGradientMain : '',
+                arrowClassName
               )}
               style={
                 locationInfo
