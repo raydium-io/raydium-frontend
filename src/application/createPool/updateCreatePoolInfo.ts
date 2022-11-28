@@ -33,12 +33,12 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     const quoteDecimals = await getOnlineTokenDecimals(quoteMint)
     assert(baseDecimals, 'base decimal must exist')
     assert(quoteDecimals, 'quote decimal must exist')
-    assert(
-      Object.values(routeMiddleMints).includes(String(quoteMint)),
-      `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, ETH, USH. current: ${toPubString(
-        quoteMint
-      ).slice(0, 4)}...${toPubString(quoteMint).slice(-4)} is not avaliable`
-    )
+    // assert(
+    //   Object.values(routeMiddleMints).includes(String(quoteMint)),
+    //   `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, ETH, USH. current: ${toPubString(
+    //     quoteMint
+    //   ).slice(0, 4)}...${toPubString(quoteMint).slice(-4)} is not avaliable`
+    // )
 
     const baseTokenBufferInfo = await connection.getAccountInfo(new PublicKey(baseMint))
     assert(baseTokenBufferInfo?.data, `can't find token ${baseMint}`)
