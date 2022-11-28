@@ -198,7 +198,7 @@ function ConcentratedCard() {
               : new Decimal(1).div(currentAmmPool.state.currentPrice)
           )
         : undefined,
-    [currentAmmPool?.state.currentPrice.toFixed()]
+    [currentAmmPool?.state.currentPrice.toFixed(), focusSide]
   )
 
   const currentPriceReal = currentAmmPool ? decimalToFraction(currentAmmPool.state.currentPrice) : undefined
