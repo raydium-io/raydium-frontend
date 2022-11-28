@@ -891,10 +891,10 @@
     bs58 "^4.0.1"
     eventemitter3 "^4.0.7"
 
-"@raydium-io/raydium-sdk@1.1.0-beta.42":
-  version "1.1.0-beta.42"
-  resolved "https://registry.yarnpkg.com/@raydium-io/raydium-sdk/-/raydium-sdk-1.1.0-beta.42.tgz#c7704ff7633ed2db69466065cbbf292aa4f4fd1c"
-  integrity sha512-+lQePO/Iy8CWpstI8p26kVw9OKzgm8yPVzKOrlx7ZXtk/0riGiZ6kgqlNTGTaC5uaIeQY9zUXn8Ai+A35h+3JA==
+"@raydium-io/raydium-sdk@1.1.0-beta.44":
+  version "1.1.0-beta.44"
+  resolved "https://registry.yarnpkg.com/@raydium-io/raydium-sdk/-/raydium-sdk-1.1.0-beta.44.tgz#f72e699837800360326157e1610f5573557020e6"
+  integrity sha512-wyGWrrUGtwZyMwk/VQH7kiioItJ1Trzqv2d0cFey/UOmTfoN4y7Wg1NZyEJw21L1rXM21cMxSYcNdLaEJOH69A==
   dependencies:
     "@colors/colors" "^1.5.0"
     "@solana/buffer-layout" "^4.0.0"
