@@ -21,9 +21,10 @@ export type WalletStore = {
   owner: PublicKey | undefined
   /** old version of currentWallet */
   adapter?: Adapter
+  adapterInitializing: boolean
 
   // a experimental feature (owner isn't in shadowOwners)
-  /** each Keypair object hold both publicKey and secret key */
+  /** each Keypair object hold both publicKey and secret key **/
   shadowKeypairs?: Keypair[]
   availableWallets: Wallet[]
   currentWallet?: Wallet | null
@@ -118,6 +119,7 @@ const useWallet = create<WalletStore>((set, get) => ({
   disconnect: () => Promise.resolve(),
   /** only for Dev */
   inSimulateMode: false,
+  adapterInitializing: true,
 
   tokenAccounts: [],
   tokenAccountRawInfos: [],

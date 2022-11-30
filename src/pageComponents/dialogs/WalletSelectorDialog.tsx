@@ -93,12 +93,7 @@ function WalletSelectorPanelItem({
             </div>
           )
         } else {
-          wallet.adapter
-            .connect()
-            .then(() => {
-              select(wallet.adapter.name)
-            })
-            .catch((err) => {})
+          select(wallet.adapter.name)
           onClick?.()
         }
       }}

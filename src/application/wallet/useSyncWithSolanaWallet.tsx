@@ -4,7 +4,6 @@ import { useWallet as _useWallet } from '@solana/wallet-adapter-react'
 import { PublicKey, Transaction } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
-import { attachRecentBlockhash } from '@/application/txTools/attachRecentBlockhash'
 
 import useWallet from './useWallet'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
@@ -96,10 +95,14 @@ export function useSyncWithSolanaWallet() {
   }, [_wallet])
 
   useIsomorphicLayoutEffect(() => {
-    if (!useWallet.getState().inSimulateMode && useWallet.getState().adapter !== _adapter) {
-      useWallet.setState({ adapter: _adapter })
+    if (
+      !useWallet.getState().inSimulateMode &&
+      useWallet.getState().adapter !== _adapter &&
+      (_connected || !useWallet.getState().adapterInitializing)
+    ) {
+      useWallet.setState({ adapter: _adapter, adapterInitializing: false })
     }
-  }, [_adapter])
+  }, [_adapter, _connected])
 }
 
 function simulateFakeWallet(walletAddress: string) {

@@ -4,11 +4,29 @@ import { useRouter } from 'next/router'
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
 import {
-  BackpackWalletAdapter, BitKeepWalletAdapter, BitpieWalletAdapter, BraveWalletAdapter, CloverWalletAdapter,
-  Coin98WalletAdapter, CoinbaseWalletAdapter, CoinhubWalletAdapter, ExodusWalletAdapter, GlowWalletAdapter,
-  LedgerWalletAdapter, MathWalletAdapter, PhantomWalletAdapter, SafePalWalletAdapter, SlopeWalletAdapter,
-  SolflareWalletAdapter, SolletExtensionWalletAdapter, SolletWalletAdapter, SolongWalletAdapter,
-  TokenPocketWalletAdapter, TorusWalletAdapter, TrustWalletAdapter, WalletConnectWalletAdapter
+  BackpackWalletAdapter,
+  BitKeepWalletAdapter,
+  BitpieWalletAdapter,
+  BraveWalletAdapter,
+  CloverWalletAdapter,
+  Coin98WalletAdapter,
+  CoinbaseWalletAdapter,
+  CoinhubWalletAdapter,
+  ExodusWalletAdapter,
+  GlowWalletAdapter,
+  LedgerWalletAdapter,
+  MathWalletAdapter,
+  PhantomWalletAdapter,
+  SafePalWalletAdapter,
+  SlopeWalletAdapter,
+  SolflareWalletAdapter,
+  SolletExtensionWalletAdapter,
+  SolletWalletAdapter,
+  SolongWalletAdapter,
+  TokenPocketWalletAdapter,
+  TorusWalletAdapter,
+  TrustWalletAdapter,
+  WalletConnectWalletAdapter
 } from '@solana/wallet-adapter-wallets'
 import { clusterApiUrl } from '@solana/web3.js'
 
@@ -69,7 +87,10 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect={pathname !== '/' && needPopDisclaimer === false}>
+      <WalletProvider
+        wallets={wallets}
+        autoConnect={pathname !== '/' && needPopDisclaimer === false && !!currentEndPoint}
+      >
         {children}
       </WalletProvider>
     </ConnectionProvider>
