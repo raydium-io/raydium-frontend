@@ -7,6 +7,7 @@ import { Endpoint, UserCustomizedEndpoint } from './type'
 import { useConnection, SESSION_STORAGE_USER_SELECTED_RPC, LOCALSTORAGE_KEY_USER_RPC } from './useConnection'
 import { extractRPCName } from './extractRPCName'
 import useAppSettings from '../common/useAppSettings'
+import useWallet from '@/application/wallet/useWallet'
 
 export async function switchRpc(customizedEndPoint: Endpoint) {
   try {
@@ -21,6 +22,18 @@ export async function switchRpc(customizedEndPoint: Endpoint) {
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'getEpochInfo' })
     })
     assert(response.ok)
+    const { connected, adapter, select } = useWallet.getState()
+    if (connected && adapter) {
+      adapter.off('disconnect')
+      const fn = () => {
+        window.setTimeout(() => {
+          select(adapter.name)
+        }, 0)
+
+        adapter.off('disconnect', fn)
+      }
+      adapter.once('disconnect', fn)
+    }
     const newConnection = new Connection(customizedEndPoint.url, 'confirmed')
     useConnection.setState({
       connection: newConnection,

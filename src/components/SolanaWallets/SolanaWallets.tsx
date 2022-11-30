@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useMemo } from 'react'
+import React, { ReactNode, useCallback, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
@@ -32,12 +32,14 @@ import { clusterApiUrl } from '@solana/web3.js'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
+import useWallet from '@/application/wallet/useWallet'
+import { isInLocalhost } from '@/functions/judgers/isSSR'
 
 /** include: SolanaWalletConnectionProvider SolanaWalletAdaptorsProvider SolanaWalletModalProvider */
 export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
   const needPopDisclaimer = useAppSettings((s) => s.needPopDisclaimer)
   // Set to 'devnet' | 'testnet' | 'mainnet-beta' or provide a custom RPC endpoint
-  const { currentEndPoint } = useConnection()
+  const { currentEndPoint, isLoading } = useConnection()
   const { pathname } = useRouter()
 
   const endpoint = useMemo(() => currentEndPoint?.url ?? clusterApiUrl('devnet'), [currentEndPoint])
@@ -81,15 +83,20 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
     [endpoint]
   )
 
-  const onError = useCallback(() => {
-    // TODO
+  const onError = useCallback((err, adapter) => {
+    // in local will throw disconnect error when hot-reload, might be phantom or wallet adapter'bug
+    if (isInLocalhost && adapter && err.name === 'WalletDisconnectedError')
+      setTimeout(() => {
+        useWallet.getState().select(adapter.name)
+      }, 100)
   }, [])
 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider
         wallets={wallets}
-        autoConnect={pathname !== '/' && needPopDisclaimer === false && !!currentEndPoint}
+        onError={onError}
+        autoConnect={pathname !== '/' && needPopDisclaimer === false && (!isLoading || !!currentEndPoint)}
       >
         {children}
       </WalletProvider>

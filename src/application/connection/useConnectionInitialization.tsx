@@ -59,6 +59,9 @@ export default function useConnectionInitialization() {
         // change dev mode in appSetting
         useAppSettings.setState({ inDev: currentEndPoint?.net === 'devnet' })
       })
-      .catch(console.error)
+      .catch((e) => {
+        useConnection.setState({ isLoading: false })
+        console.error(e)
+      })
   }, [])
 }
