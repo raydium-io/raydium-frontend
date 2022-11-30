@@ -318,7 +318,7 @@ function ShowCreated() {
 
 function PoolLabelBlock({ className }: { className?: string }) {
   return (
-    <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
+    <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4 gap-y-4')}>
       <Col>
         <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
         <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
