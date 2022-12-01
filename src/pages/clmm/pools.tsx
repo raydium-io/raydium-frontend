@@ -9,14 +9,10 @@ import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo,
-  HydratedConcentratedRewardInfo,
-  UserPositionAccount
+  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -322,7 +318,7 @@ function ShowCreated() {
 
 function PoolLabelBlock({ className }: { className?: string }) {
   return (
-    <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4')}>
+    <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4 gap-y-4')}>
       <Col>
         <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
         <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
@@ -535,10 +531,10 @@ function PoolCard() {
     () => (
       <Row
         type="grid-x"
-        className="mb-3 h-12 justify-between sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl mobile:rounded-lg gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,1fr,.8fr,auto]"
+        className="mb-3 h-12 justify-between sticky -top-6 backdrop-filter z-10 backdrop-blur-md bg-[rgba(20,16,65,0.2)] mr-scrollbar rounded-xl mobile:rounded-lg gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,1fr,1fr,auto]"
       >
         <Row
-          className="group w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect"
+          className="group w-20 pl-10 font-medium text-[#ABC4FF] text-sm items-center cursor-pointer  clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
             setSortConfig({
               key: 'favorite',
@@ -590,7 +586,7 @@ function PoolCard() {
 
         {/* table head column: liquidity */}
         <Row
-          className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
+          className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
             setSortConfig({ key: 'liquidity', sortCompare: (i) => i.tvl })
           }}
@@ -611,7 +607,7 @@ function PoolCard() {
 
         {/* table head column: volume24h */}
         <Row
-          className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
+          className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
             const key =
               timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
@@ -654,7 +650,7 @@ function PoolCard() {
           />
         </Row>
 
-        <Row className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect">
+        <Row className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden">
           Rewards
           {/* <Icon
             className="ml-1"
@@ -671,7 +667,7 @@ function PoolCard() {
 
         {/* table head column: volume24h */}
         <Row
-          className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
+          className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect  overflow-hidden"
           onClick={() => {
             setSortConfig({
               key: 'apr',
@@ -893,7 +889,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
   const pcCotent = (
     <Row
       type="grid-x"
-      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-center gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,1fr,.8fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
+      className={`py-5 mobile:py-4 mobile:px-5 bg-[#141041] items-center gap-2 grid-cols-[auto,1.6fr,1fr,1fr,1fr,1fr,1fr,auto] mobile:grid-cols-[1fr,1fr,1fr,auto] rounded-t-3xl mobile:rounded-t-lg ${
         open ? '' : 'rounded-b-3xl mobile:rounded-b-lg'
       } transition-all`}
     >
@@ -919,7 +915,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
         )}
       </div>
 
-      <CoinAvatarInfoItem info={info} className="pl-0" />
+      <CoinAvatarInfoItem info={info} className="pl-0 overflow-hidden" />
 
       <TextInfoItem
         name="Liquidity"
@@ -955,14 +951,15 @@ function PoolCardDatabaseBodyCollapseItemFace({
       />
       <TextInfoItem name={`Rewards`} value={rewardsBadge} />
       <TextInfoItem
+        className="overflow-hidden"
         name={`APR(${timeBasis})`}
         value={
-          <div style={{ display: 'inline-block' }}>
+          <div style={{ display: 'inline-block', width: '100%' }}>
             <Tooltip panelClassName="p-0 rounded-xl">
               <div>
                 {toPercentString(apr?.total)}
                 <Row className="items-center gap-2 mobile:gap-1 mt-1">
-                  {apr && <AprLine className="w-28" aprValues={apr.itemList} />}
+                  {apr && <AprLine className="w-[80%]" aprValues={apr.itemList} />}
                 </Row>
               </div>
               <Tooltip.Panel>
@@ -1861,7 +1858,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
   )
 }
 
-function TextInfoItem({ name, value }: { name: string; value?: any }) {
+function TextInfoItem({ name, value, className }: { name: string; value?: any; className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
     <div>
@@ -1869,6 +1866,6 @@ function TextInfoItem({ name, value }: { name: string; value?: any }) {
       <div className="text-xs">{value || '--'}</div>
     </div>
   ) : (
-    <div className="tablet:text-sm">{value || '--'}</div>
+    <div className={twMerge('tablet:text-sm', className)}>{value || '--'}</div>
   )
 }
