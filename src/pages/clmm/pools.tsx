@@ -954,7 +954,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
         className="overflow-hidden"
         name={`APR(${timeBasis})`}
         value={
-          <div style={{ display: 'inline-block' }}>
+          <div style={{ display: 'inline-block', width: '100%' }}>
             <Tooltip panelClassName="p-0 rounded-xl">
               <div>
                 {toPercentString(apr?.total)}
