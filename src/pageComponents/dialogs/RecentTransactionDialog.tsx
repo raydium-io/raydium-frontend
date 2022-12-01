@@ -169,9 +169,9 @@ function RecentTransactionItems({ txHistoryInfos }: { txHistoryInfos: TxHistoryI
     <>
       {Object.entries(groupedTransactionInfos).map(([key, info]) =>
         isArray(info) ? (
-          <MultiTransactionGroupItems txInfoGroup={info} />
+          <MultiTransactionGroupItems key={key} txInfoGroup={info} />
         ) : (
-          <SingleRecentTransactionItem txInfo={info} />
+          <SingleRecentTransactionItem key={key} txInfo={info} />
         )
       )}
     </>
