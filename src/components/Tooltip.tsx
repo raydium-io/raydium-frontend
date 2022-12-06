@@ -75,7 +75,7 @@ export default function Tooltip({
       className={className}
       triggerDelay={100}
       closeBy={closeBy}
-      closeDelay={0}
+      closeDelay={100}
     >
       <Popover.Button>{children}</Popover.Button>
       <Popover.Panel>
