@@ -3,15 +3,15 @@ import React, { ComponentProps, ReactNode, RefObject, useImperativeHandle, useMe
 import { red } from 'bn.js'
 import { twMerge } from 'tailwind-merge'
 
+import useAppSettings from '@/application/common/useAppSettings'
 import addPropsToReactElement from '@/functions/react/addPropsToReactElement'
+import mergeRef from '@/functions/react/mergeRef'
 import { pickReactChild } from '@/functions/react/pickChild'
+import { shrinkToValue } from '@/functions/shrinkToValue'
+import { MayFunction } from '@/types/constants'
 
 import Card from './Card'
 import Popover, { PopoverHandles, PopoverPlacement, PopoverProps } from './Popover'
-import mergeRef from '@/functions/react/mergeRef'
-import { MayFunction } from '@/types/constants'
-import { shrinkToValue } from '@/functions/shrinkToValue'
-import useAppSettings from '@/application/common/useAppSettings'
 
 export type TooltipHandle = {
   open(): void
@@ -75,7 +75,7 @@ export default function Tooltip({
       className={className}
       triggerDelay={100}
       closeBy={closeBy}
-      closeDelay={200}
+      closeDelay={100}
     >
       <Popover.Button>{children}</Popover.Button>
       <Popover.Panel>

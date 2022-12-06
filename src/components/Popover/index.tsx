@@ -1,17 +1,11 @@
 import React, {
-  ComponentProps,
-  CSSProperties,
-  Fragment,
-  ReactNode,
-  RefObject,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState
+  ComponentProps, CSSProperties, Fragment, ReactNode, RefObject, useCallback, useEffect, useImperativeHandle, useMemo,
+  useRef, useState
 } from 'react'
 import { createPortal } from 'react-dom'
 
 import { Transition } from '@headlessui/react'
+import { BuildingStorefrontIcon } from '@heroicons/react/24/outline'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -197,6 +191,26 @@ export default function Popover({
     }))
   )
 
+  const scrollHandler = useCallback(
+    (height) => {
+      if (
+        buttonRef &&
+        buttonRef.current &&
+        (buttonRef.current.getBoundingClientRect().top < 100 ||
+          (height && buttonRef.current.getBoundingClientRect().bottom > height - 100))
+      ) {
+        controls.off()
+      }
+    },
+    [buttonRef, controls.off]
+  )
+  useEffect(() => {
+    window.addEventListener('scroll', () => scrollHandler(window.innerHeight), true)
+    return () => {
+      window.removeEventListener('scroll', () => scrollHandler(window.innerHeight), true)
+    }
+  }, [])
+
   return (
     <>
       <div ref={buttonRef}>{popoverButton}</div>
@@ -209,7 +223,7 @@ export default function Popover({
             enter="transition-all duration-150"
             enterFrom="opacity-0 scale-50"
             enterTo="opacity-100 scale-100"
-            leave="transition-all duration-150"
+            leave="transition-all duration-75"
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-50"
           >
