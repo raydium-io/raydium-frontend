@@ -223,7 +223,7 @@ export default function Popover({
             enter="transition-all duration-150"
             enterFrom="opacity-0 scale-50"
             enterTo="opacity-100 scale-100"
-            leave="transition-all duration-0"
+            leave="transition-all duration-75"
             leaveFrom="opacity-100 scale-100"
             leaveTo="opacity-0 scale-50"
           >
