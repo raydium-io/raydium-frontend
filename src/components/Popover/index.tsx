@@ -1,17 +1,11 @@
 import React, {
-  ComponentProps,
-  CSSProperties,
-  Fragment,
-  ReactNode,
-  RefObject,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState
+  ComponentProps, CSSProperties, Fragment, ReactNode, RefObject, useCallback, useEffect, useImperativeHandle, useMemo,
+  useRef, useState
 } from 'react'
 import { createPortal } from 'react-dom'
 
 import { Transition } from '@headlessui/react'
+import { BuildingStorefrontIcon } from '@heroicons/react/24/outline'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -196,6 +190,26 @@ export default function Popover({
       ])
     }))
   )
+
+  const scrollHandler = useCallback(
+    (height) => {
+      if (
+        buttonRef &&
+        buttonRef.current &&
+        (buttonRef.current.getBoundingClientRect().top < 100 ||
+          (height && buttonRef.current.getBoundingClientRect().bottom > height - 100))
+      ) {
+        controls.off()
+      }
+    },
+    [buttonRef, controls.off]
+  )
+  useEffect(() => {
+    window.addEventListener('scroll', () => scrollHandler(window.innerHeight), true)
+    return () => {
+      window.removeEventListener('scroll', () => scrollHandler(window.innerHeight), true)
+    }
+  }, [])
 
   return (
     <>
