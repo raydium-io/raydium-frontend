@@ -2,18 +2,18 @@ import React, { startTransition, useEffect, useRef } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
+import useAppSettings from '@/application/common/useAppSettings'
 import IntervalCircle, { IntervalCircleHandler } from '@/components/IntervalCircle'
 import Tooltip from '@/components/Tooltip'
+import { inServer } from '@/functions/judgers/isSSR'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useSignalState } from '@/hooks/useSignalState'
 import { AnyFn } from '@/types/constants'
 
 import { useDocumentVisibility } from '../hooks/useDocumentVisibility'
 
 import { PopoverPlacement } from './Popover'
-import useAppSettings from '@/application/common/useAppSettings'
-import { inServer } from '@/functions/judgers/isSSR'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
-import { useSignalState } from '@/hooks/useSignalState'
 
 const REFRESH_LOOP_DURATION = 60 * 1000
 
@@ -26,7 +26,8 @@ export default function RefreshCircle({
   freshEach = 1000,
   totalDuration = REFRESH_LOOP_DURATION,
   className,
-  circleBodyClassName
+  circleBodyClassName,
+  disabled = false
 }: {
   /** like animation run */
   run?: boolean
@@ -39,6 +40,7 @@ export default function RefreshCircle({
   freshFunction?: AnyFn
   freshEach?: number
   totalDuration?: number
+  disabled?: boolean
 }) {
   useForceUpdate({ loop: freshEach }) // update ui (refresh progress line)
   const intervalCircleRef = useRef<IntervalCircleHandler>()
@@ -80,18 +82,18 @@ export default function RefreshCircle({
   }, [])
 
   useEffect(() => {
-    if (needFreshSignal() && documentVisible) {
+    if (!disabled && needFreshSignal() && documentVisible) {
       startTransition(() => {
         freshFunction?.()
       })
       off()
     }
-  }, [needFresh, freshFunction, documentVisible])
+  }, [needFresh, freshFunction, documentVisible, disabled])
 
   return (
     <Tooltip className={className} placement={popPlacement} forceOpen={forceOpen}>
       <IntervalCircle
-        run={run}
+        run={run && !disabled}
         initPercent={initPastPercent && initPastPercent % 1}
         duration={totalDuration}
         componentRef={intervalCircleRef}

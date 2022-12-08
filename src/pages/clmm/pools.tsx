@@ -417,7 +417,7 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
         <Row className={twMerge('items-center', className)}>
           <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs">Refresh Pools</span>
           <RefreshCircle
-            refreshKey="pools"
+            refreshKey="clmm-pools"
             freshFunction={() => {
               refreshConcentrated()
             }}
@@ -429,7 +429,7 @@ function PoolRefreshCircleBlock({ className }: { className?: string }) {
     return (
       <div className={twMerge('justify-self-end', className)}>
         <RefreshCircle
-          refreshKey="pools"
+          refreshKey="clmm-pools"
           freshFunction={() => {
             refreshConcentrated()
           }}
