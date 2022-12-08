@@ -5,6 +5,7 @@ import { twMerge } from 'tailwind-merge'
 import useAppSettings from '@/application/common/useAppSettings'
 import { getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
+import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import { useAutoCreateAmmv3Pool } from '@/application/concentrated/useAutoCreateAmmv3Pool'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useNotification from '@/application/notification/useNotification'
@@ -22,6 +23,7 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
+import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
@@ -46,8 +48,6 @@ import InputLocked from './InputLocked'
 import PriceRangeInput from './PriceRangeInput'
 import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
-import { HydratedConcentratedInfo } from '@/application/concentrated/type'
-import toPercentString from '@/functions/format/toPercentString'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -401,7 +401,6 @@ export function CreatePoolCard() {
           />
         </div>
       </Col>
-
       {/* right */}
       <Col className="gap-6 w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
         <div className={currentAmmPool ? '' : 'opacity-50 pointer-events-none'}>
@@ -542,7 +541,6 @@ export function CreatePoolCard() {
           />
         </Col>
       </Col>
-
       <CreatePoolPreviewDialog
         open={isPreviewDialogOn}
         coin1={coin1}

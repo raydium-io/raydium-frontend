@@ -1,3 +1,8 @@
+import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
+import Decimal from 'decimal.js'
+import { twMerge } from 'tailwind-merge'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import { calLowerUpper, getPriceBoundary, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentratedPosotion from '@/application/concentrated/txCreateConcentratedPosition'
@@ -18,6 +23,7 @@ import { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import PageLayout from '@/components/PageLayout'
+import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
@@ -45,9 +51,7 @@ import InputLocked from '@/pageComponents/Concentrated/InputLocked'
 import { useConcentratedTickAprCalc } from '@/pageComponents/Concentrated/useConcentratedAprCalc'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
-import Decimal from 'decimal.js'
-import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
+
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
@@ -145,6 +149,7 @@ function ConcentratedCard() {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const priceUpper = useConcentrated((s) => s.priceUpper)
   const priceLower = useConcentrated((s) => s.priceLower)
+  const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
 
   const poolFocusKey = `${currentAmmPool?.idString}-${focusSide}`
   const prevPoolId = usePrevious<string | undefined>(poolFocusKey)
@@ -368,7 +373,6 @@ function ConcentratedCard() {
       <div className="absolute -left-8 top-1/2 -translate-x-1/2 -translate-y-1/2">
         <AsideNavButtons />
       </div>
-
       <PairInfoTitle
         coin1={coin1}
         coin2={coin2}
@@ -376,11 +380,19 @@ function ConcentratedCard() {
         focusSide={focusSide}
         onChangeFocus={(focusSide) => useConcentrated.setState({ focusSide })}
       />
-
       <div className="flex flex-col sm:flex-row flex-gap-1 gap-3 mb-3">
         <Col className="gap-5 bg-dark-blue rounded-xl flex flex-col w-full sm:w-1/2 px-3 py-4">
           <div>
-            <div className="text-base leading-[22px] text-secondary-title mb-3">Deposit Amount</div>
+            <div className="flex justify-between align-top mb-3">
+              <div className="text-base leading-[22px] text-secondary-title ">Deposit Amount</div>
+              <RefreshCircle
+                disabled={isConfirmOn}
+                refreshKey="pools"
+                freshFunction={() => {
+                  refreshConcentrated()
+                }}
+              />
+            </div>
 
             {/* input twin */}
             <div ref={swapElementBox1} className="relative">
