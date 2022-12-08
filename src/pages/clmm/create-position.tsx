@@ -1,17 +1,21 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
+import { Fraction } from '@raydium-io/raydium-sdk'
+
 import Decimal from 'decimal.js'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { calLowerUpper, getPriceBoundary, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentratedPosotion from '@/application/concentrated/txCreateConcentratedPosition'
+import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import useConcentrated, { timeMap } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import useConcentratedLiquidityUrlParser from '@/application/concentrated/useConcentratedLiquidityUrlParser'
 import { routeBack, routeBackTo, routeTo } from '@/application/routeTools'
+import { SplToken } from '@/application/token/type'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
@@ -51,6 +55,7 @@ import InputLocked from '@/pageComponents/Concentrated/InputLocked'
 import { useConcentratedTickAprCalc } from '@/pageComponents/Concentrated/useConcentratedAprCalc'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
+import { Numberish } from '@/types/constants'
 
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
@@ -150,6 +155,29 @@ function ConcentratedCard() {
   const priceUpper = useConcentrated((s) => s.priceUpper)
   const priceLower = useConcentrated((s) => s.priceLower)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+  const [poolSnapShot, setPoolSnapShot] = useState<{
+    coin1: SplToken | undefined
+    coin2: SplToken | undefined
+    coin1Amount: Numberish | undefined
+    coin2Amount: Numberish | undefined
+    decimals: number
+    totalDeposit: string | undefined
+    feeRate: number | undefined
+    inRange: boolean
+    currentPrice: Fraction | undefined
+    currentAmmPool: HydratedConcentratedInfo | undefined
+  }>({
+    coin1: undefined,
+    coin2: undefined,
+    coin1Amount: undefined,
+    coin2Amount: undefined,
+    decimals: 6,
+    totalDeposit: undefined,
+    feeRate: undefined,
+    inRange: false,
+    currentPrice: undefined,
+    currentAmmPool: undefined
+  })
 
   const poolFocusKey = `${currentAmmPool?.idString}-${focusSide}`
   const prevPoolId = usePrevious<string | undefined>(poolFocusKey)
@@ -351,8 +379,24 @@ function ConcentratedCard() {
   )
 
   const handleClickCreatePool = useCallback(() => {
+    setPoolSnapShot({
+      coin1: coin1,
+      coin2: coin2,
+      coin1Amount: coin1Amount,
+      coin2Amount: coin2Amount,
+      decimals: decimals,
+      totalDeposit: toUsdVolume(totalDeposit),
+      feeRate: currentAmmPool?.ammConfig.tradeFeeRate,
+      inRange: !inputDisable.some((disabled) => disabled),
+      currentPrice: currentAmmPool
+        ? decimalToFraction(
+            isCoin1Base ? currentAmmPool.state.currentPrice : new Decimal(1).div(currentAmmPool.state.currentPrice)
+          )
+        : undefined,
+      currentAmmPool: currentAmmPool
+    })
     onConfirmOpen()
-  }, [onConfirmOpen])
+  }, [onConfirmOpen, coin1, coin2, coin1Amount, coin2Amount, decimals, totalDeposit, currentAmmPool, inputDisable])
 
   const chartOptions = useMemo(
     () => ({
@@ -387,7 +431,7 @@ function ConcentratedCard() {
               <div className="text-base leading-[22px] text-secondary-title ">Deposit Amount</div>
               <RefreshCircle
                 disabled={isConfirmOn}
-                refreshKey="pools"
+                refreshKey="clmm-pools"
                 freshFunction={() => {
                   refreshConcentrated()
                 }}
@@ -589,24 +633,18 @@ function ConcentratedCard() {
       />
       <AddLiquidityConfirmDialog
         open={isConfirmOn}
-        coin1={coin1}
-        coin2={coin2}
-        coin1Amount={coin1Amount}
-        coin2Amount={coin2Amount}
-        decimals={decimals}
+        coin1={poolSnapShot.coin1}
+        coin2={poolSnapShot.coin2}
+        coin1Amount={poolSnapShot.coin1Amount}
+        coin2Amount={poolSnapShot.coin2Amount}
+        decimals={poolSnapShot.decimals}
         position={chartRef.current?.getPosition()}
-        totalDeposit={toUsdVolume(totalDeposit)}
-        feeRate={currentAmmPool?.ammConfig.tradeFeeRate}
-        inRange={!inputDisable.some((disabled) => disabled)}
-        currentPrice={
-          currentAmmPool
-            ? decimalToFraction(
-                isCoin1Base ? currentAmmPool.state.currentPrice : new Decimal(1).div(currentAmmPool.state.currentPrice)
-              )
-            : undefined
-        }
+        totalDeposit={toUsdVolume(poolSnapShot.totalDeposit)}
+        feeRate={poolSnapShot.feeRate}
+        inRange={poolSnapShot.inRange}
+        currentPrice={poolSnapShot.currentPrice}
         onConfirm={(close) =>
-          txCreateConcentratedPosotion().then(({ allSuccess }) => {
+          txCreateConcentratedPosotion({ currentAmmPool: poolSnapShot.currentAmmPool }).then(({ allSuccess }) => {
             if (allSuccess) close()
           })
         }
