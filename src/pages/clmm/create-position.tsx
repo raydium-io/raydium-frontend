@@ -549,9 +549,9 @@ function ConcentratedCard() {
                 }
               },
               {
-                should: gt(sub(priceUpper, priceLower), div(currentAmmPool?.currentPrice, 1000)),
+                should: gt(sub(priceUpper, priceLower), div(currentPrice, 1000)),
                 fallbackProps: {
-                  children: 'Range to small'
+                  children: 'Range too small'
                 }
               },
               {
