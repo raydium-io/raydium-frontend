@@ -163,7 +163,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     const gap = Math.abs(points[1].x - points[0].x)
     // if chart points not include position point, we auto add them to point list
     if (defaultMinNum && defaultMinNum <= Number(points[0].x.toFixed(Math.max(8, decimals))) + gap)
-      points.unshift({ x: defaultMinNum - gap, y: 0 })
+      points.unshift({ x: Math.max(defaultMinNum - gap, 0), y: 0 })
     if (defaultMaxNum && defaultMaxNum >= Number(points[points.length - 1].x.toFixed(Math.max(8, decimals))) - gap)
       points.push({ x: defaultMaxNum + gap * 2, y: 0 })
 
@@ -198,7 +198,9 @@ export default forwardRef(function Chart(props: Props, ref) {
       if (smoothCount > 0) {
         const gap = formatDecimal({ val: (nextPoint.x - point.x) / smoothCount, decimals })
         for (let j = 1; j <= smoothCount; j++) {
-          const y = toFixedNumber(point.y, decimals)
+          const y = chartOptions?.baseIn
+            ? toFixedNumber(point.y, decimals)
+            : toFixedNumber(nextPoint ? nextPoint.y : point.y, decimals)
           displayList.push({ x: formatDecimal({ val: point.x + gap * j, decimals }), y })
         }
       }
@@ -224,9 +226,9 @@ export default forwardRef(function Chart(props: Props, ref) {
           ? defaultMaxNum * 1.2
           : parseFloat(currentPriceNum) * rate[1]
       ]
-      setXAxisDomain(xAxisDomainRef.current)
+      poolIdRef.current !== poolFocusKey && setXAxisDomain(xAxisDomainRef.current)
     }
-  }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolFocusKey, currentPriceNum, chartOptions?.isStable])
+  }, [points, defaultMin, defaultMax, decimals, showCurrentPriceOnly, poolFocusKey, currentPriceNum, chartOptions?.isStable, chartOptions?.baseIn])
 
   useEffect(() => {
     if (

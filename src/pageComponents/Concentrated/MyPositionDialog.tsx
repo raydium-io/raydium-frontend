@@ -135,6 +135,7 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
         <Chart
           chartOptions={{
             isStable: currentAmmPool?.ammConfig.tradeFeeRate === 100,
+            baseIn: true,
             points: chartPoints ? toXYChartFormat(chartPoints) : [],
             initMinBoundaryX,
             initMaxBoundaryX

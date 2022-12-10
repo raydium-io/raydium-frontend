@@ -12,6 +12,7 @@ export type ChartPoint = {
 export type ChartRangeInputOption = {
   className?: string
   isStable: boolean
+  baseIn: boolean
   points?: ChartPoint[]
   careDecimalLength?: number
   initMinBoundaryX?: Numberish
