@@ -14,8 +14,8 @@ export function recordCreatedPool() {
   assert(ammId, 'required create-pool step 1, it will cause info injection')
   assert(baseMint, 'required create-pool step 1, it will cause info injection')
   assert(quoteMint, 'required create-pool step 1, it will cause info injection')
-  assert(baseDecimals, 'required create-pool step 1, it will cause info injection')
-  assert(quoteDecimals, 'required create-pool step 1, it will cause info injection')
+  assert(baseDecimals != null, 'required create-pool step 1, it will cause info injection')
+  assert(quoteDecimals != null, 'required create-pool step 1, it will cause info injection')
 
   const { adapter } = useWallet.getState()
   const owner = adapter?.publicKey
