@@ -34,7 +34,7 @@ export const extensionMap = {
     [Browser.ANDROID]: 'https://solflare.com/download#android'
   },
   Sollet: {
-    autoHandle: true,
+    autoHandle: false,
     [Browser.FIREFOX]: '',
     [Browser.EDGE_CHROMIUM]: '',
     [Browser.CHROME]: '',

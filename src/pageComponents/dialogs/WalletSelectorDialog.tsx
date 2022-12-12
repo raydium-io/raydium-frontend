@@ -171,8 +171,12 @@ function PanelContent({
   wallets: { adapter: WalletAdapter; readyState: WalletReadyState }[]
 }) {
   const supportedWallets = wallets.filter((w) => w.readyState !== WalletReadyState.Unsupported)
-  const installedWallets = supportedWallets.filter((w) => w.readyState !== WalletReadyState.NotDetected)
+  const installedWallets = supportedWallets.filter(
+    (w) => w.readyState !== WalletReadyState.NotDetected && w.adapter.name !== 'Sollet'
+  )
   const notInstalledWallets = supportedWallets.filter((w) => w.readyState == WalletReadyState.NotDetected)
+  const solletWallet = supportedWallets.find((w) => w.adapter.name === 'Sollet')
+  solletWallet && notInstalledWallets.push(solletWallet)
 
   const [isAllWalletShown, setIsAllWalletShown] = useState(false)
   const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
