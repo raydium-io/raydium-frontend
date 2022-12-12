@@ -31,8 +31,8 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
     const baseDecimals = await getOnlineTokenDecimals(baseMint)
     const quoteDecimals = await getOnlineTokenDecimals(quoteMint)
-    assert(baseDecimals, 'base decimal must exist')
-    assert(quoteDecimals, 'quote decimal must exist')
+    assert(baseDecimals !== undefined, 'base decimal must exist')
+    assert(quoteDecimals !== undefined, 'quote decimal must exist')
     // assert(
     //   Object.values(routeMiddleMints).includes(String(quoteMint)),
     //   `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, ETH, USH. current: ${toPubString(
