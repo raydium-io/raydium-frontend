@@ -11,14 +11,14 @@ import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import ListTable from '@/components/ListTable'
 import { Badge } from '@/components/Badge'
-import { mul, div } from '@/functions/numberish/operations'
+import { mul, div, getMax } from '@/functions/numberish/operations'
 import { toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import formatNumber from '@/functions/format/formatNumber'
 import toPercentString from '@/functions/format/toPercentString'
 import parseDuration, { getDuration } from '@/functions/date/parseDuration'
 import Button from '@/components/Button'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import Icon from '@/components/Icon'
 import { Unpacked } from '@/types/generics'
 import AddMoreDialog, { UpdateData } from './AddMoreDialog'
@@ -257,7 +257,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           }
         }}
         renderItemActionButtons={({ itemData: reward, index }) => {
-          const hasUnClaimed = isMeaningfulNumber(reward.remainingRewards)
+          const hasUnClaimed = gt(reward.remainingRewards, 0)
           const { endTime } = reward
           const isRewardEnded = Boolean(endTime && isDateAfter(onlineCurrentDate, endTime))
           const canAddMore =
@@ -309,9 +309,10 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
                   <Col className="items-start">
                     Claim unemmitted rewards
                     <span className="text-[#abc4ff80]">
-                      {div(reward.remainingRewards, 10 ** (reward.rewardToken?.decimals || 6))?.toSignificant(
-                        reward.rewardToken?.decimals || 6
-                      )}{' '}
+                      {div(
+                        reward.remainingRewards ? getMax(reward.remainingRewards, 0) : reward.remainingRewards,
+                        10 ** (reward.rewardToken?.decimals || 6)
+                      )?.toSignificant(reward.rewardToken?.decimals || 6)}{' '}
                       {reward.rewardToken?.symbol}
                     </span>
                   </Col>
