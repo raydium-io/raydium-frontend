@@ -1,19 +1,15 @@
 import {
-  Connection,
-  Context,
-  Keypair,
-  PublicKey,
-  SignatureResult,
-  Transaction,
-  TransactionError
+  Connection, Context, Keypair, PublicKey, SignatureResult, Transaction, TransactionError
 } from '@solana/web3.js'
 
 import produce from 'immer'
 
+import { TxNotificationItemInfo } from '@/components/NotificationItem/type'
 import assert from '@/functions/assert'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { mergeFunction, mergeObject } from '@/functions/merge'
 import { shrinkToValue } from '@/functions/shrinkToValue'
+import { MayPromise } from '@/types/constants'
 
 import { noTailingPeriod } from '../../../functions/format/noTailingPeriod'
 import useAppSettings from '../../common/useAppSettings'
@@ -22,10 +18,8 @@ import useNotification from '../../notification/useNotification'
 import useTxHistory, { TxHistoryInfo } from '../../txHistory/useTxHistory'
 import { getRichWalletTokenAccounts } from '../../wallet/useTokenAccountsRefresher'
 import useWallet, { WalletStore } from '../../wallet/useWallet'
-
-import { TxNotificationItemInfo } from '@/components/NotificationItem/type'
-import { MayPromise } from '@/types/constants'
 import { attachRecentBlockhash } from '../attachRecentBlockhash'
+
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 
@@ -73,11 +67,11 @@ export type TxSentErrorInfo = {
 
 export type TxFinalInfo =
   | ({
-      type: 'success'
-    } & TxSuccessInfo)
+    type: 'success'
+  } & TxSuccessInfo)
   | ({
-      type: 'error'
-    } & TxErrorInfo)
+    type: 'error'
+  } & TxErrorInfo)
 
 export type TxFinalBatchErrorInfo = {
   allSuccess: false
@@ -151,10 +145,10 @@ export type MultiTxsOption = {
    * send all at once
    */
   sendMode?:
-    | 'queue'
-    | 'queue(all-settle)'
-    | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
-    | 'parallel(batch-transactions)' /* it will in order */
+  | 'queue'
+  | 'queue(all-settle)'
+  | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
+  | 'parallel(batch-transactions)' /* it will in order */
 } & MultiTxCallbacks
 
 export type MultiTxCallbacks = {
@@ -243,7 +237,10 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
       })
     }
     // eslint-disable-next-line no-console
-    console.info('tx transactions: ', toHumanReadable(innerTransactions))
+    console.info('tx transactions: ', toHumanReadable(innerTransactions), innerTransactions.map(i => i.serialize({
+      requireAllSignatures: false,
+      verifySignatures: false,
+    }).toString('base64')))
 
     const finalInfos = await dealWithMultiTxOptions({
       transactions: innerTransactions,
@@ -522,7 +519,7 @@ function composeWithDifferentSendMode({
           method: singleOption.continueWhenPreviousTx ?? (sendMode === 'queue(all-settle)' ? 'finally' : 'success')
         }
       },
-      { fn: () => {}, method: 'success' }
+      { fn: () => { }, method: 'success' }
     )
     return queued.fn
   }
