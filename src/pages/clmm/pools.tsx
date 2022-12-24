@@ -619,7 +619,8 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key.startsWith('volume') && sortConfig.mode !== 'none'
+              (sortConfig?.key === 'volume24h' || sortConfig?.key === 'volume7d' || sortConfig?.key === 'volume30d') &&
+              sortConfig.mode !== 'none'
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -632,7 +633,12 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            const key = timeBasis === TimeBasis.DAY ? 'fee24h' : timeBasis === TimeBasis.WEEK ? 'fee7d' : 'fee30d'
+            const key =
+              timeBasis === TimeBasis.DAY
+                ? 'volumeFee24h'
+                : timeBasis === TimeBasis.WEEK
+                ? 'volumeFee7d'
+                : 'volumeFee30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
           }}
         >
@@ -641,7 +647,10 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key.startsWith('fee') && sortConfig.mode !== 'none'
+              (sortConfig?.key === 'volumeFee24h' ||
+                sortConfig?.key === 'volumeFee7d' ||
+                sortConfig?.key === 'volumeFee30d') &&
+              sortConfig.mode !== 'none'
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
