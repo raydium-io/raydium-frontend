@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
@@ -470,6 +470,8 @@ function PoolCard() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
 
+  const [currentSortKey, setCurrentSortKey] = useState<string | undefined>(undefined) // only care about key relative to time basis (volume, fees, apr)
+
   const dataSource = useMemo(
     () =>
       hydratedAmmPools.filter((pool) => {
@@ -527,6 +529,36 @@ function PoolCard() {
     [favouriteIds]
   )
 
+  const timeBasisRelativeSortConfig = useCallback(
+    (key: string) => {
+      let sortKey = ''
+      let sortCompare
+      if (key === 'Volume') {
+        sortKey = timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
+        sortCompare = (i) => i[sortKey]
+      } else if (key === 'Fees') {
+        sortKey =
+          timeBasis === TimeBasis.DAY ? 'volumeFee24h' : timeBasis === TimeBasis.WEEK ? 'volumeFee7d' : 'volumeFee30d'
+        sortCompare = (i) => i[sortKey]
+      } else {
+        sortKey = 'apr'
+        sortCompare = (i) =>
+          i.state[timeBasis === TimeBasis.DAY ? 'day' : timeBasis === TimeBasis.WEEK ? 'week' : 'month'].apr
+      }
+
+      return { sortKey, sortCompare }
+    },
+    [timeBasis]
+  )
+
+  useEffect(() => {
+    if (currentSortKey) {
+      /* eslint-disable */
+      const { sortKey, sortCompare } = timeBasisRelativeSortConfig(currentSortKey)
+      setSortConfig({ key: sortKey, sortCompare: sortCompare, useCurrentMode: true })
+    }
+  }, [currentSortKey, timeBasisRelativeSortConfig, setSortConfig])
+
   const TableHeaderBlock = useMemo(
     () => (
       <Row
@@ -562,6 +594,7 @@ function PoolCard() {
           <Row
             className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer"
             onClick={() => {
+              setCurrentSortKey(undefined)
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
@@ -588,6 +621,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
+            setCurrentSortKey(undefined)
             setSortConfig({ key: 'liquidity', sortCompare: (i) => i.tvl })
           }}
         >
@@ -609,6 +643,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
+            setCurrentSortKey('Volume')
             const key =
               timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
@@ -633,6 +668,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
+            setCurrentSortKey('Fees')
             const key =
               timeBasis === TimeBasis.DAY
                 ? 'volumeFee24h'
@@ -678,6 +714,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect  overflow-hidden"
           onClick={() => {
+            setCurrentSortKey('apr')
             setSortConfig({
               key: 'apr',
               sortCompare: (i) =>
@@ -1136,9 +1173,6 @@ function AprLine({ className, aprValues }: { className?: string; aprValues: Numb
 }
 
 function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo: HydratedConcentratedInfo }) {
-  // eslint-disable-next-line no-console
-  // console.log('info: ', info)
-
   const owner = useWallet((s) => s.owner) // keep it, will use when we are in production for farm create/edit
   const { lpPrices } = usePools()
   const tokenPrices = useToken((s) => s.tokenPrices)

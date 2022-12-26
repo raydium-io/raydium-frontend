@@ -20,12 +20,13 @@ export type SortConfigItem<D extends Record<string, any>[]> = {
    * return Numberish / string / boolean
    * if it's a array, means, if compare same in first rule(sortCompare), whatch the next one, and on, and on
    */
-  sortCompare: MayArray<(item: D[number]) => any> // for item may be tedius, so use rule
+  sortCompare: MayArray<(item: D[number]) => any> // for item may be tedius, so use rule,
+  useCurrentMode?: boolean
 }
 
 export type SimplifiedSortConfig<D extends Record<string, any>[]> = ExactPartial<
   SortConfigItem<D>,
-  'mode' | 'sortModeQueue'
+  'mode' | 'sortModeQueue' | 'useCurrentMode'
 >
 
 /**
@@ -46,10 +47,11 @@ export default function useSort<D extends Record<string, any>[]>(
     prevConfigs?: SortConfigItem<D>[]
   ): SortConfigItem<D>[] {
     const globalDefaultSortMode = 'decrease'
-    const prevIsSameKeyAsInput = prevConfigs?.[0]?.key === simpleConfig.key
+    const prevIsSameKeyAsInput = prevConfigs?.[0]?.key === simpleConfig.key || simpleConfig.useCurrentMode
+
     const sortModeQueue =
       simpleConfig.sortModeQueue ??
-      (prevIsSameKeyAsInput
+      (prevIsSameKeyAsInput && prevConfigs
         ? prevConfigs[prevConfigs.length - 1]?.sortModeQueue ??
           ([globalDefaultSortMode, 'increase', 'none'] as SortModeArr)
         : ([globalDefaultSortMode, 'increase', 'none'] as SortModeArr))
@@ -58,7 +60,10 @@ export default function useSort<D extends Record<string, any>[]>(
     const userInputSortConfigMode = simpleConfig.mode
     const prevSortConfigMode = prevIsSameKeyAsInput ? prevConfigs?.[prevConfigs.length - 1]?.mode : undefined
     const fromQueued =
-      prevSortConfigMode && sortModeQueue[(sortModeQueue.indexOf(prevSortConfigMode) + 1) % sortModeQueue.length]
+      prevSortConfigMode &&
+      sortModeQueue[
+        (sortModeQueue.indexOf(prevSortConfigMode) + (simpleConfig.useCurrentMode ? 0 : 1)) % sortModeQueue.length
+      ]
 
     const mode = userInputSortConfigMode ?? (prevIsSameKeyAsInput ? fromQueued ?? defaultSortMode : defaultSortMode)
     // const mode =
