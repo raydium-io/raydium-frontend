@@ -640,7 +640,7 @@ function ConcentratedCard() {
         coin2Amount={poolSnapShot.coin2Amount}
         decimals={poolSnapShot.decimals}
         position={chartRef.current?.getPosition()}
-        totalDeposit={toUsdVolume(poolSnapShot.totalDeposit)}
+        totalDeposit={poolSnapShot.totalDeposit ?? toUsdVolume(0)}
         feeRate={poolSnapShot.feeRate}
         inRange={poolSnapShot.inRange}
         currentPrice={poolSnapShot.currentPrice}
