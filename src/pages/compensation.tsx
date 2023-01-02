@@ -1,4 +1,5 @@
 import useAppSettings from '@/application/common/useAppSettings'
+import { txClaimAllCompensation } from '@/application/compensation/txClaimAllCompensation'
 import { txClaimCompensation } from '@/application/compensation/txClaimCompensation'
 import { HydratedCompensationInfoItem } from '@/application/compensation/type'
 import { useCompensationMoney } from '@/application/compensation/useCompensation'
@@ -10,10 +11,15 @@ import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
+import LoadingCircle from '@/components/LoadingCircle'
+import LoadingCircleSmall from '@/components/LoadingCircleSmall'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
+import changeCase, { toSentenceCase } from '@/functions/changeCase'
+import { toUTC } from '@/functions/date/dateFormat'
 import toPubString from '@/functions/format/toMintString'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { ReactNode } from 'react'
 
@@ -23,19 +29,48 @@ import { ReactNode } from 'react'
 
 export default function CompensationPage() {
   useCompensationMoneyInfoLoader()
-  const { dataLoaded, showInfos } = useCompensationMoney()
-
+  const { dataLoaded, hydratedCompensationInfoItems } = useCompensationMoney()
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <PageLayout mobileBarTitle="compensation" metaTitle="compensation - Raydium" contentButtonPaddingShorter>
       <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white mb-4">Compensation</div>
       <div className="font-semibold justify-self-start text-[#abc4ff] mb-4">
         OK, here is the money. Please send a tx to get the money.
       </div>
-      <Grid className="gap-48 py-24">
-        {showInfos?.map((showInfo) => (
-          <InputCard key={toPubString(showInfo.ammId)} info={showInfo} />
-        ))}
-      </Grid>
+      {dataLoaded || hydratedCompensationInfoItems ? (
+        hydratedCompensationInfoItems?.length ? (
+          <div className="py-12">
+            <Button
+              className="w-[12em] frosted-glass-teal mb-8"
+              size={isMobile ? 'sm' : 'lg'}
+              isLoading={isApprovePanelShown}
+              validators={[
+                {
+                  should: hydratedCompensationInfoItems.some((i) => i.canClaim),
+                  fallbackProps: { children: 'Claimed' }
+                }
+              ]}
+              onClick={() =>
+                txClaimAllCompensation({ poolInfos: hydratedCompensationInfoItems.filter((i) => i.canClaim) })
+              }
+            >
+              Claim all
+            </Button>
+            <Grid className="gap-32 ">
+              {hydratedCompensationInfoItems?.map((showInfo) => (
+                <InputCard key={toPubString(showInfo.ammId)} info={showInfo} />
+              ))}
+            </Grid>
+          </div>
+        ) : (
+          <div className="text-xl text-[#abc4ff] my-8">you have no compensation</div>
+        )
+      ) : (
+        <Grid className="justify-center">
+          <LoadingCircle />
+        </Grid>
+      )}
     </PageLayout>
   )
 }
@@ -44,23 +79,30 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <Col className="gap-8 mx-auto w-full">
-      <AutoBox is={isMobile ? 'Col' : 'Row'} className="gap-4">
-        <Col>
-          <div className="title text-3xl mobile:text-xl font-semibold text-[#fff] ">{info.poolName}</div>
-          <AddressItem showDigitCount={isMobile ? 8 : 'all'} className="text-[#abc4ff80]">
-            {info.ammId}
-          </AddressItem>
+    <Col className="gap-8 mobile:gap-4 mx-auto w-full">
+      <AutoBox is={isMobile ? 'Col' : 'Row'} className="gap-4 mobile:gap-2 items-end mobile:items-start">
+        <Col className="gap-1">
+          <Col className="gap-1">
+            <div className="title text-3xl mobile:text-xl font-semibold text-[#fff] ">{info.poolName}</div>
+            <div className="w-fit">
+              <AddressItem showDigitCount={isMobile ? 8 : 12} className="text-[#abc4ff80] text-sm mobile:text-xs">
+                {info.ammId}
+              </AddressItem>
+            </div>
+          </Col>
+          <div className="text-[#abc4ff80] text-sm mobile:text-xs">
+            {toUTC(info.openTime)} - {toUTC(info.endTime)}
+          </div>
         </Col>
-        <div className="ml-auto mobile:ml-0">
+        <Col className="ml-auto mobile:ml-0 items-end">
           <Fieldset
-            name="snapshot lp amount"
+            name="snapshot lp"
             renderFormItem={<div className="font-semibold text-[#abc4ff]">{toString(info.snapshotLpAmount)} LP</div>}
           />
-        </div>
+        </Col>
       </AutoBox>
-      <div className="max-w-[min(1200px,100vw)]  mx-auto">
-        <Grid className="grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-8">
+      <div className="w-full mx-auto">
+        <Grid className="grid-cols-[repeat(auto-fit,minmax(300px,1fr))] gap-[3vw]">
           {info.tokenInfo.map((tokenInfo, idx) => {
             const label = idx === 0 ? 'BASE' : idx === 1 ? 'QUOTE' : 'COMPENSATION'
             if (!tokenInfo) return null
@@ -95,7 +137,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                   }
                 />
                 <Fieldset
-                  name="debt amount"
+                  name="debt"
                   renderFormItem={
                     <Row>
                       <div className="text-[#abc4ff80] min-w-[2em] mr-1">{toString(tokenInfo.debtAmount) ?? ''} </div>
@@ -112,7 +154,9 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
           size="lg"
           className="w-full frosted-glass-teal mt-5"
           isLoading={isApprovePanelShown}
-          validators={[{ should: info.canClaim, fallbackProps: { children: 'Claimed' } }]}
+          validators={[
+            { should: info.canClaim, fallbackProps: { children: toSentenceCase(info.canClaimErrorType ?? 'Claimed') } }
+          ]}
           onClick={() => txClaimCompensation({ poolInfo: info })}
         >
           Claim
@@ -124,7 +168,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
 
 function Fieldset({ name, tooltip, renderFormItem }: { name: string; tooltip?: string; renderFormItem: ReactNode }) {
   return (
-    <Grid className="grid-cols-[12em,1fr] gap-8">
+    <Grid className="grid-cols-[8em,1fr] gap-8">
       <Row className="items-center">
         <div className="text-lg mobile:text-sm text-[#abc4ff]">{name}</div>
         {tooltip && (

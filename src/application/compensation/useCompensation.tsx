@@ -12,10 +12,20 @@ import { HydratedCompensationInfoItem } from './type'
 export type NegativeMoney = {
   programId: string
   dataLoaded: boolean
-  showInfos?: HydratedCompensationInfoItem[]
+  hydratedCompensationInfoItems?: HydratedCompensationInfoItem[]
+  refreshCount: number
+  refresh(): void
 }
 
 export const useCompensationMoney = create<NegativeMoney>((set) => ({
   programId: toPubString(getCreateNewMarketProgramId()),
-  dataLoaded: false
+  dataLoaded: false,
+  refreshCount: 0,
+  refresh: () => {
+    // will auto refresh wallet
+    // refresh sdk parsed
+    set((s) => ({
+      refreshCount: s.refreshCount + 1
+    }))
+  }
 }))

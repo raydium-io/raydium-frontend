@@ -12,6 +12,7 @@ export interface HydratedCompensationInfoItem {
   openTime: Date
   endTime: Date
   canClaim: boolean
+  canClaimErrorType: SHOW_INFO['canClaimErrorType']
   tokenInfo: (
     | {
         // mintAddress: PublicKey
