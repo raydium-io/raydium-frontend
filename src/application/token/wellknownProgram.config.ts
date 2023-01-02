@@ -1,4 +1,5 @@
 import { toPub } from '@/functions/format/toMintString'
+import { PublicKey } from '@solana/web3.js'
 
 import useAppSettings from '../common/useAppSettings'
 
@@ -20,3 +21,5 @@ export const dangerousTempProgramIds = [
   '5quBtoiQqxF9Jv6KYKctB59NT3gtJD2Y65kdnB1Uev3h',
   'CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK'
 ]
+
+export const getNegativeMoneyProgramId = () => PublicKey.default
