@@ -9,10 +9,10 @@ import { loadTransaction } from '../txTools/createTransaction'
 import { createTxHandler, TransactionQueue } from '../txTools/handleTx'
 
 import useWallet from '../wallet/useWallet'
-import { HydratedShowInfoItem } from './type'
+import { HydratedCompensationInfoItem } from './type'
 
-export const txClaimNegativeMoney = createTxHandler(
-  ({ poolInfo }: { poolInfo?: HydratedShowInfoItem } = {}) =>
+export const txClaimCompensation = createTxHandler(
+  ({ poolInfo }: { poolInfo?: HydratedCompensationInfoItem } = {}) =>
     async ({ transactionCollector, baseUtils: { connection, owner } }) => {
       const { tokenAccountRawInfos } = useWallet.getState()
       assert(poolInfo)

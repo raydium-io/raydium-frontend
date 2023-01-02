@@ -2,7 +2,7 @@ import { SHOW_INFO, TokenAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import { SplToken } from '../token/type'
 
-export interface HydratedShowInfoItem {
+export interface HydratedCompensationInfoItem {
   rawInfo: SHOW_INFO
   poolId: PublicKey
   ammId: PublicKey

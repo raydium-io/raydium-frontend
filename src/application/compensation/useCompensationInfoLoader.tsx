@@ -4,10 +4,10 @@ import useWallet from '../wallet/useWallet'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { Utils1216 } from '@raydium-io/raydium-sdk'
 import { getNegativeMoneyProgramId } from '../token/wellknownProgram.config'
-import { useNegativeMoney } from './useNegativeMoney'
-import { hydrateNegativeMoneyInfo } from './hydrateNegativeMoneyInfo'
+import { useCompensationMoney } from './useCompensation'
+import { hydrateNegativeMoneyInfo } from './hydrateCompensationInfo'
 
-export default function useNegativeMoneyInfoLoader() {
+export default function useCompensationMoneyInfoLoader() {
   const { connection, chainTimeOffset = 0 } = useConnection()
   const { owner } = useWallet()
   useAsyncEffect(async () => {
@@ -22,7 +22,9 @@ export default function useNegativeMoneyInfoLoader() {
       wallet: owner
     })
     if (showInfos) {
-      useNegativeMoney.setState({ showInfos: showInfos.map((rawShowInfo) => hydrateNegativeMoneyInfo(rawShowInfo)) })
+      useCompensationMoney.setState({
+        showInfos: showInfos.map((rawShowInfo) => hydrateNegativeMoneyInfo(rawShowInfo))
+      })
     }
   }, [connection])
 }

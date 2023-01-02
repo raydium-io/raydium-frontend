@@ -7,15 +7,15 @@ import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
 import { getCreateNewMarketProgramId } from '../token/wellknownProgram.config'
-import { HydratedShowInfoItem } from './type'
+import { HydratedCompensationInfoItem } from './type'
 
 export type NegativeMoney = {
   programId: string
   dataLoaded: boolean
-  showInfos?: HydratedShowInfoItem[]
+  showInfos?: HydratedCompensationInfoItem[]
 }
 
-export const useNegativeMoney = create<NegativeMoney>((set) => ({
+export const useCompensationMoney = create<NegativeMoney>((set) => ({
   programId: toPubString(getCreateNewMarketProgramId()),
   dataLoaded: false
 }))

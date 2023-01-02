@@ -1,10 +1,10 @@
 import useAppSettings from '@/application/common/useAppSettings'
-import { txClaimNegativeMoney } from '@/application/negativeMoney/txNegativeMoney'
-import { HydratedShowInfoItem } from '@/application/negativeMoney/type'
-import { useNegativeMoney } from '@/application/negativeMoney/useNegativeMoney'
-import useNegativeMoneyInfoLoader from '@/application/negativeMoney/useNegativeMoneyInfoLoader'
-import { SplToken } from '@/application/token/type'
+import { txClaimCompensation } from '@/application/compensation/txClaimCompensation'
+import { HydratedCompensationInfoItem } from '@/application/compensation/type'
+import { useCompensationMoney } from '@/application/compensation/useCompensation'
+import useCompensationMoneyInfoLoader from '@/application/compensation/useCompensationInfoLoader'
 import { AddressItem } from '@/components/AddressItem'
+import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
@@ -15,22 +15,19 @@ import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
 import toPubString from '@/functions/format/toMintString'
 import { toString } from '@/functions/numberish/toString'
-import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
-import { ReactNode, useState } from 'react'
+import { ReactNode } from 'react'
 
 /**
  * temporary pay money to user for be hacked by hacker page
  */
 
-export default function TemporaryPage() {
-  useNegativeMoneyInfoLoader()
-  const { dataLoaded, showInfos } = useNegativeMoney()
+export default function CompensationPage() {
+  useCompensationMoneyInfoLoader()
+  const { dataLoaded, showInfos } = useCompensationMoney()
 
   return (
-    <PageLayout mobileBarTitle="Sorry" metaTitle="Sorry - Raydium" contentButtonPaddingShorter>
-      <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white mb-4">
-        Negative Money
-      </div>
+    <PageLayout mobileBarTitle="compensation" metaTitle="compensation - Raydium" contentButtonPaddingShorter>
+      <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white mb-4">Compensation</div>
       <div className="font-semibold justify-self-start text-[#abc4ff] mb-4">
         OK, here is the money. Please send a tx to get the money.
       </div>
@@ -43,26 +40,27 @@ export default function TemporaryPage() {
   )
 }
 
-function InputCard({ info }: { info: HydratedShowInfoItem }) {
+function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <Col className="gap-8 mx-auto w-full">
-      <Row className="gap-4">
+      <AutoBox is={isMobile ? 'Col' : 'Row'} className="gap-4">
         <Col>
-          <div className="title text-3xl mobile:text-lg font-semibold text-[#fff] ">{info.poolName}</div>
-          <AddressItem showDigitCount="all" className="text-[#abc4ff80]">
+          <div className="title text-3xl mobile:text-xl font-semibold text-[#fff] ">{info.poolName}</div>
+          <AddressItem showDigitCount={isMobile ? 8 : 'all'} className="text-[#abc4ff80]">
             {info.ammId}
           </AddressItem>
         </Col>
-        <div className="ml-auto">
+        <div className="ml-auto mobile:ml-0">
           <Fieldset
             name="snapshot lp amount"
-            renderFormItem={<div className="font-semibold text-[#abc4ff]">{toString(info.snapshotLpAmount)} lp</div>}
+            renderFormItem={<div className="font-semibold text-[#abc4ff]">{toString(info.snapshotLpAmount)} LP</div>}
           />
         </div>
-      </Row>
-      <div className="max-w-[1200px] mx-auto">
-        <Grid className="grid-cols-3-fr gap-8">
+      </AutoBox>
+      <div className="max-w-[min(1200px,100vw)]  mx-auto">
+        <Grid className="grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-8">
           {info.tokenInfo.map((tokenInfo, idx) => {
             const label = idx === 0 ? 'BASE' : idx === 1 ? 'QUOTE' : 'COMPENSATION'
             if (!tokenInfo) return null
@@ -115,7 +113,7 @@ function InputCard({ info }: { info: HydratedShowInfoItem }) {
           className="w-full frosted-glass-teal mt-5"
           isLoading={isApprovePanelShown}
           validators={[{ should: info.canClaim, fallbackProps: { children: 'Claimed' } }]}
-          onClick={() => txClaimNegativeMoney({ poolInfo: info })}
+          onClick={() => txClaimCompensation({ poolInfo: info })}
         >
           Claim
         </Button>
@@ -139,57 +137,7 @@ function Fieldset({ name, tooltip, renderFormItem }: { name: string; tooltip?: s
         )}
         <div className="text-lg  mobile:text-sm text-[#abc4ff]">: </div>
       </Row>
-      <div className="justify-self-end">{renderFormItem}</div>
+      <div className="justify-self-end mobile:text-sm">{renderFormItem}</div>
     </Grid>
-  )
-}
-
-function SelectTokenInputBox({
-  tokenKey,
-  title,
-  token,
-  disableTokens,
-  onSelectToken
-}: {
-  tokenKey?: string
-  title?: string
-  token?: SplToken
-  disableTokens?: SplToken[]
-  onSelectToken?: (token: SplToken, tokenKey?: string) => void
-}) {
-  const [isSelectorOpen, setIsSelectorOpen] = useState(false)
-  return (
-    <>
-      <Grid
-        className="grid items-center bg-[#141041] rounded-xl py-2 cursor-pointer px-3"
-        onClick={() => setIsSelectorOpen(true)}
-      >
-        {token ? (
-          <div>
-            <div className="text-xs text-[#abc4ff80] mb-1">{title}</div>
-            <Row className="items-center gap-2">
-              <CoinAvatar token={token} />
-              <div className="text-[#abc4ff] font-medium text-lg">{token.symbol ?? ''}</div>
-              <Icon size="sm" className="text-[#abc4ff] ml-auto mr-4" heroIconName="chevron-down" />
-            </Row>
-          </div>
-        ) : (
-          <Row className="text-[#abc4ff80] text-center gap-1.5 items-center px-3 py-2">
-            <div>{title}</div>
-            <Icon size="sm" className="text-[#abc4ff80] ml-auto mr-4" heroIconName="chevron-down" />
-          </Row>
-        )}
-      </Grid>
-      <TokenSelectorDialog
-        open={isSelectorOpen}
-        onClose={() => {
-          setIsSelectorOpen(false)
-        }}
-        disableTokens={disableTokens}
-        onSelectToken={(token) => {
-          onSelectToken?.(token, tokenKey)
-        }}
-      />
-    </>
   )
 }

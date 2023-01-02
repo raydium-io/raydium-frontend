@@ -3,9 +3,9 @@ import { isPubEqual } from '@/functions/judgers/areEqual'
 import { SHOW_INFO } from '@raydium-io/raydium-sdk'
 import useLiquidity from '../liquidity/useLiquidity'
 import useToken from '../token/useToken'
-import { HydratedShowInfoItem } from './type'
+import { HydratedCompensationInfoItem } from './type'
 
-export function hydrateNegativeMoneyInfo(raw: SHOW_INFO): HydratedShowInfoItem {
+export function hydrateNegativeMoneyInfo(raw: SHOW_INFO): HydratedCompensationInfoItem {
   const { getToken } = useToken.getState()
   const { jsonInfos } = useLiquidity.getState()
   const jsonInfo = jsonInfos.find((i) => isPubEqual(i.id, raw.ammId))
