@@ -166,7 +166,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
         <Button
           size="lg"
           className="w-full frosted-glass-teal mt-5"
-          isLoading={isApprovePanelShown}
+          isLoading={info.canClaim && isApprovePanelShown}
           validators={[
             { should: info.canClaim, fallbackProps: { children: toSentenceCase(info.canClaimErrorType ?? 'Claimed') } }
           ]}
