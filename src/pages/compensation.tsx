@@ -4,6 +4,7 @@ import { txClaimCompensation } from '@/application/compensation/txClaimCompensat
 import { HydratedCompensationInfoItem } from '@/application/compensation/type'
 import { useCompensationMoney } from '@/application/compensation/useCompensation'
 import useCompensationMoneyInfoLoader from '@/application/compensation/useCompensationInfoLoader'
+import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
@@ -32,44 +33,56 @@ export default function CompensationPage() {
   const { dataLoaded, hydratedCompensationInfoItems } = useCompensationMoney()
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const connected = useWallet((s) => s.connected)
   return (
     <PageLayout mobileBarTitle="compensation" metaTitle="compensation - Raydium" contentButtonPaddingShorter>
       <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white mb-4">Compensation</div>
       <div className="font-semibold justify-self-start text-[#abc4ff] mb-4">
         OK, here is the money. Please send a tx to get the money.
       </div>
-      {dataLoaded || hydratedCompensationInfoItems ? (
-        hydratedCompensationInfoItems?.length ? (
-          <div className="py-12">
-            <Button
-              className="w-[12em] frosted-glass-teal mb-8"
-              size={isMobile ? 'sm' : 'lg'}
-              isLoading={isApprovePanelShown}
-              validators={[
-                {
-                  should: hydratedCompensationInfoItems.some((i) => i.canClaim),
-                  fallbackProps: { children: 'Claimed' }
+
+      {connected ? (
+        dataLoaded || hydratedCompensationInfoItems ? (
+          hydratedCompensationInfoItems?.length ? (
+            <div className="py-12">
+              <Button
+                className="w-[12em] frosted-glass-teal mb-8"
+                size={isMobile ? 'sm' : 'lg'}
+                isLoading={isApprovePanelShown}
+                validators={[
+                  {
+                    should: hydratedCompensationInfoItems.some((i) => i.canClaim),
+                    fallbackProps: { children: 'Claimed' }
+                  }
+                ]}
+                onClick={() =>
+                  txClaimAllCompensation({ poolInfos: hydratedCompensationInfoItems.filter((i) => i.canClaim) })
                 }
-              ]}
-              onClick={() =>
-                txClaimAllCompensation({ poolInfos: hydratedCompensationInfoItems.filter((i) => i.canClaim) })
-              }
-            >
-              Claim all
-            </Button>
-            <Grid className="gap-32 ">
-              {hydratedCompensationInfoItems?.map((showInfo) => (
-                <InputCard key={toPubString(showInfo.ammId)} info={showInfo} />
-              ))}
-            </Grid>
-          </div>
+              >
+                Claim all
+              </Button>
+              <Grid className="gap-32 ">
+                {hydratedCompensationInfoItems?.map((showInfo) => (
+                  <InputCard key={toPubString(showInfo.ammId)} info={showInfo} />
+                ))}
+              </Grid>
+            </div>
+          ) : (
+            <div className="text-xl text-[#abc4ff] my-8">you have no compensation</div>
+          )
         ) : (
-          <div className="text-xl text-[#abc4ff] my-8">you have no compensation</div>
+          <Grid className="justify-center">
+            <LoadingCircle />
+          </Grid>
         )
       ) : (
-        <Grid className="justify-center">
-          <LoadingCircle />
-        </Grid>
+        <Button
+          size="lg"
+          className="w-full frosted-glass-teal"
+          onClick={() => useAppSettings.setState({ isWalletSelectorShown: true })}
+        >
+          Connect Wallet
+        </Button>
       )}
     </PageLayout>
   )

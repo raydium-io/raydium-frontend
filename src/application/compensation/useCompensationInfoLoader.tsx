@@ -17,7 +17,12 @@ export default function useCompensationMoneyInfoLoader() {
   const tokens = useToken((s) => s.tokens)
   useAsyncEffect(async () => {
     if (!connection) return
-    if (!owner) return
+    if (!owner) {
+      if (useCompensationMoney.getState().hydratedCompensationInfoItems) {
+        useCompensationMoney.setState({ hydratedCompensationInfoItems: undefined })
+      }
+      return
+    }
 
     useCompensationMoney.setState({ dataLoaded: false })
     const showInfos = await Utils1216.getAllInfo({
