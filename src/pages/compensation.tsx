@@ -13,14 +13,12 @@ import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import LoadingCircle from '@/components/LoadingCircle'
-import LoadingCircleSmall from '@/components/LoadingCircleSmall'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
-import changeCase, { toSentenceCase } from '@/functions/changeCase'
+import { toSentenceCase } from '@/functions/changeCase'
 import { toUTC } from '@/functions/date/dateFormat'
 import toPubString from '@/functions/format/toMintString'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { ReactNode } from 'react'
 
@@ -35,7 +33,7 @@ export default function CompensationPage() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
   return (
-    <PageLayout mobileBarTitle="compensation" metaTitle="compensation - Raydium" contentButtonPaddingShorter>
+    <PageLayout mobileBarTitle="Compensation" metaTitle="Compensation - Raydium" contentButtonPaddingShorter>
       <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white mb-4">Compensation</div>
       <div className="font-semibold justify-self-start text-[#abc4ff] mb-4">
         OK, here is the money. Please send a tx to get the money.
