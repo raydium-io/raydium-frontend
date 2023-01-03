@@ -44,9 +44,9 @@ export default function CompensationPage() {
       <Row className="items-center justify-between gap-4">
         <div>
           <div className="title text-2xl mobile:text-lg font-bold justify-self-start text-white mb-4">
-            {dataLoaded && connected ? 'Claim Portal' : 'Compensation'}
+            {hydratedCompensationInfoItems?.length && connected ? 'Claim Portal' : 'Compensation'}
           </div>
-          {dataLoaded && connected ? (
+          {hydratedCompensationInfoItems?.length && connected ? (
             <div className="text-[#abc4ff] mb-4 space-y-4">
               <div>This portal is for claiming assets from pools affected by the December 15th exploit.</div>
               <div>
