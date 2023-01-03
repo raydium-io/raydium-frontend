@@ -169,21 +169,28 @@ export const useToken = create<TokenStore>((set, get) => ({
 
     // if not exist, see this as userAddedTokens
     const token = (() => {
+      const hasLoadedLpTokens = Object.keys(get().lpTokens).length > 1
       const originalToken =
         get().tokens[toPubString(mint)] ?? get().userAddedTokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)]
-      if (!originalToken && !options?.noCustomToken) {
-        const token = createSplToken(
-          Object.assign(
-            {
-              mint: toPubString(mint),
-              decimals: 6,
-              symbol: toPubString(mint).slice(0, 6)
-            },
-            options?.customTokenInfo ?? {}
+      try {
+        if (!originalToken && hasLoadedLpTokens && !options?.noCustomToken) {
+          const token = createSplToken(
+            Object.assign(
+              {
+                mint: toPubString(mint),
+                decimals: 6,
+                symbol: toPubString(mint).slice(0, 6)
+              },
+              options?.customTokenInfo ?? {}
+            )
           )
-        )
-        get().addUserAddedToken(token)
-        return token
+          get().addUserAddedToken(token)
+          return token
+        } else {
+          // if (originalToken && get().userAddedTokens[toPubString(mint)]) get().deleteUserAddedToken(originalToken)
+        }
+      } catch {
+        return originalToken
       }
       return originalToken
     })()
