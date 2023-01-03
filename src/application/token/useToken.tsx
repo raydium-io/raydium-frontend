@@ -25,6 +25,7 @@ import {
 import { LpToken, SplToken, TokenJson } from './type'
 import { RAYMint, SOLMint } from './wellknownToken.config'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { createSplToken } from './useTokenListsLoader'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
@@ -50,7 +51,21 @@ export type TokenStore = {
    * exact mode: 'so111111112' will be QSOL-WSOL\
    * support both spl and lp
    */
-  getToken(mint: PublicKeyish | undefined, options?: { /* no QuantumSOL */ exact?: boolean }): SplToken | undefined
+  getToken(
+    mint: PublicKeyish | undefined,
+    options?: {
+      /* no QuantumSOL */
+      exact?: boolean
+      /** sometimes don't use auto createSplToken is better*/
+      noCustomToken?: boolean
+      /**
+       * have default token
+       * default decimal is 6
+       * default symbol is first 6 letters of mint
+       */
+      customTokenInfo?: Parameters<typeof createSplToken>[0]
+    }
+  ): SplToken | undefined
 
   // /**  noQuantumSOL*/
   // /** can only get token in tokenList */
@@ -134,7 +149,16 @@ export const useToken = create<TokenStore>((set, get) => ({
   // lpToken have not SOL, no need pure and verbose
   lpTokens: {},
 
-  getToken(mint: PublicKeyish | undefined, options?: { exact?: boolean }) {
+  getToken(
+    mint: PublicKeyish | undefined,
+    options?: {
+      exact?: boolean
+      /** sometimes don't use auto createSplToken is better*/
+      noCustomToken?: boolean
+      /** have default token */
+      customTokenInfo?: Parameters<typeof createSplToken>[0]
+    }
+  ) {
     /** exact mode: 'so111111112' will be QSOL-WSOL 'sol' will be QSOL-SOL */
     if (mint === SOLUrlMint || isMintEqual(mint, SOLMint) || (!options?.exact && isMintEqual(mint, WSOLMint))) {
       return QuantumSOLVersionSOL
@@ -142,9 +166,29 @@ export const useToken = create<TokenStore>((set, get) => ({
     if (options?.exact && isMintEqual(mint, WSOLMint)) {
       return QuantumSOLVersionWSOL
     }
-    return (
-      get().tokens[toPubString(mint)] ?? get().userAddedTokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)]
-    )
+
+    // if not exist, see this as userAddedTokens
+    const token = (() => {
+      const originalToken =
+        get().tokens[toPubString(mint)] ?? get().userAddedTokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)]
+      if (!originalToken && !options?.noCustomToken) {
+        const token = createSplToken(
+          Object.assign(
+            {
+              mint: toPubString(mint),
+              decimals: 6,
+              symbol: toPubString(mint).slice(0, 6)
+            },
+            options?.customTokenInfo ?? {}
+          )
+        )
+        get().addUserAddedToken(token)
+        return token
+      }
+      return originalToken
+    })()
+
+    return token
   },
 
   getLpToken: (mint) => get().lpTokens[toPubString(mint)],
