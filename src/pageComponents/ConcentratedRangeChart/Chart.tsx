@@ -113,7 +113,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const xAxisDomainRef = useRef<number[]>([0, 100])
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
-  const currentPriceNum = currentPrice?.toFixed(decimals)
+  const currentPriceNum = currentPrice?.toFixed(maxLength)
 
   boundaryRef.current = xAxisDomain.length
     ? { min: Number(xAxisDomain[0]) || 0, max: Number(xAxisDomain[xAxisDomain.length - 1]) || 100 }

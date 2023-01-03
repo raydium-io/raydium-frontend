@@ -34,7 +34,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { inClient } from '@/functions/judgers/isSSR'
+import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
 import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { formatDecimal } from '@/functions/numberish/formatDecimal'
 import { div, sub } from '@/functions/numberish/operations'
@@ -278,16 +278,16 @@ function ConcentratedCard() {
     })
   }, [cardRef])
 
-  const boundaryData = useMemo(
-    () =>
-      getPriceBoundary({
-        coin1,
-        coin2,
-        ammPool: currentAmmPool,
-        reverse: !isPairPoolDirectionEq
-      }),
-    [coin1, coin2, currentAmmPool, isPairPoolDirectionEq]
-  )
+  const firstDecimal = getFirstNonZeroDecimal(currentPrice?.toFixed(20) || '') + 2
+  const boundaryData = useMemo(() => {
+    return getPriceBoundary({
+      coin1,
+      coin2,
+      ammPool: currentAmmPool,
+      reverse: !isPairPoolDirectionEq,
+      maxDecimals: Math.max(decimals, firstDecimal)
+    })
+  }, [coin1, coin2, currentAmmPool, isPairPoolDirectionEq, decimals, firstDecimal])
 
   useEffect(() => {
     if (poolFocusKey === prevPoolId || !boundaryData) return
@@ -335,7 +335,8 @@ function ConcentratedCard() {
         coin1,
         coin2,
         ammPool: currentAmmPool,
-        reverse: !isFocus1
+        reverse: !isFocus1,
+        maxDecimals: Math.max(6, firstDecimal)
       })!
       const isMin = side === Range.Min
       const tickKey = isMin ? 'priceLowerTick' : 'priceUpperTick'
@@ -350,7 +351,7 @@ function ConcentratedCard() {
       }
       return res
     },
-    [toPubString(coin1?.mint), toPubString(coin2?.mint), currentAmmPool?.idString, isFocus1]
+    [toPubString(coin1?.mint), toPubString(coin2?.mint), currentAmmPool?.idString, isFocus1, firstDecimal]
   )
 
   const handleClickInDecrease = useCallback(

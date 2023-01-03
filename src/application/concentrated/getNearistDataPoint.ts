@@ -30,6 +30,7 @@ interface GetChartDataProps {
   coin2?: SplToken
   reverse: boolean
   ammPool?: HydratedConcentratedInfo
+  maxDecimals?: number
 }
 
 export type PriceBoundaryReturn =
@@ -41,10 +42,20 @@ export type PriceBoundaryReturn =
     }
   | undefined
 
-export function getPriceBoundary({ coin1, coin2, reverse, ammPool }: GetChartDataProps): PriceBoundaryReturn {
+export function getPriceBoundary({
+  coin1,
+  coin2,
+  reverse,
+  ammPool,
+  maxDecimals
+}: GetChartDataProps): PriceBoundaryReturn {
   if (!ammPool) return
   try {
-    const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
+    const decimals = maxDecimals
+      ? maxDecimals
+      : coin1 || coin2
+      ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0)
+      : 6
     const currentPrice = decimalToFraction(ammPool?.state.currentPrice)
     const trimMinX = getMax(currentPrice ? mul(currentPrice, 1 - 0.5) : 0, 1 / 10 ** decimals)
     const trimMaxX = getMax(currentPrice ? mul(currentPrice, 1 + 0.5) : 0, 1 / 10 ** decimals)
@@ -83,15 +94,17 @@ interface GetPriceTick {
   coin2: SplToken
   reverse: boolean
   ammPool: HydratedConcentratedInfo
+  maxDecimals?: number
 }
 
-export function getPriceTick({ p, coin1, coin2, reverse, ammPool }: GetPriceTick & { p: Numberish }) {
+export function getPriceTick({ p, coin1, coin2, reverse, ammPool, maxDecimals }: GetPriceTick & { p: Numberish }) {
   const targetCoin = !reverse ? coin1 : coin2
   try {
+    //maxDecimals
     const { price, tick } = getPriceAndTick({
       poolInfo: ammPool.state,
       baseIn: isMintEqual(ammPool.state.mintA.mint, targetCoin?.mint),
-      price: fractionToDecimal(toFraction(Math.max(Number(p), 0.0000000001)))
+      price: fractionToDecimal(toFraction(Math.max(Number(p), 1 / 10 ** (maxDecimals || 6))))
     })
     return { price, tick }
   } catch (err) {
@@ -105,21 +118,24 @@ export function calLowerUpper({
   coin1,
   coin2,
   reverse,
-  ammPool
+  ammPool,
+  maxDecimals
 }: GetPriceTick & { [Range.Min]: number; [Range.Max]: number }): PriceBoundaryReturn {
   const resLower = getPriceTick({
     p: min,
     coin1,
     coin2,
     ammPool,
-    reverse
+    reverse,
+    maxDecimals
   })!
   const resUpper = getPriceTick({
     p: max,
     coin1,
     coin2,
     ammPool,
-    reverse
+    reverse,
+    maxDecimals
   })!
 
   return {
