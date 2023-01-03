@@ -40,7 +40,7 @@ export default function CompensationPage() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
   return (
-    <PageLayout mobileBarTitle="Claim Portal" metaTitle="Claim Portal - Raydium" contentButtonPaddingShorter>
+    <PageLayout mobileBarTitle="Compensation" metaTitle="Compensation - Raydium" contentButtonPaddingShorter>
       <Row className="items-center justify-between gap-4">
         <div>
           <div className="title text-2xl mobile:text-lg font-bold justify-self-start text-white mb-4">
