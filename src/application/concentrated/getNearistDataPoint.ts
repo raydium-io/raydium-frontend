@@ -91,7 +91,7 @@ export function getPriceTick({ p, coin1, coin2, reverse, ammPool }: GetPriceTick
     const { price, tick } = getPriceAndTick({
       poolInfo: ammPool.state,
       baseIn: isMintEqual(ammPool.state.mintA.mint, targetCoin?.mint),
-      price: fractionToDecimal(toFraction(Math.max(Number(p), 0.000001)))
+      price: fractionToDecimal(toFraction(Math.max(Number(p), 0.0000000001)))
     })
     return { price, tick }
   } catch (err) {

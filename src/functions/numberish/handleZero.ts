@@ -25,3 +25,9 @@ export function trimTailingZero(s: string) {
 export function padZero(str: string | number, count: number) {
   return String(str) + Array(count).fill('0').join('')
 }
+
+export function getFirstNonZeroDecimal(s: string) {
+  const [, , , dec = ''] = s.match(stringNumberRegex) ?? []
+  const index = dec.split('').findIndex((c) => Number(c) > 0)
+  return index + 1
+}

@@ -322,7 +322,7 @@ function ConcentratedCard() {
       })
       tickRef.current.lower = tick
       useConcentrated.setState({ priceLowerTick: tick, priceLower: price })
-      return { price: formatDecimal({ val: price.toFixed(10), decimals }), tick }
+      return { price: formatDecimal({ val: price.toFixed(10) }), tick }
     }
     return originRes
   })
@@ -367,7 +367,7 @@ function ConcentratedCard() {
         baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
         tick: nextTick
       })
-      if (isMin && formatDecimal({ val: price.toFixed(20), decimals }) >= chartRef.current!.getPosition().max)
+      if (isMin && formatDecimal({ val: price.toFixed(20) }) >= chartRef.current!.getPosition().max)
         return toFraction(p)
 
       tickRef.current[tickKey] = nextTick
