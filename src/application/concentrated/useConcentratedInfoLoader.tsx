@@ -43,7 +43,9 @@ export default function useConcentratedInfoLoader() {
     async ([, prevRefreshCount]) => {
       if (!pathname.includes('clmm')) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
-      const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools') // note: previously Rudy has Test API for dev
+      const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools', {
+        ignoreCache: true
+      }) // note: previously Rudy has Test API for dev
       if (response) useConcentrated.setState({ apiAmmPools: response.data })
     },
     [pathname, refreshCount]

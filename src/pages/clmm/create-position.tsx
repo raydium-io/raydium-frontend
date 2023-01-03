@@ -16,6 +16,7 @@ import useConcentratedInitCoinFiller from '@/application/concentrated/useConcent
 import useConcentratedLiquidityUrlParser from '@/application/concentrated/useConcentratedLiquidityUrlParser'
 import { routeBack, routeBackTo, routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
+import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button, { ButtonHandle } from '@/components/Button'
@@ -155,6 +156,7 @@ function ConcentratedCard() {
   const priceUpper = useConcentrated((s) => s.priceUpper)
   const priceLower = useConcentrated((s) => s.priceLower)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
+  const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
   const [poolSnapShot, setPoolSnapShot] = useState<{
     coin1: SplToken | undefined
     coin2: SplToken | undefined
@@ -435,6 +437,7 @@ function ConcentratedCard() {
                 disabled={isConfirmOn}
                 refreshKey="clmm-pools"
                 freshFunction={() => {
+                  refreshTokenPrice()
                   refreshConcentrated()
                 }}
               />
