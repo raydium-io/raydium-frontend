@@ -28,6 +28,7 @@ import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
+import RefreshCircle from '@/components/RefreshCircle'
 
 /**
  * temporary pay money to user for be hacked by hacker page
@@ -36,18 +37,20 @@ import { twMerge } from 'tailwind-merge'
 export default function CompensationPage() {
   useCompensationMoneyInfoLoader()
   const { dataLoaded, hydratedCompensationInfoItems } = useCompensationMoney()
+  const dataListIsFilled = Boolean(hydratedCompensationInfoItems?.length)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
+
   return (
     <PageLayout mobileBarTitle="Compensation" metaTitle="Compensation - Raydium" contentButtonPaddingShorter>
-      <Row className="items-center justify-between gap-4">
+      <AutoBox is={isMobile ? 'Col' : 'Row'} className="items-center justify-between gap-4">
         <div>
           <div className="title text-2xl mobile:text-lg font-bold justify-self-start text-white mb-4">
-            {hydratedCompensationInfoItems?.length && connected ? 'Claim Portal' : 'Compensation'}
+            {connected ? 'Claim Portal' : 'Compensation'}
           </div>
-          {hydratedCompensationInfoItems?.length && connected ? (
-            <div className="text-[#abc4ff] mb-4 space-y-4">
+          {connected ? (
+            <div className="text-[#abc4ff] mobile:text-xs mb-4 space-y-4">
               <div>This portal is for claiming assets from pools affected by the December 15th exploit.</div>
               <div>
                 If you had LP positions that were affected, details can be viewed below and assets claimed. For full
@@ -55,7 +58,7 @@ export default function CompensationPage() {
               </div>
             </div>
           ) : (
-            <div className="text-[#abc4ff] mb-4 space-y-4">
+            <div className="text-[#abc4ff] mobile:text-xs mb-4 space-y-4">
               <div>
                 This portal is for claiming assets from pools affected by the December 15th exploit. For more info,{' '}
                 <Link href="https://v1.raydium.io/migrate/">click here</Link>.
@@ -64,8 +67,14 @@ export default function CompensationPage() {
           )}
         </div>
 
-        <div>
-          {connected && hydratedCompensationInfoItems?.length && (
+        {connected && dataListIsFilled && (
+          <Col className="items-end mobile:items-center gap-4">
+            <RefreshCircle
+              refreshKey="compensation"
+              freshFunction={() => {
+                useCompensationMoney.getState().refresh()
+              }}
+            />
             <Button
               className="w-[12em] frosted-glass-teal mb-8"
               size={isMobile ? 'sm' : 'md'}
@@ -91,13 +100,13 @@ export default function CompensationPage() {
             >
               Claim all
             </Button>
-          )}
-        </div>
-      </Row>
+          </Col>
+        )}
+      </AutoBox>
 
       {connected ? (
         dataLoaded || hydratedCompensationInfoItems ? (
-          hydratedCompensationInfoItems?.length ? (
+          dataListIsFilled ? (
             <div className="py-12">
               <Grid className="gap-32 ">
                 {hydratedCompensationInfoItems?.map((showInfo) => (
@@ -106,7 +115,13 @@ export default function CompensationPage() {
               </Grid>
             </div>
           ) : (
-            <div className="text-3xl text-[#abc4ff80] my-8">(No compensation)</div>
+            <Grid className="justify-center mt-24">
+              <Image className="mx-auto" src="/backgroundImages/not-found.svg" />
+              <div className="mt-10 mx-auto text-[#abc4ff] text-sm">You don’t have any compensation to claim.</div>
+              <div className="mt-3 mx-auto mobile:w-full">
+                <Link href="/pools">Go to Pools</Link>
+              </div>
+            </Grid>
           )
         ) : (
           <Grid className="justify-center">
@@ -117,7 +132,7 @@ export default function CompensationPage() {
         <Grid className="justify-center mt-24">
           <Image className="mx-auto" src="/backgroundImages/not-found.svg" />
           <div className="mt-10 mx-auto text-[#abc4ff] text-sm">Please connect the wallet to view detail</div>
-          <div className="mt-14 mx-auto w-[400px]">
+          <div className="mt-14 mx-auto w-[400px] mobile:w-full">
             <Button
               className="w-full frosted-glass-teal mb-8"
               size={isMobile ? 'sm' : 'md'}
@@ -157,7 +172,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
         </Col>
       </AutoBox>
       <div className="w-full mx-auto">
-        <Grid className="grid-cols-[repeat(auto-fit,minmax(400px,1fr))] gap-10">
+        <Grid className="grid-cols-[repeat(auto-fit,minmax(min(400px,100%),1fr))] gap-10">
           {info.tokenInfo.map((tokenInfo, idx, tokenInfos) => {
             const label = idx === 0 ? 'BASE' : idx === 1 ? 'QUOTE' : 'COMPENSATION'
             if (!tokenInfo) return null
