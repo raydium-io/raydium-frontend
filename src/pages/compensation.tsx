@@ -15,6 +15,7 @@ import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Link from '@/components/Link'
+import Image from '@/components/Image'
 import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
@@ -42,18 +43,29 @@ export default function CompensationPage() {
     <PageLayout mobileBarTitle="Claim Portal" metaTitle="Claim Portal - Raydium" contentButtonPaddingShorter>
       <Row className="items-center justify-between gap-4">
         <div>
-          <div className="title text-2xl mobile:text-lg font-bold justify-self-start text-white mb-4">Claim Portal</div>
-          <div className="text-[#abc4ff] mb-4 space-y-4">
-            <div>This portal is for claiming assets from pools affected by the December 15th exploit.</div>
-            <div>
-              If you had LP positions that were affected, details can be viewed below and assets claimed. For full info,{' '}
-              <Link href="https://v1.raydium.io/migrate/">click here</Link>.
-            </div>
+          <div className="title text-2xl mobile:text-lg font-bold justify-self-start text-white mb-4">
+            {dataLoaded && connected ? 'Claim Portal' : 'Compensation'}
           </div>
+          {dataLoaded && connected ? (
+            <div className="text-[#abc4ff] mb-4 space-y-4">
+              <div>This portal is for claiming assets from pools affected by the December 15th exploit.</div>
+              <div>
+                If you had LP positions that were affected, details can be viewed below and assets claimed. For full
+                info, <Link href="https://v1.raydium.io/migrate/">click here</Link>.
+              </div>
+            </div>
+          ) : (
+            <div className="text-[#abc4ff] mb-4 space-y-4">
+              <div>
+                This portal is for claiming assets from pools affected by the December 15th exploit. For more info,{' '}
+                <Link href="https://v1.raydium.io/migrate/">click here</Link>.
+              </div>
+            </div>
+          )}
         </div>
 
         <div>
-          {(!connected || hydratedCompensationInfoItems) && (
+          {connected && hydratedCompensationInfoItems?.length && (
             <Button
               className="w-[12em] frosted-glass-teal mb-8"
               size={isMobile ? 'sm' : 'md'}
@@ -83,21 +95,37 @@ export default function CompensationPage() {
         </div>
       </Row>
 
-      {dataLoaded || hydratedCompensationInfoItems ? (
-        hydratedCompensationInfoItems?.length ? (
-          <div className="py-12">
-            <Grid className="gap-32 ">
-              {hydratedCompensationInfoItems?.map((showInfo) => (
-                <InputCard key={toPubString(showInfo.ammId)} info={showInfo} />
-              ))}
-            </Grid>
-          </div>
+      {connected ? (
+        dataLoaded || hydratedCompensationInfoItems ? (
+          hydratedCompensationInfoItems?.length ? (
+            <div className="py-12">
+              <Grid className="gap-32 ">
+                {hydratedCompensationInfoItems?.map((showInfo) => (
+                  <InputCard key={toPubString(showInfo.ammId)} info={showInfo} />
+                ))}
+              </Grid>
+            </div>
+          ) : (
+            <div className="text-3xl text-[#abc4ff80] my-8">(No compensation)</div>
+          )
         ) : (
-          <div className="text-xl text-[#abc4ff] my-8">you have no compensation</div>
+          <Grid className="justify-center">
+            <LoadingCircle />
+          </Grid>
         )
       ) : (
-        <Grid className="justify-center">
-          <LoadingCircle />
+        <Grid className="justify-center mt-24">
+          <Image className="mx-auto" src="/backgroundImages/not-found.svg" />
+          <div className="mt-10 mx-auto text-[#abc4ff] text-sm">Please connect the wallet to view detail</div>
+          <div className="mt-14 mx-auto w-[400px]">
+            <Button
+              className="w-full frosted-glass-teal mb-8"
+              size={isMobile ? 'sm' : 'md'}
+              onClick={() => useAppSettings.setState({ isWalletSelectorShown: true })}
+            >
+              Connect Wallet
+            </Button>
+          </div>
         </Grid>
       )}
     </PageLayout>
@@ -245,9 +273,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                         amount2: tokenInfos[1]?.perLpLoss,
                         label3: `Total loss in ${tokenInfo.ownerAllLossAmount.token.symbol ?? '--'}`,
                         amount3: tokenInfo.ownerAllLossAmount,
-                        label4: `Claimable (${toPercentString(
-                          div(tokenInfo.debtAmount, tokenInfo.ownerAllLossAmount)
-                        )})`,
+                        label4: `Compensation`,
                         amount4: tokenInfo.debtAmount
                       }
                 )}

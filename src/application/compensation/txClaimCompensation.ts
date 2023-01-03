@@ -38,7 +38,7 @@ export const txClaimCompensation = createTxHandler(
         tx,
         {
           txHistoryInfo: {
-            title: 'Claim money',
+            title: 'Compensation Claim',
             description: `(click tx to see detail)`
           } as TxHistoryInfo
         }
