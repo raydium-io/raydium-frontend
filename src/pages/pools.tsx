@@ -87,7 +87,7 @@ function NewCompensationBanner() {
         <Row className="items-center justify-center py-2.5 px-2 bg-[#39D0D833]">
           <Icon className="text-[#39D0D8]" heroIconName="exclamation-circle" />
           <div className="text-[#fff] text-sm mobile:text-xs px-2">
-            You have LP positions affected by the December 15th exploit. Visit the{' '}
+            You have LP positions affected by the December 16th exploit. Visit the{' '}
             <Link href="/claim-portal" className="text-sm mobile:text-xs">
               Claim Portal
             </Link>{' '}

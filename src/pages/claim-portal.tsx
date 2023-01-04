@@ -30,7 +30,7 @@ import { ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
 import RefreshCircle from '@/components/RefreshCircle'
 import useToken from '@/application/token/useToken'
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { Fraction, PublicKeyish } from '@raydium-io/raydium-sdk'
 import { Badge } from '@/components/Badge'
 
 /**
@@ -51,7 +51,7 @@ export default function CompensationPage() {
         <div>
           <div className="title text-2xl mobile:text-lg font-bold justify-self-start text-white mb-4">Claim Portal</div>
           <div className="text-[#abc4ff] mobile:text-xs mb-4 space-y-4">
-            <div>This portal is for claiming assets from pools affected by the December 15th exploit.</div>
+            <div>This portal is for claiming assets from pools affected by the December 16th exploit.</div>
             <div>
               If you had LP positions that were affected, details can be viewed below and assets claimed. For full info,{' '}
               <Link href="https://docs.raydium.io/raydium/updates/claim-portal">click here</Link>.
@@ -123,7 +123,7 @@ export default function CompensationPage() {
       ) : (
         <Grid className="justify-center mt-24">
           <Image className="mx-auto" src="/backgroundImages/not-found.svg" />
-          <div className="mt-10 mx-auto text-[#abc4ff] text-sm">Please connect the wallet to view detail</div>
+          <div className="mt-10 mx-auto text-[#abc4ff] text-sm">Connect wallet to see LP position details</div>
           <div className="mt-14 mx-auto w-[400px] mobile:w-full">
             <Button
               className="w-full frosted-glass-teal mb-8"
@@ -271,9 +271,9 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                         symbol2: 'LP',
                         label3: 'Total loss',
                         amount3: tokenInfo.ownerAllLossAmount,
-                        label4: `Claimable (${toPercentString(
-                          div(tokenInfo.debtAmount, tokenInfo.ownerAllLossAmount)
-                        )})`,
+                        label4: `Claimable (${toPercentString(div(tokenInfo.debtAmount, tokenInfo.ownerAllLossAmount), {
+                          fixed: 0
+                        })})`,
                         amount4: tokenInfo.debtAmount
                       }
                     : idx === 1
@@ -285,9 +285,9 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                         symbol2: 'LP',
                         label3: 'Total loss',
                         amount3: tokenInfo.ownerAllLossAmount,
-                        label4: `Claimable (${toPercentString(
-                          div(tokenInfo.debtAmount, tokenInfo.ownerAllLossAmount)
-                        )})`,
+                        label4: `Claimable (${toPercentString(div(tokenInfo.debtAmount, tokenInfo.ownerAllLossAmount), {
+                          fixed: 0
+                        })})`,
                         amount4: tokenInfo.debtAmount
                       }
                     : {
