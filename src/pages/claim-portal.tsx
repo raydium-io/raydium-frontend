@@ -295,7 +295,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                         amount1: tokenInfos[0]?.perLpLoss,
                         label2: 'Loss - quote token',
                         amount2: tokenInfos[1]?.perLpLoss,
-                        label3: `Total loss in ${tokenInfo.ownerAllLossAmount.token.symbol ?? '--'}`,
+                        label3: `Total value in ${tokenInfo.ownerAllLossAmount.token.symbol ?? '--'}`,
                         amount3: tokenInfo.ownerAllLossAmount,
                         tooltip3: `This is the value (at the time of the exploit) of the remaining 10% of lost assets denominated in ${tokenInfo.debtAmount.token.symbol} (at a 30-day TWAP price).`,
                         label4: `Compensation`,
