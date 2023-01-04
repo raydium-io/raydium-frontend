@@ -54,7 +54,7 @@ export default function CompensationPage() {
             <div>This portal is for claiming assets from pools affected by the December 15th exploit.</div>
             <div>
               If you had LP positions that were affected, details can be viewed below and assets claimed. For full info,{' '}
-              <Link href="https://v1.raydium.io/migrate/">click here</Link>.
+              <Link href="https://docs.raydium.io/raydium/updates/claim-portal">click here</Link>.
             </div>
           </div>
         </div>
@@ -192,9 +192,11 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
               label3: string
               amount3: TokenAmount | undefined
               symbol3?: string
+              tooltip3?: string
               label4: string
               amount4: TokenAmount | undefined
               symbol4?: string
+              tooltip4?: string
             }) => (
               <Col>
                 <Fieldset
@@ -220,6 +222,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                 <Fieldset
                   className="py-2 border-b border-[#abc4ff80] mb-1"
                   name={info.label3}
+                  tooltip={info.tooltip3}
                   renderFormItem={
                     <Row>
                       <div className="text-[#abc4ff80] min-w-[2em] mr-2">{toString(info.amount3)}</div>
@@ -230,6 +233,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                 <Fieldset
                   className="pt-2 border-t border-[#abc4ff80]"
                   name={info.label4}
+                  tooltip={info.tooltip4}
                   labelClassName="text-[#fff] font-medium"
                   renderFormItem={
                     <Row>
@@ -293,6 +297,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                         amount2: tokenInfos[1]?.perLpLoss,
                         label3: `Total loss in ${tokenInfo.ownerAllLossAmount.token.symbol ?? '--'}`,
                         amount3: tokenInfo.ownerAllLossAmount,
+                        tooltip3: `This is the value (at the time of the exploit) of the remaining 10% of lost assets denominated in ${tokenInfo.debtAmount.token.symbol} (at a 30-day TWAP price).`,
                         label4: `Compensation (${toPercentString(
                           div(
                             mul(tokenInfo.debtAmount, getTokenPrice(tokenInfo.debtAmount.token.mint)),
@@ -359,7 +364,7 @@ function Fieldset({
           <Tooltip panelClassName="bg-[#3b4146]" arrowClassName="bg-[#3b4146]">
             <Icon size="sm" heroIconName="question-mark-circle" className="mx-1 cursor-help text-[#abc4ff]" />
             <Tooltip.Panel>
-              <p className="w-80">{tooltip}</p>
+              <p className="w-60">{tooltip}</p>
             </Tooltip.Panel>
           </Tooltip>
         )}
