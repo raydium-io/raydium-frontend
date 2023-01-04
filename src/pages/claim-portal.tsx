@@ -46,28 +46,17 @@ export default function CompensationPage() {
   const connected = useWallet((s) => s.connected)
 
   return (
-    <PageLayout mobileBarTitle="Compensation" metaTitle="Compensation - Raydium" contentButtonPaddingShorter>
+    <PageLayout mobileBarTitle="Claim portal" metaTitle="Claim portal - Raydium" contentButtonPaddingShorter>
       <AutoBox is={isMobile ? 'Col' : 'Row'} className="items-center justify-between gap-4">
         <div>
-          <div className="title text-2xl mobile:text-lg font-bold justify-self-start text-white mb-4">
-            {connected ? 'Claim Portal' : 'Compensation'}
+          <div className="title text-2xl mobile:text-lg font-bold justify-self-start text-white mb-4">Claim Portal</div>
+          <div className="text-[#abc4ff] mobile:text-xs mb-4 space-y-4">
+            <div>This portal is for claiming assets from pools affected by the December 15th exploit.</div>
+            <div>
+              If you had LP positions that were affected, details can be viewed below and assets claimed. For full info,{' '}
+              <Link href="https://v1.raydium.io/migrate/">click here</Link>.
+            </div>
           </div>
-          {connected ? (
-            <div className="text-[#abc4ff] mobile:text-xs mb-4 space-y-4">
-              <div>This portal is for claiming assets from pools affected by the December 15th exploit.</div>
-              <div>
-                If you had LP positions that were affected, details can be viewed below and assets claimed. For full
-                info, <Link href="https://v1.raydium.io/migrate/">click here</Link>.
-              </div>
-            </div>
-          ) : (
-            <div className="text-[#abc4ff] mobile:text-xs mb-4 space-y-4">
-              <div>
-                This portal is for claiming assets from pools affected by the December 15th exploit. For more info,{' '}
-                <Link href="https://v1.raydium.io/migrate/">click here</Link>.
-              </div>
-            </div>
-          )}
         </div>
 
         {connected && dataListIsFilled && (
@@ -120,7 +109,7 @@ export default function CompensationPage() {
           ) : (
             <Grid className="justify-center mt-24">
               <Image className="mx-auto" src="/backgroundImages/not-found.svg" />
-              <div className="mt-10 mx-auto text-[#abc4ff] text-sm">You don’t have any compensation to claim.</div>
+              <div className="mt-10 mx-auto text-[#abc4ff] text-sm">You have no affected positions to claim</div>
               <div className="mt-3 mx-auto mobile:w-full">
                 <Link href="/pools">Go to Pools</Link>
               </div>
@@ -184,7 +173,11 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
         </Col>
       </AutoBox>
       <div className="w-full mx-auto">
-        <Grid className="grid-cols-[repeat(auto-fit,minmax(min(400px,100%),1fr))] gap-10">
+        <Grid
+          className={`grid-cols-[repeat(auto-fit,minmax(min(400px,100%),1fr))] gap-10 ${
+            !info.canClaim && info.canClaimErrorType === 'alreadyClaimIt' ? 'opacity-50' : ''
+          }`}
+        >
           {info.tokenInfo.map((tokenInfo, idx, tokenInfos) => {
             const label = idx === 0 ? 'BASE' : idx === 1 ? 'QUOTE' : 'COMPENSATION'
             if (!tokenInfo) return null
@@ -267,7 +260,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                 {listContent(
                   idx === 0
                     ? {
-                        label1: 'Per LP lose',
+                        label1: 'Per LP loss',
                         amount1: tokenInfo.perLpLoss,
                         label2: 'Snapshot LP',
                         amount2: info.snapshotLpAmount,
@@ -281,7 +274,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                       }
                     : idx === 1
                     ? {
-                        label1: 'Per LP lose',
+                        label1: 'Per LP loss',
                         amount1: tokenInfo.perLpLoss,
                         label2: 'Snapshot LP',
                         amount2: info.snapshotLpAmount,

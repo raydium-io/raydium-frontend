@@ -85,15 +85,14 @@ function NewCompensationBanner() {
     <div>
       <FadeInStable show={connected && hasClaimable}>
         <Row className="items-center justify-center py-2.5 px-2 bg-[#39D0D833]">
-          <Badge type="solid" className="py-1 rounded bg-[#142b45] text-[#39D0D8]">
-            New
-          </Badge>
+          <Icon className="text-[#39D0D8]" heroIconName="exclamation-circle" />
           <div className="text-[#fff] text-sm mobile:text-xs px-2">
-            Your assets that affected by the December 15th exploit can be claimed.
+            You have LP positions affected by the December 15th exploit. Visit the{' '}
+            <Link href="/claim-portal" className="text-sm mobile:text-xs">
+              Claim Portal
+            </Link>{' '}
+            for more info.
           </div>
-          <Link href="/compensation" className="text-sm mobile:text-xs">
-            Claim now
-          </Link>
         </Row>
       </FadeInStable>
     </div>
