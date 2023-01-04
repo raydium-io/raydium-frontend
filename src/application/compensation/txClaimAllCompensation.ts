@@ -38,10 +38,7 @@ export const txClaimAllCompensation = createTxHandler(
       const queue = signedTransactions.map((tx) => [
         tx,
         {
-          txHistoryInfo: {
-            title: 'Compensation Claim',
-            description: `(click tx to see detail)`
-          } as TxHistoryInfo
+          txHistoryInfo: { title: 'Claim' } as TxHistoryInfo
         }
       ]) as TransactionQueue
 

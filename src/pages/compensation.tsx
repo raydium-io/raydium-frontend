@@ -24,11 +24,13 @@ import { toSentenceCase } from '@/functions/changeCase'
 import { toUTC } from '@/functions/date/dateFormat'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
-import { div } from '@/functions/numberish/operations'
+import { add, div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
 import RefreshCircle from '@/components/RefreshCircle'
+import useToken from '@/application/token/useToken'
+import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
 /**
  * temporary pay money to user for be hacked by hacker page
@@ -150,6 +152,8 @@ export default function CompensationPage() {
 function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const tokenPrices = useToken((s) => s.tokenPrices)
+  const getTokenPrice = (mint: PublicKeyish | undefined) => (mint ? tokenPrices[toPubString(mint)] : undefined)
   return (
     <Col className="gap-6 mobile:gap-4 mx-auto w-full">
       <AutoBox is={isMobile ? 'Col' : 'Row'} className="gap-4 mobile:gap-2 items-end mobile:items-start">
@@ -288,7 +292,15 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                         amount2: tokenInfos[1]?.perLpLoss,
                         label3: `Total loss in ${tokenInfo.ownerAllLossAmount.token.symbol ?? '--'}`,
                         amount3: tokenInfo.ownerAllLossAmount,
-                        label4: `Compensation`,
+                        label4: `Compensation (${toPercentString(
+                          div(
+                            mul(tokenInfo.debtAmount, getTokenPrice(tokenInfo.debtAmount.token.mint)),
+                            add(
+                              mul(tokenInfos[0]?.perLpLoss, getTokenPrice(tokenInfos[0]?.perLpLoss.token.mint)),
+                              mul(tokenInfos[1]?.perLpLoss, getTokenPrice(tokenInfos[1]?.perLpLoss.token.mint))
+                            )
+                          )
+                        )})`,
                         amount4: tokenInfo.debtAmount
                       }
                 )}
