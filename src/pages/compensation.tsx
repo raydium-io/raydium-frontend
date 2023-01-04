@@ -31,6 +31,7 @@ import { twMerge } from 'tailwind-merge'
 import RefreshCircle from '@/components/RefreshCircle'
 import useToken from '@/application/token/useToken'
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { Badge } from '@/components/Badge'
 
 /**
  * temporary pay money to user for be hacked by hacker page
@@ -159,7 +160,14 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
       <AutoBox is={isMobile ? 'Col' : 'Row'} className="gap-4 mobile:gap-2 items-end mobile:items-start">
         <Col className="gap-1.5">
           <Col className="gap-1">
-            <div className="text-xl font-bold text-[#fff] ">{info.poolName}</div>
+            <Row className="gap-4">
+              <div className="text-xl font-bold text-[#fff] ">{info.poolName}</div>
+              {!info.canClaim && info.canClaimErrorType === 'alreadyClaimIt' && (
+                <Badge className="w-fit text-sm" cssColor="#39d0d8">
+                  Claimed
+                </Badge>
+              )}
+            </Row>
             <div className="w-fit">
               <AddressItem showDigitCount={isMobile ? 8 : 12} className="text-[#abc4ff80] text-sm">
                 {info.ammId}
