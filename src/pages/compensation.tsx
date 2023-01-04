@@ -305,7 +305,14 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
             validators={[
               {
                 should: info.canClaim,
-                fallbackProps: { children: toSentenceCase(info.canClaimErrorType ?? 'Claimed') }
+                fallbackProps: {
+                  children:
+                    info.canClaimErrorType === 'alreadyClaimIt'
+                      ? 'Claimed'
+                      : info.canClaimErrorType
+                      ? toSentenceCase(info.canClaimErrorType)
+                      : 'Unknown Error'
+                }
               }
             ]}
             onClick={() => txClaimCompensation({ poolInfo: info })}
