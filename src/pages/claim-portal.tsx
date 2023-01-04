@@ -298,15 +298,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                         label3: `Total loss in ${tokenInfo.ownerAllLossAmount.token.symbol ?? '--'}`,
                         amount3: tokenInfo.ownerAllLossAmount,
                         tooltip3: `This is the value (at the time of the exploit) of the remaining 10% of lost assets denominated in ${tokenInfo.debtAmount.token.symbol} (at a 30-day TWAP price).`,
-                        label4: `Compensation (${toPercentString(
-                          div(
-                            mul(tokenInfo.debtAmount, getTokenPrice(tokenInfo.debtAmount.token.mint)),
-                            add(
-                              mul(tokenInfos[0]?.perLpLoss, getTokenPrice(tokenInfos[0]?.perLpLoss.token.mint)),
-                              mul(tokenInfos[1]?.perLpLoss, getTokenPrice(tokenInfos[1]?.perLpLoss.token.mint))
-                            )
-                          )
-                        )})`,
+                        label4: `Compensation`,
                         amount4: tokenInfo.debtAmount
                       }
                 )}
