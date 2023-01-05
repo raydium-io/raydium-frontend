@@ -91,19 +91,19 @@ export function NewCompensationBanner() {
 
         {connected && hasClaimable ? (
           <div className="text-[#fff] text-sm mobile:text-xs px-2">
-            Phase 1 claims for affected assets due to the recent exploit are live. Visit the{' '}
-            <Link href="/claim-portal" className="text-sm mobile:text-xs">
-              Claim Portal
-            </Link>{' '}
-            or see <Link href="https://docs.raydium.io/raydium/updates/claim-portal">full details</Link> here.
-          </div>
-        ) : (
-          <div className="text-[#fff] text-sm mobile:text-xs px-2">
             You have LP positions affected by the December 16th exploit. Visit the{' '}
             <Link href="/claim-portal" className="text-sm mobile:text-xs">
               Claim Portal
             </Link>{' '}
             for more info.
+          </div>
+        ) : (
+          <div className="text-[#fff] text-sm mobile:text-xs px-2">
+            Phase 1 claims for affected assets due to the recent exploit are live. Visit the{' '}
+            <Link href="/claim-portal" className="text-sm mobile:text-xs">
+              Claim Portal
+            </Link>{' '}
+            or see <Link href="https://docs.raydium.io/raydium/updates/claim-portal">full details</Link> here.
           </div>
         )}
       </Row>
