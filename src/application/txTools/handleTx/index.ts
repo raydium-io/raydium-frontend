@@ -1,5 +1,13 @@
 import {
-  Connection, Context, Keypair, PublicKey, SignatureResult, Transaction, TransactionError
+  Connection,
+  Context,
+  Keypair,
+  PublicKey,
+  SignatureResult,
+  Signer,
+  Transaction,
+  TransactionError,
+  VersionedTransaction
 } from '@solana/web3.js'
 
 import produce from 'immer'
@@ -22,17 +30,19 @@ import { attachRecentBlockhash } from '../attachRecentBlockhash'
 
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
+import { isObject } from '@/functions/judgers/dateType'
+import { createVersionedTransaction } from './createVersionedTransaction'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
   txid: string
-  transaction: Transaction
+  transaction: Transaction | VersionedTransaction
 }
 
 export type MultiTxExtraInfo = {
   isMulti: boolean
   /** only used in multi mode */
-  transactions: Transaction[]
+  transactions: (Transaction | VersionedTransaction)[]
   /** only used in multi mode */
   passedMultiTxid: string[]
   /** only used in multi mode */
@@ -67,11 +77,11 @@ export type TxSentErrorInfo = {
 
 export type TxFinalInfo =
   | ({
-    type: 'success'
-  } & TxSuccessInfo)
+      type: 'success'
+    } & TxSuccessInfo)
   | ({
-    type: 'error'
-  } & TxErrorInfo)
+      type: 'error'
+    } & TxErrorInfo)
 
 export type TxFinalBatchErrorInfo = {
   allSuccess: false
@@ -145,10 +155,10 @@ export type MultiTxsOption = {
    * send all at once
    */
   sendMode?:
-  | 'queue'
-  | 'queue(all-settle)'
-  | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
-  | 'parallel(batch-transactions)' /* it will in order */
+    | 'queue'
+    | 'queue(all-settle)'
+    | 'parallel(dangerous-without-order)' /* couldn't promise tx's order */
+    | 'parallel(batch-transactions)' /* it will in order */
 } & MultiTxCallbacks
 
 export type MultiTxCallbacks = {
@@ -156,10 +166,19 @@ export type MultiTxCallbacks = {
   onTxAnyError?: AnyErrorCallback
 }
 
-export type TransactionQueue = ([transaction: Transaction, singleTxOptions?: SingleTxOption] | Transaction)[]
+export type RawTransactionPair = {
+  transaction: Transaction
+  signers?: Signer[]
+}
+
+export type TransactionQueue = (
+  | [pair: RawTransactionPair | Transaction, singleTxOptions?: SingleTxOption]
+  | RawTransactionPair
+  | Transaction
+)[]
 
 export type TransactionCollector = {
-  add(transaction: Transaction, options?: SingleTxOption): void
+  add(transaction: Transaction | RawTransactionPair, options?: SingleTxOption): void
   addQueue(transactionQueue: TransactionQueue, multiTxOptions?: MultiTxsOption): void
 }
 
@@ -180,9 +199,18 @@ export type HandleFnOptions = {
 
 export type SendTransactionPayload = {
   signAllTransactions: WalletStore['signAllTransactions']
+  walletOwner: PublicKey
   connection: Connection
   // only if have been shadow open
   signerkeyPair?: TxKeypairDetective
+}
+
+export function isTransaction(x: any): x is Transaction {
+  return x instanceof Transaction
+}
+
+export function isTransactionPair(x: any): x is RawTransactionPair {
+  return isObject(x) && 'transaction' in x
 }
 
 /**
@@ -210,7 +238,7 @@ export function createTxHandler<Arg extends Record<string, any>>(
  * 3. hanle appSetting ---- isApprovePanelShown
  *
  */
-export default async function txHandler(txAction: TxFn, options?: HandleFnOptions): Promise<TxResponseInfos> {
+export default async function txHandler(customizedTxAction: TxFn, options?: HandleFnOptions): Promise<TxResponseInfos> {
   const {
     transactionCollector,
     collected: { innerTransactions, singleTxOptions, multiTxOption }
@@ -224,24 +252,23 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
       // have force key pair info, no need to check wallet connect
       const shadowWalletOwner = options.forceKeyPairs.ownerKeypair.publicKey
       const tokenAccountInfos = await getRichWalletTokenAccounts({ owner: shadowWalletOwner, connection })
-      await txAction({
+      await customizedTxAction({
         transactionCollector,
         baseUtils: { connection, owner: shadowWalletOwner, ...tokenAccountInfos }
       })
     } else {
       const { tokenAccounts, allTokenAccounts } = useWallet.getState()
       assert(owner, 'wallet not connected')
-      await txAction({
+      await customizedTxAction({
         transactionCollector,
         baseUtils: { connection, owner, tokenAccounts, allTokenAccounts }
       })
     }
     // eslint-disable-next-line no-console
-    console.info('tx transactions: ', toHumanReadable(innerTransactions), innerTransactions.map(i => i.serialize({
-      requireAllSignatures: false,
-      verifySignatures: false,
-    }).toString('base64')))
+    console.info('tx transactions: ', toHumanReadable(innerTransactions))
 
+    const composedOwner = owner ?? options?.forceKeyPairs?.ownerKeypair.publicKey
+    assert(composedOwner, 'no owner provided')
     const finalInfos = await dealWithMultiTxOptions({
       transactions: innerTransactions,
       singleOptions: produce(singleTxOptions, (options) => {
@@ -253,6 +280,7 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
       }),
       multiOption: multiTxOption,
       payload: {
+        walletOwner: composedOwner,
         connection,
         signAllTransactions,
         signerkeyPair: options?.forceKeyPairs
@@ -281,14 +309,14 @@ export default async function txHandler(txAction: TxFn, options?: HandleFnOption
   }
 }
 
-const txSerializeCache = new Map<string, Buffer>()
+const txSerializeCache = new Map<string, Buffer | Uint8Array>()
 
 function collectTxOptions(
   additionOptions?: Pick<HandleFnOptions, 'additionalMultiOptionCallback' | 'additionalSingleOptionCallback'>
 ) {
   const singleTxOptions = [] as SingleTxOption[]
   const multiTxOption = {} as MultiTxsOption
-  const innerTransactions = [] as Transaction[]
+  const innerTransactions = [] as (Transaction | RawTransactionPair)[]
   const { additionalSingleOptionCallback, additionalMultiOptionCallback } = additionOptions ?? {}
   const add: TransactionCollector['add'] = (transaction, options) => {
     innerTransactions.push(transaction)
@@ -305,8 +333,14 @@ function collectTxOptions(
   return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOption } }
 }
 
-export function serialize(transaction: Transaction, cache: boolean) {
-  const key = transaction.recentBlockhash
+export function isVersionedTransaction(
+  transaction: Transaction | VersionedTransaction
+): transaction is VersionedTransaction {
+  return isObject(transaction) && 'version' in transaction
+}
+
+export function serialize(transaction: Transaction | VersionedTransaction, cache: boolean) {
+  const key = isVersionedTransaction(transaction) ? transaction.message.recentBlockhash : transaction.recentBlockhash
   if (key && txSerializeCache.has(key)) {
     return txSerializeCache.get(key)!
   } else {
@@ -329,7 +363,7 @@ async function dealWithMultiTxOptions({
   multiOption,
   payload
 }: {
-  transactions: Transaction[]
+  transactions: (Transaction | RawTransactionPair)[]
   singleOptions: SingleTxOption[]
   multiOption: MultiTxsOption
   payload: SendTransactionPayload
@@ -369,13 +403,21 @@ async function dealWithMultiTxOptions({
         })
       })
 
+      const formatedTransactionsPairs = transactions.map((tx) =>
+        isTransactionPair(tx) ? { signers: [], ...tx } : { transaction: tx, signers: [] }
+      )
       try {
-        await attachRecentBlockhash(transactions)
+        const tt = await createVersionedTransaction({
+          connection: payload.connection,
+          wallet: payload.walletOwner,
+          txVersion: 'LEGACY', // FIXME: should have uiToggle
+          transactions: formatedTransactionsPairs
+        })
 
         // const allSignedTransactions = await options.payload.signAllTransactions(options.transactions)
         const allSignedTransactions = await (payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions
-          ? transactions
-          : payload.signAllTransactions(transactions))
+          ? tt
+          : payload.signAllTransactions(tt))
 
         // pop tx notification
         const { mutatedSingleOptions } = recordTxNotification({
@@ -403,7 +445,7 @@ function recordTxNotification({
   singleOptions,
   multiOption
 }: {
-  transactions: Transaction[]
+  transactions: (Transaction | VersionedTransaction)[]
   singleOptions: SingleTxOption[]
   multiOption: MultiTxsOption
 }): { mutatedSingleOptions: SingleTxOption[] } {
@@ -472,7 +514,7 @@ function composeWithDifferentSendMode({
   singleOptions,
   payload
 }: {
-  transactions: Transaction[]
+  transactions: (Transaction | VersionedTransaction)[]
   sendMode: MultiTxsOption['sendMode']
   singleOptions: SingleTxOption[]
   payload: SendTransactionPayload
@@ -519,7 +561,7 @@ function composeWithDifferentSendMode({
           method: singleOption.continueWhenPreviousTx ?? (sendMode === 'queue(all-settle)' ? 'finally' : 'success')
         }
       },
-      { fn: () => { }, method: 'success' }
+      { fn: () => {}, method: 'success' }
     )
     return queued.fn
   }
@@ -540,7 +582,7 @@ async function dealWithSingleTxOptions({
   payload,
   isBatched
 }: {
-  transaction: Transaction
+  transaction: Transaction | VersionedTransaction
   wholeTxidInfo: Omit<MultiTxExtraInfo, 'currentIndex'>
   singleOption?: SingleTxOption
   payload: SendTransactionPayload

@@ -99,7 +99,7 @@ export async function txHarvestAllConcentrated() {
       })
     )
 
-    const queue = signedTransactions.map((tx, idx) => [
+    const queue = transactions.map((tx, idx) => [
       tx,
       {
         txHistoryInfo: {

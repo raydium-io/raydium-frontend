@@ -1,16 +1,17 @@
-import { Connection, Transaction } from '@solana/web3.js'
+import assert from '@/functions/assert'
+import { Connection, Transaction, VersionedTransaction } from '@solana/web3.js'
 
-import { SendTransactionPayload, serialize } from '.'
+import { isVersionedTransaction, SendTransactionPayload, serialize } from '.'
 
 type Txid = string
 
 const tempBatchedTransactionsQueue: {
-  tx: Transaction
+  tx: Transaction | VersionedTransaction
   txidPromise: Promise<string>
   resolveFn: (value: string) => void
 }[] = []
 
-function canBatchTransactions(connection: Connection, transaction: Transaction) {
+function canBatchTransactions(connection: Connection, transaction: Transaction | VersionedTransaction) {
   const isConnectionSatisfied = '_buildArgs' in connection && '_rpcBatchRequest' in connection
   const isTransactionSatisfied = '_compile' in transaction && '_serialize' in transaction
   return isConnectionSatisfied && isTransactionSatisfied
@@ -22,9 +23,9 @@ export async function sendTransactionCore({
   batchOptions,
   cache = true
 }: {
-  transaction: Transaction
+  transaction: Transaction | VersionedTransaction
   payload: SendTransactionPayload
-  batchOptions?: { allSignedTransactions: Transaction[] }
+  batchOptions?: { allSignedTransactions: (Transaction | VersionedTransaction)[] }
   cache?: boolean
 }): Promise<Txid> {
   if (batchOptions && canBatchTransactions(payload.connection, transaction)) {
@@ -53,11 +54,15 @@ export async function sendTransactionCore({
 }
 
 async function sendSingleTransaction(
-  transaction: Transaction,
+  transaction: Transaction | VersionedTransaction,
   payload: SendTransactionPayload,
   cache: boolean
 ): Promise<Txid> {
   if (payload.signerkeyPair?.ownerKeypair) {
+    assert(
+      !isVersionedTransaction(transaction),
+      'if use force ownerKeypair, must use transaction, not versionedTransaction'
+    )
     // if have signer detected, no need signAllTransactions
     transaction.feePayer = payload.signerkeyPair.payerKeypair?.publicKey ?? payload.signerkeyPair.ownerKeypair.publicKey
 
@@ -74,7 +79,7 @@ async function sendSingleTransaction(
 
 /** @deprecated */
 async function sendBatchedTransactions(
-  allSignedTransactions: Transaction[],
+  allSignedTransactions: (Transaction | VersionedTransaction)[],
   payload: SendTransactionPayload
 ): Promise<Txid[]> {
   const encodedTransactions = allSignedTransactions.map((i) => i.serialize().toString('base64'))

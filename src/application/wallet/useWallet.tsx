@@ -1,7 +1,7 @@
 import { PublicKeyish, Token, TokenAmount, WSOL } from '@raydium-io/raydium-sdk'
 import { Adapter, WalletName } from '@solana/wallet-adapter-base'
 import { Wallet } from '@solana/wallet-adapter-react'
-import { Keypair, PublicKey, Transaction } from '@solana/web3.js'
+import { Keypair, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
 
 import BN from 'bn.js'
 import create from 'zustand'
@@ -32,7 +32,7 @@ export type WalletStore = {
   disconnecting: boolean
   connecting: boolean
   select(walletName: WalletName): void
-  signAllTransactions: (transactions: Transaction[]) => Promise<Transaction[]> // if not connected, return empty array
+  signAllTransactions: <T extends Transaction | VersionedTransaction>(transactions: T[]) => Promise<T[]> // if not connected, return empty array
   disconnect(): Promise<unknown>
   signMessage?: (message: Uint8Array) => Promise<Uint8Array>
   /** only for Dev */
