@@ -19,6 +19,10 @@ import { toString } from '@/functions/numberish/toString'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { ReactNode, useState } from 'react'
 
+/**
+ * temporary create-market page
+ */
+
 export default function SettingsPage() {
   return (
     <PageLayout mobileBarTitle="Settings" metaTitle="Settings - Raydium" contentButtonPaddingShorter>

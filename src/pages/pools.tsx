@@ -49,6 +49,10 @@ import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
+import { useCompensationMoney } from '@/application/compensation/useCompensation'
+import useCompensationMoneyInfoLoader from '@/application/compensation/useCompensationInfoLoader'
+import FadeInStable from '@/components/FadeIn'
+import Link from '@/components/Link'
 
 /**
  * store:
@@ -59,10 +63,39 @@ import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 export default function PoolsPage() {
   usePoolSummeryInfoLoader()
   return (
-    <PageLayout contentButtonPaddingShorter mobileBarTitle="Pools" metaTitle="Pools - Raydium">
+    <PageLayout
+      contentButtonPaddingShorter
+      mobileBarTitle="Pools"
+      metaTitle="Pools - Raydium"
+      contentBanner={<NewCompensationBanner />}
+    >
       <PoolHeader />
       <PoolCard />
     </PageLayout>
+  )
+}
+
+function NewCompensationBanner() {
+  useCompensationMoneyInfoLoader()
+  const { hydratedCompensationInfoItems } = useCompensationMoney()
+  const dataListIsFilled = Boolean(hydratedCompensationInfoItems?.length)
+  const hasClaimable = dataListIsFilled && hydratedCompensationInfoItems?.some((i) => i.canClaim)
+  const connected = useWallet((s) => s.connected)
+  return (
+    <div>
+      <FadeInStable show={connected && hasClaimable}>
+        <Row className="items-center justify-center py-2.5 px-2 bg-[#39D0D833]">
+          <Icon className="text-[#39D0D8]" heroIconName="exclamation-circle" />
+          <div className="text-[#fff] text-sm mobile:text-xs px-2">
+            You have LP positions affected by the December 16th exploit. Visit the{' '}
+            <Link href="/claim-portal" className="text-sm mobile:text-xs">
+              Claim Portal
+            </Link>{' '}
+            for more info.
+          </div>
+        </Row>
+      </FadeInStable>
+    </div>
   )
 }
 
