@@ -319,6 +319,8 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                   children:
                     info.canClaimErrorType === 'alreadyClaimIt'
                       ? 'Claimed'
+                      : info.canClaimErrorType === 'outOfOperationalTime'
+                      ? 'Claims currently closed'
                       : info.canClaimErrorType
                       ? toSentenceCase(info.canClaimErrorType)
                       : 'Unknown Error'
