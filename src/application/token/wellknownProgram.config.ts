@@ -22,4 +22,4 @@ export const dangerousTempProgramIds = [
   'CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK'
 ]
 
-export const getCompensationProgramId = () => toPub('DevKdS8Q2fUeL3tGaz9PXhJkMkQFT9imgn24v5UV7t6V')
+export const getCompensationProgramId = () => toPub('CLaimxFqjHzgTJtAGHU47NPhg6qrc5sCnpC4tBLyABQS')

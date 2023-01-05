@@ -3,14 +3,10 @@ import useWallet from '../wallet/useWallet'
 
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { Utils1216 } from '@raydium-io/raydium-sdk'
-import { getCompensationProgramId } from '../token/wellknownProgram.config'
-import { useCompensationMoney } from './useCompensation'
-import { hydrateNegativeMoneyInfo } from './hydrateCompensationInfo'
 import useToken from '../token/useToken'
-import { toPub } from '@/functions/format/toMintString'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import { PublicKey } from '@solana/web3.js'
-import { BN } from 'bn.js'
+import { getCompensationProgramId } from '../token/wellknownProgram.config'
+import { hydrateNegativeMoneyInfo } from './hydrateCompensationInfo'
+import { useCompensationMoney } from './useCompensation'
 
 export default function useCompensationMoneyInfoLoader() {
   const connection = useConnection((s) => s.connection)
@@ -33,7 +29,7 @@ export default function useCompensationMoneyInfoLoader() {
     const params = {
       connection,
       chainTime: (Date.now() + chainTimeOffset) / 1000,
-      poolIds: [new PublicKey('2rYTKCeJHu3SPoUB8fZLTpUZLrQfHojehkn2K5JgJNPd')],
+      poolIds: Utils1216.DEFAULT_POOL_ID,
       programId: getCompensationProgramId(),
       wallet: owner
     }
