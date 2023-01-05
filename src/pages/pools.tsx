@@ -75,7 +75,10 @@ export default function PoolsPage() {
   )
 }
 
-function NewCompensationBanner() {
+/**
+ * TEMP
+ */
+export function NewCompensationBanner() {
   useCompensationMoneyInfoLoader()
   const { hydratedCompensationInfoItems } = useCompensationMoney()
   const dataListIsFilled = Boolean(hydratedCompensationInfoItems?.length)
@@ -83,9 +86,18 @@ function NewCompensationBanner() {
   const connected = useWallet((s) => s.connected)
   return (
     <div>
-      <FadeInStable show={connected && hasClaimable}>
-        <Row className="items-center justify-center py-2.5 px-2 bg-[#39D0D833]">
-          <Icon className="text-[#39D0D8]" heroIconName="exclamation-circle" />
+      <Row className="items-center justify-center py-2.5 px-2 bg-[#39D0D833]">
+        <Icon className="text-[#39D0D8]" heroIconName="exclamation-circle" />
+
+        {connected && hasClaimable ? (
+          <div className="text-[#fff] text-sm mobile:text-xs px-2">
+            Phase 1 claims for affected assets due to the recent exploit are live. Visit the{' '}
+            <Link href="/claim-portal" className="text-sm mobile:text-xs">
+              Claim Portal
+            </Link>{' '}
+            or see <Link href="https://docs.raydium.io/raydium/updates/claim-portal">full details</Link> here.
+          </div>
+        ) : (
           <div className="text-[#fff] text-sm mobile:text-xs px-2">
             You have LP positions affected by the December 16th exploit. Visit the{' '}
             <Link href="/claim-portal" className="text-sm mobile:text-xs">
@@ -93,8 +105,8 @@ function NewCompensationBanner() {
             </Link>{' '}
             for more info.
           </div>
-        </Row>
-      </FadeInStable>
+        )}
+      </Row>
     </div>
   )
 }

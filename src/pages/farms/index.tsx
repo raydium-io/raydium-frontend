@@ -71,6 +71,7 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+import { NewCompensationBanner } from '../pools'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -98,6 +99,7 @@ export default function FarmsPage() {
       }}
       contentButtonPaddingShorter
       metaTitle="Farms - Raydium"
+      contentBanner={<NewCompensationBanner />}
     >
       <FarmHeader />
       <FarmCard />

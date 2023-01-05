@@ -56,6 +56,7 @@ import { HexAddress } from '@/types/constants'
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
+import { NewCompensationBanner } from '../pools'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -68,7 +69,7 @@ export default function Liquidity() {
   return (
     <LiquidityUIContextProvider>
       <LiquidityEffect />
-      <PageLayout mobileBarTitle="Liquidity" metaTitle="Liquidity - Raydium">
+      <PageLayout mobileBarTitle="Liquidity" metaTitle="Liquidity - Raydium" contentBanner={<NewCompensationBanner />}>
         <LiquidityPageHead />
         <LiquidityCard />
         <UserLiquidityExhibition />
