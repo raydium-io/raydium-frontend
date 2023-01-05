@@ -998,7 +998,7 @@ function RpcConnectionPanelPopover({ close: closePanel }: { close: () => void })
             inputClassName="font-medium text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
             placeholder="https://"
             onUserInput={(searchText) => {
-              useConnection.setState({ userCostomizedUrlText: searchText })
+              useConnection.setState({ userCostomizedUrlText: searchText.trim() })
             }}
             onEnter={() => {
               switchRpc({ url: userCostomizedUrlText }).then((isSuccess) => {
