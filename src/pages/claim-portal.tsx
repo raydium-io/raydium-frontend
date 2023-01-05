@@ -24,7 +24,7 @@ import { toSentenceCase } from '@/functions/changeCase'
 import { toUTC } from '@/functions/date/dateFormat'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
-import { add, div, mul } from '@/functions/numberish/operations'
+import { add, div, getMax, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { ReactNode } from 'react'
 import { twMerge } from 'tailwind-merge'
@@ -32,6 +32,7 @@ import RefreshCircle from '@/components/RefreshCircle'
 import useToken from '@/application/token/useToken'
 import { Fraction, PublicKeyish } from '@raydium-io/raydium-sdk'
 import { Badge } from '@/components/Badge'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 /**
  * temporary pay money to user for be hacked by hacker page
@@ -168,7 +169,19 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
           </div>
         </Col>
         <Col className="ml-auto mobile:ml-0 items-end">
-          <div className="font-medium text-base mobile:text-sm text-[#abc4ff80]">Snapshot LP token balance</div>
+          <Row className="items-center gap-1">
+            <Tooltip panelClassName="bg-[#3b4146]" arrowClassName="bg-[#3b4146]">
+              <Icon
+                size="sm"
+                heroIconName="question-mark-circle"
+                className={twMerge('mx-1 cursor-help text-[#abc4ff80]')}
+              />
+              <Tooltip.Panel>
+                <p className="w-60">Your LP token balance at the time of the snapshot</p>
+              </Tooltip.Panel>
+            </Tooltip>
+            <div className="font-medium text-base mobile:text-sm text-[#abc4ff80]">Snapshot LP token balance</div>
+          </Row>
           <div className="font-medium mobile:text-sm text-[#abc4ff]">{toString(info.snapshotLpAmount)} LP</div>
         </Col>
       </AutoBox>
@@ -186,9 +199,11 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
               label1: string
               amount1: TokenAmount | undefined
               symbol1?: string
+              tooltip1?: string
               label2: string
               amount2: TokenAmount | undefined
               symbol2?: string
+              tooltip2?: string
               label3: string
               amount3: TokenAmount | undefined
               symbol3?: string
@@ -202,6 +217,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                 <Fieldset
                   className="pb-2"
                   name={info.label1}
+                  tooltip={info.tooltip1}
                   renderFormItem={
                     <Row>
                       <div className="text-[#abc4ff80] min-w-[2em] mr-2">{toString(info.amount1)}</div>
@@ -212,6 +228,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                 <Fieldset
                   className="py-2 border-b border-[#abc4ff80]"
                   name={info.label2}
+                  tooltip={info.tooltip2}
                   renderFormItem={
                     <Row>
                       <div className="text-[#abc4ff80] min-w-[2em] mr-2">{toString(info.amount2)}</div>
@@ -235,6 +252,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                   name={info.label4}
                   tooltip={info.tooltip4}
                   labelClassName="text-[#fff] font-medium"
+                  tooltipClassName="text-[#fff] font-medium"
                   renderFormItem={
                     <Row>
                       <div className="text-[#fff] font-medium min-w-[2em] mr-2">{toString(info.amount4)}</div>
@@ -266,10 +284,13 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                     ? {
                         label1: 'Per LP loss',
                         amount1: tokenInfo.perLpLoss,
+                        tooltip1: 'The amount of base tokens lost per LP token',
                         label2: 'Snapshot LP',
                         amount2: info.snapshotLpAmount,
+                        tooltip2: 'Your LP token balance at the time of the snapshot',
                         symbol2: 'LP',
-                        label3: 'Total loss',
+                        label3: 'Total base',
+                        tooltip3: 'The total base token amount lost. Total = (Per LP loss) * (Snapshot LP)',
                         amount3: tokenInfo.ownerAllLossAmount,
                         label4: `Claimable (${toPercentString(div(tokenInfo.debtAmount, tokenInfo.ownerAllLossAmount), {
                           fixed: 0
@@ -280,10 +301,13 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                     ? {
                         label1: 'Per LP loss',
                         amount1: tokenInfo.perLpLoss,
+                        tooltip1: 'The amount of quote tokens lost per LP token',
                         label2: 'Snapshot LP',
                         amount2: info.snapshotLpAmount,
                         symbol2: 'LP',
-                        label3: 'Total loss',
+                        tooltip2: 'Your LP token balance at the time of the snapshot',
+                        label3: 'Total quote',
+                        tooltip3: 'The total quote token amount lost. Total = (Per LP loss) * (Snapshot LP)',
                         amount3: tokenInfo.ownerAllLossAmount,
                         label4: `Claimable (${toPercentString(div(tokenInfo.debtAmount, tokenInfo.ownerAllLossAmount), {
                           fixed: 0
@@ -291,15 +315,33 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                         amount4: tokenInfo.debtAmount
                       }
                     : {
-                        label1: 'Loss - base token',
-                        amount1: tokenInfos[0]?.perLpLoss,
-                        label2: 'Loss - quote token',
-                        amount2: tokenInfos[1]?.perLpLoss,
+                        label1: 'Remaining base',
+                        amount1: tokenInfos[0]
+                          ? toTokenAmount(
+                              tokenInfos[0].token,
+                              getMax(minus(tokenInfos[0].ownerAllLossAmount, tokenInfos[0].debtAmount), 0),
+                              { alreadyDecimaled: true }
+                            )
+                          : undefined,
+                        tooltip1:
+                          'This represents the remaining loss not claimable in original pool assets. Remaining = Total - Claimable',
+                        label2: 'Remaining quote',
+                        amount2: tokenInfos[1]
+                          ? toTokenAmount(
+                              tokenInfos[1].token,
+                              getMax(minus(tokenInfos[1].ownerAllLossAmount, tokenInfos[1].debtAmount), 0),
+                              { alreadyDecimaled: true }
+                            )
+                          : undefined,
+                        tooltip2:
+                          'This represents the remaining loss not claimable in original pool assets. Remaining = Total - Claimable',
                         label3: `Total value in ${tokenInfo.ownerAllLossAmount.token.symbol ?? '--'}`,
                         amount3: tokenInfo.ownerAllLossAmount,
                         tooltip3: `This is the value (at the time of the exploit) of the remaining 10% of lost assets denominated in ${tokenInfo.debtAmount.token.symbol} (at a 30-day TWAP price).`,
                         label4: `Compensation`,
-                        amount4: tokenInfo.debtAmount
+                        amount4: tokenInfo.debtAmount,
+                        tooltip4:
+                          'This is the claimable amount of RAY as compensation and is equal to (Total value in RAY)*(1.2). This equates to 20% additional RAY as compensation.'
                       }
                 )}
               </Card>
@@ -342,13 +384,15 @@ function Fieldset({
   className,
   tooltip,
   renderFormItem,
-  labelClassName
+  labelClassName,
+  tooltipClassName
 }: {
   name: string
   className?: string
   tooltip?: string
   renderFormItem: ReactNode
   labelClassName?: string
+  tooltipClassName?: string
 }) {
   return (
     <Grid className={twMerge('grid-cols-[1fr,1fr] gap-8', className)}>
@@ -356,7 +400,11 @@ function Fieldset({
         <div className={twMerge('text-base mobile:text-sm text-[#abc4ff]', labelClassName)}>{name}</div>
         {tooltip && (
           <Tooltip panelClassName="bg-[#3b4146]" arrowClassName="bg-[#3b4146]">
-            <Icon size="sm" heroIconName="question-mark-circle" className="mx-1 cursor-help text-[#abc4ff]" />
+            <Icon
+              size="sm"
+              heroIconName="question-mark-circle"
+              className={twMerge('mx-1 cursor-help text-[#abc4ff]', tooltipClassName)}
+            />
             <Tooltip.Panel>
               <p className="w-60">{tooltip}</p>
             </Tooltip.Panel>
