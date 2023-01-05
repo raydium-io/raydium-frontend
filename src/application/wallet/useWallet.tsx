@@ -15,6 +15,7 @@ import { HexAddress } from '@/types/constants'
 import { isQuantumSOL, QuantumSOLAmount, QuantumSOLVersionWSOL, WSOLMint } from '../token/quantumSOL'
 
 import { ITokenAccount, TokenAccountRawInfo } from './type'
+import { TxVersion } from '../txTools/handleTx/createVersionedTransaction'
 
 export type WalletStore = {
   // owner
@@ -22,6 +23,7 @@ export type WalletStore = {
   /** old version of currentWallet */
   adapter?: Adapter
   adapterInitializing: boolean
+  txVersion: TxVersion
 
   // a experimental feature (owner isn't in shadowOwners)
   /** each Keypair object hold both publicKey and secret key **/
@@ -110,6 +112,7 @@ export type WalletStore = {
 const useWallet = create<WalletStore>((set, get) => ({
   // owner
   owner: undefined,
+  txVersion: 'V0',
   availableWallets: [],
   connected: false,
   disconnecting: false,

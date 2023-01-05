@@ -1,24 +1,22 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useWallet from '@/application/wallet/useWallet'
-import copyToClipboard from '@/functions/dom/copyToClipboard'
 import useToggle from '@/hooks/useToggle'
 
+import { AddressItem } from '../AddressItem'
 import Button from '../Button'
+import { FadeIn } from '../FadeIn'
 import Icon from '../Icon'
 import PageLayoutPopoverDrawer from '../PageLayoutPopoverDrawer'
 import Row from '../Row'
-import { FadeIn } from '../FadeIn'
 import { RowItem } from '../RowItem'
-import { PublicKeyish } from '@/types/constants'
-import toPubString from '@/functions/format/toMintString'
-import { AddressItem } from '../AddressItem'
-import { getNewWalletSignature } from '@/application/staking/getSignMessage'
+import Switcher from '../Switcher'
 
 /** this should be used in ./Navbar.tsx */
 export default function WalletWidget() {
   const isMobile = useAppSettings((s) => s.isMobile)
+  const txVersion = useWallet((s) => s.txVersion)
   const [isCopied, { delayOff, on }] = useToggle()
 
   useEffect(() => {
@@ -37,7 +35,7 @@ export default function WalletWidget() {
           <div className="pt-3 -mb-1 mobile:mb-2 px-6 text-[rgba(171,196,255,0.5)] text-xs mobile:text-sm">
             CONNECTED WALLET
           </div>
-          <div className="gap-3 divide-y-1.5">
+          <div className="gap-3 space-y-1.5">
             <FadeIn ignoreEnterTransition>
               <AddressItem
                 textClassName="text-white"
@@ -47,6 +45,13 @@ export default function WalletWidget() {
                 {publicKey}
               </AddressItem>
             </FadeIn>
+            <Row className="items-center px-6 justify-between">
+              <div className="text-[#abc4ff]">useV0</div>
+              <Switcher
+                checked={txVersion === 'V0'}
+                onToggle={(checked) => useWallet.setState({ txVersion: checked ? 'V0' : 'LEGACY' })}
+              />
+            </Row>
             <RowItem
               textClassName="text-white"
               className="py-4 px-6 border-[rgba(171,196,255,0.2)] cursor-pointer clickable clickable-filter-effect"

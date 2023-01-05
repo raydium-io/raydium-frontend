@@ -31,7 +31,7 @@ import { attachRecentBlockhash } from '../attachRecentBlockhash'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 import { isObject } from '@/functions/judgers/dateType'
-import { createVersionedTransaction } from './createVersionedTransaction'
+import { createVersionedTransaction, TxVersion } from './createVersionedTransaction'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -199,8 +199,9 @@ export type HandleFnOptions = {
 
 export type SendTransactionPayload = {
   signAllTransactions: WalletStore['signAllTransactions']
-  walletOwner: PublicKey
+  owner: PublicKey
   connection: Connection
+  txVersion: TxVersion
   // only if have been shadow open
   signerkeyPair?: TxKeypairDetective
 }
@@ -245,7 +246,7 @@ export default async function txHandler(customizedTxAction: TxFn, options?: Hand
   } = collectTxOptions(options)
   useAppSettings.setState({ isApprovePanelShown: true })
   try {
-    const { signAllTransactions, owner } = useWallet.getState()
+    const { signAllTransactions, owner, txVersion } = useWallet.getState()
     const connection = useConnection.getState().connection
     assert(connection, 'no rpc connection')
     if (options?.forceKeyPairs?.ownerKeypair) {
@@ -280,8 +281,9 @@ export default async function txHandler(customizedTxAction: TxFn, options?: Hand
       }),
       multiOption: multiTxOption,
       payload: {
-        walletOwner: composedOwner,
+        owner: composedOwner,
         connection,
+        txVersion,
         signAllTransactions,
         signerkeyPair: options?.forceKeyPairs
       }
@@ -409,8 +411,8 @@ async function dealWithMultiTxOptions({
       try {
         const tt = await createVersionedTransaction({
           connection: payload.connection,
-          wallet: payload.walletOwner,
-          txVersion: 'LEGACY', // FIXME: should have uiToggle
+          wallet: payload.owner,
+          txVersion: payload.txVersion,
           transactions: formatedTransactionsPairs
         })
 

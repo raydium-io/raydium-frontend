@@ -1,4 +1,4 @@
-import { CSSProperties, RefObject, useState } from 'react'
+import { CSSProperties, RefObject, useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import { Switch as Swi } from '@headlessui/react'
@@ -8,6 +8,7 @@ import { Switch as Swi } from '@headlessui/react'
  */
 export default function Switcher({
   defaultChecked,
+  checked,
   disable,
   domRef,
   className = '',
@@ -16,6 +17,7 @@ export default function Switcher({
   onToggle
 }: {
   defaultChecked?: boolean
+  checked?: boolean
   disable?: boolean
   domRef?: RefObject<HTMLButtonElement>
   className?: string
@@ -23,7 +25,10 @@ export default function Switcher({
   style?: CSSProperties
   onToggle?: (checked: boolean) => void
 }) {
-  const [isChecked, setIsChecked] = useState(Boolean(defaultChecked))
+  const [isChecked, setIsChecked] = useState(Boolean(defaultChecked ?? checked))
+  useEffect(() => {
+    if (checked != null) setIsChecked(checked)
+  }, [checked])
   return (
     <Swi
       ref={domRef}

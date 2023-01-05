@@ -18,6 +18,7 @@ import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import { extensionMap } from '@/functions/dom/getExtension'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
+import Switcher from '@/components/Switcher'
 
 function WalletSelectorPanelItem({
   wallet,
@@ -181,6 +182,7 @@ function PanelContent({
   const [isAllWalletShown, setIsAllWalletShown] = useState(false)
   const isInLocalhost = useAppSettings((s) => s.isInLocalhost)
   const isInBonsaiTest = useAppSettings((s) => s.isInBonsaiTest)
+  const txVersion = useWallet((s) => s.txVersion)
   return (
     <Card
       className="flex flex-col max-h-screen  w-[586px] mobile:w-screen rounded-3xl mobile:rounded-none border-1.5 border-[rgba(171,196,255,0.2)] overflow-hidden bg-cyberpunk-card-bg shadow-cyberpunk-card"
@@ -198,6 +200,14 @@ function PanelContent({
           Disclaimer
         </Link>
       </div>
+
+      <Row className="items-center my-2 ml-auto gap-4 px-8 mobile:px-6 justify-between">
+        <div className="text-[#abc4ff]">useV0</div>
+        <Switcher
+          checked={txVersion === 'V0'}
+          onToggle={(checked) => useWallet.setState({ txVersion: checked ? 'V0' : 'LEGACY' })}
+        />
+      </Row>
 
       <Grid
         className={`px-8 mobile:px-6 gap-x-6 gap-y-3 mobile:gap-2 ${
