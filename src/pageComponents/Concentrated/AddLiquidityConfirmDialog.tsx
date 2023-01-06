@@ -15,6 +15,7 @@ import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
 import toPercentString from '@/functions/format/toPercentString'
 import { shakeZero } from '@/functions/numberish/shakeZero'
+import useAppSettings from '@/application/common/useAppSettings'
 
 interface Props {
   open: boolean
@@ -49,6 +50,7 @@ export default function AddLiquidityConfirmDialog({
 }: Props) {
   const hasConfirmed = react.useRef(false)
   const decimalPlace = Math.min(decimals, 6)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
   const confirm = react.useCallback(
     (close: () => void) => {
@@ -159,7 +161,7 @@ export default function AddLiquidityConfirmDialog({
           <Col className="items-center mt-5 mobile:mt-3">
             <div className="self-stretch">
               <Col>
-                <Button className={`frosted-glass-teal`} onClick={() => confirm(close)}>
+                <Button className={`frosted-glass-teal`} isLoading={isApprovePanelShown} onClick={() => confirm(close)}>
                   Confirm Deposit
                 </Button>
               </Col>
