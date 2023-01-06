@@ -10,7 +10,9 @@ import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect '
 export default function useLocalStorageItem<T, E = T>(
   key: string,
   options?: {
+    /** run immediately */
     defaultValue?: T
+    /** run only when value is undefined */
     emptyValue?: E
     validateFn?: (value: T | undefined) => boolean
   }
@@ -25,7 +27,7 @@ export default function useLocalStorageItem<T, E = T>(
   }, [])
   const setValue = useCallback((value: MayFunction<T, [old: T | undefined]>) => {
     setXStoredValue(value)
-    if (value) setLocalItem(key, value)
+    if (value != null) setLocalItem(key, value)
   }, [])
 
   return [xStoredValue, setValue]
