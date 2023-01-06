@@ -9,10 +9,14 @@ import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
+  HydratedConcentratedInfo,
+  HydratedConcentratedRewardInfo,
+  UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -1450,6 +1454,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const logInfo = useNotification((s) => s.logInfo)
   const walletConnected = useWallet((s) => s.connected)
+  const isEmptyPosition = p?.amountA?.isZero() && p?.amountB?.isZero()
 
   const rangeTag = useMemo(() => {
     let bgColor = 'bg-[#142B45]'
@@ -1486,6 +1491,7 @@ function PoolCardDatabaseBodyCollapsePositionContent({
     )
   }, [inRange, info.currentPrice, info.base?.symbol, info.quote?.symbol])
 
+  if (isEmptyPosition) return null
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
       <Row className={`w-full pt-5 px-8 mobile:py-3 mobile:px-2 mobile:m-0`}>
