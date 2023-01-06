@@ -4,7 +4,6 @@ import { Liquidity, SPL_MINT_LAYOUT, Token } from '@raydium-io/raydium-sdk'
 
 import { deUITokenAmount, WSOLMint } from '@/application/token/quantumSOL'
 import useToken from '@/application/token/useToken'
-import { loadTransaction } from '@/application/txTools/createTransaction'
 import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
@@ -94,12 +93,15 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
         userKeys: { payer: owner }
       })
 
-      transactionCollector.add(await loadTransaction({ transaction: sdkTransaction1, signers: sdkSigners1 }), {
-        txHistoryInfo: {
-          title: 'Create New Pool',
-          description: `pool's ammId: ${ammId.slice(0, 4)}...${ammId.slice(-4)}`
+      transactionCollector.add(
+        { transaction: sdkTransaction1, signers: sdkSigners1 },
+        {
+          txHistoryInfo: {
+            title: 'Create New Pool',
+            description: `pool's ammId: ${ammId.slice(0, 4)}...${ammId.slice(-4)}`
+          }
         }
-      })
+      )
     }
 
     // step2: init new pool (inject money into the created pool)
@@ -111,16 +113,19 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       connection,
       userKeys: { owner, payer: owner, tokenAccounts: tokenAccountRawInfos }
     })
-    transactionCollector.add(await loadTransaction({ transaction: sdkTransaction2, signers: sdkSigners2 }), {
-      onTxSuccess() {
-        recordCreatedPool()
-        useCreatePool.setState({ startTime: undefined })
-      },
-      txHistoryInfo: {
-        title: 'Init Pool',
-        description: `${baseDecimaledAmount} ${baseToken.symbol} and ${quoteDecimaledAmount} ${quoteToken.symbol}`
+    transactionCollector.add(
+      { transaction: sdkTransaction2, signers: sdkSigners2 },
+      {
+        onTxSuccess() {
+          recordCreatedPool()
+          useCreatePool.setState({ startTime: undefined })
+        },
+        txHistoryInfo: {
+          title: 'Init Pool',
+          description: `${baseDecimaledAmount} ${baseToken.symbol} and ${quoteDecimaledAmount} ${quoteToken.symbol}`
+        }
       }
-    })
+    )
   }).then(({ allSuccess }) => {
     if (allSuccess) {
       onAllSuccess?.()

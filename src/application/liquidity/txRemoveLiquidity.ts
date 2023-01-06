@@ -1,7 +1,6 @@
 import { jsonInfo2PoolKeys, Liquidity } from '@raydium-io/raydium-sdk'
 
 import useToken from '@/application/token/useToken'
-import { loadTransaction } from '@/application/txTools/createTransaction'
 import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
@@ -37,14 +36,17 @@ export default function txRemoveLiquidity({ ammId: targetAmmId }: { ammId?: Publ
       userKeys: { owner, tokenAccounts: tokenAccountRawInfos },
       amountIn: removeTokenAmount
     })
-    transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
-      txHistoryInfo: {
-        title: 'Remove liquidity',
-        description: `Remove  ${removeTokenAmount.toExact()} ${lpToken.symbol}`
-      },
-      onTxSuccess: () => {
-        useLiquidity.setState({ removeAmount: '', isRemoveDialogOpen: false })
+    transactionCollector.add(
+      { transaction, signers },
+      {
+        txHistoryInfo: {
+          title: 'Remove liquidity',
+          description: `Remove  ${removeTokenAmount.toExact()} ${lpToken.symbol}`
+        },
+        onTxSuccess: () => {
+          useLiquidity.setState({ removeAmount: '', isRemoveDialogOpen: false })
+        }
       }
-    })
+    )
   })
 }

@@ -5,7 +5,6 @@ import { toString } from '@/functions/numberish/toString'
 
 import useAppSettings from '../common/useAppSettings'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
-import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
@@ -39,11 +38,14 @@ export default function txHavestConcentrated({
       slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed
     })
-    transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
-      txHistoryInfo: {
-        title: 'Havested Rewards',
-        description: `Havested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
+    transactionCollector.add(
+      { transaction, signers },
+      {
+        txHistoryInfo: {
+          title: 'Havested Rewards',
+          description: `Havested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
+        }
       }
-    })
+    )
   })
 }

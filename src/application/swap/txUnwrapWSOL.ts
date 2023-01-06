@@ -1,4 +1,4 @@
-import { Spl, TokenAccount, unwarpSol } from '@raydium-io/raydium-sdk'
+import { Spl, unwarpSol } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -6,7 +6,6 @@ import assert from '@/functions/assert'
 import asyncMap from '@/functions/asyncMap'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, lt } from '@/functions/numberish/compare'
 import { mul, sub } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
@@ -14,7 +13,7 @@ import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
 
 import { QuantumSOLVersionWSOL, WSOL, WSOLMint } from '../token/quantumSOL'
-import { createTransactionCollector, loadTransaction } from '../txTools/createTransaction'
+import { createTransactionCollector } from '../txTools/createTransaction'
 import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
@@ -44,15 +43,15 @@ export default function txUnwrapAllWSOL() {
       tokenAccounts: wsolTokenAccounts
     })
 
-    const signedTransactions = shakeUndifindedItem(
+    const transactionPairs = shakeUndifindedItem(
       await asyncMap(transactions, (merged) => {
         if (!merged) return
         const { transaction, signer: signers } = merged
-        return loadTransaction({ transaction: transaction, signers })
+        return { transaction: transaction, signers }
       })
     )
 
-    const queue = signedTransactions.map((tx, idx) => [
+    const queue = transactionPairs.map((tx, idx) => [
       tx,
       {
         txHistoryInfo: {

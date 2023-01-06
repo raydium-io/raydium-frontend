@@ -1,4 +1,3 @@
-import { loadTransaction } from '@/application/txTools/createTransaction'
 import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
@@ -18,14 +17,17 @@ export default function txCreateConcentratedPosotion({
   return txHandler(async ({ transactionCollector }) => {
     const { coin1, coin2, coin1Amount, coin2Amount } = useConcentrated.getState()
     const { transaction, signers } = await generateCreateClmmPositionTx(currentAmmPool)
-    transactionCollector.add(await loadTransaction({ transaction, signers }), {
-      txHistoryInfo: {
-        title: 'Position Created',
-        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
-          coin2?.symbol ?? '--'
-        }`
+    transactionCollector.add(
+      { transaction, signers },
+      {
+        txHistoryInfo: {
+          title: 'Position Created',
+          description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
+            coin2?.symbol ?? '--'
+          }`
+        }
       }
-    })
+    )
   })
 }
 

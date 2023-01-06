@@ -26,12 +26,11 @@ import useNotification from '../../notification/useNotification'
 import useTxHistory, { TxHistoryInfo } from '../../txHistory/useTxHistory'
 import { getRichWalletTokenAccounts } from '../../wallet/useTokenAccountsRefresher'
 import useWallet, { WalletStore } from '../../wallet/useWallet'
-import { attachRecentBlockhash } from '../attachRecentBlockhash'
 
-import { sendTransactionCore } from './sendTransactionCore'
-import subscribeTx from './subscribeTx'
 import { isObject } from '@/functions/judgers/dateType'
 import { createVersionedTransaction, TxVersion } from './createVersionedTransaction'
+import { sendTransactionCore } from './sendTransactionCore'
+import subscribeTx from './subscribeTx'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {

@@ -2,7 +2,6 @@ import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import assert from '@/functions/assert'
 
-import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
@@ -33,11 +32,14 @@ export default function txCollectReward({
       rewardMint,
       associatedOnly: false
     })
-    transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
-      txHistoryInfo: {
-        title: 'Harvested Reward',
-        description: `Harvested: ${token} reward`
+    transactionCollector.add(
+      { transaction, signers },
+      {
+        txHistoryInfo: {
+          title: 'Harvested Reward',
+          description: `Harvested: ${token} reward`
+        }
       }
-    })
+    )
   })
 }

@@ -1,7 +1,6 @@
 import { jsonInfo2PoolKeys, Liquidity } from '@raydium-io/raydium-sdk'
 
 import { deUITokenAmount } from '@/application/token/quantumSOL'
-import { loadTransaction } from '@/application/txTools/createTransaction'
 import txHandler, { createTxHandler } from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
@@ -64,12 +63,15 @@ export default function txAddLiquidity({ ammId: targetAmmId }: { ammId?: PublicK
       amountInB: deUITokenAmount(coin2TokenAmount),
       fixedSide: focusSide === 'coin1' ? 'a' : 'b'
     })
-    transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
-      txHistoryInfo: {
-        title: 'Add Liquidity',
-        description: `Add ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${coin2.symbol}`
+    transactionCollector.add(
+      { transaction, signers },
+      {
+        txHistoryInfo: {
+          title: 'Add Liquidity',
+          description: `Add ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${coin2.symbol}`
+        }
       }
-    })
+    )
   })
 }
 
@@ -126,11 +128,14 @@ const txAddLiquidity2 = createTxHandler(
         amountInB: deUITokenAmount(coin2TokenAmount),
         fixedSide: focusSide === 'coin1' ? 'a' : 'b'
       })
-      transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
-        txHistoryInfo: {
-          title: 'Add Liquidity',
-          description: `Add ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${coin2.symbol}`
+      transactionCollector.add(
+        { transaction, signers },
+        {
+          txHistoryInfo: {
+            title: 'Add Liquidity',
+            description: `Add ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${coin2.symbol}`
+          }
         }
-      })
+      )
     }
 )

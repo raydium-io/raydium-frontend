@@ -8,7 +8,6 @@ import { toString } from '@/functions/numberish/toString'
 
 import useAppSettings from '../common/useAppSettings'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
-import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
@@ -45,13 +44,16 @@ export default function txDecreaseConcentrated() {
       // slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed
     })
-    transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
-      txHistoryInfo: {
-        title: 'Liquidity Removed',
-        description: `Removed ${toString(coin1AmountMin)} ${coin1.symbol} and ${toString(coin2AmountMin)} ${
-          coin2.symbol
-        } from ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+    transactionCollector.add(
+      { transaction, signers },
+      {
+        txHistoryInfo: {
+          title: 'Liquidity Removed',
+          description: `Removed ${toString(coin1AmountMin)} ${coin1.symbol} and ${toString(coin2AmountMin)} ${
+            coin2.symbol
+          } from ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
+        }
       }
-    })
+    )
   })
 }

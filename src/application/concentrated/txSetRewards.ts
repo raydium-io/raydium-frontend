@@ -1,7 +1,6 @@
 import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import assert from '@/functions/assert'
-import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import { SplToken } from '@/application/token/type'
@@ -67,13 +66,16 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
         rewardInfos: updatedRewardInfos
       })
 
-      transactionCollector.add(await loadTransaction({ transaction: setRewardTx, signers: setRewardTxSigners }), {
-        txHistoryInfo: {
-          title: 'Update rewards',
-          description: `Update rewards in ${currentAmmPool.idString.slice(0, 6)}`
-        },
-        onTxSuccess: !newRewardInfos.length ? onTxSuccess : undefined
-      })
+      transactionCollector.add(
+        { transaction: setRewardTx, signers: setRewardTxSigners },
+        {
+          txHistoryInfo: {
+            title: 'Update rewards',
+            description: `Update rewards in ${currentAmmPool.idString.slice(0, 6)}`
+          },
+          onTxSuccess: !newRewardInfos.length ? onTxSuccess : undefined
+        }
+      )
     }
 
     if (newRewardInfos.length) {
@@ -81,16 +83,19 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
         ...commonParams,
         rewardInfos: newRewardInfos
       })
-      transactionCollector.add(await loadTransaction({ transaction: addRewardTx, signers: addRewardSigners }), {
-        txHistoryInfo: {
-          title: 'Added new rewards',
-          description: `Added ${newRewards.map((r) => r.token.symbol).join(',')} to ${currentAmmPool.idString.slice(
-            0,
-            6
-          )}`
-        },
-        onTxSuccess
-      })
+      transactionCollector.add(
+        { transaction: addRewardTx, signers: addRewardSigners },
+        {
+          txHistoryInfo: {
+            title: 'Added new rewards',
+            description: `Added ${newRewards.map((r) => r.token.symbol).join(',')} to ${currentAmmPool.idString.slice(
+              0,
+              6
+            )}`
+          },
+          onTxSuccess
+        }
+      )
     }
   })
 }

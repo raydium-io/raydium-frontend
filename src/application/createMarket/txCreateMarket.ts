@@ -9,7 +9,6 @@ import { toString } from '@/functions/numberish/toString'
 
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { TxHistoryInfo } from '../txHistory/useTxHistory'
-import { loadTransaction } from '../txTools/createTransaction'
 import { createTxHandler, TransactionQueue } from '../txTools/handleTx'
 
 import { useCreateMarket } from './useCreateMarket'
@@ -38,14 +37,14 @@ const txCreateMarket = createTxHandler(() => async ({ transactionCollector, base
     wallet: owner
   })
 
-  const signedTransactions = shakeUndifindedItem(
+  const transactionPairs = shakeUndifindedItem(
     await asyncMap(transactions, (merged) => {
       if (!merged) return
       const { transaction, signer: signers } = merged
-      return loadTransaction({ transaction: transaction, signers })
+      return { transaction, signers }
     })
   )
-  const queue = signedTransactions.map((tx) => [
+  const queue = transactionPairs.map((tx) => [
     tx,
     {
       txHistoryInfo: {

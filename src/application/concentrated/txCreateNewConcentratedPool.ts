@@ -1,5 +1,4 @@
 import assert from '@/functions/assert'
-import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
 import { generateCreateClmmPositionTx } from './txCreateConcentratedPosition'
 import useConcentrated from './useConcentrated'
@@ -11,15 +10,15 @@ export default function txCreateNewConcentratedPool() {
     const { transaction: createPoolTx, signers: createPoolSigners } = tempDataCache
     const { transaction: openPositionTx, signers: openPositionSigners } = await generateCreateClmmPositionTx()
 
-    const createPoolTxSigners = await loadTransaction({
+    const createPoolTxSigners = {
       transaction: createPoolTx,
       signers: createPoolSigners
-    })
+    }
 
-    const openPositionTxSigners = await loadTransaction({
+    const openPositionTxSigners = {
       transaction: openPositionTx,
       signers: openPositionSigners
-    })
+    }
 
     transactionCollector.addQueue([
       [createPoolTxSigners, { txHistoryInfo: { title: 'Create pool', description: `create clmm pool` } }],

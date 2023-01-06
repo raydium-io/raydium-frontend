@@ -9,7 +9,6 @@ import { toString } from '@/functions/numberish/toString'
 import useAppSettings from '../common/useAppSettings'
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
-import { loadTransaction } from '../txTools/createTransaction'
 import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
@@ -43,12 +42,15 @@ export default function txHarvestConcentrated({
       slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed
     })
-    transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
-      txHistoryInfo: {
-        title: 'Harvested Rewards',
-        description: `Harvested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
+    transactionCollector.add(
+      { transaction, signers },
+      {
+        txHistoryInfo: {
+          title: 'Harvested Rewards',
+          description: `Harvested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
+        }
       }
-    })
+    )
   })
 }
 
@@ -91,15 +93,15 @@ export async function txHarvestAllConcentrated() {
 
   // if there are some harvest rewards, then the process ongoing to txHandler
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
-    const signedTransactions = shakeUndifindedItem(
+    const transactionPairs = shakeUndifindedItem(
       await asyncMap(transactions, (merged) => {
         if (!merged) return
         const { transaction, signer: signers } = merged
-        return loadTransaction({ transaction: transaction, signers })
+        return { transaction: transaction, signers }
       })
     )
 
-    const queue = transactions.map((tx, idx) => [
+    const queue = transactionPairs.map((tx, idx) => [
       tx,
       {
         txHistoryInfo: {

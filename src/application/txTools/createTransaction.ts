@@ -1,20 +1,13 @@
 import { Signer, Transaction, TransactionInstruction } from '@solana/web3.js'
 
-import { attachRecentBlockhash } from './attachRecentBlockhash'
-
-/** auto attach blockhash */
-export const loadTransaction = async (payload: { transaction: Transaction; signers?: Signer[] }) => {
-  const { transaction, signers } = payload
-  const signedTransaction = await partialSignTransacion(transaction, signers)
-  return signedTransaction
-}
+import { RawTransactionPair } from './handleTx'
 
 export type TransactionPiecesCollector = {
   setRawTransaction: (rawTransaction: Transaction) => void
   addInstruction: (...instructions: TransactionInstruction[]) => void
   addEndInstruction: (...instructions: TransactionInstruction[]) => void
   addSigner: (...signers: Signer[]) => void
-  spawnTransaction: (options?: { forceBlockHash?: string }) => Promise<Transaction>
+  spawnTransaction: () => RawTransactionPair
 }
 
 export const createTransactionCollector = (defaultRawTransaction?: Transaction): TransactionPiecesCollector => {
@@ -37,27 +30,15 @@ export const createTransactionCollector = (defaultRawTransaction?: Transaction):
     addSigner(...signers: Signer[]) {
       innerSigners.push(...signers)
     },
-    async spawnTransaction(options?: { forceBlockHash?: string }): Promise<Transaction> {
+    spawnTransaction(): RawTransactionPair {
       const rawTransaction = innerTransaction || (defaultRawTransaction ?? new Transaction())
       if (frontInstructions.length || endInstructions.length) {
         rawTransaction.add(...frontInstructions, ...endInstructions.reverse())
       }
-      return partialSignTransacion(rawTransaction, innerSigners, options)
+      return { transaction: rawTransaction, signers: innerSigners }
+      // return partialSignTransacion(rawTransaction, innerSigners, options)
     }
   }
 
   return collector
-}
-
-const partialSignTransacion = async (
-  transaction: Transaction,
-  signers?: Signer[],
-  options?: { forceBlockHash?: string }
-): Promise<Transaction> => {
-  await attachRecentBlockhash([transaction], options)
-  if (signers?.length) {
-    transaction.partialSign(...signers)
-    return transaction
-  }
-  return transaction
 }

@@ -8,13 +8,12 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 
-import { loadTransaction } from '../txTools/createTransaction'
-import { createTxHandler, TransactionQueue } from '../txTools/handleTx'
+import { createTxHandler, RawTransactionPair, TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import { useSwap } from './useSwap'
 import { TxHistoryInfo } from '../txHistory/useTxHistory'
-import { Transaction } from '@solana/web3.js'
+import { Transaction, VersionedTransaction } from '@solana/web3.js'
 import { dangerousTempProgramIds } from '../token/wellknownProgram.config'
 
 const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
@@ -66,14 +65,14 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
     checkTransaction: true
   })
 
-  const signedTransactions = shakeUndifindedItem(
+  const transactionPairs = shakeUndifindedItem(
     await asyncMap(transactions, (merged) => {
       if (!merged) return
       const { transaction, signer: signers } = merged
-      return loadTransaction({ transaction: transaction, signers })
+      return { transaction, signers }
     })
   )
-  const queue = signedTransactions.map((tx) => [
+  const queue = transactionPairs.map((tx) => [
     tx,
     {
       txHistoryInfo: {
@@ -90,10 +89,11 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
 
 export default txSwap
 
-function translationSwapTx(tx: Transaction) {
-  const isTransactionMainSwap = tx.instructions.find((i) => dangerousTempProgramIds.includes(i.programId.toString()))
-  const isTransactionCleanUp = tx.instructions.find(
-    (i) => i.programId.toString() === TOKEN_PROGRAM_ID.toString() && i.data[0] === 9
-  )
-  return isTransactionMainSwap ? `Swap` : isTransactionCleanUp ? `Cleanup` : `Setup`
+function translationSwapTx(tx: RawTransactionPair) {
+  throw 'not imply this yet'
+  // const isTransactionMainSwap = tx.instructions.find((i) => dangerousTempProgramIds.includes(i.programId.toString()))
+  // const isTransactionCleanUp = tx.instructions.find(
+  //   (i) => i.programId.toString() === TOKEN_PROGRAM_ID.toString() && i.data[0] === 9
+  // )
+  // return isTransactionMainSwap ? `Swap` : isTransactionCleanUp ? `Cleanup` : `Setup`
 }
