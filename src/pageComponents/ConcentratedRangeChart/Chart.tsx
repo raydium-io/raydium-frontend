@@ -26,6 +26,7 @@ import {
   parseFirstDigit
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
+import Decimal from 'decimal.js'
 
 const maxDecimals = 15
 interface HighlightPoint extends ChartPoint {
@@ -95,7 +96,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const maxLength = Math.max(decimals, getFirstNonZeroDecimal(currentPrice?.toFixed(maxDecimals) || '') + 2, 8)
   const formatDecimal = useCallback(
     ({ val }: { val: string | number }) => {
-      const firstDigit = getFirstNonZeroDecimal(String(val) || '')
+      const firstDigit = getFirstNonZeroDecimal(new Decimal(val).toFixed(maxDecimals) || '')
       const maxLength = decimals > firstDigit ? decimals + 2 : maxDecimals
       return _formatDecimal({ val, maxLength })
     },
