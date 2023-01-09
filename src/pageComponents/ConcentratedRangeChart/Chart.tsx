@@ -93,7 +93,13 @@ export default forwardRef(function Chart(props: Props, ref) {
   const poolIdRef = useRef<string | undefined>()
   const hasPoints = points.length > 0
   const maxLength = Math.max(decimals, getFirstNonZeroDecimal(currentPrice?.toFixed(20) || '') + 2, 8)
-  const formatDecimal = useCallback(({ val }) => _formatDecimal({ val, maxLength }), [maxLength])
+  const formatDecimal = useCallback(
+    ({ val }) => {
+      const maxLength = Math.max(decimals, getFirstNonZeroDecimal(currentPrice?.toFixed(20) || '') + 3, 8)
+      return _formatDecimal({ val, maxLength })
+    },
+    [decimals, currentPrice?.toFixed(maxLength)]
+  )
   const { isMobile } = getPlatformInfo() || {}
   const [displayList, setDisplayList] = useState<HighlightPoint[]>(points)
   const [isMoving, setIsMoving] = useState(false)
@@ -408,8 +414,8 @@ export default forwardRef(function Chart(props: Props, ref) {
           const res = onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
           blurRef.current = res
             ? isMin
-              ? formatDecimal({ val: res.priceLower.toFixed(10) })
-              : formatDecimal({ val: res.priceUpper.toFixed(10) })
+              ? formatDecimal({ val: res.priceLower.toFixed(12) })
+              : formatDecimal({ val: res.priceUpper.toFixed(12) })
             : undefined
         }, 100)
         return { ...p, [side]: newVal }
@@ -467,7 +473,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         setPosition((prePos) => {
           const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: true })
           const posNum = newPos
-            ? formatDecimal({ val: newPos.toFixed(10) })
+            ? formatDecimal({ val: newPos.toFixed(12) })
             : formatDecimal({ val: Number(val) + tickGap })
           if (hasPoints && !isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
             setDisplayList((list) => [...list, { x: posNum + tickGap, y: 0, extend: true }])
