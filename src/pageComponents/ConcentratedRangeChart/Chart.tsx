@@ -703,8 +703,10 @@ export default forwardRef(function Chart(props: Props, ref) {
       {!hideRangeInput && (
         <PriceRangeInput
           decimals={Math.max(8, decimals)}
-          minValue={position.min}
-          maxValue={position.max}
+          minValue={`${position.min}00001`}
+          // minValue={position.min} //TODO: let Cruz to play number magic
+          maxValue={`${position.max}000045`}
+          // maxValue={position.max} //TODO: let Cruz to play number magic
           onBlur={handleBlurInput}
           onPriceChange={handlePriceChange}
           onInDecrease={handleInDecrease}
