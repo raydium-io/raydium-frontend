@@ -79,6 +79,8 @@ import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConc
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
 import { NewCompensationBanner } from '../pools'
+import { poolKeys2JsonInfo } from '@/application/txTools/jsonInfo2PoolKeys'
+import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -1334,6 +1336,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     )
   }, [openNewPosition, isMobile, info])
 
+  console.log('info: ', info)
   return (
     <AutoBox
       is={'Col'}
@@ -1456,6 +1459,13 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   const walletConnected = useWallet((s) => s.connected)
   const isEmptyPosition = p?.amountA?.isZero() && p?.amountB?.isZero()
 
+  const position = useMemo(() => {
+    if (info && p) {
+      return info.positionAccount?.find((p) => toPubString(p.nftMint) === toPubString(p.nftMint))
+    }
+    return undefined
+  }, [info, p])
+
   const rangeTag = useMemo(() => {
     let bgColor = 'bg-[#142B45]'
     let textColor = 'text-[#39D0D8]'
@@ -1491,7 +1501,6 @@ function PoolCardDatabaseBodyCollapsePositionContent({
     )
   }, [inRange, info.currentPrice, info.base?.symbol, info.quote?.symbol])
 
-  if (isEmptyPosition) return null
   return (
     <AutoBox is={isMobile ? 'Col' : 'Row'}>
       <Row className={`w-full pt-5 px-8 mobile:py-3 mobile:px-2 mobile:m-0`}>
@@ -1726,20 +1735,48 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     })
                   }}
                 />
-                <Icon
-                  size="sm"
-                  iconSrc="/icons/pools-remove-liquidity-entry.svg"
-                  className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
-                    p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
-                  }`}
-                  onClick={() => {
-                    useConcentrated.setState({
-                      isRemoveDialogOpen: true,
-                      currentAmmPool: info,
-                      targetUserPositionAccount: p
-                    })
-                  }}
-                />
+                {isEmptyPosition ? (
+                  <Icon
+                    size="sm"
+                    heroIconName="x"
+                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
+                      p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                    }`}
+                    onClick={() => {
+                      useConcentrated.setState({
+                        liquidity: position?.liquidity,
+                        currentAmmPool: info,
+                        targetUserPositionAccount: p
+                      })
+                      setTimeout(() => {
+                        txDecreaseConcentrated({ closePosition: true }).then(({ allSuccess }) => {
+                          if (allSuccess) {
+                            refreshConcentrated()
+                            useConcentrated.setState({
+                              coin1Amount: undefined,
+                              coin2Amount: undefined
+                            })
+                          }
+                        })
+                      }, 10)
+                    }}
+                  />
+                ) : (
+                  <Icon
+                    size="sm"
+                    iconSrc="/icons/pools-remove-liquidity-entry.svg"
+                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
+                      p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                    }`}
+                    onClick={() => {
+                      useConcentrated.setState({
+                        isRemoveDialogOpen: true,
+                        currentAmmPool: info,
+                        targetUserPositionAccount: p
+                      })
+                    }}
+                  />
+                )}
               </Row>
             ) : (
               <>
@@ -1760,23 +1797,54 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   />
                   <Tooltip.Panel>Add Liquidity</Tooltip.Panel>
                 </Tooltip>
-                <Tooltip>
-                  <Icon
-                    size="smi"
-                    iconSrc="/icons/pools-remove-liquidity-entry.svg"
-                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
-                      p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
-                    }`}
-                    onClick={() => {
-                      useConcentrated.setState({
-                        isRemoveDialogOpen: true,
-                        currentAmmPool: info,
-                        targetUserPositionAccount: p
-                      })
-                    }}
-                  />
-                  <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>
-                </Tooltip>
+                {isEmptyPosition ? (
+                  <Tooltip>
+                    <Icon
+                      size="smi"
+                      heroIconName="x"
+                      className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
+                        p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                      }`}
+                      onClick={() => {
+                        useConcentrated.setState({
+                          liquidity: position?.liquidity,
+                          currentAmmPool: info,
+                          targetUserPositionAccount: p
+                        })
+                        setTimeout(() => {
+                          txDecreaseConcentrated({ closePosition: true }).then(({ allSuccess }) => {
+                            if (allSuccess) {
+                              refreshConcentrated()
+                              useConcentrated.setState({
+                                coin1Amount: undefined,
+                                coin2Amount: undefined
+                              })
+                            }
+                          })
+                        }, 10)
+                      }}
+                    />
+                    <Tooltip.Panel>Close Position</Tooltip.Panel>
+                  </Tooltip>
+                ) : (
+                  <Tooltip>
+                    <Icon
+                      size="smi"
+                      iconSrc="/icons/pools-remove-liquidity-entry.svg"
+                      className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
+                        p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                      }`}
+                      onClick={() => {
+                        useConcentrated.setState({
+                          isRemoveDialogOpen: true,
+                          currentAmmPool: info,
+                          targetUserPositionAccount: p
+                        })
+                      }}
+                    />
+                    <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>
+                  </Tooltip>
+                )}
               </>
             )}
           </Row>
