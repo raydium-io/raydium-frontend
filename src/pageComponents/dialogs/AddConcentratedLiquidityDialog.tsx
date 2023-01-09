@@ -34,6 +34,7 @@ export function AddConcentratedLiquidityDialog() {
   useInit(() => {
     useConcentrated.setState({ coin1Amount: undefined, coin2Amount: undefined })
   })
+  const getBalance = useWallet((s) => s.getBalance)
   const open = useConcentrated((s) => s.isAddDialogOpen)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const walletConnected = useWallet((s) => s.connected)
@@ -159,6 +160,7 @@ export function AddConcentratedLiquidityDialog() {
               haveCoinIcon
               topLeftLabel={'Amount'}
               token={coinBase}
+              maxValue={mul(getBalance(coinBase), 0.985)}
               value={toString(coinBaseAmount)}
               onUserInput={(value) => {
                 if (focusSide === 'coin1') {
@@ -184,6 +186,7 @@ export function AddConcentratedLiquidityDialog() {
               haveCoinIcon
               topLeftLabel={'Amount'}
               token={coinQuote}
+              maxValue={mul(getBalance(coinQuote), 0.985)}
               value={toString(coinQuoteAmount)}
               onUserInput={(value) => {
                 if (focusSide === 'coin1') {

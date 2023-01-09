@@ -14,7 +14,7 @@ import useWallet from '../wallet/useWallet'
 
 import useConcentrated from './useConcentrated'
 
-export const MANUAL_ADJUST = 0.99 // ask Rudy for detail
+export const MANUAL_ADJUST = 0.985 // ask Rudy for detail
 
 export default function txDecreaseConcentrated() {
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
