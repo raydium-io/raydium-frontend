@@ -2,10 +2,10 @@ import { useEffect } from 'react'
 
 import { Connection } from '@solana/web3.js'
 
+import jFetch from '@/functions/dom/jFetch'
 import { mul, sub } from '@/functions/numberish/operations'
 
 import useConnection from './useConnection'
-import jFetch from '@/functions/dom/jFetch'
 
 /**
  * **only in `_app.tsx`**
@@ -25,16 +25,15 @@ export default function useFreshChainTimeOffset() {
 
 async function updateChainTimeOffset(connection: Connection | undefined) {
   if (!connection) return
-  const chainTime = await getChainTime()
-  if (!chainTime) return
-  const offset = Number(sub(mul(chainTime, 1000), Date.now()).toFixed(0))
+  const offset = await getChainTimeOffset()
+  if (!offset) return
   useConnection.setState({
-    chainTimeOffset: offset,
+    chainTimeOffset: offset * 1000,
     getChainDate: () => new Date(Date.now() + (offset ?? 0))
   })
 }
 
-function getChainTime(): Promise<number | undefined> {
+function getChainTimeOffset(): Promise<number | undefined> {
   // const time = await connection.getSlot().then((slot) => connection.getBlockTime(slot)) // old method
-  return jFetch<{ chainTime: number }>('https://api.raydium.io/v2/main/chain/time').then((res) => res?.chainTime)
+  return jFetch<{ offset: number }>('https://api.raydium.io/v2/main/chain/time').then((res) => res?.offset)
 }
