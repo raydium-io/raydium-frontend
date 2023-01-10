@@ -26,8 +26,9 @@ import {
   parseFirstDigit
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
-import { max } from 'bn.js'
+import Decimal from 'decimal.js'
 
+const maxDecimals = 15
 interface HighlightPoint extends ChartPoint {
   position?: number
   extend?: boolean
@@ -92,8 +93,15 @@ export default forwardRef(function Chart(props: Props, ref) {
   )
   const poolIdRef = useRef<string | undefined>()
   const hasPoints = points.length > 0
-  const maxLength = Math.max(decimals, getFirstNonZeroDecimal(currentPrice?.toFixed(20) || '') + 2, 8)
-  const formatDecimal = useCallback(({ val }) => _formatDecimal({ val, maxLength }), [maxLength])
+  const maxLength = Math.max(decimals, getFirstNonZeroDecimal(currentPrice?.toFixed(maxDecimals) || '') + 2, 8)
+  const formatDecimal = useCallback(
+    ({ val }: { val: string | number }) => {
+      const firstDigit = getFirstNonZeroDecimal(new Decimal(val).toFixed(maxDecimals) || '')
+      const maxLength = decimals > firstDigit ? decimals + 2 : maxDecimals
+      return _formatDecimal({ val, maxLength })
+    },
+    [decimals]
+  )
   const { isMobile } = getPlatformInfo() || {}
   const [displayList, setDisplayList] = useState<HighlightPoint[]>(points)
   const [isMoving, setIsMoving] = useState(false)
@@ -306,17 +314,18 @@ export default forwardRef(function Chart(props: Props, ref) {
         const res = onPositionChange?.(pos)
         if (!res) return
         if (side === 'area')
-          updatePosition({ min: Number(res.priceLower.toFixed(10)), max: Number(res.priceUpper.toFixed(10)) })
+          updatePosition({ min: Number(res.priceLower.toFixed(maxDecimals)), max: Number(res.priceUpper.toFixed(10)) })
         if (side === Range.Min)
           updatePosition((pos) => ({
             ...pos,
-            [Range.Min]: Number(res.priceLower.toFixed(10))
+            [Range.Min]: Number(res.priceLower.toFixed(maxDecimals))
           }))
-        if (side === Range.Max)
+        if (side === Range.Max) {
           updatePosition((pos) => ({
             ...pos,
-            [Range.Max]: Number(res.priceUpper.toFixed(10))
+            [Range.Max]: Number(res.priceUpper.toFixed(maxDecimals))
           }))
+        }
       }, 100)
     },
     [onPositionChange]
@@ -408,8 +417,8 @@ export default forwardRef(function Chart(props: Props, ref) {
           const res = onPositionChange?.({ ...p, [side]: newVal, side, userInput: true })
           blurRef.current = res
             ? isMin
-              ? formatDecimal({ val: res.priceLower.toFixed(10) })
-              : formatDecimal({ val: res.priceUpper.toFixed(10) })
+              ? formatDecimal({ val: res.priceLower.toFixed(maxDecimals) })
+              : formatDecimal({ val: res.priceUpper.toFixed(maxDecimals) })
             : undefined
         }, 100)
         return { ...p, [side]: newVal }
@@ -467,7 +476,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         setPosition((prePos) => {
           const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: true })
           const posNum = newPos
-            ? formatDecimal({ val: newPos.toFixed(10) })
+            ? formatDecimal({ val: newPos.toFixed(maxDecimals) })
             : formatDecimal({ val: Number(val) + tickGap })
           if (hasPoints && !isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
             setDisplayList((list) => [...list, { x: posNum + tickGap, y: 0, extend: true }])
@@ -479,7 +488,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       setPosition((prePos) => {
         const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: false })
         const posNum = newPos
-          ? formatDecimal({ val: newPos.toFixed(10) })
+          ? formatDecimal({ val: newPos.toFixed(maxDecimals) })
           : formatDecimal({ val: Number(val) + tickGap })
         resultPosNum = posNum
         return { ...prePos, [side]: posNum }
@@ -696,7 +705,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       </div>
       {!hideRangeInput && (
         <PriceRangeInput
-          decimals={Math.max(8, decimals)}
+          decimals={Math.max(8, decimals + 2)}
           minValue={position.min}
           maxValue={position.max}
           onBlur={handleBlurInput}
