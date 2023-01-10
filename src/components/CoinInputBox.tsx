@@ -71,7 +71,12 @@ export interface CoinInputBoxProps {
   onTryToTokenSelect?(): void
   onTryToSwitchSOLWSOL?(): void
   // return valid info
-  onInputAmountClampInBalanceChange?(info: { outOfMax: boolean; negative: boolean }): void
+  onInputAmountClampInBalanceChange?(info: {
+    outOfMax: boolean
+    negative: boolean
+    inputedAmount: string
+    maxValue: Numberish
+  }): void
   onBlur?(input: string | undefined): void
   onPriceChange?(Fraction): void
   onCustomMax?(): void
@@ -183,7 +188,9 @@ export default function CoinInputBox({
     if (inputedAmount && maxValue) {
       onInputAmountClampInBalanceChange?.({
         negative: lt(inputedAmount, '0'),
-        outOfMax: gt(inputedAmount, maxValue)
+        outOfMax: gt(inputedAmount, maxValue),
+        inputedAmount,
+        maxValue
       })
     }
   }, [inputedAmount, maxValue])

@@ -456,7 +456,9 @@ function ConcentratedCard() {
                 value={currentAmmPool ? toString(coin1Amount) : undefined}
                 haveHalfButton
                 haveCoinIcon
-                maxValue={mul(getBalance(coin1), 0.985)}
+                maxValue={
+                  coin1 ? toTokenAmount(coin1, mul(getBalance(coin1), 0.985), { alreadyDecimaled: true }) : undefined
+                }
                 onPriceChange={updatePrice1}
                 onTryToTokenSelect={() => {
                   turnOnCoinSelector()
@@ -484,7 +486,9 @@ function ConcentratedCard() {
                 value={currentAmmPool ? toString(coin2Amount) : undefined}
                 haveHalfButton
                 haveCoinIcon
-                maxValue={mul(getBalance(coin2), 0.985)}
+                maxValue={
+                  coin2 ? toTokenAmount(coin2, mul(getBalance(coin2), 0.985), { alreadyDecimaled: true }) : undefined
+                }
                 onPriceChange={updatePrice2}
                 onTryToTokenSelect={() => {
                   turnOnCoinSelector()

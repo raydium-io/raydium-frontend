@@ -28,6 +28,7 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useInit from '@/hooks/useInit'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 export function AddConcentratedLiquidityDialog() {
   useConcentratedAmountCalculator()
@@ -160,7 +161,11 @@ export function AddConcentratedLiquidityDialog() {
               haveCoinIcon
               topLeftLabel={'Amount'}
               token={coinBase}
-              maxValue={mul(getBalance(coinBase), 0.985)}
+              maxValue={
+                coinBase
+                  ? toTokenAmount(coinBase, mul(getBalance(coinBase), 0.985), { alreadyDecimaled: true })
+                  : undefined
+              }
               value={toString(coinBaseAmount)}
               onUserInput={(value) => {
                 if (focusSide === 'coin1') {
@@ -186,7 +191,11 @@ export function AddConcentratedLiquidityDialog() {
               haveCoinIcon
               topLeftLabel={'Amount'}
               token={coinQuote}
-              maxValue={mul(getBalance(coinQuote), 0.985)}
+              maxValue={
+                coinQuote
+                  ? toTokenAmount(coinQuote, mul(getBalance(coinQuote), 0.985), { alreadyDecimaled: true })
+                  : undefined
+              }
               value={toString(coinQuoteAmount)}
               onUserInput={(value) => {
                 if (focusSide === 'coin1') {
