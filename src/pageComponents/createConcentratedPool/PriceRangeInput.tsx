@@ -10,10 +10,6 @@ interface Props {
   onInDecrease: (props: { val?: number | string; side: Range; isIncrease: boolean }) => number
 }
 
-const maxAcceptPriceDecimal = 15
-
-const maxSignificantCount = (decimals: number) => Math.min(decimals + 2, maxAcceptPriceDecimal)
-
 export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceChange, onInDecrease, onBlur }: Props) {
   return (
     <div className="flex gap-2.5">
@@ -22,10 +18,7 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         label="Min Price"
         decimalMode
         showPlusMinusControls
-        decimalCount={maxAcceptPriceDecimal}
-        valueToStringOptions={{
-          maxSignificantCount: maxSignificantCount(decimals)
-        }}
+        decimalCount={decimals}
         value={minValue}
         maxN={maxValue ? Number(maxValue) : undefined}
         onBlur={() => onBlur?.({ side: Range.Low, val: minValue })}
@@ -42,10 +35,7 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         label="Max Price"
         decimalMode
         showPlusMinusControls
-        decimalCount={maxAcceptPriceDecimal}
-        valueToStringOptions={{
-          maxSignificantCount: maxSignificantCount(decimals)
-        }}
+        decimalCount={decimals}
         value={maxValue}
         minN={minValue ? Number(minValue) : undefined}
         onBlur={() => onBlur?.({ side: Range.Upper, val: maxValue })}

@@ -48,6 +48,7 @@ import InputLocked from './InputLocked'
 import PriceRangeInput from './PriceRangeInput'
 import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
+import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -396,7 +397,7 @@ export function CreatePoolCard() {
         <div className={currentAmmPool ? '' : 'opacity-50'}>
           <div className="text-secondary-title font-medium mb-2">Set Price Range</div>
           <PriceRangeInput
-            decimals={decimals}
+            decimals={parseNumberInfo(userSettedCurrentPrice).dec?.length ?? 6}
             minValue={toString(position[Range.Low])}
             maxValue={toString(position[Range.Upper])}
             onBlur={handleBlur}
