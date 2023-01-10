@@ -63,7 +63,7 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
     tickUpper: Math.max(priceLowerTick, priceUpperTick),
     // priceLower: fractionToDecimal(toFraction(priceLower), 20),
     // priceUpper: fractionToDecimal(toFraction(priceUpper), 20),
-    slippage: 0.001
+    slippage: 0.015
   })
   return { transaction, signers }
 }

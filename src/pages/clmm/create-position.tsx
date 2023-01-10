@@ -38,7 +38,7 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { formatDecimal } from '@/functions/numberish/formatDecimal'
 import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
-import { div, sub } from '@/functions/numberish/operations'
+import { div, mul, sub } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
@@ -131,6 +131,7 @@ function ConcentratedEffects() {
 }
 
 function ConcentratedCard() {
+  const getBalance = useWallet((s) => s.getBalance)
   const [chartPoints, loadChartPointsAct, lazyLoadChart] = useConcentrated((s) => [
     s.chartPoints,
     s.loadChartPointsAct,
@@ -455,7 +456,7 @@ function ConcentratedCard() {
                 value={currentAmmPool ? toString(coin1Amount) : undefined}
                 haveHalfButton
                 haveCoinIcon
-                topLeftLabel=""
+                maxValue={mul(getBalance(coin1), 0.985)}
                 onPriceChange={updatePrice1}
                 onTryToTokenSelect={() => {
                   turnOnCoinSelector()
@@ -483,7 +484,7 @@ function ConcentratedCard() {
                 value={currentAmmPool ? toString(coin2Amount) : undefined}
                 haveHalfButton
                 haveCoinIcon
-                topLeftLabel=""
+                maxValue={mul(getBalance(coin2), 0.985)}
                 onPriceChange={updatePrice2}
                 onTryToTokenSelect={() => {
                   turnOnCoinSelector()
