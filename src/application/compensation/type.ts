@@ -9,6 +9,7 @@ export interface HydratedCompensationInfoItem {
   poolName: string
   ownerAccountId: PublicKey
   snapshotLpAmount?: TokenAmount
+  project?: SHOW_INFO['project']
   openTime: Date
   endTime: Date
   canClaim: boolean

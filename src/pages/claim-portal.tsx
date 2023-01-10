@@ -103,7 +103,7 @@ export default function CompensationPage() {
             <div className="py-12">
               <Grid className="gap-32 ">
                 {hydratedCompensationInfoItems?.map((showInfo) => (
-                  <InputCard key={toPubString(showInfo.ammId)} info={showInfo} />
+                  <InputCard key={toPubString(showInfo.ownerAccountId)} info={showInfo} />
                 ))}
               </Grid>
             </div>
@@ -151,7 +151,27 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
         <Col className="gap-1.5">
           <Col className="gap-1">
             <Row className="gap-4">
-              <div className="text-xl font-bold text-[#fff] ">{info.poolName}</div>
+              <Row className="gap-2">
+                <div className="text-xl font-bold text-[#fff] ">{info.poolName}</div>
+                {info.project && (
+                  <Row className="items-center">
+                    <div className="text-lg mobile:text-base font-semibold text-[#fff]">({info.project})</div>
+                    <Tooltip panelClassName="bg-[#3b4146]" arrowClassName="bg-[#3b4146]">
+                      <Icon
+                        size="sm"
+                        heroIconName="question-mark-circle"
+                        className={twMerge('mx-1 cursor-help text-[#fff]')}
+                      />
+                      <Tooltip.Panel>
+                        <p className="w-60">
+                          This position was opened on the third-party protocol listed here, and not on Raydium directly.
+                          Individual position data was provided by the protocol.
+                        </p>
+                      </Tooltip.Panel>
+                    </Tooltip>
+                  </Row>
+                )}
+              </Row>
               {!info.canClaim && info.canClaimErrorType === 'alreadyClaimIt' && (
                 <Badge className="w-fit text-sm" cssColor="#39d0d8">
                   Claimed
@@ -168,7 +188,7 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
             {toUTC(info.openTime)} - {toUTC(info.endTime)}
           </div>
         </Col>
-        <Col className="ml-auto mobile:ml-0 items-end">
+        <Col className="ml-auto mobile:ml-0 items-end mobile:items-start">
           <Row className="items-center gap-1">
             <Tooltip panelClassName="bg-[#3b4146]" arrowClassName="bg-[#3b4146]">
               <Icon
@@ -180,7 +200,9 @@ function InputCard({ info }: { info: HydratedCompensationInfoItem }) {
                 <p className="w-60">Your LP token balance at the time of the snapshot</p>
               </Tooltip.Panel>
             </Tooltip>
-            <div className="font-medium text-base mobile:text-sm text-[#abc4ff80]">Snapshot LP token balance</div>
+            <div className="font-medium mobile:-order-1 text-base mobile:text-sm text-[#abc4ff80]">
+              Snapshot LP token balance
+            </div>
           </Row>
           <div className="font-medium mobile:text-sm text-[#abc4ff]">{toString(info.snapshotLpAmount)} LP</div>
         </Col>
