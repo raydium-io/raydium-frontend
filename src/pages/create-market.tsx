@@ -96,7 +96,7 @@ function InputCreateMarketCard() {
         }
       />
       <Fieldset
-        name="Minimum price ticket size"
+        name="Minimum price tick size"
         tooltip="This is the smallest amount by which prices can move. For a SOL/USDC market, this would be in units of USDC, a.k.a. the price increment."
         renderFormItem={
           <Input
