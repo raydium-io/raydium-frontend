@@ -118,7 +118,7 @@ export default function PageLayout(props: {
       )}
       <main
         // always occupy scrollbar space
-        className="PageLayoutContent relative grid-area-c bg-gradient-to-b from-[#0c0927] to-[#110d36] rounded-tl-3xl mobile:rounded-none"
+        className="flex flex-col PageLayoutContent relative grid-area-c bg-gradient-to-b from-[#0c0927] to-[#110d36] rounded-tl-3xl mobile:rounded-none"
         style={{
           overflowX: 'hidden',
           overflowY: 'scroll'
@@ -131,7 +131,7 @@ export default function PageLayout(props: {
         <DisclaimerDialog />
         <div
           className={twMerge(
-            `isolate flex-container p-12 ${
+            `grow h-0 isolate flex-container p-12 ${
               props.contentButtonPaddingShorter ?? props.contentYPaddingShorter ? 'pb-4' : ''
             } ${props.contentTopPaddingShorter ?? props.contentYPaddingShorter ? 'pt-5' : ''} mobile:py-2 mobile:px-3`,
             props.contentClassName
