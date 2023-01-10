@@ -11,9 +11,9 @@ interface Props {
   onInDecrease: (props: { val?: number | string; side: Range; isIncrease: boolean }) => number
 }
 
-export const minAcceptPriceDecimal = 15
+const maxAcceptPriceDecimal = 15
 
-export const maxSignificantCount = (decimals: number) => Math.min(decimals + 2, minAcceptPriceDecimal)
+const maxSignificantCount = (decimals: number) => Math.min(decimals + 2, maxAcceptPriceDecimal)
 
 export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceChange, onInDecrease, onBlur }: Props) {
   const minValueDecimalsIsBiggerThan10 = (parseNumberInfo(minValue).dec?.length ?? 0) > 10
@@ -26,7 +26,7 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         label="Min Price"
         decimalMode
         showPlusMinusControls
-        decimalCount={minAcceptPriceDecimal}
+        decimalCount={maxAcceptPriceDecimal}
         valueToStringOptions={{
           maxSignificantCount: maxSignificantCount(decimals)
         }}
@@ -47,7 +47,7 @@ export default function PriceRangeInput({ decimals, minValue, maxValue, onPriceC
         label="Max Price"
         decimalMode
         showPlusMinusControls
-        decimalCount={minAcceptPriceDecimal}
+        decimalCount={maxAcceptPriceDecimal}
         valueToStringOptions={{
           maxSignificantCount: maxSignificantCount(decimals)
         }}

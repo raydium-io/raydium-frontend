@@ -52,6 +52,10 @@ import { Range } from './type'
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
 
+const maxAcceptPriceDecimal = 15
+
+const maxSignificantCount = (decimals: number) => Math.min(decimals + 2, maxAcceptPriceDecimal)
+
 export function CreatePoolCard() {
   useAutoCreateAmmv3Pool()
 
@@ -382,7 +386,7 @@ export function CreatePoolCard() {
               </span>
             }
             value={userSettedCurrentPrice}
-            decimalCount={decimals}
+            decimalCount={maxAcceptPriceDecimal}
             onUserInput={(value) => {
               useConcentrated.setState({ userSettedCurrentPrice: value })
             }}
