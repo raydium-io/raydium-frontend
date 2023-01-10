@@ -405,7 +405,7 @@ export function CreatePoolCard() {
         <div className={currentAmmPool ? '' : 'opacity-50'}>
           <div className="text-secondary-title font-medium mb-2">Set Price Range</div>
           <PriceRangeInput
-            decimals={parseNumberInfo(userSettedCurrentPrice).dec?.length ?? 6}
+            decimals={Math.max(parseNumberInfo(userSettedCurrentPrice).dec?.length ?? 0, 6)}
             minValue={toString(position[Range.Low])}
             maxValue={toString(position[Range.Upper])}
             onBlur={handleBlur}
