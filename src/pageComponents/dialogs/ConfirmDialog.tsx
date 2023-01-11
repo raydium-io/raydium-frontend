@@ -75,7 +75,7 @@ export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefO
   }, [_close])
 
   return (
-    <Dialog open={isOpen} onClose={_close}>
+    <Dialog open={isOpen} onClose={close}>
       {({ close: closeDialog }) => (
         <Card
           className={twMerge(
