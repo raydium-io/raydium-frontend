@@ -86,7 +86,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const points: HighlightPoint[] = useMemo(() => Object.assign([], chartOptions?.points || []), [chartOptions?.points])
   const [defaultMin, defaultMax] = useMemo(
     () =>
-      chartOptions?.isStable
+      chartOptions?.isStable && !showCurrentPriceOnly
         ? [mul(currentPrice || 0, 0.95), mul(currentPrice || 100, 1.05)]
         : [chartOptions?.initMinBoundaryX as Fraction, chartOptions?.initMaxBoundaryX as Fraction],
     [chartOptions, currentPrice]
@@ -190,7 +190,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       ]
       if (xAxisDomainRef.current[0] <= points[0].x) points.unshift({ x: xAxisDomainRef.current[0], y: 0 })
       if (points[points.length - 1].x <= xAxisDomainRef.current[1]) points.push({ x: xAxisDomainRef.current[1], y: 0 })
-      poolIdRef.current !== poolFocusKey && setXAxisDomain(xAxisDomainRef.current)
+      if (poolIdRef.current !== poolFocusKey || showCurrentPriceOnly) setXAxisDomain(xAxisDomainRef.current)
     }
 
     const pointMaxIndex = points.length - 1
@@ -264,6 +264,11 @@ export default forwardRef(function Chart(props: Props, ref) {
   }, [position, xAxisDomain])
 
   useEffect(() => {
+    if (!showCurrentPriceOnly || !chartOptions?.isStable) return
+    setupXAxis({ min: Number(defaultMin?.toFixed(15)) * 0.995, max: Number(defaultMax?.toFixed(15)) * 1.005 })
+  }, [points, showCurrentPriceOnly, defaultMin, defaultMax, chartOptions?.isStable])
+
+  useEffect(() => {
     if (typeof window === 'undefined') return
     window.addEventListener('mouseup', handleMouseUp)
     isMobile && window.addEventListener('pointerup', handleMouseUp)
@@ -295,7 +300,11 @@ export default forwardRef(function Chart(props: Props, ref) {
 
     const gap = points[1]?.x - points[0]?.x
     const gapPrecision = parseFirstDigit(gap)
-    const initDecimals = chartOptions?.isStable ? 3 : gapPrecision > 3 ? gapPrecision - 1 : 1
+    const initDecimals = chartOptions?.isStable
+      ? getFirstNonZeroDecimal(val.toFixed(15)) + 1
+      : gapPrecision > 3
+      ? gapPrecision - 1
+      : 1
 
     let tick = shakeZero(val.toFixed(initDecimals))
     for (let i = initDecimals; i < 10 && labels.indexOf(tick) !== -1; i++) {
