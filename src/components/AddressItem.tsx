@@ -8,7 +8,7 @@ import toPubString from '@/functions/format/toMintString'
 import useToggle from '@/hooks/useToggle'
 import { AnyFn } from '@/types/constants'
 
-import Icon from './Icon'
+import Icon, { IconProps } from './Icon'
 import Link from './Link'
 import LinkExplorer from './LinkExplorer'
 import Row from './Row'
@@ -21,6 +21,7 @@ export function AddressItem({
   canCopy = true,
   canExternalLink = false,
   className,
+  iconSize = 'sm',
   textClassName,
   iconClassName,
   children: publicKey,
@@ -30,6 +31,8 @@ export function AddressItem({
 }: {
   canCopy?: boolean
   canExternalLink?: boolean
+  /** default sm */
+  iconSize?: IconProps['size']
   className?: string
   textClassName?: string
   iconClassName?: string
@@ -46,7 +49,10 @@ export function AddressItem({
 
   const handleClickCopy = (ev: { stopPropagation: AnyFn }) => {
     ev.stopPropagation()
-    if (!isCopied) copyToClipboard(toPubString(publicKey)).then(on)
+    if (!isCopied)
+      copyToClipboard(toPubString(publicKey))
+        .then(on)
+        .then(() => onCopied?.(toPubString(publicKey)))
   }
 
   if (!publicKey) return null
@@ -74,10 +80,10 @@ export function AddressItem({
       }
       suffix={
         canCopy || canExternalLink ? (
-          <Row className="gap-1 ml-3">
+          <Row className={`${iconSize === 'xs' ? 'gap-0.5 ml-1.5' : 'gap-1 ml-3'}`}>
             {canCopy ? (
               <Icon
-                size="sm"
+                size={iconSize}
                 className={twMerge('clickable text-[#ABC4FF]', iconClassName)}
                 heroIconName="clipboard-copy"
                 onClick={({ ev }) => handleClickCopy(ev)}
@@ -85,7 +91,11 @@ export function AddressItem({
             ) : null}
             {canExternalLink ? (
               <LinkExplorer hrefDetail={`${publicKey}`} type={addressType}>
-                <Icon size="sm" heroIconName="external-link" className="clickable text-[#abc4ff]" />
+                <Icon
+                  size={iconSize}
+                  heroIconName="external-link"
+                  className={twMerge('clickable text-[#ABC4FF]', iconClassName)}
+                />
               </LinkExplorer>
             ) : null}
           </Row>

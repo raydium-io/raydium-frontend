@@ -34,6 +34,7 @@ import toPubString from '@/functions/format/toMintString'
 import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
+import { AddressItem } from '@/components/AddressItem'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -384,6 +385,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
     name: token.name || ''
   })
 
+  const balance = getBalance(token)
   return (
     <div className="group w-full">
       <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2 ">
@@ -442,7 +444,20 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             </div>
           ) : null}
         </Row>
-        <div className="text-sm text-[#ABC4FF] justify-self-end">{getBalance(token)?.toExact?.()}</div>
+        <Col className="items-end">
+          {balance && <div className="text-sm text-[#ABC4FF] justify-self-end">{balance?.toExact?.()}</div>}
+          <AddressItem
+            showDigitCount={5}
+            addressType="token"
+            canCopy
+            canExternalLink
+            iconSize={balance ? 'xs' : 'sm'}
+            textClassName="flex text-xs font-normal text-[#abc4ff80] justify-center"
+            iconClassName="text-[#abc4ff80]"
+          >
+            {toPubString(token.mint)}
+          </AddressItem>
+        </Col>
       </Row>
       {showUpdateInfo && (
         <Col className="p-1  gap-4">
