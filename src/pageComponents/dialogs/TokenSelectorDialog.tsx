@@ -417,7 +417,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                   deleteUserAddedToken(token)
                   ev.stopPropagation()
                 }}
-                className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+                className="group-hover:visible invisible mobile:group-hover:block mobile:hidden inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
               >
                 [Delete Token]
               </div>
@@ -426,7 +426,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                   setShowUpdateInfo((p) => !p)
                   ev.stopPropagation()
                 }}
-                className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+                className="group-hover:visible invisible mobile:group-hover:block mobile:hidden inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
               >
                 [Edit Token]
               </div>
@@ -438,7 +438,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                 setShowUpdateCustomSymbol((p) => !p)
                 ev.stopPropagation()
               }}
-              className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+              className="group-hover:visible invisible mobile:group-hover:block mobile:hidden inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
             >
               [Edit Token]
             </div>
