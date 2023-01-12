@@ -8,7 +8,7 @@ import toPubString from '@/functions/format/toMintString'
 import useToggle from '@/hooks/useToggle'
 import { AnyFn } from '@/types/constants'
 
-import Icon from './Icon'
+import Icon, { IconProps } from './Icon'
 import Link from './Link'
 import LinkExplorer from './LinkExplorer'
 import Row from './Row'
@@ -19,23 +19,30 @@ import { RowItem } from './RowItem'
  */
 export function AddressItem({
   canCopy = true,
+  showCopyIcon = canCopy,
   canExternalLink = false,
   className,
+  iconSize = 'sm',
   textClassName,
   iconClassName,
   children: publicKey,
   showDigitCount = 6,
   addressType = 'account',
+  iconRowClassName,
   onCopied
 }: {
   canCopy?: boolean
+  showCopyIcon?: boolean
   canExternalLink?: boolean
+  /** default sm */
+  iconSize?: IconProps['size']
   className?: string
   textClassName?: string
   iconClassName?: string
   children: PublicKeyish | undefined
   showDigitCount?: number | 'all'
   addressType?: 'token' | 'account'
+  iconRowClassName?: string
   onCopied?(text: string): void // TODO: imply it
 }) {
   const [isCopied, { delayOff, on }] = useToggle(false, { delay: 400 })
@@ -46,7 +53,10 @@ export function AddressItem({
 
   const handleClickCopy = (ev: { stopPropagation: AnyFn }) => {
     ev.stopPropagation()
-    if (!isCopied) copyToClipboard(toPubString(publicKey)).then(on)
+    if (!isCopied)
+      copyToClipboard(toPubString(publicKey))
+        .then(on)
+        .then(() => onCopied?.(toPubString(publicKey)))
   }
 
   if (!publicKey) return null
@@ -74,10 +84,10 @@ export function AddressItem({
       }
       suffix={
         canCopy || canExternalLink ? (
-          <Row className="gap-1 ml-3">
-            {canCopy ? (
+          <Row className={twMerge(`${iconSize === 'xs' ? 'gap-0.5 ml-1.5' : 'gap-1 ml-3'}`, iconRowClassName)}>
+            {showCopyIcon ? (
               <Icon
-                size="sm"
+                size={iconSize}
                 className={twMerge('clickable text-[#ABC4FF]', iconClassName)}
                 heroIconName="clipboard-copy"
                 onClick={({ ev }) => handleClickCopy(ev)}
@@ -85,7 +95,11 @@ export function AddressItem({
             ) : null}
             {canExternalLink ? (
               <LinkExplorer hrefDetail={`${publicKey}`} type={addressType}>
-                <Icon size="sm" heroIconName="external-link" className="clickable text-[#abc4ff]" />
+                <Icon
+                  size={iconSize}
+                  heroIconName="external-link"
+                  className={twMerge('clickable text-[#ABC4FF]', iconClassName)}
+                />
               </LinkExplorer>
             ) : null}
           </Row>

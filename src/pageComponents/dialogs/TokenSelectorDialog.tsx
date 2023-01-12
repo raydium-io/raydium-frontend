@@ -35,6 +35,8 @@ import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/are
 import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
 import { useEvent } from '@/hooks/useEvent'
+import { AddressItem } from '@/components/AddressItem'
+import { toString } from '@/functions/numberish/toString'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -324,7 +326,9 @@ function TokenSelectorDialogContent({
           <Col className="flex-1 overflow-hidden border-b-1.5 py-3 border-[rgba(171,196,255,0.2)]">
             <Row className="px-8 mobile:px-6 justify-between">
               <div className="text-xs font-medium text-[rgba(171,196,255,.5)]">Token</div>
-              <Row className="text-xs font-medium text-[rgba(171,196,255,.5)] items-center gap-1">Balance</Row>
+              <Row className="text-xs font-medium text-[rgba(171,196,255,.5)] items-center gap-1">
+                Balance / Address
+              </Row>
             </Row>
             {haveSearchResult ? (
               cachedTokenList
@@ -397,9 +401,10 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
     name: token.name || ''
   })
 
+  const balance = getBalance(token)
   return (
     <div className="group w-full">
-      <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2 ">
+      <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2">
         <Row>
           <CoinAvatar token={token} className="mr-2" />
           <Col className="mr-2">
@@ -410,7 +415,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
               {token.name}
             </div>
           </Col>
-          {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+          {/* {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
             <div
               onClick={(ev) => {
                 toggleFlaggedToken(token)
@@ -420,8 +425,8 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             >
               {userFlaggedTokenMints.has(toPubString(token.mint)) ? '[Remove Token]' : '[Add Token]'}
             </div>
-          ) : null}
-          {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+          ) : null} */}
+          {/* {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
             <>
               <div
                 onClick={(ev) => {
@@ -449,13 +454,32 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                 setShowUpdateCustomSymbol((p) => !p)
                 ev.stopPropagation()
               }}
-              className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+              className="group-hover:visible invisible mobile:group-hover:block mobile:hidden inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
             >
               [Edit Token]
             </div>
-          ) : null}
+          ) : null} new 🚑 no need */}
         </Row>
-        <div className="text-sm text-[#ABC4FF] justify-self-end">{getBalance(token)?.toExact?.()}</div>
+        <Col className="self-stretch items-end">
+          {balance && (
+            <div className="grow  text-sm text-[#ABC4FF] justify-self-end">
+              {toString(balance?.toExact?.(), { decimalLength: 'auto 2' })}
+            </div>
+          )}
+          <AddressItem
+            className="grow"
+            showDigitCount={5}
+            addressType="token"
+            showCopyIcon={false}
+            canExternalLink
+            iconSize={'sm'}
+            textClassName="flex leading-[normal] text-2xs self-center px-1.5 py-0.5 border border-[#abc4ff] rounded-sm text-[#abc4ff] justify-center"
+            iconClassName="text-[#abc4ff]"
+            iconRowClassName="ml-1.5 gap-0.5"
+          >
+            {toPubString(token.mint)}
+          </AddressItem>
+        </Col>
       </Row>
       {showUpdateInfo && (
         <Col className="p-1  gap-4">
