@@ -179,7 +179,7 @@ function PoolStakedOnlyBlock() {
   return (
     <Row className="justify-self-end mobile:justify-self-auto items-center">
       <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs whitespace-nowrap">
-        Show Staked
+        My Liquidity
       </span>
       <Switcher
         className="ml-2"
