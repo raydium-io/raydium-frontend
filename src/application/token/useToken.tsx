@@ -170,8 +170,9 @@ export const useToken = create<TokenStore>((set, get) => ({
     // if not exist, see this as userAddedTokens
     const token = (() => {
       const hasLoadedLpTokens = Object.keys(get().lpTokens).length > 1
-      const isAPIToken = get().tokens[toPubString(mint)] ?? get().userAddedTokens[toPubString(mint)]
-      const originalToken = isAPIToken ?? get().lpTokens[toPubString(mint)]
+      const APIToken = get().tokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)]
+      const customizedToken = get().userAddedTokens[toPubString(mint)]
+      const originalToken = APIToken ?? customizedToken
       try {
         // 💩 temporary delete auto-customized token to improve performance
         // if (!originalToken && hasLoadedLpTokens && !options?.noCustomToken) {
@@ -190,8 +191,10 @@ export const useToken = create<TokenStore>((set, get) => ({
         // } else {
         //   // if (originalToken && get().userAddedTokens[toPubString(mint)]) get().deleteUserAddedToken(originalToken)
         // }
-        if (originalToken && !isAPIToken && hasLoadedLpTokens) {
-          get().deleteUserAddedToken(originalToken.mint)
+        if (customizedToken && APIToken && hasLoadedLpTokens) {
+          setTimeout(() => {
+            get().deleteUserAddedToken(originalToken.mint)
+          }, 0)
         }
         return originalToken
       } catch {
