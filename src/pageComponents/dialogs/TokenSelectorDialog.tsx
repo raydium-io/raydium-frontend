@@ -408,9 +408,23 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
         <Row>
           <CoinAvatar token={token} className="mr-2" />
           <Col className="mr-2">
-            <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
-              {token.symbol}
-            </div>
+            <Row>
+              <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
+                {token.symbol}
+              </div>
+              {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+                <Row
+                  onClick={(ev) => {
+                    deleteUserAddedToken(token.mint)
+                    ev.stopPropagation()
+                  }}
+                  className="group-hover:flex hidden items-center text-sm mobile:text-xs text-[rgba(57,208,216,1)] font-medium flex-nowrap px-2 gap-1"
+                >
+                  <Icon className="w-4 h-4" iconClassName="w-4 h-4" iconSrc="/icons/delete-token.svg" />
+                  <div className="whitespace-nowrap">Delete Token</div>
+                </Row>
+              ) : null}
+            </Row>
             <div className="text-xs  max-w-[12em] overflow-hidden text-ellipsis whitespace-nowrap  font-medium text-[rgba(171,196,255,.5)]">
               {token.name}
             </div>
