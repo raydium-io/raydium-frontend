@@ -32,11 +32,12 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     )
     const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
     const baseDecimals = await getOnlineTokenDecimals(baseMint)
-    const isBaseVerifyed = verifyToken(baseMint)
+    const isBaseVerifyed = await verifyToken(baseMint)
     if (!isBaseVerifyed) return { isSuccess: false }
     const quoteDecimals = await getOnlineTokenDecimals(quoteMint)
-    const isQuoteVerifyed = verifyToken(quoteMint)
+    const isQuoteVerifyed = await verifyToken(quoteMint)
     if (!isQuoteVerifyed) return { isSuccess: false }
+    console.log('isQuoteVerifyed: ', isQuoteVerifyed)
     assert(baseDecimals != null, 'base decimal must exist')
     assert(quoteDecimals != null, 'quote decimal must exist')
     // assert(
