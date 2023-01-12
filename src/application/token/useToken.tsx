@@ -26,6 +26,7 @@ import {
 import { LpToken, SplToken, TokenJson } from './type'
 import { createSplToken } from './useTokenListsLoader'
 import { RAYMint, SOLMint } from './wellknownToken.config'
+import { verifyToken } from './getOnlineTokenInfo'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
@@ -223,7 +224,9 @@ export const useToken = create<TokenStore>((set, get) => ({
   blacklist: [],
 
   userAddedTokens: {},
-  addUserAddedToken: (token: SplToken) => {
+  addUserAddedToken: async (rawToken: SplToken) => {
+    const isFreezed = await verifyToken(rawToken.mint)
+    const token = Object.assign(rawToken, { hasFreeze: isFreezed } as Partial<SplToken>)
     set((s) =>
       produce(s, (draft) => {
         if (!draft.userAddedTokens[toPubString(token.mint)]) {
@@ -234,7 +237,7 @@ export const useToken = create<TokenStore>((set, get) => ({
           toPubString(token.mint)
         )
         setLocalItem(
-          'TOKEN_LIST_USER_ADDED_TOKENS',
+          'USER_ADDED_TOKENS',
           Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
         )
       })
@@ -250,7 +253,7 @@ export const useToken = create<TokenStore>((set, get) => ({
           mint
         )
         setLocalItem(
-          'TOKEN_LIST_USER_ADDED_TOKENS',
+          'USER_ADDED_TOKENS',
           Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
         )
       })
@@ -262,7 +265,7 @@ export const useToken = create<TokenStore>((set, get) => ({
         draft.userAddedTokens[toPubString(mint)].symbol = tokenInfo.symbol
         draft.userAddedTokens[toPubString(mint)].name = tokenInfo.name ? tokenInfo.name : tokenInfo.symbol
         setLocalItem(
-          'TOKEN_LIST_USER_ADDED_TOKENS',
+          'USER_ADDED_TOKENS',
           Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
         )
       })
