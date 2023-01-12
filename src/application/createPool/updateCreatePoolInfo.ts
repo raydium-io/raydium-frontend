@@ -37,7 +37,6 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     const quoteDecimals = await getOnlineTokenDecimals(quoteMint)
     const isQuoteVerifyed = await verifyToken(quoteMint)
     if (!isQuoteVerifyed) return { isSuccess: false }
-    console.log('isQuoteVerifyed: ', isQuoteVerifyed)
     assert(baseDecimals != null, 'base decimal must exist')
     assert(quoteDecimals != null, 'quote decimal must exist')
     // assert(
