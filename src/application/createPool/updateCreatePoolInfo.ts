@@ -5,12 +5,11 @@ import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import { usePools } from '@/application/pools/usePools'
 import { WSOLMint } from '@/application/token/quantumSOL'
-import { routeMiddleMints } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 
-import { getOnlineTokenDecimals } from '../token/getOnlineTokenInfo'
+import { getOnlineTokenDecimals, verifyToken } from '../token/getOnlineTokenInfo'
 
 import useCreatePool from './useCreatePool'
 
@@ -33,7 +32,11 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     )
     const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
     const baseDecimals = await getOnlineTokenDecimals(baseMint)
+    const isBaseVerifyed = verifyToken(baseMint)
+    if (!isBaseVerifyed) return { isSuccess: false }
     const quoteDecimals = await getOnlineTokenDecimals(quoteMint)
+    const isQuoteVerifyed = verifyToken(quoteMint)
+    if (!isQuoteVerifyed) return { isSuccess: false }
     assert(baseDecimals != null, 'base decimal must exist')
     assert(quoteDecimals != null, 'quote decimal must exist')
     // assert(

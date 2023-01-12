@@ -350,6 +350,7 @@ export function CreatePoolCard() {
           <Grid className="grid-cols-2 gap-4">
             <SelectTokenInputBox
               title="Base Token"
+              turnOnTokenVerification
               tokenKey="coin1"
               onSelectToken={handleSelectToken}
               token={coin1}
@@ -357,6 +358,7 @@ export function CreatePoolCard() {
             />
             <SelectTokenInputBox
               title="Quote Token"
+              turnOnTokenVerification
               tokenKey="coin2"
               onSelectToken={handleSelectToken}
               token={coin2}
@@ -587,12 +589,14 @@ function SelectTokenInputBox({
   title,
   token,
   disableTokens,
+  turnOnTokenVerification,
   onSelectToken
 }: {
   tokenKey?: string
   title?: string
   token?: SplToken
   disableTokens?: SplToken[]
+  turnOnTokenVerification?: boolean
   onSelectToken?: (token: SplToken, tokenKey?: string) => void
 }) {
   const [isSelectorOpen, setIsSelectorOpen] = useState(false)
@@ -623,6 +627,7 @@ function SelectTokenInputBox({
         onClose={() => {
           setIsSelectorOpen(false)
         }}
+        turnOnTokenVerification={turnOnTokenVerification}
         disableTokens={disableTokens}
         onSelectToken={(token) => {
           onSelectToken?.(token, tokenKey)

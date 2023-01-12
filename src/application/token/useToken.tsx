@@ -1,7 +1,7 @@
 import { PublicKey } from '@solana/web3.js'
 
-import produce from 'immer'
 import { Price, PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
+import produce from 'immer'
 import create from 'zustand'
 
 import { addItem, removeItem, shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -12,6 +12,7 @@ import { HexAddress, SrcAddress } from '@/types/constants'
 
 import useWallet from '../wallet/useWallet'
 
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import {
   isQuantumSOL,
   isQuantumSOLVersionSOL,
@@ -23,9 +24,8 @@ import {
   WSOLMint
 } from './quantumSOL'
 import { LpToken, SplToken, TokenJson } from './type'
-import { RAYMint, SOLMint } from './wellknownToken.config'
-import { isMintEqual } from '@/functions/judgers/areEqual'
 import { createSplToken } from './useTokenListsLoader'
+import { RAYMint, SOLMint } from './wellknownToken.config'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
@@ -97,7 +97,7 @@ export type TokenStore = {
   toggleFlaggedToken(token: SplToken): void
   allSelectableTokens: SplToken[]
   addUserAddedToken(token: SplToken): void
-  deleteUserAddedToken(token: SplToken): void
+  deleteUserAddedToken(tokenMint: PublicKeyish): void
   editUserAddedToken(tokenInfo: { symbol: string; name: string }, mint: PublicKey): void
   tokenListSettings: {
     [N in SupportedTokenListSettingName]: {
@@ -170,8 +170,8 @@ export const useToken = create<TokenStore>((set, get) => ({
     // if not exist, see this as userAddedTokens
     const token = (() => {
       const hasLoadedLpTokens = Object.keys(get().lpTokens).length > 1
-      const originalToken =
-        get().tokens[toPubString(mint)] ?? get().userAddedTokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)]
+      const isAPIToken = get().tokens[toPubString(mint)] ?? get().userAddedTokens[toPubString(mint)]
+      const originalToken = isAPIToken ?? get().lpTokens[toPubString(mint)]
       try {
         // 💩 temporary delete auto-customized token to improve performance
         // if (!originalToken && hasLoadedLpTokens && !options?.noCustomToken) {
@@ -190,10 +190,13 @@ export const useToken = create<TokenStore>((set, get) => ({
         // } else {
         //   // if (originalToken && get().userAddedTokens[toPubString(mint)]) get().deleteUserAddedToken(originalToken)
         // }
+        if (originalToken && !isAPIToken && hasLoadedLpTokens) {
+          get().deleteUserAddedToken(originalToken.mint)
+        }
+        return originalToken
       } catch {
         return originalToken
       }
-      return originalToken
     })()
 
     return token
@@ -234,13 +237,14 @@ export const useToken = create<TokenStore>((set, get) => ({
       })
     )
   },
-  deleteUserAddedToken: (token: SplToken) => {
+  deleteUserAddedToken: (tokenMint: PublicKeyish) => {
+    const mint = toPubString(tokenMint)
     set((s) =>
       produce(s, (draft) => {
-        delete draft.userAddedTokens[toPubString(token.mint)]
+        delete draft.userAddedTokens[mint]
         draft.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints = removeItem(
           s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set<string>(),
-          toPubString(token.mint)
+          mint
         )
         setLocalItem(
           'TOKEN_LIST_USER_ADDED_TOKENS',

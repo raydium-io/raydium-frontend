@@ -4,7 +4,7 @@ import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
-import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
+import { getOnlineTokenInfo, verifyToken } from '@/application/token/getOnlineTokenInfo'
 import {
   isQuantumSOL,
   isQuantumSOLVersionSOL,
@@ -34,12 +34,14 @@ import toPubString from '@/functions/format/toMintString'
 import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
+import { useEvent } from '@/hooks/useEvent'
 
 export type TokenSelectorProps = {
   open: boolean
   onClose?: () => void
   onSelectToken?: (token: SplToken) => unknown
   disableTokens?: (SplToken | PublicKeyish)[]
+  turnOnTokenVerification?: boolean // for prevent user select rubbish token
   enableTokens?: SplToken[]
   /**
    * if it select WSOL it can also select SOL, if it select SOL, can also select WSOL\
@@ -67,6 +69,7 @@ function TokenSelectorDialogContent({
   onClose: closePanel,
   onSelectToken,
   enableTokens,
+  turnOnTokenVerification,
   disableTokens,
   canSelectQuantumSOL
 }: TokenSelectorProps) {
@@ -82,10 +85,24 @@ function TokenSelectorDialogContent({
   // used for if panel is not tokenList but tokenlistList
   const [currentTabIsTokenList, { off, on }] = useToggle()
 
-  const closeAndClean = useCallback(() => {
+  const closeAndClean = useEvent(() => {
     setSearchText('')
     closePanel?.()
-  }, [])
+  })
+  const selectToken = useEvent(async (splToken: SplToken) => {
+    const isAPIToken =
+      tokenListSettings['Raydium Token List'][toPubString(splToken.mint)] ||
+      tokenListSettings['Solana Token List'][toPubString(splToken.mint)]
+    const canSelect = turnOnTokenVerification && !isAPIToken ? await verifyToken(splToken.mint) : true
+    if (canSelect) {
+      onSelectToken?.(splToken)
+      setTimeout(() => {
+        closeAndClean()
+      }, 200) // delay: give user some time to reflect the change
+    } else {
+      closeAndClean()
+    }
+  })
 
   function isTokenDisabled(candidateToken: SplToken): boolean {
     if (enableTokens) return !enableTokens.some((token) => token.mint.equals(candidateToken.mint))
@@ -184,8 +201,7 @@ function TokenSelectorDialogContent({
             >
               <TokenSelectorDialogTokenItem
                 onClick={() => {
-                  closeAndClean()
-                  onSelectToken?.(token)
+                  selectToken(token)
                 }}
                 token={token}
               />
@@ -194,7 +210,7 @@ function TokenSelectorDialogContent({
         )}
       />
     ),
-    [searchedTokens, selectedTokenIdx, onSelectToken, closeAndClean, setSelectedTokenIdx]
+    [searchedTokens, selectedTokenIdx, setSelectedTokenIdx]
   )
   const connected = useWallet((s) => s.connected)
 
@@ -228,10 +244,7 @@ function TokenSelectorDialogContent({
           } else if (e.key === 'ArrowDown') {
             setSelectedTokenIdx((s) => Math.min(s + 1, searchedTokens.length - 1))
           } else if (e.key === 'Enter') {
-            onSelectToken?.(searchedTokens[selectedTokenIdx])
-            setTimeout(() => {
-              closeAndClean()
-            }, 200) // delay: give user some time to reflect the change
+            selectToken(searchedTokens[selectedTokenIdx])
           }
         }
       }}
@@ -295,8 +308,7 @@ function TokenSelectorDialogContent({
                     }`}
                     onClick={() => {
                       if (token && isTokenDisabled(token)) return
-                      closeAndClean()
-                      if (token && onSelectToken) onSelectToken(token)
+                      if (token) selectToken(token)
                     }}
                   >
                     <CoinAvatar size={isMobile ? 'xs' : 'sm'} token={token} />
@@ -413,7 +425,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             <>
               <div
                 onClick={(ev) => {
-                  deleteUserAddedToken(token)
+                  deleteUserAddedToken(token.mint)
                   ev.stopPropagation()
                 }}
                 className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
