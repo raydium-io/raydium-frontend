@@ -392,14 +392,39 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
         <Row>
           <CoinAvatar token={token} className="mr-2" />
           <Col className="mr-2">
-            <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
-              {token.symbol}
-            </div>
+            <Row className="items-center">
+              <div className="text-base max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
+                {token.symbol}
+              </div>
+              {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+                <>
+                  <Row
+                    onClick={(ev) => {
+                      deleteUserAddedToken(token)
+                      ev.stopPropagation()
+                    }}
+                    className="group-hover:flex hidden items-center text-sm mobile:text-xs text-[rgba(57,208,216,1)] font-medium flex-nowrap px-2 gap-1"
+                  >
+                    <Icon className="w-4 h-4" iconClassName="w-4 h-4" iconSrc="/icons/delete-token.svg" />
+                    <div className="whitespace-nowrap">Delete Token</div>
+                  </Row>
+                  {/* <div
+                onClick={(ev) => {
+                  setShowUpdateInfo((p) => !p)
+                  ev.stopPropagation()
+                }}
+                className="group-hover:visible invisible mobile:group-hover:block mobile:hidden inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+              >
+                [Edit Token]
+              </div> new 🚑 no need */}
+                </>
+              ) : null}
+            </Row>
             <div className="text-xs  max-w-[12em] overflow-hidden text-ellipsis whitespace-nowrap  font-medium text-[rgba(171,196,255,.5)]">
               {token.name}
             </div>
           </Col>
-          {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+          {/* {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
             <div
               onClick={(ev) => {
                 toggleFlaggedToken(token)
@@ -409,30 +434,9 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             >
               {userFlaggedTokenMints.has(toPubString(token.mint)) ? '[Remove Token]' : '[Add Token]'}
             </div>
-          ) : null}
-          {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
-            <>
-              <div
-                onClick={(ev) => {
-                  deleteUserAddedToken(token)
-                  ev.stopPropagation()
-                }}
-                className="group-hover:visible invisible mobile:group-hover:block mobile:hidden inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
-              >
-                [Delete Token]
-              </div>
-              <div
-                onClick={(ev) => {
-                  setShowUpdateInfo((p) => !p)
-                  ev.stopPropagation()
-                }}
-                className="group-hover:visible invisible mobile:group-hover:block mobile:hidden inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
-              >
-                [Edit Token]
-              </div>
-            </>
-          ) : null}
-          {isCustomTokenSymbolName ? (
+          ) : null} new 🚑 no need */}
+
+          {/* {isCustomTokenSymbolName ? (
             <div
               onClick={(ev) => {
                 setShowUpdateCustomSymbol((p) => !p)
@@ -442,7 +446,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             >
               [Edit Token]
             </div>
-          ) : null}
+          ) : null} new 🚑 no need */}
         </Row>
         <Col className="items-end">
           {balance && <div className="text-sm text-[#ABC4FF] justify-self-end">{balance?.toExact?.()}</div>}
