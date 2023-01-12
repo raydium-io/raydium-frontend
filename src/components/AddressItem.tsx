@@ -19,6 +19,7 @@ import { RowItem } from './RowItem'
  */
 export function AddressItem({
   canCopy = true,
+  showCopyIcon = canCopy,
   canExternalLink = false,
   className,
   iconSize = 'sm',
@@ -31,6 +32,7 @@ export function AddressItem({
   onCopied
 }: {
   canCopy?: boolean
+  showCopyIcon?: boolean
   canExternalLink?: boolean
   /** default sm */
   iconSize?: IconProps['size']
@@ -83,7 +85,7 @@ export function AddressItem({
       suffix={
         canCopy || canExternalLink ? (
           <Row className={twMerge(`${iconSize === 'xs' ? 'gap-0.5 ml-1.5' : 'gap-1 ml-3'}`, iconRowClassName)}>
-            {canCopy ? (
+            {showCopyIcon ? (
               <Icon
                 size={iconSize}
                 className={twMerge('clickable text-[#ABC4FF]', iconClassName)}

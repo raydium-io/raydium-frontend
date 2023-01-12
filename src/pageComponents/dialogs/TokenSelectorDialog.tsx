@@ -461,7 +461,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             className="grow"
             showDigitCount={5}
             addressType="token"
-            canCopy
+            showCopyIcon={false}
             canExternalLink
             iconSize={'sm'}
             textClassName="flex leading-[normal] text-2xs self-center px-1.5 py-0.5 border border-[#abc4ff] rounded-sm text-[#abc4ff] justify-center"
