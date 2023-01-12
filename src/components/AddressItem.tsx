@@ -27,6 +27,7 @@ export function AddressItem({
   children: publicKey,
   showDigitCount = 6,
   addressType = 'account',
+  iconRowClassName,
   onCopied
 }: {
   canCopy?: boolean
@@ -39,6 +40,7 @@ export function AddressItem({
   children: PublicKeyish | undefined
   showDigitCount?: number | 'all'
   addressType?: 'token' | 'account'
+  iconRowClassName?: string
   onCopied?(text: string): void // TODO: imply it
 }) {
   const [isCopied, { delayOff, on }] = useToggle(false, { delay: 400 })
@@ -80,7 +82,7 @@ export function AddressItem({
       }
       suffix={
         canCopy || canExternalLink ? (
-          <Row className={`${iconSize === 'xs' ? 'gap-0.5 ml-1.5' : 'gap-1 ml-3'}`}>
+          <Row className={twMerge(`${iconSize === 'xs' ? 'gap-0.5 ml-1.5' : 'gap-1 ml-3'}`, iconRowClassName)}>
             {canCopy ? (
               <Icon
                 size={iconSize}

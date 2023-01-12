@@ -35,6 +35,7 @@ import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/are
 import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
 import { AddressItem } from '@/components/AddressItem'
+import { toString } from '@/functions/numberish/toString'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -388,7 +389,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
   const balance = getBalance(token)
   return (
     <div className="group w-full">
-      <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2 ">
+      <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2">
         <Row>
           <CoinAvatar token={token} className="mr-2" />
           <Col className="mr-2">
@@ -448,16 +449,22 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             </div>
           ) : null} new 🚑 no need */}
         </Row>
-        <Col className="items-end">
-          {balance && <div className="text-sm text-[#ABC4FF] justify-self-end">{balance?.toExact?.()}</div>}
+        <Col className="self-stretch items-end">
+          {balance && (
+            <div className="grow  text-sm text-[#ABC4FF] justify-self-end">
+              {toString(balance?.toExact?.(), { decimalLength: 'auto 2' })}
+            </div>
+          )}
           <AddressItem
+            className="grow"
             showDigitCount={5}
             addressType="token"
             canCopy
             canExternalLink
-            iconSize={balance ? 'xs' : 'sm'}
-            textClassName="flex text-xs font-normal text-[#abc4ff80] justify-center"
-            iconClassName="text-[#abc4ff80]"
+            iconSize={'sm'}
+            textClassName="flex leading-[normal] text-2xs self-center px-1.5 py-0.5 border border-[#abc4ff] rounded-sm text-[#abc4ff] justify-center"
+            iconClassName="text-[#abc4ff]"
+            iconRowClassName="ml-1.5 gap-0.5"
           >
             {toPubString(token.mint)}
           </AddressItem>
