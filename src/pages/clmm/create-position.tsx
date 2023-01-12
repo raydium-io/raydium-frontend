@@ -455,6 +455,9 @@ function ConcentratedCard() {
                 componentRef={coinInputBox1ComponentRef}
                 value={currentAmmPool ? toString(coin1Amount) : undefined}
                 haveHalfButton
+                topLeftLabel={
+                  coin1 ? `${toPubString(coin1.mint).slice(0, 5)}...${toPubString(coin1.mint).slice(-5)}` : undefined
+                }
                 haveCoinIcon
                 maxValue={
                   coin1 ? toTokenAmount(coin1, mul(getBalance(coin1), 0.985), { alreadyDecimaled: true }) : undefined
@@ -484,6 +487,9 @@ function ConcentratedCard() {
                 disabledInput={!currentAmmPool || coin2InputDisabled}
                 noDisableStyle
                 value={currentAmmPool ? toString(coin2Amount) : undefined}
+                topLeftLabel={
+                  coin2 ? `${toPubString(coin2.mint).slice(0, 5)}...${toPubString(coin2.mint).slice(-5)}` : undefined
+                }
                 haveHalfButton
                 haveCoinIcon
                 maxValue={

@@ -314,7 +314,9 @@ function TokenSelectorDialogContent({
           <Col className="flex-1 overflow-hidden border-b-1.5 py-3 border-[rgba(171,196,255,0.2)]">
             <Row className="px-8 mobile:px-6 justify-between">
               <div className="text-xs font-medium text-[rgba(171,196,255,.5)]">Token</div>
-              <Row className="text-xs font-medium text-[rgba(171,196,255,.5)] items-center gap-1">Balance</Row>
+              <Row className="text-xs font-medium text-[rgba(171,196,255,.5)] items-center gap-1">
+                Balance / Address
+              </Row>
             </Row>
             {haveSearchResult ? (
               cachedTokenList

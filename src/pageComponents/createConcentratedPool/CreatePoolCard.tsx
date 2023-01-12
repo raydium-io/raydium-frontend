@@ -50,6 +50,7 @@ import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { trimTailingZero } from '@/functions/numberish/handleZero'
+import toPubString from '@/functions/format/toMintString'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -432,7 +433,6 @@ export function CreatePoolCard() {
                   value={currentAmmPool ? toString(coin1Amount) : undefined}
                   haveHalfButton
                   haveCoinIcon
-                  topLeftLabel=""
                   onPriceChange={updatePrice1}
                   onUserInput={(amount) => {
                     useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
@@ -454,7 +454,6 @@ export function CreatePoolCard() {
                   value={currentAmmPool ? toString(coin2Amount) : undefined}
                   haveHalfButton
                   haveCoinIcon
-                  topLeftLabel=""
                   onPriceChange={updatePrice2}
                   onUserInput={(amount) => {
                     useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
