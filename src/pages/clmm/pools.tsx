@@ -1963,7 +1963,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
           <Row className="items-center">
             <div>{info?.name}</div>
             <Tooltip>
-              <Icon iconClassName="ml-1" size="sm" heroIconName="question-mark-circle" />
+              <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
               <Tooltip.Panel>
                 <div className="max-w-[300px] space-y-1.5">
                   {[info?.base, info?.quote].map((token, idx) =>

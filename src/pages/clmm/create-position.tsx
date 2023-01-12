@@ -455,6 +455,7 @@ function ConcentratedCard() {
                 componentRef={coinInputBox1ComponentRef}
                 value={currentAmmPool ? toString(coin1Amount) : undefined}
                 haveHalfButton
+                HTMLTitleTooltip={toPubString(coin1?.mint)}
                 topLeftLabel={
                   coin1 ? `${toPubString(coin1.mint).slice(0, 5)}...${toPubString(coin1.mint).slice(-5)}` : undefined
                 }
@@ -487,6 +488,7 @@ function ConcentratedCard() {
                 disabledInput={!currentAmmPool || coin2InputDisabled}
                 noDisableStyle
                 value={currentAmmPool ? toString(coin2Amount) : undefined}
+                HTMLTitleTooltip={toPubString(coin2?.mint)}
                 topLeftLabel={
                   coin2 ? `${toPubString(coin2.mint).slice(0, 5)}...${toPubString(coin2.mint).slice(-5)}` : undefined
                 }

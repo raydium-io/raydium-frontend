@@ -84,6 +84,7 @@ export interface CoinInputBoxProps {
   // -------- customized ----------
   // customize component appearance
   topLeftLabel?: ReactNode
+  HTMLTitleTooltip?: string
   /** By default, it will be Balance: xxx,  */
   topRightLabel?: ReactNode
   // sometimes, should show staked deposited lp, instead of wallet balance
@@ -136,6 +137,7 @@ export default function CoinInputBox({
   onCustomMax,
 
   topLeftLabel,
+  HTMLTitleTooltip,
   topRightLabel,
   maxValue: forceMaxValue,
 
@@ -279,7 +281,9 @@ export default function CoinInputBox({
     >
       {/* from & balance */}
       <Row className="justify-between mb-2">
-        <div className="text-xs mobile:text-2xs text-[rgba(171,196,255,.5)]">{topLeftLabel}</div>
+        <div className="text-xs mobile:text-2xs text-[rgba(171,196,255,.5)]" title={HTMLTitleTooltip}>
+          {topLeftLabel}
+        </div>
         <div
           className={`text-xs mobile:text-2xs justify-self-end text-[rgba(171,196,255,.5)] ${
             disabledInput ? '' : 'clickable no-clicable-transform-effect clickable-filter-effect'
