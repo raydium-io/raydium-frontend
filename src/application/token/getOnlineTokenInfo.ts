@@ -4,8 +4,8 @@ import toPubString, { toPub } from '@/functions/format/toMintString'
 import { PublicKeyish } from '@/types/constants'
 
 import useConnection from '../connection/useConnection'
-import useToken from './useToken'
 import useNotification from '../notification/useNotification'
+import useToken from './useToken'
 
 export async function verifyToken(mintish: PublicKeyish, options?: { noLog?: boolean }) {
   try {
@@ -20,8 +20,8 @@ export async function verifyToken(mintish: PublicKeyish, options?: { noLog?: boo
     const { logError } = useNotification.getState()
     const { decimals, freezeAuthorityOption } = layout ?? {}
     const isAPIToken =
-      tokenListSettings['Raydium Token List'][toPubString(mintish)] ||
-      tokenListSettings['Solana Token List'][toPubString(mintish)]
+      tokenListSettings['Raydium Token List'].mints?.has(toPubString(mintish)) ||
+      tokenListSettings['Solana Token List'].mints?.has(toPubString(mintish))
     if (decimals != null && !isAPIToken && freezeAuthorityOption === 1) {
       if (!options?.noLog) {
         logError('Token Verify Error', 'Token freeze authority enabled')

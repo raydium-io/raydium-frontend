@@ -1960,7 +1960,34 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         <Col>
-          <div>{info?.name}</div>
+          <Row className="items-center">
+            <div>{info?.name}</div>
+            <Tooltip>
+              <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
+              <Tooltip.Panel>
+                <div className="max-w-[300px] space-y-1.5">
+                  {[info?.base, info?.quote].map((token, idx) =>
+                    token ? (
+                      <Row key={idx} className="gap-2">
+                        <CoinAvatar size={'xs'} token={token} />
+                        <AddressItem
+                          className="grow"
+                          showDigitCount={5}
+                          addressType="token"
+                          canCopy
+                          canExternalLink
+                          textClassName="flex text-xs text-[#abc4ff] justify-start "
+                          iconClassName="text-[#abc4ff]"
+                        >
+                          {toPubString(token.mint)}
+                        </AddressItem>
+                      </Row>
+                    ) : null
+                  )}
+                </div>
+              </Tooltip.Panel>
+            </Tooltip>
+          </Row>
           <div className="font-medium text-xs text-[#ABC4FF]/50">Fee {toPercentString(info?.tradeFeeRate)}</div>
         </Col>
         {/* Temprary don't */}

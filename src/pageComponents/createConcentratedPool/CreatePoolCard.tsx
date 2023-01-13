@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-
+import { TokenAmount } from '@raydium-io/raydium-sdk'
 import useAppSettings from '@/application/common/useAppSettings'
 import { getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
@@ -50,6 +50,8 @@ import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { trimTailingZero } from '@/functions/numberish/handleZero'
+import Decimal from 'decimal.js'
+import toPubString from '@/functions/format/toMintString'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -96,8 +98,22 @@ export function CreatePoolCard() {
     [Range.Low]: undefined,
     [Range.Upper]: undefined
   })
-  const updatePrice1 = useCallback((tokenP) => setPrices((p) => [tokenP?.toFixed(20), p[1]]), [])
-  const updatePrice2 = useCallback((tokenP) => setPrices((p) => [p[0], tokenP?.toFixed(20)]), [])
+  const updatePrice1 = useCallback(
+    (tokenP: TokenAmount) =>
+      setPrices((p) => [
+        new Decimal(tokenP?.numerator.toString() || 0).div(tokenP?.denominator.toString() || 1).toFixed(20),
+        p[1]
+      ]),
+    []
+  )
+  const updatePrice2 = useCallback(
+    (tokenP) =>
+      setPrices((p) => [
+        p[0],
+        new Decimal(tokenP?.numerator.toString() || 0).div(tokenP?.denominator.toString() || 1).toFixed(20)
+      ]),
+    []
+  )
   const poolFocusKey = `${currentAmmPool?.idString}-${focusSide}`
   const totalDeposit = useMemo(
     () => prices.filter((p) => !!p).reduce((acc, cur) => acc.add(toFraction(cur!)), toFraction(0)),
@@ -434,7 +450,6 @@ export function CreatePoolCard() {
                   value={currentAmmPool ? toString(coin1Amount) : undefined}
                   haveHalfButton
                   haveCoinIcon
-                  topLeftLabel=""
                   onPriceChange={updatePrice1}
                   onUserInput={(amount) => {
                     useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
@@ -456,7 +471,6 @@ export function CreatePoolCard() {
                   value={currentAmmPool ? toString(coin2Amount) : undefined}
                   haveHalfButton
                   haveCoinIcon
-                  topLeftLabel=""
                   onPriceChange={updatePrice2}
                   onUserInput={(amount) => {
                     useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })

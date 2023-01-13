@@ -42,7 +42,7 @@ export const quantumSOLHydratedTokenJsonInfo: QuantumSOLJsonInfo = {
   decimals: SOLDecimals,
   symbol: 'SOL', // QSOL
   id: 'sol',
-  name: 'solana',
+  name: 'Solana',
   icon: `https://img.raydium.io/icon/So11111111111111111111111111111111111111112.png`,
   extensions: {
     coingeckoId: 'solana'
@@ -68,7 +68,7 @@ export const quantumSOLVersionSOLTokenJsonInfo: QuantumSOLJsonInfo = {
   collapseTo: 'sol',
   symbol: 'SOL',
   id: 'sol',
-  name: 'solana',
+  name: 'Solana',
   icon: `https://img.raydium.io/icon/So11111111111111111111111111111111111111112.png`,
   extensions: {
     coingeckoId: 'solana'
