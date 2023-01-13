@@ -169,7 +169,7 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
   const hasConfirmed = isDownCoinOfficial || hasUserPermanentConfirmed || hasUserTemporaryConfirmed
 
   useEffect(() => {
-    if (!hasConfirmed && downCoin && isFreezedToken(downCoin)) popConfirm()
+    if (!hasConfirmed && downCoin) popConfirm()
   }, [downCoin, hasConfirmed])
 
   return { hasConfirmed, popConfirm }
