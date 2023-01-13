@@ -28,7 +28,7 @@
   },
   "resolutions": {
     "@solana/spl-token": "^0.3.6",
-    "@solana/wallet-adapter-base": "^0.9.19",
+    "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/web3.js": "^1.73.0",
     "decimal.js": "^10.4.3",
     "bn.js": "^5.2.1"
@@ -39,9 +39,9 @@
     "@heroicons/react": "^2.0.13",
     "@raydium-io/raydium-sdk": "1.1.0-beta.52",
     "@sentry/nextjs": "^7.22.0",
-    "@solana/wallet-adapter-base": "^0.9.19",
-    "@solana/wallet-adapter-react": "^0.15.25",
-    "@solana/wallet-adapter-react-ui": "^0.9.23",
+    "@solana/wallet-adapter-base": "^0.9.20",
+    "@solana/wallet-adapter-react": "^0.15.28",
+    "@solana/wallet-adapter-react-ui": "^0.9.27",
     "@solana/wallet-adapter-wallets": "^0.19.10",
     "@solana/web3.js": "^1.73.0",
     "@uiw/react-date-input": "^4.21.19",
