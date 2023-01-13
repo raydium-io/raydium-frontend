@@ -142,7 +142,7 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
           {downCoin && isFreezedToken(downCoin) && (
             <div>
               <div className="text-center my-4 text-[#FED33A] font-bold">Freeze Authority Warning</div>
-              <div className="text-center my-4 mb-y text-xs text-[#FED33A]">
+              <div className="text-center my-2  text-xs text-[#FED33A]">
                 This token has freeze authority enabled and could
                 <br />
                 prevent you from transferring or trading the token later.
