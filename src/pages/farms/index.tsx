@@ -783,24 +783,8 @@ function FarmPendingRewardBadge({
 
         {unnamedTokenMints?.has(toPubString(reward.token?.mint)) && (
           <div className="max-w-[220px] mt-2">
-            <div>
-              This token does not currently have a ticker symbol. Check to ensure it is the token you want to interact
-              with.
-            </div>
-
-            <Row className="gap-2 mt-4 w-fit mx-auto">
-              <AddressItem
-                className="grow"
-                showDigitCount={8}
-                addressType="token"
-                canCopy
-                canExternalLink
-                textClassName="flex text-xs text-[#abc4ff]"
-                iconClassName="text-[#abc4ff]"
-              >
-                {toPubString(reward.token?.mint)}
-              </AddressItem>
-            </Row>
+            This token does not currently have a ticker symbol. Check to ensure it is the token you want to interact
+            with.
           </div>
         )}
       </Tooltip.Panel>
