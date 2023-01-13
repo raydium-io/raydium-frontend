@@ -42,7 +42,7 @@
     "@solana/wallet-adapter-base": "^0.9.19",
     "@solana/wallet-adapter-react": "^0.15.25",
     "@solana/wallet-adapter-react-ui": "^0.9.23",
-    "@solana/wallet-adapter-wallets": "^0.19.6",
+    "@solana/wallet-adapter-wallets": "^0.19.10",
     "@solana/web3.js": "^1.73.0",
     "@uiw/react-date-input": "^4.21.19",
     "@uiw/react-date-picker": "^4.21.19",
