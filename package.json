@@ -23,7 +23,6 @@
     ]
   },
   "comments": {
-    "@solana/wallet-adapter-react": "v0.15.8 is ok , but v0.15.18 has wallet connect bug. so roll back to 0.15.8 and lock",
     "@headlessui/react": "v1.7.5 is ok , but v1.7.6 can prevent input of clmm -> manage position -> add liquitity, but don't know why"
   },
   "resolutions": {
