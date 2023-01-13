@@ -82,7 +82,7 @@ export async function mergeSdkFarmInfo(
         ...pool,
         ...rawInfos[toPubString(pool.id)],
         jsonInfo: payload.jsonInfos[idx],
-        rawInfos: rawInfos[toPubString(pool.id)]
+        sdkInfo: rawInfos[toPubString(pool.id)]
       } as unknown as SdkParsedFarmInfo)
   )
   return result

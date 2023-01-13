@@ -123,7 +123,13 @@ function FarmHeader() {
 }
 
 /** only mobile */
-function ToolsButton({ className }: { className?: string }) {
+function ToolsButton({
+  className,
+  dataSource
+}: {
+  className?: string
+  dataSource: (FarmPoolJsonInfo | HydratedFarmInfo)[]
+}) {
   const currentTab = useFarms((s) => s.currentTab)
   return (
     <>
@@ -143,8 +149,15 @@ function ToolsButton({ className }: { className?: string }) {
                 <FarmStakedOnlyBlock />
                 <FarmRefreshCircleBlock />
                 <FarmTimeBasisSelector />
-                {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
+                {/* {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />} */}
                 <FarmCreateFarmEntryBlock />
+                <FarmHarvestAllButton
+                  infos={
+                    dataSource.filter(
+                      (i) => isHydratedFarmInfo(i) && isMeaningfulNumber(i.ledger?.deposited)
+                    ) as HydratedFarmInfo[]
+                  }
+                />
               </Grid>
             </Card>
           </div>
@@ -158,7 +171,6 @@ function FarmHarvestAllButton({ infos }: { infos: HydratedFarmInfo[] }) {
   const walletConnected = useWallet((s) => s.connected)
   const isMobile = useAppSettings((s) => s.isMobile)
   const canHarvestAll = useMemo(() => Boolean(infos.length), [infos])
-  if (!canHarvestAll) return null
   return (
     <Button
       className="frosted-glass-teal"
@@ -400,7 +412,7 @@ function FarmCard() {
   const timeBasis = useFarms((s) => s.timeBasis)
   const dataSource = (
     (hydratedInfos.length ? hydratedInfos : jsonInfos) as (FarmPoolJsonInfo | HydratedFarmInfo)[]
-  ).filter((i) => !isMintEqual(i.lpMint, RAYMint))
+  ).filter((i) => !isMintEqual(i.lpMint, RAYMint)) // exclude special staked pool
 
   const tabedDataSource = useMemo(
     () =>
@@ -518,13 +530,6 @@ function FarmCard() {
     <div>
       <Row className="mb-4">
         <Grid className="grow gap-2 grid-cols-auto-fit">
-          <FarmHarvestAllButton
-            infos={
-              applyFiltersDataSource.filter(
-                (i) => isHydratedFarmInfo(i) && isMeaningfulNumber(i.ledger?.deposited)
-              ) as HydratedFarmInfo[]
-            }
-          />
           <FarmSearchBlock />
           <FarmTableSorterBlock
             onChange={(newSortKey) => {
@@ -540,7 +545,7 @@ function FarmCard() {
             }}
           />
         </Grid>
-        <ToolsButton className="self-center" />
+        <ToolsButton className="self-center" dataSource={dataSource} />
       </Row>
     </div>
   ) : (
@@ -563,13 +568,13 @@ function FarmCard() {
         ) : null}
         <FarmHarvestAllButton
           infos={
-            applyFiltersDataSource.filter(
+            dataSource.filter(
               (i) => isHydratedFarmInfo(i) && isMeaningfulNumber(i.ledger?.deposited)
             ) as HydratedFarmInfo[]
           }
         />
         {/* <FarmStakedOnlyBlock /> */}
-        {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
+        {/* {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />} */}
         <FarmTimeBasisSelector />
         <FarmSearchBlock />
       </Row>
