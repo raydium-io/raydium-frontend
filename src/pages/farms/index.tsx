@@ -782,9 +782,25 @@ function FarmPendingRewardBadge({
         )}
 
         {unnamedTokenMints?.has(toPubString(reward.token?.mint)) && (
-          <div className="max-w-[300px] mt-2">
-            This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
-            want to transact with.
+          <div className="max-w-[220px] mt-2">
+            <div>
+              This token does not currently have a ticker symbol. Check to ensure it is the token you want to interact
+              with.
+            </div>
+
+            <Row className="gap-2 mt-4 w-fit mx-auto">
+              <AddressItem
+                className="grow"
+                showDigitCount={8}
+                addressType="token"
+                canCopy
+                canExternalLink
+                textClassName="flex text-xs text-[#abc4ff]"
+                iconClassName="text-[#abc4ff]"
+              >
+                {toPubString(reward.token?.mint)}
+              </AddressItem>
+            </Row>
           </div>
         )}
       </Tooltip.Panel>
@@ -1578,9 +1594,25 @@ function CoinAvatarInfoItemSymbol({ mint }: { mint: PublicKeyish }) {
         <Tooltip>
           <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
           <Tooltip.Panel>
-            <div className="max-w-[300px]">
-              This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
-              want to transact with.
+            <div className="max-w-[220px]">
+              <div>
+                This token does not currently have a ticker symbol. Check to ensure it is the token you want to interact
+                with.
+              </div>
+
+              <Row className="gap-2 mt-4 w-fit mx-auto">
+                <AddressItem
+                  className="grow"
+                  showDigitCount={8}
+                  addressType="token"
+                  canCopy
+                  canExternalLink
+                  textClassName="flex text-xs text-[#abc4ff]"
+                  iconClassName="text-[#abc4ff]"
+                >
+                  {toPubString(token?.mint)}
+                </AddressItem>
+              </Row>
             </div>
           </Tooltip.Panel>
         </Tooltip>

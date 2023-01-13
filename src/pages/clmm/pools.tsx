@@ -915,8 +915,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
               )}
               {unnamedTokenMints?.has(toPubString(reward.tokenMint)) && (
                 <div className="max-w-[300px] mt-2">
-                  This token does not currently have a ticker symbol. Check the mint address to ensure it is the token
-                  you want to transact with.
+                  This token does not currently have a ticker symbol. Check to ensure it is the token you want to interact with.
                 </div>
               )}
             </div>
