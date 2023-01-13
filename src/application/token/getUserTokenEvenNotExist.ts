@@ -8,7 +8,7 @@ import { SplToken } from './type'
 import { createSplToken } from './useTokenListsLoader'
 
 /**
- *
+ * will auto added to user costomized Token
  * @param mint
  * @param symbol symbol can be empty string, (means use the start of mint to be it's temp symbol)
  * @returns

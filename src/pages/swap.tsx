@@ -128,15 +128,27 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
       title: 'Confirm Token',
       description: (
         <div className="space-y-2 text-left">
-          <p>This token doesn’t appear on the default token list. Confirm this is the token that you want to trade.</p>
+          <p className="text-center">
+            This token doesn’t appear on the default token list. Confirm this is the token that you want to trade.
+          </p>
 
-          <Row className="justify-between items-center w-fit mx-auto gap-2">
+          <Row className="justify-center items-center gap-2 my-4 bg-[#141041] rounded py-3 w-full">
             <CoinAvatar token={downCoin} />
             <div className="font-semibold">{downCoin?.symbol}</div>
             <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
               {downCoin?.mint}
             </AddressItem>
           </Row>
+          {downCoin && isFreezedToken(downCoin) && (
+            <div>
+              <div className="text-center my-4 text-[#FED33A] font-bold">Freeze Authority Warning</div>
+              <div className="text-center my-4 mb-y text-xs text-[#FED33A]">
+                This token has freeze authority enabled and could
+                <br />
+                prevent you from transferring or trading the token later.
+              </div>
+            </div>
+          )}
         </div>
       ),
       onlyConfirmButton: true,
@@ -157,7 +169,7 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
   const hasConfirmed = isDownCoinOfficial || hasUserPermanentConfirmed || hasUserTemporaryConfirmed
 
   useEffect(() => {
-    if (!hasConfirmed && downCoin) popConfirm()
+    if (!hasConfirmed && downCoin && isFreezedToken(downCoin)) popConfirm()
   }, [downCoin, hasConfirmed])
 
   return { hasConfirmed, popConfirm }
@@ -706,6 +718,10 @@ function RemainSOLAlert() {
       )}
     </FadeIn>
   )
+}
+
+function isFreezedToken(token: SplToken): boolean {
+  return Boolean(token.hasFreeze)
 }
 
 function SwapCardPriceIndicator({ className }: { className?: string }) {
