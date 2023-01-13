@@ -401,6 +401,12 @@ function FarmCard() {
     () =>
       tabedDataSource
         .filter((i) =>
+          /* no user meaninglessinactive farm*/
+          isHydratedFarmInfo(i)
+            ? !i.isClosedPool || isMintEqual(i.creator, owner) || isMeaningfulNumber(i.ledger?.deposited)
+            : true
+        )
+        .filter((i) =>
           onlySelfFarms && isHydratedFarmInfo(i) ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true
         ) // Switch
         .filter((i) => (onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) && i.version === 6 : true)) // Switch
