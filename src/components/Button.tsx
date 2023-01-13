@@ -164,6 +164,6 @@ function textButtonTailwind({
       ? 'px-4 py-2 text-xs rounded-xl'
       : 'px-4 py-2.5  rounded-xl mobile:rounded-lg'
   } whitespace-nowrap appearance-none font-medium text-white ${
-    disable ? `opacity-40 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable clickable-filter-effect'
+    disable ? `opacity-40 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable'
   }`
 }

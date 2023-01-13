@@ -7,13 +7,13 @@ import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 import useToken from './useToken'
 
-export async function verifyToken(mintish: PublicKeyish) {
+export async function verifyToken(mintish: PublicKeyish, options?: { noLog?: boolean }) {
   try {
     const { connection } = useConnection.getState() // TEST devnet
-    if (!connection) return
+    if (!connection) return false
     const tokenAccount = await connection.getAccountInfo(toPub(mintish))
-    if (!tokenAccount) return
-    if (tokenAccount.data.length !== SPL_MINT_LAYOUT.span) return
+    if (!tokenAccount) return false
+    if (tokenAccount.data.length !== SPL_MINT_LAYOUT.span) return false
     const layout = SPL_MINT_LAYOUT.decode(tokenAccount.data)
 
     const { tokenListSettings } = useToken.getState()
@@ -23,7 +23,9 @@ export async function verifyToken(mintish: PublicKeyish) {
       tokenListSettings['Raydium Token List'].mints?.has(toPubString(mintish)) ||
       tokenListSettings['Solana Token List'].mints?.has(toPubString(mintish))
     if (decimals != null && !isAPIToken && freezeAuthorityOption === 1) {
-      logError('Token Verify Error', 'Token freeze authority enabled')
+      if (!options?.noLog) {
+        logError('Token Verify Error', 'Token freeze authority enabled')
+      }
       return false
     }
     return true

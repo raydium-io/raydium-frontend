@@ -114,7 +114,9 @@ export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefO
                   </Button>
                 )}
                 <Button
-                  className={`text-[#ABC4FF] ${props.onlyConfirmButton ? 'frosted-glass-skygray' : ''}`}
+                  className={`text-[#ABC4FF] ${props.onlyConfirmButton ? 'frosted-glass-skygray' : ''} text-sm ${
+                    !props.onlyConfirmButton ? '-mb-4' : ''
+                  }`}
                   type="text"
                   onClick={props.confirmButtonIsMainButton ? close : confirm}
                 >

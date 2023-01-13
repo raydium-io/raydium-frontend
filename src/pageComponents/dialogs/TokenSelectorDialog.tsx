@@ -220,6 +220,7 @@ function TokenSelectorDialogContent({
     if (!info.symbol) return
     const { addUserAddedToken } = useToken.getState()
     const decimals = onlineTokenMintInfo?.decimals
+    const hasFreeze = Boolean(onlineTokenMintInfo?.freezeAuthorityOption)
     if (!onlineTokenMintInfo || decimals === undefined) {
       logWarning(`the mint address is invalid`)
       return
@@ -231,7 +232,8 @@ function TokenSelectorDialogContent({
       icon: '',
       extensions: {},
       name: info.name ? info.name.slice(0, 16) : info.symbol.slice(0, 8),
-      userAdded: true
+      userAdded: true,
+      hasFreeze
     })
     addUserAddedToken(newToken)
   }

@@ -1143,8 +1143,8 @@ function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
           <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
           <Tooltip.Panel>
             <div className="max-w-[300px]">
-              This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
-              want to transact with.{' '}
+              This token does not currently have a ticker symbol. Check to ensure it is the token you want to interact
+              with.{' '}
               <span
                 style={{ color: '#abc4ff', cursor: 'pointer' }}
                 onClick={() => {

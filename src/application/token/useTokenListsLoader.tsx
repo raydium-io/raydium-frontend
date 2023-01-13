@@ -36,6 +36,9 @@ import useToken, {
   SupportedTokenListSettingName
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
+import { verifyToken } from './getOnlineTokenInfo'
+import { isArray, isObject } from '@/functions/judgers/dateType'
+import produce from 'immer'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -88,7 +91,8 @@ async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: Tok
           symbol: token.mint.slice(0, 6),
           name: token.mint.slice(0, 12),
           extensions: {},
-          icon: ''
+          icon: '',
+          hasFreeze: token.hasFreeze
         } as TokenJson)
     )
   )
@@ -116,10 +120,11 @@ async function UnofficialLiquidityPoolTokenFetch(
       decimal: 'quoteDecimals'
     }
   ]
-  response.unOfficial.forEach((pool) => {
+  response.unOfficial.forEach(async (pool) => {
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
         collector.otherLiquiditySupportedMints.push(pool[target.mint])
+        const hasFreeze = await verifyToken(target.mint, { noLog: true })
         collector.tokens.push({
           symbol: pool[target.mint].substring(0, 6),
           name: pool[target.mint].substring(0, 6),
@@ -128,7 +133,8 @@ async function UnofficialLiquidityPoolTokenFetch(
           extensions: {
             coingeckoId: ''
           },
-          icon: ''
+          icon: '',
+          hasFreeze
         })
       }
     }
@@ -149,10 +155,11 @@ async function ClmmLiquidityPoolTokenFetch(
       decimal: 'mintDecimalsB'
     }
   ]
-  response.data.forEach((pool) => {
+  response.data.forEach(async (pool) => {
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
         collector.otherLiquiditySupportedMints.push(pool[target.mint])
+        const hasFreeze = await verifyToken(target.mint, { noLog: true })
         collector.tokens.push({
           symbol: pool[target.mint].substring(0, 6),
           name: pool[target.mint].substring(0, 6),
@@ -161,7 +168,8 @@ async function ClmmLiquidityPoolTokenFetch(
           extensions: {
             coingeckoId: ''
           },
-          icon: ''
+          icon: '',
+          hasFreeze
         })
       }
     }
@@ -218,9 +226,17 @@ async function fetchTokenLists(
     >(raw.url)
     if (response) {
       switch (raw.type) {
-        case TokenListConfigType.RAYDIUM_MAIN:
-          await MainTokenFetch(response as RaydiumTokenListJsonInfo, tokenCollector)
+        case TokenListConfigType.RAYDIUM_MAIN: {
+          const handledResponse = objectMap(response as RaydiumTokenListJsonInfo, (tokens) => {
+            return isArray(tokens)
+              ? tokens.map((token) =>
+                  isObject(token) && 'hasFreeze' in token ? { ...token, hasFreeze: Boolean(token.hasFreeze) } : token
+                )
+              : tokens
+          })
+          await MainTokenFetch(handledResponse as RaydiumTokenListJsonInfo, tokenCollector)
           break
+        }
         case TokenListConfigType.RAYDIUM_DEV:
           if (isInLocalhost || isInBonsaiTest) {
             await DevTokenFetch(response as RaydiumDevTokenListJsonInfo, tokenCollector)
