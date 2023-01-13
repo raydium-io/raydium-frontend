@@ -151,7 +151,8 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
           )}
         </div>
       ),
-      onlyConfirmButton: true,
+      confirmButtonIsMainButton: true,
+      cancelButtonText: 'Cancel',
       confirmButtonText: 'Confirm',
       onConfirm: () => {
         setHasUserTemporaryConfirmed(true)
