@@ -72,6 +72,8 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { NewCompensationBanner } from '../pools'
+import txFarmHarvestAll from '@/application/farms/txFarmHarvestAll'
+import { info } from 'console'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -149,6 +151,26 @@ function ToolsButton({ className }: { className?: string }) {
         </Popover.Panel>
       </Popover>
     </>
+  )
+}
+function FarmHarvestAllButton({ infos }: { infos: HydratedFarmInfo[] }) {
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const walletConnected = useWallet((s) => s.connected)
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const canHarvestAll = useMemo(() => Boolean(infos.length), [infos])
+  if (!canHarvestAll) return null
+  return (
+    <Button
+      className="frosted-glass-teal"
+      isLoading={isApprovePanelShown}
+      validators={[{ should: walletConnected }, { should: canHarvestAll }]}
+      onClick={() => {
+        txFarmHarvestAll({ infos })
+      }}
+      size={isMobile ? 'xs' : 'sm'}
+    >
+      Harvest all
+    </Button>
   )
 }
 
@@ -490,6 +512,13 @@ function FarmCard() {
     <div>
       <Row className="mb-4">
         <Grid className="grow gap-2 grid-cols-auto-fit">
+          <FarmHarvestAllButton
+            infos={
+              applyFiltersDataSource.filter(
+                (i) => isHydratedFarmInfo(i) && isMeaningfulNumber(i.ledger?.deposited)
+              ) as HydratedFarmInfo[]
+            }
+          />
           <FarmSearchBlock />
           <FarmTableSorterBlock
             onChange={(newSortKey) => {
@@ -526,6 +555,13 @@ function FarmCard() {
         {Boolean(owner) && (currentTab === 'Ecosystem' || currentTab === 'Staked') ? (
           <FarmSelfCreatedOnlyBlock />
         ) : null}
+        <FarmHarvestAllButton
+          infos={
+            applyFiltersDataSource.filter(
+              (i) => isHydratedFarmInfo(i) && isMeaningfulNumber(i.ledger?.deposited)
+            ) as HydratedFarmInfo[]
+          }
+        />
         {/* <FarmStakedOnlyBlock /> */}
         {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
         <FarmTimeBasisSelector />
