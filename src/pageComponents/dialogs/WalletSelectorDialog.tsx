@@ -46,7 +46,9 @@ function WalletSelectorPanelItem({
           'wallet.adapter.name',
           wallet.adapter.name,
           'extensionMap[wallet.adapter.name]',
-          extensionMap[wallet.adapter.name]
+          extensionMap[wallet.adapter.name],
+          Object.keys(extensionMap),
+          wallet.readyState
         )
         if (wallet.readyState !== WalletReadyState.Installed && !extensionMap[wallet.adapter.name]?.autoHandle) {
           logInfo(
