@@ -41,6 +41,13 @@ function WalletSelectorPanelItem({
       } clickable clickable-filter-effect`}
       // TODO disable status
       onClick={() => {
+        // eslint-disable-next-line no-console
+        console.log(
+          'wallet.adapter.name',
+          wallet.adapter.name,
+          'extensionMap[wallet.adapter.name]',
+          extensionMap[wallet.adapter.name]
+        )
         if (wallet.readyState !== WalletReadyState.Installed && !extensionMap[wallet.adapter.name]?.autoHandle) {
           logInfo(
             'Wallet installation required ',
