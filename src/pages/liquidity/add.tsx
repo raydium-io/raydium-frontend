@@ -57,6 +57,10 @@ import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
 import { NewCompensationBanner } from '../pools'
+import useConnection from '@/application/connection/useConnection'
+import { isDateAfter, isDateBefore } from '@/functions/date/judges'
+import { toUTC } from '@/functions/date/dateFormat'
+import parseDuration from '@/functions/date/parseDuration'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -277,6 +281,20 @@ function LiquidityCard() {
   }, [])
 
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+
+  // remain-time
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const currentTime = Date.now() + (chainTimeOffset ?? 0)
+  const poolIsOpen = currentHydratedInfo && isDateAfter(currentTime, currentHydratedInfo.startTime)
+  function getDurationText(val: number) {
+    const duration = parseDuration(val)
+    return `Pool Opens in ${String(duration.days).padStart(2, '0')}D:${String(duration.hours).padStart(
+      2,
+      '0'
+    )}H:${String(duration.minutes).padStart(2, '0')}M`
+  }
+  const remainTimeText =
+    currentHydratedInfo && !poolIsOpen ? getDurationText(currentHydratedInfo?.startTime - currentTime) : undefined
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
@@ -392,6 +410,10 @@ function LiquidityCard() {
           {
             should: hasFoundLiquidityPool,
             fallbackProps: { children: `Pool not found` }
+          },
+          {
+            should: poolIsOpen,
+            fallbackProps: { children: remainTimeText }
           },
           {
             should: connected,
@@ -590,6 +612,8 @@ function LiquidityCardInfo({ className }: { className?: string }) {
   const coin1Amount = useLiquidity((s) => s.coin1Amount)
   const coin2Amount = useLiquidity((s) => s.coin2Amount)
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const currentTime = Date.now() + (chainTimeOffset ?? 0)
 
   const isCoin1Base = String(currentHydratedInfo?.baseMint) === String(coin1?.mint)
 
@@ -606,6 +630,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
   const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
   const isOpenBook = currentHydratedInfo?.jsonInfo.marketProgramId === 'srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX'
 
+  const poolIsOpen = currentHydratedInfo && isDateAfter(currentTime, currentHydratedInfo.startTime)
   return (
     <Col
       className={twMerge(
@@ -664,6 +689,11 @@ function LiquidityCardInfo({ className }: { className?: string }) {
             </Row>
           }
         />
+        <FadeIn>
+          {currentHydratedInfo && !poolIsOpen ? (
+            <LiquidityCardItem fieldName="Open at" fieldValue={<div>{toUTC(currentHydratedInfo.startTime)}</div>} />
+          ) : undefined}
+        </FadeIn>
         <Collapse openDirection="upwards" className="w-full">
           <Collapse.Body>
             <Col>

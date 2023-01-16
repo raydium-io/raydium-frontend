@@ -37,6 +37,8 @@ export default function hydrateLiquidityInfo(
 
   return {
     ...liquidityInfo,
+    sdkInfo: liquidityInfo,
+    startTime: liquidityInfo.startTime.toNumber() * 1000,
     userBasePooled,
     userQuotePooled,
     sharePercent,
