@@ -5,8 +5,18 @@
  */
 
 import {
-  AmmV3, AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, PublicKeyish,
-  ReturnTypeFetchMultiplePoolTickArrays, ReturnTypeGetAllRouteComputeAmountOut, TradeV2
+  AmmV3,
+  AmmV3PoolInfo,
+  AmmV3PoolPersonalPosition,
+  ApiAmmV3PoolInfo,
+  LiquidityPoolJsonInfo,
+  LiquidityPoolsJsonFile,
+  PoolType,
+  PublicKeyish,
+  ReturnTypeFetchMultipleInfo,
+  ReturnTypeFetchMultiplePoolTickArrays,
+  ReturnTypeGetAllRouteComputeAmountOut,
+  TradeV2
 } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
@@ -14,16 +24,18 @@ import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import { deUIToken, deUITokenAmount } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
+import { isDateAfter } from '@/functions/date/judges'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { areShallowEqual } from '@/functions/judgers/areEqual'
-import { isPubKeyish } from '@/functions/judgers/dateType'
+import { isObject, isPubKeyish } from '@/functions/judgers/dateType'
 import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { Numberish } from '@/types/constants'
+import { BestResultStartTimeInfo } from './type'
 
 const apiCache = {} as {
   ammV3?: ApiAmmV3PoolInfo[]
@@ -112,6 +124,12 @@ async function getApiInfos() {
     apiCache.liquidity = await getOldKeys()
   }
   return apiCache
+}
+
+// only read sdkCache, it won't mutate
+function getCachedPoolCacheInfos({ inputMint, outputMint }: { inputMint: PublicKeyish; outputMint: PublicKeyish }) {
+  const key = toPubString(inputMint) + toPubString(outputMint)
+  return sdkCaches.get(key)
 }
 
 /**
@@ -247,15 +265,56 @@ export async function getAllSwapableRouteInfos({
     slippage: toPercent(slippageTolerance),
     chainTime
   })
-
-  return { routeList, bestResult: getBestCalcResult(routeList) }
+  const { bestResult, bestResultStartTimes } = getBestCalcResult(routeList, awaitedSimulateCache, chainTime) ?? {}
+  return { routeList, bestResult, bestResultStartTimes }
 }
 
 function getBestCalcResult(
-  routeList: ReturnTypeGetAllRouteComputeAmountOut
-): ReturnTypeGetAllRouteComputeAmountOut[number] | undefined {
+  routeList: ReturnTypeGetAllRouteComputeAmountOut,
+  poolInfosCache: ReturnTypeFetchMultipleInfo | undefined,
+  chainTime: number
+):
+  | {
+      bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
+      bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
+    }
+  | undefined {
   if (!routeList.length) return undefined
-  const isReadyRoutes = routeList.filter((i) => i.poolReady)
-  if (!isReadyRoutes.length) return routeList[0]
-  return isReadyRoutes[0]
+  const readyRoutes = routeList.filter((i) => i.poolReady)
+  const hasReadyRoutes = Boolean(readyRoutes.length)
+  if (hasReadyRoutes) {
+    return { bestResult: readyRoutes[0] }
+  } else {
+    if (!poolInfosCache) return { bestResult: routeList[0] }
+
+    const routeStartTimes = routeList[0].poolKey
+      .filter((i) => i.version !== 6) // clmm pool is not
+      .map((i) => {
+        const ammId = toPubString(i.id)
+        const poolAccountInfo = poolInfosCache[ammId]
+        if (!poolAccountInfo) return undefined
+        const startTime = poolAccountInfo.startTime.toNumber() * 1000
+
+        const isPoolOpen = isDateAfter(chainTime, startTime)
+        if (isPoolOpen) return undefined
+        return { ammId, startTime, poolType: i, poolInfo: getPoolInfoFromPoolType(i) }
+      })
+
+    return { bestResult: routeList[0], bestResultStartTimes: shakeUndifindedItem(routeStartTimes) }
+  }
+}
+
+function isAmmV3PoolInfo(poolType: PoolType): poolType is AmmV3PoolInfo {
+  return isObject(poolType) && 'protocolFeesTokenA' in poolType
+}
+function isLiquidityPoolJsonInfo(poolType: PoolType): poolType is LiquidityPoolJsonInfo {
+  return !isAmmV3PoolInfo(poolType)
+}
+function getPoolInfoFromPoolType(poolType: PoolType): BestResultStartTimeInfo['poolInfo'] {
+  return {
+    rawInfo: poolType,
+    ammId: toPubString(poolType.id),
+    baseMint: isAmmV3PoolInfo(poolType) ? toPubString(poolType.mintA.mint) : poolType.baseMint,
+    quoteMint: isAmmV3PoolInfo(poolType) ? toPubString(poolType.mintB.mint) : poolType.quoteMint
+  }
 }

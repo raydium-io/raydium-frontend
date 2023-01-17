@@ -66,6 +66,9 @@ import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
 import { NewCompensationBanner } from './pools'
+import { toUTC } from '@/functions/date/dateFormat'
+import parseDuration from '@/functions/date/parseDuration'
+import useConnection from '@/application/connection/useConnection'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -243,7 +246,24 @@ function SwapCard() {
   const balances = useWallet((s) => s.balances)
   const preflightCalcResult = useSwap((s) => s.preflightCalcResult)
   const isFindingPool = !preflightCalcResult // finding Pools ...
-  const swapable = useSwap((s) => s.swapable) // Pool not ready
+
+  // -------- pool ready time --------
+  const swapable = useSwap((s) => s.swapable) // Pool not ready (not open yet )
+  const selectedCalcResultPoolStartTimes = useSwap((s) => s.selectedCalcResultPoolStartTimes) // Pool not ready details
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const chainTime = Date.now() + (chainTimeOffset ?? 0)
+  const remainTimeText = useMemo(() => {
+    if (!selectedCalcResultPoolStartTimes) return undefined
+    function getDurationText(val: number) {
+      const duration = parseDuration(val)
+      return `Pool Opens in ${String(duration.days).padStart(2, '0')}D : ${String(duration.hours).padStart(
+        2,
+        '0'
+      )}H : ${String(duration.minutes).padStart(2, '0')}M`
+    }
+    return getDurationText(Math.max(...selectedCalcResultPoolStartTimes.map((i) => i.startTime)) - chainTime)
+  }, [selectedCalcResultPoolStartTimes, chainTime])
+
   const canFindPools = useSwap((s) => s.canFindPools) // Pool not found
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
   const { hasConfirmed, popConfirm: popUnofficialConfirm } = useUnofficialTokenConfirmState()
@@ -489,7 +509,7 @@ function SwapCard() {
             },
             {
               should: swapable,
-              fallbackProps: { children: 'Pool Not Ready' }
+              fallbackProps: { children: remainTimeText }
             },
             {
               should:
@@ -800,6 +820,7 @@ function SwapCardInfo({ className }: { className?: string }) {
   const fee = useSwap((s) => s.fee)
   const maxSpent = useSwap((s) => s.maxSpent)
   const selectedCalcResult = useSwap((s) => s.selectedCalcResult)
+  const selectedCalcResultPoolStartTimes = useSwap((s) => s.selectedCalcResultPoolStartTimes)
   const currentCalcResult = selectedCalcResult
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
   const getToken = useToken((s) => s.getToken)
@@ -903,6 +924,17 @@ function SwapCardInfo({ className }: { className?: string }) {
                 </Row>
               }
             />
+            {selectedCalcResultPoolStartTimes?.map(({ ammId, poolInfo, startTime }) => (
+              <SwapCardItem
+                key={ammId}
+                fieldName={
+                  selectedCalcResult && selectedCalcResult.poolKey.length > 1
+                    ? `Open at (${getToken(poolInfo.baseMint)?.symbol}-${getToken(poolInfo.quoteMint)?.symbol})`
+                    : 'Open at'
+                }
+                fieldValue={toUTC(startTime)}
+              />
+            ))}
             <SwapCardItem
               fieldName="Swap Fee"
               tooltipContent={`Of the 0.25% swap fee, 0.22% goes to LPs and 0.03% is used to buy back RAY.${

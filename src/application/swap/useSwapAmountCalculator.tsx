@@ -64,6 +64,7 @@ export function useSwapAmountCalculator() {
         useSwap.setState({
           calcResult: undefined,
           selectedCalcResult: undefined,
+          selectedCalcResultPoolStartTimes: undefined,
           fee: undefined,
           minReceived: undefined,
           maxSpent: undefined,
@@ -86,6 +87,7 @@ export function useSwapAmountCalculator() {
         useSwap.setState({
           calcResult: undefined,
           selectedCalcResult: undefined,
+          selectedCalcResultPoolStartTimes: undefined,
           fee: undefined,
           minReceived: undefined,
           maxSpent: undefined,
@@ -106,6 +108,7 @@ export function useSwapAmountCalculator() {
         useSwap.setState({
           calcResult: undefined,
           selectedCalcResult: undefined,
+          selectedCalcResultPoolStartTimes: undefined,
           fee: undefined,
           minReceived: undefined,
           maxSpent: undefined,
@@ -124,8 +127,8 @@ export function useSwapAmountCalculator() {
           slippageTolerance
         })
           .then((result) => {
-            const { routeList, bestResult } = result ?? {}
-            return { routeList, bestResult }
+            const { routeList, bestResult, bestResultStartTimes } = result ?? {}
+            return { routeList, bestResult, bestResultStartTimes }
           })
           .catch((err) => {
             console.error(err)
@@ -133,7 +136,7 @@ export function useSwapAmountCalculator() {
       )
       abortableAllSwapableRouteInfos.then((infos) => {
         if (!infos) return
-        const { routeList: calcResult, bestResult } = infos
+        const { routeList: calcResult, bestResult, bestResultStartTimes } = infos
         const resultStillFresh = (() => {
           const directionReversed = useSwap.getState().directionReversed
           const currentUpCoinAmount =
@@ -157,6 +160,8 @@ export function useSwapAmountCalculator() {
           calcResult,
           preflightCalcResult: calcResult,
           selectedCalcResult: bestResult,
+          selectedCalcResultPoolStartTimes: bestResultStartTimes,
+
           priceImpact,
           executionPrice,
           currentPrice,

@@ -288,10 +288,10 @@ function LiquidityCard() {
   const poolIsOpen = currentHydratedInfo && isDateAfter(currentTime, currentHydratedInfo.startTime)
   function getDurationText(val: number) {
     const duration = parseDuration(val)
-    return `Pool Opens in ${String(duration.days).padStart(2, '0')}D:${String(duration.hours).padStart(
+    return `Pool Opens in ${String(duration.days).padStart(2, '0')}D : ${String(duration.hours).padStart(
       2,
       '0'
-    )}H:${String(duration.minutes).padStart(2, '0')}M`
+    )}H : ${String(duration.minutes).padStart(2, '0')}M`
   }
   const remainTimeText =
     currentHydratedInfo && !poolIsOpen ? getDurationText(currentHydratedInfo?.startTime - currentTime) : undefined
