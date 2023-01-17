@@ -512,12 +512,12 @@ function SwapCard() {
               fallbackProps: { children: remainTimeText }
             },
             {
-              should:
-                upCoinAmount &&
-                isMeaningfulNumber(upCoinAmount) &&
-                downCoinAmount &&
-                isMeaningfulNumber(downCoinAmount),
+              should: upCoinAmount && isMeaningfulNumber(upCoinAmount),
               fallbackProps: { children: 'Enter an amount' }
+            },
+            {
+              should: downCoinAmount && isMeaningfulNumber(downCoinAmount),
+              fallbackProps: { children: 'Swap Amount Too Small' }
             },
             {
               should: haveEnoughUpCoin,
