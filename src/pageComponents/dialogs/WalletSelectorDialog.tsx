@@ -50,7 +50,7 @@ function WalletSelectorPanelItem({
           Object.keys(extensionMap),
           wallet.readyState
         )
-        if (wallet.readyState !== WalletReadyState.Installed && !extensionMap[wallet.adapter.name]?.autoHandle) {
+        if (![WalletReadyState.Installed, WalletReadyState.Loadable].includes(wallet.readyState) && !extensionMap[wallet.adapter.name]?.autoHandle) {
           logInfo(
             'Wallet installation required ',
             <div>
