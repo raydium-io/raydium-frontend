@@ -27,8 +27,9 @@ export type SwapStore = {
   coin1Amount?: Numberish // may with fee and slippage
   coin2Amount?: Numberish // may with fee and slippage
   hasUISwrapped?: boolean // if user swap coin1 and coin2, this will be true
-  isCoin1Calculating: boolean // while coin1 is calculating to a new token
-  isCoin2Calculating: boolean // while coin2 is calculating to a new token
+  isCoin1CalculateTarget: boolean // while coin1 is calculating to a new token
+  isCoin2CalculateTarget: boolean // while coin2 is calculating to a new token
+  isCalculationProcessing?: boolean
 
   focusSide: 'coin1' | 'coin2' // make swap fixed (userInput may change this)
 
@@ -65,8 +66,8 @@ export type SwapStore = {
 export const useSwap = create<SwapStore>((set, get) => ({
   calcResult: undefined,
   directionReversed: false,
-  isCoin1Calculating: false,
-  isCoin2Calculating: false,
+  isCoin1CalculateTarget: false,
+  isCoin2CalculateTarget: false,
 
   focusSide: 'coin1',
 

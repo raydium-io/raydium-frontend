@@ -238,8 +238,9 @@ function SwapCard() {
   const coin2 = useSwap((s) => s.coin2)
   const coin1Amount = useSwap((s) => s.coin1Amount)
   const coin2Amount = useSwap((s) => s.coin2Amount)
-  const isCoin1Calculating = useSwap((s) => s.isCoin1Calculating)
-  const isCoin2Calculating = useSwap((s) => s.isCoin2Calculating)
+  const isCoin1CalculateTarget = useSwap((s) => s.isCoin1CalculateTarget)
+  const isCoin2CalculateTarget = useSwap((s) => s.isCoin2CalculateTarget)
+  const isCalculationProcessing = useSwap((s) => s.isCalculationProcessing)
   const directionReversed = useSwap((s) => s.directionReversed)
   const priceImpact = useSwap((s) => s.priceImpact)
   const refreshSwap = useSwap((s) => s.refreshSwap)
@@ -360,9 +361,11 @@ function SwapCard() {
             if (coin2 && coin2Amount) swapButtonComponentRef.current?.click?.()
           }}
           token={coin1}
-          value={isCoin1Calculating ? '0' : coin1Amount ? (eq(coin1Amount, 0) ? '' : toString(coin1Amount)) : undefined}
+          value={
+            isCoin1CalculateTarget ? '0' : coin1Amount ? (eq(coin1Amount, 0) ? '' : toString(coin1Amount)) : undefined
+          }
           onUserInput={(value) => {
-            useSwap.setState({ focusSide: 'coin1', coin1Amount: value })
+            useSwap.setState({ focusSide: 'coin1', coin1Amount: value, isCalculationProcessing: true })
           }}
         />
 
@@ -424,9 +427,11 @@ function SwapCard() {
             if (coin1 && coin1Amount) swapButtonComponentRef.current?.click?.()
           }}
           token={coin2}
-          value={isCoin2Calculating ? '0' : coin2Amount ? (eq(coin2Amount, 0) ? '' : toString(coin2Amount)) : undefined}
+          value={
+            isCoin2CalculateTarget ? '0' : coin2Amount ? (eq(coin2Amount, 0) ? '' : toString(coin2Amount)) : undefined
+          }
           onUserInput={(value) => {
-            useSwap.setState({ focusSide: 'coin2', coin2Amount: value })
+            useSwap.setState({ focusSide: 'coin2', coin2Amount: value, isCalculationProcessing: true })
           }}
         />
       </div>
@@ -508,7 +513,7 @@ function SwapCard() {
               fallbackProps: { children: 'Pool Not Found' }
             },
             {
-              should: swapable,
+              should: !remainTimeText,
               fallbackProps: { children: remainTimeText }
             },
             {
@@ -516,7 +521,7 @@ function SwapCard() {
               fallbackProps: { children: 'Enter an amount' }
             },
             {
-              should: downCoinAmount && isMeaningfulNumber(downCoinAmount),
+              should: isCalculationProcessing || !eq(downCoinAmount, 0),
               fallbackProps: { children: 'Swap Amount Too Small' }
             },
             {
@@ -554,7 +559,7 @@ function SwapCard() {
             if (!areSameToken(coin1, token)) {
               useSwap.setState({
                 coin1: token,
-                [directionReversed ? 'isCoin1Calculating' : 'isCoin2Calculating']: true
+                [directionReversed ? 'isCoin1CalculateTarget' : 'isCoin2CalculateTarget']: true
               })
               if (!areTokenPairSwapable(token, coin2)) {
                 useSwap.setState({ coin2: undefined })
@@ -564,7 +569,7 @@ function SwapCard() {
             if (!areSameToken(coin2, token)) {
               useSwap.setState({
                 coin2: token,
-                [directionReversed ? 'isCoin1Calculating' : 'isCoin2Calculating']: true
+                [directionReversed ? 'isCoin1CalculateTarget' : 'isCoin2CalculateTarget']: true
               })
               if (!areTokenPairSwapable(token, coin1)) {
                 useSwap.setState({ coin1: undefined })
