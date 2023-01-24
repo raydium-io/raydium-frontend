@@ -28,6 +28,13 @@ import {
   TrustWalletAdapter,
   WalletConnectWalletAdapter
 } from '@solana/wallet-adapter-wallets'
+import {
+  createDefaultAddressSelector,
+  createDefaultAuthorizationResultCache,
+  createDefaultWalletNotFoundHandler,
+  SolanaMobileWalletAdapter,
+  SolanaMobileWalletAdapterWalletName
+} from '@solana-mobile/wallet-adapter-mobile'
 import { clusterApiUrl } from '@solana/web3.js'
 
 import useAppSettings from '@/application/common/useAppSettings'
@@ -78,7 +85,18 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
           }
         }
       }),
-      new BraveWalletAdapter()
+      new BraveWalletAdapter(),
+      new SolanaMobileWalletAdapter({
+        addressSelector: createDefaultAddressSelector(),
+        appIdentity: {
+          name: 'Raydium',
+          uri: 'https://raydium.io/',
+          icon: 'logo/logo-only-icon.svg'
+        },
+        authorizationResultCache: createDefaultAuthorizationResultCache(),
+        cluster: WalletAdapterNetwork.Mainnet,
+        onWalletNotFound: createDefaultWalletNotFoundHandler()
+      })
     ],
     [endpoint]
   )

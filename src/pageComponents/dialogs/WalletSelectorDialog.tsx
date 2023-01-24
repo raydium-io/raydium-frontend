@@ -50,7 +50,9 @@ function WalletSelectorPanelItem({
           Object.keys(extensionMap),
           wallet.readyState
         )
-        if (wallet.readyState !== WalletReadyState.Installed && !extensionMap[wallet.adapter.name]?.autoHandle) {
+        const isLoadableMobileWalletAdapter = wallet.readyState === WalletReadyState.Loadable && wallet.adapter.name === 'Mobile Wallet Adapter'
+        const isUninstalledOrUnautohandledExtension = wallet.readyState !== WalletReadyState.Installed && !extensionMap[wallet.adapter.name]?.autoHandle
+        if (!isLoadableMobileWalletAdapter && isUninstalledOrUnautohandledExtension) {
           logInfo(
             'Wallet installation required ',
             <div>

@@ -22,7 +22,7 @@ const withGlobalCssConfig = require('next-global-css').withGlobalCss()
 const moduleExports = {
   trailingSlash: true,
 
-  productionBrowserSourceMaps: false,
+  productionBrowserSourceMaps: true,
   // hmr: false,
 
   generateBuildId: () => nextBuildId({ dir: __dirname }),
