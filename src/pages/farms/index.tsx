@@ -71,6 +71,7 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+
 import { NewCompensationBanner } from '../pools'
 
 export default function FarmsPage() {
@@ -1145,8 +1146,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                         forceActive: true,
                         fallbackProps: {
                           children: 'Add Liquidity',
-                          onClick: () =>
-                            routeTo('/liquidity/add', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
+                          onClick: () => routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
                         }
                       }
                     ]}
@@ -1202,8 +1202,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                       forceActive: true,
                       fallbackProps: {
                         children: 'Add Liquidity',
-                        onClick: () =>
-                          routeTo('/liquidity/add', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
+                        onClick: () => routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
                       }
                     }
                   ]}
