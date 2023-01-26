@@ -1521,6 +1521,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
   const getLpToken = useToken((s) => s.getLpToken)
   const getToken = useToken((s) => s.getToken)
   const isStable = isJsonFarmInfo(info) ? false : info.isStablePool
+  const currentTab = useFarms((s) => s.currentTab)
 
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
   const liquidity = liquidityJsonInfos.find((i) => i.lpMint === info.lpMint)
@@ -1558,6 +1559,33 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
       <Row className="mobile:text-xs font-medium mobile:mt-px mr-1.5">
         <CoinAvatarInfoItemSymbol mint={info.baseMint} />-<CoinAvatarInfoItemSymbol mint={info.quoteMint} />
+        {currentTab === 'Ecosystem' && (
+          <Tooltip>
+            <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
+            <Tooltip.Panel>
+              <div className="max-w-[300px] space-y-1.5">
+                {[info?.baseMint, info?.quoteMint].map((token, idx) =>
+                  token ? (
+                    <Row key={idx} className="gap-2">
+                      {getToken(token) && <CoinAvatar size={'xs'} token={getToken(token)} />}
+                      <AddressItem
+                        className="grow"
+                        showDigitCount={5}
+                        addressType="token"
+                        canCopy
+                        canExternalLink
+                        textClassName="flex text-xs text-[#abc4ff] justify-start "
+                        iconClassName="text-[#abc4ff]"
+                      >
+                        {toPubString(token)}
+                      </AddressItem>
+                    </Row>
+                  ) : null
+                )}
+              </div>
+            </Tooltip.Panel>
+          </Tooltip>
+        )}
       </Row>
       {info.isClosedPool && <Badge cssColor="#DA2EEF">Inactive</Badge>}
       {isStable && <Badge>Stable</Badge>}
