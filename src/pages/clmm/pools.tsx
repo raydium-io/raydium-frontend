@@ -79,7 +79,6 @@ import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConc
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
 import { NewCompensationBanner } from '../pools'
-import { poolKeys2JsonInfo } from '@/application/txTools/jsonInfo2PoolKeys'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 
 export default function PoolsConcentratedPage() {
@@ -89,6 +88,7 @@ export default function PoolsConcentratedPage() {
 
   return (
     <PageLayout
+      contentButtonPaddingShorter
       mobileBarTitle={{
         items: [
           { value: PoolsConcentratedTabs.ALL, barLabel: PoolsConcentratedTabs.ALL },
@@ -915,7 +915,8 @@ function PoolCardDatabaseBodyCollapseItemFace({
               )}
               {unnamedTokenMints?.has(toPubString(reward.tokenMint)) && (
                 <div className="max-w-[300px] mt-2">
-                  This token does not currently have a ticker symbol. Check to ensure it is the token you want to interact with.
+                  This token does not currently have a ticker symbol. Check to ensure it is the token you want to
+                  interact with.
                 </div>
               )}
             </div>
