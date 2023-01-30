@@ -21,6 +21,7 @@ export default function txCreateConcentratedPosotion({
     transactionCollector.add(await loadTransaction({ transaction, signers }), {
       txHistoryInfo: {
         title: 'Position Created',
+        forceErrorTitle: 'Error creating position',
         description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
           coin2?.symbol ?? '--'
         }`
