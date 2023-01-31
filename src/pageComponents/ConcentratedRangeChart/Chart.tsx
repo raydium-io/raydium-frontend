@@ -611,14 +611,14 @@ export default forwardRef(function Chart(props: Props, ref) {
         <div className="flex items-center text-xs text-[#ABC4FF]">
           <span className="inline-block w-[8px] h-[2px] bg-white mr-2" />
           <span className="opacity-50 mr-2">Current Price</span>{' '}
-          {shakeZero(currentPrice?.toFixed(Math.max(decimals, 8)) || 0)}
+          {shakeZero(currentPrice?.toFixed(Math.max(decimals, maxLength)) || 0)}
           <span className="ml-1">{priceLabel}</span>
         </div>
         <div className="flex items-center text-xs text-[#ABC4FF]">
           <span className="inline-block w-[8px] h-[2px] bg-[#39D0D8] mr-2" />
           <span className="opacity-50 mr-2">{timeBasis} Price Range</span> [
-          {shakeZero(priceMin?.toFixed(Math.max(decimals, 8)) || 0)},{' '}
-          {shakeZero(priceMax?.toFixed(Math.max(decimals, 8)) || 0)}]
+          {shakeZero(priceMin?.toFixed(Math.max(decimals, maxLength)) || 0)},{' '}
+          {shakeZero(priceMax?.toFixed(Math.max(decimals, maxLength)) || 0)}]
         </div>
       </div>
       <div className="w-full select-none" style={{ height: `${height || 140}px` }}>
