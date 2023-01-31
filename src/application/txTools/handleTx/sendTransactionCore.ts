@@ -70,7 +70,7 @@ async function sendSingleTransaction(
       payload.signerkeyPair.payerKeypair ?? payload.signerkeyPair.ownerKeypair
     ])
   } else {
-    const tx = serialize(transaction, cache)
+    const tx = serialize(transaction, { cache })
     return await payload.connection.sendRawTransaction(tx, {
       skipPreflight: true
     })

@@ -43,18 +43,26 @@ export function useSwapAmountCalculator() {
     if (!coin1 || !coin2) return // not fullfilled
     if (isMeaningfulNumber(userCoin1Amount) && isMeaningfulNumber(userCoin2Amount)) return // no need to check
     useSwap.setState({ preflightCalcResult: undefined, canFindPools: undefined, swapable: undefined })
-    const { routeList: preflightCalcResult, bestResult } =
-      (await getAllSwapableRouteInfos({
-        connection,
-        input: coin1,
-        output: coin2,
-        inputAmount: 1,
-        slippageTolerance: 0.05
-      })) ?? {}
+    const {
+      routeList: preflightCalcResult,
+      bestResult,
+      bestResultStartTimes
+    } = (await getAllSwapableRouteInfos({
+      connection,
+      input: coin1,
+      output: coin2,
+      inputAmount: 1,
+      slippageTolerance: 0.05
+    })) ?? {}
 
     const swapable = Boolean(bestResult?.poolReady)
     const canFindPools = Boolean(bestResult)
-    useSwap.setState({ preflightCalcResult: preflightCalcResult, canFindPools, swapable })
+    useSwap.setState({
+      preflightCalcResult: preflightCalcResult,
+      canFindPools,
+      swapable,
+      selectedCalcResultPoolStartTimes: bestResultStartTimes
+    })
   }, [connection, coin1, coin2])
 
   const startCalc = useDebounce(
@@ -64,6 +72,8 @@ export function useSwapAmountCalculator() {
         useSwap.setState({
           calcResult: undefined,
           selectedCalcResult: undefined,
+          selectedCalcResultPoolStartTimes: undefined,
+          isCalculationProcessing: false,
           fee: undefined,
           minReceived: undefined,
           maxSpent: undefined,
@@ -86,6 +96,8 @@ export function useSwapAmountCalculator() {
         useSwap.setState({
           calcResult: undefined,
           selectedCalcResult: undefined,
+          selectedCalcResultPoolStartTimes: undefined,
+          isCalculationProcessing: false,
           fee: undefined,
           minReceived: undefined,
           maxSpent: undefined,
@@ -94,7 +106,7 @@ export function useSwapAmountCalculator() {
           ...{
             [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']:
               focusSide === 'coin1' ? toString(userCoin1Amount) : toString(userCoin2Amount),
-            [focusSide === 'coin1' ? 'isCoin2Calculating' : 'isCoin1Calculating']: false
+            [focusSide === 'coin1' ? 'isCoin2CalculateTarget' : 'isCoin1CalculateTarget']: false
           }
         })
         return
@@ -106,6 +118,8 @@ export function useSwapAmountCalculator() {
         useSwap.setState({
           calcResult: undefined,
           selectedCalcResult: undefined,
+          selectedCalcResultPoolStartTimes: undefined,
+          isCalculationProcessing: false,
           fee: undefined,
           minReceived: undefined,
           maxSpent: undefined,
@@ -124,8 +138,8 @@ export function useSwapAmountCalculator() {
           slippageTolerance
         })
           .then((result) => {
-            const { routeList, bestResult } = result ?? {}
-            return { routeList, bestResult }
+            const { routeList, bestResult, bestResultStartTimes } = result ?? {}
+            return { routeList, bestResult, bestResultStartTimes }
           })
           .catch((err) => {
             console.error(err)
@@ -133,7 +147,7 @@ export function useSwapAmountCalculator() {
       )
       abortableAllSwapableRouteInfos.then((infos) => {
         if (!infos) return
-        const { routeList: calcResult, bestResult } = infos
+        const { routeList: calcResult, bestResult, bestResultStartTimes } = infos
         const resultStillFresh = (() => {
           const directionReversed = useSwap.getState().directionReversed
           const currentUpCoinAmount =
@@ -157,6 +171,9 @@ export function useSwapAmountCalculator() {
           calcResult,
           preflightCalcResult: calcResult,
           selectedCalcResult: bestResult,
+          selectedCalcResultPoolStartTimes: bestResultStartTimes,
+          isCalculationProcessing: false,
+
           priceImpact,
           executionPrice,
           currentPrice,
@@ -167,7 +184,7 @@ export function useSwapAmountCalculator() {
           canFindPools,
           ...{
             [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountOut,
-            [focusSide === 'coin1' ? 'isCoin2Calculating' : 'isCoin1Calculating']: false
+            [focusSide === 'coin1' ? 'isCoin2CalculateTarget' : 'isCoin1CalculateTarget']: false
           }
         })
       })

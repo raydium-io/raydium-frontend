@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
-
+import { TokenAmount } from '@raydium-io/raydium-sdk'
 import useAppSettings from '@/application/common/useAppSettings'
 import { getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
@@ -48,9 +48,17 @@ import InputLocked from './InputLocked'
 import PriceRangeInput from './PriceRangeInput'
 import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
+import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
+import { trimTailingZero } from '@/functions/numberish/handleZero'
+import Decimal from 'decimal.js'
+import toPubString from '@/functions/format/toMintString'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
+
+const maxAcceptPriceDecimal = 15
+
+const maxSignificantCount = (decimals: number) => Math.min(decimals + 2, maxAcceptPriceDecimal)
 
 export function CreatePoolCard() {
   useAutoCreateAmmv3Pool()
@@ -73,6 +81,7 @@ export function CreatePoolCard() {
   const priceUpper = useConcentrated((s) => s.priceUpper)
   const userSettedCurrentPrice = useConcentrated((s) => s.userSettedCurrentPrice)
   const userSelectedAmmConfigFeeOption = useConcentrated((s) => s.userSelectedAmmConfigFeeOption)
+  const priceDecimalLength = parseNumberInfo(trimTailingZero(userSettedCurrentPrice?.toString() || '')).dec?.length || 0
 
   const tickRef = useRef<{ [Range.Low]?: number; [Range.Upper]?: number }>({
     [Range.Low]: undefined,
@@ -89,8 +98,22 @@ export function CreatePoolCard() {
     [Range.Low]: undefined,
     [Range.Upper]: undefined
   })
-  const updatePrice1 = useCallback((tokenP) => setPrices((p) => [tokenP?.toExact(), p[1]]), [])
-  const updatePrice2 = useCallback((tokenP) => setPrices((p) => [p[0], tokenP?.toExact()]), [])
+  const updatePrice1 = useCallback(
+    (tokenP: TokenAmount) =>
+      setPrices((p) => [
+        new Decimal(tokenP?.numerator.toString() || 0).div(tokenP?.denominator.toString() || 1).toFixed(20),
+        p[1]
+      ]),
+    []
+  )
+  const updatePrice2 = useCallback(
+    (tokenP) =>
+      setPrices((p) => [
+        p[0],
+        new Decimal(tokenP?.numerator.toString() || 0).div(tokenP?.denominator.toString() || 1).toFixed(20)
+      ]),
+    []
+  )
   const poolFocusKey = `${currentAmmPool?.idString}-${focusSide}`
   const totalDeposit = useMemo(
     () => prices.filter((p) => !!p).reduce((acc, cur) => acc.add(toFraction(cur!)), toFraction(0)),
@@ -142,7 +165,13 @@ export function CreatePoolCard() {
     [focusSide]
   )
 
-  const toFixedNumber = useCallback((val: Numberish): number => Number(toFraction(val).toFixed(decimals)), [decimals])
+  const toFixedNumber = useCallback(
+    (val: Numberish): number => {
+      const decimal = Math.max(decimals + 2, priceDecimalLength)
+      return Number(toFraction(val).toFixed(decimal))
+    },
+    [priceDecimalLength, decimals]
+  )
 
   useEffect(
     () => () =>
@@ -185,13 +214,13 @@ export function CreatePoolCard() {
     }
     handleBlur({
       side: Range.Upper,
-      val: mul(userSettedCurrentPrice, 1.5)?.toFixed(decimals),
+      val: mul(userSettedCurrentPrice, 1.5)?.toFixed(20),
       skipCheck: true,
       noTimeOut: true
     })
     handleBlur({
       side: Range.Low,
-      val: mul(userSettedCurrentPrice, 0.5)?.toFixed(decimals),
+      val: mul(userSettedCurrentPrice, 0.5)?.toFixed(20),
       skipCheck: true
     })
   }, [userSettedCurrentPrice, handlePriceChange, poolFocusKey, decimals])
@@ -337,6 +366,7 @@ export function CreatePoolCard() {
           <Grid className="grid-cols-2 gap-4">
             <SelectTokenInputBox
               title="Base Token"
+              turnOnTokenVerification
               tokenKey="coin1"
               onSelectToken={handleSelectToken}
               token={coin1}
@@ -344,6 +374,7 @@ export function CreatePoolCard() {
             />
             <SelectTokenInputBox
               title="Quote Token"
+              turnOnTokenVerification
               tokenKey="coin2"
               onSelectToken={handleSelectToken}
               token={coin2}
@@ -382,7 +413,7 @@ export function CreatePoolCard() {
               </span>
             }
             value={userSettedCurrentPrice}
-            decimalCount={decimals}
+            decimalCount={maxAcceptPriceDecimal}
             onUserInput={(value) => {
               useConcentrated.setState({ userSettedCurrentPrice: value })
             }}
@@ -392,7 +423,7 @@ export function CreatePoolCard() {
         <div className={currentAmmPool ? '' : 'opacity-50'}>
           <div className="text-secondary-title font-medium mb-2">Set Price Range</div>
           <PriceRangeInput
-            decimals={decimals}
+            decimals={Math.max(parseNumberInfo(userSettedCurrentPrice).dec?.length ?? 0, decimals)}
             minValue={toString(position[Range.Low])}
             maxValue={toString(position[Range.Upper])}
             onBlur={handleBlur}
@@ -419,7 +450,6 @@ export function CreatePoolCard() {
                   value={currentAmmPool ? toString(coin1Amount) : undefined}
                   haveHalfButton
                   haveCoinIcon
-                  topLeftLabel=""
                   onPriceChange={updatePrice1}
                   onUserInput={(amount) => {
                     useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
@@ -441,7 +471,6 @@ export function CreatePoolCard() {
                   value={currentAmmPool ? toString(coin2Amount) : undefined}
                   haveHalfButton
                   haveCoinIcon
-                  topLeftLabel=""
                   onPriceChange={updatePrice2}
                   onUserInput={(amount) => {
                     useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
@@ -574,12 +603,14 @@ function SelectTokenInputBox({
   title,
   token,
   disableTokens,
+  turnOnTokenVerification,
   onSelectToken
 }: {
   tokenKey?: string
   title?: string
   token?: SplToken
   disableTokens?: SplToken[]
+  turnOnTokenVerification?: boolean
   onSelectToken?: (token: SplToken, tokenKey?: string) => void
 }) {
   const [isSelectorOpen, setIsSelectorOpen] = useState(false)
@@ -610,6 +641,7 @@ function SelectTokenInputBox({
         onClose={() => {
           setIsSelectorOpen(false)
         }}
+        turnOnTokenVerification={turnOnTokenVerification}
         disableTokens={disableTokens}
         onSelectToken={(token) => {
           onSelectToken?.(token, tokenKey)

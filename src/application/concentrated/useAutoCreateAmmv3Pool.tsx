@@ -57,7 +57,7 @@ async function createNewConcentratedPool() {
     mint1: { mint: coin1.mint, decimals: coin1.decimals },
     mint2: { mint: coin2.mint, decimals: coin2.decimals },
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
-    initialPrice: fractionToDecimal(currentPrice),
+    initialPrice: fractionToDecimal(currentPrice, 15),
     owner: owner ?? PublicKey.default
   })
   useConcentrated.setState({

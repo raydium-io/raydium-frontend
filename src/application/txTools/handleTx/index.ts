@@ -119,7 +119,7 @@ type TxKeypairDetective = {
 //#endregion
 
 export type SingleTxOption = {
-  txHistoryInfo?: Pick<TxHistoryInfo, 'title' | 'description'>
+  txHistoryInfo?: Pick<TxHistoryInfo, 'title' | 'description' | 'forceConfirmedTitle' | 'forceErrorTitle'>
   /** if provided, error notification should respect this config */
   txErrorNotificationDescription?: string | ((error: Error) => string)
 
@@ -264,8 +264,6 @@ export default async function txHandler(customizedTxAction: TxFn, options?: Hand
         baseUtils: { connection, owner, tokenAccounts, allTokenAccounts }
       })
     }
-    // eslint-disable-next-line no-console
-    console.info('tx transactions: ', toHumanReadable(innerTransactions))
 
     const composedOwner = owner ?? options?.forceKeyPairs?.ownerKeypair.publicKey
     assert(composedOwner, 'no owner provided')
@@ -293,7 +291,9 @@ export default async function txHandler(customizedTxAction: TxFn, options?: Hand
   } catch (error) {
     const { logError } = useNotification.getState()
     console.warn(error)
-    const errorTitle = (singleTxOptions?.[0]?.txHistoryInfo?.title ?? '') + ' Error' // assume first instruction's txHistoryInfo is same as the second one
+    const errorTitle =
+      singleTxOptions?.[0]?.txHistoryInfo?.forceErrorTitle ??
+      (singleTxOptions?.[0]?.txHistoryInfo?.title ?? '') + ' Error' // assume first instruction's txHistoryInfo is same as the second one
     const systemErrorDescription = error instanceof Error ? noTailingPeriod(error.message) : String(error)
     const userErrorDescription = shrinkToValue(singleTxOptions?.[0]?.txErrorNotificationDescription, [error]) as
       | string
@@ -340,13 +340,13 @@ export function isVersionedTransaction(
   return isObject(transaction) && 'version' in transaction
 }
 
-export function serialize(transaction: Transaction | VersionedTransaction, cache: boolean) {
+export function serialize(transaction: Transaction | VersionedTransaction, options?: { cache?: boolean }) {
   const key = isVersionedTransaction(transaction) ? transaction.message.recentBlockhash : transaction.recentBlockhash
   if (key && txSerializeCache.has(key)) {
     return txSerializeCache.get(key)!
   } else {
     const serialized = transaction.serialize()
-    if (key && cache) txSerializeCache.set(key, serialized)
+    if (key && options?.cache) txSerializeCache.set(key, serialized)
     return serialized
   }
 }
@@ -414,6 +414,21 @@ async function dealWithMultiTxOptions({
           txVersion: payload.txVersion,
           transactions: formatedTransactionsPairs
         })
+
+        // TEMP
+        // eslint-disable-next-line no-console
+        console.info(
+          'tx transactions: ',
+          toHumanReadable(tt),
+          tt.map((i) =>
+            i
+              .serialize({
+                requireAllSignatures: false,
+                verifySignatures: false
+              })
+              .toString('base64')
+          )
+        )
 
         // const allSignedTransactions = await options.payload.signAllTransactions(options.transactions)
         const allSignedTransactions = await (payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions

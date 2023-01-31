@@ -17,8 +17,13 @@ import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalcula
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import {
-  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOL_BASE_BALANCE,
-  SOLDecimals, toUITokenAmount, WSOLMint
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  QuantumSOLVersionSOL,
+  QuantumSOLVersionWSOL,
+  SOLDecimals,
+  SOL_BASE_BALANCE,
+  toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -45,7 +50,6 @@ import Tooltip from '@/components/Tooltip'
 import { addItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
-import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
@@ -61,6 +65,10 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
+import { NewCompensationBanner } from './pools'
+import { toUTC } from '@/functions/date/dateFormat'
+import parseDuration from '@/functions/date/parseDuration'
+import useConnection from '@/application/connection/useConnection'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -80,7 +88,7 @@ export default function Swap() {
   return (
     <SwapUIContextProvider>
       <SwapEffect />
-      <PageLayout mobileBarTitle="Swap" metaTitle="Swap - Raydium">
+      <PageLayout mobileBarTitle="Swap" metaTitle="Swap - Raydium" contentBanner={<NewCompensationBanner />}>
         <SwapHead />
         <SwapCard />
         {/* <UnwrapWSOL /> */}
@@ -123,18 +131,31 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
       title: 'Confirm Token',
       description: (
         <div className="space-y-2 text-left">
-          <p>This token doesn’t appear on the default token list. Confirm this is the token that you want to trade.</p>
+          <p className="text-center">
+            This token doesn’t appear on the default token list. Confirm this is the token that you want to trade.
+          </p>
 
-          <Row className="justify-between items-center w-fit mx-auto gap-2">
+          <Row className="justify-center items-center gap-2 my-4 bg-[#141041] rounded py-3 w-full">
             <CoinAvatar token={downCoin} />
             <div className="font-semibold">{downCoin?.symbol}</div>
             <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
               {downCoin?.mint}
             </AddressItem>
           </Row>
+          {downCoin && isFreezedToken(downCoin) && (
+            <div>
+              <div className="text-center my-4 text-[#FED33A] font-bold">Freeze Authority Warning</div>
+              <div className="text-center my-2  text-xs text-[#FED33A]">
+                This token has freeze authority enabled and could
+                <br />
+                prevent you from transferring or trading the token later.
+              </div>
+            </div>
+          )}
         </div>
       ),
-      onlyConfirmButton: true,
+      confirmButtonIsMainButton: true,
+      cancelButtonText: 'Cancel',
       confirmButtonText: 'Confirm',
       onConfirm: () => {
         setHasUserTemporaryConfirmed(true)
@@ -217,15 +238,33 @@ function SwapCard() {
   const coin2 = useSwap((s) => s.coin2)
   const coin1Amount = useSwap((s) => s.coin1Amount)
   const coin2Amount = useSwap((s) => s.coin2Amount)
-  const isCoin1Calculating = useSwap((s) => s.isCoin1Calculating)
-  const isCoin2Calculating = useSwap((s) => s.isCoin2Calculating)
+  const isCoin1CalculateTarget = useSwap((s) => s.isCoin1CalculateTarget)
+  const isCoin2CalculateTarget = useSwap((s) => s.isCoin2CalculateTarget)
+  const isCalculationProcessing = useSwap((s) => s.isCalculationProcessing)
   const directionReversed = useSwap((s) => s.directionReversed)
   const priceImpact = useSwap((s) => s.priceImpact)
   const refreshSwap = useSwap((s) => s.refreshSwap)
   const balances = useWallet((s) => s.balances)
   const preflightCalcResult = useSwap((s) => s.preflightCalcResult)
   const isFindingPool = !preflightCalcResult // finding Pools ...
-  const swapable = useSwap((s) => s.swapable) // Pool not ready
+
+  // -------- pool ready time --------
+  const swapable = useSwap((s) => s.swapable) // Pool not ready (not open yet )
+  const selectedCalcResultPoolStartTimes = useSwap((s) => s.selectedCalcResultPoolStartTimes) // Pool not ready details
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
+  const chainTime = Date.now() + (chainTimeOffset ?? 0)
+  const remainTimeText = useMemo(() => {
+    if (!selectedCalcResultPoolStartTimes) return undefined
+    function getDurationText(val: number) {
+      const duration = parseDuration(val)
+      return `Pool Opens in ${String(duration.days).padStart(2, '0')}D : ${String(duration.hours).padStart(
+        2,
+        '0'
+      )}H : ${String(duration.minutes).padStart(2, '0')}M`
+    }
+    return getDurationText(Math.max(...selectedCalcResultPoolStartTimes.map((i) => i.startTime)) - chainTime)
+  }, [selectedCalcResultPoolStartTimes, chainTime])
+
   const canFindPools = useSwap((s) => s.canFindPools) // Pool not found
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
   const { hasConfirmed, popConfirm: popUnofficialConfirm } = useUnofficialTokenConfirmState()
@@ -322,9 +361,11 @@ function SwapCard() {
             if (coin2 && coin2Amount) swapButtonComponentRef.current?.click?.()
           }}
           token={coin1}
-          value={isCoin1Calculating ? '0' : coin1Amount ? (eq(coin1Amount, 0) ? '' : toString(coin1Amount)) : undefined}
+          value={
+            isCoin1CalculateTarget ? '0' : coin1Amount ? (eq(coin1Amount, 0) ? '' : toString(coin1Amount)) : undefined
+          }
           onUserInput={(value) => {
-            useSwap.setState({ focusSide: 'coin1', coin1Amount: value })
+            useSwap.setState({ focusSide: 'coin1', coin1Amount: value, isCalculationProcessing: true })
           }}
         />
 
@@ -386,9 +427,11 @@ function SwapCard() {
             if (coin1 && coin1Amount) swapButtonComponentRef.current?.click?.()
           }}
           token={coin2}
-          value={isCoin2Calculating ? '0' : coin2Amount ? (eq(coin2Amount, 0) ? '' : toString(coin2Amount)) : undefined}
+          value={
+            isCoin2CalculateTarget ? '0' : coin2Amount ? (eq(coin2Amount, 0) ? '' : toString(coin2Amount)) : undefined
+          }
           onUserInput={(value) => {
-            useSwap.setState({ focusSide: 'coin2', coin2Amount: value })
+            useSwap.setState({ focusSide: 'coin2', coin2Amount: value, isCalculationProcessing: true })
           }}
         />
       </div>
@@ -470,16 +513,16 @@ function SwapCard() {
               fallbackProps: { children: 'Pool Not Found' }
             },
             {
-              should: swapable,
-              fallbackProps: { children: 'Pool Not Ready' }
+              should: !remainTimeText,
+              fallbackProps: { children: remainTimeText }
             },
             {
-              should:
-                upCoinAmount &&
-                isMeaningfulNumber(upCoinAmount) &&
-                downCoinAmount &&
-                isMeaningfulNumber(downCoinAmount),
+              should: upCoinAmount && isMeaningfulNumber(upCoinAmount),
               fallbackProps: { children: 'Enter an amount' }
+            },
+            {
+              should: isCalculationProcessing || !eq(downCoinAmount, 0),
+              fallbackProps: { children: 'Swap Amount Too Small' }
             },
             {
               should: haveEnoughUpCoin,
@@ -516,7 +559,7 @@ function SwapCard() {
             if (!areSameToken(coin1, token)) {
               useSwap.setState({
                 coin1: token,
-                [directionReversed ? 'isCoin1Calculating' : 'isCoin2Calculating']: true
+                [directionReversed ? 'isCoin1CalculateTarget' : 'isCoin2CalculateTarget']: true
               })
               if (!areTokenPairSwapable(token, coin2)) {
                 useSwap.setState({ coin2: undefined })
@@ -526,7 +569,7 @@ function SwapCard() {
             if (!areSameToken(coin2, token)) {
               useSwap.setState({
                 coin2: token,
-                [directionReversed ? 'isCoin1Calculating' : 'isCoin2Calculating']: true
+                [directionReversed ? 'isCoin1CalculateTarget' : 'isCoin2CalculateTarget']: true
               })
               if (!areTokenPairSwapable(token, coin1)) {
                 useSwap.setState({ coin1: undefined })
@@ -703,6 +746,10 @@ function RemainSOLAlert() {
   )
 }
 
+function isFreezedToken(token: SplToken): boolean {
+  return Boolean(token.hasFreeze)
+}
+
 function SwapCardPriceIndicator({ className }: { className?: string }) {
   const [innerReversed, setInnerReversed] = useState(false)
 
@@ -778,6 +825,7 @@ function SwapCardInfo({ className }: { className?: string }) {
   const fee = useSwap((s) => s.fee)
   const maxSpent = useSwap((s) => s.maxSpent)
   const selectedCalcResult = useSwap((s) => s.selectedCalcResult)
+  const selectedCalcResultPoolStartTimes = useSwap((s) => s.selectedCalcResultPoolStartTimes)
   const currentCalcResult = selectedCalcResult
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
   const getToken = useToken((s) => s.getToken)
@@ -881,6 +929,17 @@ function SwapCardInfo({ className }: { className?: string }) {
                 </Row>
               }
             />
+            {selectedCalcResultPoolStartTimes?.map(({ ammId, poolInfo, startTime }) => (
+              <SwapCardItem
+                key={ammId}
+                fieldName={
+                  selectedCalcResult && selectedCalcResult.poolKey.length > 1
+                    ? `Open at (${getToken(poolInfo.baseMint)?.symbol}-${getToken(poolInfo.quoteMint)?.symbol})`
+                    : 'Open at'
+                }
+                fieldValue={toUTC(startTime)}
+              />
+            ))}
             <SwapCardItem
               fieldName="Swap Fee"
               tooltipContent={`Of the 0.25% swap fee, 0.22% goes to LPs and 0.03% is used to buy back RAY.${

@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
+import { useCompensationMoney } from '@/application/compensation/useCompensation'
+import useCompensationMoneyInfoLoader from '@/application/compensation/useCompensationInfoLoader'
 import useFarms from '@/application/farms/useFarms'
 import { isHydratedPoolItemInfo } from '@/application/pools/is'
 import { HydratedPairItemInfo } from '@/application/pools/type'
@@ -20,10 +22,12 @@ import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import FadeInStable, { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import InputBox from '@/components/InputBox'
+import Link from '@/components/Link'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
 import { OpenBookTip } from '@/components/OpenBookTip'
@@ -47,6 +51,7 @@ import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
+import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 
@@ -59,10 +64,67 @@ import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 export default function PoolsPage() {
   usePoolSummeryInfoLoader()
   return (
-    <PageLayout contentButtonPaddingShorter mobileBarTitle="Pools" metaTitle="Pools - Raydium">
+    <PageLayout
+      contentButtonPaddingShorter
+      mobileBarTitle="Pools"
+      metaTitle="Pools - Raydium"
+      contentBanner={<NewCompensationBanner />}
+    >
       <PoolHeader />
       <PoolCard />
     </PageLayout>
+  )
+}
+
+/**
+ * TEMP
+ */
+export function NewCompensationBanner() {
+  useCompensationMoneyInfoLoader()
+  const { hydratedCompensationInfoItems } = useCompensationMoney()
+  const dataListIsFilled = Boolean(hydratedCompensationInfoItems?.length)
+  const hasClaimable = dataListIsFilled && hydratedCompensationInfoItems?.some((i) => i.canClaim)
+  const connected = useWallet((s) => s.connected)
+  const [hasClaimDefaultBanner, setHasClaimDefaultBanner] = useLocalStorageItem<boolean>('has-claim-default-banner', {
+    emptyValue: true
+  })
+  const isClaimableBanner = connected && hasClaimable
+  return (
+    <div>
+      <FadeIn>
+        {isClaimableBanner || hasClaimDefaultBanner ? (
+          <Row className="items-center relative justify-center py-2.5 px-2 bg-[#39D0D833]">
+            <Icon className="text-[#39D0D8]" heroIconName="exclamation-circle" />
+
+            {isClaimableBanner ? (
+              <div className="text-[#fff] text-sm mobile:text-xs px-2">
+                You have LP positions affected by the December 16th exploit. Visit the{' '}
+                <Link href="/claim-portal" className="text-sm mobile:text-xs">
+                  Claim Portal
+                </Link>{' '}
+                for more info.
+              </div>
+            ) : (
+              <div className="text-[#fff] text-sm mobile:text-xs px-2">
+                Phase 1 and part of Phase 2 claims for affected assets due to the recent exploit are live. Visit the{' '}
+                <Link href="/claim-portal" className="text-sm mobile:text-xs">
+                  Claim Portal
+                </Link>{' '}
+                or see <Link href="https://docs.raydium.io/raydium/updates/claim-portal">full details</Link> here.
+              </div>
+            )}
+
+            {hasClaimDefaultBanner && !isClaimableBanner && (
+              <Icon
+                className="text-[#fff] cursor-pointer absolute right-4 "
+                heroIconName="x"
+                onClick={() => setHasClaimDefaultBanner(false)}
+              />
+            )}
+          </Row>
+        ) : undefined}
+      </FadeIn>
+    </div>
   )
 }
 
@@ -117,7 +179,7 @@ function PoolStakedOnlyBlock() {
   return (
     <Row className="justify-self-end mobile:justify-self-auto items-center">
       <span className="text-[rgba(196,214,255,0.5)] font-medium text-sm mobile:text-xs whitespace-nowrap">
-        Show Staked
+        My Liquidity
       </span>
       <Switcher
         className="ml-2"
@@ -1081,8 +1143,8 @@ function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
           <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
           <Tooltip.Panel>
             <div className="max-w-[300px]">
-              This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
-              want to transact with.{' '}
+              This token does not currently have a ticker symbol. Check to ensure it is the token you want to interact
+              with.{' '}
               <span
                 style={{ color: '#abc4ff', cursor: 'pointer' }}
                 onClick={() => {

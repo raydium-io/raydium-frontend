@@ -42,7 +42,16 @@ function WalletSelectorPanelItem({
       } clickable clickable-filter-effect`}
       // TODO disable status
       onClick={() => {
-        if (wallet.readyState !== WalletReadyState.Installed && !extensionMap[wallet.adapter.name].autoHandle) {
+        // eslint-disable-next-line no-console
+        console.log(
+          'wallet.adapter.name',
+          wallet.adapter.name,
+          'extensionMap[wallet.adapter.name]',
+          extensionMap[wallet.adapter.name],
+          Object.keys(extensionMap),
+          wallet.readyState
+        )
+        if (wallet.readyState !== WalletReadyState.Installed && !extensionMap[wallet.adapter.name]?.autoHandle) {
           logInfo(
             'Wallet installation required ',
             <div>
@@ -64,12 +73,12 @@ function WalletSelectorPanelItem({
                   ''
                 )}
                 <br />
-                {extensionMap[wallet.adapter.name][getPlatformInfo()?.browserName] ? (
+                {extensionMap[wallet.adapter.name]?.[getPlatformInfo()?.browserName ?? ''] ? (
                   <>
                     or use the{' '}
                     {getPlatformInfo()?.isAndroid || getPlatformInfo()?.isIOS ? (
                       <a
-                        href={extensionMap[wallet.adapter.name][getPlatformInfo()?.browserName]}
+                        href={extensionMap[wallet.adapter.name]?.[getPlatformInfo()?.browserName ?? '']}
                         rel="noreferrer"
                         style={{ color: 'white', textDecoration: 'underline' }}
                         target="_blank"
@@ -78,7 +87,7 @@ function WalletSelectorPanelItem({
                       </a>
                     ) : (
                       <a
-                        href={extensionMap[wallet.adapter.name][getPlatformInfo()?.browserName]}
+                        href={extensionMap[wallet.adapter.name]?.[getPlatformInfo()?.browserName ?? '']}
                         rel="noreferrer"
                         style={{ color: 'white', textDecoration: 'underline' }}
                         target="_blank"

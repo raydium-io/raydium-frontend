@@ -1,7 +1,7 @@
 import { PublicKey } from '@solana/web3.js'
 
-import produce from 'immer'
 import { Price, PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
+import produce from 'immer'
 import create from 'zustand'
 
 import { addItem, removeItem, shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -12,6 +12,7 @@ import { HexAddress, SrcAddress } from '@/types/constants'
 
 import useWallet from '../wallet/useWallet'
 
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import {
   isQuantumSOL,
   isQuantumSOLVersionSOL,
@@ -23,8 +24,9 @@ import {
   WSOLMint
 } from './quantumSOL'
 import { LpToken, SplToken, TokenJson } from './type'
+import { createSplToken } from './useTokenListsLoader'
 import { RAYMint, SOLMint } from './wellknownToken.config'
-import { isMintEqual } from '@/functions/judgers/areEqual'
+import { verifyToken } from './getOnlineTokenInfo'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
@@ -50,7 +52,21 @@ export type TokenStore = {
    * exact mode: 'so111111112' will be QSOL-WSOL\
    * support both spl and lp
    */
-  getToken(mint: PublicKeyish | undefined, options?: { /* no QuantumSOL */ exact?: boolean }): SplToken | undefined
+  getToken(
+    mint: PublicKeyish | undefined,
+    options?: {
+      /* no QuantumSOL */
+      exact?: boolean
+      /** sometimes don't use auto createSplToken is better*/
+      noCustomToken?: boolean
+      /**
+       * have default token
+       * default decimal is 6
+       * default symbol is first 6 letters of mint
+       */
+      customTokenInfo?: Parameters<typeof createSplToken>[0]
+    }
+  ): SplToken | undefined
 
   // /**  noQuantumSOL*/
   // /** can only get token in tokenList */
@@ -82,7 +98,7 @@ export type TokenStore = {
   toggleFlaggedToken(token: SplToken): void
   allSelectableTokens: SplToken[]
   addUserAddedToken(token: SplToken): void
-  deleteUserAddedToken(token: SplToken): void
+  deleteUserAddedToken(tokenMint: PublicKeyish): void
   editUserAddedToken(tokenInfo: { symbol: string; name: string }, mint: PublicKey): void
   tokenListSettings: {
     [N in SupportedTokenListSettingName]: {
@@ -134,7 +150,16 @@ export const useToken = create<TokenStore>((set, get) => ({
   // lpToken have not SOL, no need pure and verbose
   lpTokens: {},
 
-  getToken(mint: PublicKeyish | undefined, options?: { exact?: boolean }) {
+  getToken(
+    mint: PublicKeyish | undefined,
+    options?: {
+      exact?: boolean
+      /** sometimes don't use auto createSplToken is better*/
+      noCustomToken?: boolean
+      /** have default token */
+      customTokenInfo?: Parameters<typeof createSplToken>[0]
+    }
+  ) {
     /** exact mode: 'so111111112' will be QSOL-WSOL 'sol' will be QSOL-SOL */
     if (mint === SOLUrlMint || isMintEqual(mint, SOLMint) || (!options?.exact && isMintEqual(mint, WSOLMint))) {
       return QuantumSOLVersionSOL
@@ -142,9 +167,43 @@ export const useToken = create<TokenStore>((set, get) => ({
     if (options?.exact && isMintEqual(mint, WSOLMint)) {
       return QuantumSOLVersionWSOL
     }
-    return (
-      get().tokens[toPubString(mint)] ?? get().userAddedTokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)]
-    )
+
+    // if not exist, see this as userAddedTokens
+    const token = (() => {
+      const hasLoadedLpTokens = Object.keys(get().lpTokens).length > 1
+      const APIToken = get().tokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)] // <-- fixme
+      const customizedToken = get().userAddedTokens[toPubString(mint)]
+      const originalToken = APIToken ?? customizedToken
+      try {
+        // 💩 temporary delete auto-customized token to improve performance
+        // if (!originalToken && hasLoadedLpTokens && !options?.noCustomToken) {
+        //   const token = createSplToken(
+        //     Object.assign(
+        //       {
+        //         mint: toPubString(mint),
+        //         decimals: 6,
+        //         symbol: toPubString(mint).slice(0, 6)
+        //       },
+        //       options?.customTokenInfo ?? {}
+        //     )
+        //   )
+        //   get().addUserAddedToken(token)
+        //   return token
+        // } else {
+        //   // if (originalToken && get().userAddedTokens[toPubString(mint)]) get().deleteUserAddedToken(originalToken)
+        // }
+        // if (customizedToken && APIToken && hasLoadedLpTokens) {
+        //   setTimeout(() => {
+        //     get().deleteUserAddedToken(originalToken.mint)
+        //   }, 0)
+        // }
+        return originalToken
+      } catch {
+        return originalToken
+      }
+    })()
+
+    return token
   },
 
   getLpToken: (mint) => get().lpTokens[toPubString(mint)],
@@ -165,7 +224,9 @@ export const useToken = create<TokenStore>((set, get) => ({
   blacklist: [],
 
   userAddedTokens: {},
-  addUserAddedToken: (token: SplToken) => {
+  addUserAddedToken: async (rawToken: SplToken) => {
+    const isFreezed = await verifyToken(rawToken.mint)
+    const token = Object.assign(rawToken, { hasFreeze: isFreezed } as Partial<SplToken>)
     set((s) =>
       produce(s, (draft) => {
         if (!draft.userAddedTokens[toPubString(token.mint)]) {
@@ -176,22 +237,23 @@ export const useToken = create<TokenStore>((set, get) => ({
           toPubString(token.mint)
         )
         setLocalItem(
-          'TOKEN_LIST_USER_ADDED_TOKENS',
+          'USER_ADDED_TOKENS',
           Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
         )
       })
     )
   },
-  deleteUserAddedToken: (token: SplToken) => {
+  deleteUserAddedToken: (tokenMint: PublicKeyish) => {
+    const mint = toPubString(tokenMint)
     set((s) =>
       produce(s, (draft) => {
-        delete draft.userAddedTokens[toPubString(token.mint)]
+        delete draft.userAddedTokens[mint]
         draft.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints = removeItem(
           s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].mints ?? new Set<string>(),
-          toPubString(token.mint)
+          mint
         )
         setLocalItem(
-          'TOKEN_LIST_USER_ADDED_TOKENS',
+          'USER_ADDED_TOKENS',
           Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
         )
       })
@@ -203,7 +265,7 @@ export const useToken = create<TokenStore>((set, get) => ({
         draft.userAddedTokens[toPubString(mint)].symbol = tokenInfo.symbol
         draft.userAddedTokens[toPubString(mint)].name = tokenInfo.name ? tokenInfo.name : tokenInfo.symbol
         setLocalItem(
-          'TOKEN_LIST_USER_ADDED_TOKENS',
+          'USER_ADDED_TOKENS',
           Object.values(draft.userAddedTokens).map((t) => omit(t, 'decimals'))
         )
       })

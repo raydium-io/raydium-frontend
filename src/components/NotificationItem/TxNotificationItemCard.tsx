@@ -154,9 +154,9 @@ export function TxNotificationItemCard({
             <div>
               <div className="font-medium text-base mobile:p-0 mobile:text-sm text-white">
                 {wholeItemState === 'success'
-                  ? `${innerTxInfos[0].historyInfo.title} Confirmed!`
+                  ? innerTxInfos[0].historyInfo.forceConfirmedTitle ?? `${innerTxInfos[0].historyInfo.title} Confirmed!`
                   : wholeItemState === 'error'
-                  ? `${innerTxInfos[0].historyInfo.title} Error!`
+                  ? innerTxInfos[0].historyInfo.forceErrorTitle ?? `${innerTxInfos[0].historyInfo.title} Error!`
                   : totalTransactionLength > 1
                   ? `Confirming transactions...(${processedTransactionLength}/${totalTransactionLength})`
                   : `Confirming transaction...`}

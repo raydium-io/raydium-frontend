@@ -75,7 +75,7 @@ export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefO
   }, [_close])
 
   return (
-    <Dialog open={isOpen} onClose={_close}>
+    <Dialog open={isOpen} onClose={close}>
       {({ close: closeDialog }) => (
         <Card
           className={twMerge(
@@ -114,7 +114,9 @@ export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefO
                   </Button>
                 )}
                 <Button
-                  className={`text-[#ABC4FF] ${props.onlyConfirmButton ? 'frosted-glass-skygray' : ''}`}
+                  className={`text-[#ABC4FF] ${props.onlyConfirmButton ? 'frosted-glass-skygray' : ''} text-sm ${
+                    !props.onlyConfirmButton ? '-mb-4' : ''
+                  }`}
                   type="text"
                   onClick={props.confirmButtonIsMainButton ? close : confirm}
                 >

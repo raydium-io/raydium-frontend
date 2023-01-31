@@ -1,8 +1,9 @@
-import React, * as react from 'react'
+import * as react from 'react'
 
-import { twMerge } from 'tailwind-merge'
 import { Fraction } from '@raydium-io/raydium-sdk'
+import { twMerge } from 'tailwind-merge'
 
+import { ConcentratedStore } from '@/application/concentrated/useConcentrated'
 import { SplToken } from '@/application/token/type'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -11,10 +12,10 @@ import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
+import { shakeZero } from '@/functions/numberish/shakeZero'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
-import { ConcentratedStore } from '@/application/concentrated/useConcentrated'
-import { shakeZero } from '@/functions/numberish/shakeZero'
+import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 
 interface Props {
   open: boolean
@@ -32,6 +33,10 @@ interface Props {
   onConfirm?: (close: () => void) => void
   onClose: () => void
 }
+
+const maxAcceptPriceDecimal = 15
+
+const maxSignificantCount = (decimals: number) => Math.min(decimals + 2, maxAcceptPriceDecimal)
 
 export default function CreatePoolPreviewDialog({
   open,
@@ -63,6 +68,18 @@ export default function CreatePoolPreviewDialog({
   const close = react.useCallback(() => {
     onClose()
   }, [onClose])
+
+  const minPrice = toString(position?.min, {
+    decimalLength: maxAcceptPriceDecimal,
+    maxSignificantCount: maxSignificantCount(decimalPlace)
+  })
+  const maxPrice = toString(position?.max, {
+    decimalLength: maxAcceptPriceDecimal,
+    maxSignificantCount: maxSignificantCount(decimalPlace)
+  })
+
+  const minValueDecimalsIsBiggerThan10 = (parseNumberInfo(minPrice).dec?.length ?? 0) > 10
+  const maxValueDecimalsIsBiggerThan10 = (parseNumberInfo(maxPrice).dec?.length ?? 0) > 10
 
   return (
     <Dialog open={open} onClose={close}>
@@ -110,7 +127,7 @@ export default function CreatePoolPreviewDialog({
           <div className="mt-4 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
             <div className="text-sm flex justify-between leading-[18px] mb-2 font-medium mobile:text-xs">
               <span className="flex text-sm leading-[18px] text-secondary-title mr-2">Current Price</span>
-              {currentPrice ? shakeZero(toString(currentPrice, { decimalLength: decimalPlace })) : '0'}{' '}
+              {currentPrice ? shakeZero(toString(currentPrice, { decimalLength: maxAcceptPriceDecimal })) : '0'}{' '}
               {(focusSide === 'coin1' ? coin2 : coin1)?.symbol} per {(focusSide === 'coin1' ? coin1 : coin2)?.symbol}
             </div>
             <div className="flex justify-between mb-3">
@@ -137,14 +154,26 @@ export default function CreatePoolPreviewDialog({
             <div className="flex gap-3">
               <div className="border-1.5 justify-center text-center flex-1 border-light-blue-opacity rounded-xl p-3 mobile:p-2">
                 <span className="text-sm leading-[18px] text-secondary-title">Min Price</span>
-                <div className="text-xl my-3">{toString(position?.min, { decimalLength: decimalPlace })}</div>
+                <div
+                  className={`my-3 ${
+                    minValueDecimalsIsBiggerThan10 ? 'text-lg mobile:text-sm' : 'text-xl mobile:text-base'
+                  }`}
+                >
+                  {minPrice}
+                </div>
                 <div className="text-sm text-[#abc4ff80]">
                   {coin2?.symbol} per {coin1?.symbol}
                 </div>
               </div>
               <div className="border-1.5 justify-center text-center flex-1 border-light-blue-opacity rounded-xl p-3 mobile:p-2">
                 <span className="text-sm leading-[18px] text-secondary-title">Max Price</span>
-                <div className="text-xl my-3">{toString(position?.max, { decimalLength: decimalPlace })}</div>
+                <div
+                  className={`my-3 ${
+                    maxValueDecimalsIsBiggerThan10 ? 'text-lg mobile:text-sm' : 'text-xl mobile:text-base'
+                  }`}
+                >
+                  {maxPrice}
+                </div>
                 <div className="text-sm text-[#abc4ff80]">
                   {coin2?.symbol} per {coin1?.symbol}
                 </div>

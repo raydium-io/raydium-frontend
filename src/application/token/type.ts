@@ -8,6 +8,19 @@ export enum TokenListConfigType {
   LIQUIDITY_V2,
   LIQUIDITY_V3
 }
+
+export interface ApiTokenJson {
+  symbol: string
+  name: string
+  mint: HexAddress
+  decimals: number
+  extensions: {
+    coingeckoId?: string
+  }
+  icon: string
+  hasFreeze: 0 | 1
+}
+
 export interface TokenJson {
   symbol: string
   name: string
@@ -17,6 +30,7 @@ export interface TokenJson {
     coingeckoId?: string
   }
   icon: string
+  hasFreeze?: boolean
 }
 
 export type SplToken = Token & {
@@ -29,6 +43,7 @@ export type SplToken = Token & {
   userAdded?: boolean // only if token is added by user
   symbol?: string // overwrite type Currency readonly limit
   name?: string // overwrite type Currency readonly limit
+  hasFreeze?: boolean
 }
 
 export type LpToken = Token & {
@@ -51,6 +66,7 @@ export interface HydratedTokenJsonInfo {
   decimals: number
   name: string
 
+  hasFreeze?: boolean
   isLp: boolean
   official: boolean
   base?: Token
@@ -64,7 +80,7 @@ export interface HydratedTokenJsonInfo {
 export interface RaydiumTokenListJsonInfo {
   official: TokenJson[]
   unOfficial: TokenJson[]
-  unNamed: Pick<TokenJson, 'mint' | 'decimals'>[]
+  unNamed: Pick<TokenJson, 'mint' | 'decimals' | 'hasFreeze'>[]
   blacklist: HexAddress[]
 }
 

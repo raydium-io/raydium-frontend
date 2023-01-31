@@ -72,6 +72,8 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 
+import { NewCompensationBanner } from '../pools'
+
 export default function FarmsPage() {
   const query = getURLQueryEntry()
   useFarmUrlParser()
@@ -98,6 +100,7 @@ export default function FarmsPage() {
       }}
       contentButtonPaddingShorter
       metaTitle="Farms - Raydium"
+      contentBanner={<NewCompensationBanner />}
     >
       <FarmHeader />
       <FarmCard />
@@ -399,6 +402,12 @@ function FarmCard() {
     () =>
       tabedDataSource
         .filter((i) =>
+          /* no user meaninglessinactive farm*/
+          isHydratedFarmInfo(i)
+            ? !i.isClosedPool || isMintEqual(i.creator, owner) || isMeaningfulNumber(i.ledger?.deposited)
+            : true
+        )
+        .filter((i) =>
           onlySelfFarms && isHydratedFarmInfo(i) ? i.ledger && isMeaningfulNumber(i.ledger.deposited) : true
         ) // Switch
         .filter((i) => (onlySelfCreatedFarms && owner ? isMintEqual(i.creator, owner) && i.version === 6 : true)) // Switch
@@ -536,7 +545,7 @@ function FarmCard() {
     <CyberpunkStyleCard
       haveMinHeight
       wrapperClassName="flex-1 overflow-hidden flex flex-col"
-      className="p-10 pt-6 pb-4 mobile:px-3 mobile:py-3 w-full flex flex-col h-full"
+      className="grow p-10 pt-6 pb-4 mobile:px-3 mobile:py-3 w-full flex flex-col h-full"
     >
       {innerFarmDatabaseWidgets}
       {!isMobile && (
@@ -780,9 +789,9 @@ function FarmPendingRewardBadge({
         )}
 
         {unnamedTokenMints?.has(toPubString(reward.token?.mint)) && (
-          <div className="max-w-[300px] mt-2">
-            This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
-            want to transact with.
+          <div className="max-w-[220px] mt-2">
+            This token does not currently have a ticker symbol. Check to ensure it is the token you want to interact
+            with.
           </div>
         )}
       </Tooltip.Panel>
@@ -1137,8 +1146,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                         forceActive: true,
                         fallbackProps: {
                           children: 'Add Liquidity',
-                          onClick: () =>
-                            routeTo('/liquidity/add', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
+                          onClick: () => routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
                         }
                       }
                     ]}
@@ -1194,8 +1202,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                       forceActive: true,
                       fallbackProps: {
                         children: 'Add Liquidity',
-                        onClick: () =>
-                          routeTo('/liquidity/add', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
+                        onClick: () => routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
                       }
                     }
                   ]}
@@ -1514,6 +1521,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
   const getLpToken = useToken((s) => s.getLpToken)
   const getToken = useToken((s) => s.getToken)
   const isStable = isJsonFarmInfo(info) ? false : info.isStablePool
+  const currentTab = useFarms((s) => s.currentTab)
 
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
   const liquidity = liquidityJsonInfos.find((i) => i.lpMint === info.lpMint)
@@ -1551,6 +1559,33 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
       <Row className="mobile:text-xs font-medium mobile:mt-px mr-1.5">
         <CoinAvatarInfoItemSymbol mint={info.baseMint} />-<CoinAvatarInfoItemSymbol mint={info.quoteMint} />
+        {currentTab === 'Ecosystem' && (
+          <Tooltip>
+            <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
+            <Tooltip.Panel>
+              <div className="max-w-[300px] space-y-1.5">
+                {[info?.baseMint, info?.quoteMint].map((token, idx) =>
+                  token ? (
+                    <Row key={idx} className="gap-2">
+                      {getToken(token) && <CoinAvatar size={'xs'} token={getToken(token)} />}
+                      <AddressItem
+                        className="grow"
+                        showDigitCount={5}
+                        addressType="token"
+                        canCopy
+                        canExternalLink
+                        textClassName="flex text-xs text-[#abc4ff] justify-start "
+                        iconClassName="text-[#abc4ff]"
+                      >
+                        {toPubString(token)}
+                      </AddressItem>
+                    </Row>
+                  ) : null
+                )}
+              </div>
+            </Tooltip.Panel>
+          </Tooltip>
+        )}
       </Row>
       {info.isClosedPool && <Badge cssColor="#DA2EEF">Inactive</Badge>}
       {isStable && <Badge>Stable</Badge>}
@@ -1576,9 +1611,25 @@ function CoinAvatarInfoItemSymbol({ mint }: { mint: PublicKeyish }) {
         <Tooltip>
           <Icon className="cursor-help" size="sm" heroIconName="question-mark-circle" />
           <Tooltip.Panel>
-            <div className="max-w-[300px]">
-              This token does not currently have a ticker symbol. Check the mint address to ensure it is the token you
-              want to transact with.
+            <div className="max-w-[220px]">
+              <div>
+                This token does not currently have a ticker symbol. Check to ensure it is the token you want to interact
+                with.
+              </div>
+
+              <Row className="gap-2 mt-4 w-fit mx-auto">
+                <AddressItem
+                  className="grow"
+                  showDigitCount={8}
+                  addressType="token"
+                  canCopy
+                  canExternalLink
+                  textClassName="flex text-xs text-[#abc4ff]"
+                  iconClassName="text-[#abc4ff]"
+                >
+                  {toPubString(token?.mint)}
+                </AddressItem>
+              </Row>
             </div>
           </Tooltip.Panel>
         </Tooltip>

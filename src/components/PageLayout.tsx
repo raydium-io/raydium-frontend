@@ -63,6 +63,7 @@ export default function PageLayout(props: {
       }
   metaTitle?: string
   children?: ReactNode
+  contentBanner?: ReactNode
   className?: string
   contentClassName?: string
   topbarClassName?: string
@@ -117,22 +118,27 @@ export default function PageLayout(props: {
       )}
       <main
         // always occupy scrollbar space
-        className={twMerge(
-          `PageLayoutContent relative isolate flex-container grid-area-c bg-gradient-to-b from-[#0c0927] to-[#110d36] rounded-tl-3xl mobile:rounded-none p-12 ${
-            props.contentButtonPaddingShorter ?? props.contentYPaddingShorter ? 'pb-4' : ''
-          } ${props.contentTopPaddingShorter ?? props.contentYPaddingShorter ? 'pt-5' : ''} mobile:py-2 mobile:px-3`,
-          props.contentClassName
-        )}
+        className="flex flex-col PageLayoutContent relative grid-area-c bg-gradient-to-b from-[#0c0927] to-[#110d36] rounded-tl-3xl mobile:rounded-none"
         style={{
           overflowX: 'hidden',
           overflowY: 'scroll'
         }}
       >
+        {props.contentBanner}
         {/* do not check ata currently
         <MigrateBubble /> */}
         <VersionTooOldDialog />
         <DisclaimerDialog />
-        {props.children}
+        <div
+          className={twMerge(
+            `grow h-0 isolate flex-container p-12 ${
+              props.contentButtonPaddingShorter ?? props.contentYPaddingShorter ? 'pb-4' : ''
+            } ${props.contentTopPaddingShorter ?? props.contentYPaddingShorter ? 'pt-5' : ''} mobile:py-2 mobile:px-3`,
+            props.contentClassName
+          )}
+        >
+          {props.children}
+        </div>
       </main>
     </div>
   )
@@ -998,7 +1004,7 @@ function RpcConnectionPanelPopover({ close: closePanel }: { close: () => void })
             inputClassName="font-medium text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
             placeholder="https://"
             onUserInput={(searchText) => {
-              useConnection.setState({ userCostomizedUrlText: searchText })
+              useConnection.setState({ userCostomizedUrlText: searchText.trim() })
             }}
             onEnter={() => {
               switchRpc({ url: userCostomizedUrlText }).then((isSuccess) => {

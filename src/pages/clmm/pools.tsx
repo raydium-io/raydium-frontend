@@ -9,10 +9,14 @@ import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
+  HydratedConcentratedInfo,
+  HydratedConcentratedRewardInfo,
+  UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -74,6 +78,8 @@ import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
+import { NewCompensationBanner } from '../pools'
+import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -82,6 +88,7 @@ export default function PoolsConcentratedPage() {
 
   return (
     <PageLayout
+      contentButtonPaddingShorter
       mobileBarTitle={{
         items: [
           { value: PoolsConcentratedTabs.ALL, barLabel: PoolsConcentratedTabs.ALL },
@@ -93,6 +100,7 @@ export default function PoolsConcentratedPage() {
         drawerTitle: 'CONCENTRATED POOLS'
       }}
       metaTitle="Concentrated Pools - Raydium"
+      contentBanner={<NewCompensationBanner />}
     >
       <PoolHeader />
       <PoolCard />
@@ -907,8 +915,8 @@ function PoolCardDatabaseBodyCollapseItemFace({
               )}
               {unnamedTokenMints?.has(toPubString(reward.tokenMint)) && (
                 <div className="max-w-[300px] mt-2">
-                  This token does not currently have a ticker symbol. Check the mint address to ensure it is the token
-                  you want to transact with.
+                  This token does not currently have a ticker symbol. Check to ensure it is the token you want to
+                  interact with.
                 </div>
               )}
             </div>
@@ -1328,6 +1336,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     )
   }, [openNewPosition, isMobile, info])
 
+  console.log('info: ', info)
   return (
     <AutoBox
       is={'Col'}
@@ -1448,6 +1457,14 @@ function PoolCardDatabaseBodyCollapsePositionContent({
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const logInfo = useNotification((s) => s.logInfo)
   const walletConnected = useWallet((s) => s.connected)
+  const isEmptyPosition = p?.amountA?.isZero() && p?.amountB?.isZero()
+
+  const position = useMemo(() => {
+    if (info && p) {
+      return info.positionAccount?.find((p) => toPubString(p.nftMint) === toPubString(p.nftMint))
+    }
+    return undefined
+  }, [info, p])
 
   const rangeTag = useMemo(() => {
     let bgColor = 'bg-[#142B45]'
@@ -1718,20 +1735,48 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                     })
                   }}
                 />
-                <Icon
-                  size="sm"
-                  iconSrc="/icons/pools-remove-liquidity-entry.svg"
-                  className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
-                    p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
-                  }`}
-                  onClick={() => {
-                    useConcentrated.setState({
-                      isRemoveDialogOpen: true,
-                      currentAmmPool: info,
-                      targetUserPositionAccount: p
-                    })
-                  }}
-                />
+                {isEmptyPosition ? (
+                  <Icon
+                    size="sm"
+                    heroIconName="x"
+                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
+                      p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                    }`}
+                    onClick={() => {
+                      useConcentrated.setState({
+                        liquidity: position?.liquidity,
+                        currentAmmPool: info,
+                        targetUserPositionAccount: p
+                      })
+                      setTimeout(() => {
+                        txDecreaseConcentrated({ closePosition: true }).then(({ allSuccess }) => {
+                          if (allSuccess) {
+                            refreshConcentrated()
+                            useConcentrated.setState({
+                              coin1Amount: undefined,
+                              coin2Amount: undefined
+                            })
+                          }
+                        })
+                      }, 10)
+                    }}
+                  />
+                ) : (
+                  <Icon
+                    size="sm"
+                    iconSrc="/icons/pools-remove-liquidity-entry.svg"
+                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
+                      p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                    }`}
+                    onClick={() => {
+                      useConcentrated.setState({
+                        isRemoveDialogOpen: true,
+                        currentAmmPool: info,
+                        targetUserPositionAccount: p
+                      })
+                    }}
+                  />
+                )}
               </Row>
             ) : (
               <>
@@ -1752,23 +1797,54 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                   />
                   <Tooltip.Panel>Add Liquidity</Tooltip.Panel>
                 </Tooltip>
-                <Tooltip>
-                  <Icon
-                    size="smi"
-                    iconSrc="/icons/pools-remove-liquidity-entry.svg"
-                    className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
-                      p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
-                    }`}
-                    onClick={() => {
-                      useConcentrated.setState({
-                        isRemoveDialogOpen: true,
-                        currentAmmPool: info,
-                        targetUserPositionAccount: p
-                      })
-                    }}
-                  />
-                  <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>
-                </Tooltip>
+                {isEmptyPosition ? (
+                  <Tooltip>
+                    <Icon
+                      size="smi"
+                      heroIconName="x"
+                      className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
+                        p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                      }`}
+                      onClick={() => {
+                        useConcentrated.setState({
+                          liquidity: position?.liquidity,
+                          currentAmmPool: info,
+                          targetUserPositionAccount: p
+                        })
+                        setTimeout(() => {
+                          txDecreaseConcentrated({ closePosition: true }).then(({ allSuccess }) => {
+                            if (allSuccess) {
+                              refreshConcentrated()
+                              useConcentrated.setState({
+                                coin1Amount: undefined,
+                                coin2Amount: undefined
+                              })
+                            }
+                          })
+                        }, 10)
+                      }}
+                    />
+                    <Tooltip.Panel>Close Position</Tooltip.Panel>
+                  </Tooltip>
+                ) : (
+                  <Tooltip>
+                    <Icon
+                      size="smi"
+                      iconSrc="/icons/pools-remove-liquidity-entry.svg"
+                      className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
+                        p ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
+                      }`}
+                      onClick={() => {
+                        useConcentrated.setState({
+                          isRemoveDialogOpen: true,
+                          currentAmmPool: info,
+                          targetUserPositionAccount: p
+                        })
+                      }}
+                    />
+                    <Tooltip.Panel>Remove Liquidity</Tooltip.Panel>
+                  </Tooltip>
+                )}
               </>
             )}
           </Row>
@@ -1884,7 +1960,34 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         <Col>
-          <div>{info?.name}</div>
+          <Row className="items-center">
+            <div>{info?.name}</div>
+            <Tooltip>
+              <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
+              <Tooltip.Panel>
+                <div className="max-w-[300px] space-y-1.5">
+                  {[info?.base, info?.quote].map((token, idx) =>
+                    token ? (
+                      <Row key={idx} className="gap-2">
+                        <CoinAvatar size={'xs'} token={token} />
+                        <AddressItem
+                          className="grow"
+                          showDigitCount={5}
+                          addressType="token"
+                          canCopy
+                          canExternalLink
+                          textClassName="flex text-xs text-[#abc4ff] justify-start "
+                          iconClassName="text-[#abc4ff]"
+                        >
+                          {toPubString(token.mint)}
+                        </AddressItem>
+                      </Row>
+                    ) : null
+                  )}
+                </div>
+              </Tooltip.Panel>
+            </Tooltip>
+          </Row>
           <div className="font-medium text-xs text-[#ABC4FF]/50">Fee {toPercentString(info?.tradeFeeRate)}</div>
         </Col>
         {/* Temprary don't */}

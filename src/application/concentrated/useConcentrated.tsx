@@ -1,13 +1,13 @@
+import { AmmV3, ApiAmmV3Point, ReturnTypeFetchMultiplePoolInfos } from '@raydium-io/raydium-sdk'
 import { Keypair, PublicKey, Transaction } from '@solana/web3.js'
+
+import BN from 'bn.js'
+import create from 'zustand'
 
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
 import { getAmmV3ProgramId } from '@/application/token/wellknownProgram.config'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
-import { AmmV3, ApiAmmV3Point, ReturnTypeFetchMultiplePoolInfos } from '@raydium-io/raydium-sdk'
-import BN from 'bn.js'
-import create from 'zustand'
-
 import jFetch from '@/functions/dom/jFetch'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { Numberish } from '@/types/constants'
@@ -15,11 +15,7 @@ import { Numberish } from '@/types/constants'
 import { SplToken } from '../token/type'
 
 import {
-  APIConcentratedInfo,
-  HydratedAmmV3ConfigInfo,
-  HydratedConcentratedInfo,
-  SDKParsedConcentratedInfo,
-  UICLMMRewardInfo,
+  APIConcentratedInfo, HydratedAmmV3ConfigInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo, UICLMMRewardInfo,
   UserPositionAccount
 } from './type'
 
@@ -145,7 +141,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   removeAmount: '',
   loadChartPointsAct: async (poolId: string) => {
     const chartResponse = await jFetch<{ data: ApiAmmV3Point[] }>(
-      `https://api.raydium.io/v2/ammV3/positionLine?pool_id=${poolId}`
+      `https://api.raydium.io/v2/ammV3/positionLine/${poolId}`
     )
 
     const currentAmmPool = get().currentAmmPool

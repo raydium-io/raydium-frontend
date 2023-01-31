@@ -8,7 +8,7 @@ import { useEffect } from 'react'
 import useWallet from './useWallet'
 
 export function useWalletConnectNotifaction() {
-  const { adapter } = useWallet()
+  const { adapter, owner } = useWallet()
   const logWarning = useNotification((s) => s.logWarning)
   const logSuccess = useNotification((s) => s.logSuccess)
   const handleConnect = useEvent((pubkey: PublicKeyish) => {
@@ -27,12 +27,11 @@ export function useWalletConnectNotifaction() {
   })
 
   useEffect(() => {
-    if (adapter && adapter.publicKey) {
-      handleConnect(adapter.publicKey)
+    if (owner) {
+      handleConnect(owner)
     }
-    requestIdleCallback(() => {
-      adapter?.once('connect', handleConnect)
-    })
+  }, [owner])
+  useEffect(() => {
     requestIdleCallback(() => {
       adapter?.once('disconnect', handleDisconnect)
     })
@@ -40,9 +39,6 @@ export function useWalletConnectNotifaction() {
       adapter?.on('error', handleError)
     })
     return () => {
-      requestIdleCallback(() => {
-        adapter?.off('connect')
-      })
       requestIdleCallback(() => {
         adapter?.off('disconnect')
       })

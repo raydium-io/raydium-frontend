@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo } from 'react'
+import React, { ReactNode, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
 
 import { twMerge } from 'tailwind-merge'
@@ -48,6 +48,7 @@ function PanelContent({ close }: { close(): void }) {
   const currentStep = useCreatePool((s) => s.currentStep)
   const setCurrentStep = useCreatePool((s) => s.setCurrentStep)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const [isLoading, setIsLoading] = useState(false)
 
   const {
     marketId,
@@ -74,6 +75,7 @@ function PanelContent({ close }: { close(): void }) {
       />
       <Button
         className="frosted-glass-teal w-full"
+        isLoading={isLoading}
         validators={[
           { should: Boolean(marketId) },
           {
@@ -86,9 +88,12 @@ function PanelContent({ close }: { close(): void }) {
           }
         ]}
         onClick={() => {
-          updateCreatePoolInfo({ marketId: marketId! }).then(({ isSuccess }) => {
-            if (isSuccess) setCurrentStep(2)
-          })
+          setIsLoading(true)
+          updateCreatePoolInfo({ marketId: marketId! })
+            .then(({ isSuccess }) => {
+              if (isSuccess) setCurrentStep(2)
+            })
+            .finally(() => setIsLoading(false))
         }}
       >
         Confirm

@@ -4,7 +4,7 @@ import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
-import { getOnlineTokenInfo } from '@/application/token/getOnlineTokenInfo'
+import { getOnlineTokenInfo, verifyToken } from '@/application/token/getOnlineTokenInfo'
 import {
   isQuantumSOL,
   isQuantumSOLVersionSOL,
@@ -34,12 +34,16 @@ import toPubString from '@/functions/format/toMintString'
 import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import useToggle from '@/hooks/useToggle'
+import { useEvent } from '@/hooks/useEvent'
+import { AddressItem } from '@/components/AddressItem'
+import { toString } from '@/functions/numberish/toString'
 
 export type TokenSelectorProps = {
   open: boolean
   onClose?: () => void
   onSelectToken?: (token: SplToken) => unknown
   disableTokens?: (SplToken | PublicKeyish)[]
+  turnOnTokenVerification?: boolean // for prevent user select rubbish token
   enableTokens?: SplToken[]
   /**
    * if it select WSOL it can also select SOL, if it select SOL, can also select WSOL\
@@ -67,6 +71,7 @@ function TokenSelectorDialogContent({
   onClose: closePanel,
   onSelectToken,
   enableTokens,
+  turnOnTokenVerification,
   disableTokens,
   canSelectQuantumSOL
 }: TokenSelectorProps) {
@@ -82,10 +87,24 @@ function TokenSelectorDialogContent({
   // used for if panel is not tokenList but tokenlistList
   const [currentTabIsTokenList, { off, on }] = useToggle()
 
-  const closeAndClean = useCallback(() => {
+  const closeAndClean = useEvent(() => {
     setSearchText('')
     closePanel?.()
-  }, [])
+  })
+  const selectToken = useEvent(async (splToken: SplToken) => {
+    const isAPIToken =
+      tokenListSettings['Raydium Token List'][toPubString(splToken.mint)] ||
+      tokenListSettings['Solana Token List'][toPubString(splToken.mint)]
+    const canSelect = turnOnTokenVerification && !isAPIToken ? await verifyToken(splToken.mint) : true
+    if (canSelect) {
+      onSelectToken?.(splToken)
+      setTimeout(() => {
+        closeAndClean()
+      }, 200) // delay: give user some time to reflect the change
+    } else {
+      closeAndClean()
+    }
+  })
 
   function isTokenDisabled(candidateToken: SplToken): boolean {
     if (enableTokens) return !enableTokens.some((token) => token.mint.equals(candidateToken.mint))
@@ -184,8 +203,7 @@ function TokenSelectorDialogContent({
             >
               <TokenSelectorDialogTokenItem
                 onClick={() => {
-                  closeAndClean()
-                  onSelectToken?.(token)
+                  selectToken(token)
                 }}
                 token={token}
               />
@@ -194,7 +212,7 @@ function TokenSelectorDialogContent({
         )}
       />
     ),
-    [searchedTokens, selectedTokenIdx, onSelectToken, closeAndClean, setSelectedTokenIdx]
+    [searchedTokens, selectedTokenIdx, setSelectedTokenIdx]
   )
   const connected = useWallet((s) => s.connected)
 
@@ -202,6 +220,7 @@ function TokenSelectorDialogContent({
     if (!info.symbol) return
     const { addUserAddedToken } = useToken.getState()
     const decimals = onlineTokenMintInfo?.decimals
+    const hasFreeze = Boolean(onlineTokenMintInfo?.freezeAuthorityOption)
     if (!onlineTokenMintInfo || decimals === undefined) {
       logWarning(`the mint address is invalid`)
       return
@@ -213,7 +232,8 @@ function TokenSelectorDialogContent({
       icon: '',
       extensions: {},
       name: info.name ? info.name.slice(0, 16) : info.symbol.slice(0, 8),
-      userAdded: true
+      userAdded: true,
+      hasFreeze
     })
     addUserAddedToken(newToken)
   }
@@ -228,10 +248,7 @@ function TokenSelectorDialogContent({
           } else if (e.key === 'ArrowDown') {
             setSelectedTokenIdx((s) => Math.min(s + 1, searchedTokens.length - 1))
           } else if (e.key === 'Enter') {
-            onSelectToken?.(searchedTokens[selectedTokenIdx])
-            setTimeout(() => {
-              closeAndClean()
-            }, 200) // delay: give user some time to reflect the change
+            selectToken(searchedTokens[selectedTokenIdx])
           }
         }
       }}
@@ -295,8 +312,7 @@ function TokenSelectorDialogContent({
                     }`}
                     onClick={() => {
                       if (token && isTokenDisabled(token)) return
-                      closeAndClean()
-                      if (token && onSelectToken) onSelectToken(token)
+                      if (token) selectToken(token)
                     }}
                   >
                     <CoinAvatar size={isMobile ? 'xs' : 'sm'} token={token} />
@@ -312,7 +328,9 @@ function TokenSelectorDialogContent({
           <Col className="flex-1 overflow-hidden border-b-1.5 py-3 border-[rgba(171,196,255,0.2)]">
             <Row className="px-8 mobile:px-6 justify-between">
               <div className="text-xs font-medium text-[rgba(171,196,255,.5)]">Token</div>
-              <Row className="text-xs font-medium text-[rgba(171,196,255,.5)] items-center gap-1">Balance</Row>
+              <Row className="text-xs font-medium text-[rgba(171,196,255,.5)] items-center gap-1">
+                Balance / Address
+              </Row>
             </Row>
             {haveSearchResult ? (
               cachedTokenList
@@ -368,7 +386,8 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
   const userFlaggedTokenMints = useToken((s) => s.userFlaggedTokenMints)
   const canFlaggedTokenMints = useToken((s) => s.canFlaggedTokenMints)
   const userAddedTokens = useToken((s) => s.userAddedTokens)
-  const isUserAddedToken = Boolean(userAddedTokens[toPubString(token.mint)])
+  const tokens = useToken((s) => s.tokens)
+  const isUserAddedToken = Boolean(userAddedTokens[toPubString(token.mint)] && !tokens[toPubString(token.mint)])
   const toggleFlaggedToken = useToken((s) => s.toggleFlaggedToken)
   const deleteUserAddedToken = useToken((s) => s.deleteUserAddedToken)
   const editUserAddedToken = useToken((s) => s.editUserAddedToken)
@@ -384,20 +403,35 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
     name: token.name || ''
   })
 
+  const balance = getBalance(token)
   return (
     <div className="group w-full">
-      <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2 ">
+      <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2">
         <Row>
           <CoinAvatar token={token} className="mr-2" />
           <Col className="mr-2">
-            <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
-              {token.symbol}
-            </div>
+            <Row>
+              <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
+                {token.symbol}
+              </div>
+              {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+                <Row
+                  onClick={(ev) => {
+                    deleteUserAddedToken(token.mint)
+                    ev.stopPropagation()
+                  }}
+                  className="group-hover:flex hidden items-center text-sm mobile:text-xs text-[rgba(57,208,216,1)] font-medium flex-nowrap px-2 gap-1"
+                >
+                  <Icon className="w-4 h-4" iconClassName="w-4 h-4" iconSrc="/icons/delete-token.svg" />
+                  <div className="whitespace-nowrap">Delete Token</div>
+                </Row>
+              ) : null}
+            </Row>
             <div className="text-xs  max-w-[12em] overflow-hidden text-ellipsis whitespace-nowrap  font-medium text-[rgba(171,196,255,.5)]">
               {token.name}
             </div>
           </Col>
-          {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+          {/* {canFlaggedTokenMints.has(toPubString(token.mint)) ? (
             <div
               onClick={(ev) => {
                 toggleFlaggedToken(token)
@@ -407,12 +441,12 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
             >
               {userFlaggedTokenMints.has(toPubString(token.mint)) ? '[Remove Token]' : '[Add Token]'}
             </div>
-          ) : null}
-          {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
+          ) : null} */}
+          {/* {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
             <>
               <div
                 onClick={(ev) => {
-                  deleteUserAddedToken(token)
+                  deleteUserAddedToken(token.mint)
                   ev.stopPropagation()
                 }}
                 className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
@@ -436,13 +470,32 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                 setShowUpdateCustomSymbol((p) => !p)
                 ev.stopPropagation()
               }}
-              className="group-hover:visible invisible inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
+              className="group-hover:visible invisible mobile:group-hover:block mobile:hidden inline-block text-sm mobile:text-xs text-[rgba(57,208,216,1)]  p-2 "
             >
               [Edit Token]
             </div>
-          ) : null}
+          ) : null} new 🚑 no need */}
         </Row>
-        <div className="text-sm text-[#ABC4FF] justify-self-end">{getBalance(token)?.toExact?.()}</div>
+        <Col className="self-stretch items-end">
+          {balance && (
+            <div className="grow  text-sm text-[#ABC4FF] justify-self-end">
+              {toString(balance?.toExact?.(), { decimalLength: 'auto 2' })}
+            </div>
+          )}
+          <AddressItem
+            className="grow"
+            showDigitCount={5}
+            addressType="token"
+            showCopyIcon={false}
+            canExternalLink
+            iconSize={'sm'}
+            textClassName="flex leading-[normal] text-2xs self-center px-1.5 py-0.5 border border-[#abc4ff] rounded-sm text-[#abc4ff] justify-center"
+            iconClassName="text-[#abc4ff]"
+            iconRowClassName="ml-1.5 gap-0.5"
+          >
+            {toPubString(token.mint)}
+          </AddressItem>
+        </Col>
       </Row>
       {showUpdateInfo && (
         <Col className="p-1  gap-4">

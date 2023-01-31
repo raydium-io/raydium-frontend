@@ -54,7 +54,9 @@ export function toKebabCase(str: string) {
  * 'hello_World' => 'hello world'
  */
 export function toSentenceCase(str: string) {
-  return _parseString(str).join(' ')
+  const list = _parseString(str)
+  const [first, ...tail] = list
+  return [capitalize(first), ...tail].join(' ')
 }
 
 /**
@@ -118,7 +120,7 @@ export function uncapitalize(str: string): Capitalize<string> {
 export default function changeCase(
   str: string,
   options: {
-    to: 'camelCase' | 'PascalCase' | 'kebab-case' | 'snake_case' | 'CONSTANT_CASE'
+    to: 'camelCase' | 'PascalCase' | 'kebab-case' | 'snake_case' | 'CONSTANT_CASE' | 'Sentence case'
   }
 ): string {
   switch (options.to) {
@@ -132,5 +134,7 @@ export default function changeCase(
       return toSnakeCase(str)
     case 'CONSTANT_CASE':
       return toConstantCase(str)
+    case 'Sentence case':
+      return toSentenceCase(str)
   }
 }

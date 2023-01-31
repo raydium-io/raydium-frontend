@@ -14,7 +14,7 @@ import useConcentratedAmmSelector from '@/application/concentrated/useConcentrat
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import useConcentratedLiquidityUrlParser from '@/application/concentrated/useConcentratedLiquidityUrlParser'
-import { routeBack, routeBackTo, routeTo } from '@/application/routeTools'
+import { routeBackTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
@@ -35,10 +35,10 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
 import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { formatDecimal } from '@/functions/numberish/formatDecimal'
-import { div, sub } from '@/functions/numberish/operations'
+import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
+import { div, mul, sub } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
@@ -131,6 +131,7 @@ function ConcentratedEffects() {
 }
 
 function ConcentratedCard() {
+  const getBalance = useWallet((s) => s.getBalance)
   const [chartPoints, loadChartPointsAct, lazyLoadChart] = useConcentrated((s) => [
     s.chartPoints,
     s.loadChartPointsAct,
@@ -454,8 +455,14 @@ function ConcentratedCard() {
                 componentRef={coinInputBox1ComponentRef}
                 value={currentAmmPool ? toString(coin1Amount) : undefined}
                 haveHalfButton
+                HTMLTitleTooltip={toPubString(coin1?.mint)}
+                topLeftLabel={
+                  coin1 ? `${toPubString(coin1.mint).slice(0, 5)}...${toPubString(coin1.mint).slice(-5)}` : undefined
+                }
                 haveCoinIcon
-                topLeftLabel=""
+                maxValue={
+                  coin1 ? toTokenAmount(coin1, mul(getBalance(coin1), 0.985), { alreadyDecimaled: true }) : undefined
+                }
                 onPriceChange={updatePrice1}
                 onTryToTokenSelect={() => {
                   turnOnCoinSelector()
@@ -481,9 +488,15 @@ function ConcentratedCard() {
                 disabledInput={!currentAmmPool || coin2InputDisabled}
                 noDisableStyle
                 value={currentAmmPool ? toString(coin2Amount) : undefined}
+                HTMLTitleTooltip={toPubString(coin2?.mint)}
+                topLeftLabel={
+                  coin2 ? `${toPubString(coin2.mint).slice(0, 5)}...${toPubString(coin2.mint).slice(-5)}` : undefined
+                }
                 haveHalfButton
                 haveCoinIcon
-                topLeftLabel=""
+                maxValue={
+                  coin2 ? toTokenAmount(coin2, mul(getBalance(coin2), 0.985), { alreadyDecimaled: true }) : undefined
+                }
                 onPriceChange={updatePrice2}
                 onTryToTokenSelect={() => {
                   turnOnCoinSelector()

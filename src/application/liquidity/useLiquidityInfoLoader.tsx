@@ -121,7 +121,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
       const recordedHydratedInfos = hydratedInfos.map((i) => {
         getUserTokenEvenNotExist(i.baseMint)
         getUserTokenEvenNotExist(i.quoteMint)
-        return hydrateLiquidityInfo(i, {
+        return hydrateLiquidityInfo(i.sdkInfo, {
           getToken,
           getLpToken,
           lpBalance: pureRawBalances[toPubString(i.lpMint)]

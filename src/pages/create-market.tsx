@@ -19,9 +19,13 @@ import { toString } from '@/functions/numberish/toString'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { ReactNode, useState } from 'react'
 
-export default function SettingsPage() {
+/**
+ * temporary create-market page
+ */
+
+export default function CreateMarketPage() {
   return (
-    <PageLayout mobileBarTitle="Settings" metaTitle="Settings - Raydium" contentButtonPaddingShorter>
+    <PageLayout mobileBarTitle="Create Market" metaTitle="Create Market - Raydium" contentButtonPaddingShorter>
       <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white mb-4">
         Create OpenBook Market
       </div>
@@ -45,12 +49,14 @@ function InputCreateMarketCard() {
     <Col className="gap-8 mx-auto w-[min(800px,100%)]">
       <Fieldset
         name="OpenBook Program id"
-        renderFormItem={<Input disabled className="pointer-events-none" value={programId} />}
+        renderFormItem={<Input disabled className="pointer-events-none mobile:text-xs" value={programId} />}
       />
       <Fieldset
         name="Select tokens"
         renderFormItem={
-          <Grid className={`grid-cols-2 ${newCreatedMarketId ? 'opacity-50 pointer-events-none' : ''} gap-4`}>
+          <Grid
+            className={`grid-cols-2 ${newCreatedMarketId ? 'opacity-50 pointer-events-none' : ''} gap-4 mobile:gap-2`}
+          >
             <SelectTokenInputBox
               title="Base Token"
               tokenKey="baseToken"
@@ -90,7 +96,7 @@ function InputCreateMarketCard() {
         }
       />
       <Fieldset
-        name="Minimum price ticket size"
+        name="Minimum price tick size"
         tooltip="This is the smallest amount by which prices can move. For a SOL/USDC market, this would be in units of USDC, a.k.a. the price increment."
         renderFormItem={
           <Input
@@ -153,9 +159,10 @@ function InputCreateMarketCard() {
 }
 
 function Fieldset({ name, tooltip, renderFormItem }: { name: string; tooltip?: string; renderFormItem: ReactNode }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
-    <Grid className="grid-cols-[18em,1fr] gap-8">
-      <Row className="justify-self-end items-center">
+    <Grid className="grid-cols-[18em,1fr] mobile:grid-cols-1 gap-8 mobile:gap-4">
+      <Row className="justify-self-end mobile:justify-self-start items-center">
         <div className="text-lg mobile:text-sm text-[#abc4ff]">{name}</div>
         {tooltip && (
           <Tooltip panelClassName="bg-[#3b4146]" arrowClassName="bg-[#3b4146]">
@@ -165,7 +172,7 @@ function Fieldset({ name, tooltip, renderFormItem }: { name: string; tooltip?: s
             </Tooltip.Panel>
           </Tooltip>
         )}
-        <div className="text-lg mobile:text-sm text-[#abc4ff]">: </div>
+        <div className="text-lg mobile:hidden text-[#abc4ff]">: </div>
       </Row>
       {renderFormItem}
     </Grid>
@@ -186,25 +193,26 @@ function SelectTokenInputBox({
   onSelectToken?: (token: SplToken, tokenKey?: string) => void
 }) {
   const [isSelectorOpen, setIsSelectorOpen] = useState(false)
+  const isMobile = useAppSettings((s) => s.isMobile)
   return (
     <>
       <Grid
-        className="grid items-center bg-[#141041] rounded-xl py-2 cursor-pointer px-3"
+        className="grid items-center bg-[#141041] rounded-xl py-2 mobile:py-1.5 cursor-pointer px-3 mobile:px-2"
         onClick={() => setIsSelectorOpen(true)}
       >
         {token ? (
           <div>
-            <div className="text-xs text-[#abc4ff80] mb-1">{title}</div>
-            <Row className="items-center gap-2">
-              <CoinAvatar token={token} />
-              <div className="text-[#abc4ff] font-medium text-lg">{token.symbol ?? ''}</div>
-              <Icon size="sm" className="text-[#abc4ff] ml-auto mr-4" heroIconName="chevron-down" />
+            <div className="text-xs mobile:text-2xs text-[#abc4ff80] mb-1">{title}</div>
+            <Row className="items-center gap-2 mobile:gap-1">
+              <CoinAvatar token={token} size={isMobile ? 'sm' : 'md'} />
+              <div className="text-[#abc4ff] font-medium text-lg mobile:text-sm">{token.symbol ?? ''}</div>
+              <Icon size={isMobile ? 'xs' : 'sm'} className="text-[#abc4ff] ml-auto mr-4" heroIconName="chevron-down" />
             </Row>
           </div>
         ) : (
           <Row className="text-[#abc4ff80] text-center gap-1.5 items-center px-3 py-2">
-            <div>{title}</div>
-            <Icon size="sm" className="text-[#abc4ff80] ml-auto mr-4" heroIconName="chevron-down" />
+            <div className="text-base mobile:text-xs">{title}</div>
+            <Icon size={isMobile ? 'xs' : 'sm'} className="text-[#abc4ff80] ml-auto mr-4" heroIconName="chevron-down" />
           </Row>
         )}
       </Grid>

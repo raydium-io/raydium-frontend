@@ -98,6 +98,10 @@ function MyPositionCardTopInfo({ className }: { className?: string }) {
   )
 }
 
+const maxAcceptPriceDecimal = 15
+
+const maxSignificantCount = (decimals: number) => Math.min(decimals + 2, maxAcceptPriceDecimal)
+
 function MyPositionCardChartInfo({ className }: { className?: string }) {
   useConcentratedAmmSelector()
   const [currentAmmPool, chartPoints, coin1, coin2, timeBasis] = useConcentrated((s) => [
@@ -125,8 +129,16 @@ function MyPositionCardChartInfo({ className }: { className?: string }) {
         <div className="mobile:text-sm font-medium text-[#abc4ff]">My Position</div>
         <RangeTag positionAccount={targetUserPositionAccount} />
       </Row>
-      <Grid className="items-center text-2xl text-white mobile:text-base">
-        {toString(targetUserPositionAccount?.priceLower)} - {toString(targetUserPositionAccount?.priceUpper)}
+      <Grid className="items-center text-white mobile:text-sm">
+        {toString(targetUserPositionAccount?.priceLower, {
+          decimalLength: maxAcceptPriceDecimal,
+          maxSignificantCount: maxSignificantCount(6)
+        })}{' '}
+        -{' '}
+        {toString(targetUserPositionAccount?.priceUpper, {
+          decimalLength: maxAcceptPriceDecimal,
+          maxSignificantCount: maxSignificantCount(6)
+        })}
       </Grid>
       <div className="font-medium text-[#abc4ff] mobile:text-xs">
         {currentAmmPool?.quote?.symbol ?? '--'} per {currentAmmPool?.base?.symbol ?? '--'}

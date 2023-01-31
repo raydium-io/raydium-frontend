@@ -28,12 +28,14 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useInit from '@/hooks/useInit'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 export function AddConcentratedLiquidityDialog() {
   useConcentratedAmountCalculator()
   useInit(() => {
     useConcentrated.setState({ coin1Amount: undefined, coin2Amount: undefined })
   })
+  const getBalance = useWallet((s) => s.getBalance)
   const open = useConcentrated((s) => s.isAddDialogOpen)
   const refreshConcentrated = useConcentrated((s) => s.refreshConcentrated)
   const walletConnected = useWallet((s) => s.connected)
@@ -159,6 +161,11 @@ export function AddConcentratedLiquidityDialog() {
               haveCoinIcon
               topLeftLabel={'Amount'}
               token={coinBase}
+              maxValue={
+                coinBase
+                  ? toTokenAmount(coinBase, mul(getBalance(coinBase), 0.985), { alreadyDecimaled: true })
+                  : undefined
+              }
               value={toString(coinBaseAmount)}
               onUserInput={(value) => {
                 if (focusSide === 'coin1') {
@@ -184,6 +191,11 @@ export function AddConcentratedLiquidityDialog() {
               haveCoinIcon
               topLeftLabel={'Amount'}
               token={coinQuote}
+              maxValue={
+                coinQuote
+                  ? toTokenAmount(coinQuote, mul(getBalance(coinQuote), 0.985), { alreadyDecimaled: true })
+                  : undefined
+              }
               value={toString(coinQuoteAmount)}
               onUserInput={(value) => {
                 if (focusSide === 'coin1') {

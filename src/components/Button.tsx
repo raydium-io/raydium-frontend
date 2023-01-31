@@ -29,7 +29,9 @@ export interface ButtonProps {
   /** must all condition passed */
   validators?: MayArray<{
     /** must return true to pass this validator */
-    should: MayFunction<BooleanLike>
+    should?: MayFunction<BooleanLike>
+    /** it is reversed version of `should` */
+    not?: MayFunction<BooleanLike>
     // used in "connect wallet" button, it's order is over props: disabled
     forceActive?: boolean
     /**  items are button's setting which will apply when corresponding validator has failed */
@@ -47,7 +49,7 @@ export interface ButtonProps {
 /** has loaded **twMerge** */
 export default function Button({ validators, ...restProps }: ButtonProps) {
   const failedValidator = (isArray(validators) ? validators.length > 0 : validators)
-    ? [validators!].flat().find(({ should }) => !shrinkToValue(should))
+    ? [validators!].flat().find(({ should, not }) => !shrinkToValue(should) || shrinkToValue(not))
     : undefined
   const mergedProps = {
     ...restProps,
@@ -164,6 +166,6 @@ function textButtonTailwind({
       ? 'px-4 py-2 text-xs rounded-xl'
       : 'px-4 py-2.5  rounded-xl mobile:rounded-lg'
   } whitespace-nowrap appearance-none font-medium text-white ${
-    disable ? `opacity-40 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable clickable-filter-effect'
+    disable ? `opacity-40 ${haveFallbackClick ? '' : 'cursor-not-allowed'}` : 'clickable'
   }`
 }

@@ -10,6 +10,10 @@ export interface TxHistoryInfo {
   /** only used in multi mode, it's length is transaction length */
   relativeTxids?: HexAddress[]
   title?: string
+  // FORCE CODE
+  forceConfirmedTitle?: string
+  // FORCE CODE
+  forceErrorTitle?: string
   block?: number
   description?: string
   isMulti?: boolean
