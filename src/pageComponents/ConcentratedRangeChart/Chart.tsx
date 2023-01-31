@@ -299,11 +299,11 @@ export default forwardRef(function Chart(props: Props, ref) {
     }
 
     const gap = points[1]?.x - points[0]?.x
-    const gapPrecision = parseFirstDigit(gap)
+    const gapPrecision = parseFirstDigit(gap) || parseFirstDigit(val)
     const initDecimals = chartOptions?.isStable
       ? getFirstNonZeroDecimal(val.toFixed(15)) + 1
       : gapPrecision > 3
-      ? gapPrecision - 1
+      ? gapPrecision
       : 1
 
     let tick = shakeZero(val.toFixed(initDecimals))

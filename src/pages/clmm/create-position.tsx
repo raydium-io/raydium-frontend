@@ -281,7 +281,7 @@ function ConcentratedCard() {
     })
   }, [cardRef])
 
-  const firstDecimal = getFirstNonZeroDecimal(currentPrice?.toFixed(20) || '') + 2
+  const firstDecimal = getFirstNonZeroDecimal(currentAmmPool?.state.currentPrice?.toFixed(20) || '') + 2
   const boundaryData = useMemo(() => {
     return getPriceBoundary({
       coin1,
