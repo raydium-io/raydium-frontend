@@ -108,7 +108,7 @@ export default async function txIdoClaim(
           rawNativeInstructions: instructionsCollector,
           rawNativeInstructionTypes: instructionsTypeCollector,
           signer,
-          wallet: PublicKey.default
+          wallet: owner
         }),
         {
           ...restTxAddOptions,
@@ -117,10 +117,11 @@ export default async function txIdoClaim(
             description:
               side === 'base'
                 ? `Claim ${toString(idoInfo.userAllocation)} ${idoInfo.base.symbol ?? '--'}`
-                : `Claim ${idoInfo.quote && idoInfo.ledger
-                  ? toString(div(idoInfo.ledger?.quoteDeposited, padZero(1, idoInfo.quote?.decimals ?? 0)))
-                  : ''
-                } ${idoInfo.quote.symbol ?? '--'}`
+                : `Claim ${
+                    idoInfo.quote && idoInfo.ledger
+                      ? toString(div(idoInfo.ledger?.quoteDeposited, padZero(1, idoInfo.quote?.decimals ?? 0)))
+                      : ''
+                  } ${idoInfo.quote.symbol ?? '--'}`
           }
         }
       )

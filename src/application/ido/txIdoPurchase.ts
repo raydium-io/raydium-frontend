@@ -12,6 +12,7 @@ import { toInnerTransactionsFromInstructions } from '../txTools/toInnerTransacti
 
 import { Ido, Snapshot } from './sdk'
 import { HydratedIdoInfo } from './type'
+import useWallet from '../wallet/useWallet'
 
 export default async function txIdoPurchase({
   idoInfo,
@@ -27,8 +28,6 @@ export default async function txIdoPurchase({
   return txHandler(
     async ({ transactionCollector, baseUtils: { connection, owner, tokenAccounts } }) => {
       if (!idoInfo.base || !idoInfo.quote) return
-      const piecesCollector = createTransactionCollector()
-
       const lamports = idoInfo.state!.perLotteryQuoteAmount.mul(toBN(ticketAmount))
 
       const instructionsCollector: TransactionInstruction[] = []
@@ -129,7 +128,7 @@ export default async function txIdoPurchase({
           rawNativeInstructions: instructionsCollector,
           rawNativeInstructionTypes: instructionsTypeCollector,
           signer,
-          wallet: PublicKey.default
+          wallet: owner
         }),
         {
           ...restTxAddOptions,
