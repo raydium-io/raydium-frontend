@@ -31,6 +31,7 @@ import { buildTransactionsFromSDKInnerTransactions } from './createVersionedTran
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import tryCatch from '@/functions/tryCatch'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -435,20 +436,23 @@ async function dealWithMultiTxOptions({
             })
           : (transactions as Transaction[])
 
-        // TEMP
-        // eslint-disable-next-line no-console
-        console.info(
-          'tx transactions: ',
-          toHumanReadable(builded),
-          builded.map((i) =>
-            i
-              .serialize({
-                requireAllSignatures: false,
-                verifySignatures: false
-              })
-              .toString('base64')
+        try {
+          // eslint-disable-next-line no-console
+          console.info(
+            'tx transactions: ',
+            toHumanReadable(builded),
+            builded.map((i) =>
+              i
+                .serialize({
+                  requireAllSignatures: false,
+                  verifySignatures: false
+                })
+                .toString('base64')
+            )
           )
-        )
+        } catch {
+          console.warn('tx log error')
+        }
         const noNeedSignAgain = payload.signerkeyPair?.ownerKeypair
         // const allSignedTransactions = await options.payload.signAllTransactions(options.transactions)
         const allSignedTransactions = await (noNeedSignAgain // if have signer detected, no need signAllTransactions

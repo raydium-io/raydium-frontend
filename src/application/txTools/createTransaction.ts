@@ -44,8 +44,9 @@ export const createTransactionCollector = (defaultRawTransaction?: Transaction):
     return rawTransaction
   }
   function spawnTransactionQueue() {
-    const rawTransaction = spawnTransaction()
-    return rawTransaction ? [...innerTransactions, rawTransaction] : innerTransactions
+    return frontInstructions.length || endInstructions.length
+      ? [...innerTransactions, spawnTransaction()]
+      : innerTransactions
   }
   const collector: TransactionPiecesCollector = {
     setRawTransaction,
