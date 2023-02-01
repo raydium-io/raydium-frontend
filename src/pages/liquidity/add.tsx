@@ -61,7 +61,7 @@ import useConnection from '@/application/connection/useConnection'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { toUTC } from '@/functions/date/dateFormat'
 import parseDuration from '@/functions/date/parseDuration'
-import { sdkDefaultProgramId } from '@/application/token/wellknownProgram.config'
+import { SDK_PROGRAM_IDS } from '@/application/token/wellknownProgram.config'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -629,7 +629,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
     : undefined
 
   const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
-  const isOpenBook = isPubEqual(currentHydratedInfo?.jsonInfo.marketProgramId, sdkDefaultProgramId.OPENBOOK_MARKET)
+  const isOpenBook = isPubEqual(currentHydratedInfo?.jsonInfo.marketProgramId, SDK_PROGRAM_IDS.OPENBOOK_MARKET)
 
   const poolIsOpen = currentHydratedInfo && isDateAfter(currentTime, currentHydratedInfo.startTime)
   return (

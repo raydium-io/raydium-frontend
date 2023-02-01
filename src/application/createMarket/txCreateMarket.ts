@@ -3,10 +3,7 @@ import { MarketV2 } from '@raydium-io/raydium-sdk'
 import assert from '@/functions/assert'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toString } from '@/functions/numberish/toString'
-
-import { TxHistoryInfo } from '../txHistory/useTxHistory'
-import { createTxHandler, TransactionQueue } from '../txTools/handleTx'
-
+import { createTxHandler } from '../txTools/handleTx'
 import { useCreateMarket } from './useCreateMarket'
 
 const txCreateMarket = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
@@ -33,19 +30,14 @@ const txCreateMarket = createTxHandler(() => async ({ transactionCollector, base
     wallet: owner
   })
 
-  const queue = innerTransactions.map((tx) => [
-    tx,
-    {
-      txHistoryInfo: {
-        title: 'Create Market',
-        description: `created new Market: ${toPubString(address['marketId'] /* SDK force, no type export */).slice(
-          0,
-          6
-        )}...`
-      } as TxHistoryInfo
-    }
-  ]) as TransactionQueue
-  transactionCollector.add(queue, {
+  transactionCollector.add(innerTransactions, {
+    txHistoryInfo: {
+      title: 'Create Market',
+      description: `created new Market: ${toPubString(address['marketId'] /* SDK force, no type export */).slice(
+        0,
+        6
+      )}...`
+    },
     onTxAllSuccess() {
       useCreateMarket.setState({ newCreatedMarketId: address.id })
     }

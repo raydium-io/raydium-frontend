@@ -1,4 +1,4 @@
-import { InnerTransaction, TradeV2 } from '@raydium-io/raydium-sdk'
+import { InnerTransaction, InstructionType, TradeV2 } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
@@ -61,7 +61,7 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
     checkTransaction: true
   })
 
-  const queue = innerTransactions.map((tx) => [
+  const queue = innerTransactions.map((tx, idx, allTxs) => [
     tx,
     {
       txHistoryInfo: {
@@ -69,7 +69,7 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
         description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
           downCoin.symbol
         }`,
-        subtransactionDescription: translationSwapTx(tx)
+        subtransactionDescription: translationSwapTxDescription(tx, idx, allTxs)
       } as TxHistoryInfo
     }
   ]) as TransactionQueue
@@ -78,15 +78,22 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
 
 export default txSwap
 
-/**
- *
- * @todo
- */
-function translationSwapTx(tx: InnerTransaction) {
-  throw 'not imply this yet'
-  // const isTransactionMainSwap = tx.instructions.find((i) => dangerousTempProgramIds.includes(i.programId.toString()))
-  // const isTransactionCleanUp = tx.instructions.find(
-  //   (i) => i.programId.toString() === TOKEN_PROGRAM_ID.toString() && i.data[0] === 9
-  // )
-  // return isTransactionMainSwap ? `Swap` : isTransactionCleanUp ? `Cleanup` : `Setup`
+function translationSwapTxDescription(tx: InnerTransaction, idx: number, allTxs: InnerTransaction[]) {
+  const swapFirstIdx = allTxs.findIndex((tx) => isSwapTransaction(tx))
+  const swapLastIdx = allTxs.length - 1 - [...allTxs].reverse().findIndex((tx) => isSwapTransaction(tx))
+  return idx < swapFirstIdx ? 'Cleanup' : idx > swapLastIdx ? 'Setup' : 'Swap'
+}
+
+function isSwapTransaction(tx: InnerTransaction): boolean {
+  return (
+    tx.instructionTypes.includes(InstructionType.clmmSwapBaseIn) ||
+    tx.instructionTypes.includes(InstructionType.clmmSwapBaseOut) ||
+    tx.instructionTypes.includes(InstructionType.ammV4Swap) ||
+    tx.instructionTypes.includes(InstructionType.ammV4SwapBaseIn) ||
+    tx.instructionTypes.includes(InstructionType.ammV4SwapBaseOut) ||
+    tx.instructionTypes.includes(InstructionType.ammV5SwapBaseIn) ||
+    tx.instructionTypes.includes(InstructionType.ammV5SwapBaseOut) ||
+    tx.instructionTypes.includes(InstructionType.routeSwap1) ||
+    tx.instructionTypes.includes(InstructionType.routeSwap2)
+  )
 }

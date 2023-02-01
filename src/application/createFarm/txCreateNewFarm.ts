@@ -24,7 +24,7 @@ import useWallet from '../wallet/useWallet'
 
 import useCreateFarms from './useCreateFarm'
 import { validate300Ray, validateUiRewardInfo } from './validateRewardInfo'
-import { sdkDefaultProgramId } from '../token/wellknownProgram.config'
+import { SDK_PROGRAM_IDS } from '../token/wellknownProgram.config'
 
 export const userCreatedFarmKey = 'USER_CREATED_FARMS'
 
@@ -86,7 +86,7 @@ export default async function txCreateNewFarm({
         },
         version: 6,
         rewardInfos: rewards,
-        programId: sdkDefaultProgramId.FarmV6
+        programId: SDK_PROGRAM_IDS.FarmV6
       },
       connection,
       userKeys: {
@@ -108,7 +108,7 @@ export default async function txCreateNewFarm({
       if (!poolJsonInfo) return
       const version = 6
       const lpMint = poolJsonInfo.lpMint
-      const programId = sdkDefaultProgramId.FarmV6
+      const programId = SDK_PROGRAM_IDS.FarmV6
       const authority = toPubString((await Farm.getAssociatedAuthority({ programId, poolId: toPub(poolId) })).publicKey)
       const lpVault = toPubString(
         Farm.getAssociatedLedgerPoolAccount({

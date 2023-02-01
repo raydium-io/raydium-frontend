@@ -18,7 +18,7 @@ export default function txCollectReward({
     const { tokenAccountRawInfos } = useWallet.getState()
     assert(currentAmmPool, 'not seleted amm pool')
 
-    const token = currentAmmPool.rewardInfos.find((r) => r.tokenMint.equals(rewardMint))!.rewardToken!.symbol
+    const tokenSymbol = currentAmmPool.rewardInfos.find((r) => r.tokenMint.equals(rewardMint))!.rewardToken!.symbol
 
     const { innerTransactions } = await AmmV3.makeCollectRewardInstructionSimple({
       connection: connection,
@@ -35,7 +35,7 @@ export default function txCollectReward({
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {
         title: 'Harvested Reward',
-        description: `Harvested: ${token} reward`
+        description: `Harvested: ${tokenSymbol} reward`
       }
     })
   })

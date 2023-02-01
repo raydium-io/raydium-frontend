@@ -6,7 +6,7 @@ import create from 'zustand'
 
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
-import { getAmmV3ProgramId } from '@/application/token/wellknownProgram.config'
+import { SDK_PROGRAM_IDS } from '@/application/token/wellknownProgram.config'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
@@ -179,7 +179,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
     const { getToken } = useToken.getState()
     AmmV3.getWhiteListMint({
       connection,
-      programId: getAmmV3ProgramId()
+      programId: SDK_PROGRAM_IDS.CLMM
     }).then((data) => {
       set({
         whitelistRewards: shakeUndifindedItem(data.map((pub) => getToken(pub))).map((token) => token.mint)

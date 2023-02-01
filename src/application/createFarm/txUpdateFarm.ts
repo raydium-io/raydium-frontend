@@ -64,7 +64,7 @@ export default async function txUpdateEdited({ ...txAddOptions }: SingleTxOption
   })
 }
 
-async function createRewardRestartInstruction({
+function createRewardRestartInstruction({
   connection,
   reward,
   farmInfo

@@ -1,7 +1,5 @@
-import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
-
 import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
-
+import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
@@ -20,6 +18,7 @@ import useNotification from '@/application/notification/useNotification'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
+import { SDK_PROGRAM_IDS } from '@/application/token/wellknownProgram.config'
 import { RAYMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
@@ -36,7 +35,6 @@ import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
-import Link from '@/components/Link'
 import LinkExplorer from '@/components/LinkExplorer'
 import List from '@/components/List'
 import LoadingCircle from '@/components/LoadingCircle'
@@ -71,9 +69,7 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
-
 import { NewCompensationBanner } from '../pools'
-import { sdkDefaultProgramId } from '@/application/token/wellknownProgram.config'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -1593,7 +1589,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       {info.isDualFusionPool && info.version !== 6 && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
       {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
       {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
-      {liquidity && isPubEqual(liquidity.marketProgramId, sdkDefaultProgramId.OPENBOOK_MARKET) && (
+      {liquidity && isPubEqual(liquidity.marketProgramId, SDK_PROGRAM_IDS.OPENBOOK_MARKET) && (
         <OpenBookTip></OpenBookTip>
       )}
     </AutoBox>

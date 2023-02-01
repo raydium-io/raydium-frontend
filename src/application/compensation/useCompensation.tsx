@@ -1,12 +1,8 @@
-import { PublicKeyish, SHOW_INFO } from '@raydium-io/raydium-sdk'
-
 import create from 'zustand'
 
 import toPubString from '@/functions/format/toMintString'
-import { Numberish } from '@/types/constants'
 
-import { SplToken } from '../token/type'
-import { getCreateNewMarketProgramId } from '../token/wellknownProgram.config'
+import { SDK_PROGRAM_IDS } from '../token/wellknownProgram.config'
 import { HydratedCompensationInfoItem } from './type'
 
 export type NegativeMoney = {
@@ -18,7 +14,7 @@ export type NegativeMoney = {
 }
 
 export const useCompensationMoney = create<NegativeMoney>((set) => ({
-  programId: toPubString(getCreateNewMarketProgramId()),
+  programId: toPubString(SDK_PROGRAM_IDS.OPENBOOK_MARKET),
   dataLoaded: false,
   refreshCount: 0,
   refresh: () => {

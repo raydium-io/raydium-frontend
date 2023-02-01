@@ -13,6 +13,7 @@ export default function txCreateNewConcentratedPool() {
     transactionCollector.add(createPoolInnerTransaction, {
       txHistoryInfo: { title: 'Create pool', description: `create clmm pool` }
     })
+
     transactionCollector.add(openPositionInnerTransaction, {
       txHistoryInfo: { title: 'Open pool position', description: `Open clmm pool position` }
     })

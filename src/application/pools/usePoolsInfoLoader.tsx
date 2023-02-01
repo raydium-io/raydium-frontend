@@ -21,7 +21,7 @@ import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
 import { isPubEqual } from '@/functions/judgers/areEqual'
-import { sdkDefaultProgramId } from '../token/wellknownProgram.config'
+import { SDK_PROGRAM_IDS } from '../token/wellknownProgram.config'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -91,7 +91,7 @@ export default function usePoolsInfoLoader() {
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
           isOpenBook: isPubEqual(
             liquidityJsonInfos.find((i) => i.id === pair.ammId)?.marketProgramId,
-            sdkDefaultProgramId.OPENBOOK_MARKET
+            SDK_PROGRAM_IDS.OPENBOOK_MARKET
           ),
           userCustomTokenSymbol: userCustomTokenSymbol
         })
