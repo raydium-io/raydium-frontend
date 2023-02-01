@@ -42,7 +42,7 @@ import { addItem, unifyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { isMintEqual } from '@/functions/judgers/areEqual'
+import { isMintEqual, isPubEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -61,6 +61,7 @@ import useConnection from '@/application/connection/useConnection'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { toUTC } from '@/functions/date/dateFormat'
 import parseDuration from '@/functions/date/parseDuration'
+import { sdkDefaultProgramId } from '@/application/token/wellknownProgram.config'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -628,7 +629,7 @@ function LiquidityCardInfo({ className }: { className?: string }) {
     : undefined
 
   const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
-  const isOpenBook = currentHydratedInfo?.jsonInfo.marketProgramId === 'srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX'
+  const isOpenBook = isPubEqual(currentHydratedInfo?.jsonInfo.marketProgramId, sdkDefaultProgramId.OPENBOOK_MARKET)
 
   const poolIsOpen = currentHydratedInfo && isDateAfter(currentTime, currentHydratedInfo.startTime)
   return (

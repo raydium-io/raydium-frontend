@@ -4,7 +4,6 @@ import {
   Keypair,
   PublicKey,
   SignatureResult,
-  Signer,
   Transaction,
   TransactionError,
   VersionedTransaction
@@ -14,7 +13,6 @@ import produce from 'immer'
 
 import { TxNotificationItemInfo } from '@/components/NotificationItem/type'
 import assert from '@/functions/assert'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import { mergeFunction, mergeObject } from '@/functions/merge'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayPromise } from '@/types/constants'
@@ -27,10 +25,12 @@ import useTxHistory, { TxHistoryInfo } from '../../txHistory/useTxHistory'
 import { getRichWalletTokenAccounts } from '../../wallet/useTokenAccountsRefresher'
 import useWallet, { WalletStore } from '../../wallet/useWallet'
 
-import { isObject } from '@/functions/judgers/dateType'
-import { createVersionedTransaction, TxVersion } from './createVersionedTransaction'
+import { isArray, isObject } from '@/functions/judgers/dateType'
+import { InnerTransaction, TxVersion } from '@raydium-io/raydium-sdk'
+import { buildTransactionsFromSDKInnerTransactions } from './createVersionedTransaction'
 import { sendTransactionCore } from './sendTransactionCore'
 import subscribeTx from './subscribeTx'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 //#region ------------------- basic info -------------------
 export type TxInfo = {
@@ -165,20 +165,14 @@ export type MultiTxCallbacks = {
   onTxAnyError?: AnyErrorCallback
 }
 
-export type RawTransactionPair = {
-  transaction: Transaction
-  signers?: Signer[]
-}
-
 export type TransactionQueue = (
-  | [pair: RawTransactionPair | Transaction, singleTxOptions?: SingleTxOption]
-  | RawTransactionPair
+  | [tx: InnerTransaction | Transaction, singleTxOptions?: SingleTxOption]
+  | InnerTransaction
   | Transaction
 )[]
 
 export type TransactionCollector = {
-  add(transaction: Transaction | RawTransactionPair, options?: SingleTxOption): void
-  addQueue(transactionQueue: TransactionQueue, multiTxOptions?: MultiTxsOption): void
+  add(transaction: TransactionQueue | Transaction | InnerTransaction, options?: SingleTxOption & MultiTxsOption): void
 }
 
 // TODO: should also export addTxSuccessListener() and addTxErrorListener() and addTxFinallyListener()
@@ -209,8 +203,8 @@ export function isTransaction(x: any): x is Transaction {
   return x instanceof Transaction
 }
 
-export function isTransactionPair(x: any): x is RawTransactionPair {
-  return isObject(x) && 'transaction' in x
+export function isInnerTransaction(x: any): x is InnerTransaction {
+  return isObject(x) && 'instructions' in x && 'instructionTypes' in x
 }
 
 /**
@@ -312,25 +306,52 @@ export default async function txHandler(customizedTxAction: TxFn, options?: Hand
 
 const txSerializeCache = new Map<string, Buffer | Uint8Array>()
 
+/**
+ * collector's aim: use `.add` method to load innerTransactions
+ */
 function collectTxOptions(
   additionOptions?: Pick<HandleFnOptions, 'additionalMultiOptionCallback' | 'additionalSingleOptionCallback'>
 ) {
   const singleTxOptions = [] as SingleTxOption[]
   const multiTxOption = {} as MultiTxsOption
-  const innerTransactions = [] as (Transaction | RawTransactionPair)[]
+  const innerTransactions = [] as (Transaction | InnerTransaction)[]
   const { additionalSingleOptionCallback, additionalMultiOptionCallback } = additionOptions ?? {}
-  const add: TransactionCollector['add'] = (transaction, options) => {
+
+  /**
+   * mutable
+   */
+  const addSingle = (transaction: Transaction | InnerTransaction, options?: SingleTxOption) => {
     innerTransactions.push(transaction)
     singleTxOptions.push(mergeObject(options ?? {}, additionalSingleOptionCallback))
   }
-  const addQueue: TransactionCollector['addQueue'] = (transactionQueue, options?) => {
+
+  /**
+   * mutable
+   */
+  const addQueue = (transactionQueue: TransactionQueue, options?: MultiTxsOption) => {
     transactionQueue.forEach((transaction) => {
       const [singelTransation, singelOption] = Array.isArray(transaction) ? transaction : ([transaction] as const)
-      add(singelTransation, singelOption)
+      addSingle(singelTransation, singelOption)
     })
     Object.assign(multiTxOption, mergeObject(options ?? {}, additionalMultiOptionCallback))
   }
-  const transactionCollector: TransactionCollector = { add, addQueue }
+
+  /**
+   * {@link addSingle} + {@link addQueue}
+   */
+  const add: TransactionCollector['add'] = (transactions, option) => {
+    const isQueue = isArray(transactions)
+    if (isQueue) {
+      const injectedTransactions: TransactionQueue = transactions.map((t) =>
+        isArray(t) ? [t[0], { ...option, ...t[1] }] : [t, option]
+      )
+      addQueue(injectedTransactions, option)
+    } else {
+      addSingle(transactions, option)
+    }
+  }
+
+  const transactionCollector: TransactionCollector = { add }
   return { transactionCollector, collected: { innerTransactions, singleTxOptions, multiTxOption } }
 }
 
@@ -364,7 +385,7 @@ async function dealWithMultiTxOptions({
   multiOption,
   payload
 }: {
-  transactions: (Transaction | RawTransactionPair)[]
+  transactions: (Transaction | InnerTransaction)[]
   singleOptions: SingleTxOption[]
   multiOption: MultiTxsOption
   payload: SendTransactionPayload
@@ -404,23 +425,22 @@ async function dealWithMultiTxOptions({
         })
       })
 
-      const formatedTransactionsPairs = transactions.map((tx) =>
-        isTransactionPair(tx) ? { signers: [], ...tx } : { transaction: tx, signers: [] }
-      )
       try {
-        const tt = await createVersionedTransaction({
-          connection: payload.connection,
-          wallet: payload.owner,
-          txVersion: payload.txVersion,
-          transactions: formatedTransactionsPairs
-        })
+        const builded = transactions.every(isInnerTransaction)
+          ? await buildTransactionsFromSDKInnerTransactions({
+              connection: payload.connection,
+              wallet: payload.owner,
+              txVersion: payload.txVersion,
+              transactions
+            })
+          : (transactions as Transaction[])
 
         // TEMP
         // eslint-disable-next-line no-console
         console.info(
           'tx transactions: ',
-          toHumanReadable(tt),
-          tt.map((i) =>
+          toHumanReadable(builded),
+          builded.map((i) =>
             i
               .serialize({
                 requireAllSignatures: false,
@@ -429,11 +449,11 @@ async function dealWithMultiTxOptions({
               .toString('base64')
           )
         )
-
+        const noNeedSignAgain = payload.signerkeyPair?.ownerKeypair
         // const allSignedTransactions = await options.payload.signAllTransactions(options.transactions)
-        const allSignedTransactions = await (payload.signerkeyPair?.ownerKeypair // if have signer detected, no need signAllTransactions
-          ? tt
-          : payload.signAllTransactions(tt))
+        const allSignedTransactions = await (noNeedSignAgain // if have signer detected, no need signAllTransactions
+          ? builded
+          : payload.signAllTransactions(builded))
 
         // pop tx notification
         const { mutatedSingleOptions } = recordTxNotification({

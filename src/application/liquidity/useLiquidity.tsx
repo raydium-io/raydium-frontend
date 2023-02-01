@@ -1,15 +1,8 @@
-import { LiquidityPoolJsonInfo as LiquidityJsonInfo, PublicKeyish } from '@raydium-io/raydium-sdk'
+import { ApiPoolInfoItem } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 
-import toPubString, { toPub } from '@/functions/format/toMintString'
-import { gte } from '@/functions/numberish/compare'
-import { div } from '@/functions/numberish/operations'
-
-import { toDataMint } from '../token/quantumSOL'
 import { SplToken } from '../token/type'
 
-import { getRouteRelated } from './getRouteRelated'
-import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
 import { HydratedLiquidityInfo, SDKParsedLiquidityInfo } from './type'
 
 export type LiquidityStore = {
@@ -24,9 +17,9 @@ export type LiquidityStore = {
   /**
    *  pure data (just string, number, boolean, undefined, null)
    */
-  jsonInfos: LiquidityJsonInfo[]
-  officialIds: Set<LiquidityJsonInfo['id']>
-  unOfficialIds: Set<LiquidityJsonInfo['id']>
+  jsonInfos: ApiPoolInfoItem[]
+  officialIds: Set<ApiPoolInfoItem['id']>
+  unOfficialIds: Set<ApiPoolInfoItem['id']>
 
   /**
    *  additionally add 'SDK parsed data' (BN, PublicKey, etc.)
@@ -43,7 +36,7 @@ export type LiquidityStore = {
   userExhibitionLiquidityIds: string[]
 
   /********************** main panel (coin pair panel) **********************/
-  currentJsonInfo: LiquidityJsonInfo | undefined
+  currentJsonInfo: ApiPoolInfoItem | undefined
   currentSdkParsedInfo: SDKParsedLiquidityInfo | undefined // auto parse info in {@link useLiquidityAuto}
   currentHydratedInfo: HydratedLiquidityInfo | undefined // auto parse info in {@link useLiquidityAuto}
 

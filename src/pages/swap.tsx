@@ -1,17 +1,14 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { RouteInfo } from '@raydium-io/raydium-sdk'
-
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
-import { isLiquidityPoolJsonInfo } from '@/application/pools/is'
+import { isApiPoolInfoItem } from '@/application/pools/is'
 import { routeTo } from '@/application/routeTools'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
-import txUnwrapAllWSOL, { txUnwrapWSOL } from '@/application/swap/txUnwrapWSOL'
-import txWrapSOL from '@/application/swap/txWrapSOL'
+import txUnwrapAllWSOL from '@/application/swap/txUnwrapWSOL'
 import { useSwap } from '@/application/swap/useSwap'
 import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
@@ -64,11 +61,11 @@ import useToggle from '@/hooks/useToggle'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
-import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
-import { NewCompensationBanner } from './pools'
+import useConnection from '@/application/connection/useConnection'
 import { toUTC } from '@/functions/date/dateFormat'
 import parseDuration from '@/functions/date/parseDuration'
-import useConnection from '@/application/connection/useConnection'
+import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
+import { NewCompensationBanner } from './pools'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -441,113 +438,75 @@ function SwapCard() {
       </FadeInStable>
       {/* alert user if price has accidently change  */}
       <SwapPriceAcceptChip />
-
       {/* swap sol and wsol */}
-      {isSolToWsol(upCoin, downCoin) || isWsolToSol(upCoin, downCoin) ? (
-        <Button
-          className="w-full frosted-glass-teal mt-5"
-          componentRef={swapButtonComponentRef}
-          isLoading={isApprovePanelShown}
-          validators={[
-            {
-              should: walletConnected,
-              forceActive: true,
-              fallbackProps: {
-                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                children: 'Connect Wallet'
-              }
-            },
-            {
-              should:
-                upCoinAmount &&
-                isMeaningfulNumber(upCoinAmount) &&
-                downCoinAmount &&
-                isMeaningfulNumber(downCoinAmount),
-              fallbackProps: { children: 'Enter an amount' }
-            },
-            {
-              should: haveEnoughUpCoin,
-              fallbackProps: { children: `Insufficient ${upCoin?.symbol ?? ''} balance` }
+      <Button
+        className="w-full frosted-glass-teal mt-5"
+        componentRef={swapButtonComponentRef}
+        isLoading={isApprovePanelShown}
+        validators={[
+          {
+            should: walletConnected,
+            forceActive: true,
+            fallbackProps: {
+              onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
+              children: 'Connect Wallet'
             }
-          ]}
-          onClick={() =>
-            isWsolToSol(upCoin, downCoin)
-              ? txUnwrapWSOL({ amount: downCoinAmount })
-              : txWrapSOL({ amount: downCoinAmount })
+          },
+          {
+            should: upCoin && downCoin,
+            fallbackProps: { children: 'Select a token' }
+          },
+          {
+            should: hasConfirmed,
+            forceActive: true,
+            fallbackProps: {
+              onClick: popUnofficialConfirm,
+              children: 'Confirm unOfficial warning' // user may never see this
+            }
+          },
+          {
+            should: !isFindingPool,
+            fallbackProps: { children: 'Finding Pool ...' }
+          },
+          {
+            should: canFindPools,
+            fallbackProps: { children: 'Pool Not Found' }
+          },
+          {
+            should: !remainTimeText,
+            fallbackProps: { children: remainTimeText }
+          },
+          {
+            should: upCoinAmount && isMeaningfulNumber(upCoinAmount),
+            fallbackProps: { children: 'Enter an amount' }
+          },
+          {
+            should: isCalculationProcessing || !eq(downCoinAmount, 0),
+            fallbackProps: { children: 'Swap Amount Too Small' }
+          },
+          {
+            should: haveEnoughUpCoin,
+            fallbackProps: { children: `Insufficient ${upCoin?.symbol ?? ''} balance` }
+          },
+          {
+            should: hasAcceptedPriceChange || isApprovePanelShown,
+            fallbackProps: { children: `Accept price change` }
+          },
+          {
+            should: priceImpact && lte(priceImpact, 0.05),
+            forceActive: true,
+            fallbackProps: {
+              onClick: ({ ev }) => {
+                ev.stopPropagation()
+                return popPriceConfirm({ priceImpact })
+              }
+            }
           }
-        >
-          {isWsolToSol(upCoin, downCoin) ? 'Unwrap' : 'Wrap'}
-        </Button>
-      ) : (
-        <Button
-          className="w-full frosted-glass-teal mt-5"
-          componentRef={swapButtonComponentRef}
-          isLoading={isApprovePanelShown}
-          validators={[
-            {
-              should: walletConnected,
-              forceActive: true,
-              fallbackProps: {
-                onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
-                children: 'Connect Wallet'
-              }
-            },
-            {
-              should: upCoin && downCoin,
-              fallbackProps: { children: 'Select a token' }
-            },
-            {
-              should: hasConfirmed,
-              forceActive: true,
-              fallbackProps: {
-                onClick: popUnofficialConfirm,
-                children: 'Confirm unOfficial warning' // user may never see this
-              }
-            },
-            {
-              should: !isFindingPool,
-              fallbackProps: { children: 'Finding Pool ...' }
-            },
-            {
-              should: canFindPools,
-              fallbackProps: { children: 'Pool Not Found' }
-            },
-            {
-              should: !remainTimeText,
-              fallbackProps: { children: remainTimeText }
-            },
-            {
-              should: upCoinAmount && isMeaningfulNumber(upCoinAmount),
-              fallbackProps: { children: 'Enter an amount' }
-            },
-            {
-              should: isCalculationProcessing || !eq(downCoinAmount, 0),
-              fallbackProps: { children: 'Swap Amount Too Small' }
-            },
-            {
-              should: haveEnoughUpCoin,
-              fallbackProps: { children: `Insufficient ${upCoin?.symbol ?? ''} balance` }
-            },
-            {
-              should: hasAcceptedPriceChange || isApprovePanelShown,
-              fallbackProps: { children: `Accept price change` }
-            },
-            {
-              should: priceImpact && lte(priceImpact, 0.05),
-              forceActive: true,
-              fallbackProps: {
-                onClick: ({ ev }) => {
-                  ev.stopPropagation()
-                  return popPriceConfirm({ priceImpact })
-                }
-              }
-            }
-          ]}
-          onClick={txSwap}
-        >
-          Swap
-        </Button>
-      )}
+        ]}
+        onClick={txSwap}
+      >
+        Swap
+      </Button>
       {/* alert user if sol is not much */}
       <RemainSOLAlert />
       {/** coin selector panel */}
@@ -805,11 +764,6 @@ function SwapCardPriceIndicator({ className }: { className?: string }) {
       </FadeIn>
     </Col>
   )
-}
-
-function getRouteMiddleToken(info: { routes: RouteInfo[]; upCoin: SplToken; downCoin: SplToken }) {
-  const allCoinMints = info.routes.flatMap((r) => [toPubString(r.keys.baseMint), toPubString(r.keys.quoteMint)])
-  return allCoinMints.find((c) => ![toPubString(info.upCoin.mint), toPubString(info.downCoin.mint)].includes(c))
 }
 
 function SwapCardInfo({ className }: { className?: string }) {
@@ -1114,7 +1068,7 @@ function SwapCardTooltipPanelAddress() {
               if (arr.length > 1) {
                 multiRoute = `(route ${idx + 1})`
               }
-              if (isLiquidityPoolJsonInfo(info)) {
+              if (isApiPoolInfoItem(info)) {
                 // original pool
                 dom.push(
                   <SwapCardTooltipPanelAddressItem

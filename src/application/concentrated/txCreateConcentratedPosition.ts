@@ -3,7 +3,6 @@ import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import { toString } from '@/functions/numberish/toString'
 import { AmmV3 } from '@raydium-io/raydium-sdk'
-import useAppSettings from '../common/useAppSettings'
 import useConnection from '../connection/useConnection'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { HydratedConcentratedInfo } from './type'
@@ -16,19 +15,16 @@ export default function txCreateConcentratedPosotion({
 } = {}) {
   return txHandler(async ({ transactionCollector }) => {
     const { coin1, coin2, coin1Amount, coin2Amount } = useConcentrated.getState()
-    const { transaction, signers } = await generateCreateClmmPositionTx(currentAmmPool)
-    transactionCollector.add(
-      { transaction, signers },
-      {
-        txHistoryInfo: {
-          title: 'Position Created',
-          forceErrorTitle: 'Error creating position',
-          description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
-            coin2?.symbol ?? '--'
-          }`
-        }
+    const innerTransactions = await generateCreateClmmPositionTx(currentAmmPool)
+    transactionCollector.add(innerTransactions, {
+      txHistoryInfo: {
+        title: 'Position Created',
+        forceErrorTitle: 'Error creating position',
+        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
+          coin2?.symbol ?? '--'
+        }`
       }
-    )
+    })
   })
 }
 
@@ -36,7 +32,6 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
   const { priceLower, priceUpper, coin1, coin2, coin1Amount, coin2Amount, liquidity, priceLowerTick, priceUpperTick } =
     useConcentrated.getState()
   const { tokenAccountRawInfos } = useWallet.getState()
-  const { slippageTolerance } = useAppSettings.getState()
   const { connection } = useConnection.getState()
   const { owner } = useWallet.getState()
   assert(connection, 'no rpc connection')
@@ -52,7 +47,7 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
   assert(coin2Amount, 'not set coin2Amount')
   assert(liquidity, 'not set liquidity')
   const isSol = isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
-  const { transaction, signers } = await AmmV3.makeOpenPositionTransaction({
+  const { innerTransactions } = await AmmV3.makeOpenPositionInstructionSimple({
     connection: connection,
     liquidity,
     poolInfo: currentAmmPool.state,
@@ -68,5 +63,5 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
     // priceUpper: fractionToDecimal(toFraction(priceUpper), 20),
     slippage: 0.015
   })
-  return { transaction, signers }
+  return innerTransactions
 }

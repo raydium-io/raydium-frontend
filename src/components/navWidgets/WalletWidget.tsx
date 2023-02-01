@@ -12,6 +12,7 @@ import PageLayoutPopoverDrawer from '../PageLayoutPopoverDrawer'
 import Row from '../Row'
 import { RowItem } from '../RowItem'
 import Switcher from '../Switcher'
+import { TxVersion } from '@raydium-io/raydium-sdk'
 
 /** this should be used in ./Navbar.tsx */
 export default function WalletWidget() {
@@ -48,8 +49,8 @@ export default function WalletWidget() {
             <Row className="items-center px-6 justify-between">
               <div className="text-[#abc4ff]">useV0</div>
               <Switcher
-                checked={txVersion === 'V0'}
-                onToggle={(checked) => useWallet.setState({ txVersion: checked ? 'V0' : 'LEGACY' })}
+                checked={txVersion === TxVersion.V0}
+                onToggle={(checked) => useWallet.setState({ txVersion: checked ? TxVersion.V0 : TxVersion.LEGACY })}
               />
             </Row>
             <RowItem

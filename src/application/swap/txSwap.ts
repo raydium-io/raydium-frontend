@@ -1,20 +1,16 @@
-import { TOKEN_PROGRAM_ID, TradeV2 } from '@raydium-io/raydium-sdk'
+import { InnerTransaction, TradeV2 } from '@raydium-io/raydium-sdk'
 
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
-import asyncMap from '@/functions/asyncMap'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 
-import { createTxHandler, RawTransactionPair, TransactionQueue } from '../txTools/handleTx'
+import { createTxHandler, TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
-import { useSwap } from './useSwap'
 import { TxHistoryInfo } from '../txHistory/useTxHistory'
-import { Transaction, VersionedTransaction } from '@solana/web3.js'
-import { dangerousTempProgramIds } from '../token/wellknownProgram.config'
+import { useSwap } from './useSwap'
 
 const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
   const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
@@ -54,7 +50,7 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
 
   assert(routeType, 'accidently routeType is undefined')
 
-  const { transactions, address } = await TradeV2.makeSwapTranscation({
+  const { innerTransactions } = await TradeV2.makeSwapInstructionSimple({
     connection,
     swapInfo: selectedCalcResult,
     ownerInfo: {
@@ -65,14 +61,7 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
     checkTransaction: true
   })
 
-  const transactionPairs = shakeUndifindedItem(
-    await asyncMap(transactions, (merged) => {
-      if (!merged) return
-      const { transaction, signer: signers } = merged
-      return { transaction, signers }
-    })
-  )
-  const queue = transactionPairs.map((tx) => [
+  const queue = innerTransactions.map((tx) => [
     tx,
     {
       txHistoryInfo: {
@@ -84,12 +73,16 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
       } as TxHistoryInfo
     }
   ]) as TransactionQueue
-  transactionCollector.addQueue(queue, { sendMode: 'queue(all-settle)' })
+  transactionCollector.add(queue, { sendMode: 'queue(all-settle)' })
 })
 
 export default txSwap
 
-function translationSwapTx(tx: RawTransactionPair) {
+/**
+ *
+ * @todo
+ */
+function translationSwapTx(tx: InnerTransaction) {
   throw 'not imply this yet'
   // const isTransactionMainSwap = tx.instructions.find((i) => dangerousTempProgramIds.includes(i.programId.toString()))
   // const isTransactionCleanUp = tx.instructions.find(

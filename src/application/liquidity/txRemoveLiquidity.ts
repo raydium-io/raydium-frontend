@@ -30,23 +30,20 @@ export default function txRemoveLiquidity({ ammId: targetAmmId }: { ammId?: Publ
     const removeTokenAmount = toTokenAmount(lpToken, removeAmount, { alreadyDecimaled: true })
     assert(lpTokenAccount?.publicKey, `user haven't liquidity pool's account`)
 
-    const { transaction, signers } = await Liquidity.makeRemoveLiquidityTransaction({
+    const { innerTransactions } = await Liquidity.makeRemoveLiquidityInstructionSimple({
       connection,
       poolKeys: jsonInfo2PoolKeys(targetJsonInfo),
       userKeys: { owner, tokenAccounts: tokenAccountRawInfos },
       amountIn: removeTokenAmount
     })
-    transactionCollector.add(
-      { transaction, signers },
-      {
-        txHistoryInfo: {
-          title: 'Remove liquidity',
-          description: `Remove  ${removeTokenAmount.toExact()} ${lpToken.symbol}`
-        },
-        onTxSuccess: () => {
-          useLiquidity.setState({ removeAmount: '', isRemoveDialogOpen: false })
-        }
+    transactionCollector.add(innerTransactions, {
+      txHistoryInfo: {
+        title: 'Remove liquidity',
+        description: `Remove  ${removeTokenAmount.toExact()} ${lpToken.symbol}`
+      },
+      onTxSuccess: () => {
+        useLiquidity.setState({ removeAmount: '', isRemoveDialogOpen: false })
       }
-    )
+    })
   })
 }

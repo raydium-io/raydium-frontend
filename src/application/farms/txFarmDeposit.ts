@@ -1,17 +1,15 @@
-import { Farm, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Farm, InnerTransaction, TokenAmount } from '@raydium-io/raydium-sdk'
 
-import createAssociatedTokenAccountIfNotExist from '@/application/txTools/createAssociatedTokenAccountIfNotExist'
-import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import txHandler from '@/application/txTools/handleTx'
 import {
   addWalletAccountChangeListener,
   removeWalletAccountChangeListener
 } from '@/application/wallet/useWalletAccountChangeListeners'
 import assert from '@/functions/assert'
-import asyncMap from '@/functions/asyncMap'
 
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 
+import useWallet from '../wallet/useWallet'
 import { HydratedFarmInfo } from './type'
 import useFarms from './useFarms'
 
@@ -19,57 +17,67 @@ export default async function txFarmDeposit(
   info: HydratedFarmInfo,
   options: { isStaking?: boolean; amount: TokenAmount }
 ) {
-  return txHandler(async ({ transactionCollector, baseUtils: { owner } }) => {
-    const piecesCollector = createTransactionCollector()
+  return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
+    // const piecesCollector = createTransactionCollector()
     assert(owner, 'require connected wallet')
 
     const jsonFarmInfo = useFarms.getState().jsonInfos.find(({ id }) => String(id) === String(info.id))
     assert(jsonFarmInfo, 'Farm pool not found')
 
-    // ------------- add lp token transaction --------------
-    const lpTokenAccount = await createAssociatedTokenAccountIfNotExist({
-      collector: piecesCollector,
-      mint: info.lpMint
-    })
+    // // ------------- add lp token transaction --------------
+    // const lpTokenAccount = await createAssociatedTokenAccountIfNotExist({
+    //   collector: piecesCollector,
+    //   mint: info.lpMint
+    // })
 
-    // ------------- add rewards token transaction --------------
-    const rewardTokenAccountsPublicKeys = await asyncMap(jsonFarmInfo.rewardInfos, ({ rewardMint }) =>
-      createAssociatedTokenAccountIfNotExist({
-        collector: piecesCollector,
-        mint: rewardMint,
-        autoUnwrapWSOLToSOL: true
-      })
-    )
+    // // ------------- add rewards token transaction --------------
+    // const rewardTokenAccountsPublicKeys = await asyncMap(jsonFarmInfo.rewardInfos, ({ rewardMint }) =>
+    //   createAssociatedTokenAccountIfNotExist({
+    //     collector: piecesCollector,
+    //     mint: rewardMint,
+    //     autoUnwrapWSOLToSOL: true
+    //   })
+    // )
 
     // ------------- add farm deposit transaction --------------
     const poolKeys = jsonInfo2PoolKeys(jsonFarmInfo)
     const ledgerAddress = await Farm.getAssociatedLedgerAccount({
       programId: poolKeys.programId,
       poolId: poolKeys.id,
-      owner
+      owner,
+      version: poolKeys.version
     })
+
+    const innerTransactions: InnerTransaction[] = []
 
     // ------------- create ledger --------------
     if (!info.ledger && jsonFarmInfo.version < 6 /* start from v6, no need init ledger any more */) {
-      const instruction = await Farm.makeCreateAssociatedLedgerAccountInstruction({
+      const { innerTransaction } = await Farm.makeCreateAssociatedLedgerAccountInstruction({
         poolKeys,
         userKeys: { owner, ledger: ledgerAddress }
       })
-      piecesCollector.addInstruction(instruction)
+      innerTransactions.push(innerTransaction)
     }
 
     // ------------- add deposit transaction --------------
-    const depositInstruction = Farm.makeDepositInstruction({
+    const { tokenAccountRawInfos } = useWallet.getState()
+    const { innerTransactions: depositInstruction } = await Farm.makeDepositInstructionSimple({
+      connection,
       poolKeys,
-      userKeys: {
-        ledger: ledgerAddress,
-        lpTokenAccount,
-        owner,
-        rewardTokenAccounts: rewardTokenAccountsPublicKeys
+      fetchPoolInfo: info.fetchedMultiInfo,
+      ownerInfo: {
+        feePayer: owner,
+        wallet: owner,
+        tokenAccounts: tokenAccountRawInfos
       },
+      // userKeys: {
+      //   ledger: ledgerAddress,
+      //   owner,
+      //   rewardTokenAccounts: rewardTokenAccountsPublicKeys
+      // },
       amount: options.amount.raw
     })
-    piecesCollector.addInstruction(depositInstruction)
+    innerTransactions.push(...depositInstruction)
 
     const listenerId = addWalletAccountChangeListener(
       () => {
@@ -77,7 +85,7 @@ export default async function txFarmDeposit(
       },
       { once: true }
     )
-    transactionCollector.add(await piecesCollector.spawnTransaction(), {
+    transactionCollector.add(innerTransactions, {
       onTxError: () => removeWalletAccountChangeListener(listenerId),
       onTxSentError: () => removeWalletAccountChangeListener(listenerId),
       txHistoryInfo: {

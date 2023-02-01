@@ -8,9 +8,8 @@ import {
   AmmV3,
   AmmV3PoolInfo,
   AmmV3PoolPersonalPosition,
-  ApiAmmV3PoolInfo,
-  LiquidityPoolJsonInfo,
-  LiquidityPoolsJsonFile,
+  ApiAmmV3PoolsItem,
+  ApiPoolInfo,
   PoolType,
   PublicKeyish,
   ReturnTypeFetchMultipleInfo,
@@ -38,8 +37,8 @@ import { Numberish } from '@/types/constants'
 import { BestResultStartTimeInfo } from './type'
 
 const apiCache = {} as {
-  ammV3?: ApiAmmV3PoolInfo[]
-  liquidity?: LiquidityPoolsJsonFile
+  ammV3?: ApiAmmV3PoolsItem[]
+  liquidity?: ApiPoolInfo
 }
 
 type PairKeyString = string
@@ -67,7 +66,7 @@ export function clearApiCache() {
 }
 
 async function getAmmV3PoolKeys() {
-  const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools') // note: previously Rudy has Test API for dev
+  const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>('https://api.raydium.io/v2/ammV3/ammPools') // note: previously Rudy has Test API for dev
   if (response) {
     return response.data
   } else {
@@ -76,7 +75,7 @@ async function getAmmV3PoolKeys() {
 }
 
 async function getOldKeys() {
-  const response = await jFetch<LiquidityPoolsJsonFile>('https://api.raydium.io/v2/sdk/liquidity/mainnet.json')
+  const response = await jFetch<ApiPoolInfo>('https://api.raydium.io/v2/sdk/liquidity/mainnet.json')
   return response
 }
 
@@ -94,7 +93,7 @@ async function getParsedAmmV3PoolInfo({
   chainTimeOffset = useConnection.getState().chainTimeOffset ?? 0
 }: {
   connection: Connection
-  apiAmmPools: ApiAmmV3PoolInfo[]
+  apiAmmPools: ApiAmmV3PoolsItem[]
   chainTimeOffset?: number
 }) {
   const needRefetchApiAmmPools = apiAmmPools.filter(({ id }) => !parsedAmmV3PoolInfoCache.has(toPubString(id)))
@@ -147,7 +146,7 @@ function getSDKCacheInfos({
   inputMint: PublicKey
   outputMint: PublicKey
 
-  apiPoolList: LiquidityPoolsJsonFile
+  apiPoolList: ApiPoolInfo
   sdkParsedAmmV3PoolInfo: Awaited<ReturnType<typeof AmmV3['fetchMultiplePoolInfos']>>
 }) {
   const key = toPubString(inputMint) + toPubString(outputMint)
@@ -307,9 +306,7 @@ function getBestCalcResult(
 function isAmmV3PoolInfo(poolType: PoolType): poolType is AmmV3PoolInfo {
   return isObject(poolType) && 'protocolFeesTokenA' in poolType
 }
-function isLiquidityPoolJsonInfo(poolType: PoolType): poolType is LiquidityPoolJsonInfo {
-  return !isAmmV3PoolInfo(poolType)
-}
+
 function getPoolInfoFromPoolType(poolType: PoolType): BestResultStartTimeInfo['poolInfo'] {
   return {
     rawInfo: poolType,

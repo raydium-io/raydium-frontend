@@ -1,4 +1,4 @@
-import { LiquidityPoolJsonInfo, PublicKeyish } from '@raydium-io/raydium-sdk'
+import { ApiPoolInfoItem, PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
 
@@ -6,6 +6,6 @@ export function isHydratedPoolItemInfo(info: JsonPairItemInfo | HydratedPairItem
   return typeof info.fee7d === 'object'
 }
 
-export function isLiquidityPoolJsonInfo(info: any): info is LiquidityPoolJsonInfo {
+export function isApiPoolInfoItem(info: any): info is ApiPoolInfoItem {
   return 'marketId' in info
 }

@@ -522,16 +522,16 @@
     bs58 "^4.0.1"
     eventemitter3 "^4.0.7"
 
-"@raydium-io/raydium-sdk@1.1.0-beta.57":
-  version "1.1.0-beta.57"
-  resolved "https://registry.yarnpkg.com/@raydium-io/raydium-sdk/-/raydium-sdk-1.1.0-beta.57.tgz#95fa2236ec0ae0b2b40f5dceb0b927e0738d91d3"
-  integrity sha512-uQAchMSVEufaTurM4gcs9DE3FN6kRVVDTtUQabBTb/L5+ZqI9JGv+hM0c0Ct8GG7122KgGpu5LhQsBLEG2x7yQ==
+"@raydium-io/raydium-sdk@npm:test-r-sdk@^1.2.151":
+  version "1.2.151"
+  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.151.tgz#b313ff79d603acfa58e920ef2f4a9c0be123972a"
+  integrity sha512-ax2lzPVwatl3TMQ5h8GYpHNxNkBAirQbX31XSCwbV1zx/XlIuGpYWdJehGO3iDUz1focZYwPffg5+H3VOmyCLw==
   dependencies:
     "@colors/colors" "^1.5.0"
     "@solana/buffer-layout" "^4.0.1"
-    "@solana/spl-token" "^0.3.6"
+    "@solana/spl-token" "^0.3.7"
     "@solana/web3.js" "1.73.0"
-    axios "^1.2.2"
+    axios "^1.2.6"
     big.js "^6.2.1"
     bn.js "^5.2.1"
     decimal.js "^10.4.3"
@@ -742,7 +742,7 @@
   dependencies:
     buffer "~6.0.3"
 
-"@solana/spl-token@^0.3.6":
+"@solana/spl-token@^0.3.6", "@solana/spl-token@^0.3.7":
   version "0.3.6"
   resolved "https://registry.yarnpkg.com/@solana/spl-token/-/spl-token-0.3.6.tgz#35473ad2ed71fe91e5754a2ac72901e1b8b26a42"
   integrity sha512-P9pTXjDIRvVbjr3J0mCnSamYqLnICeds7IoH1/Ro2R9OBuOHdp5pqKZoscfZ3UYrgnCWUc1bc9M2m/YPHjw+1g==
@@ -2467,10 +2467,10 @@ axios@^0.21.0:
   dependencies:
     follow-redirects "^1.14.0"
 
-axios@^1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/axios/-/axios-1.2.2.tgz#72681724c6e6a43a9fea860fc558127dbe32f9f1"
-  integrity sha512-bz/J4gS2S3I7mpN/YZfGFTqhXTYzRho8Ay38w2otuuDR322KzFIWm/4W2K6gIwvWaws5n+mnb7D1lN9uD+QH6Q==
+axios@^1.2.6:
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-1.2.6.tgz#eacb6d065baa11bad5959e7ffa0cb6745c65f392"
+  integrity sha512-rC/7F08XxZwjMV4iuWv+JpD3E0Ksqg9nac4IIg6RwNuF0JTeWoCo/mBNG54+tNhhI11G3/VDRbdDQTs9hGp4pQ==
   dependencies:
     follow-redirects "^1.15.0"
     form-data "^4.0.0"

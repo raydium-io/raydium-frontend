@@ -63,7 +63,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { isMintEqual } from '@/functions/judgers/areEqual'
+import { isMintEqual, isPubEqual } from '@/functions/judgers/areEqual'
 import { isTokenAmount } from '@/functions/judgers/dateType'
 import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
@@ -73,6 +73,7 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 
 import { NewCompensationBanner } from '../pools'
+import { sdkDefaultProgramId } from '@/application/token/wellknownProgram.config'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -1592,7 +1593,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       {info.isDualFusionPool && info.version !== 6 && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
       {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
       {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
-      {liquidity && liquidity.marketProgramId === 'srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX' && (
+      {liquidity && isPubEqual(liquidity.marketProgramId, sdkDefaultProgramId.OPENBOOK_MARKET) && (
         <OpenBookTip></OpenBookTip>
       )}
     </AutoBox>

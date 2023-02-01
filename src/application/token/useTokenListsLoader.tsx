@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 
-import { ApiAmmV3PoolInfo, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
+import { ApiAmmV3PoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
 
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
@@ -141,7 +141,7 @@ async function UnofficialLiquidityPoolTokenFetch(
   })
 }
 async function ClmmLiquidityPoolTokenFetch(
-  response: { data: ApiAmmV3PoolInfo[] },
+  response: { data: ApiAmmV3PoolsItem[] },
   collector: TokenInfoCollector
 ): Promise<void> {
   if (!response || !response.data) return
@@ -222,7 +222,7 @@ async function fetchTokenLists(
   // bcz RAYDIUM_MAIN contain almost 90% of tokens and we don't run "isAnIncludedMint" check w/ them
   for (const raw of rawListConfigs) {
     const response = await jFetch<
-      RaydiumTokenListJsonInfo | RaydiumDevTokenListJsonInfo | LiquidityPoolsJsonFile | { data: ApiAmmV3PoolInfo[] }
+      RaydiumTokenListJsonInfo | RaydiumDevTokenListJsonInfo | LiquidityPoolsJsonFile | { data: ApiAmmV3PoolsItem[] }
     >(raw.url)
     if (response) {
       switch (raw.type) {
@@ -246,7 +246,7 @@ async function fetchTokenLists(
           await UnofficialLiquidityPoolTokenFetch(response as LiquidityPoolsJsonFile, tokenCollector)
           break
         case TokenListConfigType.LIQUIDITY_V3:
-          await ClmmLiquidityPoolTokenFetch(response as { data: ApiAmmV3PoolInfo[] }, tokenCollector)
+          await ClmmLiquidityPoolTokenFetch(response as { data: ApiAmmV3PoolsItem[] }, tokenCollector)
           break
         default:
           console.warn('token list type undetected, did you forgot to create this type of case?')

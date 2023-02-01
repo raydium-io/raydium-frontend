@@ -1,6 +1,6 @@
 import { useRouter } from 'next/router'
 
-import { LiquidityPoolsJsonFile } from '@raydium-io/raydium-sdk'
+import { ApiPoolInfo, LiquidityPoolsJsonFile } from '@raydium-io/raydium-sdk'
 
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
@@ -45,7 +45,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   /** fetch json info list  */
   useTransitionedEffect(async () => {
     if (disabled) return
-    const response = await jFetch<LiquidityPoolsJsonFile>(liquidityMainnetListUrl, {
+    const response = await jFetch<ApiPoolInfo>(liquidityMainnetListUrl, {
       ignoreCache: true
     })
     const blacklist = await jFetch<HexAddress[]>('/amm-blacklist.json')

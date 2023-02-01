@@ -70,7 +70,7 @@ export function PoolInfoSummary() {
                   {item.pool?.baseToken?.symbol ?? 'UNKNOWN'}-{item.pool?.quoteToken?.symbol ?? 'UNKNOWN'}
                 </div>
                 <AddressItem showDigitCount={8} textClassName="text-[#abc4ff80] text-xs" canCopy={false}>
-                  {toPubString(item.pool?.id)}
+                  {toPubString(item.pool?.ammId)}
                 </AddressItem>
               </div>
             </Row>

@@ -1,8 +1,8 @@
 import {
   AmmV3PoolInfo,
   AmmV3PoolPersonalPosition,
-  ApiAmmV3ConfigInfo,
-  ApiAmmV3PoolInfo,
+  ApiAmmV3ConfigItem,
+  ApiAmmV3PoolsItem,
   CurrencyAmount,
   Fraction,
   Percent,
@@ -20,7 +20,7 @@ import { SplToken } from '../token/type'
 
 import { GetAprPoolTickParameters, GetAprPositionParameters } from './calcApr'
 
-export type APIConcentratedInfo = ApiAmmV3PoolInfo
+export type APIConcentratedInfo = ApiAmmV3PoolsItem
 
 export type SDKParsedConcentratedInfo = {
   /** SDK info */
@@ -194,5 +194,5 @@ export interface HydratedAmmV3ConfigInfo {
   tickSpacing: number
   description: string
 
-  original: ApiAmmV3ConfigInfo
+  original: ApiAmmV3ConfigItem
 }

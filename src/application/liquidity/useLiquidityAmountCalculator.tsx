@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-import { jsonInfo2PoolKeys, Liquidity, LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
+import { jsonInfo2PoolKeys, Liquidity, ApiPoolInfoItem } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { deUIToken, deUITokenAmount, toUITokenAmount } from '@/application/token/quantumSOL'
@@ -134,7 +134,7 @@ async function calculatePairTokenAmount({
   focusSide: 'coin1' | 'coin2'
 
   slippageTolerance: Numberish
-  currentJsonInfo: LiquidityPoolJsonInfo
+  currentJsonInfo: ApiPoolInfoItem
   currentSdkParsedInfo: SDKParsedLiquidityInfo
 }): Promise<{
   amount: string

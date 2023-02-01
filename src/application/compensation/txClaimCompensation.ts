@@ -16,7 +16,7 @@ export const txClaimCompensation = createTxHandler(
     async ({ transactionCollector, baseUtils: { connection, owner } }) => {
       const { tokenAccountRawInfos } = useWallet.getState()
       assert(poolInfo)
-      const transactions = await Utils1216.makeClaimTransaction({
+      const claim = await Utils1216.makeClaimInstructionSimple({
         connection,
         poolInfo: poolInfo.rawInfo,
         ownerInfo: {
@@ -25,22 +25,14 @@ export const txClaimCompensation = createTxHandler(
           associatedOnly: true
         }
       })
-
-      const signedTransactions = shakeUndifindedItem(
-        await asyncMap(transactions, (merged) => {
-          if (!merged) return
-          const { transaction, signer: signers } = merged
-          return { transaction, signers }
-        })
-      )
-      const queue = signedTransactions.map((tx) => [
+      const queue = claim.innerTransactions.map((tx) => [
         tx,
         {
           txHistoryInfo: { title: 'Claim' } as TxHistoryInfo
         }
       ]) as TransactionQueue
 
-      transactionCollector.addQueue(queue, {
+      transactionCollector.add(queue, {
         onTxAllSuccess() {
           useCompensationMoney.getState().refresh()
         }

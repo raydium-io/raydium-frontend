@@ -1,17 +1,16 @@
-import { Farm, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Farm, InnerTransaction, TokenAmount } from '@raydium-io/raydium-sdk'
 
-import createAssociatedTokenAccountIfNotExist from '@/application/txTools/createAssociatedTokenAccountIfNotExist'
-import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import txHandler from '@/application/txTools/handleTx'
 import {
   addWalletAccountChangeListener,
   removeWalletAccountChangeListener
 } from '@/application/wallet/useWalletAccountChangeListeners'
 import assert from '@/functions/assert'
-import asyncMap from '@/functions/asyncMap'
 
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 
+import toBN from '@/functions/numberish/toBN'
+import useWallet from '../wallet/useWallet'
 import { HydratedFarmInfo } from './type'
 import useFarms from './useFarms'
 
@@ -19,56 +18,44 @@ export default async function txFarmHarvest(
   info: HydratedFarmInfo,
   options: { isStaking?: boolean; rewardAmounts: TokenAmount[] }
 ) {
-  return txHandler(async ({ transactionCollector, baseUtils: { owner } }) => {
-    const piecesCollector = createTransactionCollector()
+  return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
+    const innerTransactions: InnerTransaction[] = []
     assert(owner, 'require connected wallet')
 
     const jsonFarmInfo = useFarms.getState().jsonInfos.find(({ id }) => String(id) === String(info.id))
     assert(jsonFarmInfo, 'Farm pool not found')
 
-    // ------------- add lp token transaction --------------
-    const lpTokenAccount = await createAssociatedTokenAccountIfNotExist({
-      collector: piecesCollector,
-      mint: info.lpMint
-    })
-
-    // ------------- add rewards token transaction --------------
-    const rewardTokenAccountsPublicKeys = await asyncMap(jsonFarmInfo.rewardInfos, ({ rewardMint }) =>
-      createAssociatedTokenAccountIfNotExist({
-        collector: piecesCollector,
-        mint: rewardMint,
-        autoUnwrapWSOLToSOL: true
-      })
-    )
-
     // ------------- add farm deposit transaction --------------
     const poolKeys = jsonInfo2PoolKeys(jsonFarmInfo)
-    const ledgerAddress = await Farm.getAssociatedLedgerAccount({
+    const ledgerAddress = Farm.getAssociatedLedgerAccount({
       programId: poolKeys.programId,
       poolId: poolKeys.id,
-      owner
+      owner,
+      version: poolKeys.version
     })
 
     // ------------- create ledger --------------
     if (!info.ledger && jsonFarmInfo.version < 6 /* start from v6, no need init ledger any more */) {
-      const instruction = await Farm.makeCreateAssociatedLedgerAccountInstruction({
+      const { innerTransaction } = Farm.makeCreateAssociatedLedgerAccountInstruction({
         poolKeys,
         userKeys: { owner, ledger: ledgerAddress }
       })
-      piecesCollector.addInstruction(instruction)
+      innerTransactions.push(innerTransaction)
     }
+
     // ------------- add withdraw transaction --------------
-    const depositInstruction = Farm.makeWithdrawInstruction({
-      poolKeys,
-      userKeys: {
-        ledger: ledgerAddress,
-        lpTokenAccount,
-        owner,
-        rewardTokenAccounts: rewardTokenAccountsPublicKeys
+    const { tokenAccountRawInfos } = useWallet.getState()
+    const { innerTransactions: makeInstructions } = await Farm.makeWithdrawInstructionSimple({
+      connection,
+      fetchPoolInfo: info.fetchedMultiInfo,
+      ownerInfo: {
+        feePayer: owner,
+        wallet: owner,
+        tokenAccounts: tokenAccountRawInfos
       },
-      amount: 0
+      amount: toBN(0)
     })
-    piecesCollector.addInstruction(depositInstruction)
+    innerTransactions.push(...makeInstructions)
 
     const listenerId = addWalletAccountChangeListener(
       () => {
@@ -76,7 +63,7 @@ export default async function txFarmHarvest(
       },
       { once: true }
     )
-    transactionCollector.add(await piecesCollector.spawnTransaction(), {
+    transactionCollector.add(innerTransactions, {
       onTxError: () => removeWalletAccountChangeListener(listenerId),
       onTxSentError: () => removeWalletAccountChangeListener(listenerId),
       onTxSuccess: () => {

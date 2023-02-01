@@ -1,4 +1,4 @@
-import { PublicKeyish, Token, TokenAmount, WSOL } from '@raydium-io/raydium-sdk'
+import { PublicKeyish, Token, TokenAmount, TxVersion, WSOL } from '@raydium-io/raydium-sdk'
 import { Adapter, WalletName } from '@solana/wallet-adapter-base'
 import { Wallet } from '@solana/wallet-adapter-react'
 import { Keypair, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
@@ -12,10 +12,9 @@ import { isToken } from '@/functions/judgers/dateType'
 import { gte } from '@/functions/numberish/compare'
 import { HexAddress } from '@/types/constants'
 
-import { isQuantumSOL, QuantumSOLAmount, QuantumSOLVersionWSOL, WSOLMint } from '../token/quantumSOL'
+import { isQuantumSOL, QuantumSOLAmount, QuantumSOLVersionWSOL } from '../token/quantumSOL'
 
 import { ITokenAccount, TokenAccountRawInfo } from './type'
-import { TxVersion } from '../txTools/handleTx/createVersionedTransaction'
 
 export type WalletStore = {
   // owner
@@ -112,7 +111,7 @@ export type WalletStore = {
 const useWallet = create<WalletStore>((set, get) => ({
   // owner
   owner: undefined,
-  txVersion: 'V0',
+  txVersion: TxVersion.V0,
   availableWallets: [],
   connected: false,
   disconnecting: false,

@@ -24,7 +24,7 @@ export default function txHavestConcentrated({
     const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
-    const { transaction, signers, address } = await AmmV3.makeDecreaseLiquidityTransaction({
+    const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
       connection: connection,
       liquidity: ZERO,
       poolInfo: currentAmmPool.state,
@@ -38,14 +38,11 @@ export default function txHavestConcentrated({
       slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed
     })
-    transactionCollector.add(
-      { transaction, signers },
-      {
-        txHistoryInfo: {
-          title: 'Havested Rewards',
-          description: `Havested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
-        }
+    transactionCollector.add(innerTransactions, {
+      txHistoryInfo: {
+        title: 'Havested Rewards',
+        description: `Havested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
       }
-    )
+    })
   })
 }

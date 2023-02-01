@@ -1,15 +1,16 @@
-import { PublicKey } from '@solana/web3.js'
+import { PublicKey, TransactionInstruction } from '@solana/web3.js'
 
 import { Spl, WSOL } from '@raydium-io/raydium-sdk'
 
-import { createTransactionCollector } from '@/application/txTools/createTransaction'
-import txHandler, { SingleTxOption, HandleFnOptions } from '@/application/txTools/handleTx'
+import txHandler, { HandleFnOptions, SingleTxOption } from '@/application/txTools/handleTx'
 import { padZero } from '@/functions/numberish/handleZero'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 
+import { InnerTransaction, InstructionType } from '@raydium-io/raydium-sdk'
 import { Ido, Snapshot } from './sdk'
 import { HydratedIdoInfo } from './type'
+import { toInnerTransactionsFromInstructions } from '../txTools/toInnerTransactionsFromInstructions'
 
 export default async function txIdoClaim(
   options: { idoInfo: HydratedIdoInfo; side: 'base' | 'quote' } & SingleTxOption & HandleFnOptions
@@ -19,43 +20,52 @@ export default async function txIdoClaim(
     async ({ transactionCollector, baseUtils: { owner, connection, tokenAccounts } }) => {
       if (!idoInfo.base || !idoInfo.quote) return
 
-      const piecesCollection = createTransactionCollector()
-      const baseTokenAccount = await Spl.getAssociatedTokenAccount({ mint: idoInfo.base.mint, owner })
-      let quoteTokenAccount = await Spl.getAssociatedTokenAccount({ mint: idoInfo.quote.mint, owner })
+      const instructionsCollector: TransactionInstruction[] = []
+      const instructionsTypeCollector: InstructionType[] = [] // methods like `Spl.makeCreateAssociatedTokenAccountInstruction` will add info to instructionsTypeCollector. so eventurally , it won't be an empty array
+      const innerTransactionsCollector: InnerTransaction[] = []
+
+      const baseTokenAccount = Spl.getAssociatedTokenAccount({ mint: idoInfo.base.mint, owner })
+      let quoteTokenAccount = Spl.getAssociatedTokenAccount({ mint: idoInfo.quote.mint, owner })
 
       // TODO fix
       if (idoInfo.quote.mint.toBase58() === WSOL.mint) {
-        const { newAccount, instructions } = await Spl.makeCreateWrappedNativeAccountInstructions({
+        const { innerTransaction, address } = await Spl.makeCreateWrappedNativeAccountInstructions({
           connection,
           owner,
           payer: owner,
           amount: 0
         })
-        quoteTokenAccount = newAccount.publicKey
-        piecesCollection.addInstruction(...instructions)
-        piecesCollection.addEndInstruction(
-          Spl.makeCloseAccountInstruction({ tokenAccount: newAccount.publicKey, owner, payer: owner })
+        quoteTokenAccount = address['newAccount'] /* SDK force, no type export */
+        innerTransactionsCollector.push(innerTransaction)
+        instructionsCollector.push(
+          Spl.makeCloseAccountInstruction({
+            tokenAccount: quoteTokenAccount,
+            owner,
+            payer: owner,
+            instructionsType: instructionsTypeCollector
+          })
         )
-        piecesCollection.addSigner(newAccount)
       } else {
         if (!tokenAccounts.find((tokenAmount) => tokenAmount.publicKey?.equals(quoteTokenAccount))) {
-          piecesCollection.addInstruction(
+          instructionsCollector.push(
             Spl.makeCreateAssociatedTokenAccountInstruction({
               mint: idoInfo.quote.mint,
               associatedAccount: quoteTokenAccount,
               owner,
-              payer: owner
+              payer: owner,
+              instructionsType: instructionsTypeCollector
             })
           )
         }
       }
       if (!tokenAccounts.find((tokenAmount) => tokenAmount.publicKey?.equals(baseTokenAccount))) {
-        piecesCollection.addInstruction(
+        instructionsCollector.push(
           Spl.makeCreateAssociatedTokenAccountInstruction({
             mint: idoInfo.base.mint,
             associatedAccount: baseTokenAccount,
             owner,
-            payer: owner
+            payer: owner,
+            instructionsType: instructionsTypeCollector
           })
         )
       }
@@ -69,7 +79,7 @@ export default async function txIdoClaim(
         owner,
         seedId: new PublicKey(idoInfo.seedId)
       })
-      piecesCollection.addInstruction(
+      instructionsCollector.push(
         Ido.makeClaimInstruction({
           // @ts-expect-error sdk has change
           poolConfig: {
@@ -89,20 +99,27 @@ export default async function txIdoClaim(
           side
         })
       )
-      transactionCollector.add(await piecesCollection.spawnTransaction(), {
-        ...restTxAddOptions,
-        txHistoryInfo: {
-          title: 'AccelerRaytor Claim',
-          description:
-            side === 'base'
-              ? `Claim ${toString(idoInfo.userAllocation)} ${idoInfo.base.symbol ?? '--'}`
-              : `Claim ${
-                  idoInfo.quote && idoInfo.ledger
-                    ? toString(div(idoInfo.ledger?.quoteDeposited, padZero(1, idoInfo.quote?.decimals ?? 0)))
-                    : ''
-                } ${idoInfo.quote.symbol ?? '--'}`
+      transactionCollector.add(
+        toInnerTransactionsFromInstructions({
+          rawNativeInstructions: instructionsCollector,
+          rawNativeInstructionTypes: instructionsTypeCollector,
+          sdkInnerTransactions: innerTransactionsCollector
+        }),
+        {
+          ...restTxAddOptions,
+          txHistoryInfo: {
+            title: 'AccelerRaytor Claim',
+            description:
+              side === 'base'
+                ? `Claim ${toString(idoInfo.userAllocation)} ${idoInfo.base.symbol ?? '--'}`
+                : `Claim ${
+                    idoInfo.quote && idoInfo.ledger
+                      ? toString(div(idoInfo.ledger?.quoteDeposited, padZero(1, idoInfo.quote?.decimals ?? 0)))
+                      : ''
+                  } ${idoInfo.quote.symbol ?? '--'}`
+          }
         }
-      })
+      )
     },
     { forceKeyPairs }
   )

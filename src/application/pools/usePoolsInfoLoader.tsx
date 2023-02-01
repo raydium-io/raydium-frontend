@@ -20,6 +20,8 @@ import useWallet from '../wallet/useWallet'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
+import { isPubEqual } from '@/functions/judgers/areEqual'
+import { sdkDefaultProgramId } from '../token/wellknownProgram.config'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -87,9 +89,10 @@ export default function usePoolsInfoLoader() {
           lpToken: getLpToken(pair.lpMint),
           lpBalance: balances[String(pair.lpMint)],
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
-          isOpenBook:
-            liquidityJsonInfos.find((i) => i.id === pair.ammId)?.marketProgramId ===
-            'srmqPvymJeFKQ4zGQed1GFppgkRHL9kaELCbyksJtPX',
+          isOpenBook: isPubEqual(
+            liquidityJsonInfos.find((i) => i.id === pair.ammId)?.marketProgramId,
+            sdkDefaultProgramId.OPENBOOK_MARKET
+          ),
           userCustomTokenSymbol: userCustomTokenSymbol
         })
     })

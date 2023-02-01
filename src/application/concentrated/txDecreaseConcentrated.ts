@@ -2,12 +2,11 @@ import { AmmV3 } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
-import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq } from '@/functions/numberish/compare'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 
 import useAppSettings from '../common/useAppSettings'
-import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
@@ -27,7 +26,7 @@ export default function txDecreaseConcentrated(options?: { closePosition?: boole
     assert(liquidity != null, 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
     if (options?.closePosition) {
-      const { transaction, signers, address } = await AmmV3.makeDecreaseLiquidityTransaction({
+      const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
         connection: connection,
         liquidity,
         poolInfo: currentAmmPool.state,
@@ -41,19 +40,16 @@ export default function txDecreaseConcentrated(options?: { closePosition?: boole
         // slippage: Number(toString(slippageTolerance)),
         ownerPosition: targetUserPositionAccount.sdkParsed
       })
-      transactionCollector.add(
-        { transaction, signers },
-        {
-          txHistoryInfo: {
-            title: 'Position Closed',
-            description: `close ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)} position`
-          }
+      transactionCollector.add(innerTransactions, {
+        txHistoryInfo: {
+          title: 'Position Closed',
+          description: `close ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)} position`
         }
-      )
+      })
     } else {
       assert(coin1AmountMin, 'not set coin1AmountMin')
       assert(coin2AmountMin, 'not set coin2AmountMin')
-      const { transaction, signers, address } = await AmmV3.makeDecreaseLiquidityTransaction({
+      const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
         connection: connection,
         liquidity,
         poolInfo: currentAmmPool.state,
@@ -69,17 +65,14 @@ export default function txDecreaseConcentrated(options?: { closePosition?: boole
         // slippage: Number(toString(slippageTolerance)),
         ownerPosition: targetUserPositionAccount.sdkParsed
       })
-      transactionCollector.add(
-        { transaction, signers },
-        {
-          txHistoryInfo: {
-            title: 'Liquidity Removed',
-            description: `Removed ${toString(coin1AmountMin)} ${coin1.symbol} and ${toString(coin2AmountMin)} ${
-              coin2.symbol
-            } from ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
-          }
+      transactionCollector.add(innerTransactions, {
+        txHistoryInfo: {
+          title: 'Liquidity Removed',
+          description: `Removed ${toString(coin1AmountMin)} ${coin1.symbol} and ${toString(coin2AmountMin)} ${
+            coin2.symbol
+          } from ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
         }
-      )
+      })
     }
   })
 }

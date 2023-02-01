@@ -1,6 +1,6 @@
-import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
-import { PublicKey } from '@solana/web3.js'
 import assert from '@/functions/assert'
+import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
@@ -20,7 +20,7 @@ export default function txCollectReward({
 
     const token = currentAmmPool.rewardInfos.find((r) => r.tokenMint.equals(rewardMint))!.rewardToken!.symbol
 
-    const { transaction, signers, address } = await AmmV3.makeCollectRewardTransaction({
+    const { innerTransactions } = await AmmV3.makeCollectRewardInstructionSimple({
       connection: connection,
       poolInfo: currentAmmPool.state,
       ownerInfo: {
@@ -32,14 +32,11 @@ export default function txCollectReward({
       rewardMint,
       associatedOnly: false
     })
-    transactionCollector.add(
-      { transaction, signers },
-      {
-        txHistoryInfo: {
-          title: 'Harvested Reward',
-          description: `Harvested: ${token} reward`
-        }
+    transactionCollector.add(innerTransactions, {
+      txHistoryInfo: {
+        title: 'Harvested Reward',
+        description: `Harvested: ${token} reward`
       }
-    )
+    })
   })
 }

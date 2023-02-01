@@ -1,13 +1,11 @@
-import { useCallback } from 'react'
 import { useRouter } from 'next/router'
 
-import { AmmV3, ApiAmmV3Point, ApiAmmV3PoolInfo } from '@raydium-io/raydium-sdk'
+import { AmmV3, ApiAmmV3PoolsItem } from '@raydium-io/raydium-sdk'
 
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
 import toPubString from '@/functions/format/toMintString'
 import { lazyMap } from '@/functions/lazyMap'
-import { toString } from '@/functions/numberish/toString'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
@@ -43,7 +41,7 @@ export default function useConcentratedInfoLoader() {
     async ([, prevRefreshCount]) => {
       if (!pathname.includes('clmm')) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
-      const response = await jFetch<{ data: ApiAmmV3PoolInfo[] }>('https://api.raydium.io/v2/ammV3/ammPools', {
+      const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>('https://api.raydium.io/v2/ammV3/ammPools', {
         ignoreCache: true
       }) // note: previously Rudy has Test API for dev
       if (response) useConcentrated.setState({ apiAmmPools: response.data })

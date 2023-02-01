@@ -1,9 +1,6 @@
-import { ComputerDesktopIcon } from '@heroicons/react/24/outline'
 import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
 
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
-import asyncMap from '@/functions/asyncMap'
 import { toString } from '@/functions/numberish/toString'
 
 import useAppSettings from '../common/useAppSettings'
@@ -22,13 +19,12 @@ export default function txHarvestConcentrated({
   currentAmmPool?: HydratedConcentratedInfo
   targetUserPositionAccount?: UserPositionAccount
 } = {}) {
-  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
     const { tokenAccountRawInfos } = useWallet.getState()
-    const { coin1, coin2 } = useConcentrated.getState()
     const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
-    const { transaction, signers, address } = await AmmV3.makeDecreaseLiquidityTransaction({
+    const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
       connection: connection,
       liquidity: ZERO,
       poolInfo: currentAmmPool.state,
@@ -42,15 +38,12 @@ export default function txHarvestConcentrated({
       slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed
     })
-    transactionCollector.add(
-      { transaction, signers },
-      {
-        txHistoryInfo: {
-          title: 'Harvested Rewards',
-          description: `Harvested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
-        }
+    transactionCollector.add(innerTransactions, {
+      txHistoryInfo: {
+        title: 'Harvested Rewards',
+        description: `Harvested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
       }
-    )
+    })
   })
 }
 
@@ -70,7 +63,7 @@ export async function txHarvestAllConcentrated() {
   }
 
   // call sdk to get the txs, and check if user has harvestable position
-  const { transactions, address } = await AmmV3.makeHarvestAllRewardTransaction({
+  const { innerTransactions } = await AmmV3.makeHarvestAllRewardInstructionSimple({
     connection: connection,
     fetchPoolInfos: originSdkParsedAmmPools,
     ownerInfo: {
@@ -83,7 +76,7 @@ export async function txHarvestAllConcentrated() {
   })
 
   // no harvestable position, show notification
-  if (Array.isArray(transactions) && transactions.length === 0) {
+  if (Array.isArray(innerTransactions) && innerTransactions.length === 0) {
     logInfo('No harvestable position')
     return {
       allSuccess: true,
@@ -93,15 +86,7 @@ export async function txHarvestAllConcentrated() {
 
   // if there are some harvest rewards, then the process ongoing to txHandler
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
-    const transactionPairs = shakeUndifindedItem(
-      await asyncMap(transactions, (merged) => {
-        if (!merged) return
-        const { transaction, signer: signers } = merged
-        return { transaction: transaction, signers }
-      })
-    )
-
-    const queue = transactionPairs.map((tx, idx) => [
+    const queue = innerTransactions.map((tx, idx) => [
       tx,
       {
         txHistoryInfo: {
@@ -111,6 +96,6 @@ export async function txHarvestAllConcentrated() {
       }
     ]) as TransactionQueue
 
-    transactionCollector.addQueue(queue)
+    transactionCollector.add(queue)
   })
 }

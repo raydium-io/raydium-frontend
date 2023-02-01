@@ -1,9 +1,9 @@
-import { ApiAmmV3Point, Fraction } from '@raydium-io/raydium-sdk'
+import { ApiAmmV3PositionLinePoint, Fraction } from '@raydium-io/raydium-sdk'
 
 import { SplToken } from '@/application/token/type'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
-import { div, mul, sub } from '@/functions/numberish/operations'
+import { div, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
 import { Numberish } from '@/types/constants'
 
@@ -13,7 +13,7 @@ export function canTokenPairBeSelected(targetToken: SplToken | undefined, candid
   return !isMintEqual(targetToken?.mint, candidateToken?.mint)
 }
 
-export function toXYChartFormat(points: ApiAmmV3Point[]): ChartPoint[] {
+export function toXYChartFormat(points: ApiAmmV3PositionLinePoint[]): ChartPoint[] {
   return points.map(({ liquidity, price }) => ({
     x: Number(price),
     y: Number(liquidity)

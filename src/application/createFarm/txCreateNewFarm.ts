@@ -24,6 +24,7 @@ import useWallet from '../wallet/useWallet'
 
 import useCreateFarms from './useCreateFarm'
 import { validate300Ray, validateUiRewardInfo } from './validateRewardInfo'
+import { sdkDefaultProgramId } from '../token/wellknownProgram.config'
 
 export const userCreatedFarmKey = 'USER_CREATED_FARMS'
 
@@ -71,12 +72,12 @@ export default async function txCreateNewFarm({
         rewardType: reward.isOptionToken ? 'Option tokens' : 'Standard SPL'
       }
     })
-    const lockMint = '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R' // NOTE: test
-    const lockVault = 'FrspKwj8i3pNmKwXreTveC4fu7KL5ZbGeXdZBe2XViu1' // NOTE: test
+    const lockMint = '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R' // NOTE: Force at 2022-07-06, haven't tell why, just force it
+    const lockVault = 'FrspKwj8i3pNmKwXreTveC4fu7KL5ZbGeXdZBe2XViu1' // NOTE: Force at 2022-07-06, haven't tell why, just force it
     const lpMint = poolJsonInfo.lpMint
     const lockMintTokenAccount = tokenAccounts.find((t) => isMintEqual(t.mint, lockMint))
     assert(lockMintTokenAccount?.publicKey, 'lockMintTokenAccount not found')
-    const createFarmInstruction = await Farm.makeCreateFarmInstruction({
+    const { innerTransaction: createFarmInnerTransaction, address } = await Farm.makeCreateFarmInstruction({
       poolInfo: {
         lpMint: toPub(lpMint),
         lockInfo: {
@@ -85,7 +86,7 @@ export default async function txCreateNewFarm({
         },
         version: 6,
         rewardInfos: rewards,
-        programId: Farm.getProgramId(6)
+        programId: sdkDefaultProgramId.FarmV6
       },
       connection,
       userKeys: {
@@ -93,7 +94,8 @@ export default async function txCreateNewFarm({
         tokenAccounts: tokenAccountRawInfos
       }
     })
-    const createdFarmId = toPubString(createFarmInstruction.newAccounts[0].publicKey)
+    const SDKFarmTempAddressKey = 'hello world' // FIXME
+    const createdFarmId = toPubString(address[SDKFarmTempAddressKey])
     onReceiveFarmId?.(createdFarmId)
 
     // should record result
@@ -105,12 +107,11 @@ export default async function txCreateNewFarm({
       const poolJsonInfo = jsonInfos.find((j) => j.ammId === poolId)
       if (!poolJsonInfo) return
       const version = 6
-      // const lpMint = 'G54x5tuRV12WyNkSjfNnq3jyzfcPF9EgB8c9jTzsQKVW' // NOTE: test
       const lpMint = poolJsonInfo.lpMint
-      const programId = Farm.getProgramId(6)
+      const programId = sdkDefaultProgramId.FarmV6
       const authority = toPubString((await Farm.getAssociatedAuthority({ programId, poolId: toPub(poolId) })).publicKey)
       const lpVault = toPubString(
-        await Farm.getAssociatedLedgerPoolAccount({
+        Farm.getAssociatedLedgerPoolAccount({
           programId,
           poolId: toPub(farmId),
           mint: toPub(lpMint),
@@ -152,10 +153,8 @@ export default async function txCreateNewFarm({
       setLocalItem<FarmPoolJsonInfo[]>(userCreatedFarmKey, (s) => addItem(s ?? [], farmItem))
     }
 
-    assert(createFarmInstruction, 'createFarm valid failed')
-    piecesCollector.addInstruction(...createFarmInstruction.instructions)
-    piecesCollector.addSigner(...createFarmInstruction.newAccounts)
-    transactionCollector.add(await piecesCollector.spawnTransaction(), {
+    assert(createFarmInnerTransaction, 'createFarm valid failed')
+    transactionCollector.add(createFarmInnerTransaction, {
       ...txAddOptions,
       cacheTransaction: true,
       txHistoryInfo: {

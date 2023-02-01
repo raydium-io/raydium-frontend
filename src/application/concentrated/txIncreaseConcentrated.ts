@@ -31,7 +31,7 @@ export default function txIncreaseConcentrated({
     assert(coin2Amount, 'not set coin2Amount')
     assert(isMeaningfulNumber(liquidity), 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
-    const { transaction, signers, address } = await AmmV3.makeIncreaseLiquidityTransaction({
+    const { innerTransactions } = await AmmV3.makeIncreaseLiquidityInstructionSimple({
       connection: connection,
       liquidity,
       poolInfo: currentAmmPool.state,
@@ -44,16 +44,13 @@ export default function txIncreaseConcentrated({
       slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed
     })
-    transactionCollector.add(
-      { transaction, signers },
-      {
-        txHistoryInfo: {
-          title: 'Liquidity Added',
-          description: `Added ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
-            coin2.symbol
-          } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
-        }
+    transactionCollector.add(innerTransactions, {
+      txHistoryInfo: {
+        title: 'Liquidity Added',
+        description: `Added ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${
+          coin2.symbol
+        } to ${toPubString(targetUserPositionAccount.poolId).slice(0, 6)}`
       }
-    )
+    })
   })
 }

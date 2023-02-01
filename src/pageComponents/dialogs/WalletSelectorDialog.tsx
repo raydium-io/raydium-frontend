@@ -19,6 +19,7 @@ import Row from '@/components/Row'
 import { extensionMap } from '@/functions/dom/getExtension'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 import Switcher from '@/components/Switcher'
+import { TxVersion } from '@raydium-io/raydium-sdk'
 
 function WalletSelectorPanelItem({
   wallet,
@@ -213,8 +214,8 @@ function PanelContent({
       <Row className="items-center my-2 ml-auto gap-4 px-8 mobile:px-6 justify-between">
         <div className="text-[#abc4ff]">useV0</div>
         <Switcher
-          checked={txVersion === 'V0'}
-          onToggle={(checked) => useWallet.setState({ txVersion: checked ? 'V0' : 'LEGACY' })}
+          checked={txVersion === TxVersion.V0}
+          onToggle={(checked) => useWallet.setState({ txVersion: checked ? TxVersion.V0 : TxVersion.LEGACY })}
         />
       </Row>
 
