@@ -94,8 +94,7 @@ export default async function txCreateNewFarm({
         tokenAccounts: tokenAccountRawInfos
       }
     })
-    const SDKFarmTempAddressKey = 'hello world' // FIXME
-    const createdFarmId = toPubString(address[SDKFarmTempAddressKey])
+    const createdFarmId = toPubString(address.farmId)
     onReceiveFarmId?.(createdFarmId)
 
     // should record result
