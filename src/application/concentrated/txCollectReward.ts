@@ -4,6 +4,7 @@ import { PublicKey } from '@solana/web3.js'
 
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
 import { HydratedConcentratedInfo } from './type'
 
@@ -14,7 +15,7 @@ export default function txCollectReward({
   rewardMint: PublicKey
   currentAmmPool?: HydratedConcentratedInfo
 }) {
-  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
     const { tokenAccountRawInfos } = useWallet.getState()
     assert(currentAmmPool, 'not seleted amm pool')
 
@@ -30,7 +31,8 @@ export default function txCollectReward({
         useSOLBalance: true
       },
       rewardMint,
-      associatedOnly: false
+      associatedOnly: false,
+      computeBudgetConfig: await getComputeBudgetConfig()
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

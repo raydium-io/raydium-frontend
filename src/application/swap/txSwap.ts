@@ -11,6 +11,7 @@ import useWallet from '../wallet/useWallet'
 
 import { TxHistoryInfo } from '../txHistory/useTxHistory'
 import { useSwap } from './useSwap'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
 const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
   const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
@@ -58,7 +59,8 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
       tokenAccounts: tokenAccountRawInfos,
       associatedOnly: true
     },
-    checkTransaction: true
+    checkTransaction: true,
+    computeBudgetConfig: await getComputeBudgetConfig()
   })
 
   const queue = innerTransactions.map((tx, idx, allTxs) => [

@@ -9,6 +9,7 @@ import { useEffect } from 'react'
 import useConnection from '../connection/useConnection'
 import { SDK_PROGRAM_IDS } from '../token/wellknownProgram.config'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
@@ -57,7 +58,8 @@ async function createNewConcentratedPool() {
     mint2: { mint: coin2.mint, decimals: coin2.decimals },
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
     initialPrice: fractionToDecimal(currentPrice, 15),
-    owner: owner ?? PublicKey.default
+    owner: owner ?? PublicKey.default,
+    computeBudgetConfig: await getComputeBudgetConfig()
   })
   const mockPoolInfo = AmmV3.makeMockPoolInfo({
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,

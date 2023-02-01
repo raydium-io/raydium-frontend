@@ -5,6 +5,7 @@ import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import useConnection from '../connection/useConnection'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import { HydratedConcentratedInfo } from './type'
@@ -65,7 +66,8 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
       const { innerTransactions } = await AmmV3.makeSetRewardsInstructionSimple({
         ...commonParams,
         chainTime,
-        rewardInfos: updatedRewardInfos
+        rewardInfos: updatedRewardInfos,
+        computeBudgetConfig: await getComputeBudgetConfig()
       })
 
       transactionCollector.add(innerTransactions, {
@@ -80,7 +82,8 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
     if (newRewardInfos.length) {
       const { innerTransactions } = await AmmV3.makeInitRewardsInstructionSimple({
         ...commonParams,
-        rewardInfos: newRewardInfos
+        rewardInfos: newRewardInfos,
+        computeBudgetConfig: await getComputeBudgetConfig()
       })
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {

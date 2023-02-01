@@ -5,6 +5,7 @@ import { toString } from '@/functions/numberish/toString'
 import { AmmV3 } from '@raydium-io/raydium-sdk'
 import useConnection from '../connection/useConnection'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { HydratedConcentratedInfo } from './type'
 import useConcentrated from './useConcentrated'
 
@@ -61,7 +62,8 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
     tickUpper: Math.max(priceLowerTick, priceUpperTick),
     // priceLower: fractionToDecimal(toFraction(priceLower), 20),
     // priceUpper: fractionToDecimal(toFraction(priceUpper), 20),
-    slippage: 0.015
+    slippage: 0.015,
+    computeBudgetConfig: await getComputeBudgetConfig()
   })
   return innerTransactions
 }

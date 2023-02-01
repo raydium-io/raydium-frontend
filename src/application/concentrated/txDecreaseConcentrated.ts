@@ -12,6 +12,7 @@ import useWallet from '../wallet/useWallet'
 
 import useConcentrated from './useConcentrated'
 import jFetch from '@/functions/dom/jFetch'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
 export const MANUAL_ADJUST = 0.985 // ask Rudy for detail
 
@@ -39,7 +40,8 @@ export default function txDecreaseConcentrated(options?: { closePosition?: boole
           closePosition: eq(targetUserPositionAccount.sdkParsed.liquidity, liquidity)
         },
         // slippage: Number(toString(slippageTolerance)),
-        ownerPosition: targetUserPositionAccount.sdkParsed
+        ownerPosition: targetUserPositionAccount.sdkParsed,
+        computeBudgetConfig: await getComputeBudgetConfig()
       })
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
@@ -64,7 +66,8 @@ export default function txDecreaseConcentrated(options?: { closePosition?: boole
         amountMinA: toBN(coin1AmountMin),
         amountMinB: toBN(coin2AmountMin),
         // slippage: Number(toString(slippageTolerance)),
-        ownerPosition: targetUserPositionAccount.sdkParsed
+        ownerPosition: targetUserPositionAccount.sdkParsed,
+        computeBudgetConfig: await getComputeBudgetConfig()
       })
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {

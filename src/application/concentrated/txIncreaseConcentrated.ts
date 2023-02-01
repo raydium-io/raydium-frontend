@@ -12,6 +12,7 @@ import useWallet from '../wallet/useWallet'
 
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
 export default function txIncreaseConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -42,7 +43,8 @@ export default function txIncreaseConcentrated({
         useSOLBalance: isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
       },
       slippage: Number(toString(slippageTolerance)),
-      ownerPosition: targetUserPositionAccount.sdkParsed
+      ownerPosition: targetUserPositionAccount.sdkParsed,
+      computeBudgetConfig: await getComputeBudgetConfig()
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

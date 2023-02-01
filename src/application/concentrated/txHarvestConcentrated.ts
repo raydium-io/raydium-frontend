@@ -11,6 +11,7 @@ import useWallet from '../wallet/useWallet'
 
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
 export default function txHarvestConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -36,7 +37,8 @@ export default function txHarvestConcentrated({
         closePosition: false
       },
       slippage: Number(toString(slippageTolerance)),
-      ownerPosition: targetUserPositionAccount.sdkParsed
+      ownerPosition: targetUserPositionAccount.sdkParsed,
+      computeBudgetConfig: await getComputeBudgetConfig()
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {
