@@ -11,6 +11,7 @@ import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import useConcentrated from './useConcentrated'
+import jFetch from '@/functions/dom/jFetch'
 
 export const MANUAL_ADJUST = 0.985 // ask Rudy for detail
 

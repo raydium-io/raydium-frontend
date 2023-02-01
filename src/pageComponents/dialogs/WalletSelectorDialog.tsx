@@ -16,9 +16,10 @@ import Input from '@/components/Input'
 import Link from '@/components/Link'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
+import Switcher from '@/components/Switcher'
+import Tooltip from '@/components/Tooltip'
 import { extensionMap } from '@/functions/dom/getExtension'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
-import Switcher from '@/components/Switcher'
 import { TxVersion } from '@raydium-io/raydium-sdk'
 
 function WalletSelectorPanelItem({
@@ -43,15 +44,6 @@ function WalletSelectorPanelItem({
       } clickable clickable-filter-effect`}
       // TODO disable status
       onClick={() => {
-        // eslint-disable-next-line no-console
-        console.log(
-          'wallet.adapter.name',
-          wallet.adapter.name,
-          'extensionMap[wallet.adapter.name]',
-          extensionMap[wallet.adapter.name],
-          Object.keys(extensionMap),
-          wallet.readyState
-        )
         if (wallet.readyState !== WalletReadyState.Installed && !extensionMap[wallet.adapter.name]?.autoHandle) {
           logInfo(
             'Wallet installation required ',
@@ -211,8 +203,19 @@ function PanelContent({
         </Link>
       </div>
 
-      <Row className="items-center my-2 ml-auto gap-4 px-8 mobile:px-6 justify-between">
-        <div className="text-[#abc4ff]">useV0</div>
+      <Row className="items-center my-3 mobile:my-2 ml-auto gap-4 px-8 mobile:px-6 justify-between">
+        <Row className="items-center text-[#abc4ff80]">
+          <div className="text-sm">Ver.TX</div>
+          <Tooltip>
+            <Icon iconClassName="ml-1" size="sm" heroIconName="question-mark-circle" />
+            <Tooltip.Panel>
+              <div className="max-w-[300px]">
+                Versioned Tx provides more advanced routings and better prices. Current compatible wallets: Phantom,
+                Solflare, Glow and Backpack.
+              </div>
+            </Tooltip.Panel>
+          </Tooltip>
+        </Row>
         <Switcher
           checked={txVersion === TxVersion.V0}
           onToggle={(checked) => useWallet.setState({ txVersion: checked ? TxVersion.V0 : TxVersion.LEGACY })}

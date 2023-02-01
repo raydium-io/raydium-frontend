@@ -34,6 +34,7 @@ import { useSyncWithSolanaWallet } from '@/application/wallet/useSyncWithSolanaW
 import useTokenAccountsRefresher from '@/application/wallet/useTokenAccountsRefresher'
 import { useWalletAccountChangeListeners } from '@/application/wallet/useWalletAccountChangeListeners'
 import { useWalletConnectNotifaction } from '@/application/wallet/useWalletConnectNotifaction'
+import { useWalletTxVersionDetector } from '@/application/wallet/useWalletTxVersionDetector'
 import { DRAWER_STACK_ID } from '@/components/Drawer'
 import NotificationSystemStack from '@/components/NotificationSystemStack'
 import { POPOVER_STACK_ID } from '@/components/Popover'
@@ -130,6 +131,7 @@ function ApplicationsInitializations() {
   // useInitShadowKeypairs()
   useSyncWithSolanaWallet()
   useWalletConnectNotifaction()
+  useWalletTxVersionDetector()
   useTokenAccountsRefresher()
   useInitBalanceRefresher()
   useWalletAccountChangeListeners()
