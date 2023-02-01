@@ -1,16 +1,15 @@
-import { PublicKey, TransactionInstruction } from '@solana/web3.js'
-
-import { Spl, WSOL } from '@raydium-io/raydium-sdk'
+import { InnerTransaction, InstructionType, Spl, WSOL } from '@raydium-io/raydium-sdk'
+import { PublicKey, Signer, TransactionInstruction } from '@solana/web3.js'
 
 import txHandler, { HandleFnOptions, SingleTxOption } from '@/application/txTools/handleTx'
 import { padZero } from '@/functions/numberish/handleZero'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 
-import { InnerTransaction, InstructionType } from '@raydium-io/raydium-sdk'
+import { toInnerTransactionsFromInstructions } from '../txTools/toInnerTransactionsFromInstructions'
+
 import { Ido, Snapshot } from './sdk'
 import { HydratedIdoInfo } from './type'
-import { toInnerTransactionsFromInstructions } from '../txTools/toInnerTransactionsFromInstructions'
 
 export default async function txIdoClaim(
   options: { idoInfo: HydratedIdoInfo; side: 'base' | 'quote' } & SingleTxOption & HandleFnOptions
@@ -21,8 +20,8 @@ export default async function txIdoClaim(
       if (!idoInfo.base || !idoInfo.quote) return
 
       const instructionsCollector: TransactionInstruction[] = []
+      const signer: Signer[] = []
       const instructionsTypeCollector: InstructionType[] = [] // methods like `Spl.makeCreateAssociatedTokenAccountInstruction` will add info to instructionsTypeCollector. so eventurally , it won't be an empty array
-      const innerTransactionsCollector: InnerTransaction[] = []
 
       const baseTokenAccount = Spl.getAssociatedTokenAccount({ mint: idoInfo.base.mint, owner })
       let quoteTokenAccount = Spl.getAssociatedTokenAccount({ mint: idoInfo.quote.mint, owner })
@@ -36,7 +35,10 @@ export default async function txIdoClaim(
           amount: 0
         })
         quoteTokenAccount = address['newAccount'] /* SDK force, no type export */
-        innerTransactionsCollector.push(innerTransaction)
+        instructionsCollector.push(...innerTransaction.instructions)
+        signer.push(...innerTransaction.signers)
+        instructionsTypeCollector.push(...innerTransaction.instructionTypes)
+
         instructionsCollector.push(
           Spl.makeCloseAccountInstruction({
             tokenAccount: quoteTokenAccount,
@@ -99,11 +101,14 @@ export default async function txIdoClaim(
           side
         })
       )
+      instructionsTypeCollector.push(-1)
+
       transactionCollector.add(
         toInnerTransactionsFromInstructions({
           rawNativeInstructions: instructionsCollector,
           rawNativeInstructionTypes: instructionsTypeCollector,
-          sdkInnerTransactions: innerTransactionsCollector
+          signer,
+          wallet: PublicKey.default
         }),
         {
           ...restTxAddOptions,
@@ -112,11 +117,10 @@ export default async function txIdoClaim(
             description:
               side === 'base'
                 ? `Claim ${toString(idoInfo.userAllocation)} ${idoInfo.base.symbol ?? '--'}`
-                : `Claim ${
-                    idoInfo.quote && idoInfo.ledger
-                      ? toString(div(idoInfo.ledger?.quoteDeposited, padZero(1, idoInfo.quote?.decimals ?? 0)))
-                      : ''
-                  } ${idoInfo.quote.symbol ?? '--'}`
+                : `Claim ${idoInfo.quote && idoInfo.ledger
+                  ? toString(div(idoInfo.ledger?.quoteDeposited, padZero(1, idoInfo.quote?.decimals ?? 0)))
+                  : ''
+                } ${idoInfo.quote.symbol ?? '--'}`
           }
         }
       )
