@@ -1,5 +1,8 @@
-import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
+import produce from 'immer'
+import { ReactNode, useEffect, useState } from 'react'
+
 import { devnetApiConfig, mainnetApiConfig } from '@/application/common/apiUrl.config'
+import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
 import useAppSettings from '@/application/common/useAppSettings'
 import Button from '@/components/Button'
 import Col from '@/components/Col'
@@ -16,8 +19,6 @@ import { isPubEqual } from '@/functions/judgers/areEqual'
 import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { objectMap } from '@/functions/objectMethods'
 import { DEVNET_PROGRAM_ID, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
-import produce from 'immer'
-import { ReactNode, useState } from 'react'
 
 export default function SettingsPage() {
   return (
@@ -29,38 +30,48 @@ export default function SettingsPage() {
 }
 
 function ProgramIDTabs() {
+  const innerChoice = useAppAdvancedSettings((s) => s.mode)
+  const [tempInnerChoice, setTempInnerChoice] = useState(innerChoice)
+  useEffect(() => {
+    setTempInnerChoice(innerChoice)
+  }, [innerChoice])
+
   const programIds = useAppAdvancedSettings((s) => s.programIds)
-  const [tempSettings, setTempSettings] = useState(() => objectMap(programIds, (v) => toPubString(v)))
+  const [tempProgramIds, setTempProgramIds] = useState(() => objectMap(programIds, (v) => toPubString(v)))
+  useEffect(() => {
+    setTempProgramIds(objectMap(programIds, (v) => toPubString(v)))
+  }, [programIds])
+
   const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
   const [tempApiUrls, setTempApiUrls] = useState(apiUrls)
+  useEffect(() => {
+    setTempApiUrls(apiUrls)
+  }, [programIds])
 
   const hasUserChangedSettings =
-    Object.entries(programIds).some(([key, value]) => !isPubEqual(tempSettings[key], value)) ||
+    Object.entries(programIds).some(([key, value]) => !isPubEqual(tempProgramIds[key], value)) ||
     Object.entries(apiUrls).some(([key, value]) => tempApiUrls[key] !== value)
 
-  const [innerChoice, setInnerChoice] = useState(
-    programIds === MAINNET_PROGRAM_ID ? 'mainnet' : programIds === DEVNET_PROGRAM_ID ? 'devnet' : 'customized'
-  )
   return (
     <Col className="py-4 gap-8 mx-auto w-[min(1100px,100%)] items-center">
       <Tabs
         values={['mainnet', 'devnet']}
-        currentValue={innerChoice}
+        currentValue={tempInnerChoice}
         onChange={(tabName) => {
-          setTempSettings(
+          setTempProgramIds(
             tabName === 'mainnet'
               ? objectMap(MAINNET_PROGRAM_ID, toPubString)
               : objectMap(DEVNET_PROGRAM_ID, toPubString)
           )
           setTempApiUrls(tabName === 'mainnet' ? mainnetApiConfig : devnetApiConfig)
-          setInnerChoice(tabName)
+          setTempInnerChoice(tabName)
         }}
       />
 
       <div>
         <div className="text-xl font-semibold text-center mb-2">Program ID</div>
         <Col className="mobile:gap-6">
-          {Object.entries(tempSettings).map(([programIDName, programIDValue]) => (
+          {Object.entries(tempProgramIds).map(([programIDName, programIDValue]) => (
             <Fieldset key={programIDName} name={`${toSentenceCase(programIDName)}`} renderFormItem={programIDValue} />
           ))}
         </Col>
@@ -81,7 +92,9 @@ function ProgramIDTabs() {
         validators={[{ should: hasUserChangedSettings }]}
         onClick={() => {
           useAppAdvancedSettings.setState({
-            programIds: objectMap(tempSettings, (v) => toPub(v))
+            programIds: objectMap(tempProgramIds, (v) => toPub(v)),
+            apiUrls: tempApiUrls,
+            mode: tempInnerChoice
           })
         }}
       >

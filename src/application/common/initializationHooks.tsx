@@ -20,14 +20,14 @@ import useNotification from '../notification/useNotification'
 import useWallet from '../wallet/useWallet'
 import { useAppVersion } from './useAppVersion'
 
+import { useAppAdvancedSettingsSyncer } from '@/application/common/useAppAdvancedSettingsSyncer'
 import useConcentrated from '../concentrated/useConcentrated'
 import useFarms from '../farms/useFarms'
 import useLiquidity from '../liquidity/useLiquidity'
 import { usePools } from '../pools/usePools'
-import { useSwap } from '../swap/useSwap'
 import useToken from '../token/useToken'
-import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
 import { useApiUrlChange } from './useApiUrlChange'
+import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
 
 function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -277,6 +277,8 @@ export function useClientInitialization() {
   useDeviceInfoSyc()
 
   useDisclaimerDataSyncer()
+
+  useAppAdvancedSettingsSyncer()
 }
 
 export function useInnerAppInitialization() {
