@@ -2,6 +2,7 @@ import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
 import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
+import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
@@ -18,7 +19,6 @@ import useNotification from '@/application/notification/useNotification'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
-import { SDK_PROGRAM_IDS } from '@/application/token/wellknownProgram.config'
 import { RAYMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
@@ -45,7 +45,7 @@ import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
-import RowTabs from '@/components/RowTabs'
+import Tabs from '@/components/Tabs'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
@@ -258,7 +258,7 @@ function FarmTabBlock({ className }: { className?: string }) {
   const currentTab = useFarms((s) => s.currentTab)
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <RowTabs
+    <Tabs
       currentValue={currentTab}
       urlSearchQueryKey="tab"
       values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}
@@ -266,7 +266,7 @@ function FarmTabBlock({ className }: { className?: string }) {
       className={className}
     />
   ) : (
-    <RowTabs
+    <Tabs
       currentValue={currentTab}
       urlSearchQueryKey="tab"
       values={shakeFalsyItem(['Raydium', 'Fusion', 'Ecosystem', 'Staked'] as const)}
@@ -1519,6 +1519,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
   const getToken = useToken((s) => s.getToken)
   const isStable = isJsonFarmInfo(info) ? false : info.isStablePool
   const currentTab = useFarms((s) => s.currentTab)
+  const programIds = useAppAdvancedSettings((s) => s.programIds)
 
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
   const liquidity = liquidityJsonInfos.find((i) => i.lpMint === info.lpMint)
@@ -1589,9 +1590,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       {info.isDualFusionPool && info.version !== 6 && <Badge cssColor="#DA2EEF">Dual Yield</Badge>}
       {info.isNewPool && <Badge cssColor="#00d1ff">New</Badge>}
       {info.isUpcomingPool && <Badge cssColor="#5dadee">Upcoming</Badge>}
-      {liquidity && isPubEqual(liquidity.marketProgramId, SDK_PROGRAM_IDS.OPENBOOK_MARKET) && (
-        <OpenBookTip></OpenBookTip>
-      )}
+      {liquidity && isPubEqual(liquidity.marketProgramId, programIds.OPENBOOK_MARKET) && <OpenBookTip></OpenBookTip>}
     </AutoBox>
   )
 }

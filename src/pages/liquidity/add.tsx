@@ -14,7 +14,7 @@ import useLiquidityAmountCalculator from '@/application/liquidity/useLiquidityAm
 import useLiquidityInitCoinFiller from '@/application/liquidity/useLiquidityInitCoinFiller'
 import useLiquidityUrlParser from '@/application/liquidity/useLiquidityUrlParser'
 import { routeTo } from '@/application/routeTools'
-import { SOL_BASE_BALANCE, SOLDecimals } from '@/application/token/quantumSOL'
+import { SOLDecimals, SOL_BASE_BALANCE } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
@@ -32,17 +32,16 @@ import Icon from '@/components/Icon'
 import Input from '@/components/Input'
 import Link from '@/components/Link'
 import List from '@/components/List'
-import { OpenBookTip } from '@/components/OpenBookTip'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
-import RowTabs from '@/components/RowTabs'
+import Tabs from '@/components/Tabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, unifyItem } from '@/functions/arrayMethods'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { isMintEqual, isPubEqual } from '@/functions/judgers/areEqual'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gte, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -53,15 +52,14 @@ import useToggle from '@/hooks/useToggle'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import { HexAddress } from '@/types/constants'
 
+import useConnection from '@/application/connection/useConnection'
+import { toUTC } from '@/functions/date/dateFormat'
+import { isDateAfter } from '@/functions/date/judges'
+import parseDuration from '@/functions/date/parseDuration'
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
 import { NewCompensationBanner } from '../pools'
-import useConnection from '@/application/connection/useConnection'
-import { isDateAfter, isDateBefore } from '@/functions/date/judges'
-import { toUTC } from '@/functions/date/dateFormat'
-import parseDuration from '@/functions/date/parseDuration'
-import { SDK_PROGRAM_IDS } from '@/application/token/wellknownProgram.config'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -97,7 +95,7 @@ function LiquidityEffect() {
 function LiquidityPageHead() {
   return (
     <Row className="mb-12 mobile:mb-2 self-center">
-      <RowTabs
+      <Tabs
         currentValue={'Liquidity'}
         values={['Swap', 'Liquidity']}
         onChange={(newTab) => {
@@ -629,7 +627,6 @@ function LiquidityCardInfo({ className }: { className?: string }) {
     : undefined
 
   const isStable = useMemo(() => Boolean(currentHydratedInfo?.version === 5), [currentHydratedInfo])
-  const isOpenBook = isPubEqual(currentHydratedInfo?.jsonInfo.marketProgramId, SDK_PROGRAM_IDS.OPENBOOK_MARKET)
 
   const poolIsOpen = currentHydratedInfo && isDateAfter(currentTime, currentHydratedInfo.startTime)
   return (

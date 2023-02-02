@@ -22,7 +22,6 @@ import { ReactNode, useState } from 'react'
 /**
  * temporary create-market page
  */
-
 export default function CreateMarketPage() {
   return (
     <PageLayout mobileBarTitle="Create Market" metaTitle="Create Market - Raydium" contentButtonPaddingShorter>

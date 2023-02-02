@@ -6,7 +6,6 @@ import create from 'zustand'
 
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
-import { SDK_PROGRAM_IDS } from '@/application/token/wellknownProgram.config'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
@@ -15,6 +14,7 @@ import { Numberish } from '@/types/constants'
 import { SplToken } from '../token/type'
 
 import { InnerTransaction } from '@raydium-io/raydium-sdk'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import {
   APIConcentratedInfo,
   HydratedAmmV3ConfigInfo,
@@ -177,9 +177,10 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
     const connection = useConnection.getState().connection
     if (!connection || get().whitelistRewards.length > 0) return
     const { getToken } = useToken.getState()
+    const { programIds } = useAppAdvancedSettings.getState()
     AmmV3.getWhiteListMint({
       connection,
-      programId: SDK_PROGRAM_IDS.CLMM
+      programId: programIds.CLMM
     }).then((data) => {
       set({
         whitelistRewards: shakeUndifindedItem(data.map((pub) => getToken(pub))).map((token) => token.mint)

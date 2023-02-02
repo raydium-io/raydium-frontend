@@ -1,4 +1,4 @@
-import { Farm, FarmCreateInstructionParamsV6, FarmPoolJsonInfoV6 } from '@raydium-io/raydium-sdk'
+import { Farm, FarmCreateInstructionParamsV6 } from '@raydium-io/raydium-sdk'
 
 import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import txHandler, { SingleTxOption } from '@/application/txTools/handleTx'
@@ -19,12 +19,12 @@ import { FarmPoolJsonInfo } from '../farms/type'
 import useLiquidity from '../liquidity/useLiquidity'
 import { usePools } from '../pools/usePools'
 import { WSOLMint } from '../token/quantumSOL'
-import { RAYMint, SOLMint } from '../token/wellknownToken.config'
+import { SOLMint } from '../token/wellknownToken.config'
 import useWallet from '../wallet/useWallet'
 
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useCreateFarms from './useCreateFarm'
 import { validate300Ray, validateUiRewardInfo } from './validateRewardInfo'
-import { SDK_PROGRAM_IDS } from '../token/wellknownProgram.config'
 
 export const userCreatedFarmKey = 'USER_CREATED_FARMS'
 
@@ -45,6 +45,7 @@ export default async function txCreateNewFarm({
     const piecesCollector = createTransactionCollector()
     const { poolId } = useCreateFarms.getState()
     const { jsonInfos } = useLiquidity.getState()
+    const { programIds } = useAppAdvancedSettings.getState()
     const poolJsonInfo = jsonInfos.find((j) => j.id === poolId)
 
     const tokenAccountMints = tokenAccounts.map((ta) => toPubString(ta.mint))
@@ -86,7 +87,7 @@ export default async function txCreateNewFarm({
         },
         version: 6,
         rewardInfos: rewards,
-        programId: SDK_PROGRAM_IDS.FarmV6
+        programId: programIds.FarmV6
       },
       connection,
       userKeys: {
@@ -107,7 +108,7 @@ export default async function txCreateNewFarm({
       if (!poolJsonInfo) return
       const version = 6
       const lpMint = poolJsonInfo.lpMint
-      const programId = SDK_PROGRAM_IDS.FarmV6
+      const programId = programIds.FarmV6
       const authority = toPubString((await Farm.getAssociatedAuthority({ programId, poolId: toPub(poolId) })).publicKey)
       const lpVault = toPubString(
         Farm.getAssociatedLedgerPoolAccount({

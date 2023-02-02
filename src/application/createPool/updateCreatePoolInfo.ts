@@ -12,8 +12,8 @@ import toPubString from '@/functions/format/toMintString'
 import { getOnlineTokenDecimals, verifyToken } from '../token/getOnlineTokenInfo'
 
 import useCreatePool from './useCreatePool'
-import { SDK_PROGRAM_IDS } from '../token/wellknownProgram.config'
 import { isPubEqual } from '@/functions/judgers/areEqual'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }): Promise<{ isSuccess: boolean }> {
   try {
@@ -23,13 +23,14 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
 
     // get market info
     const { connection } = useConnection.getState()
+    const { programIds } = useAppAdvancedSettings.getState()
     assert(connection, 'no rpc connection')
     const { owner } = useWallet.getState()
     assert(owner, 'require connect wallet')
     const marketBufferInfo = await connection.getAccountInfo(new PublicKey(txParam.marketId))
     assert(marketBufferInfo?.data, `can't find market ${txParam.marketId}`)
     assert(
-      isPubEqual(marketBufferInfo.owner, SDK_PROGRAM_IDS.OPENBOOK_MARKET),
+      isPubEqual(marketBufferInfo.owner, programIds.OPENBOOK_MARKET),
       `market program id is not OpenBook program id`
     )
     const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
@@ -87,8 +88,8 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
       baseDecimals,
       quoteDecimals,
       marketId: new PublicKey(txParam.marketId),
-      programId: SDK_PROGRAM_IDS.AmmV4,
-      marketProgramId: SDK_PROGRAM_IDS.OPENBOOK_MARKET
+      programId: programIds.AmmV4,
+      marketProgramId: programIds.OPENBOOK_MARKET
     })
     const { id: ammId, lpMint } = associatedPoolKeys
     useCreatePool.setState({ sdkAssociatedPoolKeys: associatedPoolKeys })

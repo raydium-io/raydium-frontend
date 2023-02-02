@@ -42,7 +42,7 @@ import LoadingCircleSmall from '@/components/LoadingCircleSmall'
 import PageLayout from '@/components/PageLayout'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
-import RowTabs from '@/components/RowTabs'
+import Tabs from '@/components/Tabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
@@ -177,7 +177,7 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
 function SwapHead() {
   return (
     <Row className="justify-center  mb-12 mobile:mb-2">
-      <RowTabs
+      <Tabs
         currentValue={'Swap'}
         values={['Swap', 'Liquidity']}
         onChange={(newTab) => {
