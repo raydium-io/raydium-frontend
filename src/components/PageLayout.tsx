@@ -582,11 +582,6 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
             <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/list">
               AcceleRaytor
             </LinkItem>
-            {isInLocalhost && (
-              <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/basement">
-                Basement
-              </LinkItem>
-            )}
             <LinkItem icon="/icons/entry-icon-dropzone.svg" href="https://dropzone.raydium.io/">
               Dropzone
             </LinkItem>

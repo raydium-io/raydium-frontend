@@ -1,16 +1,15 @@
 import jFetch from '@/functions/dom/jFetch'
-import listToMap, { listToMultiItemsMap } from '@/functions/format/listToMap'
+import { listToMultiItemsMap } from '@/functions/format/listToMap'
 import toTokenPrice from '@/functions/format/toTokenPrice'
-import { inServer } from '@/functions/judgers/isSSR'
 import { objectMap, objectMapMultiEntry, objectShakeNil } from '@/functions/objectMethods'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
-import { useEffect } from 'react'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useToken from './useToken'
 
 export default function useTokenPriceRefresher() {
   const tokenJsonInfos = useToken((s) => s.tokenJsonInfos)
-
   const refreshTokenCount = useToken((s) => s.refreshTokenCount)
+  const priceUrl = useAppAdvancedSettings((s) => s.apiUrls.price)
 
   useAsyncEffect(async () => {
     if (!Object.values(tokenJsonInfos).length) return
@@ -34,12 +33,12 @@ export default function useTokenPriceRefresher() {
       )
     )
 
-    const raydiumPrices = await jFetch<Record<string, number>>('https://api.raydium.io/v2/main/price')
+    const raydiumPrices = await jFetch<Record<string, number>>(priceUrl)
     const raydiumTokenPrices = objectMap(raydiumPrices, (v, k) =>
       tokenJsonInfos[k] ? toTokenPrice(tokenJsonInfos[k], v, { alreadyDecimaled: true }) : undefined
     )
     const tokenPrices = objectShakeNil({ ...coingeckoTokenPrices, ...raydiumTokenPrices })
 
     useToken.setState({ tokenPrices })
-  }, [tokenJsonInfos, refreshTokenCount])
+  }, [tokenJsonInfos, refreshTokenCount, priceUrl])
 }

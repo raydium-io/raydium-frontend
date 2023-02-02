@@ -4,6 +4,7 @@ import create from 'zustand'
 
 import jFetch from '@/functions/dom/jFetch'
 import { inClient } from '@/functions/judgers/isSSR'
+import useAppAdvancedSettings from './useAppAdvancedSettings'
 
 // frontend (client)
 const APP_VERSION = 'V2.9.18'
@@ -36,6 +37,7 @@ export const useAppVersion = create<AppVersionStore>(() => ({
 
 //#region ------------------- hooks -------------------
 export function useAppInitVersionPostHeartBeat() {
+  const appVersionUrl = useAppAdvancedSettings((s) => s.apiUrls.version)
   const getVersion = async () => {
     if (inClient && document.visibilityState === 'hidden') return
     const config = await getBackendVersion()
@@ -47,7 +49,7 @@ export function useAppInitVersionPostHeartBeat() {
     setInterval(() => {
       getVersion()
     }, APP_VERSION_CHECKING_DELAY_TIME)
-  }, [])
+  }, [appVersionUrl])
 }
 
 export function useJudgeAppVersion() {
@@ -75,7 +77,8 @@ export function useJudgeAppVersion() {
 
 //#region ------------------- util function -------------------
 async function getBackendVersion() {
-  return jFetch<BackEndVersion>('https://api.raydium.io/v2/main/version', { ignoreCache: true })
+  const appVersionUrl = useAppAdvancedSettings.getState().apiUrls.version
+  return jFetch<BackEndVersion>(appVersionUrl, { ignoreCache: true })
 }
 
 function parseVersionString(versionString: string) {

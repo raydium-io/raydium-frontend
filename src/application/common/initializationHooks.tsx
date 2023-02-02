@@ -27,6 +27,7 @@ import { usePools } from '../pools/usePools'
 import { useSwap } from '../swap/useSwap'
 import useToken from '../token/useToken'
 import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
+import { useApiUrlChange } from './useApiUrlChange'
 
 function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -290,6 +291,8 @@ export function useInnerAppInitialization() {
   useSlippageTolerenceSyncer()
 
   useGlobalRefresh()
+
+  useApiUrlChange()
 }
 
 function useGlobalRefresh() {

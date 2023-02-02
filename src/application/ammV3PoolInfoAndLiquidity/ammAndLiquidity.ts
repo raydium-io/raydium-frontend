@@ -35,6 +35,7 @@ import { isObject, isPubKeyish } from '@/functions/judgers/dateType'
 import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { Numberish } from '@/types/constants'
 import { BestResultStartTimeInfo } from './type'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 const apiCache = {} as {
   ammV3?: ApiAmmV3PoolsItem[]
@@ -66,7 +67,8 @@ export function clearApiCache() {
 }
 
 async function getAmmV3PoolKeys() {
-  const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>('https://api.raydium.io/v2/ammV3/ammPools') // note: previously Rudy has Test API for dev
+  const ammPoolsUrl = useAppAdvancedSettings.getState().apiUrls.ammV3Pools
+  const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammPoolsUrl) // note: previously Rudy has Test API for dev
   if (response) {
     return response.data
   } else {
@@ -75,7 +77,8 @@ async function getAmmV3PoolKeys() {
 }
 
 async function getOldKeys() {
-  const response = await jFetch<ApiPoolInfo>('https://api.raydium.io/v2/sdk/liquidity/mainnet.json')
+  const liquidityPoolsUrl = useAppAdvancedSettings.getState().apiUrls.poolInfo
+  const response = await jFetch<ApiPoolInfo>(liquidityPoolsUrl)
   return response
 }
 

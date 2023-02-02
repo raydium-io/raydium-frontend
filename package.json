@@ -36,7 +36,7 @@
     "@solana/spl-token": "^0.3.6",
     "@headlessui/react": "1.7.4",
     "@heroicons/react": "^2.0.13",
-    "@raydium-io/raydium-sdk": "npm:test-r-sdk@^1.2.156",
+    "@raydium-io/raydium-sdk": "npm:test-r-sdk@^1.2.159",
     "@sentry/nextjs": "^7.22.0",
     "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/wallet-adapter-react": "^0.15.28",

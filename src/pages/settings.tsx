@@ -1,6 +1,6 @@
 import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
+import { devnetApiConfig, mainnetApiConfig } from '@/application/common/apiUrl.config'
 import useAppSettings from '@/application/common/useAppSettings'
-import txCreateMarket from '@/application/createMarket/txCreateMarket'
 import Button from '@/components/Button'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
@@ -22,6 +22,7 @@ import { ReactNode, useState } from 'react'
 export default function SettingsPage() {
   return (
     <PageLayout mobileBarTitle="Settings" metaTitle="Settings - Raydium">
+      <div className="text-3xl font-semibold">Settings</div>
       <ProgramIDTabs />
     </PageLayout>
   )
@@ -30,16 +31,18 @@ export default function SettingsPage() {
 function ProgramIDTabs() {
   const programIds = useAppAdvancedSettings((s) => s.programIds)
   const [tempSettings, setTempSettings] = useState(() => objectMap(programIds, (v) => toPubString(v)))
-  const hasUserChangedSettings = Object.entries(programIds).some(
-    ([key, value]) => !isPubEqual(tempSettings[key], value)
-  )
+  const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
+  const [tempApiUrls, setTempApiUrls] = useState(apiUrls)
+
+  const hasUserChangedSettings =
+    Object.entries(programIds).some(([key, value]) => !isPubEqual(tempSettings[key], value)) ||
+    Object.entries(apiUrls).some(([key, value]) => tempApiUrls[key] !== value)
+
   const [innerChoice, setInnerChoice] = useState(
     programIds === MAINNET_PROGRAM_ID ? 'mainnet' : programIds === DEVNET_PROGRAM_ID ? 'devnet' : 'customized'
   )
   return (
-    <Col className="gap-8 mx-auto w-[min(1100px,100%)] items-center">
-      <div className="text-3xl font-semibold">Program ID Switcher</div>
-
+    <Col className="py-4 gap-8 mx-auto w-[min(1100px,100%)] items-center">
       <Tabs
         values={['mainnet', 'devnet']}
         currentValue={innerChoice}
@@ -49,15 +52,28 @@ function ProgramIDTabs() {
               ? objectMap(MAINNET_PROGRAM_ID, toPubString)
               : objectMap(DEVNET_PROGRAM_ID, toPubString)
           )
+          setTempApiUrls(tabName === 'mainnet' ? mainnetApiConfig : devnetApiConfig)
           setInnerChoice(tabName)
         }}
       />
 
-      <Col>
-        {Object.entries(tempSettings).map(([programIDName, programIDValue]) => (
-          <Fieldset key={programIDName} name={`${toSentenceCase(programIDName)}`} renderFormItem={programIDValue} />
-        ))}
-      </Col>
+      <div>
+        <div className="text-xl font-semibold text-center mb-2">Program ID</div>
+        <Col className="mobile:gap-6">
+          {Object.entries(tempSettings).map(([programIDName, programIDValue]) => (
+            <Fieldset key={programIDName} name={`${toSentenceCase(programIDName)}`} renderFormItem={programIDValue} />
+          ))}
+        </Col>
+      </div>
+
+      <div>
+        <div className="text-xl font-semibold text-center mb-2">API</div>
+        <Col className="mobile:gap-6">
+          {Object.entries(tempApiUrls).map(([apiName, apiValue]) => (
+            <Fieldset key={apiName} name={`${toSentenceCase(apiName)}`} renderFormItem={apiValue} />
+          ))}
+        </Col>
+      </div>
 
       <Button
         size="lg"
@@ -177,7 +193,7 @@ function AdvancedProgramIDEditor() {
 
 function Fieldset({ name, tooltip, renderFormItem }: { name: string; tooltip?: string; renderFormItem: ReactNode }) {
   return (
-    <Grid className="grid-cols-[10em,1fr] mobile:grid-cols-1 gap-8 mobile:gap-4">
+    <Grid className="grid-cols-[12em,32em] mobile:grid-cols-1 gap-8 mobile:gap-1">
       <Row className="justify-self-end mobile:justify-self-start items-center">
         <div className="text-lg mobile:text-sm text-[#abc4ff]">{name}</div>
         {tooltip && (
@@ -190,7 +206,7 @@ function Fieldset({ name, tooltip, renderFormItem }: { name: string; tooltip?: s
         )}
         <div className="text-lg mobile:hidden text-[#abc4ff]">: </div>
       </Row>
-      {renderFormItem}
+      <div className="mobile:text-sm mobile:break-words">{renderFormItem}</div>
     </Grid>
   )
 }

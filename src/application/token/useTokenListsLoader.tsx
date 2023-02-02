@@ -1,5 +1,3 @@
-import { useCallback } from 'react'
-
 import { ApiAmmV3PoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
 
 import jFetch from '@/functions/dom/jFetch'
@@ -17,6 +15,8 @@ import { usePools } from '../pools/usePools'
 import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
 
+import { isArray, isObject } from '@/functions/judgers/dateType'
+import { verifyToken } from './getOnlineTokenInfo'
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from './quantumSOL'
 import { rawTokenListConfigs } from './rawTokenLists.config'
 import {
@@ -36,9 +36,8 @@ import useToken, {
   SupportedTokenListSettingName
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
-import { verifyToken } from './getOnlineTokenInfo'
-import { isArray, isObject } from '@/functions/judgers/dateType'
-import produce from 'immer'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -48,7 +47,10 @@ export default function useTokenListsLoader() {
   const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
   const poolRefreshCount = usePools((s) => s.refreshCount)
   const clmmRefreshCount = useConcentrated((s) => s.refreshCount)
-
+  const tokenInfoUrl = useAppAdvancedSettings((s) => s.apiUrls.tokenInfo)
+  useIsomorphicLayoutEffect(() => {
+    clearTokenCache()
+  }, [tokenInfoUrl])
   useTransitionedEffect(() => {
     loadTokens()
   }, [
@@ -57,7 +59,8 @@ export default function useTokenListsLoader() {
     liquidityRefreshCount,
     farmRefreshCount,
     poolRefreshCount,
-    clmmRefreshCount
+    clmmRefreshCount,
+    tokenInfoUrl
   ])
 }
 
@@ -223,7 +226,7 @@ async function fetchTokenLists(
   for (const raw of rawListConfigs) {
     const response = await jFetch<
       RaydiumTokenListJsonInfo | RaydiumDevTokenListJsonInfo | LiquidityPoolsJsonFile | { data: ApiAmmV3PoolsItem[] }
-    >(raw.url)
+    >(raw.url())
     if (response) {
       switch (raw.type) {
         case TokenListConfigType.RAYDIUM_MAIN: {
@@ -237,11 +240,6 @@ async function fetchTokenLists(
           await MainTokenFetch(handledResponse as RaydiumTokenListJsonInfo, tokenCollector)
           break
         }
-        case TokenListConfigType.RAYDIUM_DEV:
-          if (isInLocalhost || isInBonsaiTest) {
-            await DevTokenFetch(response as RaydiumDevTokenListJsonInfo, tokenCollector)
-          }
-          break
         case TokenListConfigType.LIQUIDITY_V2:
           await UnofficialLiquidityPoolTokenFetch(response as LiquidityPoolsJsonFile, tokenCollector)
           break
@@ -419,5 +417,44 @@ async function loadTokens() {
     tokens,
     pureTokens,
     verboseTokens
+  }))
+}
+
+/**
+ * when api change, clear token cache
+ */
+function clearTokenCache() {
+  useToken.setState((s) => ({
+    canFlaggedTokenMints: new Set(),
+    blacklist: [] as string[],
+    tokenListSettings: {
+      ...s.tokenListSettings,
+
+      [RAYDIUM_MAINNET_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME],
+        mints: new Set()
+      },
+      [SOLANA_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[SOLANA_TOKEN_LIST_NAME],
+        mints: new Set()
+      },
+
+      [RAYDIUM_DEV_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME],
+        mints: new Set()
+      },
+      [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME],
+        mints: new Set()
+      },
+      [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
+        ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
+        mints: new Set()
+      }
+    },
+    tokenJsonInfos: {},
+    tokens: {},
+    pureTokens: {},
+    verboseTokens: []
   }))
 }

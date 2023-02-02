@@ -11,12 +11,14 @@ import { objectMap } from '@/functions/objectMethods'
 
 import { Ido } from './sdk'
 import { BackendApiIdoListItem, BackendApiIdoProjectDetails } from './type'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 export async function fetchRawIdoListJson(): Promise<BackendApiIdoListItem[]> {
+  const idoInfoUrl = useAppAdvancedSettings.getState().apiUrls.idoInfo
   const response = await jFetch<{
     success: boolean
     data: BackendApiIdoListItem[]
-  }>('https://api.raydium.io/v2/main/ido/pools', {
+  }>(idoInfoUrl, {
     afterJson: (res) => ({
       success: res?.success,
       data: res?.data?.map((item: BackendApiIdoListItem) =>
@@ -54,9 +56,8 @@ export async function fetchRawIdoProjectInfoJson({
 }: {
   idoId: string
 }): Promise<BackendApiIdoProjectDetails | undefined> {
-  const response = await jFetch<{ projectInfo?: BackendApiIdoProjectDetails }>(
-    `https://api.raydium.io/v2/main/ido/project/${idoId}`
-  )
+  const idoProjectInfoUrl = useAppAdvancedSettings.getState().apiUrls.idoProjectInfo
+  const response = await jFetch<{ projectInfo?: BackendApiIdoProjectDetails }>(idoProjectInfoUrl.replace('<id>', idoId))
   if (!response?.projectInfo) return
   return response.projectInfo
 }

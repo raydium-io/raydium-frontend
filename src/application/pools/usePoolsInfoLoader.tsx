@@ -40,9 +40,10 @@ export default function usePoolsInfoLoader() {
   const refreshCount = usePools((s) => s.refreshCount)
   const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
   const programIds = useAppAdvancedSettings((s) => s.programIds)
+  const pairsUrl = useAppAdvancedSettings((s) => s.apiUrls.pairs)
 
   const fetchPairs = async () => {
-    const pairJsonInfo = await jFetch<JsonPairItemInfo[]>('https://api.raydium.io/v2/main/pairs', {
+    const pairJsonInfo = await jFetch<JsonPairItemInfo[]>(pairsUrl, {
       cacheFreshTime: 5 * 60 * 1000
     })
     if (!pairJsonInfo) return
@@ -54,7 +55,7 @@ export default function usePoolsInfoLoader() {
 
   useTransitionedEffect(() => {
     fetchPairs()
-  }, [refreshCount, farmRefreshCount])
+  }, [refreshCount, farmRefreshCount, pairsUrl])
 
   // TODO: currently also fetch info when it's not
   useEffect(() => {

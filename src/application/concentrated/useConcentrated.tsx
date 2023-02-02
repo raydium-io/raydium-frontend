@@ -142,10 +142,10 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   isSearchAmmDialogOpen: false,
   removeAmount: '',
   loadChartPointsAct: async (poolId: string) => {
+    const ammV3PositionLineUrl = useAppAdvancedSettings.getState().apiUrls.ammV3PositionLine
     const chartResponse = await jFetch<{ data: ApiAmmV3PositionLinePoint[] }>(
-      `https://api.raydium.io/v2/ammV3/positionLine/${poolId}`
+      `${ammV3PositionLineUrl.replace('<poolId>', poolId)}`
     )
-
     const currentAmmPool = get().currentAmmPool
     if (!chartResponse || poolId !== currentAmmPool?.idString) return
     set({ chartPoints: chartResponse.data })
