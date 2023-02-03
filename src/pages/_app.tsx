@@ -131,7 +131,7 @@ function ApplicationsInitializations() {
   // useInitShadowKeypairs()
   useSyncWithSolanaWallet()
   useWalletConnectNotifaction()
-  useWalletTxVersionDetector()
+  // useWalletTxVersionDetector() // TEMP DON'T OPEN THIS FEATURE
   useTokenAccountsRefresher()
   useInitBalanceRefresher()
   useWalletAccountChangeListeners()
