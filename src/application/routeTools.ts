@@ -151,8 +151,17 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
       coin1: upCoin,
       coin2: downCoin,
       ammId,
+      isRemoveDialogOpen: mode === 'removeLiquidity',
+
+      // clean original data
       currentJsonInfo: undefined, // wait for auto select
-      isRemoveDialogOpen: mode === 'removeLiquidity'
+      currentSdkParsedInfo: undefined,
+      currentHydratedInfo: undefined,
+      coin1Amount: undefined,
+      coin2Amount: undefined,
+      unslippagedCoin2Amount: undefined,
+      isCalculatingBczSelection: false,
+      focusSide: 'coin1'
     })
 
     // reset  token amount
