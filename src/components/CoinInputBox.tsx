@@ -59,6 +59,7 @@ export interface CoinInputBoxProps {
 
   // validator
   disabled?: boolean
+  renderDisabledMask?: ReactNode
   noDisableStyle?: boolean
   disabledTokenSelect?: boolean // if not prop:disabledTokenSelect but prop:disabled, result is disabled
   disabledInput?: boolean // if not prop:disabledInput but prop:disabled, result is disabled
@@ -121,6 +122,7 @@ export default function CoinInputBox({
   style,
 
   disabled,
+  renderDisabledMask,
   noDisableStyle,
   disabledInput: innerDisabledInput,
   disabledTokenSelect: innerDisabledTokenSelect,
@@ -267,7 +269,7 @@ export default function CoinInputBox({
   return (
     <Row
       className={twMerge(
-        `flex-col bg-[#141041] cursor-text rounded-xl py-3 px-6 mobile:px-4 ${
+        `relative flex-col bg-[#141041] cursor-text rounded-xl py-3 px-6 mobile:px-4 ${
           disabled && !noDisableStyle ? 'pointer-events-none-entirely cursor-default opacity-50' : ''
         }`,
         className
@@ -279,6 +281,9 @@ export default function CoinInputBox({
       }}
       onClick={focusInput}
     >
+      {/* disable mask */}
+      {renderDisabledMask && disabled && <div className="absolute inset-0">{renderDisabledMask}</div>}
+
       {/* from & balance */}
       <Row className="justify-between mb-2">
         <div className="text-xs mobile:text-2xs text-[rgba(171,196,255,.5)]" title={HTMLTitleTooltip}>

@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-
 import { Price } from '@raydium-io/raydium-sdk'
+import { useEffect, useRef, useState } from 'react'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txIncreaseConcentrated from '@/application/concentrated/txIncreaseConcentrated'
@@ -14,7 +13,6 @@ import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox, { CoinInputBoxHandle } from '@/components/CoinInputBox'
 import Col from '@/components/Col'
-import Dialog from '@/components/Dialog'
 import FadeInStable from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
@@ -22,13 +20,13 @@ import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useInit from '@/hooks/useInit'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 export function AddConcentratedLiquidityDialog() {
   useConcentratedAmountCalculator()
@@ -158,6 +156,8 @@ export function AddConcentratedLiquidityDialog() {
             <CoinInputBox
               className="p-4 mobile:py-2"
               componentRef={coinInputBoxComponentRef1}
+              disabled={gt(currentPrice, targetUserPositionAccount?.priceUpper)}
+              renderDisabledMask={<InputLocked />}
               haveCoinIcon
               topLeftLabel={'Amount'}
               token={coinBase}
@@ -188,6 +188,8 @@ export function AddConcentratedLiquidityDialog() {
             <CoinInputBox
               className="p-4 mobile:py-2"
               componentRef={coinInputBoxComponentRef2}
+              disabled={lt(currentPrice, targetUserPositionAccount?.priceLower)}
+              renderDisabledMask={<InputLocked />}
               haveCoinIcon
               topLeftLabel={'Amount'}
               token={coinQuote}
@@ -295,5 +297,14 @@ export function AddConcentratedLiquidityDialog() {
         </Card>
       )}
     </ResponsiveDialogDrawer>
+  )
+}
+
+function InputLocked() {
+  return (
+    <div className="absolute text-sm flex flex-col border-1.5 border-[#abc4ff40] text-center justify-center items-center p-2 w-full h-full bg-[#141041] bg-opacity-80 z-10 rounded-xl">
+      <Icon className="mb-1" heroIconName="lock-closed" size="sm" />
+      Current price is outside your selected range. Single-asset deposit only.
+    </div>
   )
 }
