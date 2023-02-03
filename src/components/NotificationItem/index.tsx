@@ -29,11 +29,11 @@ export default function NotificationItem(props: PopInfoNormalNotificationItem | 
       appear
       show={isOpen}
       enter="transition-all duration-500"
-      enterFrom="opacity-0 transform pc:origin-right-bottom pc:translate-x-full mobile:-translate-y-full scale-0" // transform direction is controlled by translate-x-full
-      enterTo="opacity-100 transform pc:origin-right-bottom pc:translate-x-0 mobile:translate-y-0 scale-100"
+      enterFrom="opacity-0 transform origin-right-bottom translate-x-full scale-0" // transform direction is controlled by translate-x-full
+      enterTo="opacity-100 transform origin-right-bottom translate-x-0 scale-100"
       leave="transition-all duration-500"
-      leaveFrom="opacity-100 transform pc:origin-right-bottom pc:translate-x-0 mobile:translate-y-0 scale-100"
-      leaveTo="opacity-0 transform pc:origin-right-bottom pc:translate-x-full mobile:-translate-y-full scale-0"
+      leaveFrom="opacity-100 transform origin-right-bottom translate-x-0 scale-100"
+      leaveTo="opacity-0 transform origin-right-bottom translate-x-full scale-0"
       beforeEnter={() => {
         // seems headlessui/react 1.6 will get react 18's priority strategy. 👇 fllowing code will invoke **before** element load
         itemWrapperRef.current?.style.setProperty('position', 'absolute') // init will rerender element, "position:absolute" is for not affect others

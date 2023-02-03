@@ -97,10 +97,8 @@ export default function NotificationSystemStack() {
         className="items-end mobile:items-stretch pointer-events-none"
         style={{
           position: 'fixed',
-          right: isMobile ? 'unset' : '0',
-          bottom: isMobile ? 'unset' : '0',
-          top: isMobile ? '0' : 'unset',
-          left: isMobile ? '0' : 'unset',
+          right: '0',
+          bottom: '0',
           zIndex: 9999
         }}
       >
