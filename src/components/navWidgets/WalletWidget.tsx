@@ -43,7 +43,7 @@ export default function WalletWidget() {
                 {publicKey}
               </AddressItem>
             </FadeIn>
-            <Row className="items-center py-3 px-6  justify-between">
+            {/* TEMP DON'T OPEN THIS FEATURE <Row className="items-center py-3 px-6  justify-between">
               <Row className="items-center text-[#abc4ff80]">
                 <div className="text-sm">Ver.TX</div>
                 <Tooltip>
@@ -60,7 +60,7 @@ export default function WalletWidget() {
                 checked={txVersion === TxVersion.V0}
                 onToggle={(checked) => useWallet.setState({ txVersion: checked ? TxVersion.V0 : TxVersion.LEGACY })}
               />
-            </Row>
+            </Row> */}
             <RowItem
               textClassName="text-white"
               className="py-3 px-6  cursor-pointer clickable clickable-filter-effect"

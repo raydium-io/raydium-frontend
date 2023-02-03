@@ -203,7 +203,7 @@ function PanelContent({
         </Link>
       </div>
 
-      <Row className="items-center my-3 mobile:my-2 ml-auto gap-4 px-8 mobile:px-6 justify-between">
+      {/* TEMP DON'T OPEN THIS FEATURE <Row className="items-center my-3 mobile:my-2 ml-auto gap-4 px-8 mobile:px-6 justify-between">
         <Row className="items-center text-[#abc4ff80]">
           <div className="text-sm">Ver.TX</div>
           <Tooltip>
@@ -220,7 +220,7 @@ function PanelContent({
           checked={txVersion === TxVersion.V0}
           onToggle={(checked) => useWallet.setState({ txVersion: checked ? TxVersion.V0 : TxVersion.LEGACY })}
         />
-      </Row>
+      </Row> */}
 
       <Grid
         className={`px-8 mobile:px-6 gap-x-6 gap-y-3 mobile:gap-2 ${

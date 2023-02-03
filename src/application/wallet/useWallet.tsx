@@ -111,7 +111,7 @@ export type WalletStore = {
 const useWallet = create<WalletStore>((set, get) => ({
   // owner
   owner: undefined,
-  txVersion: TxVersion.V0,
+  txVersion: TxVersion.LEGACY,
   availableWallets: [],
   connected: false,
   disconnecting: false,
