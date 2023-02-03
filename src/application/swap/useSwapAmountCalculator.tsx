@@ -29,6 +29,7 @@ export function useSwapAmountCalculator() {
   const focusSide = directionReversed ? 'coin2' : 'coin1' // temporary focus side is always up, due to swap route's `Trade.getBestAmountIn()` is not ready
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
   const connected = useWallet((s) => s.connected)
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
   /** for swap is always from up to down, up/down is easier to calc */
   const upCoin = directionReversed ? coin2 : coin1
@@ -67,6 +68,8 @@ export function useSwapAmountCalculator() {
 
   const startCalc = useDebounce(
     () => {
+      if (isApprovePanelShown) return // prevent update if approve panel shown
+
       // pairInfo is not enough
       if (!upCoin || !downCoin || !connection || !pathname.startsWith('/swap')) {
         useSwap.setState({
@@ -200,6 +203,7 @@ export function useSwapAmountCalculator() {
   // one for coin1Amount then it will change coin2Amount
   // changing coin2Amount will cause another calc
   useIdleEffect(startCalc, [
+    isApprovePanelShown,
     upCoin,
     downCoin,
     directionReversed,
