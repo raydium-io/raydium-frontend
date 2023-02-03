@@ -913,7 +913,7 @@ function SwapCardInfo({ className }: { className?: string }) {
               fieldValue={
                 <Row className="py-1 px-2 bg-[#141041] rounded-sm text-[#F1F1F2] font-medium text-xs -my-1">
                   <Input
-                    className="w-6"
+                    className="w-7 px-0"
                     disabled={isApprovePanelShown}
                     value={toString(mul(slippageTolerance, 100), { decimalLength: 'auto 2' })}
                     onUserInput={(value) => {

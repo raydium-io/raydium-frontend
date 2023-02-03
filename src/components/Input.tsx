@@ -270,7 +270,7 @@ export default function Input(props: InputProps) {
       style={style}
       domRef={domRef}
     >
-      <div className="flex-initial mr-2">{shrinkToValue(prefix, [inputComponentHandler])}</div>
+      {prefix && <div className="flex-initial mr-2">{shrinkToValue(prefix, [inputComponentHandler])}</div>}
 
       {/* input-wrapperbox is for style input inner body easier */}
       <div className={twMerge('flex flex-grow flex-shrink', inputWrapperClassName)}>
