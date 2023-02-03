@@ -38,6 +38,7 @@ import useToken, {
 import { SOLMint } from './wellknownToken.config'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { lazyMap } from '@/functions/lazyMap'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -78,34 +79,51 @@ function isAnIncludedMint(collector: TokenInfoCollector, mint: string) {
   )
 }
 
+/**
+ * **mutate** token collector
+ * @param collector TokenInfoCollector
+ * @param tokens TokenJson[]
+ * @param lowPriority default tokenJsonInfo has low propirty
+ */
+function addToken(collector: TokenInfoCollector, tokens: TokenJson[], options?: { lowPriority?: boolean }) {
+  for (const tokenJsonInfo of tokens) {
+    collector.tokens[tokenJsonInfo.mint] = options?.lowPriority
+      ? { ...tokenJsonInfo, ...collector.tokens[tokenJsonInfo.mint] }
+      : { ...collector.tokens[tokenJsonInfo.mint], ...tokenJsonInfo }
+  }
+}
+
 async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
   if (!response.official || !response.unOfficial || !response.blacklist || !response.unNamed) return
   const tmpDelNativeSolToken = deleteFetchedNativeSOLToken(response.official)
   collector.officialMints.push(...tmpDelNativeSolToken.map(({ mint }) => mint))
   collector.unOfficialMints.push(...response.unOfficial.map(({ mint }) => mint))
   collector.unNamedMints.push(...response.unNamed.map(({ mint }) => mint))
-  collector.tokens.push(
-    ...tmpDelNativeSolToken,
-    ...response.unOfficial,
-    ...response.unNamed.map(
-      (token) =>
-        ({
-          ...token,
-          symbol: token.mint.slice(0, 6),
-          name: token.mint.slice(0, 12),
-          extensions: {},
-          icon: '',
-          hasFreeze: token.hasFreeze
-        } as TokenJson)
-    )
+  addToken(collector, tmpDelNativeSolToken)
+  addToken(collector, response.unOfficial)
+  addToken(
+    collector,
+    response.unNamed.map((originalTokenJson) => {
+      const tokenJson: TokenJson = {
+        ...originalTokenJson,
+        symbol: originalTokenJson.mint.slice(0, 6),
+        name: originalTokenJson.mint.slice(0, 12),
+        extensions: {},
+        icon: '',
+        hasFreeze: originalTokenJson.hasFreeze
+      }
+      return tokenJson
+    }),
+    { lowPriority: true }
   )
+
   collector.blacklist.push(...response.blacklist)
 }
 
 async function DevTokenFetch(response: RaydiumDevTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
   if (!response.tokens) return
   collector.devMints.push(...response.tokens.map(({ mint }) => mint))
-  collector.tokens.push(...response.tokens)
+  addToken(collector, response.tokens)
 }
 
 async function UnofficialLiquidityPoolTokenFetch(
@@ -128,7 +146,7 @@ async function UnofficialLiquidityPoolTokenFetch(
       if (!isAnIncludedMint(collector, pool[target.mint])) {
         collector.otherLiquiditySupportedMints.push(pool[target.mint])
         const hasFreeze = await verifyToken(target.mint, { noLog: true })
-        collector.tokens.push({
+        const token = {
           symbol: pool[target.mint].substring(0, 6),
           name: pool[target.mint].substring(0, 6),
           mint: pool[target.mint],
@@ -138,7 +156,8 @@ async function UnofficialLiquidityPoolTokenFetch(
           },
           icon: '',
           hasFreeze
-        })
+        }
+        addToken(collector, [token], { lowPriority: true })
       }
     }
   })
@@ -163,7 +182,7 @@ async function ClmmLiquidityPoolTokenFetch(
       if (!isAnIncludedMint(collector, pool[target.mint])) {
         collector.otherLiquiditySupportedMints.push(pool[target.mint])
         const hasFreeze = await verifyToken(target.mint, { noLog: true })
-        collector.tokens.push({
+        const token = {
           symbol: pool[target.mint].substring(0, 6),
           name: pool[target.mint].substring(0, 6),
           mint: pool[target.mint],
@@ -173,7 +192,8 @@ async function ClmmLiquidityPoolTokenFetch(
           },
           icon: '',
           hasFreeze
-        })
+        }
+        addToken(collector, [token], { lowPriority: true })
       }
     }
   })
@@ -186,7 +206,7 @@ interface TokenInfoCollector {
   otherLiquiditySupportedMints: string[]
   unNamedMints: string[]
   blacklist: string[]
-  tokens: TokenJson[]
+  tokens: Record<string /* token mint */, TokenJson>
 }
 
 async function fetchTokenLists(
@@ -216,13 +236,47 @@ async function fetchTokenLists(
     otherLiquiditySupportedMints: [],
     unNamedMints: [],
     blacklist: [],
-    tokens: []
+    tokens: {}
   }
   // eslint-disable-next-line no-console
   console.info('tokenList start fetching')
 
   // we need it execute in order (main->dev->v2->v3->...),
   // bcz RAYDIUM_MAIN contain almost 90% of tokens and we don't run "isAnIncludedMint" check w/ them
+  await lazyMap({
+    source: rawListConfigs,
+    sourceKey: 'load token',
+    async loopFn(raw) {
+      const response = await jFetch<
+        RaydiumTokenListJsonInfo | RaydiumDevTokenListJsonInfo | LiquidityPoolsJsonFile | { data: ApiAmmV3PoolsItem[] }
+      >(raw.url())
+      if (response) {
+        switch (raw.type) {
+          case TokenListConfigType.RAYDIUM_MAIN: {
+            const handledResponse = objectMap(response as RaydiumTokenListJsonInfo, (tokens) => {
+              return isArray(tokens)
+                ? tokens.map((token) =>
+                    isObject(token) && 'hasFreeze' in token ? { ...token, hasFreeze: Boolean(token.hasFreeze) } : token
+                  )
+                : tokens
+            })
+            await MainTokenFetch(handledResponse as RaydiumTokenListJsonInfo, tokenCollector)
+            break
+          }
+          case TokenListConfigType.LIQUIDITY_V2:
+            await UnofficialLiquidityPoolTokenFetch(response as LiquidityPoolsJsonFile, tokenCollector)
+            break
+          case TokenListConfigType.LIQUIDITY_V3:
+            await ClmmLiquidityPoolTokenFetch(response as { data: ApiAmmV3PoolsItem[] }, tokenCollector)
+            break
+          default:
+            console.warn('token list type undetected, did you forgot to create this type of case?')
+            break
+        }
+      }
+    }
+  })
+
   for (const raw of rawListConfigs) {
     const response = await jFetch<
       RaydiumTokenListJsonInfo | RaydiumDevTokenListJsonInfo | LiquidityPoolsJsonFile | { data: ApiAmmV3PoolsItem[] }
@@ -254,7 +308,7 @@ async function fetchTokenLists(
   }
 
   // eslint-disable-next-line no-console
-  console.info('tokenList end fetching, total tokens #: ', tokenCollector.tokens.length)
+  console.info('tokenList end fetching, total tokens #: ', Object.keys(tokenCollector.tokens).length)
 
   // check if any of fetchings is failed (has response, but not code: 200)
   // then replace it w/ current list value (if current list is not undefined)
@@ -272,7 +326,7 @@ async function fetchTokenLists(
     }
   }
 
-  return tokenCollector
+  return { ...tokenCollector, tokens: Object.values(tokenCollector.tokens) }
 }
 
 async function fetchTokenIconInfoList() {
