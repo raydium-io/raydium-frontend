@@ -209,6 +209,55 @@ interface TokenInfoCollector {
   tokens: Record<string /* token mint */, TokenJson>
 }
 
+async function loadTokenList(
+  configs: TokenListFetchConfigItem[],
+  tokenCollector: TokenInfoCollector
+): Promise<unknown> {
+  return Promise.all(
+    configs.map((raw) => {
+      const task = async () => {
+        // eslint-disable-next-line no-console
+        console.time(`load ${raw.url()}`)
+        const response = await jFetch<
+          | RaydiumTokenListJsonInfo
+          | RaydiumDevTokenListJsonInfo
+          | LiquidityPoolsJsonFile
+          | { data: ApiAmmV3PoolsItem[] }
+        >(raw.url())
+        if (response) {
+          switch (raw.type) {
+            case TokenListConfigType.RAYDIUM_MAIN: {
+              const handledResponse = objectMap(response as RaydiumTokenListJsonInfo, (tokens) => {
+                return isArray(tokens)
+                  ? tokens.map((token) =>
+                      isObject(token) && 'hasFreeze' in token
+                        ? { ...token, hasFreeze: Boolean(token.hasFreeze) }
+                        : token
+                    )
+                  : tokens
+              })
+              await MainTokenFetch(handledResponse as RaydiumTokenListJsonInfo, tokenCollector)
+              break
+            }
+            case TokenListConfigType.LIQUIDITY_V2:
+              await UnofficialLiquidityPoolTokenFetch(response as LiquidityPoolsJsonFile, tokenCollector)
+              break
+            case TokenListConfigType.LIQUIDITY_V3:
+              await ClmmLiquidityPoolTokenFetch(response as { data: ApiAmmV3PoolsItem[] }, tokenCollector)
+              break
+            default:
+              console.warn('token list type undetected, did you forgot to create this type of case?')
+              break
+          }
+        }
+        // eslint-disable-next-line no-console
+        console.timeEnd(`load ${raw.url()}`)
+      }
+      return task()
+    })
+  )
+}
+
 async function fetchTokenLists(
   rawListConfigs: TokenListFetchConfigItem[],
   tokenListSettings: {
@@ -243,69 +292,11 @@ async function fetchTokenLists(
 
   // we need it execute in order (main->dev->v2->v3->...),
   // bcz RAYDIUM_MAIN contain almost 90% of tokens and we don't run "isAnIncludedMint" check w/ them
-  await lazyMap({
-    source: rawListConfigs,
-    sourceKey: 'load token',
-    async loopFn(raw) {
-      const response = await jFetch<
-        RaydiumTokenListJsonInfo | RaydiumDevTokenListJsonInfo | LiquidityPoolsJsonFile | { data: ApiAmmV3PoolsItem[] }
-      >(raw.url())
-      if (response) {
-        switch (raw.type) {
-          case TokenListConfigType.RAYDIUM_MAIN: {
-            const handledResponse = objectMap(response as RaydiumTokenListJsonInfo, (tokens) => {
-              return isArray(tokens)
-                ? tokens.map((token) =>
-                    isObject(token) && 'hasFreeze' in token ? { ...token, hasFreeze: Boolean(token.hasFreeze) } : token
-                  )
-                : tokens
-            })
-            await MainTokenFetch(handledResponse as RaydiumTokenListJsonInfo, tokenCollector)
-            break
-          }
-          case TokenListConfigType.LIQUIDITY_V2:
-            await UnofficialLiquidityPoolTokenFetch(response as LiquidityPoolsJsonFile, tokenCollector)
-            break
-          case TokenListConfigType.LIQUIDITY_V3:
-            await ClmmLiquidityPoolTokenFetch(response as { data: ApiAmmV3PoolsItem[] }, tokenCollector)
-            break
-          default:
-            console.warn('token list type undetected, did you forgot to create this type of case?')
-            break
-        }
-      }
-    }
-  })
-
-  for (const raw of rawListConfigs) {
-    const response = await jFetch<
-      RaydiumTokenListJsonInfo | RaydiumDevTokenListJsonInfo | LiquidityPoolsJsonFile | { data: ApiAmmV3PoolsItem[] }
-    >(raw.url())
-    if (response) {
-      switch (raw.type) {
-        case TokenListConfigType.RAYDIUM_MAIN: {
-          const handledResponse = objectMap(response as RaydiumTokenListJsonInfo, (tokens) => {
-            return isArray(tokens)
-              ? tokens.map((token) =>
-                  isObject(token) && 'hasFreeze' in token ? { ...token, hasFreeze: Boolean(token.hasFreeze) } : token
-                )
-              : tokens
-          })
-          await MainTokenFetch(handledResponse as RaydiumTokenListJsonInfo, tokenCollector)
-          break
-        }
-        case TokenListConfigType.LIQUIDITY_V2:
-          await UnofficialLiquidityPoolTokenFetch(response as LiquidityPoolsJsonFile, tokenCollector)
-          break
-        case TokenListConfigType.LIQUIDITY_V3:
-          await ClmmLiquidityPoolTokenFetch(response as { data: ApiAmmV3PoolsItem[] }, tokenCollector)
-          break
-        default:
-          console.warn('token list type undetected, did you forgot to create this type of case?')
-          break
-      }
-    }
-  }
+  // eslint-disable-next-line no-console
+  console.time('load token list cost')
+  await loadTokenList(rawListConfigs, tokenCollector)
+  // eslint-disable-next-line no-console
+  console.timeEnd('load token list cost')
 
   // eslint-disable-next-line no-console
   console.info('tokenList end fetching, total tokens #: ', Object.keys(tokenCollector.tokens).length)

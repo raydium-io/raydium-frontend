@@ -104,10 +104,12 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
   const [userPermanentConfirmedTokenMints, setUserPermanentConfirmedTokenMints] =
     useLocalStorageItem<HexAddress[] /* token mint  */>('USER_CONFIRMED_SWAP_TOKENS')
 
-  const isDownCoinOfficial = Boolean(downCoin && (!raydiumTokenMints || raydiumTokenMints.has(String(downCoin?.mint))))
+  const isDownCoinOfficial = Boolean(
+    downCoin && (!raydiumTokenMints || raydiumTokenMints.has(toPubString(downCoin?.mint)))
+  )
 
   const hasUserPermanentConfirmed = Boolean(
-    downCoin && userPermanentConfirmedTokenMints?.includes(String(downCoin?.mint))
+    downCoin && userPermanentConfirmedTokenMints?.includes(toPubString(downCoin?.mint))
   )
 
   const [hasUserTemporaryConfirmed, setHasUserTemporaryConfirmed] = useState(false)
