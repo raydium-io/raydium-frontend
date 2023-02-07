@@ -15,6 +15,7 @@ import useWallet from '../wallet/useWallet'
 
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -35,18 +36,19 @@ export default function useConcentratedInfoLoader() {
   const tokens = useToken((s) => s.tokens)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const { pathname } = useRouter()
+  const ammV3PoolsUrl = useAppAdvancedSettings((s) => s.apiUrls.ammV3Pools)
 
   /** fetch api json info list  */
   useRecordedEffect(
     async ([, prevRefreshCount]) => {
       if (!pathname.includes('clmm')) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
-      const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>('https://api.raydium.io/v2/ammV3/ammPools', {
+      const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammV3PoolsUrl, {
         ignoreCache: true
       }) // note: previously Rudy has Test API for dev
       if (response) useConcentrated.setState({ apiAmmPools: response.data })
     },
-    [pathname, refreshCount]
+    [pathname, refreshCount, ammV3PoolsUrl]
   )
 
   /**  api json info list ➡ SDK info list */

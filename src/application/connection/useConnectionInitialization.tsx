@@ -11,6 +11,7 @@ import useAppSettings from '../common/useAppSettings'
 import caculateEndpointUrlByRpcConfig from './caculateEndpointUrlByRpcConfig'
 import { Config, Endpoint } from './type'
 import useConnection, { SESSION_STORAGE_USER_SELECTED_RPC } from './useConnection'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 const mockRPCConfig: Omit<Config, 'success'> = {
   rpcs: [{ name: 'beta-mainnet', url: 'https://api.mainnet-beta.solana.com/' }],
@@ -24,10 +25,10 @@ const mockRPCConfig: Omit<Config, 'success'> = {
  * will base on rpcpools(in dev mode) to establish connection
  */
 export default function useConnectionInitialization() {
+  const rpcsUrl = useAppAdvancedSettings((s) => s.apiUrls.rpcs)
   useEffect(() => {
     useConnection.setState({ isLoading: true })
-
-    jFetch<Config>('https://api.raydium.io/v2/main/rpcs')
+    jFetch<Config>(rpcsUrl)
       .then(async (data) => {
         if (!data) return
 
@@ -63,5 +64,5 @@ export default function useConnectionInitialization() {
         useConnection.setState({ isLoading: false })
         console.error(e)
       })
-  }, [])
+  }, [rpcsUrl])
 }

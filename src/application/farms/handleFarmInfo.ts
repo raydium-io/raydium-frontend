@@ -36,6 +36,7 @@ import { unionArr } from '@/types/generics'
 import { SplToken } from '../token/type'
 
 import { APIRewardInfo, FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 function getMaxOpenTime(i: APIRewardInfo[]) {
   return Math.max(...i.map((r) => r.rewardOpenTime))
@@ -55,7 +56,8 @@ export const EXTEND_BEFORE_END_SECOND = 72 * 60 * 60 // test
 export const EXTEND_BEFORE_END = EXTEND_BEFORE_END_SECOND * 1000
 
 export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefined> {
-  const result = await jFetch<FarmPoolsJsonFile>('https://api.raydium.io/v2/sdk/farm-v2/mainnet.json', {
+  const farmInfoUrl = useAppAdvancedSettings.getState().apiUrls.farmInfo
+  const result = await jFetch<FarmPoolsJsonFile>(farmInfoUrl, {
     cacheFreshTime: 5 * 60 * 1000
   })
   if (!result) return undefined

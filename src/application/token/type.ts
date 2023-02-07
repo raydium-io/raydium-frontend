@@ -98,7 +98,7 @@ export interface TokenList {
 }
 
 export interface TokenListFetchConfigItem {
-  url: SrcAddress
+  url: () => SrcAddress
   type: TokenListConfigType
 }
 

@@ -1,4 +1,4 @@
-import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { MAINNET_PROGRAM_ID, PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import create from 'zustand'
 
@@ -6,7 +6,6 @@ import toPubString from '@/functions/format/toMintString'
 import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
-import { SDK_PROGRAM_IDS } from '../token/wellknownProgram.config'
 
 export type CreateMarket = {
   programId: string
@@ -19,7 +18,7 @@ export type CreateMarket = {
 }
 
 export const useCreateMarket = create<CreateMarket>((set) => ({
-  programId: toPubString(SDK_PROGRAM_IDS.CLMM),
+  programId: toPubString(MAINNET_PROGRAM_ID.CLMM),
   minimumOrderSize: 1,
   tickSize: 0.01
 }))

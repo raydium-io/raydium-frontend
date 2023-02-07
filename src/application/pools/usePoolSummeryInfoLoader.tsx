@@ -2,6 +2,7 @@ import jFetch from '@/functions/dom/jFetch'
 
 import useInit from '@/hooks/useInit'
 import useUpdate from '@/hooks/useUpdate'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { usePools } from './usePools'
 
 type InfoResponse = {
@@ -15,9 +16,10 @@ export default function usePoolSummeryInfoLoader() {
   const refreshCount = usePools((s) => s.refreshCount)
   const tvl = usePools((s) => s.tvl)
   const volume24h = usePools((s) => s.volume24h)
+  const infoUrl = useAppAdvancedSettings((s) => s.apiUrls.info)
 
   const fetchSummeryInfo = async () => {
-    const summeryInfo = await jFetch<InfoResponse>('https://api.raydium.io/v2/main/info')
+    const summeryInfo = await jFetch<InfoResponse>(infoUrl)
     if (!summeryInfo) return
     usePools.setState({ tvl: summeryInfo.tvl, volume24h: summeryInfo.volume24h })
   }
@@ -30,5 +32,5 @@ export default function usePoolSummeryInfoLoader() {
 
   useUpdate(() => {
     fetchSummeryInfo()
-  }, [refreshCount])
+  }, [refreshCount, infoUrl])
 }

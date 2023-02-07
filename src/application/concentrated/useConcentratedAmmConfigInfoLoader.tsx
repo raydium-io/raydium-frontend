@@ -8,6 +8,7 @@ import useAsyncEffect from '@/hooks/useAsyncEffect'
 import useAppSettings from '../common/useAppSettings'
 
 import useConcentrated from './useConcentrated'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -16,13 +17,12 @@ import useConcentrated from './useConcentrated'
 export default function useConcentratedAmmConfigInfoLoader() {
   const availableAmmConfigFeeOptions = useConcentrated((s) => s.availableAmmConfigFeeOptions)
   const inDev = useAppSettings((s) => s.inDev)
+  const ammV3ConfigsUrl = useAppAdvancedSettings((s) => s.apiUrls.ammV3Configs)
 
   /** fetch api json info list  */
   useAsyncEffect(async () => {
     if (availableAmmConfigFeeOptions?.length) return
-    const response = await jFetch<{ data: Record<string, ApiAmmV3ConfigItem> }>(
-      'https://api.raydium.io/v2/ammV3/ammConfigs'
-    )
+    const response = await jFetch<{ data: Record<string, ApiAmmV3ConfigItem> }>(ammV3ConfigsUrl)
     const data = inDev // dev data
       ? {
           AjUvAGNuLJiXXGRQ1uiH4v6fBUJm1zwjBwyfK1qe27Ce: {
@@ -69,5 +69,5 @@ export default function useConcentratedAmmConfigInfoLoader() {
         })
       })
     }
-  }, [inDev])
+  }, [inDev, ammV3ConfigsUrl])
 }

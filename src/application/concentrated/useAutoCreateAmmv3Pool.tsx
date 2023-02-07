@@ -6,8 +6,8 @@ import { toString } from '@/functions/numberish/toString'
 import { AmmV3, AmmV3ConfigInfo } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 import { useEffect } from 'react'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useConnection from '../connection/useConnection'
-import { SDK_PROGRAM_IDS } from '../token/wellknownProgram.config'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
@@ -39,6 +39,7 @@ async function createNewConcentratedPool() {
   const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice, focusSide } = useConcentrated.getState()
   const { connection } = useConnection.getState()
   const { owner } = useWallet.getState()
+  const { programIds } = useAppAdvancedSettings.getState()
   assert(connection, 'connection is not ready')
   assert(coin1, 'not set coin1')
   assert(coin2, 'not set coin2')
@@ -53,7 +54,7 @@ async function createNewConcentratedPool() {
 
   const { innerTransactions, address } = await AmmV3.makeCreatePoolInstructionSimple({
     connection: connection,
-    programId: SDK_PROGRAM_IDS.CLMM,
+    programId: programIds.CLMM,
     mint1: { mint: coin1.mint, decimals: coin1.decimals },
     mint2: { mint: coin2.mint, decimals: coin2.decimals },
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
@@ -66,7 +67,7 @@ async function createNewConcentratedPool() {
     mint1: { mint: coin1.mint, decimals: coin1.decimals },
     mint2: { mint: coin2.mint, decimals: coin2.decimals },
     owner: owner ?? PublicKey.default,
-    programId: SDK_PROGRAM_IDS.CLMM,
+    programId: programIds.CLMM,
     createPoolInstructionSimpleAddress: address,
     initialPrice: fractionToDecimal(currentPrice, 15)
   })

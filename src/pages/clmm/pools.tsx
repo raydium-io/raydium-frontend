@@ -48,7 +48,7 @@ import PageLayout from '@/components/PageLayout'
 import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
-import RowTabs from '@/components/RowTabs'
+import Tabs from '@/components/Tabs'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
@@ -152,7 +152,7 @@ function PoolsTabBlock({ className }: { className?: string }) {
   const currentTab = useConcentrated((s) => s.currentTab)
   const isMobile = useAppSettings((s) => s.isMobile)
   return isMobile ? (
-    <RowTabs
+    <Tabs
       currentValue={currentTab}
       urlSearchQueryKey="tab"
       values={shakeFalsyItem([PoolsConcentratedTabs.ALL, PoolsConcentratedTabs.MY_POOLS] as const)}
@@ -160,7 +160,7 @@ function PoolsTabBlock({ className }: { className?: string }) {
       className={className}
     />
   ) : (
-    <RowTabs
+    <Tabs
       currentValue={currentTab}
       urlSearchQueryKey="tab"
       values={shakeFalsyItem([PoolsConcentratedTabs.ALL, PoolsConcentratedTabs.MY_POOLS] as const)}

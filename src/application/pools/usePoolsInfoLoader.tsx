@@ -1,5 +1,5 @@
-import { useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useEffect, useMemo } from 'react'
 
 import { Price } from '@raydium-io/raydium-sdk'
 
@@ -17,11 +17,11 @@ import useLiquidity from '../liquidity/useLiquidity'
 import useToken from '../token/useToken'
 import useWallet from '../wallet/useWallet'
 
+import { isPubEqual } from '@/functions/judgers/areEqual'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
-import { isPubEqual } from '@/functions/judgers/areEqual'
-import { SDK_PROGRAM_IDS } from '../token/wellknownProgram.config'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -39,9 +39,11 @@ export default function usePoolsInfoLoader() {
   const { pathname } = useRouter()
   const refreshCount = usePools((s) => s.refreshCount)
   const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
+  const programIds = useAppAdvancedSettings((s) => s.programIds)
+  const pairsUrl = useAppAdvancedSettings((s) => s.apiUrls.pairs)
 
   const fetchPairs = async () => {
-    const pairJsonInfo = await jFetch<JsonPairItemInfo[]>('https://api.raydium.io/v2/main/pairs', {
+    const pairJsonInfo = await jFetch<JsonPairItemInfo[]>(pairsUrl, {
       cacheFreshTime: 5 * 60 * 1000
     })
     if (!pairJsonInfo) return
@@ -53,7 +55,7 @@ export default function usePoolsInfoLoader() {
 
   useTransitionedEffect(() => {
     fetchPairs()
-  }, [refreshCount, farmRefreshCount])
+  }, [refreshCount, farmRefreshCount, pairsUrl])
 
   // TODO: currently also fetch info when it's not
   useEffect(() => {
@@ -91,7 +93,7 @@ export default function usePoolsInfoLoader() {
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
           isOpenBook: isPubEqual(
             liquidityJsonInfos.find((i) => i.id === pair.ammId)?.marketProgramId,
-            SDK_PROGRAM_IDS.OPENBOOK_MARKET
+            programIds.OPENBOOK_MARKET
           ),
           userCustomTokenSymbol: userCustomTokenSymbol
         })

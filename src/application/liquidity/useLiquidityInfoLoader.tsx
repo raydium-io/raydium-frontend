@@ -15,11 +15,12 @@ import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress } from '@/types/constants'
 
 import { getUserTokenEvenNotExist } from '../token/getUserTokenEvenNotExist'
-import { liquidityMainnetListUrl } from '../token/rawTokenLists.config'
+import { getLiquidityMainnetListUrl } from '../token/rawTokenLists.config'
 
 import hydrateLiquidityInfo from './hydrateLiquidityInfo'
 import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
 import useLiquidity from './useLiquidity'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 /**
  * will load liquidity info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -41,11 +42,12 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   const pureRawBalances = useWallet((s) => s.pureRawBalances)
   const { pathname } = useRouter()
   const isLiquidityPage = pathname === '/liquidity/add'
+  const poolInfoUrl = useAppAdvancedSettings((s) => s.apiUrls.poolInfo)
 
   /** fetch json info list  */
   useTransitionedEffect(async () => {
     if (disabled) return
-    const response = await jFetch<ApiPoolInfo>(liquidityMainnetListUrl, {
+    const response = await jFetch<ApiPoolInfo>(poolInfoUrl, {
       ignoreCache: true
     })
     const blacklist = await jFetch<HexAddress[]>('/amm-blacklist.json')
@@ -55,7 +57,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
     const officialIds = new Set(response?.official?.map((i) => i.id))
     const unOfficialIds = new Set(response?.unOfficial?.map((i) => i.id))
     if (liquidityInfoList) useLiquidity.setState({ jsonInfos: liquidityInfoList, officialIds, unOfficialIds })
-  }, [disabled])
+  }, [disabled, poolInfoUrl])
 
   /** get userExhibitionLiquidityIds */
   useTransitionedEffect(async () => {

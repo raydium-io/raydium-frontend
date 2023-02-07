@@ -4,6 +4,7 @@ import jFetch from '@/functions/dom/jFetch'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRouter } from 'next/router'
+import useAppAdvancedSettings from './common/useAppAdvancedSettings'
 
 interface HomeInfo {
   tvl: number
@@ -11,7 +12,8 @@ interface HomeInfo {
 }
 
 function fetchHomeInfo() {
-  return jFetch('https://api.raydium.io/v2/main/info', { ignoreCache: true })
+  const infoUrl = useAppAdvancedSettings.getState().apiUrls.info
+  return jFetch(infoUrl, { ignoreCache: true })
 }
 
 export function useHomeInfo() {
@@ -20,6 +22,7 @@ export function useHomeInfo() {
   const [tvl, setTvl] = useLocalStorageItem<number>('tvl')
   const [totalvolume, setTotalvolume] = useLocalStorageItem<number>('totalVolume')
 
+  const homeInfoUrl = useAppAdvancedSettings((s) => s.apiUrls.info)
   const intervalId = useRef<NodeJS.Timer | number>()
   const { pathname } = useRouter()
 
@@ -32,7 +35,7 @@ export function useHomeInfo() {
     if (resTotalvolume != null && resTotalvolume != totalvolume) {
       setTotalvolume(resTotalvolume)
     }
-  }, [forceUpdateCount, tvl, totalvolume])
+  }, [forceUpdateCount, tvl, totalvolume, homeInfoUrl])
 
   useEffect(() => {
     if (pathname !== '/') return

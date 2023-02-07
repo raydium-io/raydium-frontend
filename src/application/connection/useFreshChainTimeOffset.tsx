@@ -6,6 +6,7 @@ import jFetch from '@/functions/dom/jFetch'
 import { mul, sub } from '@/functions/numberish/operations'
 
 import useConnection from './useConnection'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 /**
  * **only in `_app.tsx`**
@@ -14,13 +15,14 @@ import useConnection from './useConnection'
  */
 export default function useFreshChainTimeOffset() {
   const connection = useConnection((s) => s.connection)
+  const timeUrl = useAppAdvancedSettings((s) => s.apiUrls.time)
   useEffect(() => {
     updateChainTimeOffset(connection)
     const timeId = setInterval(() => {
       updateChainTimeOffset(connection)
     }, 1000 * 60 * 5)
     return () => clearInterval(timeId)
-  }, [connection])
+  }, [connection, timeUrl])
 }
 
 async function updateChainTimeOffset(connection: Connection | undefined) {
@@ -34,6 +36,7 @@ async function updateChainTimeOffset(connection: Connection | undefined) {
 }
 
 function getChainTimeOffset(): Promise<number | undefined> {
+  const timeUrl = useAppAdvancedSettings.getState().apiUrls.time
   // const time = await connection.getSlot().then((slot) => connection.getBlockTime(slot)) // old method
-  return jFetch<{ offset: number }>('https://api.raydium.io/v2/main/chain/time').then((res) => res?.offset)
+  return jFetch<{ offset: number }>(timeUrl).then((res) => res?.offset)
 }
