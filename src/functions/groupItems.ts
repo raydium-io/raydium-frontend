@@ -2,7 +2,7 @@
  * @example
  * splitBlockList([0, 1, 2, 3, 4, 5, 6, 7, 8], 4) => [[0, 1, 2, 3], [4, 5, 6, 7], [8]]
  */
-export function groupItems<T>(array: T[], blockGroupSize = 16): T[][] {
+export function groupItems<T>(array: T[], blockGroupSize = 8): T[][] {
   const blockList: T[][] = []
   let prevBlockIndex = 0
   for (let blockIndx = blockGroupSize; blockIndx - blockGroupSize < array.length; blockIndx += blockGroupSize) {

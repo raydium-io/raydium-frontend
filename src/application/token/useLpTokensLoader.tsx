@@ -17,11 +17,11 @@ export default function useLpTokensLoader() {
   const tokens = useToken((s) => s.tokens)
 
   useAsyncEffect(async () => {
-    // console.time('inner') // too slow
+    console.time('load lp tokens')
     const lpTokenItems = await lazyMap({
       source: ammJsonInfos,
       sourceKey: 'load lp token',
-      method: 'hurrier-promise',
+      method: 'hurrier-settimeout',
       loopFn: (ammJsonInfo) => {
         // console.time('info') // too slow
         const baseToken = getToken(ammJsonInfo.baseMint) ?? userAddedTokens[ammJsonInfo.baseMint] // depends on raw user Added tokens for avoid re-render
@@ -43,13 +43,11 @@ export default function useLpTokensLoader() {
             extensions: {}
           }
         ) as LpToken
-        // console.timeEnd('create lp')
-        // console.count('info')
-        // console.timeEnd('info')
         return lpToken
-      }
+      },
+      options: { oneGroupTasksSize: 16 }
     })
-    // console.timeEnd('inner') // too slow
+    console.timeEnd('load lp tokens')
     const lpTokens = listToMap(shakeUndifindedItem(lpTokenItems), (t) => toPubString(t.mint))
     const sameAsPrevious =
       useToken.getState().lpTokens && toTokenKeys(useToken.getState().lpTokens) == toTokenKeys(lpTokens)
