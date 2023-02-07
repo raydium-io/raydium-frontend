@@ -22,7 +22,12 @@ export function useAutoCreateAmmv3Pool() {
 
   useEffect(() => {
     if (connection && coin1 && coin2 && userSettedCurrentPrice && userSelectedAmmConfigFeeOption) {
-      createNewConcentratedPool()
+      createNewConcentratedPool().catch(() => {
+        useConcentrated.setState({
+          tempDataCache: undefined,
+          currentAmmPool: undefined
+        })
+      })
     }
   }, [
     toString(userSettedCurrentPrice),
