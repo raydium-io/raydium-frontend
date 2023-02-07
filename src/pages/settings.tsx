@@ -1,12 +1,11 @@
-import { Fraction, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
 import { ReactNode, useMemo } from 'react'
+
+import { Fraction, ZERO } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
-import txFarmHarvest from '@/application/farms/txFarmHarvest'
 import { HydratedFarmInfo } from '@/application/farms/type'
 import useFarms from '@/application/farms/useFarms'
-import useStaking from '@/application/staking/useStaking'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
@@ -26,36 +25,26 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
-import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gt } from '@/functions/numberish/compare'
 import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import { StakingPageStakeLpDialog } from '../pageComponents/dialogs/StakingPageStakeLpDialog'
-import { NewCompensationBanner } from './pools'
 
-export default function StakingPage() {
+export default function SettingsPage() {
   return (
-    <PageLayout
-      mobileBarTitle="Staking"
-      metaTitle="Staking - Raydium"
-      contentButtonPaddingShorter
-      contentBanner={<NewCompensationBanner />}
-    >
-      <StakingHeader />
-      <StakingCard />
-
-      {/* <MigrateStakingHistory className="mt-[10vh]" /> */}
+    <PageLayout mobileBarTitle="Settings" metaTitle="Settings - Raydium">
+      <SettingsCard />
     </PageLayout>
   )
 }
 
-function StakingHeader() {
+function SettingsHeader() {
   const refreshFarmInfos = useFarms((s) => s.refreshFarmInfos)
   return (
     <Grid className="grid-cols-[1fr,1fr] items-center gap-y-8 pb-4 pt-2">
-      <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white">Staking</div>
+      <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white">Settings</div>
       <div className="justify-self-end">
         <RefreshCircle
-          refreshKey="staking"
+          refreshKey="settings"
           popPlacement="left"
           className="justify-self-end"
           freshFunction={refreshFarmInfos}
@@ -65,7 +54,7 @@ function StakingHeader() {
   )
 }
 
-function StakingCard() {
+function SettingsCard() {
   const hydratedInfos = useFarms((s) => s.hydratedInfos)
   const infos = useMemo(() => hydratedInfos.filter((i) => i.isStakePool), [hydratedInfos])
   if (!infos.length)
@@ -80,20 +69,19 @@ function StakingCard() {
         {infos.map((info) => (
           <div key={String(info.id)}>
             <Collapse>
-              <Collapse.Face>{(open) => <StakingCardCollapseItemFace open={open} info={info} />}</Collapse.Face>
+              <Collapse.Face>{(open) => <SettingsCardCollapseItemFace open={open} info={info} />}</Collapse.Face>
               <Collapse.Body>
-                <StakingCardCollapseItemContent hydratedInfo={info} />
+                <SettingsCardCollapseItemContent hydratedInfo={info} />
               </Collapse.Body>
             </Collapse>
           </div>
         ))}
-        <StakingPageStakeLpDialog />
       </Row>
     </CyberpunkStyleCard>
   )
 }
 
-function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: HydratedFarmInfo }) {
+function SettingsCardCollapseItemFace({ open, info }: { open: boolean; info: HydratedFarmInfo }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const pcCotent = (
     <Row
@@ -206,7 +194,7 @@ function StakingCardCollapseItemFace({ open, info }: { open: boolean; info: Hydr
   return isMobile ? mobileContent : pcCotent
 }
 
-function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: HydratedFarmInfo }) {
+function SettingsCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: HydratedFarmInfo }) {
   const prices = useToken((s) => s.tokenPrices)
   const isMobile = useAppSettings((s) => s.isMobile)
   const connected = useWallet((s) => s.connected)
@@ -245,14 +233,14 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
               <Button
                 className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
                 onClick={() => {
-                  if (connected) {
-                    useStaking.setState({
-                      isStakeDialogOpen: true,
-                      stakeDialogMode: 'deposit'
-                    })
-                  } else {
-                    useAppSettings.setState({ isWalletSelectorShown: true })
-                  }
+                  // if (connected) {
+                  //   useSettings.setState({
+                  //     isStakeDialogOpen: true,
+                  //     stakeDialogMode: 'deposit'
+                  //   })
+                  // } else {
+                  //   useAppSettings.setState({ isWalletSelectorShown: true })
+                  // }
                 }}
               >
                 Stake
@@ -262,14 +250,14 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
                 heroIconName="minus"
                 className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1.5 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
-                  if (connected) {
-                    useStaking.setState({
-                      isStakeDialogOpen: true,
-                      stakeDialogMode: 'withdraw'
-                    })
-                  } else {
-                    useAppSettings.setState({ isWalletSelectorShown: true })
-                  }
+                  // if (connected) {
+                  //   useSettings.setState({
+                  //     isStakeDialogOpen: true,
+                  //     stakeDialogMode: 'withdraw'
+                  //   })
+                  // } else {
+                  //   useAppSettings.setState({ isWalletSelectorShown: true })
+                  // }
                 }}
               />
             </>
@@ -277,17 +265,17 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
             <Button
               className="frosted-glass-teal mobile:py-2 mobile:text-xs"
               onClick={() => {
-                if (connected) {
-                  useStaking.setState({
-                    isStakeDialogOpen: true,
-                    stakeDialogMode: 'deposit'
-                  })
-                } else {
-                  useAppSettings.setState({ isWalletSelectorShown: true })
-                }
+                // if (connected) {
+                //   useSettings.setState({
+                //     isStakeDialogOpen: true,
+                //     stakeDialogMode: 'deposit'
+                //   })
+                // } else {
+                //   useAppSettings.setState({ isWalletSelectorShown: true })
+                // }
               }}
             >
-              {connected ? 'Start Staking' : 'Connect Wallet'}
+              {connected ? 'Start Settings' : 'Connect Wallet'}
             </Button>
           )}
         </Row>
@@ -328,14 +316,7 @@ function StakingCardCollapseItemContent({ hydratedInfo }: { hydratedInfo: Hydrat
           // disable={Number(info.pendingReward?.numerator) <= 0}
           className="frosted-glass frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"
           isLoading={isApprovePanelShown}
-          onClick={() => {
-            txFarmHarvest(hydratedInfo, {
-              isStaking: true,
-              rewardAmounts: hydratedInfo.rewards
-                .map(({ userPendingReward }) => userPendingReward)
-                .filter(isMeaningfulNumber) as TokenAmount[]
-            })
-          }}
+          onClick={() => {}}
           validators={[
             {
               should: connected,
