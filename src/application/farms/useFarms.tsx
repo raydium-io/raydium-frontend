@@ -4,12 +4,13 @@ import useLocalStorageItem from '@/hooks/useLocalStorage'
 
 import useToken from '../token/useToken'
 
-import { FarmPoolJsonInfo, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
+import { FarmPoolAprJsonInfo, FarmPoolJsonInfo, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
 
 export type FarmStore = {
   /** detect if hydratedInfo is ready */
   isLoading: boolean
   jsonInfos: FarmPoolJsonInfo[] // TODO: switch to Object key value pair, for faster extracting
+  jsonFarmAprInfos: FarmPoolAprJsonInfo[] // TODO: switch to Object key value pair, for faster extracting
   sdkParsedInfos: SdkParsedFarmInfo[] // TODO: switch to Object key value pair, for faster extracting
   hydratedInfos: HydratedFarmInfo[] // TODO: switch to Object key value pair, for faster extracting
   /**
@@ -39,6 +40,7 @@ export type FarmStore = {
 const useFarms = create<FarmStore>((set) => ({
   isLoading: true,
   jsonInfos: [],
+  jsonFarmAprInfos: [],
   sdkParsedInfos: [],
   hydratedInfos: [],
 
