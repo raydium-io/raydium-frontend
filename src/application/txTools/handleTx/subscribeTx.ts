@@ -1,4 +1,4 @@
-import { Transaction } from '@solana/web3.js'
+import { Transaction, VersionedTransaction } from '@solana/web3.js'
 import useConnection from '../../connection/useConnection'
 import useNotification from '../../notification/useNotification'
 import { MultiTxExtraInfo, TxErrorInfo, TxFinalInfo, TxSuccessInfo } from '.'
@@ -16,7 +16,7 @@ export default function subscribeTx({
   callbacks
 }: {
   txid: string
-  transaction: Transaction
+  transaction: Transaction | VersionedTransaction
   extraTxidInfo: MultiTxExtraInfo
   callbacks?: SubscribeSignatureCallbacks
 }) {

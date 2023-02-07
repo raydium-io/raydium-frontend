@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
 
-import { Fraction, LiquidityPoolJsonInfo as LiquidityJsonInfo, ReplaceType, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Fraction, ApiPoolInfoItem as LiquidityJsonInfo, ReplaceType, TokenAmount } from '@raydium-io/raydium-sdk'
 import BN from 'bn.js'
 
 import { SplToken } from '../token/type'

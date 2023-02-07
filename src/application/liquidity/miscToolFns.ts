@@ -1,6 +1,6 @@
 import { PublicKey } from '@solana/web3.js'
 
-import { LiquidityPoolJsonInfo, MARKET_STATE_LAYOUT_V3, PublicKeyish } from '@raydium-io/raydium-sdk'
+import { ApiPoolInfoItem, MARKET_STATE_LAYOUT_V3, PublicKeyish } from '@raydium-io/raydium-sdk'
 
 import useConnection from '@/application/connection/useConnection'
 import toPubString from '@/functions/format/toMintString'
@@ -11,7 +11,7 @@ export function findLiquidityPoolJson(options: {
   urlAmmId?: string
   urlCoin1Mint?: string
   urlCoin2Mint?: string
-}): LiquidityPoolJsonInfo | undefined {
+}): ApiPoolInfoItem | undefined {
   const { jsonInfos } = useLiquidity.getState()
   return jsonInfos.find((i) => {
     if (i.id === options.urlAmmId) return true

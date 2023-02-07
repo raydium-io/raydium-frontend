@@ -1,4 +1,9 @@
-import { jsonInfo2PoolKeys, LiquidityPoolJsonInfo as LiquidityJsonInfo, TradeV2 } from '@raydium-io/raydium-sdk'
+import {
+  ApiPoolInfoItem,
+  ApiPoolInfoItem as LiquidityJsonInfo,
+  jsonInfo2PoolKeys,
+  TradeV2
+} from '@raydium-io/raydium-sdk'
 
 import useConnection from '@/application/connection/useConnection'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -14,7 +19,7 @@ export function cleanCachedLiquidityInfo() {
 }
 
 export default async function sdkParseJsonLiquidityInfo(
-  liquidityJsonInfos: LiquidityJsonInfo[],
+  liquidityJsonInfos: ApiPoolInfoItem[],
   connection = useConnection.getState().connection
 ): Promise<SDKParsedLiquidityInfo[]> {
   if (!connection) return []

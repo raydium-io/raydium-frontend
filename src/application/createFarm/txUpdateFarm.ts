@@ -28,8 +28,6 @@ import { validateUiRewardInfo } from './validateRewardInfo'
 
 export default async function txUpdateEdited({ ...txAddOptions }: SingleTxOption) {
   return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
-    const piecesCollector = createTransactionCollector()
-
     // ---------- generate basic info ----------
     const { hydratedInfos } = useFarms.getState()
     const { rewards: uiRewardInfos, farmId: targetFarmId } = useCreateFarms.getState()
@@ -45,20 +43,18 @@ export default async function txUpdateEdited({ ...txAddOptions }: SingleTxOption
     assert(createNewValid, createNewReason)
 
     // ---------- restart ----------
-    await asyncMap(restartRewards, async (r) => {
-      const { instructions, newAccounts } = await createRewardRestartInstruction({ reward: r, farmInfo, connection })
-      piecesCollector.addInstruction(...instructions)
-      piecesCollector.addSigner(...newAccounts)
+    const restartInnerTransactions = await asyncMap(restartRewards, async (r) => {
+      const { innerTransactions } = await createRewardRestartInstruction({ reward: r, farmInfo, connection })
+      return innerTransactions
     })
 
     // ---------- create new ----------
-    await asyncMap(createNewRewards, async (r) => {
-      const { instructions, newAccounts } = await createNewRewardInstruction({ reward: r, farmInfo, connection })
-      piecesCollector.addInstruction(...instructions)
-      piecesCollector.addSigner(...newAccounts)
+    const createNewRewardsInnerTransactions = await asyncMap(createNewRewards, async (r) => {
+      const { innerTransactions } = await createNewRewardInstruction({ reward: r, farmInfo, connection })
+      return innerTransactions
     })
 
-    transactionCollector.add(await piecesCollector.spawnTransaction(), {
+    transactionCollector.add([...restartInnerTransactions.flat(), ...createNewRewardsInnerTransactions.flat()], {
       ...txAddOptions,
       txHistoryInfo: {
         title: 'Edit Farm',
@@ -68,7 +64,7 @@ export default async function txUpdateEdited({ ...txAddOptions }: SingleTxOption
   })
 }
 
-async function createRewardRestartInstruction({
+function createRewardRestartInstruction({
   connection,
   reward,
   farmInfo
@@ -99,7 +95,7 @@ async function createRewardRestartInstruction({
     rewardPerSecond: toBN(mul(perSecond, padZero('1', reward.token?.decimals ?? 6))),
     rewardType: reward.isOptionToken ? 'Option tokens' : 'Standard SPL'
   }
-  return Farm.makeRestartFarmInstruction({
+  return Farm.makeRestartFarmInstructionSimple({
     poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
     connection,
     userKeys: {
@@ -140,7 +136,7 @@ function createNewRewardInstruction({
     rewardType: reward.isOptionToken ? 'Option tokens' : 'Standard SPL'
   }
 
-  return Farm.makeFarmCreatorAddRewardTokenInstruction({
+  return Farm.makeFarmCreatorAddRewardTokenInstructionSimple({
     poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
     connection,
     userKeys: {

@@ -1,6 +1,6 @@
 import { RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 
-import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
+import { ApiPoolInfoItem } from '@raydium-io/raydium-sdk'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
@@ -62,7 +62,7 @@ export function PoolIdInputBlock({
           // tokens[i.baseMint]?.name,
           // tokens[i.quoteMint]?.name
         ]
-      } as AutoCompleteCandidateItem<LiquidityPoolJsonInfo>)
+      } as AutoCompleteCandidateItem<ApiPoolInfoItem>)
     )
 
   // state for validate

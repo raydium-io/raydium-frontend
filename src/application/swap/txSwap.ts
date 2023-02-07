@@ -1,21 +1,17 @@
-import { TOKEN_PROGRAM_ID, TradeV2 } from '@raydium-io/raydium-sdk'
+import { InnerTransaction, InstructionType, TradeV2 } from '@raydium-io/raydium-sdk'
 
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import assert from '@/functions/assert'
-import asyncMap from '@/functions/asyncMap'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 
-import { loadTransaction } from '../txTools/createTransaction'
 import { createTxHandler, TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
-import { useSwap } from './useSwap'
 import { TxHistoryInfo } from '../txHistory/useTxHistory'
-import { Transaction } from '@solana/web3.js'
-import { dangerousTempProgramIds } from '../token/wellknownProgram.config'
+import { useSwap } from './useSwap'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
 const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
   const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
@@ -55,7 +51,7 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
 
   assert(routeType, 'accidently routeType is undefined')
 
-  const { transactions, address } = await TradeV2.makeSwapTranscation({
+  const { innerTransactions } = await TradeV2.makeSwapInstructionSimple({
     connection,
     swapInfo: selectedCalcResult,
     ownerInfo: {
@@ -63,17 +59,11 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
       tokenAccounts: tokenAccountRawInfos,
       associatedOnly: true
     },
-    checkTransaction: true
+    checkTransaction: true,
+    computeBudgetConfig: await getComputeBudgetConfig()
   })
 
-  const signedTransactions = shakeUndifindedItem(
-    await asyncMap(transactions, (merged) => {
-      if (!merged) return
-      const { transaction, signer: signers } = merged
-      return loadTransaction({ transaction: transaction, signers })
-    })
-  )
-  const queue = signedTransactions.map((tx) => [
+  const queue = innerTransactions.map((tx, idx, allTxs) => [
     tx,
     {
       txHistoryInfo: {
@@ -81,19 +71,31 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
         description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
           downCoin.symbol
         }`,
-        subtransactionDescription: translationSwapTx(tx)
+        subtransactionDescription: translationSwapTxDescription(tx, idx, allTxs)
       } as TxHistoryInfo
     }
   ]) as TransactionQueue
-  transactionCollector.addQueue(queue, { sendMode: 'queue(all-settle)' })
+  transactionCollector.add(queue, { sendMode: 'queue(all-settle)' })
 })
 
 export default txSwap
 
-function translationSwapTx(tx: Transaction) {
-  const isTransactionMainSwap = tx.instructions.find((i) => dangerousTempProgramIds.includes(i.programId.toString()))
-  const isTransactionCleanUp = tx.instructions.find(
-    (i) => i.programId.toString() === TOKEN_PROGRAM_ID.toString() && i.data[0] === 9
+function translationSwapTxDescription(tx: InnerTransaction, idx: number, allTxs: InnerTransaction[]) {
+  const swapFirstIdx = allTxs.findIndex((tx) => isSwapTransaction(tx))
+  const swapLastIdx = allTxs.length - 1 - [...allTxs].reverse().findIndex((tx) => isSwapTransaction(tx))
+  return idx < swapFirstIdx ? 'Cleanup' : idx > swapLastIdx ? 'Setup' : 'Swap'
+}
+
+function isSwapTransaction(tx: InnerTransaction): boolean {
+  return (
+    tx.instructionTypes.includes(InstructionType.clmmSwapBaseIn) ||
+    tx.instructionTypes.includes(InstructionType.clmmSwapBaseOut) ||
+    tx.instructionTypes.includes(InstructionType.ammV4Swap) ||
+    tx.instructionTypes.includes(InstructionType.ammV4SwapBaseIn) ||
+    tx.instructionTypes.includes(InstructionType.ammV4SwapBaseOut) ||
+    tx.instructionTypes.includes(InstructionType.ammV5SwapBaseIn) ||
+    tx.instructionTypes.includes(InstructionType.ammV5SwapBaseOut) ||
+    tx.instructionTypes.includes(InstructionType.routeSwap1) ||
+    tx.instructionTypes.includes(InstructionType.routeSwap2)
   )
-  return isTransactionMainSwap ? `Swap` : isTransactionCleanUp ? `Cleanup` : `Setup`
 }

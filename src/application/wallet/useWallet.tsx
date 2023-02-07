@@ -1,7 +1,7 @@
-import { PublicKeyish, Token, TokenAmount, WSOL } from '@raydium-io/raydium-sdk'
+import { PublicKeyish, Token, TokenAmount, TxVersion, WSOL } from '@raydium-io/raydium-sdk'
 import { Adapter, WalletName } from '@solana/wallet-adapter-base'
 import { Wallet } from '@solana/wallet-adapter-react'
-import { Keypair, PublicKey, Transaction } from '@solana/web3.js'
+import { Keypair, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
 
 import BN from 'bn.js'
 import create from 'zustand'
@@ -12,7 +12,7 @@ import { isToken } from '@/functions/judgers/dateType'
 import { gte } from '@/functions/numberish/compare'
 import { HexAddress } from '@/types/constants'
 
-import { isQuantumSOL, QuantumSOLAmount, QuantumSOLVersionWSOL, WSOLMint } from '../token/quantumSOL'
+import { isQuantumSOL, QuantumSOLAmount, QuantumSOLVersionWSOL } from '../token/quantumSOL'
 
 import { ITokenAccount, TokenAccountRawInfo } from './type'
 
@@ -22,6 +22,7 @@ export type WalletStore = {
   /** old version of currentWallet */
   adapter?: Adapter
   adapterInitializing: boolean
+  txVersion: TxVersion
 
   // a experimental feature (owner isn't in shadowOwners)
   /** each Keypair object hold both publicKey and secret key **/
@@ -32,7 +33,7 @@ export type WalletStore = {
   disconnecting: boolean
   connecting: boolean
   select(walletName: WalletName): void
-  signAllTransactions: (transactions: Transaction[]) => Promise<Transaction[]> // if not connected, return empty array
+  signAllTransactions: <T extends Transaction | VersionedTransaction>(transactions: T[]) => Promise<T[]> // if not connected, return empty array
   disconnect(): Promise<unknown>
   signMessage?: (message: Uint8Array) => Promise<Uint8Array>
   /** only for Dev */
@@ -110,6 +111,7 @@ export type WalletStore = {
 const useWallet = create<WalletStore>((set, get) => ({
   // owner
   owner: undefined,
+  txVersion: TxVersion.LEGACY,
   availableWallets: [],
   connected: false,
   disconnecting: false,

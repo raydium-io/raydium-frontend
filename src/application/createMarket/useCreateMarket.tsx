@@ -6,7 +6,7 @@ import toPubString from '@/functions/format/toMintString'
 import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
-import { getCreateNewMarketProgramId } from '../token/wellknownProgram.config'
+import { SDK_PROGRAM_IDS } from '../token/wellknownProgram.config'
 
 export type CreateMarket = {
   programId: string
@@ -19,7 +19,7 @@ export type CreateMarket = {
 }
 
 export const useCreateMarket = create<CreateMarket>((set) => ({
-  programId: toPubString(getCreateNewMarketProgramId()),
+  programId: toPubString(SDK_PROGRAM_IDS.CLMM),
   minimumOrderSize: 1,
   tickSize: 0.01
 }))

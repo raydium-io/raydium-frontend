@@ -1,4 +1,4 @@
-import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
+import { ApiPoolInfoItem } from '@raydium-io/raydium-sdk'
 
 import { PublicKeyish } from '@/types/constants'
 
@@ -11,7 +11,7 @@ import searchJsonConcentratedInfo from './searchJsonConcentratedInfo'
 export default function searchJsonConcentratedInfoByMintPair(
   mint1: PublicKeyish,
   mint2: PublicKeyish,
-  jsonInfos: LiquidityPoolJsonInfo[]
+  jsonInfos: ApiPoolInfoItem[]
 ) {
   const result = searchJsonConcentratedInfo({ baseMint: String(mint1), quoteMint: String(mint2) }, jsonInfos)
   if (result) return [result, 1] as const

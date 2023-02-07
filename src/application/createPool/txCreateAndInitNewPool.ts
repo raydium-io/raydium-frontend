@@ -4,7 +4,6 @@ import { Liquidity, SPL_MINT_LAYOUT, Token } from '@raydium-io/raydium-sdk'
 
 import { deUITokenAmount, WSOLMint } from '@/application/token/quantumSOL'
 import useToken from '@/application/token/useToken'
-import { loadTransaction } from '@/application/txTools/createTransaction'
 import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
@@ -89,12 +88,12 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
 
     if (!isAlreadyCreated) {
       // step1: create pool
-      const { transaction: sdkTransaction1, signers: sdkSigners1 } = Liquidity.makeCreatePoolTransaction({
+      const { innerTransactions } = Liquidity.makeCreatePoolInstructionSimple({
         poolKeys: sdkAssociatedPoolKeys,
         userKeys: { payer: owner }
       })
 
-      transactionCollector.add(await loadTransaction({ transaction: sdkTransaction1, signers: sdkSigners1 }), {
+      transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
           title: 'Create New Pool',
           description: `pool's ammId: ${ammId.slice(0, 4)}...${ammId.slice(-4)}`
@@ -103,7 +102,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     }
 
     // step2: init new pool (inject money into the created pool)
-    const { transaction: sdkTransaction2, signers: sdkSigners2 } = await Liquidity.makeInitPoolTransaction({
+    const { innerTransactions } = await Liquidity.makeInitPoolInstructionSimple({
       poolKeys: sdkAssociatedPoolKeys,
       startTime: startTime ? toBN(startTime.getTime() / 1000) : undefined,
       baseAmount: deUITokenAmount(toTokenAmount(baseToken, baseDecimaledAmount, { alreadyDecimaled: true })),
@@ -111,7 +110,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       connection,
       userKeys: { owner, payer: owner, tokenAccounts: tokenAccountRawInfos }
     })
-    transactionCollector.add(await loadTransaction({ transaction: sdkTransaction2, signers: sdkSigners2 }), {
+    transactionCollector.add(innerTransactions, {
       onTxSuccess() {
         recordCreatedPool()
         useCreatePool.setState({ startTime: undefined })

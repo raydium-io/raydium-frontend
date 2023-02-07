@@ -1,6 +1,6 @@
 import { ReactNode } from 'react'
 import { TxHistoryInfo } from '@/application/txHistory/useTxHistory'
-import { Transaction } from '@solana/web3.js'
+import { Transaction, VersionedTransaction } from '@solana/web3.js'
 
 export interface NormalNotificationItemInfo {
   type?: 'success' | 'warning' | 'error' | 'info'
@@ -10,7 +10,7 @@ export interface NormalNotificationItemInfo {
 }
 
 type TxNotificationSingleItemInfo = {
-  transaction: Transaction
+  transaction: Transaction | VersionedTransaction
   historyInfo: TxHistoryInfo
   /** @default 'queuing' */
   state?: 'success' | 'error' | 'aborted' | 'queuing' | 'processing'
@@ -27,6 +27,6 @@ export interface TxNotificationItemInfo {
 export type TxNotificationController = {
   changeItemInfo(
     info: Omit<Partial<TxNotificationSingleItemInfo>, 'transaction'>,
-    options: { transaction: Transaction }
+    options: { transaction: Transaction | VersionedTransaction }
   ): void
 }

@@ -1,4 +1,4 @@
-import { ApiAmmV3ConfigInfo } from '@raydium-io/raydium-sdk'
+import { ApiAmmV3ConfigItem } from '@raydium-io/raydium-sdk'
 
 import jFetch from '@/functions/dom/jFetch'
 import { toPercent } from '@/functions/format/toPercent'
@@ -20,7 +20,7 @@ export default function useConcentratedAmmConfigInfoLoader() {
   /** fetch api json info list  */
   useAsyncEffect(async () => {
     if (availableAmmConfigFeeOptions?.length) return
-    const response = await jFetch<{ data: Record<string, ApiAmmV3ConfigInfo> }>(
+    const response = await jFetch<{ data: Record<string, ApiAmmV3ConfigItem> }>(
       'https://api.raydium.io/v2/ammV3/ammConfigs'
     )
     const data = inDev // dev data

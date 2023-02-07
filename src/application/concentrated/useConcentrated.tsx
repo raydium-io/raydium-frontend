@@ -1,12 +1,12 @@
-import { AmmV3, ApiAmmV3Point, ReturnTypeFetchMultiplePoolInfos } from '@raydium-io/raydium-sdk'
-import { Keypair, PublicKey, Transaction } from '@solana/web3.js'
+import { AmmV3, ApiAmmV3PositionLinePoint, ReturnTypeFetchMultiplePoolInfos } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
 import create from 'zustand'
 
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'
-import { getAmmV3ProgramId } from '@/application/token/wellknownProgram.config'
+import { SDK_PROGRAM_IDS } from '@/application/token/wellknownProgram.config'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
@@ -14,8 +14,13 @@ import { Numberish } from '@/types/constants'
 
 import { SplToken } from '../token/type'
 
+import { InnerTransaction } from '@raydium-io/raydium-sdk'
 import {
-  APIConcentratedInfo, HydratedAmmV3ConfigInfo, HydratedConcentratedInfo, SDKParsedConcentratedInfo, UICLMMRewardInfo,
+  APIConcentratedInfo,
+  HydratedAmmV3ConfigInfo,
+  HydratedConcentratedInfo,
+  SDKParsedConcentratedInfo,
+  UICLMMRewardInfo,
   UserPositionAccount
 } from './type'
 
@@ -48,7 +53,7 @@ export type ConcentratedStore = {
   selectableAmmPools?: HydratedConcentratedInfo[]
   currentAmmPool?: HydratedConcentratedInfo
   /** user need manually select one */
-  chartPoints?: ApiAmmV3Point[]
+  chartPoints?: ApiAmmV3PositionLinePoint[]
   lazyLoadChart: boolean
   loadChartPointsAct: (poolId: string) => void
   liquidity?: BN // from SDK, just store in UI
@@ -105,10 +110,7 @@ export type ConcentratedStore = {
   availableAmmConfigFeeOptions?: HydratedAmmV3ConfigInfo[] // create pool
   userSelectedAmmConfigFeeOption?: HydratedAmmV3ConfigInfo // create pool
   userSettedCurrentPrice?: Numberish // create pool
-  tempDataCache?: {
-    transaction: Transaction
-    signers: Keypair[]
-  }
+  tempDataCache?: InnerTransaction[]
   rewards: UICLMMRewardInfo[] // TEMP
 
   planAApr?: { feeApr: number; rewardsApr: number[]; apr: number }
@@ -140,7 +142,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   isSearchAmmDialogOpen: false,
   removeAmount: '',
   loadChartPointsAct: async (poolId: string) => {
-    const chartResponse = await jFetch<{ data: ApiAmmV3Point[] }>(
+    const chartResponse = await jFetch<{ data: ApiAmmV3PositionLinePoint[] }>(
       `https://api.raydium.io/v2/ammV3/positionLine/${poolId}`
     )
 
@@ -177,7 +179,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
     const { getToken } = useToken.getState()
     AmmV3.getWhiteListMint({
       connection,
-      programId: getAmmV3ProgramId()
+      programId: SDK_PROGRAM_IDS.CLMM
     }).then((data) => {
       set({
         whitelistRewards: shakeUndifindedItem(data.map((pub) => getToken(pub))).map((token) => token.mint)

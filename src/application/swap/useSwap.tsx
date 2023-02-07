@@ -1,17 +1,10 @@
-import {
-  CurrencyAmount,
-  Price,
-  ReturnTypeGetAllRouteComputeAmountOut,
-  RouteInfo,
-  RouteType,
-  TradeV2
-} from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, Price, ReturnTypeGetAllRouteComputeAmountOut } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 
 import { Numberish } from '@/types/constants'
 
+import { BestResultStartTimeInfo } from '../ammV3PoolInfoAndLiquidity/type'
 import { SplToken } from '../token/type'
-import { BestResultStartTimeInfo, BestResultStartTimePoolInfo } from '../ammV3PoolInfoAndLiquidity/type'
 
 export type SwapStore = {
   directionReversed: boolean // determine pairSide  swap make this to be true
@@ -44,6 +37,7 @@ export type SwapStore = {
   executionPrice?: Price | null
   currentPrice?: Price | null // return by SDK, but don't know when to use it
   // routes?: RouteInfo[] // disappear when sdk > ammV3
+
   /** from SDK,  */
   calcResult?: ReturnTypeGetAllRouteComputeAmountOut
   selectedCalcResult?: ReturnTypeGetAllRouteComputeAmountOut[number]
@@ -62,6 +56,7 @@ export type SwapStore = {
   refreshCount: number
   refreshSwap: () => void
 }
+export type RouteType = 'amm' | 'route' | undefined // SDK haven't export this type, and can't find by extract existing type. so have to write manually in UI code.
 
 export const useSwap = create<SwapStore>((set, get) => ({
   calcResult: undefined,

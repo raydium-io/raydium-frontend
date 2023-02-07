@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 
 import { useWallet as _useWallet } from '@solana/wallet-adapter-react'
-import { PublicKey, Transaction } from '@solana/web3.js'
+import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
 
@@ -81,7 +81,7 @@ export function useSyncWithSolanaWallet() {
 
   useEffect(() => {
     useWallet.setState({
-      signAllTransactions: async (transactions: Transaction[]) =>
+      signAllTransactions: async <T extends Transaction | VersionedTransaction>(transactions: T[]) =>
         (await _signAllTransactions?.(transactions).catch((err) => {
           throw err
         })) ?? []

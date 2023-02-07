@@ -1,10 +1,10 @@
-import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
-import { PublicKey } from '@solana/web3.js'
 import assert from '@/functions/assert'
+import { AmmV3 } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
-import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
 import { HydratedConcentratedInfo } from './type'
 
@@ -15,13 +15,13 @@ export default function txCollectReward({
   rewardMint: PublicKey
   currentAmmPool?: HydratedConcentratedInfo
 }) {
-  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
     const { tokenAccountRawInfos } = useWallet.getState()
     assert(currentAmmPool, 'not seleted amm pool')
 
-    const token = currentAmmPool.rewardInfos.find((r) => r.tokenMint.equals(rewardMint))!.rewardToken!.symbol
+    const tokenSymbol = currentAmmPool.rewardInfos.find((r) => r.tokenMint.equals(rewardMint))!.rewardToken!.symbol
 
-    const { transaction, signers, address } = await AmmV3.makeCollectRewardTransaction({
+    const { innerTransactions } = await AmmV3.makeCollectRewardInstructionSimple({
       connection: connection,
       poolInfo: currentAmmPool.state,
       ownerInfo: {
@@ -31,12 +31,13 @@ export default function txCollectReward({
         useSOLBalance: true
       },
       rewardMint,
-      associatedOnly: false
+      associatedOnly: false,
+      computeBudgetConfig: await getComputeBudgetConfig()
     })
-    transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
+    transactionCollector.add(innerTransactions, {
       txHistoryInfo: {
         title: 'Harvested Reward',
-        description: `Harvested: ${token} reward`
+        description: `Harvested: ${tokenSymbol} reward`
       }
     })
   })

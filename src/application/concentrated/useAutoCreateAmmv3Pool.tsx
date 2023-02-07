@@ -1,19 +1,19 @@
 import assert from '@/functions/assert'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { div } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { AmmV3, AmmV3ConfigInfo } from '@raydium-io/raydium-sdk'
-import { Keypair, PublicKey } from '@solana/web3.js'
+import { PublicKey } from '@solana/web3.js'
 import { useEffect } from 'react'
 import useConnection from '../connection/useConnection'
-import { getAmmV3ProgramId } from '../token/wellknownProgram.config'
+import { SDK_PROGRAM_IDS } from '../token/wellknownProgram.config'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
-import { div } from '@/functions/numberish/operations'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export function useAutoCreateAmmv3Pool() {
   const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice } = useConcentrated()
@@ -51,20 +51,26 @@ async function createNewConcentratedPool() {
       : div(1, userSettedCurrentPrice)
     : toFraction(0)
 
-  const { transaction, signers, mockPoolInfo } = await AmmV3.makeCreatePoolTransaction({
+  const { innerTransactions, address } = await AmmV3.makeCreatePoolInstructionSimple({
     connection: connection,
-    programId: getAmmV3ProgramId(),
+    programId: SDK_PROGRAM_IDS.CLMM,
     mint1: { mint: coin1.mint, decimals: coin1.decimals },
     mint2: { mint: coin2.mint, decimals: coin2.decimals },
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
     initialPrice: fractionToDecimal(currentPrice, 15),
-    owner: owner ?? PublicKey.default
+    owner: owner ?? PublicKey.default,
+    computeBudgetConfig: await getComputeBudgetConfig()
+  })
+  const mockPoolInfo = AmmV3.makeMockPoolInfo({
+    ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
+    mint1: { mint: coin1.mint, decimals: coin1.decimals },
+    mint2: { mint: coin2.mint, decimals: coin2.decimals },
+    owner: owner ?? PublicKey.default,
+    programId: SDK_PROGRAM_IDS.CLMM,
+    createPoolInstructionSimpleAddress: address
   })
   useConcentrated.setState({
-    tempDataCache: {
-      transaction,
-      signers: signers as Keypair[]
-    }
+    tempDataCache: innerTransactions
   })
   useConcentrated.setState({ currentAmmPool: hydrateConcentratedInfo({ state: mockPoolInfo }) })
 }

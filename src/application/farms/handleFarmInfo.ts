@@ -1,5 +1,13 @@
 import {
-  CurrencyAmount, Farm, FarmFetchMultipleInfoParams, Fraction, ONE, Price, TEN, TokenAmount, ZERO
+  CurrencyAmount,
+  Farm,
+  FarmFetchMultipleInfoParams,
+  Fraction,
+  ONE,
+  Price,
+  TEN,
+  TokenAmount,
+  ZERO
 } from '@raydium-io/raydium-sdk'
 
 import BN from 'bn.js'
@@ -67,15 +75,15 @@ export async function mergeSdkFarmInfo(
   }
 ): Promise<SdkParsedFarmInfo[]> {
   const rawInfos = await Farm.fetchMultipleInfoAndUpdate(options)
-  const result = options.pools.map(
-    (pool, idx) =>
-      ({
-        ...payload.jsonInfos[idx],
-        ...pool,
-        ...rawInfos[String(pool.id)],
-        jsonInfo: payload.jsonInfos[idx]
-      } as unknown as SdkParsedFarmInfo)
-  )
+  const result = options.pools.map((pool, idx) => {
+    return {
+      ...payload.jsonInfos[idx],
+      ...pool,
+      ...rawInfos[String(pool.id)],
+      fetchedMultiInfo: rawInfos[String(pool.id)],
+      jsonInfo: payload.jsonInfos[idx]
+    } as unknown as SdkParsedFarmInfo
+  })
   return result
 }
 

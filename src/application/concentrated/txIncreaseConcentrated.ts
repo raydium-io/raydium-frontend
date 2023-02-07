@@ -7,12 +7,12 @@ import { toString } from '@/functions/numberish/toString'
 
 import useAppSettings from '../common/useAppSettings'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
-import { loadTransaction } from '../txTools/createTransaction'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
 export default function txIncreaseConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -32,7 +32,7 @@ export default function txIncreaseConcentrated({
     assert(coin2Amount, 'not set coin2Amount')
     assert(isMeaningfulNumber(liquidity), 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
-    const { transaction, signers, address } = await AmmV3.makeIncreaseLiquidityTransaction({
+    const { innerTransactions } = await AmmV3.makeIncreaseLiquidityInstructionSimple({
       connection: connection,
       liquidity,
       poolInfo: currentAmmPool.state,
@@ -43,9 +43,10 @@ export default function txIncreaseConcentrated({
         useSOLBalance: isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
       },
       slippage: Number(toString(slippageTolerance)),
-      ownerPosition: targetUserPositionAccount.sdkParsed
+      ownerPosition: targetUserPositionAccount.sdkParsed,
+      computeBudgetConfig: await getComputeBudgetConfig()
     })
-    transactionCollector.add(await loadTransaction({ transaction: transaction, signers: signers }), {
+    transactionCollector.add(innerTransactions, {
       txHistoryInfo: {
         title: 'Liquidity Added',
         description: `Added ${toString(coin1Amount)} ${coin1.symbol} and ${toString(coin2Amount)} ${

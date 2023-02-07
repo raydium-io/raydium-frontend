@@ -1,4 +1,4 @@
-import { LiquidityPoolJsonInfo } from '@raydium-io/raydium-sdk'
+import { ApiPoolInfoItem } from '@raydium-io/raydium-sdk'
 
 import toPubString from '@/functions/format/toMintString'
 import { PublicKeyish } from '@/types/constants'
@@ -7,7 +7,7 @@ import { SDKParsedLiquidityInfo } from '../liquidity/type'
 import { routeMiddleMints } from '../token/wellknownToken.config'
 
 export function checkTokenPairCanSwap(
-  poolInfo: LiquidityPoolJsonInfo[],
+  poolInfo: ApiPoolInfoItem[],
   targetMint0: PublicKeyish,
   targetMint1: PublicKeyish
 ): boolean {

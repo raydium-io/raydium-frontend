@@ -1,15 +1,14 @@
+import { SplToken } from '@/application/token/type'
+import assert from '@/functions/assert'
+import { div, mul } from '@/functions/numberish/operations'
 import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
-import assert from '@/functions/assert'
-import { loadTransaction } from '../txTools/createTransaction'
+import useConnection from '../connection/useConnection'
+import { fractionToDecimal } from '../txTools/decimal2Fraction'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
-import { SplToken } from '@/application/token/type'
 import { HydratedConcentratedInfo } from './type'
-import { mul, div } from '@/functions/numberish/operations'
-import toBN from '@/functions/numberish/toBN'
-import Decimal from 'decimal.js'
-import { fractionToDecimal } from '../txTools/decimal2Fraction'
 
 interface Props {
   currentAmmPool: HydratedConcentratedInfo
@@ -62,12 +61,16 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
     }
 
     if (updatedRewardInfos.length) {
-      const { transaction: setRewardTx, signers: setRewardTxSigners } = await AmmV3.makeSetRewardsTransaction({
+      const { chainTimeOffset } = useConnection.getState()
+      const chainTime = ((chainTimeOffset ?? 0) + Date.now()) / 1000
+      const { innerTransactions } = await AmmV3.makeSetRewardsInstructionSimple({
         ...commonParams,
-        rewardInfos: updatedRewardInfos
+        chainTime,
+        rewardInfos: updatedRewardInfos,
+        computeBudgetConfig: await getComputeBudgetConfig()
       })
 
-      transactionCollector.add(await loadTransaction({ transaction: setRewardTx, signers: setRewardTxSigners }), {
+      transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
           title: 'Update rewards',
           description: `Update rewards in ${currentAmmPool.idString.slice(0, 6)}`
@@ -77,11 +80,12 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
     }
 
     if (newRewardInfos.length) {
-      const { transaction: addRewardTx, signers: addRewardSigners } = await AmmV3.makeInitRewardsTransaction({
+      const { innerTransactions } = await AmmV3.makeInitRewardsInstructionSimple({
         ...commonParams,
-        rewardInfos: newRewardInfos
+        rewardInfos: newRewardInfos,
+        computeBudgetConfig: await getComputeBudgetConfig()
       })
-      transactionCollector.add(await loadTransaction({ transaction: addRewardTx, signers: addRewardSigners }), {
+      transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
           title: 'Added new rewards',
           description: `Added ${newRewards.map((r) => r.token.symbol).join(',')} to ${currentAmmPool.idString.slice(

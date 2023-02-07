@@ -3,6 +3,7 @@ import { PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
 import {
   CurrencyAmount,
+  FarmFetchMultipleInfoReturnItem,
   FarmStateV3,
   FarmStateV5,
   FarmStateV6,
@@ -88,7 +89,7 @@ export type SdkParsedFarmInfo = UnionCover<
   FarmPoolJsonInfo,
   SdkParsedFarmInfoBase &
     ({ version: 6; state: FarmStateV6 } | { version: 3; state: FarmStateV3 } | { version: 5; state: FarmStateV5 })
->
+> & { jsonInfo: FarmPoolJsonInfo; fetchedMultiInfo: FarmFetchMultipleInfoReturnItem }
 
 export type HydratedRewardInfo = {
   userHavedReward: boolean
