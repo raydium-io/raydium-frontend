@@ -67,7 +67,8 @@ async function createNewConcentratedPool() {
     mint2: { mint: coin2.mint, decimals: coin2.decimals },
     owner: owner ?? PublicKey.default,
     programId: SDK_PROGRAM_IDS.CLMM,
-    createPoolInstructionSimpleAddress: address
+    createPoolInstructionSimpleAddress: address,
+    initialPrice: fractionToDecimal(currentPrice, 15)
   })
   useConcentrated.setState({
     tempDataCache: innerTransactions
