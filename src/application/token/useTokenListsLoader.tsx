@@ -96,9 +96,12 @@ function addToken(collector: TokenInfoCollector, tokens: TokenJson[], options?: 
 async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
   if (!response.official || !response.unOfficial || !response.blacklist || !response.unNamed) return
   const tmpDelNativeSolToken = deleteFetchedNativeSOLToken(response.official)
-  collector.officialMints.push(...tmpDelNativeSolToken.map(({ mint }) => mint))
-  collector.unOfficialMints.push(...response.unOfficial.map(({ mint }) => mint))
-  collector.unNamedMints.push(...response.unNamed.map(({ mint }) => mint))
+  const officialMints = tmpDelNativeSolToken.map(({ mint }) => mint)
+  collector.officialMints.push(...officialMints)
+  const unOfficialMints = response.unOfficial.map(({ mint }) => mint)
+  collector.unOfficialMints.push(...unOfficialMints)
+  const unNamedMints = response.unNamed.map(({ mint }) => mint)
+  collector.unNamedMints.push(...unNamedMints)
   addToken(collector, tmpDelNativeSolToken)
   addToken(collector, response.unOfficial)
   addToken(
@@ -116,8 +119,14 @@ async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: Tok
     }),
     { lowPriority: true }
   )
+  const blackListTokenMints = response.blacklist
+  collector.blacklist.push(...blackListTokenMints)
 
-  collector.blacklist.push(...response.blacklist)
+  // clean other liquidity supported mints
+  for (const mint of [...officialMints, ...unOfficialMints, ...unNamedMints, ...blackListTokenMints]) {
+    if (collector.otherLiquiditySupportedMints.includes(mint))
+      collector.otherLiquiditySupportedMints = collector.otherLiquiditySupportedMints.filter((m) => m !== mint)
+  }
 }
 
 async function DevTokenFetch(response: RaydiumDevTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
