@@ -20,7 +20,7 @@ type LazyMapSettings<T, U> = {
      **/
     // priority?: 0 | 1
     /**
-     * default is 8
+     * default is 4
      */
     oneGroupTasksSize?: number
   }
@@ -72,7 +72,7 @@ async function lazyMapCoreMap<T, U>({
   method: coreMethod
 }: LazyMapSettings<T, U>): Promise<U[]> {
   const wholeResult: U[] = []
-  for (const blockList of groupItems(source, options?.oneGroupTasksSize ?? 8)) {
+  for (const blockList of groupItems(source, options?.oneGroupTasksSize ?? 4)) {
     await new Promise((resolve) => {
       const invokeTasks = () => {
         const newResultList = blockList.map(loopFn)
