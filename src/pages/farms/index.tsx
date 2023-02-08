@@ -964,20 +964,18 @@ function FarmCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name="TVL"
         value={
-          isJsonFarmInfo(info)
-            ? targetAprInfo
-              ? `~${toUsdVolume(targetAprInfo.tvl, { decimalPlace: 0 })}`
-              : '--'
-            : info.tvl
+          isHydratedFarmInfo(info) && info.tvl
             ? `~${toUsdVolume(info.tvl, { decimalPlace: 0 })}`
+            : targetAprInfo
+            ? `~${toUsdVolume(targetAprInfo.tvl, { decimalPlace: 0 })}`
             : '--'
         }
         subValue={
-          isJsonFarmInfo(info)
-            ? targetAprInfo && targetAprInfo.lpPrice
-              ? `${formatNumber(div(targetAprInfo.tvl, targetAprInfo.lpPrice), { fractionLength: 0 })} LP`
-              : '--'
-            : info.stakedLpAmount && `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} LP`
+          isHydratedFarmInfo(info) && info.stakedLpAmount
+            ? `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} LP`
+            : targetAprInfo
+            ? `${formatNumber(div(targetAprInfo.tvl, targetAprInfo.lpPrice), { fractionLength: 0 })} LP`
+            : '--'
         }
       />
 
