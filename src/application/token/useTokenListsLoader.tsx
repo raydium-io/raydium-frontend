@@ -3,20 +3,20 @@ import { ApiAmmV3PoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
-import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
+import { isArray, isObject } from '@/functions/judgers/dateType'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress, SrcAddress } from '@/types/constants'
-
 import { objectMap, replaceValue } from '../../functions/objectMethods'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useConcentrated from '../concentrated/useConcentrated'
 import useFarms from '../farms/useFarms'
 import useLiquidity from '../liquidity/useLiquidity'
 import { usePools } from '../pools/usePools'
 import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
-
-import { isArray, isObject } from '@/functions/judgers/dateType'
 import { verifyToken } from './getOnlineTokenInfo'
+import { initiallySortTokens } from './initiallySortTokens'
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from './quantumSOL'
 import { rawTokenListConfigs } from './rawTokenLists.config'
 import {
@@ -36,9 +36,6 @@ import useToken, {
   SupportedTokenListSettingName
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
-import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
-import { initiallySortTokens } from './initiallySortTokens'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -71,11 +68,11 @@ function deleteFetchedNativeSOLToken(tokenJsons: TokenJson[]) {
 
 function isAnIncludedMint(collector: TokenInfoCollector, mint: string) {
   return (
-    collector.officialMints.includes(mint) ||
-    collector.unOfficialMints.includes(mint) ||
-    collector.devMints.includes(mint) ||
-    collector.unNamedMints.includes(mint) ||
-    collector.otherLiquiditySupportedMints.includes(mint)
+    collector.officialMints.has(mint) ||
+    collector.unOfficialMints.has(mint) ||
+    collector.devMints.has(mint) ||
+    collector.unNamedMints.has(mint) ||
+    collector.otherLiquiditySupportedMints.has(mint)
   )
 }
 
@@ -97,11 +94,11 @@ async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: Tok
   if (!response.official || !response.unOfficial || !response.blacklist || !response.unNamed) return
   const tmpDelNativeSolToken = deleteFetchedNativeSOLToken(response.official)
   const officialMints = tmpDelNativeSolToken.map(({ mint }) => mint)
-  collector.officialMints.push(...officialMints)
+  officialMints.forEach((mint) => collector.officialMints.add(mint))
   const unOfficialMints = response.unOfficial.map(({ mint }) => mint)
-  collector.unOfficialMints.push(...unOfficialMints)
+  unOfficialMints.forEach((mint) => collector.unOfficialMints.add(mint))
   const unNamedMints = response.unNamed.map(({ mint }) => mint)
-  collector.unNamedMints.push(...unNamedMints)
+  unNamedMints.forEach((mint) => collector.unNamedMints.add(mint))
   addToken(collector, tmpDelNativeSolToken)
   addToken(collector, response.unOfficial)
   addToken(
@@ -120,18 +117,19 @@ async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: Tok
     { lowPriority: true }
   )
   const blackListTokenMints = response.blacklist
-  collector.blacklist.push(...blackListTokenMints)
+  blackListTokenMints.forEach((mint) => collector.blacklist.add(mint))
 
   // clean other liquidity supported mints
   for (const mint of [...officialMints, ...unOfficialMints, ...unNamedMints, ...blackListTokenMints]) {
-    if (collector.otherLiquiditySupportedMints.includes(mint))
-      collector.otherLiquiditySupportedMints = collector.otherLiquiditySupportedMints.filter((m) => m !== mint)
+    collector.otherLiquiditySupportedMints.delete(mint)
   }
 }
 
 async function DevTokenFetch(response: RaydiumDevTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
   if (!response.tokens) return
-  collector.devMints.push(...response.tokens.map(({ mint }) => mint))
+  response.tokens.forEach(({ mint }) => {
+    collector.devMints.add(mint)
+  })
   addToken(collector, response.tokens)
 }
 
@@ -153,7 +151,7 @@ async function UnofficialLiquidityPoolTokenFetch(
   response.unOfficial.forEach(async (pool) => {
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
-        collector.otherLiquiditySupportedMints.push(pool[target.mint])
+        collector.otherLiquiditySupportedMints.add(pool[target.mint])
         const hasFreeze = await verifyToken(target.mint, { noLog: true })
         const token = {
           symbol: pool[target.mint].substring(0, 6),
@@ -189,7 +187,7 @@ async function ClmmLiquidityPoolTokenFetch(
   response.data.forEach(async (pool) => {
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
-        collector.otherLiquiditySupportedMints.push(pool[target.mint])
+        collector.otherLiquiditySupportedMints.add(pool[target.mint])
         const hasFreeze = await verifyToken(target.mint, { noLog: true })
         const token = {
           symbol: pool[target.mint].substring(0, 6),
@@ -209,12 +207,12 @@ async function ClmmLiquidityPoolTokenFetch(
 }
 
 interface TokenInfoCollector {
-  devMints: string[]
-  unOfficialMints: string[]
-  officialMints: string[]
-  otherLiquiditySupportedMints: string[]
-  unNamedMints: string[]
-  blacklist: string[]
+  devMints: Set<string>
+  unOfficialMints: Set<string>
+  officialMints: Set<string>
+  otherLiquiditySupportedMints: Set<string>
+  unNamedMints: Set<string>
+  blacklist: Set<string>
   tokens: Record<string /* token mint */, TokenJson>
 }
 
@@ -294,12 +292,12 @@ async function fetchTokenLists(
   blacklist: string[]
 }> {
   const tokenCollector: TokenInfoCollector = {
-    devMints: [],
-    unOfficialMints: [],
-    officialMints: [],
-    otherLiquiditySupportedMints: [],
-    unNamedMints: [],
-    blacklist: [],
+    devMints: new Set(),
+    unOfficialMints: new Set(),
+    officialMints: new Set(),
+    otherLiquiditySupportedMints: new Set(),
+    unNamedMints: new Set(),
+    blacklist: new Set(),
     tokens: {}
   }
   // eslint-disable-next-line no-console
@@ -331,8 +329,25 @@ async function fetchTokenLists(
       tokenCollector[pair.collector] = Array.from(tokenListSettings[pair.settings].mints.values())
     }
   }
+  const output: {
+    devMints: string[]
+    unOfficialMints: string[]
+    officialMints: string[]
+    otherLiquiditySupportedMints: string[]
+    unNamedMints: string[]
+    tokens: TokenJson[]
+    blacklist: string[]
+  } = {
+    devMints: Array.from(tokenCollector.devMints),
+    unOfficialMints: Array.from(tokenCollector.unOfficialMints),
+    officialMints: Array.from(tokenCollector.officialMints),
+    otherLiquiditySupportedMints: Array.from(tokenCollector.otherLiquiditySupportedMints),
+    unNamedMints: Array.from(tokenCollector.unNamedMints),
+    tokens: Object.values(tokenCollector.tokens),
+    blacklist: Array.from(tokenCollector.blacklist)
+  }
 
-  return { ...tokenCollector, tokens: Object.values(tokenCollector.tokens) }
+  return output
 }
 
 async function fetchTokenIconInfoList() {
