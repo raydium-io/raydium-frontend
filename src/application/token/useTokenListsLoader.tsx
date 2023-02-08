@@ -244,20 +244,14 @@ async function loadTokenList(
                     )
                   : tokens
               })
-              console.time('parse mainnet tokens')
               await MainTokenFetch(handledResponse as RaydiumTokenListJsonInfo, tokenCollector)
-              console.timeEnd('parse mainnet tokens')
               break
             }
             case TokenListConfigType.LIQUIDITY_V2:
-              console.time('parse liquidity v2 tokens')
               await UnofficialLiquidityPoolTokenFetch(response as LiquidityPoolsJsonFile, tokenCollector)
-              console.timeEnd('parse liquidity v2 tokens')
               break
             case TokenListConfigType.LIQUIDITY_V3:
-              console.time('parse liquidity v3 tokens')
               await ClmmLiquidityPoolTokenFetch(response as { data: ApiAmmV3PoolsItem[] }, tokenCollector)
-              console.timeEnd('parse liquidity v3 tokens')
               break
             default:
               console.warn('token list type undetected, did you forgot to create this type of case?')

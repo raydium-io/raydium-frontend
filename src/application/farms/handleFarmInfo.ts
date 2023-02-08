@@ -78,7 +78,7 @@ export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefin
 export async function fetchFarmAprJsonInfos(): Promise<FarmPoolAprJsonInfo[] | undefined> {
   const farmAprInfoUrl = useAppAdvancedSettings.getState().apiUrls.farmApr
   const result = await jFetch<{ data: FarmPoolAprJsonInfo[] }>(farmAprInfoUrl, {
-    cacheFreshTime: 1 * 60 * 1000
+    cacheFreshTime: 5 * 60 * 1000
   })
   if (!result) return undefined
 
