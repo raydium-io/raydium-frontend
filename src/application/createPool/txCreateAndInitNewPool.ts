@@ -7,14 +7,16 @@ import useToken from '@/application/token/useToken'
 import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
-import toPubString from '@/functions/format/toMintString'
+import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
-import { getMax } from '@/functions/numberish/operations'
+import { getMax, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 
 import { recordCreatedPool } from './recordCreatedPool'
 import useCreatePool from './useCreatePool'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
+import { isValidPublicKey } from '@/functions/judgers/dateType'
 
 export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSuccess?: () => void }) {
   return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -39,6 +41,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
 
     assert(lpMint, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
     assert(marketId, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
+    assert(isValidPublicKey(marketId), 'required valid market id')
     assert(ammId, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
     assert(baseMint, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
     assert(quoteMint, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
@@ -50,11 +53,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     assert(gt(quoteDecimaledAmount, 0), 'should input > 0 quote amount ')
     assert(sdkAssociatedPoolKeys, 'required create-pool step 1, it will cause info injection') // actually no need, but for type check , copy form other file
 
-    const lpMintInfoOnChain = (await connection?.getAccountInfo(new PublicKey(lpMint)))?.data
     const ammInfoOnChain = (await connection?.getAccountInfo(new PublicKey(ammId)))?.data
-    const isAlreadyCreated = Boolean(
-      lpMintInfoOnChain?.length && Number(SPL_MINT_LAYOUT.decode(lpMintInfoOnChain).supply) === 0
-    )
     const isAlreadyInited = Boolean(
       ammInfoOnChain?.length && isMeaningfulNumber(Liquidity.getStateLayout(4).decode(ammInfoOnChain)?.status)
     )
@@ -86,29 +85,32 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       "wallet haven't enough quote token"
     )
 
-    if (!isAlreadyCreated) {
-      // step1: create pool
-      const { innerTransactions } = Liquidity.makeCreatePoolInstructionSimple({
-        poolKeys: sdkAssociatedPoolKeys,
-        userKeys: { payer: owner }
-      })
-
-      transactionCollector.add(innerTransactions, {
-        txHistoryInfo: {
-          title: 'Create New Pool',
-          description: `pool's ammId: ${ammId.slice(0, 4)}...${ammId.slice(-4)}`
-        }
-      })
-    }
-
     // step2: init new pool (inject money into the created pool)
-    const { innerTransactions } = await Liquidity.makeInitPoolInstructionSimple({
-      poolKeys: sdkAssociatedPoolKeys,
-      startTime: startTime ? toBN(startTime.getTime() / 1000) : undefined,
-      baseAmount: deUITokenAmount(toTokenAmount(baseToken, baseDecimaledAmount, { alreadyDecimaled: true })),
-      quoteAmount: deUITokenAmount(toTokenAmount(quoteToken, quoteDecimaledAmount, { alreadyDecimaled: true })),
+    const { innerTransactions } = await Liquidity.makeCreatePoolV4InstructionV2Simple({
       connection,
-      userKeys: { owner, payer: owner, tokenAccounts: tokenAccountRawInfos }
+      programId: useAppAdvancedSettings.getState().programIds.AmmV4,
+      marketInfo: {
+        programId: useAppAdvancedSettings.getState().programIds.OPENBOOK_MARKET,
+        marketId: toPub(marketId)
+      },
+      associatedOnly: true,
+      ownerInfo: {
+        feePayer: owner,
+        wallet: owner,
+        tokenAccounts: tokenAccountRawInfos,
+        useSOLBalance: true
+      },
+      baseMintInfo: {
+        mint: toPub(baseMint),
+        decimals: baseDecimals
+      },
+      quoteMintInfo: {
+        mint: toPub(quoteMint),
+        decimals: quoteDecimals
+      },
+      startTime: toBN((startTime ? startTime.getTime() : Date.now()) / 1000),
+      baseAmount: toBN(mul(baseDecimaledAmount, 10 ** baseDecimals)),
+      quoteAmount: toBN(mul(quoteDecimaledAmount, 10 ** quoteDecimals))
     })
     transactionCollector.add(innerTransactions, {
       onTxSuccess() {
@@ -116,7 +118,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
         useCreatePool.setState({ startTime: undefined })
       },
       txHistoryInfo: {
-        title: 'Init Pool',
+        title: 'Create Pool',
         description: `${baseDecimaledAmount} ${baseToken.symbol} and ${quoteDecimaledAmount} ${quoteToken.symbol}`
       }
     })
