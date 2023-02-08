@@ -38,6 +38,7 @@ import useToken, {
 import { SOLMint } from './wellknownToken.config'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { initiallySortTokens } from './initiallySortTokens'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -405,22 +406,8 @@ async function loadTokens() {
     /* shake off tokens in raydium blacklist */
     .filter((info) => !blacklist.has(info.mint))
 
-  const startWithSymbol = (s: string) => !/^[a-zA-Z]/.test(s)
   const splTokenJsonInfos = listToMap(
-    unsortedTokenInfos.sort((a, b) => {
-      const aPriorityOrder = officialMints.includes(a.mint) ? 1 : unOfficialMints.includes(a.mint) ? 2 : 3
-      const bPriorityOrder = officialMints.includes(b.mint) ? 1 : unOfficialMints.includes(b.mint) ? 2 : 3
-      const priorityOrderDiff = aPriorityOrder - bPriorityOrder
-      if (priorityOrderDiff === 0) {
-        const aStartWithSymbol = startWithSymbol(a.symbol)
-        const bStartWithSymbol = startWithSymbol(b.symbol)
-        if (aStartWithSymbol && !bStartWithSymbol) return 1
-        if (!aStartWithSymbol && bStartWithSymbol) return -1
-        return a.symbol.localeCompare(b.symbol)
-      } else {
-        return priorityOrderDiff
-      }
-    }),
+    initiallySortTokens(unsortedTokenInfos, officialMints, unOfficialMints),
     (i) => i.mint
   )
 

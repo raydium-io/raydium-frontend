@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
@@ -16,6 +16,7 @@ import useToken, { SupportedTokenListSettingName } from '@/application/token/use
 import { createSplToken } from '@/application/token/useTokenListsLoader'
 import { RAYMint, USDCMint, USDTMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
@@ -32,11 +33,10 @@ import Switcher from '@/components/Switcher'
 import { throttle } from '@/functions/debounce'
 import toPubString from '@/functions/format/toMintString'
 import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
-import useAsyncValue from '@/hooks/useAsyncValue'
-import useToggle from '@/hooks/useToggle'
-import { useEvent } from '@/hooks/useEvent'
-import { AddressItem } from '@/components/AddressItem'
 import { toString } from '@/functions/numberish/toString'
+import useAsyncValue from '@/hooks/useAsyncValue'
+import { useEvent } from '@/hooks/useEvent'
+import useToggle from '@/hooks/useToggle'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -122,6 +122,7 @@ function TokenSelectorDialogContent({
 
   const allSelectableTokens = useToken((s) => s.allSelectableTokens)
   const sourceTokens = enableTokens || allSelectableTokens
+
   const sortedTokens = disableTokens?.length ? sourceTokens.filter((token) => !isTokenDisabled(token)) : sourceTokens
 
   // by user's search text

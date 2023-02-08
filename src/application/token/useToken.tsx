@@ -94,7 +94,7 @@ export type TokenStore = {
   userAddedTokens: Record<HexAddress /* mint */, SplToken>
   canFlaggedTokenMints: Set<HexAddress>
   userFlaggedTokenMints: Set<HexAddress /* mint */> // flagged must in user added
-  sortTokens(tokens: SplToken[], useInputTokensOnly?: boolean): SplToken[]
+  sortTokensWithBalance(tokens: SplToken[], useInputTokensOnly?: boolean): SplToken[]
   toggleFlaggedToken(token: SplToken): void
   allSelectableTokens: SplToken[]
   addUserAddedToken(token: SplToken): void
@@ -279,7 +279,7 @@ export const useToken = create<TokenStore>((set, get) => ({
   },
   allSelectableTokens: [],
 
-  sortTokens(tokens: SplToken[], useInputTokensOnly?: boolean) {
+  sortTokensWithBalance(tokens: SplToken[], useInputTokensOnly?: boolean) {
     const { getToken } = get()
     const RAY = getToken(RAYMint)
 
