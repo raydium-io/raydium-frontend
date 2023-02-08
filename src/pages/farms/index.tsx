@@ -70,6 +70,7 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { NewCompensationBanner } from '../pools'
+import { div } from '@/functions/numberish/operations'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -811,6 +812,8 @@ function FarmCardDatabaseBodyCollapseItemFace({
   onUnFavorite?: (farmId: string) => void
   onStartFavorite?: (farmId: string) => void
 }) {
+  const aprInfos = useFarms((s) => s.jsonFarmAprInfos)
+  const targetAprInfo = aprInfos.find((i) => i.id === toPubString(info.id))
   const isMobile = useAppSettings((s) => s.isMobile)
   const timeBasis = useFarms((s) => s.timeBasis)
   const haveOptionToken = !isJsonFarmInfo(info) && info.rewards.some((reward) => reward.isOptionToken)
@@ -960,11 +963,19 @@ function FarmCardDatabaseBodyCollapseItemFace({
       />
       <TextInfoItem
         name="TVL"
-        value={isJsonFarmInfo(info) ? '--' : info.tvl ? `~${toUsdVolume(info.tvl, { decimalPlace: 0 })}` : '--'}
+        value={
+          isHydratedFarmInfo(info) && info.tvl
+            ? `~${toUsdVolume(info.tvl, { decimalPlace: 0 })}`
+            : targetAprInfo
+            ? `~${toUsdVolume(targetAprInfo.tvl, { decimalPlace: 0 })}`
+            : '--'
+        }
         subValue={
-          isJsonFarmInfo(info)
-            ? '--'
-            : info.stakedLpAmount && `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} LP`
+          isHydratedFarmInfo(info) && info.stakedLpAmount
+            ? `${formatNumber(toString(info.stakedLpAmount, { decimalLength: 0 }))} LP`
+            : targetAprInfo
+            ? `${formatNumber(div(targetAprInfo.tvl, targetAprInfo.lpPrice), { fractionLength: 0 })} LP`
+            : '--'
         }
       />
 

@@ -13,7 +13,7 @@ import useToken from '../token/useToken'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 
-import { fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
+import { fetchFarmAprJsonInfos, fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useFarms from './useFarms'
 
 export default function useFarmInfoLoader() {
@@ -41,6 +41,12 @@ export default function useFarmInfoLoader() {
   useTransitionedEffect(async () => {
     const farmJsonInfos = await fetchFarmJsonInfos()
     if (farmJsonInfos) useFarms.setState({ jsonInfos: farmJsonInfos })
+  }, [farmRefreshCount])
+
+  // auto fetch json farm apr info when init
+  useTransitionedEffect(async () => {
+    const farmAprJsonInfos = await fetchFarmAprJsonInfos()
+    if (farmAprJsonInfos) useFarms.setState({ jsonFarmAprInfos: farmAprJsonInfos })
   }, [farmRefreshCount])
 
   // auto fetch json farm info when init

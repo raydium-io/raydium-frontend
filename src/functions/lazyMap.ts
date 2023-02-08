@@ -11,7 +11,7 @@ type LazyMapSettings<T, U> = {
   /**
    * @default 'lazier-idleCallback'
    */
-  method?: 'hurrier-promise' | 'lazier-idleCallback'
+  method?: 'hurrier-settimeout' | 'lazier-idleCallback'
   options?: {
     /**
      * the larger the more important .
@@ -20,7 +20,7 @@ type LazyMapSettings<T, U> = {
      **/
     // priority?: 0 | 1
     /**
-     * default is 16
+     * default is 4
      */
     oneGroupTasksSize?: number
   }
@@ -57,6 +57,14 @@ export function cancelIdleCallback(handleId: number): void {
   return window.cancelIdleCallback ? window.cancelIdleCallback?.(handleId) : window.clearTimeout(handleId)
 }
 
+function requestCallback(fn: AnyFn, methods: LazyMapSettings<any, any>['method']): number {
+  return methods === 'hurrier-settimeout' ? window.setTimeout?.(fn) : requestIdleCallback(fn)
+}
+
+function cancelCallback(handleId: number, methods: LazyMapSettings<any, any>['method']): void {
+  return methods === 'hurrier-settimeout' ? window.clearTimeout(handleId) : cancelIdleCallback(handleId)
+}
+
 async function lazyMapCoreMap<T, U>({
   source,
   options,
@@ -64,14 +72,14 @@ async function lazyMapCoreMap<T, U>({
   method: coreMethod
 }: LazyMapSettings<T, U>): Promise<U[]> {
   const wholeResult: U[] = []
-  for (const blockList of groupItems(source, options?.oneGroupTasksSize)) {
+  for (const blockList of groupItems(source, options?.oneGroupTasksSize ?? 4)) {
     await new Promise((resolve) => {
       const invokeTasks = () => {
         const newResultList = blockList.map(loopFn)
         wholeResult.push(...newResultList)
         resolve(undefined)
       }
-      coreMethod === 'hurrier-promise' ? invokeTasks() : requestIdleCallback(invokeTasks)
+      requestCallback(invokeTasks, coreMethod ?? 'lazier-idleCallback')
     }) // forcely use microtask
   }
   return wholeResult

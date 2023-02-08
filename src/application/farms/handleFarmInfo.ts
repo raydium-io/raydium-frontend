@@ -35,7 +35,14 @@ import { unionArr } from '@/types/generics'
 
 import { SplToken } from '../token/type'
 
-import { APIRewardInfo, FarmPoolJsonInfo, FarmPoolsJsonFile, HydratedFarmInfo, SdkParsedFarmInfo } from './type'
+import {
+  APIRewardInfo,
+  FarmPoolAprJsonInfo,
+  FarmPoolJsonInfo,
+  FarmPoolsJsonFile,
+  HydratedFarmInfo,
+  SdkParsedFarmInfo
+} from './type'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 function getMaxOpenTime(i: APIRewardInfo[]) {
@@ -67,6 +74,15 @@ export async function fetchFarmJsonInfos(): Promise<FarmPoolJsonInfo[] | undefin
   const ecosystemFarmInfoList = result.ecosystem.map((i) => ({ ...i, category: 'ecosystem' })) ?? []
   // @ts-expect-error string literial type error. safe to ignore it
   return [...stakeFarmInfoList, ...raydiumFarmInfoList, ...fusionFarmInfoList, ...ecosystemFarmInfoList]
+}
+export async function fetchFarmAprJsonInfos(): Promise<FarmPoolAprJsonInfo[] | undefined> {
+  const farmAprInfoUrl = useAppAdvancedSettings.getState().apiUrls.farmApr
+  const result = await jFetch<{ data: FarmPoolAprJsonInfo[] }>(farmAprInfoUrl, {
+    cacheFreshTime: 1 * 60 * 1000
+  })
+  if (!result) return undefined
+
+  return result.data
 }
 
 /** and state info  */

@@ -4,6 +4,7 @@ import BN from 'bn.js'
 import {
   CurrencyAmount,
   FarmFetchMultipleInfoReturnItem,
+  ApiFarmApr,
   FarmStateV3,
   FarmStateV5,
   FarmStateV6,
@@ -28,6 +29,7 @@ export interface APIRewardInfo {
   rewardSender?: string
   rewardType: 'Standard SPL' | 'Option tokens'
 }
+export type FarmPoolAprJsonInfo = ApiFarmApr
 
 export interface FarmPoolJsonInfo {
   id: string
