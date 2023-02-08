@@ -26,7 +26,7 @@ export default function EditFarm() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const walletConnected = useWallet((s) => s.connected)
   const getToken = useToken((s) => s.getToken)
-  const sortTokens = useToken((s) => s.sortTokens)
+  const sortTokens = useToken((s) => s.sortTokensWithBalance)
   const [currentAmmPool, whitelistRewards] = useConcentrated((s) => [s.currentAmmPool, s.whitelistRewards], shallow)
   const owner = useWallet((s) => s.owner)
   const [editedReward, setEditedReward] = useState<{ updateReward?: Map<string, UpdateData>; newRewards: NewReward[] }>(

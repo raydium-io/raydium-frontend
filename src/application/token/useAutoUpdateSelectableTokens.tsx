@@ -15,7 +15,7 @@ export default function useAutoUpdateSelectableTokens() {
   const userCustomTokenSymbol = useToken((s) => s.userCustomTokenSymbol)
   const tokenListSettings = useToken((s) => s.tokenListSettings)
   const userFlaggedTokenMints = useToken((s) => s.userFlaggedTokenMints)
-  const sortTokens = useToken((s) => s.sortTokens)
+  const sortTokens = useToken((s) => s.sortTokensWithBalance)
   const balances = useWallet((s) => s.balances)
 
   // only user opened token list
