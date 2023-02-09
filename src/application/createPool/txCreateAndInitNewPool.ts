@@ -1,6 +1,5 @@
-import { PublicKey } from '@solana/web3.js'
-
 import { Liquidity, SPL_MINT_LAYOUT, Token } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
 import { deUITokenAmount, WSOLMint } from '@/application/token/quantumSOL'
 import useToken from '@/application/token/useToken'
@@ -9,14 +8,16 @@ import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { getMax, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
+
 import { recordCreatedPool } from './recordCreatedPool'
 import useCreatePool from './useCreatePool'
-import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
-import { isValidPublicKey } from '@/functions/judgers/dateType'
 
 export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSuccess?: () => void }) {
   return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -110,7 +111,9 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       },
       startTime: toBN((startTime ? startTime.getTime() : Date.now()) / 1000),
       baseAmount: toBN(mul(baseDecimaledAmount, 10 ** baseDecimals)),
-      quoteAmount: toBN(mul(quoteDecimaledAmount, 10 ** quoteDecimals))
+      quoteAmount: toBN(mul(quoteDecimaledAmount, 10 ** quoteDecimals)),
+
+      computeBudgetConfig: await getComputeBudgetConfig(),
     })
     transactionCollector.add(innerTransactions, {
       onTxSuccess() {
