@@ -102,7 +102,7 @@ export default function usePoolsInfoLoader() {
           userCustomTokenSymbol: userCustomTokenSymbol
         }),
       options: {
-        oneGroupTasksSize: 24
+        oneGroupTasksSize: 16
       }
     })
     usePools.setState({ hydratedInfos })
