@@ -22,6 +22,8 @@ import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
+import listToMap from '@/functions/format/listToMap'
+import toPubString from '@/functions/format/toMintString'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -82,6 +84,11 @@ export default function usePoolsInfoLoader() {
     usePools.setState({ lpPrices })
   }, [lpPrices])
 
+  const liquidityJsonInfosMap = useMemo(() => listToMap(liquidityJsonInfos, (i) => i.id), [liquidityJsonInfos])
+  const isPairInfoOpenBook = (ammId: string) => {
+    const itemMarketProgramId = liquidityJsonInfosMap[ammId]?.marketProgramId as string | undefined
+    return isPubEqual(itemMarketProgramId, programIds.OPENBOOK_MARKET)
+  }
   useTransitionedEffect(async () => {
     const hydratedInfos = await lazyMap({
       source: jsonInfos,
@@ -89,12 +96,9 @@ export default function usePoolsInfoLoader() {
       loopFn: (pair) =>
         hydratedPairInfo(pair, {
           lpToken: getLpToken(pair.lpMint),
-          lpBalance: balances[String(pair.lpMint)],
+          lpBalance: balances[toPubString(pair.lpMint)],
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
-          isOpenBook: isPubEqual(
-            liquidityJsonInfos.find((i) => i.id === pair.ammId)?.marketProgramId,
-            programIds.OPENBOOK_MARKET
-          ),
+          isOpenBook: isPairInfoOpenBook(pair.ammId),
           userCustomTokenSymbol: userCustomTokenSymbol
         }),
       options: {
