@@ -25,7 +25,7 @@ export default function Image({
   width?: number
   height?: number
   /** can accept multi srcs */
-  src: string | string[]
+  src: string | string[] | undefined
   fallbackSrc?: string
   // only when loading and no fallbackSrc
   fallbackColor?: string

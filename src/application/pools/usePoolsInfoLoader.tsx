@@ -5,7 +5,7 @@ import { Price } from '@raydium-io/raydium-sdk'
 
 import shallow from 'zustand/shallow'
 
-import { unifyItem } from '@/functions/arrayMethods'
+import { shakeUndifindedItem, unifyItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import { lazyMap } from '@/functions/lazyMap'
@@ -90,21 +90,26 @@ export default function usePoolsInfoLoader() {
     return isPubEqual(itemMarketProgramId, programIds.OPENBOOK_MARKET)
   }
   useTransitionedEffect(async () => {
-    const hydratedInfos = await lazyMap({
+    const unshakedHydratedInfos = await lazyMap({
       source: jsonInfos,
       sourceKey: 'pair jsonInfo',
-      loopFn: (pair) =>
-        hydratedPairInfo(pair, {
-          lpToken: getLpToken(pair.lpMint),
+      loopFn: (pair) => {
+        if (Object.keys(lpTokens).length === 0) return
+        const lpToken = getLpToken(pair.lpMint)
+        const hydrated = hydratedPairInfo(pair, {
+          lpToken: lpToken,
           lpBalance: balances[toPubString(pair.lpMint)],
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
           isOpenBook: isPairInfoOpenBook(pair.ammId),
           userCustomTokenSymbol: userCustomTokenSymbol
-        }),
+        })
+        return hydrated
+      },
       options: {
-        oneGroupTasksSize: 16
+        oneGroupTasksSize: 24
       }
     })
+    const hydratedInfos = shakeUndifindedItem(unshakedHydratedInfos)
     usePools.setState({ hydratedInfos })
-  }, [jsonInfos, getLpToken, balances, stableLiquidityJsonInfoLpMints, userCustomTokenSymbol])
+  }, [jsonInfos, lpTokens, getLpToken, balances, stableLiquidityJsonInfoLpMints, userCustomTokenSymbol])
 }
