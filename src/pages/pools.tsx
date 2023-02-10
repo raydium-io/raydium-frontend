@@ -408,7 +408,7 @@ function PoolCard() {
         : jsonInfos.filter((i) =>
             currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official
           ) /* Tab*/, // Tab
-    [onlySelfPools, searchText, hasHydratedInfoLoaded, jsonInfos]
+    [onlySelfPools, searchText, hydratedInfos, hasHydratedInfoLoaded, jsonInfos]
   ) as (JsonPairItemInfo | HydratedPairItemInfo)[]
 
   const searched = useMemo(

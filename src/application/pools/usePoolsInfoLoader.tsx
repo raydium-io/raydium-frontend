@@ -90,26 +90,21 @@ export default function usePoolsInfoLoader() {
     return isPubEqual(itemMarketProgramId, programIds.OPENBOOK_MARKET)
   }
   useTransitionedEffect(async () => {
-    const unshakedHydratedInfos = await lazyMap({
+    const hydratedInfos = await lazyMap({
       source: jsonInfos,
       sourceKey: 'pair jsonInfo',
-      loopFn: (pair) => {
-        if (Object.keys(lpTokens).length === 0) return
-        const lpToken = getLpToken(pair.lpMint)
-        const hydrated = hydratedPairInfo(pair, {
-          lpToken: lpToken,
+      loopFn: (pair) =>
+        hydratedPairInfo(pair, {
+          lpToken: getLpToken(pair.lpMint),
           lpBalance: balances[toPubString(pair.lpMint)],
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
           isOpenBook: isPairInfoOpenBook(pair.ammId),
           userCustomTokenSymbol: userCustomTokenSymbol
-        })
-        return hydrated
-      },
+        }),
       options: {
         oneGroupTasksSize: 24
       }
     })
-    const hydratedInfos = shakeUndifindedItem(unshakedHydratedInfos)
     usePools.setState({ hydratedInfos })
   }, [jsonInfos, lpTokens, getLpToken, balances, stableLiquidityJsonInfoLpMints, userCustomTokenSymbol])
 }
