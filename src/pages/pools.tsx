@@ -7,7 +7,7 @@ import { useCompensationMoney } from '@/application/compensation/useCompensation
 import useCompensationMoneyInfoLoader from '@/application/compensation/useCompensationInfoLoader'
 import useFarms from '@/application/farms/useFarms'
 import { isHydratedPoolItemInfo } from '@/application/pools/is'
-import { HydratedPairItemInfo } from '@/application/pools/type'
+import { HydratedPairItemInfo, JsonPairItemInfo } from '@/application/pools/type'
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
 import { routeTo } from '@/application/routeTools'
@@ -54,6 +54,7 @@ import { searchItems } from '@/functions/searchItems'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
+import { isObject } from '@/functions/judgers/dateType'
 
 /**
  * store:
@@ -386,6 +387,7 @@ function PoolCard() {
   const balances = useWallet((s) => s.balances)
   const unZeroBalances = objectFilter(balances, (tokenAmount) => gt(tokenAmount, 0))
   const hydratedInfos = usePools((s) => s.hydratedInfos)
+  const jsonInfos = usePools((s) => s.jsonInfos)
   // const { searchText, setSearchText, currentTab, onlySelfPools } = usePageState()
 
   const searchText = usePools((s) => s.searchText)
@@ -396,29 +398,41 @@ function PoolCard() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = usePoolFavoriteIds()
 
+  const hasHydratedInfoLoaded = hydratedInfos.length > 0
   const dataSource = useMemo(
     () =>
-      hydratedInfos
-        .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
-        .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)), // Switch
-    [onlySelfPools, searchText, hydratedInfos]
-  )
+      hasHydratedInfoLoaded
+        ? hydratedInfos
+            .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
+            .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)) // Switch
+        : jsonInfos.filter((i) =>
+            currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official
+          ) /* Tab*/, // Tab
+    [onlySelfPools, searchText, hasHydratedInfoLoaded, jsonInfos]
+  ) as (JsonPairItemInfo | HydratedPairItemInfo)[]
 
   const searched = useMemo(
     () =>
       searchItems(dataSource, {
         text: searchText,
-        matchConfigs: (i) => [
-          { text: i.ammId, entirely: true },
-          { text: i.market, entirely: true }, // Input Auto complete result sort setting
-          { text: i.lpMint, entirely: true },
-          { text: toPubString(i.base?.mint), entirely: true },
-          { text: toPubString(i.quote?.mint), entirely: true },
-          i.base?.symbol,
-          i.quote?.symbol
-          // i.base?.name,
-          // i.quote?.name
-        ]
+        matchConfigs: (i) =>
+          isHydratedPoolItemInfo(i)
+            ? [
+                { text: i.ammId, entirely: true },
+                { text: i.market, entirely: true }, // Input Auto complete result sort setting
+                { text: i.lpMint, entirely: true },
+                { text: toPubString(i.base?.mint), entirely: true },
+                { text: toPubString(i.quote?.mint), entirely: true },
+                i.base?.symbol,
+                i.quote?.symbol
+                // i.base?.name,
+                // i.quote?.name
+              ]
+            : [
+                { text: i.ammId, entirely: true },
+                { text: i.market, entirely: true }, // Input Auto complete result sort setting
+                { text: i.lpMint, entirely: true }
+              ]
       }),
     [dataSource, searchText]
   )
@@ -630,7 +644,12 @@ function PoolCard() {
         <PoolLabelBlock />
         <Row className="gap-4 items-stretch">
           <PoolStakedOnlyBlock />
-          <PoolTimeBasisSelectorBox sortConfigs={sortConfig} setSortConfig={setSortConfig} />
+          {hasHydratedInfoLoaded && (
+            <PoolTimeBasisSelectorBox
+              sortConfigs={sortConfig}
+              setSortConfig={setSortConfig as (simpleConfig: SimplifiedSortConfig<HydratedPairItemInfo[]>) => void}
+            />
+          )}
           <PoolSearchBlock />
         </Row>
       </Row>
@@ -649,8 +668,10 @@ function PoolCard() {
   )
 }
 
-function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedPairItemInfo[] }) {
-  const loading = usePools((s) => s.loading)
+function PoolCardDatabaseBody({ sortedData }: { sortedData: (JsonPairItemInfo | HydratedPairItemInfo)[] }) {
+  const jsonInfos = usePools((s) => s.jsonInfos)
+  const hydratedInfos = usePools((s) => s.hydratedInfos)
+  const loading = jsonInfos.length == 0 && hydratedInfos.length === 0
   const expandedPoolId = usePools((s) => s.expandedPoolId)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
   return sortedData.length ? (
@@ -674,7 +695,7 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedPairItemInfo
               )}
             </Collapse.Face>
             <Collapse.Body>
-              <PoolCardDatabaseBodyCollapseItemContent poolInfo={info} />
+              {isHydratedPoolItemInfo(info) && <PoolCardDatabaseBodyCollapseItemContent poolInfo={info} />}
             </Collapse.Body>
           </Collapse>
         </List.Item>
@@ -695,7 +716,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
   onStartFavorite
 }: {
   open: boolean
-  info: HydratedPairItemInfo
+  info: JsonPairItemInfo | HydratedPairItemInfo
   isFavourite?: boolean
   onUnFavorite?: (ammId: string) => void
   onStartFavorite?: (ammId: string) => void
@@ -711,9 +732,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
      and that the pool has sufficient liquidity before trading.`
     return (
       <Row className="flex justify-start items-center">
-        {isHydratedPoolItemInfo(info)
-          ? toUsdVolume(info.liquidity, { autoSuffix: isTablet, decimalPlace: 0 })
-          : undefined}
+        {toUsdVolume(info.liquidity, { autoSuffix: isTablet, decimalPlace: 0 })}
         {lt(info?.liquidity.toFixed(0) ?? 0, 100000) && (
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help ml-1" />
@@ -761,37 +780,31 @@ function PoolCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name={`Volume(${timeBasis})`}
         value={
-          isHydratedPoolItemInfo(info)
-            ? timeBasis === '24H'
-              ? toUsdVolume(info.volume24h, { autoSuffix: isTablet, decimalPlace: 0 })
-              : timeBasis === '7D'
-              ? toUsdVolume(info.volume7d, { autoSuffix: isTablet, decimalPlace: 0 })
-              : toUsdVolume(info.volume30d, { autoSuffix: isTablet, decimalPlace: 0 })
-            : undefined
+          timeBasis === '24H'
+            ? toUsdVolume(info.volume24h, { autoSuffix: isTablet, decimalPlace: 0 })
+            : timeBasis === '7D'
+            ? toUsdVolume(info.volume7d, { autoSuffix: isTablet, decimalPlace: 0 })
+            : toUsdVolume(info.volume30d, { autoSuffix: isTablet, decimalPlace: 0 })
         }
       />
       <TextInfoItem
         name={`Fees(${timeBasis})`}
         value={
-          isHydratedPoolItemInfo(info)
-            ? timeBasis === '24H'
-              ? toUsdVolume(info.fee24h, { autoSuffix: isTablet, decimalPlace: 0 })
-              : timeBasis === '7D'
-              ? toUsdVolume(info.fee7d, { autoSuffix: isTablet, decimalPlace: 0 })
-              : toUsdVolume(info.fee30d, { autoSuffix: isTablet, decimalPlace: 0 })
-            : undefined
+          timeBasis === '24H'
+            ? toUsdVolume(info.fee24h, { autoSuffix: isTablet, decimalPlace: 0 })
+            : timeBasis === '7D'
+            ? toUsdVolume(info.fee7d, { autoSuffix: isTablet, decimalPlace: 0 })
+            : toUsdVolume(info.fee30d, { autoSuffix: isTablet, decimalPlace: 0 })
         }
       />
       <TextInfoItem
         name={`APR(${timeBasis})`}
         value={
-          isHydratedPoolItemInfo(info)
-            ? timeBasis === '24H'
-              ? toPercentString(info.apr24h, { alreadyPercented: true })
-              : timeBasis === '7D'
-              ? toPercentString(info.apr7d, { alreadyPercented: true })
-              : toPercentString(info.apr30d, { alreadyPercented: true })
-            : undefined
+          timeBasis === '24H'
+            ? toPercentString(info.apr24h, { alreadyPercented: true })
+            : timeBasis === '7D'
+            ? toPercentString(info.apr7d, { alreadyPercented: true })
+            : toPercentString(info.apr30d, { alreadyPercented: true })
         }
       />
       <Grid className="w-9 h-9 mr-8 place-items-center">
@@ -1073,15 +1086,21 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
   )
 }
 
-function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | undefined; className?: string }) {
+function CoinAvatarInfoItem({
+  info,
+  className
+}: {
+  info: HydratedPairItemInfo | JsonPairItemInfo | undefined
+  className?: string
+}) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const [isDetailReady, setIsDetailReady] = useState(false)
 
   useEffect(() => {
-    if (info?.base && info.quote) {
+    if (isHydratedPoolItemInfo(info) && info?.base && info.quote) {
       setIsDetailReady(true)
     }
-  }, [info?.base, info?.quote])
+  }, [isHydratedPoolItemInfo(info) && info?.base, isHydratedPoolItemInfo(info) && info?.quote])
 
   return (
     <AutoBox
@@ -1094,8 +1113,8 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | 
       <CoinAvatarPair
         className="justify-self-center mr-2"
         size={isMobile ? 'sm' : 'md'}
-        token1={info?.base}
-        token2={info?.quote}
+        token1={isHydratedPoolItemInfo(info) ? info?.base : undefined}
+        token2={isHydratedPoolItemInfo(info) ? info?.quote : undefined}
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
         <Row className="mobile:text-xs font-medium mobile:mt-px mr-1.5">
@@ -1103,12 +1122,13 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedPairItemInfo | 
             info?.name
           ) : (
             <>
-              <CoinAvatarInfoItemSymbol token={info?.base} />-<CoinAvatarInfoItemSymbol token={info?.quote} />
+              <CoinAvatarInfoItemSymbol token={isHydratedPoolItemInfo(info) ? info?.base : undefined} />-
+              <CoinAvatarInfoItemSymbol token={isHydratedPoolItemInfo(info) ? info?.quote : undefined} />
             </>
           )}
         </Row>
-        {info?.isStablePool && <Badge className="self-center">Stable</Badge>}
-        {info?.isOpenBook && <OpenBookTip></OpenBookTip>}
+        {isHydratedPoolItemInfo(info) && info.isStablePool && <Badge className="self-center">Stable</Badge>}
+        {isHydratedPoolItemInfo(info) && info.isOpenBook && <OpenBookTip></OpenBookTip>}
       </Row>
     </AutoBox>
   )

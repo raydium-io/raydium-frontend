@@ -83,15 +83,11 @@ export default function usePoolsInfoLoader() {
   }, [lpPrices])
 
   useTransitionedEffect(async () => {
-    // let costTotal = 0
     const hydratedInfos = await lazyMap({
       source: jsonInfos,
-
       sourceKey: 'pair jsonInfo',
-
-      loopFn: (pair) => {
-        // const startAt = performance.now()
-        const result = hydratedPairInfo(pair, {
+      loopFn: (pair) =>
+        hydratedPairInfo(pair, {
           lpToken: getLpToken(pair.lpMint),
           lpBalance: balances[String(pair.lpMint)],
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
@@ -100,16 +96,11 @@ export default function usePoolsInfoLoader() {
             programIds.OPENBOOK_MARKET
           ),
           userCustomTokenSymbol: userCustomTokenSymbol
-        })
-        // const cost = performance.now() - startAt
-        // // console.log('cost: ', cost)
-        // costTotal += cost
-        return result
-      },
+        }),
       options: {
         oneGroupTasksSize: 16
       }
     })
-    usePools.setState({ hydratedInfos, loading: hydratedInfos.length === 0 })
+    usePools.setState({ hydratedInfos })
   }, [jsonInfos, getLpToken, balances, stableLiquidityJsonInfoLpMints, userCustomTokenSymbol])
 }

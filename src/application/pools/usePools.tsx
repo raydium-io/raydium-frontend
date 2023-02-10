@@ -8,7 +8,6 @@ import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
 
 // backEnd naming: Pools -> PairInfo
 export type PoolsStore = {
-  loading: boolean
   jsonInfos: JsonPairItemInfo[]
   /** unlike jsonInfos, tedious Json Infos includes unknown token */
   rawJsonInfos: JsonPairItemInfo[]
@@ -31,7 +30,6 @@ export type PoolsStore = {
 
 // FAQ: why it's a domain? because it must be a domain , or it's a design bug ———— do something useless.
 export const usePools = create<PoolsStore>((set, get) => ({
-  loading: true,
   jsonInfos: [],
   rawJsonInfos: [],
 
