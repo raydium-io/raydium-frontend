@@ -5,6 +5,7 @@ import mergeRef from '@/functions/react/mergeRef'
 import { useClick } from '@/hooks/useClick'
 
 import { getFileNameOfURI } from '../functions/dom/getFileNameOfURI'
+import { isArray } from '@/functions/judgers/dateType'
 
 /**
  * usually in the leading part of an list-item
@@ -37,7 +38,7 @@ export default function Image({
 }) {
   const ref = useRef<HTMLImageElement>(null)
   useClick(ref, { onClick })
-  const srcSet = shakeUndifindedItem([src, fallbackSrc].flat())
+  const srcSet = (isArray(src) ? src.length > 0 : src) ? shakeUndifindedItem([src, fallbackSrc].flat()) : []
   const srcFingerprint = srcSet.join(' ')
   const [currentUsedSrcIndex, setCurrentUsedSrcIndex] = useState(0)
   const currentSrc = srcSet[currentUsedSrcIndex] || fallbackSrc
