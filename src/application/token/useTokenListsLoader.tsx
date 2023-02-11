@@ -7,7 +7,6 @@ import { isArray, isObject } from '@/functions/judgers/dateType'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress, SrcAddress } from '@/types/constants'
-
 import { objectMap, replaceValue } from '../../functions/objectMethods'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useConcentrated from '../concentrated/useConcentrated'
@@ -16,7 +15,6 @@ import useLiquidity from '../liquidity/useLiquidity'
 import { usePools } from '../pools/usePools'
 import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
-
 import { verifyToken } from './getOnlineTokenInfo'
 import { initiallySortTokens } from './initiallySortTokens'
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from './quantumSOL'
@@ -384,7 +382,7 @@ export function toSplTokenInfo(splToken: SplToken): TokenJson {
 }
 
 async function loadTokens() {
-  const { tokenListSettings, forceReset } = useToken.getState()
+  const { tokenListSettings } = useToken.getState()
   const customTokenIcons = await fetchTokenIconInfoList()
   const {
     devMints,
@@ -408,8 +406,7 @@ async function loadTokens() {
     officialMints.length === mainnetOriginalMintsLength &&
     unOfficialMints.length === solanaTokenOriginalMintsLength &&
     unNamedMints.length === unnamedOriginalMintsLength &&
-    otherLiquiditySupportedMints.length === otherOriginalMintsLength &&
-    !forceReset
+    otherLiquiditySupportedMints.length === otherOriginalMintsLength
   )
     return
 
@@ -474,13 +471,7 @@ async function loadTokens() {
     tokenJsonInfos: listToMap(allTokens, (i) => i.mint),
     tokens,
     pureTokens,
-    verboseTokens,
-    forceReset:
-      devMints.length === 0 &&
-      officialMints.length === 0 &&
-      unOfficialMints.length === 0 &&
-      unNamedMints.length === 0 &&
-      otherLiquiditySupportedMints.length === 0
+    verboseTokens
   }))
 }
 
