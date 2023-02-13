@@ -41,7 +41,7 @@ type LazyMapSettings<T, U> = {
 export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
   return new Promise((resolve) => {
     const idleId = requestIdleCallback(async () => {
-      lazyMapCoreMapCancelIdleCallback()
+      cancelUnresolvedIdleCallback()
       const result = await lazyMapCoreMap(setting)
       resolve(result)
     })
@@ -56,7 +56,7 @@ export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
 
 const subTaskIdleIds = [] as number[]
 
-function lazyMapCoreMapCancelIdleCallback() {
+function cancelUnresolvedIdleCallback() {
   subTaskIdleIds.forEach((id) => cancelIdleCallback(id))
   subTaskIdleIds.length = 0
 }
@@ -64,6 +64,7 @@ function lazyMapCoreMapCancelIdleCallback() {
 // for sub task
 async function lazyMapCoreMap<T, U>({
   source,
+  sourceKey,
   options,
   loopFn,
   method: coreMethod
@@ -87,77 +88,43 @@ async function lazyMapCoreMap<T, U>({
 
     return wholeResult
   } else {
-    const wholeResult: U[] = []
-    const c = await loadTasks(
-      source.map((item, index) => () => loopFn(item, index, source)),
-      subTaskIdleIds,
-      wholeResult
-    )
-    console.log('cTask: ', c.length)
-    console.log('wholeResult: ', wholeResult)
-    return wholeResult
-    // new way
-    // // new way
-    // for (const [index, taskInputItem] of source.entries()) {
-    //   await new Promise((resolve) => {
-    //     const beginNextTask = () => resolve(undefined)
-    //     const subTaskIdleId = requestIdleCallback(({timeRemaining}) => {
-    //       console.log('run', index)
-    //         const taskResult = loopFn(taskInputItem, index, source)
-    //         wholeResult.push(taskResult)
-    //       beginNextTask()
-    //     }) // forcely use microtask
-    //     subTaskIdleIds.push(subTaskIdleId)
-    //   })
-    // }
+    if (source.length === 0) return []
+    console.time(`lazy load ${sourceKey}`)
+    const taskResults = await loadTasks(source.map((item, index) => () => loopFn(item, index, source)))
+    console.timeEnd(`lazy load ${sourceKey}`)
+    return taskResults
   }
 }
 
-async function loadTasks<F extends () => U, U>(
-  tasks: F[],
-  subTaskIdleIds: number[],
-  wholeResult: U[],
-  taskIndex = 0
-): Promise<U[]> {
-  let currentTaskIndex = taskIndex
-  const results = await new Promise<U[]>((resolve) => {
+async function loadTasks<F extends () => any>(tasks: F[]): Promise<ReturnType<F>[]> {
+  let currentTaskIndex = 0
+  const wholeResult: ReturnType<F>[] = []
+
+  const fragmentResults = await new Promise<ReturnType<F>[]>((resolve) => {
     const subTaskIdleId = requestIdleCallback((deadline) => {
-      const haveTask = currentTaskIndex < tasks.length
-      while (deadline.timeRemaining() > 2 && haveTask) {
-        const haveTask = currentTaskIndex < tasks.length
-        console.log('tasks.length: ', tasks.length)
-        console.log('currentTaskIndex: ', currentTaskIndex)
-        console.log('haveTask: ', haveTask)
-        if (haveTask) {
-          console.log('run index: ', currentTaskIndex)
+      const remainTask = currentTaskIndex < tasks.length
+      while (deadline.timeRemaining() > 2 && remainTask) {
+        if (currentTaskIndex < tasks.length) {
           const taskResult = tasks[currentTaskIndex]()
-          console.log('taskResult: ', taskResult)
           wholeResult.push(taskResult)
           currentTaskIndex += 1
         } else {
-          console.log('resolve', wholeResult.length)
           resolve(wholeResult)
         }
       }
       const stillHaveTask = currentTaskIndex < tasks.length
-      console.log('stillHaveTask: ', stillHaveTask)
-      console.log(
-        'wholeResult999: ',
-        // @ts-expect-error Temp for DEV
-        wholeResult.map((i) => i.name)
-      )
       if (stillHaveTask) {
-        loadTasks(tasks, subTaskIdleIds, wholeResult, currentTaskIndex)
+        loadTasks(tasks.slice(currentTaskIndex)).then((restResult) =>
+          resolve(wholeResult.concat(restResult as ReturnType<F>[]))
+        )
       } else {
-        console.log('resolvewholeResultsss: ', wholeResult.length)
         resolve(wholeResult)
       }
     })
-    console.log('subTaskIdleId22: ', subTaskIdleId)
     subTaskIdleIds.push(subTaskIdleId)
   })
-  console.log('results: ', results)
-  return results
+
+  return fragmentResults
 }
 
 function canUseIdleCallback(): boolean {
