@@ -1,9 +1,10 @@
 import { ApiAmmV3PoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
 
+import { mergeWithOld } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
-import { isArray, isObject, isSet } from '@/functions/judgers/dateType'
+import { isArray, isObject } from '@/functions/judgers/dateType'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress, SrcAddress } from '@/types/constants'
@@ -36,8 +37,6 @@ import useToken, {
   SupportedTokenListSettingName
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
-import { T } from '@raydium-io/raydium-sdk/lib/type-b54589b5'
-import { mergeWithOld, unifyByKey, unifyItem } from '@/functions/arrayMethods'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
