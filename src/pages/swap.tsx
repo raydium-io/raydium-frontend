@@ -280,7 +280,7 @@ function SwapCard() {
 
   const haveEnoughUpCoin = useMemo(
     () => upCoin && checkWalletHasEnoughBalance(toTokenAmount(upCoin, upCoinAmount, { alreadyDecimaled: true })),
-    [upCoin, upCoinAmount, checkWalletHasEnoughBalance, balances]
+    [upCoin, upCoinAmount, checkWalletHasEnoughBalance]
   )
 
   const switchDirectionReversed = useCallback(() => {
