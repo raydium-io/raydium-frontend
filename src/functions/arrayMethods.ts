@@ -1,5 +1,5 @@
 import listToMap from './format/listToMap'
-import { isArray, isSet } from './judgers/dateType'
+import { isArray, isObject, isSet } from './judgers/dateType'
 
 export function hasSameItems<T>(arr1: T[], arr2: any[]): arr2 is T[] {
   if (arr1.length !== arr2.length) return false
@@ -50,7 +50,24 @@ export function shakeFalsyItem<T>(arr: readonly T[]): NonNullable<T>[] {
 export function unifyByKey<T>(objList: T[], getKey: (item: T) => string): T[] {
   const objMap = listToMap(objList, getKey)
   return shakeUndifindedItem(Object.values(objMap))
-  // const keys = objList.map(getKey)
-  // const unifyKeys = unifyItem(keys)
-  // return shakeUndifindedItem(unifyKeys.map((key) => objList.find((item) => getKey(item) === key)))
+}
+
+/**
+ * add old data as default
+ */
+export function mergeWithOld<T extends any[]>(newData: T, oldData: T, getUniqueArrKey?: (item: T[number]) => string): T
+export function mergeWithOld<T extends Set<any>>(newData: T, oldData: T): T
+export function mergeWithOld<T extends Record<keyof any, any>>(newData: T, oldData: Partial<T>): T
+export function mergeWithOld<T>(newData: T, oldData, getUniqueArrKey?: (item: T) => string) {
+  if (isSet(newData) && isSet(oldData)) {
+    return new Set([...oldData, ...newData])
+  }
+  if (isArray(newData) && isArray(oldData)) {
+    return getUniqueArrKey ? unifyByKey([...oldData, ...newData], getUniqueArrKey) : [...oldData, ...newData]
+  }
+  if (isObject(newData) && isObject(oldData)) {
+    return { ...oldData, ...newData }
+  } else {
+    throw 'mergeOld error'
+  }
 }

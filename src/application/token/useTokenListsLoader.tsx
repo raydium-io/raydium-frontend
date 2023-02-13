@@ -3,7 +3,7 @@ import { ApiAmmV3PoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
-import { isArray, isObject } from '@/functions/judgers/dateType'
+import { isArray, isObject, isSet } from '@/functions/judgers/dateType'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress, SrcAddress } from '@/types/constants'
@@ -36,6 +36,8 @@ import useToken, {
   SupportedTokenListSettingName
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
+import { T } from '@raydium-io/raydium-sdk/lib/type-b54589b5'
+import { mergeWithOld, unifyByKey, unifyItem } from '@/functions/arrayMethods'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -431,12 +433,15 @@ async function loadTokens() {
   ]
 
   useToken.setState((s) => ({
-    canFlaggedTokenMints: new Set(
-      Object.values(tokens)
-        .filter((token) => !officialMints.includes(toPubString(token.mint)))
-        .map((token) => toPubString(token.mint))
+    canFlaggedTokenMints: mergeWithOld(
+      new Set(
+        Object.values(tokens)
+          .filter((token) => !officialMints.includes(toPubString(token.mint)))
+          .map((token) => toPubString(token.mint))
+      ),
+      s.canFlaggedTokenMints
     ),
-    blacklist: _blacklist,
+    blacklist: mergeWithOld(_blacklist, s.blacklist, (i) => i),
     tokenListSettings: {
       ...s.tokenListSettings,
 
@@ -468,10 +473,13 @@ async function loadTokens() {
         ])
       }
     },
-    tokenJsonInfos: listToMap(allTokens, (i) => i.mint),
-    tokens,
-    pureTokens,
-    verboseTokens
+    tokenJsonInfos: mergeWithOld(
+      listToMap(allTokens, (i) => i.mint),
+      s.tokenJsonInfos
+    ),
+    tokens: mergeWithOld(tokens, s.tokens),
+    pureTokens: mergeWithOld(pureTokens, s.pureTokens),
+    verboseTokens: mergeWithOld(verboseTokens, s.verboseTokens)
   }))
 }
 
