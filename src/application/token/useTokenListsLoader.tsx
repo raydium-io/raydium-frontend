@@ -1,5 +1,6 @@
 import { ApiAmmV3PoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
 
+import { mergeWithOld } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
@@ -431,12 +432,15 @@ async function loadTokens() {
   ]
 
   useToken.setState((s) => ({
-    canFlaggedTokenMints: new Set(
-      Object.values(tokens)
-        .filter((token) => !officialMints.includes(toPubString(token.mint)))
-        .map((token) => toPubString(token.mint))
+    canFlaggedTokenMints: mergeWithOld(
+      new Set(
+        Object.values(tokens)
+          .filter((token) => !officialMints.includes(toPubString(token.mint)))
+          .map((token) => toPubString(token.mint))
+      ),
+      s.canFlaggedTokenMints
     ),
-    blacklist: _blacklist,
+    blacklist: mergeWithOld(_blacklist, s.blacklist, (i) => i),
     tokenListSettings: {
       ...s.tokenListSettings,
 
@@ -468,10 +472,13 @@ async function loadTokens() {
         ])
       }
     },
-    tokenJsonInfos: listToMap(allTokens, (i) => i.mint),
-    tokens,
-    pureTokens,
-    verboseTokens
+    tokenJsonInfos: mergeWithOld(
+      listToMap(allTokens, (i) => i.mint),
+      s.tokenJsonInfos
+    ),
+    tokens: mergeWithOld(tokens, s.tokens),
+    pureTokens: mergeWithOld(pureTokens, s.pureTokens),
+    verboseTokens: mergeWithOld(verboseTokens, s.verboseTokens)
   }))
 }
 
