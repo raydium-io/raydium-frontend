@@ -33,6 +33,7 @@ export interface TooltipProps {
   closeBy?: PopoverProps['closeBy']
   defaultOpen?: PopoverProps['defaultOpen']
   darkGradient?: boolean
+  hold?: boolean
 }
 
 // TODO: it should be an pre-config version of <Popover>
@@ -48,7 +49,8 @@ export default function Tooltip({
   closeBy = 'click-outside-but-trigger',
   disable,
   defaultOpen,
-  darkGradient = false
+  darkGradient = false,
+  hold = false
 }: TooltipProps) {
   const innerComponentRef = useRef<PopoverHandles>()
   const content = useMemo(
@@ -68,14 +70,15 @@ export default function Tooltip({
     <Popover
       componentRef={mergeRef(componentRef, innerComponentRef)}
       canOpen={!disable}
-      placement={placement}
+      placement={isMobile ? 'top' : placement}
       defaultOpen={defaultOpen}
-      triggerBy={isMobile ? triggerBy ?? 'press' : triggerBy ?? 'hover'}
+      triggerBy={isMobile && hold ? 'press' : isMobile ? triggerBy ?? 'click' : triggerBy ?? 'hover'}
       forceOpen={forceOpen}
       className={className}
       triggerDelay={100}
       closeBy={closeBy}
       closeDelay={100}
+      autoClose={isMobile && hold ? 2 : 0}
     >
       <Popover.Button>{children}</Popover.Button>
       <Popover.Panel>

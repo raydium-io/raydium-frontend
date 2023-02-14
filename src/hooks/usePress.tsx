@@ -6,11 +6,12 @@ export interface UsePressOptions {
   pressDuration?: number
   disable?: boolean
   onTrigger?: (info: { ev: PointerEvent }) => void
+  afterTrigger?: (info: { ev: PointerEvent }) => void
 }
 
 export function usePress(
   ref: RefObject<HTMLElement | undefined | null>,
-  { pressDuration, disable, onTrigger }: UsePressOptions = {}
+  { pressDuration, disable, onTrigger, afterTrigger }: UsePressOptions = {}
 ) {
   const [isPress, { on: turnonPress, off: turnoffPress }] = useToggle(false)
 
@@ -21,6 +22,7 @@ export function usePress(
       turnonPress()
       timerId = setTimeout(() => {
         onTrigger?.({ ev })
+        afterTrigger?.({ ev })
       }, pressDuration)
     }
 

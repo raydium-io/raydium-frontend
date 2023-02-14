@@ -1,4 +1,4 @@
-import { RefObject, useState } from 'react'
+import { RefObject, useEffect, useState } from 'react'
 
 import { useClick } from '@/hooks/useClick'
 import { useClickOutside } from '@/hooks/useClickOutside'
@@ -29,9 +29,10 @@ export function usePopoverTrigger(
     triggerBy?: PopoverTiggerBy
     /** @default 'click-outside' */
     closeBy?: PopoverCloseBy
+    autoClose?: number
   }
 ): { isPanelShowed: boolean; controls: { off(): void; on(): void; toggle(): void } } {
-  const { closeDelay = 600, triggerBy = 'click', triggerDelay, disabled } = options ?? {}
+  const { closeDelay = 600, triggerBy = 'click', triggerDelay, disabled, autoClose } = options ?? {}
 
   // TODO: useToggleRef should be toggleWrapper(useSignalState())
   const [isPanelShowed, setisPanelShowed] = useState(Boolean(options?.defaultOpen))
@@ -63,8 +64,9 @@ export function usePopoverTrigger(
 
   usePress(buttonRef, {
     disable: disabled || !triggerBy.includes('press'),
-    pressDuration: 600,
-    onTrigger: on
+    pressDuration: 300,
+    onTrigger: on,
+    afterTrigger: () => delayOff({ forceDelayTime: 2000 })
   })
 
   // // TODO: popover content may not focusable, so can't set onBlur

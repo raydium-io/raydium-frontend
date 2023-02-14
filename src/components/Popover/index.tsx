@@ -1,6 +1,15 @@
 import React, {
-  ComponentProps, CSSProperties, Fragment, ReactNode, RefObject, useCallback, useEffect, useImperativeHandle, useMemo,
-  useRef, useState
+  ComponentProps,
+  CSSProperties,
+  Fragment,
+  ReactNode,
+  RefObject,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState
 } from 'react'
 import { createPortal } from 'react-dom'
 
@@ -61,6 +70,8 @@ export interface PopoverProps {
   popoverGap?: number
   /** to leave some space when touch the viewport boundary */
   viewportBoundaryInset?: number
+  /** auto close the pop content after custom sec, default 2 sec */
+  autoClose?: number
 }
 export type PopoverPanelProps = {
   $isRenderByMain?: boolean
@@ -133,7 +144,8 @@ export default function Popover({
   componentRef,
   cornerOffset,
   popoverGap,
-  viewportBoundaryInset
+  viewportBoundaryInset,
+  autoClose = 2
 }: PopoverProps) {
   // TODO: no need if buttonRef can be HTMLDivElement not just RefObject<HTMLDivElement>
   const [isPanelRefReady, setIsPanelRefReady] = useState(false)
@@ -151,7 +163,8 @@ export default function Popover({
     triggerDelay,
     closeBy,
     closeDelay,
-    triggerBy
+    triggerBy,
+    autoClose
   })
 
   const { locationInfo, updateLocation } = usePopoverLocation(buttonRef, panelRef, {
