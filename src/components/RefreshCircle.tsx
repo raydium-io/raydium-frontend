@@ -48,6 +48,7 @@ export default function RefreshCircle({
   const [needFresh, setNeedFresh, needFreshSignal] = useSignalState(false)
   const on = () => setNeedFresh(true)
   const off = () => setNeedFresh(false)
+  const isMobile = useAppSettings((s) => s.isMobile)
 
   // for SSR can't maintain interval trully, so it just a fake
   const refreshCircleLastTimestamp = useAppSettings.getState().refreshCircleLastTimestamp[refreshKey]?.endTimestamp as
@@ -91,7 +92,13 @@ export default function RefreshCircle({
   }, [needFresh, freshFunction, documentVisible, disabled])
 
   return (
-    <Tooltip className={className} placement={popPlacement} forceOpen={forceOpen}>
+    <Tooltip
+      className={twMerge('select-none', className)}
+      placement={popPlacement}
+      forceOpen={forceOpen}
+      triggerBy={isMobile ? 'press' : undefined}
+      autoClose
+    >
       <IntervalCircle
         run={run && !disabled}
         initPercent={initPastPercent && initPastPercent % 1}

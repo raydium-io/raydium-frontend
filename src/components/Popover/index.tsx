@@ -1,14 +1,3 @@
-import React, {
-  ComponentProps, CSSProperties, Fragment, ReactNode, RefObject, useCallback, useEffect, useImperativeHandle, useMemo,
-  useRef, useState
-} from 'react'
-import { createPortal } from 'react-dom'
-
-import { Transition } from '@headlessui/react'
-import { BuildingStorefrontIcon } from '@heroicons/react/24/outline'
-
-import { twMerge } from 'tailwind-merge'
-
 import { inClient } from '@/functions/judgers/isSSR'
 import addPropsToReactElement from '@/functions/react/addPropsToReactElement'
 import { pickReactChild } from '@/functions/react/pickChild'
@@ -16,7 +5,21 @@ import { shrinkToValue } from '@/functions/shrinkToValue'
 import useCallbackRef from '@/hooks/useCallbackRef'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { MayFunction } from '@/types/constants'
-
+import { Transition } from '@headlessui/react'
+import {
+  ComponentProps,
+  CSSProperties,
+  Fragment,
+  ReactNode,
+  RefObject,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState
+} from 'react'
+import { createPortal } from 'react-dom'
+import { twMerge } from 'tailwind-merge'
 import { PopupLocationInfo, usePopoverLocation } from './useLocationCalculator'
 import { PopoverCloseBy, PopoverTiggerBy, PopoverTriggerControls, usePopoverTrigger } from './usePopoverTrigger'
 
@@ -61,6 +64,8 @@ export interface PopoverProps {
   popoverGap?: number
   /** to leave some space when touch the viewport boundary */
   viewportBoundaryInset?: number
+  /** auto close the pop content after custom milliseconds, default 2000ms */
+  autoClose?: boolean | number
 }
 export type PopoverPanelProps = {
   $isRenderByMain?: boolean
@@ -133,7 +138,8 @@ export default function Popover({
   componentRef,
   cornerOffset,
   popoverGap,
-  viewportBoundaryInset
+  viewportBoundaryInset,
+  autoClose
 }: PopoverProps) {
   // TODO: no need if buttonRef can be HTMLDivElement not just RefObject<HTMLDivElement>
   const [isPanelRefReady, setIsPanelRefReady] = useState(false)
@@ -151,7 +157,8 @@ export default function Popover({
     triggerDelay,
     closeBy,
     closeDelay,
-    triggerBy
+    triggerBy,
+    autoClose
   })
 
   const { locationInfo, updateLocation } = usePopoverLocation(buttonRef, panelRef, {

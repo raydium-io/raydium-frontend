@@ -1,10 +1,13 @@
-import { RefObject, useState } from 'react'
+import { RefObject, useEffect, useState } from 'react'
 
 import { useClick } from '@/hooks/useClick'
 import { useClickOutside } from '@/hooks/useClickOutside'
+import useDevice from '@/hooks/useDevice'
 import { useHover } from '@/hooks/useHover'
+import { usePress } from '@/hooks/usePress'
 import { useToggleRef } from '@/hooks/useToggle'
 import { MayArray } from '@/types/constants'
+import { isBoolean } from '@/functions/judgers/dateType'
 
 export type PopoverTriggerControls = {
   on(): void
@@ -12,7 +15,7 @@ export type PopoverTriggerControls = {
   toggle(): void
 }
 
-export type PopoverTiggerBy = MayArray<'hover' | 'click' | 'focus'>
+export type PopoverTiggerBy = MayArray<'hover' | 'click' | 'focus' | 'press'>
 export type PopoverCloseBy = MayArray<'click-outside' | 'click-outside-but-trigger'>
 
 export function usePopoverTrigger(
@@ -27,9 +30,12 @@ export function usePopoverTrigger(
     triggerBy?: PopoverTiggerBy
     /** @default 'click-outside' */
     closeBy?: PopoverCloseBy
+    /** auto close the pop content after custom milliseconds, default 2000ms */
+    autoClose?: number | boolean
   }
 ): { isPanelShowed: boolean; controls: { off(): void; on(): void; toggle(): void } } {
-  const { closeDelay = 600, triggerBy = 'click', triggerDelay, disabled } = options ?? {}
+  const { closeDelay = 600, triggerBy = 'click', triggerDelay, disabled, autoClose } = options ?? {}
+  const autoCloseDelay = isBoolean(autoClose) ? 2000 : autoClose
 
   // TODO: useToggleRef should be toggleWrapper(useSignalState())
   const [isPanelShowed, setisPanelShowed] = useState(Boolean(options?.defaultOpen))
@@ -58,6 +64,16 @@ export function usePopoverTrigger(
     onHoverStart: on,
     onHoverEnd: () => delayOff()
   })
+
+  usePress(buttonRef, {
+    disable: disabled || !triggerBy.includes('press'),
+    pressDuration: 300,
+    onTrigger: on,
+    afterTrigger: () => {
+      autoClose && delayOff({ forceDelayTime: autoCloseDelay })
+    }
+  })
+
   // // TODO: popover content may not focusable, so can't set onBlur
   // NOTE: foce can confilt with useClickOutside
   // useFocus([buttonRef, panelRef], {
