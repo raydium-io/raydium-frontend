@@ -96,7 +96,7 @@ async function lazyMapCoreMap<T, U>({
 }
 
 async function loadTasks<F extends () => any>(tasks: F[]): Promise<ReturnType<F>[]> {
-  const testCostTime = 2 // (ms) // <--DEV
+  const testCostTime = 1 // (ms) // force task cost time
   const fragmentResults = await new Promise<ReturnType<F>[]>((resolve) => {
     const wholeResult: ReturnType<F>[] = []
     const subTaskIdleId = requestIdleCallback((deadline) => {
