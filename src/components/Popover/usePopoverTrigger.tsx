@@ -66,7 +66,9 @@ export function usePopoverTrigger(
     disable: disabled || !triggerBy.includes('press'),
     pressDuration: 300,
     onTrigger: on,
-    afterTrigger: () => delayOff({ forceDelayTime: 2000 })
+    afterTrigger: () => {
+      Boolean(autoClose) && delayOff({ forceDelayTime: autoClose! * 1000 })
+    }
   })
 
   // // TODO: popover content may not focusable, so can't set onBlur
