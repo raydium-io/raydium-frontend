@@ -7,7 +7,7 @@ import { inClient } from '@/functions/judgers/isSSR'
 import useAppAdvancedSettings from './useAppAdvancedSettings'
 
 // frontend (client)
-const APP_VERSION = 'V2.9.20'
+const APP_VERSION = 'V2.9.21'
 
 const APP_VERSION_CHECKING_DELAY_TIME = 1000 * 60 * 1
 
