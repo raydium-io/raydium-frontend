@@ -33,7 +33,8 @@ export interface TooltipProps {
   closeBy?: PopoverProps['closeBy']
   defaultOpen?: PopoverProps['defaultOpen']
   darkGradient?: boolean
-  hold?: boolean
+  /** auto close the pop content after custom milliseconds, default 2000ms */
+  autoClose?: PopoverProps['autoClose']
 }
 
 // TODO: it should be an pre-config version of <Popover>
@@ -50,7 +51,7 @@ export default function Tooltip({
   disable,
   defaultOpen,
   darkGradient = false,
-  hold = false
+  autoClose
 }: TooltipProps) {
   const innerComponentRef = useRef<PopoverHandles>()
   const content = useMemo(
@@ -72,13 +73,13 @@ export default function Tooltip({
       canOpen={!disable}
       placement={isMobile ? 'top' : placement}
       defaultOpen={defaultOpen}
-      triggerBy={isMobile && hold ? 'press' : isMobile ? triggerBy ?? 'click' : triggerBy ?? 'hover'}
+      triggerBy={triggerBy ?? (isMobile ? 'click' : 'hover')}
       forceOpen={forceOpen}
       className={className}
       triggerDelay={100}
       closeBy={closeBy}
       closeDelay={100}
-      autoClose={isMobile && hold ? 2 : 0}
+      autoClose={autoClose}
     >
       <Popover.Button>{children}</Popover.Button>
       <Popover.Panel>

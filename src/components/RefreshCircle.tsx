@@ -96,7 +96,8 @@ export default function RefreshCircle({
       className={twMerge('select-none', className)}
       placement={popPlacement}
       forceOpen={forceOpen}
-      hold={isMobile ? true : false}
+      triggerBy={isMobile ? 'press' : undefined}
+      autoClose
     >
       <IntervalCircle
         run={run && !disabled}

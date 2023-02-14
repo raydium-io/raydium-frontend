@@ -7,6 +7,7 @@ import { useHover } from '@/hooks/useHover'
 import { usePress } from '@/hooks/usePress'
 import { useToggleRef } from '@/hooks/useToggle'
 import { MayArray } from '@/types/constants'
+import { isBoolean } from '@/functions/judgers/dateType'
 
 export type PopoverTriggerControls = {
   on(): void
@@ -29,10 +30,12 @@ export function usePopoverTrigger(
     triggerBy?: PopoverTiggerBy
     /** @default 'click-outside' */
     closeBy?: PopoverCloseBy
-    autoClose?: number
+    /** auto close the pop content after custom milliseconds, default 2000ms */
+    autoClose?: number | boolean
   }
 ): { isPanelShowed: boolean; controls: { off(): void; on(): void; toggle(): void } } {
   const { closeDelay = 600, triggerBy = 'click', triggerDelay, disabled, autoClose } = options ?? {}
+  const autoCloseDelay = isBoolean(autoClose) ? 2000 : autoClose
 
   // TODO: useToggleRef should be toggleWrapper(useSignalState())
   const [isPanelShowed, setisPanelShowed] = useState(Boolean(options?.defaultOpen))
@@ -67,7 +70,7 @@ export function usePopoverTrigger(
     pressDuration: 300,
     onTrigger: on,
     afterTrigger: () => {
-      Boolean(autoClose) && delayOff({ forceDelayTime: autoClose! * 1000 })
+      autoClose && delayOff({ forceDelayTime: autoCloseDelay })
     }
   })
 
