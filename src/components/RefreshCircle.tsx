@@ -91,7 +91,7 @@ export default function RefreshCircle({
   }, [needFresh, freshFunction, documentVisible, disabled])
 
   return (
-    <Tooltip className={className} placement={popPlacement} forceOpen={forceOpen}>
+    <Tooltip className={twMerge('select-none', className)} placement={popPlacement} forceOpen={forceOpen}>
       <IntervalCircle
         run={run && !disabled}
         initPercent={initPastPercent && initPastPercent % 1}
