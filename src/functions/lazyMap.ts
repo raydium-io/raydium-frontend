@@ -1,6 +1,5 @@
 /* eslint-disable no-console */
 import { AnyFn } from '@/types/constants'
-import { resolve } from 'path'
 import { addItem } from './arrayMethods'
 import { groupItems } from './groupItems'
 import { isNumber } from './judgers/dateType'
@@ -97,13 +96,12 @@ async function lazyMapCoreMap<T, U>({
 }
 
 async function loadTasks<F extends () => any>(tasks: F[]): Promise<ReturnType<F>[]> {
-  let currentTaskIndex = 0
-  const wholeResult: ReturnType<F>[] = []
-
+  const testCostTime = 2 // (ms) // <--DEV
   const fragmentResults = await new Promise<ReturnType<F>[]>((resolve) => {
+    const wholeResult: ReturnType<F>[] = []
     const subTaskIdleId = requestIdleCallback((deadline) => {
-      const remainTask = currentTaskIndex < tasks.length
-      while (deadline.timeRemaining() > 2 && remainTask) {
+      let currentTaskIndex = 0
+      while (deadline.timeRemaining() > testCostTime && currentTaskIndex < tasks.length) {
         if (currentTaskIndex < tasks.length) {
           const taskResult = tasks[currentTaskIndex]()
           wholeResult.push(taskResult)
