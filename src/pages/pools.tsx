@@ -737,7 +737,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help ml-1" />
             <Tooltip.Panel>
-              <div className="whitespace-pre">{lowLiquidityAlertText}</div>
+              <div className="max-w-[80vw]">{lowLiquidityAlertText}</div>
             </Tooltip.Panel>
           </Tooltip>
         )}
