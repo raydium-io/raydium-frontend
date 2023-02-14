@@ -70,7 +70,7 @@ export default function Tooltip({
       canOpen={!disable}
       placement={placement}
       defaultOpen={defaultOpen}
-      triggerBy={isMobile ? triggerBy ?? 'click' : triggerBy ?? 'hover'}
+      triggerBy={isMobile ? triggerBy ?? 'press' : triggerBy ?? 'hover'}
       forceOpen={forceOpen}
       className={className}
       triggerDelay={100}

@@ -2,7 +2,9 @@ import { RefObject, useState } from 'react'
 
 import { useClick } from '@/hooks/useClick'
 import { useClickOutside } from '@/hooks/useClickOutside'
+import useDevice from '@/hooks/useDevice'
 import { useHover } from '@/hooks/useHover'
+import { usePress } from '@/hooks/usePress'
 import { useToggleRef } from '@/hooks/useToggle'
 import { MayArray } from '@/types/constants'
 
@@ -12,7 +14,7 @@ export type PopoverTriggerControls = {
   toggle(): void
 }
 
-export type PopoverTiggerBy = MayArray<'hover' | 'click' | 'focus'>
+export type PopoverTiggerBy = MayArray<'hover' | 'click' | 'focus' | 'press'>
 export type PopoverCloseBy = MayArray<'click-outside' | 'click-outside-but-trigger'>
 
 export function usePopoverTrigger(
@@ -58,6 +60,13 @@ export function usePopoverTrigger(
     onHoverStart: on,
     onHoverEnd: () => delayOff()
   })
+
+  usePress(buttonRef, {
+    disable: disabled || !triggerBy.includes('press'),
+    pressDuration: 600,
+    onTrigger: on
+  })
+
   // // TODO: popover content may not focusable, so can't set onBlur
   // NOTE: foce can confilt with useClickOutside
   // useFocus([buttonRef, panelRef], {
