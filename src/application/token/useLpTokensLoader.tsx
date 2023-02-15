@@ -19,7 +19,7 @@ export default function useLpTokensLoader() {
   useAsyncEffect(async () => {
     const lpTokenItems = await lazyMap({
       source: ammJsonInfos,
-      sourceKey: 'load lp token',
+      loopTaskName: 'load lp token',
       method: 'hurrier-settimeout',
       loopFn: (ammJsonInfo) => {
         // console.time('info') // too slow

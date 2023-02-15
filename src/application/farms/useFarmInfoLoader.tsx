@@ -75,7 +75,7 @@ export default function useFarmInfoLoader() {
   useTransitionedEffect(async () => {
     const hydratedInfos = await lazyMap({
       source: sdkParsedInfos,
-      sourceKey: 'hydrate farm info',
+      loopTaskName: 'hydrate farm info',
       loopFn: (farmInfo) =>
         hydrateFarmInfo(farmInfo, {
           getToken,
