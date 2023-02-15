@@ -525,7 +525,7 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
       <Col
         domRef={sideMenuRef}
         className={twMerge(
-          `h-full overflow-y-auto w-56 mobile:w-48 mobile:rounded-tr-2xl mobile:rounded-br-2xl`,
+          `h-full overflow-y-auto w-56 mobile:w-64 mobile:rounded-tr-2xl mobile:rounded-br-2xl`,
           className
         )}
         style={{
@@ -671,7 +671,7 @@ function LinkItem({
         <Row
           className={`grow items-center justify-between text-[#ACE3E5] ${
             isCurrentRoutePath ? 'text-[rgba(57,208,216,1)]' : ''
-          } text-sm mobile:text-xs font-medium`}
+          } text-sm mobile:text-[0.85rem] font-medium`}
         >
           <div>{children}</div>
           {isExternalLink && (
@@ -713,7 +713,7 @@ function OptionItem({
           heroIconName={heroIconName}
         />
         <span
-          className={`text-[#ACE3E5] text-sm mobile:text-xs font-medium flex-grow ${
+          className={`text-[#ACE3E5] text-sm mobile:text-[0.85rem] font-medium flex-grow ${
             href ? 'group-hover:text-[rgba(57,208,216,1)]' : ''
           }`}
         >
