@@ -111,8 +111,9 @@ export default function useSort<D extends Record<string, any>[]>(
   const sortedData = useMemo(() => {
     let configs = sortConfigs
     if (!sortConfigs.length) configs = defaultConfigs
-    if (sortConfigs[0].mode === 'none') configs = defaultConfigs
-    const [{ mode, sortCompare }] = configs // temp only respect first sortConfigs in queue
+    if (sortConfigs[0]?.mode === 'none') configs = defaultConfigs
+    const firstConfig = configs[0] // temp only respect first sortConfigs in queue
+    const { mode, sortCompare } = firstConfig ?? {} // temp only respect first sortConfigs in queue
     return [...sourceDataList].sort((a, b) => {
       const pickFunctions = [sortCompare].flat()
       if (!pickFunctions.length) return 0
@@ -121,8 +122,8 @@ export default function useSort<D extends Record<string, any>[]>(
         (acc, item) =>
           acc(a, b) === 0
             ? (a, b) => {
-                const sortValueA = item(a)
-                const sortValueB = item(b)
+                const sortValueA = item?.(a)
+                const sortValueB = item?.(b)
 
                 // nullish first exclude (whenever compare undefined should be the last one)
                 if (isNullish(a) && !isNullish(b)) return mode === 'decrease' ? 1 : -1
@@ -130,7 +131,7 @@ export default function useSort<D extends Record<string, any>[]>(
                 return compareForSort(sortValueA, sortValueB)
               }
             : acc,
-        (a: D[number], b: D[number]) => compareForSort(pickFunctions[0](a), pickFunctions[0](b))
+        (a: D[number], b: D[number]) => compareForSort(pickFunctions[0]?.(a), pickFunctions[0]?.(b))
       )
       return (mode === 'decrease' ? -1 : 1) * compareFactor(a, b)
     })

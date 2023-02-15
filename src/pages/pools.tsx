@@ -437,29 +437,7 @@ function PoolCard() {
     [dataSource, searchText]
   )
 
-  const {
-    sortedData,
-    setConfig: setSortConfig,
-    sortConfig,
-    clearSortConfig
-  } = useSort(searched, {
-    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.ammId), (i) => i.liquidity] }
-  })
-  // re-sort when favourite have loaded
-  useOnceEffect(
-    ({ runed }) => {
-      if (favouriteIds !== undefined) runed()
-      if (favouriteIds != null) {
-        setSortConfig({
-          key: 'init',
-          sortCompare: [(i) => favouriteIds?.includes(toPubString(i.ammId)), (i) => i.liquidity],
-          mode: 'decrease'
-        })
-        runed()
-      }
-    },
-    [favouriteIds]
-  )
+  const { sortedData, setConfig: setSortConfig, sortConfig, clearSortConfig } = useSort(searched)
 
   const TableHeaderBlock = useMemo(
     () => (
