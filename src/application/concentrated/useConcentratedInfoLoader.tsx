@@ -77,7 +77,10 @@ export default function useConcentratedInfoLoader() {
     const hydratedInfos = await lazyMap({
       source: sdkParsedAmmPoolsList,
       sourceKey: 'hydrate amm pool Info',
-      loopFn: (sdkParsed) => hydrateConcentratedInfo(sdkParsed)
+      loopFn: (sdkParsed) => hydrateConcentratedInfo(sdkParsed),
+      options: {
+        oneGroupTasksSize: 8
+      }
     })
     useConcentrated.setState({ hydratedAmmPools: hydratedInfos, loading: hydratedInfos.length === 0 })
   }, [sdkParsedAmmPools, connection, tokens, pathname])
