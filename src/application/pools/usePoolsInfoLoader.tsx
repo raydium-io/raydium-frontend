@@ -92,7 +92,7 @@ export default function usePoolsInfoLoader() {
   useTransitionedEffect(async () => {
     const hydratedInfos = await lazyMap({
       source: jsonInfos,
-      sourceKey: 'pair jsonInfo',
+      loopTaskName: 'pair jsonInfo',
       loopFn: (pair) =>
         hydratedPairInfo(pair, {
           lpToken: getLpToken(pair.lpMint),

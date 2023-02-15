@@ -7,8 +7,8 @@ import { isNumber } from './judgers/dateType'
 const invokedRecord = new Map<string, (LazyMapSettings<any, any> & { idleId: number })[]>()
 
 type LazyMapSettings<T, U> = {
-  sourceKey: string // for action key for cacheMap to identify
   source: T[]
+  loopTaskName: string // for action key for cacheMap to identify
   loopFn: (item: T, index: number, source: readonly T[]) => U
   /**
    * @default 'lazier-idleCallback'
@@ -25,6 +25,7 @@ type LazyMapSettings<T, U> = {
      * if don't set , it will auto-cacl in Chrome/Edge/Firefox, and 8 in Safari
      */
     oneGroupTasksSize?: number
+    idleTimeout?: number
   }
 }
 
@@ -40,30 +41,33 @@ type LazyMapSettings<T, U> = {
 export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
   return new Promise((resolve) => {
     const idleId = requestIdleCallback(async () => {
-      cancelUnresolvedIdleCallback()
+      cancelUnresolvedIdles(setting.loopTaskName)
       const result = await lazyMapCoreMap(setting)
       resolve(result)
     })
 
     // re-invoke will auto cancel the last idle callback, and record new setting
-    const lastIdleId = invokedRecord.get(setting.sourceKey)?.at(-1)?.idleId
+    const lastIdleId = invokedRecord.get(setting.loopTaskName)?.at(-1)?.idleId
     if (lastIdleId) cancelIdleCallback(lastIdleId)
 
-    invokedRecord.set(setting.sourceKey, addItem(invokedRecord.get(setting.sourceKey) ?? [], { ...setting, idleId }))
+    invokedRecord.set(
+      setting.loopTaskName,
+      addItem(invokedRecord.get(setting.loopTaskName) ?? [], { ...setting, idleId })
+    )
   })
 }
 
-const subTaskIdleIds = [] as number[]
+const subTaskIdleIds: Record<string /* task name */, number[]> = {}
 
-function cancelUnresolvedIdleCallback() {
-  subTaskIdleIds.forEach((id) => cancelIdleCallback(id))
-  subTaskIdleIds.length = 0
+function cancelUnresolvedIdles(loopTaskName: string) {
+  subTaskIdleIds[loopTaskName]?.forEach((id) => cancelIdleCallback(id))
+  subTaskIdleIds[loopTaskName] = []
 }
 
 // for sub task
 async function lazyMapCoreMap<T, U>({
   source,
-  sourceKey,
+  loopTaskName,
   options,
   loopFn,
   method: coreMethod
@@ -88,38 +92,53 @@ async function lazyMapCoreMap<T, U>({
     return wholeResult
   } else {
     if (source.length === 0) return []
-    console.time(`lazy load ${sourceKey}`)
-    const taskResults = await loadTasks(source.map((item, index) => () => loopFn(item, index, source)))
-    console.timeEnd(`lazy load ${sourceKey}`)
+    console.time(`lazy load ${loopTaskName}`)
+    const taskResults = await loadTasks(
+      source.map((item, index) => () => loopFn(item, index, source)),
+      loopTaskName,
+      options
+    )
+    console.timeEnd(`lazy load ${loopTaskName}`)
     return taskResults
   }
 }
 
-async function loadTasks<F extends () => any>(tasks: F[]): Promise<ReturnType<F>[]> {
-  const testCostTime = 1 // (ms) // force task cost time
+async function loadTasks<F extends () => any>(
+  tasks: F[],
+  loopTaskName: LazyMapSettings<any, any>['loopTaskName'],
+  options?: LazyMapSettings<any, any>['options']
+): Promise<ReturnType<F>[]> {
+  const testLeastRemainTime = 1 // (ms) // force task cost time
   const fragmentResults = await new Promise<ReturnType<F>[]>((resolve) => {
     const wholeResult: ReturnType<F>[] = []
-    const subTaskIdleId = requestIdleCallback((deadline) => {
-      let currentTaskIndex = 0
-      while (deadline.timeRemaining() > testCostTime && currentTaskIndex < tasks.length) {
-        if (currentTaskIndex < tasks.length) {
-          const taskResult = tasks[currentTaskIndex]()
-          wholeResult.push(taskResult)
-          currentTaskIndex += 1
+    const subTaskIdleId = requestIdleCallback(
+      (deadline) => {
+        let currentTaskIndex = 0
+        while (deadline.timeRemaining() > testLeastRemainTime) {
+          if (currentTaskIndex < tasks.length) {
+            const taskResult = tasks[currentTaskIndex]()
+            wholeResult.push(taskResult)
+            currentTaskIndex += 1
+          } else {
+            resolve(wholeResult)
+          }
+        }
+        const stillHaveTask = currentTaskIndex < tasks.length
+        if (stillHaveTask) {
+          const restTasks = tasks.slice(currentTaskIndex)
+          loadTasks(restTasks, loopTaskName, options).then((restResult) =>
+            resolve(wholeResult.concat(restResult as ReturnType<F>[]))
+          )
         } else {
           resolve(wholeResult)
         }
-      }
-      const stillHaveTask = currentTaskIndex < tasks.length
-      if (stillHaveTask) {
-        loadTasks(tasks.slice(currentTaskIndex)).then((restResult) =>
-          resolve(wholeResult.concat(restResult as ReturnType<F>[]))
-        )
-      } else {
-        resolve(wholeResult)
-      }
-    })
-    subTaskIdleIds.push(subTaskIdleId)
+      },
+      { timeout: options?.idleTimeout ?? 1000 }
+    )
+    if (!subTaskIdleIds[loopTaskName]) {
+      subTaskIdleIds[loopTaskName] = []
+    }
+    subTaskIdleIds[loopTaskName].push(subTaskIdleId)
   })
 
   return fragmentResults
@@ -133,8 +152,8 @@ function requestCallback(fn: AnyFn, methods: LazyMapSettings<any, any>['method']
   return methods === 'hurrier-settimeout' ? window.setTimeout?.(fn) : requestIdleCallback(fn)
 }
 
-export function requestIdleCallback(fn: IdleRequestCallback): number {
-  return window.requestIdleCallback ? window.requestIdleCallback?.(fn) : window.setTimeout?.(fn) // Safari no't support `window.requestIdleCallback()`, so have to check first
+export function requestIdleCallback(fn: IdleRequestCallback, options?: IdleRequestOptions): number {
+  return window.requestIdleCallback ? window.requestIdleCallback?.(fn, options) : window.setTimeout?.(fn) // Safari no't support `window.requestIdleCallback()`, so have to check first
 }
 
 export function cancelIdleCallback(handleId: number): void {

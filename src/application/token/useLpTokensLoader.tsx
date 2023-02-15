@@ -19,10 +19,8 @@ export default function useLpTokensLoader() {
   useAsyncEffect(async () => {
     const lpTokenItems = await lazyMap({
       source: ammJsonInfos,
-      sourceKey: 'load lp token',
-      method: 'hurrier-settimeout',
+      loopTaskName: 'load lp token',
       loopFn: (ammJsonInfo) => {
-        // console.time('info') // too slow
         const baseToken = getToken(ammJsonInfo.baseMint) ?? userAddedTokens[ammJsonInfo.baseMint] // depends on raw user Added tokens for avoid re-render
         const quoteToken = getToken(ammJsonInfo.quoteMint) ?? userAddedTokens[ammJsonInfo.quoteMint]
         if (!baseToken || !quoteToken) return // NOTE :  no unknown base/quote lpToken
@@ -43,8 +41,7 @@ export default function useLpTokensLoader() {
           }
         ) as LpToken
         return lpToken
-      },
-      options: { oneGroupTasksSize: 16 }
+      }
     })
     const lpTokens = listToMap(shakeUndifindedItem(lpTokenItems), (t) => toPubString(t.mint))
     const sameAsPrevious =

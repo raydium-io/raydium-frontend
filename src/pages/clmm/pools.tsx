@@ -474,12 +474,9 @@ function PoolCard() {
   const currentTab = useConcentrated((s) => s.currentTab)
   const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
   const owner = useWallet((s) => s.owner)
-
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
-
   const [currentSortKey, setCurrentSortKey] = useState<string | undefined>(undefined) // only care about key relative to time basis (volume, fees, apr)
-
   const dataSource = useMemo(
     () =>
       hydratedAmmPools.filter((pool) => {
