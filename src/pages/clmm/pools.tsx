@@ -1995,7 +1995,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedConcentratedInf
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help" />
             <Tooltip.Panel>
-              <div className="whitespace-pre">{lowLiquidityAlertText}</div>
+              <div className="max-w-[min(320px,80vw)]">{lowLiquidityAlertText}</div>
             </Tooltip.Panel>
           </Tooltip>
         )} */}
