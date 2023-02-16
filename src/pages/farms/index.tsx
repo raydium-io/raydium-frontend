@@ -71,6 +71,7 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { NewCompensationBanner } from '../pools'
 import { div } from '@/functions/numberish/operations'
+import { isJsonPoolItemInfo } from '@/application/pools/is'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -872,6 +873,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
       {info.version === 6 ? (
         <TextInfoItem
           name="Pending Rewards"
+          loading={isJsonFarmInfo(info) || !info.rewards}
           value={
             <Row className="flex-wrap items-center gap-2 w-full pr-8">
               {isJsonFarmInfo(info) ? (
@@ -902,6 +904,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
       ) : (
         <TextInfoItem
           name="Pending Rewards"
+          loading={isJsonFarmInfo(info) || !info.rewards}
           value={
             <Row className="flex-wrap gap-2 w-full pr-8">
               {isJsonFarmInfo(info)
@@ -926,6 +929,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
       <TextInfoItem
         name={`Total APR ${timeBasis}`}
         className="w-max"
+        loading={isJsonFarmInfo(info) || !timeBasedTotalApr}
         value={
           isJsonFarmInfo(info) ? (
             '--'
@@ -1537,7 +1541,6 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
 
   if (isJsonFarmInfo(info)) {
     const lpToken = getLpToken(info.lpMint) // TODO: may be token can cache?
-    const name = lpToken ? `${lpToken.base.symbol ?? '--'} - ${lpToken.quote.symbol ?? '--'}` : '--' // TODO: rule of get farm name should be a issolate function
     return (
       <AutoBox
         is={isMobile ? 'Col' : 'Row'}
@@ -1651,11 +1654,13 @@ function TextInfoItem({
   name,
   value,
   subValue,
-  className
+  className,
+  loading = value === '--' || subValue === '--'
 }: {
   name: string
   value?: ReactNode
   subValue?: ReactNode
+  loading?: boolean
   className?: string
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -1663,7 +1668,7 @@ function TextInfoItem({
     <Col className={className}>
       {isMobile && <div className=" mb-1 text-[rgba(171,196,255,0.5)] font-medium text-sm mobile:text-2xs">{name}</div>}
       <Col className="flex-grow justify-center">
-        {value === '--' || subValue === '--' ? (
+        {loading ? (
           <LoadingCircleSmall className="w-4 h-4" />
         ) : (
           <>
