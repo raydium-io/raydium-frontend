@@ -45,7 +45,11 @@ export default function CoinAvatar({
   onClick
 }: CoinAvatarProps) {
   // if (!token && !iconSrc) return null
-  const src = iconSrc ?? ((token && 'icon' in token && token?.icon) || undefined)
+  const src =
+    iconSrc ??
+    ((token as any)?.icons as string[] | undefined) ??
+    ((token as any)?.icon as string | undefined) ??
+    '/coins/unknown.svg'
   const hasOpacity = !noCoinIconBorder
   const iconSize =
     size === '2xl'
