@@ -432,7 +432,7 @@ function PoolCard() {
         const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
         return toBN(a[key]).gt(toBN(b[key])) ? -1 : toBN(a[key]).lt(toBN(b[key])) ? 1 : 0
       }),
-    [dataSource, searchText]
+    [dataSource, searchText, timeBasis]
   )
 
   const { sortedData, setConfig: setSortConfig, sortConfig, clearSortConfig } = useSort(searched)
