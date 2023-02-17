@@ -88,7 +88,6 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
       const { currentVersion } = useAppVersion.getState()
 
       // log fetch info
-      // console.time(`fetch ${key}`)
       const timoutId = setTimeout(() => onCostLongerThanMaxTime(key), maxCostTime)
 
       // fetch  core
@@ -96,14 +95,14 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
         key.includes('api.raydium.io')
           ? fetch(input, { ...options, headers: { ...options?.headers, 'ui-version': currentVersion } })
           : fetch(input, options)
-      ).catch((r) => {
-        onFetchError(key, r)
-        return r
-      }) // add version for debug
-
-      // log fetch info
-      // console.timeEnd(`fetch ${key}`)
-      clearTimeout(timoutId)
+      )
+        .catch((r) => {
+          onFetchError(key, r)
+          return r
+        }) // add version for debug
+        .finally(() => {
+          clearTimeout(timoutId)
+        })
 
       resultCache.set(key, {
         rawText: response
