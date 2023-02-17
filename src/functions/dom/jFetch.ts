@@ -49,10 +49,10 @@ const maxCostTime = 2 * 1000
 
 // 💩
 function onCostLongerThanMaxTime(key: string) {
-  console.error(`fetch ${key} cost too much time(${maxCostTime}ms})`)
+  console.error(`fetch ${key} cost too much time(>${maxCostTime}ms})`)
   if (isInBonsaiTest || isInLocalhost) {
     const { logError } = useNotification.getState()
-    logError(`fetch cost too much`, `${key} cost too much time(${maxCostTime}ms})`)
+    logError(`fetch cost too much`, `${key} cost too much time(>${maxCostTime}ms})`)
   }
 }
 
