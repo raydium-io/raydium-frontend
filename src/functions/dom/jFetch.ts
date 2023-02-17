@@ -1,8 +1,10 @@
 import { useAppVersion } from '@/application/common/useAppVersion'
+import useNotification from '@/application/notification/useNotification'
 import { MayPromise } from '@/types/constants'
 
 import assert from '../assert'
 import { isString } from '../judgers/dateType'
+import { isInBonsaiTest, isInLocalhost } from '../judgers/isSSR'
 
 // TODO: feture: use standard server-worker instead. see (https://developers.google.com/web/fundamentals/primers/service-workers)
 type ResourceUrl = string
@@ -43,16 +45,35 @@ export default async function jFetch<Shape = any>(
   }
 }
 
+const maxCostTime = 2 * 1000
+
+// 💩
+function onCostLongerThanMaxTime(key: string) {
+  console.error(`fetch ${key} cost too much time(${maxCostTime}ms})`)
+  if (isInBonsaiTest || isInLocalhost) {
+    const { logError } = useNotification.getState()
+    logError(`fetch cost too much`, `${key} cost too much time(${maxCostTime}ms})`)
+  }
+}
+
+// 💩
+function onFetchError(key: string, response: Response) {
+  console.error(`fetch ${key} error, status: ${response.status}${response.statusText}}`)
+  if (isInBonsaiTest || isInLocalhost) {
+    const { logError } = useNotification.getState()
+    logError(`fetch error`, `fetch ${key} error, status: ${response.status}${response.statusText}}`)
+  }
+}
+
 /**
  * same interface as original fetch, but, customized version have cache
  */
 // TODO: unexceptedly cache useless all response, even ignoreCache
 export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): Promise<string | undefined> {
-  const key =
-    typeof input === 'string' ? input + options?.body?.toString() ?? '' : input.url + options?.body?.toString() ?? ''
-
+  const key = (typeof input === 'string' ? input : input.url) + (options?.body?.toString() ?? '')
   const useStrongCache = resultCache.has(key) && Date.now() - resultCache.get(key)!.reponseTime < 2000
   if (useStrongCache) {
+    // console.info(`(cache) fetch ${key} success`)
     return resultCache.get(key)!.rawText
   }
 
@@ -65,9 +86,20 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
         : false)
     if (!canUseCache) {
       const { currentVersion } = useAppVersion.getState()
+
+      // log fetch info
+      // console.time(`fetch ${key}`)
+      const timoutId = setTimeout(() => onCostLongerThanMaxTime(key), maxCostTime)
+
+      // fetch  core
       const response = key.includes('api.raydium.io')
         ? fetch(input, { ...options, headers: { ...options?.headers, 'ui-version': currentVersion } })
         : fetch(input, options) // add version for debug
+
+      // log fetch info
+      // console.timeEnd(`fetch ${key}`)
+      clearTimeout(timoutId)
+
       resultCache.set(key, {
         rawText: response
           .then((r) => r.clone())
@@ -76,6 +108,7 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
         reponseTime: Date.now()
       })
       if (!(await response).ok) {
+        onFetchError(key, await response)
         resultCache.set(key, { rawText: Promise.resolve(undefined), reponseTime: Date.now() })
         return undefined
       }
