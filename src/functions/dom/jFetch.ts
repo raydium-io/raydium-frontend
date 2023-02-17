@@ -58,10 +58,10 @@ function onCostLongerThanMaxTime(key: string) {
 
 // 💩
 function onFetchError(key: string, response: Response) {
-  console.error(`fetch ${key} error, status: ${response.status}${response.statusText}}`)
+  console.error(`fetch ${key} error, status: ${response.status}${response.statusText}`)
   if (isInBonsaiTest || isInLocalhost) {
     const { logError } = useNotification.getState()
-    logError(`fetch error`, `fetch ${key} error, status: ${response.status}${response.statusText}}`)
+    logError(`fetch error`, `fetch ${key} error, status: ${response.status}${response.statusText}`)
   }
 }
 
