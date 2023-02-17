@@ -119,6 +119,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const blurRef = useRef<number | undefined>()
   const blurTimerRef = useRef<number | undefined>()
   const chartRef = useRef<any>()
+  const autoZoomQueueRef = useRef<undefined | (() => void)>()
   const xAxisDomainRef = useRef<number[]>([0, 100])
   const xAxisResetRef = useRef<number[]>([0, 100])
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
@@ -285,6 +286,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     if (!moveRef.current) return
     setIsMoving(false)
     moveRef.current = ''
+    autoZoomQueueRef.current?.()
   }, [])
   const handleMouseDown = (side: Range) => () => {
     if (moveRef.current) return
@@ -319,7 +321,14 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   let timer: number | undefined = undefined
 
-  const autoZoom = useCallback(({ val, side }: { val: number; side: Range }) => {
+  const autoZoom = useCallback(({ val, side, queue }: { val: number; side: Range; queue?: boolean }) => {
+    if (queue) {
+      autoZoomQueueRef.current = () => {
+        autoZoom({ val, side })
+        autoZoomQueueRef.current = undefined
+      }
+      return
+    }
     const isMin = side === Range.Min
     xAxisDomainRef.current[isMin ? 0 : 1] = val * (isMin ? 0.8 : 1.2)
     setXAxisDomain(xAxisDomainRef.current)
@@ -338,14 +347,14 @@ export default forwardRef(function Chart(props: Props, ref) {
             ...pos,
             [Range.Min]: Number(res.priceLower.toFixed(maxDecimals))
           }))
-          autoZoom({ val: Number(res.priceLower.toFixed(maxDecimals)), side: Range.Min })
+          autoZoom({ val: Number(res.priceLower.toFixed(maxDecimals)), side: Range.Min, queue: !!moveRef.current })
         }
         if (side === Range.Max) {
           updatePosition((pos) => ({
             ...pos,
             [Range.Max]: Number(res.priceUpper.toFixed(maxDecimals))
           }))
-          autoZoom({ val: Number(res.priceUpper.toFixed(maxDecimals)), side: Range.Max })
+          autoZoom({ val: Number(res.priceUpper.toFixed(maxDecimals)), side: Range.Max, queue: !!moveRef.current })
         }
       }, 100)
     },
@@ -541,6 +550,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     zoomRef.current = 0
     setDisplayList((list) => list.filter((p) => !p.extend))
     setXAxisDomain(xAxisResetRef.current)
+    xAxisDomainRef.current = [...xAxisResetRef.current]
     boundaryRef.current = {
       min: hasPoints ? displayList[0].x : 10,
       max: hasPoints ? displayList[displayList.length - 1].x : 100

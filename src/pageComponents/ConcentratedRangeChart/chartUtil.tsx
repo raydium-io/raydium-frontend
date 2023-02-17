@@ -67,6 +67,14 @@ export const getLabel =
     if (newX < 15 || (chartWidth && newX > chartWidth - 15)) changeSide = true
     return (
       <g {...rest}>
+        <rect
+          x={props.viewBox.x - (side === Range.Min ? (changeSide ? -5 : 48) : changeSide ? 40 : -14)}
+          y={props.viewBox.y}
+          fill={'rgba(171, 196, 255, 0.15)'}
+          width={34}
+          height={21}
+          rx="4"
+        />
         <text
           className="break-words"
           fill="#ABC4FF"
@@ -74,11 +82,13 @@ export const getLabel =
           x={props.viewBox.x - (side === Range.Min ? (changeSide ? -20 : 30) : changeSide ? 20 : -30)}
           style={{
             fontWeight: '500',
-            fontSize: 12
+            fontSize: 12,
+            background: 'red'
           }}
           textAnchor="middle"
           dominantBaseline="middle"
         >
+          {percent && percent > 0 ? '+' : ''}
           {percent?.toFixed(0)}%
         </text>
         <rect
