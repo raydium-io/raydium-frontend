@@ -61,7 +61,7 @@ function onFetchError(key: string, response: Response) {
   console.error(`fetch ${key} error, status: ${response.status}${response.statusText}`)
   if (isInBonsaiTest || isInLocalhost) {
     const { logError } = useNotification.getState()
-    logError(`fetch error`, `fetch ${key} error, status: ${response.status}${response.statusText}`)
+    logError(`fetch error`, `fetch ${key} error, status: ${response.status || '(none)'}${response.statusText ?? ''}`)
   }
 }
 
@@ -92,9 +92,14 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
       const timoutId = setTimeout(() => onCostLongerThanMaxTime(key), maxCostTime)
 
       // fetch  core
-      const response = key.includes('api.raydium.io')
-        ? fetch(input, { ...options, headers: { ...options?.headers, 'ui-version': currentVersion } })
-        : fetch(input, options) // add version for debug
+      const response = (
+        key.includes('api.raydium.io')
+          ? fetch(input, { ...options, headers: { ...options?.headers, 'ui-version': currentVersion } })
+          : fetch(input, options)
+      ).catch((r) => {
+        onFetchError(key, r)
+        return r
+      }) // add version for debug
 
       // log fetch info
       // console.timeEnd(`fetch ${key}`)
