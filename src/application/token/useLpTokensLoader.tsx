@@ -20,6 +20,8 @@ export default function useLpTokensLoader() {
     const lpTokenItems = await lazyMap({
       source: ammJsonInfos,
       loopTaskName: 'load lp token',
+      method: 'hurrier-settimeout',
+      options: { oneGroupTasksSize: 80 },
       loopFn: (ammJsonInfo) => {
         const baseToken = getToken(ammJsonInfo.baseMint) ?? userAddedTokens[ammJsonInfo.baseMint] // depends on raw user Added tokens for avoid re-render
         const quoteToken = getToken(ammJsonInfo.quoteMint) ?? userAddedTokens[ammJsonInfo.quoteMint]

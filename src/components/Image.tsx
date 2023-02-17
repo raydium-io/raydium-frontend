@@ -38,7 +38,8 @@ export default function Image({
 }) {
   const ref = useRef<HTMLImageElement>(null)
   useClick(ref, { onClick })
-  const srcSet = shakeUndifindedItem([src, fallbackSrc].flat())
+  const rawSrc = shakeUndifindedItem([src].flat())
+  const srcSet = rawSrc.length > 0 ? shakeUndifindedItem([src, fallbackSrc].flat()) : []
   const srcFingerprint = srcSet.join(' ')
   const [currentUsedSrcIndex, setCurrentUsedSrcIndex] = useState(0)
   const currentSrc = srcSet[currentUsedSrcIndex] || fallbackSrc
