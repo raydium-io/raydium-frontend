@@ -319,9 +319,9 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   let timer: number | undefined = undefined
 
-  const autoRoom = useCallback(({ val, side }: { val: number; side: Range }) => {
+  const autoZoom = useCallback(({ val, side }: { val: number; side: Range }) => {
     const isMin = side === Range.Min
-    xAxisDomainRef.current[isMin ? 0 : 1] = val * (isMin ? 0.6 : 1.2)
+    xAxisDomainRef.current[isMin ? 0 : 1] = val * (isMin ? 0.8 : 1.2)
     setXAxisDomain(xAxisDomainRef.current)
   }, [])
 
@@ -338,18 +338,18 @@ export default forwardRef(function Chart(props: Props, ref) {
             ...pos,
             [Range.Min]: Number(res.priceLower.toFixed(maxDecimals))
           }))
-          autoRoom({ val: Number(res.priceLower.toFixed(maxDecimals)), side: Range.Min })
+          autoZoom({ val: Number(res.priceLower.toFixed(maxDecimals)), side: Range.Min })
         }
         if (side === Range.Max) {
           updatePosition((pos) => ({
             ...pos,
             [Range.Max]: Number(res.priceUpper.toFixed(maxDecimals))
           }))
-          autoRoom({ val: Number(res.priceUpper.toFixed(maxDecimals)), side: Range.Max })
+          autoZoom({ val: Number(res.priceUpper.toFixed(maxDecimals)), side: Range.Max })
         }
       }, 100)
     },
-    [onPositionChange, autoRoom]
+    [onPositionChange, autoZoom]
   )
   const handleMove = useCallback(
     (e: any) => {
@@ -480,7 +480,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       }
       const newVal = blurRef.current
       blurTimerRef.current = window.setTimeout(() => {
-        autoRoom({ val: newVal, side })
+        autoZoom({ val: newVal, side })
         checkMinMax({ [side]: newVal })
       }, 200)
       blurRef.current = undefined
@@ -503,7 +503,7 @@ export default forwardRef(function Chart(props: Props, ref) {
           if (hasPoints && !isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
             setDisplayList((list) => [...list, { x: posNum + tickGap, y: 0, extend: true }])
           resultPosNum = posNum
-          autoRoom({ val: posNum, side })
+          autoZoom({ val: posNum, side })
           return { ...prePos, [side]: posNum }
         })
         return resultPosNum
@@ -514,7 +514,7 @@ export default forwardRef(function Chart(props: Props, ref) {
           ? formatDecimal({ val: newPos.toFixed(maxDecimals) })
           : formatDecimal({ val: Number(val) + tickGap })
         resultPosNum = posNum
-        autoRoom({ val: posNum, side })
+        autoZoom({ val: posNum, side })
         return { ...prePos, [side]: posNum }
       })
       return resultPosNum
