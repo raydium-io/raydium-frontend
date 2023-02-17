@@ -47,14 +47,16 @@ import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
+import { isObject } from '@/functions/judgers/dateType'
 import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
-import { isObject } from '@/functions/judgers/dateType'
+import { toFixedNumber } from '@/pageComponents/ConcentratedRangeChart/chartUtil'
 
 /**
  * store:
@@ -418,21 +420,17 @@ function PoolCard() {
         matchConfigs: (i) =>
           isHydratedPoolItemInfo(i)
             ? [
+                i.name,
                 { text: i.ammId, entirely: true },
-                { text: i.market, entirely: true }, // Input Auto complete result sort setting
-                { text: i.lpMint, entirely: true },
+                { text: i.market, entirely: true },
                 { text: toPubString(i.base?.mint), entirely: true },
-                { text: toPubString(i.quote?.mint), entirely: true },
-                i.base?.symbol,
-                i.quote?.symbol
-                // i.base?.name,
-                // i.quote?.name
+                { text: toPubString(i.quote?.mint), entirely: true }
               ]
-            : [
-                { text: i.ammId, entirely: true },
-                { text: i.market, entirely: true }, // Input Auto complete result sort setting
-                { text: i.lpMint, entirely: true }
-              ]
+            : [i.name, { text: i.ammId, entirely: true }, { text: i.market, entirely: true }]
+      }).sort((a, b) => {
+        if (!searchText) return 0
+        const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
+        return toBN(a[key]).gt(toBN(b[key])) ? -1 : toBN(a[key]).lt(toBN(b[key])) ? 1 : 0
       }),
     [dataSource, searchText]
   )
