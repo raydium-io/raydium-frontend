@@ -500,7 +500,7 @@ function PoolCard() {
         text: searchText,
         matchConfigs: (i) => [
           i.name,
-          { text: i.idString, entirely: false },
+          { text: i.idString, entirely: true },
           { text: toPubString(i.base?.mint), entirely: true },
           { text: toPubString(i.quote?.mint), entirely: true }
         ]
