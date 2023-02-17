@@ -667,7 +667,13 @@ export default forwardRef(function Chart(props: Props, ref) {
                 isFront={true}
                 x={position[Range.Min]}
                 strokeWidth={4}
-                label={getLabel({ side: Range.Min, ...getMouseEvent(Range.Min) })}
+                label={getLabel({
+                  side: Range.Min,
+                  ...getMouseEvent(Range.Min),
+                  percent: currentPriceNum
+                    ? ((position[Range.Min] - parseFloat(currentPriceNum)) / parseFloat(currentPriceNum)) * 100
+                    : undefined
+                })}
               />
             )}
             {!hideRangeLine && !isNaN(position[Range.Max]) && (
@@ -678,7 +684,13 @@ export default forwardRef(function Chart(props: Props, ref) {
                 isFront={true}
                 x={position[Range.Max]}
                 strokeWidth={4}
-                label={getLabel({ side: Range.Max, ...getMouseEvent(Range.Max) })}
+                label={getLabel({
+                  side: Range.Max,
+                  ...getMouseEvent(Range.Max),
+                  percent: currentPriceNum
+                    ? ((position[Range.Max] - parseFloat(currentPriceNum)) / parseFloat(currentPriceNum)) * 100
+                    : undefined
+                })}
               />
             )}
             {currentPrice && (
