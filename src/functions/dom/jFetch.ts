@@ -49,6 +49,7 @@ const maxCostTime = 2 * 1000
 
 // 💩
 function onCostLongerThanMaxTime(key: string) {
+  if (!key.includes('api.raydium.io')) return
   console.error(`fetch ${key} cost too much time(>${maxCostTime}ms})`)
   if (isInBonsaiTest || isInLocalhost) {
     const { logError } = useNotification.getState()
@@ -58,6 +59,7 @@ function onCostLongerThanMaxTime(key: string) {
 
 // 💩
 function onFetchError(key: string, response: Response) {
+  if (!key.includes('api.raydium.io')) return
   console.error(`fetch ${key} error, status: ${response.status}${response.statusText}`)
   if (isInBonsaiTest || isInLocalhost) {
     const { logError } = useNotification.getState()
