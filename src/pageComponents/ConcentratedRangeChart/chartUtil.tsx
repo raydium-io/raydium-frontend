@@ -53,18 +53,25 @@ export const getConfig = (num: number, totalCount: number) => {
 }
 export const toFixedNumber = (num: number | string, digits = 6) => (num ? parseFloat(Number(num).toFixed(digits)) : 0)
 export const getLabel =
-  (labelProps: { side: Range; percent?: number; onPointerDown?: () => void; onMouseDown?: () => void }) => (props) => {
-    const { side, percent, ...rest } = labelProps
+  (labelProps: {
+    side: Range
+    percent?: number
+    chartWidth?: number
+    onPointerDown?: () => void
+    onMouseDown?: () => void
+  }) =>
+  (props) => {
+    const { side, percent, chartWidth, ...rest } = labelProps
     const newX = props.viewBox.x - (side === Range.Min ? 30 : -30)
     let changeSide = false
-    if (newX < 15) changeSide = true
+    if (newX < 15 || (chartWidth && newX > chartWidth - 15)) changeSide = true
     return (
       <g {...rest}>
         <text
           className="break-words"
           fill="#ABC4FF"
           y={props.viewBox.y + 12}
-          x={props.viewBox.x - (side === Range.Min ? (changeSide ? -20 : 30) : changeSide ? 10 : -30)}
+          x={props.viewBox.x - (side === Range.Min ? (changeSide ? -20 : 30) : changeSide ? 20 : -30)}
           style={{
             fontWeight: '500',
             fontSize: 12

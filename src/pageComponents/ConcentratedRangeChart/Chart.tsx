@@ -118,7 +118,9 @@ export default forwardRef(function Chart(props: Props, ref) {
   const xAxisRef = useRef<number[]>([])
   const blurRef = useRef<number | undefined>()
   const blurTimerRef = useRef<number | undefined>()
+  const chartRef = useRef<any>()
   const xAxisDomainRef = useRef<number[]>([0, 100])
+  const xAxisResetRef = useRef<number[]>([0, 100])
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
   const currentPriceNum = currentPrice?.toFixed(maxLength)
@@ -188,6 +190,7 @@ export default forwardRef(function Chart(props: Props, ref) {
           ? defaultMaxNum * 1.2
           : parseFloat(currentPriceNum) * rate[1]
       ]
+      xAxisResetRef.current = [xAxisDomainRef.current[0], xAxisDomainRef.current[1]]
       if (xAxisDomainRef.current[0] <= points[0].x) points.unshift({ x: xAxisDomainRef.current[0], y: 0 })
       if (points[points.length - 1].x <= xAxisDomainRef.current[1]) points.push({ x: xAxisDomainRef.current[1], y: 0 })
       if (poolIdRef.current !== poolFocusKey || showCurrentPriceOnly) setXAxisDomain(xAxisDomainRef.current)
@@ -316,6 +319,12 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   let timer: number | undefined = undefined
 
+  const autoRoom = useCallback(({ val, side }: { val: number; side: Range }) => {
+    const isMin = side === Range.Min
+    xAxisDomainRef.current[isMin ? 0 : 1] = val * (isMin ? 0.6 : 1.2)
+    setXAxisDomain(xAxisDomainRef.current)
+  }, [])
+
   const debounceUpdate = useCallback(
     ({ side, ...pos }: { min: number; max: number; side: Range | string }) => {
       timer && clearTimeout(timer)
@@ -324,20 +333,23 @@ export default forwardRef(function Chart(props: Props, ref) {
         if (!res) return
         if (side === 'area')
           updatePosition({ min: Number(res.priceLower.toFixed(maxDecimals)), max: Number(res.priceUpper.toFixed(10)) })
-        if (side === Range.Min)
+        if (side === Range.Min) {
           updatePosition((pos) => ({
             ...pos,
             [Range.Min]: Number(res.priceLower.toFixed(maxDecimals))
           }))
+          autoRoom({ val: Number(res.priceLower.toFixed(maxDecimals)), side: Range.Min })
+        }
         if (side === Range.Max) {
           updatePosition((pos) => ({
             ...pos,
             [Range.Max]: Number(res.priceUpper.toFixed(maxDecimals))
           }))
+          autoRoom({ val: Number(res.priceUpper.toFixed(maxDecimals)), side: Range.Max })
         }
       }, 100)
     },
-    [onPositionChange]
+    [onPositionChange, autoRoom]
   )
   const handleMove = useCallback(
     (e: any) => {
@@ -468,6 +480,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       }
       const newVal = blurRef.current
       blurTimerRef.current = window.setTimeout(() => {
+        autoRoom({ val: newVal, side })
         checkMinMax({ [side]: newVal })
       }, 200)
       blurRef.current = undefined
@@ -490,6 +503,7 @@ export default forwardRef(function Chart(props: Props, ref) {
           if (hasPoints && !isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
             setDisplayList((list) => [...list, { x: posNum + tickGap, y: 0, extend: true }])
           resultPosNum = posNum
+          autoRoom({ val: posNum, side })
           return { ...prePos, [side]: posNum }
         })
         return resultPosNum
@@ -500,6 +514,7 @@ export default forwardRef(function Chart(props: Props, ref) {
           ? formatDecimal({ val: newPos.toFixed(maxDecimals) })
           : formatDecimal({ val: Number(val) + tickGap })
         resultPosNum = posNum
+        autoRoom({ val: posNum, side })
         return { ...prePos, [side]: posNum }
       })
       return resultPosNum
@@ -525,7 +540,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const zoomReset = () => {
     zoomRef.current = 0
     setDisplayList((list) => list.filter((p) => !p.extend))
-    setXAxisDomain(xAxisDomainRef.current)
+    setXAxisDomain(xAxisResetRef.current)
     boundaryRef.current = {
       min: hasPoints ? displayList[0].x : 10,
       max: hasPoints ? displayList[displayList.length - 1].x : 100
@@ -625,6 +640,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
             style={{ userSelect: 'none' }}
+            ref={chartRef}
             width={500}
             height={400}
             margin={{ top: 15 }}
@@ -670,6 +686,7 @@ export default forwardRef(function Chart(props: Props, ref) {
                 label={getLabel({
                   side: Range.Min,
                   ...getMouseEvent(Range.Min),
+                  chartWidth: chartRef.current?.props.width,
                   percent: currentPriceNum
                     ? ((position[Range.Min] - parseFloat(currentPriceNum)) / parseFloat(currentPriceNum)) * 100
                     : undefined
@@ -687,6 +704,7 @@ export default forwardRef(function Chart(props: Props, ref) {
                 label={getLabel({
                   side: Range.Max,
                   ...getMouseEvent(Range.Max),
+                  chartWidth: chartRef.current?.props.width,
                   percent: currentPriceNum
                     ? ((position[Range.Max] - parseFloat(currentPriceNum)) / parseFloat(currentPriceNum)) * 100
                     : undefined
