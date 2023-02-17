@@ -1,4 +1,4 @@
-import { CSSProperties, ReactNode, RefObject, useImperativeHandle, useMemo, useRef } from 'react'
+import { CSSProperties, ReactNode, RefObject, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import { Transition } from '@headlessui/react'
@@ -13,13 +13,16 @@ import { setSessionItem, getSessionItem } from '@/functions/dom/jStorage'
 import useInit from '@/hooks/useInit'
 import useUpdate from '@/hooks/useUpdate'
 
-type CollapseController = {
+type CollapseStatus = {
+  isOpen: boolean
+  // it is delay version of isOpen
+  isContentVisible: boolean
   open: () => void
   close: () => void
   toggle: () => void
 }
 
-export type CollapseHandler = CollapseController
+export type CollapseHandler = CollapseStatus
 
 export type CollapseProps = {
   /** will record input result in localStorage */
@@ -44,6 +47,7 @@ export type CollapseProps = {
   componentRef?: RefObject<any>
 }
 
+const collapseTransitionDuration = 300
 /**
  * default **uncontrolled** Kit
  *
@@ -73,6 +77,18 @@ export default function Collapse({
     onOn: onOpen,
     onToggle: onToggle
   })
+  const [isContentVisible, setIsContentVisible] = useState(innerOpen)
+  useEffect(() => {
+    if (innerOpen === isContentVisible) return
+    if (innerOpen) {
+      setIsContentVisible(innerOpen)
+    } else {
+      const timeoutId = setTimeout(() => {
+        setIsContentVisible(innerOpen)
+      }, collapseTransitionDuration)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [innerOpen])
 
   // if (set id),  sync sessionStorage to cache user input
   if (id) {
@@ -98,16 +114,18 @@ export default function Collapse({
 
   useClickOutside(collapseRef, { disable: !closeByOutsideClick, onClickOutSide: off })
 
-  const controller = useMemo<CollapseController>(
+  const status = useMemo<CollapseStatus>(
     () => ({
+      isContentVisible: innerOpen || isContentVisible,
+      isOpen: innerOpen,
       open: on,
       close: off,
       toggle: toggle
     }),
-    [on, off]
+    [innerOpen, isContentVisible]
   )
 
-  useImperativeHandle(componentRef, () => controller)
+  useImperativeHandle(componentRef, () => status)
 
   return (
     <div ref={collapseRef} className={`Collapse flex flex-col ${shrinkToValue(className, [innerOpen])}`} style={style}>
@@ -122,8 +140,7 @@ export default function Collapse({
           }`,
           collapseFaceProps?.className
         )}
-        $open={innerOpen}
-        $controller={controller}
+        $status={status}
       />
       <Transition
         show={innerOpen}
@@ -180,8 +197,7 @@ export default function Collapse({
             collapseBodyProps?.className
           )}
           style={{ height: defaultOpen ? 'auto' : '0' }}
-          $open={innerOpen}
-          $controller={controller}
+          $status={status}
         />
       </Transition>
     </div>
@@ -191,27 +207,26 @@ export default function Collapse({
 function CollapseFace(props: {
   onClick?: () => void
   className?: string
-  children?: ReactNode | ((open: boolean, controller: CollapseController) => ReactNode)
-  $open?: boolean
-  $controller?: CollapseController
+  children?: ReactNode | ((status: CollapseStatus) => ReactNode)
+  $status?: CollapseStatus
 }) {
   return (
     <div onClick={props.onClick} className={`CollapseFace ${props.className ?? ''}`}>
-      {shrinkToValue(props.children, [Boolean(props.$open), props.$controller])}
+      {shrinkToValue(props.children, [props.$status])}
     </div>
   )
 }
 function CollapseBody(props: {
   style?: CSSProperties
-  children?: ReactNode | ((open: boolean, controller: CollapseController) => ReactNode)
+  children?: ReactNode | ((status: CollapseStatus) => ReactNode)
   className?: string
   domRef?: RefObject<HTMLDivElement>
-  $open?: boolean
-  $controller?: CollapseController
+  $status?: CollapseStatus
 }) {
+  const shouldRenderChildren = props.$status?.isContentVisible
   return (
     <div ref={props.domRef} style={props.style} className={`CollapseBody ${props.className ?? ''}`}>
-      {shrinkToValue(props.children, [Boolean(props.$open), props.$controller])}
+      {shouldRenderChildren && shrinkToValue(props.children, [props.$status])}
     </div>
   )
 }

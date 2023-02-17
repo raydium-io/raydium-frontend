@@ -657,9 +657,9 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: (JsonPairItemInfo | 
         <List.Item key={info.lpMint}>
           <Collapse open={expandedPoolId === info.ammId ? true : false}>
             <Collapse.Face>
-              {(open) => (
+              {({ isOpen }) => (
                 <PoolCardDatabaseBodyCollapseItemFace
-                  open={open}
+                  open={isOpen}
                   info={info}
                   isFavourite={favouriteIds?.includes(info.ammId)}
                   onUnFavorite={(ammId) => {

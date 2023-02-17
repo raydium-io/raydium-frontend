@@ -808,9 +808,9 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentrated
         <List.Item key={info.idString}>
           <Collapse open={expandedItemIds.has(info.idString)}>
             <Collapse.Face>
-              {(open) => (
+              {({ isOpen }) => (
                 <PoolCardDatabaseBodyCollapseItemFace
-                  open={open}
+                  open={isOpen}
                   info={info}
                   isFavourite={favouriteIds?.includes(info.idString)}
                   onUnFavorite={(ammId) => {

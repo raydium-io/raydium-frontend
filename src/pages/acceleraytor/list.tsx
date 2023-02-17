@@ -112,7 +112,9 @@ function IdoList() {
               <div key={info.id}>
                 <CyberpunkStyleCard>
                   <Collapse defaultOpen>
-                    <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
+                    <Collapse.Face>
+                      {({ isOpen }) => <AcceleRaytorCollapseItemFace open={isOpen} info={info} />}
+                    </Collapse.Face>
                     <Collapse.Body>
                       <AcceleRaytorCollapseItemContent info={info} />
                     </Collapse.Body>
@@ -151,7 +153,9 @@ function IdoList() {
             <div key={info.id}>
               <CyberpunkStyleCard>
                 <Collapse defaultOpen={currentTab === 'Upcoming Pools'}>
-                  <Collapse.Face>{(open) => <AcceleRaytorCollapseItemFace open={open} info={info} />}</Collapse.Face>
+                  <Collapse.Face>
+                    {({ isOpen }) => <AcceleRaytorCollapseItemFace open={isOpen} info={info} />}
+                  </Collapse.Face>
                   <Collapse.Body>
                     <AcceleRaytorCollapseItemContent info={info} />
                   </Collapse.Body>

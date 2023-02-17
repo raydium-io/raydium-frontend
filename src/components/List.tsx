@@ -29,21 +29,21 @@ export default function List({
   children?: ReactNode
   style?: CSSProperties
 }) {
+  const listRef = useRef<HTMLDivElement>(null)
   // all need to render items
   const allListItems = useMemo(
     () =>
       pickReactChildren(children, List.Item, (el, idx) =>
         addPropsToReactElement<ComponentProps<typeof List['Item']>>(el, {
           key: el.key ?? idx,
-          $isRenderByMain: true
+          $isRenderByMain: true,
+          $parentRef: listRef
         })
       ),
     [children]
   )
   // actually showed itemLength
   const [renderItemLength, setRenderItemLength] = useState(renderAllAtOnce ? allListItems.length : initRenderCount)
-
-  const listRef = useRef<HTMLDivElement>(null)
 
   useScrollDegreeDetector(listRef, {
     onReachBottom: () => {
@@ -68,23 +68,21 @@ export default function List({
   )
 
   return (
-    <Col
-      domRef={mergeRef(domRef, listRef)}
-      className={`List overflow-y-scroll ${className ?? ''}`}
-      style={{ ...style, contentVisibility: 'auto' }}
-    >
+    <Col domRef={mergeRef(domRef, listRef)} className={`List overflow-y-scroll ${className ?? ''}`} style={style}>
       {allListItems.slice(0, renderItemLength)}
     </Col>
   )
 }
 
 List.Item = function ListItem({
+  $parentRef,
   $isRenderByMain,
   children,
   className = '',
   style,
   domRef
 }: {
+  $parentRef?: RefObject<HTMLDivElement>
   $isRenderByMain?: boolean
   children?: ReactNode
   className?: string
