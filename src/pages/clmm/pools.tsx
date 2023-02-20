@@ -7,6 +7,7 @@ import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
+import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
   HydratedConcentratedInfo,
@@ -48,9 +49,9 @@ import PageLayout from '@/components/PageLayout'
 import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
-import Tabs from '@/components/Tabs'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
+import Tabs from '@/components/Tabs'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { getDate, toUTC } from '@/functions/date/dateFormat'
@@ -66,6 +67,7 @@ import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
+import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import { objectMap } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
@@ -78,8 +80,8 @@ import MyPositionDialog from '@/pageComponents/Concentrated/MyPositionDialog'
 import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConcentratedLiquidityDialog'
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
+
 import { NewCompensationBanner } from '../pools'
-import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -497,16 +499,18 @@ function PoolCard() {
       searchItems(applyFiltersDataSource, {
         text: searchText,
         matchConfigs: (i) => [
-          { text: i.idString, entirely: false },
+          i.name,
+          { text: i.idString, entirely: true },
           { text: toPubString(i.base?.mint), entirely: true },
-          { text: toPubString(i.quote?.mint), entirely: true },
-          i.base?.symbol,
-          i.quote?.symbol,
-          i.base?.name,
-          i.quote?.name
+          { text: toPubString(i.quote?.mint), entirely: true }
         ]
+      }).sort((a, b) => {
+        // TODO: should be searchItems's sort config.
+        if (!searchText) return 0
+        const key = timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
+        return toBN(a[key]).gt(toBN(b[key])) ? -1 : toBN(a[key]).lt(toBN(b[key])) ? 1 : 0
       }),
-    [applyFiltersDataSource, searchText]
+    [applyFiltersDataSource, searchText, timeBasis]
   )
 
   const {

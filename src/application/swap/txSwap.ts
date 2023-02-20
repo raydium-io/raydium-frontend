@@ -6,12 +6,12 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 
+import { TxHistoryInfo } from '../txHistory/useTxHistory'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { createTxHandler, TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
-import { TxHistoryInfo } from '../txHistory/useTxHistory'
 import { useSwap } from './useSwap'
-import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
 const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
   const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
@@ -68,9 +68,8 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
     {
       txHistoryInfo: {
         title: 'Swap',
-        description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
-          downCoin.symbol
-        }`,
+        description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${downCoin.symbol
+          }`,
         subtransactionDescription: translationSwapTxDescription(tx, idx, allTxs)
       } as TxHistoryInfo
     }
@@ -83,7 +82,7 @@ export default txSwap
 function translationSwapTxDescription(tx: InnerTransaction, idx: number, allTxs: InnerTransaction[]) {
   const swapFirstIdx = allTxs.findIndex((tx) => isSwapTransaction(tx))
   const swapLastIdx = allTxs.length - 1 - [...allTxs].reverse().findIndex((tx) => isSwapTransaction(tx))
-  return idx < swapFirstIdx ? 'Cleanup' : idx > swapLastIdx ? 'Setup' : 'Swap'
+  return idx < swapFirstIdx ? 'Setup' : idx > swapLastIdx ? 'Cleanup' : 'Swap'
 }
 
 function isSwapTransaction(tx: InnerTransaction): boolean {
