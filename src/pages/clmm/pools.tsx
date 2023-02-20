@@ -82,6 +82,7 @@ import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/Remo
 import { Numberish } from '@/types/constants'
 
 import { NewCompensationBanner } from '../pools'
+import { toggleSetItem } from '@/functions/setMethods'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -806,7 +807,12 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentrated
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
         <List.Item key={info.idString}>
-          <Collapse open={expandedItemIds.has(info.idString)}>
+          <Collapse
+            open={expandedItemIds.has(info.idString)}
+            onToggle={() =>
+              useConcentrated.setState({ expandedItemIds: toggleSetItem(expandedItemIds, info.idString) })
+            }
+          >
             <Collapse.Face>
               {({ isOpen }) => (
                 <PoolCardDatabaseBodyCollapseItemFace

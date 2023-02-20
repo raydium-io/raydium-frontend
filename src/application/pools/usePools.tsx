@@ -21,7 +21,7 @@ export type PoolsStore = {
   timeBasis: '24H' | '7D' | '30D'
   currentTab: 'All' | 'Raydium' | 'Permissionless' // currently shouldn't show this to user.
   onlySelfPools: boolean
-  expandedPoolId?: string
+  expandedPoolIds: Set<string>
 
   // just for trigger refresh
   refreshCount: number
@@ -41,6 +41,7 @@ export const usePools = create<PoolsStore>((set, get) => ({
   timeBasis: '7D',
   currentTab: 'All',
   onlySelfPools: false,
+  expandedPoolIds: new Set(),
 
   refreshCount: 0,
   refreshPools: () => {

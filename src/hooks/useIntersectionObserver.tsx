@@ -30,9 +30,7 @@ export function useIntersectionObserver<Item extends HTMLElement>(input: {
           registedCallback?.({ el, entry })
         })
       },
-      {
-        root: input.rootRef.current
-      }
+      { ...input.options, root: input.rootRef.current, rootMargin: input.options?.rootMargin ?? '500px' }
     )
     intersectionObserverRef.current = observer
   }, [])

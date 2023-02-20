@@ -54,6 +54,7 @@ import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
+import { toggleSetItem } from '@/functions/setMethods'
 
 /**
  * store:
@@ -646,13 +647,18 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: (JsonPairItemInfo | 
   const jsonInfos = usePools((s) => s.jsonInfos)
   const hydratedInfos = usePools((s) => s.hydratedInfos)
   const loading = jsonInfos.length == 0 && hydratedInfos.length === 0
-  const expandedPoolId = usePools((s) => s.expandedPoolId)
+  const expandedPoolIds = usePools((s) => s.expandedPoolIds)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
   return sortedData.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
         <List.Item key={info.lpMint}>
-          <Collapse open={expandedPoolId === info.ammId ? true : false}>
+          <Collapse
+            open={expandedPoolIds.has(info.ammId)}
+            onToggle={() => {
+              usePools.setState({ expandedPoolIds: toggleSetItem(expandedPoolIds, info.ammId) })
+            }}
+          >
             <Collapse.Face>
               {({ isOpen }) => (
                 <PoolCardDatabaseBodyCollapseItemFace

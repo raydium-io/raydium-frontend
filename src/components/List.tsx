@@ -8,6 +8,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useScrollDegreeDetector } from '@/hooks/useScrollDegreeDetector'
 import { ObserveFn, useIntersectionObserver } from '../hooks/useIntersectionObserver'
 import Col from './Col'
+import { VirtualBox } from './VirtualBox'
 
 export default function List({
   increaseRenderCount = 30,
@@ -32,7 +33,7 @@ export default function List({
 }) {
   const listRef = useRef<HTMLDivElement>(null)
 
-  const { observe, stop } = useIntersectionObserver({ rootRef: listRef })
+  const { observe, stop } = useIntersectionObserver({ rootRef: listRef, options: { rootMargin: '500px' } })
   // all need to render items
   const allListItems = useMemo(
     () =>
@@ -102,20 +103,29 @@ List.Item = function ListItem({
   if (!$isRenderByMain) return null
   const itemRef = useRef<HTMLElement>()
 
-  const [isIntersecting, setIsIntersecting] = useState(false)
+  const [isIntersecting, setIsIntersecting] = useState(true)
 
-  const status = {
-    isIntersecting
-  }
+  const status = useMemo(
+    () => ({
+      isIntersecting
+    }),
+    [isIntersecting]
+  )
+
   useEffect(() => {
-    $observeFn?.(itemRef.current!, ({ entry: { isIntersecting } }) => {
+    if (!itemRef.current) return
+    $observeFn?.(itemRef.current, ({ entry: { isIntersecting } }) => {
       setIsIntersecting(isIntersecting)
     })
   }, [itemRef])
 
   return (
-    <div className={`ListItem w-full ${className}`} ref={mergeRef(domRef, itemRef)} style={style}>
-      {shrinkToValue(children, [status])}
-    </div>
+    <VirtualBox show={isIntersecting} domRef={mergeRef(domRef, itemRef)} className="w-full shrink-0">
+      {(detectRef) => (
+        <div className={`ListItem w-full ${className}`} ref={detectRef} style={style}>
+          {shrinkToValue(children, [status])}
+        </div>
+      )}
+    </VirtualBox>
   )
 }
