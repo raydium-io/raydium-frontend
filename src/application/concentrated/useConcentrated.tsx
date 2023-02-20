@@ -1,4 +1,9 @@
-import { AmmV3, ApiAmmV3PositionLinePoint, ReturnTypeFetchMultiplePoolInfos } from '@raydium-io/raydium-sdk'
+import {
+  AmmV3,
+  ApiAmmV3PositionLinePoint,
+  InnerTransaction,
+  ReturnTypeFetchMultiplePoolInfos
+} from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
@@ -9,12 +14,13 @@ import useToken from '@/application/token/useToken'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
+import { SortMode, SortModeArr } from '@/hooks/useSort'
 import { Numberish } from '@/types/constants'
+import { MayArray } from '@/types/generics'
 
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { SplToken } from '../token/type'
 
-import { InnerTransaction } from '@raydium-io/raydium-sdk'
-import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import {
   APIConcentratedInfo,
   HydratedAmmV3ConfigInfo,
@@ -119,6 +125,12 @@ export type ConcentratedStore = {
 
   fetchWhitelistRewards: () => void
   whitelistRewards: PublicKey[]
+  poolSortConfig?: {
+    key: string
+    mode?: SortMode
+    sortModeQueue: SortModeArr
+    sortCompare: MayArray<(T) => any>
+  }
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
@@ -187,7 +199,8 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
       })
     })
   },
-  whitelistRewards: []
+  whitelistRewards: [],
+  poolSortConfig: undefined
 }))
 
 export default useConcentrated

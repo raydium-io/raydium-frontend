@@ -478,6 +478,7 @@ function PoolCard() {
   const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
   const currentTab = useConcentrated((s) => s.currentTab)
   const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
+  const poolSortConfig = useConcentrated((s) => s.poolSortConfig)
   const owner = useWallet((s) => s.owner)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
@@ -570,6 +571,34 @@ function PoolCard() {
       setSortConfig({ key: sortKey, sortCompare: sortCompare, useCurrentMode: true })
     }
   }, [currentSortKey, timeBasisRelativeSortConfig, setSortConfig])
+
+  useEffect(() => {
+    if (sortConfig) {
+      // if sortConfig has value and have been change, save the state for routeBack usage
+      useConcentrated.setState({ poolSortConfig: { ...sortConfig } })
+    }
+  }, [sortConfig])
+
+  // re-sort when favourite have loaded
+  useOnceEffect(
+    ({ runed }) => {
+      if (poolSortConfig) {
+        // when routeBack, poolSortConfig should have value, set the sortConfig and CurrentSortKey (for timeBasis relative key)
+        poolSortConfig.key === 'apr'
+          ? setCurrentSortKey(poolSortConfig.key)
+          : poolSortConfig.key.includes('volumeFee')
+          ? setCurrentSortKey('Fees')
+          : poolSortConfig.key.includes('volume')
+          ? setCurrentSortKey('Volume')
+          : setCurrentSortKey(undefined)
+        setSortConfig({
+          ...poolSortConfig
+        })
+        runed()
+      }
+    },
+    [poolSortConfig]
+  )
 
   const TableHeaderBlock = useMemo(
     () => (

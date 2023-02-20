@@ -7,9 +7,9 @@ import { isNullish } from '@/functions/judgers/nil'
 import { EnumStr } from '@/types/constants'
 import { ExactPartial, MayArray } from '@/types/generics'
 
-type SortMode = 'decrease' | 'increase' | 'none'
+export type SortMode = 'decrease' | 'increase' | 'none'
 
-type SortModeArr = SortMode[]
+export type SortModeArr = SortMode[]
 
 export type SortConfigItem<D extends Record<string, any>[]> = {
   key: keyof D[number] | EnumStr
