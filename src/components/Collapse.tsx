@@ -71,7 +71,8 @@ export default function Collapse({
   disable,
   componentRef
 }: CollapseProps) {
-  const [innerOpen, { toggle, off, on, set }] = useToggle(open ?? defaultOpen, {
+  const isDefaultOpen = useMemo(() => open ?? defaultOpen, []) // it will set once and never change
+  const [innerOpen, { toggle, off, on, set }] = useToggle(isDefaultOpen, {
     locked: disable,
     onOff: onClose,
     onOn: onOpen,
@@ -144,7 +145,6 @@ export default function Collapse({
       />
       <Transition
         show={innerOpen}
-        appear
         enter="transition-all duration-300 ease-in-out"
         enterFrom="opacity-0"
         enterTo="opacity-100"
@@ -196,7 +196,7 @@ export default function Collapse({
             `transition-all duration-300 ease-in-out overflow-hidden ${openDirection === 'downwards' ? '' : 'order-1'}`,
             collapseBodyProps?.className
           )}
-          style={{ height: defaultOpen ? 'auto' : '0' }}
+          style={{ height: isDefaultOpen ? 'auto' : '0' }}
           $status={status}
         />
       </Transition>
