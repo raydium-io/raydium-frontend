@@ -1,3 +1,6 @@
+import { ReactNode } from 'react'
+import { useRouter } from 'next/router'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import { useHomeInfo } from '@/application/homeInfo'
 import Button from '@/components/Button'
@@ -13,8 +16,6 @@ import Tooltip from '@/components/Tooltip'
 import linkTo from '@/functions/dom/linkTo'
 import useDocumentMetaTitle from '@/hooks/useDocumentMetaTitle'
 import { useDocumentScrollActionDetector } from '@/hooks/useScrollActionDetector'
-import { useRouter } from 'next/router'
-import { ReactNode } from 'react'
 
 function HomePageContainer({ children }: { children?: ReactNode }) {
   useDocumentScrollActionDetector()
@@ -288,8 +289,8 @@ function HomePageSection2() {
             </div>
             <div className="font-semibold text-lg text-white mb-2">Order Book AMM</div>
             <div className="font-light text-[#c4d6ff] mb-5">
-              Raydium{"'"}s AMM interacts with Serum{"'"}s central limit order book, meaning that pools have access to
-              all order flow and liquidity on Serum, and vice versa.
+              Raydium{"'"}s AMM interacts with OpenBook{"'"}s central limit order book, meaning that pools have access
+              to all order flow and liquidity on OpenBook, and vice versa.
             </div>
           </Card>
 
@@ -305,8 +306,8 @@ function HomePageSection2() {
             </div>
             <div className="font-semibold text-lg text-white mb-2">Best Price Swaps</div>
             <div className="font-light text-[#c4d6ff] mb-5">
-              Raydium determines whether swapping within a liquidity pool or through the Serum order book will provide
-              the best price for the user, and executes accordingly.
+              Raydium determines the best swap route among all pools in order to provide the best price for users, and
+              executes accordingly.
             </div>
           </Card>
 
@@ -320,10 +321,10 @@ function HomePageSection2() {
             <div className="frosted-glass-teal p-3 mb-3 rounded-xl">
               <Icon iconSrc="/icons/home-pool.svg" />
             </div>
-            <div className="font-semibold text-lg text-white mb-2">High-Liquidity Launches</div>
+            <div className="font-semibold text-lg text-white mb-2">Premissionless Liquidity</div>
             <div className="font-light text-[#c4d6ff] mb-5">
-              AcceleRaytor offers projects a straightforward 3 step process to raise funds and bootstrap liquidity on
-              Raydium and Serum.
+              Raydium enables the permissionless creation of liquidity pools and farms so projects can launch and
+              bootstrap liquidity in a decentralized manner.
             </div>
           </Card>
         </Grid>
@@ -583,7 +584,6 @@ export default function HomePage() {
       <HomePageSection0 />
       <HomePageSection1 />
       <HomePageSection2 />
-      <HomePageSection3 />
       <HomePageFooter />
     </HomePageContainer>
   )
