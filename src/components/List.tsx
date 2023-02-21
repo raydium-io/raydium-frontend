@@ -33,7 +33,7 @@ export default function List({
 }) {
   const listRef = useRef<HTMLDivElement>(null)
 
-  const { observe, stop } = useIntersectionObserver({ rootRef: listRef, options: { rootMargin: '500px' } })
+  const { observe, stop } = useIntersectionObserver({ rootRef: listRef, options: { rootMargin: '100%' } })
   // all need to render items
   const allListItems = useMemo(
     () =>

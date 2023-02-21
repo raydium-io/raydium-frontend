@@ -810,7 +810,7 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentrated
           <Collapse
             open={expandedItemIds.has(info.idString)}
             onToggle={() =>
-              useConcentrated.setState({ expandedItemIds: toggleSetItem(expandedItemIds, info.idString) })
+              useConcentrated.setState((s) => ({ expandedItemIds: toggleSetItem(s.expandedItemIds, info.idString) }))
             }
           >
             <Collapse.Face>

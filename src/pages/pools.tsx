@@ -656,7 +656,7 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: (JsonPairItemInfo | 
           <Collapse
             open={expandedPoolIds.has(info.ammId)}
             onToggle={() => {
-              usePools.setState({ expandedPoolIds: toggleSetItem(expandedPoolIds, info.ammId) })
+              usePools.setState((s) => ({ expandedPoolIds: toggleSetItem(s.expandedPoolIds, info.ammId) }))
             }}
           >
             <Collapse.Face>
