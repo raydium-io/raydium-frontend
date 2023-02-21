@@ -682,9 +682,9 @@ function FarmCardDatabaseBody({
                 }}
               >
                 <Collapse.Face>
-                  {(open) => (
+                  {({ isOpen }) => (
                     <FarmCardDatabaseBodyCollapseItemFace
-                      open={open}
+                      open={isOpen}
                       info={info}
                       isFavourite={favouriteIds?.includes(toPubString(info.id))}
                       onUnFavorite={(farmId) => {

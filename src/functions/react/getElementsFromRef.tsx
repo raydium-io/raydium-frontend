@@ -7,3 +7,9 @@ export type ElementRefs = MayArray<RefObject<HTMLElement | undefined | null> | H
 export function getElementsFromRef(refs: ElementRefs) {
   return shakeFalsyItem([refs].flat().map((ref) => (isObject(ref) && 'current' in ref ? ref.current : ref)))
 }
+
+export type ElementSingle = RefObject<HTMLElement | undefined | null> | HTMLElement | undefined | null
+export function getSingleElement(ref: ElementSingle): HTMLElement | undefined {
+  const el = isObject(ref) && 'current' in ref ? ref.current : ref
+  return el ?? undefined
+}

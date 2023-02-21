@@ -122,9 +122,9 @@ export default function DropdownTabs<T extends string>({
         disableOpenByClickFace
       >
         <Collapse.Face>
-          {(open) => (
+          {({ isOpen }) => (
             <FaceContent
-              open={open}
+              open={isOpen}
               onClickIcon={() => {
                 collapseRef.current?.toggle()
               }}
