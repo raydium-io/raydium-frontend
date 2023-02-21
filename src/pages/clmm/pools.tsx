@@ -58,6 +58,7 @@ import { getDate, toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { getCountDownTime } from '@/functions/date/parseDuration'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
+import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 import formatNumber from '@/functions/format/formatNumber'
 import { shrinkAccount } from '@/functions/format/shrinkAccount'
 import toPubString from '@/functions/format/toMintString'
@@ -1012,7 +1013,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
           <div style={{ display: 'inline-block', width: '100%' }}>
             <Tooltip panelClassName="p-0 rounded-xl">
               <div>
-                {toPercentString(apr?.total)}
+                {autoSuffixNumberish(apr && apr.total ? apr.total.toFixed(2) : 0) + '%'}
                 <Row className="items-center gap-2 mobile:gap-1 mt-1">
                   {apr && <AprLine className="w-[80%]" aprValues={apr.itemList} />}
                 </Row>

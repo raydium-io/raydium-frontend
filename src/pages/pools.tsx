@@ -41,6 +41,7 @@ import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem } from '@/functions/arrayMethods'
 import { capitalize } from '@/functions/changeCase'
+import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
@@ -778,10 +779,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
         name={`APR(${timeBasis})`}
         value={
           timeBasis === '24H'
-            ? toPercentString(info.apr24h, { alreadyPercented: true })
+            ? autoSuffixNumberish(info.apr24h) + '%'
             : timeBasis === '7D'
-            ? toPercentString(info.apr7d, { alreadyPercented: true })
-            : toPercentString(info.apr30d, { alreadyPercented: true })
+            ? autoSuffixNumberish(info.apr7d) + '%'
+            : autoSuffixNumberish(info.apr30d) + '%'
         }
       />
       <Grid className="w-9 h-9 mr-8 place-items-center">
