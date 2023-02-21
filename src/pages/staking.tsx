@@ -80,7 +80,7 @@ function StakingCard() {
         {infos.map((info) => (
           <div key={String(info.id)}>
             <Collapse>
-              <Collapse.Face>{(open) => <StakingCardCollapseItemFace open={open} info={info} />}</Collapse.Face>
+              <Collapse.Face>{({ isOpen }) => <StakingCardCollapseItemFace open={isOpen} info={info} />}</Collapse.Face>
               <Collapse.Body>
                 <StakingCardCollapseItemContent hydratedInfo={info} />
               </Collapse.Body>

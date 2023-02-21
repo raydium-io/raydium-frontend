@@ -1,12 +1,14 @@
-import React, { ComponentProps, CSSProperties, ReactNode, RefObject, useMemo, useRef, useState } from 'react'
+import { ComponentProps, CSSProperties, ReactNode, RefObject, useEffect, useMemo, useRef, useState } from 'react'
 
 import addPropsToReactElement from '@/functions/react/addPropsToReactElement'
 import mergeRef from '@/functions/react/mergeRef'
 import { pickReactChildren } from '@/functions/react/pickChild'
+import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-
-import Col from './Col'
 import { useScrollDegreeDetector } from '@/hooks/useScrollDegreeDetector'
+import { ObserveFn, useIntersectionObserver } from '../hooks/useIntersectionObserver'
+import Col from './Col'
+import { VirtualBox } from './VirtualBox'
 
 export default function List({
   increaseRenderCount = 30,
@@ -29,21 +31,26 @@ export default function List({
   children?: ReactNode
   style?: CSSProperties
 }) {
+  const listRef = useRef<HTMLDivElement>(null)
+
+  const { observe, stop } = useIntersectionObserver({ rootRef: listRef, options: { rootMargin: '100%' } })
   // all need to render items
   const allListItems = useMemo(
     () =>
       pickReactChildren(children, List.Item, (el, idx) =>
         addPropsToReactElement<ComponentProps<typeof List['Item']>>(el, {
           key: el.key ?? idx,
-          $isRenderByMain: true
+          $isRenderByMain: true,
+          $observeFn: observe
         })
       ),
     [children]
   )
+
+  useEffect(() => stop, []) // stop observer when destory
+
   // actually showed itemLength
   const [renderItemLength, setRenderItemLength] = useState(renderAllAtOnce ? allListItems.length : initRenderCount)
-
-  const listRef = useRef<HTMLDivElement>(null)
 
   useScrollDegreeDetector(listRef, {
     onReachBottom: () => {
@@ -68,33 +75,57 @@ export default function List({
   )
 
   return (
-    <Col
-      domRef={mergeRef(domRef, listRef)}
-      className={`List overflow-y-scroll ${className ?? ''}`}
-      style={{ ...style, contentVisibility: 'auto' }}
-    >
+    <Col domRef={mergeRef(domRef, listRef)} className={`List overflow-y-scroll ${className ?? ''}`} style={style}>
       {allListItems.slice(0, renderItemLength)}
     </Col>
   )
 }
 
+type ListItemStatus = {
+  isIntersecting: boolean
+}
+
 List.Item = function ListItem({
+  $observeFn,
   $isRenderByMain,
   children,
   className = '',
   style,
   domRef
 }: {
+  $observeFn?: ObserveFn<HTMLElement>
   $isRenderByMain?: boolean
-  children?: ReactNode
+  children?: ReactNode | ((status: ListItemStatus) => ReactNode)
   className?: string
   style?: CSSProperties
   domRef?: RefObject<any>
 }) {
   if (!$isRenderByMain) return null
+  const itemRef = useRef<HTMLElement>()
+
+  const [isIntersecting, setIsIntersecting] = useState(true)
+
+  const status = useMemo(
+    () => ({
+      isIntersecting
+    }),
+    [isIntersecting]
+  )
+
+  useEffect(() => {
+    if (!itemRef.current) return
+    $observeFn?.(itemRef.current, ({ entry: { isIntersecting } }) => {
+      setIsIntersecting(isIntersecting)
+    })
+  }, [itemRef])
+
   return (
-    <div className={`ListItem w-full ${className}`} ref={domRef} style={style}>
-      {children}
-    </div>
+    <VirtualBox show={isIntersecting} domRef={mergeRef(domRef, itemRef)} className="w-full shrink-0">
+      {(detectRef) => (
+        <div className={`ListItem w-full ${className}`} ref={detectRef} style={style}>
+          {shrinkToValue(children, [status])}
+        </div>
+      )}
+    </VirtualBox>
   )
 }

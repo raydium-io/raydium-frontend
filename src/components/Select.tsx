@@ -112,14 +112,14 @@ export default function Select<T extends string>({
         closeByOutsideClick
       >
         <Collapse.Face>
-          {(open) => (
+          {({ isOpen }) => (
             <div className={twMerge('py-2 px-3 mobile:px-2', shrinkToValue(faceClassName, [{ open: isOpen }]))}>
-              <FaceContent open={open} />
+              <FaceContent open={isOpen} />
             </div>
           )}
         </Collapse.Face>
         <Collapse.Body>
-          {(open, controller) => (
+          {({ isOpen, close }) => (
             <Col className="border-t-1.5 border-[rgba(171,196,255,.1)] px-3 py-1">
               {candidateValues.map((candidate) => {
                 const { label, value } =
@@ -134,7 +134,7 @@ export default function Select<T extends string>({
                       const parsedValue = value === currentValue ? undefined : value
                       if (parsedValue) {
                         setCurrentValue(parsedValue)
-                        controller.close()
+                        close()
                       }
                     }}
                   >
