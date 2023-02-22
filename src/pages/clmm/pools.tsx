@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 
-import { CurrencyAmount } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, option } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { twMerge } from 'tailwind-merge'
@@ -10,14 +10,10 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo,
-  HydratedConcentratedRewardInfo,
-  UserPositionAccount
+  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -57,6 +53,7 @@ import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { getDate, toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { getCountDownTime } from '@/functions/date/parseDuration'
+import { debounce } from '@/functions/debounce'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 import { formatApr } from '@/functions/format/formatApr'
@@ -74,6 +71,8 @@ import { toString } from '@/functions/numberish/toString'
 import { objectMap } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
+import { useDebounce } from '@/hooks/useDebounce'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AprChart } from '@/pageComponents/Concentrated/AprChart'
@@ -523,7 +522,9 @@ function PoolCard() {
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString)] }
+    defaultSort: poolSortConfig
+      ? { ...poolSortConfig }
+      : { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString)] }
   })
 
   // re-sort when favourite have loaded
@@ -579,7 +580,6 @@ function PoolCard() {
     }
   }, [sortConfig])
 
-  // re-sort when favourite have loaded
   useOnceEffect(
     ({ runed }) => {
       if (poolSortConfig) {
