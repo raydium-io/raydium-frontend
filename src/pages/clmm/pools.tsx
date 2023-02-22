@@ -482,6 +482,7 @@ function PoolCard() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
   const [currentSortKey, setCurrentSortKey] = useState<string | undefined>(undefined) // only care about key relative to time basis (volume, fees, apr)
+  const [sortedData, setSortedData] = useState<HydratedConcentratedInfo[] | undefined>(undefined)
   const dataSource = useMemo(
     () =>
       hydratedAmmPools.filter((pool) => {
@@ -517,14 +518,12 @@ function PoolCard() {
   )
 
   const {
-    sortedData,
+    sortedData: tmpSortedData,
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
   } = useSort(searched, {
-    defaultSort: poolSortConfig
-      ? { ...poolSortConfig }
-      : { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString)] }
+    defaultSort: { key: 'defaultKey', sortCompare: [(i) => favouriteIds?.includes(i.idString)] }
   })
 
   // re-sort when favourite have loaded
@@ -599,6 +598,18 @@ function PoolCard() {
     },
     [poolSortConfig]
   )
+
+  const prepareSortedData = useDebounce(
+    () => {
+      if (tmpSortedData) {
+        setSortedData(tmpSortedData)
+      }
+      return
+    },
+    { debouncedOptions: { delay: 300 } }
+  )
+
+  useEffect(prepareSortedData, [tmpSortedData])
 
   const TableHeaderBlock = useMemo(
     () => (
@@ -826,15 +837,23 @@ function PoolCard() {
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && TableHeaderBlock}
-      <PoolCardDatabaseBody sortedData={sortedData} />
+      <PoolCardDatabaseBody sortedData={sortedData} searchDataLength={searched.length} />
     </CyberpunkStyleCard>
   )
 }
-function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentratedInfo[] }) {
+function PoolCardDatabaseBody({
+  sortedData,
+  searchDataLength
+}: {
+  sortedData: HydratedConcentratedInfo[] | undefined
+  searchDataLength: number
+}) {
   const loading = useConcentrated((s) => s.loading)
   const expandedItemIds = useConcentrated((s) => s.expandedItemIds)
   const [favouriteIds, setFavouriteIds] = useConcentratedFavoriteIds()
-  return sortedData.length ? (
+  return !loading && searchDataLength === 0 ? (
+    <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
+  ) : sortedData && sortedData.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
       {sortedData.map((info) => (
         <List.Item key={info.idString}>
@@ -868,7 +887,7 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: HydratedConcentrated
     </List>
   ) : (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">
-      {loading ? <LoadingCircle /> : '(No results found)'}
+      <LoadingCircle />
     </div>
   )
 }
