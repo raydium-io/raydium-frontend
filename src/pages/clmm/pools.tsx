@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 
 import { CurrencyAmount, option } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
@@ -502,23 +502,26 @@ function PoolCard() {
     return dataSource.filter((i) => (ownedPoolOnly && owner ? isMintEqual(i.creator, owner) : true))
   }, [dataSource, ownedPoolOnly, owner])
 
-  const searched = useMemo(
-    () =>
-      searchItems(applyFiltersDataSource, {
-        text: searchText,
-        matchConfigs: (i) => [
-          i.name,
-          { text: i.idString, entirely: true },
-          { text: toPubString(i.base?.mint), entirely: true },
-          { text: toPubString(i.quote?.mint), entirely: true }
-        ]
-      }).sort((a, b) => {
-        // TODO: should be searchItems's sort config.
-        if (!searchText) return 0
-        const key = timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
-        return toBN(a[key]).gt(toBN(b[key])) ? -1 : toBN(a[key]).lt(toBN(b[key])) ? 1 : 0
-      }),
-    [applyFiltersDataSource, searchText, timeBasis]
+  const searched = useDeferredValue(
+    useMemo(
+      () =>
+        searchItems(applyFiltersDataSource, {
+          text: searchText,
+          matchConfigs: (i) => [
+            i.name,
+            { text: i.idString, entirely: true },
+            { text: toPubString(i.base?.mint), entirely: true },
+            { text: toPubString(i.quote?.mint), entirely: true }
+          ]
+        }).sort((a, b) => {
+          // TODO: should be searchItems's sort config.
+          if (!searchText) return 0
+          const key =
+            timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
+          return toBN(a[key]).gt(toBN(b[key])) ? -1 : toBN(a[key]).lt(toBN(b[key])) ? 1 : 0
+        }),
+      [applyFiltersDataSource, searchText, timeBasis]
+    )
   )
 
   const {

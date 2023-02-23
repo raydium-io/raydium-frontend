@@ -1,5 +1,5 @@
 import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
-import { Fragment, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, ReactNode, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
@@ -422,25 +422,27 @@ function FarmCard() {
     [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
   )
 
-  const applySearchedDataSource = useMemo(
-    () =>
-      searchItems(applyFiltersDataSource, {
-        text: searchText,
-        matchConfigs: (i) =>
-          isHydratedFarmInfo(i)
-            ? [
-                { text: toPubString(i.id), entirely: true },
-                { text: i.ammId, entirely: true },
-                { text: toPubString(i.base?.mint), entirely: true },
-                { text: toPubString(i.quote?.mint), entirely: true },
-                i.base?.symbol,
-                i.quote?.symbol
-                // { text: toSentenceCase(i.base?.name ?? '').split(' '), entirely: true },
-                // { text: toSentenceCase(i.quote?.name ?? '').split(' '), entirely: true }
-              ]
-            : [{ text: toPubString(i.id), entirely: true }]
-      }),
-    [applyFiltersDataSource, searchText]
+  const applySearchedDataSource = useDeferredValue(
+    useMemo(
+      () =>
+        searchItems(applyFiltersDataSource, {
+          text: searchText,
+          matchConfigs: (i) =>
+            isHydratedFarmInfo(i)
+              ? [
+                  { text: toPubString(i.id), entirely: true },
+                  { text: i.ammId, entirely: true },
+                  { text: toPubString(i.base?.mint), entirely: true },
+                  { text: toPubString(i.quote?.mint), entirely: true },
+                  i.base?.symbol,
+                  i.quote?.symbol
+                  // { text: toSentenceCase(i.base?.name ?? '').split(' '), entirely: true },
+                  // { text: toSentenceCase(i.quote?.name ?? '').split(' '), entirely: true }
+                ]
+              : [{ text: toPubString(i.id), entirely: true }]
+        }),
+      [applyFiltersDataSource, searchText]
+    )
   )
 
   const {

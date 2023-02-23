@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -413,27 +413,29 @@ function PoolCard() {
     [onlySelfPools, searchText, hydratedInfos, hasHydratedInfoLoaded, jsonInfos]
   ) as (JsonPairItemInfo | HydratedPairItemInfo)[]
 
-  const searched = useMemo(
-    () =>
-      searchItems(dataSource, {
-        text: searchText,
-        matchConfigs: (i) =>
-          isHydratedPoolItemInfo(i)
-            ? [
-                i.name,
-                { text: i.ammId, entirely: true },
-                { text: i.market, entirely: true },
-                { text: toPubString(i.base?.mint), entirely: true },
-                { text: toPubString(i.quote?.mint), entirely: true }
-              ]
-            : [i.name, { text: i.ammId, entirely: true }, { text: i.market, entirely: true }]
-      }).sort((a, b) => {
-        // TODO: should be searchItems's sort config.
-        if (!searchText) return 0
-        const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
-        return toBN(a[key]).gt(toBN(b[key])) ? -1 : toBN(a[key]).lt(toBN(b[key])) ? 1 : 0
-      }),
-    [dataSource, searchText, timeBasis]
+  const searched = useDeferredValue(
+    useMemo(
+      () =>
+        searchItems(dataSource, {
+          text: searchText,
+          matchConfigs: (i) =>
+            isHydratedPoolItemInfo(i)
+              ? [
+                  i.name,
+                  { text: i.ammId, entirely: true },
+                  { text: i.market, entirely: true },
+                  { text: toPubString(i.base?.mint), entirely: true },
+                  { text: toPubString(i.quote?.mint), entirely: true }
+                ]
+              : [i.name, { text: i.ammId, entirely: true }, { text: i.market, entirely: true }]
+        }).sort((a, b) => {
+          // TODO: should be searchItems's sort config.
+          if (!searchText) return 0
+          const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
+          return toBN(a[key]).gt(toBN(b[key])) ? -1 : toBN(a[key]).lt(toBN(b[key])) ? 1 : 0
+        }),
+      [dataSource, searchText, timeBasis]
+    )
   )
 
   const { sortedData, setConfig: setSortConfig, sortConfig, clearSortConfig } = useSort(searched)
