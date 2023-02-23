@@ -6,7 +6,7 @@ import useAppSettings from '@/application/common/useAppSettings'
 import { useCompensationMoney } from '@/application/compensation/useCompensation'
 import useCompensationMoneyInfoLoader from '@/application/compensation/useCompensationInfoLoader'
 import useFarms from '@/application/farms/useFarms'
-import { isHydratedPoolItemInfo } from '@/application/pools/is'
+import { isHydratedPoolItemInfo, isJsonPoolItemInfo } from '@/application/pools/is'
 import { HydratedPairItemInfo, JsonPairItemInfo } from '@/application/pools/type'
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
@@ -428,6 +428,17 @@ function PoolCard() {
                   { text: toPubString(i.quote?.mint), entirely: true }
                 ]
               : [i.name, { text: i.ammId, entirely: true }, { text: i.market, entirely: true }]
+        }).sort((a, b) => {
+          // TODO: should be searchItems's sort config.
+          if (!searchText) return 0
+          const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
+          if (isHydratedPoolItemInfo(a) && isHydratedPoolItemInfo(b)) {
+            return a[key].gt(b[key]) ? -1 : a[key].lt(b[key]) ? 1 : 0
+          } else if (isJsonPoolItemInfo(a) && isJsonPoolItemInfo(b)) {
+            return a[key] > b[key] ? -1 : a[key] < b[key] ? 1 : 0
+          } else {
+            return 0
+          }
         }),
       [dataSource, searchText, timeBasis]
     )

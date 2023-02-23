@@ -518,7 +518,7 @@ function PoolCard() {
           if (!searchText) return 0
           const key =
             timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
-          return toBN(a[key]).gt(toBN(b[key])) ? -1 : toBN(a[key]).lt(toBN(b[key])) ? 1 : 0
+          return a[key].gt(b[key]) ? -1 : a[key].lt(b[key]) ? 1 : 0
         }),
       [applyFiltersDataSource, searchText, timeBasis]
     )
