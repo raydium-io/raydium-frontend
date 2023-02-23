@@ -920,10 +920,10 @@ function SwapCardInfo({ className }: { className?: string }) {
           </Col>
         </Collapse.Body>
         <Collapse.Face>
-          {(open) => (
+          {({isOpen}) => (
             <Row className="w-full items-center text-xs font-medium text-[rgba(171,196,255,0.5)] cursor-pointer select-none">
-              <div>{open ? 'Show less' : 'More information'}</div>
-              <Icon size="xs" heroIconName={open ? 'chevron-up' : 'chevron-down'} className="ml-1" />
+              <div>{isOpen ? 'Show less' : 'More information'}</div>
+              <Icon size="xs" heroIconName={isOpen ? 'chevron-up' : 'chevron-down'} className="ml-1" />
             </Row>
           )}
         </Collapse.Face>
