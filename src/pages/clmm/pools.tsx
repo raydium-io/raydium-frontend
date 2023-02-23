@@ -10,10 +10,14 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
+  HydratedConcentratedInfo,
+  HydratedConcentratedRewardInfo,
+  UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -482,7 +486,7 @@ function PoolCard() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
   const [currentSortKey, setCurrentSortKey] = useState<string | undefined>(undefined) // only care about key relative to time basis (volume, fees, apr)
-  const [sortedData, setSortedData] = useState<HydratedConcentratedInfo[] | undefined>(undefined)
+  const [sorted, setSortedData] = useState<HydratedConcentratedInfo[] | undefined>(undefined)
   const dataSource = useMemo(
     () =>
       hydratedAmmPools.filter((pool) => {
@@ -518,7 +522,7 @@ function PoolCard() {
   )
 
   const {
-    sortedData: tmpSortedData,
+    sortedData: tempSortedData,
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
@@ -601,15 +605,12 @@ function PoolCard() {
 
   const prepareSortedData = useDebounce(
     () => {
-      if (tmpSortedData) {
-        setSortedData(tmpSortedData)
-      }
-      return
+      tempSortedData && setSortedData(tempSortedData)
     },
     { debouncedOptions: { delay: 300 } }
   )
 
-  useEffect(prepareSortedData, [tmpSortedData])
+  useEffect(prepareSortedData, [tempSortedData])
 
   const TableHeaderBlock = useMemo(
     () => (
@@ -837,25 +838,25 @@ function PoolCard() {
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && TableHeaderBlock}
-      <PoolCardDatabaseBody sortedData={sortedData} searchDataLength={searched.length} />
+      <PoolCardDatabaseBody sortedItems={sorted} searchedItemsLength={searched.length} />
     </CyberpunkStyleCard>
   )
 }
 function PoolCardDatabaseBody({
-  sortedData,
-  searchDataLength
+  sortedItems,
+  searchedItemsLength
 }: {
-  sortedData: HydratedConcentratedInfo[] | undefined
-  searchDataLength: number
+  sortedItems: HydratedConcentratedInfo[] | undefined
+  searchedItemsLength: number
 }) {
   const loading = useConcentrated((s) => s.loading)
   const expandedItemIds = useConcentrated((s) => s.expandedItemIds)
   const [favouriteIds, setFavouriteIds] = useConcentratedFavoriteIds()
-  return !loading && searchDataLength === 0 ? (
+  return !loading && searchedItemsLength === 0 ? (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
-  ) : sortedData && sortedData.length ? (
+  ) : sortedItems && sortedItems.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
-      {sortedData.map((info) => (
+      {sortedItems.map((info) => (
         <List.Item key={info.idString}>
           <Collapse
             open={expandedItemIds.has(info.idString)}
