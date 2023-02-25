@@ -28,7 +28,6 @@ import { usePools } from '../pools/usePools'
 import useToken from '../token/useToken'
 import { useApiUrlChange } from './useApiUrlChange'
 import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
-import { clearLine } from 'readline'
 
 function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
