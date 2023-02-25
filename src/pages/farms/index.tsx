@@ -699,7 +699,7 @@ function FarmCardDatabaseBody({
                   )}
                 </Collapse.Face>
                 <Collapse.Body>
-                  {isLoading ? null : <FarmCardDatabaseBodyCollapseItemContent farmInfo={info as HydratedFarmInfo} />}
+                  {isLoading ? null : <FarmCardDatabaseBodyCollapseItemContent farmInfo={info} />}
                 </Collapse.Body>
               </Collapse>
             </List.Item>
@@ -1098,7 +1098,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
   return isMobile ? mobileContent : pcCotent
 }
 
-function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: HydratedFarmInfo }) {
+function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: HydratedFarmInfo | FarmPoolJsonInfo }) {
   const lpPrices = usePools((s) => s.lpPrices)
   const prices = useToken((s) => s.tokenPrices)
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -1107,9 +1107,12 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
   const owner = useWallet((s) => s.owner)
   const balances = useWallet((s) => s.balances)
   const hasLp = isMeaningfulNumber(balances[toPubString(farmInfo.lpMint)])
-  const hasPendingReward = farmInfo.rewards.some(({ userPendingReward }) => isMeaningfulNumber(userPendingReward))
+  const hasPendingReward =
+    isHydratedFarmInfo(farmInfo) &&
+    farmInfo.rewards.some(({ userPendingReward }) => isMeaningfulNumber(userPendingReward))
   const logSuccess = useNotification((s) => s.logSuccess)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  if (isJsonFarmInfo(farmInfo)) return null
   return (
     <div
       className="rounded-b-3xl mobile:rounded-b-lg overflow-hidden"
