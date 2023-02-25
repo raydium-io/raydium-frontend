@@ -28,6 +28,7 @@ import { usePools } from '../pools/usePools'
 import useToken from '../token/useToken'
 import { useApiUrlChange } from './useApiUrlChange'
 import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
+import { clearLine } from 'readline'
 
 function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -217,7 +218,7 @@ function useRpcPerformance() {
         id: 'getRecentPerformanceSamples',
         jsonrpc: '2.0',
         method: 'getRecentPerformanceSamples',
-        params: [100]
+        params: [30]
       })
     })
     const blocks = result?.result
