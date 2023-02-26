@@ -338,7 +338,7 @@ function PoolLabelBlock({ className }: { className?: string }) {
       <Col>
         <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
         <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
-          Concentrate liquidity for increased captial efficiency.{' '}
+          Concentrate liquidity for increased capital efficiency.{' '}
           <Link
             className="inline-block"
             href="https://docs.raydium.io/raydium/concentrated-liquidity/what-is-concentrated-liquidity"
@@ -1397,7 +1397,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
     )
   }, [openNewPosition, isMobile, info])
 
-  console.log('info: ', info)
+  // console.log('info: ', info)
   return (
     <AutoBox
       is={'Col'}

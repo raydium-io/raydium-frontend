@@ -34,7 +34,7 @@ export function recordCreatedPool() {
   }
 
   // eslint-disable-next-line no-console
-  console.log('new created pool history Item: ', newRecordedItem)
+  // console.log('new created pool history Item: ', newRecordedItem)
 
   const { createdPoolHistory } = useCreatePool.getState()
 
