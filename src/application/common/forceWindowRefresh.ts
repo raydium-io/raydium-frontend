@@ -9,6 +9,6 @@ export function refreshWindow(options?: { noCache?: boolean }) {
     globalThis.location.reload(options?.noCache)
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.log('err: ', err)
+    console.error(err) //console.log was not allowed by eslint anyway in eslint settings
   }
 }

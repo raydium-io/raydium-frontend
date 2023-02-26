@@ -904,7 +904,7 @@ function LotteryInputPanel({ className }: { className?: string }) {
           recursivelyDo(
             () => {
               // eslint-disable-next-line no-console
-              console.info('refresh idoInfo by txIdoPurchase')
+              // console.info('refresh idoInfo by txIdoPurchase')
               refreshIdo(idoInfo.id)
               return {
                 ticketCount: idoInfo.depositedTickets?.length

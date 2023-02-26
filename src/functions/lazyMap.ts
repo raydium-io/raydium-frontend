@@ -92,13 +92,13 @@ async function lazyMapCoreMap<T, U>({
     return wholeResult
   } else {
     if (source.length === 0) return []
-    console.time(`lazy load ${loopTaskName}`)
+    // console.time(`lazy load ${loopTaskName}`)
     const taskResults = await loadTasks(
       source.map((item, index) => () => loopFn(item, index, source)),
       loopTaskName,
       options
     )
-    console.timeEnd(`lazy load ${loopTaskName}`)
+    // console.timeEnd(`lazy load ${loopTaskName}`)
     return taskResults
   }
 }

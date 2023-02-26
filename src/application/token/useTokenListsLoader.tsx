@@ -225,7 +225,7 @@ async function loadTokenList(
     configs.map((raw) => {
       const task = async () => {
         // eslint-disable-next-line no-console
-        console.time(`load ${raw.url()}`)
+        // console.time(`load ${raw.url()}`)
         const response = await jFetch<
           | RaydiumTokenListJsonInfo
           | RaydiumDevTokenListJsonInfo
@@ -259,7 +259,7 @@ async function loadTokenList(
           }
         }
         // eslint-disable-next-line no-console
-        console.timeEnd(`load ${raw.url()}`)
+        // console.timeEnd(`load ${raw.url()}`)
       }
       return task()
     })
@@ -296,18 +296,18 @@ async function fetchTokenLists(
     tokens: {}
   }
   // eslint-disable-next-line no-console
-  console.info('tokenList start fetching')
+  // console.info('tokenList start fetching')
 
   // we need it execute in order (main->dev->v2->v3->...),
   // bcz RAYDIUM_MAIN contain almost 90% of tokens and we don't run "isAnIncludedMint" check w/ them
   // eslint-disable-next-line no-console
-  console.time('load token list cost')
+  // console.time('load token list cost')
   await loadTokenList(rawListConfigs, tokenCollector)
   // eslint-disable-next-line no-console
-  console.timeEnd('load token list cost')
+  // console.timeEnd('load token list cost')
 
   // eslint-disable-next-line no-console
-  console.info('tokenList end fetching, total tokens #: ', Object.keys(tokenCollector.tokens).length)
+  // console.info('tokenList end fetching, total tokens #: ', Object.keys(tokenCollector.tokens).length)
 
   // check if any of fetchings is failed (has response, but not code: 200)
   // then replace it w/ current list value (if current list is not undefined)
