@@ -85,10 +85,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   } = props
   const points: HighlightPoint[] = useMemo(() => Object.assign([], chartOptions?.points || []), [chartOptions?.points])
   const [defaultMin, defaultMax] = useMemo(
-    () =>
-      chartOptions?.isStable && !showCurrentPriceOnly
-        ? [mul(currentPrice || 0, 0.95), mul(currentPrice || 100, 1.05)]
-        : [chartOptions?.initMinBoundaryX as Fraction, chartOptions?.initMaxBoundaryX as Fraction],
+    () => [chartOptions?.initMinBoundaryX as Fraction, chartOptions?.initMaxBoundaryX as Fraction],
     [chartOptions, currentPrice]
   )
   const poolIdRef = useRef<string | undefined>()
@@ -321,7 +318,7 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   let timer: number | undefined = undefined
 
-  const autoZoom = useCallback(({ val, side, queue }: { val: number; side: Range; queue?: boolean }) => {
+  const autoZoom = useEvent(({ val, side, queue }: { val: number; side: Range; queue?: boolean }) => {
     if (queue) {
       autoZoomQueueRef.current = () => {
         autoZoom({ val, side })
@@ -330,9 +327,10 @@ export default forwardRef(function Chart(props: Props, ref) {
       return
     }
     const isMin = side === Range.Min
-    xAxisDomainRef.current[isMin ? 0 : 1] = val * (isMin ? 0.8 : 1.2)
+    const [minMultiplier, maxMultiplier] = chartOptions?.isStable ? [0.995, 1.005] : [0.9, 1.05]
+    xAxisDomainRef.current[isMin ? 0 : 1] = val * (isMin ? minMultiplier : maxMultiplier)
     setXAxisDomain(xAxisDomainRef.current)
-  }, [])
+  })
 
   const debounceUpdate = useCallback(
     ({ side, ...pos }: { min: number; max: number; side: Range | string }) => {
@@ -366,7 +364,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       // move center area
       const activeLabel = e.activeLabel
       if (!activeLabel) return
-
+      const side = moveRef.current
       if (moveRef.current === 'area') {
         if (areaRef.current === undefined) {
           areaRef.current = activeLabel
@@ -385,7 +383,7 @@ export default forwardRef(function Chart(props: Props, ref) {
             [Range.Max]:
               (newRight >= xMax && newRight > pos[Range.Max]) || newRight <= pos[Range.Min] ? pos[Range.Max] : newRight
           }
-          debounceUpdate({ ...newPos, side: moveRef.current })
+          debounceUpdate({ ...newPos, side })
           return newPos
         })
         return
@@ -395,14 +393,16 @@ export default forwardRef(function Chart(props: Props, ref) {
         // when min line > max line
         if (moveRef.current === Range.Min && val >= pos[Range.Max]) {
           moveRef.current = Range.Max
+          debounceUpdate({ ...pos, [moveRef.current]: val, side: Range.Max })
           return { ...pos, [Range.Max]: val }
         }
         // when max line < min line
         if (moveRef.current === Range.Max && val <= pos[Range.Min]) {
           moveRef.current = Range.Min
+          debounceUpdate({ ...pos, [moveRef.current]: val, side: Range.Min })
           return { ...pos, [Range.Min]: val }
         }
-        debounceUpdate({ ...pos, [moveRef.current]: val, side: moveRef.current })
+        debounceUpdate({ ...pos, [moveRef.current]: val, side })
         return { ...pos, [moveRef.current]: val }
       })
     },

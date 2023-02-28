@@ -56,9 +56,11 @@ export function getPriceBoundary({
       : coin1 || coin2
       ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0)
       : 6
+    const isStable = ammPool.ammConfig.tradeFeeRate === 100
+    const diff = isStable ? 0.05 : 0.5
     const currentPrice = decimalToFraction(ammPool?.state.currentPrice)
-    const trimMinX = getMax(currentPrice ? mul(currentPrice, 1 - 0.5) : 0, 1 / 10 ** decimals)
-    const trimMaxX = getMax(currentPrice ? mul(currentPrice, 1 + 0.5) : 0, 1 / 10 ** decimals)
+    const trimMinX = getMax(currentPrice ? mul(currentPrice, 1 - diff) : 0, 1 / 10 ** decimals)
+    const trimMaxX = getMax(currentPrice ? mul(currentPrice, 1 + diff) : 0, 1 / 10 ** decimals)
     const { price: priceMin, tick: tickMin } = getPriceAndTick({
       poolInfo: ammPool.state,
       baseIn: true,
