@@ -1396,8 +1396,6 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
       </Col>
     )
   }, [openNewPosition, isMobile, info])
-
-  console.log('info: ', info)
   return (
     <AutoBox
       is={'Col'}
