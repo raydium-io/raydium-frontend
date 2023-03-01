@@ -10,12 +10,12 @@ import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useConnection from '../connection/useConnection'
 import useWallet from '../wallet/useWallet'
 
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
-import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 /**
  * will load concentrated info (jsonInfo, sdkParsedInfo, hydratedInfo)
@@ -77,7 +77,8 @@ export default function useConcentratedInfoLoader() {
     const hydratedInfos = await lazyMap({
       source: sdkParsedAmmPoolsList,
       loopTaskName: 'hydrate clmm pool Info',
-      loopFn: (sdkParsed) => hydrateConcentratedInfo(sdkParsed)
+      loopFn: (sdkParsed) => hydrateConcentratedInfo(sdkParsed),
+      options: { priority: pathname.includes('clmm') ? 1 : 0 }
     })
     useConcentrated.setState({ hydratedAmmPools: hydratedInfos, loading: hydratedInfos.length === 0 })
   }, [sdkParsedAmmPools, connection, tokens, pathname])

@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router'
 import { useEffect, useMemo } from 'react'
+import { useRouter } from 'next/router'
 
 import { Price } from '@raydium-io/raydium-sdk'
 
@@ -7,23 +7,23 @@ import shallow from 'zustand/shallow'
 
 import { shakeUndifindedItem, unifyItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
+import listToMap from '@/functions/format/listToMap'
+import toPubString from '@/functions/format/toMintString'
 import toTokenPrice from '@/functions/format/toTokenPrice'
+import { isPubEqual } from '@/functions/judgers/areEqual'
 import { lazyMap } from '@/functions/lazyMap'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress } from '@/types/constants'
 
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useFarms from '../farms/useFarms'
 import useLiquidity from '../liquidity/useLiquidity'
 import useToken from '../token/useToken'
 import useWallet from '../wallet/useWallet'
 
-import { isPubEqual } from '@/functions/judgers/areEqual'
-import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
-import listToMap from '@/functions/format/listToMap'
-import toPubString from '@/functions/format/toMintString'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -100,7 +100,8 @@ export default function usePoolsInfoLoader() {
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
           isOpenBook: isPairInfoOpenBook(pair.ammId),
           userCustomTokenSymbol: userCustomTokenSymbol
-        })
+        }),
+      options: { priority: pathname.includes('pools') || pathname.includes('liquidity') ? 1 : 0 }
     })
     usePools.setState({ hydratedInfos })
   }, [jsonInfos, lpTokens, getLpToken, balances, stableLiquidityJsonInfoLpMints, userCustomTokenSymbol])

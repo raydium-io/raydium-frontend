@@ -1,3 +1,5 @@
+import { useRouter } from 'next/router'
+
 import { Token } from '@raydium-io/raydium-sdk'
 
 import useLiquidity from '@/application/liquidity/useLiquidity'
@@ -15,13 +17,14 @@ export default function useLpTokensLoader() {
   const userAddedTokens = useToken((s) => s.userAddedTokens)
   const { getToken } = useToken.getState()
   const tokens = useToken((s) => s.tokens)
+  const { pathname } = useRouter()
 
   useAsyncEffect(async () => {
     const lpTokenItems = await lazyMap({
       source: ammJsonInfos,
       loopTaskName: 'load lp token',
       method: 'hurrier-settimeout',
-      options: { oneGroupTasksSize: 80 },
+      options: { oneGroupTasksSize: 80, priority: 1 },
       loopFn: (ammJsonInfo) => {
         const baseToken = getToken(ammJsonInfo.baseMint) ?? userAddedTokens[ammJsonInfo.baseMint] // depends on raw user Added tokens for avoid re-render
         const quoteToken = getToken(ammJsonInfo.quoteMint) ?? userAddedTokens[ammJsonInfo.quoteMint]

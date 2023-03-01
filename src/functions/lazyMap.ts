@@ -1,10 +1,13 @@
 /* eslint-disable no-console */
 import { AnyFn } from '@/types/constants'
+
 import { addItem } from './arrayMethods'
 import { groupItems } from './groupItems'
 import { isNumber } from './judgers/dateType'
 
 const invokedRecord = new Map<string, (LazyMapSettings<any, any> & { idleId: number })[]>()
+
+let invokedPriorityQueue: LazyMapPriority[] = []
 
 type LazyMapSettings<T, U> = {
   source: T[]
@@ -20,7 +23,7 @@ type LazyMapSettings<T, U> = {
      * default is 0
      * @todo imply it !!!
      **/
-    // priority?: 0 | 1
+    priority?: 0 | 1
     /**
      * if don't set , it will auto-cacl in Chrome/Edge/Firefox, and 8 in Safari
      */
@@ -29,8 +32,13 @@ type LazyMapSettings<T, U> = {
   }
 }
 
+type LazyMapPriority = {
+  loopTaskName: string
+  priority: number
+}
+
 // for whole task
-/**
+/**b vcx
  * like Array's map(), but each loop will check if new task is pushed in todo queue
  * inspired by `window.requestIdleCallback()`
  * @param settings.source arr
@@ -40,9 +48,17 @@ type LazyMapSettings<T, U> = {
  */
 export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
   return new Promise((resolve) => {
+    // add new incoming task to priority queue
+    addTask(setting.loopTaskName, setting.options?.priority)
+
     const idleId = requestIdleCallback(async () => {
       cancelUnresolvedIdles(setting.loopTaskName)
-      const result = await lazyMapCoreMap(setting)
+      const task = getTask()
+      if (!task) {
+        resolve([])
+        return
+      }
+      const result = await lazyMapCoreMap(task)
       resolve(result)
     })
 
@@ -101,6 +117,24 @@ async function lazyMapCoreMap<T, U>({
     console.timeEnd(`lazy load ${loopTaskName}`)
     return taskResults
   }
+}
+
+function addTask(loopTaskName: string, priority = 0) {
+  // remove old one (if exist)
+  if (invokedPriorityQueue.length > 0) {
+    invokedPriorityQueue = invokedPriorityQueue.filter((item) => item.loopTaskName !== loopTaskName)
+  }
+
+  // add new one
+  invokedPriorityQueue.push({ loopTaskName, priority })
+}
+
+function getTask(): (LazyMapSettings<any, any> & { idleId: number }) | undefined {
+  if (!invokedPriorityQueue.length) return undefined
+  // prioritize order (if more than one task )
+  invokedPriorityQueue.length > 1 && invokedPriorityQueue.sort((a, b) => b.priority - a.priority)
+
+  return invokedRecord.get(invokedPriorityQueue.shift()!.loopTaskName)?.at(-1)
 }
 
 async function loadTasks<F extends () => any>(

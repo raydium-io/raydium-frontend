@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { useRouter } from 'next/router'
 
 import { Endpoint } from '@/application/connection/type'
 import useLiquidity from '@/application/liquidity/useLiquidity'
@@ -17,6 +18,7 @@ import { fetchFarmAprJsonInfos, fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFar
 import useFarms from './useFarms'
 
 export default function useFarmInfoLoader() {
+  const { pathname } = useRouter()
   const { jsonInfos, sdkParsedInfos, farmRefreshCount, blockSlotCount } = useFarms()
   const liquidityJsonInfos = useLiquidity((s) => s.jsonInfos)
   const pairs = usePools((s) => s.rawJsonInfos)
@@ -87,7 +89,8 @@ export default function useFarmInfoLoader() {
           aprs,
           currentBlockChainDate, // same as chainTimeOffset
           chainTimeOffset // same as currentBlockChainDate
-        })
+        }),
+      options: { priority: pathname.includes('farm') ? 1 : 0 }
     })
 
     useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length <= 0 })
@@ -101,7 +104,8 @@ export default function useFarmInfoLoader() {
     lpTokens,
     liquidityJsonInfos,
     chainTimeOffset, // when connection is ready, should get connection's chain time),
-    blockSlotCount
+    blockSlotCount,
+    pathname
   ])
 }
 
