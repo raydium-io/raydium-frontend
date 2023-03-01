@@ -48,14 +48,13 @@ import usePrevious from '@/hooks/usePrevious'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
-import { canTokenPairBeSelected, PairInfoTitle, RemainSOLAlert, toXYChartFormat } from '@/pageComponents/Concentrated'
+import { PairInfoTitle, RemainSOLAlert, toXYChartFormat } from '@/pageComponents/Concentrated'
 import { AprChart } from '@/pageComponents/Concentrated/AprChart'
 import { ConcentratedModifyTooltipIcon } from '@/pageComponents/Concentrated/ConcentratedModifyTooltipIcon'
 import { ConcentratedTimeBasisSwitcher } from '@/pageComponents/Concentrated/ConcentratedTimeBasisSwitcher'
 import InputLocked from '@/pageComponents/Concentrated/InputLocked'
 import { useConcentratedTickAprCalc } from '@/pageComponents/Concentrated/useConcentratedAprCalc'
 import { calculateRatio } from '@/pageComponents/Concentrated/util'
-import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { Numberish } from '@/types/constants'
 
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
@@ -140,9 +139,6 @@ function ConcentratedCard() {
   const connected = useWallet((s) => s.connected)
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const [isCoinSelectorOn, { on: turnOnCoinSelector, off: turnOffCoinSelector }] = useToggle()
-  // it is for coin selector panel
-  const [targetCoinNo, setTargetCoinNo] = useState<'1' | '2'>('1')
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
 
   const timeBasis = useConcentrated((s) => s.timeBasis)
@@ -464,10 +460,7 @@ function ConcentratedCard() {
                   coin1 ? toTokenAmount(coin1, mul(getBalance(coin1), 0.985), { alreadyDecimaled: true }) : undefined
                 }
                 onPriceChange={updatePrice1}
-                onTryToTokenSelect={() => {
-                  turnOnCoinSelector()
-                  setTargetCoinNo('1')
-                }}
+                disableTokenSelect
                 onUserInput={(amount) => {
                   useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
                 }}
@@ -498,10 +491,7 @@ function ConcentratedCard() {
                   coin2 ? toTokenAmount(coin2, mul(getBalance(coin2), 0.985), { alreadyDecimaled: true }) : undefined
                 }
                 onPriceChange={updatePrice2}
-                onTryToTokenSelect={() => {
-                  turnOnCoinSelector()
-                  setTargetCoinNo('2')
-                }}
+                disableTokenSelect
                 onEnter={(input) => {
                   if (!input) return
                   if (!coin1) coinInputBox1ComponentRef.current?.selectToken?.()
@@ -628,27 +618,6 @@ function ConcentratedCard() {
           <ConcentratedCardAPRInfo />
         </div>
       </div>
-      {/** coin selector panel */}
-      <TokenSelectorDialog
-        open={isCoinSelectorOn}
-        onClose={turnOffCoinSelector}
-        onSelectToken={(token) => {
-          if (targetCoinNo === '1') {
-            useConcentrated.setState({ coin1: token })
-            // delete other
-            if (!canTokenPairBeSelected(token, coin2)) {
-              useConcentrated.setState({ coin2: undefined, coin2Amount: undefined, priceLowerTick: undefined })
-            }
-          } else {
-            // delete other
-            useConcentrated.setState({ coin2: token })
-            if (!canTokenPairBeSelected(token, coin1)) {
-              useConcentrated.setState({ coin1: undefined, coin1Amount: undefined, priceUpperTick: undefined })
-            }
-          }
-          turnOffCoinSelector()
-        }}
-      />
       <AddLiquidityConfirmDialog
         open={isConfirmOn}
         coin1={poolSnapShot.coin1}

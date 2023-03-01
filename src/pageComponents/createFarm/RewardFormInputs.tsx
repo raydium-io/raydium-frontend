@@ -281,7 +281,7 @@ export function RewardFormCardInputs({
             disabled={disableCoinInput}
             value={rewardTokenAmount ?? ''} // pass '' to clear the input
             token={tempReward.token}
-            disabledTokenSelect={disableTokenSelect}
+            disableTokenSelect={disableTokenSelect}
             onSelectToken={selectRewardToken}
             onUserInput={(amount) => {
               setRewardAmount(amount)
