@@ -51,7 +51,9 @@ export default function useTokenListsLoader() {
     clearTokenCache()
   }, [tokenInfoUrl])
   useTransitionedEffect(() => {
-    loadTokens()
+    rawTokenListConfigs.forEach((config) => {
+      loadTokens([config])
+    })
   }, [
     walletRefreshCount,
     swapRefreshCount,
@@ -83,7 +85,14 @@ function isAnIncludedMint(collector: TokenInfoCollector, mint: string) {
  * @param tokens TokenJson[]
  * @param lowPriority default tokenJsonInfo has low propirty
  */
-function addToken(collector: TokenInfoCollector, tokens: TokenJson[], options?: { lowPriority?: boolean }) {
+function addToken(
+  collector: TokenInfoCollector,
+  tokens: TokenJson[],
+  options?: {
+    /** token info can be replaced by others or not  */
+    lowPriority?: boolean
+  }
+) {
   for (const tokenJsonInfo of tokens) {
     collector.tokens[tokenJsonInfo.mint] = options?.lowPriority
       ? { ...tokenJsonInfo, ...collector.tokens[tokenJsonInfo.mint] }
@@ -91,7 +100,7 @@ function addToken(collector: TokenInfoCollector, tokens: TokenJson[], options?: 
   }
 }
 
-async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
+async function mainTokenFetch(response: RaydiumTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
   if (!response.official || !response.unOfficial || !response.blacklist || !response.unNamed) return
   const tmpDelNativeSolToken = deleteFetchedNativeSOLToken(response.official)
   const officialMints = tmpDelNativeSolToken.map(({ mint }) => mint)
@@ -124,14 +133,6 @@ async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: Tok
   for (const mint of [...officialMints, ...unOfficialMints, ...unNamedMints, ...blackListTokenMints]) {
     collector.otherLiquiditySupportedMints.delete(mint)
   }
-}
-
-async function DevTokenFetch(response: RaydiumDevTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
-  if (!response.tokens) return
-  response.tokens.forEach(({ mint }) => {
-    collector.devMints.add(mint)
-  })
-  addToken(collector, response.tokens)
 }
 
 async function UnofficialLiquidityPoolTokenFetch(
@@ -244,7 +245,7 @@ async function loadTokenList(
                     )
                   : tokens
               })
-              await MainTokenFetch(handledResponse as RaydiumTokenListJsonInfo, tokenCollector)
+              await mainTokenFetch(handledResponse as RaydiumTokenListJsonInfo, tokenCollector)
               break
             }
             case TokenListConfigType.LIQUIDITY_V2:
@@ -382,7 +383,7 @@ export function toSplTokenInfo(splToken: SplToken): TokenJson {
   }
 }
 
-async function loadTokens() {
+async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[]) {
   const { tokenListSettings } = useToken.getState()
   const customTokenIcons = await fetchTokenIconInfoList()
   const {
@@ -393,7 +394,7 @@ async function loadTokens() {
     unNamedMints,
     tokens: allTokens,
     blacklist: _blacklist
-  } = await fetchTokenLists(rawTokenListConfigs, tokenListSettings)
+  } = await fetchTokenLists(inputTokenListConfigs, tokenListSettings)
   // if length has not changed, don't parse again
 
   const mainnetOriginalMintsLength = tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.size
