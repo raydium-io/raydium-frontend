@@ -61,7 +61,7 @@ export interface CoinInputBoxProps {
   disabled?: boolean
   renderDisabledMask?: ReactNode
   noDisableStyle?: boolean
-  disabledTokenSelect?: boolean // if not prop:disabledTokenSelect but prop:disabled, result is disabled
+  disableTokenSelect?: boolean // if not prop:disabledTokenSelect but prop:disabled, result is disabled
   disabledInput?: boolean // if not prop:disabledInput but prop:disabled, result is disabled
 
   // -------- callbacks ----------
@@ -125,7 +125,7 @@ export default function CoinInputBox({
   renderDisabledMask,
   noDisableStyle,
   disabledInput: innerDisabledInput,
-  disabledTokenSelect: innerDisabledTokenSelect,
+  disableTokenSelect: innerDisabledTokenSelect,
 
   value,
   token,
