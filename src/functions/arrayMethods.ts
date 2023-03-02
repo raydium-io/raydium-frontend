@@ -63,11 +63,9 @@ export function mergeWithOld<T>(newData: T, oldData, getUniqueArrKey?: (item: T)
     return new Set([...oldData, ...newData])
   }
   if (isArray(newData) && isArray(oldData)) {
-    return getUniqueArrKey ? unifyByKey([...oldData, ...newData], getUniqueArrKey) : [...oldData, ...newData]
+    return getUniqueArrKey ? unifyByKey([...oldData, ...newData], getUniqueArrKey) : unifyItem([...oldData, ...newData])
   }
   if (isObject(newData) && isObject(oldData)) {
     return { ...oldData, ...newData }
-  } else {
-    throw 'mergeOld error'
   }
 }

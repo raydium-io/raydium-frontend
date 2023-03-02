@@ -36,7 +36,8 @@ import useToken, {
   SOLANA_TOKEN_LIST_NAME,
   SupportedTokenListSettingName
 } from './useToken'
-import { SOLMint } from './wellknownToken.config'
+import { RAYMint, SOLMint } from './wellknownToken.config'
+import { isSubSet } from '@/functions/setMethods'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -153,8 +154,6 @@ async function fetchNormalLiquidityPoolToken(
         collector.otherLiquiditySupportedMints.add(pool[target.mint])
         const hasFreeze = await verifyToken(target.mint, { noLog: true })
         const token = {
-          symbol: pool[target.mint].slice(0, 6),
-          name: pool[target.mint].slice(0, 12),
           mint: pool[target.mint],
           decimals: pool[target.decimal],
           hasFreeze
@@ -164,6 +163,7 @@ async function fetchNormalLiquidityPoolToken(
     }
   })
 }
+
 async function fetchClmmLiquidityPoolToken(
   response: { data: ApiAmmV3PoolsItem[] },
   collector: TokenInfoCollector
@@ -185,8 +185,6 @@ async function fetchClmmLiquidityPoolToken(
         collector.otherLiquiditySupportedMints.add(pool[target.mint])
         const hasFreeze = await verifyToken(target.mint, { noLog: true })
         const token = {
-          symbol: pool[target.mint].slice(0, 6),
-          name: pool[target.mint].slice(0, 12),
           mint: pool[target.mint],
           decimals: pool[target.decimal],
           hasFreeze
@@ -260,7 +258,7 @@ async function getTokenLists(
   rawListConfigs: TokenListFetchConfigItem[],
   tokenListSettings: {
     [N in SupportedTokenListSettingName]: {
-      mints?: Set<HexAddress> // TODO
+      mints?: Set<HexAddress>
       disableUserConfig?: boolean
       isOn: boolean
       icon?: SrcAddress
@@ -269,13 +267,13 @@ async function getTokenLists(
   },
   existTokens: Record<HexAddress, TokenJson>
 ): Promise<{
-  devMints: string[]
-  unOfficialMints: string[]
-  officialMints: string[]
-  otherLiquiditySupportedMints: string[]
-  unNamedMints: string[]
-  tokens: TokenJson[]
-  blacklist: string[]
+  devMints: Set<string>
+  unOfficialMints: Set<string>
+  officialMints: Set<string>
+  otherLiquiditySupportedMints: Set<string>
+  unNamedMints: Set<string>
+  tokens: Record<string, TokenJson>
+  blacklist: Set<string>
 }> {
   const tokenCollector: TokenInfoCollector = {
     devMints: new Set(tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints),
@@ -304,25 +302,8 @@ async function getTokenLists(
       tokenCollector[pair.collector] = Array.from(tokenListSettings[pair.settings].mints.values())
     }
   }
-  const output: {
-    devMints: string[]
-    unOfficialMints: string[]
-    officialMints: string[]
-    otherLiquiditySupportedMints: string[]
-    unNamedMints: string[]
-    tokens: TokenJson[]
-    blacklist: string[]
-  } = {
-    devMints: Array.from(tokenCollector.devMints),
-    unOfficialMints: Array.from(tokenCollector.unOfficialMints),
-    officialMints: Array.from(tokenCollector.officialMints),
-    otherLiquiditySupportedMints: Array.from(tokenCollector.otherLiquiditySupportedMints),
-    unNamedMints: Array.from(tokenCollector.unNamedMints),
-    tokens: Object.values(tokenCollector.tokens),
-    blacklist: Array.from(tokenCollector.blacklist)
-  }
 
-  return output
+  return tokenCollector
 }
 
 async function fetchTokenIconInfoList() {
@@ -340,16 +321,13 @@ export function createSplToken(
   const { mint, symbol, name, decimals, ...rest } = info
 
   // TODO: recordPubString(token.mint)
-  const splToken = Object.assign(
-    new Token(mint, decimals, symbol, name ?? symbol),
-    { icon: '', extensions: {}, id: mint },
-    rest
-  )
+  const splToken = Object.assign(new Token(mint, decimals, symbol, name ?? symbol), { id: mint }, rest)
   if (customTokenIcons?.[mint]) {
-    splToken.icon = customTokenIcons[mint] ?? ''
+    splToken.icon = customTokenIcons[mint]
   }
   return splToken
 }
+
 export function toSplTokenInfo(splToken: SplToken): TokenJson {
   return {
     ...splToken,
@@ -371,23 +349,22 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[]) {
   } = await getTokenLists(inputTokenListConfigs, tokenListSettings, tokenJsonInfos)
   // if length has not changed, don't parse again
 
-  const mainnetOriginalMintsLength = tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.size
-  const solanaTokenOriginalMintsLength = tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.size
-  const devOriginalMintsLength = tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.size
-  const unnamedOriginalMintsLength = tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.size
-  const otherOriginalMintsLength = tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME].mints?.size
-
   const isSameAsOlder =
-    devMints.length === devOriginalMintsLength &&
-    officialMints.length === mainnetOriginalMintsLength &&
-    unOfficialMints.length === solanaTokenOriginalMintsLength &&
-    otherLiquiditySupportedMints.length === otherOriginalMintsLength &&
-    unNamedMints.length === unnamedOriginalMintsLength
+    tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints &&
+    isSubSet(devMints, tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints) &&
+    tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints &&
+    isSubSet(officialMints, tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints) &&
+    tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints &&
+    isSubSet(unOfficialMints, tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints) &&
+    tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME].mints &&
+    isSubSet(otherLiquiditySupportedMints, tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME].mints) &&
+    tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints &&
+    isSubSet(unNamedMints, tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints)
 
   if (isSameAsOlder) return
 
   const blacklist = new Set(_blacklist)
-  const unsortedTokenInfos = allTokens
+  const unsortedTokenInfos = Object.values(allTokens)
     /* shake off tokens in raydium blacklist */
     .filter((info) => !blacklist.has(info.mint))
 
@@ -406,55 +383,58 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[]) {
     ...Object.values(replaceValue(pureTokens, (v, k) => k === toPubString(WSOL.mint), QuantumSOLVersionWSOL))
   ]
 
-  useToken.setState((s) => ({
-    canFlaggedTokenMints: mergeWithOld(
-      new Set(
-        Object.values(tokens)
-          .filter((token) => !officialMints.includes(toPubString(token.mint)))
-          .map((token) => toPubString(token.mint))
+  useToken.setState((s) => {
+    // eslint-disable-next-line no-console
+    console.log('RAY tokens: ', inputTokenListConfigs, tokens[toPubString(RAYMint)]) // merge bug here, two different of type
+    // eslint-disable-next-line no-console
+    console.log('old RAY tokens: ', inputTokenListConfigs, s.tokens[toPubString(RAYMint)]) // merge bug here, two different of type
+    return {
+      canFlaggedTokenMints: mergeWithOld(
+        new Set(
+          Object.values(tokens)
+            .filter((token) => !officialMints.has(toPubString(token.mint)))
+            .map((token) => toPubString(token.mint))
+        ),
+        s.canFlaggedTokenMints
       ),
-      s.canFlaggedTokenMints
-    ),
-    blacklist: mergeWithOld(_blacklist, s.blacklist, (i) => i),
-    tokenListSettings: {
-      ...s.tokenListSettings,
+      blacklist: mergeWithOld([..._blacklist], s.blacklist, (i) => i),
+      tokenListSettings: {
+        ...s.tokenListSettings,
 
-      [RAYDIUM_MAINNET_TOKEN_LIST_NAME]: {
-        ...s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME],
-        mints: new Set([
-          ...(s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.values() ?? []),
-          ...officialMints
-        ])
-      },
-      [SOLANA_TOKEN_LIST_NAME]: {
-        ...s.tokenListSettings[SOLANA_TOKEN_LIST_NAME],
-        mints: new Set([...(s.tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.values() ?? []), ...unOfficialMints])
-      },
+        [RAYDIUM_MAINNET_TOKEN_LIST_NAME]: {
+          ...s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME],
+          mints: new Set([
+            ...(s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.values() ?? []),
+            ...officialMints
+          ])
+        },
+        [SOLANA_TOKEN_LIST_NAME]: {
+          ...s.tokenListSettings[SOLANA_TOKEN_LIST_NAME],
+          mints: new Set([...(s.tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.values() ?? []), ...unOfficialMints])
+        },
 
-      [RAYDIUM_DEV_TOKEN_LIST_NAME]: {
-        ...s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME],
-        mints: new Set([...(s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.values() ?? []), ...devMints])
+        [RAYDIUM_DEV_TOKEN_LIST_NAME]: {
+          ...s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME],
+          mints: new Set([...(s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.values() ?? []), ...devMints])
+        },
+        [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
+          ...s.tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME],
+          mints: new Set(otherLiquiditySupportedMints)
+        },
+        [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
+          ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
+          mints: new Set([
+            ...(s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.values() ?? []),
+            ...unNamedMints
+          ])
+        }
       },
-      [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
-        ...s.tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME],
-        mints: new Set(otherLiquiditySupportedMints)
-      },
-      [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
-        ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
-        mints: new Set([
-          ...(s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.values() ?? []),
-          ...unNamedMints
-        ])
-      }
-    },
-    tokenJsonInfos: mergeWithOld(
-      listToMap(allTokens, (i) => i.mint),
-      s.tokenJsonInfos
-    ),
-    tokens: mergeWithOld(tokens, s.tokens),
-    pureTokens: mergeWithOld(pureTokens, s.pureTokens),
-    verboseTokens: mergeWithOld(verboseTokens, s.verboseTokens, (i) => toPubString(i.mint))
-  }))
+      tokenJsonInfos: mergeWithOld(allTokens, s.tokenJsonInfos),
+      tokens: mergeWithOld(tokens, s.tokens),
+      pureTokens: mergeWithOld(pureTokens, s.pureTokens),
+      verboseTokens: mergeWithOld(verboseTokens, s.verboseTokens, (i) => toPubString(i.mint))
+    }
+  })
 }
 
 /**

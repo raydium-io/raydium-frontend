@@ -34,10 +34,10 @@ export interface TokenJson {
 }
 
 export type SplToken = Token & {
-  icon: SrcAddress
+  icon?: SrcAddress
   /** 'sol' or mint. for `<TokenSelector>` */
   id: string
-  extensions: {
+  extensions?: {
     [key in 'coingeckoId' | 'website' | 'whitepaper']?: string
   }
   userAdded?: boolean // only if token is added by user
