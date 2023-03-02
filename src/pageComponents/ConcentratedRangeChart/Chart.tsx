@@ -787,13 +787,13 @@ export default forwardRef(function Chart(props: Props, ref) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <div className="flex justify-between flex-wrap gap-1 text-[#ABC4FF]">
+      <div className="flex justify-between flex-wrap gap-2">
         {enableRates.map((r) => (
           <div
             key={r}
-            className={`whitespace-nowrap mb-3 text-sm border ${
-              r === rate ? 'border-[#39D0D8] bg-[#141041]' : 'border-[#36427D] opacity-50'
-            } rounded-lg py-0.5 px-2.5 cursor-pointer`}
+            className={`whitespace-nowrap mb-3 text-xs text-center border flex-1 ${
+              r === rate ? 'border-[#ABC4FF] bg-[#141041]' : 'border-[#36427D] opacity-50'
+            } rounded-lg py-1 px-2 cursor-pointer`}
             onClick={() => onClickPercent(r)}
           >
             ± {r * 100}%
