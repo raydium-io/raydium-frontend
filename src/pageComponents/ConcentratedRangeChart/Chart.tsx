@@ -124,7 +124,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
   const currentPriceNum = currentPrice?.toFixed(maxLength)
-  const enableRates = chartOptions?.isStable ? [0.01, 0.05, 0.1, 0.2, 1] : [0.05, 0.1, 0.2, 0.5, 1]
+  const enableRates = [0.01, 0.05, 0.1, 0.2, 0.5]
 
   boundaryRef.current = xAxisDomain.length
     ? { min: Number(xAxisDomain[0]) || 0, max: Number(xAxisDomain[xAxisDomain.length - 1]) || 100 }
@@ -334,7 +334,8 @@ export default forwardRef(function Chart(props: Props, ref) {
       return
     }
     const isMin = side === Range.Min
-    const [minMultiplier, maxMultiplier] = chartOptions?.isStable ? [0.99, 1.01] : [0.9, 1.05]
+    const diff = Math.abs(val - Number(currentPriceNum || 0)) / Number(currentPriceNum || 1) / 5
+    const [minMultiplier, maxMultiplier] = [1 - diff, 1 + diff]
     xAxisDomainRef.current[isMin ? 0 : 1] = val * (isMin ? minMultiplier : maxMultiplier)
     setXAxisDomain(xAxisDomainRef.current)
   })
@@ -585,6 +586,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   }
   const zoomIn = () => {
     if (!hasPoints) return
+    const tickGap = (xAxisDomainRef.current[1] - xAxisDomainRef.current[0]) / 8
     const min = xAxisDomainRef.current[0] + (zoomRef.current + 1) * tickGap
     const max = xAxisDomainRef.current[xAxisDomainRef.current.length - 1] - (zoomRef.current + 1) * tickGap
 
@@ -594,6 +596,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   }
   const zoomOut = () => {
     if (!hasPoints) return
+    const tickGap = (xAxisDomainRef.current[1] - xAxisDomainRef.current[0]) / 8
     zoomRef.current = zoomRef.current - 1
     const min = xAxisDomainRef.current[0] + zoomRef.current * tickGap
     const max = xAxisDomainRef.current[xAxisDomainRef.current.length - 1] - zoomRef.current * tickGap
@@ -602,17 +605,10 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   const onClickPercent = (percent: number) => {
     setRate(percent)
-    const [newMin, newMax] =
-      percent === 1
-        ? [points[0].x, points[points.length - 1].x]
-        : [
-            Number(mul(currentPrice, 1 - percent)?.toFixed(maxLength) || 0),
-            Number(mul(currentPrice, 1 + percent)?.toFixed(maxLength) || 0)
-          ]
     debounceUpdate({
       side: 'area',
-      min: newMin,
-      max: newMax,
+      min: Number(mul(currentPrice, 1 - percent)?.toFixed(maxLength) || 0),
+      max: Number(mul(currentPrice, 1 + percent)?.toFixed(maxLength) || 0),
       zoomArea: true
     })
   }
@@ -791,16 +787,16 @@ export default forwardRef(function Chart(props: Props, ref) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <div className="flex justify-evenly flex-wrap gap-1 ">
+      <div className="flex justify-between flex-wrap gap-1 text-[#ABC4FF]">
         {enableRates.map((r) => (
           <div
             key={r}
-            className={`whitespace-nowrap mb-3 border ${
-              r === rate ? 'border-[#39D0D8] bg-[#0C0926]' : 'border-[#abc4ff80]'
-            } rounded-xl py-1 px-2 cursor-pointer`}
+            className={`whitespace-nowrap mb-3 text-sm border ${
+              r === rate ? 'border-[#39D0D8] bg-[#141041]' : 'border-[#36427D] opacity-50'
+            } rounded-lg py-0.5 px-2.5 cursor-pointer`}
             onClick={() => onClickPercent(r)}
           >
-            {r === 1 ? 'Full Range' : `± ${r * 100}%`}
+            ± {r * 100}%
           </div>
         ))}
       </div>
