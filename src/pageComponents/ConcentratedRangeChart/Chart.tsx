@@ -528,7 +528,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       const { val = '', side, isIncrease } = props
       const isMin = side === Range.Min
       let resultPosNum = Number(val)
-      setRate(0)
+
       if (isIncrease) {
         setPosition((prePos) => {
           const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: true })
@@ -538,9 +538,9 @@ export default forwardRef(function Chart(props: Props, ref) {
           if (hasPoints && !isMin && posNum >= toFixedNumber(prePos[Range.Max], decimals))
             setDisplayList((list) => [...list, { x: posNum + tickGap, y: 0, extend: true }])
           resultPosNum = posNum
-          autoZoom({ val: posNum, side })
           return { ...prePos, [side]: posNum }
         })
+        autoZoom({ val: resultPosNum, side })
         return resultPosNum
       }
       setPosition((prePos) => {
@@ -549,9 +549,10 @@ export default forwardRef(function Chart(props: Props, ref) {
           ? formatDecimal({ val: newPos.toFixed(maxDecimals) })
           : formatDecimal({ val: Number(val) + tickGap })
         resultPosNum = posNum
-        autoZoom({ val: posNum, side })
         return { ...prePos, [side]: posNum }
       })
+      autoZoom({ val: resultPosNum, side })
+      setRate(0)
       return resultPosNum
     },
     [points, hasPoints, tickGap, decimals]
