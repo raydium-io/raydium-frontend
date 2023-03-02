@@ -164,7 +164,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       setXAxisDomain(DEFAULT_X_AXIS)
       setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
     }
-    const rate = chartOptions?.isStable ? [0.95, 1.05] : [0.3, 1.7]
+    const rate = chartOptions?.isStable ? [0.98, 1.02] : [0.7, 1.3]
     const [defaultMinNum, defaultMaxNum] = [
       defaultMin ? Number(defaultMin.toFixed(Math.max(8, decimals))) : undefined,
       defaultMax ? Number(defaultMax.toFixed(Math.max(8, decimals))) : undefined
