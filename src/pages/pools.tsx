@@ -11,7 +11,7 @@ import { HydratedPairItemInfo, JsonPairItemInfo } from '@/application/pools/type
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
 import { routeTo } from '@/application/routeTools'
-import { LpToken, SplToken } from '@/application/token/type'
+import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
@@ -447,7 +447,14 @@ function PoolCard() {
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
-  } = useSort(searched, { defaultSort: { key: 'volume24h', sortCompare: (i) => i['volume24h'], mode: 'decrease' } })
+  } = useSort(searched, {
+    initConfig: {
+      key: 'volume24h',
+      mode: 'decrease',
+      sortCompare: (i) => i['volume24h'],
+      sortModeQueue: ['decrease', 'increase', 'none']
+    }
+  })
 
   const TableHeaderBlock = useMemo(
     () => (
