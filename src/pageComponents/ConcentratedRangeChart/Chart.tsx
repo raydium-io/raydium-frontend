@@ -541,6 +541,7 @@ export default forwardRef(function Chart(props: Props, ref) {
           return { ...prePos, [side]: posNum }
         })
         autoZoom({ val: resultPosNum, side })
+        setRate(0)
         return resultPosNum
       }
       setPosition((prePos) => {
