@@ -212,7 +212,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       if (defaultMinNum && pointXNum > defaultMinNum && !foundDefaultMin) {
         const insertIdx = displayList.findIndex((p) => p.x > defaultMinNum)
         displayList.splice(insertIdx === -1 ? displayList.length : insertIdx, 0, {
-          ...(prePoint || point),
+          ...(chartOptions?.baseIn ? prePoint || point : point),
           x: defaultMinNum
         })
         foundDefaultMin = true
@@ -220,7 +220,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       if (defaultMaxNum && pointXNum > defaultMaxNum && !foundDefaultMax) {
         const insertIdx = displayList.findIndex((p) => p.x > defaultMaxNum)
         displayList.splice(insertIdx === -1 ? displayList.length : insertIdx, 0, {
-          ...(prePoint || point),
+          ...(chartOptions?.baseIn ? prePoint || point : point),
           x: defaultMaxNum
         })
         foundDefaultMax = true
