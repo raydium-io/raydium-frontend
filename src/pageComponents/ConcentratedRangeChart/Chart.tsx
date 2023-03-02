@@ -513,6 +513,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       }
       const newVal = blurRef.current
       blurTimerRef.current = window.setTimeout(() => {
+        setRate(0)
         autoZoom({ val: newVal, side })
         checkMinMax({ [side]: newVal })
       }, 200)
@@ -527,6 +528,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       const { val = '', side, isIncrease } = props
       const isMin = side === Range.Min
       let resultPosNum = Number(val)
+      setRate(0)
       if (isIncrease) {
         setPosition((prePos) => {
           const newPos = onInDecrease?.({ p: Number(val), isMin, isIncrease: true })
