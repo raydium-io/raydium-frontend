@@ -1,13 +1,14 @@
 import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
 import { TimeBasis } from '@/application/concentrated/useConcentrated'
 import Icon from '@/components/Icon'
+import Button from '@/components/Button'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 import { formatDecimal as _formatDecimal } from '@/functions/numberish/formatDecimal'
 import { shakeZero } from '@/functions/numberish/shakeZero'
+import { mul } from '@/functions/numberish/operations'
 import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
 import { useEvent } from '@/hooks/useEvent'
 import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { mul } from '@/functions/numberish/operations'
 import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { Fraction } from '@raydium-io/raydium-sdk'
 import {
@@ -101,6 +102,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   )
   const { isMobile } = getPlatformInfo() || {}
   const [displayList, setDisplayList] = useState<HighlightPoint[]>(points)
+  const [rate, setRate] = useState(0.2)
   const [isMoving, setIsMoving] = useState(false)
   const [position, setPosition] = useState<PositionState>({
     [Range.Min]: Number(defaultMin?.toFixed(decimals)) || 0,
@@ -122,6 +124,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const tickGap = points.length ? (points[points.length - 1].x - points[0].x) / 8 / 8 : 0
   const [xAxisDomain, setXAxisDomain] = useState<string[] | number[]>(hasPoints ? DEFAULT_X_AXIS : [0, 100])
   const currentPriceNum = currentPrice?.toFixed(maxLength)
+  const enableRates = chartOptions?.isStable ? [0.01, 0.05, 0.1, 0.2, 1] : [0.05, 0.1, 0.2, 0.5, 1]
 
   boundaryRef.current = xAxisDomain.length
     ? { min: Number(xAxisDomain[0]) || 0, max: Number(xAxisDomain[xAxisDomain.length - 1]) || 100 }
@@ -150,6 +153,10 @@ export default forwardRef(function Chart(props: Props, ref) {
   )
 
   useEffect(() => {
+    setRate(chartOptions?.isStable ? 0.01 : 0.2)
+  }, [chartOptions?.isStable, poolFocusKey])
+
+  useEffect(() => {
     setDisplayList([])
     boundaryRef.current = { min: 0, max: 100 }
     if (poolIdRef.current !== poolFocusKey || showCurrentPriceOnly) {
@@ -157,7 +164,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       setXAxisDomain(DEFAULT_X_AXIS)
       setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
     }
-    const rate = chartOptions?.isStable ? [0.9, 1.1] : [0.3, 1.7]
+    const rate = chartOptions?.isStable ? [0.95, 1.05] : [0.3, 1.7]
     const [defaultMinNum, defaultMaxNum] = [
       defaultMin ? Number(defaultMin.toFixed(Math.max(8, decimals))) : undefined,
       defaultMax ? Number(defaultMax.toFixed(Math.max(8, decimals))) : undefined
@@ -318,7 +325,7 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   let timer: number | undefined = undefined
 
-  const autoZoom = useEvent(({ val, side, queue }: { val: number; side: Range; queue?: boolean }) => {
+  const autoZoom = useEvent(({ val, side, queue }: { val: number; side: Range | string; queue?: boolean }) => {
     if (queue) {
       autoZoomQueueRef.current = () => {
         autoZoom({ val, side })
@@ -327,32 +334,46 @@ export default forwardRef(function Chart(props: Props, ref) {
       return
     }
     const isMin = side === Range.Min
-    const [minMultiplier, maxMultiplier] = chartOptions?.isStable ? [0.995, 1.005] : [0.9, 1.05]
+    const [minMultiplier, maxMultiplier] = chartOptions?.isStable ? [0.99, 1.01] : [0.9, 1.05]
     xAxisDomainRef.current[isMin ? 0 : 1] = val * (isMin ? minMultiplier : maxMultiplier)
     setXAxisDomain(xAxisDomainRef.current)
   })
 
   const debounceUpdate = useCallback(
-    ({ side, ...pos }: { min: number; max: number; side: Range | string }) => {
+    ({ side, zoomArea, ...pos }: { min: number; max: number; side: Range | string; zoomArea?: boolean }) => {
       timer && clearTimeout(timer)
       timer = window.setTimeout(() => {
         const res = onPositionChange?.(pos)
         if (!res) return
-        if (side === 'area')
-          updatePosition({ min: Number(res.priceLower.toFixed(maxDecimals)), max: Number(res.priceUpper.toFixed(10)) })
+        const [newMin, newMax] = [
+          Number(res.priceLower.toFixed(maxDecimals)),
+          Number(res.priceUpper.toFixed(maxDecimals))
+        ]
+        if (side === 'area') {
+          if (zoomArea) {
+            autoZoom({ val: newMin, side: Range.Min })
+            autoZoom({ val: newMax, side: Range.Max })
+          }
+          setTimeout(() => {
+            updatePosition({
+              min: newMin,
+              max: newMax
+            })
+          }, 0)
+        }
         if (side === Range.Min) {
           updatePosition((pos) => ({
             ...pos,
-            [Range.Min]: Number(res.priceLower.toFixed(maxDecimals))
+            [Range.Min]: newMin
           }))
-          autoZoom({ val: Number(res.priceLower.toFixed(maxDecimals)), side: Range.Min, queue: !!moveRef.current })
+          autoZoom({ val: newMin, side: Range.Min, queue: !!moveRef.current })
         }
         if (side === Range.Max) {
           updatePosition((pos) => ({
             ...pos,
-            [Range.Max]: Number(res.priceUpper.toFixed(maxDecimals))
+            [Range.Max]: newMax
           }))
-          autoZoom({ val: Number(res.priceUpper.toFixed(maxDecimals)), side: Range.Max, queue: !!moveRef.current })
+          autoZoom({ val: newMax, side: Range.Max, queue: !!moveRef.current })
         }
       }, 100)
     },
@@ -578,6 +599,23 @@ export default forwardRef(function Chart(props: Props, ref) {
     setupXAxis({ min, max })
   }
 
+  const onClickPercent = (percent: number) => {
+    setRate(percent)
+    const [newMin, newMax] =
+      percent === 1
+        ? [points[0].x, points[points.length - 1].x]
+        : [
+            Number(mul(currentPrice, 1 - percent)?.toFixed(maxLength) || 0),
+            Number(mul(currentPrice, 1 + percent)?.toFixed(maxLength) || 0)
+          ]
+    debounceUpdate({
+      side: 'area',
+      min: newMin,
+      max: newMax,
+      zoomArea: true
+    })
+  }
+
   useImperativeHandle(
     ref,
     () => ({
@@ -751,6 +789,19 @@ export default forwardRef(function Chart(props: Props, ref) {
             {!hideRangeLine && <ReferenceArea {...getReferenceProps(Range.Max)} />}
           </AreaChart>
         </ResponsiveContainer>
+      </div>
+      <div className="flex justify-evenly flex-wrap gap-1 ">
+        {enableRates.map((r) => (
+          <div
+            key={r}
+            className={`whitespace-nowrap mb-3 border ${
+              r === rate ? 'border-[#39D0D8] bg-[#0C0926]' : 'border-[#abc4ff80]'
+            } rounded-md py-1 px-2 cursor-pointer`}
+            onClick={() => onClickPercent(r)}
+          >
+            {r === 1 ? 'Full Range' : `± ${r * 100}%`}
+          </div>
+        ))}
       </div>
       {!hideRangeInput && (
         <PriceRangeInput
