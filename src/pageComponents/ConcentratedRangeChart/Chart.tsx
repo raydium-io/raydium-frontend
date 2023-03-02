@@ -131,7 +131,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     : boundaryRef.current
 
   const updatePosition = useCallback(
-    (nextStateOrCbk: PositionState | ((prePos: PositionState) => PositionState)) => {
+    (nextStateOrCbk: (PositionState & { skipCheck?: boolean }) | ((prePos: PositionState) => PositionState)) => {
       const getSafeMin = (val) => Math.max(boundaryRef.current.min, val, 0)
       if (typeof nextStateOrCbk === 'function') {
         setPosition((prePos) => {
@@ -145,7 +145,9 @@ export default forwardRef(function Chart(props: Props, ref) {
       }
 
       setPosition({
-        [Range.Min]: formatDecimal({ val: getSafeMin(nextStateOrCbk[Range.Min]) }),
+        [Range.Min]: formatDecimal({
+          val: nextStateOrCbk.skipCheck ? nextStateOrCbk[Range.Min] : getSafeMin(nextStateOrCbk[Range.Min])
+        }),
         [Range.Max]: formatDecimal({ val: nextStateOrCbk[Range.Max] })
       })
     },
@@ -355,12 +357,11 @@ export default forwardRef(function Chart(props: Props, ref) {
             autoZoom({ val: newMin, side: Range.Min })
             autoZoom({ val: newMax, side: Range.Max })
           }
-          setTimeout(() => {
-            updatePosition({
-              min: newMin,
-              max: newMax
-            })
-          }, 0)
+          updatePosition({
+            min: newMin,
+            max: newMax,
+            skipCheck: !!zoomArea
+          })
         }
         if (side === Range.Min) {
           updatePosition((pos) => ({
@@ -611,6 +612,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       max: Number(mul(currentPrice, 1 + percent)?.toFixed(maxLength) || 0),
       zoomArea: true
     })
+    zoomRef.current = 0
   }
 
   useImperativeHandle(
