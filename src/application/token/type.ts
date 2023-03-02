@@ -77,14 +77,14 @@ export interface HydratedTokenJsonInfo {
   }
 }
 
-export interface RaydiumTokenListJsonInfo {
+export interface RaydiumTokenListJsonFile {
   official: TokenJson[]
   unOfficial: TokenJson[]
   unNamed: Pick<TokenJson, 'mint' | 'decimals' | 'hasFreeze'>[]
   blacklist: HexAddress[]
 }
 
-export interface RaydiumDevTokenListJsonInfo {
+export interface RaydiumDevTokenListJsonFile {
   name: string
   timestamp: string
   tokens: TokenJson[]

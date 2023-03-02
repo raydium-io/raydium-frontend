@@ -21,8 +21,8 @@ import { initiallySortTokens } from './initiallySortTokens'
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from './quantumSOL'
 import { rawTokenListConfigs } from './rawTokenLists.config'
 import {
-  RaydiumDevTokenListJsonInfo,
-  RaydiumTokenListJsonInfo,
+  RaydiumDevTokenListJsonFile,
+  RaydiumTokenListJsonFile,
   SplToken,
   TokenJson,
   TokenListConfigType,
@@ -100,7 +100,7 @@ function collectToken(
   }
 }
 
-async function fetchMainToken(response: RaydiumTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
+async function fetchMainToken(response: RaydiumTokenListJsonFile, collector: TokenInfoCollector): Promise<void> {
   if (!response.official || !response.unOfficial || !response.blacklist || !response.unNamed) return
   const tmpDelNativeSolToken = deleteFetchedNativeSOLToken(response.official)
   const officialMints = tmpDelNativeSolToken.map(({ mint }) => mint)
@@ -217,15 +217,15 @@ async function fetchTokenList(
         // eslint-disable-next-line no-console
         console.time(`load ${raw.url()}`)
         const response = await jFetch<
-          | RaydiumTokenListJsonInfo
-          | RaydiumDevTokenListJsonInfo
+          | RaydiumTokenListJsonFile
+          | RaydiumDevTokenListJsonFile
           | LiquidityPoolsJsonFile
           | { data: ApiAmmV3PoolsItem[] }
         >(raw.url())
         if (response) {
           switch (raw.type) {
             case TokenListConfigType.RAYDIUM_MAIN: {
-              const handledResponse = objectMap(response as RaydiumTokenListJsonInfo, (tokens) => {
+              const handledResponse = objectMap(response as RaydiumTokenListJsonFile, (tokens) => {
                 return isArray(tokens)
                   ? tokens.map((token) =>
                       isObject(token) && 'hasFreeze' in token
@@ -234,7 +234,7 @@ async function fetchTokenList(
                     )
                   : tokens
               })
-              await fetchMainToken(handledResponse as RaydiumTokenListJsonInfo, tokenCollector)
+              await fetchMainToken(handledResponse as RaydiumTokenListJsonFile, tokenCollector)
               break
             }
             case TokenListConfigType.LIQUIDITY_V2:
