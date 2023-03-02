@@ -386,6 +386,7 @@ export default forwardRef(function Chart(props: Props, ref) {
       const activeLabel = e.activeLabel
       if (!activeLabel) return
       const side = moveRef.current
+      setRate(0)
       if (moveRef.current === 'area') {
         if (areaRef.current === undefined) {
           areaRef.current = activeLabel
@@ -796,7 +797,7 @@ export default forwardRef(function Chart(props: Props, ref) {
             key={r}
             className={`whitespace-nowrap mb-3 border ${
               r === rate ? 'border-[#39D0D8] bg-[#0C0926]' : 'border-[#abc4ff80]'
-            } rounded-md py-1 px-2 cursor-pointer`}
+            } rounded-xl py-1 px-2 cursor-pointer`}
             onClick={() => onClickPercent(r)}
           >
             {r === 1 ? 'Full Range' : `± ${r * 100}%`}
