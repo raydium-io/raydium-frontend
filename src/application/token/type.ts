@@ -22,14 +22,14 @@ export interface ApiTokenJson {
 }
 
 export interface TokenJson {
-  symbol: string
-  name: string
+  symbol?: string
+  name?: string
   mint: HexAddress
   decimals: number
-  extensions: {
+  extensions?: {
     coingeckoId?: string
   }
-  icon: string
+  icon?: string
   hasFreeze?: boolean
 }
 

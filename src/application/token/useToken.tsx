@@ -169,41 +169,9 @@ export const useToken = create<TokenStore>((set, get) => ({
     }
 
     // if not exist, see this as userAddedTokens
-    const token = (() => {
-      const hasLoadedLpTokens = Object.keys(get().lpTokens).length > 1
-      const APIToken = get().tokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)] // <-- fixme
-      const customizedToken = get().userAddedTokens[toPubString(mint)]
-      const originalToken = APIToken ?? customizedToken
-      // try {
-      //   // 💩 temporary delete auto-customized token to improve performance
-      //   // if (!originalToken && hasLoadedLpTokens && !options?.noCustomToken) {
-      //   //   const token = createSplToken(
-      //   //     Object.assign(
-      //   //       {
-      //   //         mint: toPubString(mint),
-      //   //         decimals: 6,
-      //   //         symbol: toPubString(mint).slice(0, 6)
-      //   //       },
-      //   //       options?.customTokenInfo ?? {}
-      //   //     )
-      //   //   )
-      //   //   get().addUserAddedToken(token)
-      //   //   return token
-      //   // } else {
-      //   //   // if (originalToken && get().userAddedTokens[toPubString(mint)]) get().deleteUserAddedToken(originalToken)
-      //   // }
-      //   // if (customizedToken && APIToken && hasLoadedLpTokens) {
-      //   //   setTimeout(() => {
-      //   //     get().deleteUserAddedToken(originalToken.mint)
-      //   //   }, 0)
-      //   // }
-      //   return originalToken
-      // } catch {
-      //   return originalToken
-      // }
-      return originalToken
-    })()
-
+    const apiToken = get().tokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)]
+    const customizedToken = get().userAddedTokens[toPubString(mint)]
+    const token = apiToken ?? customizedToken
     return token
   },
 
