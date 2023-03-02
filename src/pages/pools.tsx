@@ -41,7 +41,6 @@ import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem } from '@/functions/arrayMethods'
 import { capitalize } from '@/functions/changeCase'
-import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
@@ -50,13 +49,12 @@ import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
-import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
+import { toggleSetItem } from '@/functions/setMethods'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
-import { toggleSetItem } from '@/functions/setMethods'
 
 /**
  * store:
@@ -444,7 +442,12 @@ function PoolCard() {
     )
   )
 
-  const { sortedData, setConfig: setSortConfig, sortConfig, clearSortConfig } = useSort(searched)
+  const {
+    sortedData,
+    setConfig: setSortConfig,
+    sortConfig,
+    clearSortConfig
+  } = useSort(searched, { defaultSort: { key: 'volume24h', sortCompare: (i) => i['volume24h'], mode: 'decrease' } })
 
   const TableHeaderBlock = useMemo(
     () => (
@@ -711,8 +714,6 @@ function PoolCardDatabaseBodyCollapseItemFace({
   onUnFavorite?: (ammId: string) => void
   onStartFavorite?: (ammId: string) => void
 }) {
-  const lpTokens = useToken((s) => s.lpTokens)
-  const lpToken = lpTokens[info.lpMint] as LpToken | undefined
   const isMobile = useAppSettings((s) => s.isMobile)
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = usePools((s) => s.timeBasis)
@@ -1027,7 +1028,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                     queryProps: objectShakeFalsy({
                       currentTab: correspondingFarm?.category ? capitalize(correspondingFarm?.category) : undefined,
                       newExpandedItemId: toPubString(correspondingFarm?.id),
-                      searchText: [info.base?.symbol, info.quote?.symbol].join(' ')
+                      searchText: info.lpMint
                     })
                   })
                 }}

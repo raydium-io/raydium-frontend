@@ -1,5 +1,7 @@
-import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
 import { Fragment, ReactNode, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+
+import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
+
 import { twMerge } from 'tailwind-merge'
 
 import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
@@ -16,6 +18,7 @@ import useFarms, { useFarmFavoriteIds } from '@/application/farms/useFarms'
 import { useFarmUrlParser } from '@/application/farms/useFarmUrlParser'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import useNotification from '@/application/notification/useNotification'
+import { isJsonPoolItemInfo } from '@/application/pools/is'
 import { usePools } from '@/application/pools/usePools'
 import { routeTo } from '@/application/routeTools'
 import useToken from '@/application/token/useToken'
@@ -45,9 +48,9 @@ import Popover from '@/components/Popover'
 import RefreshCircle from '@/components/RefreshCircle'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
-import Tabs from '@/components/Tabs'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
+import Tabs from '@/components/Tabs'
 import Tooltip, { TooltipHandle } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem, shakeUndifindedItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
@@ -64,14 +67,14 @@ import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual, isPubEqual } from '@/functions/judgers/areEqual'
 import { isTokenAmount } from '@/functions/judgers/dateType'
 import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
+
 import { NewCompensationBanner } from '../pools'
-import { div } from '@/functions/numberish/operations'
-import { isJsonPoolItemInfo } from '@/application/pools/is'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -435,11 +438,15 @@ function FarmCard() {
                   { text: toPubString(i.base?.mint), entirely: true },
                   { text: toPubString(i.quote?.mint), entirely: true },
                   i.base?.symbol,
-                  i.quote?.symbol
+                  i.quote?.symbol,
+                  { text: toPubString(i.lpMint), entirely: true }
                   // { text: toSentenceCase(i.base?.name ?? '').split(' '), entirely: true },
                   // { text: toSentenceCase(i.quote?.name ?? '').split(' '), entirely: true }
                 ]
-              : [{ text: toPubString(i.id), entirely: true }]
+              : [
+                  { text: toPubString(i.id), entirely: true },
+                  { text: toPubString(i.lpMint), entirely: true }
+                ]
         }),
       [applyFiltersDataSource, searchText]
     )
