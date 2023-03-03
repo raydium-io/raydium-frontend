@@ -7,7 +7,7 @@ import { isNullish } from '@/functions/judgers/nil'
 import { EnumStr } from '@/types/constants'
 import { ExactPartial, MayArray } from '@/types/generics'
 
-export type SortMode = 'decrease' | 'increase' | 'none'
+export type SortMode = 'decrease' | 'increase' | 'none' | 'freeze'
 
 export type SortModeArr = SortMode[]
 
@@ -61,23 +61,24 @@ export default function useSort<D extends Record<string, any>[]>(
     const userInputSortConfigMode = simpleConfig.mode
     const prevSortConfigMode = prevIsSameKeyAsInput ? prevConfigs?.[prevConfigs.length - 1]?.mode : undefined
     const fromQueued =
-      prevSortConfigMode &&
-      sortModeQueue[
-        (sortModeQueue.indexOf(prevSortConfigMode) + (simpleConfig.useCurrentMode ? 0 : 1)) % sortModeQueue.length
-      ]
+      prevSortConfigMode && sortModeQueue[(sortModeQueue.indexOf(prevSortConfigMode) + 1) % sortModeQueue.length]
 
     const mode = userInputSortConfigMode ?? (prevIsSameKeyAsInput ? fromQueued ?? defaultSortMode : defaultSortMode)
     // const mode =
     //   simpleConfig.mode == null && prevConfigs?.[0]?.mode === 'decrease' && prevConfigs?.[0]?.key === simpleConfig.key
     //     ? 'increase'
     //     : 'decrease'
-    return [
-      {
-        ...simpleConfig,
-        mode,
-        sortModeQueue
-      }
-    ]
+
+    // if mode is freeze, use previous config, and set the mode to 'none' for hiding sort-arrow icon
+    return simpleConfig && simpleConfig.mode === 'freeze' && prevConfigs
+      ? [{ ...prevConfigs[0], mode: 'none' }]
+      : [
+          {
+            ...simpleConfig,
+            mode,
+            sortModeQueue
+          }
+        ]
   }
 
   const defaultConfigs = options?.defaultSort ? parseSortConfig(options.defaultSort) : []

@@ -1,6 +1,6 @@
-import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 
-import { CurrencyAmount, option } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { twMerge } from 'tailwind-merge'
@@ -57,9 +57,8 @@ import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { getDate, toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { getCountDownTime } from '@/functions/date/parseDuration'
-import { debounce } from '@/functions/debounce'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
-import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
+import { getLocalItem } from '@/functions/dom/jStorage'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
 import { shrinkAccount } from '@/functions/format/shrinkAccount'
@@ -70,13 +69,12 @@ import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
-import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import { objectMap } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
+import { toggleSetItem } from '@/functions/setMethods'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import { useDebounce } from '@/hooks/useDebounce'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AprChart } from '@/pageComponents/Concentrated/AprChart'
@@ -87,7 +85,6 @@ import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/Remo
 import { Numberish } from '@/types/constants'
 
 import { NewCompensationBanner } from '../pools'
-import { toggleSetItem } from '@/functions/setMethods'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -368,7 +365,7 @@ function PoolTimeBasisSelectorBox({ className }: { className?: string }) {
       defaultValue={timeBasis}
       prefix="Time Basis:"
       onChange={(newSortKey) => {
-        useConcentrated.setState({ timeBasis: newSortKey ?? TimeBasis.WEEK })
+        useConcentrated.setState({ timeBasis: newSortKey ?? TimeBasis.DAY })
       }}
     />
   )
@@ -478,6 +475,7 @@ function PoolCard() {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const searchText = useConcentrated((s) => s.searchText)
   const timeBasis = useConcentrated((s) => s.timeBasis)
+  const prevTimeBasis = useRef(getLocalItem('ui-time-basis'))
   const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
   const currentTab = useConcentrated((s) => s.currentTab)
   const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
@@ -485,7 +483,7 @@ function PoolCard() {
   const owner = useWallet((s) => s.owner)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
-  const [currentSortKey, setCurrentSortKey] = useState<string | undefined>(undefined) // only care about key relative to time basis (volume, fees, apr)
+  const [freezeSort, setFreezeSort] = useState(false) // if true, means it's a time basis changing, do not re-render the latest sorted data, use old sorting
   const [sorted, setSortedData] = useState<HydratedConcentratedInfo[] | undefined>(undefined)
   const dataSource = useMemo(
     () =>
@@ -549,35 +547,19 @@ function PoolCard() {
     [favouriteIds]
   )
 
-  const timeBasisRelativeSortConfig = useCallback(
-    (key: string) => {
-      let sortKey = ''
-      let sortCompare
-      if (key === 'Volume') {
-        sortKey = timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
-        sortCompare = (i) => i[sortKey]
-      } else if (key === 'Fees') {
-        sortKey =
-          timeBasis === TimeBasis.DAY ? 'volumeFee24h' : timeBasis === TimeBasis.WEEK ? 'volumeFee7d' : 'volumeFee30d'
-        sortCompare = (i) => i[sortKey]
-      } else {
-        sortKey = 'apr'
-        sortCompare = (i) =>
-          i.state[timeBasis === TimeBasis.DAY ? 'day' : timeBasis === TimeBasis.WEEK ? 'week' : 'month'].apr
-      }
-
-      return { sortKey, sortCompare }
-    },
-    [timeBasis]
-  )
-
   useEffect(() => {
-    if (currentSortKey) {
-      /* eslint-disable */
-      const { sortKey, sortCompare } = timeBasisRelativeSortConfig(currentSortKey)
-      setSortConfig({ key: sortKey, sortCompare: sortCompare, useCurrentMode: true })
+    const timeBasisLocalStorage = getLocalItem('ui-time-basis')
+
+    if (prevTimeBasis.current !== timeBasisLocalStorage) {
+      prevTimeBasis.current = timeBasis
+      setFreezeSort(true)
+      setSortConfig({
+        key: '',
+        sortCompare: [],
+        mode: 'freeze' // is a time basis changing, use old sorting, freeze the current order
+      })
     }
-  }, [currentSortKey, timeBasisRelativeSortConfig, setSortConfig])
+  }, [timeBasis, setSortConfig])
 
   useEffect(() => {
     if (sortConfig) {
@@ -589,14 +571,6 @@ function PoolCard() {
   useOnceEffect(
     ({ runed }) => {
       if (poolSortConfig) {
-        // when routeBack, poolSortConfig should have value, set the sortConfig and CurrentSortKey (for timeBasis relative key)
-        poolSortConfig.key === 'apr'
-          ? setCurrentSortKey(poolSortConfig.key)
-          : poolSortConfig.key.includes('volumeFee')
-          ? setCurrentSortKey('Fees')
-          : poolSortConfig.key.includes('volume')
-          ? setCurrentSortKey('Volume')
-          : setCurrentSortKey(undefined)
         setSortConfig({
           ...poolSortConfig
         })
@@ -608,12 +582,12 @@ function PoolCard() {
 
   const prepareSortedData = useDebounce(
     () => {
-      tempSortedData && setSortedData(tempSortedData)
+      !freezeSort && tempSortedData && setSortedData(tempSortedData)
     },
     { debouncedOptions: { delay: 300 } }
   )
 
-  useEffect(prepareSortedData, [tempSortedData])
+  useEffect(prepareSortedData, [tempSortedData, freezeSort])
 
   const TableHeaderBlock = useMemo(
     () => (
@@ -650,7 +624,7 @@ function PoolCard() {
           <Row
             className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer"
             onClick={() => {
-              setCurrentSortKey(undefined)
+              setFreezeSort(false)
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
@@ -677,7 +651,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
-            setCurrentSortKey(undefined)
+            setFreezeSort(false)
             setSortConfig({ key: 'liquidity', sortCompare: (i) => i.tvl })
           }}
         >
@@ -699,7 +673,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
-            setCurrentSortKey('Volume')
+            setFreezeSort(false)
             const key =
               timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
@@ -724,7 +698,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setCurrentSortKey('Fees')
+            setFreezeSort(false)
             const key =
               timeBasis === TimeBasis.DAY
                 ? 'volumeFee24h'
@@ -770,7 +744,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect  overflow-hidden"
           onClick={() => {
-            setCurrentSortKey('apr')
+            setFreezeSort(false)
             setSortConfig({
               key: 'apr',
               sortCompare: (i) =>
