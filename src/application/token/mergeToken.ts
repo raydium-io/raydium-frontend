@@ -8,21 +8,21 @@ export function mergeToken(
 ): SplToken | TokenJson {
   if (!oldTokenA) return newTokenB
   const diffInfo = Object.fromEntries(
-    Object.entries(newTokenB).filter(([k, v]) => {
+    Object.entries(newTokenB).filter(([k, vB]) => {
       if (k === 'mint') return false
       if (k === 'name') {
         const vA = oldTokenA[k]
-        if (v === 'UNKNOWN') return false // 'UNKNOWN' is a SDK's Token's default value
-        if (vA === v) return false
+        if (vA === vB) return false
+        if (vA === 'UNKNOWN' && vB !== 'UNKNOWN') return true // 'UNKNOWN' is a SDK's Token's default value
         return true
       }
       if (k === 'symbol') {
         const vA = oldTokenA[k]
-        if (v === 'UNKNOWN') return false // 'UNKNOWN' is a SDK's Token's default value
-        if (vA === v) return false
+        if (vA === vB) return false
+        if (vA === 'UNKNOWN' && vB !== 'UNKNOWN') return true // 'UNKNOWN' is a SDK's Token's default value
         return true
       }
-      return oldTokenA[k] !== v
+      return oldTokenA[k] !== vB
     })
   )
   return Object.assign(oldTokenA, diffInfo)

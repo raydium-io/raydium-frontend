@@ -58,16 +58,16 @@ export function unifyByKey<T>(objList: T[], getKey: (item: T) => string): T[] {
  */
 export function mergeWithOld<T extends any[]>(
   newData: T,
-  oldData: T,
+  oldData: T | undefined,
   options?: {
     uniqueKey?: (item: T[number]) => string
     sameKeyMergeRule?: (newItem: T[number], oldItem: T[number]) => T[number]
   }
 ): T
-export function mergeWithOld<T extends Set<any>>(newData: T, oldData: T): T
+export function mergeWithOld<T extends Set<any>>(newData: T, oldData: T | undefined): T
 export function mergeWithOld<T extends Record<keyof any, any>>(
   newData: T,
-  oldData: Partial<T>,
+  oldData: Partial<T> | undefined,
   options?: {
     sameKeyMergeRule?: (newItem: T[number], oldItem: T[number]) => T[number]
   }
@@ -80,6 +80,7 @@ export function mergeWithOld<T>(
     sameKeyMergeRule?: (newItem: any, oldItem: any) => any
   }
 ) {
+  if (!oldData) return newData
   if (isSet(newData) && isSet(oldData)) {
     return new Set([...oldData, ...newData])
   }
