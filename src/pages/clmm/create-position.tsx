@@ -335,7 +335,7 @@ function ConcentratedCard() {
         coin2,
         ammPool: currentAmmPool,
         reverse: !isFocus1,
-        maxDecimals: Math.max(6, firstDecimal)
+        maxDecimals: Math.max(decimals, firstDecimal)
       })!
       const isMin = side === Range.Min
       const tickKey = isMin ? 'priceLowerTick' : 'priceUpperTick'
@@ -350,7 +350,7 @@ function ConcentratedCard() {
       }
       return res
     },
-    [toPubString(coin1?.mint), toPubString(coin2?.mint), currentAmmPool?.idString, isFocus1, firstDecimal]
+    [toPubString(coin1?.mint), toPubString(coin2?.mint), currentAmmPool?.idString, isFocus1, firstDecimal, decimals]
   )
 
   const handleClickInDecrease = useCallback(
