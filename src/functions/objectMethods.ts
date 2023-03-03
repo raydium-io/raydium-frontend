@@ -1,4 +1,5 @@
 import { AnyObj } from '@/types/constants'
+import { unifyItem } from './arrayMethods'
 
 import { isFunction } from './judgers/dateType'
 
@@ -141,4 +142,41 @@ export function replaceValue<T extends AnyObj, K extends keyof T, V extends T[K]
   const entries = Object.entries(obj)
   const newEntries = entries.map(([key, value]) => (findValue(value, key as any) ? [key, replaceValue] : [key, value]))
   return Object.fromEntries(newEntries)
+}
+
+/**
+ * @example
+ * _mergeObjects([{a: 3, b: 2}, {a: 1, b: 3}], (key, v1, v2) => (key === 'a') ? [v1, v2] : v2) // {a: [3,1], b: 3}
+ */
+export function mergeObjectsWithConfigs<T extends object>(
+  objs: T[],
+  transformer: (payloads: { key: string | symbol; valueA: any; valueB: any }) => any
+): T {
+  if (objs.length === 0) return {} as T
+  if (objs.length === 1) return objs[0]!
+
+  return Object.defineProperties(
+    {},
+    getObjKey(objs).reduce((acc, key) => {
+      acc[key] = {
+        enumerable: true,
+        get() {
+          return getValue(objs, key, transformer)
+        }
+      }
+      return acc
+    }, {} as PropertyDescriptorMap)
+  ) as T
+}
+
+function getValue<T extends object>(
+  objs: T[],
+  key: string | symbol,
+  valueMatchRule: (payloads: { key: string | symbol; valueA: any; valueB: any }) => any
+) {
+  return objs.map((o) => o[key]).reduce((valueA, valueB) => valueMatchRule({ key, valueA, valueB }), undefined)
+}
+
+function getObjKey<T extends object>(objs: T[]) {
+  return unifyItem(objs.flatMap((obj) => Reflect.ownKeys(obj)))
 }

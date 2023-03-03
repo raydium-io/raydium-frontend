@@ -1,5 +1,6 @@
 import listToMap from './format/listToMap'
 import { isArray, isObject, isSet } from './judgers/dateType'
+import { mergeObjectsWithConfigs } from './objectMethods'
 
 export function hasSameItems<T>(arr1: T[], arr2: any[]): arr2 is T[] {
   if (arr1.length !== arr2.length) return false
@@ -55,17 +56,50 @@ export function unifyByKey<T>(objList: T[], getKey: (item: T) => string): T[] {
 /**
  * add old data as default
  */
-export function mergeWithOld<T extends any[]>(newData: T, oldData: T, getUniqueArrKey?: (item: T[number]) => string): T
+export function mergeWithOld<T extends any[]>(
+  newData: T,
+  oldData: T,
+  options?: {
+    uniqueKey?: (item: T[number]) => string
+    sameKeyMergeRule?: (newItem: T[number], oldItem: T[number]) => T[number]
+  }
+): T
 export function mergeWithOld<T extends Set<any>>(newData: T, oldData: T): T
-export function mergeWithOld<T extends Record<keyof any, any>>(newData: T, oldData: Partial<T>): T
-export function mergeWithOld<T>(newData: T, oldData, getUniqueArrKey?: (item: T) => string) {
+export function mergeWithOld<T extends Record<keyof any, any>>(
+  newData: T,
+  oldData: Partial<T>,
+  options?: {
+    sameKeyMergeRule?: (newItem: T[number], oldItem: T[number]) => T[number]
+  }
+): T
+export function mergeWithOld<T>(
+  newData,
+  oldData,
+  options?: {
+    uniqueKey?: (item: any) => string
+    sameKeyMergeRule?: (newItem: any, oldItem: any) => any
+  }
+) {
   if (isSet(newData) && isSet(oldData)) {
     return new Set([...oldData, ...newData])
   }
   if (isArray(newData) && isArray(oldData)) {
-    return getUniqueArrKey ? unifyByKey([...oldData, ...newData], getUniqueArrKey) : unifyItem([...oldData, ...newData])
+    return options?.uniqueKey
+      ? options.sameKeyMergeRule
+        ? Object.values(
+            mergeObjectsWithConfigs(
+              [listToMap(oldData, options.uniqueKey), listToMap(newData, options.uniqueKey)],
+              ({ valueA, valueB }) => (valueA && valueB ? options.sameKeyMergeRule!(valueA, valueB) : valueA ?? valueB)
+            )
+          )
+        : unifyByKey([...oldData, ...newData], options.uniqueKey)
+      : unifyItem([...oldData, ...newData])
   }
   if (isObject(newData) && isObject(oldData)) {
-    return { ...oldData, ...newData }
+    return options?.sameKeyMergeRule
+      ? mergeObjectsWithConfigs([oldData, newData], ({ valueA, valueB }) =>
+          valueA && valueB ? options.sameKeyMergeRule!(valueA, valueB) : valueA ?? valueB
+        )
+      : { ...oldData, ...newData }
   }
 }
