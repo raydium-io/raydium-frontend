@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -41,6 +41,7 @@ import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem } from '@/functions/arrayMethods'
 import { capitalize } from '@/functions/changeCase'
+import { getLocalItem } from '@/functions/dom/jStorage'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
@@ -53,6 +54,7 @@ import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
+import { useDebounce } from '@/hooks/useDebounce'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 
@@ -282,24 +284,7 @@ function PoolTimeBasisSelectorBox({
       defaultValue={timeBasis}
       prefix="Time Basis:"
       onChange={(newSortKey) => {
-        usePools.setState({ timeBasis: newSortKey ?? '7D' })
-        if (sortConfigs && setSortConfig) {
-          let key = ''
-          if (sortConfigs.key.includes('fee')) {
-            key = 'fee' + newSortKey?.toLowerCase()
-          } else if (sortConfigs.key.includes('volume')) {
-            key = 'volume' + newSortKey?.toLowerCase()
-          } else if (sortConfigs.key.includes('apr')) {
-            key = 'apr' + newSortKey?.toLowerCase()
-          }
-          if (key) {
-            setSortConfig({
-              key, // use new key
-              sortCompare: [(i) => i[key], (i) => i[key]], // push duplicate, bcz current algorithm choose array.slice(1) as the compareFactor
-              mode: sortConfigs.mode // keep the same mode
-            })
-          }
-        }
+        usePools.setState({ timeBasis: newSortKey ?? '24H' })
       }}
     />
   )
@@ -397,6 +382,9 @@ function PoolCard() {
 
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = usePoolFavoriteIds()
+  const [freezeSort, setFreezeSort] = useState(false) // if true, means it's a time basis changing, do not re-render the latest sorted data, use old sorting
+  const prevTimeBasis = useRef(getLocalItem('ui-time-basis'))
+  const [sorted, setSortedData] = useState<(JsonPairItemInfo | HydratedPairItemInfo)[] | undefined>(undefined)
 
   const hasHydratedInfoLoaded = hydratedInfos.length > 0
   const dataSource = useMemo(
@@ -443,7 +431,7 @@ function PoolCard() {
   )
 
   const {
-    sortedData,
+    sortedData: tempSortedData,
     setConfig: setSortConfig,
     sortConfig,
     clearSortConfig
@@ -455,6 +443,29 @@ function PoolCard() {
       sortModeQueue: ['decrease', 'increase', 'none']
     }
   })
+
+  useEffect(() => {
+    const timeBasisLocalStorage = getLocalItem('ui-time-basis')
+
+    if (prevTimeBasis.current !== timeBasisLocalStorage) {
+      prevTimeBasis.current = timeBasis
+      setFreezeSort(true)
+      setSortConfig({
+        key: '',
+        sortCompare: [],
+        mode: 'freeze' // is a time basis changing, use old sorting, freeze the current order
+      })
+    }
+  }, [timeBasis, setSortConfig])
+
+  const prepareSortedData = useDebounce(
+    () => {
+      !freezeSort && tempSortedData && setSortedData(tempSortedData)
+    },
+    { debouncedOptions: { delay: 300 } }
+  )
+
+  useEffect(prepareSortedData, [tempSortedData, freezeSort])
 
   const TableHeaderBlock = useMemo(
     () => (
@@ -491,6 +502,7 @@ function PoolCard() {
           <Row
             className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer"
             onClick={() => {
+              setFreezeSort(false)
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
@@ -517,6 +529,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
+            setFreezeSort(false)
             setSortConfig({ key: 'liquidity', sortCompare: (i) => i.liquidity })
           }}
         >
@@ -538,6 +551,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
+            setFreezeSort(false)
             const key = timeBasis === '24H' ? 'volume24h' : timeBasis === '7D' ? 'volume7d' : 'volume30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
           }}
@@ -560,6 +574,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
+            setFreezeSort(false)
             const key = timeBasis === '24H' ? 'fee24h' : timeBasis === '7D' ? 'fee7d' : 'fee30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
           }}
@@ -582,6 +597,7 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
+            setFreezeSort(false)
             const key = timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
           }}
@@ -658,20 +674,28 @@ function PoolCard() {
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && TableHeaderBlock}
-      <PoolCardDatabaseBody sortedData={sortedData} />
+      <PoolCardDatabaseBody sortedItems={sorted} searchedItemsLength={searched.length} />
     </CyberpunkStyleCard>
   )
 }
 
-function PoolCardDatabaseBody({ sortedData }: { sortedData: (JsonPairItemInfo | HydratedPairItemInfo)[] }) {
+function PoolCardDatabaseBody({
+  sortedItems,
+  searchedItemsLength
+}: {
+  sortedItems: (JsonPairItemInfo | HydratedPairItemInfo)[] | undefined
+  searchedItemsLength: number
+}) {
   const jsonInfos = usePools((s) => s.jsonInfos)
   const hydratedInfos = usePools((s) => s.hydratedInfos)
   const loading = jsonInfos.length == 0 && hydratedInfos.length === 0
   const expandedPoolIds = usePools((s) => s.expandedPoolIds)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
-  return sortedData.length ? (
+  return !loading && searchedItemsLength === 0 ? (
+    <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
+  ) : sortedItems && sortedItems.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
-      {sortedData.map((info) => (
+      {sortedItems.map((info) => (
         <List.Item key={info.lpMint}>
           <Collapse
             open={expandedPoolIds.has(info.ammId)}
@@ -703,7 +727,7 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: (JsonPairItemInfo | 
     </List>
   ) : (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">
-      {loading ? <LoadingCircle /> : '(No results found)'}
+      <LoadingCircle />
     </div>
   )
 }
