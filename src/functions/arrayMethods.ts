@@ -22,6 +22,19 @@ export function addItem(arr, item) {
   }
 }
 
+export function addItems<T, U>(arr: T[], items: U[]): (T | U)[]
+export function addItems<T, U>(set: Set<T>, items: Set<U>): Set<T | U>
+export function addItems(arr, items) {
+  if (isArray(arr)) {
+    return [...arr, ...items]
+  }
+  // Set
+  if (isSet(arr)) {
+    const newSet = new Set([...arr, ...items])
+    return newSet
+  }
+}
+
 export function removeItem<T>(arr: T[], item: T): T[]
 export function removeItem<T>(set: Set<T>, item: T): Set<T>
 export function removeItem(arr, item) {
