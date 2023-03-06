@@ -30,5 +30,5 @@ export function mergeToken(
       return oldTokenA[k] !== vB
     })
   )
-  return Object.assign(oldTokenA, diffInfo)
+  return Object.assign({}, oldTokenA, diffInfo)
 }

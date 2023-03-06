@@ -31,6 +31,7 @@ export default async function jFetch<Shape = any>(
   input: RequestInfo,
   options?: JFetchOptions
 ): Promise<Shape | undefined> {
+  // if (input === 'https://api.raydium.io/v2/sdk/liquidity/mainnet.json') return new Promise((r) => {})
   const rawText = await tryFetch(input, options)
   if (!rawText) return undefined
 
