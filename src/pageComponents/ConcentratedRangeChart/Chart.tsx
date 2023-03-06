@@ -1,7 +1,6 @@
 import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
 import { TimeBasis } from '@/application/concentrated/useConcentrated'
 import Icon from '@/components/Icon'
-import Button from '@/components/Button'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 import { formatDecimal as _formatDecimal } from '@/functions/numberish/formatDecimal'
 import { shakeZero } from '@/functions/numberish/shakeZero'
@@ -793,19 +792,21 @@ export default forwardRef(function Chart(props: Props, ref) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-      <div className="flex justify-between flex-wrap gap-2">
-        {enableRates.map((r) => (
-          <div
-            key={r}
-            className={`whitespace-nowrap mb-3 text-xs text-center border flex-1 ${
-              r === rate ? 'border-[#ABC4FF] bg-[#141041]' : 'border-[#36427D] opacity-50'
-            } rounded-lg py-1 px-2 cursor-pointer`}
-            onClick={() => onClickPercent(r)}
-          >
-            ± {r * 100}%
-          </div>
-        ))}
-      </div>
+      {showCurrentPriceOnly ? null : (
+        <div className="flex justify-between flex-wrap gap-2">
+          {enableRates.map((r) => (
+            <div
+              key={r}
+              className={`whitespace-nowrap mb-3 text-xs text-center border flex-1 ${
+                r === rate ? 'border-[#ABC4FF] bg-[#141041]' : 'border-[#36427D] opacity-50'
+              } rounded-lg py-1 px-2 cursor-pointer`}
+              onClick={() => onClickPercent(r)}
+            >
+              ± {r * 100}%
+            </div>
+          ))}
+        </div>
+      )}
       {!hideRangeInput && (
         <PriceRangeInput
           decimals={Math.max(8, decimals + 2)}
