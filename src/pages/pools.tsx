@@ -439,7 +439,7 @@ function PoolCard() {
   } = useSort(searched, {
     initConfig: {
       key: 'volume24h',
-      mode: prevTimeBasis.current === '24H' ? 'decrease' : 'none',
+      mode: prevTimeBasis.current === '24H' || !prevTimeBasis.current ? 'decrease' : 'none',
       sortCompare: (i) => i['volume24h'],
       sortModeQueue: ['decrease', 'increase', 'none']
     }
