@@ -33,11 +33,11 @@
     "bn.js": "^5.2.1"
   },
   "dependencies": {
-    "@solana/spl-token": "^0.3.6",
     "@headlessui/react": "1.7.4",
     "@heroicons/react": "^2.0.13",
     "@raydium-io/raydium-sdk": "^1.2.0-beta.7",
     "@sentry/nextjs": "^7.22.0",
+    "@solana/spl-token": "^0.3.6",
     "@solana/wallet-adapter-base": "^0.9.20",
     "@solana/wallet-adapter-react": "^0.15.28",
     "@solana/wallet-adapter-react-ui": "^0.9.27",

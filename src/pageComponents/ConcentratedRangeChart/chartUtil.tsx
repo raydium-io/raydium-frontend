@@ -89,7 +89,7 @@ export const getLabel =
           dominantBaseline="middle"
         >
           {percent && percent > 0 ? '+' : ''}
-          {percent?.toFixed(0)}%
+          {percent ? `${Math.ceil(Number(percent.toFixed(2)))}%` : ''}
         </text>
         <rect
           x={props.viewBox.x - (side === Range.Min ? 12 : 0)}
