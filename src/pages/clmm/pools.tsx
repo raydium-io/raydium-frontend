@@ -552,11 +552,11 @@ function PoolCard() {
 
     if (prevTimeBasis.current !== timeBasisLocalStorage) {
       prevTimeBasis.current = timeBasis
-      setFreezeSort(true)
+      setFreezeSort(true) // for not re-render, use current order
       setSortConfig({
         key: '',
         sortCompare: [],
-        mode: 'freeze' // is a time basis changing, use old sorting, freeze the current order
+        mode: 'none' // for put out the sort icon's light
       })
     }
   }, [timeBasis, setSortConfig])

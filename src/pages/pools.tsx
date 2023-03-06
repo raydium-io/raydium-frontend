@@ -439,39 +439,22 @@ function PoolCard() {
   } = useSort(searched, {
     initConfig: {
       key: 'volume24h',
-      mode: 'decrease',
+      mode: prevTimeBasis.current === '24H' ? 'decrease' : 'none',
       sortCompare: (i) => i['volume24h'],
       sortModeQueue: ['decrease', 'increase', 'none']
     }
   })
-
-  useOnceEffect(
-    ({ runed }) => {
-      const timeBasisLocalStorage = getLocalItem('ui-time-basis')
-      if (timeBasisLocalStorage && timeBasisLocalStorage !== '24H') {
-        // local storage time basis is not the same as backend data default sorting (24H volume desc), run sort once
-        const key =
-          timeBasisLocalStorage === '24H' ? 'volume24h' : timeBasisLocalStorage === '7D' ? 'volume7d' : 'volume30d'
-        setSortConfig({
-          key,
-          sortCompare: (i) => i[key]
-        })
-      }
-      runed()
-    },
-    [setSortConfig]
-  )
 
   useEffect(() => {
     const timeBasisLocalStorage = getLocalItem('ui-time-basis')
 
     if (prevTimeBasis.current !== timeBasisLocalStorage) {
       prevTimeBasis.current = timeBasis
-      setFreezeSort(true)
+      setFreezeSort(true) // for not re-render, use current order
       setSortConfig({
         key: '',
         sortCompare: [],
-        mode: 'freeze' // is a time basis changing, use old sorting, freeze the current order
+        mode: 'none' // for put out the sort icon's light
       })
     }
   }, [timeBasis, setSortConfig])

@@ -7,7 +7,7 @@ import { isNullish } from '@/functions/judgers/nil'
 import { EnumStr } from '@/types/constants'
 import { ExactPartial, MayArray } from '@/types/generics'
 
-export type SortMode = 'decrease' | 'increase' | 'none' | 'freeze'
+export type SortMode = 'decrease' | 'increase' | 'none'
 
 export type SortModeArr = SortMode[]
 
@@ -68,17 +68,13 @@ export default function useSort<D extends Record<string, any>[]>(
     //   simpleConfig.mode == null && prevConfigs?.[0]?.mode === 'decrease' && prevConfigs?.[0]?.key === simpleConfig.key
     //     ? 'increase'
     //     : 'decrease'
-
-    // if mode is freeze, use previous config, and set the mode to 'none' for hiding sort-arrow icon
-    return simpleConfig && simpleConfig.mode === 'freeze' && prevConfigs
-      ? [{ ...prevConfigs[0], mode: 'none' }]
-      : [
-          {
-            ...simpleConfig,
-            mode,
-            sortModeQueue
-          }
-        ]
+    return [
+      {
+        ...simpleConfig,
+        mode,
+        sortModeQueue
+      }
+    ]
   }
 
   const defaultConfigs = options?.defaultSort ? parseSortConfig(options.defaultSort) : []
