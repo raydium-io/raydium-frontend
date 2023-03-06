@@ -74,6 +74,7 @@ import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import { objectMap } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
+import { toggleSetItem } from '@/functions/setMethods'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
@@ -87,7 +88,6 @@ import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/Remo
 import { Numberish } from '@/types/constants'
 
 import { NewCompensationBanner } from '../pools'
-import { toggleSetItem } from '@/functions/setMethods'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -338,7 +338,7 @@ function PoolLabelBlock({ className }: { className?: string }) {
       <Col>
         <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
         <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
-          Concentrate liquidity for increased captial efficiency.{' '}
+          Concentrate liquidity for increased capital efficiency.{' '}
           <Link
             className="inline-block"
             href="https://docs.raydium.io/raydium/concentrated-liquidity/what-is-concentrated-liquidity"
