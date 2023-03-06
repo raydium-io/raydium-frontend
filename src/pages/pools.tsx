@@ -56,6 +56,7 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
+import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 
 /**
@@ -443,6 +444,23 @@ function PoolCard() {
       sortModeQueue: ['decrease', 'increase', 'none']
     }
   })
+
+  useOnceEffect(
+    ({ runed }) => {
+      const timeBasisLocalStorage = getLocalItem('ui-time-basis')
+      if (timeBasisLocalStorage && timeBasisLocalStorage !== '24H') {
+        // local storage time basis is not the same as backend data default sorting (24H volume desc), run sort once
+        const key =
+          timeBasisLocalStorage === '24H' ? 'volume24h' : timeBasisLocalStorage === '7D' ? 'volume7d' : 'volume30d'
+        setSortConfig({
+          key,
+          sortCompare: (i) => i[key]
+        })
+      }
+      runed()
+    },
+    [setSortConfig]
+  )
 
   useEffect(() => {
     const timeBasisLocalStorage = getLocalItem('ui-time-basis')
