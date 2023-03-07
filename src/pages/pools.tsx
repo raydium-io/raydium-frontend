@@ -3,6 +3,7 @@ import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
+import { usePoolTimeBasisLoader } from '@/application/common/usePoolTimeBasisLoader'
 import { useCompensationMoney } from '@/application/compensation/useCompensation'
 import useCompensationMoneyInfoLoader from '@/application/compensation/useCompensationInfoLoader'
 import useFarms from '@/application/farms/useFarms'
@@ -67,6 +68,8 @@ import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
  */
 export default function PoolsPage() {
   usePoolSummeryInfoLoader()
+  usePoolTimeBasisLoader()
+
   return (
     <PageLayout
       contentButtonPaddingShorter
