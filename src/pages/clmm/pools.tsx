@@ -10,14 +10,10 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo,
-  HydratedConcentratedRewardInfo,
-  UserPositionAccount
+  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -475,7 +471,6 @@ function PoolCard() {
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const searchText = useConcentrated((s) => s.searchText)
   const timeBasis = useConcentrated((s) => s.timeBasis)
-  const prevTimeBasis = useRef(getLocalItem('ui-time-basis'))
   const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
   const currentTab = useConcentrated((s) => s.currentTab)
   const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
@@ -483,7 +478,7 @@ function PoolCard() {
   const owner = useWallet((s) => s.owner)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
-  const [freezeSort, setFreezeSort] = useState(false) // if true, means it's a time basis changing, do not re-render the latest sorted data, use old sorting
+  const [isSortLightOn, setIsSortLightOn] = useState(false)
   const [sorted, setSortedData] = useState<HydratedConcentratedInfo[] | undefined>(undefined)
   const dataSource = useMemo(
     () =>
@@ -548,20 +543,6 @@ function PoolCard() {
   )
 
   useEffect(() => {
-    const timeBasisLocalStorage = getLocalItem('ui-time-basis')
-
-    if (prevTimeBasis.current !== timeBasisLocalStorage) {
-      prevTimeBasis.current = timeBasis
-      setFreezeSort(true) // for not re-render, use current order
-      setSortConfig({
-        key: '',
-        sortCompare: [],
-        mode: 'none' // for put out the sort icon's light
-      })
-    }
-  }, [timeBasis, setSortConfig])
-
-  useEffect(() => {
     if (sortConfig) {
       // if sortConfig has value and have been change, save the state for routeBack usage
       useConcentrated.setState({ poolSortConfig: { ...sortConfig } })
@@ -580,14 +561,22 @@ function PoolCard() {
     [poolSortConfig]
   )
 
+  useEffect(() => {
+    if (!sortConfig || sortConfig.key === 'name' || sortConfig.key === 'liquidity') {
+      setIsSortLightOn(true)
+    } else {
+      setIsSortLightOn(sortConfig.key.includes(timeBasis.toLowerCase()))
+    }
+  }, [sortConfig, timeBasis])
+
   const prepareSortedData = useDebounce(
     () => {
-      !freezeSort && tempSortedData && setSortedData(tempSortedData)
+      tempSortedData && setSortedData(tempSortedData)
     },
     { debouncedOptions: { delay: 300 } }
   )
 
-  useEffect(prepareSortedData, [tempSortedData, freezeSort])
+  useEffect(prepareSortedData, [tempSortedData])
 
   const TableHeaderBlock = useMemo(
     () => (
@@ -624,7 +613,6 @@ function PoolCard() {
           <Row
             className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer"
             onClick={() => {
-              setFreezeSort(false)
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
@@ -637,7 +625,7 @@ function PoolCard() {
               className="ml-1"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'name' && sortConfig.mode !== 'none'
+                sortConfig?.key === 'name' && sortConfig.mode !== 'none' && isSortLightOn
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
                     : '/icons/msic-sort-up.svg'
@@ -651,7 +639,6 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
-            setFreezeSort(false)
             setSortConfig({ key: 'liquidity', sortCompare: (i) => i.tvl })
           }}
         >
@@ -660,7 +647,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key === 'liquidity' && sortConfig.mode !== 'none'
+              sortConfig?.key === 'liquidity' && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -673,7 +660,6 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
-            setFreezeSort(false)
             const key =
               timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
@@ -685,7 +671,8 @@ function PoolCard() {
             size="sm"
             iconSrc={
               (sortConfig?.key === 'volume24h' || sortConfig?.key === 'volume7d' || sortConfig?.key === 'volume30d') &&
-              sortConfig.mode !== 'none'
+              sortConfig.mode !== 'none' &&
+              isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -698,7 +685,6 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setFreezeSort(false)
             const key =
               timeBasis === TimeBasis.DAY
                 ? 'volumeFee24h'
@@ -716,7 +702,8 @@ function PoolCard() {
               (sortConfig?.key === 'volumeFee24h' ||
                 sortConfig?.key === 'volumeFee7d' ||
                 sortConfig?.key === 'volumeFee30d') &&
-              sortConfig.mode !== 'none'
+              sortConfig.mode !== 'none' &&
+              isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -744,7 +731,6 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect  overflow-hidden"
           onClick={() => {
-            setFreezeSort(false)
             setSortConfig({
               key: 'apr',
               sortCompare: (i) =>
@@ -764,7 +750,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key.startsWith('apr') && sortConfig.mode !== 'none'
+              sortConfig?.key.startsWith('apr') && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -776,7 +762,7 @@ function PoolCard() {
         <PoolRefreshCircleBlock className="pr-8 self-center" />
       </Row>
     ),
-    [sortConfig, timeBasis, aprCalcMode]
+    [sortConfig, timeBasis, aprCalcMode, isSortLightOn]
   )
 
   // NOTE: filter widgets
