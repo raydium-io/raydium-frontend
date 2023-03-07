@@ -38,6 +38,7 @@ export default function useSort<D extends Record<string, any>[]>(
   sourceDataList: D,
   options?: {
     defaultSort?: SimplifiedSortConfig<D>
+    initConfig?: SortConfigItem<D> // for sourceDataList has been sorted, pass in the init sorting rule
     // /** always at sort bottom */
     // sortBottom?: MayArray<(item: D[number]) => any>
   }
@@ -60,10 +61,7 @@ export default function useSort<D extends Record<string, any>[]>(
     const userInputSortConfigMode = simpleConfig.mode
     const prevSortConfigMode = prevIsSameKeyAsInput ? prevConfigs?.[prevConfigs.length - 1]?.mode : undefined
     const fromQueued =
-      prevSortConfigMode &&
-      sortModeQueue[
-        (sortModeQueue.indexOf(prevSortConfigMode) + (simpleConfig.useCurrentMode ? 0 : 1)) % sortModeQueue.length
-      ]
+      prevSortConfigMode && sortModeQueue[(sortModeQueue.indexOf(prevSortConfigMode) + 1) % sortModeQueue.length]
 
     const mode = userInputSortConfigMode ?? (prevIsSameKeyAsInput ? fromQueued ?? defaultSortMode : defaultSortMode)
     // const mode =
@@ -82,7 +80,9 @@ export default function useSort<D extends Record<string, any>[]>(
   const defaultConfigs = options?.defaultSort ? parseSortConfig(options.defaultSort) : []
 
   // currently only consider the first config item
-  const [sortConfigs, setConfigs] = useState<SortConfigItem<D>[]>(defaultConfigs)
+  const [sortConfigs, setConfigs] = useState<SortConfigItem<D>[]>(
+    options?.initConfig ? [options?.initConfig] : defaultConfigs
+  )
 
   const appendConfig = useCallback(
     // 🚧 not imply yet!!!
@@ -112,6 +112,7 @@ export default function useSort<D extends Record<string, any>[]>(
     let configs = sortConfigs
     if (!sortConfigs.length) configs = defaultConfigs
     if (sortConfigs[0]?.mode === 'none') configs = defaultConfigs
+    if (sortConfigs[0] === options?.initConfig) return sourceDataList
     const firstConfig = configs[0] // temp only respect first sortConfigs in queue
     const { mode, sortCompare } = firstConfig ?? {} // temp only respect first sortConfigs in queue
     return [...sourceDataList].sort((a, b) => {

@@ -1,4 +1,5 @@
 import { Price } from '@raydium-io/raydium-sdk'
+
 import create from 'zustand'
 
 import useLocalStorageItem from '@/hooks/useLocalStorage'
@@ -38,7 +39,7 @@ export const usePools = create<PoolsStore>((set, get) => ({
 
   /** UI States */
   searchText: '',
-  timeBasis: '7D',
+  timeBasis: '24H',
   currentTab: 'All',
   onlySelfPools: false,
   expandedPoolIds: new Set(),

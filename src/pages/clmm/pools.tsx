@@ -1,23 +1,20 @@
-import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 
-import { CurrencyAmount, option } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
+import { usePoolTimeBasisLoader } from '@/application/common/usePoolTimeBasisLoader'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo,
-  HydratedConcentratedRewardInfo,
-  UserPositionAccount
+  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -57,9 +54,8 @@ import { addItem, removeItem, shakeFalsyItem } from '@/functions/arrayMethods'
 import { getDate, toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { getCountDownTime } from '@/functions/date/parseDuration'
-import { debounce } from '@/functions/debounce'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
-import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
+import { getLocalItem } from '@/functions/dom/jStorage'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
 import { shrinkAccount } from '@/functions/format/shrinkAccount'
@@ -70,14 +66,12 @@ import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
-import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import { objectMap } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import { useDebounce } from '@/hooks/useDebounce'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { AprChart } from '@/pageComponents/Concentrated/AprChart'
@@ -93,6 +87,7 @@ export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
   useConcentratedPoolUrlParser()
   useConcentratedAmountCalculator()
+  usePoolTimeBasisLoader()
 
   return (
     <PageLayout
@@ -368,7 +363,7 @@ function PoolTimeBasisSelectorBox({ className }: { className?: string }) {
       defaultValue={timeBasis}
       prefix="Time Basis:"
       onChange={(newSortKey) => {
-        useConcentrated.setState({ timeBasis: newSortKey ?? TimeBasis.WEEK })
+        useConcentrated.setState({ timeBasis: newSortKey ?? TimeBasis.DAY })
       }}
     />
   )
@@ -485,7 +480,7 @@ function PoolCard() {
   const owner = useWallet((s) => s.owner)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
-  const [currentSortKey, setCurrentSortKey] = useState<string | undefined>(undefined) // only care about key relative to time basis (volume, fees, apr)
+  const [isSortLightOn, setIsSortLightOn] = useState(false)
   const [sorted, setSortedData] = useState<HydratedConcentratedInfo[] | undefined>(undefined)
   const dataSource = useMemo(
     () =>
@@ -549,36 +544,6 @@ function PoolCard() {
     [favouriteIds]
   )
 
-  const timeBasisRelativeSortConfig = useCallback(
-    (key: string) => {
-      let sortKey = ''
-      let sortCompare
-      if (key === 'Volume') {
-        sortKey = timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
-        sortCompare = (i) => i[sortKey]
-      } else if (key === 'Fees') {
-        sortKey =
-          timeBasis === TimeBasis.DAY ? 'volumeFee24h' : timeBasis === TimeBasis.WEEK ? 'volumeFee7d' : 'volumeFee30d'
-        sortCompare = (i) => i[sortKey]
-      } else {
-        sortKey = 'apr'
-        sortCompare = (i) =>
-          i.state[timeBasis === TimeBasis.DAY ? 'day' : timeBasis === TimeBasis.WEEK ? 'week' : 'month'].apr
-      }
-
-      return { sortKey, sortCompare }
-    },
-    [timeBasis]
-  )
-
-  useEffect(() => {
-    if (currentSortKey) {
-      /* eslint-disable */
-      const { sortKey, sortCompare } = timeBasisRelativeSortConfig(currentSortKey)
-      setSortConfig({ key: sortKey, sortCompare: sortCompare, useCurrentMode: true })
-    }
-  }, [currentSortKey, timeBasisRelativeSortConfig, setSortConfig])
-
   useEffect(() => {
     if (sortConfig) {
       // if sortConfig has value and have been change, save the state for routeBack usage
@@ -589,14 +554,6 @@ function PoolCard() {
   useOnceEffect(
     ({ runed }) => {
       if (poolSortConfig) {
-        // when routeBack, poolSortConfig should have value, set the sortConfig and CurrentSortKey (for timeBasis relative key)
-        poolSortConfig.key === 'apr'
-          ? setCurrentSortKey(poolSortConfig.key)
-          : poolSortConfig.key.includes('volumeFee')
-          ? setCurrentSortKey('Fees')
-          : poolSortConfig.key.includes('volume')
-          ? setCurrentSortKey('Volume')
-          : setCurrentSortKey(undefined)
         setSortConfig({
           ...poolSortConfig
         })
@@ -605,6 +562,14 @@ function PoolCard() {
     },
     [poolSortConfig]
   )
+
+  useEffect(() => {
+    if (!sortConfig || sortConfig.key === 'name' || sortConfig.key === 'liquidity') {
+      setIsSortLightOn(true)
+    } else {
+      setIsSortLightOn(sortConfig.key.includes(timeBasis.toLowerCase()))
+    }
+  }, [sortConfig, timeBasis])
 
   const prepareSortedData = useDebounce(
     () => {
@@ -650,7 +615,6 @@ function PoolCard() {
           <Row
             className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer"
             onClick={() => {
-              setCurrentSortKey(undefined)
               setSortConfig({
                 key: 'name',
                 sortModeQueue: ['increase', 'decrease', 'none'],
@@ -663,7 +627,7 @@ function PoolCard() {
               className="ml-1"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'name' && sortConfig.mode !== 'none'
+                sortConfig?.key === 'name' && sortConfig.mode !== 'none' && isSortLightOn
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
                     : '/icons/msic-sort-up.svg'
@@ -677,7 +641,6 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
-            setCurrentSortKey(undefined)
             setSortConfig({ key: 'liquidity', sortCompare: (i) => i.tvl })
           }}
         >
@@ -686,7 +649,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key === 'liquidity' && sortConfig.mode !== 'none'
+              sortConfig?.key === 'liquidity' && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -699,7 +662,6 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden"
           onClick={() => {
-            setCurrentSortKey('Volume')
             const key =
               timeBasis === TimeBasis.DAY ? 'volume24h' : timeBasis === TimeBasis.WEEK ? 'volume7d' : 'volume30d'
             setSortConfig({ key, sortCompare: (i) => i[key] })
@@ -711,7 +673,8 @@ function PoolCard() {
             size="sm"
             iconSrc={
               (sortConfig?.key === 'volume24h' || sortConfig?.key === 'volume7d' || sortConfig?.key === 'volume30d') &&
-              sortConfig.mode !== 'none'
+              sortConfig.mode !== 'none' &&
+              isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -724,7 +687,6 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect"
           onClick={() => {
-            setCurrentSortKey('Fees')
             const key =
               timeBasis === TimeBasis.DAY
                 ? 'volumeFee24h'
@@ -742,7 +704,8 @@ function PoolCard() {
               (sortConfig?.key === 'volumeFee24h' ||
                 sortConfig?.key === 'volumeFee7d' ||
                 sortConfig?.key === 'volumeFee30d') &&
-              sortConfig.mode !== 'none'
+              sortConfig.mode !== 'none' &&
+              isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -770,7 +733,6 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect  overflow-hidden"
           onClick={() => {
-            setCurrentSortKey('apr')
             setSortConfig({
               key: 'apr',
               sortCompare: (i) =>
@@ -790,7 +752,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key.startsWith('apr') && sortConfig.mode !== 'none'
+              sortConfig?.key.startsWith('apr') && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -802,7 +764,7 @@ function PoolCard() {
         <PoolRefreshCircleBlock className="pr-8 self-center" />
       </Row>
     ),
-    [sortConfig, timeBasis, aprCalcMode]
+    [sortConfig, timeBasis, aprCalcMode, isSortLightOn]
   )
 
   // NOTE: filter widgets

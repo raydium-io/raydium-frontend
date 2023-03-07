@@ -1,8 +1,9 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
+import { usePoolTimeBasisLoader } from '@/application/common/usePoolTimeBasisLoader'
 import { useCompensationMoney } from '@/application/compensation/useCompensation'
 import useCompensationMoneyInfoLoader from '@/application/compensation/useCompensationInfoLoader'
 import useFarms from '@/application/farms/useFarms'
@@ -11,7 +12,7 @@ import { HydratedPairItemInfo, JsonPairItemInfo } from '@/application/pools/type
 import { usePoolFavoriteIds, usePools } from '@/application/pools/usePools'
 import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoader'
 import { routeTo } from '@/application/routeTools'
-import { LpToken, SplToken } from '@/application/token/type'
+import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import AutoBox from '@/components/AutoBox'
@@ -41,7 +42,7 @@ import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem } from '@/functions/arrayMethods'
 import { capitalize } from '@/functions/changeCase'
-import { autoSuffixNumberish } from '@/functions/format/autoSuffixNumberish'
+import { getLocalItem } from '@/functions/dom/jStorage'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
@@ -50,13 +51,14 @@ import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
-import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
-import useLocalStorageItem from '@/hooks/useLocalStorage'
-import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 import { toggleSetItem } from '@/functions/setMethods'
+import { useDebounce } from '@/hooks/useDebounce'
+import useLocalStorageItem from '@/hooks/useLocalStorage'
+import useOnceEffect from '@/hooks/useOnceEffect'
+import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 
 /**
  * store:
@@ -66,6 +68,8 @@ import { toggleSetItem } from '@/functions/setMethods'
  */
 export default function PoolsPage() {
   usePoolSummeryInfoLoader()
+  usePoolTimeBasisLoader()
+
   return (
     <PageLayout
       contentButtonPaddingShorter
@@ -284,24 +288,7 @@ function PoolTimeBasisSelectorBox({
       defaultValue={timeBasis}
       prefix="Time Basis:"
       onChange={(newSortKey) => {
-        usePools.setState({ timeBasis: newSortKey ?? '7D' })
-        if (sortConfigs && setSortConfig) {
-          let key = ''
-          if (sortConfigs.key.includes('fee')) {
-            key = 'fee' + newSortKey?.toLowerCase()
-          } else if (sortConfigs.key.includes('volume')) {
-            key = 'volume' + newSortKey?.toLowerCase()
-          } else if (sortConfigs.key.includes('apr')) {
-            key = 'apr' + newSortKey?.toLowerCase()
-          }
-          if (key) {
-            setSortConfig({
-              key, // use new key
-              sortCompare: [(i) => i[key], (i) => i[key]], // push duplicate, bcz current algorithm choose array.slice(1) as the compareFactor
-              mode: sortConfigs.mode // keep the same mode
-            })
-          }
-        }
+        usePools.setState({ timeBasis: newSortKey ?? '24H' })
       }}
     />
   )
@@ -399,6 +386,8 @@ function PoolCard() {
 
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = usePoolFavoriteIds()
+  const [isSortLightOn, setIsSortLightOn] = useState(false)
+  const [sorted, setSortedData] = useState<(JsonPairItemInfo | HydratedPairItemInfo)[] | undefined>(undefined)
 
   const hasHydratedInfoLoaded = hydratedInfos.length > 0
   const dataSource = useMemo(
@@ -444,7 +433,36 @@ function PoolCard() {
     )
   )
 
-  const { sortedData, setConfig: setSortConfig, sortConfig, clearSortConfig } = useSort(searched)
+  const {
+    sortedData: tempSortedData,
+    setConfig: setSortConfig,
+    sortConfig,
+    clearSortConfig
+  } = useSort(searched, {
+    initConfig: {
+      key: 'volume24h',
+      mode: 'decrease',
+      sortCompare: (i) => i['volume24h'],
+      sortModeQueue: ['decrease', 'increase', 'none']
+    }
+  })
+
+  useEffect(() => {
+    if (!sortConfig || sortConfig.key === 'name' || sortConfig.key === 'liquidity') {
+      setIsSortLightOn(true)
+    } else {
+      setIsSortLightOn(sortConfig.key.includes(timeBasis.toLowerCase()))
+    }
+  }, [sortConfig, timeBasis])
+
+  const prepareSortedData = useDebounce(
+    () => {
+      tempSortedData && setSortedData(tempSortedData)
+    },
+    { debouncedOptions: { delay: 300 } }
+  )
+
+  useEffect(prepareSortedData, [tempSortedData])
 
   const TableHeaderBlock = useMemo(
     () => (
@@ -493,7 +511,7 @@ function PoolCard() {
               className="ml-1"
               size="sm"
               iconSrc={
-                sortConfig?.key === 'name' && sortConfig.mode !== 'none'
+                sortConfig?.key === 'name' && sortConfig.mode !== 'none' && isSortLightOn
                   ? sortConfig?.mode === 'decrease'
                     ? '/icons/msic-sort-down.svg'
                     : '/icons/msic-sort-up.svg'
@@ -515,7 +533,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key === 'liquidity' && sortConfig.mode !== 'none'
+              sortConfig?.key === 'liquidity' && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -537,7 +555,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key.startsWith('volume') && sortConfig.mode !== 'none'
+              sortConfig?.key.startsWith('volume') && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -559,7 +577,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key.startsWith('fee') && sortConfig.mode !== 'none'
+              sortConfig?.key.startsWith('fee') && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -587,7 +605,7 @@ function PoolCard() {
             className="ml-1"
             size="sm"
             iconSrc={
-              sortConfig?.key.startsWith('apr') && sortConfig.mode !== 'none'
+              sortConfig?.key.startsWith('apr') && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
                   ? '/icons/msic-sort-down.svg'
                   : '/icons/msic-sort-up.svg'
@@ -599,7 +617,7 @@ function PoolCard() {
         <PoolRefreshCircleBlock className="pr-8 self-center" />
       </Row>
     ),
-    [sortConfig, timeBasis]
+    [sortConfig, timeBasis, isSortLightOn]
   )
 
   // NOTE: filter widgets
@@ -648,20 +666,28 @@ function PoolCard() {
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && TableHeaderBlock}
-      <PoolCardDatabaseBody sortedData={sortedData} />
+      <PoolCardDatabaseBody sortedItems={sorted} searchedItemsLength={searched.length} />
     </CyberpunkStyleCard>
   )
 }
 
-function PoolCardDatabaseBody({ sortedData }: { sortedData: (JsonPairItemInfo | HydratedPairItemInfo)[] }) {
+function PoolCardDatabaseBody({
+  sortedItems,
+  searchedItemsLength
+}: {
+  sortedItems: (JsonPairItemInfo | HydratedPairItemInfo)[] | undefined
+  searchedItemsLength: number
+}) {
   const jsonInfos = usePools((s) => s.jsonInfos)
   const hydratedInfos = usePools((s) => s.hydratedInfos)
   const loading = jsonInfos.length == 0 && hydratedInfos.length === 0
   const expandedPoolIds = usePools((s) => s.expandedPoolIds)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
-  return sortedData.length ? (
+  return !loading && searchedItemsLength === 0 ? (
+    <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
+  ) : sortedItems && sortedItems.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
-      {sortedData.map((info) => (
+      {sortedItems.map((info) => (
         <List.Item key={info.lpMint}>
           <Collapse
             open={expandedPoolIds.has(info.ammId)}
@@ -693,7 +719,7 @@ function PoolCardDatabaseBody({ sortedData }: { sortedData: (JsonPairItemInfo | 
     </List>
   ) : (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">
-      {loading ? <LoadingCircle /> : '(No results found)'}
+      <LoadingCircle />
     </div>
   )
 }
@@ -711,8 +737,6 @@ function PoolCardDatabaseBodyCollapseItemFace({
   onUnFavorite?: (ammId: string) => void
   onStartFavorite?: (ammId: string) => void
 }) {
-  const lpTokens = useToken((s) => s.lpTokens)
-  const lpToken = lpTokens[info.lpMint] as LpToken | undefined
   const isMobile = useAppSettings((s) => s.isMobile)
   const isTablet = useAppSettings((s) => s.isTablet)
   const timeBasis = usePools((s) => s.timeBasis)
@@ -1027,7 +1051,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
                     queryProps: objectShakeFalsy({
                       currentTab: correspondingFarm?.category ? capitalize(correspondingFarm?.category) : undefined,
                       newExpandedItemId: toPubString(correspondingFarm?.id),
-                      searchText: [info.base?.symbol, info.quote?.symbol].join(' ')
+                      searchText: info.lpMint
                     })
                   })
                 }}
