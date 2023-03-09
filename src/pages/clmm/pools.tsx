@@ -1,6 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 
-import { CurrencyAmount } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, ZERO } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { twMerge } from 'tailwind-merge'
@@ -11,14 +11,10 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo,
-  HydratedConcentratedRewardInfo,
-  UserPositionAccount
+  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -67,7 +63,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { objectMap } from '@/functions/objectMethods'
@@ -265,9 +261,9 @@ function HarvestAll() {
       hydratedAmmPools.some((pool) =>
         pool.userPositionAccount?.find(
           (i) =>
-            isMeaningfulNumber(i.tokenFeeAmountB) ||
-            isMeaningfulNumber(i.tokenFeeAmountA) ||
-            i.rewardInfos.find((reward) => isMeaningfulNumber(reward.penddingReward))
+            gt(i.tokenFeeAmountB, ZERO) ||
+            gt(i.tokenFeeAmountA, ZERO) ||
+            i.rewardInfos.find((reward) => gt(reward.penddingReward, ZERO))
         )
       ),
     [hydratedAmmPools]
