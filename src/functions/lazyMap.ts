@@ -7,7 +7,24 @@ import { isNumber } from './judgers/dateType'
 
 const invokedRecord = new Map<string, (LazyMapSettings<any, any> & { idleId: number })[]>()
 
+// priority queue for lazymap pending tasks
 let invokedPriorityQueue: LazyMapPriority[] = []
+// queue for storing lazymap finished tasks' results
+let finishedQueue: FinishedQueueType[] = []
+// array for storing lazymap waiting-result interval ids
+const waitingIntervalIds: WaitingIntervalIdArray[] = []
+
+// save lazymap task name and their corresponding result
+type FinishedQueueType = {
+  taskName: string
+  result: any[]
+}
+
+// save lazymap task name and their corresponding waiting-result interval id
+type WaitingIntervalIdArray = {
+  taskName: string
+  id: NodeJS.Timer
+}
 
 type LazyMapSettings<T, U> = {
   source: T[]
@@ -37,8 +54,10 @@ type LazyMapPriority = {
   priority: number
 }
 
+// TODO: remove debug console log, if stable
+
 // for whole task
-/**b vcx
+/**
  * like Array's map(), but each loop will check if new task is pushed in todo queue
  * inspired by `window.requestIdleCallback()`
  * @param settings.source arr
@@ -50,16 +69,36 @@ export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
   return new Promise((resolve) => {
     // add new incoming task to priority queue
     addTask(setting.loopTaskName, setting.options?.priority)
+    // cancel all unresolved subtask
+    cancelUnresolvedIdles(setting.loopTaskName)
 
+    // console.info(
+    //   '[lazymap] START WAITING: ',
+    //   setting.loopTaskName,
+    //   'CURRENT WAITING QUEUE:',
+    //   waitingIntervalIds.slice(),
+    //   'CURRENT FINISHED QUEUE: ',
+    //   finishedQueue.slice()
+    // )
+    // start waiting for result
+    resolve(Promise.resolve(waitTask(setting.loopTaskName)))
+
+    // fire idle callback to handle lazyMapCoreMap
     const idleId = requestIdleCallback(async () => {
-      cancelUnresolvedIdles(setting.loopTaskName)
+      // console.info('[lazymap] CURRENT PRIORIT QUEUE: ', invokedPriorityQueue.slice())
+      // get task from priority queue w/ priority weighting
       const task = getTask()
+      // console.info('[lazymap] PROCESSING TASK is: ', task?.loopTaskName)
       if (!task) {
         resolve([])
         return
       }
       const result = await lazyMapCoreMap(task)
-      resolve(result)
+      // console.info('[lazymap] FINISHED TASK ', task?.loopTaskName, ' , PUSH to FINISHED QUEUE')
+
+      // replace task result w/ the latest one
+      finishedQueue = finishedQueue.filter((finished) => finished.taskName !== task.loopTaskName)
+      finishedQueue.push({ taskName: task.loopTaskName, result })
     })
 
     // re-invoke will auto cancel the last idle callback, and record new setting
@@ -135,6 +174,29 @@ function getTask(): (LazyMapSettings<any, any> & { idleId: number }) | undefined
   invokedPriorityQueue.length > 1 && invokedPriorityQueue.sort((a, b) => b.priority - a.priority)
 
   return invokedRecord.get(invokedPriorityQueue.shift()!.loopTaskName)?.at(-1)
+}
+
+async function waitTask(loopTaskName: string, waitInterval = 300): Promise<any[]> {
+  return new Promise((resolve) => {
+    // the task has already in the waiting line, no need to generate another interval for waiting lazymap result
+    if (waitingIntervalIds.find((id) => id.taskName === loopTaskName)) return
+
+    const intervalId = globalThis.setInterval(() => {
+      const targetTaskIdx = finishedQueue.findIndex((task) => task.taskName === loopTaskName)
+      // the task has no result yet (still pending or processing), wait another round
+      if (targetTaskIdx < 0) return
+
+      // the task has result in finishedQueue, clear interval, resolve the result
+      clearInterval(intervalId)
+      waitingIntervalIds.splice(
+        waitingIntervalIds.findIndex((waiting) => waiting.id === intervalId),
+        1
+      )
+      // console.log(`[lazymap] TASK <${loopTaskName}>, INTERVAL ID: ${intervalId} FINISHED, CLEAR INTERVAL ID`)
+      resolve(finishedQueue.splice(targetTaskIdx, 1)[0].result)
+    }, waitInterval)
+    waitingIntervalIds.push({ taskName: loopTaskName, id: intervalId })
+  })
 }
 
 async function loadTasks<F extends () => any>(
