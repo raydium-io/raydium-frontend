@@ -3,8 +3,8 @@ import { PublicKey } from '@solana/web3.js'
 import BN from 'bn.js'
 import {
   CurrencyAmount,
-  FarmFetchMultipleInfoReturnItem,
   ApiFarmApr,
+  FarmFetchMultipleInfoReturn,
   FarmStateV3,
   FarmStateV5,
   FarmStateV6,
@@ -65,8 +65,11 @@ export type FarmPoolsJsonFile = {
   ecosystem: Omit<FarmPoolJsonInfo, 'category'>[]
 }
 
+type FarmFetchMultipleInfoReturnItem = FarmFetchMultipleInfoReturn extends Record<string, infer F> ? F : never
+
 type SdkParsedFarmInfoBase = {
   jsonInfo: FarmPoolJsonInfo
+  sdkInfo: FarmFetchMultipleInfoReturnItem
   id: PublicKey
   lpMint: PublicKey
   programId: PublicKey

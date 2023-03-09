@@ -75,6 +75,8 @@ import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 
 import { NewCompensationBanner } from '../pools'
+import txFarmHarvestAll from '@/application/farms/txFarmHarvestAll'
+import { info } from 'console'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -124,7 +126,13 @@ function FarmHeader() {
 }
 
 /** only mobile */
-function ToolsButton({ className }: { className?: string }) {
+function ToolsButton({
+  className,
+  dataSource
+}: {
+  className?: string
+  dataSource: (FarmPoolJsonInfo | HydratedFarmInfo)[]
+}) {
   const currentTab = useFarms((s) => s.currentTab)
   return (
     <>
@@ -144,14 +152,40 @@ function ToolsButton({ className }: { className?: string }) {
                 <FarmStakedOnlyBlock />
                 <FarmRefreshCircleBlock />
                 <FarmTimeBasisSelector />
-                {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
+                {/* {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />} */}
                 <FarmCreateFarmEntryBlock />
+                <FarmHarvestAllButton
+                  infos={
+                    dataSource.filter(
+                      (i) => isHydratedFarmInfo(i) && isMeaningfulNumber(i.ledger?.deposited)
+                    ) as HydratedFarmInfo[]
+                  }
+                />
               </Grid>
             </Card>
           </div>
         </Popover.Panel>
       </Popover>
     </>
+  )
+}
+function FarmHarvestAllButton({ infos }: { infos: HydratedFarmInfo[] }) {
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const walletConnected = useWallet((s) => s.connected)
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const canHarvestAll = useMemo(() => Boolean(infos.length), [infos])
+  return (
+    <Button
+      className="frosted-glass-teal"
+      isLoading={isApprovePanelShown}
+      validators={[{ should: walletConnected }, { should: canHarvestAll }]}
+      onClick={() => {
+        txFarmHarvestAll({ infos })
+      }}
+      size={isMobile ? 'xs' : 'sm'}
+    >
+      Harvest all
+    </Button>
   )
 }
 
@@ -381,7 +415,7 @@ function FarmCard() {
   const timeBasis = useFarms((s) => s.timeBasis)
   const dataSource = (
     (hydratedInfos.length ? hydratedInfos : jsonInfos) as (FarmPoolJsonInfo | HydratedFarmInfo)[]
-  ).filter((i) => !isMintEqual(i.lpMint, RAYMint))
+  ).filter((i) => !isMintEqual(i.lpMint, RAYMint)) // exclude special staked pool
 
   const tabedDataSource = useMemo(
     () =>
@@ -520,7 +554,7 @@ function FarmCard() {
             }}
           />
         </Grid>
-        <ToolsButton className="self-center" />
+        <ToolsButton className="self-center" dataSource={dataSource} />
       </Row>
     </div>
   ) : (
@@ -541,8 +575,15 @@ function FarmCard() {
         {Boolean(owner) && (currentTab === 'Ecosystem' || currentTab === 'Staked') ? (
           <FarmSelfCreatedOnlyBlock />
         ) : null}
+        <FarmHarvestAllButton
+          infos={
+            dataSource.filter(
+              (i) => isHydratedFarmInfo(i) && isMeaningfulNumber(i.ledger?.deposited)
+            ) as HydratedFarmInfo[]
+          }
+        />
         {/* <FarmStakedOnlyBlock /> */}
-        {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />}
+        {/* {currentTab === 'Ecosystem' && <FarmRewardTokenTypeSelector />} */}
         <FarmTimeBasisSelector />
         <FarmSearchBlock />
       </Row>
