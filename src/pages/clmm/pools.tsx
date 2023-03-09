@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
@@ -11,10 +11,14 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
+  HydratedConcentratedInfo,
+  HydratedConcentratedRewardInfo,
+  UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -55,7 +59,6 @@ import { getDate, toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { getCountDownTime } from '@/functions/date/parseDuration'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
-import { getLocalItem } from '@/functions/dom/jStorage'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
 import { shrinkAccount } from '@/functions/format/shrinkAccount'
@@ -257,17 +260,18 @@ function HarvestAll() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
 
-  const canHarvestAll = useMemo(() => {
-    let result = false
-    for (const pool of hydratedAmmPools) {
-      if (pool.userPositionAccount && pool.userPositionAccount.length > 0) {
-        result = true
-        break
-      }
-    }
-
-    return result
-  }, [hydratedAmmPools])
+  const canHarvestAll = useMemo(
+    () =>
+      hydratedAmmPools.some((pool) =>
+        pool.userPositionAccount?.find(
+          (i) =>
+            isMeaningfulNumber(i.tokenFeeAmountB) ||
+            isMeaningfulNumber(i.tokenFeeAmountA) ||
+            i.rewardInfos.find((reward) => isMeaningfulNumber(reward.penddingReward))
+        )
+      ),
+    [hydratedAmmPools]
+  )
 
   return (
     <Button
