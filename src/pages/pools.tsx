@@ -280,13 +280,13 @@ function Filter() {
 
   const inputDisabled = !filterTarget || filterTarget === 'none'
 
-  const onMinChanging = useCallback(
+  const onMinChanging = useDebounce(
     (t: string | number | undefined) => {
       setLocalItem('value-filter-min', String(t || '0'))
       const maxValue = gt(t, filterMax) ? t : filterMax
       usePools.setState({ filterMin: String(t || '0'), filterMax: String(maxValue) })
     },
-    [filterMax]
+    { debouncedOptions: { delay: 300 } }
   )
 
   return (
@@ -549,9 +549,7 @@ function PoolCard() {
 
   useEffect(prepareSortedData, [tempSortedData])
 
-  const filtered = useMemo(() => {
-    if (!filterTarget || filterTarget === 'none' || gt(filterMin, filterMax)) return sorted
-
+  const filteredKey = useMemo(() => {
     const valueCategory =
       filterTarget === 'Liquidity'
         ? 'liquidity'
@@ -563,17 +561,23 @@ function PoolCard() {
     const timeCategory =
       valueCategory !== 'liquidity' ? (timeBasis === '24H' ? '24h' : timeBasis === '7D' ? '7d' : '30d') : ''
 
-    const key = valueCategory + timeCategory
+    return valueCategory + timeCategory
+  }, [timeBasis, filterTarget])
+
+  const filtered = useMemo(() => {
+    if (!filterTarget || filterTarget === 'none' || gt(filterMin, filterMax)) return sorted
 
     return sorted?.filter((item) => {
       return (
         (filterMin === '0'
           ? true
-          : gte(toString(item[key], { decimalLength: !key.includes('apr') ? 0 : 2 }), filterMin)) &&
-        (!filterMax ? true : lte(toString(item[key], { decimalLength: !key.includes('apr') ? 0 : 2 }), filterMax))
+          : gte(toString(item[filteredKey], { decimalLength: !filteredKey.includes('apr') ? 0 : 2 }), filterMin)) &&
+        (!filterMax
+          ? true
+          : lte(toString(item[filteredKey], { decimalLength: !filteredKey.includes('apr') ? 0 : 2 }), filterMax))
       )
     })
-  }, [sorted, filterTarget, filterMin, filterMax, timeBasis])
+  }, [sorted, filterTarget, filterMin, filterMax, filteredKey])
 
   const TableHeaderBlock = useMemo(
     () => (
