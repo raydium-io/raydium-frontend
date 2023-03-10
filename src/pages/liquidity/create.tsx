@@ -352,7 +352,7 @@ function UserCreatedPoolsExhibitionPanel() {
               className="py-4 px-6 ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-2xl mobile:rounded-xl"
             >
               <Collapse.Face>
-                {(open) => (
+                {({ isOpen }) => (
                   <Row className="items-center justify-between">
                     <Row className="gap-2 items-center">
                       <div className="text-base font-normal text-[#abc4ff]">
@@ -362,7 +362,7 @@ function UserCreatedPoolsExhibitionPanel() {
                     <Icon
                       size="sm"
                       className="text-[#abc4ff]"
-                      heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`}
+                      heroIconName={`${isOpen ? 'chevron-up' : 'chevron-down'}`}
                     />
                   </Row>
                 )}

@@ -97,7 +97,7 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
     <div className="rounded-lg hover:bg-[#14104180] ">
       <Collapse>
         <Collapse.Face>
-          {(open) => (
+          {({ isOpen }) => (
             <Row type="grid-x" className="group gap-[3.5vw] grid-cols-[1fr,1.8fr,1.4fr] py-4 px-4 items-center">
               {/* table head column: Transaction type */}
               <Row className="items-center font-medium text-[#ABC4FF] text-xs gap-2">
@@ -109,7 +109,7 @@ function MultiTransactionGroupItems({ txInfoGroup }: { txInfoGroup: TxHistoryInf
                 />
                 <div>{headTx.title ?? ''}</div>
                 <div className="flex-none ml-0.5 grid place-items-center h-4 w-4 rounded-full bg-[#abc4ff40] text-[#abc4ff]">
-                  <Icon size="xs" heroIconName={open ? 'chevron-up' : 'chevron-down'} />
+                  <Icon size="xs" heroIconName={isOpen ? 'chevron-up' : 'chevron-down'} />
                 </div>
               </Row>
               {/* table head column: Details */}
