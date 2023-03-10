@@ -1,9 +1,5 @@
 import { Fragment, RefObject, useRef } from 'react'
-import { twMerge } from 'tailwind-merge'
 
-import mergeRef from '@/functions/react/mergeRef'
-import { useClick, UseClickOptions } from '@/hooks/useClick'
-import { useHover, UseHoverOptions } from '@/hooks/useHover'
 import {
   AdjustmentsVerticalIcon,
   ArrowRightCircleIcon,
@@ -24,6 +20,7 @@ import {
   EllipsisVerticalIcon,
   ExclamationCircleIcon,
   ExclamationTriangleIcon,
+  FunnelIcon,
   InformationCircleIcon,
   LinkIcon,
   LockClosedIcon,
@@ -40,6 +37,12 @@ import {
   XCircleIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
+
+import { twMerge } from 'tailwind-merge'
+
+import mergeRef from '@/functions/react/mergeRef'
+import { useClick, UseClickOptions } from '@/hooks/useClick'
+import { useHover, UseHoverOptions } from '@/hooks/useHover'
 
 import { getFileNameOfURI } from '../functions/dom/getFileNameOfURI'
 
@@ -79,6 +82,7 @@ export type AppHeroIconName =
   | 'zoom-out'
   | 'lock-closed'
   | 'x-switch'
+  | 'funnel'
   | ' '
 
 export interface IconProps {
@@ -193,6 +197,8 @@ export default function Icon({
         ? LockClosedIcon
         : heroIconName === 'x-switch'
         ? ArrowsRightLeftIcon
+        : heroIconName === 'funnel'
+        ? FunnelIcon
         : heroIconName === ' '
         ? ({ className }: { className?: string }) => <div className={className} />
         : Fragment

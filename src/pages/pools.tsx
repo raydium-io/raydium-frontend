@@ -1,8 +1,9 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
+import { usePoolFilterLoader } from '@/application/common/usePoolFilterLoader'
 import { usePoolTimeBasisLoader } from '@/application/common/usePoolTimeBasisLoader'
 import { useCompensationMoney } from '@/application/compensation/useCompensation'
 import useCompensationMoneyInfoLoader from '@/application/compensation/useCompensationInfoLoader'
@@ -23,6 +24,7 @@ import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import DecimalInput from '@/components/DecimalInput'
 import { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
@@ -42,7 +44,7 @@ import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem } from '@/functions/arrayMethods'
 import { capitalize } from '@/functions/changeCase'
-import { getLocalItem } from '@/functions/dom/jStorage'
+import { setLocalItem } from '@/functions/dom/jStorage'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
@@ -50,14 +52,13 @@ import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import { gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
-import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 
 /**
@@ -69,6 +70,7 @@ import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 export default function PoolsPage() {
   usePoolSummeryInfoLoader()
   usePoolTimeBasisLoader()
+  usePoolFilterLoader()
 
   return (
     <PageLayout
@@ -270,6 +272,86 @@ function PoolLabelBlock({ className }: { className?: string }) {
   )
 }
 
+function Filter() {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const filterTarget = usePools((s) => s.filterTarget)
+  const filterMin = usePools((s) => s.filterMin)
+  const filterMax = usePools((s) => s.filterMax)
+
+  const inputDisabled = !filterTarget || filterTarget === 'none'
+
+  const onMinChanging = useCallback(
+    (t: string | number | undefined) => {
+      setLocalItem('value-filter-min', String(t || '0'))
+      const maxValue = gt(t, filterMax) ? t : filterMax
+      usePools.setState({ filterMin: String(t || '0'), filterMax: String(maxValue) })
+    },
+    [filterMax]
+  )
+
+  return (
+    <>
+      <Popover placement="bottom" triggerBy={isMobile ? 'press' : 'hover'}>
+        <Popover.Button>
+          <div className={twMerge('mx-1 rounded-full p-2 text-[#abc4ff] clickable justify-self-start')}>
+            <Icon className="w-5 h-5" iconClassName="w-5 h-5" heroIconName="funnel" />
+          </div>
+        </Popover.Button>
+        <Popover.Panel>
+          <div>
+            <Card
+              className="flex flex-col py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
+              size="lg"
+            >
+              <Grid className="grid-cols-1 items-center gap-2">
+                <Select
+                  className={twMerge('z-20')}
+                  candidateValues={['none', 'Liquidity', 'Volume', 'Fees', 'Apr']}
+                  localStorageKey="value-filter-target"
+                  defaultValue={filterTarget}
+                  prefix="Target:"
+                  onChange={(v) => {
+                    usePools.setState({ filterTarget: v })
+                  }}
+                />
+                <Grid className="grid-cols-2 items-center gap-2">
+                  <DecimalInput
+                    className={
+                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[12vw] mobile:w-auto'
+                    }
+                    disabled={inputDisabled}
+                    placeholder={'min value'}
+                    decimalCount={2}
+                    onUserInput={onMinChanging}
+                    value={filterMin}
+                    prefix={'From:'}
+                    inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
+                  />
+                  <DecimalInput
+                    className={
+                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[12vw] mobile:w-auto'
+                    }
+                    disabled={inputDisabled}
+                    value={filterMax}
+                    placeholder={'max value'}
+                    decimalCount={2}
+                    onUserInput={(t) => {
+                      setLocalItem('value-filter-max', String(t || ''))
+                      usePools.setState({ filterMax: String(t || '') })
+                    }}
+                    prefix={'To:'}
+                    inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
+                  />
+                </Grid>
+              </Grid>
+            </Card>
+          </div>
+        </Popover.Panel>
+      </Popover>
+    </>
+  )
+}
+
 function PoolTimeBasisSelectorBox({
   className,
   sortConfigs,
@@ -383,6 +465,9 @@ function PoolCard() {
   const currentTab = usePools((s) => s.currentTab)
   const onlySelfPools = usePools((s) => s.onlySelfPools)
   const timeBasis = usePools((s) => s.timeBasis)
+  const filterTarget = usePools((s) => s.filterTarget)
+  const filterMin = usePools((s) => s.filterMin)
+  const filterMax = usePools((s) => s.filterMax)
 
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = usePoolFavoriteIds()
@@ -463,6 +548,32 @@ function PoolCard() {
   )
 
   useEffect(prepareSortedData, [tempSortedData])
+
+  const filtered = useMemo(() => {
+    if (!filterTarget || filterTarget === 'none' || gt(filterMin, filterMax)) return sorted
+
+    const valueCategory =
+      filterTarget === 'Liquidity'
+        ? 'liquidity'
+        : filterTarget === 'Volume'
+        ? 'volume'
+        : filterTarget === 'Fees'
+        ? 'fee'
+        : 'apr'
+    const timeCategory =
+      valueCategory !== 'liquidity' ? (timeBasis === '24H' ? '24h' : timeBasis === '7D' ? '7d' : '30d') : ''
+
+    const key = valueCategory + timeCategory
+
+    return sorted?.filter((item) => {
+      return (
+        (filterMin === '0'
+          ? true
+          : gte(toString(item[key], { decimalLength: !key.includes('apr') ? 0 : 2 }), filterMin)) &&
+        (!filterMax ? true : lte(toString(item[key], { decimalLength: !key.includes('apr') ? 0 : 2 }), filterMax))
+      )
+    })
+  }, [sorted, filterTarget, filterMin, filterMax, timeBasis])
 
   const TableHeaderBlock = useMemo(
     () => (
@@ -647,6 +758,7 @@ function PoolCard() {
         <PoolLabelBlock />
         <Row className="gap-4 items-stretch">
           <PoolStakedOnlyBlock />
+          <Filter />
           {hasHydratedInfoLoaded && (
             <PoolTimeBasisSelectorBox
               sortConfigs={sortConfig}
@@ -666,7 +778,7 @@ function PoolCard() {
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && TableHeaderBlock}
-      <PoolCardDatabaseBody sortedItems={sorted} searchedItemsLength={searched.length} />
+      <PoolCardDatabaseBody sortedItems={filtered} searchedItemsLength={searched.length} />
     </CyberpunkStyleCard>
   )
 }
@@ -683,7 +795,7 @@ function PoolCardDatabaseBody({
   const loading = jsonInfos.length == 0 && hydratedInfos.length === 0
   const expandedPoolIds = usePools((s) => s.expandedPoolIds)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
-  return !loading && searchedItemsLength === 0 ? (
+  return !loading && (searchedItemsLength === 0 || (searchedItemsLength !== 0 && sortedItems?.length === 0)) ? (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
   ) : sortedItems && sortedItems.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>

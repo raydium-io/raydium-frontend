@@ -27,6 +27,10 @@ export type PoolsStore = {
   // just for trigger refresh
   refreshCount: number
   refreshPools: () => void
+
+  filterTarget: 'none' | 'Liquidity' | 'Volume' | 'Fees' | 'Apr'
+  filterMax: string
+  filterMin: string
 }
 
 // FAQ: why it's a domain? because it must be a domain , or it's a design bug ———— do something useless.
@@ -50,7 +54,11 @@ export const usePools = create<PoolsStore>((set, get) => ({
     set((s) => ({
       refreshCount: s.refreshCount + 1
     }))
-  }
+  },
+
+  filterTarget: 'none',
+  filterMax: '',
+  filterMin: '0'
 }))
 
 export const usePoolFavoriteIds = () => useLocalStorageItem<string[], null>('FAVOURITE_POOL_IDS', { emptyValue: null })
