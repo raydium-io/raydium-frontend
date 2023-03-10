@@ -539,7 +539,7 @@ function MyPositionCardPoolOverview({ className }: { className?: string }) {
       </Collapse.Body>
       <Collapse.Face>
         {({ isOpen }) => (
-          <Row className="border-t-1.5 pt-5 mobile:pt-3 border-[#abc4ff40] w-full items-center justify-center text-sm font-medium text-[#abc4ff] cursor-pointer select-none">
+          <Row className="border-t-1.5 pt-4 pb-2  mobile:pt-2 mobile:pb-0 border-[#abc4ff40] w-full items-center justify-center text-sm font-medium text-[#abc4ff] cursor-pointer select-none">
             <div>Pool Overview</div>
             <Icon
               size={isMobile ? 'xs' : 'sm'}
