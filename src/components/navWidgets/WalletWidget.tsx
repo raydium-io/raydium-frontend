@@ -11,9 +11,7 @@ import Icon from '../Icon'
 import PageLayoutPopoverDrawer from '../PageLayoutPopoverDrawer'
 import Row from '../Row'
 import { RowItem } from '../RowItem'
-import Switcher from '../Switcher'
-import { TxVersion } from '@raydium-io/raydium-sdk'
-import Tooltip from '../Tooltip'
+import { isInLocalhost } from '@/functions/judgers/isSSR'
 
 /** this should be used in ./Navbar.tsx */
 export default function WalletWidget() {
@@ -77,6 +75,7 @@ export default function WalletWidget() {
               prefix={<Icon className="mr-3" size="sm" iconSrc="/icons/misc-disconnect-wallet.svg" />}
               text="Disconnect wallet"
               onClick={() => {
+                isInLocalhost && useWallet.setState({ userDisconnect: true })
                 disconnect()
                 closePanel?.()
               }}
