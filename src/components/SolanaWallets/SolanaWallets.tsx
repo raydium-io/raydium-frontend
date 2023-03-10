@@ -83,19 +83,19 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
     [endpoint]
   )
 
-  const onError = useCallback((err, adapter) => {
-    // in local will throw disconnect error when hot-reload, might be phantom or wallet adapter'bug
-    if (isInLocalhost && adapter && err.name === 'WalletDisconnectedError')
-      setTimeout(() => {
-        useWallet.getState().select(adapter.name)
-      }, 100)
-  }, [])
+  // const onError = useCallback((err, adapter) => {
+  //   // in local will throw disconnect error when hot-reload, might be phantom or wallet adapter'bug
+  //   if (isInLocalhost && adapter && err.name === 'WalletDisconnectedError')
+  //     setTimeout(() => {
+  //       useWallet.getState().select(adapter.name)
+  //     }, 100)
+  // }, [])
 
   return (
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider
         wallets={wallets}
-        onError={onError}
+        // onError={onError}
         autoConnect={pathname !== '/' && needPopDisclaimer === false && (!isLoading || !!currentEndPoint)}
       >
         {children}
