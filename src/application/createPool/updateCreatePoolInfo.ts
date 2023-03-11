@@ -8,12 +8,12 @@ import { WSOLMint } from '@/application/token/quantumSOL'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
+import { isPubEqual } from '@/functions/judgers/areEqual'
 
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { getOnlineTokenDecimals, verifyToken } from '../token/getOnlineTokenInfo'
 
 import useCreatePool from './useCreatePool'
-import { isPubEqual } from '@/functions/judgers/areEqual'
-import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }): Promise<{ isSuccess: boolean }> {
   try {
@@ -58,9 +58,9 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     const { decimals: quoteTokenDecimals } = SPL_MINT_LAYOUT.decode(quoteTokenBufferInfo.data)
 
     // assert user has eligible base and quote
-    const { tokenAccounts } = useWallet.getState()
-    const userBaseTokenAccount = tokenAccounts.find(({ mint }) => String(mint) === String(baseMint))
-    const userQuoteTokenAccount = tokenAccounts.find(({ mint }) => String(mint) === String(quoteMint))
+    const { tokenAccounts, allTokenAccounts } = useWallet.getState()
+    const userBaseTokenAccount = tokenAccounts.find(({ mint }) => String(mint) === String(baseMint)) ?? allTokenAccounts.find(({ mint }) => String(mint) === String(baseMint))
+    const userQuoteTokenAccount = tokenAccounts.find(({ mint }) => String(mint) === String(quoteMint)) ?? allTokenAccounts.find(({ mint }) => String(mint) === String(quoteMint))
 
     assert(
       toPubString(quoteMint) === toPubString(WSOLMint) ? true : userQuoteTokenAccount,
