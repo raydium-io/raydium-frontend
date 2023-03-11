@@ -1,7 +1,7 @@
-import { Liquidity, SPL_MINT_LAYOUT, Token } from '@raydium-io/raydium-sdk'
+import { Liquidity, Token } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import { deUITokenAmount, WSOLMint } from '@/application/token/quantumSOL'
+import { WSOLMint } from '@/application/token/quantumSOL'
 import useToken from '@/application/token/useToken'
 import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
@@ -16,6 +16,7 @@ import toBN from '@/functions/numberish/toBN'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
+import { getMaxBalanceBNIfNotATA } from '../token/getMaxBalanceIfNotATA'
 import { recordCreatedPool } from './recordCreatedPool'
 import useCreatePool from './useCreatePool'
 
@@ -70,7 +71,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       gte(
         toPubString(baseMint) === toPubString(WSOLMint)
           ? getMax(pureRawBalances[baseMint] ?? 0, solBalance ?? 0)
-          : tokenAccounts.find((t) => toPubString(t.mint) === baseMint)?.amount,
+          : toTokenAmount(baseToken, getMaxBalanceBNIfNotATA(baseToken.mint)),
         toTokenAmount(baseToken, baseDecimaledAmount).raw // input amount
       ),
       "wallet haven't enough base token"
@@ -80,7 +81,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       gte(
         toPubString(quoteMint) === toPubString(WSOLMint)
           ? getMax(pureRawBalances[quoteMint] ?? 0, solBalance ?? 0)
-          : tokenAccounts.find((t) => toPubString(t.mint) === quoteMint)?.amount,
+          : toTokenAmount(quoteToken, getMaxBalanceBNIfNotATA(quoteToken.mint)),
         toTokenAmount(quoteToken, quoteDecimaledAmount).raw // input amount
       ),
       "wallet haven't enough quote token"
@@ -94,7 +95,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
         programId: useAppAdvancedSettings.getState().programIds.OPENBOOK_MARKET,
         marketId: toPub(marketId)
       },
-      associatedOnly: true,
+      associatedOnly: false,
       ownerInfo: {
         feePayer: owner,
         wallet: owner,
@@ -113,7 +114,7 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       baseAmount: toBN(mul(baseDecimaledAmount, 10 ** baseDecimals)),
       quoteAmount: toBN(mul(quoteDecimaledAmount, 10 ** quoteDecimals)),
 
-      computeBudgetConfig: await getComputeBudgetConfig(),
+      computeBudgetConfig: await getComputeBudgetConfig()
     })
     transactionCollector.add(innerTransactions, {
       onTxSuccess() {
