@@ -637,6 +637,16 @@ export default forwardRef(function Chart(props: Props, ref) {
     alignItems: 'center'
   }
 
+  const yAxisMax = useMemo(() => {
+    let max = 0
+    displayList.forEach((p) => {
+      if (p.x >= xAxisDomain[0] && p.x <= xAxisDomain[1]) {
+        max = Math.max(max, p.y)
+      }
+    })
+    return max
+  }, [xAxisDomain, displayList.length])
+
   return (
     <>
       <div className="flex justify-between text-base leading-[22px] text-secondary-title mb-2">
@@ -724,7 +734,7 @@ export default forwardRef(function Chart(props: Props, ref) {
               tickLine={false}
               dataKey="x"
             />
-            <YAxis allowDataOverflow domain={['dataMin', 'dataMax']} type="number" hide={true} />
+            <YAxis allowDataOverflow domain={['dataMin', yAxisMax]} type="number" hide={true} />
             {!hideRangeLine && !isNaN(position[Range.Min]) && (
               <ReferenceLine
                 {...getMouseEvent(Range.Min)}
