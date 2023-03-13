@@ -110,7 +110,6 @@ export default forwardRef(function Chart(props: Props, ref) {
   const [xAxis, setXAxis] = useState<number[]>([])
   const boundaryRef = useRef({ min: 0, max: 100 })
   const smoothCountRef = useRef(0)
-  const zoomRef = useRef(0)
   const moveRef = useRef('')
   const areaRef = useRef<number | undefined>()
   const xAxisRef = useRef<number[]>([])
@@ -161,7 +160,6 @@ export default forwardRef(function Chart(props: Props, ref) {
     setDisplayList([])
     boundaryRef.current = { min: 0, max: 100 }
     if (poolIdRef.current !== poolFocusKey || showCurrentPriceOnly) {
-      zoomRef.current = 0
       setXAxisDomain(DEFAULT_X_AXIS)
       setPosition({ [Range.Min]: 0, [Range.Max]: 0 })
     }
@@ -574,7 +572,6 @@ export default forwardRef(function Chart(props: Props, ref) {
   }
 
   const zoomReset = () => {
-    zoomRef.current = 0
     setDisplayList((list) => list.filter((p) => !p.extend))
     setXAxisDomain(xAxisResetRef.current)
     xAxisDomainRef.current = [...xAxisResetRef.current]
@@ -587,23 +584,22 @@ export default forwardRef(function Chart(props: Props, ref) {
     boundaryRef.current = { min, max }
     extendDisplay({ min, max })
     setXAxisDomain([min, max])
+    xAxisDomainRef.current = [min, max]
   }
   const zoomIn = () => {
     if (!hasPoints) return
     const tickGap = (xAxisDomainRef.current[1] - xAxisDomainRef.current[0]) / 8
-    const min = xAxisDomainRef.current[0] + (zoomRef.current + 1) * tickGap
-    const max = xAxisDomainRef.current[xAxisDomainRef.current.length - 1] - (zoomRef.current + 1) * tickGap
+    const min = xAxisDomainRef.current[0] + tickGap
+    const max = xAxisDomainRef.current[xAxisDomainRef.current.length - 1] - tickGap
 
     if (min >= max) return
-    zoomRef.current = zoomRef.current + 1
     setupXAxis({ min, max })
   }
   const zoomOut = () => {
     if (!hasPoints) return
     const tickGap = (xAxisDomainRef.current[1] - xAxisDomainRef.current[0]) / 8
-    zoomRef.current = zoomRef.current - 1
-    const min = xAxisDomainRef.current[0] + zoomRef.current * tickGap
-    const max = xAxisDomainRef.current[xAxisDomainRef.current.length - 1] - zoomRef.current * tickGap
+    const min = xAxisDomainRef.current[0] - tickGap
+    const max = xAxisDomainRef.current[xAxisDomainRef.current.length - 1] + tickGap
     setupXAxis({ min, max })
   }
 
@@ -615,7 +611,6 @@ export default forwardRef(function Chart(props: Props, ref) {
       max: Number(mul(currentPrice, 1 + percent)?.toFixed(maxLength) || 0),
       zoomArea: true
     })
-    zoomRef.current = 0
   }
 
   useImperativeHandle(
