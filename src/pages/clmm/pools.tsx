@@ -424,7 +424,7 @@ function Filter() {
                 <Grid className="grid-cols-2 items-center gap-2">
                   <DecimalInput
                     className={
-                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[170px] mobile:w-auto'
+                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
                     }
                     disabled={inputDisabled}
                     placeholder={'min value'}
@@ -437,7 +437,7 @@ function Filter() {
                   />
                   <DecimalInput
                     className={
-                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[170px] mobile:w-auto'
+                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
                     }
                     disabled={inputDisabled}
                     value={filterMax}
