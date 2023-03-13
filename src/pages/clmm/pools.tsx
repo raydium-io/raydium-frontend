@@ -400,7 +400,7 @@ function Filter() {
     <>
       <Popover placement="bottom" triggerBy={isMobile ? 'press' : 'hover'}>
         <Popover.Button>
-          <div className={twMerge('mx-1 rounded-full p-2 text-[#abc4ff] clickable justify-self-start')}>
+          <div className={twMerge('mx-1 rounded-full p-2 text-[#abc4ff80] clickable justify-self-start')}>
             <Icon className="w-5 h-5" iconClassName="w-5 h-5" heroIconName="funnel" />
           </div>
         </Popover.Button>
@@ -424,7 +424,7 @@ function Filter() {
                 <Grid className="grid-cols-2 items-center gap-2">
                   <DecimalInput
                     className={
-                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[12vw] mobile:w-auto'
+                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[230px] mobile:w-auto'
                     }
                     disabled={inputDisabled}
                     placeholder={'min value'}
@@ -432,11 +432,12 @@ function Filter() {
                     onUserInput={onMinChanging}
                     value={filterMin}
                     prefix={'From:'}
-                    inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
+                    prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)]'}
+                    inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
                   />
                   <DecimalInput
                     className={
-                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[12vw] mobile:w-auto'
+                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[230px] mobile:w-auto'
                     }
                     disabled={inputDisabled}
                     value={filterMax}
@@ -444,7 +445,8 @@ function Filter() {
                     decimalCount={2}
                     onUserInput={onMaxChanging}
                     prefix={'To:'}
-                    inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
+                    prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)]'}
+                    inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
                   />
                 </Grid>
               </Grid>

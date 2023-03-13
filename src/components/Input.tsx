@@ -83,6 +83,7 @@ export interface InputProps {
 
   /** Optional. usually, it is an <Input>'s icon */
   prefix?: MayFunction<ReactNode, [InputComponentHandler]>
+  prefixClassName?: string
 
   /** Optional. usually, it is an <Input>'s unit or feature icon */
   suffix?: MayFunction<ReactNode, [InputComponentHandler]>
@@ -175,6 +176,7 @@ export default function Input(props: InputProps) {
     value,
 
     prefix,
+    prefixClassName,
     suffix,
     domRef,
     style,
@@ -270,7 +272,11 @@ export default function Input(props: InputProps) {
       style={style}
       domRef={domRef}
     >
-      {prefix && <div className="flex-initial mr-2">{shrinkToValue(prefix, [inputComponentHandler])}</div>}
+      {prefix && (
+        <div className={twMerge('flex-initial mr-2', prefixClassName)}>
+          {shrinkToValue(prefix, [inputComponentHandler])}
+        </div>
+      )}
 
       {/* input-wrapperbox is for style input inner body easier */}
       <div className={twMerge('flex flex-grow flex-shrink', inputWrapperClassName)}>
