@@ -369,15 +369,10 @@ function Filter() {
   const filterMin = useConcentrated((s) => s.filterMin)
   const filterMax = useConcentrated((s) => s.filterMax)
 
-  const inputDisabled = !filterTarget || filterTarget === 'none'
-
   const minChanging = useCallback(
     (t: string | number | undefined) => {
-      const maxValue = (gt(t, filterMax) ? t : filterMax) ?? ''
       setLocalItem('value-filter-min', String(t || '0'))
-      setLocalItem('value-filter-max', String(maxValue))
-
-      useConcentrated.setState({ filterMin: String(t || '0'), filterMax: String(maxValue) })
+      useConcentrated.setState({ filterMin: String(t || '0') })
     },
     [filterMax]
   )
@@ -386,10 +381,8 @@ function Filter() {
 
   const maxChanging = useCallback(
     (t: string | number | undefined) => {
-      const minValue = (lt(t, filterMin) ? t : filterMin) || '0'
       setLocalItem('value-filter-max', String(t ?? ''))
-      setLocalItem('value-filter-min', String(minValue))
-      useConcentrated.setState({ filterMax: String(t || ''), filterMin: String(minValue) })
+      useConcentrated.setState({ filterMax: String(t || '') })
     },
     [filterMin]
   )
@@ -426,8 +419,7 @@ function Filter() {
                     className={
                       'px-3 py-2 mobile:py-1 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
                     }
-                    disabled={inputDisabled}
-                    placeholder={'min value'}
+                    placeholder={0}
                     decimalCount={2}
                     onUserInput={onMinChanging}
                     value={filterMin}
@@ -439,9 +431,8 @@ function Filter() {
                     className={
                       'px-3 py-2 mobile:py-1 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
                     }
-                    disabled={inputDisabled}
                     value={filterMax}
-                    placeholder={'max value'}
+                    placeholder={'∞'}
                     decimalCount={2}
                     onUserInput={onMaxChanging}
                     prefix={'To:'}
@@ -705,22 +696,17 @@ function PoolCard() {
   }, [timeBasis, filterTarget])
 
   const filtered = useMemo(() => {
-    if (!filterTarget || filterTarget === 'none' || gt(filterMin, filterMax) || lt(filterMax, filterMin)) return sorted
-
-    const filteredKeyIsApr = filteredKey.includes('Apr')
-    const filterMinUnitValue = !filteredKeyIsApr ? filterMin : toString(div(filterMin, 100))
-    const filterMaxUnitValue = !filteredKeyIsApr ? filterMax : toString(div(filterMax, 100))
-
-    return sorted?.filter((item) => {
-      return (
-        (filterMin === '0'
-          ? true
-          : gte(toString(item[filteredKey], { decimalLength: !filteredKeyIsApr ? 0 : 4 }), filterMinUnitValue)) &&
-        (!filterMax
-          ? true
-          : lte(toString(item[filteredKey], { decimalLength: !filteredKeyIsApr ? 0 : 4 }), filterMaxUnitValue))
-      )
-    })
+    const isPercent = filterTarget.toLowerCase().includes('apr')
+    const min = filterMin && isPercent ? div(filterMin, 100) : filterMin
+    const max = filterMax && isPercent ? div(filterMax, 100) : filterMax
+    if (!filterTarget || filterTarget === 'none') return sorted
+    if (!min && !max) return sorted
+    const toTargetItem = (item: HydratedConcentratedInfo) => toString(item[filteredKey])
+    if (!min) return sorted?.filter((item) => lte(toTargetItem(item), max))
+    if (!max) return sorted?.filter((item) => gte(toTargetItem(item), min))
+    /** min > max || max < min */
+    if (gt(min, max) || lt(max, min)) return []
+    return sorted?.filter((item) => gte(toTargetItem(item), min) && lte(toTargetItem(item), max))
   }, [sorted, filterTarget, filterMin, filterMax, filteredKey])
 
   const TableHeaderBlock = useMemo(

@@ -60,6 +60,7 @@ import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
+import { div } from '@/functions/numberish/operations'
 
 /**
  * store:
@@ -282,11 +283,8 @@ function Filter() {
 
   const minChanging = useCallback(
     (t: string | number | undefined) => {
-      const maxValue = (gt(t, filterMax) ? t : filterMax) ?? ''
       setLocalItem('value-filter-min', String(t || '0'))
-      setLocalItem('value-filter-max', String(maxValue))
-
-      usePools.setState({ filterMin: String(t || '0'), filterMax: String(maxValue) })
+      usePools.setState({ filterMin: String(t || '0') })
     },
     [filterMax]
   )
@@ -295,10 +293,8 @@ function Filter() {
 
   const maxChanging = useCallback(
     (t: string | number | undefined) => {
-      const minValue = (lt(t, filterMin) ? t : filterMin) || '0'
       setLocalItem('value-filter-max', String(t ?? ''))
-      setLocalItem('value-filter-min', String(minValue))
-      usePools.setState({ filterMax: String(t || ''), filterMin: String(minValue) })
+      usePools.setState({ filterMax: String(t || '') })
     },
     [filterMin]
   )
@@ -336,7 +332,7 @@ function Filter() {
                       'px-3 py-2 mobile:py-1 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
                     }
                     disabled={inputDisabled}
-                    placeholder={'min value'}
+                    placeholder={0}
                     decimalCount={2}
                     onUserInput={onMinChanging}
                     value={filterMin}
@@ -350,7 +346,7 @@ function Filter() {
                     }
                     disabled={inputDisabled}
                     value={filterMax}
-                    placeholder={'max value'}
+                    placeholder={'∞'}
                     decimalCount={2}
                     onUserInput={onMaxChanging}
                     prefix={'To:'}
@@ -579,19 +575,18 @@ function PoolCard() {
     return valueCategory + timeCategory
   }, [timeBasis, filterTarget])
 
+  //TODO: should move to useSearch()
   const filtered = useMemo(() => {
-    if (!filterTarget || filterTarget === 'none' || gt(filterMin, filterMax) || lt(filterMax, filterMin)) return sorted
-
-    return sorted?.filter((item) => {
-      return (
-        (filterMin === '0'
-          ? true
-          : gte(toString(item[filteredKey], { decimalLength: !filteredKey.includes('apr') ? 0 : 2 }), filterMin)) &&
-        (!filterMax
-          ? true
-          : lte(toString(item[filteredKey], { decimalLength: !filteredKey.includes('apr') ? 0 : 2 }), filterMax))
-      )
-    })
+    const min = filterMin
+    const max = filterMax
+    if (!filterTarget || filterTarget === 'none') return sorted
+    if (!min && !max) return sorted
+    const toTargetItem = (item: JsonPairItemInfo | HydratedPairItemInfo) => toString(item[filteredKey])
+    if (!min) return sorted?.filter((item) => lte(toTargetItem(item), max))
+    if (!max) return sorted?.filter((item) => gte(toTargetItem(item), min))
+    /** min > max || max < min */
+    if (gt(min, max) || lt(max, min)) return []
+    return sorted?.filter((item) => gte(toTargetItem(item), min) && lte(toTargetItem(item), max))
   }, [sorted, filterTarget, filterMin, filterMax, filteredKey])
 
   const TableHeaderBlock = useMemo(

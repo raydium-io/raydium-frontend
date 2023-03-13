@@ -132,8 +132,8 @@ export type ConcentratedStore = {
     sortCompare: MayArray<(T) => any>
   }
   filterTarget: 'none' | 'Liquidity' | 'Volume' | 'Fees' | 'Apr'
-  filterMax: string
-  filterMin: string
+  filterMax?: string
+  filterMin?: string
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
@@ -204,9 +204,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   },
   whitelistRewards: [],
   poolSortConfig: undefined,
-  filterTarget: 'none',
-  filterMax: '',
-  filterMin: '0'
+  filterTarget: 'none'
 }))
 
 export default useConcentrated
