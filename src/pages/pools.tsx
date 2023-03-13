@@ -279,8 +279,6 @@ function Filter() {
   const filterMin = usePools((s) => s.filterMin)
   const filterMax = usePools((s) => s.filterMax)
 
-  const inputDisabled = !filterTarget || filterTarget === 'none'
-
   const minChanging = useCallback(
     (t: string | number | undefined) => {
       setLocalItem('value-filter-min', String(t || '0'))
@@ -331,7 +329,6 @@ function Filter() {
                     className={
                       'px-3 py-2 mobile:py-1 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
                     }
-                    disabled={inputDisabled}
                     placeholder={0}
                     decimalCount={2}
                     onUserInput={onMinChanging}
@@ -344,7 +341,6 @@ function Filter() {
                     className={
                       'px-3 py-2 mobile:py-1 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
                     }
-                    disabled={inputDisabled}
                     value={filterMax}
                     placeholder={'∞'}
                     decimalCount={2}
