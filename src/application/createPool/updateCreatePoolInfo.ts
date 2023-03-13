@@ -34,14 +34,6 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
       `market program id is not OpenBook program id`
     )
     const { baseMint, quoteMint } = MARKET_STATE_LAYOUT_V3.decode(marketBufferInfo.data)
-    const baseDecimals = await getOnlineTokenDecimals(baseMint)
-    const isBaseVerifyed = await verifyToken(baseMint)
-    if (!isBaseVerifyed) return { isSuccess: false }
-    const quoteDecimals = await getOnlineTokenDecimals(quoteMint)
-    const isQuoteVerifyed = await verifyToken(quoteMint)
-    if (!isQuoteVerifyed) return { isSuccess: false }
-    assert(baseDecimals != null, 'base decimal must exist')
-    assert(quoteDecimals != null, 'quote decimal must exist')
     // assert(
     //   Object.values(routeMiddleMints).includes(String(quoteMint)),
     //   `only support USDT, USDC, USDH, RAY, WSOL(SOL), mSOL, stSOL, SRM, PAI, ETH, USH. current: ${toPubString(
@@ -51,16 +43,26 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
 
     const baseTokenBufferInfo = await connection.getAccountInfo(new PublicKey(baseMint))
     assert(baseTokenBufferInfo?.data, `can't find token ${baseMint}`)
-    const { decimals: baseTokenDecimals } = SPL_MINT_LAYOUT.decode(baseTokenBufferInfo.data)
+    const { decimals: baseDecimals } = SPL_MINT_LAYOUT.decode(baseTokenBufferInfo.data)
+    assert(baseDecimals != null, 'base decimal must exist')
+    const isBaseVerifyed = await verifyToken(baseMint, { cachedAccountInfo: baseTokenBufferInfo })
+    if (!isBaseVerifyed) return { isSuccess: false }
 
     const quoteTokenBufferInfo = await connection.getAccountInfo(new PublicKey(quoteMint))
     assert(quoteTokenBufferInfo?.data, `can't find token ${quoteMint}`)
-    const { decimals: quoteTokenDecimals } = SPL_MINT_LAYOUT.decode(quoteTokenBufferInfo.data)
+    const { decimals: quoteDecimals } = SPL_MINT_LAYOUT.decode(quoteTokenBufferInfo.data)
+    assert(quoteDecimals != null, 'quote decimal must exist')
+    const isQuoteVerifyed = await verifyToken(quoteMint, { cachedAccountInfo: quoteTokenBufferInfo })
+    if (!isQuoteVerifyed) return { isSuccess: false }
 
     // assert user has eligible base and quote
     const { tokenAccounts, allTokenAccounts } = useWallet.getState()
-    const userBaseTokenAccount = tokenAccounts.find(({ mint }) => String(mint) === String(baseMint)) ?? allTokenAccounts.find(({ mint }) => String(mint) === String(baseMint))
-    const userQuoteTokenAccount = tokenAccounts.find(({ mint }) => String(mint) === String(quoteMint)) ?? allTokenAccounts.find(({ mint }) => String(mint) === String(quoteMint))
+    const userBaseTokenAccount =
+      tokenAccounts.find(({ mint }) => String(mint) === String(baseMint)) ??
+      allTokenAccounts.find(({ mint }) => String(mint) === String(baseMint))
+    const userQuoteTokenAccount =
+      tokenAccounts.find(({ mint }) => String(mint) === String(quoteMint)) ??
+      allTokenAccounts.find(({ mint }) => String(mint) === String(quoteMint))
 
     assert(
       toPubString(quoteMint) === toPubString(WSOLMint) ? true : userQuoteTokenAccount,
@@ -102,8 +104,8 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
       marketId: String(txParam.marketId),
       baseMint: String(baseMint),
       quoteMint: String(quoteMint),
-      baseDecimals: baseTokenDecimals,
-      quoteDecimals: quoteTokenDecimals
+      baseDecimals: baseDecimals,
+      quoteDecimals: quoteDecimals
     })
 
     const isAlreadyInited = Boolean((await connection?.getAccountInfo(new PublicKey(ammId)))?.data.length)

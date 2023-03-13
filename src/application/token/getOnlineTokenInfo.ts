@@ -6,12 +6,20 @@ import { PublicKeyish } from '@/types/constants'
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 import useToken from './useToken'
+import { AccountInfo } from '@solana/web3.js'
 
-export async function verifyToken(mintish: PublicKeyish, options?: { noLog?: boolean }) {
+export async function verifyToken(
+  mintish: PublicKeyish,
+  options?: {
+    noLog?: boolean
+    /** if provided, not need get again */
+    cachedAccountInfo?: AccountInfo<Buffer>
+  }
+) {
   try {
     const { connection } = useConnection.getState() // TEST devnet
     if (!connection) return false
-    const tokenAccount = await connection.getAccountInfo(toPub(mintish))
+    const tokenAccount = options?.cachedAccountInfo ?? (await connection.getAccountInfo(toPub(mintish)))
     if (!tokenAccount) return false
     if (tokenAccount.data.length !== SPL_MINT_LAYOUT.span) return false
     const layout = SPL_MINT_LAYOUT.decode(tokenAccount.data)
