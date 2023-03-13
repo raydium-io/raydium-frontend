@@ -11,6 +11,7 @@ export function usePoolFilterLoader() {
 
     if (filterTarget) {
       usePools.setState({ filterTarget, filterMax, filterMin })
+      useConcentrated.setState({ filterTarget, filterMax, filterMin })
     }
   })
 }

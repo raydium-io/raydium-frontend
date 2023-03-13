@@ -280,14 +280,30 @@ function Filter() {
 
   const inputDisabled = !filterTarget || filterTarget === 'none'
 
-  const onMinChanging = useDebounce(
+  const minChanging = useCallback(
     (t: string | number | undefined) => {
+      const maxValue = (gt(t, filterMax) ? t : filterMax) ?? ''
       setLocalItem('value-filter-min', String(t || '0'))
-      const maxValue = gt(t, filterMax) ? t : filterMax
+      setLocalItem('value-filter-max', String(maxValue))
+
       usePools.setState({ filterMin: String(t || '0'), filterMax: String(maxValue) })
     },
-    { debouncedOptions: { delay: 300 } }
+    [filterMax]
   )
+
+  const onMinChanging = useDebounce(minChanging, { debouncedOptions: { delay: 300 } })
+
+  const maxChanging = useCallback(
+    (t: string | number | undefined) => {
+      const minValue = (lt(t, filterMin) ? t : filterMin) || '0'
+      setLocalItem('value-filter-max', String(t ?? ''))
+      setLocalItem('value-filter-min', String(minValue))
+      usePools.setState({ filterMax: String(t || ''), filterMin: String(minValue) })
+    },
+    [filterMin]
+  )
+
+  const onMaxChanging = useDebounce(maxChanging, { debouncedOptions: { delay: 300 } })
 
   return (
     <>
@@ -335,10 +351,7 @@ function Filter() {
                     value={filterMax}
                     placeholder={'max value'}
                     decimalCount={2}
-                    onUserInput={(t) => {
-                      setLocalItem('value-filter-max', String(t || ''))
-                      usePools.setState({ filterMax: String(t || '') })
-                    }}
+                    onUserInput={onMaxChanging}
                     prefix={'To:'}
                     inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
                   />
@@ -565,7 +578,7 @@ function PoolCard() {
   }, [timeBasis, filterTarget])
 
   const filtered = useMemo(() => {
-    if (!filterTarget || filterTarget === 'none' || gt(filterMin, filterMax)) return sorted
+    if (!filterTarget || filterTarget === 'none' || gt(filterMin, filterMax) || lt(filterMax, filterMin)) return sorted
 
     return sorted?.filter((item) => {
       return (

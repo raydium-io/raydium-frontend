@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
@@ -6,6 +6,7 @@ import { PublicKey } from '@solana/web3.js'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
+import { usePoolFilterLoader } from '@/application/common/usePoolFilterLoader'
 import { usePoolTimeBasisLoader } from '@/application/common/usePoolTimeBasisLoader'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
@@ -39,6 +40,7 @@ import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import DecimalInput from '@/components/DecimalInput'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
@@ -59,15 +61,17 @@ import { getDate, toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { getCountDownTime } from '@/functions/date/parseDuration'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
+import { setLocalItem } from '@/functions/dom/jStorage'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
 import { shrinkAccount } from '@/functions/format/shrinkAccount'
 import toPubString from '@/functions/format/toMintString'
+import toPercentNumber from '@/functions/format/toPercentNumber'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { objectMap } from '@/functions/objectMethods'
@@ -91,6 +95,7 @@ export default function PoolsConcentratedPage() {
   useConcentratedPoolUrlParser()
   useConcentratedAmountCalculator()
   usePoolTimeBasisLoader()
+  usePoolFilterLoader()
 
   return (
     <PageLayout
@@ -348,12 +353,106 @@ function PoolLabelBlock({ className }: { className?: string }) {
       </Col>
 
       <Row className="gap-4 items-center">
+        <Filter />
         <ShowCreated />
         <HarvestAll />
         <PoolTimeBasisSelectorBox />
         <PoolSearchBlock className="h-[36px]" />
       </Row>
     </Row>
+  )
+}
+
+function Filter() {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const filterTarget = useConcentrated((s) => s.filterTarget)
+  const filterMin = useConcentrated((s) => s.filterMin)
+  const filterMax = useConcentrated((s) => s.filterMax)
+
+  const inputDisabled = !filterTarget || filterTarget === 'none'
+
+  const minChanging = useCallback(
+    (t: string | number | undefined) => {
+      const maxValue = (gt(t, filterMax) ? t : filterMax) ?? ''
+      setLocalItem('value-filter-min', String(t || '0'))
+      setLocalItem('value-filter-max', String(maxValue))
+
+      useConcentrated.setState({ filterMin: String(t || '0'), filterMax: String(maxValue) })
+    },
+    [filterMax]
+  )
+
+  const onMinChanging = useDebounce(minChanging, { debouncedOptions: { delay: 300 } })
+
+  const maxChanging = useCallback(
+    (t: string | number | undefined) => {
+      const minValue = (lt(t, filterMin) ? t : filterMin) || '0'
+      setLocalItem('value-filter-max', String(t ?? ''))
+      setLocalItem('value-filter-min', String(minValue))
+      useConcentrated.setState({ filterMax: String(t || ''), filterMin: String(minValue) })
+    },
+    [filterMin]
+  )
+
+  const onMaxChanging = useDebounce(maxChanging, { debouncedOptions: { delay: 300 } })
+
+  return (
+    <>
+      <Popover placement="bottom" triggerBy={isMobile ? 'press' : 'hover'}>
+        <Popover.Button>
+          <div className={twMerge('mx-1 rounded-full p-2 text-[#abc4ff] clickable justify-self-start')}>
+            <Icon className="w-5 h-5" iconClassName="w-5 h-5" heroIconName="funnel" />
+          </div>
+        </Popover.Button>
+        <Popover.Panel>
+          <div>
+            <Card
+              className="flex flex-col py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
+              size="lg"
+            >
+              <Grid className="grid-cols-1 items-center gap-2">
+                <Select
+                  className={twMerge('z-20')}
+                  candidateValues={['none', 'Liquidity', 'Volume', 'Fees', 'Apr']}
+                  localStorageKey="value-filter-target"
+                  defaultValue={filterTarget}
+                  prefix="Target:"
+                  onChange={(v) => {
+                    useConcentrated.setState({ filterTarget: v })
+                  }}
+                />
+                <Grid className="grid-cols-2 items-center gap-2">
+                  <DecimalInput
+                    className={
+                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[12vw] mobile:w-auto'
+                    }
+                    disabled={inputDisabled}
+                    placeholder={'min value'}
+                    decimalCount={2}
+                    onUserInput={onMinChanging}
+                    value={filterMin}
+                    prefix={'From:'}
+                    inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
+                  />
+                  <DecimalInput
+                    className={
+                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[12vw] mobile:w-auto'
+                    }
+                    disabled={inputDisabled}
+                    value={filterMax}
+                    placeholder={'max value'}
+                    decimalCount={2}
+                    onUserInput={onMaxChanging}
+                    prefix={'To:'}
+                    inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255,0.5)] placeholder-[rgba(196,214,255,0.5)]"
+                  />
+                </Grid>
+              </Grid>
+            </Card>
+          </div>
+        </Popover.Panel>
+      </Popover>
+    </>
   )
 }
 
@@ -481,11 +580,15 @@ function PoolCard() {
   const currentTab = useConcentrated((s) => s.currentTab)
   const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
   const poolSortConfig = useConcentrated((s) => s.poolSortConfig)
+  const filterTarget = useConcentrated((s) => s.filterTarget)
+  const filterMin = useConcentrated((s) => s.filterMin)
+  const filterMax = useConcentrated((s) => s.filterMax)
   const owner = useWallet((s) => s.owner)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
   const [isSortLightOn, setIsSortLightOn] = useState(false)
   const [sorted, setSortedData] = useState<HydratedConcentratedInfo[] | undefined>(undefined)
+
   const dataSource = useMemo(
     () =>
       hydratedAmmPools.filter((pool) => {
@@ -583,6 +686,40 @@ function PoolCard() {
   )
 
   useEffect(prepareSortedData, [tempSortedData])
+
+  const filteredKey = useMemo(() => {
+    const valueCategory =
+      filterTarget === 'Liquidity'
+        ? 'tvl'
+        : filterTarget === 'Volume'
+        ? 'volume'
+        : filterTarget === 'Fees'
+        ? 'volumeFee'
+        : 'totalApr'
+    const timeCategory =
+      valueCategory !== 'tvl' ? (timeBasis === '24H' ? '24h' : timeBasis === '7D' ? '7d' : '30d') : ''
+
+    return valueCategory + timeCategory
+  }, [timeBasis, filterTarget])
+
+  const filtered = useMemo(() => {
+    if (!filterTarget || filterTarget === 'none' || gt(filterMin, filterMax) || lt(filterMax, filterMin)) return sorted
+
+    const filteredKeyIsApr = filteredKey.includes('Apr')
+    const filterMinUnitValue = !filteredKeyIsApr ? filterMin : toString(div(filterMin, 100))
+    const filterMaxUnitValue = !filteredKeyIsApr ? filterMax : toString(div(filterMax, 100))
+
+    return sorted?.filter((item) => {
+      return (
+        (filterMin === '0'
+          ? true
+          : gte(toString(item[filteredKey], { decimalLength: !filteredKeyIsApr ? 0 : 4 }), filterMinUnitValue)) &&
+        (!filterMax
+          ? true
+          : lte(toString(item[filteredKey], { decimalLength: !filteredKeyIsApr ? 0 : 4 }), filterMaxUnitValue))
+      )
+    })
+  }, [sorted, filterTarget, filterMin, filterMax, filteredKey])
 
   const TableHeaderBlock = useMemo(
     () => (
@@ -807,7 +944,7 @@ function PoolCard() {
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && TableHeaderBlock}
-      <PoolCardDatabaseBody sortedItems={sorted} searchedItemsLength={searched.length} />
+      <PoolCardDatabaseBody sortedItems={filtered} searchedItemsLength={searched.length} />
     </CyberpunkStyleCard>
   )
 }
@@ -821,7 +958,7 @@ function PoolCardDatabaseBody({
   const loading = useConcentrated((s) => s.loading)
   const expandedItemIds = useConcentrated((s) => s.expandedItemIds)
   const [favouriteIds, setFavouriteIds] = useConcentratedFavoriteIds()
-  return !loading && searchedItemsLength === 0 ? (
+  return !loading && (searchedItemsLength === 0 || (searchedItemsLength !== 0 && sortedItems?.length === 0)) ? (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
   ) : sortedItems && sortedItems.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
