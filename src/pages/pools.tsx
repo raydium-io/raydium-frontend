@@ -333,7 +333,7 @@ function Filter() {
                 <Grid className="grid-cols-2 items-center gap-2">
                   <DecimalInput
                     className={
-                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
+                      'px-3 py-2 mobile:py-1 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
                     }
                     disabled={inputDisabled}
                     placeholder={'min value'}
@@ -341,12 +341,12 @@ function Filter() {
                     onUserInput={onMinChanging}
                     value={filterMin}
                     prefix={'From:'}
-                    prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)]'}
+                    prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)] mr-1'}
                     inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
                   />
                   <DecimalInput
                     className={
-                      'px-3 py-2 mobile:py-1 gap-2 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
+                      'px-3 py-2 mobile:py-1 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
                     }
                     disabled={inputDisabled}
                     value={filterMax}
@@ -354,7 +354,7 @@ function Filter() {
                     decimalCount={2}
                     onUserInput={onMaxChanging}
                     prefix={'To:'}
-                    prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)]'}
+                    prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)] mr-1'}
                     inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
                   />
                 </Grid>
