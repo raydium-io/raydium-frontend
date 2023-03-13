@@ -1,6 +1,6 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 
-import { CurrencyAmount } from '@raydium-io/raydium-sdk'
+import { CurrencyAmount, ZERO } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import { twMerge } from 'tailwind-merge'
@@ -55,7 +55,6 @@ import { getDate, toUTC } from '@/functions/date/dateFormat'
 import { currentIsAfter, currentIsBefore } from '@/functions/date/judges'
 import { getCountDownTime } from '@/functions/date/parseDuration'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
-import { getLocalItem } from '@/functions/dom/jStorage'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
 import { shrinkAccount } from '@/functions/format/shrinkAccount'
@@ -64,7 +63,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { objectMap } from '@/functions/objectMethods'
@@ -257,17 +256,18 @@ function HarvestAll() {
   const isMobile = useAppSettings((s) => s.isMobile)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
 
-  const canHarvestAll = useMemo(() => {
-    let result = false
-    for (const pool of hydratedAmmPools) {
-      if (pool.userPositionAccount && pool.userPositionAccount.length > 0) {
-        result = true
-        break
-      }
-    }
-
-    return result
-  }, [hydratedAmmPools])
+  const canHarvestAll = useMemo(
+    () =>
+      hydratedAmmPools.some((pool) =>
+        pool.userPositionAccount?.find(
+          (i) =>
+            gt(i.tokenFeeAmountB, ZERO) ||
+            gt(i.tokenFeeAmountA, ZERO) ||
+            i.rewardInfos.find((reward) => gt(reward.penddingReward, ZERO))
+        )
+      ),
+    [hydratedAmmPools]
+  )
 
   return (
     <Button

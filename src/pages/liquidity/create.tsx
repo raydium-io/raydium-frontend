@@ -1,6 +1,5 @@
-import React, { ReactNode, useMemo, useState } from 'react'
 import { useRouter } from 'next/router'
-
+import { ReactNode, useMemo, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
@@ -25,10 +24,12 @@ import PageLayout from '@/components/PageLayout'
 import Row from '@/components/Row'
 import SetpIndicator from '@/components/SetpIndicator'
 import copyToClipboard from '@/functions/dom/copyToClipboard'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useToggle from '@/hooks/useToggle'
+import { getMaxBalanceBNIfNotATA } from '../../application/token/getMaxBalanceIfNotATA'
 
 /**
  * @see https://uiwjs.github.io/#/components/date-input
@@ -109,6 +110,16 @@ function PanelContent({ close }: { close(): void }) {
     ? getToken(quoteMint) ??
       (quoteDecimals != null ? createSplToken({ mint: quoteMint, decimals: quoteDecimals }) : undefined)
     : undefined
+  // if have ata use ata, if not ,use max account in wallet
+  const baseTokenBalance = useMemo(
+    () => (baseToken ? toTokenAmount(baseToken, getMaxBalanceBNIfNotATA(baseToken.mint)) : undefined),
+    [baseToken]
+  )
+  const quoteTokenBalance = useMemo(
+    () => (quoteToken ? toTokenAmount(quoteToken, getMaxBalanceBNIfNotATA(quoteToken.mint)) : undefined),
+    [quoteToken]
+  )
+
   const [priceReverse, { toggle }] = useToggle()
 
   const step2Content = (
@@ -148,12 +159,14 @@ function PanelContent({ close }: { close(): void }) {
         topLeftLabel="Base Token Initial Liquidity:"
         className="mb-5"
         token={baseToken}
+        maxValue={baseTokenBalance}
         onUserInput={(inputText) => useCreatePool.setState({ baseDecimaledAmount: inputText })}
       />
       <CoinInputBox
         topLeftLabel="Quote Token Initial Liquidity:"
         className="mb-5"
         token={quoteToken}
+        maxValue={quoteTokenBalance}
         onUserInput={(inputText) => useCreatePool.setState({ quoteDecimaledAmount: inputText })}
       />
       <DateInput
@@ -352,7 +365,7 @@ function UserCreatedPoolsExhibitionPanel() {
               className="py-4 px-6 ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-2xl mobile:rounded-xl"
             >
               <Collapse.Face>
-                {(open) => (
+                {({ isOpen }) => (
                   <Row className="items-center justify-between">
                     <Row className="gap-2 items-center">
                       <div className="text-base font-normal text-[#abc4ff]">
@@ -362,7 +375,7 @@ function UserCreatedPoolsExhibitionPanel() {
                     <Icon
                       size="sm"
                       className="text-[#abc4ff]"
-                      heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`}
+                      heroIconName={`${isOpen ? 'chevron-up' : 'chevron-down'}`}
                     />
                   </Row>
                 )}

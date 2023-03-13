@@ -1,7 +1,7 @@
 import React, { ReactNode, useCallback, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base'
+import { WalletAdapterNetwork, WalletError, Adapter } from '@solana/wallet-adapter-base'
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
 import {
   BackpackWalletAdapter,
@@ -83,12 +83,17 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
     [endpoint]
   )
 
-  const onError = useCallback((err, adapter) => {
+  const onError = useCallback((err: WalletError, adapter?: Adapter) => {
     // in local will throw disconnect error when hot-reload, might be phantom or wallet adapter'bug
-    if (isInLocalhost && adapter && err.name === 'WalletDisconnectedError')
+    if (isInLocalhost && adapter && err.name === 'WalletDisconnectedError') {
+      if (useWallet.getState().userDisconnect) {
+        useWallet.setState({ userDisconnect: false })
+        return
+      }
       setTimeout(() => {
         useWallet.getState().select(adapter.name)
       }, 100)
+    }
   }, [])
 
   return (

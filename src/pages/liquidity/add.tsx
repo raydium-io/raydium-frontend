@@ -850,7 +850,7 @@ function UserLiquidityExhibition() {
                 <FadeIn>
                   <Collapse className="ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl">
                     <Collapse.Face>
-                      {(open) => (
+                      {({isOpen}) => (
                         <Row className="items-center justify-between py-4 px-6 mobile:px-4">
                           <Row className="gap-2 items-center">
                             <CoinAvatarPair
@@ -866,7 +866,7 @@ function UserLiquidityExhibition() {
                           <Icon
                             size="sm"
                             className="text-[#abc4ff]"
-                            heroIconName={`${open ? 'chevron-up' : 'chevron-down'}`}
+                            heroIconName={`${isOpen ? 'chevron-up' : 'chevron-down'}`}
                           />
                         </Row>
                       )}

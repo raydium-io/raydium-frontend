@@ -34,11 +34,6 @@
     eventemitter3 "^4.0.7"
     uuid "^8.3.2"
 
-"@colors/colors@^1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
-  integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
-
 "@cspotcode/source-map-support@^0.8.0":
   version "0.8.1"
   resolved "https://registry.yarnpkg.com/@cspotcode/source-map-support/-/source-map-support-0.8.1.tgz#00629c35a688e05a88b1cda684fb9d5e73f000a1"
@@ -522,12 +517,11 @@
     bs58 "^4.0.1"
     eventemitter3 "^4.0.7"
 
-"@raydium-io/raydium-sdk@^1.2.0-beta.7":
-  version "1.2.0-beta.7"
-  resolved "https://registry.yarnpkg.com/@raydium-io/raydium-sdk/-/raydium-sdk-1.2.0-beta.7.tgz#4d9220171dce86bb20bf0d48fa4de247c69f7a17"
-  integrity sha512-X184fDBoUtOT9iHntz3y95Hu3C/DsiiSEjJGHDCDEC4J9xyicBNBwdLrtsRpS0bPG1t5EjSwMddmXp96YXop5g==
+"@raydium-io/raydium-sdk@1.3.0-beta.2":
+  version "1.3.0-beta.2"
+  resolved "https://registry.yarnpkg.com/@raydium-io/raydium-sdk/-/raydium-sdk-1.3.0-beta.2.tgz#b14c9f87abb1f563a564ecc9963816bbaf6155a2"
+  integrity sha512-XekhiZusc2mogjlWx+cTI6G6VdnbtcUJuzIXi33c/F/0oetZlR/MxTgzPsSbupuXRj151nYYmDKIU0kcMR3+pw==
   dependencies:
-    "@colors/colors" "^1.5.0"
     "@solana/buffer-layout" "^4.0.1"
     "@solana/spl-token" "^0.3.7"
     "@solana/web3.js" "1.73.0"
