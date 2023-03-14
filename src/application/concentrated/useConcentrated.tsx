@@ -54,6 +54,12 @@ export const timeMap = {
   [TimeBasis.MONTH]: 'month'
 }
 
+interface FilterType {
+  label: string
+  min?: string
+  max?: string
+}
+
 export type ConcentratedStore = {
   //#region ------------------- input data -------------------
   selectableAmmPools?: HydratedConcentratedInfo[]
@@ -134,6 +140,15 @@ export type ConcentratedStore = {
   filterTarget: 'none' | 'Liquidity' | 'Volume' | 'Fees' | 'Apr'
   filterMax?: string
   filterMin?: string
+
+  filter: {
+    liquidity: FilterType
+    volume: FilterType
+    fees: FilterType
+    apr: FilterType
+  }
+
+  setFilter: (target: 'liquidity' | 'volume' | 'fees' | 'apr', option: 'min' | 'max', value: string) => void
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
@@ -204,7 +219,26 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   },
   whitelistRewards: [],
   poolSortConfig: undefined,
-  filterTarget: 'none'
+  filterTarget: 'none',
+  filter: {
+    liquidity: {
+      label: 'Liquidity'
+    },
+    volume: {
+      label: 'Volume'
+    },
+    fees: {
+      label: 'Fees'
+    },
+    apr: {
+      label: 'Apr'
+    }
+  },
+  setFilter: (target, option, value) => {
+    set((s) => ({
+      filter: { ...s.filter, [target]: { ...s.filter[target], [option]: value } }
+    }))
+  }
 }))
 
 export default useConcentrated
