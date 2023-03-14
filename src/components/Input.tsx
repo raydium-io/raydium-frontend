@@ -6,6 +6,7 @@ import React, {
   startTransition,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState
 } from 'react'
@@ -39,7 +40,7 @@ export interface InputProps {
   /** will record input result in localStorage */
   id?: string
 
-  type?: string // current support type in this app
+  type?: 'search' | 'text' | 'none' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' // current support type in this app
 
   noCSSInputDefaultWidth?: boolean // <input> have default width, sometimes, it's weird
 
@@ -194,8 +195,26 @@ export default function Input(props: InputProps) {
 
   const inputRef = useRef<HTMLInputElement>()
 
+  const cachedCursorPosition = useRef<number>()
+
   // only useable for uncontrolled formkit
-  const [selfValue, setSelfValue] = useState(defaultValue ?? value ?? '')
+  const [selfValue, _setSelfValue] = useState(defaultValue ?? value ?? '')
+
+  // TODO: cached cursor should move to a hook, but don't know how to do it
+  // cached cursor
+  const setSelfValue: React.Dispatch<React.SetStateAction<string | number>> = (...args) => {
+    cachedCursorPosition.current = inputRef.current?.selectionStart ?? undefined
+    _setSelfValue(...args)
+  }
+
+  // restore cached cursor
+  useLayoutEffect(() => {
+    const cursor = cachedCursorPosition.current
+    if (cursor)
+      Promise.resolve().then(() => {
+        inputRef.current?.setSelectionRange(cursor, cursor)
+      })
+  }, [selfValue])
 
   // if (set id),  sync sessionStorage to cache user input
   if (id) {
@@ -277,7 +296,7 @@ export default function Input(props: InputProps) {
         <input
           autoComplete="off"
           id={id}
-          type={type}
+          inputMode={type} // for only input:text can have selection info, so use inputMode instead
           ref={mergeRef(inputRef, inputDomRef)}
           value={pattern || validators ? selfValue : undefined} // !!! NOTE: if it has pattern validators, input must be controlled component
           className={`${
@@ -358,7 +377,7 @@ export default function Input(props: InputProps) {
           }}
           onKeyDown={(ev) => {
             inputHTMLProps?.onKeyDown?.(ev)
-            if (type === 'number' && (ev.key === 'ArrowUp' || ev.key === 'ArrowDown')) {
+            if ((type === 'decimal' || type === 'numeric') && (ev.key === 'ArrowUp' || ev.key === 'ArrowDown')) {
               ev.preventDefault()
             } else if (ev.key === 'Enter') {
               onEnter?.((ev.target as HTMLInputElement).value, {
@@ -373,7 +392,7 @@ export default function Input(props: InputProps) {
             }
           }}
           onWheel={(e) => {
-            if (type === 'number') {
+            if (type === 'decimal' || type === 'numeric') {
               e.currentTarget.blur()
             }
           }}

@@ -331,7 +331,7 @@ export function RewardFormCardInputs({
             className="grow-2 rounded-md text-sm font-medium text-white px-4"
             inputClassName="placeholder:text-[#abc4ff50]"
             label="Duration"
-            type="number"
+            type="numeric"
             inputHTMLProps={{
               min: 1,
               maxLength: 3,
