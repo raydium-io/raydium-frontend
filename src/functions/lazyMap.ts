@@ -72,29 +72,29 @@ export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
     // cancel all unresolved subtask
     cancelUnresolvedIdles(setting.loopTaskName)
 
-    // console.info(
-    //   '[lazymap] START WAITING: ',
-    //   setting.loopTaskName,
-    //   'CURRENT WAITING QUEUE:',
-    //   waitingIntervalIds.slice(),
-    //   'CURRENT FINISHED QUEUE: ',
-    //   finishedQueue.slice()
-    // )
+    console.info(
+      '[lazymap] START WAITING: ',
+      setting.loopTaskName,
+      'CURRENT WAITING QUEUE:',
+      waitingIntervalIds.slice(),
+      'CURRENT FINISHED QUEUE: ',
+      finishedQueue.slice()
+    )
     // start waiting for result
     resolve(Promise.resolve(waitTask(setting.loopTaskName)))
 
     // fire idle callback to handle lazyMapCoreMap
     const idleId = requestIdleCallback(async () => {
-      // console.info('[lazymap] CURRENT PRIORIT QUEUE: ', invokedPriorityQueue.slice())
+      console.info('[lazymap] CURRENT PRIORIT QUEUE: ', invokedPriorityQueue.slice())
       // get task from priority queue w/ priority weighting
       const task = getTask()
-      // console.info('[lazymap] PROCESSING TASK is: ', task?.loopTaskName)
+      console.info('[lazymap] PROCESSING TASK is: ', task?.loopTaskName)
       if (!task) {
         resolve([])
         return
       }
       const result = await lazyMapCoreMap(task)
-      // console.info('[lazymap] FINISHED TASK ', task?.loopTaskName, ' , PUSH to FINISHED QUEUE')
+      console.info('[lazymap] FINISHED TASK ', task?.loopTaskName, ' , PUSH to FINISHED QUEUE')
 
       // replace task result w/ the latest one
       finishedQueue = finishedQueue.filter((finished) => finished.taskName !== task.loopTaskName)
