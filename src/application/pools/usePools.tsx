@@ -42,6 +42,7 @@ export type PoolsStore = {
   }
 
   setFilter: (target: 'liquidity' | 'volume' | 'fees' | 'apr', option: 'min' | 'max', value: string) => void
+  resetFilter: (target: 'liquidity' | 'volume' | 'fees' | 'apr') => void
 }
 
 // FAQ: why it's a domain? because it must be a domain , or it's a design bug ———— do something useless.
@@ -84,6 +85,11 @@ export const usePools = create<PoolsStore>((set, get) => ({
   setFilter: (target, option, value) => {
     set((s) => ({
       filter: { ...s.filter, [target]: { ...s.filter[target], [option]: value } }
+    }))
+  },
+  resetFilter: (target) => {
+    set((s) => ({
+      filter: { ...s.filter, [target]: { ...s.filter[target], max: '', min: '' } }
     }))
   }
 }))

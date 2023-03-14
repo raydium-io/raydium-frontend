@@ -37,6 +37,7 @@ import {
   XCircleIcon,
   XMarkIcon
 } from '@heroicons/react/24/outline'
+import { FunnelIcon as FunnelSolidIcon } from '@heroicons/react/24/solid'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -83,6 +84,7 @@ export type AppHeroIconName =
   | 'lock-closed'
   | 'x-switch'
   | 'funnel'
+  | 'funnel-solid'
   | ' '
 
 export interface IconProps {
@@ -199,6 +201,8 @@ export default function Icon({
         ? ArrowsRightLeftIcon
         : heroIconName === 'funnel'
         ? FunnelIcon
+        : heroIconName === 'funnel-solid'
+        ? FunnelSolidIcon
         : heroIconName === ' '
         ? ({ className }: { className?: string }) => <div className={className} />
         : Fragment

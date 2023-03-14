@@ -149,6 +149,7 @@ export type ConcentratedStore = {
   }
 
   setFilter: (target: 'liquidity' | 'volume' | 'fees' | 'apr', option: 'min' | 'max', value: string) => void
+  resetFilter: (target: 'liquidity' | 'volume' | 'fees' | 'apr') => void
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
@@ -237,6 +238,11 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   setFilter: (target, option, value) => {
     set((s) => ({
       filter: { ...s.filter, [target]: { ...s.filter[target], [option]: value } }
+    }))
+  },
+  resetFilter: (target) => {
+    set((s) => ({
+      filter: { ...s.filter, [target]: { ...s.filter[target], max: '', min: '' } }
     }))
   }
 }))

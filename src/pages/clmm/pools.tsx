@@ -334,11 +334,27 @@ function ShowCreated() {
   }
 }
 
-function PoolLabelBlock({ className }: { className?: string }) {
+function PoolLabelBlock({
+  className,
+  filterPoolCount,
+  showCount = false
+}: {
+  className?: string
+  filterPoolCount?: number
+  showCount: boolean
+}) {
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4 gap-y-4')}>
       <Col>
-        <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
+        <div className="flex items-end">
+          <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
+          {showCount && (
+            <div className="font-normal text-sm mobile:text-base text-[rgba(196,214,255,.5)] ml-2 mb-1">
+              (Filtered Pools: {filterPoolCount})
+            </div>
+          )}
+        </div>
+
         <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
           Concentrate liquidity for increased capital efficiency.{' '}
           <Link
@@ -364,10 +380,11 @@ function Filter({ target }: { target: 'liquidity' | 'volume' | 'fees' | 'apr' })
   const isMobile = useAppSettings((s) => s.isMobile)
   const filter = useConcentrated((s) => s.filter[target])
   const setFilter = useConcentrated((s) => s.setFilter)
+  const resetFilter = useConcentrated((s) => s.resetFilter)
 
   const minChanging = useCallback(
     (t: string | number | undefined) => {
-      setFilter(target, 'min', String(t || '0'))
+      setFilter(target, 'min', String(t || ''))
     },
     [target]
   )
@@ -391,21 +408,25 @@ function Filter({ target }: { target: 'liquidity' | 'volume' | 'fees' | 'apr' })
       <Popover placement="bottom" triggerBy={isMobile ? 'press' : 'hover'}>
         <Popover.Button>
           <div className={twMerge('mx-1 rounded-full p-2 text-[#abc4ff80] clickable justify-self-start')}>
-            <Icon className="w-5 h-5" iconClassName="w-5 h-5" heroIconName="funnel" />
+            {filter.max || filter.min ? (
+              <Icon className="w-4 h-4" iconClassName="w-4 h-4" heroIconName="funnel-solid" />
+            ) : (
+              <Icon className="w-4 h-4" iconClassName="w-4 h-4" heroIconName="funnel" />
+            )}
           </div>
         </Popover.Button>
         <Popover.Panel>
           <div>
             <Card
-              className="flex flex-col py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
+              className="flex flex-col py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card  items-center"
               size="lg"
             >
-              <Grid className="grid-cols-2 items-center gap-2">
+              <Grid className="grid-cols-1 items-center gap-2">
                 <DecimalInput
                   className={`px-3 py-2 mobile:py-1 ring-inset ring-1 ${
                     filterValueUnavailable ? 'ring-[rgba(255,86,86,0.94)]' : 'ring-[rgba(196,214,255,0.5)]'
                   } rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto`}
-                  placeholder={0}
+                  placeholder={'0'}
                   decimalCount={2}
                   onUserInput={onMinChanging}
                   value={filter.min}
@@ -429,6 +450,15 @@ function Filter({ target }: { target: 'liquidity' | 'volume' | 'fees' | 'apr' })
               {filterValueUnavailable && (
                 <div className="text-[rgba(255,86,86,0.94)] mt-2">filter value unavailable</div>
               )}
+              <Button
+                size="sm"
+                className="frosted-glass-teal mt-5 w-[140px]"
+                onClick={() => {
+                  resetFilter(target)
+                }}
+              >
+                Reset
+              </Button>
             </Card>
           </div>
         </Popover.Panel>
@@ -567,6 +597,7 @@ function PoolCard() {
   const [favouriteIds] = useConcentratedFavoriteIds()
   const [isSortLightOn, setIsSortLightOn] = useState(false)
   const [sorted, setSortedData] = useState<HydratedConcentratedInfo[] | undefined>(undefined)
+  const [showCount, setShowCount] = useState(false)
 
   const dataSource = useMemo(
     () =>
@@ -680,7 +711,12 @@ function PoolCard() {
   const filtered = useMemo(() => {
     const availableFilter = objectFilter(filter, (option, key) => Boolean(option.max) || Boolean(option.min))
     const filterTargets = Object.keys(availableFilter)
-    if (filterTargets.length === 0) return sorted
+    if (filterTargets.length === 0) {
+      setShowCount(false)
+      return sorted
+    } else {
+      setShowCount(true)
+    }
 
     return sorted?.filter((item) => {
       let passed = true
@@ -924,7 +960,7 @@ function PoolCard() {
   ) : (
     <div>
       <Row className={'w-full justify-between pb-5 items-center'}>
-        <PoolLabelBlock className="flex-grow" />
+        <PoolLabelBlock className="flex-grow" filterPoolCount={filtered?.length} showCount={showCount} />
       </Row>
     </div>
   )
