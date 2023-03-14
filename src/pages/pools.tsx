@@ -68,7 +68,6 @@ import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 export default function PoolsPage() {
   usePoolSummeryInfoLoader()
   usePoolTimeBasisLoader()
-  // usePoolFilterLoader()
 
   return (
     <PageLayout

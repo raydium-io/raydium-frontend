@@ -6,7 +6,6 @@ import { PublicKey } from '@solana/web3.js'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
-import { usePoolFilterLoader } from '@/application/common/usePoolFilterLoader'
 import { usePoolTimeBasisLoader } from '@/application/common/usePoolTimeBasisLoader'
 import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
@@ -95,7 +94,6 @@ export default function PoolsConcentratedPage() {
   useConcentratedPoolUrlParser()
   useConcentratedAmountCalculator()
   usePoolTimeBasisLoader()
-  usePoolFilterLoader()
 
   return (
     <PageLayout
