@@ -10,6 +10,7 @@ import { VirtualBox } from '../components/VirtualBox'
 import { RollingNumber } from '../components/RollingNumber'
 import CoinInputBox from '@/components/CoinInputBox'
 import DecimalInput from '@/components/DecimalInput'
+import Input from '@/components/Input'
 
 /**
  * temporary create-market page
@@ -30,6 +31,7 @@ function InputExample() {
   return (
     <div className="border">
       <DecimalInput />
+      <Input pattern={/^[0-9]*[.,]?[0-9]{0,3}$/} />
     </div>
   )
 }

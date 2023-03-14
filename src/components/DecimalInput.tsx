@@ -146,7 +146,7 @@ export default function DecimalInput({
 
   return (
     <Input
-      type="decimal"
+      inputMode="decimal"
       inputHTMLProps={{
         pattern: canNegative ? regexps.canNegativeRegexpString : regexps.decimalRegexpString,
         inputMode: 'decimal',

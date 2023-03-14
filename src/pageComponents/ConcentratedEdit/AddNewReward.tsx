@@ -147,7 +147,7 @@ export default function AddNewReward(props: Props) {
             className="grow-2 rounded-md text-sm font-medium text-white px-4"
             inputClassName="placeholder:text-[#abc4ff50]"
             label="Duration"
-            type="numeric"
+            inputMode="numeric"
             inputHTMLProps={{
               min: 1,
               maxLength: 3,
