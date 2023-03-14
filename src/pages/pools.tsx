@@ -3,7 +3,6 @@ import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'rea
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
-import { usePoolFilterLoader } from '@/application/common/usePoolFilterLoader'
 import { usePoolTimeBasisLoader } from '@/application/common/usePoolTimeBasisLoader'
 import { useCompensationMoney } from '@/application/compensation/useCompensation'
 import useCompensationMoneyInfoLoader from '@/application/compensation/useCompensationInfoLoader'
@@ -44,7 +43,6 @@ import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem } from '@/functions/arrayMethods'
 import { capitalize } from '@/functions/changeCase'
-import { setLocalItem } from '@/functions/dom/jStorage'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
@@ -60,7 +58,6 @@ import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
-import { div } from '@/functions/numberish/operations'
 
 /**
  * store:
@@ -71,7 +68,7 @@ import { div } from '@/functions/numberish/operations'
 export default function PoolsPage() {
   usePoolSummeryInfoLoader()
   usePoolTimeBasisLoader()
-  usePoolFilterLoader()
+  // usePoolFilterLoader()
 
   return (
     <PageLayout
@@ -273,31 +270,31 @@ function PoolLabelBlock({ className }: { className?: string }) {
   )
 }
 
-function Filter() {
+function Filter({ target }: { target: 'liquidity' | 'volume' | 'fees' | 'apr' }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-  const filterTarget = usePools((s) => s.filterTarget)
-  const filterMin = usePools((s) => s.filterMin)
-  const filterMax = usePools((s) => s.filterMax)
+  const filter = usePools((s) => s.filter[target])
+  const setFilter = usePools((s) => s.setFilter)
 
   const minChanging = useCallback(
     (t: string | number | undefined) => {
-      setLocalItem('value-filter-min', String(t || '0'))
-      usePools.setState({ filterMin: String(t || '0') })
+      setFilter(target, 'min', String(t || '0'))
     },
-    [filterMax]
+    [target]
   )
-
   const onMinChanging = useDebounce(minChanging, { debouncedOptions: { delay: 300 } })
 
   const maxChanging = useCallback(
     (t: string | number | undefined) => {
-      setLocalItem('value-filter-max', String(t ?? ''))
-      usePools.setState({ filterMax: String(t || '') })
+      setFilter(target, 'max', String(t || ''))
     },
-    [filterMin]
+    [target]
   )
 
   const onMaxChanging = useDebounce(maxChanging, { debouncedOptions: { delay: 300 } })
+
+  const filterValueUnavailable = useMemo(() => {
+    return filter.min && filter.max && gt(filter.min, filter.max)
+  }, [filter])
 
   return (
     <>
@@ -313,44 +310,35 @@ function Filter() {
               className="flex flex-col py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card"
               size="lg"
             >
-              <Grid className="grid-cols-1 items-center gap-2">
-                <Select
-                  className={twMerge('z-20')}
-                  candidateValues={['none', 'Liquidity', 'Volume', 'Fees', 'Apr']}
-                  localStorageKey="value-filter-target"
-                  defaultValue={filterTarget}
-                  prefix="Target:"
-                  onChange={(v) => {
-                    usePools.setState({ filterTarget: v })
-                  }}
+              <Grid className="grid-cols-2 items-center gap-2">
+                <DecimalInput
+                  className={`px-3 py-2 mobile:py-1 ring-inset ring-1 ${
+                    filterValueUnavailable ? 'ring-[rgba(255,86,86,0.94)]' : 'ring-[rgba(196,214,255,0.5)]'
+                  } rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto`}
+                  placeholder={0}
+                  decimalCount={2}
+                  onUserInput={onMinChanging}
+                  value={filter.min}
+                  prefix={'From:'}
+                  prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)] mr-1'}
+                  inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
                 />
-                <Grid className="grid-cols-2 items-center gap-2">
-                  <DecimalInput
-                    className={
-                      'px-3 py-2 mobile:py-1 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
-                    }
-                    placeholder={0}
-                    decimalCount={2}
-                    onUserInput={onMinChanging}
-                    value={filterMin}
-                    prefix={'From:'}
-                    prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)] mr-1'}
-                    inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
-                  />
-                  <DecimalInput
-                    className={
-                      'px-3 py-2 mobile:py-1 ring-inset ring-1 ring-[rgba(196,214,255,0.5)] rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto'
-                    }
-                    value={filterMax}
-                    placeholder={'∞'}
-                    decimalCount={2}
-                    onUserInput={onMaxChanging}
-                    prefix={'To:'}
-                    prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)] mr-1'}
-                    inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
-                  />
-                </Grid>
+                <DecimalInput
+                  className={`px-3 py-2 mobile:py-1 ring-inset ring-1 ${
+                    filterValueUnavailable ? 'ring-[rgba(255,86,86,0.94)]' : 'ring-[rgba(196,214,255,0.5)]'
+                  } rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto`}
+                  value={filter.max}
+                  placeholder={'∞'}
+                  decimalCount={2}
+                  onUserInput={onMaxChanging}
+                  prefix={'To:'}
+                  prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)] mr-1'}
+                  inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
+                />
               </Grid>
+              {filterValueUnavailable && (
+                <div className="text-[rgba(255,86,86,0.94)] mt-2">filter value unavailable</div>
+              )}
             </Card>
           </div>
         </Popover.Panel>
@@ -466,15 +454,12 @@ function PoolCard() {
   const unZeroBalances = objectFilter(balances, (tokenAmount) => gt(tokenAmount, 0))
   const hydratedInfos = usePools((s) => s.hydratedInfos)
   const jsonInfos = usePools((s) => s.jsonInfos)
-  // const { searchText, setSearchText, currentTab, onlySelfPools } = usePageState()
 
   const searchText = usePools((s) => s.searchText)
   const currentTab = usePools((s) => s.currentTab)
   const onlySelfPools = usePools((s) => s.onlySelfPools)
   const timeBasis = usePools((s) => s.timeBasis)
-  const filterTarget = usePools((s) => s.filterTarget)
-  const filterMin = usePools((s) => s.filterMin)
-  const filterMax = usePools((s) => s.filterMax)
+  const filter = usePools((s) => s.filter)
 
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = usePoolFavoriteIds()
@@ -557,33 +542,51 @@ function PoolCard() {
   useEffect(prepareSortedData, [tempSortedData])
 
   const filteredKey = useMemo(() => {
-    const valueCategory =
-      filterTarget === 'Liquidity'
-        ? 'liquidity'
-        : filterTarget === 'Volume'
-        ? 'volume'
-        : filterTarget === 'Fees'
-        ? 'fee'
-        : 'apr'
-    const timeCategory =
-      valueCategory !== 'liquidity' ? (timeBasis === '24H' ? '24h' : timeBasis === '7D' ? '7d' : '30d') : ''
+    const timeCategory = timeBasis === '24H' ? '24h' : timeBasis === '7D' ? '7d' : '30d'
 
-    return valueCategory + timeCategory
-  }, [timeBasis, filterTarget])
+    return {
+      liquidity: 'liquidity',
+      volume: 'volume' + timeCategory,
+      fees: 'fee' + timeCategory,
+      apr: 'apr' + timeCategory
+    }
+  }, [timeBasis])
 
   //TODO: should move to useSearch()
   const filtered = useMemo(() => {
-    const min = filterMin
-    const max = filterMax
-    if (!filterTarget || filterTarget === 'none') return sorted
-    if (!min && !max) return sorted
-    const toTargetItem = (item: JsonPairItemInfo | HydratedPairItemInfo) => toString(item[filteredKey])
-    if (!min) return sorted?.filter((item) => lte(toTargetItem(item), max))
-    if (!max) return sorted?.filter((item) => gte(toTargetItem(item), min))
-    /** min > max || max < min */
-    if (gt(min, max) || lt(max, min)) return []
-    return sorted?.filter((item) => gte(toTargetItem(item), min) && lte(toTargetItem(item), max))
-  }, [sorted, filterTarget, filterMin, filterMax, filteredKey])
+    const availableFilter = objectFilter(filter, (option, key) => Boolean(option.max) || Boolean(option.min))
+    const filterTargets = Object.keys(availableFilter)
+    if (filterTargets.length === 0) return sorted
+
+    return sorted?.filter((item) => {
+      let passed = true
+      for (const filterTarget of filterTargets) {
+        if (!filter[filterTarget].min && !filter[filterTarget].max) continue
+        const toTargetItem = (item: JsonPairItemInfo | HydratedPairItemInfo) =>
+          toString(item[filteredKey[filterTarget]])
+        const isLteMax = lte(toTargetItem(item), filter[filterTarget].max)
+        const isGteMin = gte(toTargetItem(item), filter[filterTarget].min)
+        if (!filter[filterTarget].min && isLteMax) continue
+        if (!filter[filterTarget].max && isGteMin) continue
+
+        /** min > max || max < min, do not apply this filter */
+        if (
+          filter[filterTarget].min &&
+          filter[filterTarget].max &&
+          (gt(filter[filterTarget].min, filter[filterTarget].max) ||
+            lt(filter[filterTarget].max, filter[filterTarget].min))
+        )
+          continue
+
+        if (isLteMax && isGteMin) continue
+
+        passed = false
+        break
+      }
+
+      return passed
+    })
+  }, [sorted, filter, filteredKey])
 
   const TableHeaderBlock = useMemo(
     () => (
@@ -661,6 +664,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="liquidity" />
         </Row>
 
         {/* table head column: volume24h */}
@@ -683,6 +687,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="volume" />
         </Row>
 
         {/* table head column: fee7d */}
@@ -705,6 +710,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="fees" />
         </Row>
 
         {/* table head column: volume24h */}
@@ -733,6 +739,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="apr" />
         </Row>
 
         <PoolRefreshCircleBlock className="pr-8 self-center" />
@@ -768,7 +775,6 @@ function PoolCard() {
         <PoolLabelBlock />
         <Row className="gap-4 items-stretch">
           <PoolStakedOnlyBlock />
-          <Filter />
           {hasHydratedInfoLoaded && (
             <PoolTimeBasisSelectorBox
               sortConfigs={sortConfig}

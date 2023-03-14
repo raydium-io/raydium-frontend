@@ -7,6 +7,12 @@ import { HexAddress } from '@/types/constants'
 
 import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
 
+interface FilterType {
+  label: string
+  min?: string
+  max?: string
+}
+
 // backEnd naming: Pools -> PairInfo
 export type PoolsStore = {
   jsonInfos: JsonPairItemInfo[]
@@ -28,9 +34,14 @@ export type PoolsStore = {
   refreshCount: number
   refreshPools: () => void
 
-  filterTarget: 'none' | 'Liquidity' | 'Volume' | 'Fees' | 'Apr'
-  filterMax?: string
-  filterMin?: string
+  filter: {
+    liquidity: FilterType
+    volume: FilterType
+    fees: FilterType
+    apr: FilterType
+  }
+
+  setFilter: (target: 'liquidity' | 'volume' | 'fees' | 'apr', option: 'min' | 'max', value: string) => void
 }
 
 // FAQ: why it's a domain? because it must be a domain , or it's a design bug ———— do something useless.
@@ -56,7 +67,25 @@ export const usePools = create<PoolsStore>((set, get) => ({
     }))
   },
 
-  filterTarget: 'none'
+  filter: {
+    liquidity: {
+      label: 'Liquidity'
+    },
+    volume: {
+      label: 'Volume'
+    },
+    fees: {
+      label: 'Fees'
+    },
+    apr: {
+      label: 'Apr'
+    }
+  },
+  setFilter: (target, option, value) => {
+    set((s) => ({
+      filter: { ...s.filter, [target]: { ...s.filter[target], [option]: value } }
+    }))
+  }
 }))
 
 export const usePoolFavoriteIds = () => useLocalStorageItem<string[], null>('FAVOURITE_POOL_IDS', { emptyValue: null })
