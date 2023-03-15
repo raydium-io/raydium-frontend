@@ -316,12 +316,12 @@ function Filter({ target }: { target: 'liquidity' | 'volume' | 'fees' | 'apr' })
     <>
       <Popover placement="bottom" triggerBy={isMobile ? 'press' : 'hover'}>
         <Popover.Button>
-          <div className={twMerge('mx-1 rounded-full p-2 text-[#abc4ff80] clickable justify-self-start')}>
-            {filter.max || filter.min ? (
-              <Icon className="w-4 h-4" iconClassName="w-4 h-4" heroIconName="funnel-solid" />
-            ) : (
-              <Icon className="w-4 h-4" iconClassName="w-4 h-4" heroIconName="funnel" />
-            )}
+          <div className={twMerge('rounded-full px-1 text-[#abc4ff80] clickable justify-self-start')}>
+            <Icon
+              size="sm"
+              heroIconName="funnel-solid"
+              className={filter.max || filter.min ? 'text-[#abc4ff]' : 'text-[#abc4ff40]'}
+            />
           </div>
         </Popover.Button>
         <Popover.Panel>
@@ -361,7 +361,7 @@ function Filter({ target }: { target: 'liquidity' | 'volume' | 'fees' | 'apr' })
               )}
               <Button
                 size="sm"
-                className="frosted-glass-teal mt-5 w-[140px]"
+                className="frosted-glass-teal mt-2 py-1 rounded-xl w-[140px]"
                 onClick={() => {
                   resetFilter(target)
                 }}
