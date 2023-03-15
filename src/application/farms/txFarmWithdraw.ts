@@ -31,7 +31,7 @@ export default async function txFarmWithdraw(
       programId: poolKeys.programId,
       poolId: poolKeys.id,
       owner,
-      version: poolKeys.version
+      version: poolKeys.version as 6 | 5 | 3
     })
 
     // ------------- create ledger --------------
