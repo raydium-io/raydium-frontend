@@ -84,6 +84,7 @@ export default function DecimalInput({
   increaseFn,
   decreaseFn,
   prefix,
+  prefixClassName,
   suffix,
   valueToStringOptions,
   ...restProps
@@ -171,6 +172,7 @@ export default function DecimalInput({
           <Icon className="text-light-blue clickable" heroIconName="minus" size="xs" onClick={decrease} />
         ) : undefined)
       }
+      prefixClassName={prefixClassName || ''}
       suffix={
         suffix ||
         (showArrowControls ? (
