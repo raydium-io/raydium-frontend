@@ -48,7 +48,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
   useTransitionedEffect(async () => {
     if (disabled) return
     const response = await jFetch<ApiPoolInfo>(poolInfoUrl, {
-      ignoreCache: true
+      cacheFreshTime: 1000 * 30
     })
     const blacklist = await jFetch<HexAddress[]>('/amm-blacklist.json')
     const liquidityInfoList = [...(response?.official ?? []), ...(response?.unOfficial ?? [])]
