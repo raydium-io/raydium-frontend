@@ -106,13 +106,6 @@ export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
     )
     // start waiting for result
     resolve(Promise.resolve(waitTask(setting.loopTaskName, setting.options?.priority)))
-    if (
-      Object.values(subTaskIdleIds).reduce((a, c) => {
-        return a + c.length
-      }, 0) === 0
-    ) {
-      startLazyMapConsumer()
-    }
 
     // fire idle callback to pick task by priority and load into subtask todo list
     const idleId = requestIdleCallback(async () => {
@@ -271,7 +264,22 @@ async function loadTasks<F extends () => any>(
     subTasks: tasks
   }
   // eslint-disable-next-line
-  console.log('[lazymap] toDoSubtaskingList: ', toDoSubtaskingList)
+  console.log(
+    '[lazymap] toDoSubtaskingList: ',
+    toDoSubtaskingList,
+    'subtask idle: ',
+    subTaskIdleIds,
+    'waiting:',
+    waitingIntervalIds.slice()
+  )
+
+  if (
+    Object.values(subTaskIdleIds).reduce((a, c) => {
+      return a + c.length
+    }, 0) === 0
+  ) {
+    startLazyMapConsumer()
+  }
 
   // const testLeastRemainTime = 1 // (ms) // force task cost time
   // const fragmentResults = await new Promise<ReturnType<F>[]>((resolve) => {
@@ -331,20 +339,18 @@ export function startLazyMapConsumer(delay = 300) {
 }
 
 function processSubtasks() {
-  // no pending task, start another round
+  // no pending task, start another round (longer)
   if (waitingIntervalIds.length === 0) {
     startLazyMapConsumer(300)
     return
   }
-  const batchSize = 80
+  const batchSize = 80 // a testing number, not tuning
+
+  // sorting waiting task, get a proper
   waitingIntervalIds.sort((a, b) => {
     return b.priority - a.priority
   })
   let targetTask: WaitingIntervalIds | undefined = undefined
-  // eslint-disable-next-line
-  // console.log('first waiting :', targetTask)
-  // find highest priority in this round
-
   for (const waitingId of waitingIntervalIds) {
     if (toDoSubtaskingList[waitingId.taskName].subTasks.length === 0) continue
     targetTask = waitingId
@@ -397,17 +403,14 @@ function processSubtasks() {
     }
     const stillHaveTask = currentTaskIndex < todoSubtask.length
     if (stillHaveTask) {
+      // remove the finished subtask in todo list
       toDoSubtaskingList[targetTask.taskName].subTasks.splice(0, currentTaskIndex)
-      // const restTasks = tasks.slice(currentTaskIndex)
-      // loadTasks(restTasks, loopTaskName, options).then((restResult) =>
-      //   resolve(wholeResult.concat(restResult as ReturnType<F>[]))
-      // )
     } else {
-      // push target result buffer to finisehd result
+      // push subtask result buffer to task finisehd result
       finishedQueue.push({ taskName: targetTask.taskName, result: finishedSubtaskingList[targetTask.taskName].result })
-      // empty todo buffer
+      // empty subtask todo buffer
       toDoSubtaskingList[targetTask.taskName].subTasks = []
-      // empty target result buffer
+      // empty subtask result buffer
       finishedSubtaskingList[targetTask.taskName].result = []
     }
 
@@ -418,6 +421,7 @@ function processSubtasks() {
       finishedSubtaskingList[targetTask.taskName].result.slice().length
     )
 
+    // start another round (shorter)
     startLazyMapConsumer(20)
   })
 
