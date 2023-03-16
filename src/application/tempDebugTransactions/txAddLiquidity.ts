@@ -17,8 +17,7 @@ export default function txDebugMigratePDA({ onInnerTransitionsEmpty }: { onInner
       tokenAccounts: tokenAccountRawInfos
     })
     if (!innerTransactions.length) {
-      onInnerTransitionsEmpty?.()
-      throw new Error('no transaction')
+      throw new Error('No account needs to be migrate')
     }
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

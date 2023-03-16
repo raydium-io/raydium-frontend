@@ -30,13 +30,7 @@ function MigrateOldAccountButton() {
         isLoading={isProcessing || isApprovePanelShown}
         onClick={() => {
           setIsProcessing(true)
-          txDebugMigratePDA({
-            onInnerTransitionsEmpty() {
-              setIsProcessing(false)
-              const { logError } = useNotification.getState()
-              logError('No account needs to be migrate')
-            }
-          }).finally(() => {
+          txDebugMigratePDA().finally(() => {
             setIsProcessing(false)
           })
         }}
