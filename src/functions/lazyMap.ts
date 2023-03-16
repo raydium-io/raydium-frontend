@@ -136,7 +136,7 @@ export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
   })
 }
 
-const subTaskIdleIds: Record<string /* task name */, number[]> = {}
+const subTaskIdleIds: number[] = []
 
 function cancelUnresolvedIdles(taskName: string) {
   // clean subtask todo list
@@ -145,12 +145,14 @@ function cancelUnresolvedIdles(taskName: string) {
   if (finishedSubtaskingList[taskName]) finishedSubtaskingList[taskName].result = []
   // clean task result
   const finishedIdx = finishedQueue.findIndex((item) => item.taskName === taskName)
-  if (finishedIdx >= 0) {
-    finishedQueue.splice(finishedIdx, 1)
-  }
+  if (finishedIdx >= 0) finishedQueue.splice(finishedIdx, 1)
 
-  subTaskIdleIds[taskName]?.forEach((id) => cancelIdleCallback(id))
-  subTaskIdleIds[taskName] = []
+  // cancel the outdated subtask idle
+  // eslint-disable-next-line
+  console.log('[lazymap] subtask BEFORE cancel: ', subTaskIdleIds.slice())
+  subTaskIdleIds?.forEach((id) => cancelIdleCallback(id))
+  subTaskIdleIds.length = 0
+  console.log('[lazymap] subtask AFTER cancel: ', subTaskIdleIds.slice())
 }
 
 // for sub task
@@ -273,13 +275,7 @@ async function loadTasks<F extends () => any>(
     waitingIntervalIds.slice()
   )
 
-  if (
-    Object.values(subTaskIdleIds).reduce((a, c) => {
-      return a + c.length
-    }, 0) === 0
-  ) {
-    startLazyMapConsumer()
-  }
+  if (subTaskIdleIds.length === 0) startLazyMapConsumer()
 
   // const testLeastRemainTime = 1 // (ms) // force task cost time
   // const fragmentResults = await new Promise<ReturnType<F>[]>((resolve) => {
@@ -338,32 +334,35 @@ export function startLazyMapConsumer(delay = 300) {
   window.setTimeout(processSubtasks, delay)
 }
 
-function processSubtasks() {
-  // no pending task, start another round (longer)
-  if (waitingIntervalIds.length === 0) {
-    startLazyMapConsumer(300)
-    return
-  }
-  const batchSize = 80 // a testing number, not tuning
-
-  // sorting waiting task, get a proper
-  waitingIntervalIds.sort((a, b) => {
-    return b.priority - a.priority
-  })
+function getLatestPrioritizedTask(): WaitingIntervalIds | undefined {
   let targetTask: WaitingIntervalIds | undefined = undefined
+  // no pending task
+  if (waitingIntervalIds.length === 0) return undefined
+  // sorting waiting task, make it prioritized
+  waitingIntervalIds.sort((a, b) => b.priority - a.priority)
+
   for (const waitingId of waitingIntervalIds) {
     if (toDoSubtaskingList[waitingId.taskName].subTasks.length === 0) continue
     targetTask = waitingId
     break
   }
-  if (targetTask === undefined) {
-    // startLazyMapConsumer(300)
-    return
-  }
+
+  return targetTask
+}
+
+function processSubtasks() {
+  const batchSize = 80 // a testing number, not tuning
+
   const testLeastRemainTime = 1 // (ms) // force task cost time
   const id = requestIdleCallback((deadline) => {
-    if (targetTask === undefined) {
-      // startLazyMapConsumer(300)
+    const targetTask = getLatestPrioritizedTask()
+    if (
+      targetTask === undefined ||
+      !toDoSubtaskingList[targetTask.taskName] ||
+      toDoSubtaskingList[targetTask.taskName].subTasks.length === 0
+    ) {
+      // might be no pending task or subtask might haven't been loading yet
+      startLazyMapConsumer(300)
       return
     }
     // eslint-disable-next-line
@@ -378,18 +377,6 @@ function processSubtasks() {
       waitingIntervalIds.slice()
     )
 
-    // if (waitingIntervalIds.length === 0) {
-    //   cancelIdleCallback(id)
-    //   startLazyMapConsumer(300)
-    // }
-
-    if (!toDoSubtaskingList[targetTask.taskName] || toDoSubtaskingList[targetTask.taskName].subTasks.length === 0) {
-      // eslint-disable-next-line
-      console.log('[lazymap] no subtask can be processed')
-      // subtask might haven't been loading yet
-      startLazyMapConsumer(300)
-      return
-    }
     const todoSubtask = toDoSubtaskingList[targetTask.taskName].subTasks
     let currentTaskIndex = 0
     while (deadline.timeRemaining() > testLeastRemainTime && currentTaskIndex < batchSize) {
@@ -425,5 +412,5 @@ function processSubtasks() {
     startLazyMapConsumer(20)
   })
 
-  subTaskIdleIds[targetTask.taskName].push(id)
+  subTaskIdleIds.push(id)
 }
