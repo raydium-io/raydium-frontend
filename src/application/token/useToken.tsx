@@ -1,18 +1,19 @@
+import { Price, PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import { Price, PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
 import produce from 'immer'
 import create from 'zustand'
 
 import { addItem, removeItem, shakeUndifindedItem } from '@/functions/arrayMethods'
 import { setLocalItem } from '@/functions/dom/jStorage'
 import toPubString from '@/functions/format/toMintString'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { omit } from '@/functions/objectMethods'
 import { HexAddress, SrcAddress } from '@/types/constants'
 
 import useWallet from '../wallet/useWallet'
 
-import { isMintEqual } from '@/functions/judgers/areEqual'
+import { verifyToken } from './getOnlineTokenInfo'
 import {
   isQuantumSOL,
   isQuantumSOLVersionSOL,
@@ -26,7 +27,6 @@ import {
 import { LpToken, SplToken, TokenJson } from './type'
 import { createSplToken } from './useTokenListsLoader'
 import { RAYMint, SOLMint } from './wellknownToken.config'
-import { verifyToken } from './getOnlineTokenInfo'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
@@ -226,7 +226,7 @@ export const useToken = create<TokenStore>((set, get) => ({
 
   userAddedTokens: {},
   addUserAddedToken: async (rawToken: SplToken) => {
-    const isFreezed = await verifyToken(rawToken.mint)
+    const isFreezed = !(await verifyToken(rawToken.mint))
     const token = Object.assign(rawToken, { hasFreeze: isFreezed } as Partial<SplToken>)
     set((s) =>
       produce(s, (draft) => {

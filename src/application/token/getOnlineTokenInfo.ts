@@ -31,7 +31,8 @@ export async function verifyToken(
     const isAPIToken =
       tokenListSettings['Raydium Token List'].mints?.has(toPubString(mintish)) ||
       tokenListSettings['Solana Token List'].mints?.has(toPubString(mintish))
-    if (decimals != null && !isAPIToken && freezeAuthorityOption === 0) {
+
+    if (decimals != null && !isAPIToken && freezeAuthorityOption === 1) {
       if (!options?.noLog) {
         logError('Token Verify Error', 'Token freeze authority enabled')
       }

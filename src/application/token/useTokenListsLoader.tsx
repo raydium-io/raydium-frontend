@@ -8,6 +8,7 @@ import { isArray, isObject } from '@/functions/judgers/dateType'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress, SrcAddress } from '@/types/constants'
+
 import { objectMap, replaceValue } from '../../functions/objectMethods'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useConcentrated from '../concentrated/useConcentrated'
@@ -16,6 +17,7 @@ import useLiquidity from '../liquidity/useLiquidity'
 import { usePools } from '../pools/usePools'
 import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
+
 import { verifyToken } from './getOnlineTokenInfo'
 import { initiallySortTokens } from './initiallySortTokens'
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from './quantumSOL'
@@ -153,7 +155,7 @@ async function UnofficialLiquidityPoolTokenFetch(
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
         collector.otherLiquiditySupportedMints.add(pool[target.mint])
-        const hasFreeze = await verifyToken(target.mint, { noLog: true })
+        const hasFreeze = !(await verifyToken(target.mint, { noLog: true }))
         const token = {
           symbol: pool[target.mint].substring(0, 6),
           name: pool[target.mint].substring(0, 6),
@@ -189,7 +191,7 @@ async function ClmmLiquidityPoolTokenFetch(
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
         collector.otherLiquiditySupportedMints.add(pool[target.mint])
-        const hasFreeze = await verifyToken(target.mint, { noLog: true })
+        const hasFreeze = !(await verifyToken(target.mint, { noLog: true }))
         const token = {
           symbol: pool[target.mint].substring(0, 6),
           name: pool[target.mint].substring(0, 6),
