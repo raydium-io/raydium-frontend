@@ -55,9 +55,9 @@ export default function useTokenListsLoader() {
   }, [tokenInfoUrl])
   useTransitionedEffect(() => {
     rawTokenListConfigs.forEach((config) => {
-      console.time('load Token')
+      console.time(`load Token of ${config.url()}`)
       loadTokens([config])
-      console.timeEnd('load Token')
+      console.timeEnd(`load Token of ${config.url()}`)
     })
   }, [
     walletRefreshCount,

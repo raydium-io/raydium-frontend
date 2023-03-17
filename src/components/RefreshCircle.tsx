@@ -65,9 +65,7 @@ export default function RefreshCircle({
   useIsomorphicLayoutEffect(() => {
     if (inServer) return
     if (initPastPercent && initPastPercent > 1) {
-      startTransition(() => {
-        freshFunction?.()
-      })
+      freshFunction?.()
     }
     return () => {
       useAppSettings.setState((s) => ({
@@ -84,9 +82,7 @@ export default function RefreshCircle({
 
   useEffect(() => {
     if (!disabled && needFreshSignal() && documentVisible) {
-      startTransition(() => {
-        freshFunction?.()
-      })
+      freshFunction?.()
       off()
     }
   }, [needFresh, freshFunction, documentVisible, disabled])
