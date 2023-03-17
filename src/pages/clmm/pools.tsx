@@ -1354,9 +1354,8 @@ function AprLine({ className, aprValues }: { className?: string; aprValues: Numb
   const totalApr = aprValues.reduce((a, b) => add(a, b), 0)
   return (
     <Row className={twMerge('w-full gap-1', className)}>
-      {aprValues
-        .filter((i) => isMeaningfulNumber(i))
-        .map((aprValue, idx) => (
+      {aprValues.map((aprValue, idx) =>
+        isMeaningfulNumber(aprValue) ? (
           <div
             key={idx}
             className="h-2 rounded-full"
@@ -1364,8 +1363,9 @@ function AprLine({ className, aprValues }: { className?: string; aprValues: Numb
               width: toPercentString(div(aprValue, totalApr)),
               backgroundColor: colors[idx]
             }}
-          ></div>
-        ))}
+          />
+        ) : null
+      )}
     </Row>
   )
 }

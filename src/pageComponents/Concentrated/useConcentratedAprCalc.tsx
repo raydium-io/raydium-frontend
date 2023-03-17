@@ -75,7 +75,7 @@ export function useConcentratedPoolAprCalc({ ammPool }: { ammPool: HydratedConce
     },
     rewards: rewardsApr.map((ra, idx) => ({
       apr: ra,
-      percentInTotal: toPercent(div(feeApr, totalApr)),
+      percentInTotal: toPercent(div(ra, totalApr)),
       token: ammPool.rewardInfos[idx]?.rewardToken
     })),
     apr: totalApr
