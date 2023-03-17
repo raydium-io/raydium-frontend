@@ -175,7 +175,8 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   loadChartPointsAct: async (poolId: string) => {
     const ammV3PositionLineUrl = useAppAdvancedSettings.getState().apiUrls.ammV3PositionLine
     const chartResponse = await jFetch<{ data: ApiAmmV3PositionLinePoint[] }>(
-      `${ammV3PositionLineUrl.replace('<poolId>', poolId)}`
+      `${ammV3PositionLineUrl.replace('<poolId>', poolId)}`,
+      { cacheFreshTime: 60 * 1000 }
     )
     const currentAmmPool = get().currentAmmPool
     if (!chartResponse || poolId !== currentAmmPool?.idString) return

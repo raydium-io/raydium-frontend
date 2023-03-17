@@ -53,10 +53,10 @@ export function useSignalState<T = undefined>(defaultValue?: T | (() => T)) {
     _setState(newValue)
   })
 
-  const superState = () => ref.current
-  superState.setState = setState
+  const accessor = () => ref.current
+  accessor.setState = setState
 
-  return [state, setState, superState]
+  return [state, setState, accessor]
 }
 
 /**

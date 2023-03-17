@@ -140,9 +140,7 @@ function ConcentratedCard() {
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
-
   const timeBasis = useConcentrated((s) => s.timeBasis)
-
   const coin1 = useConcentrated((s) => s.coin1)
   const coin1Amount = useConcentrated((s) => s.coin1Amount)
   const coin2 = useConcentrated((s) => s.coin2)
