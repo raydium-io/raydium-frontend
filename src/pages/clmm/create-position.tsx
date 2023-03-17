@@ -455,7 +455,9 @@ function ConcentratedCard() {
                 }
                 haveCoinIcon
                 maxValue={
-                  coin1 ? toTokenAmount(coin1, mul(getBalance(coin1), 0.985), { alreadyDecimaled: true }) : undefined
+                  coin1 && getBalance(coin1)
+                    ? toTokenAmount(coin1, mul(getBalance(coin1), 0.985), { alreadyDecimaled: true })
+                    : undefined
                 }
                 onPriceChange={updatePrice1}
                 disableTokenSelect
@@ -486,7 +488,9 @@ function ConcentratedCard() {
                 haveHalfButton
                 haveCoinIcon
                 maxValue={
-                  coin2 ? toTokenAmount(coin2, mul(getBalance(coin2), 0.985), { alreadyDecimaled: true }) : undefined
+                  coin2 && getBalance(coin2)
+                    ? toTokenAmount(coin2, mul(getBalance(coin2), 0.985), { alreadyDecimaled: true })
+                    : undefined
                 }
                 onPriceChange={updatePrice2}
                 disableTokenSelect
