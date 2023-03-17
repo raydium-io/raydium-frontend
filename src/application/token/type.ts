@@ -22,22 +22,22 @@ export interface ApiTokenJson {
 }
 
 export interface TokenJson {
-  symbol: string
-  name: string
+  symbol?: string
+  name?: string
   mint: HexAddress
   decimals: number
-  extensions: {
+  extensions?: {
     coingeckoId?: string
   }
-  icon: string
+  icon?: string
   hasFreeze?: boolean
 }
 
 export type SplToken = Token & {
-  icon: SrcAddress
+  icon?: SrcAddress
   /** 'sol' or mint. for `<TokenSelector>` */
   id: string
-  extensions: {
+  extensions?: {
     [key in 'coingeckoId' | 'website' | 'whitepaper']?: string
   }
   userAdded?: boolean // only if token is added by user
@@ -77,14 +77,14 @@ export interface HydratedTokenJsonInfo {
   }
 }
 
-export interface RaydiumTokenListJsonInfo {
+export interface RaydiumTokenListJsonFile {
   official: TokenJson[]
   unOfficial: TokenJson[]
   unNamed: Pick<TokenJson, 'mint' | 'decimals' | 'hasFreeze'>[]
   blacklist: HexAddress[]
 }
 
-export interface RaydiumDevTokenListJsonInfo {
+export interface RaydiumDevTokenListJsonFile {
   name: string
   timestamp: string
   tokens: TokenJson[]

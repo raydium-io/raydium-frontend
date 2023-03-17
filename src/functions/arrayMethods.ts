@@ -1,5 +1,6 @@
 import listToMap from './format/listToMap'
 import { isArray, isObject, isSet } from './judgers/dateType'
+import { mergeObjectsWithConfigs } from './objectMethods'
 
 export function hasSameItems<T>(arr1: T[], arr2: any[]): arr2 is T[] {
   if (arr1.length !== arr2.length) return false
@@ -17,6 +18,19 @@ export function addItem(arr, item) {
   if (isSet(arr)) {
     const newSet = new Set(arr)
     newSet.add(item)
+    return newSet
+  }
+}
+
+export function addItems<T, U>(arr: T[], items: U[]): (T | U)[]
+export function addItems<T, U>(set: Set<T>, items: Set<U>): Set<T | U>
+export function addItems(arr, items) {
+  if (isArray(arr)) {
+    return [...arr, ...items]
+  }
+  // Set
+  if (isSet(arr)) {
+    const newSet = new Set([...arr, ...items])
     return newSet
   }
 }
@@ -55,19 +69,51 @@ export function unifyByKey<T>(objList: T[], getKey: (item: T) => string): T[] {
 /**
  * add old data as default
  */
-export function mergeWithOld<T extends any[]>(newData: T, oldData: T, getUniqueArrKey?: (item: T[number]) => string): T
-export function mergeWithOld<T extends Set<any>>(newData: T, oldData: T): T
-export function mergeWithOld<T extends Record<keyof any, any>>(newData: T, oldData: Partial<T>): T
-export function mergeWithOld<T>(newData: T, oldData, getUniqueArrKey?: (item: T) => string) {
+export function mergeWithOld<T extends any[]>(
+  newData: T,
+  oldData: T | undefined,
+  options?: {
+    uniqueKey?: (item: T[number]) => string
+    sameKeyMergeRule?: (newItem: T[number], oldItem: T[number]) => T[number]
+  }
+): T
+export function mergeWithOld<T extends Set<any>>(newData: T, oldData: T | undefined): T
+export function mergeWithOld<T extends Record<keyof any, any>>(
+  newData: T,
+  oldData: Partial<T> | undefined,
+  options?: {
+    sameKeyMergeRule?: (newItem: T[number], oldItem: T[number]) => T[number]
+  }
+): T
+export function mergeWithOld<T>(
+  newData,
+  oldData,
+  options?: {
+    uniqueKey?: (item: any) => string
+    sameKeyMergeRule?: (newItem: any, oldItem: any) => any
+  }
+) {
+  if (!oldData) return newData
   if (isSet(newData) && isSet(oldData)) {
     return new Set([...oldData, ...newData])
   }
   if (isArray(newData) && isArray(oldData)) {
-    return getUniqueArrKey ? unifyByKey([...oldData, ...newData], getUniqueArrKey) : [...oldData, ...newData]
+    return options?.uniqueKey
+      ? options.sameKeyMergeRule
+        ? Object.values(
+            mergeObjectsWithConfigs(
+              [listToMap(oldData, options.uniqueKey), listToMap(newData, options.uniqueKey)],
+              ({ valueA, valueB }) => (valueA && valueB ? options.sameKeyMergeRule!(valueA, valueB) : valueA ?? valueB)
+            )
+          )
+        : unifyByKey([...oldData, ...newData], options.uniqueKey)
+      : unifyItem([...oldData, ...newData])
   }
   if (isObject(newData) && isObject(oldData)) {
-    return { ...oldData, ...newData }
-  } else {
-    throw 'mergeOld error'
+    return options?.sameKeyMergeRule
+      ? mergeObjectsWithConfigs([oldData, newData], ({ valueA, valueB }) =>
+          valueA && valueB ? options.sameKeyMergeRule!(valueA, valueB) : valueA ?? valueB
+        )
+      : { ...oldData, ...newData }
   }
 }

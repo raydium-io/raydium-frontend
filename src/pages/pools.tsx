@@ -1323,12 +1323,34 @@ function TextInfoItem({ name, value }: { name: string; value?: any }) {
   )
 }
 
+/** for js set, basic minus operation */
+function setMinus<T>(source: T[] | Set<T>, ...minus: (T[] | Set<T> | undefined)[]) {
+  const result = new Set(source)
+  minus.forEach((m) => {
+    m?.forEach((item) => {
+      result.delete(item)
+    })
+  })
+  return result
+}
+
 function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
   const tokenListSettings = useToken((s) => s.tokenListSettings)
+  const tokenJsonInfos = useToken((s) => s.tokenJsonInfos)
+  const blacklist = useToken((s) => s.blacklist)
 
-  const otherLiquiditySupportedTokenMints = tokenListSettings['Other Liquidity Supported Token List'].mints
   const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
+  const officialTokenMints = tokenListSettings['Raydium Token List'].mints
+  const unofficialTokenMints = tokenListSettings['Solana Token List'].mints
   const [showEditDialog, setShowEditDialog] = useState(false)
+
+  const otherLiquiditySupportedTokenMints = setMinus(
+    Object.keys(tokenJsonInfos),
+    unnamedTokenMints,
+    officialTokenMints,
+    unofficialTokenMints,
+    blacklist
+  )
 
   return token &&
     (otherLiquiditySupportedTokenMints?.has(toPubString(token.mint)) ||
