@@ -40,6 +40,7 @@ import useToken, {
   SupportedTokenListSettingName
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
+import { useEffect } from 'react'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -53,7 +54,7 @@ export default function useTokenListsLoader() {
   useIsomorphicLayoutEffect(() => {
     clearTokenCache()
   }, [tokenInfoUrl])
-  useTransitionedEffect(() => {
+  useEffect(() => {
     rawTokenListConfigs.forEach((config) => {
       console.time(`load Token of ${config.url()}`)
       loadTokens([config])
