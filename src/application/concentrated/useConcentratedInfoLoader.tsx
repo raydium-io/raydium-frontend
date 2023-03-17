@@ -116,4 +116,10 @@ export default function useConcentratedInfoLoader() {
   useAsyncEffect(async () => {
     useConcentrated.setState({ chartPoints: undefined })
   }, [pathname])
+
+  /** reload points chart */
+  useAsyncEffect(async () => {
+    if (!currentAmmPool) return
+    loadChartPointsAct(toPubString(currentAmmPool.state.id), { force: true })
+  }, [refreshCount])
 }

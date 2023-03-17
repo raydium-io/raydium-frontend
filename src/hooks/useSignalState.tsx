@@ -1,5 +1,4 @@
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import { useCallback } from 'react'
 import { useRef, useState } from 'react'
 import { useEvent } from './useEvent'
 

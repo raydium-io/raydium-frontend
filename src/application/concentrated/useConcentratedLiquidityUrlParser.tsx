@@ -24,7 +24,6 @@ export default function useConcentratedLiquidityUrlParser() {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
 
   const connection = useConnection((s) => s.connection)
-  const toUrlMint = useToken((s) => s.toUrlMint)
   const getToken = useToken((s) => s.getToken)
   const inCleanUrlMode = useAppSettings((s) => s.inCleanUrlMode)
 
@@ -62,7 +61,7 @@ export default function useConcentratedLiquidityUrlParser() {
 
     const { ammId: urlAmmId } = getConcentratedLiquidityInfoFromQuery(query)
 
-    if (urlAmmId) {
+    if (urlAmmId && hydratedAmmPools.length > 0) {
       // from URL: according to user's ammId (or coin1 & coin2) , match liquidity pool json info
       const matchedLiquidityInfo = urlAmmId ? findPoolInfoByAmmId(urlAmmId) : undefined
 

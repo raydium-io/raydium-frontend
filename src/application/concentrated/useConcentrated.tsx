@@ -67,7 +67,7 @@ export type ConcentratedStore = {
   /** user need manually select one */
   chartPoints?: ApiAmmV3PositionLinePoint[]
   lazyLoadChart: boolean
-  loadChartPointsAct: (poolId: string) => void
+  loadChartPointsAct: (poolId: string, options?: { force?: boolean }) => void
   liquidity?: BN // from SDK, just store in UI
 
   coin1?: SplToken
@@ -172,11 +172,11 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   isInput: undefined,
   isSearchAmmDialogOpen: false,
   removeAmount: '',
-  loadChartPointsAct: async (poolId: string) => {
+  loadChartPointsAct: async (poolId: string, options?: { force?: boolean }) => {
     const ammV3PositionLineUrl = useAppAdvancedSettings.getState().apiUrls.ammV3PositionLine
     const chartResponse = await jFetch<{ data: ApiAmmV3PositionLinePoint[] }>(
       `${ammV3PositionLineUrl.replace('<poolId>', poolId)}`,
-      { cacheFreshTime: 60 * 1000 }
+      { cacheFreshTime: options?.force ? undefined : 60 * 1000 }
     )
     const currentAmmPool = get().currentAmmPool
     if (!chartResponse || poolId !== currentAmmPool?.idString) return
