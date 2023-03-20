@@ -4,14 +4,15 @@ import Row from '@/components/Row'
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
+import { eq } from '@/functions/numberish/compare'
 import { add } from '@/functions/numberish/operations'
+
 import {
-  useConcentratedTickAprCalc,
-  useConcentratedPositionAprCalc,
-  useConcentratedPoolAprCalc
+  useConcentratedPoolAprCalc, useConcentratedPositionAprCalc, useConcentratedTickAprCalc
 } from './useConcentratedAprCalc'
 
 const aprLineColors = ['#abc4ff', '#37bbe0', '#2b6aff', '#335095']
+const aprZeroColor = '#abc4ff33'
 
 export function AprChart(
   option:
@@ -49,16 +50,25 @@ export function AprChart(
       <div
         className="w-16 h-16 rounded-full flex-none"
         style={{
-          background: `conic-gradient(${percentInTotalList
-            .map((percent, idx) => {
-              const startAt = percentInTotalList.slice(0, idx).reduce((a, b) => toPercent(add(a, b)), toPercent(0))
-              const endAt = toPercent(add(startAt, percent))
-              return [
-                `${aprLineColors[idx]} ${toPercentString(startAt)}`,
-                `${aprLineColors[idx]} ${toPercentString(endAt)}`
-              ].join(', ')
-            })
-            .join(', ')})`,
+          background: `conic-gradient(${
+            eq(
+              percentInTotalList.reduce((a, c) => a.add(c), toPercent(0)),
+              0
+            )
+              ? `${aprZeroColor} 0%, ${aprZeroColor} 100%`
+              : percentInTotalList
+                  .map((percent, idx) => {
+                    const startAt = percentInTotalList
+                      .slice(0, idx)
+                      .reduce((a, b) => toPercent(add(a, b)), toPercent(0))
+                    const endAt = toPercent(add(startAt, percent))
+                    return [
+                      `${aprLineColors[idx]} ${toPercentString(startAt)}`,
+                      `${aprLineColors[idx]} ${toPercentString(endAt)}`
+                    ].join(', ')
+                  })
+                  .join(', ')
+          })`,
           WebkitMaskImage: 'radial-gradient(transparent 50%, black 51%)',
           maskImage: 'radial-gradient(transparent 50%, black 51%)'
         }}

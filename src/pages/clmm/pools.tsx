@@ -11,14 +11,10 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo,
-  HydratedConcentratedRewardInfo,
-  UserPositionAccount
+  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -68,7 +64,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectMap } from '@/functions/objectMethods'
@@ -899,8 +895,9 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect  overflow-hidden"
           onClick={() => {
+            const key = timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d'
             setSortConfig({
-              key: 'apr',
+              key: key,
               sortCompare: (i) =>
                 i.state[timeBasis === TimeBasis.DAY ? 'day' : timeBasis === TimeBasis.WEEK ? 'week' : 'month'].apr
             })
@@ -1203,7 +1200,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
               <div>
                 {formatApr(apr?.total)}
                 <Row className="items-center gap-2 mobile:gap-1 mt-1">
-                  {apr && <AprLine className="w-[80%]" aprValues={apr.itemList} />}
+                  <AprLine className="w-[80%]" aprValues={apr?.itemList} forceShow={true} />
                 </Row>
               </div>
               <Tooltip.Panel>
@@ -1348,24 +1345,56 @@ function RewardAvatar({
   )
 }
 
-function AprLine({ className, aprValues }: { className?: string; aprValues: Numberish[] | undefined }) {
+function AprLine({
+  className,
+  aprValues,
+  forceShow = false
+}: {
+  className?: string
+  aprValues: Numberish[] | undefined
+  forceShow?: boolean
+}) {
   const colors = ['#abc4ff', '#39d0d8', '#2b6aff']
-  if (!aprValues) return null
-  const totalApr = aprValues.reduce((a, b) => add(a, b), 0)
+  const zeroColor = '#abc4ff33'
+  if (!aprValues && !forceShow) return null
+  const totalApr = aprValues ? aprValues.reduce((a, b) => add(a, b), 0) : 1
+
+  const isZeroApr = useMemo(() => {
+    if (!aprValues) return false
+
+    for (const apr of aprValues) {
+      if (!eq(apr, 0)) return false
+    }
+
+    return true
+  }, [aprValues])
+
   return (
     <Row className={twMerge('w-full gap-1', className)}>
-      {aprValues.map((aprValue, idx) =>
-        isMeaningfulNumber(aprValue) ? (
+      {aprValues ? (
+        isZeroApr ? (
           <div
-            key={idx}
             className="h-2 rounded-full"
             style={{
-              width: toPercentString(div(aprValue, totalApr)),
-              backgroundColor: colors[idx]
+              width: '100%',
+              backgroundColor: zeroColor
             }}
           />
-        ) : null
-      )}
+        ) : (
+          aprValues.map((aprValue, idx) =>
+            isMeaningfulNumber(aprValue) ? (
+              <div
+                key={idx}
+                className="h-2 rounded-full"
+                style={{
+                  width: toPercentString(div(aprValue, totalApr)),
+                  backgroundColor: colors[idx]
+                }}
+              />
+            ) : null
+          )
+        )
+      ) : null}
     </Row>
   )
 }
