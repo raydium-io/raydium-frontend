@@ -37,7 +37,7 @@ export type FarmStore = {
   refreshFarmInfos(): void
 }
 
-const useFarms = create<FarmStore>((set) => ({
+const useFarms = create<FarmStore>((set, get) => ({
   isLoading: true,
   jsonInfos: [],
   jsonFarmAprInfos: [],
@@ -61,7 +61,7 @@ const useFarms = create<FarmStore>((set) => ({
 
   farmRefreshCount: 0,
   refreshFarmInfos: () => {
-    set((s) => ({ farmRefreshCount: s.farmRefreshCount + 1 }))
+    set({ farmRefreshCount: get().farmRefreshCount + 1 })
     useToken.getState().refreshTokenPrice()
   }
 }))

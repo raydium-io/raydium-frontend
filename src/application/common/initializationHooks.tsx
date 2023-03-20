@@ -317,18 +317,20 @@ function useGlobalRefresh() {
 
   // specific pages (pool info, farm info)
   useEffect(() => {
-    let timeoutId: any = 0
-    setTimeout(() => {
-      timeoutId = setInterval(() => {
+    let intervalId: any = 0
+    const timeoutId = setTimeout(() => {
+      intervalId = setInterval(() => {
         if (inServer) return
         if (document.visibilityState === 'hidden') return
-
         if (pathname.startsWith('/farms')) useFarms.getState().refreshFarmInfos()
         if (pathname.startsWith('/pools')) usePools.getState().refreshPools()
         if (pathname.startsWith('/clmm')) useConcentrated.getState().refreshConcentrated()
         if (pathname.startsWith('/liquidity')) useLiquidity.getState().refreshLiquidity()
       }, 1000 * 60 * 2)
     }, 1000 * 25)
-    return () => clearInterval(timeoutId)
+    return () => {
+      clearTimeout(timeoutId)
+      clearInterval(intervalId)
+    }
   }, [pathname])
 }

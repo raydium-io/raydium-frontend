@@ -44,7 +44,7 @@ export default function RefreshCircle({
 }) {
   useForceUpdate({ loop: freshEach }) // update ui (refresh progress line)
   const intervalCircleRef = useRef<IntervalCircleHandler>()
-  const { documentVisible } = useDocumentVisibility()
+  const { documentVisible, documentVisibleRef } = useDocumentVisibility()
   const [needFresh, setNeedFresh, needFreshSignal] = useSignalState(false)
   const on = () => setNeedFresh(true)
   const off = () => setNeedFresh(false)
@@ -65,9 +65,7 @@ export default function RefreshCircle({
   useIsomorphicLayoutEffect(() => {
     if (inServer) return
     if (initPastPercent && initPastPercent > 1) {
-      startTransition(() => {
-        freshFunction?.()
-      })
+      freshFunction?.()
     }
     return () => {
       useAppSettings.setState((s) => ({
@@ -83,13 +81,18 @@ export default function RefreshCircle({
   }, [])
 
   useEffect(() => {
-    if (!disabled && needFreshSignal() && documentVisible) {
-      startTransition(() => {
-        freshFunction?.()
-      })
+    if (disabled) return
+    if (!needFreshSignal()) return
+    if (!documentVisibleRef.current) return
+    const timoutId = setTimeout(() => {
+      if (disabled) return
+      if (!needFreshSignal()) return
+      if (!documentVisibleRef.current) return
+      freshFunction?.()
       off()
-    }
-  }, [needFresh, freshFunction, documentVisible, disabled])
+    }, 0)
+    return () => clearTimeout(timoutId)
+  }, [needFresh, documentVisible, disabled])
 
   return (
     <Tooltip

@@ -92,7 +92,7 @@ export async function mergeSdkFarmInfo(
     jsonInfos: FarmPoolJsonInfo[]
   }
 ): Promise<SdkParsedFarmInfo[]> {
-  const rawInfos = await Farm.fetchMultipleInfoAndUpdate(options)
+  const rawInfos = await Farm.fetchMultipleInfoAndUpdate(options).catch(() => {})
   const result = options.pools.map((pool, idx) => {
     return {
       ...payload.jsonInfos[idx],

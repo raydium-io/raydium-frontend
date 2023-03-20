@@ -42,6 +42,7 @@ export default function IntervalCircle({
   const height = width
   const r = (0.5 * width) / 2
   const p = 2 * r * Math.PI
+  const hasInvokedEndCallback = useRef(false) // flag for document invisible
   const [progressPercent, setProgressPercent] = useState(initPercent) // percent
   const selfRef = useRef(null)
   useClick(selfRef, { onClick, disable: !onClick })
@@ -54,12 +55,18 @@ export default function IntervalCircle({
   }, [duration, updateDelay, run])
 
   useEffect(() => {
-    if (progressPercent !== 0 && (Math.round(progressPercent * 100) / 100) % 1 === 0) {
-      startTransition(() => {
-        onEnd?.()
-      })
-    }
-  }, [onEnd, progressPercent])
+    if (progressPercent == 0) return
+    if (Math.round(progressPercent * 100) / 100 !== 0) return
+    const timoutId = setTimeout(() => {
+      if (hasInvokedEndCallback.current) return
+      hasInvokedEndCallback.current = true
+      onEnd?.()
+      setTimeout(() => {
+        hasInvokedEndCallback.current = false
+      }, 0)
+    }, 0)
+    return () => clearTimeout(timoutId)
+  }, [progressPercent])
 
   useImperativeHandle(
     componentRef,

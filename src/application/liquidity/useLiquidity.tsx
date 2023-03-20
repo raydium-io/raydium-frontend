@@ -114,12 +114,9 @@ const useLiquidity = create<LiquidityStore>((set, get) => ({
 
   refreshCount: 0,
   refreshLiquidity: () => {
-    // will auto refresh wallet
-
-    // refresh sdk parsed
-    set((s) => ({
-      refreshCount: s.refreshCount + 1
-    }))
+    set({
+      refreshCount: get().refreshCount + 1
+    })
   }
 }))
 

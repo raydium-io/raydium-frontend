@@ -92,7 +92,7 @@ export function useClick(
       ref.current?.removeEventListener('pointercancel', handlePointerUp)
       ref.current?.removeEventListener('click', handleClick as any)
     }
-  }, [disable, onClick, onActiveStart, onActiveEnd])
+  }, [disable])
 
   return isActive
 }

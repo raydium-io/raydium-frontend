@@ -187,9 +187,9 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   refreshConcentrated: () => {
     // will auto refresh wallet
     // refresh sdk parsed
-    set((s) => ({
-      refreshCount: s.refreshCount + 1
-    }))
+    set({
+      refreshCount: get().refreshCount + 1
+    })
   },
   loading: true,
   currentTab: PoolsConcentratedTabs.ALL,
