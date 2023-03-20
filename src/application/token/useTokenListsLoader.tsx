@@ -7,7 +7,6 @@ import toPubString from '@/functions/format/toMintString'
 import { isArray, isObject } from '@/functions/judgers/dateType'
 import { isSubSet } from '@/functions/setMethods'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
-import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress, SrcAddress } from '@/types/constants'
 
 import { objectMap, replaceValue } from '../../functions/objectMethods'
@@ -19,6 +18,7 @@ import { usePools } from '../pools/usePools'
 import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
 
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { verifyToken } from './getOnlineTokenInfo'
 import { initiallySortTokens } from './initiallySortTokens'
 import { mergeToken } from './mergeToken'
@@ -40,7 +40,6 @@ import useToken, {
   SupportedTokenListSettingName
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
-import { useEffect } from 'react'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -54,21 +53,24 @@ export default function useTokenListsLoader() {
   useIsomorphicLayoutEffect(() => {
     clearTokenCache()
   }, [tokenInfoUrl])
-  useEffect(() => {
-    rawTokenListConfigs.forEach((config) => {
-      console.time(`load Token of ${config.url()}`)
-      loadTokens([config])
-      console.timeEnd(`load Token of ${config.url()}`)
-    })
-  }, [
-    walletRefreshCount,
-    swapRefreshCount,
-    liquidityRefreshCount,
-    farmRefreshCount,
-    poolRefreshCount,
-    clmmRefreshCount,
-    tokenInfoUrl
-  ])
+  useRecordedEffect(
+    (prevs) => {
+      rawTokenListConfigs.forEach((config) => {
+        console.time(`load Token of ${config.url()}`)
+        loadTokens([config])
+        console.timeEnd(`load Token of ${config.url()}`)
+      })
+    },
+    [
+      walletRefreshCount,
+      swapRefreshCount,
+      liquidityRefreshCount,
+      farmRefreshCount,
+      poolRefreshCount,
+      clmmRefreshCount,
+      tokenInfoUrl
+    ]
+  )
 }
 
 function deleteFetchedNativeSOLToken(tokenJsons: TokenJson[]) {
