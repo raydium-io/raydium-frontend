@@ -307,7 +307,7 @@ export const useToken = create<TokenStore>((set, get) => ({
 
   refreshTokenCount: 0,
   refreshTokenPrice() {
-    set((s) => ({ refreshTokenCount: s.refreshTokenCount + 1 }))
+    set({ refreshTokenCount: get().refreshTokenCount + 1 })
   },
 
   userCustomTokenSymbol: {},

@@ -44,7 +44,7 @@ export default function RefreshCircle({
 }) {
   useForceUpdate({ loop: freshEach }) // update ui (refresh progress line)
   const intervalCircleRef = useRef<IntervalCircleHandler>()
-  const { documentVisible } = useDocumentVisibility()
+  const { documentVisible, documentVisibleRef } = useDocumentVisibility()
   const [needFresh, setNeedFresh, needFreshSignal] = useSignalState(false)
   const on = () => setNeedFresh(true)
   const off = () => setNeedFresh(false)
@@ -83,11 +83,11 @@ export default function RefreshCircle({
   useEffect(() => {
     if (disabled) return
     if (!needFreshSignal()) return
-    if (!documentVisible) return
+    if (!documentVisibleRef.current) return
     const timoutId = setTimeout(() => {
       freshFunction?.()
       off()
-    }, 100)
+    }, 0)
     return () => clearTimeout(timoutId)
   }, [needFresh, documentVisible, disabled])
 
