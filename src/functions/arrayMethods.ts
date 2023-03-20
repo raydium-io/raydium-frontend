@@ -71,3 +71,16 @@ export function mergeWithOld<T>(newData: T, oldData, getUniqueArrKey?: (item: T)
     throw 'mergeOld error'
   }
 }
+
+export function filterInplace<T>(inputArray: T[], condition: (val: T, index: number, inputArray: T[]) => boolean) {
+  let i = 0
+  let j = 0
+  while (i < inputArray.length) {
+    const value = inputArray[i]
+    if (condition(value, i, inputArray)) {
+      inputArray[j++] = value
+    }
+    i++
+  }
+  inputArray.length = j
+}

@@ -1,18 +1,18 @@
 /* eslint-disable no-console */
 import { AnyFn } from '@/types/constants'
 
-import { addItem } from './arrayMethods'
+import { addItem, filterInplace } from './arrayMethods'
 import { groupItems } from './groupItems'
 import { isNumber } from './judgers/dateType'
 
 const invokedRecord = new Map<string, (LazyMapSettings<any, any> & { idleId: number })[]>()
 
 // priority queue for lazymap pending tasks
-let invokedPriorityQueue: LazyMapPriority[] = []
+const invokedPriorityQueue: LazyMapPriority[] = []
 // queue for storing lazymap finished tasks' results
 const finishedQueue: FinishedQueueType[] = []
 // array for storing lazymap waiting-result interval ids
-const waitingIntervalIds: WaitingIntervalIds[] = []
+const waitingIntervalIds: WaitingIntervalIdType[] = []
 
 const toDoSubtaskingList: toDoSubtaskingType = {}
 const finishedSubtaskingList: finishedSubtaskingType = {}
@@ -38,7 +38,7 @@ type FinishedQueueType = {
 }
 
 // save lazymap task name and their corresponding waiting-result interval id
-type WaitingIntervalIds = {
+type WaitingIntervalIdType = {
   taskName: string
   id: NodeJS.Timer
   priority: 0 | 1
@@ -90,29 +90,29 @@ export function lazyMap<T, U>(setting: LazyMapSettings<T, U>): Promise<U[]> {
     // cancel all unresolved subtask
     cancelUnresolvedIdles(setting.loopTaskName)
 
-    console.info(
-      '[lazymap] START WAITING: ',
-      setting.loopTaskName,
-      'CURRENT WAITING QUEUE:',
-      waitingIntervalIds.slice(),
-      'CURRENT FINISHED QUEUE: ',
-      finishedQueue.slice(),
-      'CURRENT TODO LIST:',
-      { ...toDoSubtaskingList },
-      'CURRENT FINISHED LIST: ',
-      { ...finishedSubtaskingList },
-      'PPPPPPP:',
-      setting.options?.priority
-    )
+    // console.info(
+    //   '[lazymap] START WAITING: ',
+    //   setting.loopTaskName,
+    //   'CURRENT WAITING QUEUE:',
+    //   waitingIntervalIds.slice(),
+    //   'CURRENT FINISHED QUEUE: ',
+    //   finishedQueue.slice(),
+    //   'CURRENT TODO LIST:',
+    //   { ...toDoSubtaskingList },
+    //   'CURRENT FINISHED LIST: ',
+    //   { ...finishedSubtaskingList },
+    //   'PPPPPPP:',
+    //   setting.options?.priority
+    // )
     // start waiting for result
     resolve(Promise.resolve(waitTask(setting.loopTaskName, setting.options?.priority)))
 
     // fire idle callback to pick task by priority and load into subtask todo list
     const idleId = requestIdleCallback(async () => {
-      console.info('[lazymap] CURRENT PRIORITY QUEUE: ', invokedPriorityQueue.slice())
+      // console.info('[lazymap] CURRENT PRIORITY QUEUE: ', invokedPriorityQueue.slice())
       // get task from priority queue w/ priority weighting
       const task = getTask()
-      console.info('[lazymap] PUSHING SUBTASK is: ', task?.loopTaskName)
+      // console.info('[lazymap] PUSHING SUBTASK is: ', task?.loopTaskName)
       if (!task) {
         resolve([])
         return
@@ -149,10 +149,10 @@ function cancelUnresolvedIdles(taskName: string) {
 
   // cancel the outdated subtask idle
   // eslint-disable-next-line
-  console.log('[lazymap] subtask BEFORE cancel: ', subTaskIdleIds.slice())
+  // console.log('[lazymap] subtask BEFORE cancel: ', subTaskIdleIds.slice())
   subTaskIdleIds?.forEach((id) => cancelIdleCallback(id))
   subTaskIdleIds.length = 0
-  console.log('[lazymap] subtask AFTER cancel: ', subTaskIdleIds.slice())
+  // console.log('[lazymap] subtask AFTER cancel: ', subTaskIdleIds.slice())
 }
 
 // for sub task
@@ -198,7 +198,11 @@ async function lazyMapCoreMap<T, U>({
 function addTask(loopTaskName: string, priority = 0) {
   // remove old one (if exist)
   if (invokedPriorityQueue.length > 0) {
-    invokedPriorityQueue = invokedPriorityQueue.filter((item) => item.loopTaskName !== loopTaskName)
+    // console.log('[array] before filter:', invokedPriorityQueue.slice(), 'loopTaskName:', loopTaskName)
+    filterInplace(invokedPriorityQueue, (item, idx, invokedPriorityQueue) => {
+      return item.loopTaskName !== loopTaskName
+    })
+    // console.log('[array] after filter:', invokedPriorityQueue.slice())
   }
 
   // add new one
@@ -228,7 +232,6 @@ function getTask(): (LazyMapSettings<any, any> & { idleId: number }) | undefined
 async function waitTask(loopTaskName: string, priority: 0 | 1 = 0, waitInterval = 300): Promise<any[]> {
   return new Promise((resolve) => {
     // eslint-disable-next-line
-    console.log('[!!!!!!!!] priority:', priority)
     // the task has already in the waiting line, no need to generate another interval for waiting lazymap result
     const waitingId = waitingIntervalIds.findIndex((id) => id.taskName === loopTaskName)
     if (waitingId >= 0) {
@@ -260,20 +263,20 @@ async function loadTasks<F extends () => any>(
   loopTaskName: LazyMapSettings<any, any>['loopTaskName'],
   options?: LazyMapSettings<any, any>['options']
 ) {
-  console.log('[lazymap] in "loadTasks" loading subtasks: ', loopTaskName)
+  // console.log('[lazymap] in "loadTasks" loading subtasks: ', loopTaskName)
   toDoSubtaskingList[loopTaskName] = {
     taskName: loopTaskName,
     subTasks: tasks
   }
   // eslint-disable-next-line
-  console.log(
-    '[lazymap] toDoSubtaskingList: ',
-    toDoSubtaskingList,
-    'subtask idle: ',
-    subTaskIdleIds,
-    'waiting:',
-    waitingIntervalIds.slice()
-  )
+  // console.log(
+  //   '[lazymap] toDoSubtaskingList: ',
+  //   toDoSubtaskingList,
+  //   'subtask idle: ',
+  //   subTaskIdleIds,
+  //   'waiting:',
+  //   waitingIntervalIds.slice()
+  // )
 
   if (subTaskIdleIds.length === 0) startLazyMapConsumer()
 
@@ -334,8 +337,8 @@ export function startLazyMapConsumer(delay = 300) {
   window.setTimeout(processSubtasks, delay)
 }
 
-function getLatestPrioritizedTask(): WaitingIntervalIds | undefined {
-  let targetTask: WaitingIntervalIds | undefined = undefined
+function getLatestPrioritizedTask(): WaitingIntervalIdType | undefined {
+  let targetTask: WaitingIntervalIdType | undefined = undefined
   // no pending task
   if (waitingIntervalIds.length === 0) return undefined
   // sorting waiting task, make it prioritized
@@ -366,16 +369,16 @@ function processSubtasks() {
       return
     }
     // eslint-disable-next-line
-    console.log(
-      '[lazymap] lazyMapConsumer fire, BEFORE,  toDoSubtaskingList:',
-      toDoSubtaskingList[targetTask.taskName].subTasks.slice().length,
-      'finishedSubtaskingList:',
-      finishedSubtaskingList[targetTask.taskName].result.slice().length,
-      'target:',
-      targetTask.taskName,
-      'current waiting interval:',
-      waitingIntervalIds.slice()
-    )
+    // console.log(
+    //   '[lazymap] lazyMapConsumer fire, BEFORE,  toDoSubtaskingList:',
+    //   toDoSubtaskingList[targetTask.taskName].subTasks.slice().length,
+    //   'finishedSubtaskingList:',
+    //   finishedSubtaskingList[targetTask.taskName].result.slice().length,
+    //   'target:',
+    //   targetTask.taskName,
+    //   'current waiting interval:',
+    //   waitingIntervalIds.slice()
+    // )
 
     const todoSubtask = toDoSubtaskingList[targetTask.taskName].subTasks
     let currentTaskIndex = 0
@@ -401,12 +404,12 @@ function processSubtasks() {
       finishedSubtaskingList[targetTask.taskName].result = []
     }
 
-    console.log(
-      '[lazymap] lazyMapConsumer fire, AFTER, toDoSubtaskingList:',
-      toDoSubtaskingList[targetTask.taskName].subTasks.slice().length,
-      'finishedSubtaskingList:',
-      finishedSubtaskingList[targetTask.taskName].result.slice().length
-    )
+    // console.log(
+    //   '[lazymap] lazyMapConsumer fire, AFTER, toDoSubtaskingList:',
+    //   toDoSubtaskingList[targetTask.taskName].subTasks.slice().length,
+    //   'finishedSubtaskingList:',
+    //   finishedSubtaskingList[targetTask.taskName].result.slice().length
+    // )
 
     // start another round (shorter)
     startLazyMapConsumer(20)
