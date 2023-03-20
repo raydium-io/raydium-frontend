@@ -11,10 +11,14 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
+  HydratedConcentratedInfo,
+  HydratedConcentratedRewardInfo,
+  UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -1200,7 +1204,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
               <div>
                 {formatApr(apr?.total)}
                 <Row className="items-center gap-2 mobile:gap-1 mt-1">
-                  <AprLine className="w-[80%]" aprValues={apr?.itemList} forceShow={true} />
+                  <AprLine className="w-[80%]" aprValues={apr?.itemList} forceShow />
                 </Row>
               </div>
               <Tooltip.Panel>
