@@ -85,6 +85,9 @@ export default function RefreshCircle({
     if (!needFreshSignal()) return
     if (!documentVisibleRef.current) return
     const timoutId = setTimeout(() => {
+      if (disabled) return
+      if (!needFreshSignal()) return
+      if (!documentVisibleRef.current) return
       freshFunction?.()
       off()
     }, 0)

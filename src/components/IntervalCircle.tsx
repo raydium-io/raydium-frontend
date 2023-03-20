@@ -55,9 +55,7 @@ export default function IntervalCircle({
 
   useEffect(() => {
     if (progressPercent !== 0 && (Math.round(progressPercent * 100) / 100) % 1 === 0) {
-      startTransition(() => {
-        onEnd?.()
-      })
+      onEnd?.()
     }
   }, [onEnd, progressPercent])
 
