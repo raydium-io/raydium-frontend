@@ -81,11 +81,15 @@ export default function RefreshCircle({
   }, [])
 
   useEffect(() => {
-    if (!disabled && needFreshSignal() && documentVisible) {
+    if (disabled) return
+    if (!needFreshSignal()) return
+    if (!documentVisible) return
+    const timoutId = setTimeout(() => {
       freshFunction?.()
       off()
-    }
-  }, [needFresh, freshFunction, documentVisible, disabled])
+    }, 100)
+    return () => clearTimeout(timoutId)
+  }, [needFresh, documentVisible, disabled])
 
   return (
     <Tooltip
