@@ -40,7 +40,7 @@ export default function useConcentratedInfoLoader() {
 
   /** fetch api json info list  */
   useRecordedEffect(
-    async ([, prevRefreshCount]) => {
+    async ([prevRefreshCount]) => {
       if (!pathname.includes('clmm')) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
       const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammV3PoolsUrl, {
@@ -48,7 +48,7 @@ export default function useConcentratedInfoLoader() {
       }) // note: previously Rudy has Test API for dev
       if (response) useConcentrated.setState({ apiAmmPools: response.data })
     },
-    [pathname, refreshCount, ammV3PoolsUrl]
+    [refreshCount, ammV3PoolsUrl, pathname.includes('clmm')]
   )
 
   /**  api json info list ➡ SDK info list */
@@ -65,7 +65,14 @@ export default function useConcentratedInfoLoader() {
     if (sdkParsed) {
       useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })
     }
-  }, [apiAmmPools, connection, toPubString(owner), toPubString(tokenAccountsOwner), pathname, chainTimeOffset])
+  }, [
+    apiAmmPools,
+    connection,
+    toPubString(owner),
+    toPubString(tokenAccountsOwner),
+    chainTimeOffset,
+    pathname.includes('clmm')
+  ])
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {
@@ -79,8 +86,9 @@ export default function useConcentratedInfoLoader() {
       loopTaskName: 'hydrate clmm pool Info',
       loopFn: (sdkParsed) => hydrateConcentratedInfo(sdkParsed)
     })
+
     useConcentrated.setState({ hydratedAmmPools: hydratedInfos, loading: hydratedInfos.length === 0 })
-  }, [sdkParsedAmmPools, connection, tokens, pathname])
+  }, [sdkParsedAmmPools, connection, tokens, pathname.includes('clmm')])
 
   /** select pool chart data */
   useTransitionedEffect(async () => {
@@ -90,7 +98,7 @@ export default function useConcentratedInfoLoader() {
       return
     }
     loadChartPointsAct(toPubString(currentAmmPool.state.id))
-  }, [currentAmmPool?.idString, tokens, pathname, lazyLoadChart, loadChartPointsAct])
+  }, [currentAmmPool?.idString, tokens, lazyLoadChart, loadChartPointsAct, pathname.includes('clmm')])
 
   /** update currentAmmPool */
   useTransitionedEffect(async () => {
@@ -102,10 +110,16 @@ export default function useConcentratedInfoLoader() {
         useConcentrated.setState({ currentAmmPool: targetPool[0] })
       }
     }
-  }, [currentAmmPool?.idString, pathname, hydratedAmmPools])
+  }, [currentAmmPool?.idString, hydratedAmmPools])
 
   // auto clean chart data
   useAsyncEffect(async () => {
     useConcentrated.setState({ chartPoints: undefined })
   }, [pathname])
+
+  /** reload points chart */
+  useAsyncEffect(async () => {
+    if (!currentAmmPool) return
+    loadChartPointsAct(toPubString(currentAmmPool.state.id), { force: true })
+  }, [refreshCount])
 }
