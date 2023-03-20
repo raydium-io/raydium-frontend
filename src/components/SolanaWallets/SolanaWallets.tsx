@@ -28,6 +28,7 @@ import {
   TrustWalletAdapter,
   WalletConnectWalletAdapter
 } from '@solana/wallet-adapter-wallets'
+import SquadsEmbeddedWalletAdapter, { detectEmbeddedInSquadsIframe } from './SquadsMultisig'
 import { clusterApiUrl } from '@solana/web3.js'
 
 import useAppSettings from '@/application/common/useAppSettings'
@@ -78,7 +79,8 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
           }
         }
       }),
-      new BraveWalletAdapter()
+      new BraveWalletAdapter(),
+      ...(detectEmbeddedInSquadsIframe() ? [new SquadsEmbeddedWalletAdapter()] : [])
     ],
     [endpoint]
   )
