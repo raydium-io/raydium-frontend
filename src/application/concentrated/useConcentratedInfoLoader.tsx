@@ -43,9 +43,7 @@ export default function useConcentratedInfoLoader() {
     async ([prevRefreshCount]) => {
       if (!pathname.includes('clmm')) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
-      const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammV3PoolsUrl, {
-        ignoreCache: true
-      }) // note: previously Rudy has Test API for dev
+      const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammV3PoolsUrl) // note: previously Rudy has Test API for dev
       if (response) useConcentrated.setState({ apiAmmPools: response.data })
     },
     [refreshCount, ammV3PoolsUrl, pathname.includes('clmm')]
@@ -65,14 +63,7 @@ export default function useConcentratedInfoLoader() {
     if (sdkParsed) {
       useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })
     }
-  }, [
-    apiAmmPools,
-    connection,
-    toPubString(owner),
-    toPubString(tokenAccountsOwner),
-    chainTimeOffset,
-    pathname.includes('clmm')
-  ])
+  }, [apiAmmPools, connection, toPubString(owner), toPubString(tokenAccountsOwner), chainTimeOffset])
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {
@@ -88,7 +79,7 @@ export default function useConcentratedInfoLoader() {
     })
 
     useConcentrated.setState({ hydratedAmmPools: hydratedInfos, loading: hydratedInfos.length === 0 })
-  }, [sdkParsedAmmPools, connection, tokens, pathname.includes('clmm')])
+  }, [sdkParsedAmmPools, connection, tokens])
 
   /** select pool chart data */
   useTransitionedEffect(async () => {
@@ -98,7 +89,7 @@ export default function useConcentratedInfoLoader() {
       return
     }
     loadChartPointsAct(toPubString(currentAmmPool.state.id))
-  }, [currentAmmPool?.idString, tokens, lazyLoadChart, loadChartPointsAct, pathname.includes('clmm')])
+  }, [currentAmmPool?.idString, tokens, lazyLoadChart, loadChartPointsAct])
 
   /** update currentAmmPool */
   useTransitionedEffect(async () => {
