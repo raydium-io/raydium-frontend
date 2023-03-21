@@ -12,20 +12,20 @@ const loopTaskPriorityQueue: LoopTaskPriorityQueue = []
 // queue for storing tasks' completly finished-subtasks results
 const loopTaskFinishedQueue: LoopTaskFinishedQueue = []
 // array for storing waiting-result tasks' interval ids
-const loopTaskWaitingIntervalIds: LoopTaskWaitingIntervalId[] = []
+const loopTaskWaitingIntervalIds: LoopTaskWaitingIntervalIds = []
 // buffer for storing todo-subtasks
-const toDoSubtaskingList: ToDoSubtasking = {}
+const todoSubtaskingList: TodoSubtasks = {}
 // buffer for storing finished-subtasks
-const finishedSubtaskingList: finishedSubtasking = {}
+const finishedSubtaskingList: FinishedSubtasks = {}
 
-type ToDoSubtasking = {
+type TodoSubtasks = {
   [key: string]: {
     taskName: string
     subTasks: any[]
   }
 }
 
-type finishedSubtasking = {
+type FinishedSubtasks = {
   [key: string]: {
     taskName: string
     result: any[]
@@ -39,11 +39,11 @@ type LoopTaskFinishedQueue = {
 }[]
 
 // save lazymap task name and their corresponding waiting-result interval id
-type LoopTaskWaitingIntervalId = {
+type LoopTaskWaitingIntervalIds = {
   taskName: string
   id: NodeJS.Timer
   priority: 0 | 1
-}
+}[]
 
 type LazyMapSettings<T, U> = {
   source: T[]
@@ -137,7 +137,7 @@ const subTaskIdleIds: number[] = []
 
 function cancelUnresolvedIdles(taskName: string) {
   // clean subtask todo list
-  if (toDoSubtaskingList[taskName]) toDoSubtaskingList[taskName].subTasks = []
+  if (todoSubtaskingList[taskName]) todoSubtaskingList[taskName].subTasks = []
   // clean subtask finished list
   if (finishedSubtaskingList[taskName]) finishedSubtaskingList[taskName].result = []
   // clean task result
@@ -200,8 +200,8 @@ function addTask(loopTaskName: string, priority = 0) {
   loopTaskPriorityQueue.push({ loopTaskName, priority })
 
   // new task name, create todo list and finished list buffer
-  if (!toDoSubtaskingList[loopTaskName]) {
-    toDoSubtaskingList[loopTaskName] = {
+  if (!todoSubtaskingList[loopTaskName]) {
+    todoSubtaskingList[loopTaskName] = {
       taskName: loopTaskName,
       subTasks: []
     }
@@ -254,7 +254,7 @@ async function loadTasks<F extends () => any>(
   options?: LazyMapSettings<any, any>['options']
 ) {
   // console.log('[lazymap] in "loadTasks" loading subtasks: ', loopTaskName)
-  toDoSubtaskingList[loopTaskName] = {
+  todoSubtaskingList[loopTaskName] = {
     taskName: loopTaskName,
     subTasks: tasks
   }
@@ -290,15 +290,15 @@ export function startLazyMapConsumer(delay = 300) {
   window.setTimeout(processSubtasks, delay)
 }
 
-function getLatestPrioritizedTask(): LoopTaskWaitingIntervalId | undefined {
-  let targetTask: LoopTaskWaitingIntervalId | undefined = undefined
+function getLatestPrioritizedTask(): LoopTaskWaitingIntervalIds[number] | undefined {
+  let targetTask: LoopTaskWaitingIntervalIds[number] | undefined = undefined
   // no pending task
   if (loopTaskWaitingIntervalIds.length === 0) return undefined
   // sorting waiting task, make it prioritized
   loopTaskWaitingIntervalIds.sort((a, b) => b.priority - a.priority)
 
   for (const waitingId of loopTaskWaitingIntervalIds) {
-    if (toDoSubtaskingList[waitingId.taskName].subTasks.length === 0) continue
+    if (todoSubtaskingList[waitingId.taskName].subTasks.length === 0) continue
     targetTask = waitingId
     break
   }
@@ -314,8 +314,8 @@ function processSubtasks() {
     const targetTask = getLatestPrioritizedTask()
     if (
       targetTask === undefined ||
-      !toDoSubtaskingList[targetTask.taskName] ||
-      toDoSubtaskingList[targetTask.taskName].subTasks.length === 0
+      !todoSubtaskingList[targetTask.taskName] ||
+      todoSubtaskingList[targetTask.taskName].subTasks.length === 0
     ) {
       // might be no pending task or subtask might haven't been loading yet
       startLazyMapConsumer(300)
@@ -332,7 +332,7 @@ function processSubtasks() {
     //   loopTaskWaitingIntervalIds.slice()
     // )
 
-    const todoSubtask = toDoSubtaskingList[targetTask.taskName].subTasks
+    const todoSubtask = todoSubtaskingList[targetTask.taskName].subTasks
     let currentTaskIndex = 0
     while (deadline.timeRemaining() > testLeastRemainTime && currentTaskIndex < batchSize) {
       if (currentTaskIndex < todoSubtask.length) {
@@ -346,7 +346,7 @@ function processSubtasks() {
     const stillHaveTask = currentTaskIndex < todoSubtask.length
     if (stillHaveTask) {
       // remove the finished subtask in todo list
-      toDoSubtaskingList[targetTask.taskName].subTasks.splice(0, currentTaskIndex)
+      todoSubtaskingList[targetTask.taskName].subTasks.splice(0, currentTaskIndex)
     } else {
       // push subtask result buffer to task finisehd result
       loopTaskFinishedQueue.push({
@@ -354,7 +354,7 @@ function processSubtasks() {
         result: finishedSubtaskingList[targetTask.taskName].result
       })
       // empty subtask todo buffer
-      toDoSubtaskingList[targetTask.taskName].subTasks = []
+      todoSubtaskingList[targetTask.taskName].subTasks = []
       // empty subtask result buffer
       finishedSubtaskingList[targetTask.taskName].result = []
     }

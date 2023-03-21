@@ -118,6 +118,7 @@ export function mergeWithOld<T>(
   }
 }
 
+// DANGEROUS: unlike build-in filter, this fn will mutate the input array,( algorithm is like Array.prototype.sort, both mutate self and return self)
 export function filterInplace<T>(inputArray: T[], condition: (val: T, index: number, inputArray: T[]) => boolean) {
   let i = 0
   let j = 0
@@ -129,4 +130,5 @@ export function filterInplace<T>(inputArray: T[], condition: (val: T, index: num
     i++
   }
   inputArray.length = j
+  return inputArray
 }
