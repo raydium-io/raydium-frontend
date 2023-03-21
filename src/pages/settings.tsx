@@ -1,4 +1,4 @@
-import { DEVNET_PROGRAM_ID, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
+import { DEVNET_PROGRAM_ID, ENDPOINT, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
 import { ReactNode, useEffect, useMemo, useState } from 'react'
 
 import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
@@ -93,6 +93,16 @@ function ProgramIDTabs() {
           className="mobile:text-base text-[#abc4ff80] my-4"
           value={tempApiUrlOrigin}
           prefix="origin: "
+          suffix={
+            <div
+              onClick={() => {
+                setTempApiUrlOrigin(ENDPOINT)
+              }}
+              className="text-[#abc4ff] cursor-pointer clickable"
+            >
+              ↻ reset
+            </div>
+          }
           onUserInput={(text) => {
             setTempApiUrlOrigin(text)
           }}
