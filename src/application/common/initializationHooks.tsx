@@ -28,6 +28,7 @@ import { usePools } from '../pools/usePools'
 import useToken from '../token/useToken'
 import { useApiUrlChange } from './useApiUrlChange'
 import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
+import { useEvent } from '@/hooks/useEvent'
 
 function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -198,16 +199,17 @@ function useRpcPerformance() {
 
   const MAX_TPS = 1500 // force settings
 
-  const getPerformance = useCallback(async () => {
-    if (!currentEndPoint?.url) return
-    const result = await jFetch<{
+  const getPerformance: () => number | NodeJS.Timeout | undefined = useEvent(() => {
+    const fetchUrl = useConnection.getState().currentEndPoint?.url
+    if (!fetchUrl) return
+    const res = jFetch<{
       result: {
         numSlots: number
         numTransactions: number
         samplePeriodSecs: number
         slot: number
       }[]
-    }>(currentEndPoint?.url, {
+    }>(fetchUrl, {
       method: 'post',
       ignoreCache: true,
       headers: {
@@ -219,19 +221,25 @@ function useRpcPerformance() {
         method: 'getRecentPerformanceSamples',
         params: [30]
       })
+    }).then((result) => {
+      if (fetchUrl !== useConnection.getState().currentEndPoint!.url) return
+      const blocks = result?.result
+      if (!blocks) return
+      const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
+      const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
+      useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })
     })
-    const blocks = result?.result
-    if (!blocks) return
-    const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
-    const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
-    useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })
 
-    setTimeout(getPerformance, 1000 * 60)
-  }, [connection, currentEndPoint])
+    const timeoutId = setTimeout(getPerformance, 1000 * 8)
+    return timeoutId
+  })
 
   useEffect(() => {
-    getPerformance()
-  }, [getPerformance])
+    const timeoutId = getPerformance()
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [getPerformance, currentEndPoint?.url])
 }
 
 function useGetSlotCountForSecond() {
