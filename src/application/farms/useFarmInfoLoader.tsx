@@ -105,7 +105,7 @@ export default function useFarmInfoLoader() {
     })
     const shaked = shakeUndifindedItem(hydratedInfos)
 
-    useFarms.setState({ hydratedInfos: shaked, isLoading: shaked.length <= 0 })
+    useFarms.setState({ hydratedInfos: shaked, isLoading: false })
   }, [
     aprs,
     sdkParsedInfos,
