@@ -1,8 +1,7 @@
 import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
-import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useTwoStateSyncer from '@/hooks/use2StateSyncer'
+import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { DEVNET_PROGRAM_ID, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
-import { devnetApiConfig, mainnetApiConfig } from './apiUrl.config'
 
 export function useAppAdvancedSettingsSyncer() {
   const mode = useAppAdvancedSettings((s) => s.mode)
@@ -22,8 +21,7 @@ export function useAppAdvancedSettingsSyncer() {
     onState2Changed: (mode) => {
       useAppAdvancedSettings.setState({
         mode: mode,
-        programIds: mode === 'mainnet' ? MAINNET_PROGRAM_ID : DEVNET_PROGRAM_ID,
-        apiUrls: mode === 'mainnet' ? mainnetApiConfig : devnetApiConfig
+        programIds: mode === 'mainnet' ? MAINNET_PROGRAM_ID : DEVNET_PROGRAM_ID
       })
     }
   })
