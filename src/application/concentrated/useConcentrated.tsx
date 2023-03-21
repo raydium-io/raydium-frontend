@@ -54,6 +54,12 @@ export const timeMap = {
   [TimeBasis.MONTH]: 'month'
 }
 
+interface FilterType {
+  label: string
+  min?: string
+  max?: string
+}
+
 export type ConcentratedStore = {
   //#region ------------------- input data -------------------
   selectableAmmPools?: HydratedConcentratedInfo[]
@@ -61,7 +67,7 @@ export type ConcentratedStore = {
   /** user need manually select one */
   chartPoints?: ApiAmmV3PositionLinePoint[]
   lazyLoadChart: boolean
-  loadChartPointsAct: (poolId: string) => void
+  loadChartPointsAct: (poolId: string, options?: { force?: boolean }) => void
   liquidity?: BN // from SDK, just store in UI
 
   coin1?: SplToken
@@ -131,6 +137,19 @@ export type ConcentratedStore = {
     sortModeQueue: SortModeArr
     sortCompare: MayArray<(T) => any>
   }
+  filterTarget: 'none' | 'Liquidity' | 'Volume' | 'Fees' | 'Apr'
+  filterMax?: string
+  filterMin?: string
+
+  filter: {
+    liquidity: FilterType
+    volume: FilterType
+    fees: FilterType
+    apr: FilterType
+  }
+
+  setFilter: (target: 'liquidity' | 'volume' | 'fees' | 'apr', option: 'min' | 'max', value: string) => void
+  resetFilter: (target: 'liquidity' | 'volume' | 'fees' | 'apr') => void
 }
 
 //* FAQ: why no setJsonInfos, setSdkParsedInfos and setHydratedInfos? because they are not very necessary, just use zustand`set` and zustand`useConcentrated.setState()` is enough
@@ -153,10 +172,11 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   isInput: undefined,
   isSearchAmmDialogOpen: false,
   removeAmount: '',
-  loadChartPointsAct: async (poolId: string) => {
+  loadChartPointsAct: async (poolId: string, options?: { force?: boolean }) => {
     const ammV3PositionLineUrl = useAppAdvancedSettings.getState().apiUrls.ammV3PositionLine
     const chartResponse = await jFetch<{ data: ApiAmmV3PositionLinePoint[] }>(
-      `${ammV3PositionLineUrl.replace('<poolId>', poolId)}`
+      `${ammV3PositionLineUrl.replace('<poolId>', poolId)}`,
+      { cacheFreshTime: options?.force ? undefined : 60 * 1000 }
     )
     const currentAmmPool = get().currentAmmPool
     if (!chartResponse || poolId !== currentAmmPool?.idString) return
@@ -167,9 +187,9 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   refreshConcentrated: () => {
     // will auto refresh wallet
     // refresh sdk parsed
-    set((s) => ({
-      refreshCount: s.refreshCount + 1
-    }))
+    set({
+      refreshCount: get().refreshCount + 1
+    })
   },
   loading: true,
   currentTab: PoolsConcentratedTabs.ALL,
@@ -200,7 +220,32 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
     })
   },
   whitelistRewards: [],
-  poolSortConfig: undefined
+  poolSortConfig: undefined,
+  filterTarget: 'none',
+  filter: {
+    liquidity: {
+      label: 'Liquidity'
+    },
+    volume: {
+      label: 'Volume'
+    },
+    fees: {
+      label: 'Fees'
+    },
+    apr: {
+      label: 'Apr'
+    }
+  },
+  setFilter: (target, option, value) => {
+    set((s) => ({
+      filter: { ...s.filter, [target]: { ...s.filter[target], [option]: value } }
+    }))
+  },
+  resetFilter: (target) => {
+    set((s) => ({
+      filter: { ...s.filter, [target]: { ...s.filter[target], max: '', min: '' } }
+    }))
+  }
 }))
 
 export default useConcentrated

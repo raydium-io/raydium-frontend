@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 
 import { CurrencyAmount, ZERO } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
@@ -11,10 +11,14 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
+  HydratedConcentratedInfo,
+  HydratedConcentratedRewardInfo,
+  UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
+  PoolsConcentratedTabs,
+  TimeBasis,
+  useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -35,6 +39,7 @@ import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import DecimalInput from '@/components/DecimalInput'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Input from '@/components/Input'
@@ -63,10 +68,10 @@ import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { add, div, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import { objectMap } from '@/functions/objectMethods'
+import { objectFilter, objectMap } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
@@ -327,11 +332,27 @@ function ShowCreated() {
   }
 }
 
-function PoolLabelBlock({ className }: { className?: string }) {
+function PoolLabelBlock({
+  className,
+  filterPoolCount,
+  showCount = false
+}: {
+  className?: string
+  filterPoolCount?: number
+  showCount: boolean
+}) {
   return (
     <Row className={twMerge(className, 'flex justify-between items-center flex-wrap mr-4 gap-y-4')}>
       <Col>
-        <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
+        <div className="flex items-end">
+          <div className="font-medium text-xl mobile:text-base text-white">Concentrated Pools</div>
+          {showCount && (
+            <div className="font-normal text-sm mobile:text-base text-[rgba(196,214,255,.5)] ml-2 mb-1">
+              (Filtered Pools: {filterPoolCount})
+            </div>
+          )}
+        </div>
+
         <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
           Concentrate liquidity for increased capital efficiency.{' '}
           <Link
@@ -350,6 +371,97 @@ function PoolLabelBlock({ className }: { className?: string }) {
         <PoolSearchBlock className="h-[36px]" />
       </Row>
     </Row>
+  )
+}
+
+function Filter({ target }: { target: 'liquidity' | 'volume' | 'fees' | 'apr' }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const filter = useConcentrated((s) => s.filter[target])
+  const setFilter = useConcentrated((s) => s.setFilter)
+  const resetFilter = useConcentrated((s) => s.resetFilter)
+
+  const minChanging = useCallback(
+    (t: string | number | undefined) => {
+      setFilter(target, 'min', String(t || ''))
+    },
+    [target]
+  )
+  const onMinChanging = useDebounce(minChanging, { debouncedOptions: { delay: 300 } })
+
+  const maxChanging = useCallback(
+    (t: string | number | undefined) => {
+      setFilter(target, 'max', String(t || ''))
+    },
+    [target]
+  )
+
+  const onMaxChanging = useDebounce(maxChanging, { debouncedOptions: { delay: 300 } })
+
+  const filterValueUnavailable = useMemo(() => {
+    return filter.min && filter.max && gt(filter.min, filter.max)
+  }, [filter])
+
+  return (
+    <>
+      <Popover placement="bottom" triggerBy={isMobile ? 'press' : 'hover'}>
+        <Popover.Button>
+          <div className={twMerge('rounded-full px-1 clickable justify-self-start')}>
+            <Icon
+              size="sm"
+              heroIconName="funnel-solid"
+              className={filter.max || filter.min ? 'text-[#abc4ff]' : 'text-[#abc4ff33]'}
+            />
+          </div>
+        </Popover.Button>
+        <Popover.Panel>
+          <div>
+            <Card
+              className="flex flex-col py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card  items-center"
+              size="lg"
+            >
+              <Grid className="grid-cols-1 items-center gap-2">
+                <DecimalInput
+                  className={`px-3 py-2 mobile:py-1 ring-inset ring-1 ${
+                    filterValueUnavailable ? 'ring-[rgba(255,86,86,0.94)]' : 'ring-[rgba(196,214,255,0.5)]'
+                  } rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto`}
+                  placeholder={'0'}
+                  decimalCount={2}
+                  onUserInput={onMinChanging}
+                  value={filter.min}
+                  prefix={'From:'}
+                  prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)] mr-1'}
+                  inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
+                />
+                <DecimalInput
+                  className={`px-3 py-2 mobile:py-1 ring-inset ring-1 ${
+                    filterValueUnavailable ? 'ring-[rgba(255,86,86,0.94)]' : 'ring-[rgba(196,214,255,0.5)]'
+                  } rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto`}
+                  value={filter.max}
+                  placeholder={'∞'}
+                  decimalCount={2}
+                  onUserInput={onMaxChanging}
+                  prefix={'To:'}
+                  prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)] mr-1'}
+                  inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
+                />
+              </Grid>
+              {filterValueUnavailable && (
+                <div className="text-[rgba(255,86,86,0.94)] mt-2">filter value unavailable</div>
+              )}
+              <Button
+                size="sm"
+                className="frosted-glass-teal mt-2 py-1 rounded-xl w-[140px]"
+                onClick={() => {
+                  resetFilter(target)
+                }}
+              >
+                Reset
+              </Button>
+            </Card>
+          </div>
+        </Popover.Panel>
+      </Popover>
+    </>
   )
 }
 
@@ -477,11 +589,14 @@ function PoolCard() {
   const currentTab = useConcentrated((s) => s.currentTab)
   const ownedPoolOnly = useConcentrated((s) => s.ownedPoolOnly)
   const poolSortConfig = useConcentrated((s) => s.poolSortConfig)
+  const filter = useConcentrated((s) => s.filter)
   const owner = useWallet((s) => s.owner)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = useConcentratedFavoriteIds()
   const [isSortLightOn, setIsSortLightOn] = useState(false)
   const [sorted, setSortedData] = useState<HydratedConcentratedInfo[] | undefined>(undefined)
+  const [showCount, setShowCount] = useState(false)
+
   const dataSource = useMemo(
     () =>
       hydratedAmmPools.filter((pool) => {
@@ -580,6 +695,54 @@ function PoolCard() {
 
   useEffect(prepareSortedData, [tempSortedData])
 
+  const filteredKey = useMemo(() => {
+    const timeCategory = timeBasis === '24H' ? '24h' : timeBasis === '7D' ? '7d' : '30d'
+
+    return {
+      liquidity: 'tvl',
+      volume: 'volume' + timeCategory,
+      fees: 'volumeFee' + timeCategory,
+      apr: 'totalApr' + timeCategory
+    }
+  }, [timeBasis])
+
+  const filtered = useMemo(() => {
+    const availableFilter = objectFilter(filter, (option, key) => Boolean(option.max) || Boolean(option.min))
+    const filterTargets = Object.keys(availableFilter)
+    if (filterTargets.length === 0) {
+      setShowCount(false)
+      return sorted
+    } else {
+      setShowCount(true)
+    }
+
+    return sorted?.filter((item) => {
+      let passed = true
+      for (const filterTarget of filterTargets) {
+        const isTargetApr = filterTarget === 'apr'
+        const max = isTargetApr ? div(filter[filterTarget].max, 100) : filter[filterTarget].max
+        const min = isTargetApr ? div(filter[filterTarget].min, 100) : filter[filterTarget].min
+
+        if (!min && !max) continue
+        const toTargetItem = (item: HydratedConcentratedInfo) => toString(item[filteredKey[filterTarget]])
+        const isLteMax = lte(toTargetItem(item), max)
+        const isGteMin = gte(toTargetItem(item), min)
+        if (!min && isLteMax) continue
+        if (!max && isGteMin) continue
+
+        /** min > max || max < min, do not apply this filter */
+        if (min && max && (gt(min, max) || lt(max, min))) continue
+
+        if (isLteMax && isGteMin) continue
+
+        passed = false
+        break
+      }
+
+      return passed
+    })
+  }, [sorted, filter, filteredKey])
+
   const TableHeaderBlock = useMemo(
     () => (
       <Row
@@ -656,6 +819,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="liquidity" />
         </Row>
 
         {/* table head column: volume24h */}
@@ -681,6 +845,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="volume" />
         </Row>
 
         {/* table head column: fee7d */}
@@ -712,6 +877,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="fees" />
         </Row>
 
         <Row className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect overflow-hidden">
@@ -733,8 +899,9 @@ function PoolCard() {
         <Row
           className="font-medium text-[#ABC4FF] text-sm items-center cursor-pointer clickable clickable-filter-effect no-clicable-transform-effect  overflow-hidden"
           onClick={() => {
+            const key = timeBasis === '24H' ? 'apr24h' : timeBasis === '7D' ? 'apr7d' : 'apr30d'
             setSortConfig({
-              key: 'apr',
+              key: key,
               sortCompare: (i) =>
                 i.state[timeBasis === TimeBasis.DAY ? 'day' : timeBasis === TimeBasis.WEEK ? 'week' : 'month'].apr
             })
@@ -759,6 +926,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="apr" />
         </Row>
 
         <PoolRefreshCircleBlock className="pr-8 self-center" />
@@ -791,7 +959,7 @@ function PoolCard() {
   ) : (
     <div>
       <Row className={'w-full justify-between pb-5 items-center'}>
-        <PoolLabelBlock className="flex-grow" />
+        <PoolLabelBlock className="flex-grow" filterPoolCount={filtered?.length} showCount={showCount} />
       </Row>
     </div>
   )
@@ -803,7 +971,7 @@ function PoolCard() {
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && TableHeaderBlock}
-      <PoolCardDatabaseBody sortedItems={sorted} searchedItemsLength={searched.length} />
+      <PoolCardDatabaseBody sortedItems={filtered} searchedItemsLength={searched.length} />
     </CyberpunkStyleCard>
   )
 }
@@ -817,7 +985,7 @@ function PoolCardDatabaseBody({
   const loading = useConcentrated((s) => s.loading)
   const expandedItemIds = useConcentrated((s) => s.expandedItemIds)
   const [favouriteIds, setFavouriteIds] = useConcentratedFavoriteIds()
-  return !loading && searchedItemsLength === 0 ? (
+  return !loading && (searchedItemsLength === 0 || (searchedItemsLength !== 0 && sortedItems?.length === 0)) ? (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
   ) : sortedItems && sortedItems.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
@@ -1036,7 +1204,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
               <div>
                 {formatApr(apr?.total)}
                 <Row className="items-center gap-2 mobile:gap-1 mt-1">
-                  {apr && <AprLine className="w-[80%]" aprValues={apr.itemList} />}
+                  <AprLine className="w-[80%]" aprValues={apr?.itemList} forceShow />
                 </Row>
               </div>
               <Tooltip.Panel>
@@ -1181,24 +1349,56 @@ function RewardAvatar({
   )
 }
 
-function AprLine({ className, aprValues }: { className?: string; aprValues: Numberish[] | undefined }) {
+function AprLine({
+  className,
+  aprValues,
+  forceShow = false
+}: {
+  className?: string
+  aprValues: Numberish[] | undefined
+  forceShow?: boolean
+}) {
   const colors = ['#abc4ff', '#39d0d8', '#2b6aff']
-  if (!aprValues) return null
-  const totalApr = aprValues.reduce((a, b) => add(a, b), 0)
+  const zeroColor = '#abc4ff33'
+  if (!aprValues && !forceShow) return null
+  const totalApr = aprValues ? aprValues.reduce((a, b) => add(a, b), 0) : 1
+
+  const isZeroApr = useMemo(() => {
+    if (!aprValues) return false
+
+    for (const apr of aprValues) {
+      if (!eq(apr, 0)) return false
+    }
+
+    return true
+  }, [aprValues])
+
   return (
     <Row className={twMerge('w-full gap-1', className)}>
-      {aprValues
-        .filter((i) => isMeaningfulNumber(i))
-        .map((aprValue, idx) => (
+      {aprValues ? (
+        isZeroApr ? (
           <div
-            key={idx}
             className="h-2 rounded-full"
             style={{
-              width: toPercentString(div(aprValue, totalApr)),
-              backgroundColor: colors[idx]
+              width: '100%',
+              backgroundColor: zeroColor
             }}
-          ></div>
-        ))}
+          />
+        ) : (
+          aprValues.map((aprValue, idx) =>
+            isMeaningfulNumber(aprValue) ? (
+              <div
+                key={idx}
+                className="h-2 rounded-full"
+                style={{
+                  width: toPercentString(div(aprValue, totalApr)),
+                  backgroundColor: colors[idx]
+                }}
+              />
+            ) : null
+          )
+        )
+      ) : null}
     </Row>
   )
 }

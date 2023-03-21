@@ -84,6 +84,7 @@ export default function DecimalInput({
   increaseFn,
   decreaseFn,
   prefix,
+  prefixClassName,
   suffix,
   valueToStringOptions,
   ...restProps
@@ -146,7 +147,7 @@ export default function DecimalInput({
 
   return (
     <Input
-      type="number"
+      inputMode="decimal"
       inputHTMLProps={{
         pattern: canNegative ? regexps.canNegativeRegexpString : regexps.decimalRegexpString,
         inputMode: 'decimal',
@@ -171,6 +172,7 @@ export default function DecimalInput({
           <Icon className="text-light-blue clickable" heroIconName="minus" size="xs" onClick={decrease} />
         ) : undefined)
       }
+      prefixClassName={prefixClassName || ''}
       suffix={
         suffix ||
         (showArrowControls ? (

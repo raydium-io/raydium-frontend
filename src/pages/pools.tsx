@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -23,6 +23,7 @@ import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
 import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import DecimalInput from '@/components/DecimalInput'
 import { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
@@ -42,7 +43,6 @@ import Switcher from '@/components/Switcher'
 import Tooltip from '@/components/Tooltip'
 import { addItem, removeItem } from '@/functions/arrayMethods'
 import { capitalize } from '@/functions/changeCase'
-import { getLocalItem } from '@/functions/dom/jStorage'
 import { formatApr } from '@/functions/format/formatApr'
 import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
@@ -50,14 +50,13 @@ import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
+import { gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
-import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
 
 /**
@@ -259,14 +258,121 @@ function PoolSearchBlock({ className }: { className?: string }) {
   )
 }
 
-function PoolLabelBlock({ className }: { className?: string }) {
+function PoolLabelBlock({
+  className,
+  filterPoolCount,
+  showCount = false
+}: {
+  className?: string
+  filterPoolCount?: number
+  showCount: boolean
+}) {
   return (
     <div className={className}>
-      <div className="font-medium text-xl mobile:text-base text-white">Liquidity Pools</div>
+      <div className="flex items-end">
+        <div className="font-medium text-xl mobile:text-base text-white">Liquidity Pools</div>
+        {showCount && (
+          <div className="font-normal text-sm mobile:text-base text-[rgba(196,214,255,.5)] ml-2 mb-1">
+            (Filtered Pools: {filterPoolCount})
+          </div>
+        )}
+      </div>
+
       <div className="font-medium text-[rgba(196,214,255,.5)] text-base mobile:text-sm">
         Earn yield on trading fees by providing liquidity
       </div>
     </div>
+  )
+}
+
+function Filter({ target }: { target: 'liquidity' | 'volume' | 'fees' | 'apr' }) {
+  const isMobile = useAppSettings((s) => s.isMobile)
+  const filter = usePools((s) => s.filter[target])
+  const setFilter = usePools((s) => s.setFilter)
+  const resetFilter = usePools((s) => s.resetFilter)
+
+  const minChanging = useCallback(
+    (t: string | number | undefined) => {
+      setFilter(target, 'min', String(t || ''))
+    },
+    [target]
+  )
+  const onMinChanging = useDebounce(minChanging, { debouncedOptions: { delay: 300 } })
+
+  const maxChanging = useCallback(
+    (t: string | number | undefined) => {
+      setFilter(target, 'max', String(t || ''))
+    },
+    [target]
+  )
+
+  const onMaxChanging = useDebounce(maxChanging, { debouncedOptions: { delay: 300 } })
+
+  const filterValueUnavailable = useMemo(() => {
+    return filter.min && filter.max && gt(filter.min, filter.max)
+  }, [filter])
+
+  return (
+    <>
+      <Popover placement="bottom" triggerBy={isMobile ? 'press' : 'hover'}>
+        <Popover.Button>
+          <div className={twMerge('rounded-full px-1 text-[#abc4ff80] clickable justify-self-start')}>
+            <Icon
+              size="sm"
+              heroIconName="funnel-solid"
+              className={filter.max || filter.min ? 'text-[#abc4ff]' : 'text-[#abc4ff40]'}
+            />
+          </div>
+        </Popover.Button>
+        <Popover.Panel>
+          <div>
+            <Card
+              className="flex flex-col py-3 px-4  max-h-[80vh] border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card items-center"
+              size="lg"
+            >
+              <Grid className="grid-cols-1 items-center gap-2 ">
+                <DecimalInput
+                  className={`px-3 py-2 mobile:py-1 ring-inset ring-1 ${
+                    filterValueUnavailable ? 'ring-[rgba(255,86,86,0.94)]' : 'ring-[rgba(196,214,255,0.5)]'
+                  } rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto`}
+                  placeholder={'0'}
+                  decimalCount={2}
+                  onUserInput={onMinChanging}
+                  value={filter.min}
+                  prefix={'From:'}
+                  prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)] mr-1'}
+                  inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
+                />
+                <DecimalInput
+                  className={`px-3 py-2 mobile:py-1 ring-inset ring-1 ${
+                    filterValueUnavailable ? 'ring-[rgba(255,86,86,0.94)]' : 'ring-[rgba(196,214,255,0.5)]'
+                  } rounded-xl mobile:rounded-lg pc:w-[140px] mobile:w-auto`}
+                  value={filter.max}
+                  placeholder={'∞'}
+                  decimalCount={2}
+                  onUserInput={onMaxChanging}
+                  prefix={'To:'}
+                  prefixClassName={'mobile:text-xs text-sm font-medium text-[rgba(196,214,255,.5)] mr-1'}
+                  inputClassName="font-medium text-sm mobile:text-xs text-[rgba(196,214,255)] placeholder-[rgba(196,214,255,0.5)]"
+                />
+              </Grid>
+              {filterValueUnavailable && (
+                <div className="text-[rgba(255,86,86,0.94)] mt-2">filter value unavailable</div>
+              )}
+              <Button
+                size="sm"
+                className="frosted-glass-teal mt-2 py-1 rounded-xl w-[140px]"
+                onClick={() => {
+                  resetFilter(target)
+                }}
+              >
+                Reset
+              </Button>
+            </Card>
+          </div>
+        </Popover.Panel>
+      </Popover>
+    </>
   )
 }
 
@@ -377,17 +483,18 @@ function PoolCard() {
   const unZeroBalances = objectFilter(balances, (tokenAmount) => gt(tokenAmount, 0))
   const hydratedInfos = usePools((s) => s.hydratedInfos)
   const jsonInfos = usePools((s) => s.jsonInfos)
-  // const { searchText, setSearchText, currentTab, onlySelfPools } = usePageState()
 
   const searchText = usePools((s) => s.searchText)
   const currentTab = usePools((s) => s.currentTab)
   const onlySelfPools = usePools((s) => s.onlySelfPools)
   const timeBasis = usePools((s) => s.timeBasis)
+  const filter = usePools((s) => s.filter)
 
   const isMobile = useAppSettings((s) => s.isMobile)
   const [favouriteIds] = usePoolFavoriteIds()
   const [isSortLightOn, setIsSortLightOn] = useState(false)
   const [sorted, setSortedData] = useState<(JsonPairItemInfo | HydratedPairItemInfo)[] | undefined>(undefined)
+  const [showCount, setShowCount] = useState(false)
 
   const hasHydratedInfoLoaded = hydratedInfos.length > 0
   const dataSource = useMemo(
@@ -463,6 +570,58 @@ function PoolCard() {
   )
 
   useEffect(prepareSortedData, [tempSortedData])
+
+  const filteredKey = useMemo(() => {
+    const timeCategory = timeBasis === '24H' ? '24h' : timeBasis === '7D' ? '7d' : '30d'
+
+    return {
+      liquidity: 'liquidity',
+      volume: 'volume' + timeCategory,
+      fees: 'fee' + timeCategory,
+      apr: 'apr' + timeCategory
+    }
+  }, [timeBasis])
+
+  //TODO: should move to useSearch()
+  const filtered = useMemo(() => {
+    const availableFilter = objectFilter(filter, (option, key) => Boolean(option.max) || Boolean(option.min))
+    const filterTargets = Object.keys(availableFilter)
+    if (filterTargets.length === 0) {
+      setShowCount(false)
+      return sorted
+    } else {
+      setShowCount(true)
+    }
+
+    return sorted?.filter((item) => {
+      let passed = true
+      for (const filterTarget of filterTargets) {
+        if (!filter[filterTarget].min && !filter[filterTarget].max) continue
+        const toTargetItem = (item: JsonPairItemInfo | HydratedPairItemInfo) =>
+          toString(item[filteredKey[filterTarget]])
+        const isLteMax = lte(toTargetItem(item), filter[filterTarget].max)
+        const isGteMin = gte(toTargetItem(item), filter[filterTarget].min)
+        if (!filter[filterTarget].min && isLteMax) continue
+        if (!filter[filterTarget].max && isGteMin) continue
+
+        /** min > max || max < min, do not apply this filter */
+        if (
+          filter[filterTarget].min &&
+          filter[filterTarget].max &&
+          (gt(filter[filterTarget].min, filter[filterTarget].max) ||
+            lt(filter[filterTarget].max, filter[filterTarget].min))
+        )
+          continue
+
+        if (isLteMax && isGteMin) continue
+
+        passed = false
+        break
+      }
+
+      return passed
+    })
+  }, [sorted, filter, filteredKey])
 
   const TableHeaderBlock = useMemo(
     () => (
@@ -540,6 +699,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="liquidity" />
         </Row>
 
         {/* table head column: volume24h */}
@@ -562,6 +722,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="volume" />
         </Row>
 
         {/* table head column: fee7d */}
@@ -584,6 +745,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="fees" />
         </Row>
 
         {/* table head column: volume24h */}
@@ -612,6 +774,7 @@ function PoolCard() {
                 : '/icons/msic-sort.svg'
             }
           />
+          <Filter target="apr" />
         </Row>
 
         <PoolRefreshCircleBlock className="pr-8 self-center" />
@@ -644,7 +807,7 @@ function PoolCard() {
   ) : (
     <div>
       <Row className={'justify-between flex-wrap pb-5  gap-y-4 items-center'}>
-        <PoolLabelBlock />
+        <PoolLabelBlock filterPoolCount={filtered?.length} showCount={showCount} />
         <Row className="gap-4 items-stretch">
           <PoolStakedOnlyBlock />
           {hasHydratedInfoLoaded && (
@@ -666,7 +829,7 @@ function PoolCard() {
     >
       {innerPoolDatabaseWidgets}
       {!isMobile && TableHeaderBlock}
-      <PoolCardDatabaseBody sortedItems={sorted} searchedItemsLength={searched.length} />
+      <PoolCardDatabaseBody sortedItems={filtered} searchedItemsLength={searched.length} />
     </CyberpunkStyleCard>
   )
 }
@@ -683,7 +846,7 @@ function PoolCardDatabaseBody({
   const loading = jsonInfos.length == 0 && hydratedInfos.length === 0
   const expandedPoolIds = usePools((s) => s.expandedPoolIds)
   const [favouriteIds, setFavouriteIds] = usePoolFavoriteIds()
-  return !loading && searchedItemsLength === 0 ? (
+  return !loading && (searchedItemsLength === 0 || (searchedItemsLength !== 0 && sortedItems?.length === 0)) ? (
     <div className="text-center text-2xl p-12 opacity-50 text-[rgb(171,196,255)]">{'(No results found)'}</div>
   ) : sortedItems && sortedItems.length ? (
     <List className="gap-3 mobile:gap-2 text-[#ABC4FF] flex-1 -mx-2 px-2" /* let scrollbar have some space */>
@@ -1160,12 +1323,34 @@ function TextInfoItem({ name, value }: { name: string; value?: any }) {
   )
 }
 
+/** for js set, basic minus operation */
+function setMinus<T>(source: T[] | Set<T>, ...minus: (T[] | Set<T> | undefined)[]) {
+  const result = new Set(source)
+  minus.forEach((m) => {
+    m?.forEach((item) => {
+      result.delete(item)
+    })
+  })
+  return result
+}
+
 function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
   const tokenListSettings = useToken((s) => s.tokenListSettings)
+  const tokenJsonInfos = useToken((s) => s.tokenJsonInfos)
+  const blacklist = useToken((s) => s.blacklist)
 
-  const otherLiquiditySupportedTokenMints = tokenListSettings['Other Liquidity Supported Token List'].mints
   const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
+  const officialTokenMints = tokenListSettings['Raydium Token List'].mints
+  const unofficialTokenMints = tokenListSettings['Solana Token List'].mints
   const [showEditDialog, setShowEditDialog] = useState(false)
+
+  const otherLiquiditySupportedTokenMints = setMinus(
+    Object.keys(tokenJsonInfos),
+    unnamedTokenMints,
+    officialTokenMints,
+    unofficialTokenMints,
+    blacklist
+  )
 
   return token &&
     (otherLiquiditySupportedTokenMints?.has(toPubString(token.mint)) ||

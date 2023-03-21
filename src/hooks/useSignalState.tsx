@@ -1,5 +1,4 @@
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import { useCallback } from 'react'
 import { useRef, useState } from 'react'
 import { useEvent } from './useEvent'
 
@@ -53,10 +52,10 @@ export function useSignalState<T = undefined>(defaultValue?: T | (() => T)) {
     _setState(newValue)
   })
 
-  const superState = () => ref.current
-  superState.setState = setState
+  const accessor = () => ref.current
+  accessor.setState = setState
 
-  return [state, setState, superState]
+  return [state, setState, accessor]
 }
 
 /**

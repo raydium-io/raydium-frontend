@@ -1,13 +1,14 @@
 import { ApiAmmV3PoolsItem, LiquidityPoolsJsonFile, Token, WSOL } from '@raydium-io/raydium-sdk'
 
-import { mergeWithOld } from '@/functions/arrayMethods'
+import { addItems, mergeWithOld } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import { isArray, isObject } from '@/functions/judgers/dateType'
+import { isSubSet } from '@/functions/setMethods'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
-import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress, SrcAddress } from '@/types/constants'
+
 import { objectMap, replaceValue } from '../../functions/objectMethods'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useConcentrated from '../concentrated/useConcentrated'
@@ -16,20 +17,22 @@ import useLiquidity from '../liquidity/useLiquidity'
 import { usePools } from '../pools/usePools'
 import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
+
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { verifyToken } from './getOnlineTokenInfo'
 import { initiallySortTokens } from './initiallySortTokens'
+import { mergeToken } from './mergeToken'
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from './quantumSOL'
 import { rawTokenListConfigs } from './rawTokenLists.config'
 import {
-  RaydiumDevTokenListJsonInfo,
-  RaydiumTokenListJsonInfo,
+  RaydiumDevTokenListJsonFile,
+  RaydiumTokenListJsonFile,
   SplToken,
   TokenJson,
   TokenListConfigType,
   TokenListFetchConfigItem
 } from './type'
 import useToken, {
-  OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME,
   RAYDIUM_DEV_TOKEN_LIST_NAME,
   RAYDIUM_MAINNET_TOKEN_LIST_NAME,
   RAYDIUM_UNNAMED_TOKEN_LIST_NAME,
@@ -50,31 +53,32 @@ export default function useTokenListsLoader() {
   useIsomorphicLayoutEffect(() => {
     clearTokenCache()
   }, [tokenInfoUrl])
-  useTransitionedEffect(() => {
-    loadTokens()
-  }, [
-    walletRefreshCount,
-    swapRefreshCount,
-    liquidityRefreshCount,
-    farmRefreshCount,
-    poolRefreshCount,
-    clmmRefreshCount,
-    tokenInfoUrl
-  ])
+  useRecordedEffect(
+    (prevs) => {
+      rawTokenListConfigs.forEach((config) => {
+        console.time(`load Token of ${config.url()}`)
+        loadTokens([config])
+        console.timeEnd(`load Token of ${config.url()}`)
+      })
+    },
+    [
+      walletRefreshCount,
+      swapRefreshCount,
+      liquidityRefreshCount,
+      farmRefreshCount,
+      poolRefreshCount,
+      clmmRefreshCount,
+      tokenInfoUrl
+    ]
+  )
 }
 
 function deleteFetchedNativeSOLToken(tokenJsons: TokenJson[]) {
-  return tokenJsons.filter((tj) => tj.mint !== toPubString(SOLMint))
+  return tokenJsons.filter((token) => token.mint !== toPubString(SOLMint))
 }
 
 function isAnIncludedMint(collector: TokenInfoCollector, mint: string) {
-  return (
-    collector.officialMints.has(mint) ||
-    collector.unOfficialMints.has(mint) ||
-    collector.devMints.has(mint) ||
-    collector.unNamedMints.has(mint) ||
-    collector.otherLiquiditySupportedMints.has(mint)
-  )
+  return Boolean(collector.tokens[mint])
 }
 
 /**
@@ -83,35 +87,36 @@ function isAnIncludedMint(collector: TokenInfoCollector, mint: string) {
  * @param tokens TokenJson[]
  * @param lowPriority default tokenJsonInfo has low propirty
  */
-function addToken(collector: TokenInfoCollector, tokens: TokenJson[], options?: { lowPriority?: boolean }) {
+function collectToken(
+  collector: TokenInfoCollector,
+  tokens: TokenJson[],
+  options?: {
+    /** token info can be replaced by others or not  */
+    lowPriority?: boolean
+  }
+) {
   for (const tokenJsonInfo of tokens) {
     collector.tokens[tokenJsonInfo.mint] = options?.lowPriority
-      ? { ...tokenJsonInfo, ...collector.tokens[tokenJsonInfo.mint] }
-      : { ...collector.tokens[tokenJsonInfo.mint], ...tokenJsonInfo }
+      ? mergeToken(tokenJsonInfo, collector.tokens[tokenJsonInfo.mint])
+      : mergeToken(collector.tokens[tokenJsonInfo.mint], tokenJsonInfo)
   }
 }
 
-async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
+async function fetchMainToken(response: RaydiumTokenListJsonFile, collector: TokenInfoCollector): Promise<void> {
   if (!response.official || !response.unOfficial || !response.blacklist || !response.unNamed) return
-  const tmpDelNativeSolToken = deleteFetchedNativeSOLToken(response.official)
-  const officialMints = tmpDelNativeSolToken.map(({ mint }) => mint)
-  officialMints.forEach((mint) => collector.officialMints.add(mint))
-  const unOfficialMints = response.unOfficial.map(({ mint }) => mint)
-  unOfficialMints.forEach((mint) => collector.unOfficialMints.add(mint))
-  const unNamedMints = response.unNamed.map(({ mint }) => mint)
-  unNamedMints.forEach((mint) => collector.unNamedMints.add(mint))
-  addToken(collector, tmpDelNativeSolToken)
-  addToken(collector, response.unOfficial)
-  addToken(
+  const withoutNativeSolToken = deleteFetchedNativeSOLToken(response.official)
+  withoutNativeSolToken.forEach(({ mint }) => collector.officialMints.add(mint))
+  response.unOfficial.forEach(({ mint }) => collector.unOfficialMints.add(mint))
+  response.unNamed.forEach(({ mint }) => collector.unNamedMints.add(mint))
+  collectToken(collector, withoutNativeSolToken)
+  collectToken(collector, response.unOfficial)
+  collectToken(
     collector,
     response.unNamed.map((originalTokenJson) => {
       const tokenJson: TokenJson = {
         ...originalTokenJson,
         symbol: originalTokenJson.mint.slice(0, 6),
-        name: originalTokenJson.mint.slice(0, 12),
-        extensions: {},
-        icon: '',
-        hasFreeze: originalTokenJson.hasFreeze
+        name: originalTokenJson.mint.slice(0, 12)
       }
       return tokenJson
     }),
@@ -119,22 +124,9 @@ async function MainTokenFetch(response: RaydiumTokenListJsonInfo, collector: Tok
   )
   const blackListTokenMints = response.blacklist
   blackListTokenMints.forEach((mint) => collector.blacklist.add(mint))
-
-  // clean other liquidity supported mints
-  for (const mint of [...officialMints, ...unOfficialMints, ...unNamedMints, ...blackListTokenMints]) {
-    collector.otherLiquiditySupportedMints.delete(mint)
-  }
 }
 
-async function DevTokenFetch(response: RaydiumDevTokenListJsonInfo, collector: TokenInfoCollector): Promise<void> {
-  if (!response.tokens) return
-  response.tokens.forEach(({ mint }) => {
-    collector.devMints.add(mint)
-  })
-  addToken(collector, response.tokens)
-}
-
-async function UnofficialLiquidityPoolTokenFetch(
+async function fetchNormalLiquidityPoolToken(
   response: LiquidityPoolsJsonFile,
   collector: TokenInfoCollector
 ): Promise<void> {
@@ -152,25 +144,21 @@ async function UnofficialLiquidityPoolTokenFetch(
   response.unOfficial.forEach(async (pool) => {
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
-        collector.otherLiquiditySupportedMints.add(pool[target.mint])
-        const hasFreeze = await verifyToken(target.mint, { noLog: true })
+        const hasFreeze = !(await verifyToken(target.mint, { noLog: true }))
         const token = {
-          symbol: pool[target.mint].substring(0, 6),
-          name: pool[target.mint].substring(0, 6),
+          symbol: pool[target.mint]?.slice(0, 6),
+          name: pool[target.mint]?.slice(0, 12),
           mint: pool[target.mint],
           decimals: pool[target.decimal],
-          extensions: {
-            coingeckoId: ''
-          },
-          icon: '',
           hasFreeze
         }
-        addToken(collector, [token], { lowPriority: true })
+        collectToken(collector, [token], { lowPriority: true })
       }
     }
   })
 }
-async function ClmmLiquidityPoolTokenFetch(
+
+async function fetchClmmLiquidityPoolToken(
   response: { data: ApiAmmV3PoolsItem[] },
   collector: TokenInfoCollector
 ): Promise<void> {
@@ -188,20 +176,15 @@ async function ClmmLiquidityPoolTokenFetch(
   response.data.forEach(async (pool) => {
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
-        collector.otherLiquiditySupportedMints.add(pool[target.mint])
-        const hasFreeze = await verifyToken(target.mint, { noLog: true })
+        const hasFreeze = !(await verifyToken(target.mint, { noLog: true }))
         const token = {
-          symbol: pool[target.mint].substring(0, 6),
-          name: pool[target.mint].substring(0, 6),
+          symbol: pool[target.mint]?.slice(0, 6),
+          name: pool[target.mint]?.slice(0, 12),
           mint: pool[target.mint],
           decimals: pool[target.decimal],
-          extensions: {
-            coingeckoId: ''
-          },
-          icon: '',
           hasFreeze
         }
-        addToken(collector, [token], { lowPriority: true })
+        collectToken(collector, [token], { lowPriority: true })
       }
     }
   })
@@ -211,13 +194,12 @@ interface TokenInfoCollector {
   devMints: Set<string>
   unOfficialMints: Set<string>
   officialMints: Set<string>
-  otherLiquiditySupportedMints: Set<string>
   unNamedMints: Set<string>
   blacklist: Set<string>
   tokens: Record<string /* token mint */, TokenJson>
 }
 
-async function loadTokenList(
+async function fetchTokenList(
   configs: TokenListFetchConfigItem[],
   tokenCollector: TokenInfoCollector
 ): Promise<unknown> {
@@ -227,15 +209,15 @@ async function loadTokenList(
         // eslint-disable-next-line no-console
         console.time(`load ${raw.url()}`)
         const response = await jFetch<
-          | RaydiumTokenListJsonInfo
-          | RaydiumDevTokenListJsonInfo
+          | RaydiumTokenListJsonFile
+          | RaydiumDevTokenListJsonFile
           | LiquidityPoolsJsonFile
           | { data: ApiAmmV3PoolsItem[] }
         >(raw.url())
         if (response) {
           switch (raw.type) {
             case TokenListConfigType.RAYDIUM_MAIN: {
-              const handledResponse = objectMap(response as RaydiumTokenListJsonInfo, (tokens) => {
+              const handledResponse = objectMap(response as RaydiumTokenListJsonFile, (tokens) => {
                 return isArray(tokens)
                   ? tokens.map((token) =>
                       isObject(token) && 'hasFreeze' in token
@@ -244,14 +226,14 @@ async function loadTokenList(
                     )
                   : tokens
               })
-              await MainTokenFetch(handledResponse as RaydiumTokenListJsonInfo, tokenCollector)
+              await fetchMainToken(handledResponse as RaydiumTokenListJsonFile, tokenCollector)
               break
             }
             case TokenListConfigType.LIQUIDITY_V2:
-              await UnofficialLiquidityPoolTokenFetch(response as LiquidityPoolsJsonFile, tokenCollector)
+              await fetchNormalLiquidityPoolToken(response as LiquidityPoolsJsonFile, tokenCollector)
               break
             case TokenListConfigType.LIQUIDITY_V3:
-              await ClmmLiquidityPoolTokenFetch(response as { data: ApiAmmV3PoolsItem[] }, tokenCollector)
+              await fetchClmmLiquidityPoolToken(response as { data: ApiAmmV3PoolsItem[] }, tokenCollector)
               break
             default:
               console.warn('token list type undetected, did you forgot to create this type of case?')
@@ -266,57 +248,64 @@ async function loadTokenList(
   )
 }
 
-async function fetchTokenLists(
+async function getTokenLists(
   rawListConfigs: TokenListFetchConfigItem[],
   tokenListSettings: {
     [N in SupportedTokenListSettingName]: {
-      mints?: Set<HexAddress> // TODO
+      mints?: Set<HexAddress>
       disableUserConfig?: boolean
       isOn: boolean
       icon?: SrcAddress
       cannotbBeSeen?: boolean
     }
-  }
+  },
+  existTokens: Record<HexAddress, TokenJson>,
+  existBlacklist: string[]
 ): Promise<{
-  devMints: string[]
-  unOfficialMints: string[]
-  officialMints: string[]
-  otherLiquiditySupportedMints: string[]
-  unNamedMints: string[]
-  tokens: TokenJson[]
-  blacklist: string[]
+  devMints: Set<string>
+  unOfficialMints: Set<string>
+  officialMints: Set<string>
+  unNamedMints: Set<string>
+  tokens: Record<string, TokenJson>
+  blacklist: Set<string>
 }> {
   const tokenCollector: TokenInfoCollector = {
-    devMints: new Set(),
-    unOfficialMints: new Set(),
-    officialMints: new Set(),
-    otherLiquiditySupportedMints: new Set(),
-    unNamedMints: new Set(),
-    blacklist: new Set(),
-    tokens: {}
+    devMints: new Set(tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints),
+    unOfficialMints: new Set(tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints),
+    officialMints: new Set(tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints),
+    unNamedMints: new Set(tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints),
+    blacklist: new Set(existBlacklist),
+    tokens: { ...existTokens }
   }
-  // eslint-disable-next-line no-console
-  console.info('tokenList start fetching')
+  await fetchTokenList(rawListConfigs, tokenCollector)
 
-  // we need it execute in order (main->dev->v2->v3->...),
-  // bcz RAYDIUM_MAIN contain almost 90% of tokens and we don't run "isAnIncludedMint" check w/ them
-  // eslint-disable-next-line no-console
-  console.time('load token list cost')
-  await loadTokenList(rawListConfigs, tokenCollector)
-  // eslint-disable-next-line no-console
-  console.timeEnd('load token list cost')
-
-  // eslint-disable-next-line no-console
-  console.info('tokenList end fetching, total tokens #: ', Object.keys(tokenCollector.tokens).length)
-
+  // merge exist data
+  tokenCollector.devMints = addItems(
+    useToken.getState().tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints ?? new Set<string>(),
+    tokenCollector.devMints
+  )
+  tokenCollector.unOfficialMints = addItems(
+    useToken.getState().tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints ?? new Set<string>(),
+    tokenCollector.unOfficialMints
+  )
+  tokenCollector.officialMints = addItems(
+    useToken.getState().tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints ?? new Set<string>(),
+    tokenCollector.officialMints
+  )
+  tokenCollector.unNamedMints = addItems(
+    useToken.getState().tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints ?? new Set<string>(),
+    tokenCollector.unNamedMints
+  )
+  tokenCollector.tokens = mergeWithOld(tokenCollector.tokens, useToken.getState().tokenJsonInfos, {
+    sameKeyMergeRule: mergeToken
+  })
   // check if any of fetchings is failed (has response, but not code: 200)
   // then replace it w/ current list value (if current list is not undefined)
   const checkMapping = [
     { collector: 'devMints', settings: RAYDIUM_DEV_TOKEN_LIST_NAME },
     { collector: 'officialMints', settings: RAYDIUM_MAINNET_TOKEN_LIST_NAME },
     { collector: 'unOfficialMints', settings: SOLANA_TOKEN_LIST_NAME },
-    { collector: 'unNamedMints', settings: RAYDIUM_UNNAMED_TOKEN_LIST_NAME },
-    { collector: 'otherLiquiditySupportedMints', settings: OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME }
+    { collector: 'unNamedMints', settings: RAYDIUM_UNNAMED_TOKEN_LIST_NAME }
   ]
 
   for (const pair of checkMapping) {
@@ -324,25 +313,8 @@ async function fetchTokenLists(
       tokenCollector[pair.collector] = Array.from(tokenListSettings[pair.settings].mints.values())
     }
   }
-  const output: {
-    devMints: string[]
-    unOfficialMints: string[]
-    officialMints: string[]
-    otherLiquiditySupportedMints: string[]
-    unNamedMints: string[]
-    tokens: TokenJson[]
-    blacklist: string[]
-  } = {
-    devMints: Array.from(tokenCollector.devMints),
-    unOfficialMints: Array.from(tokenCollector.unOfficialMints),
-    officialMints: Array.from(tokenCollector.officialMints),
-    otherLiquiditySupportedMints: Array.from(tokenCollector.otherLiquiditySupportedMints),
-    unNamedMints: Array.from(tokenCollector.unNamedMints),
-    tokens: Object.values(tokenCollector.tokens),
-    blacklist: Array.from(tokenCollector.blacklist)
-  }
 
-  return output
+  return tokenCollector
 }
 
 async function fetchTokenIconInfoList() {
@@ -360,61 +332,39 @@ export function createSplToken(
   const { mint, symbol, name, decimals, ...rest } = info
 
   // TODO: recordPubString(token.mint)
-  const splToken = Object.assign(
-    new Token(mint, decimals, symbol, name ?? symbol),
-    { icon: '', extensions: {}, id: mint },
-    rest
-  )
+  const splToken = Object.assign(new Token(mint, decimals, symbol, name ?? symbol), { id: mint }, rest)
   if (customTokenIcons?.[mint]) {
-    splToken.icon = customTokenIcons[mint] ?? ''
+    splToken.icon = customTokenIcons[mint]
   }
   return splToken
 }
+
 export function toSplTokenInfo(splToken: SplToken): TokenJson {
   return {
     ...splToken,
-    symbol: splToken.symbol ?? '',
-    name: splToken.name ?? '',
-    mint: toPubString(splToken.mint),
-    decimals: splToken.decimals,
-    extensions: splToken.extensions,
-    icon: splToken.icon
+    mint: toPubString(splToken.mint)
   }
 }
 
-async function loadTokens() {
-  const { tokenListSettings } = useToken.getState()
+async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[]) {
+  const { tokenListSettings, tokenJsonInfos, blacklist: existBlacklist } = useToken.getState()
   const customTokenIcons = await fetchTokenIconInfoList()
-  const {
-    devMints,
-    unOfficialMints,
-    officialMints,
-    otherLiquiditySupportedMints,
-    unNamedMints,
-    tokens: allTokens,
-    blacklist: _blacklist
-  } = await fetchTokenLists(rawTokenListConfigs, tokenListSettings)
+  const fetched = await getTokenLists(inputTokenListConfigs, tokenListSettings, tokenJsonInfos, existBlacklist)
   // if length has not changed, don't parse again
 
-  const mainnetOriginalMintsLength = tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.size
-  const solanaTokenOriginalMintsLength = tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.size
-  const devOriginalMintsLength = tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.size
-  const unnamedOriginalMintsLength = tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.size
-  const otherOriginalMintsLength = tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME].mints?.size
+  const isSameAsOlder =
+    isSubSet(fetched.devMints, tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints ?? new Set()) &&
+    isSubSet(fetched.officialMints, tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints ?? new Set()) &&
+    isSubSet(fetched.unOfficialMints, tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints ?? new Set()) &&
+    isSubSet(fetched.unNamedMints, tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints ?? new Set())
+  if (isSameAsOlder) return
 
-  if (
-    devMints.length === devOriginalMintsLength &&
-    officialMints.length === mainnetOriginalMintsLength &&
-    unOfficialMints.length === solanaTokenOriginalMintsLength &&
-    unNamedMints.length === unnamedOriginalMintsLength &&
-    otherLiquiditySupportedMints.length === otherOriginalMintsLength
-  )
-    return
+  const { devMints, unOfficialMints, officialMints, unNamedMints, tokens: allTokens, blacklist } = fetched
 
-  const blacklist = new Set(_blacklist)
-  const unsortedTokenInfos = allTokens
+  const blacklistSet = new Set(blacklist)
+  const unsortedTokenInfos = Object.values(allTokens)
     /* shake off tokens in raydium blacklist */
-    .filter((info) => !blacklist.has(info.mint))
+    .filter((info) => !blacklistSet.has(info.mint))
 
   const splTokenJsonInfos = listToMap(
     initiallySortTokens(unsortedTokenInfos, officialMints, unOfficialMints),
@@ -435,50 +385,35 @@ async function loadTokens() {
     canFlaggedTokenMints: mergeWithOld(
       new Set(
         Object.values(tokens)
-          .filter((token) => !officialMints.includes(toPubString(token.mint)))
+          .filter((token) => !officialMints.has(toPubString(token.mint)))
           .map((token) => toPubString(token.mint))
       ),
       s.canFlaggedTokenMints
     ),
-    blacklist: mergeWithOld(_blacklist, s.blacklist, (i) => i),
+    blacklist: [...blacklist],
     tokenListSettings: {
       ...s.tokenListSettings,
-
       [RAYDIUM_MAINNET_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME],
-        mints: new Set([
-          ...(s.tokenListSettings[RAYDIUM_MAINNET_TOKEN_LIST_NAME].mints?.values() ?? []),
-          ...officialMints
-        ])
+        mints: officialMints
       },
       [SOLANA_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[SOLANA_TOKEN_LIST_NAME],
-        mints: new Set([...(s.tokenListSettings[SOLANA_TOKEN_LIST_NAME].mints?.values() ?? []), ...unOfficialMints])
+        mints: unOfficialMints
       },
-
       [RAYDIUM_DEV_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME],
-        mints: new Set([...(s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME].mints?.values() ?? []), ...devMints])
-      },
-      [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
-        ...s.tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME],
-        mints: new Set(otherLiquiditySupportedMints)
+        mints: devMints
       },
       [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME],
-        mints: new Set([
-          ...(s.tokenListSettings[RAYDIUM_UNNAMED_TOKEN_LIST_NAME].mints?.values() ?? []),
-          ...unNamedMints
-        ])
+        mints: unNamedMints
       }
     },
-    tokenJsonInfos: mergeWithOld(
-      listToMap(allTokens, (i) => i.mint),
-      s.tokenJsonInfos
-    ),
-    tokens: mergeWithOld(tokens, s.tokens),
-    pureTokens: mergeWithOld(pureTokens, s.pureTokens),
-    verboseTokens: mergeWithOld(verboseTokens, s.verboseTokens)
+    tokenJsonInfos: allTokens,
+    tokens: tokens,
+    pureTokens: pureTokens,
+    verboseTokens: verboseTokens
   }))
 }
 
@@ -503,10 +438,6 @@ function clearTokenCache() {
 
       [RAYDIUM_DEV_TOKEN_LIST_NAME]: {
         ...s.tokenListSettings[RAYDIUM_DEV_TOKEN_LIST_NAME],
-        mints: new Set()
-      },
-      [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
-        ...s.tokenListSettings[OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME],
         mints: new Set()
       },
       [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {

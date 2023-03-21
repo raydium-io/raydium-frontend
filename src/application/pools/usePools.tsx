@@ -7,6 +7,12 @@ import { HexAddress } from '@/types/constants'
 
 import { HydratedPairItemInfo, JsonPairItemInfo } from './type'
 
+interface FilterType {
+  label: string
+  min?: string
+  max?: string
+}
+
 // backEnd naming: Pools -> PairInfo
 export type PoolsStore = {
   jsonInfos: JsonPairItemInfo[]
@@ -27,6 +33,16 @@ export type PoolsStore = {
   // just for trigger refresh
   refreshCount: number
   refreshPools: () => void
+
+  filter: {
+    liquidity: FilterType
+    volume: FilterType
+    fees: FilterType
+    apr: FilterType
+  }
+
+  setFilter: (target: 'liquidity' | 'volume' | 'fees' | 'apr', option: 'min' | 'max', value: string) => void
+  resetFilter: (target: 'liquidity' | 'volume' | 'fees' | 'apr') => void
 }
 
 // FAQ: why it's a domain? because it must be a domain , or it's a design bug ———— do something useless.
@@ -47,8 +63,33 @@ export const usePools = create<PoolsStore>((set, get) => ({
   refreshCount: 0,
   refreshPools: () => {
     // will refresh api pairs
+    set({
+      refreshCount: get().refreshCount + 1
+    })
+  },
+
+  filter: {
+    liquidity: {
+      label: 'Liquidity'
+    },
+    volume: {
+      label: 'Volume'
+    },
+    fees: {
+      label: 'Fees'
+    },
+    apr: {
+      label: 'Apr'
+    }
+  },
+  setFilter: (target, option, value) => {
     set((s) => ({
-      refreshCount: s.refreshCount + 1
+      filter: { ...s.filter, [target]: { ...s.filter[target], [option]: value } }
+    }))
+  },
+  resetFilter: (target) => {
+    set((s) => ({
+      filter: { ...s.filter, [target]: { ...s.filter[target], max: '', min: '' } }
     }))
   }
 }))

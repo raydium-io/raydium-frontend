@@ -1,18 +1,19 @@
+import { Price, PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import { Price, PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
 import produce from 'immer'
 import create from 'zustand'
 
 import { addItem, removeItem, shakeUndifindedItem } from '@/functions/arrayMethods'
 import { setLocalItem } from '@/functions/dom/jStorage'
 import toPubString from '@/functions/format/toMintString'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { omit } from '@/functions/objectMethods'
 import { HexAddress, SrcAddress } from '@/types/constants'
 
 import useWallet from '../wallet/useWallet'
 
-import { isMintEqual } from '@/functions/judgers/areEqual'
+import { verifyToken } from './getOnlineTokenInfo'
 import {
   isQuantumSOL,
   isQuantumSOLVersionSOL,
@@ -26,7 +27,6 @@ import {
 import { LpToken, SplToken, TokenJson } from './type'
 import { createSplToken } from './useTokenListsLoader'
 import { RAYMint, SOLMint } from './wellknownToken.config'
-import { verifyToken } from './getOnlineTokenInfo'
 
 export type TokenStore = {
   tokenIconSrcs: Record<HexAddress, SrcAddress>
@@ -123,7 +123,6 @@ export const RAYDIUM_UNNAMED_TOKEN_LIST_NAME = 'UnNamed Token List'
 export const RAYDIUM_DEV_TOKEN_LIST_NAME = 'Raydium Dev Token List'
 export const SOLANA_TOKEN_LIST_NAME = 'Solana Token List'
 export const USER_ADDED_TOKEN_LIST_NAME = 'User Added Token List'
-export const OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME = 'Other Liquidity Supported Token List'
 
 export type SupportedTokenListSettingName =
   | typeof RAYDIUM_MAINNET_TOKEN_LIST_NAME // actually  official
@@ -131,7 +130,6 @@ export type SupportedTokenListSettingName =
   | typeof SOLANA_TOKEN_LIST_NAME // actually  unOfficial
   | typeof USER_ADDED_TOKEN_LIST_NAME
   | typeof RAYDIUM_UNNAMED_TOKEN_LIST_NAME
-  | typeof OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME
 
 /** zustand store hooks */
 export const useToken = create<TokenStore>((set, get) => ({
@@ -169,41 +167,9 @@ export const useToken = create<TokenStore>((set, get) => ({
     }
 
     // if not exist, see this as userAddedTokens
-    const token = (() => {
-      const hasLoadedLpTokens = Object.keys(get().lpTokens).length > 1
-      const APIToken = get().tokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)] // <-- fixme
-      const customizedToken = get().userAddedTokens[toPubString(mint)]
-      const originalToken = APIToken ?? customizedToken
-      // try {
-      //   // 💩 temporary delete auto-customized token to improve performance
-      //   // if (!originalToken && hasLoadedLpTokens && !options?.noCustomToken) {
-      //   //   const token = createSplToken(
-      //   //     Object.assign(
-      //   //       {
-      //   //         mint: toPubString(mint),
-      //   //         decimals: 6,
-      //   //         symbol: toPubString(mint).slice(0, 6)
-      //   //       },
-      //   //       options?.customTokenInfo ?? {}
-      //   //     )
-      //   //   )
-      //   //   get().addUserAddedToken(token)
-      //   //   return token
-      //   // } else {
-      //   //   // if (originalToken && get().userAddedTokens[toPubString(mint)]) get().deleteUserAddedToken(originalToken)
-      //   // }
-      //   // if (customizedToken && APIToken && hasLoadedLpTokens) {
-      //   //   setTimeout(() => {
-      //   //     get().deleteUserAddedToken(originalToken.mint)
-      //   //   }, 0)
-      //   // }
-      //   return originalToken
-      // } catch {
-      //   return originalToken
-      // }
-      return originalToken
-    })()
-
+    const apiToken = get().tokens[toPubString(mint)] ?? get().lpTokens[toPubString(mint)]
+    const customizedToken = get().userAddedTokens[toPubString(mint)]
+    const token = apiToken ?? customizedToken
     return token
   },
 
@@ -226,7 +192,7 @@ export const useToken = create<TokenStore>((set, get) => ({
 
   userAddedTokens: {},
   addUserAddedToken: async (rawToken: SplToken) => {
-    const isFreezed = await verifyToken(rawToken.mint)
+    const isFreezed = !(await verifyToken(rawToken.mint))
     const token = Object.assign(rawToken, { hasFreeze: isFreezed } as Partial<SplToken>)
     set((s) =>
       produce(s, (draft) => {
@@ -333,10 +299,6 @@ export const useToken = create<TokenStore>((set, get) => ({
     [USER_ADDED_TOKEN_LIST_NAME]: {
       isOn: true
     },
-    [OTHER_LIQUIDITY_SUPPORTED_TOKEN_LIST_NAME]: {
-      isOn: true,
-      cannotbBeSeen: true
-    },
     [RAYDIUM_UNNAMED_TOKEN_LIST_NAME]: {
       isOn: true,
       cannotbBeSeen: true
@@ -345,7 +307,7 @@ export const useToken = create<TokenStore>((set, get) => ({
 
   refreshTokenCount: 0,
   refreshTokenPrice() {
-    set((s) => ({ refreshTokenCount: s.refreshTokenCount + 1 }))
+    set({ refreshTokenCount: get().refreshTokenCount + 1 })
   },
 
   userCustomTokenSymbol: {},

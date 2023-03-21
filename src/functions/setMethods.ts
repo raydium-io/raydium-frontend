@@ -7,3 +7,12 @@ export function toggleSetItem<T>(set: Set<T>, item: T): Set<T> {
   }
   return newSet
 }
+
+export function isSubSet(subsetA: Set<any>, bigsetB: Set<any>) {
+  for (const item of subsetA) {
+    if (!bigsetB.has(item)) {
+      return false
+    }
+  }
+  return true
+}

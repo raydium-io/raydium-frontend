@@ -6,6 +6,7 @@ import React, {
   startTransition,
   useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState
 } from 'react'
@@ -39,7 +40,7 @@ export interface InputProps {
   /** will record input result in localStorage */
   id?: string
 
-  type?: string // current support type in this app
+  inputMode?: 'search' | 'text' | 'none' | 'tel' | 'url' | 'email' | 'numeric' | 'decimal' // current support type in this app
 
   noCSSInputDefaultWidth?: boolean // <input> have default width, sometimes, it's weird
 
@@ -83,6 +84,7 @@ export interface InputProps {
 
   /** Optional. usually, it is an <Input>'s icon */
   prefix?: MayFunction<ReactNode, [InputComponentHandler]>
+  prefixClassName?: string
 
   /** Optional. usually, it is an <Input>'s unit or feature icon */
   suffix?: MayFunction<ReactNode, [InputComponentHandler]>
@@ -156,7 +158,7 @@ export default function Input(props: InputProps) {
   const {
     id,
 
-    type,
+    inputMode,
 
     noCSSInputDefaultWidth,
 
@@ -175,6 +177,7 @@ export default function Input(props: InputProps) {
     value,
 
     prefix,
+    prefixClassName,
     suffix,
     domRef,
     style,
@@ -270,14 +273,18 @@ export default function Input(props: InputProps) {
       style={style}
       domRef={domRef}
     >
-      {prefix && <div className="flex-initial mr-2">{shrinkToValue(prefix, [inputComponentHandler])}</div>}
+      {prefix && (
+        <div className={twMerge('flex-initial mr-2', prefixClassName)}>
+          {shrinkToValue(prefix, [inputComponentHandler])}
+        </div>
+      )}
 
       {/* input-wrapperbox is for style input inner body easier */}
       <div className={twMerge('flex flex-grow flex-shrink', inputWrapperClassName)}>
         <input
           autoComplete="off"
           id={id}
-          type={type}
+          inputMode={inputMode} // for only input:text can have selection info, so use inputMode instead
           ref={mergeRef(inputRef, inputDomRef)}
           value={pattern || validators ? selfValue : undefined} // !!! NOTE: if it has pattern validators, input must be controlled component
           className={`${
@@ -286,46 +293,43 @@ export default function Input(props: InputProps) {
           placeholder={placeholder ? String(placeholder) : undefined}
           disabled={disabled || disableUserInput}
           onChange={(ev) => {
-            // for onChange is frequest but hight prority action. startTransition so react can abort it
-            startTransition(() => {
-              const inputText = ev.target.value
-              let overwrite = ''
+            const inputText = ev.target.value
+            let overwrite = ''
 
-              // half disable (not disable in type)
-              if (disableUserInput) return
+            // half disable (not disable in type)
+            if (disableUserInput) return
 
-              // refuse unallowed input
-              if (pattern && [pattern].flat().some((p) => (isRegExp(p) ? !p.test(inputText) : !p(inputText)))) return
+            // refuse unallowed input
+            if (pattern && [pattern].flat().some((p) => (isRegExp(p) ? !p.test(inputText) : !p(inputText)))) return
 
-              if (maximum && gt(toFraction(inputText), maximum)) {
-                overwrite = maximum.toString()
-              }
+            if (maximum && gt(toFraction(inputText), maximum)) {
+              overwrite = maximum.toString()
+            }
 
-              // update validator infos
-              if (validators) {
-                // all validators must be true
-                for (const validator of [validators].flat()) {
-                  const passed = Boolean(
-                    shrinkToValue(validator.should, [
-                      inputText,
-                      { el: inputRef.current!, control: inputComponentHandler }
-                    ])
-                  )
-                  if (passed) {
-                    setFallbackProps(validator.validProps ?? {})
-                    validator.onValid?.(inputText, { el: inputRef.current!, control: inputComponentHandler })
-                  }
-                  if (!passed) {
-                    setFallbackProps(validator.invalidProps ?? {})
-                    validator.onInvalid?.(inputText, { el: inputRef.current!, control: inputComponentHandler })
-                  }
+            // update validator infos
+            if (validators) {
+              // all validators must be true
+              for (const validator of [validators].flat()) {
+                const passed = Boolean(
+                  shrinkToValue(validator.should, [
+                    inputText,
+                    { el: inputRef.current!, control: inputComponentHandler }
+                  ])
+                )
+                if (passed) {
+                  setFallbackProps(validator.validProps ?? {})
+                  validator.onValid?.(inputText, { el: inputRef.current!, control: inputComponentHandler })
+                }
+                if (!passed) {
+                  setFallbackProps(validator.invalidProps ?? {})
+                  validator.onInvalid?.(inputText, { el: inputRef.current!, control: inputComponentHandler })
                 }
               }
+            }
 
-              setSelfValue(overwrite ? overwrite : inputText)
-              onUserInput?.(overwrite ? overwrite : ev.target.value, inputRef.current!)
-              lockOutsideValue()
-            })
+            setSelfValue(overwrite ? overwrite : inputText)
+            onUserInput?.(overwrite ? overwrite : ev.target.value, inputRef.current!)
+            lockOutsideValue()
           }}
           aria-label={labelText}
           aria-required={required}
@@ -358,7 +362,10 @@ export default function Input(props: InputProps) {
           }}
           onKeyDown={(ev) => {
             inputHTMLProps?.onKeyDown?.(ev)
-            if (type === 'number' && (ev.key === 'ArrowUp' || ev.key === 'ArrowDown')) {
+            if (
+              (inputMode === 'decimal' || inputMode === 'numeric') &&
+              (ev.key === 'ArrowUp' || ev.key === 'ArrowDown')
+            ) {
               ev.preventDefault()
             } else if (ev.key === 'Enter') {
               onEnter?.((ev.target as HTMLInputElement).value, {
@@ -373,7 +380,7 @@ export default function Input(props: InputProps) {
             }
           }}
           onWheel={(e) => {
-            if (type === 'number') {
+            if (inputMode === 'decimal' || inputMode === 'numeric') {
               e.currentTarget.blur()
             }
           }}

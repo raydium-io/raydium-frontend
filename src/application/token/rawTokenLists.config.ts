@@ -1,7 +1,7 @@
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import {
-  RaydiumDevTokenListJsonInfo,
-  RaydiumTokenListJsonInfo,
+  RaydiumDevTokenListJsonFile,
+  RaydiumTokenListJsonFile,
   TokenListConfigType,
   TokenListFetchConfigItem
 } from './type'
@@ -26,10 +26,10 @@ export const rawTokenListConfigs = [
   }
 ] as TokenListFetchConfigItem[]
 
-export function isRaydiumMainnetTokenListName(response: any, url: () => string): response is RaydiumTokenListJsonInfo {
+export function isRaydiumMainnetTokenListName(response: any, url: () => string): response is RaydiumTokenListJsonFile {
   return url() === getRaydiumMainnetTokenListUrl()
 }
 
-export function isRaydiumDevTokenListName(response: any, url: () => string): response is RaydiumDevTokenListJsonInfo {
+export function isRaydiumDevTokenListName(response: any, url: () => string): response is RaydiumDevTokenListJsonFile {
   return url() === getCustomTokenListUrl()
 }

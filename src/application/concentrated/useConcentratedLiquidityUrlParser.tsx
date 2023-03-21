@@ -16,6 +16,7 @@ import useConnection from '../connection/useConnection'
 
 import { isHydratedConcentratedItemInfo } from './is'
 import useConcentrated from './useConcentrated'
+import { RAYMint, USDCMint } from '../token/wellknownToken.config'
 
 export default function useConcentratedLiquidityUrlParser() {
   const { query, pathname, replace } = useRouter()
@@ -23,7 +24,7 @@ export default function useConcentratedLiquidityUrlParser() {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
 
   const connection = useConnection((s) => s.connection)
-  const toUrlMint = useToken((s) => s.toUrlMint)
+  const getToken = useToken((s) => s.getToken)
   const inCleanUrlMode = useAppSettings((s) => s.inCleanUrlMode)
 
   // flag: 'get info from url' period  or  'affect info to url' period
@@ -60,7 +61,7 @@ export default function useConcentratedLiquidityUrlParser() {
 
     const { ammId: urlAmmId } = getConcentratedLiquidityInfoFromQuery(query)
 
-    if (urlAmmId) {
+    if (urlAmmId && hydratedAmmPools.length > 0) {
       // from URL: according to user's ammId (or coin1 & coin2) , match liquidity pool json info
       const matchedLiquidityInfo = urlAmmId ? findPoolInfoByAmmId(urlAmmId) : undefined
 
@@ -75,6 +76,10 @@ export default function useConcentratedLiquidityUrlParser() {
           coin2: matchedLiquidityInfo.quote
         })
       } else {
+        useConcentrated.setState({
+          coin1: getToken(RAYMint),
+          coin2: getToken(USDCMint)
+        })
         // may be just haven't load liquidityPoolJsonInfos yet
         if (hydratedAmmPools.length > 0) logWarning(`can't find Liquidity pool with url ammId`)
       }

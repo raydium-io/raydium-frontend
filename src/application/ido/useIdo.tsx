@@ -57,7 +57,7 @@ const useIdo = create<IdoStore>((set, get) => ({
     setTimeout(() => {
       set((s) => ({
         idoRefreshFactor: {
-          count: (s.idoRefreshFactor?.count ?? 0) + 1,
+          count: (get().idoRefreshFactor?.count ?? 0) + 1,
           refreshIdoId: idoId ?? Object.keys(get().idoRawInfos)
         }
       }))

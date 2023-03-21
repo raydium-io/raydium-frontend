@@ -140,9 +140,7 @@ function ConcentratedCard() {
   const [isConfirmOn, { off: onConfirmClose, on: onConfirmOpen }] = useToggle(false)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
-
   const timeBasis = useConcentrated((s) => s.timeBasis)
-
   const coin1 = useConcentrated((s) => s.coin1)
   const coin1Amount = useConcentrated((s) => s.coin1Amount)
   const coin2 = useConcentrated((s) => s.coin2)
@@ -457,7 +455,9 @@ function ConcentratedCard() {
                 }
                 haveCoinIcon
                 maxValue={
-                  coin1 ? toTokenAmount(coin1, mul(getBalance(coin1), 0.985), { alreadyDecimaled: true }) : undefined
+                  coin1 && getBalance(coin1)
+                    ? toTokenAmount(coin1, mul(getBalance(coin1), 0.985), { alreadyDecimaled: true })
+                    : undefined
                 }
                 onPriceChange={updatePrice1}
                 disableTokenSelect
@@ -488,7 +488,9 @@ function ConcentratedCard() {
                 haveHalfButton
                 haveCoinIcon
                 maxValue={
-                  coin2 ? toTokenAmount(coin2, mul(getBalance(coin2), 0.985), { alreadyDecimaled: true }) : undefined
+                  coin2 && getBalance(coin2)
+                    ? toTokenAmount(coin2, mul(getBalance(coin2), 0.985), { alreadyDecimaled: true })
+                    : undefined
                 }
                 onPriceChange={updatePrice2}
                 disableTokenSelect

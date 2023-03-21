@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
 
-import { Fraction } from '@raydium-io/raydium-sdk'
-
 import Button from '@/components/Button'
+import DecimalInput from '@/components/DecimalInput'
+import Input from '@/components/Input'
 import PageLayout from '@/components/PageLayout'
-import toUsdVolume from '@/functions/format/toUsdVolume'
 import { lazyMap } from '@/functions/lazyMap'
-import { div } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import useToggle from '@/hooks/useToggle'
 
 import { RollingNumber } from '../components/RollingNumber'
-import { VirtualBox } from '../components/VirtualBox'
 
 /**
  * temporary create-market page
@@ -25,41 +22,20 @@ export default function CreateMarketPage() {
   return (
     <PageLayout mobileBarTitle="Dev Playground" metaTitle="Dev Playground - Raydium">
       <div className="title text-2xl mobile:text-lg font-semibold justify-self-start text-white mb-4">Playground</div>
-      <VirtualBoxExample />
-      <NExample />
+      <InputExample />
       {/* <LazymapTest /> // you can uncomment these function to test lazymap */}
     </PageLayout>
   )
 }
 
-function VirtualBoxExample() {
+function InputExample() {
   const [vitualHidden, { toggle }] = useToggle()
   const [innerHeight, setInnerHeight] = useState(96)
 
   return (
-    <div>
-      <Button className="my-4" onClick={toggle}>
-        {vitualHidden ? 'hidden' : 'shown'}
-      </Button>
-      <Button
-        className="my-4"
-        onClick={() => {
-          setInnerHeight((n) => n + 8)
-        }}
-      >
-        height: {innerHeight}
-      </Button>
-      <VirtualBox observeWidth show={!vitualHidden} className="border-2 border-[#abc4ff] box-content">
-        {(detectRef) => (
-          <div
-            ref={detectRef}
-            className="h-24 w-48 bg-dark-blue grid place-content-center"
-            style={{ height: innerHeight }}
-          >
-            hello world
-          </div>
-        )}
-      </VirtualBox>
+    <div className="border">
+      <DecimalInput />
+      <Input pattern={/^[0-9]*[.,]?[0-9]{0,3}$/} />
     </div>
   )
 }
