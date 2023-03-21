@@ -24,6 +24,7 @@ import useWallet from '../wallet/useWallet'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
+import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -42,21 +43,18 @@ export default function usePoolsInfoLoader() {
   const refreshCount = usePools((s) => s.refreshCount)
   const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
   const programIds = useAppAdvancedSettings((s) => s.programIds)
+  const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
   const pairsUrl = useAppAdvancedSettings((s) => s.apiUrls.pairs)
 
-  const fetchPairs = async () => {
+  useAsyncEffect(async () => {
     const pairJsonInfo = await jFetch<JsonPairItemInfo[]>(pairsUrl, {
       cacheFreshTime: 5 * 60 * 1000
     })
-    if (!pairJsonInfo) return
+    if (pairsUrl !== apiUrls.pairs) return
     usePools.setState({
       jsonInfos: pairJsonInfo,
       rawJsonInfos: pairJsonInfo
     })
-  }
-
-  useTransitionedEffect(() => {
-    fetchPairs()
   }, [refreshCount, farmRefreshCount, pairsUrl])
 
   // TODO: currently also fetch info when it's not

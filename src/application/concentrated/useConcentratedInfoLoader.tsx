@@ -36,6 +36,7 @@ export default function useConcentratedInfoLoader() {
   const tokens = useToken((s) => s.tokens)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const { pathname } = useRouter()
+  const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
   const ammV3PoolsUrl = useAppAdvancedSettings((s) => s.apiUrls.ammV3Pools)
 
   /** fetch api json info list  */
@@ -44,7 +45,8 @@ export default function useConcentratedInfoLoader() {
       if (!pathname.includes('clmm')) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
       const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammV3PoolsUrl) // note: previously Rudy has Test API for dev
-      if (response) useConcentrated.setState({ apiAmmPools: response.data })
+      if (ammV3PoolsUrl !== apiUrls.ammV3Pools) return
+      useConcentrated.setState({ apiAmmPools: response?.data })
     },
     [refreshCount, ammV3PoolsUrl, pathname.includes('clmm')]
   )

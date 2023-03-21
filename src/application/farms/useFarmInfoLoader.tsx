@@ -16,6 +16,9 @@ import useWallet from '../wallet/useWallet'
 
 import { fetchFarmAprJsonInfos, fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useFarms from './useFarms'
+import useAppSettings from '../common/useAppSettings'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 export default function useFarmInfoLoader() {
   const { pathname } = useRouter()
@@ -28,6 +31,11 @@ export default function useFarmInfoLoader() {
   const tokenPrices = useToken((s) => s.tokenPrices)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
   const currentBlockChainDate = offsetDateTime(Date.now() + chainTimeOffset, { minutes: 0 /* force */ })
+
+  const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
+  const farmInfoApi = useAppAdvancedSettings((s) => s.apiUrls.farmInfo)
+  const farmAprInfo = useAppAdvancedSettings((s) => s.apiUrls.farmApr)
+  const programIds = useAppAdvancedSettings((s) => s.programIds)
 
   const connection = useConnection((s) => s.connection)
 
@@ -42,14 +50,16 @@ export default function useFarmInfoLoader() {
   // auto fetch json farm info when init
   useTransitionedEffect(async () => {
     const farmJsonInfos = await fetchFarmJsonInfos()
-    if (farmJsonInfos) useFarms.setState({ jsonInfos: farmJsonInfos })
-  }, [farmRefreshCount])
+    if (farmInfoApi !== apiUrls.farmInfo) return
+    useFarms.setState({ jsonInfos: farmJsonInfos })
+  }, [farmRefreshCount, farmInfoApi])
 
   // auto fetch json farm apr info when init
   useTransitionedEffect(async () => {
     const farmAprJsonInfos = await fetchFarmAprJsonInfos()
-    if (farmAprJsonInfos) useFarms.setState({ jsonFarmAprInfos: farmAprJsonInfos })
-  }, [farmRefreshCount])
+    if (farmAprInfo !== apiUrls.farmApr) return
+    useFarms.setState({ jsonFarmAprInfos: farmAprJsonInfos })
+  }, [farmRefreshCount, farmAprInfo])
 
   // auto fetch json farm info when init
   useTransitionedEffect(async () => {
@@ -70,7 +80,7 @@ export default function useFarmInfoLoader() {
       { jsonInfos }
     )
     useFarms.setState({ sdkParsedInfos })
-  }, [jsonInfos, connection, owner])
+  }, [jsonInfos, connection, owner, programIds])
 
   // auto hydrate
   // hydrate action will depends on other state, so it will rerender many times
@@ -79,6 +89,7 @@ export default function useFarmInfoLoader() {
       source: sdkParsedInfos,
       loopTaskName: 'hydrate farm info',
       loopFn: (farmInfo) =>
+        farmInfo &&
         hydrateFarmInfo(farmInfo, {
           getToken,
           getLpToken,
@@ -92,8 +103,9 @@ export default function useFarmInfoLoader() {
         }),
       options: { priority: pathname.includes('farm') ? 1 : 0 }
     })
+    const shaked = shakeUndifindedItem(hydratedInfos)
 
-    useFarms.setState({ hydratedInfos, isLoading: hydratedInfos.length <= 0 })
+    useFarms.setState({ hydratedInfos: shaked, isLoading: shaked.length <= 0 })
   }, [
     aprs,
     sdkParsedInfos,

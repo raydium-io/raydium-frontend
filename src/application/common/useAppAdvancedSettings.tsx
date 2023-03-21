@@ -6,7 +6,7 @@ export type AppAdvancedSettingsStore = {
   mode: 'mainnet' | 'devnet'
   programIds: typeof MAINNET_PROGRAM_ID
   readonly apiUrls: {
-    [K in keyof ApiConfig]: `${ApiOrigin}${K}`
+    [K in keyof ApiConfig]: `${ApiOrigin}/${K}`
   }
   apiUrlOrigin: string
   apiUrlPathnames: typeof RAYDIUM_MAINNET
