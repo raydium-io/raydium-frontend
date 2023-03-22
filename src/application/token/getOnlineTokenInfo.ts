@@ -19,7 +19,7 @@ export async function verifyToken(
 ) {
   try {
     const { connection } = useConnection.getState() // TEST devnet
-    if (!connection) return false
+    if (!connection) return undefined
     const tokenAccount = options?.cachedAccountInfo ?? (await connection.getAccountInfo(toPub(mintish)))
     if (!tokenAccount) return false
     if (tokenAccount.data.length !== SPL_MINT_LAYOUT.span) return false
