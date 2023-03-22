@@ -64,6 +64,8 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
 import { NewCompensationBanner } from './pools'
+import useAsyncValue from '@/hooks/useAsyncValue'
+import { verifyToken } from '@/application/token/getOnlineTokenInfo'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -119,6 +121,8 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
     setHasUserTemporaryConfirmed(false)
   }, [downCoin])
 
+  const freezed = useMemo(() => downCoin && isFreezedToken(downCoin), [toPubString(downCoin?.mint)])
+
   const popConfirm = () => {
     if (isConfirmPanelOn) return
     setIsConfirmPanelOn(true)
@@ -139,7 +143,7 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
               {downCoin?.mint}
             </AddressItem>
           </Row>
-          {downCoin && isFreezedToken(downCoin) && (
+          {freezed && (
             <div>
               <div className="text-center my-4 text-[#FED33A] font-bold">Freeze Authority Warning</div>
               <div className="text-center my-2  text-xs text-[#FED33A]">
@@ -705,7 +709,10 @@ function RemainSOLAlert() {
   )
 }
 
-function isFreezedToken(token: SplToken): boolean {
+function isFreezedToken(token: SplToken): boolean | Promise<boolean | undefined> {
+  if (token.hasFreeze == null) {
+    return verifyToken(token.mint, { noLog: true }).then((verified) => (verified != null ? !verified : undefined))
+  }
   return Boolean(token.hasFreeze)
 }
 
