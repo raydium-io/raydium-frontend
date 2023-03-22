@@ -28,6 +28,8 @@ import { usePools } from '../pools/usePools'
 import useToken from '../token/useToken'
 import { useApiUrlChange } from './useApiUrlChange'
 import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
+import { useEvent } from '@/hooks/useEvent'
+import { useDocumentVisibility } from '@/hooks/useDocumentVisibility'
 
 function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -194,20 +196,21 @@ function useDefaultExplorerSyncer() {
 
 function useRpcPerformance() {
   const currentEndPoint = useConnection((s) => s.currentEndPoint)
-  const connection = useConnection((s) => s.connection)
+  const { documentVisible } = useDocumentVisibility()
 
   const MAX_TPS = 1500 // force settings
 
-  const getPerformance = useCallback(async () => {
-    if (!currentEndPoint?.url) return
-    const result = await jFetch<{
+  const getPerformance = useEvent(() => {
+    const fetchUrl = useConnection.getState().currentEndPoint?.url
+    if (!fetchUrl) return
+    const res = jFetch<{
       result: {
         numSlots: number
         numTransactions: number
         samplePeriodSecs: number
         slot: number
       }[]
-    }>(currentEndPoint?.url, {
+    }>(fetchUrl, {
       method: 'post',
       ignoreCache: true,
       headers: {
@@ -219,19 +222,23 @@ function useRpcPerformance() {
         method: 'getRecentPerformanceSamples',
         params: [30]
       })
+    }).then((result) => {
+      if (fetchUrl !== useConnection.getState().currentEndPoint!.url) return
+      const blocks = result?.result
+      if (!blocks) return
+      const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
+      const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
+      useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })
     })
-    const blocks = result?.result
-    if (!blocks) return
-    const perSecond = blocks.map(({ numTransactions }) => numTransactions / 60)
-    const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
-    useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })
-
-    setTimeout(getPerformance, 1000 * 60)
-  }, [connection, currentEndPoint])
+  })
 
   useEffect(() => {
-    getPerformance()
-  }, [getPerformance])
+    if (!documentVisible) return
+    const timeoutId = setInterval(() => getPerformance(), 1000 * 60)
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [getPerformance, currentEndPoint?.url, documentVisible])
 }
 
 function useGetSlotCountForSecond() {
