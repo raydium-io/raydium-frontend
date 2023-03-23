@@ -65,7 +65,8 @@ export default function useFarmInfoLoader() {
         connection,
         pools: jsonInfos.map(jsonInfo2PoolKeys),
         owner,
-        config: { commitment: 'confirmed' }
+        config: { commitment: 'confirmed' },
+        chainTime: (Date.now() + chainTimeOffset) / 1000
       },
       { jsonInfos }
     )
