@@ -50,6 +50,7 @@ export default function usePoolsInfoLoader() {
     const pairJsonInfo = await jFetch<JsonPairItemInfo[]>(pairsUrl, {
       cacheFreshTime: 5 * 60 * 1000
     })
+    if (!pairJsonInfo) return
     if (pairsUrl !== apiUrls.pairs) return
     usePools.setState({
       jsonInfos: pairJsonInfo,

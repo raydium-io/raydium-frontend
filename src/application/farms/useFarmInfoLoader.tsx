@@ -51,6 +51,7 @@ export default function useFarmInfoLoader() {
   useTransitionedEffect(async () => {
     const farmJsonInfos = await fetchFarmJsonInfos()
     if (farmInfoApi !== apiUrls.farmInfo) return
+    if (!farmJsonInfos) return
     useFarms.setState({ jsonInfos: farmJsonInfos })
   }, [farmRefreshCount, farmInfoApi])
 
