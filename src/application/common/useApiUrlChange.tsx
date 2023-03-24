@@ -7,9 +7,9 @@ import { useAppAdvancedSettings } from './useAppAdvancedSettings'
  */
 
 export function useApiUrlChange() {
-  const programIds = useAppAdvancedSettings.getState().programIds
-  const ammPoolsUrl = useAppAdvancedSettings.getState().apiUrls.ammV3Pools
-  const liquidityPoolsUrl = useAppAdvancedSettings.getState().apiUrls.poolInfo
+  const programIds = useAppAdvancedSettings((s) => s.programIds)
+  const ammPoolsUrl = useAppAdvancedSettings((s) => s.apiUrls.ammV3Pools)
+  const liquidityPoolsUrl = useAppAdvancedSettings((s) => s.apiUrls.poolInfo)
   useEffect(() => {
     clearApiCache()
     clearSdkCache()
