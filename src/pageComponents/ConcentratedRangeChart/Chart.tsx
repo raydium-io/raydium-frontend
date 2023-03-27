@@ -194,10 +194,19 @@ export default forwardRef(function Chart(props: Props, ref) {
           ? defaultMaxNum * 1.2
           : parseFloat(currentPriceNum) * rate[1]
       ]
-      if (poolIdRef.current !== poolFocusKey) xAxisDomainRef.current = [...xAxisResetRef.current]
+      if (poolIdRef.current !== poolFocusKey) {
+        xAxisDomainRef.current = [...xAxisResetRef.current]
+        setXAxisDomain(xAxisDomainRef.current)
+      }
+      const axisRate = chartOptions?.isStable ? [0.98, 1.02] : [0.95, 1.05]
+      if (showCurrentPriceOnly)
+        setXAxisDomain([
+          defaultMinNum !== undefined ? defaultMinNum * axisRate[0] : xAxisResetRef.current[0],
+          defaultMaxNum !== undefined ? defaultMaxNum * axisRate[1] : xAxisResetRef.current[1]
+        ])
       if (xAxisDomainRef.current[0] <= points[0].x) points.unshift({ x: xAxisDomainRef.current[0], y: 0 })
       if (points[points.length - 1].x <= xAxisDomainRef.current[1]) points.push({ x: xAxisDomainRef.current[1], y: 0 })
-      if (poolIdRef.current !== poolFocusKey || showCurrentPriceOnly) setXAxisDomain(xAxisDomainRef.current)
+      // if (poolIdRef.current !== poolFocusKey)  setXAxisDomain(xAxisDomainRef.current)
     }
 
     const pointMaxIndex = points.length - 1
