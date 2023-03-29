@@ -432,9 +432,18 @@ export function CreatePoolCard() {
             onInDecrease={handleClickInDecrease}
           />
         </div>
+
+        {(coin1InputDisabled || coin2InputDisabled) && (
+          <FadeIn>
+            <div className="flex items-center p-3 bg-[#2C2B57] rounded-lg text-xs text-[#D6CC56]">
+              <Icon size="sm" className="mr-1.5" heroIconName="exclamation-circle" />
+              Your position will not trade or earn fees until price moves into your range.
+            </div>
+          </FadeIn>
+        )}
       </Col>
       {/* right */}
-      <Col className="gap-6 w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
+      <Col className="gap-4 w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
         <div className={currentAmmPool ? '' : 'opacity-50 pointer-events-none'}>
           <Row className="text-secondary-title justify-between mb-2">
             <div className="font-medium text-[#abc4ff] my-1">Deposit Amount</div>
@@ -498,6 +507,7 @@ export function CreatePoolCard() {
                 : '--'}
             </span>
           </div>
+
           <div className="flex justify-between">
             <span className="text-sm leading-[18px] text-secondary-title">Deposit Ratio</span>
             <span className="text-lg flex leading-[18px]">
@@ -508,17 +518,14 @@ export function CreatePoolCard() {
             </span>
           </div>
         </div>
-
-        {coin1InputDisabled || coin2InputDisabled ? (
-          <FadeIn>
-            <div className="flex items-center p-3 bg-[#2C2B57] rounded-xl text-sm text-[#D6CC56]">
-              <Icon size="sm" className="mr-1.5" heroIconName="exclamation-circle" />
-              Your position will not trade or earn fees until price moves into your range.
-            </div>
-          </FadeIn>
-        ) : (
-          ''
-        )}
+        <DateInput
+          className={`${currentAmmPool ? '' : 'opacity-50 pointer-events-none'} mb-8`}
+          label="Start time (Optional):"
+          disableDateBeforeCurrent
+          canEditSeconds
+          onDateChange={(selectedDate) => useConcentrated.setState({ ammPoolStartTime: selectedDate })}
+          showTime={{ format: 'HH:mm:ss' }}
+        />
 
         <Col className="gap-4 mt-auto">
           <div className="flex items-center text-xs p-[12px] rounded-lg text-secondary-title bg-[rgba(171,196,255,0.08)] mt-auto">
@@ -528,15 +535,6 @@ export function CreatePoolCard() {
               approximately 0.3 SOL, but may vary depending on transaction size.
             </div>
           </div>
-
-          <DateInput
-            className="mb-5"
-            label="Start time (Optional):"
-            disableDateBeforeCurrent
-            canEditSeconds
-            onDateChange={(selectedDate) => useConcentrated.setState({ ammPoolStartTime: selectedDate })}
-            showTime={{ format: 'HH:mm:ss' }}
-          />
 
           <Button
             className="frosted-glass-teal mobile:w-full"
