@@ -1,6 +1,7 @@
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
 import toPubString from '@/functions/format/toMintString'
+import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { lazyMap } from '@/functions/lazyMap'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
@@ -57,7 +58,8 @@ export default function useConcentratedInfoLoader() {
       poolKeys: apiAmmPools,
       connection,
       ownerInfo: owner ? { tokenAccounts: tokenAccounts, wallet: owner } : undefined,
-      chainTime: (Date.now() + chainTimeOffset) / 1000
+      chainTime: (Date.now() + chainTimeOffset) / 1000,
+      batchRequest: !isInLocalhost && !isInBonsaiTest
     })
     if (sdkParsed) {
       useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })

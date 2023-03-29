@@ -2,15 +2,13 @@ import { HydratedAmmV3ConfigInfo } from '@/application/concentrated/type'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmConfigInfoLoader from '@/application/concentrated/useConcentratedAmmConfigInfoLoader'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
-import useConcentratedInfoLoader from '@/application/concentrated/useConcentratedInfoLoader'
 import useConcentratedCreateInitFeeSelector from '@/application/concentrated/useConcentratedCreateInitFeeSelector'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
+import Tooltip from '@/components/Tooltip'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
-import { gte } from '@/functions/numberish/compare'
 import { twMerge } from 'tailwind-merge'
-import Tooltip from '@/components/Tooltip'
 
 export function CreateFeeSwitcher({ className }: { className?: string }) {
   const existAmmPools = useConcentrated((s) => s.selectableAmmPools)
@@ -18,7 +16,6 @@ export function CreateFeeSwitcher({ className }: { className?: string }) {
   const userSelectedAmmConfigFeeOption = useConcentrated((s) => s.userSelectedAmmConfigFeeOption)
   const ammConfigFeeOptions = useConcentrated((s) => s.availableAmmConfigFeeOptions)
 
-  useConcentratedInfoLoader()
   useConcentratedAmmConfigInfoLoader()
   useConcentratedAmmSelector(true)
   useConcentratedCreateInitFeeSelector()
