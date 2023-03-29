@@ -78,6 +78,9 @@ export type ConcentratedStore = {
   coin2Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
   coin2AmountMin?: Numberish
 
+  /** a create new clmm pool option */
+  ammPoolStartTime?: Date
+
   priceUpperTick?: number // from SDK, just store in UI
   priceLowerTick?: number // from SDK, just store in UI
 

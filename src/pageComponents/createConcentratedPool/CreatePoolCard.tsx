@@ -52,6 +52,7 @@ import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { trimTailingZero } from '@/functions/numberish/handleZero'
 import Decimal from 'decimal.js'
 import toPubString from '@/functions/format/toMintString'
+import DateInput from '@/components/DateInput'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -527,6 +528,15 @@ export function CreatePoolCard() {
               approximately 0.3 SOL, but may vary depending on transaction size.
             </div>
           </div>
+
+          <DateInput
+            className="mb-5"
+            label="Start time (Optional):"
+            disableDateBeforeCurrent
+            canEditSeconds
+            onDateChange={(selectedDate) => useConcentrated.setState({ ammPoolStartTime: selectedDate })}
+            showTime={{ format: 'HH:mm:ss' }}
+          />
 
           <Button
             className="frosted-glass-teal mobile:w-full"
