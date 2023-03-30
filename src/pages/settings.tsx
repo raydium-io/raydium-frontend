@@ -1,7 +1,6 @@
-import { DEVNET_PROGRAM_ID, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
-import { ReactNode, useEffect, useState } from 'react'
+import { DEVNET_PROGRAM_ID, ENDPOINT, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
+import { ReactNode, useEffect, useMemo, useState } from 'react'
 
-import { devnetApiConfig, mainnetApiConfig } from '@/application/common/apiUrl.config'
 import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
 import useAppSettings from '@/application/common/useAppSettings'
 import Button from '@/components/Button'
@@ -30,11 +29,23 @@ export default function SettingsPage() {
 }
 
 function ProgramIDTabs() {
-  const innerChoice = useAppAdvancedSettings((s) => s.mode)
-  const [tempInnerChoice, setTempInnerChoice] = useState(innerChoice)
+  const mode = useAppAdvancedSettings((s) => s.mode)
+  const [tempInnerChoice, setTempInnerChoice] = useState(mode)
   useEffect(() => {
-    setTempInnerChoice(innerChoice)
-  }, [innerChoice])
+    setTempInnerChoice(mode)
+  }, [mode])
+
+  const apiUrlOrigin = useAppAdvancedSettings((s) => s.apiUrlOrigin)
+  const [tempApiUrlOrigin, setTempApiUrlOrigin] = useState(apiUrlOrigin)
+  useEffect(() => {
+    setTempApiUrlOrigin(apiUrlOrigin)
+  }, [apiUrlOrigin])
+
+  const apiUrlPathnames = useAppAdvancedSettings((s) => s.apiUrlPathnames)
+  const calculatedApiUrls = useMemo(
+    () => objectMap(apiUrlPathnames, (v) => `${tempApiUrlOrigin}${v}`),
+    [tempApiUrlOrigin, apiUrlPathnames]
+  )
 
   const programIds = useAppAdvancedSettings((s) => s.programIds)
   const [tempProgramIds, setTempProgramIds] = useState(() => objectMap(programIds, (v) => toPubString(v)))
@@ -42,15 +53,15 @@ function ProgramIDTabs() {
     setTempProgramIds(objectMap(programIds, (v) => toPubString(v)))
   }, [programIds])
 
-  const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
-  const [tempApiUrls, setTempApiUrls] = useState(apiUrls)
-  useEffect(() => {
-    setTempApiUrls(apiUrls)
-  }, [programIds])
+  // const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
+  // const [tempApiUrls, setTempApiUrls] = useState(apiUrls)
+  // useEffect(() => {
+  //   setTempApiUrls(apiUrls)
+  // }, [programIds])
 
   const hasUserChangedSettings =
     Object.entries(programIds).some(([key, value]) => !isPubEqual(tempProgramIds[key], value)) ||
-    Object.entries(apiUrls).some(([key, value]) => tempApiUrls[key] !== value)
+    apiUrlOrigin !== tempApiUrlOrigin
 
   return (
     <Col className="py-4 gap-8 mx-auto w-[min(1100px,100%)] items-center">
@@ -63,7 +74,6 @@ function ProgramIDTabs() {
               ? objectMap(MAINNET_PROGRAM_ID, toPubString)
               : objectMap(DEVNET_PROGRAM_ID, toPubString)
           )
-          setTempApiUrls(tabName === 'mainnet' ? mainnetApiConfig : devnetApiConfig)
           setTempInnerChoice(tabName)
         }}
       />
@@ -79,8 +89,26 @@ function ProgramIDTabs() {
 
       <div>
         <div className="text-xl font-semibold text-center mb-2">API</div>
+        <InputBox
+          className="mobile:text-base text-[#abc4ff80] my-4"
+          value={tempApiUrlOrigin}
+          prefix="origin: "
+          suffix={
+            <div
+              onClick={() => {
+                setTempApiUrlOrigin(ENDPOINT)
+              }}
+              className="text-[#abc4ff] cursor-pointer clickable"
+            >
+              ↻ reset
+            </div>
+          }
+          onUserInput={(text) => {
+            setTempApiUrlOrigin(text)
+          }}
+        />
         <Col className="mobile:gap-6">
-          {Object.entries(tempApiUrls).map(([apiName, apiValue]) => (
+          {Object.entries(calculatedApiUrls).map(([apiName, apiValue]) => (
             <Fieldset key={apiName} name={`${toSentenceCase(apiName)}`} renderFormItem={apiValue} />
           ))}
         </Col>
@@ -93,7 +121,7 @@ function ProgramIDTabs() {
         onClick={() => {
           useAppAdvancedSettings.setState({
             programIds: objectMap(tempProgramIds, (v) => toPub(v)),
-            apiUrls: tempApiUrls,
+            apiUrlOrigin: tempApiUrlOrigin,
             mode: tempInnerChoice
           })
         }}

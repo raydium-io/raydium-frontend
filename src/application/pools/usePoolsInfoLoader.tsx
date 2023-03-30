@@ -1,11 +1,11 @@
-import { useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useEffect, useMemo } from 'react'
 
 import { Price } from '@raydium-io/raydium-sdk'
 
 import shallow from 'zustand/shallow'
 
-import { shakeUndifindedItem, unifyItem } from '@/functions/arrayMethods'
+import { unifyItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
@@ -43,6 +43,7 @@ export default function usePoolsInfoLoader() {
   const refreshCount = usePools((s) => s.refreshCount)
   const farmRefreshCount = useFarms((s) => s.farmRefreshCount)
   const programIds = useAppAdvancedSettings((s) => s.programIds)
+  const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
   const pairsUrl = useAppAdvancedSettings((s) => s.apiUrls.pairs)
 
   const shouldLoadInfo = useMemo(() => !pathname.includes('swap'), [pathname.includes('swap')])

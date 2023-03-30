@@ -1,8 +1,7 @@
 import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
-import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useTwoStateSyncer from '@/hooks/use2StateSyncer'
-import { DEVNET_PROGRAM_ID, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
-import { devnetApiConfig, mainnetApiConfig } from './apiUrl.config'
+import useLocalStorageItem from '@/hooks/useLocalStorage'
+import { DEVNET_PROGRAM_ID, ENDPOINT, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
 
 export function useAppAdvancedSettingsSyncer() {
   const mode = useAppAdvancedSettings((s) => s.mode)
@@ -22,8 +21,29 @@ export function useAppAdvancedSettingsSyncer() {
     onState2Changed: (mode) => {
       useAppAdvancedSettings.setState({
         mode: mode,
-        programIds: mode === 'mainnet' ? MAINNET_PROGRAM_ID : DEVNET_PROGRAM_ID,
-        apiUrls: mode === 'mainnet' ? mainnetApiConfig : devnetApiConfig
+        programIds: mode === 'mainnet' ? MAINNET_PROGRAM_ID : DEVNET_PROGRAM_ID
+      })
+    }
+  })
+
+  const apiUrlOrigin = useAppAdvancedSettings((s) => s.apiUrlOrigin)
+  const [localStorageApiUrlOrigin, setLocalStorageApiUrlOrigin] = useLocalStorageItem<string>(
+    'ADVANCED_SETTINGS_ENDPOINT',
+    {
+      defaultValue: ENDPOINT
+    }
+  )
+
+  useTwoStateSyncer({
+    state1: apiUrlOrigin,
+    state2: localStorageApiUrlOrigin,
+    onState1Changed: (apiUrlOrigin) => {
+      if (!apiUrlOrigin) return
+      setLocalStorageApiUrlOrigin(apiUrlOrigin)
+    },
+    onState2Changed: (apiUrlOrigin) => {
+      useAppAdvancedSettings.setState({
+        apiUrlOrigin: apiUrlOrigin
       })
     }
   })
