@@ -38,6 +38,10 @@ export default function useConcentratedInfoLoader() {
   const ammV3PoolsUrl = useAppAdvancedSettings((s) => s.apiUrls.ammV3Pools)
 
   const shouldLoadInfo = useMemo(() => pathname.includes('clmm'), [pathname.includes('clmm')])
+  const shouldLoadChartPoints = useMemo(
+    () => pathname.includes('clmm') && !pathname.includes('create-pool'),
+    [pathname.includes('clmm'), pathname.includes('create-pools')]
+  )
 
   /** fetch api json info list  */
   useRecordedEffect(
@@ -92,8 +96,9 @@ export default function useConcentratedInfoLoader() {
       useConcentrated.setState({ chartPoints: [] })
       return
     }
+    if (!shouldLoadChartPoints) return
     loadChartPointsAct(toPubString(currentAmmPool.state.id))
-  }, [currentAmmPool?.idString, tokens, lazyLoadChart, loadChartPointsAct])
+  }, [currentAmmPool?.idString, tokens, lazyLoadChart, loadChartPointsAct, shouldLoadChartPoints])
 
   /** update currentAmmPool */
   useTransitionedEffect(async () => {
@@ -115,6 +120,7 @@ export default function useConcentratedInfoLoader() {
   /** reload points chart */
   useAsyncEffect(async () => {
     if (!currentAmmPool) return
+    if (!shouldLoadChartPoints) return
     loadChartPointsAct(toPubString(currentAmmPool.state.id), { force: true })
-  }, [refreshCount])
+  }, [refreshCount, shouldLoadChartPoints])
 }
