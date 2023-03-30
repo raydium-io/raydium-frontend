@@ -1,7 +1,3 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
-import { twMerge } from 'tailwind-merge'
-import { TokenAmount } from '@raydium-io/raydium-sdk'
 import useAppSettings from '@/application/common/useAppSettings'
 import { getPriceTick, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import txCreateNewConcentratedPool from '@/application/concentrated/txCreateNewConcentratedPool'
@@ -18,6 +14,7 @@ import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import CoinInputBox from '@/components/CoinInputBox'
 import Col from '@/components/Col'
+import DateInput from '@/components/DateInput'
 import { FadeIn } from '@/components/FadeIn'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
@@ -28,7 +25,9 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { trimTailingZero } from '@/functions/numberish/handleZero'
 import { div, mul } from '@/functions/numberish/operations'
+import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
@@ -37,10 +36,12 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
-
+import { TokenAmount } from '@raydium-io/raydium-sdk'
+import Decimal from 'decimal.js'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 import { calculateRatio, RemainSOLAlert } from '../Concentrated'
 import TokenSelectorDialog from '../dialogs/TokenSelectorDialog'
-
 import { CreateFeeSwitcher } from './CreateFeeSwitcher'
 import CreatePoolPreviewDialog from './CreatePoolPreviewDialog'
 import EmptyCoinInput from './EmptyCoinInput'
@@ -48,12 +49,6 @@ import InputLocked from './InputLocked'
 import PriceRangeInput from './PriceRangeInput'
 import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
-import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
-import { trimTailingZero } from '@/functions/numberish/handleZero'
-import Decimal from 'decimal.js'
-import toPubString from '@/functions/format/toMintString'
-import DateInput from '@/components/DateInput'
-import RefreshCircle from '@/components/RefreshCircle'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -556,6 +551,7 @@ export function CreatePoolCard() {
                 }
               },
               { should: coin1 && coin2 },
+              { should: currentAmmPool, fallbackProps: { children: 'Fail to find this pool' } },
               { should: isMeaningfulNumber(userSettedCurrentPrice), fallbackProps: { children: 'Input Price' } },
               { should: userSelectedAmmConfigFeeOption, fallbackProps: { children: 'Select a fee option' } },
               {

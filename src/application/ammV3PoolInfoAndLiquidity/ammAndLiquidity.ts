@@ -289,18 +289,16 @@ function getBestCalcResult(
   } else {
     if (!poolInfosCache) return { bestResult: routeList[0] }
 
-    const routeStartTimes = routeList[0].poolKey
-      .filter((i) => i.version !== 6) // clmm pool is not
-      .map((i) => {
-        const ammId = toPubString(i.id)
-        const poolAccountInfo = poolInfosCache[ammId]
-        if (!poolAccountInfo) return undefined
-        const startTime = poolAccountInfo.startTime.toNumber() * 1000
+    const routeStartTimes = routeList[0].poolKey.map((i) => {
+      const ammId = toPubString(i.id)
+      const poolAccountInfo = poolInfosCache[ammId]
+      if (!poolAccountInfo) return undefined
+      const startTime = poolAccountInfo.startTime.toNumber() * 1000
 
-        const isPoolOpen = isDateAfter(chainTime, startTime)
-        if (isPoolOpen) return undefined
-        return { ammId, startTime, poolType: i, poolInfo: getPoolInfoFromPoolType(i) }
-      })
+      const isPoolOpen = isDateAfter(chainTime, startTime)
+      if (isPoolOpen) return undefined
+      return { ammId, startTime, poolType: i, poolInfo: getPoolInfoFromPoolType(i) }
+    })
 
     return { bestResult: routeList[0], bestResultStartTimes: shakeUndifindedItem(routeStartTimes) }
   }

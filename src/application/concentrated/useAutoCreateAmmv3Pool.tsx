@@ -1,6 +1,7 @@
 import assert from '@/functions/assert'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
+import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { AmmV3, AmmV3ConfigInfo } from '@raydium-io/raydium-sdk'
@@ -16,7 +17,7 @@ import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
 
 export function useAutoCreateAmmv3Pool() {
-  const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice } = useConcentrated()
+  const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice, ammPoolStartTime } = useConcentrated()
   const connection = useConnection((s) => s.connection)
   const owner = useWallet((s) => s.owner)
 
@@ -41,7 +42,8 @@ export function useAutoCreateAmmv3Pool() {
 }
 
 async function createNewConcentratedPool() {
-  const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice, focusSide } = useConcentrated.getState()
+  const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice, focusSide, ammPoolStartTime } =
+    useConcentrated.getState()
   const { connection } = useConnection.getState()
   const { owner } = useWallet.getState()
   const { programIds } = useAppAdvancedSettings.getState()
@@ -57,6 +59,7 @@ async function createNewConcentratedPool() {
       : div(1, userSettedCurrentPrice)
     : toFraction(0)
 
+  const startTime = toBN((ammPoolStartTime?.getTime() ?? 0) / 1000)
   const { innerTransactions, address } = await AmmV3.makeCreatePoolInstructionSimple({
     connection: connection,
     programId: programIds.CLMM,
@@ -65,7 +68,8 @@ async function createNewConcentratedPool() {
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
     initialPrice: fractionToDecimal(currentPrice, 15),
     owner: owner ?? PublicKey.default,
-    computeBudgetConfig: await getComputeBudgetConfig()
+    computeBudgetConfig: await getComputeBudgetConfig(),
+    startTime: startTime
   })
   const mockPoolInfo = AmmV3.makeMockPoolInfo({
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
@@ -74,7 +78,8 @@ async function createNewConcentratedPool() {
     owner: owner ?? PublicKey.default,
     programId: programIds.CLMM,
     createPoolInstructionSimpleAddress: address,
-    initialPrice: fractionToDecimal(currentPrice, 15)
+    initialPrice: fractionToDecimal(currentPrice, 15),
+    startTime: toBN((ammPoolStartTime?.getTime() ?? 0) / 1000)
   })
   useConcentrated.setState({
     tempDataCache: innerTransactions
