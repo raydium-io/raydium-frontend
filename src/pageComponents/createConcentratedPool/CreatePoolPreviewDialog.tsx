@@ -16,9 +16,11 @@ import { shakeZero } from '@/functions/numberish/shakeZero'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
+import { toUTC } from '@/functions/date/dateFormat'
 
 interface Props {
   open: boolean
+  startTime?: Date
   coin1?: SplToken
   coin2?: SplToken
   coin1Amount?: Numberish
@@ -39,6 +41,7 @@ const maxAcceptPriceDecimal = 15
 const maxSignificantCount = (decimals: number) => Math.min(decimals + 2, maxAcceptPriceDecimal)
 
 export default function CreatePoolPreviewDialog({
+  startTime,
   open,
   coin1,
   coin2,
@@ -186,7 +189,14 @@ export default function CreatePoolPreviewDialog({
               <span className="text-sm leading-[18px] text-secondary-title">Total Deposit</span>
               <span className="text-lg">{totalDeposit}</span>
             </div>
+            {startTime && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm leading-[18px] text-secondary-title">Start Time</span>
+                <span className="">{toUTC(startTime)}</span>
+              </div>
+            )}
           </div>
+
           <Col className="items-center mt-5 mobile:mt-3">
             <div className="self-stretch">
               <Col>

@@ -76,6 +76,7 @@ export function CreatePoolCard() {
   const focusSide = useConcentrated((s) => s.focusSide)
   const priceLower = useConcentrated((s) => s.priceLower)
   const priceUpper = useConcentrated((s) => s.priceUpper)
+  const ammPoolStartTime = useConcentrated((s) => s.ammPoolStartTime)
   const userSettedCurrentPrice = useConcentrated((s) => s.userSettedCurrentPrice)
   const userSelectedAmmConfigFeeOption = useConcentrated((s) => s.userSelectedAmmConfigFeeOption)
   const priceDecimalLength = parseNumberInfo(trimTailingZero(userSettedCurrentPrice?.toString() || '')).dec?.length || 0
@@ -590,6 +591,7 @@ export function CreatePoolCard() {
         focusSide={focusSide}
         decimals={decimals}
         currentPrice={toFraction(userSettedCurrentPrice!)}
+        startTime={ammPoolStartTime}
         position={{ min: toFraction(priceLower!).toFixed(decimals), max: toFraction(priceUpper!).toFixed(decimals) }}
         totalDeposit={toUsdVolume(totalDeposit)}
         onClose={closePreviewDialog}
