@@ -291,10 +291,9 @@ function getBestCalcResult(
 
     const routeStartTimes = routeList[0].poolKey.map((i) => {
       const ammId = toPubString(i.id)
-      const poolAccountInfo = poolInfosCache[ammId]
+      const poolAccountInfo = i.version === 6 ? i : poolInfosCache[ammId]
       if (!poolAccountInfo) return undefined
-      const startTime = poolAccountInfo.startTime.toNumber() * 1000
-
+      const startTime = Number(poolAccountInfo.startTime) * 1000
       const isPoolOpen = isDateAfter(chainTime, startTime)
       if (isPoolOpen) return undefined
       return { ammId, startTime, poolType: i, poolInfo: getPoolInfoFromPoolType(i) }

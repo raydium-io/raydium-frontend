@@ -255,7 +255,7 @@ function SwapCard() {
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const chainTime = Date.now() + (chainTimeOffset ?? 0)
   const remainTimeText = useMemo(() => {
-    if (!selectedCalcResultPoolStartTimes) return undefined
+    if (!selectedCalcResultPoolStartTimes?.length) return undefined
     function getDurationText(val: number) {
       const duration = parseDuration(val)
       return `Pool Opens in ${String(duration.days).padStart(2, '0')}D : ${String(duration.hours).padStart(
