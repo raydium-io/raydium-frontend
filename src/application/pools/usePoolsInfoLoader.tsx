@@ -1,11 +1,11 @@
-import { useEffect, useMemo } from 'react'
 import { useRouter } from 'next/router'
+import { useEffect, useMemo } from 'react'
 
 import { Price } from '@raydium-io/raydium-sdk'
 
 import shallow from 'zustand/shallow'
 
-import { shakeUndifindedItem, unifyItem } from '@/functions/arrayMethods'
+import { unifyItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
@@ -21,10 +21,10 @@ import useLiquidity from '../liquidity/useLiquidity'
 import useToken from '../token/useToken'
 import useWallet from '../wallet/useWallet'
 
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
-import useAsyncEffect from '@/hooks/useAsyncEffect'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -46,17 +46,28 @@ export default function usePoolsInfoLoader() {
   const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
   const pairsUrl = useAppAdvancedSettings((s) => s.apiUrls.pairs)
 
-  useAsyncEffect(async () => {
-    const pairJsonInfo = await jFetch<JsonPairItemInfo[]>(pairsUrl, {
-      cacheFreshTime: 5 * 60 * 1000
-    })
-    if (!pairJsonInfo) return
-    if (pairsUrl !== apiUrls.pairs) return
-    usePools.setState({
-      jsonInfos: pairJsonInfo,
-      rawJsonInfos: pairJsonInfo
-    })
-  }, [refreshCount, farmRefreshCount, pairsUrl])
+  const shouldLoadInfo = useMemo(() => !pathname.includes('swap'), [pathname.includes('swap')])
+
+  useRecordedEffect(
+    async ([prevRefreshCount, prevFarmRefreshCount]) => {
+      if (!shouldLoadInfo) return
+      if (
+        prevRefreshCount === refreshCount &&
+        prevFarmRefreshCount === farmRefreshCount &&
+        usePools.getState().jsonInfos.length
+      )
+        return
+      const pairJsonInfo = await jFetch<JsonPairItemInfo[]>(pairsUrl, {
+        cacheFreshTime: 5 * 60 * 1000
+      })
+      if (!pairJsonInfo) return
+      usePools.setState({
+        jsonInfos: pairJsonInfo,
+        rawJsonInfos: pairJsonInfo
+      })
+    },
+    [refreshCount, farmRefreshCount, pairsUrl, shouldLoadInfo]
+  )
 
   // TODO: currently also fetch info when it's not
   useEffect(() => {

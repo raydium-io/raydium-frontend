@@ -19,7 +19,6 @@ import { useSwap } from '../swap/useSwap'
 import useWallet from '../wallet/useWallet'
 
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
-import { verifyToken } from './getOnlineTokenInfo'
 import { initiallySortTokens } from './initiallySortTokens'
 import { mergeToken } from './mergeToken'
 import { QuantumSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL } from './quantumSOL'
@@ -116,7 +115,8 @@ async function fetchMainToken(response: RaydiumTokenListJsonFile, collector: Tok
       const tokenJson: TokenJson = {
         ...originalTokenJson,
         symbol: originalTokenJson.mint.slice(0, 6),
-        name: originalTokenJson.mint.slice(0, 12)
+        name: originalTokenJson.mint.slice(0, 12),
+        hasFreeze: Boolean(originalTokenJson.hasFreeze)
       }
       return tokenJson
     }),
@@ -144,13 +144,12 @@ async function fetchNormalLiquidityPoolToken(
   response.unOfficial.forEach(async (pool) => {
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
-        const hasFreeze = !(await verifyToken(target.mint, { noLog: true }))
+        // const verified = await verifyToken(pool[target.mint], { noLog: true }) // if clmm/liquidity is faster than token list , it will cause rpc error
         const token = {
           symbol: pool[target.mint]?.slice(0, 6),
           name: pool[target.mint]?.slice(0, 12),
           mint: pool[target.mint],
-          decimals: pool[target.decimal],
-          hasFreeze
+          decimals: pool[target.decimal]
         }
         collectToken(collector, [token], { lowPriority: true })
       }
@@ -176,13 +175,13 @@ async function fetchClmmLiquidityPoolToken(
   response.data.forEach(async (pool) => {
     for (const target of targets) {
       if (!isAnIncludedMint(collector, pool[target.mint])) {
-        const hasFreeze = !(await verifyToken(target.mint, { noLog: true }))
+        // const verified = await verifyToken(pool[target.mint], { noLog: true }) // if clmm/liquidity is faster than token list , it will cause rpc error
         const token = {
           symbol: pool[target.mint]?.slice(0, 6),
           name: pool[target.mint]?.slice(0, 12),
           mint: pool[target.mint],
-          decimals: pool[target.decimal],
-          hasFreeze
+          decimals: pool[target.decimal]
+          // hasFreeze: verified != null ? !verified : undefined
         }
         collectToken(collector, [token], { lowPriority: true })
       }

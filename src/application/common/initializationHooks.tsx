@@ -29,6 +29,7 @@ import useToken from '../token/useToken'
 import { useApiUrlChange } from './useApiUrlChange'
 import useAppSettings, { ExplorerName, ExplorerUrl } from './useAppSettings'
 import { useEvent } from '@/hooks/useEvent'
+import { useDocumentVisibility } from '@/hooks/useDocumentVisibility'
 
 function useThemeModeSync() {
   const themeMode = useAppSettings((s) => s.themeMode)
@@ -195,11 +196,11 @@ function useDefaultExplorerSyncer() {
 
 function useRpcPerformance() {
   const currentEndPoint = useConnection((s) => s.currentEndPoint)
-  const connection = useConnection((s) => s.connection)
+  const { documentVisible } = useDocumentVisibility()
 
   const MAX_TPS = 1500 // force settings
 
-  const getPerformance: () => number | NodeJS.Timeout | undefined = useEvent(() => {
+  const getPerformance = useEvent(() => {
     const fetchUrl = useConnection.getState().currentEndPoint?.url
     if (!fetchUrl) return
     const res = jFetch<{
@@ -229,17 +230,15 @@ function useRpcPerformance() {
       const tps = perSecond.reduce((a, b) => a + b, 0) / perSecond.length
       useAppSettings.setState({ isLowRpcPerformance: tps < MAX_TPS })
     })
-
-    const timeoutId = setTimeout(getPerformance, 1000 * 8)
-    return timeoutId
   })
 
   useEffect(() => {
-    const timeoutId = getPerformance()
+    if (!documentVisible) return
+    const timeoutId = setInterval(() => getPerformance(), 1000 * 60)
     return () => {
       clearTimeout(timeoutId)
     }
-  }, [getPerformance, currentEndPoint?.url])
+  }, [getPerformance, currentEndPoint?.url, documentVisible])
 }
 
 function useGetSlotCountForSecond() {

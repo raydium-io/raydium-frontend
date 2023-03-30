@@ -1,4 +1,3 @@
-import toPubString from '@/functions/format/toMintString'
 import { SplToken, TokenJson } from './type'
 
 export function mergeToken(oldTokenA: TokenJson | undefined, newTokenB: TokenJson): TokenJson
@@ -30,5 +29,6 @@ export function mergeToken(
       return oldTokenA[k] !== vB
     })
   )
-  return Object.assign({}, oldTokenA, diffInfo)
+  const result = Object.assign({}, oldTokenA, diffInfo)
+  return result
 }

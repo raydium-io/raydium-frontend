@@ -105,7 +105,7 @@ async function getParsedAmmV3PoolInfo({
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: needRefetchApiAmmPools,
       connection,
-      batchRequest: true,
+      batchRequest: !isInLocalhost && !isInBonsaiTest,
       chainTime: (Date.now() + chainTimeOffset) / 1000
     })
     Object.values(sdkParsed).forEach((sdk) => {

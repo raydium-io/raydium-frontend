@@ -1,19 +1,17 @@
-import { useRouter } from 'next/router'
-
-import { AmmV3, ApiAmmV3PoolsItem } from '@raydium-io/raydium-sdk'
-
 import useToken from '@/application/token/useToken'
 import jFetch from '@/functions/dom/jFetch'
 import toPubString from '@/functions/format/toMintString'
+import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { lazyMap } from '@/functions/lazyMap'
 import useAsyncEffect from '@/hooks/useAsyncEffect'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
-
+import { AmmV3, ApiAmmV3PoolsItem } from '@raydium-io/raydium-sdk'
+import { useRouter } from 'next/router'
+import { useMemo } from 'react'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import useConnection from '../connection/useConnection'
 import useWallet from '../wallet/useWallet'
-
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
 
@@ -39,28 +37,31 @@ export default function useConcentratedInfoLoader() {
   const apiUrls = useAppAdvancedSettings((s) => s.apiUrls)
   const ammV3PoolsUrl = useAppAdvancedSettings((s) => s.apiUrls.ammV3Pools)
 
+  const shouldLoadInfo = useMemo(() => pathname.includes('clmm'), [pathname.includes('clmm')])
+
   /** fetch api json info list  */
   useRecordedEffect(
     async ([prevRefreshCount]) => {
-      if (!pathname.includes('clmm')) return
+      if (!shouldLoadInfo) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
       const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammV3PoolsUrl) // note: previously Rudy has Test API for dev
       if (ammV3PoolsUrl !== apiUrls.ammV3Pools) return
       useConcentrated.setState({ apiAmmPools: response?.data })
     },
-    [refreshCount, ammV3PoolsUrl, pathname.includes('clmm')]
+    [refreshCount, ammV3PoolsUrl, shouldLoadInfo]
   )
 
   /**  api json info list ➡ SDK info list */
   useTransitionedEffect(async () => {
-    if (!pathname.includes('clmm')) return
+    if (!shouldLoadInfo) return
     if (!connection) return
     if (chainTimeOffset == null) return
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: apiAmmPools,
       connection,
       ownerInfo: owner ? { tokenAccounts: tokenAccounts, wallet: owner } : undefined,
-      chainTime: (Date.now() + chainTimeOffset) / 1000
+      chainTime: (Date.now() + chainTimeOffset) / 1000,
+      batchRequest: !isInLocalhost && !isInBonsaiTest
     })
     if (sdkParsed) {
       useConcentrated.setState({ sdkParsedAmmPools: Object.values(sdkParsed), originSdkParsedAmmPools: sdkParsed })
@@ -69,7 +70,7 @@ export default function useConcentratedInfoLoader() {
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {
-    if (!pathname.includes('clmm')) return
+    if (!shouldLoadInfo) return
     if (!connection) return // don't hydrate when connection is not ready
     if (!Object.keys(tokens).length) return // don't hydrate when token is not loaded
     if (!sdkParsedAmmPools || sdkParsedAmmPools.length === 0) return
@@ -78,7 +79,7 @@ export default function useConcentratedInfoLoader() {
       source: sdkParsedAmmPoolsList,
       loopTaskName: 'hydrate clmm pool Info',
       loopFn: (sdkParsed) => hydrateConcentratedInfo(sdkParsed),
-      options: { priority: pathname.includes('clmm') ? 1 : 0 }
+      options: { priority: shouldLoadInfo ? 1 : 0 }
     })
 
     useConcentrated.setState({ hydratedAmmPools: hydratedInfos, loading: hydratedInfos.length === 0 })
@@ -86,7 +87,7 @@ export default function useConcentratedInfoLoader() {
 
   /** select pool chart data */
   useTransitionedEffect(async () => {
-    if (!pathname.includes('clmm') || lazyLoadChart) return
+    if (!shouldLoadInfo || lazyLoadChart) return
     if (!currentAmmPool) {
       useConcentrated.setState({ chartPoints: [] })
       return
@@ -96,7 +97,7 @@ export default function useConcentratedInfoLoader() {
 
   /** update currentAmmPool */
   useTransitionedEffect(async () => {
-    if (!pathname.includes('clmm')) return
+    if (!shouldLoadInfo) return
     if (!currentAmmPool || !currentAmmPool.idString) return
     if (hydratedAmmPools) {
       const targetPool = hydratedAmmPools.filter((i) => i.idString === currentAmmPool.idString)

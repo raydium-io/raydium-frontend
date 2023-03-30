@@ -52,6 +52,7 @@ import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { trimTailingZero } from '@/functions/numberish/handleZero'
 import Decimal from 'decimal.js'
 import toPubString from '@/functions/format/toMintString'
+import RefreshCircle from '@/components/RefreshCircle'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -359,6 +360,12 @@ export function CreatePoolCard() {
       )}
       size="lg"
     >
+      {/* <RefreshCircle
+        refreshKey="clmm"
+        freshFunction={() => {
+          useConcentrated.getState().refreshConcentrated()
+        }}
+      ></RefreshCircle> */}
       {/* left */}
       <Col className="gap-6 w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
         <div>

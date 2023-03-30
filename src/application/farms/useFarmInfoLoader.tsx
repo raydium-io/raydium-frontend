@@ -19,6 +19,8 @@ import useFarms from './useFarms'
 import useAppSettings from '../common/useAppSettings'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 
 export default function useFarmInfoLoader() {
   const { pathname } = useRouter()
@@ -38,29 +40,38 @@ export default function useFarmInfoLoader() {
   const programIds = useAppAdvancedSettings((s) => s.programIds)
 
   const connection = useConnection((s) => s.connection)
-
   const owner = useWallet((s) => s.owner)
   const lpPrices = usePools((s) => s.lpPrices)
-
   const aprs = useMemo(
     () => Object.fromEntries(pairs.map((i) => [i.ammId, { apr30d: i.apr30d, apr7d: i.apr7d, apr24h: i.apr24h }])),
     [pairs]
   )
-
+  const shouldLoadInfo = useMemo(() => !pathname.includes('swap'), [pathname.includes('swap')])
+  
+  
   // auto fetch json farm info when init
-  useTransitionedEffect(async () => {
-    const farmJsonInfos = await fetchFarmJsonInfos()
-    if (farmInfoApi !== apiUrls.farmInfo) return
-    if (!farmJsonInfos) return
-    useFarms.setState({ jsonInfos: farmJsonInfos })
-  }, [farmRefreshCount, farmInfoApi])
+  useRecordedEffect(
+    async ([prevRefreshCount]) => {
+      if (!shouldLoadInfo) return
+      if (prevRefreshCount === farmRefreshCount && useFarms.getState().jsonInfos.length) return
+      const farmJsonInfos = await fetchFarmJsonInfos()
+      if (farmInfoApi !== apiUrls.farmInfo) return
+      if (farmJsonInfos) useFarms.setState({ jsonInfos: farmJsonInfos })
+    },
+    [farmRefreshCount, shouldLoadInfo, farmInfoApi]
+  )
 
   // auto fetch json farm apr info when init
-  useTransitionedEffect(async () => {
-    const farmAprJsonInfos = await fetchFarmAprJsonInfos()
-    if (farmAprInfo !== apiUrls.farmApr) return
-    useFarms.setState({ jsonFarmAprInfos: farmAprJsonInfos })
-  }, [farmRefreshCount, farmAprInfo])
+  useRecordedEffect(
+    async ([prevRefreshCount]) => {
+      if (!shouldLoadInfo) return
+      if (prevRefreshCount === farmRefreshCount && useFarms.getState().jsonFarmAprInfos.length) return
+      const farmAprJsonInfos = await fetchFarmAprJsonInfos()
+      if (farmAprInfo !== apiUrls.farmApr) return
+      if (farmAprJsonInfos) useFarms.setState({ jsonFarmAprInfos: farmAprJsonInfos })
+    },
+    [farmRefreshCount,farmAprInfo, shouldLoadInfo]
+  )
 
   // auto fetch json farm info when init
   useTransitionedEffect(async () => {
@@ -76,7 +87,8 @@ export default function useFarmInfoLoader() {
         connection,
         pools: jsonInfos.map(jsonInfo2PoolKeys),
         owner,
-        config: { commitment: 'confirmed' }
+        config: { commitment: 'confirmed', batchRequest: !isInLocalhost && !isInBonsaiTest },
+        chainTime: (Date.now() + chainTimeOffset) / 1000
       },
       { jsonInfos }
     )
@@ -117,8 +129,7 @@ export default function useFarmInfoLoader() {
     lpTokens,
     liquidityJsonInfos,
     chainTimeOffset, // when connection is ready, should get connection's chain time),
-    blockSlotCount,
-    pathname
+    blockSlotCount
   ])
 }
 
