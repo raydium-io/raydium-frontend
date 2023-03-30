@@ -36,6 +36,7 @@ export function useAutoCreateAmmv3Pool() {
     coin2,
     userSelectedAmmConfigFeeOption,
     userSettedCurrentPrice,
+    ammPoolStartTime,
     owner,
     connection
   ])
@@ -69,7 +70,7 @@ async function createNewConcentratedPool() {
     initialPrice: fractionToDecimal(currentPrice, 15),
     owner: owner ?? PublicKey.default,
     computeBudgetConfig: await getComputeBudgetConfig(),
-    startTime: startTime
+    startTime
   })
   const mockPoolInfo = AmmV3.makeMockPoolInfo({
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
@@ -79,7 +80,7 @@ async function createNewConcentratedPool() {
     programId: programIds.CLMM,
     createPoolInstructionSimpleAddress: address,
     initialPrice: fractionToDecimal(currentPrice, 15),
-    startTime: toBN((ammPoolStartTime?.getTime() ?? 0) / 1000)
+    startTime
   })
   useConcentrated.setState({
     tempDataCache: innerTransactions
