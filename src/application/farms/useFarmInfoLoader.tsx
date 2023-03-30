@@ -17,6 +17,7 @@ import useWallet from '../wallet/useWallet'
 import { fetchFarmAprJsonInfos, fetchFarmJsonInfos, hydrateFarmInfo, mergeSdkFarmInfo } from './handleFarmInfo'
 import useFarms from './useFarms'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
+import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 
 export default function useFarmInfoLoader() {
   const { pathname } = useRouter()
@@ -74,7 +75,7 @@ export default function useFarmInfoLoader() {
         connection,
         pools: jsonInfos.map(jsonInfo2PoolKeys),
         owner,
-        config: { commitment: 'confirmed' },
+        config: { commitment: 'confirmed', batchRequest: !isInLocalhost && !isInBonsaiTest },
         chainTime: (Date.now() + chainTimeOffset) / 1000
       },
       { jsonInfos }
