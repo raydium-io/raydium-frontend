@@ -60,7 +60,7 @@ export function RemoveLiquidityDialog({
           size="lg"
         >
           <Row className="justify-between items-center mb-6">
-            <div className="text-xl font-semibold text-white">Stake LP</div>
+            <div className="text-xl font-semibold text-white">Unstake LP</div>
             <Icon className="text-[#ABC4FF] cursor-pointer" heroIconName="x" onClick={closeDialog} />
           </Row>
 
