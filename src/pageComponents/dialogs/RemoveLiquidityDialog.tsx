@@ -16,25 +16,21 @@ import { gt } from '@/functions/numberish/compare'
 import useToken from '@/application/token/useToken'
 
 export function RemoveLiquidityDialog({
-  info,
   open,
   onClose,
   className
 }: {
-  info?: HydratedLiquidityInfo // if not specified, use liquidity's `currentHydratedInfo`
   open: boolean
   onClose: () => void
   className?: string
 }) {
-  const defaultHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
+  const hydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
   const currentJsonInfo = useLiquidity((s) => s.currentJsonInfo)
   const getLpToken = useToken((s) => s.getLpToken)
   const lpToken = getLpToken(currentJsonInfo?.lpMint) // wait for hydratedInfo is slow, so use getLpToken
   const removeAmout = useLiquidity((s) => s.removeAmount)
   const walletConnected = useWallet((s) => s.connected)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-
-  const hydratedInfo = info ?? defaultHydratedInfo
 
   const [amountIsOutOfMax, setAmountIsOutOfMax] = React.useState(false)
   const [amountIsNegative, setAmountIsNegative] = React.useState(false)

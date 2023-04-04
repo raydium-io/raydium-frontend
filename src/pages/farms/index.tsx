@@ -74,6 +74,9 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { NewCompensationBanner } from '../pools'
+import { shouldLiquidityOrFarmBeenMigrate } from '@/application/concentrated/shouldLiquidityOrFarmBeenMigrate'
+import useConcentrated from '@/application/concentrated/useConcentrated'
+import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -713,7 +716,11 @@ function FarmCardDatabaseBody({
   infos: (FarmPoolJsonInfo | HydratedFarmInfo)[]
 }) {
   const expandedItemIds = useFarms((s) => s.expandedItemIds)
+  const isMigrateToClmmDialogOpen = useConcentrated((s) => s.isMigrateToClmmDialogOpen)
   const [favouriteIds, setFavouriteIds] = useFarmFavoriteIds()
+
+  // just for clmm migrate dialog prop, the dialog prop style is not the same as lp unstake dialog, so unstake dialog's design is wrong. But can't change this component now.
+  const currentDialogInfo = useFarms((s) => s.currentDialogInfo)
   return (
     <>
       {infos.length ? (
@@ -756,6 +763,13 @@ function FarmCardDatabaseBody({
         </Row>
       )}
       <FarmStakeLpDialog />
+      {currentDialogInfo && (
+        <ConcentratedMigrateDialog
+          info={currentDialogInfo}
+          open={isMigrateToClmmDialogOpen}
+          onClose={() => useConcentrated.setState({ isMigrateToClmmDialogOpen: false })}
+        />
+      )}
     </>
   )
 }
@@ -1157,6 +1171,8 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
     farmInfo.rewards.some(({ userPendingReward }) => isMeaningfulNumber(userPendingReward))
   const logSuccess = useNotification((s) => s.logSuccess)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
+  const canMigrate = shouldLiquidityOrFarmBeenMigrate(farmInfo)
+
   if (isJsonFarmInfo(farmInfo)) return null
   return (
     <div
@@ -1217,7 +1233,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                         useFarms.setState({
                           isStakeDialogOpen: true,
                           stakeDialogMode: 'deposit',
-                          stakeDialogInfo: farmInfo
+                          currentDialogInfo: farmInfo
                         })
                       } else {
                         useAppSettings.setState({ isWalletSelectorShown: true })
@@ -1226,6 +1242,22 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                   >
                     Stake
                   </Button>
+                  {canMigrate && (
+                    <Button
+                      className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
+                      onClick={() => {
+                        // TODO: load data here
+                        useConcentrated.setState({
+                          isMigrateToClmmDialogOpen: true
+                        })
+                        useFarms.setState({
+                          currentDialogInfo: farmInfo
+                        })
+                      }}
+                    >
+                      Migrate
+                    </Button>
+                  )}
                   <Tooltip>
                     <Icon
                       size={isMobile ? 'sm' : 'smi'}
@@ -1236,7 +1268,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                           useFarms.setState({
                             isStakeDialogOpen: true,
                             stakeDialogMode: 'withdraw',
-                            stakeDialogInfo: farmInfo
+                            currentDialogInfo: farmInfo
                           })
                         } else {
                           useAppSettings.setState({ isWalletSelectorShown: true })
@@ -1272,7 +1304,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                     useFarms.setState({
                       isStakeDialogOpen: true,
                       stakeDialogMode: 'deposit',
-                      stakeDialogInfo: farmInfo
+                      currentDialogInfo: farmInfo
                     })
                   }}
                 >
@@ -1465,7 +1497,7 @@ function FarmStakeLpDialog() {
   const balances = useWallet((s) => s.balances)
   const tokenAccounts = useWallet((s) => s.tokenAccounts)
 
-  const stakeDialogFarmInfo = useFarms((s) => s.stakeDialogInfo)
+  const stakeDialogFarmInfo = useFarms((s) => s.currentDialogInfo)
   const isStakeDialogOpen = useFarms((s) => s.isStakeDialogOpen)
   const stakeDialogMode = useFarms((s) => s.stakeDialogMode)
 
@@ -1500,7 +1532,7 @@ function FarmStakeLpDialog() {
       open={isStakeDialogOpen}
       onClose={() => {
         setAmount(undefined)
-        useFarms.setState({ isStakeDialogOpen: false, stakeDialogInfo: undefined })
+        useFarms.setState({ isStakeDialogOpen: false, currentDialogInfo: undefined })
       }}
       placement="from-bottom"
     >
