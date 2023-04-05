@@ -9,11 +9,13 @@ import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Link from '@/components/Link'
+import RectTabs from '@/components/RectTabs'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import toPercentString from '@/functions/format/toPercentString'
 import { toString } from '@/functions/numberish/toString'
 import useToggle from '@/hooks/useToggle'
+import { Numberish } from '@/types/constants'
 import { useMemo, useState } from 'react'
 
 export default function ConcentratedMigrateDialog({
@@ -101,8 +103,14 @@ function DetailPanel({ info }: { info: HydratedLiquidityInfo | HydratedFarmInfo 
   const resultAmountBaseWallet = 8709000
   const resultAmountQuoteWallet = 90.02
   const havestPendingAmount = 2490434
+  const aprTradeFees = 0.1
+  const aprBase = 0.037
+  const aprQuote = 0.037
+  const totalApr = aprTradeFees + aprBase + aprQuote
 
   const [mode, setMode] = useState<'quick' | 'custom'>('quick')
+  const [priceRangeMode, setPriceRangeMode] = useState<'base price' | 'quote price'>('base price')
+  const [aprTimeBase, setAprTimeBase] = useState<'24H' | '7D' | '30D'>('24H')
 
   return (
     <Grid className="gap-4">
@@ -176,7 +184,19 @@ function DetailPanel({ info }: { info: HydratedLiquidityInfo | HydratedFarmInfo 
 
       {/* price range */}
       <div>
-        <div className="text-[#abc4ff] font-medium mb-2">Price Range</div>
+        <Row className="items-center justify-between mb-1">
+          <div className="text-[#abc4ff] font-medium">Price Range</div>
+          <RectTabs
+            tabs={[
+              { label: `${base?.symbol ?? '--'} price`, value: 'base price' },
+              { label: `${quote?.symbol ?? '--'} price`, value: 'quote price' }
+            ]}
+            selectedValue={priceRangeMode}
+            onChange={({ value }) => {
+              setPriceRangeMode(value as 'base price' | 'quote price')
+            }}
+          ></RectTabs>
+        </Row>
         <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
           <div className="text-[#abc4ff] font-medium">0 - 1000</div>
           <Row className="items-center gap-2">
@@ -236,8 +256,57 @@ function DetailPanel({ info }: { info: HydratedLiquidityInfo | HydratedFarmInfo 
           *Migrating will also harvest {toString(havestPendingAmount)} RAY in pending rewards.
         </div>
       </div>
+
+      {/* Esimated APR */}
+      <div>
+        <Row className="items-center justify-between mb-1">
+          <div className="text-[#abc4ff] font-medium">Estimated APR</div>
+          <RectTabs
+            tabs={[
+              { label: `24H`, value: '24H' },
+              { label: `7D`, value: '7D' },
+              { label: `30D`, value: '30D' }
+            ]}
+            selectedValue={aprTimeBase}
+            onChange={({ value }) => {
+              setAprTimeBase(value as '24H' | '7D' | '30D')
+            }}
+          ></RectTabs>
+        </Row>
+        <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
+          <AprChartLine
+            timeBase={aprTimeBase}
+            totalApr={totalApr}
+            tradeFee={aprTradeFees}
+            base={aprBase}
+            quote={aprQuote}
+          ></AprChartLine>
+        </Row>
+      </div>
+
+      {/* button */}
+      <div className="mt-6">
+        <Button
+          className="w-full frosted-glass-teal"
+          onClick={() => {
+            /* TODO */
+          }}
+        >
+          Migrate
+        </Button>
+      </div>
     </Grid>
   )
+}
+
+function AprChartLine(props: {
+  timeBase: '24H' | '7D' | '30D'
+  totalApr: Numberish
+  tradeFee: Numberish
+  base: Numberish
+  quote: Numberish
+}) {
+  return null
 }
 
 function ModeItem({

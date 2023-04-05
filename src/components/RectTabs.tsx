@@ -39,8 +39,8 @@ export default function RectTabs(props: Props) {
             onClick={isSelected ? undefined : handleChange}
             data-val={tab.value}
             className={twMerge(
-              `flex text-xs ${
-                isSelected ? 'bg-active-tab-bg text-active-cyan cursor-default' : 'cursor-pointer opacity-50'
+              `flex text-xs text-[#39D0D8] ${
+                isSelected ? 'bg-active-tab-bg cursor-default' : 'cursor-pointer opacity-50'
               }`,
               tab.className
             )}
