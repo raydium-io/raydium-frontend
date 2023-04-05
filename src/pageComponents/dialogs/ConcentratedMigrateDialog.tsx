@@ -1,7 +1,7 @@
 import { HydratedFarmInfo } from '@/application/farms/type'
 import { HydratedLiquidityInfo } from '@/application/liquidity/type'
 import useToken from '@/application/token/useToken'
-import { RAYMint } from '@/application/token/wellknownToken.config'
+import { RAYMint, SOLMint, USDCMint } from '@/application/token/wellknownToken.config'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
@@ -11,8 +11,10 @@ import Icon from '@/components/Icon'
 import Link from '@/components/Link'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
+import toPercentString from '@/functions/format/toPercentString'
+import { toString } from '@/functions/numberish/toString'
 import useToggle from '@/hooks/useToggle'
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 
 export default function ConcentratedMigrateDialog({
   info,
@@ -69,7 +71,7 @@ export default function ConcentratedMigrateDialog({
       {({ close: closeDialog }) => (
         <Card
           className={`p-8 mobile:p-4 rounded-3xl mobile:rounded-lg ${
-            canShowMigrateDetail ? 'w-[min(950px,90vw)]' : 'w-[min(450px,90vw)]'
+            canShowMigrateDetail ? 'w-[min(650px,90vw)]' : 'w-[min(450px,90vw)]'
           } mobile:w-full max-h-[80vh] overflow-auto border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card transition`}
           size="lg"
         >
@@ -86,14 +88,25 @@ function DetailPanel({ info }: { info: HydratedLiquidityInfo | HydratedFarmInfo 
   const getToken = useToken((s) => s.getToken)
 
   const { quote, base } = useMemo(() => {
-    const quote = getToken(RAYMint)
-    const base = getToken(RAYMint)
+    const base = getToken(SOLMint)
+    const quote = getToken(USDCMint)
     return { quote, base }
   }, [tokens])
+  const fee = 0.00005
+  const price = 3.10809
+  const resultAmountBaseCurrentPosition = 9340309
+  const resultAmountQuoteCurrentPosition = 234.02
+  const resultAmountBaseCLMMPool = 630309
+  const resultAmountQuoteCLMMPool = 144.02
+  const resultAmountBaseWallet = 8709000
+  const resultAmountQuoteWallet = 90.02
+  const havestPendingAmount = 2490434
+
+  const [mode, setMode] = useState<'quick' | 'custom'>('quick')
 
   return (
-    <Grid>
-      <div>
+    <Grid className="gap-4">
+      {/* <div>
         <div className="text-[#abc4ff] font-medium">My Position</div>
         <div className="border-1.5 border-[#abc4ff40] rounded-xl p-3">
           <Row className="justify-between">
@@ -117,7 +130,136 @@ function DetailPanel({ info }: { info: HydratedLiquidityInfo | HydratedFarmInfo 
             </Row>
           </Row>
         </div>
+      </div> */}
+
+      {/* mode switcher */}
+      <Grid className="grid-cols-2 gap-3">
+        <ModeItem
+          selected={mode === 'quick'}
+          title="Quick migration"
+          description="Very wide price range for a more passive strategy."
+          onClick={() => {
+            setMode('quick')
+          }}
+        />
+        <ModeItem
+          selected={mode === 'custom'}
+          title="Custom migration"
+          description="Set a custom price range for higher capital efficiency."
+          onClick={() => {
+            setMode('custom')
+          }}
+        />
+      </Grid>
+
+      {/* CLMM Pool */}
+      <div>
+        <div className="text-[#abc4ff] font-medium mb-2">CLMM Pool</div>
+        <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
+          <Row className="gap-2">
+            <div className="text-[#abc4ff] font-medium">
+              {base?.symbol ?? '--'}/{quote?.symbol ?? '--'}
+            </div>
+            <div className="text-[#abc4ff] bg-[#abc4ff1f] text-xs rounded-full py-0.5 px-2 font-medium self-center">
+              Fee {toPercentString(fee)}
+            </div>
+          </Row>
+          <Row className="items-center gap-2">
+            <div className="text-[#abc4ff80] text-sm font-medium">Current price: </div>
+            <div className="text-[#abc4ff] text-base font-medium">{price}</div>
+            <div className="text-[#abc4ff80] text-xs font-medium">
+              {base?.symbol ?? '--'} per {quote?.symbol ?? '--'}
+            </div>
+          </Row>
+        </Row>
+      </div>
+
+      {/* price range */}
+      <div>
+        <div className="text-[#abc4ff] font-medium mb-2">Price Range</div>
+        <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
+          <div className="text-[#abc4ff] font-medium">0 - 1000</div>
+          <Row className="items-center gap-2">
+            <div className="text-[#abc4ff80] text-sm font-medium">
+              {base?.symbol ?? '--'} per {quote?.symbol ?? '--'}
+            </div>
+          </Row>
+        </Row>
+      </div>
+
+      {/* result panels */}
+      <div>
+        <Row className="pt-6 items-center gap-4">
+          <Col className="relative grow border-1.5 border-[#abc4ff40] rounded-xl p-2 gap-1">
+            <div className="absolute -top-7 text-center left-0 right-0 text-sm text-[#abc4ff]">Current position</div>
+            <Row className="justify-between items-center gap-4">
+              <Row className="gap-1.5 items-center">
+                <CoinAvatar token={base} size="xs" />
+                <div className="text-[#abc4ff] text-xs">{base?.symbol ?? '--'}</div>
+              </Row>
+              <div className="text-[#abc4ff] text-xs">{toString(resultAmountBaseCurrentPosition)}</div>
+            </Row>
+            <Row className="justify-between items-center gap-4">
+              <Row className="gap-1.5 items-center">
+                <CoinAvatar token={quote} size="xs" />
+                <div className="text-[#abc4ff] text-xs">{quote?.symbol ?? '--'}</div>
+              </Row>
+              <div className="text-[#abc4ff] text-xs">{toString(resultAmountQuoteCurrentPosition)}</div>
+            </Row>
+          </Col>
+
+          <Icon iconSrc="/icons/migrate-clmm-right-arrow.svg" className="w-6 h-6" />
+
+          <Col className="relative grow border-1.5 border-[#abc4ff40] border-dashed rounded-xl p-2 gap-1">
+            <div className="absolute -top-7 text-center left-0 right-0 text-sm text-[#abc4ff]">CLMM Pool</div>
+            <Row className="justify-end items-center gap-4">
+              <div className="text-[#abc4ff] text-xs">{toString(resultAmountBaseCLMMPool)}</div>
+            </Row>
+            <Row className="justify-end items-center gap-4">
+              <div className="text-[#abc4ff] text-xs">{toString(resultAmountQuoteCLMMPool)}</div>
+            </Row>
+          </Col>
+
+          <Icon iconSrc="/icons/migrate-clmm-add-icon.svg" className="w-4 h-4" />
+
+          <Col className="relative grow border-1.5 border-[#abc4ff40] border-dashed rounded-xl p-2 gap-1">
+            <div className="absolute -top-7 text-center left-0 right-0 text-sm text-[#abc4ff]">Wallet</div>
+            <Row className="justify-end items-center gap-4">
+              <div className="text-[#abc4ff] text-xs">{toString(resultAmountBaseWallet)}</div>
+            </Row>
+            <Row className="justify-end items-center gap-4">
+              <div className="text-[#abc4ff] text-xs">{toString(resultAmountQuoteWallet)}</div>
+            </Row>
+          </Col>
+        </Row>
+        <div className="text-[#abc4ff] text-sm">
+          *Migrating will also harvest {toString(havestPendingAmount)} RAY in pending rewards.
+        </div>
       </div>
     </Grid>
+  )
+}
+
+function ModeItem({
+  title,
+  description,
+  selected,
+  onClick
+}: {
+  title: string
+  description: string
+  onClick?: () => void
+  selected?: boolean
+}) {
+  return (
+    <div
+      onClick={onClick}
+      className={`border-1.5 ${
+        selected ? 'border-[#39d0d8]' : 'border-[#abc4ff40]'
+      } rounded-xl py-3 px-4 bg-[#141041] cursor-pointer`}
+    >
+      <div className="font-medium text-base text-white mb-1">{title}</div>
+      <div className={`font-normal text-sm  ${selected ? 'text-[#ABC4FF]' : 'text-[#ABC4FF80]'}`}>{description}</div>
+    </div>
   )
 }
