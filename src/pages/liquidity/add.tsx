@@ -826,7 +826,6 @@ function UserLiquidityExhibition() {
   const scrollToInputBox = useLiquidity((s) => s.scrollToInputBox)
   const farmPoolsList = useFarms((s) => s.hydratedInfos)
   const getToken = useToken((s) => s.getToken)
-
   const balances = useWallet((s) => s.balances)
   const rawBalances = useWallet((s) => s.rawBalances)
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -884,7 +883,10 @@ function UserLiquidityExhibition() {
                         <Col className="border-t-1.5 border-[rgba(171,196,255,.5)] py-5 gap-3 ">
                           <Row className="justify-between">
                             <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Base)</div>
-                            <div className="text-xs mobile:text-2xs font-medium text-white">
+                            <div
+                              className="text-xs mobile:text-2xs font-medium text-white"
+                              title={toPubString(info.baseToken?.mint)}
+                            >
                               {toString(info.userBasePooled) || '--'} {info.baseToken?.symbol}
                             </div>
                           </Row>
@@ -929,7 +931,7 @@ function UserLiquidityExhibition() {
                               className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
                               onClick={() => {
                                 useLiquidity.setState({
-                                  currentHydratedInfo: info
+                                  currentJsonInfo: info.jsonInfo
                                 })
                                 useConcentrated.setState({
                                   isMigrateToClmmDialogOpen: true

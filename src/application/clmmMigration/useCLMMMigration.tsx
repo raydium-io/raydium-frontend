@@ -1,5 +1,9 @@
+import toFraction from '@/functions/numberish/toFraction'
+import { Numberish } from '@/types/constants'
+import { AmmV3, AmmV3PoolInfo, TokenAmount } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 import { HydratedConcentratedInfo } from '../concentrated/type'
+import { fractionToDecimal } from '../txTools/decimal2Fraction'
 
 export const useCLMMMigration = create<CLMMMigrationStore>((set, get) => ({
   jsonInfos: [] as CLMMMigrationJSON[],
@@ -24,6 +28,21 @@ export type CLMMMigrationJSON = {
   lpMint: string
   farmIds: string[]
   clmmId: string
-  defaultPriceMin: 0.0001
-  defaultPriceMax: 1000
+  defaultPriceMin: number
+  defaultPriceMax: number
+}
+
+export function getLiquidityFromAmounts(utils: {
+  price: Numberish
+  baseAmount: Numberish
+  quoteAmount: Numberish
+  info: AmmV3PoolInfo
+  baseSide: 'base' | 'quote'
+}) {
+  const tick = AmmV3.getPriceAndTick({
+    baseIn: utils.baseSide === 'base',
+    poolInfo: utils.info,
+    price: fractionToDecimal(toFraction(utils.price))
+  })
+  // const {} = AmmV3.getLiquidityFromAmounts({})
 }
