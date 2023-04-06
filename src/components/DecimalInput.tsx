@@ -70,7 +70,7 @@ function getRegexp(decimalCount: number) {
 export default function DecimalInput({
   defaultValue,
   value,
-  decimalCount = 3,
+  decimalCount = 6,
   showArrowControls,
   showPlusMinusControls,
   minN = 0,

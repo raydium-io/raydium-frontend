@@ -3,7 +3,7 @@ import { Numberish } from '@/types/constants'
 import { AmmV3, AmmV3PoolInfo } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 import { HydratedConcentratedInfo } from '../concentrated/type'
-import { fractionToDecimal } from '../txTools/decimal2Fraction'
+import { decimalToFraction, fractionToDecimal } from '../txTools/decimal2Fraction'
 
 export const useCLMMMigration = create<CLMMMigrationStore>((set, get) => ({
   jsonInfos: [] as CLMMMigrationJSON[],
@@ -32,17 +32,12 @@ export type CLMMMigrationJSON = {
   defaultPriceMax: number
 }
 
-export function getLiquidityFromAmounts(utils: {
-  price: Numberish
-  baseAmount: Numberish
-  quoteAmount: Numberish
-  info: AmmV3PoolInfo
-  baseSide: 'base' | 'quote'
-}) {
-  const tick = AmmV3.getPriceAndTick({
+export function getExactPriceAndTick(utils: { price: Numberish; info: AmmV3PoolInfo; baseSide: 'base' | 'quote' }) {
+  const { tick, price } = AmmV3.getPriceAndTick({
     baseIn: utils.baseSide === 'base',
     poolInfo: utils.info,
     price: fractionToDecimal(toFraction(utils.price))
   })
+  return { tick, price: decimalToFraction(price) }
   // const {} = AmmV3.getLiquidityFromAmounts({})
 }

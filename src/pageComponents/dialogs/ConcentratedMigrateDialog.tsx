@@ -1,10 +1,11 @@
-import { CLMMMigrationJSON, useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
+import { CLMMMigrationJSON, getExactPriceAndTick, useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import { isFarmInfo, isHydratedFarmInfo } from '@/application/farms/judgeFarmInfo'
 import { HydratedFarmInfo } from '@/application/farms/type'
 import { HydratedLiquidityInfo } from '@/application/liquidity/type'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import useToken from '@/application/token/useToken'
+import { decimalToFraction, recursivelyDecimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -26,7 +27,7 @@ import { add, div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 export default function ConcentratedMigrateDialog({
   info,
@@ -143,9 +144,6 @@ function DetailPanel({
   clmmInfo: HydratedConcentratedInfo | undefined
 }) {
   const pureRawBalances = useWallet((s) => s.pureRawBalances)
-  // NOTE: how to simplify this tedious issue in solidjs? 🤔 Just do nothing is ok!!
-  const tokens = useToken((s) => s.tokens)
-  const getToken = useToken((s) => s.getToken)
 
   const fee = useMemo(() => {
     const tradeFeeRate =
@@ -177,12 +175,22 @@ function DetailPanel({
   const price = clmmInfo?.currentPrice
   const priceRangeAutoMin = migrationJsonInfo?.defaultPriceMin
   const priceRangeAutoMax = migrationJsonInfo?.defaultPriceMax
-  const [userInputPriceRangeMin, setUserInputPriceRangeMin] = useState<Numberish>(83872.52)
-  const [userInputPriceRangeMax, setUserInputPriceRangeMax] = useState<Numberish>(812342)
-  const [calculatedPriceRangeMin, setCalculatedPriceRangeMin] = useState<Numberish>()
-  const [calculatedPriceRangeMax, setCalculatedPriceRangeMax] = useState<Numberish>()
 
+  // min price range
+  const [userInputPriceRangeMin, setUserInputPriceRangeMin] = useState<Numberish | undefined>(priceRangeAutoMin)
+  const [isInputPriceRangeMinFoused, setIsInputPriceRangeMinFoused] = useState<boolean>(false)
+  const calculatedPriceRangeMin = useRef<Numberish>()
+  const calculatedPriceRangeMinTick = useRef<number>()
+
+  // max price range
+  const [userInputPriceRangeMax, setUserInputPriceRangeMax] = useState<Numberish | undefined>(priceRangeAutoMax)
+  const [isInputPriceRangeMaxFoused, setIsInputPriceRangeMaxFoused] = useState<boolean>(false)
+  const calculatedPriceRangeMax = useRef<Numberish>()
+  const calculatedPriceRangeMaxTick = useRef<number>()
+
+  // price range valid flag
   const [isPriceRangeInRange, setIsPriceRangeInRange] = useState<boolean>(false)
+
   const resultAmountBaseCurrentPosition = stakedBaseAmount
   const resultAmountQuoteCurrentPosition = stakedQuoteAmount
   const resultAmountBaseCLMMPool = 630309
@@ -192,42 +200,43 @@ function DetailPanel({
   const aprTradeFees = 0.1
   const aprRay = 0.074
 
-  // useEffect(() => {
-  //   const {price} =
-  // }, [userInputPriceRangeMin])
-
   const [mode, setMode] = useState<'quick' | 'custom'>('quick')
-  const [priceRangeMode, setPriceRangeMode] = useState<'base price' | 'quote price'>('base price')
+  const [priceRangeMode, setPriceRangeMode] = useState<'base' | 'quote'>('base')
   const [aprTimeBase, setAprTimeBase] = useState<'24H' | '7D' | '30D'>('24H')
+
+  useEffect(() => {
+    if (mode !== 'custom') return
+    if (isInputPriceRangeMinFoused) return
+    if (!clmmInfo || !price) return
+    if (!userInputPriceRangeMin) return
+    const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
+      baseSide: priceRangeMode,
+      price: userInputPriceRangeMin,
+      info: clmmInfo.state
+    })
+    calculatedPriceRangeMin.current = exactPrice
+    calculatedPriceRangeMinTick.current = exactTick
+    setUserInputPriceRangeMin(exactPrice)
+  }, [isInputPriceRangeMinFoused, clmmInfo, price, priceRangeMode, mode])
+
+  useEffect(() => {
+    if (mode !== 'custom') return
+    if (isInputPriceRangeMaxFoused) return
+    if (!clmmInfo || !price) return
+    if (!userInputPriceRangeMax) return
+
+    const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
+      baseSide: priceRangeMode,
+      price: userInputPriceRangeMax,
+      info: clmmInfo.state
+    })
+    calculatedPriceRangeMax.current = exactPrice
+    calculatedPriceRangeMaxTick.current = exactTick
+    setUserInputPriceRangeMax(exactPrice)
+  }, [isInputPriceRangeMaxFoused, clmmInfo, price, priceRangeMode, mode])
 
   return (
     <Grid className="gap-4">
-      {/* <div>
-        <div className="text-[#abc4ff] font-medium">My Position</div>
-        <div className="border-1.5 border-[#abc4ff40] rounded-xl p-3">
-          <Row className="justify-between">
-            <Row>
-              <CoinAvatar token={quote} size="md" />
-              <div className="text-[#abc4ff] font-medium">{quote?.symbol ?? '--'}</div>
-            </Row>
-            <Row>
-              <div className="text-[#fff] font-medium">23.33</div>
-              <div className="text-[#fff] font-medium">{quote?.symbol ?? '--'}</div>
-            </Row>
-          </Row>
-          <Row className="justify-between">
-            <Row>
-              <CoinAvatar token={base} size="md" />
-              <div className="text-[#abc4ff] font-medium">{base?.symbol ?? '--'}</div>
-            </Row>
-            <Row>
-              <div className="text-[#fff] font-medium">23.33</div>
-              <div className="text-[#fff] font-medium">{base?.symbol ?? '--'}</div>
-            </Row>
-          </Row>
-        </div>
-      </div> */}
-
       {/* mode switcher */}
       <Grid className="grid-cols-2 gap-3">
         <ModeItem
@@ -276,19 +285,19 @@ function DetailPanel({
           <div className="text-[#abc4ff] font-medium">Price Range</div>
           <RectTabs
             tabs={[
-              { label: `${base?.symbol ?? '--'} price`, value: 'base price' },
-              { label: `${quote?.symbol ?? '--'} price`, value: 'quote price' }
+              { label: `${base?.symbol ?? '--'} price`, value: 'base' },
+              { label: `${quote?.symbol ?? '--'} price`, value: 'quote' }
             ]}
             selectedValue={priceRangeMode}
             onChange={({ value }) => {
-              setPriceRangeMode(value as 'base price' | 'quote price')
+              setPriceRangeMode(value as 'base' | 'quote')
             }}
           ></RectTabs>
         </Row>
         {mode === 'quick' && (
           <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
             <div className="text-[#abc4ff] font-medium">
-              {priceRangeMode === 'base price'
+              {priceRangeMode === 'base'
                 ? `${priceRangeAutoMin && Math.round(priceRangeAutoMin)} - ${
                     priceRangeAutoMax && Math.round(priceRangeAutoMax)
                   }`
@@ -298,7 +307,7 @@ function DetailPanel({
             </div>
             <Row className="items-center gap-2">
               <div className="text-[#abc4ff80] text-sm font-medium">
-                {priceRangeMode === 'base price'
+                {priceRangeMode === 'base'
                   ? `${quote?.symbol ?? '--'} per ${base?.symbol ?? '--'}`
                   : `${base?.symbol ?? '--'} per ${quote?.symbol ?? '--'}`}
               </div>
@@ -317,9 +326,16 @@ function DetailPanel({
                 <DecimalInput
                   className="font-medium text-sm text-white flex-grow"
                   inputClassName="text-right"
+                  decimalCount={base && quote && Math.max(base?.decimals, quote?.decimals)}
                   value={userInputPriceRangeMin}
                   onUserInput={(range) => {
                     range != null && setUserInputPriceRangeMin(range)
+                  }}
+                  onFocus={() => {
+                    setIsInputPriceRangeMinFoused(true)
+                  }}
+                  onBlur={() => {
+                    setIsInputPriceRangeMinFoused(false)
                   }}
                 />
               </Row>
@@ -332,9 +348,16 @@ function DetailPanel({
                 <DecimalInput
                   className="font-medium text-sm text-white flex-grow"
                   inputClassName="text-right"
+                  decimalCount={base && quote && Math.max(base?.decimals, quote?.decimals)}
                   value={userInputPriceRangeMax}
                   onUserInput={(range) => {
                     range != null && setUserInputPriceRangeMax(range)
+                  }}
+                  onFocus={() => {
+                    setIsInputPriceRangeMaxFoused(true)
+                  }}
+                  onBlur={() => {
+                    setIsInputPriceRangeMaxFoused(false)
                   }}
                 />
               </Row>
