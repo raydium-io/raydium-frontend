@@ -177,8 +177,11 @@ function DetailPanel({
   const price = clmmInfo?.currentPrice
   const priceRangeAutoMin = migrationJsonInfo?.defaultPriceMin
   const priceRangeAutoMax = migrationJsonInfo?.defaultPriceMax
-  const [priceRangeMin, setPriceRangeMin] = useState<Numberish>(83872.52)
-  const [priceRangeMax, setPriceRangeMax] = useState<Numberish>(812342)
+  const [userInputPriceRangeMin, setUserInputPriceRangeMin] = useState<Numberish>(83872.52)
+  const [userInputPriceRangeMax, setUserInputPriceRangeMax] = useState<Numberish>(812342)
+  const [calculatedPriceRangeMin, setCalculatedPriceRangeMin] = useState<Numberish>()
+  const [calculatedPriceRangeMax, setCalculatedPriceRangeMax] = useState<Numberish>()
+
   const [isPriceRangeInRange, setIsPriceRangeInRange] = useState<boolean>(false)
   const resultAmountBaseCurrentPosition = stakedBaseAmount
   const resultAmountQuoteCurrentPosition = stakedQuoteAmount
@@ -188,6 +191,10 @@ function DetailPanel({
   const resultAmountQuoteWallet = 90.02
   const aprTradeFees = 0.1
   const aprRay = 0.074
+
+  // useEffect(() => {
+  //   const {price} =
+  // }, [userInputPriceRangeMin])
 
   const [mode, setMode] = useState<'quick' | 'custom'>('quick')
   const [priceRangeMode, setPriceRangeMode] = useState<'base price' | 'quote price'>('base price')
@@ -310,9 +317,9 @@ function DetailPanel({
                 <DecimalInput
                   className="font-medium text-sm text-white flex-grow"
                   inputClassName="text-right"
-                  value={priceRangeMin}
+                  value={userInputPriceRangeMin}
                   onUserInput={(range) => {
-                    range != null && setPriceRangeMin(range)
+                    range != null && setUserInputPriceRangeMin(range)
                   }}
                 />
               </Row>
@@ -325,9 +332,9 @@ function DetailPanel({
                 <DecimalInput
                   className="font-medium text-sm text-white flex-grow"
                   inputClassName="text-right"
-                  value={priceRangeMax}
+                  value={userInputPriceRangeMax}
                   onUserInput={(range) => {
-                    range != null && setPriceRangeMax(range)
+                    range != null && setUserInputPriceRangeMax(range)
                   }}
                 />
               </Row>

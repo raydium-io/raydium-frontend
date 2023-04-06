@@ -1,6 +1,6 @@
 import toFraction from '@/functions/numberish/toFraction'
 import { Numberish } from '@/types/constants'
-import { AmmV3, AmmV3PoolInfo, TokenAmount } from '@raydium-io/raydium-sdk'
+import { AmmV3, AmmV3PoolInfo } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 import { HydratedConcentratedInfo } from '../concentrated/type'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
