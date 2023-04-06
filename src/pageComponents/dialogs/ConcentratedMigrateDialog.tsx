@@ -1,3 +1,5 @@
+import { useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
+import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import { HydratedFarmInfo } from '@/application/farms/type'
 import { HydratedLiquidityInfo } from '@/application/liquidity/type'
 import useToken from '@/application/token/useToken'
@@ -17,7 +19,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toString } from '@/functions/numberish/toString'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 export default function ConcentratedMigrateDialog({
   info,
@@ -30,11 +32,18 @@ export default function ConcentratedMigrateDialog({
 }) {
   const [canShowMigrateDetail, { on, off, delayOff }] = useToggle()
 
+  useEffect(() => {
+    useCLMMMigration.setState({
+      shouldLoadedClmmIds: new Set(['2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv']) // temp for DEV
+    })
+  }, [])
   const alertTitle = 'Migrate Position'
   const alertDescription =
     'We are no longer providing rewards to this pair any more. Would you like to migrate your position to CLMM pool?'
   const alertLinkText = 'What is CLMM pool?'
 
+  const clmmMigrationInfos = useCLMMMigration((s) => s.loadedHydratedClmmInfos)
+  const targetClmmInfo = [...clmmMigrationInfos.values()][0] // TEMP for DEV
   const step1 = (closeDialog: () => void) => (
     <Col className="items-center">
       <Icon size="lg" heroIconName="information-circle" className={`text-[#abc4ff] mb-3`} />
@@ -72,7 +81,7 @@ export default function ConcentratedMigrateDialog({
           onClick={closeDialog}
         />
       </div>
-      <DetailPanel info={info} />
+      <DetailPanel info={targetClmmInfo} />
     </div>
   )
 
@@ -99,16 +108,13 @@ export default function ConcentratedMigrateDialog({
   )
 }
 
-function DetailPanel({ info }: { info: HydratedLiquidityInfo | HydratedFarmInfo }) {
-  // NOTE: how to simplify this tedious issue in solidjs? 🤔
+function DetailPanel({ info }: { info: HydratedConcentratedInfo | undefined }) {
+  // NOTE: how to simplify this tedious issue in solidjs? 🤔 Just do nothing is ok!!
   const tokens = useToken((s) => s.tokens)
   const getToken = useToken((s) => s.getToken)
 
-  const { quote, base } = useMemo(() => {
-    const base = getToken(SOLMint)
-    const quote = getToken(USDCMint)
-    return { quote, base }
-  }, [tokens])
+  const base = info?.base
+  const quote = info?.quote
   const fee = 0.00005
   const price = 3.10809
   const [priceRangeMin, setPriceRangeMin] = useState<Numberish>(83872.52)
@@ -287,7 +293,7 @@ function DetailPanel({ info }: { info: HydratedLiquidityInfo | HydratedFarmInfo 
             </Row>
           </Col>
 
-          <Icon iconSrc="/icons/migrate-clmm-right-arrow.svg" className="w-6 h-6" />
+          <Icon iconSrc="/icons/migrate-clmm-right-arrow.svg" className="w-6 h-6" iconClassName="w-6 h-6" />
 
           <Col className="relative grow border-1.5 border-[#abc4ff40] border-dashed rounded-xl p-2 gap-1">
             <div className="absolute -top-7 text-center left-0 right-0 text-sm text-[#abc4ff]">CLMM Pool</div>
@@ -299,7 +305,7 @@ function DetailPanel({ info }: { info: HydratedLiquidityInfo | HydratedFarmInfo 
             </Row>
           </Col>
 
-          <Icon iconSrc="/icons/migrate-clmm-add-icon.svg" className="w-4 h-4" />
+          <Icon iconSrc="/icons/migrate-clmm-add-icon.svg" className="w-4 h-4" iconClassName="w-4 h-4" />
 
           <Col className="relative grow border-1.5 border-[#abc4ff40] border-dashed rounded-xl p-2 gap-1">
             <div className="absolute -top-7 text-center left-0 right-0 text-sm text-[#abc4ff]">Wallet</div>
@@ -367,7 +373,7 @@ function AprChartLine(props: {
   quote: Numberish
 }) {
   return (
-    <Row className="gap-2">
+    <Row className="gap-2 text-[#abc4ff]">
       <div>totalApr: {toPercentString(props.totalApr)}</div>
       <div>tradeFee: {toPercentString(props.tradeFee)}</div>
       <div>base: {toPercentString(props.base)}</div>

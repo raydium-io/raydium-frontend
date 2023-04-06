@@ -46,7 +46,8 @@ export default function useConcentratedInfoLoader() {
   /** fetch api json info list  */
   useRecordedEffect(
     async ([prevRefreshCount]) => {
-      if (!shouldLoadInfo) return
+      const shouldForceRefresh = prevRefreshCount != null && refreshCount == prevRefreshCount + 1
+      if (!shouldForceRefresh && !shouldLoadInfo) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
       const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammV3PoolsUrl) // note: previously Rudy has Test API for dev
       if (ammV3PoolsUrl !== apiUrls.ammV3Pools) return
@@ -57,9 +58,9 @@ export default function useConcentratedInfoLoader() {
 
   /**  api json info list ➡ SDK info list */
   useTransitionedEffect(async () => {
-    if (!shouldLoadInfo) return
     if (!connection) return
     if (chainTimeOffset == null) return
+    if (!apiAmmPools || apiAmmPools.length === 0) return
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: apiAmmPools,
       connection,
@@ -74,7 +75,6 @@ export default function useConcentratedInfoLoader() {
 
   /** SDK info list ➡ hydrated info list */
   useTransitionedEffect(async () => {
-    if (!shouldLoadInfo) return
     if (!connection) return // don't hydrate when connection is not ready
     if (!Object.keys(tokens).length) return // don't hydrate when token is not loaded
     if (!sdkParsedAmmPools || sdkParsedAmmPools.length === 0) return
@@ -91,7 +91,7 @@ export default function useConcentratedInfoLoader() {
 
   /** select pool chart data */
   useTransitionedEffect(async () => {
-    if (!shouldLoadInfo || lazyLoadChart) return
+    if (lazyLoadChart) return
     if (!currentAmmPool) {
       useConcentrated.setState({ chartPoints: [] })
       return
@@ -102,7 +102,6 @@ export default function useConcentratedInfoLoader() {
 
   /** update currentAmmPool */
   useTransitionedEffect(async () => {
-    if (!shouldLoadInfo) return
     if (!currentAmmPool || !currentAmmPool.idString) return
     if (hydratedAmmPools) {
       const targetPool = hydratedAmmPools.filter((i) => i.idString === currentAmmPool.idString)

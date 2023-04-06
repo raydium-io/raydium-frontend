@@ -47,6 +47,7 @@ import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionD
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 
 import '../styles/index.css'
+import { useCLMMMigrationLoadInfo } from '@/application/clmmMigration/useCLMMMigrationLoadInfo'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -157,6 +158,9 @@ function ApplicationsInitializations() {
   /********************** concentrated pools **********************/
   useConcentratedInfoLoader()
   useConcentratedAprCalcMethodSyncer()
+
+  /********************** concentrated migration **********************/
+  useCLMMMigrationLoadInfo()
 
   /********************** farm **********************/
   useFarmInfoLoader()

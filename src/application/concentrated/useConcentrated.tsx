@@ -188,7 +188,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
     set({ chartPoints: chartResponse.data })
   },
   scrollToInputBox: () => {},
-  refreshCount: 0,
+  refreshCount: 1,
   refreshConcentrated: () => {
     // will auto refresh wallet
     // refresh sdk parsed
