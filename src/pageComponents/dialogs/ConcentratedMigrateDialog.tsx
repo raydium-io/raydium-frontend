@@ -23,7 +23,7 @@ import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { add, div, mul } from '@/functions/numberish/operations'
+import { add, div, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
@@ -178,12 +178,18 @@ function DetailPanel({
 
   // min price range
   const [userInputPriceRangeMin, setUserInputPriceRangeMin] = useState<Numberish | undefined>(priceRangeAutoMin)
+  useEffect(() => {
+    setUserInputPriceRangeMin(priceRangeAutoMin)
+  }, [priceRangeAutoMin])
   const [isInputPriceRangeMinFoused, setIsInputPriceRangeMinFoused] = useState<boolean>(false)
   const calculatedPriceRangeMin = useRef<Numberish>()
   const calculatedPriceRangeMinTick = useRef<number>()
 
   // max price range
   const [userInputPriceRangeMax, setUserInputPriceRangeMax] = useState<Numberish | undefined>(priceRangeAutoMax)
+  useEffect(() => {
+    setUserInputPriceRangeMax(priceRangeAutoMax)
+  }, [priceRangeAutoMax])
   const [isInputPriceRangeMaxFoused, setIsInputPriceRangeMaxFoused] = useState<boolean>(false)
   const calculatedPriceRangeMax = useRef<Numberish>()
   const calculatedPriceRangeMaxTick = useRef<number>()
@@ -193,10 +199,16 @@ function DetailPanel({
 
   const resultAmountBaseCurrentPosition = stakedBaseAmount
   const resultAmountQuoteCurrentPosition = stakedQuoteAmount
-  const resultAmountBaseCLMMPool = 630309
-  const resultAmountQuoteCLMMPool = 144.02
-  const resultAmountBaseWallet = 8709000
-  const resultAmountQuoteWallet = 90.02
+  const [resultAmountBaseCLMMPool, setResultAmountBaseCLMMPool] = useState<Numberish>(0)
+  const [resultAmountQuoteCLMMPool, setResultAmountQuoteCLMMPool] = useState<Numberish>(0)
+  const resultAmountBaseWallet = useMemo(
+    () => minus(resultAmountBaseCurrentPosition, resultAmountBaseCLMMPool),
+    [resultAmountBaseCurrentPosition, resultAmountBaseCLMMPool]
+  )
+  const resultAmountQuoteWallet = useMemo(
+    () => minus(resultAmountQuoteCurrentPosition, resultAmountQuoteCLMMPool),
+    [resultAmountQuoteCurrentPosition, resultAmountQuoteCLMMPool]
+  )
   const aprTradeFees = 0.1
   const aprRay = 0.074
 
@@ -205,35 +217,34 @@ function DetailPanel({
   const [aprTimeBase, setAprTimeBase] = useState<'24H' | '7D' | '30D'>('24H')
 
   useEffect(() => {
-    if (mode !== 'custom') return
-    if (isInputPriceRangeMinFoused) return
     if (!clmmInfo || !price) return
-    if (!userInputPriceRangeMin) return
-    const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
-      baseSide: priceRangeMode,
-      price: userInputPriceRangeMin,
-      info: clmmInfo.state
-    })
-    calculatedPriceRangeMin.current = exactPrice
-    calculatedPriceRangeMinTick.current = exactTick
-    setUserInputPriceRangeMin(exactPrice)
-  }, [isInputPriceRangeMinFoused, clmmInfo, price, priceRangeMode, mode])
 
-  useEffect(() => {
-    if (mode !== 'custom') return
-    if (isInputPriceRangeMaxFoused) return
-    if (!clmmInfo || !price) return
-    if (!userInputPriceRangeMax) return
+    // calc min
+    if (!isInputPriceRangeMinFoused && userInputPriceRangeMin) {
+      const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
+        baseSide: priceRangeMode,
+        price: userInputPriceRangeMin,
+        info: clmmInfo.state
+      })
+      calculatedPriceRangeMin.current = exactPrice
+      calculatedPriceRangeMinTick.current = exactTick
+      setUserInputPriceRangeMin(exactPrice)
+    }
 
-    const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
-      baseSide: priceRangeMode,
-      price: userInputPriceRangeMax,
-      info: clmmInfo.state
-    })
-    calculatedPriceRangeMax.current = exactPrice
-    calculatedPriceRangeMaxTick.current = exactTick
-    setUserInputPriceRangeMax(exactPrice)
-  }, [isInputPriceRangeMaxFoused, clmmInfo, price, priceRangeMode, mode])
+    // calc max
+    if (!isInputPriceRangeMaxFoused && userInputPriceRangeMax) {
+      const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
+        baseSide: priceRangeMode,
+        price: userInputPriceRangeMax,
+        info: clmmInfo.state
+      })
+      calculatedPriceRangeMax.current = exactPrice
+      calculatedPriceRangeMaxTick.current = exactTick
+      setUserInputPriceRangeMax(exactPrice)
+    }
+
+    // get clmm amount
+  }, [isInputPriceRangeMinFoused, isInputPriceRangeMaxFoused, clmmInfo, price, priceRangeMode, mode])
 
   return (
     <Grid className="gap-4">
