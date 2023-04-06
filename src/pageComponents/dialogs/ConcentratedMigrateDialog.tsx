@@ -6,6 +6,7 @@ import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
+import DecimalInput from '@/components/DecimalInput'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Link from '@/components/Link'
@@ -59,7 +60,21 @@ export default function ConcentratedMigrateDialog({
     </Col>
   )
 
-  const step2 = (closeDialog: () => void) => <DetailPanel info={info} />
+  const step2 = (closeDialog: () => void) => (
+    <div>
+      <div className="relative mb-5">
+        <div className="text-white text-lg font-medium mb-3">Migrate to Concentrated Liquidity pool</div>
+        <div className="text-[#abc4ff] text-sm">Migrate below or learn more about CLMM pools and risks here.</div>
+        <Icon
+          heroIconName="x"
+          size="lg"
+          className="absolute top-0 right-0 text-[#abc4ff] text-sm cursor-pointer"
+          onClick={closeDialog}
+        />
+      </div>
+      <DetailPanel info={info} />
+    </div>
+  )
 
   return (
     <ResponsiveDialogDrawer
@@ -72,7 +87,7 @@ export default function ConcentratedMigrateDialog({
     >
       {({ close: closeDialog }) => (
         <Card
-          className={`p-8 mobile:p-4 rounded-3xl mobile:rounded-lg ${
+          className={`p-6 mobile:p-4 rounded-3xl mobile:rounded-lg ${
             canShowMigrateDetail ? 'w-[min(650px,90vw)]' : 'w-[min(450px,90vw)]'
           } mobile:w-full max-h-[80vh] overflow-auto border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card transition`}
           size="lg"
@@ -96,6 +111,9 @@ function DetailPanel({ info }: { info: HydratedLiquidityInfo | HydratedFarmInfo 
   }, [tokens])
   const fee = 0.00005
   const price = 3.10809
+  const [priceRangeMin, setPriceRangeMin] = useState<Numberish>(83872.52)
+  const [priceRangeMax, setPriceRangeMax] = useState<Numberish>(812342)
+  const [isPriceRangeInRange, setIsPriceRangeInRange] = useState<boolean>(false)
   const resultAmountBaseCurrentPosition = 9340309
   const resultAmountQuoteCurrentPosition = 234.02
   const resultAmountBaseCLMMPool = 630309
@@ -197,14 +215,55 @@ function DetailPanel({ info }: { info: HydratedLiquidityInfo | HydratedFarmInfo 
             }}
           ></RectTabs>
         </Row>
-        <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
-          <div className="text-[#abc4ff] font-medium">0 - 1000</div>
-          <Row className="items-center gap-2">
-            <div className="text-[#abc4ff80] text-sm font-medium">
-              {base?.symbol ?? '--'} per {quote?.symbol ?? '--'}
-            </div>
+        {mode === 'quick' && (
+          <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
+            <div className="text-[#abc4ff] font-medium">0 - 1000</div>
+            <Row className="items-center gap-2">
+              <div className="text-[#abc4ff80] text-sm font-medium">
+                {base?.symbol ?? '--'} per {quote?.symbol ?? '--'}
+              </div>
+            </Row>
           </Row>
-        </Row>
+        )}
+        {mode === 'custom' && (
+          <div>
+            <Grid className="grid-cols-2-fr gap-3">
+              <Row
+                className={`border-1.5 ${
+                  isPriceRangeInRange ? 'border-[#abc4ff40]' : 'border-[#DA2EEF]'
+                } rounded-xl py-3 px-4 justify-between items-center`}
+              >
+                <div className="text-[#abc4ff80] text-xs">Min</div>
+                <DecimalInput
+                  className="font-medium text-sm text-white flex-grow"
+                  inputClassName="text-right"
+                  value={priceRangeMin}
+                  onUserInput={(range) => {
+                    range != null && setPriceRangeMin(range)
+                  }}
+                />
+              </Row>
+              <Row
+                className={`border-1.5 ${
+                  isPriceRangeInRange ? 'border-[#abc4ff40]' : 'border-[#DA2EEF]'
+                } rounded-xl py-3 px-4 justify-between items-center`}
+              >
+                <div className="text-[#abc4ff80] text-xs">Max</div>
+                <DecimalInput
+                  className="font-medium text-sm text-white flex-grow"
+                  inputClassName="text-right"
+                  value={priceRangeMax}
+                  onUserInput={(range) => {
+                    range != null && setPriceRangeMax(range)
+                  }}
+                />
+              </Row>
+            </Grid>
+            {!isPriceRangeInRange && (
+              <div className="text-[#da2eef] text-sm mt-1">The current price is out of this range.</div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* result panels */}
@@ -252,8 +311,9 @@ function DetailPanel({ info }: { info: HydratedLiquidityInfo | HydratedFarmInfo 
             </Row>
           </Col>
         </Row>
-        <div className="text-[#abc4ff] text-sm">
-          *Migrating will also harvest {toString(havestPendingAmount)} RAY in pending rewards.
+        <div className="text-[#abc4ff] text-sm mt-2">
+          *Migrating will also harvest <span className="font-bold">{toString(havestPendingAmount)} RAY</span> in pending
+          rewards.
         </div>
       </div>
 
@@ -306,7 +366,14 @@ function AprChartLine(props: {
   base: Numberish
   quote: Numberish
 }) {
-  return null
+  return (
+    <Row className="gap-2">
+      <div>totalApr: {toPercentString(props.totalApr)}</div>
+      <div>tradeFee: {toPercentString(props.tradeFee)}</div>
+      <div>base: {toPercentString(props.base)}</div>
+      <div>quote: {toPercentString(props.quote)}</div>
+    </Row>
+  )
 }
 
 function ModeItem({
