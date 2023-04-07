@@ -11,14 +11,10 @@ import { isHydratedConcentratedItemInfo } from '@/application/concentrated/is'
 import txDecreaseConcentrated from '@/application/concentrated/txDecreaseConcentrated'
 import txHarvestConcentrated, { txHarvestAllConcentrated } from '@/application/concentrated/txHarvestConcentrated'
 import {
-  HydratedConcentratedInfo,
-  HydratedConcentratedRewardInfo,
-  UserPositionAccount
+  HydratedConcentratedInfo, HydratedConcentratedRewardInfo, UserPositionAccount
 } from '@/application/concentrated/type'
 import useConcentrated, {
-  PoolsConcentratedTabs,
-  TimeBasis,
-  useConcentratedFavoriteIds
+  PoolsConcentratedTabs, TimeBasis, useConcentratedFavoriteIds
 } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import { useConcentratedPoolUrlParser } from '@/application/concentrated/useConcentratedPoolUrlParser'
@@ -1049,72 +1045,78 @@ function PoolCardDatabaseBodyCollapseItemFace({
   const variousPrices = useMemo(() => ({ ...lpPrices, ...tokenPrices }), [lpPrices, tokenPrices])
 
   const rewardsBadge = useMemo(() => {
-    const badges = info.rewardInfos.map((reward, idx) => {
-      const isRewardEnd = currentIsAfter(reward.endTime)
-      const isRewardBeforeStart = currentIsBefore(reward.openTime)
-      const isRewardBefore24H = currentIsAfter(reward.openTime - 86400 * 1000)
+    const badges = info.rewardInfos
+      .filter((reward) => reward.endTime > new Date().getTime() - 10 * 24 * 3600 * 1000)
+      .map((reward, idx) => {
+        const isRewardEnd = currentIsAfter(reward.endTime)
+        const isRewardBeforeStart = currentIsBefore(reward.openTime)
+        const isRewardBefore24H = currentIsAfter(reward.openTime - 86400 * 1000)
 
-      return (
-        <Tooltip key={`${info.idString}-reward-badge-id-${idx}`}>
-          <RewardAvatar rewardInfo={reward}></RewardAvatar>
-          <Tooltip.Panel>
-            <div key={`${info.idString}-reward-detail-content-id-${idx}`}>
-              <Row className="text-sm justify-between items-center min-w-[260px] gap-4">
-                <Row className="gap-1.5 items-center">
-                  <CoinAvatar size={isMobile ? 'xs' : 'smi'} token={reward.rewardToken} />
+        return (
+          <Tooltip key={`${info.idString}-reward-badge-id-${idx}`}>
+            <RewardAvatar rewardInfo={reward}></RewardAvatar>
+            <Tooltip.Panel>
+              <div key={`${info.idString}-reward-detail-content-id-${idx}`}>
+                {reward.endTime}
+                <Row className="text-sm justify-between items-center min-w-[260px] gap-4">
+                  <Row className="gap-1.5 items-center">
+                    <CoinAvatar size={isMobile ? 'xs' : 'smi'} token={reward.rewardToken} />
+                    {isRewardEnd ? null : (
+                      <>
+                        <span className="text-white">{formatNumber(toString(reward.rewardPerWeek))}</span>
+                        <span className="text-[#ABC4FF]">{reward.rewardToken?.symbol ?? '--'} per week</span>
+                      </>
+                    )}
+                  </Row>
                   {isRewardEnd ? null : (
-                    <>
-                      <span className="text-white">{formatNumber(toString(reward.rewardPerWeek))}</span>
-                      <span className="text-[#ABC4FF]">{reward.rewardToken?.symbol ?? '--'} per week</span>
-                    </>
+                    <span className="text-white/50">
+                      {toUsdVolume(
+                        toTotalPrice(
+                          reward.rewardPerWeek,
+                          variousPrices[toPubString(reward.rewardToken?.mint)] ?? null
+                        ),
+                        { decimalPlace: 0 }
+                      )}
+                    </span>
                   )}
                 </Row>
-                {isRewardEnd ? null : (
-                  <span className="text-white/50">
-                    {toUsdVolume(
-                      toTotalPrice(reward.rewardPerWeek, variousPrices[toPubString(reward.rewardToken?.mint)] ?? null),
-                      { decimalPlace: 0 }
-                    )}
-                  </span>
+                <div className="mb-1 mt-1">
+                  {reward.openTime &&
+                    reward.endTime &&
+                    (isRewardEnd ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period')}
+                </div>
+                {reward.openTime && isRewardBeforeStart && isRewardBefore24H && (
+                  <div className="opacity-50">Start in {getCountDownTime(getDate(reward.openTime))}</div>
                 )}
-              </Row>
-              <div className="mb-1 mt-1">
-                {reward.openTime &&
-                  reward.endTime &&
-                  (isRewardEnd ? 'Reward Ended' : isRewardBeforeStart ? 'Reward Not Started' : 'Reward Period')}
+                {reward.openTime && reward.endTime && (
+                  <div className="opacity-50">
+                    {toUTC(reward.openTime, { hideHourMinuteSecond: true })} ~{' '}
+                    {toUTC(reward.endTime, { hideHourMinuteSecond: true })}
+                  </div>
+                )}
+                {reward.tokenMint && (
+                  <AddressItem
+                    showDigitCount={6}
+                    addressType="token"
+                    canCopy
+                    canExternalLink
+                    textClassName="text-xs"
+                    className="w-full opacity-50 mt-2 contrast-75"
+                  >
+                    {toPubString(reward.tokenMint)}
+                  </AddressItem>
+                )}
+                {unnamedTokenMints?.has(toPubString(reward.tokenMint)) && (
+                  <div className="max-w-[300px] mt-2">
+                    This token does not currently have a ticker symbol. Check to ensure it is the token you want to
+                    interact with.
+                  </div>
+                )}
               </div>
-              {reward.openTime && isRewardBeforeStart && isRewardBefore24H && (
-                <div className="opacity-50">Start in {getCountDownTime(getDate(reward.openTime))}</div>
-              )}
-              {reward.openTime && reward.endTime && (
-                <div className="opacity-50">
-                  {toUTC(reward.openTime, { hideHourMinuteSecond: true })} ~{' '}
-                  {toUTC(reward.endTime, { hideHourMinuteSecond: true })}
-                </div>
-              )}
-              {reward.tokenMint && (
-                <AddressItem
-                  showDigitCount={6}
-                  addressType="token"
-                  canCopy
-                  canExternalLink
-                  textClassName="text-xs"
-                  className="w-full opacity-50 mt-2 contrast-75"
-                >
-                  {toPubString(reward.tokenMint)}
-                </AddressItem>
-              )}
-              {unnamedTokenMints?.has(toPubString(reward.tokenMint)) && (
-                <div className="max-w-[300px] mt-2">
-                  This token does not currently have a ticker symbol. Check to ensure it is the token you want to
-                  interact with.
-                </div>
-              )}
-            </div>
-          </Tooltip.Panel>
-        </Tooltip>
-      )
-    })
+            </Tooltip.Panel>
+          </Tooltip>
+        )
+      })
 
     return (
       <div className={twMerge(`flex flex-wrap justify-start items-center gap-2`, badges.length === 0 ? 'h-4' : '')}>
