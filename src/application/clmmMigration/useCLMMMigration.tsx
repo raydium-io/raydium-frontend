@@ -1,6 +1,7 @@
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toFraction from '@/functions/numberish/toFraction'
 import { Numberish } from '@/types/constants'
-import { AmmV3, AmmV3PoolInfo } from '@raydium-io/raydium-sdk'
+import { AmmV3, AmmV3PoolInfo, TokenAmount } from '@raydium-io/raydium-sdk'
 import create from 'zustand'
 import { HydratedConcentratedInfo } from '../concentrated/type'
 import { decimalToFraction, fractionToDecimal } from '../txTools/decimal2Fraction'
@@ -32,12 +33,36 @@ export type CLMMMigrationJSON = {
   defaultPriceMax: number
 }
 
-export function getExactPriceAndTick(utils: { price: Numberish; info: AmmV3PoolInfo; baseSide: 'base' | 'quote' }) {
+export function getExactPriceAndTick(params: { price: Numberish; info: AmmV3PoolInfo; baseSide: 'base' | 'quote' }) {
   const { tick, price } = AmmV3.getPriceAndTick({
-    baseIn: utils.baseSide === 'base',
-    poolInfo: utils.info,
-    price: fractionToDecimal(toFraction(utils.price))
+    baseIn: params.baseSide === 'base',
+    poolInfo: params.info,
+    price: fractionToDecimal(toFraction(params.price))
   })
   return { tick, price: decimalToFraction(price) }
-  // const {} = AmmV3.getLiquidityFromAmounts({})
+}
+
+export function getResultAmountByTick(params: {
+  baseSide: 'base' | 'quote'
+  info: AmmV3PoolInfo
+  baseAmount: TokenAmount
+  quoteAmount: TokenAmount
+  tickLower: number
+  tickUpper: number
+  slippage: number
+}) {
+  const { amountA, amountB, liquidity } = AmmV3.getLiquidityFromAmounts({
+    add: params.baseSide === 'base', // TEMP for Dev, force
+    poolInfo: params.info,
+    amountA: params.baseAmount.raw,
+    amountB: params.quoteAmount.raw,
+    tickLower: Math.min(params.tickLower, params.tickUpper),
+    tickUpper: Math.max(params.tickLower, params.tickUpper),
+    slippage: params.slippage
+  })
+  return {
+    resultBaseAmount: toTokenAmount(params.baseAmount.token, amountA),
+    resultQuoteAmount: toTokenAmount(params.quoteAmount.token, amountB),
+    liquidity
+  }
 }

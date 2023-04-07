@@ -1,4 +1,10 @@
-import { CLMMMigrationJSON, getExactPriceAndTick, useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
+import {
+  CLMMMigrationJSON,
+  getExactPriceAndTick,
+  getResultAmountByTick,
+  useCLMMMigration
+} from '@/application/clmmMigration/useCLMMMigration'
+import useAppSettings from '@/application/common/useAppSettings'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import { isFarmInfo, isHydratedFarmInfo } from '@/application/farms/judgeFarmInfo'
 import { HydratedFarmInfo } from '@/application/farms/type'
@@ -19,12 +25,15 @@ import RectTabs from '@/components/RectTabs'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import { shakeFalsyItem } from '@/functions/arrayMethods'
+import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { add, div, minus, mul } from '@/functions/numberish/operations'
+import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
+import { useSignalState } from '@/hooks/useSignalState'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -38,11 +47,18 @@ export default function ConcentratedMigrateDialog({
   open: boolean
   onClose: () => void
 }) {
-  const clmmMigrationInfos = useCLMMMigration((s) => s.loadedHydratedClmmInfos)
+  const loadedHydratedClmmInfos = useCLMMMigration((s) => s.loadedHydratedClmmInfos)
+  // console.log('loadedHydratedClmmInfos: ', loadedHydratedClmmInfos)
   // console.log('clmmMigrationInfos: ', clmmMigrationInfos)
-  const targetClmmInfo: HydratedConcentratedInfo | undefined = [...clmmMigrationInfos.values()][0] // TEMP for DEV
+  const targetClmmInfo: HydratedConcentratedInfo | undefined = [...loadedHydratedClmmInfos.values()][0] // TEMP for DEV
   const migrationJsonInfos = useCLMMMigration((s) => s.jsonInfos)
+  // console.log('targetClmmInfo: ', targetClmmInfo)
   const targetMigrationJsonInfo = targetClmmInfo && migrationJsonInfos.find((i) => i.clmmId === targetClmmInfo.idString)
+  // console.log('migrationJsonInfos: ', migrationJsonInfos)
+  if (targetClmmInfo) {
+    assert(targetMigrationJsonInfo, 'not found migration json')
+  }
+  // console.log('targetMigrationJsonInfo: ', targetMigrationJsonInfo)
 
   // console.log('targetMigrationJsonInfo: ', targetMigrationJsonInfo?.lpMint)
   const [canShowMigrateDetail, { on, off, delayOff }] = useToggle()
@@ -143,7 +159,10 @@ function DetailPanel({
   migrationJsonInfo?: CLMMMigrationJSON
   clmmInfo: HydratedConcentratedInfo | undefined
 }) {
+  // console.log('clmmInfo: ', clmmInfo)
   const pureRawBalances = useWallet((s) => s.pureRawBalances)
+  const slippage = useAppSettings((s) => s.slippageTolerance)
+  const slippageNumber = Number(toString(slippage))
 
   const fee = useMemo(() => {
     const tradeFeeRate =
@@ -170,20 +189,35 @@ function DetailPanel({
     lp &&
     quote &&
     div(toTokenAmount(quote, liquidityInfo.quoteReserve), toTokenAmount(lp, liquidityInfo.lpSupply))
-  const stakedBaseAmount = stakedLpAmount && baseRatio ? mul(stakedLpAmount, baseRatio) : undefined
-  const stakedQuoteAmount = stakedLpAmount && quoteRatio ? mul(stakedLpAmount, quoteRatio) : undefined
+  const stakedBaseAmount =
+    stakedLpAmount && baseRatio
+      ? toTokenAmount(base, mul(stakedLpAmount, baseRatio), { alreadyDecimaled: true })
+      : undefined
+  const stakedQuoteAmount =
+    stakedLpAmount && quoteRatio
+      ? toTokenAmount(quote, mul(stakedLpAmount, quoteRatio), { alreadyDecimaled: true })
+      : undefined
   const price = clmmInfo?.currentPrice
   const priceRangeAutoMin = migrationJsonInfo?.defaultPriceMin
+  // console.log('migrationJsonInfo: ', migrationJsonInfo)
+  // console.log('priceRangeAutoMin: ', priceRangeAutoMin)
   const priceRangeAutoMax = migrationJsonInfo?.defaultPriceMax
+  // console.log('priceRangeAutoMax: ', priceRangeAutoMax)
 
   // min price range
-  const [userInputPriceRangeMin, setUserInputPriceRangeMin] = useState<Numberish | undefined>(priceRangeAutoMin)
+  const [userInputPriceRangeMin, setUserInputPriceRangeMin, userInputPriceRangeMinSignal] = useSignalState<
+    Numberish | undefined
+  >(priceRangeAutoMin)
   useEffect(() => {
     setUserInputPriceRangeMin(priceRangeAutoMin)
   }, [priceRangeAutoMin])
   const [isInputPriceRangeMinFoused, setIsInputPriceRangeMinFoused] = useState<boolean>(false)
   const calculatedPriceRangeMin = useRef<Numberish>()
   const calculatedPriceRangeMinTick = useRef<number>()
+
+  // useEffect(() => {
+  //   console.log('calculatedPriceRangeMinTick: ', calculatedPriceRangeMinTick)
+  // }, [calculatedPriceRangeMinTick])
 
   // max price range
   const [userInputPriceRangeMax, setUserInputPriceRangeMax] = useState<Numberish | undefined>(priceRangeAutoMax)
@@ -194,9 +228,10 @@ function DetailPanel({
   const calculatedPriceRangeMax = useRef<Numberish>()
   const calculatedPriceRangeMaxTick = useRef<number>()
 
-  // price range valid flag
+  // price range valid flagy
   const [isPriceRangeInRange, setIsPriceRangeInRange] = useState<boolean>(false)
 
+  // result amount panels
   const resultAmountBaseCurrentPosition = stakedBaseAmount
   const resultAmountQuoteCurrentPosition = stakedQuoteAmount
   const [resultAmountBaseCLMMPool, setResultAmountBaseCLMMPool] = useState<Numberish>(0)
@@ -217,17 +252,25 @@ function DetailPanel({
   const [aprTimeBase, setAprTimeBase] = useState<'24H' | '7D' | '30D'>('24H')
 
   useEffect(() => {
+    // console.log('clmmInfo: ', clmmInfo)
+    // console.log('price: ', price)
+    // console.log(
+    //   'isInputPriceRangeMinFoused, userInputPriceRangeMin: ',
+    //   isInputPriceRangeMinFoused,
+    //   userInputPriceRangeMinSignal()
+    // )
     if (!clmmInfo || !price) return
 
     // calc min
-    if (!isInputPriceRangeMinFoused && userInputPriceRangeMin) {
+    if (!isInputPriceRangeMinFoused && userInputPriceRangeMinSignal()) {
       const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
         baseSide: priceRangeMode,
-        price: userInputPriceRangeMin,
+        price: userInputPriceRangeMinSignal()!,
         info: clmmInfo.state
       })
       calculatedPriceRangeMin.current = exactPrice
       calculatedPriceRangeMinTick.current = exactTick
+      // console.log('exactTick min: ', exactTick)
       setUserInputPriceRangeMin(exactPrice)
     }
 
@@ -240,11 +283,41 @@ function DetailPanel({
       })
       calculatedPriceRangeMax.current = exactPrice
       calculatedPriceRangeMaxTick.current = exactTick
+      // console.log('exactTick max: ', exactTick)
       setUserInputPriceRangeMax(exactPrice)
     }
 
+    // calc result amount
+    if (
+      stakedBaseAmount &&
+      stakedQuoteAmount &&
+      calculatedPriceRangeMinTick.current != null &&
+      calculatedPriceRangeMaxTick.current != null
+    ) {
+      const { resultBaseAmount, resultQuoteAmount } = getResultAmountByTick({
+        baseSide: priceRangeMode,
+        info: clmmInfo.state,
+        baseAmount: stakedBaseAmount,
+        quoteAmount: stakedQuoteAmount,
+        tickLower: calculatedPriceRangeMinTick.current,
+        tickUpper: calculatedPriceRangeMaxTick.current,
+        slippage: slippageNumber
+      })
+      setResultAmountBaseCLMMPool(resultBaseAmount)
+      setResultAmountQuoteCLMMPool(resultQuoteAmount)
+    }
+
     // get clmm amount
-  }, [isInputPriceRangeMinFoused, isInputPriceRangeMaxFoused, clmmInfo, price, priceRangeMode, mode])
+  }, [
+    slippageNumber,
+    isInputPriceRangeMinFoused,
+    isInputPriceRangeMaxFoused,
+    clmmInfo,
+    migrationJsonInfo,
+    price,
+    priceRangeMode,
+    mode
+  ])
 
   return (
     <Grid className="gap-4">

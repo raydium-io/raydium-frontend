@@ -170,7 +170,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   isAddDialogOpen: false,
   isRemoveDialogOpen: false,
   isMyPositionDialogOpen: false,
-  isMigrateToClmmDialogOpen: true, // TODO: dev temp
+  isMigrateToClmmDialogOpen: false,
   isAprCalcPanelShown: false,
   ownedPoolOnly: false,
 
