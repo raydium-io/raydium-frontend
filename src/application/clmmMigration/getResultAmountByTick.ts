@@ -9,7 +9,7 @@ export function getResultAmountByTick(params: {
   tickUpper: number
   slippage: number
 }) {
-  const { amountA, amountB, liquidity } = AmmV3.getLiquidityFromAmounts({
+  const { amountA, amountB, liquidity, amountSlippageA, amountSlippageB } = AmmV3.getLiquidityFromAmounts({
     add: true, // backend force
     poolInfo: params.info,
     amountA: params.baseAmount.raw,
@@ -21,6 +21,8 @@ export function getResultAmountByTick(params: {
   return {
     resultBaseAmount: toTokenAmount(params.baseAmount.token, amountA),
     resultQuoteAmount: toTokenAmount(params.quoteAmount.token, amountB),
-    liquidity
+    liquidity,
+    amountSlippageBase: amountSlippageA,
+    amountSlippageQuote: amountSlippageB
   }
 }

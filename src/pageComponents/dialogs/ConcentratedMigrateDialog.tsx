@@ -1,5 +1,6 @@
 import { getExactPriceAndTick } from '@/application/clmmMigration/getExactPriceAndTick'
 import { getResultAmountByTick } from '@/application/clmmMigration/getResultAmountByTick'
+import txMigrateToClmm from '@/application/clmmMigration/txMigrateToClmm'
 import { CLMMMigrationJSON, useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 import useAppSettings from '@/application/common/useAppSettings'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
@@ -30,6 +31,7 @@ import { toString } from '@/functions/numberish/toString'
 import { useSignalState } from '@/hooks/useSignalState'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
+import BN from 'bn.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 export default function ConcentratedMigrateDialog({
@@ -114,6 +116,7 @@ export default function ConcentratedMigrateDialog({
         migrationJsonInfo={targetMigrationJsonInfo}
         farmInfo={isFarm ? info : undefined}
         liquidityInfo={targetHydratedLiquidityInfo}
+        onMigrateSuccess={closeDialog}
       />
     </div>
   )
@@ -145,17 +148,20 @@ function DetailPanel({
   liquidityInfo,
   farmInfo,
   migrationJsonInfo,
-  clmmInfo
+  clmmInfo,
+  onMigrateSuccess
 }: {
   liquidityInfo?: HydratedLiquidityInfo
   farmInfo?: HydratedFarmInfo
   migrationJsonInfo?: CLMMMigrationJSON
   clmmInfo: HydratedConcentratedInfo | undefined
+  onMigrateSuccess?: () => void
 }) {
   // console.log('clmmInfo: ', clmmInfo)
   const pureRawBalances = useWallet((s) => s.pureRawBalances)
   const slippage = useAppSettings((s) => s.slippageTolerance)
   const slippageNumber = Number(toString(slippage))
+  const [isTxProcessing, { on: turnOnTxProcessing, off: turnOffTxProcessing }] = useToggle()
 
   const fee = useMemo(() => {
     const tradeFeeRate =
@@ -171,7 +177,13 @@ function DetailPanel({
   const lp = liquidityInfo?.lpToken
   const stakedLpAmount = farmInfo
     ? farmInfo.userStakedLpAmount
-    : liquidityInfo && div(pureRawBalances[toPubString(liquidityInfo.lpMint)], 10 ** liquidityInfo.lpDecimals)
+    : liquidityInfo && lp && toTokenAmount(lp, pureRawBalances[toPubString(liquidityInfo.lpMint)])
+  // console.log(
+  //   'stakedLpAmount: ',
+  //   stakedLpAmount,
+  //   toString(stakedLpAmount),
+  //   liquidityInfo && toString(pureRawBalances[toPubString(liquidityInfo.lpMint)])
+  // )
   const baseRatio =
     liquidityInfo &&
     lp &&
@@ -213,7 +225,9 @@ function DetailPanel({
   // }, [calculatedPriceRangeMinTick])
 
   // max price range
-  const [userInputPriceRangeMax, setUserInputPriceRangeMax] = useState<Numberish | undefined>(priceRangeAutoMax)
+  const [userInputPriceRangeMax, setUserInputPriceRangeMax, userInputPriceRangeMaxSignal] = useSignalState<
+    Numberish | undefined
+  >(priceRangeAutoMax)
   useEffect(() => {
     setUserInputPriceRangeMax(priceRangeAutoMax)
   }, [priceRangeAutoMax])
@@ -227,8 +241,9 @@ function DetailPanel({
   // result amount panels
   const resultAmountBaseCurrentPosition = stakedBaseAmount
   const resultAmountQuoteCurrentPosition = stakedQuoteAmount
-  const [resultAmountBaseCLMMPool, setResultAmountBaseCLMMPool] = useState<Numberish>(0)
-  const [resultAmountQuoteCLMMPool, setResultAmountQuoteCLMMPool] = useState<Numberish>(0)
+  const [resultAmountBaseCLMMPool, setResultAmountBaseCLMMPool] = useState<Numberish>()
+  const [resultAmountQuoteCLMMPool, setResultAmountQuoteCLMMPool] = useState<Numberish>()
+  const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const resultAmountBaseWallet = useMemo(
     () =>
       resultAmountBaseCurrentPosition &&
@@ -249,6 +264,12 @@ function DetailPanel({
       ),
     [resultAmountQuoteCurrentPosition, resultAmountQuoteCLMMPool]
   )
+  /** will not been reflect by ui */
+  const otherInfoForTx = useRef<{
+    liquidity: BN
+    amountSlippageBase: BN
+    amountSlippageQuote: BN
+  }>()
   const aprTradeFees = 0.1
   const aprRay = 0.074
 
@@ -257,13 +278,6 @@ function DetailPanel({
   const [aprTimeBase, setAprTimeBase] = useState<'24H' | '7D' | '30D'>('24H')
 
   useEffect(() => {
-    // console.log('clmmInfo: ', clmmInfo)
-    // console.log('price: ', price)
-    // console.log(
-    //   'isInputPriceRangeMinFoused, userInputPriceRangeMin: ',
-    //   isInputPriceRangeMinFoused,
-    //   userInputPriceRangeMinSignal()
-    // )
     if (!clmmInfo || !price) return
 
     // calc min
@@ -274,18 +288,20 @@ function DetailPanel({
         info: clmmInfo.state
       })
       calculatedPriceRangeMin.current = exactPrice
+      // console.log('min: ', exactTick)
       calculatedPriceRangeMinTick.current = exactTick
       setUserInputPriceRangeMin(exactPrice)
     }
 
     // calc max
-    if (!isInputPriceRangeMaxFoused && userInputPriceRangeMax) {
+    if (!isInputPriceRangeMaxFoused && userInputPriceRangeMaxSignal()) {
       const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
         baseSide: priceRangeMode,
-        price: userInputPriceRangeMax,
+        price: userInputPriceRangeMaxSignal()!,
         info: clmmInfo.state
       })
       calculatedPriceRangeMax.current = exactPrice
+      // console.log('max: ', exactTick)
       calculatedPriceRangeMaxTick.current = exactTick
       setUserInputPriceRangeMax(exactPrice)
     }
@@ -297,14 +313,30 @@ function DetailPanel({
       calculatedPriceRangeMinTick.current != null &&
       calculatedPriceRangeMaxTick.current != null
     ) {
-      const { resultBaseAmount, resultQuoteAmount } = getResultAmountByTick({
-        info: clmmInfo.state,
-        baseAmount: resultAmountBaseCurrentPosition,
-        quoteAmount: resultAmountQuoteCurrentPosition,
-        tickLower: calculatedPriceRangeMinTick.current,
-        tickUpper: calculatedPriceRangeMaxTick.current,
-        slippage: slippageNumber
-      })
+      const { resultBaseAmount, resultQuoteAmount, liquidity, amountSlippageBase, amountSlippageQuote } =
+        getResultAmountByTick({
+          info: clmmInfo.state,
+          baseAmount: resultAmountBaseCurrentPosition,
+          quoteAmount: resultAmountQuoteCurrentPosition,
+          tickLower: calculatedPriceRangeMinTick.current,
+          tickUpper: calculatedPriceRangeMaxTick.current,
+          slippage: slippageNumber
+        })
+      otherInfoForTx.current = {
+        liquidity,
+        amountSlippageBase,
+        amountSlippageQuote
+      }
+      // console.log('params: ', {
+      //   info: clmmInfo.state,
+      //   baseAmount: resultAmountBaseCurrentPosition,
+      //   quoteAmount: resultAmountQuoteCurrentPosition,
+      //   tickLower: calculatedPriceRangeMinTick.current,
+      //   tickUpper: calculatedPriceRangeMaxTick.current,
+      //   slippage: slippageNumber
+      // })
+      // console.log('resultBaseAmount: ', resultBaseAmount)
+      // console.log('resultQuoteAmount: ', resultQuoteAmount)
       setResultAmountBaseCLMMPool(resultBaseAmount)
       setResultAmountQuoteCLMMPool(resultQuoteAmount)
     }
@@ -468,7 +500,9 @@ function DetailPanel({
                 <div className="text-[#abc4ff] text-xs">{base?.symbol ?? '--'}</div>
               </Row>
               <div className="text-[#abc4ff] text-xs">
-                {toString(resultAmountBaseCurrentPosition, { decimalLength: base?.decimals })}
+                {resultAmountBaseCurrentPosition
+                  ? toString(resultAmountBaseCurrentPosition, { decimalLength: base?.decimals })
+                  : '--'}
               </div>
             </Row>
             <Row className="justify-between items-center gap-4">
@@ -477,7 +511,9 @@ function DetailPanel({
                 <div className="text-[#abc4ff] text-xs">{quote?.symbol ?? '--'}</div>
               </Row>
               <div className="text-[#abc4ff] text-xs">
-                {toString(resultAmountQuoteCurrentPosition, { decimalLength: quote?.decimals })}
+                {resultAmountQuoteCurrentPosition
+                  ? toString(resultAmountQuoteCurrentPosition, { decimalLength: quote?.decimals })
+                  : '--'}
               </div>
             </Row>
           </Col>
@@ -487,10 +523,14 @@ function DetailPanel({
           <Col className="relative grow border-1.5 border-[#abc4ff40] border-dashed rounded-xl p-2 gap-1">
             <div className="absolute -top-7 text-center left-0 right-0 text-sm text-[#abc4ff]">CLMM Pool</div>
             <Row className="justify-end items-center gap-4">
-              <div className="text-[#abc4ff] text-xs">{toString(resultAmountBaseCLMMPool)}</div>
+              <div className="text-[#abc4ff] text-xs">
+                {clmmInfo ? toString(resultAmountBaseCLMMPool) || '--' : '(loading clmm)'}
+              </div>
             </Row>
             <Row className="justify-end items-center gap-4">
-              <div className="text-[#abc4ff] text-xs">{toString(resultAmountQuoteCLMMPool)}</div>
+              <div className="text-[#abc4ff] text-xs">
+                {clmmInfo ? toString(resultAmountQuoteCLMMPool) || '--' : '(loading clmm)'}
+              </div>
             </Row>
           </Col>
 
@@ -499,10 +539,14 @@ function DetailPanel({
           <Col className="relative grow border-1.5 border-[#abc4ff40] border-dashed rounded-xl p-2 gap-1">
             <div className="absolute -top-7 text-center left-0 right-0 text-sm text-[#abc4ff]">Wallet</div>
             <Row className="justify-end items-center gap-4">
-              <div className="text-[#abc4ff] text-xs">{toString(resultAmountBaseWallet)}</div>
+              <div className="text-[#abc4ff] text-xs">
+                {clmmInfo ? toString(resultAmountBaseWallet) : '(loading clmm)'}
+              </div>
             </Row>
             <Row className="justify-end items-center gap-4">
-              <div className="text-[#abc4ff] text-xs">{toString(resultAmountQuoteWallet)}</div>
+              <div className="text-[#abc4ff] text-xs">
+                {clmmInfo ? toString(resultAmountQuoteWallet) : '(loading clmm)'}
+              </div>
             </Row>
           </Col>
         </Row>
@@ -553,9 +597,41 @@ function DetailPanel({
       <div className="mt-6">
         <Button
           className="w-full frosted-glass-teal"
+          isLoading={isTxProcessing || isApprovePanelShown}
           onClick={() => {
-            /* TODO */
+            assert(
+              calculatedPriceRangeMinTick.current !== null && calculatedPriceRangeMaxTick.current !== null,
+              'not calc price range successfully'
+            )
+            assert(otherInfoForTx.current, 'not calc amount slippage successfully')
+            assert(liquidityInfo, 'liquidity info not load successfully')
+            turnOnTxProcessing()
+            txMigrateToClmm({
+              liquidity: otherInfoForTx.current.liquidity,
+              tickLower: calculatedPriceRangeMinTick.current!,
+              tickUpper: calculatedPriceRangeMaxTick.current!,
+              amountSlippageA: otherInfoForTx.current.amountSlippageBase,
+              amountSlippageB: otherInfoForTx.current.amountSlippageQuote,
+              currentClmmPool: clmmInfo,
+              farmInfo: farmInfo,
+              liquidityInfo: liquidityInfo,
+              liquidityLpAmount: farmInfo ? undefined : stakedLpAmount?.raw
+            })
+              .then(({ allSuccess }) => {
+                if (allSuccess) {
+                  onMigrateSuccess?.()
+                }
+              })
+              .finally(turnOffTxProcessing)
           }}
+          validators={[
+            {
+              should: clmmInfo,
+              fallbackProps: {
+                children: 'loading...'
+              }
+            }
+          ]}
         >
           Migrate
         </Button>
