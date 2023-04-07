@@ -32,7 +32,7 @@ export function useCLMMMigrationLoadInfo() {
     }
 
     if (shouldLoadedClmmIdsStack.length) {
-      // TODO: load part of clmms
+      // TODO: load part of clmms, it loads all now
       useConcentrated.getState().refreshConcentrated()
     }
   }, [shouldLoadedClmmIds, hydratedClmmInfos])
