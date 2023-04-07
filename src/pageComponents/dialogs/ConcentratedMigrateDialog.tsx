@@ -8,6 +8,7 @@ import { isFarmInfo, isHydratedFarmInfo } from '@/application/farms/judgeFarmInf
 import { HydratedFarmInfo } from '@/application/farms/type'
 import { HydratedLiquidityInfo } from '@/application/liquidity/type'
 import useLiquidity from '@/application/liquidity/useLiquidity'
+import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -26,6 +27,7 @@ import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { gt, gte, lt, lte } from '@/functions/numberish/compare'
 import { add, div, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { useSignalState } from '@/hooks/useSignalState'
@@ -133,7 +135,7 @@ export default function ConcentratedMigrateDialog({
       {({ close: closeDialog }) => (
         <Card
           className={`p-6 mobile:p-4 rounded-3xl mobile:rounded-lg ${
-            canShowMigrateDetail ? 'w-[min(650px,90vw)]' : 'w-[min(450px,90vw)]'
+            canShowMigrateDetail ? 'w-[min(600px,90vw)]' : 'w-[min(450px,90vw)]'
           } mobile:w-full max-h-[80vh] overflow-auto border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card transition`}
           size="lg"
         >
@@ -236,7 +238,7 @@ function DetailPanel({
   const calculatedPriceRangeMaxTick = useRef<number>()
 
   // price range valid flagy
-  const [isPriceRangeInRange, setIsPriceRangeInRange] = useState<boolean>(false)
+  const [isPriceRangeInRange, setIsPriceRangeInRange] = useState<boolean>(true)
 
   // result amount panels
   const resultAmountBaseCurrentPosition = stakedBaseAmount
@@ -304,6 +306,12 @@ function DetailPanel({
       // console.log('max: ', exactTick)
       calculatedPriceRangeMaxTick.current = exactTick
       setUserInputPriceRangeMax(exactPrice)
+    }
+
+    // verify in range
+    if (calculatedPriceRangeMin.current != null && calculatedPriceRangeMax.current != null) {
+      const isInRange = checkIsInRange(clmmInfo, calculatedPriceRangeMin.current, calculatedPriceRangeMax.current)
+      setIsPriceRangeInRange(isInRange)
     }
 
     // calc result amount
@@ -416,7 +424,7 @@ function DetailPanel({
         </Row>
         {mode === 'quick' && (
           <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
-            <div className="text-[#abc4ff] font-medium">
+            <div className="text-[#abc4ff] font-medium text-sm">
               {priceRangeMode === 'base'
                 ? `${priceRangeAutoMin && Math.round(priceRangeAutoMin)} - ${
                     priceRangeAutoMax && Math.round(priceRangeAutoMax)
@@ -440,9 +448,9 @@ function DetailPanel({
               <Row
                 className={`border-1.5 ${
                   isPriceRangeInRange ? 'border-[#abc4ff40]' : 'border-[#DA2EEF]'
-                } rounded-xl py-3 px-4 justify-between items-center`}
+                } rounded-xl py-2 px-4 justify-between items-center`}
               >
-                <div className="text-[#abc4ff80] text-xs">Min</div>
+                <div className="text-[#abc4ff80] text-sm">Min</div>
                 <DecimalInput
                   className="font-medium text-sm text-white flex-grow"
                   inputClassName="text-right"
@@ -462,9 +470,9 @@ function DetailPanel({
               <Row
                 className={`border-1.5 ${
                   isPriceRangeInRange ? 'border-[#abc4ff40]' : 'border-[#DA2EEF]'
-                } rounded-xl py-3 px-4 justify-between items-center`}
+                } rounded-xl py-2 px-4 justify-between items-center`}
               >
-                <div className="text-[#abc4ff80] text-xs">Max</div>
+                <div className="text-[#abc4ff80] text-sm">Max</div>
                 <DecimalInput
                   className="font-medium text-sm text-white flex-grow"
                   inputClassName="text-right"
@@ -638,6 +646,11 @@ function DetailPanel({
       </div>
     </Grid>
   )
+}
+
+function checkIsInRange(clmmInfo: HydratedConcentratedInfo, exactPriceLower: Numberish, exactPriceUpper: Numberish) {
+  const currentPrice = decimalToFraction(clmmInfo.state.currentPrice)
+  return gte(currentPrice, exactPriceLower) && lte(currentPrice, exactPriceUpper)
 }
 
 function AprChartLine(props: { timeBase: '24H' | '7D' | '30D'; tradeFee: Numberish; ray: Numberish }) {

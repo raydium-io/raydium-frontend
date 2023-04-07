@@ -74,9 +74,10 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import { NewCompensationBanner } from '../pools'
-import { shouldLiquidityOrFarmBeenMigrate } from '@/application/concentrated/shouldLiquidityOrFarmBeenMigrate'
+import { shouldLiquidityOrFarmBeenMigrate } from '@/application/clmmMigration/shouldLiquidityOrFarmBeenMigrate'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
+import { useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -1171,7 +1172,8 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
     farmInfo.rewards.some(({ userPendingReward }) => isMeaningfulNumber(userPendingReward))
   const logSuccess = useNotification((s) => s.logSuccess)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
-  const canMigrate = shouldLiquidityOrFarmBeenMigrate(farmInfo)
+  const migrationJsonInfo = useCLMMMigration((s) => s.jsonInfos)
+  const canMigrate = migrationJsonInfo?.some((m) => m.ammId === toPubString(farmInfo.id))
 
   if (isJsonFarmInfo(farmInfo)) return null
   return (
@@ -1298,7 +1300,8 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                         children: 'Add Liquidity',
                         onClick: () => routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
                       }
-                    }
+                    },
+                    { should: !canMigrate }
                   ]}
                   onClick={() => {
                     useFarms.setState({

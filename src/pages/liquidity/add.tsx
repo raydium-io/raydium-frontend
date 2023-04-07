@@ -62,7 +62,8 @@ import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialo
 import { NewCompensationBanner } from '../pools'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
-import { shouldLiquidityOrFarmBeenMigrate } from '@/application/concentrated/shouldLiquidityOrFarmBeenMigrate'
+import { shouldLiquidityOrFarmBeenMigrate } from '@/application/clmmMigration/shouldLiquidityOrFarmBeenMigrate'
+import { useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -829,6 +830,7 @@ function UserLiquidityExhibition() {
   const balances = useWallet((s) => s.balances)
   const rawBalances = useWallet((s) => s.rawBalances)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const migrationJsonInfo = useCLMMMigration((s) => s.jsonInfos)
 
   const computeSharePercentValue = (percent: Percent | undefined) => {
     if (!percent) return '--%'
@@ -851,7 +853,7 @@ function UserLiquidityExhibition() {
       <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
         <List className={`flex flex-col gap-6 mobile:gap-5 ${exhibitionInfos.length ? 'mb-5' : ''}`}>
           {exhibitionInfos.map((info, idx) => {
-            const canMigrate = shouldLiquidityOrFarmBeenMigrate(info)
+            const canMigrate = migrationJsonInfo?.some((m) => m.ammId === toPubString(info.id))
             return (
               <List.Item key={idx}>
                 <FadeIn>
