@@ -46,7 +46,7 @@ export default function useConcentratedInfoLoader() {
   /** fetch api json info list  */
   useRecordedEffect(
     async ([prevRefreshCount]) => {
-      const shouldForceRefresh = prevRefreshCount != null && refreshCount == prevRefreshCount + 1
+      const shouldForceRefresh = prevRefreshCount != null && refreshCount !== prevRefreshCount
       if (!shouldForceRefresh && !shouldLoadInfo) return
       if (prevRefreshCount === refreshCount && apiAmmPools.length) return
       const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammV3PoolsUrl) // note: previously Rudy has Test API for dev

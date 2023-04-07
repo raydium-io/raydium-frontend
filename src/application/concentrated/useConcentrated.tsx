@@ -190,8 +190,6 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   scrollToInputBox: () => {},
   refreshCount: 1,
   refreshConcentrated: () => {
-    // will auto refresh wallet
-    // refresh sdk parsed
     set({
       refreshCount: get().refreshCount + 1
     })

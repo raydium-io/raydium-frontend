@@ -1,17 +1,12 @@
-import {
-  CLMMMigrationJSON,
-  getExactPriceAndTick,
-  getResultAmountByTick,
-  useCLMMMigration
-} from '@/application/clmmMigration/useCLMMMigration'
+import { getExactPriceAndTick } from '@/application/clmmMigration/getExactPriceAndTick'
+import { getResultAmountByTick } from '@/application/clmmMigration/getResultAmountByTick'
+import { CLMMMigrationJSON, useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 import useAppSettings from '@/application/common/useAppSettings'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import { isFarmInfo, isHydratedFarmInfo } from '@/application/farms/judgeFarmInfo'
 import { HydratedFarmInfo } from '@/application/farms/type'
 import { HydratedLiquidityInfo } from '@/application/liquidity/type'
 import useLiquidity from '@/application/liquidity/useLiquidity'
-import useToken from '@/application/token/useToken'
-import { decimalToFraction, recursivelyDecimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -31,7 +26,6 @@ import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { add, div, minus, mul } from '@/functions/numberish/operations'
-import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import { useSignalState } from '@/hooks/useSignalState'
 import useToggle from '@/hooks/useToggle'
@@ -49,7 +43,6 @@ export default function ConcentratedMigrateDialog({
 }) {
   const loadedHydratedClmmInfos = useCLMMMigration((s) => s.loadedHydratedClmmInfos)
   // console.log('loadedHydratedClmmInfos: ', loadedHydratedClmmInfos)
-  // console.log('clmmMigrationInfos: ', clmmMigrationInfos)
   const targetClmmInfo: HydratedConcentratedInfo | undefined = [...loadedHydratedClmmInfos.values()][0] // TEMP for DEV
   const migrationJsonInfos = useCLMMMigration((s) => s.jsonInfos)
   // console.log('targetClmmInfo: ', targetClmmInfo)
@@ -237,11 +230,23 @@ function DetailPanel({
   const [resultAmountBaseCLMMPool, setResultAmountBaseCLMMPool] = useState<Numberish>(0)
   const [resultAmountQuoteCLMMPool, setResultAmountQuoteCLMMPool] = useState<Numberish>(0)
   const resultAmountBaseWallet = useMemo(
-    () => minus(resultAmountBaseCurrentPosition, resultAmountBaseCLMMPool),
+    () =>
+      resultAmountBaseCurrentPosition &&
+      toTokenAmount(
+        resultAmountBaseCurrentPosition.token,
+        minus(resultAmountBaseCurrentPosition, resultAmountBaseCLMMPool),
+        { alreadyDecimaled: true }
+      ),
     [resultAmountBaseCurrentPosition, resultAmountBaseCLMMPool]
   )
   const resultAmountQuoteWallet = useMemo(
-    () => minus(resultAmountQuoteCurrentPosition, resultAmountQuoteCLMMPool),
+    () =>
+      resultAmountQuoteCurrentPosition &&
+      toTokenAmount(
+        resultAmountQuoteCurrentPosition.token,
+        minus(resultAmountQuoteCurrentPosition, resultAmountQuoteCLMMPool),
+        { alreadyDecimaled: true }
+      ),
     [resultAmountQuoteCurrentPosition, resultAmountQuoteCLMMPool]
   )
   const aprTradeFees = 0.1
@@ -270,7 +275,6 @@ function DetailPanel({
       })
       calculatedPriceRangeMin.current = exactPrice
       calculatedPriceRangeMinTick.current = exactTick
-      // console.log('exactTick min: ', exactTick)
       setUserInputPriceRangeMin(exactPrice)
     }
 
@@ -283,22 +287,20 @@ function DetailPanel({
       })
       calculatedPriceRangeMax.current = exactPrice
       calculatedPriceRangeMaxTick.current = exactTick
-      // console.log('exactTick max: ', exactTick)
       setUserInputPriceRangeMax(exactPrice)
     }
 
     // calc result amount
     if (
-      stakedBaseAmount &&
-      stakedQuoteAmount &&
+      resultAmountBaseCurrentPosition &&
+      resultAmountQuoteCurrentPosition &&
       calculatedPriceRangeMinTick.current != null &&
       calculatedPriceRangeMaxTick.current != null
     ) {
       const { resultBaseAmount, resultQuoteAmount } = getResultAmountByTick({
-        baseSide: priceRangeMode,
         info: clmmInfo.state,
-        baseAmount: stakedBaseAmount,
-        quoteAmount: stakedQuoteAmount,
+        baseAmount: resultAmountBaseCurrentPosition,
+        quoteAmount: resultAmountQuoteCurrentPosition,
         tickLower: calculatedPriceRangeMinTick.current,
         tickUpper: calculatedPriceRangeMaxTick.current,
         slippage: slippageNumber
@@ -312,6 +314,8 @@ function DetailPanel({
     slippageNumber,
     isInputPriceRangeMinFoused,
     isInputPriceRangeMaxFoused,
+    toString(resultAmountBaseCurrentPosition),
+    toString(resultAmountQuoteCurrentPosition),
     clmmInfo,
     migrationJsonInfo,
     price,

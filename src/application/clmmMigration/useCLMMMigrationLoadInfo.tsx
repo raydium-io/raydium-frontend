@@ -21,7 +21,7 @@ export function useCLMMMigrationLoadInfo() {
         const foundClmmInfo = hydratedClmmInfos.find((i) => i.idString === clmmId)
         if (foundClmmInfo) {
           useCLMMMigration.setState((s) => ({
-            loadedHydratedClmmInfos: s.loadedHydratedClmmInfos.set(clmmId, foundClmmInfo)
+            loadedHydratedClmmInfos: new Map(s.loadedHydratedClmmInfos.set(clmmId, foundClmmInfo))
           }))
           const shouldLoadedClmmIds = useCLMMMigration.getState().shouldLoadedClmmIds
           shouldLoadedClmmIds.delete(clmmId)
@@ -35,5 +35,5 @@ export function useCLMMMigrationLoadInfo() {
       // TODO: load part of clmms, it loads all now
       useConcentrated.getState().refreshConcentrated()
     }
-  }, [shouldLoadedClmmIds, hydratedClmmInfos])
+  }, [shouldLoadedClmmIds, hydratedClmmInfos.length])
 }
