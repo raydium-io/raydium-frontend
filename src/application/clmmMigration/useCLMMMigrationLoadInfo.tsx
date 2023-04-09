@@ -9,7 +9,7 @@ export function useCLMMMigrationLoadInfo() {
     const json = await jFetch<{ data: CLMMMigrationJSON[] }>('https://api.raydium.io/v2/main/migrate-lp')
     if (!json) return
     useCLMMMigration.setState({ jsonInfos: json.data })
-    useCLMMMigration.setState({ shouldLoadedClmmIds: new Set(json.data.map((i) => i.clmmId)) }) // TEMP for dev
+    useCLMMMigration.setState({ shouldLoadedClmmIds: new Set(json.data.map((i) => i.clmmId)) })
   }, [])
 
   const hydratedClmmInfos = useConcentrated((s) => s.hydratedAmmPools)

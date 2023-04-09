@@ -4,11 +4,13 @@ import txMigrateToClmm from '@/application/clmmMigration/txMigrateToClmm'
 import { CLMMMigrationJSON, useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 import useAppSettings from '@/application/common/useAppSettings'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
+import useConcentrated, { TimeBasis } from '@/application/concentrated/useConcentrated'
 import { isFarmInfo, isHydratedFarmInfo } from '@/application/farms/judgeFarmInfo'
 import { HydratedFarmInfo } from '@/application/farms/type'
 import { smashSYNLiquidity } from '@/application/liquidity/smashSYNLiquidity'
 import { HydratedLiquidityInfo } from '@/application/liquidity/type'
 import useLiquidity from '@/application/liquidity/useLiquidity'
+import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
@@ -37,6 +39,7 @@ import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
 import BN from 'bn.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { ConcentratedModifyTooltipIcon } from '../Concentrated/ConcentratedModifyTooltipIcon'
 
 export default function ConcentratedMigrateDialog({
   info,
@@ -61,7 +64,6 @@ export default function ConcentratedMigrateDialog({
 
   // console.log('targetMigrationJsonInfo: ', targetMigrationJsonInfo?.lpMint)
   const [canShowMigrateDetail, { on, off, delayOff }] = useToggle()
-  const hydratedLiquidityInfos = useLiquidity((s) => s.hydratedInfos)
   const isFarm = isFarmInfo(info) && isHydratedFarmInfo(info)
   const targetHydratedLiquidityInfo = useAsyncMemo(() => {
     if (!isFarm) return info
@@ -70,11 +72,13 @@ export default function ConcentratedMigrateDialog({
     const { hydrated } = smashSYNLiquidity([id])
     return hydrated.then((hydrateds) => hydrateds?.[id])
   }, [isFarm, info, targetMigrationJsonInfo])
+
   useEffect(() => {
     useCLMMMigration.setState({
-      shouldLoadedClmmIds: new Set(['2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv']) // temp for DEV
+      shouldLoadedClmmIds: new Set(migrationJsonInfos.map((i) => i.clmmId))
     })
-  }, [])
+  }, [migrationJsonInfos])
+
   const alertTitle = 'Migrate Position'
   const alertDescription =
     'We are no longer providing rewards to this pair any more. Would you like to migrate your position to CLMM pool?'
@@ -190,6 +194,7 @@ function DetailPanel({
   //   toString(stakedLpAmount),
   //   liquidityInfo && toString(pureRawBalances[toPubString(liquidityInfo.lpMint)])
   // )
+  const timeBasis = useConcentrated((s) => s.timeBasis)
   const baseRatio =
     liquidityInfo &&
     lp &&
@@ -281,7 +286,6 @@ function DetailPanel({
 
   const [mode, setMode] = useState<'quick' | 'custom'>('quick')
   const [priceRangeMode, setPriceRangeMode] = useState<'base' | 'quote'>('base')
-  const [aprTimeBase, setAprTimeBase] = useState<'24H' | '7D' | '30D'>('24H')
 
   useEffect(() => {
     if (!clmmInfo || !price) return
@@ -587,21 +591,22 @@ function DetailPanel({
       {/* Esimated APR */}
       <div>
         <Row className="items-center justify-between mb-1">
-          <div className="text-[#abc4ff] font-medium">Estimated APR</div>
+          <Row className="items-center gap-2">
+            <div className="text-[#abc4ff] font-medium">Estimated APR</div>
+            {/* <ConcentratedModifyTooltipIcon /> */}
+          </Row>
           <RectTabs
             tabs={[
               { label: `24H`, value: '24H' },
               { label: `7D`, value: '7D' },
               { label: `30D`, value: '30D' }
             ]}
-            selectedValue={aprTimeBase}
-            onChange={({ value }) => {
-              setAprTimeBase(value as '24H' | '7D' | '30D')
-            }}
+            selectedValue={timeBasis}
+            onChange={(tab) => useConcentrated.setState({ timeBasis: tab.value as TimeBasis })}
           ></RectTabs>
         </Row>
         <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
-          <AprChartLine timeBase={aprTimeBase} tradeFee={aprTradeFees} ray={aprRay}></AprChartLine>
+          <AprChartLine clmmInfo={clmmInfo}></AprChartLine>
         </Row>
       </div>
 
@@ -657,12 +662,86 @@ function checkIsInRange(clmmInfo: HydratedConcentratedInfo, exactPriceLower: Num
   return gte(currentPrice, exactPriceLower) && lte(currentPrice, exactPriceUpper)
 }
 
-function AprChartLine(props: { timeBase: '24H' | '7D' | '30D'; tradeFee: Numberish; ray: Numberish }) {
+function AprChartLine({ clmmInfo }: { clmmInfo: HydratedConcentratedInfo | undefined }) {
+  const tokens = useToken((s) => s.tokens)
+  const getToken = useToken((s) => s.getToken)
+  const aprLineColors = ['#abc4ff', '#37bbe0', '#2b6aff', '#335095']
+  const timeBasis = useConcentrated((s) => s.timeBasis)
+  const apr = clmmInfo
+    ? timeBasis === TimeBasis.DAY
+      ? { total: clmmInfo.totalApr24h, itemList: [clmmInfo.feeApr24h, ...clmmInfo.rewardApr24h] }
+      : timeBasis === TimeBasis.WEEK
+      ? { total: clmmInfo.totalApr7d, itemList: [clmmInfo.feeApr7d, ...clmmInfo.rewardApr7d] }
+      : { total: clmmInfo.totalApr30d, itemList: [clmmInfo.feeApr30d, ...clmmInfo.rewardApr30d] }
+    : undefined
+
+  const percentInTotal = useMemo(
+    () =>
+      apr?.itemList.map((percent, idx, percents) =>
+        div(
+          toPercent(percent),
+          percents.reduce((a, b) => toPercent(add(a, b)), toPercent(0))
+        )
+      ),
+    [apr]
+  )
   return (
-    <Row className="gap-2 text-[#abc4ff]">
-      <div>totalApr: {toPercentString(add(props.tradeFee, props.ray))}</div>
-      <div>tradeFee: {toPercentString(props.tradeFee)}</div>
-      <div>ray: {toPercentString(props.ray)}</div>
+    <Row className={`gap-2 w-full justify-between text-[#fff] ${clmmInfo ? '' : 'opacity-0'}`}>
+      <Row className="items-center gap-2">
+        <div>{toPercentString(apr?.total)}</div>
+        <div
+          className="w-[18px] h-[18px] rounded-full flex-none"
+          style={{
+            background:
+              percentInTotal &&
+              `conic-gradient(${percentInTotal
+                .map((percent, idx) => {
+                  const startAt = percentInTotal.slice(0, idx).reduce((a, b) => toPercent(add(a, b)), toPercent(0))
+                  const endAt = toPercent(add(startAt, percent))
+                  return [
+                    `${aprLineColors[idx]} ${toPercentString(startAt)}`,
+                    `${aprLineColors[idx]} ${toPercentString(endAt)}`
+                  ].join(', ')
+                })
+                .join(', ')})`,
+            WebkitMaskImage: 'radial-gradient(transparent 43%, black 44%)',
+            maskImage: 'radial-gradient(transparent 43%, black 44%)'
+          }}
+        ></div>
+      </Row>
+      <Row className={`content-around gap-4`}>
+        <Row className="items-center gap-2">
+          {/* dot */}
+          <div
+            className="h-2 w-2 rounded-full"
+            style={{
+              backgroundColor: '#abc4ff'
+            }}
+          ></div>
+          <div className="w-18 text-[#abc4ff] text-sm mobile:text-xs">Trade Fee</div>
+          <div className="text-sm">{toPercentString(apr?.itemList[0])}</div>
+        </Row>
+        {clmmInfo?.rewardInfos.map(({ tokenMint }, idx) => {
+          const token = getToken(tokenMint)
+          const dotColor = aprLineColors[1 + idx]
+          const rewardApr = apr?.itemList[1 + idx]
+          return (
+            <Row className="items-center gap-2" key={toPubString(token?.mint)}>
+              {/* dot */}
+              <div
+                className="h-2 w-2 rounded-full"
+                style={{
+                  backgroundColor: dotColor
+                }}
+              ></div>
+              <div className="w-18 text-[#abc4ff] text-sm mobile:text-xs">{token?.symbol}</div>
+              <div className="text-sm">{toPercentString(rewardApr)}</div>
+            </Row>
+          )
+        })}
+      </Row>
+      {/* <div>tradeFee: {toPercentString(props.tradeFee)}</div>
+      <div>ray: {toPercentString(props.ray)}</div> */}
     </Row>
   )
 }
