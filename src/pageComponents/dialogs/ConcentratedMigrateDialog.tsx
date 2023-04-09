@@ -9,7 +9,6 @@ import { isFarmInfo, isHydratedFarmInfo } from '@/application/farms/judgeFarmInf
 import { HydratedFarmInfo } from '@/application/farms/type'
 import { smashSYNLiquidity } from '@/application/liquidity/smashSYNLiquidity'
 import { HydratedLiquidityInfo } from '@/application/liquidity/type'
-import useLiquidity from '@/application/liquidity/useLiquidity'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
@@ -30,7 +29,7 @@ import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { gt, gte, lt, lte } from '@/functions/numberish/compare'
+import { gte, lte } from '@/functions/numberish/compare'
 import { add, div, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
@@ -39,7 +38,6 @@ import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
 import BN from 'bn.js'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ConcentratedModifyTooltipIcon } from '../Concentrated/ConcentratedModifyTooltipIcon'
 
 export default function ConcentratedMigrateDialog({
   info,
@@ -51,18 +49,26 @@ export default function ConcentratedMigrateDialog({
   onClose: () => void
 }) {
   const loadedHydratedClmmInfos = useCLMMMigration((s) => s.loadedHydratedClmmInfos)
-  // console.log('loadedHydratedClmmInfos: ', loadedHydratedClmmInfos)
-  const targetClmmInfo: HydratedConcentratedInfo | undefined = [...loadedHydratedClmmInfos.values()][0] // TEMP for DEV
   const migrationJsonInfos = useCLMMMigration((s) => s.jsonInfos)
-  // console.log('targetClmmInfo: ', targetClmmInfo)
-  const targetMigrationJsonInfo = targetClmmInfo && migrationJsonInfos.find((i) => i.clmmId === targetClmmInfo.idString)
-  // console.log('migrationJsonInfos: ', migrationJsonInfos)
+  const targetMigrationJsonInfo = useMemo(
+    () =>
+      migrationJsonInfos.find((i) =>
+        isFarmInfo(info) ? i.farmIds.includes(toPubString(info.id)) : i.ammId === toPubString(info.id)
+      ),
+    []
+  )
+  if (migrationJsonInfos.length > 0 && info) {
+    assert(targetMigrationJsonInfo, 'not found migration json')
+  }
+  const targetClmmInfo = useMemo(() => {
+    if (!targetMigrationJsonInfo) return
+    const allClmmInfos = [...loadedHydratedClmmInfos.values()]
+    return allClmmInfos.find((i) => toPubString(i.id) === targetMigrationJsonInfo?.clmmId)
+  }, [targetMigrationJsonInfo, loadedHydratedClmmInfos])
   if (targetClmmInfo) {
     assert(targetMigrationJsonInfo, 'not found migration json')
   }
-  // console.log('targetMigrationJsonInfo: ', targetMigrationJsonInfo)
 
-  // console.log('targetMigrationJsonInfo: ', targetMigrationJsonInfo?.lpMint)
   const [canShowMigrateDetail, { on, off, delayOff }] = useToggle()
   const isFarm = isFarmInfo(info) && isHydratedFarmInfo(info)
   const targetHydratedLiquidityInfo = useAsyncMemo(() => {
@@ -113,7 +119,16 @@ export default function ConcentratedMigrateDialog({
     <div>
       <div className="relative mb-5">
         <div className="text-white text-lg font-medium mb-3">Migrate to Concentrated Liquidity pool</div>
-        <div className="text-[#abc4ff] text-sm">Migrate below or learn more about CLMM pools and risks here.</div>
+        <div className="text-[#abc4ff] text-sm">
+          Migrate below or learn more about CLMM pools and risks{' '}
+          <Link
+            className="inline-block font-bold"
+            href="https://docs.raydium.io/raydium/pool-creation/creating-a-clmm-pool-and-farm"
+          >
+            here
+          </Link>
+          .
+        </div>
         <Icon
           heroIconName="x"
           size="lg"
@@ -167,7 +182,6 @@ function DetailPanel({
   clmmInfo: HydratedConcentratedInfo | undefined
   onMigrateSuccess?: () => void
 }) {
-  // console.log('clmmInfo: ', clmmInfo)
   const pureRawBalances = useWallet((s) => s.pureRawBalances)
   const slippage = useAppSettings((s) => s.slippageTolerance)
   const slippageNumber = Number(toString(slippage))
@@ -188,12 +202,6 @@ function DetailPanel({
   const stakedLpAmount = farmInfo
     ? farmInfo.userStakedLpAmount
     : liquidityInfo && lp && toTokenAmount(lp, pureRawBalances[toPubString(liquidityInfo.lpMint)])
-  // console.log(
-  //   'stakedLpAmount: ',
-  //   stakedLpAmount,
-  //   toString(stakedLpAmount),
-  //   liquidityInfo && toString(pureRawBalances[toPubString(liquidityInfo.lpMint)])
-  // )
   const timeBasis = useConcentrated((s) => s.timeBasis)
   const baseRatio =
     liquidityInfo &&
@@ -215,10 +223,7 @@ function DetailPanel({
       : undefined
   const price = clmmInfo?.currentPrice
   const priceRangeAutoMin = migrationJsonInfo?.defaultPriceMin
-  // console.log('migrationJsonInfo: ', migrationJsonInfo)
-  // console.log('priceRangeAutoMin: ', priceRangeAutoMin)
   const priceRangeAutoMax = migrationJsonInfo?.defaultPriceMax
-  // console.log('priceRangeAutoMax: ', priceRangeAutoMax)
 
   // min price range
   const [userInputPriceRangeMin, setUserInputPriceRangeMin, userInputPriceRangeMinSignal] = useSignalState<
@@ -230,10 +235,6 @@ function DetailPanel({
   const [isInputPriceRangeMinFoused, setIsInputPriceRangeMinFoused] = useState<boolean>(false)
   const calculatedPriceRangeMin = useRef<Numberish>()
   const calculatedPriceRangeMinTick = useRef<number>()
-
-  // useEffect(() => {
-  //   console.log('calculatedPriceRangeMinTick: ', calculatedPriceRangeMinTick)
-  // }, [calculatedPriceRangeMinTick])
 
   // max price range
   const [userInputPriceRangeMax, setUserInputPriceRangeMax, userInputPriceRangeMaxSignal] = useSignalState<
@@ -298,7 +299,6 @@ function DetailPanel({
         info: clmmInfo.state
       })
       calculatedPriceRangeMin.current = exactPrice
-      // console.log('min: ', exactTick)
       calculatedPriceRangeMinTick.current = exactTick
       setUserInputPriceRangeMin(exactPrice)
     }
@@ -311,7 +311,6 @@ function DetailPanel({
         info: clmmInfo.state
       })
       calculatedPriceRangeMax.current = exactPrice
-      // console.log('max: ', exactTick)
       calculatedPriceRangeMaxTick.current = exactTick
       setUserInputPriceRangeMax(exactPrice)
     }
@@ -343,16 +342,6 @@ function DetailPanel({
         amountSlippageBase,
         amountSlippageQuote
       }
-      // console.log('params: ', {
-      //   info: clmmInfo.state,
-      //   baseAmount: resultAmountBaseCurrentPosition,
-      //   quoteAmount: resultAmountQuoteCurrentPosition,
-      //   tickLower: calculatedPriceRangeMinTick.current,
-      //   tickUpper: calculatedPriceRangeMaxTick.current,
-      //   slippage: slippageNumber
-      // })
-      // console.log('resultBaseAmount: ', resultBaseAmount)
-      // console.log('resultQuoteAmount: ', resultQuoteAmount)
       setResultAmountBaseCLMMPool(resultBaseAmount)
       setResultAmountQuoteCLMMPool(resultQuoteAmount)
     }
