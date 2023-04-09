@@ -1173,7 +1173,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
   const logSuccess = useNotification((s) => s.logSuccess)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const migrationJsonInfo = useCLMMMigration((s) => s.jsonInfos)
-  const canMigrate = migrationJsonInfo?.some((m) => m.ammId === toPubString(farmInfo.id))
+  const canMigrate = migrationJsonInfo?.some((m) => m.lpMint === toPubString(farmInfo.lpMint))
 
   if (isJsonFarmInfo(farmInfo)) return null
   return (

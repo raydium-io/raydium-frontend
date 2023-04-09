@@ -9,11 +9,13 @@ import sdkParseJsonLiquidityInfo from './sdkParseJsonLiquidityInfo'
 import useLiquidity from './useLiquidity'
 
 /**
- * ** Dangerous **
+ * ** Dangerous (it's over bonsai system) **
  *
  * it will load liquidity without any check or refresh
  * syn -> json + sdk + hydrate
  * so, it is a function-base new load system for bonsai
+ *
+ * @todo  use lazyPromise instead of promise to avoid promise init issue
  */
 export function smashSYNLiquidity(ammIds: PublicKeyish[]) {
   let aborted = false
@@ -25,6 +27,7 @@ export function smashSYNLiquidity(ammIds: PublicKeyish[]) {
   const useConnectionStore = useConnection.getState()
   const { connection } = useConnectionStore
 
+  // sdk part
   const originalSdkParsedInfosMap = listToMap(sdkParsedInfos, (i) => toPubString(i.id))
   const checkOriginalSdkCached = (ammId: PublicKeyish) => Boolean(originalSdkParsedInfosMap[toPubString(ammId)])
   const sdkParsedInfosPromise = sdkParseJsonLiquidityInfo(
@@ -33,9 +36,10 @@ export function smashSYNLiquidity(ammIds: PublicKeyish[]) {
   ).then((sdkParsedInfos) => {
     const sdkParsedInfosMap = listToMap(sdkParsedInfos, (i) => toPubString(i.id))
     useLiquidity.setState((s) => ({ sdkParsedInfos: [...s.sdkParsedInfos, ...sdkParsedInfos] }))
-    return ammIds.map((id) => sdkParsedInfosMap[toPubString(id)] || originalSdkParsedInfosMap[toPubString(id)])
+    return { ...sdkParsedInfosMap, ...originalSdkParsedInfosMap }
   })
 
+  // hydrate part
   const hydratedInfosPromise = sdkParsedInfosPromise.then((sdkParsedInfos) => {
     if (aborted) return
     const { getLpToken, getToken } = useToken.getState()
@@ -45,7 +49,8 @@ export function smashSYNLiquidity(ammIds: PublicKeyish[]) {
     const originalHydratedInfosMap = listToMap(originalHydratedInfos, (i) => toPubString(i.id))
     const checkOriginalHydratedCached = (ammId: PublicKeyish) => Boolean(originalHydratedInfosMap[toPubString(ammId)])
 
-    const hydratedInfos = sdkParsedInfos
+    const hydratedInfos = Object.values(sdkParsedInfos)
+
       .filter((i) => !checkOriginalHydratedCached(i.id))
       .map((liquidityInfo) =>
         hydrateLiquidityInfo(liquidityInfo, {
@@ -55,9 +60,8 @@ export function smashSYNLiquidity(ammIds: PublicKeyish[]) {
         })
       )
     useLiquidity.setState((s) => ({ hydratedInfos: [...s.hydratedInfos, ...hydratedInfos] }))
-    return sdkParsedInfos.map(
-      (i) => originalHydratedInfosMap[toPubString(i.id)] || hydratedInfos.find((origin) => origin.id === i.id)
-    )
+    const hydratedInfosMap = listToMap(hydratedInfos, (i) => toPubString(i.id))
+    return { ...originalHydratedInfosMap, ...hydratedInfosMap }
   })
 
   return { abort, hydrated: hydratedInfosPromise, sdkParsed: sdkParsedInfosPromise }

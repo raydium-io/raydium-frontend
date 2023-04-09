@@ -6,6 +6,7 @@ import useAppSettings from '@/application/common/useAppSettings'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
 import { isFarmInfo, isHydratedFarmInfo } from '@/application/farms/judgeFarmInfo'
 import { HydratedFarmInfo } from '@/application/farms/type'
+import { smashSYNLiquidity } from '@/application/liquidity/smashSYNLiquidity'
 import { HydratedLiquidityInfo } from '@/application/liquidity/type'
 import useLiquidity from '@/application/liquidity/useLiquidity'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
@@ -30,6 +31,7 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { gt, gte, lt, lte } from '@/functions/numberish/compare'
 import { add, div, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
 import { useSignalState } from '@/hooks/useSignalState'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
@@ -61,11 +63,13 @@ export default function ConcentratedMigrateDialog({
   const [canShowMigrateDetail, { on, off, delayOff }] = useToggle()
   const hydratedLiquidityInfos = useLiquidity((s) => s.hydratedInfos)
   const isFarm = isFarmInfo(info) && isHydratedFarmInfo(info)
-  const targetHydratedLiquidityInfo = useMemo(() => {
+  const targetHydratedLiquidityInfo = useAsyncMemo(() => {
     if (!isFarm) return info
     if (!targetMigrationJsonInfo) return
-    return hydratedLiquidityInfos.find((i) => toPubString(i.lpMint) === toPubString(targetMigrationJsonInfo.lpMint))
-  }, [isFarm, info, targetMigrationJsonInfo, hydratedLiquidityInfos])
+    const id = toPubString(targetMigrationJsonInfo.ammId)
+    const { hydrated } = smashSYNLiquidity([id])
+    return hydrated.then((hydrateds) => hydrateds?.[id])
+  }, [isFarm, info, targetMigrationJsonInfo])
   useEffect(() => {
     useCLMMMigration.setState({
       shouldLoadedClmmIds: new Set(['2QdhepnKRTLjjSqPL1PtKNwqrUkoLee5Gqs8bvZhRdMv']) // temp for DEV
