@@ -760,10 +760,11 @@ function ModeItem({
   return (
     <div
       onClick={onClick}
-      className={`border-1.5 ${
+      className={`relative border-1.5 ${
         selected ? 'border-[#39d0d8]' : 'border-[#abc4ff40]'
       } rounded-xl py-3 px-4 bg-[#141041] cursor-pointer`}
     >
+      {selected && <Icon size="sm" className="absolute right-3 top-3" iconSrc="/icons/migrate-check-icon.svg"></Icon>}
       <div className="font-medium text-base text-white mb-1">{title}</div>
       <div className={`font-normal text-sm  ${selected ? 'text-[#ABC4FF]' : 'text-[#ABC4FF80]'}`}>{description}</div>
     </div>
