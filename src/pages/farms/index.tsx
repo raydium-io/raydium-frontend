@@ -1208,43 +1208,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
             <Row className="gap-3">
               {farmInfo.userHasStaked ? (
                 <>
-                  <Button
-                    className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
-                    disabled={(farmInfo.isClosedPool && !farmInfo.isUpcomingPool) || !hasLp}
-                    validators={[
-                      { should: !farmInfo.isClosedPool },
-                      {
-                        should: connected,
-                        forceActive: true,
-                        fallbackProps: {
-                          children: 'Connect Wallet',
-                          onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
-                        }
-                      },
-                      {
-                        should: hasLp,
-                        forceActive: true,
-                        fallbackProps: {
-                          children: 'Add Liquidity',
-                          onClick: () => routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
-                        }
-                      }
-                    ]}
-                    onClick={() => {
-                      if (connected) {
-                        useFarms.setState({
-                          isStakeDialogOpen: true,
-                          stakeDialogMode: 'deposit',
-                          currentDialogInfo: farmInfo
-                        })
-                      } else {
-                        useAppSettings.setState({ isWalletSelectorShown: true })
-                      }
-                    }}
-                  >
-                    Stake
-                  </Button>
-                  {canMigrate && (
+                  {canMigrate ? (
                     <Button
                       className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
                       onClick={() => {
@@ -1258,6 +1222,43 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                       }}
                     >
                       Migrate
+                    </Button>
+                  ) : (
+                    <Button
+                      className="frosted-glass-teal mobile:px-6 mobile:py-2 mobile:text-xs"
+                      disabled={(farmInfo.isClosedPool && !farmInfo.isUpcomingPool) || !hasLp}
+                      validators={[
+                        { should: !farmInfo.isClosedPool },
+                        {
+                          should: connected,
+                          forceActive: true,
+                          fallbackProps: {
+                            children: 'Connect Wallet',
+                            onClick: () => useAppSettings.setState({ isWalletSelectorShown: true })
+                          }
+                        },
+                        {
+                          should: hasLp,
+                          forceActive: true,
+                          fallbackProps: {
+                            children: 'Add Liquidity',
+                            onClick: () => routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
+                          }
+                        }
+                      ]}
+                      onClick={() => {
+                        if (connected) {
+                          useFarms.setState({
+                            isStakeDialogOpen: true,
+                            stakeDialogMode: 'deposit',
+                            currentDialogInfo: farmInfo
+                          })
+                        } else {
+                          useAppSettings.setState({ isWalletSelectorShown: true })
+                        }
+                      }}
+                    >
+                      Stake
                     </Button>
                   )}
                   <Tooltip>
@@ -1300,8 +1301,8 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                         children: 'Add Liquidity',
                         onClick: () => routeTo('/liquidity/add', { queryProps: { ammId: farmInfo.ammId } })
                       }
-                    },
-                    { should: !canMigrate }
+                    }
+                    // { should: !canMigrate }
                   ]}
                   onClick={() => {
                     useFarms.setState({
@@ -1359,6 +1360,22 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                 )}
               </Grid>
             </div>
+            {canMigrate && (
+              <Button
+                className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
+                onClick={() => {
+                  // TODO: load data here
+                  useConcentrated.setState({
+                    isMigrateToClmmDialogOpen: true
+                  })
+                  useFarms.setState({
+                    currentDialogInfo: farmInfo
+                  })
+                }}
+              >
+                Migrate
+              </Button>
+            )}
             <Button
               // disable={Number(info.pendingReward?.numerator) <= 0}
               className="frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"
