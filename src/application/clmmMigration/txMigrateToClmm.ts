@@ -1,23 +1,24 @@
-import assert from '@/functions/assert'
 import { AmmV3, Liquidity, ZERO } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import txHandler from '../txTools/handleTx'
-import useWallet from '../wallet/useWallet'
-import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
-import { HydratedConcentratedInfo } from '../concentrated/type'
-import useLiquidity from '../liquidity/useLiquidity'
-import toPubString from '@/functions/format/toMintString'
-import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
-import { HydratedFarmInfo } from '../farms/type'
 import BN from 'bn.js'
-import { HydratedLiquidityInfo } from '../liquidity/type'
+
+import assert from '@/functions/assert'
+import toPubString from '@/functions/format/toMintString'
+
+import { HydratedConcentratedInfo } from '../concentrated/type'
 import useConcentrated from '../concentrated/useConcentrated'
-import {
-  addWalletAccountChangeListener,
-  removeWalletAccountChangeListener
-} from '../wallet/useWalletAccountChangeListeners'
+import { HydratedFarmInfo } from '../farms/type'
 import useFarms from '../farms/useFarms'
+import { HydratedLiquidityInfo } from '../liquidity/type'
+import useLiquidity from '../liquidity/useLiquidity'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
+import txHandler from '../txTools/handleTx'
+import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
+import useWallet from '../wallet/useWallet'
+import {
+  addWalletAccountChangeListener, removeWalletAccountChangeListener
+} from '../wallet/useWalletAccountChangeListeners'
 
 export default function txMigrateToClmm({
   tickLower,
@@ -59,14 +60,14 @@ export default function txMigrateToClmm({
       clmmPoolKeys: currentClmmPool.state,
       farmInfo: farmInfo
         ? {
-            poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
-            amount: farmInfo.userStakedLpAmount?.raw ?? ZERO /* actually, will never use this  */
-          }
+          poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
+          amount: farmInfo.userStakedLpAmount?.raw ?? ZERO /* actually, will never use this  */
+        }
         : undefined,
       createPositionInfo: {
         tickLower,
         tickUpper,
-        liquidity,
+        liquidity: liquidity.mul(new BN(99)).div(new BN(100)),
         amountSlippageA,
         amountSlippageB
       },
@@ -93,7 +94,7 @@ export default function txMigrateToClmm({
       },
       txHistoryInfo: {
         title: 'Migrate To CLMM',
-        description: `remove all lp and create clmm position`
+        description: `Migrate LP to CLMM position`
       }
     })
   })
