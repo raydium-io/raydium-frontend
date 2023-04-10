@@ -549,12 +549,14 @@ function DetailPanel({
 
           <Col className="relative grow border-1.5 border-[#abc4ff40] border-dashed rounded-xl p-2 gap-1">
             <div className="absolute -top-7 text-center left-0 right-0 text-sm text-[#abc4ff]">CLMM Pool</div>
-            <Row className="justify-end items-center gap-4">
+            <Row className="justify-between items-center gap-4">
+              <CoinAvatar token={base} size="xs" />
               <div className="text-[#abc4ff] text-xs">
                 {clmmInfo ? toString(resultAmountBaseCLMMPool) || '--' : '(loading clmm)'}
               </div>
             </Row>
-            <Row className="justify-end items-center gap-4">
+            <Row className="justify-between items-center gap-4">
+              <CoinAvatar token={quote} size="xs" />
               <div className="text-[#abc4ff] text-xs">
                 {clmmInfo ? toString(resultAmountQuoteCLMMPool) || '--' : '(loading clmm)'}
               </div>
@@ -565,12 +567,14 @@ function DetailPanel({
 
           <Col className="relative grow border-1.5 border-[#abc4ff40] border-dashed rounded-xl p-2 gap-1">
             <div className="absolute -top-7 text-center left-0 right-0 text-sm text-[#abc4ff]">Wallet</div>
-            <Row className="justify-end items-center gap-4">
+            <Row className="justify-between items-center gap-4">
+              <CoinAvatar token={base} size="xs" />
               <div className="text-[#abc4ff] text-xs">
                 {clmmInfo ? toString(resultAmountBaseWallet) : '(loading clmm)'}
               </div>
             </Row>
-            <Row className="justify-end items-center gap-4">
+            <Row className="justify-between items-center gap-4">
+              <CoinAvatar token={quote} size="xs" />
               <div className="text-[#abc4ff] text-xs">
                 {clmmInfo ? toString(resultAmountQuoteWallet) : '(loading clmm)'}
               </div>
