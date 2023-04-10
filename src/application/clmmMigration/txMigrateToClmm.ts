@@ -13,6 +13,11 @@ import { HydratedFarmInfo } from '../farms/type'
 import BN from 'bn.js'
 import { HydratedLiquidityInfo } from '../liquidity/type'
 import useConcentrated from '../concentrated/useConcentrated'
+import {
+  addWalletAccountChangeListener,
+  removeWalletAccountChangeListener
+} from '../wallet/useWalletAccountChangeListeners'
+import useFarms from '../farms/useFarms'
 
 export default function txMigrateToClmm({
   tickLower,
@@ -71,7 +76,21 @@ export default function txMigrateToClmm({
         owner
       }
     })
+    const listenerId = addWalletAccountChangeListener(
+      () => {
+        useFarms.getState().refreshFarmInfos()
+      },
+      { once: true }
+    )
     transactionCollector.add(innerTransactions, {
+      onTxError: () => removeWalletAccountChangeListener(listenerId),
+      onTxSentError: () => removeWalletAccountChangeListener(listenerId),
+      onTxAllSuccess: () => {
+        setTimeout(() => {
+          useFarms.getState().refreshFarmInfos()
+          removeWalletAccountChangeListener(listenerId)
+        }, 1000)
+      },
       txHistoryInfo: {
         title: 'Migrate To CLMM',
         description: `remove all lp and create clmm position`

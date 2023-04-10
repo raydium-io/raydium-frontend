@@ -1363,6 +1363,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
             {canMigrate && (
               <Button
                 className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
+                validators={{ should: gt(farmInfo.userStakedLpAmount, 0) }}
                 onClick={() => {
                   // TODO: load data here
                   useConcentrated.setState({

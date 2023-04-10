@@ -57,17 +57,17 @@ export default function ConcentratedMigrateDialog({
       ),
     []
   )
-  if (migrationJsonInfos.length > 0 && info) {
-    assert(targetMigrationJsonInfo, 'not found migration json')
-  }
+  // if (migrationJsonInfos.length > 0 && info) {
+  //   assert(targetMigrationJsonInfo, 'not found migration json')
+  // }
   const targetClmmInfo = useMemo(() => {
     if (!targetMigrationJsonInfo) return
     const allClmmInfos = [...loadedHydratedClmmInfos.values()]
     return allClmmInfos.find((i) => toPubString(i.id) === targetMigrationJsonInfo?.clmmId)
   }, [targetMigrationJsonInfo, loadedHydratedClmmInfos])
-  if (targetClmmInfo) {
-    assert(targetMigrationJsonInfo, 'not found migration json')
-  }
+  // if (targetClmmInfo) {
+  //   assert(targetMigrationJsonInfo, 'not found migration json')
+  // }
 
   const [canShowMigrateDetail, { on, off, delayOff }] = useToggle()
   const isFarm = isFarmInfo(info) && isHydratedFarmInfo(info)
