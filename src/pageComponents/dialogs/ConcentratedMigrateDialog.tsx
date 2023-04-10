@@ -229,10 +229,10 @@ function DetailPanel({
   // min price range
   const [userInputPriceRangeMin, setUserInputPriceRangeMin, userInputPriceRangeMinSignal] = useSignalState<
     Numberish | undefined
-  >(priceRangeAutoMin)
+  >(mul(price, 0.85))
   useEffect(() => {
-    setUserInputPriceRangeMin(priceRangeAutoMin)
-  }, [priceRangeAutoMin])
+    setUserInputPriceRangeMin(mul(price, 0.85))
+  }, [price])
   const [isInputPriceRangeMinFoused, setIsInputPriceRangeMinFoused] = useState<boolean>(false)
   const calculatedPriceRangeMin = useRef<Numberish>()
   const calculatedPriceRangeMinTick = useRef<number>()
@@ -240,10 +240,10 @@ function DetailPanel({
   // max price range
   const [userInputPriceRangeMax, setUserInputPriceRangeMax, userInputPriceRangeMaxSignal] = useSignalState<
     Numberish | undefined
-  >(priceRangeAutoMax)
+  >(mul(price, 1.15))
   useEffect(() => {
-    setUserInputPriceRangeMax(priceRangeAutoMax)
-  }, [priceRangeAutoMax])
+    setUserInputPriceRangeMax(mul(price, 1.15))
+  }, [price])
   const [isInputPriceRangeMaxFoused, setIsInputPriceRangeMaxFoused] = useState<boolean>(false)
   const calculatedPriceRangeMax = useRef<Numberish>()
   const calculatedPriceRangeMaxTick = useRef<number>()
