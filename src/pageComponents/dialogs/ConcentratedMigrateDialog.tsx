@@ -248,9 +248,6 @@ function DetailPanel({
   const calculatedPriceRangeMax = useRef<Numberish>()
   const calculatedPriceRangeMaxTick = useRef<number>()
 
-  // price range valid flagy
-  const [isPriceRangeInRange, setIsPriceRangeInRange] = useState<boolean>(true)
-
   // result amount panels
   const resultAmountBaseCurrentPosition = stakedBaseAmount
   const resultAmountQuoteCurrentPosition = stakedQuoteAmount
@@ -295,6 +292,14 @@ function DetailPanel({
       userInputPriceRangeMin && gt(userInputPriceRangeMin, 0) ? div(1, userInputPriceRangeMin) : userInputPriceRangeMin
     )
   })
+  const isPriceRangeInRange = useMemo(
+    () =>
+      price &&
+      userInputPriceRangeMin &&
+      userInputPriceRangeMax &&
+      checkIsInRange(priceRangeMode === 'base' ? price : div(1, price), userInputPriceRangeMin, userInputPriceRangeMax),
+    [price, priceRangeMode, userInputPriceRangeMin, userInputPriceRangeMax]
+  )
 
   useEffect(() => {
     if (!clmmInfo || !price) return
@@ -321,16 +326,6 @@ function DetailPanel({
       calculatedPriceRangeMax.current = exactPrice
       calculatedPriceRangeMaxTick.current = exactTick
       setUserInputPriceRangeMax(exactPrice)
-    }
-
-    // verify in range
-    if (calculatedPriceRangeMin.current != null && calculatedPriceRangeMax.current != null) {
-      const isInRange = checkIsInRange(
-        priceRangeMode === 'base' ? price : div(1, price),
-        calculatedPriceRangeMin.current,
-        calculatedPriceRangeMax.current
-      )
-      setIsPriceRangeInRange(isInRange)
     }
 
     // calc result amount
