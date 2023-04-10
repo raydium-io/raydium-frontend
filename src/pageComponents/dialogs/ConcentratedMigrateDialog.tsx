@@ -70,7 +70,8 @@ export default function ConcentratedMigrateDialog({
   //   assert(targetMigrationJsonInfo, 'not found migration json')
   // }
 
-  const [canShowMigrateDetail, { on, off, delayOff }] = useToggle()
+  // const [canShowMigrateDetail, { on, off, delayOff }] = useToggle()
+  const canShowMigrateDetail = true // 💬 force
   const isFarm = isFarmInfo(info) && isHydratedFarmInfo(info)
   const targetHydratedLiquidityInfo = useAsyncMemo(() => {
     if (!isFarm) return info
@@ -105,9 +106,7 @@ export default function ConcentratedMigrateDialog({
 
       <div className="self-stretch">
         <Col>
-          <Button className="text-[#ABC4FF] frosted-glass-teal" onClick={on}>
-            Migrate
-          </Button>
+          <Button className="text-[#ABC4FF] frosted-glass-teal">Migrate</Button>
           <Button className="text-[#ABC4FF] text-sm -mb-4" type="text" onClick={closeDialog}>
             Not now
           </Button>
@@ -152,7 +151,7 @@ export default function ConcentratedMigrateDialog({
       placement="from-bottom"
       open={open}
       onClose={() => {
-        delayOff()
+        // delayOff()
         onClose()
       }}
     >
