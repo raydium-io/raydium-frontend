@@ -123,7 +123,7 @@ export default function ConcentratedMigrateDialog({
           Migrate below or learn more about CLMM pools and risks{' '}
           <Link
             className="inline-block font-bold"
-            href="https://docs.raydium.io/raydium/pool-creation/creating-a-clmm-pool-and-farm"
+            href="https://docs.raydium.io/raydium/liquidity-providers/providing-concentrated-liquidity-clmm"
           >
             here
           </Link>
@@ -589,7 +589,7 @@ function DetailPanel({
             </Row>
           </Col>
         </Row>
-        {farmInfo && (
+        {farmInfo && farmInfo.rewards.some((i) => gt(i.userPendingReward, 0)) && (
           <div className="text-[#abc4ff] text-sm mt-2">
             * Migrating will also harvest{' '}
             <span className="font-bold">
