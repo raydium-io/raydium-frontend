@@ -187,6 +187,9 @@ function DetailPanel({
   const slippageNumber = Number(toString(slippage))
   const [isTxProcessing, { on: turnOnTxProcessing, off: turnOffTxProcessing }] = useToggle()
 
+  const [mode, setMode] = useState<'quick' | 'custom'>('quick')
+  const [priceRangeMode, setPriceRangeMode] = useState<'base' | 'quote'>('base')
+
   const fee = useMemo(() => {
     const tradeFeeRate =
       clmmInfo &&
@@ -222,8 +225,14 @@ function DetailPanel({
       ? toTokenAmount(quote, mul(stakedLpAmount, quoteRatio), { alreadyDecimaled: true })
       : undefined
   const price = clmmInfo?.currentPrice // always quote/base
-  const priceRangeAutoMin = migrationJsonInfo?.defaultPriceMin
-  const priceRangeAutoMax = migrationJsonInfo?.defaultPriceMax
+  const priceRangeAutoMin =
+    priceRangeMode === 'base' && migrationJsonInfo
+      ? migrationJsonInfo.defaultPriceMin
+      : 1 / migrationJsonInfo!.defaultPriceMax
+  const priceRangeAutoMax =
+    priceRangeMode === 'base' && migrationJsonInfo
+      ? migrationJsonInfo.defaultPriceMax
+      : 1 / migrationJsonInfo!.defaultPriceMin
 
   // min price range
   const [userInputPriceRangeMin, setUserInputPriceRangeMin, userInputPriceRangeMinSignal] = useSignalState<
@@ -280,8 +289,9 @@ function DetailPanel({
     amountSlippageQuote: BN
   }>()
 
-  const [mode, setMode] = useState<'quick' | 'custom'>('quick')
-  const [priceRangeMode, setPriceRangeMode] = useState<'base' | 'quote'>('base')
+  const modedPriceRangeMin = () => (mode === 'quick' ? priceRangeAutoMin : userInputPriceRangeMinSignal())
+  const modedPriceRangeMax = () => (mode === 'quick' ? priceRangeAutoMax : userInputPriceRangeMaxSignal())
+
   const switchPriceRangeMode = useEvent(() => {
     setPriceRangeMode(priceRangeMode === 'base' ? 'quote' : 'base')
     setUserInputPriceRangeMin(
@@ -311,27 +321,31 @@ function DetailPanel({
     if (!clmmInfo || !price) return
 
     // calc min
-    if (!isInputPriceRangeMinFoused && gt(userInputPriceRangeMinSignal(), 0)) {
+    if (!isInputPriceRangeMinFoused && gt(modedPriceRangeMin(), 0)) {
       const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
         baseSide: priceRangeMode,
-        price: userInputPriceRangeMinSignal()!,
+        price: modedPriceRangeMin()!,
         info: clmmInfo.state
       })
       calculatedPriceRangeMin.current = exactPrice
       calculatedPriceRangeMinTick.current = exactTick
-      setUserInputPriceRangeMin(exactPrice)
+      if (mode === 'custom') {
+        setUserInputPriceRangeMin(exactPrice)
+      }
     }
 
     // calc max
-    if (!isInputPriceRangeMaxFoused && gt(userInputPriceRangeMaxSignal(), 0)) {
+    if (!isInputPriceRangeMaxFoused && gt(modedPriceRangeMax(), 0)) {
       const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
         baseSide: priceRangeMode,
-        price: userInputPriceRangeMaxSignal()!,
+        price: modedPriceRangeMax()!,
         info: clmmInfo.state
       })
       calculatedPriceRangeMax.current = exactPrice
       calculatedPriceRangeMaxTick.current = exactTick
-      setUserInputPriceRangeMax(exactPrice)
+      if (mode === 'custom') {
+        setUserInputPriceRangeMax(exactPrice)
+      }
     }
 
     // fix tick zero division bug, so min tick can't be the same as max tick
@@ -450,13 +464,8 @@ function DetailPanel({
         {mode === 'quick' && (
           <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
             <div className="text-[#abc4ff] font-medium text-sm">
-              {priceRangeMode === 'base'
-                ? `${priceRangeAutoMin ? Math.round(priceRangeAutoMin) : '--'} - ${
-                    priceRangeAutoMax ? Math.round(priceRangeAutoMax) : '--'
-                  }`
-                : `${priceRangeAutoMax ? Math.round(1 / priceRangeAutoMax) : '--'} - ${
-                    priceRangeAutoMin ? Math.round(1 / priceRangeAutoMin) : '--'
-                  }`}
+              {priceRangeAutoMin ? Math.round(priceRangeAutoMin) : '--'} -{' '}
+              {priceRangeAutoMax ? Math.round(priceRangeAutoMax) : '--'}
             </div>
             <Row className="items-center gap-2">
               <div className="text-[#abc4ff80] text-sm font-medium">
