@@ -72,7 +72,7 @@ export default async function txFarmDeposit(
       onTxError: () => removeWalletAccountChangeListener(listenerId),
       onTxSentError: () => removeWalletAccountChangeListener(listenerId),
       txHistoryInfo: {
-        title: `Stake ${options.amount.token.symbol}`,
+        title: `Add ${options.amount.token.symbol}`,
         description: `Stake ${options.amount.toExact()} ${options.amount.token.symbol}`
       }
     })

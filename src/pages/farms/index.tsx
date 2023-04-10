@@ -1360,23 +1360,6 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
                 )}
               </Grid>
             </div>
-            {canMigrate && (
-              <Button
-                className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
-                validators={{ should: gt(farmInfo.userStakedLpAmount, 0) }}
-                onClick={() => {
-                  // TODO: load data here
-                  useConcentrated.setState({
-                    isMigrateToClmmDialogOpen: true
-                  })
-                  useFarms.setState({
-                    currentDialogInfo: farmInfo
-                  })
-                }}
-              >
-                Migrate
-              </Button>
-            )}
             <Button
               // disable={Number(info.pendingReward?.numerator) <= 0}
               className="frosted-glass-teal rounded-xl mobile:w-full mobile:py-2 mobile:text-xs whitespace-nowrap"
