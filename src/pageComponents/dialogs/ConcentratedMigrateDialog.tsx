@@ -334,6 +334,16 @@ function DetailPanel({
       setUserInputPriceRangeMax(exactPrice)
     }
 
+    // fix tick zero division bug, so min tick can't be the same as max tick
+    if (
+      calculatedPriceRangeMinTick.current &&
+      calculatedPriceRangeMaxTick.current &&
+      calculatedPriceRangeMaxTick.current === calculatedPriceRangeMinTick.current
+    ) {
+      calculatedPriceRangeMinTick.current -= 1
+      calculatedPriceRangeMaxTick.current += 1
+    }
+
     // calc result amount
     if (
       resultAmountBaseCurrentPosition &&
