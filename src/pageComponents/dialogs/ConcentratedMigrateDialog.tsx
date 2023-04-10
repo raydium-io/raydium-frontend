@@ -29,10 +29,11 @@ import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { gte, lte } from '@/functions/numberish/compare'
+import { gt, gte, lte } from '@/functions/numberish/compare'
 import { add, div, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
+import { useEvent } from '@/hooks/useEvent'
 import { useSignalState } from '@/hooks/useSignalState'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
@@ -55,7 +56,7 @@ export default function ConcentratedMigrateDialog({
       migrationJsonInfos.find((i) =>
         isFarmInfo(info) ? i.farmIds.includes(toPubString(info.id)) : i.ammId === toPubString(info.id)
       ),
-    []
+    [migrationJsonInfos, info]
   )
   // if (migrationJsonInfos.length > 0 && info) {
   //   assert(targetMigrationJsonInfo, 'not found migration json')
@@ -221,7 +222,7 @@ function DetailPanel({
     stakedLpAmount && quoteRatio
       ? toTokenAmount(quote, mul(stakedLpAmount, quoteRatio), { alreadyDecimaled: true })
       : undefined
-  const price = clmmInfo?.currentPrice
+  const price = clmmInfo?.currentPrice // always quote/base
   const priceRangeAutoMin = migrationJsonInfo?.defaultPriceMin
   const priceRangeAutoMax = migrationJsonInfo?.defaultPriceMax
 
@@ -282,11 +283,18 @@ function DetailPanel({
     amountSlippageBase: BN
     amountSlippageQuote: BN
   }>()
-  const aprTradeFees = 0.1
-  const aprRay = 0.074
 
   const [mode, setMode] = useState<'quick' | 'custom'>('quick')
   const [priceRangeMode, setPriceRangeMode] = useState<'base' | 'quote'>('base')
+  const switchPriceRangeMode = useEvent(() => {
+    setPriceRangeMode(priceRangeMode === 'base' ? 'quote' : 'base')
+    setUserInputPriceRangeMin(
+      userInputPriceRangeMax && gt(userInputPriceRangeMax, 0) ? div(1, userInputPriceRangeMax) : userInputPriceRangeMax
+    )
+    setUserInputPriceRangeMax(
+      userInputPriceRangeMin && gt(userInputPriceRangeMin, 0) ? div(1, userInputPriceRangeMin) : userInputPriceRangeMin
+    )
+  })
 
   useEffect(() => {
     if (!clmmInfo || !price) return
@@ -317,7 +325,11 @@ function DetailPanel({
 
     // verify in range
     if (calculatedPriceRangeMin.current != null && calculatedPriceRangeMax.current != null) {
-      const isInRange = checkIsInRange(clmmInfo, calculatedPriceRangeMin.current, calculatedPriceRangeMax.current)
+      const isInRange = checkIsInRange(
+        priceRangeMode === 'base' ? price : div(1, price),
+        calculatedPriceRangeMin.current,
+        calculatedPriceRangeMax.current
+      )
       setIsPriceRangeInRange(isInRange)
     }
 
@@ -396,9 +408,13 @@ function DetailPanel({
           </Row>
           <Row className="items-center gap-2">
             <div className="text-[#abc4ff80] text-sm font-medium">Current price: </div>
-            <div className="text-[#abc4ff] text-base font-medium">{toString(price)}</div>
+            <div className="text-[#abc4ff] text-base font-medium">
+              {toString(priceRangeMode === 'base' ? price : div(1, price))}
+            </div>
             <div className="text-[#abc4ff80] text-xs font-medium">
-              {quote?.symbol ?? '--'} per {base?.symbol ?? '--'}
+              {priceRangeMode === 'base'
+                ? `${quote?.symbol ?? '--'} per ${base?.symbol ?? '--'}`
+                : `${base?.symbol ?? '--'} per ${quote?.symbol ?? '--'}`}
             </div>
           </Row>
         </Row>
@@ -414,8 +430,8 @@ function DetailPanel({
               { label: `${quote?.symbol ?? '--'} price`, value: 'quote' }
             ]}
             selectedValue={priceRangeMode}
-            onChange={({ value }) => {
-              setPriceRangeMode(value as 'base' | 'quote')
+            onChange={() => {
+              switchPriceRangeMode()
             }}
           ></RectTabs>
         </Row>
@@ -423,11 +439,11 @@ function DetailPanel({
           <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
             <div className="text-[#abc4ff] font-medium text-sm">
               {priceRangeMode === 'base'
-                ? `${priceRangeAutoMin && Math.round(priceRangeAutoMin)} - ${
-                    priceRangeAutoMax && Math.round(priceRangeAutoMax)
+                ? `${priceRangeAutoMin ? Math.round(priceRangeAutoMin) : '--'} - ${
+                    priceRangeAutoMax ? Math.round(priceRangeAutoMax) : '--'
                   }`
-                : `${priceRangeAutoMax && Math.round(1 / priceRangeAutoMax)} - ${
-                    priceRangeAutoMin && Math.round(1 / priceRangeAutoMin)
+                : `${priceRangeAutoMax ? Math.round(1 / priceRangeAutoMax) : '--'} - ${
+                    priceRangeAutoMin ? Math.round(1 / priceRangeAutoMin) : '--'
                   }`}
             </div>
             <Row className="items-center gap-2">
@@ -444,7 +460,9 @@ function DetailPanel({
             <Grid className="grid-cols-2-fr gap-3">
               <Row
                 className={`border-1.5 ${
-                  isPriceRangeInRange ? 'border-[#abc4ff40]' : 'border-[#DA2EEF]'
+                  isPriceRangeInRange && gt(userInputPriceRangeMax, userInputPriceRangeMin)
+                    ? 'border-[#abc4ff40]'
+                    : 'border-[#DA2EEF]'
                 } rounded-xl py-2 px-4 justify-between items-center`}
               >
                 <div className="text-[#abc4ff80] text-sm">Min</div>
@@ -466,7 +484,9 @@ function DetailPanel({
               </Row>
               <Row
                 className={`border-1.5 ${
-                  isPriceRangeInRange ? 'border-[#abc4ff40]' : 'border-[#DA2EEF]'
+                  isPriceRangeInRange && gt(userInputPriceRangeMax, userInputPriceRangeMin)
+                    ? 'border-[#abc4ff40]'
+                    : 'border-[#DA2EEF]'
                 } rounded-xl py-2 px-4 justify-between items-center`}
               >
                 <div className="text-[#abc4ff80] text-sm">Max</div>
@@ -487,9 +507,11 @@ function DetailPanel({
                 />
               </Row>
             </Grid>
-            {!isPriceRangeInRange && (
+            {!gt(userInputPriceRangeMax, userInputPriceRangeMin) ? (
+              <div className="text-[#da2eef] text-sm mt-1">This range is invalid.</div>
+            ) : !isPriceRangeInRange ? (
               <div className="text-[#da2eef] text-sm mt-1">The current price is out of this range.</div>
-            )}
+            ) : null}
           </div>
         )}
       </div>
@@ -636,7 +658,8 @@ function DetailPanel({
               fallbackProps: {
                 children: 'loading...'
               }
-            }
+            },
+            { should: isPriceRangeInRange && gt(userInputPriceRangeMax, userInputPriceRangeMin) }
           ]}
         >
           Migrate
@@ -646,8 +669,7 @@ function DetailPanel({
   )
 }
 
-function checkIsInRange(clmmInfo: HydratedConcentratedInfo, exactPriceLower: Numberish, exactPriceUpper: Numberish) {
-  const currentPrice = decimalToFraction(clmmInfo.state.currentPrice)
+function checkIsInRange(currentPrice: Numberish, exactPriceLower: Numberish, exactPriceUpper: Numberish) {
   return gte(currentPrice, exactPriceLower) && lte(currentPrice, exactPriceUpper)
 }
 
