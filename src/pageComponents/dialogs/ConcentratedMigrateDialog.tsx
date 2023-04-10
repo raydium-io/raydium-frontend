@@ -300,12 +300,19 @@ function DetailPanel({
       checkIsInRange(priceRangeMode === 'base' ? price : div(1, price), userInputPriceRangeMin, userInputPriceRangeMax),
     [price, priceRangeMode, userInputPriceRangeMin, userInputPriceRangeMax]
   )
+  const isPriceRangeValid = useMemo(
+    () =>
+      gt(userInputPriceRangeMin, 0) &&
+      gt(userInputPriceRangeMax, 0) &&
+      gt(userInputPriceRangeMax, userInputPriceRangeMin),
+    [userInputPriceRangeMin, userInputPriceRangeMax]
+  )
 
   useEffect(() => {
     if (!clmmInfo || !price) return
 
     // calc min
-    if (!isInputPriceRangeMinFoused && userInputPriceRangeMinSignal()) {
+    if (!isInputPriceRangeMinFoused && gt(userInputPriceRangeMinSignal(), 0)) {
       const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
         baseSide: priceRangeMode,
         price: userInputPriceRangeMinSignal()!,
@@ -317,7 +324,7 @@ function DetailPanel({
     }
 
     // calc max
-    if (!isInputPriceRangeMaxFoused && userInputPriceRangeMaxSignal()) {
+    if (!isInputPriceRangeMaxFoused && gt(userInputPriceRangeMaxSignal(), 0)) {
       const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
         baseSide: priceRangeMode,
         price: userInputPriceRangeMaxSignal()!,
@@ -335,15 +342,16 @@ function DetailPanel({
       calculatedPriceRangeMinTick.current != null &&
       calculatedPriceRangeMaxTick.current != null
     ) {
+      const params = {
+        info: clmmInfo.state,
+        baseAmount: resultAmountBaseCurrentPosition,
+        quoteAmount: resultAmountQuoteCurrentPosition,
+        tickLower: calculatedPriceRangeMinTick.current,
+        tickUpper: calculatedPriceRangeMaxTick.current,
+        slippage: slippageNumber
+      }
       const { resultBaseAmount, resultQuoteAmount, liquidity, amountSlippageBase, amountSlippageQuote } =
-        getResultAmountByTick({
-          info: clmmInfo.state,
-          baseAmount: resultAmountBaseCurrentPosition,
-          quoteAmount: resultAmountQuoteCurrentPosition,
-          tickLower: calculatedPriceRangeMinTick.current,
-          tickUpper: calculatedPriceRangeMaxTick.current,
-          slippage: slippageNumber
-        })
+        getResultAmountByTick(params)
       otherInfoForTx.current = {
         liquidity,
         amountSlippageBase,
@@ -455,9 +463,7 @@ function DetailPanel({
             <Grid className="grid-cols-2-fr gap-3">
               <Row
                 className={`border-1.5 ${
-                  isPriceRangeInRange && gt(userInputPriceRangeMax, userInputPriceRangeMin)
-                    ? 'border-[#abc4ff40]'
-                    : 'border-[#DA2EEF]'
+                  isPriceRangeInRange && isPriceRangeValid ? 'border-[#abc4ff40]' : 'border-[#DA2EEF]'
                 } rounded-xl py-2 px-4 justify-between items-center`}
               >
                 <div className="text-[#abc4ff80] text-sm">Min</div>
@@ -479,9 +485,7 @@ function DetailPanel({
               </Row>
               <Row
                 className={`border-1.5 ${
-                  isPriceRangeInRange && gt(userInputPriceRangeMax, userInputPriceRangeMin)
-                    ? 'border-[#abc4ff40]'
-                    : 'border-[#DA2EEF]'
+                  isPriceRangeInRange && isPriceRangeValid ? 'border-[#abc4ff40]' : 'border-[#DA2EEF]'
                 } rounded-xl py-2 px-4 justify-between items-center`}
               >
                 <div className="text-[#abc4ff80] text-sm">Max</div>
@@ -502,7 +506,7 @@ function DetailPanel({
                 />
               </Row>
             </Grid>
-            {!gt(userInputPriceRangeMax, userInputPriceRangeMin) ? (
+            {!isPriceRangeValid ? (
               <div className="text-[#da2eef] text-sm mt-1">This range is invalid.</div>
             ) : !isPriceRangeInRange ? (
               <div className="text-[#da2eef] text-sm mt-1">The current price is out of this range.</div>
@@ -658,7 +662,7 @@ function DetailPanel({
                 children: 'loading...'
               }
             },
-            { should: isPriceRangeInRange && gt(userInputPriceRangeMax, userInputPriceRangeMin) }
+            { should: isPriceRangeInRange && isPriceRangeValid }
           ]}
         >
           Migrate
