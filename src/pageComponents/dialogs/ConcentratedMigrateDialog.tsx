@@ -671,7 +671,7 @@ function DetailPanel({
                 children: 'loading...'
               }
             },
-            { should: isPriceRangeInRange && isPriceRangeValid }
+            { should: isPriceRangeValid }
           ]}
         >
           Migrate
