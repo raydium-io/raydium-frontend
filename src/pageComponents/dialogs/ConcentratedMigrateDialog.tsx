@@ -43,6 +43,7 @@ import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
 import { ConcentratedModifyTooltipIcon } from '../Concentrated/ConcentratedModifyTooltipIcon'
 import { useConcentratedTickAprCalc } from '../Concentrated/useConcentratedAprCalc'
+import { twMerge } from 'tailwind-merge'
 
 export default function ConcentratedMigrateDialog({
   info,
@@ -640,6 +641,7 @@ function DetailPanel({
         </Row>
         <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
           <AprChartLine
+            className={isPriceRangeValid ? '' : 'opacity-0'}
             clmmInfo={clmmInfo}
             liquidity={calculatedPriceRangeLiquidity}
             lowerTick={calculatedPriceRangeMinTick}
@@ -701,11 +703,13 @@ function checkIsInRange(currentPrice: Numberish, exactPriceLower: Numberish, exa
 }
 
 function AprChartLine({
+  className,
   clmmInfo,
   liquidity,
   lowerTick,
   upperTick
 }: {
+  className?: string
   clmmInfo: HydratedConcentratedInfo | undefined
   liquidity?: BN
   lowerTick?: number
@@ -718,7 +722,7 @@ function AprChartLine({
   })
   const percentInTotalList = aprInfo && [aprInfo.fee.percentInTotal, ...aprInfo.rewards.map((i) => i.percentInTotal)]
   return (
-    <Row className={`gap-2 w-full justify-between text-[#fff] ${clmmInfo ? '' : 'opacity-0'}`}>
+    <Row className={twMerge(`gap-2 w-full justify-between text-[#fff] ${clmmInfo ? '' : 'opacity-0'}`, className)}>
       <Row className="items-center gap-2">
         <div>{toPercentString(aprInfo?.apr)}</div>
         <div
