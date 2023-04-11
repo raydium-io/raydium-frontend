@@ -17,7 +17,8 @@ import txHandler from '../txTools/handleTx'
 import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 import {
-  addWalletAccountChangeListener, removeWalletAccountChangeListener
+  addWalletAccountChangeListener,
+  removeWalletAccountChangeListener
 } from '../wallet/useWalletAccountChangeListeners'
 
 export default function txMigrateToClmm({
@@ -60,9 +61,9 @@ export default function txMigrateToClmm({
       clmmPoolKeys: currentClmmPool.state,
       farmInfo: farmInfo
         ? {
-          poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
-          amount: farmInfo.userStakedLpAmount?.raw ?? ZERO /* actually, will never use this  */
-        }
+            poolKeys: jsonInfo2PoolKeys(farmInfo.jsonInfo),
+            amount: farmInfo.userStakedLpAmount?.raw ?? ZERO /* actually, will never use this  */
+          }
         : undefined,
       createPositionInfo: {
         tickLower,
@@ -75,7 +76,8 @@ export default function txMigrateToClmm({
       userKeys: {
         tokenAccounts: tokenAccountRawInfos,
         owner
-      }
+      },
+      computeBudgetConfig: await getComputeBudgetConfig()
     })
     const listenerId = addWalletAccountChangeListener(
       () => {

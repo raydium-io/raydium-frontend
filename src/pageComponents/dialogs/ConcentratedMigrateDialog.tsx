@@ -29,6 +29,7 @@ import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, lte } from '@/functions/numberish/compare'
 import { add, div, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
@@ -179,7 +180,7 @@ function DetailPanel({
   liquidityInfo?: HydratedLiquidityInfo
   farmInfo?: HydratedFarmInfo
   migrationJsonInfo?: CLMMMigrationJSON
-  clmmInfo: HydratedConcentratedInfo | undefined
+  clmmInfo?: HydratedConcentratedInfo
   onMigrateSuccess?: () => void
 }) {
   const pureRawBalances = useWallet((s) => s.pureRawBalances)
@@ -199,23 +200,42 @@ function DetailPanel({
     return toPercentString(tradeFeeRate, { fixed: 4, alreadyPercented: true })
   }, [clmmInfo])
 
-  const base = liquidityInfo?.baseToken
-  const quote = liquidityInfo?.quoteToken
   const lp = liquidityInfo?.lpToken
   const stakedLpAmount = farmInfo
     ? farmInfo.userStakedLpAmount
     : liquidityInfo && lp && toTokenAmount(lp, pureRawBalances[toPubString(liquidityInfo.lpMint)])
   const timeBasis = useConcentrated((s) => s.timeBasis)
+
+  const isBaseQuoteReversed = useMemo(
+    () =>
+      isMintEqual(liquidityInfo?.baseMint, clmmInfo?.quote?.mint) &&
+      isMintEqual(liquidityInfo?.quoteMint, clmmInfo?.base?.mint),
+    [clmmInfo, liquidityInfo]
+  ) //! it may base-quote in lp/liquidity, but quote-base in clmm
+  const base = useMemo(
+    () => (isBaseQuoteReversed ? liquidityInfo?.quoteToken : liquidityInfo?.baseToken),
+    [liquidityInfo, isBaseQuoteReversed]
+  )
+  const quote = useMemo(
+    () => (isBaseQuoteReversed ? liquidityInfo?.baseToken : liquidityInfo?.quoteToken),
+    [liquidityInfo, isBaseQuoteReversed]
+  )
   const baseRatio =
     liquidityInfo &&
     lp &&
     base &&
-    div(toTokenAmount(base, liquidityInfo.baseReserve), toTokenAmount(lp, liquidityInfo.lpSupply))
+    div(
+      toTokenAmount(base, isBaseQuoteReversed ? liquidityInfo.quoteReserve : liquidityInfo.baseReserve),
+      toTokenAmount(lp, liquidityInfo.lpSupply)
+    )
   const quoteRatio =
     liquidityInfo &&
     lp &&
     quote &&
-    div(toTokenAmount(quote, liquidityInfo.quoteReserve), toTokenAmount(lp, liquidityInfo.lpSupply))
+    div(
+      toTokenAmount(quote, isBaseQuoteReversed ? liquidityInfo.baseReserve : liquidityInfo.quoteReserve),
+      toTokenAmount(lp, liquidityInfo.lpSupply)
+    )
   const stakedBaseAmount =
     stakedLpAmount && baseRatio
       ? toTokenAmount(base, mul(stakedLpAmount, baseRatio), { alreadyDecimaled: true })
