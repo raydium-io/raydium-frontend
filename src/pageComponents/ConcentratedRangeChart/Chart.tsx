@@ -115,6 +115,7 @@ export default forwardRef(function Chart(props: Props, ref) {
   const xAxisRef = useRef<number[]>([])
   const blurRef = useRef<number | undefined>()
   const blurTimerRef = useRef<number | undefined>()
+  const updateRef = useRef<() => void | undefined>()
   const chartRef = useRef<any>()
   const autoZoomQueueRef = useRef<undefined | (() => void)>()
   const xAxisDomainRef = useRef<number[]>([0, 100])
@@ -302,6 +303,7 @@ export default forwardRef(function Chart(props: Props, ref) {
     setIsMoving(false)
     moveRef.current = ''
     autoZoomQueueRef.current?.()
+    updateRef.current?.()
   }, [])
   const handleMouseDown = (side: Range) => () => {
     if (moveRef.current) return
@@ -349,12 +351,24 @@ export default forwardRef(function Chart(props: Props, ref) {
     const [minMultiplier, maxMultiplier] = [1 - diff, 1 + diff]
     xAxisDomainRef.current[isMin ? 0 : 1] = val * (isMin ? minMultiplier : maxMultiplier)
     setXAxisDomain(xAxisDomainRef.current)
+    extendDisplay({ min: xAxisDomainRef.current[0], max: xAxisDomainRef.current[1] })
   })
 
   const debounceUpdate = useCallback(
-    ({ side, zoomArea, ...pos }: { min: number; max: number; side: Range | string; zoomArea?: boolean }) => {
+    ({
+      side,
+      zoomArea,
+      queue,
+      ...pos
+    }: {
+      min: number
+      max: number
+      side: Range | string
+      zoomArea?: boolean
+      queue?: boolean
+    }) => {
       timer && clearTimeout(timer)
-      timer = window.setTimeout(() => {
+      const updateFunc = () => {
         const res = onPositionChange?.(pos)
         if (!res) return
         const [newMin, newMax] = [
@@ -386,7 +400,15 @@ export default forwardRef(function Chart(props: Props, ref) {
           }))
           autoZoom({ val: newMax, side: Range.Max, queue: !!moveRef.current })
         }
-      }, 100)
+      }
+      if (queue) {
+        updateRef.current = () => {
+          updateFunc()
+          updateRef.current = undefined
+        }
+        return
+      }
+      timer = window.setTimeout(updateFunc, 100)
     },
     [onPositionChange, autoZoom]
   )
@@ -416,7 +438,7 @@ export default forwardRef(function Chart(props: Props, ref) {
             [Range.Max]:
               (newRight >= xMax && newRight > pos[Range.Max]) || newRight <= pos[Range.Min] ? pos[Range.Max] : newRight
           }
-          debounceUpdate({ ...newPos, side })
+          debounceUpdate({ ...newPos, side, queue: true })
           return newPos
         })
         return
@@ -426,16 +448,16 @@ export default forwardRef(function Chart(props: Props, ref) {
         // when min line > max line
         if (moveRef.current === Range.Min && val >= pos[Range.Max]) {
           moveRef.current = Range.Max
-          debounceUpdate({ ...pos, [moveRef.current]: val, side: Range.Max })
+          debounceUpdate({ ...pos, [moveRef.current]: val, side: Range.Max, queue: true })
           return { ...pos, [Range.Max]: val }
         }
         // when max line < min line
         if (moveRef.current === Range.Max && val <= pos[Range.Min]) {
           moveRef.current = Range.Min
-          debounceUpdate({ ...pos, [moveRef.current]: val, side: Range.Min })
+          debounceUpdate({ ...pos, [moveRef.current]: val, side: Range.Min, queue: true })
           return { ...pos, [Range.Min]: val }
         }
-        debounceUpdate({ ...pos, [moveRef.current]: val, side })
+        debounceUpdate({ ...pos, [moveRef.current]: val, side, queue: true })
         return { ...pos, [moveRef.current]: val }
       })
     },

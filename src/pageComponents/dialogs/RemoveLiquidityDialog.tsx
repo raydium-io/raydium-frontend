@@ -100,10 +100,12 @@ export function RemoveLiquidityDialog({
                 }
               ]}
               onClick={() => {
-                txRemoveLiquidity({ ammId: hydratedInfo?.id }).then(() => {
-                  useLiquidity.setState({ removeAmount: '' })
-                  setAmountIsNegative(false)
-                  setAmountIsOutOfMax(false)
+                txRemoveLiquidity({
+                  ammId: hydratedInfo?.id,
+                  onTxSuccess() {
+                    setAmountIsNegative(false)
+                    setAmountIsOutOfMax(false)
+                  }
                 })
               }}
             >

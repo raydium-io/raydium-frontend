@@ -9,7 +9,10 @@ import { PublicKeyish } from '@/types/constants'
 
 import useLiquidity from './useLiquidity'
 
-export default function txRemoveLiquidity({ ammId: targetAmmId }: { ammId?: PublicKeyish } = {}) {
+export default function txRemoveLiquidity({
+  ammId: targetAmmId,
+  onTxSuccess
+}: { ammId?: PublicKeyish; onTxSuccess?(): void } = {}) {
   return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
     assert(targetAmmId, 'should provide ammId to remove liquidity')
 
@@ -42,6 +45,7 @@ export default function txRemoveLiquidity({ ammId: targetAmmId }: { ammId?: Publ
         description: `Remove  ${removeTokenAmount.toExact()} ${lpToken.symbol}`
       },
       onTxSuccess: () => {
+        onTxSuccess?.()
         useLiquidity.setState({ removeAmount: '', isRemoveDialogOpen: false })
       }
     })
