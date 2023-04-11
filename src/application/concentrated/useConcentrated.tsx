@@ -101,6 +101,7 @@ export type ConcentratedStore = {
   isRemoveDialogOpen: boolean
   isAddDialogOpen: boolean
   isMyPositionDialogOpen: boolean
+  isMigrateToClmmDialogOpen: boolean
   isAprCalcPanelShown: boolean
   ownedPoolOnly: boolean
 
@@ -169,6 +170,7 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
   isAddDialogOpen: false,
   isRemoveDialogOpen: false,
   isMyPositionDialogOpen: false,
+  isMigrateToClmmDialogOpen: false,
   isAprCalcPanelShown: false,
   ownedPoolOnly: false,
 
@@ -186,10 +188,8 @@ export const useConcentrated = create<ConcentratedStore>((set, get) => ({
     set({ chartPoints: chartResponse.data })
   },
   scrollToInputBox: () => {},
-  refreshCount: 0,
+  refreshCount: 1,
   refreshConcentrated: () => {
-    // will auto refresh wallet
-    // refresh sdk parsed
     set({
       refreshCount: get().refreshCount + 1
     })

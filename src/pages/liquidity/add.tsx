@@ -60,6 +60,10 @@ import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
 import { NewCompensationBanner } from '../pools'
+import useConcentrated from '@/application/concentrated/useConcentrated'
+import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
+import { shouldLiquidityOrFarmBeenMigrate } from '@/application/clmmMigration/shouldLiquidityOrFarmBeenMigrate'
+import { useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -823,10 +827,10 @@ function UserLiquidityExhibition() {
   const scrollToInputBox = useLiquidity((s) => s.scrollToInputBox)
   const farmPoolsList = useFarms((s) => s.hydratedInfos)
   const getToken = useToken((s) => s.getToken)
-
   const balances = useWallet((s) => s.balances)
   const rawBalances = useWallet((s) => s.rawBalances)
   const isMobile = useAppSettings((s) => s.isMobile)
+  const migrationJsonInfo = useCLMMMigration((s) => s.jsonInfos)
 
   const computeSharePercentValue = (percent: Percent | undefined) => {
     if (!percent) return '--%'
@@ -839,18 +843,23 @@ function UserLiquidityExhibition() {
     [hydratedInfos, userExhibitionLiquidityIds]
   )
 
+  const isMigrateToClmmDialogOpen = useConcentrated((s) => s.isMigrateToClmmDialogOpen)
+  // just for clmm migrate dialog prop, the dialog prop style is not the same as lp unstake dialog, so unstake dialog's design is wrong. But can't change this component now.
+  const currentHydratedInfo = useLiquidity((s) => s.currentHydratedInfo)
+
   return (
     <div className="mt-12 max-w-[456px] self-center">
       <div className="mb-6 text-xl font-medium text-white">Your Liquidity</div>
       <Card className="p-6 mt-6 mobile:py-5 mobile:px-3 bg-cyberpunk-card-bg" size="lg">
         <List className={`flex flex-col gap-6 mobile:gap-5 ${exhibitionInfos.length ? 'mb-5' : ''}`}>
           {exhibitionInfos.map((info, idx) => {
+            const canMigrate = migrationJsonInfo?.some((m) => m.ammId === toPubString(info.id))
             return (
               <List.Item key={idx}>
                 <FadeIn>
                   <Collapse className="ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-3xl mobile:rounded-xl">
                     <Collapse.Face>
-                      {({isOpen}) => (
+                      {({ isOpen }) => (
                         <Row className="items-center justify-between py-4 px-6 mobile:px-4">
                           <Row className="gap-2 items-center">
                             <CoinAvatarPair
@@ -876,7 +885,10 @@ function UserLiquidityExhibition() {
                         <Col className="border-t-1.5 border-[rgba(171,196,255,.5)] py-5 gap-3 ">
                           <Row className="justify-between">
                             <div className="text-xs mobile:text-2xs font-medium text-[#abc4ff]">Pooled (Base)</div>
-                            <div className="text-xs mobile:text-2xs font-medium text-white">
+                            <div
+                              className="text-xs mobile:text-2xs font-medium text-white"
+                              title={toPubString(info.baseToken?.mint)}
+                            >
                               {toString(info.userBasePooled) || '--'} {info.baseToken?.symbol}
                             </div>
                           </Row>
@@ -914,8 +926,23 @@ function UserLiquidityExhibition() {
                               scrollToInputBox()
                             }}
                           >
-                            Add Liquidity
+                            {canMigrate ? 'Add' : 'Add Liquidity'}
                           </Button>
+                          {canMigrate && (
+                            <Button
+                              className="text-base mobile:text-sm font-medium frosted-glass frosted-glass-teal rounded-xl flex-grow"
+                              onClick={() => {
+                                useLiquidity.setState({
+                                  currentJsonInfo: info.jsonInfo
+                                })
+                                useConcentrated.setState({
+                                  isMigrateToClmmDialogOpen: true
+                                })
+                              }}
+                            >
+                              Migrate
+                            </Button>
+                          )}
                           <Tooltip>
                             <Icon
                               size="smi"
@@ -975,6 +1002,16 @@ function UserLiquidityExhibition() {
             useLiquidity.setState({ isRemoveDialogOpen: false })
           }}
         />
+
+        {currentHydratedInfo && (
+          <ConcentratedMigrateDialog
+            info={currentHydratedInfo}
+            open={isMigrateToClmmDialogOpen}
+            onClose={() => {
+              useConcentrated.setState({ isMigrateToClmmDialogOpen: false })
+            }}
+          />
+        )}
 
         <div className="text-xs mobile:text-2xs font-medium text-[rgba(171,196,255,0.5)]">
           If you staked your LP tokens in a farm, unstake them to see them here

@@ -59,14 +59,12 @@ export default function useConcentratedAmmConfigInfoLoader() {
       : response?.data
     if (data) {
       useConcentrated.setState({
-        availableAmmConfigFeeOptions: Object.values(data).map((i) => {
-          return {
-            ...i,
-            original: i,
-            protocolFeeRate: toPercent(div(i.protocolFeeRate, 10 ** 4), { alreadyDecimaled: true }),
-            tradeFeeRate: toPercent(div(i.tradeFeeRate, 10 ** 4), { alreadyDecimaled: true })
-          }
-        })
+        availableAmmConfigFeeOptions: Object.values(data).map((i) => ({
+          ...i,
+          original: i,
+          protocolFeeRate: toPercent(div(i.protocolFeeRate, 10 ** 4), { alreadyDecimaled: true }),
+          tradeFeeRate: toPercent(div(i.tradeFeeRate, 10 ** 4), { alreadyDecimaled: true })
+        }))
       })
     }
   }, [inDev, ammV3ConfigsUrl])

@@ -29,7 +29,7 @@ export type FarmStore = {
 
   stakeDialogMode: 'deposit' | 'withdraw'
   isStakeDialogOpen: boolean
-  stakeDialogInfo: undefined | HydratedFarmInfo
+  currentDialogInfo: undefined | HydratedFarmInfo
   blockSlotCount: number
 
   // do not care it's value, just trigger React refresh
@@ -56,7 +56,7 @@ const useFarms = create<FarmStore>((set, get) => ({
 
   stakeDialogMode: 'deposit',
   isStakeDialogOpen: false,
-  stakeDialogInfo: undefined,
+  currentDialogInfo: undefined,
   blockSlotCount: 2,
 
   farmRefreshCount: 0,
