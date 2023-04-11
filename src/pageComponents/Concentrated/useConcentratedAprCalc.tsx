@@ -5,6 +5,7 @@ import useToken from '@/application/token/useToken'
 import { toPercent } from '@/functions/format/toPercent'
 import { div } from '@/functions/numberish/operations'
 import { objectMap } from '@/functions/objectMethods'
+import BN from 'bn.js'
 import { useMemo } from 'react'
 
 export function useConcentratedPositionAprCalc({
@@ -32,15 +33,25 @@ export function useConcentratedPositionAprCalc({
   return apr
 }
 
-export function useConcentratedTickAprCalc({ ammPool }: { ammPool: HydratedConcentratedInfo | undefined }) {
-  const tickLower = useConcentrated((s) => s.priceLowerTick)
-  const tickUpper = useConcentrated((s) => s.priceUpperTick)
+export function useConcentratedTickAprCalc({
+  ammPool,
+  forceInfo
+}: {
+  ammPool: HydratedConcentratedInfo | undefined
+  forceInfo?: { tickLower?: number; tickUpper?: number; liquidity?: BN } // NOTE: 💩💩💩, in prev, it is only clmm's page state, but, when migration ui is on, it is clmm's component state. formInfo is the info from component, default is info from page state. It's wrong and urgly 💩💩💩
+}) {
+  const tickLower =
+    forceInfo && 'tickLower' in forceInfo ? forceInfo.tickLower : useConcentrated((s) => s.priceLowerTick)
+  const tickUpper =
+    forceInfo && 'tickUpper' in forceInfo ? forceInfo.tickUpper : useConcentrated((s) => s.priceUpperTick)
+  const liquidity = forceInfo && 'liquidity' in forceInfo ? forceInfo.liquidity : useConcentrated((s) => s.liquidity)
+
   const timeBasis = useConcentrated((s) => s.timeBasis)
   const planType = useConcentrated((s) => s.aprCalcMode)
-  const tokens = useToken((s) => s.tokens)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset)
   const aprCalcMethod = useConcentrated((s) => s.aprCalcMode)
-  const liquidity = useConcentrated((s) => s.liquidity)
+
+  const tokens = useToken((s) => s.tokens)
   const tokenPrices = useToken((s) => s.tokenPrices)
   const token = useToken((s) => s.tokens)
   const tokenDecimals = objectMap(token, (i) => i.decimals)
