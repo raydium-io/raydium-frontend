@@ -1,3 +1,7 @@
+import { useEffect, useMemo, useRef, useState } from 'react'
+
+import BN from 'bn.js'
+
 import { getExactPriceAndTick } from '@/application/clmmMigration/getExactPriceAndTick'
 import { getResultAmountByTick } from '@/application/clmmMigration/getResultAmountByTick'
 import txMigrateToClmm from '@/application/clmmMigration/txMigrateToClmm'
@@ -38,8 +42,6 @@ import { useEvent } from '@/hooks/useEvent'
 import { useSignalState } from '@/hooks/useSignalState'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
-import BN from 'bn.js'
-import { useEffect, useMemo, useRef, useState } from 'react'
 
 export default function ConcentratedMigrateDialog({
   info,
@@ -484,8 +486,9 @@ function DetailPanel({
         {mode === 'quick' && (
           <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
             <div className="text-[#abc4ff] font-medium text-sm">
-              {priceRangeAutoMin ? Math.round(priceRangeAutoMin) : '--'} -{' '}
-              {priceRangeAutoMax ? Math.round(priceRangeAutoMax) : '--'}
+              {priceRangeAutoMin ? priceRangeAutoMin : '--'} - {priceRangeAutoMax ? priceRangeAutoMax : '--'}
+              {/* {priceRangeAutoMin ? Math.round(priceRangeAutoMin) : '--'} -{' '}
+              {priceRangeAutoMax ? Math.round(priceRangeAutoMax) : '--'} */}
             </div>
             <Row className="items-center gap-2">
               <div className="text-[#abc4ff80] text-sm font-medium">
