@@ -266,7 +266,6 @@ function DetailPanel({
   }, [price])
   const [calculatedPriceRangeLiquidity, setCalculatedPriceRangeLiquidity] = useState<BN>()
 
-  const [isInputPriceRangeMinFoused, setIsInputPriceRangeMinFoused] = useState<boolean>(false)
   const calculatedPriceRangeMin = useRef<Numberish>()
   const [calculatedPriceRangeMinTick, setCalculatedPriceRangeMinTick] = useState<number>()
 
@@ -277,7 +276,7 @@ function DetailPanel({
   useEffect(() => {
     setUserInputPriceRangeMax(mul(price, 1.15))
   }, [price])
-  const [isInputPriceRangeMaxFoused, setIsInputPriceRangeMaxFoused] = useState<boolean>(false)
+
   const calculatedPriceRangeMax = useRef<Numberish>()
   const [calculatedPriceRangeMaxTick, setCalculatedPriceRangeMaxTick] = useState<number>()
 
@@ -342,7 +341,7 @@ function DetailPanel({
     let minExactTick: number | undefined
     let maxExactTick: number | undefined
     // calc min
-    if (!isInputPriceRangeMinFoused && gt(modedPriceRangeMin(), 0)) {
+    if (gt(modedPriceRangeMin(), 0)) {
       const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
         baseSide: priceRangeMode,
         price: modedPriceRangeMin()!,
@@ -357,7 +356,7 @@ function DetailPanel({
     }
 
     // calc max
-    if (!isInputPriceRangeMaxFoused && gt(modedPriceRangeMax(), 0)) {
+    if (gt(modedPriceRangeMax(), 0)) {
       const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
         baseSide: priceRangeMode,
         price: modedPriceRangeMax()!,
@@ -404,10 +403,10 @@ function DetailPanel({
     // get clmm amount
   }, [
     slippageNumber,
-    isInputPriceRangeMinFoused,
-    isInputPriceRangeMaxFoused,
     toString(stakedBaseAmount),
     toString(stakedQuoteAmount),
+    toString(userInputPriceRangeMin),
+    toString(userInputPriceRangeMax),
     clmmInfo,
     migrationJsonInfo,
     price,
@@ -511,12 +510,6 @@ function DetailPanel({
                   onUserInput={(range) => {
                     range != null && setUserInputPriceRangeMin(range)
                   }}
-                  onFocus={() => {
-                    setIsInputPriceRangeMinFoused(true)
-                  }}
-                  onBlur={() => {
-                    setIsInputPriceRangeMinFoused(false)
-                  }}
                 />
               </Row>
               <Row
@@ -532,12 +525,6 @@ function DetailPanel({
                   value={userInputPriceRangeMax}
                   onUserInput={(range) => {
                     range != null && setUserInputPriceRangeMax(range)
-                  }}
-                  onFocus={() => {
-                    setIsInputPriceRangeMaxFoused(true)
-                  }}
-                  onBlur={() => {
-                    setIsInputPriceRangeMaxFoused(false)
                   }}
                 />
               </Row>
