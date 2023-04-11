@@ -14,7 +14,6 @@ import { HydratedFarmInfo } from '@/application/farms/type'
 import { smashSYNLiquidity } from '@/application/liquidity/smashSYNLiquidity'
 import { HydratedLiquidityInfo } from '@/application/liquidity/type'
 import useToken from '@/application/token/useToken'
-import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
 import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
@@ -42,6 +41,8 @@ import { useEvent } from '@/hooks/useEvent'
 import { useSignalState } from '@/hooks/useSignalState'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
+import { ConcentratedModifyTooltipIcon } from '../Concentrated/ConcentratedModifyTooltipIcon'
+import { useConcentratedTickAprCalc } from '../Concentrated/useConcentratedAprCalc'
 
 export default function ConcentratedMigrateDialog({
   info,
@@ -263,9 +264,11 @@ function DetailPanel({
   useEffect(() => {
     setUserInputPriceRangeMin(mul(price, 0.85))
   }, [price])
+  const [calculatedPriceRangeLiquidity, setCalculatedPriceRangeLiquidity] = useState<BN>()
+
   const [isInputPriceRangeMinFoused, setIsInputPriceRangeMinFoused] = useState<boolean>(false)
   const calculatedPriceRangeMin = useRef<Numberish>()
-  const calculatedPriceRangeMinTick = useRef<number>()
+  const [calculatedPriceRangeMinTick, setCalculatedPriceRangeMinTick] = useState<number>()
 
   // max price range
   const [userInputPriceRangeMax, setUserInputPriceRangeMax, userInputPriceRangeMaxSignal] = useSignalState<
@@ -276,33 +279,27 @@ function DetailPanel({
   }, [price])
   const [isInputPriceRangeMaxFoused, setIsInputPriceRangeMaxFoused] = useState<boolean>(false)
   const calculatedPriceRangeMax = useRef<Numberish>()
-  const calculatedPriceRangeMaxTick = useRef<number>()
+  const [calculatedPriceRangeMaxTick, setCalculatedPriceRangeMaxTick] = useState<number>()
 
   // result amount panels
-  const resultAmountBaseCurrentPosition = stakedBaseAmount
-  const resultAmountQuoteCurrentPosition = stakedQuoteAmount
   const [resultAmountBaseCLMMPool, setResultAmountBaseCLMMPool] = useState<Numberish>()
   const [resultAmountQuoteCLMMPool, setResultAmountQuoteCLMMPool] = useState<Numberish>()
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
   const resultAmountBaseWallet = useMemo(
     () =>
-      resultAmountBaseCurrentPosition &&
-      toTokenAmount(
-        resultAmountBaseCurrentPosition.token,
-        minus(resultAmountBaseCurrentPosition, resultAmountBaseCLMMPool),
-        { alreadyDecimaled: true }
-      ),
-    [resultAmountBaseCurrentPosition, resultAmountBaseCLMMPool]
+      stakedBaseAmount &&
+      toTokenAmount(stakedBaseAmount.token, minus(stakedBaseAmount, resultAmountBaseCLMMPool), {
+        alreadyDecimaled: true
+      }),
+    [stakedBaseAmount, resultAmountBaseCLMMPool]
   )
   const resultAmountQuoteWallet = useMemo(
     () =>
-      resultAmountQuoteCurrentPosition &&
-      toTokenAmount(
-        resultAmountQuoteCurrentPosition.token,
-        minus(resultAmountQuoteCurrentPosition, resultAmountQuoteCLMMPool),
-        { alreadyDecimaled: true }
-      ),
-    [resultAmountQuoteCurrentPosition, resultAmountQuoteCLMMPool]
+      stakedQuoteAmount &&
+      toTokenAmount(stakedQuoteAmount.token, minus(stakedQuoteAmount, resultAmountQuoteCLMMPool), {
+        alreadyDecimaled: true
+      }),
+    [stakedQuoteAmount, resultAmountQuoteCLMMPool]
   )
   /** will not been reflect by ui */
   const otherInfoForTx = useRef<{
@@ -342,6 +339,8 @@ function DetailPanel({
   useEffect(() => {
     if (!clmmInfo || !price) return
 
+    let minExactTick: number | undefined
+    let maxExactTick: number | undefined
     // calc min
     if (!isInputPriceRangeMinFoused && gt(modedPriceRangeMin(), 0)) {
       const { price: exactPrice, tick: exactTick } = getExactPriceAndTick({
@@ -350,7 +349,8 @@ function DetailPanel({
         info: clmmInfo.state
       })
       calculatedPriceRangeMin.current = exactPrice
-      calculatedPriceRangeMinTick.current = exactTick
+      setCalculatedPriceRangeMinTick(exactTick)
+      minExactTick = exactTick
       if (mode === 'custom') {
         setUserInputPriceRangeMin(exactPrice)
       }
@@ -364,35 +364,29 @@ function DetailPanel({
         info: clmmInfo.state
       })
       calculatedPriceRangeMax.current = exactPrice
-      calculatedPriceRangeMaxTick.current = exactTick
+      setCalculatedPriceRangeMaxTick(exactTick)
+      maxExactTick = exactTick
       if (mode === 'custom') {
         setUserInputPriceRangeMax(exactPrice)
       }
     }
 
     // fix tick zero division bug, so min tick can't be the same as max tick
-    if (
-      calculatedPriceRangeMinTick.current &&
-      calculatedPriceRangeMaxTick.current &&
-      calculatedPriceRangeMaxTick.current === calculatedPriceRangeMinTick.current
-    ) {
-      calculatedPriceRangeMinTick.current -= 1
-      calculatedPriceRangeMaxTick.current += 1
+    if (minExactTick != null && maxExactTick != null && maxExactTick === minExactTick) {
+      minExactTick -= 1
+      maxExactTick += 1
+      setCalculatedPriceRangeMinTick(minExactTick - 1)
+      setCalculatedPriceRangeMaxTick(maxExactTick + 1)
     }
 
     // calc result amount
-    if (
-      resultAmountBaseCurrentPosition &&
-      resultAmountQuoteCurrentPosition &&
-      calculatedPriceRangeMinTick.current != null &&
-      calculatedPriceRangeMaxTick.current != null
-    ) {
+    if (stakedBaseAmount && stakedQuoteAmount && minExactTick != null && maxExactTick != null) {
       const params = {
         info: clmmInfo.state,
-        baseAmount: resultAmountBaseCurrentPosition,
-        quoteAmount: resultAmountQuoteCurrentPosition,
-        tickLower: calculatedPriceRangeMinTick.current,
-        tickUpper: calculatedPriceRangeMaxTick.current,
+        baseAmount: stakedBaseAmount,
+        quoteAmount: stakedQuoteAmount,
+        tickLower: minExactTick,
+        tickUpper: maxExactTick,
         slippage: slippageNumber
       }
       const { resultBaseAmount, resultQuoteAmount, liquidity, amountSlippageBase, amountSlippageQuote } =
@@ -402,6 +396,7 @@ function DetailPanel({
         amountSlippageBase,
         amountSlippageQuote
       }
+      setCalculatedPriceRangeLiquidity(liquidity)
       setResultAmountBaseCLMMPool(resultBaseAmount)
       setResultAmountQuoteCLMMPool(resultQuoteAmount)
     }
@@ -411,8 +406,8 @@ function DetailPanel({
     slippageNumber,
     isInputPriceRangeMinFoused,
     isInputPriceRangeMaxFoused,
-    toString(resultAmountBaseCurrentPosition),
-    toString(resultAmountQuoteCurrentPosition),
+    toString(stakedBaseAmount),
+    toString(stakedQuoteAmount),
     clmmInfo,
     migrationJsonInfo,
     price,
@@ -567,9 +562,7 @@ function DetailPanel({
                 <div className="text-[#abc4ff] text-xs">{base?.symbol ?? '--'}</div>
               </Row>
               <div className="text-[#abc4ff] text-xs">
-                {resultAmountBaseCurrentPosition
-                  ? toString(resultAmountBaseCurrentPosition, { decimalLength: base?.decimals })
-                  : '--'}
+                {stakedBaseAmount ? toString(stakedBaseAmount, { decimalLength: base?.decimals }) : '--'}
               </div>
             </Row>
             <Row className="justify-between items-center gap-4">
@@ -578,9 +571,7 @@ function DetailPanel({
                 <div className="text-[#abc4ff] text-xs">{quote?.symbol ?? '--'}</div>
               </Row>
               <div className="text-[#abc4ff] text-xs">
-                {resultAmountQuoteCurrentPosition
-                  ? toString(resultAmountQuoteCurrentPosition, { decimalLength: quote?.decimals })
-                  : '--'}
+                {stakedQuoteAmount ? toString(stakedQuoteAmount, { decimalLength: quote?.decimals }) : '--'}
               </div>
             </Row>
           </Col>
@@ -648,7 +639,7 @@ function DetailPanel({
         <Row className="items-center justify-between mb-1">
           <Row className="items-center gap-2">
             <div className="text-[#abc4ff] font-medium">Estimated APR</div>
-            {/* <ConcentratedModifyTooltipIcon /> */}
+            <ConcentratedModifyTooltipIcon />
           </Row>
           <RectTabs
             tabs={[
@@ -661,7 +652,12 @@ function DetailPanel({
           ></RectTabs>
         </Row>
         <Row className="border-1.5 border-[#abc4ff40] rounded-xl py-2 px-4 justify-between">
-          <AprChartLine clmmInfo={clmmInfo}></AprChartLine>
+          <AprChartLine
+            clmmInfo={clmmInfo}
+            liquidity={calculatedPriceRangeLiquidity}
+            lowerTick={calculatedPriceRangeMinTick}
+            upperTick={calculatedPriceRangeMaxTick}
+          />
         </Row>
       </div>
 
@@ -672,7 +668,7 @@ function DetailPanel({
           isLoading={isTxProcessing || isApprovePanelShown}
           onClick={() => {
             assert(
-              calculatedPriceRangeMinTick.current !== null && calculatedPriceRangeMaxTick.current !== null,
+              calculatedPriceRangeMinTick !== null && calculatedPriceRangeMaxTick !== null,
               'not calc price range successfully'
             )
             assert(otherInfoForTx.current, 'not calc amount slippage successfully')
@@ -680,8 +676,8 @@ function DetailPanel({
             turnOnTxProcessing()
             txMigrateToClmm({
               liquidity: otherInfoForTx.current.liquidity,
-              tickLower: calculatedPriceRangeMinTick.current!,
-              tickUpper: calculatedPriceRangeMaxTick.current!,
+              tickLower: calculatedPriceRangeMinTick!,
+              tickUpper: calculatedPriceRangeMaxTick!,
               amountSlippageA: otherInfoForTx.current.amountSlippageBase,
               amountSlippageB: otherInfoForTx.current.amountSlippageQuote,
               currentClmmPool: clmmInfo,
@@ -717,41 +713,35 @@ function checkIsInRange(currentPrice: Numberish, exactPriceLower: Numberish, exa
   return gte(currentPrice, exactPriceLower) && lte(currentPrice, exactPriceUpper)
 }
 
-function AprChartLine({ clmmInfo }: { clmmInfo: HydratedConcentratedInfo | undefined }) {
-  const tokens = useToken((s) => s.tokens)
-  const getToken = useToken((s) => s.getToken)
+function AprChartLine({
+  clmmInfo,
+  liquidity,
+  lowerTick,
+  upperTick
+}: {
+  clmmInfo: HydratedConcentratedInfo | undefined
+  liquidity?: BN
+  lowerTick?: number
+  upperTick?: number
+}) {
   const aprLineColors = ['#abc4ff', '#37bbe0', '#2b6aff', '#335095']
-  const timeBasis = useConcentrated((s) => s.timeBasis)
-  const apr = clmmInfo
-    ? timeBasis === TimeBasis.DAY
-      ? { total: clmmInfo.totalApr24h, itemList: [clmmInfo.feeApr24h, ...clmmInfo.rewardApr24h] }
-      : timeBasis === TimeBasis.WEEK
-      ? { total: clmmInfo.totalApr7d, itemList: [clmmInfo.feeApr7d, ...clmmInfo.rewardApr7d] }
-      : { total: clmmInfo.totalApr30d, itemList: [clmmInfo.feeApr30d, ...clmmInfo.rewardApr30d] }
-    : undefined
-
-  const percentInTotal = useMemo(
-    () =>
-      apr?.itemList.map((percent, idx, percents) =>
-        div(
-          toPercent(percent),
-          percents.reduce((a, b) => toPercent(add(a, b)), toPercent(0))
-        )
-      ),
-    [apr]
-  )
+  const aprInfo = useConcentratedTickAprCalc({
+    ammPool: clmmInfo,
+    forceInfo: { liquidity, tickLower: lowerTick, tickUpper: upperTick }
+  })
+  const percentInTotalList = aprInfo && [aprInfo.fee.percentInTotal, ...aprInfo.rewards.map((i) => i.percentInTotal)]
   return (
     <Row className={`gap-2 w-full justify-between text-[#fff] ${clmmInfo ? '' : 'opacity-0'}`}>
       <Row className="items-center gap-2">
-        <div>{toPercentString(apr?.total)}</div>
+        <div>{toPercentString(aprInfo?.apr)}</div>
         <div
           className="w-[18px] h-[18px] rounded-full flex-none"
           style={{
             background:
-              percentInTotal &&
-              `conic-gradient(${percentInTotal
+              percentInTotalList &&
+              `conic-gradient(${percentInTotalList
                 .map((percent, idx) => {
-                  const startAt = percentInTotal.slice(0, idx).reduce((a, b) => toPercent(add(a, b)), toPercent(0))
+                  const startAt = percentInTotalList.slice(0, idx).reduce((a, b) => toPercent(add(a, b)), toPercent(0))
                   const endAt = toPercent(add(startAt, percent))
                   return [
                     `${aprLineColors[idx]} ${toPercentString(startAt)}`,
@@ -774,23 +764,21 @@ function AprChartLine({ clmmInfo }: { clmmInfo: HydratedConcentratedInfo | undef
             }}
           ></div>
           <div className="w-18 text-[#abc4ff] text-sm mobile:text-xs">Trade Fee</div>
-          <div className="text-sm">{toPercentString(apr?.itemList[0])}</div>
+          <div className="text-sm">{toPercentString(aprInfo?.fee.apr)}</div>
         </Row>
-        {clmmInfo?.rewardInfos.map(({ tokenMint }, idx) => {
-          const token = getToken(tokenMint)
-          const dotColor = aprLineColors[1 + idx]
-          const rewardApr = apr?.itemList[1 + idx]
+        {aprInfo?.rewards.map(({ token, apr }, idx) => {
+          const dotColors = aprLineColors.slice(1)
           return (
             <Row className="items-center gap-2" key={toPubString(token?.mint)}>
               {/* dot */}
               <div
                 className="h-2 w-2 rounded-full"
                 style={{
-                  backgroundColor: dotColor
+                  backgroundColor: dotColors[idx]
                 }}
               ></div>
               <div className="w-18 text-[#abc4ff] text-sm mobile:text-xs">{token?.symbol}</div>
-              <div className="text-sm">{toPercentString(rewardApr)}</div>
+              <div className="text-sm">{toPercentString(apr)}</div>
             </Row>
           )
         })}
