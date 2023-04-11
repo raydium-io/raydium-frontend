@@ -112,11 +112,12 @@ export function NewCompensationBanner() {
               </div>
             ) : (
               <div className="text-[#fff] text-sm mobile:text-xs px-2">
-                Phase 1 and part of Phase 2 claims for affected assets due to the recent exploit are live. Visit the{' '}
+                The{' '}
                 <Link href="/claim-portal" className="text-sm mobile:text-xs">
                   Claim Portal
                 </Link>{' '}
-                or see <Link href="https://docs.raydium.io/raydium/updates/claim-portal">full details</Link> here.
+                for affected assets due to the December exploit will close on April 17, 2023. See{' '}
+                <Link href="https://docs.raydium.io/raydium/updates/claim-portal">full details</Link> here.
               </div>
             )}
 
