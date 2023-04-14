@@ -50,6 +50,8 @@ export type TokenSelectorProps = {
    * usually used with `disableTokens`
    */
   canSelectQuantumSOL?: boolean
+  /** even it's hasFeeze === true, when it's a whiteList token, it still can select */
+  canSelectIfInWhiteList?: boolean
 }
 
 export default function TokenSelectorDialog(props: TokenSelectorProps) {
@@ -73,7 +75,8 @@ function TokenSelectorDialogContent({
   enableTokens,
   turnOnTokenVerification,
   disableTokens,
-  canSelectQuantumSOL
+  canSelectQuantumSOL,
+  canSelectIfInWhiteList
 }: TokenSelectorProps) {
   const tokenListSettings = useToken((s) => s.tokenListSettings)
   const getToken = useToken((s) => s.getToken)
@@ -95,7 +98,10 @@ function TokenSelectorDialogContent({
     const isAPIToken =
       tokenListSettings['Raydium Token List'][toPubString(splToken.mint)] ||
       tokenListSettings['Solana Token List'][toPubString(splToken.mint)]
-    const canSelect = turnOnTokenVerification && !isAPIToken ? await verifyToken(splToken.mint) : true
+    const canSelect =
+      turnOnTokenVerification && !isAPIToken
+        ? await verifyToken(splToken.mint, { canWhiteList: canSelectIfInWhiteList })
+        : true
     if (canSelect) {
       onSelectToken?.(splToken)
       setTimeout(() => {

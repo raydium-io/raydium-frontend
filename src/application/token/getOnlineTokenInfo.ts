@@ -9,14 +9,18 @@ import useNotification from '../notification/useNotification'
 
 import useToken from './useToken'
 
+const verifyWhiteList = ['Fishy64jCaa3ooqXw7BHtKvYD8BTkSyAPh6RNE3xZpcN']
+
 export async function verifyToken(
   mintish: PublicKeyish,
   options?: {
     noLog?: boolean
     /** if provided, not need get again */
     cachedAccountInfo?: AccountInfo<Buffer>
+    canWhiteList?: boolean
   }
 ) {
+  if (options?.canWhiteList && verifyWhiteList.includes(toPubString(mintish))) return true // Temporary force
   try {
     const { connection } = useConnection.getState() // TEST devnet
     if (!connection) return undefined

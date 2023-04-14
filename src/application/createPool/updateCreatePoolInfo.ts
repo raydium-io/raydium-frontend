@@ -45,14 +45,16 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     assert(baseTokenBufferInfo?.data, `can't find token ${baseMint}`)
     const { decimals: baseDecimals } = SPL_MINT_LAYOUT.decode(baseTokenBufferInfo.data)
     assert(baseDecimals != null, 'base decimal must exist')
-    const isBaseVerifyed = await verifyToken(baseMint, { cachedAccountInfo: baseTokenBufferInfo })
+    const isBaseVerifyed = await verifyToken(baseMint, { cachedAccountInfo: baseTokenBufferInfo, canWhiteList: true })
     if (!isBaseVerifyed) return { isSuccess: false }
-
     const quoteTokenBufferInfo = await connection.getAccountInfo(new PublicKey(quoteMint))
     assert(quoteTokenBufferInfo?.data, `can't find token ${quoteMint}`)
     const { decimals: quoteDecimals } = SPL_MINT_LAYOUT.decode(quoteTokenBufferInfo.data)
     assert(quoteDecimals != null, 'quote decimal must exist')
-    const isQuoteVerifyed = await verifyToken(quoteMint, { cachedAccountInfo: quoteTokenBufferInfo })
+    const isQuoteVerifyed = await verifyToken(quoteMint, {
+      cachedAccountInfo: quoteTokenBufferInfo,
+      canWhiteList: true
+    })
     if (!isQuoteVerifyed) return { isSuccess: false }
 
     // assert user has eligible base and quote

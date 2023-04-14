@@ -192,8 +192,8 @@ export const useToken = create<TokenStore>((set, get) => ({
 
   userAddedTokens: {},
   addUserAddedToken: async (rawToken: SplToken) => {
-    const isFreezed = !(await verifyToken(rawToken.mint))
-    const token = Object.assign(rawToken, { hasFreeze: isFreezed } as Partial<SplToken>)
+    const isFreezed = await verifyToken(rawToken.mint, { noLog: true })
+    const token = Object.assign(rawToken, { hasFreeze: !isFreezed } as Partial<SplToken>)
     set((s) =>
       produce(s, (draft) => {
         if (!draft.userAddedTokens[toPubString(token.mint)]) {

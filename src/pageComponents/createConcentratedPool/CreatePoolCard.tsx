@@ -655,6 +655,7 @@ function SelectTokenInputBox({
           setIsSelectorOpen(false)
         }}
         turnOnTokenVerification={turnOnTokenVerification}
+        canSelectIfInWhiteList
         disableTokens={disableTokens}
         onSelectToken={(token) => {
           onSelectToken?.(token, tokenKey)
