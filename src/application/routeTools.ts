@@ -255,6 +255,16 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
         })
       )
     })
+  } else if (toPage === '/clmm/create-pool') {
+    return router.push({ pathname: '/clmm/create-pool' }).then(() => {
+      useConcentrated.setState({
+        currentAmmPool: undefined,
+        priceLower: undefined,
+        priceUpper: undefined,
+        priceLowerTick: undefined,
+        priceUpperTick: undefined
+      })
+    })
   } else {
     return router.push({ pathname: toPage, query: options?.queryProps })
   }
