@@ -116,7 +116,7 @@ export function NewCompensationBanner() {
                 <Link href="/claim-portal" className="text-sm mobile:text-xs">
                   Claim Portal
                 </Link>{' '}
-                for affected assets due to the December exploit will close on April 17, 2023. See{' '}
+                for affected assets due to the December exploit will close on May 14, 2023. See{' '}
                 <Link href="https://docs.raydium.io/raydium/updates/claim-portal">full details</Link> here.
               </div>
             )}
