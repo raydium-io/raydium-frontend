@@ -95,6 +95,7 @@ function isSwapTransaction(tx: InnerTransaction): boolean {
     tx.instructionTypes.includes(InstructionType.ammV5SwapBaseIn) ||
     tx.instructionTypes.includes(InstructionType.ammV5SwapBaseOut) ||
     tx.instructionTypes.includes(InstructionType.routeSwap1) ||
-    tx.instructionTypes.includes(InstructionType.routeSwap2)
+    tx.instructionTypes.includes(InstructionType.routeSwap2) ||
+    tx.instructionTypes.includes(InstructionType.routeSwap)
   )
 }
