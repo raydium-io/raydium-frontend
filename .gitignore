@@ -37,8 +37,6 @@ yarn-error.log*
 #ts
 tsconfig.tsbuildinfo
 
-# Sentry
-.sentry.properties
 
 # i
 i.json

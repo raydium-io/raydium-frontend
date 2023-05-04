@@ -1,8 +1,6 @@
 import { useRouter } from 'next/router'
 import { useCallback, useEffect } from 'react'
 
-import * as Sentry from '@sentry/nextjs'
-
 import Link from '@/components/Link'
 import jFetch from '@/functions/dom/jFetch'
 import { getLocalItem } from '@/functions/dom/jStorage'
@@ -107,25 +105,6 @@ function useSlippageTolerenceSyncer() {
     },
     [slippageTolerance, localStoredSlippage]
   )
-}
-
-Sentry.init({
-  dsn: process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN,
-  tracesSampleRate: 1.0
-})
-
-function useSentryConfigurator() {
-  const wallet = useWallet((s) => s.owner)
-  const walletAdress = String(wallet) ?? '(not connected)'
-  const { currentVersion } = useAppVersion()
-
-  useEffect(() => {
-    Sentry.setTag('wallet', String(walletAdress))
-  }, [walletAdress])
-
-  useEffect(() => {
-    Sentry.setTag('version', String(currentVersion))
-  }, [currentVersion])
 }
 
 function popWelcomeDialogFn(cb?: { onConfirm: () => void }) {
@@ -260,14 +239,12 @@ function useHandleWindowTopError() {
     globalThis.addEventListener?.('error', (event) => {
       log({ type: 'error', title: String(event.error) })
       console.error(event)
-      Sentry.captureException(event)
       event.preventDefault()
       event.stopPropagation()
     })
     globalThis.addEventListener?.('unhandledrejection', (event) => {
       log({ type: 'error', title: String(event.reason) })
       console.error(event)
-      Sentry.captureException(event)
       event.preventDefault()
       event.stopPropagation()
     })
@@ -276,8 +253,6 @@ function useHandleWindowTopError() {
 
 export function useClientInitialization() {
   useHandleWindowTopError()
-  // sentry settings
-  useSentryConfigurator()
 
   useThemeModeSync()
 

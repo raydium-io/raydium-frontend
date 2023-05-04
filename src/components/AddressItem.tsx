@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 
-import { twMerge } from 'tailwind-merge'
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { twMerge } from 'tailwind-merge'
 
 import copyToClipboard from '@/functions/dom/copyToClipboard'
 import toPubString from '@/functions/format/toMintString'
@@ -9,7 +9,6 @@ import useToggle from '@/hooks/useToggle'
 import { AnyFn } from '@/types/constants'
 
 import Icon, { IconProps } from './Icon'
-import Link from './Link'
 import LinkExplorer from './LinkExplorer'
 import Row from './Row'
 import { RowItem } from './RowItem'

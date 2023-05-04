@@ -55,9 +55,7 @@ export default function useTokenListsLoader() {
   useRecordedEffect(
     (prevs) => {
       rawTokenListConfigs.forEach((config) => {
-        console.time(`load Token of ${config.url()}`)
         loadTokens([config])
-        console.timeEnd(`load Token of ${config.url()}`)
       })
     },
     [
@@ -206,7 +204,7 @@ async function fetchTokenList(
     configs.map((raw) => {
       const task = async () => {
         // eslint-disable-next-line no-console
-        console.time(`load ${raw.url()}`)
+        // console.time(`load ${raw.url()}`)
         const response = await jFetch<
           | RaydiumTokenListJsonFile
           | RaydiumDevTokenListJsonFile
@@ -240,7 +238,7 @@ async function fetchTokenList(
           }
         }
         // eslint-disable-next-line no-console
-        console.timeEnd(`load ${raw.url()}`)
+        // console.timeEnd(`load ${raw.url()}`)
       }
       return task()
     })
