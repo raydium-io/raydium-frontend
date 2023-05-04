@@ -32,7 +32,7 @@ import { toString } from '@/functions/numberish/toString'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { MayFunction, Numberish } from '@/types/constants'
-import produce from 'immer'
+import { produce } from 'immer'
 import { RefObject, useEffect, useImperativeHandle, useState } from 'react'
 
 /**

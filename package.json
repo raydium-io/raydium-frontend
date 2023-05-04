@@ -60,6 +60,7 @@
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^13.3.4",
+    "@types/bn.js": "^5.1.1",
     "@types/node": "^18.16.3",
     "@types/react": "^18.2.4",
     "@types/react-dom": "^18.2.3",

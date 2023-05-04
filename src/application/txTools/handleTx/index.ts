@@ -9,7 +9,7 @@ import {
   VersionedTransaction
 } from '@solana/web3.js'
 
-import produce from 'immer'
+import { produce } from 'immer'
 
 import { TxNotificationItemInfo } from '@/components/NotificationItem/type'
 import assert from '@/functions/assert'

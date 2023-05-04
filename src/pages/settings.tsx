@@ -17,7 +17,7 @@ import toPubString, { toPub } from '@/functions/format/toMintString'
 import { isPubEqual } from '@/functions/judgers/areEqual'
 import { isValidPublicKey } from '@/functions/judgers/dateType'
 import { objectMap } from '@/functions/objectMethods'
-import produce from 'immer'
+import { produce } from 'immer'
 
 export default function SettingsPage() {
   return (

@@ -1,7 +1,7 @@
 import { Price, PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
-import produce from 'immer'
+import { produce } from 'immer'
 import create from 'zustand'
 
 import { addItem, removeItem, shakeUndifindedItem } from '@/functions/arrayMethods'
