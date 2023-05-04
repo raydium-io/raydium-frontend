@@ -85,7 +85,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         <NextNProgress color="#34ade5" showOnShallow={false} />
 
         {/* Page Components */}
-        {/* @ts-expect-error next.js type error, but it works */}
         <Component {...pageProps} />
 
         {/* Global Components */}

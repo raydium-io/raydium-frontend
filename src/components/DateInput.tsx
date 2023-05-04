@@ -1,18 +1,17 @@
-import React, { ComponentProps, RefObject, useEffect, useState } from 'react'
-
-import _DatePicker from '@uiw/react-date-picker'
-
+import useConnection from '@/application/connection/useConnection'
 import Input, { InputProps } from '@/components/Input'
-import { DateParam, offsetDateTime, setDateTime, setDateTimeSecondToZero, toUTC } from '@/functions/date/dateFormat'
-
+import { DateParam, offsetDateTime, setDateTimeSecondToZero, toUTC } from '@/functions/date/dateFormat'
+import { isDateBefore, isDateEqual } from '@/functions/date/judges'
+import { isObject } from '@/functions/judgers/dateType'
+import { DatePickerProps } from '@uiw/react-date-picker/esm'
+import dynamic from 'next/dynamic'
+import { RefObject, useEffect, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
+import './DatePicker.css'
 import InputBox from './InputBox'
 import Popover from './Popover'
 
-import './DatePicker.css'
-import { twMerge } from 'tailwind-merge'
-import { isDateBefore, isDateEqual } from '@/functions/date/judges'
-import useConnection from '@/application/connection/useConnection'
-import { isObject } from '@/functions/judgers/dateType'
+const _DatePicker = dynamic(import('@uiw/react-date-picker/esm'), { ssr: false }) // Async API cannot be server-side rendered
 
 export type DateInputProps = {
   className?: string
@@ -205,6 +204,6 @@ function DateInputBody({
  * test date input
  * @see https://uiwjs.github.io/#/components/date-input
  */
-function DatePicker(props: ComponentProps<typeof _DatePicker>) {
+function DatePicker(props: DatePickerProps) {
   return <_DatePicker {...props} />
 }
