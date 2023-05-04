@@ -101,7 +101,7 @@ export default async function txIdoClaim(
           side
         })
       )
-      instructionsTypeCollector.push(-1)
+      instructionsTypeCollector.push('-1' as any)
 
       transactionCollector.add(
         toInnerTransactionsFromInstructions({

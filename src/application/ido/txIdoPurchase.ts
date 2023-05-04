@@ -118,7 +118,7 @@ export default async function txIdoPurchase({
             amount: toBN(ticketAmount)
           })
         )
-        instructionsTypeCollector.push(-1)
+        instructionsTypeCollector.push('-1' as any)
       } catch (e) {
         console.error(e)
       }

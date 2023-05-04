@@ -14,14 +14,18 @@ export function currentIsBefore(timestamp: TimeStamp, options?: { unit?: 'ms' | 
 }
 /** A must be milliseconds */
 export function isDateBefore(timestampA: TimeStamp, timestampB: TimeStamp, options?: { unit?: 'ms' | 's' }): boolean {
-  const realTimestampB = isDate(timestampB) ? timestampB : (isNumber(timestampB) ? timestampB : parseFloat(timestampB)) * (options?.unit === 's' ? 1000 : 1)
+  const realTimestampB = isDate(timestampB)
+    ? timestampB.getTime()
+    : (isNumber(timestampB) ? timestampB : parseFloat(timestampB)) * (options?.unit === 's' ? 1000 : 1)
   // const realTimestampB = isNumber(timestampB) ? timestampB * (options?.unit === 's' ? 1000 : 1) : timestampB
   return new Date(timestampA).getTime() <= realTimestampB
 }
 
 /** A must be milliseconds */
 export function isDateAfter(timestampA: TimeStamp, timestampB: TimeStamp, options?: { unit?: 'ms' | 's' }): boolean {
-  const realTimestampB = isDate(timestampB) ? timestampB : (isNumber(timestampB) ? timestampB : parseFloat(timestampB)) * (options?.unit === 's' ? 1000 : 1)
+  const realTimestampB = isDate(timestampB)
+    ? timestampB.getDate()
+    : (isNumber(timestampB) ? timestampB : parseFloat(timestampB)) * (options?.unit === 's' ? 1000 : 1)
   // const realTimestampB = isNumber(timestampB) ? timestampB * (options?.unit === 's' ? 1000 : 1) : timestampB
   return new Date(timestampA).getTime() > realTimestampB
 }

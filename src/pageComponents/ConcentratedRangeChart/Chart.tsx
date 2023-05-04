@@ -429,7 +429,7 @@ export default forwardRef(function Chart(props: Props, ref) {
         const diff = activeLabel - areaRef.current
         areaRef.current = activeLabel
         const isDefault = typeof xAxisDomain[0] === 'string'
-        const [xMin, xMax] = isDefault ? [boundaryRef.current.min, boundaryRef.current.max] : xAxisDomain
+        const [xMin, xMax] = isDefault ? [boundaryRef.current.min, boundaryRef.current.max] : (xAxisDomain as number[])
         updatePosition((pos) => {
           const [newLeft, newRight] = [pos[Range.Min] + diff, pos[Range.Max] + diff]
           const newPos = {
@@ -668,7 +668,7 @@ export default forwardRef(function Chart(props: Props, ref) {
 
   let yAxisMax = 0
   displayList.forEach((p) => {
-    if (p.x >= xAxisDomain[0] && p.x <= xAxisDomain[1]) {
+    if (p.x >= Number(xAxisDomain[0]) && p.x <= Number(xAxisDomain[1])) {
       yAxisMax = Math.max(yAxisMax, p.y)
     }
   })
