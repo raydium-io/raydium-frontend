@@ -1,6 +1,6 @@
 import { Price } from '@raydium-io/raydium-sdk'
 
-import create from 'zustand'
+import { create } from 'zustand'
 
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { HexAddress } from '@/types/constants'

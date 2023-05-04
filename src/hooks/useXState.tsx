@@ -1,4 +1,4 @@
-import create from 'zustand'
+import { create } from 'zustand'
 
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayFunction } from '@/types/constants'

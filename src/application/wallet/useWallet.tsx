@@ -4,7 +4,7 @@ import { Wallet } from '@solana/wallet-adapter-react'
 import { Keypair, PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import create from 'zustand'
+import { create } from 'zustand'
 
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'

@@ -1,4 +1,4 @@
-import create from 'zustand'
+import { create } from 'zustand'
 import { HydratedConcentratedInfo } from '../concentrated/type'
 
 export const useCLMMMigration = create<CLMMMigrationStore>((set, get) => ({

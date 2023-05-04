@@ -1,5 +1,5 @@
 import { PublicKeyish } from '@/types/constants'
-import create from 'zustand'
+import { create } from 'zustand'
 import { UIRewardInfo } from './type'
 
 export type CreateFarmStore = {

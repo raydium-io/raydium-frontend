@@ -1,6 +1,6 @@
 import { Connection } from '@solana/web3.js'
 
-import create from 'zustand'
+import { create } from 'zustand'
 
 import { Endpoint } from './type'
 import { switchRpc } from './switchRpc'

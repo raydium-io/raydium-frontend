@@ -1,5 +1,5 @@
 import { LiquidityAssociatedPoolKeysV4 } from '@raydium-io/raydium-sdk'
-import create from 'zustand'
+import { create } from 'zustand'
 
 import { CreatedPoolRecordLocalStorage, ProcessingCreatedPool } from './type'
 

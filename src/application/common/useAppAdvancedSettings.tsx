@@ -1,5 +1,5 @@
 import { ENDPOINT, MAINNET_PROGRAM_ID, RAYDIUM_MAINNET } from '@raydium-io/raydium-sdk'
-import create from 'zustand'
+import { create } from 'zustand'
 import { ApiConfig, ApiOrigin } from './apiUrl.config'
 
 export type AppAdvancedSettingsStore = {

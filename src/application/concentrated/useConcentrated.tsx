@@ -7,7 +7,7 @@ import {
 import { PublicKey } from '@solana/web3.js'
 
 import BN from 'bn.js'
-import create from 'zustand'
+import { create } from 'zustand'
 
 import useConnection from '@/application/connection/useConnection'
 import useToken from '@/application/token/useToken'

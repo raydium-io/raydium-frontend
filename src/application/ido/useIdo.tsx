@@ -1,4 +1,4 @@
-import create from 'zustand'
+import { create } from 'zustand'
 
 import { BackendApiIdoListItem, BackendApiIdoProjectDetails, HydratedIdoInfo } from './type'
 import { MayArray, Numberish } from '@/types/constants'

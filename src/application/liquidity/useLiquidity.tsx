@@ -1,5 +1,5 @@
 import { ApiPoolInfoItem } from '@raydium-io/raydium-sdk'
-import create from 'zustand'
+import { create } from 'zustand'
 
 import { SplToken } from '../token/type'
 

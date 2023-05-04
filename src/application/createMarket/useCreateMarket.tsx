@@ -1,6 +1,6 @@
 import { MAINNET_PROGRAM_ID, PublicKeyish } from '@raydium-io/raydium-sdk'
 
-import create from 'zustand'
+import { create } from 'zustand'
 
 import toPubString from '@/functions/format/toMintString'
 import { Numberish } from '@/types/constants'

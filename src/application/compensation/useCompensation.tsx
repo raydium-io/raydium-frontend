@@ -1,4 +1,4 @@
-import create from 'zustand'
+import { create } from 'zustand'
 import { HydratedCompensationInfoItem } from './type'
 
 export type NegativeMoney = {
