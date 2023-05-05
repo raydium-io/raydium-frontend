@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react'
 
 import { Price } from '@raydium-io/raydium-sdk'
 
-import shallow from 'zustand/shallow'
+import { shallow } from 'zustand/shallow'
 
 import { unifyItem } from '@/functions/arrayMethods'
 import jFetch from '@/functions/dom/jFetch'

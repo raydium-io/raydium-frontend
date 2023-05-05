@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/router'
-import shallow from 'zustand/shallow'
+import { shallow } from 'zustand/shallow'
 
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConnection from '@/application/connection/useConnection'

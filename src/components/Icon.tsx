@@ -123,7 +123,7 @@ export default function Icon({
   size = 'md'
 }: IconProps) {
   const selfRef = useRef()
-  const styleClass = twMerge(`Icon ${inline ? 'inline-grid' : 'grid'} h-[max-content] w-[max-content]`, className)
+  const styleClass = twMerge(`Icon ${inline ? 'inline-grid' : 'grid'} h-max w-max`, className)
   useClick(selfRef, { onClick, disable: !onClick, canLongClick })
   useHover(selfRef, { onHover, disable: !onHover })
 
@@ -207,11 +207,11 @@ export default function Icon({
         ? ({ className }: { className?: string }) => <div className={className} />
         : Fragment
     return (
-      <div className={twMerge(styleClass)} ref={mergeRef(selfRef, domRef)}>
+      <div className={styleClass} ref={mergeRef(selfRef, domRef)}>
         <HeroIconComponent
           /** HeroIcon can't use ref */
           className={twMerge(
-            `select-none w-full h-full ${
+            `select-none ${
               size === 'md'
                 ? 'h-6 w-6'
                 : size === 'smi'
@@ -236,7 +236,7 @@ export default function Icon({
           src={iconSrc}
           alt={getFileNameOfURI(iconSrc ?? '')}
           className={twMerge(
-            `select-none w-full h-full ${
+            `select-none ${
               size === 'md'
                 ? 'h-6 w-6'
                 : size === 'smi'

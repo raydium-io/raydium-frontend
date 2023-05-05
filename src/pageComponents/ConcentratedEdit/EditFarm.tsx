@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 
-import shallow from 'zustand/shallow'
+import { shallow } from 'zustand/shallow'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txSetRewards from '@/application/concentrated/txSetRewards'
