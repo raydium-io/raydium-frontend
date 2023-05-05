@@ -410,7 +410,7 @@ function ConcentratedCard() {
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
-      wrapperClassName="w-[min(912px,100%)] w-full self-center cyberpunk-bg-light"
+      wrapperClassName="w-[min(912px,100%)] self-center cyberpunk-bg-light"
       className="p-6 mobile:py-5 mobile:px-3"
     >
       <div className="absolute -left-8 top-1/2 -translate-x-1/2 -translate-y-1/2">
