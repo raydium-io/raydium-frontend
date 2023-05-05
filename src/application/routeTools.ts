@@ -12,7 +12,7 @@ import { objectShakeFalsy, objectShakeNil } from '@/functions/objectMethods'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { HexAddress, MayFunction } from '@/types/constants'
 
-import useConcentrated from './concentrated/useConcentrated'
+import useConcentrated, { PoolsConcentratedTabs } from './concentrated/useConcentrated'
 import { createNewUIRewardInfo, parsedHydratedRewardInfoToUiRewardInfo } from './createFarm/parseRewardInfo'
 import useCreateFarms from './createFarm/useCreateFarm'
 import { HydratedFarmInfo } from './farms/type'
@@ -58,6 +58,7 @@ export type PageRouteConfigs = {
   }
   '/clmm/pools': {
     queryProps?: {
+      currentTab?: PoolsConcentratedTabs
       expandedPoolId?: string
       searchText?: string
     }
@@ -110,7 +111,8 @@ const innerRouteStack = [] as { url: string }[]
 
 // TODO: parse url query function (can have prevState of zustand store)
 export function routeTo<ToPage extends keyof PageRouteConfigs>(
-  toPage: ToPage,
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  toPage: ToPage | (string & {}),
   opts?: MayFunction<PageRouteConfigs[ToPage], [{ currentPageQuery: ParsedUrlQuery }]>
 ) {
   const options = shrinkToValue(opts, [{ currentPageQuery: router.query }])
@@ -250,6 +252,7 @@ export function routeTo<ToPage extends keyof PageRouteConfigs>(
     return router.push({ pathname: '/clmm/pools' }).then(() => {
       useConcentrated.setState(
         objectShakeFalsy({
+          currentTab: options?.queryProps?.currentTab,
           searchText: options?.queryProps?.searchText,
           expandedPoolId: options?.queryProps?.expandedPoolId
         })

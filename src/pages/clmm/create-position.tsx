@@ -9,12 +9,12 @@ import useAppSettings from '@/application/common/useAppSettings'
 import { calLowerUpper, getPriceBoundary, getTickPrice } from '@/application/concentrated/getNearistDataPoint'
 import txCreateConcentratedPosotion from '@/application/concentrated/txCreateConcentratedPosition'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
-import useConcentrated, { timeMap } from '@/application/concentrated/useConcentrated'
+import useConcentrated, { PoolsConcentratedTabs, timeMap } from '@/application/concentrated/useConcentrated'
 import useConcentratedAmmSelector from '@/application/concentrated/useConcentratedAmmSelector'
 import useConcentratedAmountCalculator from '@/application/concentrated/useConcentratedAmountCalculator'
 import useConcentratedInitCoinFiller from '@/application/concentrated/useConcentratedInitCoinFiller'
 import useConcentratedLiquidityUrlParser from '@/application/concentrated/useConcentratedLiquidityUrlParser'
-import { routeBackTo } from '@/application/routeTools'
+import { routeBackTo, routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import { decimalToFraction } from '@/application/txTools/decimal2Fraction'
@@ -407,6 +407,7 @@ function ConcentratedCard() {
     [points, boundaryData, currentAmmPool?.ammConfig.tradeFeeRate, isPairPoolDirectionEq]
   )
 
+  const [gettedNFTAddress, setGettedNFTAddress] = useState<string>()
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
@@ -632,12 +633,23 @@ function ConcentratedCard() {
         feeRate={poolSnapShot.feeRate}
         inRange={poolSnapShot.inRange}
         currentPrice={poolSnapShot.currentPrice}
+        gettedNFTAddress={gettedNFTAddress}
         onConfirm={(close) =>
-          txCreateConcentratedPosotion({ currentAmmPool: poolSnapShot.currentAmmPool }).then(({ allSuccess }) => {
-            if (allSuccess) close()
+          txCreateConcentratedPosotion({
+            currentAmmPool: poolSnapShot.currentAmmPool,
+            onSuccess({ nftAddress }) {
+              setGettedNFTAddress(nftAddress)
+            }
           })
         }
-        onClose={onConfirmClose}
+        onBackToAllMyPools={() => {
+          refreshConcentrated()
+          routeTo('/clmm/pools', { queryProps: { currentTab: PoolsConcentratedTabs.MY_POOLS } })
+        }}
+        onClose={() => {
+          onConfirmClose()
+          setGettedNFTAddress(undefined)
+        }}
       />
     </CyberpunkStyleCard>
   )
