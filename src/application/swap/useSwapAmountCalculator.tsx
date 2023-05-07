@@ -132,8 +132,8 @@ export function useSwapAmountCalculator() {
         return
       }
 
-      const { abort: abortCalc, result: abortableAllSwapableRouteInfos } = makeAbortable(() =>
-        getAllSwapableRouteInfos({
+      const { abort: abortCalc } = makeAbortable(async (canContinue) => {
+        const infos = await getAllSwapableRouteInfos({
           connection,
           input: upCoin,
           output: downCoin,
@@ -147,9 +147,9 @@ export function useSwapAmountCalculator() {
           .catch((err) => {
             console.error(err)
           })
-      )
-      abortableAllSwapableRouteInfos.then((infos) => {
         if (!infos) return
+        if (!canContinue()) return
+
         const { routeList: calcResult, bestResult, bestResultStartTimes } = infos
         const resultStillFresh = (() => {
           const directionReversed = useSwap.getState().directionReversed
