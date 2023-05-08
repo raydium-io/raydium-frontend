@@ -44,7 +44,7 @@ const apiCache = {} as {
 
 type PairKeyString = string
 
-type SimulatePoolCacheType = Promise<Awaited<ReturnType<typeof TradeV2['fetchMultipleInfo']>> | undefined>
+type SimulatePoolCacheType = Promise<Awaited<ReturnType<(typeof TradeV2)['fetchMultipleInfo']>> | undefined>
 
 type TickCache = Promise<ReturnTypeFetchMultiplePoolTickArrays | undefined>
 
@@ -52,7 +52,7 @@ type TickCache = Promise<ReturnTypeFetchMultiplePoolTickArrays | undefined>
 const sdkCaches: Map<
   PairKeyString,
   {
-    routes: ReturnType<typeof TradeV2['getAllRoute']>
+    routes: ReturnType<(typeof TradeV2)['getAllRoute']>
     tickCache: TickCache
     poolInfosCache: SimulatePoolCacheType
   }
@@ -69,11 +69,7 @@ export function clearApiCache() {
 async function getAmmV3PoolKeys() {
   const ammPoolsUrl = useAppAdvancedSettings.getState().apiUrls.ammV3Pools
   const response = await jFetch<{ data: ApiAmmV3PoolsItem[] }>(ammPoolsUrl) // note: previously Rudy has Test API for dev
-  if (response) {
-    return response.data
-  } else {
-    return []
-  }
+  return response?.data
 }
 
 async function getOldKeys() {
@@ -150,7 +146,7 @@ function getSDKCacheInfos({
   outputMint: PublicKey
 
   apiPoolList: ApiPoolInfo
-  sdkParsedAmmV3PoolInfo: Awaited<ReturnType<typeof AmmV3['fetchMultiplePoolInfos']>>
+  sdkParsedAmmV3PoolInfo: Awaited<ReturnType<(typeof AmmV3)['fetchMultiplePoolInfos']>>
 }) {
   const key = toPubString(inputMint) + toPubString(outputMint)
   if (!sdkCaches.has(key)) {

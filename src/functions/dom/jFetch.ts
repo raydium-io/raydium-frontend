@@ -22,7 +22,7 @@ type JFetchOptions = {
 } & TryFetchOptions
 
 // TODO: should have concept of out of date
-const resultCache = new Map<ResourceUrl, { rawText: Promise<string | undefined>; reponseTime: number }>()
+const resultCache = new Map<ResourceUrl, { rawText: Promise<string | undefined>; reponseTime?: number }>()
 
 /**
  * same interface as original fetch, but, customized version have cache
@@ -68,23 +68,24 @@ function onFetchError(key: string, response: Response) {
 }
 
 /**
- * same interface as original fetch, but, customized version have cache
+ * the same interface as original fetch, but, has cache
  */
 // TODO: unexceptedly cache useless all response, even ignoreCache
 export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): Promise<string | undefined> {
   const key = (typeof input === 'string' ? input : input.url) + (options?.body?.toString() ?? '')
-  const useStrongCache = resultCache.has(key) && Date.now() - resultCache.get(key)!.reponseTime < 2000
-  if (useStrongCache) {
-    // console.info(`(cache) fetch ${key} success`)
-    return resultCache.get(key)!.rawText
-  }
+  const notRequestFinishedYet = resultCache.has(key) && !resultCache.get(key)!.reponseTime
+  const requestIsTooFrequent =
+    resultCache.has(key) && resultCache.get(key)!.reponseTime && Date.now() - resultCache.get(key)!.reponseTime! < 2000
+  const shouldUseCache = requestIsTooFrequent || notRequestFinishedYet
+  if (shouldUseCache) return resultCache.get(key)!.rawText
 
   try {
     const canUseCache =
       resultCache.has(key) &&
       !options?.ignoreCache &&
       (options?.cacheFreshTime
-        ? Date.now() - resultCache.get(key)!.reponseTime < (options.cacheFreshTime ?? 2000)
+        ? resultCache.get(key)?.reponseTime &&
+          Date.now() - resultCache.get(key)!.reponseTime! < (options.cacheFreshTime ?? 2000)
         : false)
     if (!canUseCache) {
       const { currentVersion } = useAppVersion.getState()
@@ -110,8 +111,13 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
         rawText: response
           .then((r) => r.clone())
           .then((r) => r.text())
-          .catch(() => undefined),
-        reponseTime: Date.now()
+          .then((r) => {
+            if (resultCache.has(key)) {
+              resultCache.get(key)!.reponseTime = Date.now()
+            }
+            return r
+          })
+          .catch(() => undefined)
       })
       if (!(await response).ok) {
         onFetchError(key, await response)
