@@ -58,6 +58,8 @@ import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
+import { AddressItem } from '@/components/AddressItem'
+import CoinAvatar from '@/components/CoinAvatar'
 
 /**
  * store:
@@ -1295,13 +1297,40 @@ function CoinAvatarInfoItem({
         token2={isHydratedPoolItemInfo(info) ? info?.quote : undefined}
       />
       <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
-        <Row className="mobile:text-xs font-medium mobile:mt-px mr-1.5">
+        <Row className="mobile:text-xs font-medium mobile:mt-px mr-1.5 items-center">
           {!isDetailReady ? (
             info?.name
           ) : (
             <>
               <CoinAvatarInfoItemSymbol token={isHydratedPoolItemInfo(info) ? info?.base : undefined} />-
               <CoinAvatarInfoItemSymbol token={isHydratedPoolItemInfo(info) ? info?.quote : undefined} />
+              {isHydratedPoolItemInfo(info) && (
+                <Tooltip>
+                  <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
+                  <Tooltip.Panel>
+                    <div className="max-w-[300px] space-y-1.5">
+                      {[info?.base, info?.quote].map((token, idx) =>
+                        token ? (
+                          <Row key={idx} className="gap-2">
+                            <CoinAvatar size={'xs'} token={token} />
+                            <AddressItem
+                              className="grow"
+                              showDigitCount={5}
+                              addressType="token"
+                              canCopy
+                              canExternalLink
+                              textClassName="flex text-xs text-[#abc4ff] justify-start "
+                              iconClassName="text-[#abc4ff]"
+                            >
+                              {toPubString(token.mint)}
+                            </AddressItem>
+                          </Row>
+                        ) : null
+                      )}
+                    </div>
+                  </Tooltip.Panel>
+                </Tooltip>
+              )}
             </>
           )}
         </Row>
