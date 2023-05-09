@@ -95,9 +95,7 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
 
       // fetch  core
       const response = (
-        key.includes('api.raydium.io')
-          ? fetch(input, { ...options, headers: { ...options?.headers, 'ui-version': currentVersion } })
-          : fetch(input, options)
+        key.includes('api.raydium.io') ? fetch(input, { ...options, headers: options?.headers }) : fetch(input, options)
       )
         .catch((r) => {
           onFetchError(key, r)
