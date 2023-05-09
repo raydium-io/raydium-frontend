@@ -22,7 +22,6 @@ export type SwapStore = {
   hasUISwrapped?: boolean // if user swap coin1 and coin2, this will be true
   isCoin1CalculateTarget: boolean // while coin1 is calculating to a new token
   isCoin2CalculateTarget: boolean // while coin2 is calculating to a new token
-  isCalculationProcessing?: boolean
 
   focusSide: 'coin1' | 'coin2' // make swap fixed (userInput may change this)
 
@@ -44,6 +43,9 @@ export type SwapStore = {
   selectedCalcResultPoolStartTimes?: BestResultStartTimeInfo[]
   canFindPools?: boolean // NOTE: if no amount input, pools not ready and pools not found will all return empty array. so have to use a flag to handle this case
   preflightCalcResult?: ReturnTypeGetAllRouteComputeAmountOut // NOTE: just chech whether can swap
+  // swap amount calculating may cost long time
+  isCalculating?: boolean
+
   routeType?: RouteType
   fee?: CurrencyAmount[] // by SDK
   swapable?: boolean

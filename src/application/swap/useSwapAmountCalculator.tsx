@@ -43,7 +43,11 @@ export function useSwapAmountCalculator() {
   useIdleEffect(async () => {
     if (!coin1 || !coin2) return // not fullfilled
     if (isMeaningfulNumber(userCoin1Amount) && isMeaningfulNumber(userCoin2Amount)) return // no need to check
-    useSwap.setState({ preflightCalcResult: undefined, canFindPools: undefined, swapable: undefined })
+    useSwap.setState({
+      preflightCalcResult: undefined,
+      canFindPools: undefined,
+      swapable: undefined
+    })
     const {
       routeList: preflightCalcResult,
       bestResult,
@@ -76,7 +80,7 @@ export function useSwapAmountCalculator() {
           calcResult: undefined,
           selectedCalcResult: undefined,
           selectedCalcResultPoolStartTimes: undefined,
-          isCalculationProcessing: false,
+          isCalculating: false,
           fee: undefined,
           minReceived: undefined,
           maxSpent: undefined,
@@ -100,7 +104,7 @@ export function useSwapAmountCalculator() {
           calcResult: undefined,
           selectedCalcResult: undefined,
           selectedCalcResultPoolStartTimes: undefined,
-          isCalculationProcessing: false,
+          isCalculating: false,
           fee: undefined,
           minReceived: undefined,
           maxSpent: undefined,
@@ -122,7 +126,7 @@ export function useSwapAmountCalculator() {
           calcResult: undefined,
           selectedCalcResult: undefined,
           selectedCalcResultPoolStartTimes: undefined,
-          isCalculationProcessing: false,
+          isCalculating: false,
           fee: undefined,
           minReceived: undefined,
           maxSpent: undefined,
@@ -133,6 +137,7 @@ export function useSwapAmountCalculator() {
       }
 
       const { abort: abortCalc } = makeAbortable(async (canContinue) => {
+        useSwap.setState({ isCalculating: true })
         const infos = await getAllSwapableRouteInfos({
           connection,
           input: upCoin,
@@ -175,7 +180,7 @@ export function useSwapAmountCalculator() {
           preflightCalcResult: calcResult,
           selectedCalcResult: bestResult,
           selectedCalcResultPoolStartTimes: bestResultStartTimes,
-          isCalculationProcessing: false,
+          isCalculating: false,
 
           priceImpact,
           executionPrice,
@@ -192,9 +197,7 @@ export function useSwapAmountCalculator() {
         })
       })
 
-      return () => {
-        abortCalc()
-      }
+      return abortCalc
     },
     { debouncedOptions: { delay: 300 } }
   )

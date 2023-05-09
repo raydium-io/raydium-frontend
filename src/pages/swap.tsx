@@ -241,7 +241,7 @@ function SwapCard() {
   const coin2Amount = useSwap((s) => s.coin2Amount)
   const isCoin1CalculateTarget = useSwap((s) => s.isCoin1CalculateTarget)
   const isCoin2CalculateTarget = useSwap((s) => s.isCoin2CalculateTarget)
-  const isCalculationProcessing = useSwap((s) => s.isCalculationProcessing)
+  const isCalculating = useSwap((s) => s.isCalculating)
   const directionReversed = useSwap((s) => s.directionReversed)
   const priceImpact = useSwap((s) => s.priceImpact)
   const refreshSwap = useSwap((s) => s.refreshSwap)
@@ -347,6 +347,7 @@ function SwapCard() {
           disabled={isApprovePanelShown}
           noDisableStyle
           disabledInput={directionReversed}
+          // className={directionReversed && isCalculating ? 'opacity-50' : ''}
           componentRef={coinInputBox1ComponentRef}
           haveHalfButton
           haveCoinIcon
@@ -366,7 +367,7 @@ function SwapCard() {
             isCoin1CalculateTarget ? '0' : coin1Amount ? (eq(coin1Amount, 0) ? '' : toString(coin1Amount)) : undefined
           }
           onUserInput={(value) => {
-            useSwap.setState({ focusSide: 'coin1', coin1Amount: value, isCalculationProcessing: true })
+            useSwap.setState({ focusSide: 'coin1', coin1Amount: value })
           }}
         />
 
@@ -413,6 +414,7 @@ function SwapCard() {
           disabled={isApprovePanelShown}
           noDisableStyle
           disabledInput={!directionReversed}
+          // className={!directionReversed && isCalculating ? 'opacity-50' : ''}
           componentRef={coinInputBox2ComponentRef}
           haveHalfButton
           haveCoinIcon
@@ -432,7 +434,7 @@ function SwapCard() {
             isCoin2CalculateTarget ? '0' : coin2Amount ? (eq(coin2Amount, 0) ? '' : toString(coin2Amount)) : undefined
           }
           onUserInput={(value) => {
-            useSwap.setState({ focusSide: 'coin2', coin2Amount: value, isCalculationProcessing: true })
+            useSwap.setState({ focusSide: 'coin2', coin2Amount: value })
           }}
         />
       </div>
@@ -485,7 +487,7 @@ function SwapCard() {
             fallbackProps: { children: 'Enter an amount' }
           },
           {
-            should: isCalculationProcessing || !eq(downCoinAmount, 0),
+            should: isCalculating || !eq(downCoinAmount, 0),
             fallbackProps: { children: 'Swap Amount Too Small' }
           },
           {
