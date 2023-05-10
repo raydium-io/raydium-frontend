@@ -2,6 +2,7 @@ import React, { RefObject, startTransition, useEffect, useImperativeHandle, useR
 import { twMerge } from 'tailwind-merge'
 
 import { useClick } from '@/hooks/useClick'
+import { useDocumentVisibility } from '@/hooks/useDocumentVisibility'
 
 export interface IntervalCircleHandler {
   /** percent */
@@ -43,16 +44,35 @@ export default function IntervalCircle({
   const r = (0.5 * width) / 2
   const p = 2 * r * Math.PI
   const hasInvokedEndCallback = useRef(false) // flag for document invisible
+  const { documentVisible } = useDocumentVisibility()
   const [progressPercent, setProgressPercent] = useState(initPercent) // percent
+  const cacheTimer = useRef<NodeJS.Timer>()
   const selfRef = useRef(null)
   useClick(selfRef, { onClick, disable: !onClick })
 
   useEffect(() => {
-    const timeoutId = globalThis.setInterval(() => {
-      if (run) setProgressPercent((old) => old + (1 / duration) * updateDelay)
-    }, updateDelay)
-    return () => globalThis.clearInterval(timeoutId)
-  }, [duration, updateDelay, run])
+    if (!run || !documentVisible) {
+      globalThis.clearInterval(cacheTimer.current)
+    } else {
+      const timeoutId = globalThis.setInterval(() => {
+        if (run && documentVisible) setProgressPercent((old) => old + (1 / duration) * updateDelay)
+      }, updateDelay)
+      cacheTimer.current = timeoutId
+      return () => globalThis.clearInterval(timeoutId)
+    }
+  }, [duration, updateDelay, run && documentVisible])
+
+  // add passed time from last documentHidden
+  const cacheDocumentHiddenTimestamp = useRef<number>()
+  useEffect(() => {
+    if (documentVisible && cacheDocumentHiddenTimestamp.current) {
+      const pastTime = Date.now() - cacheDocumentHiddenTimestamp.current
+      setProgressPercent((old) => old + (1 / duration) * pastTime)
+    }
+    if (!documentVisible) {
+      cacheDocumentHiddenTimestamp.current = Date.now()
+    }
+  }, [documentVisible])
 
   useEffect(() => {
     if (progressPercent == 0) return
