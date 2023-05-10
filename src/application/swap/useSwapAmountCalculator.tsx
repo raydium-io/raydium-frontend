@@ -39,6 +39,23 @@ export function useSwapAmountCalculator() {
 
   const jsonInfos = useLiquidity((s) => s.jsonInfos)
 
+  // clean old data
+  useIdleEffect(async () => {
+    useSwap.setState({
+      calcResult: undefined,
+      selectedCalcResult: undefined,
+      selectedCalcResultPoolStartTimes: undefined,
+      preflightCalcResult: undefined,
+      isCalculating: false,
+      fee: undefined,
+      minReceived: undefined,
+      maxSpent: undefined,
+      priceImpact: undefined,
+      executionPrice: undefined,
+      ...{ [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: undefined }
+    })
+  }, [connection, coin1, coin2])
+
   // get preflight
   useIdleEffect(async () => {
     if (!coin1 || !coin2) return // not fullfilled
