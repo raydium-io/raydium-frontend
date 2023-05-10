@@ -34,8 +34,8 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isArray, isObject, isPubKeyish } from '@/functions/judgers/dateType'
 import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { Numberish } from '@/types/constants'
-import { BestResultStartTimeInfo } from './type'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
+import { BestResultStartTimeInfo } from './type'
 
 const apiCache = {} as {
   ammV3?: ApiAmmV3PoolsItem[]
@@ -188,8 +188,9 @@ export async function getAddLiquidityDefaultPool({
   mint2: PublicKeyish
 }) {
   const { ammV3, liquidity: apiPoolList } = await getApiInfos()
-  assert(ammV3, 'ammV3 api must be loaded')
+  assert(isArray(ammV3), 'ammV3 api must be loaded')
   assert(apiPoolList, 'liquidity api must be loaded')
+  assert(isArray(apiPoolList?.official), 'liquidity api must be loaded')
   assert(connection, 'need connection to get default')
   const isInputPublicKeyish = isPubKeyish(mint1)
   const isOutputPublicKeyish = isPubKeyish(mint2)
@@ -234,7 +235,8 @@ export async function getAllSwapableRouteInfos({
     "no connection provide. it will default useConnection's connection, but can still appointed by user"
   )
   assert(isArray(ammV3), 'ammV3 api must be loaded')
-  assert(isArray(apiPoolList), 'liquidity api must be loaded')
+  assert(apiPoolList, 'liquidity api must be loaded')
+  assert(isArray(apiPoolList?.official), 'liquidity api must be loaded')
   const { chainTimeOffset } = useConnection.getState()
   const chainTime = ((chainTimeOffset ?? 0) + Date.now()) / 1000
 
