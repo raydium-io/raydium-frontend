@@ -9,17 +9,18 @@ export function useDocumentScrollActionDetector() {
   useEffect(() => {
     if (!('document' in globalThis)) return
     let timeoutId
-    document.addEventListener(
-      'scroll',
-      () => {
-        globalThis.document.body.style.setProperty('--is-scrolling', '1')
-        globalThis.clearTimeout(timeoutId)
-        timeoutId = globalThis.setTimeout(() => {
-          globalThis.document.body.style.setProperty('--is-scrolling', '0')
-        }, 500)
-      },
-      { passive: true }
-    )
+    const handleScroll = () => {
+      globalThis.document.body.style.setProperty('--is-scrolling', '1')
+      globalThis.clearTimeout(timeoutId)
+      timeoutId = globalThis.setTimeout(() => {
+        globalThis.document.body.style.setProperty('--is-scrolling', '0')
+      }, 500)
+    }
+    document.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      document.removeEventListener('scroll', handleScroll)
+      globalThis.clearTimeout(timeoutId)
+    }
   }, [])
 }
 

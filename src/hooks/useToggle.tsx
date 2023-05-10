@@ -1,6 +1,7 @@
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { Dispatch, MutableRefObject, RefObject, SetStateAction, useCallback, useMemo, useRef, useState } from 'react'
 import useCallbackRef from './useCallbackRef'
+import { useEvent } from './useEvent'
 
 type MayFunc<T, Params extends any[] = any[]> = T | ((...params: Params) => T)
 export interface ToggleSyncFunction {
@@ -50,20 +51,20 @@ export default function useToggle(
     //@ts-expect-error temp
     _setIsOn(...params)
   }
-  const cancelDelayAction = useCallback(() => {
+  const cancelDelayAction = useEvent(() => {
     globalThis.clearTimeout(delayActionId)
-  }, [delayActionId])
-  const on = useCallback(() => {
+  })
+  const on = useEvent(() => {
     cancelDelayAction()
     setIsOn(true)
     opts.onOn?.()
-  }, [cancelDelayAction])
-  const off = useCallback(() => {
+  })
+  const off = useEvent(() => {
     cancelDelayAction()
     setIsOn(false)
     opts.onOff?.()
-  }, [cancelDelayAction])
-  const toggle = useCallback(() => {
+  })
+  const toggle = useEvent(() => {
     cancelDelayAction()
     setIsOn((b: any) => {
       if (b) opts.onOff?.()
@@ -71,40 +72,28 @@ export default function useToggle(
       return !b
     })
     opts.onToggle?.(isOn)
-  }, [cancelDelayAction])
+  })
 
-  const delayOn = useCallback<ToggleController['delayOn']>(
-    (options) => {
-      cancelDelayAction()
-      const actionId = globalThis.setTimeout(on, options?.forceDelayTime ?? opts.delay)
-      setDelayActionId(actionId)
-    },
-    [cancelDelayAction]
-  )
-  const delayOff = useCallback<ToggleController['delayOff']>(
-    (options) => {
-      cancelDelayAction()
-      const actionId = globalThis.setTimeout(off, options?.forceDelayTime ?? opts.delay)
-      setDelayActionId(actionId)
-    },
-    [cancelDelayAction]
-  )
-  const delayToggle = useCallback<ToggleController['delayToggle']>(
-    (options) => {
-      cancelDelayAction()
-      const actionId = globalThis.setTimeout(toggle, options?.forceDelayTime ?? opts.delay)
-      setDelayActionId(actionId)
-    },
-    [cancelDelayAction]
-  )
-  const delaySet = useCallback<ToggleController['delaySet']>(
-    (options) => {
-      cancelDelayAction()
-      const actionId = globalThis.setTimeout(setIsOn, options?.forceDelayTime ?? opts.delay)
-      setDelayActionId(actionId)
-    },
-    [cancelDelayAction]
-  )
+  const delayOn = useEvent<ToggleController['delayOn']>((options) => {
+    cancelDelayAction()
+    const actionId = globalThis.setTimeout(on, options?.forceDelayTime ?? opts.delay)
+    setDelayActionId(actionId)
+  })
+  const delayOff = useEvent<ToggleController['delayOff']>((options) => {
+    cancelDelayAction()
+    const actionId = globalThis.setTimeout(off, options?.forceDelayTime ?? opts.delay)
+    setDelayActionId(actionId)
+  })
+  const delayToggle = useEvent<ToggleController['delayToggle']>((options) => {
+    cancelDelayAction()
+    const actionId = globalThis.setTimeout(toggle, options?.forceDelayTime ?? opts.delay)
+    setDelayActionId(actionId)
+  })
+  const delaySet = useEvent<ToggleController['delaySet']>((options) => {
+    cancelDelayAction()
+    const actionId = globalThis.setTimeout(setIsOn, options?.forceDelayTime ?? opts.delay)
+    setDelayActionId(actionId)
+  })
 
   const controller = useMemo(
     () => ({

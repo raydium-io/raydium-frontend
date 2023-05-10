@@ -50,9 +50,13 @@ export default function Image({
   }, [srcFingerprint])
 
   useEffect(() => {
-    ref.current?.addEventListener('error', (ev) => {
+    const handleError = (ev: ErrorEvent): void => {
       setCurrentUsedSrcIndex((n) => n + 1)
-    })
+    }
+    ref.current?.addEventListener('error', handleError)
+    return () => {
+      ref.current?.removeEventListener('error', handleError)
+    }
   }, [])
   return (
     <img
