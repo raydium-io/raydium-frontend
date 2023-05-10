@@ -54,7 +54,7 @@ export function useSwapAmountCalculator() {
       executionPrice: undefined,
       ...{ [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: undefined }
     })
-  }, [connection, coin1, coin2])
+  }, [connection, coin1, coin2, directionReversed])
 
   // get preflight
   useIdleEffect(async () => {
