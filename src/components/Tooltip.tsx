@@ -1,22 +1,18 @@
-import React, { ComponentProps, ReactNode, RefObject, useImperativeHandle, useMemo, useRef } from 'react'
-
-import { red } from 'bn.js'
-import { twMerge } from 'tailwind-merge'
-
 import useAppSettings from '@/application/common/useAppSettings'
 import addPropsToReactElement from '@/functions/react/addPropsToReactElement'
 import mergeRef from '@/functions/react/mergeRef'
 import { pickReactChild } from '@/functions/react/pickChild'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { MayFunction } from '@/types/constants'
-
+import React, { ComponentProps, ReactNode, RefObject, useMemo, useRef } from 'react'
+import { twMerge } from 'tailwind-merge'
 import Card from './Card'
 import Popover, { PopoverHandles, PopoverPlacement, PopoverProps } from './Popover'
 
-export type TooltipHandle = {
+export type TooltipHandles = {
   open(): void
   close(): void
-}
+} & PopoverHandles
 
 export interface TooltipProps {
   componentRef?: RefObject<any>
@@ -35,6 +31,10 @@ export interface TooltipProps {
   darkGradient?: boolean
   /** auto close the pop content after custom milliseconds, default 2000ms */
   autoClose?: PopoverProps['autoClose']
+
+  // PopoverProps
+  onOpen?: PopoverProps['onOpen']
+  onClose?: PopoverProps['onClose']
 }
 
 // TODO: it should be an pre-config version of <Popover>
@@ -51,7 +51,8 @@ export default function Tooltip({
   disable,
   defaultOpen,
   darkGradient = false,
-  autoClose
+  autoClose,
+  ...restPopoverProps
 }: TooltipProps) {
   const innerComponentRef = useRef<PopoverHandles>()
   const content = useMemo(
@@ -80,6 +81,7 @@ export default function Tooltip({
       closeBy={closeBy}
       closeDelay={100}
       autoClose={autoClose}
+      {...restPopoverProps}
     >
       <Popover.Button>{children}</Popover.Button>
       <Popover.Panel>
@@ -137,10 +139,10 @@ export function TooltipPanel({
 }: {
   $isRenderByMain?: boolean
   $popoverRef?: React.MutableRefObject<PopoverHandles | undefined>
-  children?: MayFunction<ReactNode, [popoverHandles: PopoverHandles | undefined]>
+  children?: MayFunction<ReactNode, [popoverHandles: Partial<PopoverHandles>]>
   className?: string
 }) {
   if (!$isRenderByMain) return null
-  return <div className={className}>{shrinkToValue(children, [$popoverRef?.current])}</div>
+  return <div className={className}>{shrinkToValue(children, [$popoverRef?.current ?? {}])}</div>
 }
 Tooltip.Panel = TooltipPanel

@@ -1,5 +1,4 @@
-import React, { startTransition, useEffect, useRef } from 'react'
-
+import { useEffect, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
@@ -10,9 +9,7 @@ import { useForceUpdate } from '@/hooks/useForceUpdate'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { useSignalState } from '@/hooks/useSignalState'
 import { AnyFn } from '@/types/constants'
-
 import { useDocumentVisibility } from '../hooks/useDocumentVisibility'
-
 import { PopoverPlacement } from './Popover'
 
 const REFRESH_LOOP_DURATION = 60 * 1000
@@ -42,8 +39,9 @@ export default function RefreshCircle({
   totalDuration?: number
   disabled?: boolean
 }) {
-  useForceUpdate({ loop: freshEach }) // update ui (refresh progress line)
   const intervalCircleRef = useRef<IntervalCircleHandler>()
+  const [isPanelOpen, setIsPanelOpen] = useState(false)
+  useForceUpdate({ loop: freshEach, disable: !isPanelOpen }) // update ui (refresh rest time)
   const { documentVisible, documentVisibleRef } = useDocumentVisibility()
   const [needFresh, setNeedFresh, needFreshSignal] = useSignalState(false)
   const on = () => setNeedFresh(true)
@@ -101,6 +99,8 @@ export default function RefreshCircle({
       forceOpen={forceOpen}
       triggerBy={isMobile ? 'press' : undefined}
       autoClose
+      onOpen={() => setIsPanelOpen(true)}
+      onClose={() => setIsPanelOpen(false)}
     >
       <IntervalCircle
         run={run && !disabled}
