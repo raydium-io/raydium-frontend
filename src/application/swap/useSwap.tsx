@@ -42,6 +42,7 @@ export type SwapStore = {
   selectedCalcResult?: ReturnTypeGetAllRouteComputeAmountOut[number]
   selectedCalcResultPoolStartTimes?: BestResultStartTimeInfo[]
   canFindPools?: boolean // NOTE: if no amount input, pools not ready and pools not found will all return empty array. so have to use a flag to handle this case
+  isInsufficientLiquidity?: boolean // NOTE: a special error type
   preflightCalcResult?: ReturnTypeGetAllRouteComputeAmountOut // NOTE: just chech whether can swap
   // swap amount calculating may cost long time
   isCalculating?: boolean

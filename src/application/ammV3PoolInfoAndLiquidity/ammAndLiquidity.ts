@@ -263,8 +263,13 @@ export async function getAllSwapableRouteInfos({
     slippage: toPercent(slippageTolerance),
     chainTime
   })
+
+  // insufficientLiquidity
+  const isInsufficientLiquidity =
+    (routes.directPath.length > 0 || Object.keys(routes.routePathDict).length > 0) && routeList.length === 0
+
   const { bestResult, bestResultStartTimes } = getBestCalcResult(routeList, awaitedSimulateCache, chainTime) ?? {}
-  return { routeList, bestResult, bestResultStartTimes }
+  return { routeList, bestResult, bestResultStartTimes, isInsufficientLiquidity }
 }
 
 function getBestCalcResult(

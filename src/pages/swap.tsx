@@ -267,6 +267,7 @@ function SwapCard() {
   }, [selectedCalcResultPoolStartTimes, chainTime])
 
   const canFindPools = useSwap((s) => s.canFindPools) // Pool not found
+  const isInsufficientLiquidity = useSwap((s) => s.isInsufficientLiquidity) // Pool found but insufficient liquidity
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
   const { hasConfirmed, popConfirm: popUnofficialConfirm } = useUnofficialTokenConfirmState()
   const { hasAcceptedPriceChange, swapButtonComponentRef, coinInputBox1ComponentRef, coinInputBox2ComponentRef } =
@@ -473,6 +474,25 @@ function SwapCard() {
           {
             should: !isFindingPool,
             fallbackProps: { children: 'Finding Pool ...' }
+          },
+          {
+            should: !isInsufficientLiquidity,
+            fallbackProps: {
+              children: (
+                <Row className="items-center">
+                  <div>Insufficient Liquidity</div>
+                  <Tooltip className="w-full">
+                    <Icon size="sm" heroIconName="question-mark-circle" className="ml-2 cursor-help" />
+                    <Tooltip.Panel>
+                      <p className="w-64">
+                        The route for this swap includes a CLMM pool with insufficient in-range liquidity for your swap.
+                        Try swapping for a smaller amount or try again later.
+                      </p>
+                    </Tooltip.Panel>
+                  </Tooltip>
+                </Row>
+              )
+            }
           },
           {
             should: canFindPools,

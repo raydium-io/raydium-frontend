@@ -97,6 +97,7 @@ export function useSwapAmountCalculator() {
           calcResult: undefined,
           selectedCalcResult: undefined,
           selectedCalcResultPoolStartTimes: undefined,
+          isInsufficientLiquidity: undefined,
           isCalculating: false,
           fee: undefined,
           minReceived: undefined,
@@ -163,8 +164,8 @@ export function useSwapAmountCalculator() {
           slippageTolerance
         })
           .then((result) => {
-            const { routeList, bestResult, bestResultStartTimes } = result ?? {}
-            return { routeList, bestResult, bestResultStartTimes }
+            const { routeList, bestResult, bestResultStartTimes, isInsufficientLiquidity } = result ?? {}
+            return { routeList, bestResult, bestResultStartTimes, isInsufficientLiquidity }
           })
           .catch((err) => {
             console.error(err)
@@ -172,7 +173,7 @@ export function useSwapAmountCalculator() {
         if (!infos) return
         if (!canContinue()) return
 
-        const { routeList: calcResult, bestResult, bestResultStartTimes } = infos
+        const { routeList: calcResult, bestResult, bestResultStartTimes, isInsufficientLiquidity } = infos
         const resultStillFresh = (() => {
           const directionReversed = useSwap.getState().directionReversed
           const currentUpCoinAmount =
@@ -207,6 +208,7 @@ export function useSwapAmountCalculator() {
           swapable,
           routeType,
           canFindPools,
+          isInsufficientLiquidity,
           ...{
             [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountOut,
             [focusSide === 'coin1' ? 'isCoin2CalculateTarget' : 'isCoin1CalculateTarget']: false
