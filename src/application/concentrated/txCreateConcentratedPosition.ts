@@ -10,14 +10,20 @@ import { HydratedConcentratedInfo } from './type'
 import useConcentrated from './useConcentrated'
 
 export default function txCreateConcentratedPosotion({
-  currentAmmPool = useConcentrated.getState().currentAmmPool
+  currentAmmPool = useConcentrated.getState().currentAmmPool,
+  onSuccess
 }: {
   currentAmmPool?: HydratedConcentratedInfo
+  onSuccess?: (utils: { nftAddress: string }) => void
 } = {}) {
   return txHandler(async ({ transactionCollector }) => {
     const { coin1, coin2, coin1Amount, coin2Amount } = useConcentrated.getState()
-    const innerTransactions = await generateCreateClmmPositionTx(currentAmmPool)
+    const { innerTransactions, nftAddress } = await generateCreateClmmPositionTx(currentAmmPool)
+
     transactionCollector.add(innerTransactions, {
+      onTxAllSuccess() {
+        onSuccess?.({ nftAddress })
+      },
       txHistoryInfo: {
         title: 'Position Created',
         forceErrorTitle: 'Error creating position',
@@ -48,7 +54,7 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
   assert(coin2Amount, 'not set coin2Amount')
   assert(liquidity, 'not set liquidity')
   const isSol = isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
-  const { innerTransactions } = await AmmV3.makeOpenPositionInstructionSimple({
+  const { innerTransactions, address } = await AmmV3.makeOpenPositionInstructionSimple({
     connection: connection,
     liquidity,
     poolInfo: currentAmmPool.state,
@@ -65,5 +71,5 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
     slippage: 0.015,
     computeBudgetConfig: await getComputeBudgetConfig()
   })
-  return innerTransactions
+  return { innerTransactions, nftAddress: String(address.nftMint) }
 }
