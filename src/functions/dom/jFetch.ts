@@ -117,7 +117,8 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
           })
           .catch(() => undefined)
       })
-      if (!(await response).ok) {
+      const isOk: boolean = (await response).ok
+      if (!isOk) {
         onFetchError(key, await response)
         resultCache.set(key, { rawText: Promise.resolve(undefined), reponseTime: Date.now() })
         return undefined

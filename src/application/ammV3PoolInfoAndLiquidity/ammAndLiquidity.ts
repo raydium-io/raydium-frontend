@@ -31,7 +31,7 @@ import listToMap from '@/functions/format/listToMap'
 import toPubString, { toPub } from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { isObject, isPubKeyish } from '@/functions/judgers/dateType'
+import { isArray, isObject, isPubKeyish } from '@/functions/judgers/dateType'
 import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { Numberish } from '@/types/constants'
 import { BestResultStartTimeInfo } from './type'
@@ -233,8 +233,8 @@ export async function getAllSwapableRouteInfos({
     connection,
     "no connection provide. it will default useConnection's connection, but can still appointed by user"
   )
-  assert(ammV3, 'ammV3 api must be loaded')
-  assert(apiPoolList, 'liquidity api must be loaded')
+  assert(isArray(ammV3), 'ammV3 api must be loaded')
+  assert(isArray(apiPoolList), 'liquidity api must be loaded')
   const { chainTimeOffset } = useConnection.getState()
   const chainTime = ((chainTimeOffset ?? 0) + Date.now()) / 1000
 
