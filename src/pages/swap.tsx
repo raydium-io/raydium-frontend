@@ -1202,6 +1202,7 @@ function KLineChartItem({
   const blackListTokenMint = [toPubString(USDCMint), toPubString(USDTMint)]
   const isMobile = useAppSettings((s) => s.isMobile)
   const refreshCount = useSwap((s) => s.refreshCount)
+  const apiPrices = useToken((s) => s.tokenPrices)
 
   const pricePoints = useAsyncMemo(
     async () =>
@@ -1211,6 +1212,7 @@ function KLineChartItem({
 
   const startPrice = pricePoints?.[0]
   const endPrice = pricePoints?.[pricePoints.length - 1]
+  const tokenPrices = apiPrices[toPubString(coin?.mint)] ?? endPrice
   const floatPercent = isMeaningfulNumber(startPrice) && endPrice ? (endPrice - startPrice) / startPrice : 0
   const isPositive = floatPercent > 0
   const isNegative = floatPercent < 0
@@ -1240,7 +1242,7 @@ function KLineChartItem({
             <div className="text-xs font-medium text-[rgba(171,196,255,0.5)]">Price</div>
             <div className="text-sm font-medium text-[#abc4ff] whitespace-nowrap">
               {'$' +
-                formatNumber(endPrice?.toFixed(lt(endPrice, 0.1) ? coin?.decimals ?? 4 : 2), {
+                formatNumber(tokenPrices?.toFixed(lt(tokenPrices, 0.1) ? coin?.decimals ?? 4 : 2), {
                   fractionLength: 'auto'
                 }) ?? '--'}
             </div>
