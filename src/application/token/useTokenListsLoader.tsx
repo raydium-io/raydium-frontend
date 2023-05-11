@@ -314,9 +314,9 @@ async function getTokenLists(
   return tokenCollector
 }
 
-async function fetchTokenIconInfoList() {
-  return jFetch<Record<HexAddress, SrcAddress>>('/custom-token-icon-list.json')
-}
+// async function fetchTokenIconInfoList() {
+//   return jFetch<Record<HexAddress, SrcAddress>>('/custom-token-icon-list.json')
+// }
 
 export function createSplToken(
   info: Partial<TokenJson> & {
@@ -345,7 +345,7 @@ export function toSplTokenInfo(splToken: SplToken): TokenJson {
 
 async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[]) {
   const { tokenListSettings, tokenJsonInfos, blacklist: existBlacklist } = useToken.getState()
-  const customTokenIcons = await fetchTokenIconInfoList()
+  // const customTokenIcons = await fetchTokenIconInfoList()
   const fetched = await getTokenLists(inputTokenListConfigs, tokenListSettings, tokenJsonInfos, existBlacklist)
   // if length has not changed, don't parse again
 
@@ -368,7 +368,7 @@ async function loadTokens(inputTokenListConfigs: TokenListFetchConfigItem[]) {
     (i) => i.mint
   )
 
-  const pureTokens = objectMap(splTokenJsonInfos, (tokenJsonInfo) => createSplToken(tokenJsonInfo, customTokenIcons))
+  const pureTokens = objectMap(splTokenJsonInfos, (tokenJsonInfo) => createSplToken(tokenJsonInfo))
 
   /** have QSOL */
   const tokens = { ...pureTokens, [toPubString(QuantumSOL.mint)]: QuantumSOL }
