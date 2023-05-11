@@ -19,7 +19,6 @@ import { isString } from '@/functions/judgers/dateType'
 import { inClient } from '@/functions/judgers/isSSR'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useDocumentMetaTitle from '@/hooks/useDocumentMetaTitle'
-import { useForceUpdate } from '@/hooks/useForceUpdate'
 import { useUrlQuery } from '@/hooks/useUrlQuery'
 import SetExplorer from '@/pageComponents/settings/SetExplorer'
 import SetTolerance from '@/pageComponents/settings/SetTolerance'
@@ -44,6 +43,7 @@ import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
 import Row from './Row'
 import Tooltip from './Tooltip'
 import { extractRPCName } from '@/application/connection/extractRPCName'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
 
 /**
  * for easier to code and read

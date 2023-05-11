@@ -98,18 +98,18 @@ export default function DecimalInput({
 
   useEffect(() => {
     const letterRegex = canNegative ? regexps.canNegativeLetter : regexps.decimalLetter
-    inputDomRef.current?.addEventListener(
-      'keydown',
-      (ev) => {
-        const key = ev.key
-        const isPureDecimal = key.length > 1 /* is control KEY like ArrowLeft */ || letterRegex.test(key)
-        const isControlKey = ev.ctrlKey || ev.altKey
-        if (!isPureDecimal && !isControlKey) {
-          ev.preventDefault()
-        }
-      },
-      { capture: true, passive: false }
-    )
+    const handleKeyDown = (ev: KeyboardEvent): void => {
+      const key = ev.key
+      const isPureDecimal = key.length > 1 /* is control KEY like ArrowLeft */ || letterRegex.test(key)
+      const isControlKey = ev.ctrlKey || ev.altKey
+      if (!isPureDecimal && !isControlKey) {
+        ev.preventDefault()
+      }
+    }
+    inputDomRef.current?.addEventListener('keydown', handleKeyDown, { capture: true, passive: false })
+    return () => {
+      inputDomRef.current?.removeEventListener('keydown', handleKeyDown, { capture: true })
+    }
   }, [])
 
   const userInput = (v: string, triggerBy: TriggerBy = 'user-input') => {

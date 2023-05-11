@@ -26,7 +26,8 @@ export default function useClickableElement(
       'transition',
       'duration-75'
     )
-    addTabIndex(ref.current)
+    const c = addTabIndex(ref.current)
+    return c?.cancel
   }, [options])
 }
 

@@ -64,18 +64,23 @@ export function useSwapTwoElements(
   useEffect(() => {
     const dom1 = swap1.current
     const dom2 = swap2.current
-    dom1?.addEventListener('transitionstart', () => {
+    const hidePointerEvents = () => {
       dom1?.style.setProperty('pointerEvents', 'none')
-    })
-    dom1?.addEventListener('transitionend', () => {
+    }
+    const resetPointEvents = () => {
       dom1?.style.setProperty('pointerEvents', '')
-    })
-    dom2?.addEventListener('transitionstart', () => {
-      dom2?.style.setProperty('pointerEvents', 'none')
-    })
-    dom2?.addEventListener('transitionend', () => {
-      dom2?.style.setProperty('pointerEvents', '')
-    })
+    }
+    dom1?.addEventListener('transitionstart', hidePointerEvents)
+    dom1?.addEventListener('transitionend', resetPointEvents)
+    dom2?.addEventListener('transitionstart', hidePointerEvents)
+    dom2?.addEventListener('transitionend', resetPointEvents)
+
+    return () => {
+      dom1?.removeEventListener('transitionstart', hidePointerEvents)
+      dom1?.removeEventListener('transitionend', resetPointEvents)
+      dom2?.removeEventListener('transitionstart', hidePointerEvents)
+      dom2?.removeEventListener('transitionend', resetPointEvents)
+    }
   }, [swap1, swap2])
 
   return [hasSwrapped, { toggleSwap, resetSwapPosition }]

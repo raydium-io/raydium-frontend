@@ -66,6 +66,8 @@ export interface PopoverProps {
   viewportBoundaryInset?: number
   /** auto close the pop content after custom milliseconds, default 2000ms */
   autoClose?: boolean | number
+  onOpen?(): void
+  onClose?(): void
 }
 export type PopoverPanelProps = {
   $isRenderByMain?: boolean
@@ -139,7 +141,9 @@ export default function Popover({
   cornerOffset,
   popoverGap,
   viewportBoundaryInset,
-  autoClose
+  autoClose,
+  onOpen,
+  onClose
 }: PopoverProps) {
   // TODO: no need if buttonRef can be HTMLDivElement not just RefObject<HTMLDivElement>
   const [isPanelRefReady, setIsPanelRefReady] = useState(false)
@@ -158,7 +162,9 @@ export default function Popover({
     closeBy,
     closeDelay,
     triggerBy,
-    autoClose
+    autoClose,
+    onOpen,
+    onClose
   })
 
   const { locationInfo, updateLocation } = usePopoverLocation(buttonRef, panelRef, {

@@ -63,7 +63,7 @@ export function ConcentratedModifyTooltipIcon({ iconClassName }: { iconClassName
                   useConcentrated.setState({
                     isAprCalcPanelShown: true
                   })
-                  handlers?.close()
+                  handlers?.close?.()
                 }}
               >
                 Learn more

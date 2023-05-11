@@ -51,7 +51,7 @@ import Row from '@/components/Row'
 import Select from '@/components/Select'
 import Switcher from '@/components/Switcher'
 import Tabs from '@/components/Tabs'
-import Tooltip, { TooltipHandle } from '@/components/Tooltip'
+import Tooltip, { TooltipHandles } from '@/components/Tooltip'
 import { addItem, removeItem, shakeFalsyItem, shakeUndifindedItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
 import { getCountDownTime } from '@/functions/date/parseDuration'
@@ -194,7 +194,7 @@ function FarmSearchBlock({ className }: { className?: string }) {
   const isMobile = useAppSettings((s) => s.isMobile)
   const storeSearchText = useFarms((s) => s.searchText)
 
-  const tooltipComponentRef = useRef<TooltipHandle>(null)
+  const tooltipComponentRef = useRef<TooltipHandles>(null)
   const [haveInitSearchText, setHaveInitSearchText] = useState(false)
   const haveInited = useRef(false)
   useEffect(() => {
