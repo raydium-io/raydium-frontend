@@ -65,7 +65,7 @@ function onFetchError(key: string, response: Response) {
     logError(
       `HTTP error 429`,
       <div>
-        click{' '}
+        Click{' '}
         <Button
           className="inline-block p-0 text-[#abc4ff] hover:underline underline-offset-1"
           type="text"
