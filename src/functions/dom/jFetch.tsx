@@ -62,20 +62,7 @@ function onFetchError(key: string, response: Response) {
   if (!key.includes('api.raydium.io')) return
   const { logError } = useNotification.getState()
   if (response.status === 429) {
-    logError(
-      `HTTP error 429`,
-      <div>
-        Click{' '}
-        <Button
-          className="inline-block p-0 text-[#abc4ff] hover:underline underline-offset-1"
-          type="text"
-          onClick={() => refreshWindow({ noCache: true })}
-        >
-          here
-        </Button>{' '}
-        to refresh manually
-      </div>
-    )
+    logError(`HTTP error 429`, 'Too many requests.')
   }
 }
 
