@@ -50,10 +50,10 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
     const response = await jFetch<ApiPoolInfo>(poolInfoUrl, {
       cacheFreshTime: 1000 * 30
     })
-    const blacklist = await jFetch<HexAddress[]>('/amm-blacklist.json')
+    // const blacklist = await jFetch<HexAddress[]>('/amm-blacklist.json')
     const liquidityInfoList = [...(response?.official ?? []), ...(response?.unOfficial ?? [])]
-      // no raydium blacklist amm
-      .filter((info) => !(blacklist ?? []).includes(info.id))
+    // no raydium blacklist amm
+    // .filter((info) => !(blacklist ?? []).includes(info.id))
     const officialIds = new Set(response?.official?.map((i) => i.id))
     const unOfficialIds = new Set(response?.unOfficial?.map((i) => i.id))
     if (liquidityInfoList) useLiquidity.setState({ jsonInfos: liquidityInfoList, officialIds, unOfficialIds })
