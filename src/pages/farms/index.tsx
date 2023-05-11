@@ -4,8 +4,11 @@ import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
+import { shouldLiquidityOrFarmBeenMigrate } from '@/application/clmmMigration/shouldLiquidityOrFarmBeenMigrate'
+import { useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
 import useAppSettings from '@/application/common/useAppSettings'
+import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConnection from '@/application/connection/useConnection'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { isHydratedFarmInfo, isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
@@ -73,11 +76,9 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
-import { NewCompensationBanner } from '../pools'
-import { shouldLiquidityOrFarmBeenMigrate } from '@/application/clmmMigration/shouldLiquidityOrFarmBeenMigrate'
-import useConcentrated from '@/application/concentrated/useConcentrated'
 import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
-import { useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
+
+import { NewCompensationBanner } from '../pools'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -620,7 +621,7 @@ function FarmCard() {
                   : 'opacity-0 group-hover:opacity-30'
               } transition`}
               size="sm"
-              iconSrc="/icons/msic-sort-only-down.svg"
+              iconSrc="https://img.raydium.io/ui/icons/msic-sort-only-down.svg"
             />
           </Row>
           {/* table head column: Farm */}
@@ -642,9 +643,9 @@ function FarmCard() {
               iconSrc={
                 sortConfig?.key === 'name' && sortConfig.mode !== 'none'
                   ? sortConfig?.mode === 'decrease'
-                    ? '/icons/msic-sort-down.svg'
-                    : '/icons/msic-sort-up.svg'
-                  : '/icons/msic-sort.svg'
+                    ? 'https://img.raydium.io/ui/icons/msic-sort-down.svg'
+                    : 'https://img.raydium.io/ui/icons/msic-sort-up.svg'
+                  : 'https://img.raydium.io/ui/icons/msic-sort.svg'
               }
             />
           </Row>
@@ -673,9 +674,9 @@ function FarmCard() {
               iconSrc={
                 sortConfig?.key.startsWith('totalApr') && sortConfig.mode !== 'none'
                   ? sortConfig?.mode === 'decrease'
-                    ? '/icons/msic-sort-down.svg'
-                    : '/icons/msic-sort-up.svg'
-                  : '/icons/msic-sort.svg'
+                    ? 'https://img.raydium.io/ui/icons/msic-sort-down.svg'
+                    : 'https://img.raydium.io/ui/icons/msic-sort-up.svg'
+                  : 'https://img.raydium.io/ui/icons/msic-sort.svg'
               }
             />
           </Row>
@@ -694,9 +695,9 @@ function FarmCard() {
               iconSrc={
                 sortConfig?.key === 'tvl' && sortConfig.mode !== 'none'
                   ? sortConfig?.mode === 'decrease'
-                    ? '/icons/msic-sort-down.svg'
-                    : '/icons/msic-sort-up.svg'
-                  : '/icons/msic-sort.svg'
+                    ? 'https://img.raydium.io/ui/icons/msic-sort-down.svg'
+                    : 'https://img.raydium.io/ui/icons/msic-sort-up.svg'
+                  : 'https://img.raydium.io/ui/icons/msic-sort.svg'
               }
             />
           </Row>
@@ -911,7 +912,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
       <div className="w-12 self-center ml-6 mr-2">
         {isFavourite ? (
           <Icon
-            iconSrc="/icons/misc-star-filled.svg"
+            iconSrc="https://img.raydium.io/ui/icons/misc-star-filled.svg"
             onClick={({ ev }) => {
               ev.stopPropagation()
               onUnFavorite?.(toPubString(info.id))
@@ -920,7 +921,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
           />
         ) : (
           <Icon
-            iconSrc="/icons/misc-star-empty.svg"
+            iconSrc="https://img.raydium.io/ui/icons/misc-star-empty.svg"
             onClick={({ ev }) => {
               ev.stopPropagation()
               onStartFavorite?.(toPubString(info.id))
@@ -1064,7 +1065,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
             {isFavourite ? (
               <Icon
                 className="clickable m-auto self-center"
-                iconSrc="/icons/misc-star-filled.svg"
+                iconSrc="https://img.raydium.io/ui/icons/misc-star-filled.svg"
                 onClick={({ ev }) => {
                   ev.stopPropagation()
                   onUnFavorite?.(toPubString(info.id))
@@ -1074,7 +1075,7 @@ function FarmCardDatabaseBodyCollapseItemFace({
             ) : (
               <Icon
                 className="clickable opacity-30 hover:opacity-80 transition clickable-mask-offset-2 m-auto self-center"
-                iconSrc="/icons/misc-star-empty.svg"
+                iconSrc="https://img.raydium.io/ui/icons/misc-star-empty.svg"
                 onClick={({ ev }) => {
                   ev.stopPropagation()
                   onStartFavorite?.(toPubString(info.id))
@@ -1421,7 +1422,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
               />
               <Icon
                 size="sm"
-                iconSrc="/icons/msic-swap-h.svg"
+                iconSrc="https://img.raydium.io/ui/icons/msic-swap-h.svg"
                 className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {
                   routeTo('/swap', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })
@@ -1462,7 +1463,7 @@ function FarmCardDatabaseBodyCollapseItemContent({ farmInfo }: { farmInfo: Hydra
               <Tooltip>
                 <Icon
                   size="smi"
-                  iconSrc="/icons/msic-swap-h.svg"
+                  iconSrc="https://img.raydium.io/ui/icons/msic-swap-h.svg"
                   className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                   onClick={() => {
                     routeTo('/swap', { queryProps: { coin1: farmInfo.base, coin2: farmInfo.quote } })

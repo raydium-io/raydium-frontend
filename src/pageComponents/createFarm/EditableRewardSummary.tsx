@@ -1,31 +1,32 @@
-import useCreateFarms from '@/application/createFarm/useCreateFarm'
-import Icon from '@/components/Icon'
-import Row from '@/components/Row'
+import { produce } from 'immer'
+
+import useAppSettings from '@/application/common/useAppSettings'
+import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
 import { UIRewardInfo } from '@/application/createFarm/type'
+import useCreateFarms from '@/application/createFarm/useCreateFarm'
+import { HydratedFarmInfo } from '@/application/farms/type'
+import useWallet from '@/application/wallet/useWallet'
+import { Badge } from '@/components/Badge'
+import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
+import Icon from '@/components/Icon'
 import ListTable from '@/components/ListTable'
+import Row from '@/components/Row'
+import Tooltip from '@/components/Tooltip'
 import { getTime, toUTC } from '@/functions/date/dateFormat'
+import { TimeStamp } from '@/functions/date/interface'
 import parseDuration, { getDuration, parseDurationAbsolute } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
+import toPubString from '@/functions/format/toMintString'
+import toPercentString from '@/functions/format/toPercentString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isMintEqual } from '@/functions/judgers/areEqual'
+import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import { Badge } from '@/components/Badge'
-import { getRewardSignature, hasRewardBeenEdited } from '@/application/createFarm/parseRewardInfo'
-import toPercentString from '@/functions/format/toPercentString'
-import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
-import { produce } from 'immer'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import useWallet from '@/application/wallet/useWallet'
-import { isMintEqual } from '@/functions/judgers/areEqual'
-import { HydratedFarmInfo } from '@/application/farms/type'
-import { TimeStamp } from '@/functions/date/interface'
 import { Numberish } from '@/types/constants'
-import Tooltip from '@/components/Tooltip'
-import Button from '@/components/Button'
-import useAppSettings from '@/application/common/useAppSettings'
-import toPubString from '@/functions/format/toMintString'
 
 export function EditableRewardSummary({
   canUserEdit,
@@ -243,7 +244,11 @@ export function EditableRewardSummary({
                     }}
                   >
                     <Row className="items-center gap-1">
-                      <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
+                      <Icon
+                        iconSrc="https://img.raydium.io/ui/icons/create-farm-plus.svg"
+                        size="xs"
+                        className="text-[#abc4ff80]"
+                      />
                       <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
                     </Row>
                     <div className="text-xs text-[#abc4ff80] font-medium">(no rate changed allowed)</div>
@@ -259,7 +264,11 @@ export function EditableRewardSummary({
                         }`}
                         onClick={() => onClickIncreaseReward?.({ reward })}
                       >
-                        <Icon iconSrc="/icons/create-farm-plus.svg" size="xs" className="text-[#abc4ff80]" />
+                        <Icon
+                          iconSrc="https://img.raydium.io/ui/icons/create-farm-plus.svg"
+                          size="xs"
+                          className="text-[#abc4ff80]"
+                        />
                         <div className="text-xs text-[#abc4ff] font-medium">Add more rewards</div>
                       </Button>
                     )}
@@ -291,7 +300,11 @@ export function EditableRewardSummary({
                         })
                       }
                     >
-                      <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
+                      <Icon
+                        iconSrc="https://img.raydium.io/ui/icons/create-farm-roll-back.svg"
+                        size="xs"
+                        className="text-[#abc4ff80]"
+                      />
                       <Col>
                         <Row className="text-xs text-[#abc4ff] font-medium">
                           <div>Claim unemmitted rewards</div>
@@ -321,7 +334,11 @@ export function EditableRewardSummary({
                     className="items-center justify-center gap-1 min-h-[36px] mobile:py-4 clickable text-xs text-[#abc4ff] font-medium"
                     onClick={() => canUserEdit && changeSelf({ ...reward, ...reward.originData })}
                   >
-                    <Icon iconSrc="/icons/create-farm-undo.svg" size="xs" className="text-[#abc4ff80]" />
+                    <Icon
+                      iconSrc="https://img.raydium.io/ui/icons/create-farm-undo.svg"
+                      size="xs"
+                      className="text-[#abc4ff80]"
+                    />
                     Reset
                   </Row>
                 )}

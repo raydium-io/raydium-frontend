@@ -1,29 +1,32 @@
 import { useCallback, useEffect, useState } from 'react'
+
 import { Fraction } from '@raydium-io/raydium-sdk'
+
 import useAppSettings from '@/application/common/useAppSettings'
-import useConnection from '@/application/connection/useConnection'
-import useConcentrated from '@/application/concentrated/useConcentrated'
-import useToken from '@/application/token/useToken'
-import Row from '@/components/Row'
+import txCollectReward from '@/application/concentrated/txCollectReward'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
+import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConnection from '@/application/connection/useConnection'
+import useToken from '@/application/token/useToken'
+import { Badge } from '@/components/Badge'
+import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
+import Icon from '@/components/Icon'
 import ListTable from '@/components/ListTable'
-import { Badge } from '@/components/Badge'
-import { mul, div, getMax } from '@/functions/numberish/operations'
+import Row from '@/components/Row'
 import { toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
+import parseDuration, { getDuration } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
 import toPercentString from '@/functions/format/toPercentString'
-import parseDuration, { getDuration } from '@/functions/date/parseDuration'
-import Button from '@/components/Button'
 import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
-import Icon from '@/components/Icon'
+import { div, getMax, mul } from '@/functions/numberish/operations'
 import { Unpacked } from '@/types/generics'
+
 import AddMoreDialog, { UpdateData } from './AddMoreDialog'
 import AdjustRewardDialog from './AdjustRewardDialog'
-import txCollectReward from '@/application/concentrated/txCollectReward'
 import { DAY_SECONDS } from './utils'
 
 interface Props {
@@ -305,7 +308,11 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
                     hasUnClaimed && !isApprovePanelShown ? 'clickable' : 'cursor-default opacity-50'
                   } mobile:py-4`}
                 >
-                  <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
+                  <Icon
+                    iconSrc="https://img.raydium.io/ui/icons/create-farm-roll-back.svg"
+                    size="xs"
+                    className="text-[#abc4ff80]"
+                  />
                   <Col className="items-start">
                     Claim unemmitted rewards
                     <span className="text-[#abc4ff80]">

@@ -1,6 +1,7 @@
 import * as react from 'react'
 
 import { Fraction } from '@raydium-io/raydium-sdk'
+
 import { twMerge } from 'tailwind-merge'
 
 import { ConcentratedStore } from '@/application/concentrated/useConcentrated'
@@ -12,11 +13,11 @@ import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
+import { toUTC } from '@/functions/date/dateFormat'
+import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import { shakeZero } from '@/functions/numberish/shakeZero'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
-import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
-import { toUTC } from '@/functions/date/dateFormat'
 
 interface Props {
   open: boolean
@@ -138,14 +139,14 @@ export default function CreatePoolPreviewDialog({
               <span>
                 {inRange ? (
                   <Row className="items-center bg-[#142B45] rounded text-xs text-[#39D0D8] py-0.5 px-1 ml-2">
-                    <Icon size="xs" iconSrc={'/icons/check-circle.svg'} />
+                    <Icon size="xs" iconSrc={'https://img.raydium.io/ui/icons/check-circle.svg'} />
                     <div className="mobile:text-2xs font-normal" style={{ marginLeft: 4 }}>
                       In Range
                     </div>
                   </Row>
                 ) : (
                   <Row className="items-center bg-[#DA2EEF]/10 rounded text-xs text-[#DA2EEF] py-0.5 px-1 ml-2">
-                    <Icon size="xs" iconSrc={'/icons/warn-stick.svg'} />
+                    <Icon size="xs" iconSrc={'https://img.raydium.io/ui/icons/warn-stick.svg'} />
                     <div className="mobile:text-2xs font-normal" style={{ marginLeft: 4 }}>
                       Out of Range
                     </div>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import BN from 'bn.js'
+import { twMerge } from 'tailwind-merge'
 
 import { getExactPriceAndTick } from '@/application/clmmMigration/getExactPriceAndTick'
 import { getResultAmountByTick } from '@/application/clmmMigration/getResultAmountByTick'
@@ -41,9 +42,9 @@ import { useEvent } from '@/hooks/useEvent'
 import { useSignalState } from '@/hooks/useSignalState'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
+
 import { ConcentratedModifyTooltipIcon } from '../Concentrated/ConcentratedModifyTooltipIcon'
 import { useConcentratedTickAprCalc } from '../Concentrated/useConcentratedAprCalc'
-import { twMerge } from 'tailwind-merge'
 
 export default function ConcentratedMigrateDialog({
   info,
@@ -564,7 +565,11 @@ function DetailPanel({
             </Row>
           </Col>
 
-          <Icon iconSrc="/icons/migrate-clmm-right-arrow.svg" className="w-6 h-6" iconClassName="w-6 h-6" />
+          <Icon
+            iconSrc="https://img.raydium.io/ui/icons/migrate-clmm-right-arrow.svg"
+            className="w-6 h-6"
+            iconClassName="w-6 h-6"
+          />
 
           <Col className="relative grow border-1.5 border-[#abc4ff40] border-dashed rounded-xl p-2 gap-1">
             <div className="absolute -top-7 text-center left-0 right-0 text-sm text-[#abc4ff]">CLMM Pool</div>
@@ -582,7 +587,11 @@ function DetailPanel({
             </Row>
           </Col>
 
-          <Icon iconSrc="/icons/migrate-clmm-add-icon.svg" className="w-4 h-4" iconClassName="w-4 h-4" />
+          <Icon
+            iconSrc="https://img.raydium.io/ui/icons/migrate-clmm-add-icon.svg"
+            className="w-4 h-4"
+            iconClassName="w-4 h-4"
+          />
 
           <Col className="relative grow border-1.5 border-[#abc4ff40] border-dashed rounded-xl p-2 gap-1">
             <div className="absolute -top-7 text-center left-0 right-0 text-sm text-[#abc4ff]">Wallet</div>
@@ -798,7 +807,13 @@ function ModeItem({
         selected ? 'border-[#39d0d8]' : 'border-[#abc4ff40]'
       } rounded-xl py-3 px-4 bg-[#141041] cursor-pointer`}
     >
-      {selected && <Icon size="sm" className="absolute right-3 top-3" iconSrc="/icons/migrate-check-icon.svg"></Icon>}
+      {selected && (
+        <Icon
+          size="sm"
+          className="absolute right-3 top-3"
+          iconSrc="https://img.raydium.io/ui/icons/migrate-check-icon.svg"
+        ></Icon>
+      )}
       <div className="font-medium text-base text-white mb-1">{title}</div>
       <div className={`font-normal text-sm  ${selected ? 'text-[#ABC4FF]' : 'text-[#ABC4FF80]'}`}>{description}</div>
     </div>

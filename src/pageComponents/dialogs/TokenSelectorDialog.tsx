@@ -429,7 +429,11 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                   }}
                   className="group-hover:flex hidden items-center text-sm mobile:text-xs text-[rgba(57,208,216,1)] font-medium flex-nowrap px-2 gap-1"
                 >
-                  <Icon className="w-4 h-4" iconClassName="w-4 h-4" iconSrc="/icons/delete-token.svg" />
+                  <Icon
+                    className="w-4 h-4"
+                    iconClassName="w-4 h-4"
+                    iconSrc="https://img.raydium.io/ui/icons/delete-token.svg"
+                  />
                   <div className="whitespace-nowrap">Delete Token</div>
                 </Row>
               ) : null}

@@ -1,12 +1,14 @@
 import React, { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { twMerge } from 'tailwind-merge'
 import { ZERO } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
 
 import { refreshWindow } from '@/application/common/forceWindowRefresh'
 import useAppSettings from '@/application/common/useAppSettings'
 import { useAppVersion } from '@/application/common/useAppVersion'
+import { extractRPCName } from '@/application/connection/extractRPCName'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import useWallet from '@/application/wallet/useWallet'
@@ -19,10 +21,12 @@ import { isString } from '@/functions/judgers/dateType'
 import { inClient } from '@/functions/judgers/isSSR'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useDocumentMetaTitle from '@/hooks/useDocumentMetaTitle'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
 import { useUrlQuery } from '@/hooks/useUrlQuery'
 import SetExplorer from '@/pageComponents/settings/SetExplorer'
 import SetTolerance from '@/pageComponents/settings/SetTolerance'
 import { LinkAddress } from '@/types/constants'
+
 import { Badge } from './Badge'
 import Button from './Button'
 import Card from './Card'
@@ -42,8 +46,6 @@ import PageLayoutPopoverDrawer from './PageLayoutPopoverDrawer'
 import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
 import Row from './Row'
 import Tooltip from './Tooltip'
-import { extractRPCName } from '@/application/connection/extractRPCName'
-import { useForceUpdate } from '@/hooks/useForceUpdate'
 
 /**
  * for easier to code and read
@@ -373,7 +375,10 @@ function Navbar({
   const pcNavContent = (
     <Row className="justify-between items-center">
       <Link href="/">
-        <Image className={`cursor-pointer ${inDev ? 'hue-rotate-60' : ''}`} src="/logo/logo-with-text.svg" />
+        <Image
+          className={`cursor-pointer ${inDev ? 'hue-rotate-60' : ''}`}
+          src="https://img.raydium.io/ui/logo/logo-with-text.svg"
+        />
       </Link>
 
       <Row className="gap-8 items-center">
@@ -385,7 +390,7 @@ function Navbar({
   const mobileNavContent = (
     <Grid className="grid-cols-[1fr,2fr,1fr] mobile:px-5 mobile:py-3  items-center bg-cyberpunk-card-bg cyberpunk-bg-light">
       <div className="frosted-glass-teal rounded-lg p-2 clickable justify-self-start" onClick={onOpenMenu}>
-        <Icon className="w-4 h-4" iconClassName="w-4 h-4" iconSrc="/icons/msic-menu.svg" />
+        <Icon className="w-4 h-4" iconClassName="w-4 h-4" iconSrc="https://img.raydium.io/ui/icons/msic-menu.svg" />
       </div>
 
       {barTitle ? (
@@ -406,7 +411,7 @@ function Navbar({
         )
       ) : (
         <Link className="place-self-center" href="/">
-          <Image className="cursor-pointer" src="/logo/logo-only-icon.svg" />
+          <Image className="cursor-pointer" src="https://img.raydium.io/ui/logo/logo-only-icon.svg" />
         </Link>
       )}
 
@@ -538,7 +543,10 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
         {isMobile && (
           <Row className="items-center justify-between p-6 mobile:p-4 mobile:pl-8">
             <Link href="/">
-              <Image src="/logo/logo-with-text.svg" className={`mobile:scale-75 ${inDev ? 'hue-rotate-60' : ''}`} />
+              <Image
+                src="https://img.raydium.io/ui/logo/logo-with-text.svg"
+                className={`mobile:scale-75 ${inDev ? 'hue-rotate-60' : ''}`}
+              />
             </Link>
             <Icon
               size={isMobile ? 'sm' : 'md'}
@@ -550,42 +558,61 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
         )}
         <Col className="grid grid-rows-[2fr,1fr,auto] flex-1 overflow-hidden">
           <div className="shrink overflow-y-auto min-h-[120px] py-4 space-y-1 mobile:py-0 px-2 mr-2 mobile:ml-2 mb-2">
-            <LinkItem icon="/icons/entry-icon-trade.svg" href="https://dex.raydium.io/">
+            <LinkItem icon="https://img.raydium.io/ui/icons/entry-icon-trade.svg" href="https://dex.raydium.io/">
               Trading
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-swap.svg" href="/swap" isCurrentRoutePath={pathname === '/swap'}>
+            <LinkItem
+              icon="https://img.raydium.io/ui/icons/entry-icon-swap.svg"
+              href="/swap"
+              isCurrentRoutePath={pathname === '/swap'}
+            >
               Swap
             </LinkItem>
             <LinkItem
-              icon="/icons/entry-icon-liquidity.svg"
+              icon="https://img.raydium.io/ui/icons/entry-icon-liquidity.svg"
               href="/liquidity/add"
               isCurrentRoutePath={pathname === '/liquidity/add'}
             >
               Liquidity
             </LinkItem>
             <LinkItem
-              icon="/icons/entry-icon-concentrated-pools.svg"
+              icon="https://img.raydium.io/ui/icons/entry-icon-concentrated-pools.svg"
               href="/clmm/pools"
               isCurrentRoutePath={pathname === '/clmm/pools'}
             >
               Concentrated
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-pools.svg" href="/pools" isCurrentRoutePath={pathname === '/pools'}>
+            <LinkItem
+              icon="https://img.raydium.io/ui/icons/entry-icon-pools.svg"
+              href="/pools"
+              isCurrentRoutePath={pathname === '/pools'}
+            >
               Pools
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-farms.svg" href="/farms" isCurrentRoutePath={pathname === '/farms'}>
+            <LinkItem
+              icon="https://img.raydium.io/ui/icons/entry-icon-farms.svg"
+              href="/farms"
+              isCurrentRoutePath={pathname === '/farms'}
+            >
               Farms
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-staking.svg" href="/staking" isCurrentRoutePath={pathname === '/staking'}>
+            <LinkItem
+              icon="https://img.raydium.io/ui/icons/entry-icon-staking.svg"
+              href="/staking"
+              isCurrentRoutePath={pathname === '/staking'}
+            >
               Staking
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/list">
+            <LinkItem icon="https://img.raydium.io/ui/icons/entry-icon-acceleraytor.svg" href="/acceleraytor/list">
               AcceleRaytor
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-dropzone.svg" href="https://dropzone.raydium.io/">
+            <LinkItem
+              icon="https://img.raydium.io/ui/icons/entry-icon-dropzone.svg"
+              href="https://dropzone.raydium.io/"
+            >
               Dropzone
             </LinkItem>
-            <LinkItem icon="/icons/entry-icon-nft.svg" href="https://nft.raydium.io/">
+            <LinkItem icon="https://img.raydium.io/ui/icons/entry-icon-nft.svg" href="https://nft.raydium.io/">
               NFT
             </LinkItem>
           </div>
@@ -597,7 +624,11 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
               <SettingSidebarWidget />
               <CommunityPanelSidebarWidget />
 
-              <OptionItem noArrow href="https://raydium.gitbook.io/raydium/" iconSrc="/icons/msic-docs.svg">
+              <OptionItem
+                noArrow
+                href="https://raydium.gitbook.io/raydium/"
+                iconSrc="https://img.raydium.io/ui/icons/msic-docs.svg"
+              >
                 Docs
               </OptionItem>
 
@@ -605,7 +636,11 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
                 Raydium V1
               </OptionItem>
 
-              <OptionItem noArrow href="https://forms.gle/DvUS4YknduBgu2D7A" iconSrc="/icons/misc-feedback.svg">
+              <OptionItem
+                noArrow
+                href="https://forms.gle/DvUS4YknduBgu2D7A"
+                iconSrc="https://img.raydium.io/ui/icons/misc-feedback.svg"
+              >
                 Feedback
               </OptionItem>
             </div>
@@ -728,7 +763,7 @@ function OptionItem({
 function SettingSidebarWidget() {
   return (
     <PageLayoutPopoverDrawer renderPopoverContent={<SettingPopover />}>
-      <OptionItem iconSrc="/icons/msic-settings.svg">Settings</OptionItem>
+      <OptionItem iconSrc="https://img.raydium.io/ui/icons/msic-settings.svg">Settings</OptionItem>
     </PageLayoutPopoverDrawer>
   )
 }
@@ -751,7 +786,7 @@ function SettingPopover() {
 function CommunityPanelSidebarWidget() {
   return (
     <PageLayoutPopoverDrawer renderPopoverContent={<CommunityPopover />}>
-      <OptionItem iconSrc="/icons/msic-community.svg">Community</OptionItem>
+      <OptionItem iconSrc="https://img.raydium.io/ui/icons/msic-community.svg">Community</OptionItem>
     </PageLayoutPopoverDrawer>
   )
 }
@@ -788,62 +823,70 @@ function CommunityPopover() {
     <>
       <div className="pt-3 -mb-1 mobile:mb-2 px-6 text-[rgba(171,196,255,0.5)] text-xs mobile:text-sm">COMMUNITY</div>
       <div className="gap-3 divide-y-1.5 divide-[rgba(171,196,255,0.2)] ">
-        <Item href="https://twitter.com/RaydiumProtocol" iconSrc="/icons/media-twitter.svg" text="Twitter" />
-        <Item href="https://discord.gg/raydium" iconSrc="/icons/media-discord.svg" text="Discord" />
+        <Item
+          href="https://twitter.com/RaydiumProtocol"
+          iconSrc="https://img.raydium.io/ui/icons/media-twitter.svg"
+          text="Twitter"
+        />
+        <Item
+          href="https://discord.gg/raydium"
+          iconSrc="https://img.raydium.io/ui/icons/media-discord.svg"
+          text="Discord"
+        />
         <PageLayoutPopoverDrawer
           renderPopoverContent={({ close }) => (
             <Col className="divide-y-1.5 max-h-[60vh] overflow-auto divide-[rgba(171,196,255,0.2)]">
               <Item
                 href="https://t.me/raydiumprotocol"
-                iconSrc="/icons/media-telegram.svg"
+                iconSrc="https://img.raydium.io/ui/icons/media-telegram.svg"
                 text="Telegram (EN)"
                 onClick={close}
               />
               <Item
                 href="https://t.me/RaydiumChina"
-                iconSrc="/icons/media-telegram.svg"
+                iconSrc="https://img.raydium.io/ui/icons/media-telegram.svg"
                 text="Telegram (CN)"
                 onClick={close}
               />
               <Item
                 href="https://t.me/raydiumkorea"
-                iconSrc="/icons/media-telegram.svg"
+                iconSrc="https://img.raydium.io/ui/icons/media-telegram.svg"
                 text="Telegram (KR)"
                 onClick={close}
               />
               <Item
                 href="https://t.me/raydiumjapan"
-                iconSrc="/icons/media-telegram.svg"
+                iconSrc="https://img.raydium.io/ui/icons/media-telegram.svg"
                 text="Telegram (JP)"
                 onClick={close}
               />
               <Item
                 href="https://t.me/RaydiumSpanish"
-                iconSrc="/icons/media-telegram.svg"
+                iconSrc="https://img.raydium.io/ui/icons/media-telegram.svg"
                 text="Telegram (ES)"
                 onClick={close}
               />
               <Item
                 href="https://t.me/RaydiumTurkey"
-                iconSrc="/icons/media-telegram.svg"
+                iconSrc="https://img.raydium.io/ui/icons/media-telegram.svg"
                 text="Telegram (TR)"
                 onClick={close}
               />
               <Item
                 href="https://t.me/RaydiumVietnam"
-                iconSrc="/icons/media-telegram.svg"
+                iconSrc="https://img.raydium.io/ui/icons/media-telegram.svg"
                 text="Telegram (VN)"
                 onClick={close}
               />
               <Item
                 href="https://t.me/RaydiumRussian"
-                iconSrc="/icons/media-telegram.svg"
+                iconSrc="https://img.raydium.io/ui/icons/media-telegram.svg"
                 text="Telegram (RU)"
                 onClick={close}
               />
               <Item
                 href="https://t.me/raydiumthailand"
-                iconSrc="/icons/media-telegram.svg"
+                iconSrc="https://img.raydium.io/ui/icons/media-telegram.svg"
                 text="Telegram (TH)"
                 onClick={close}
               />
@@ -851,7 +894,7 @@ function CommunityPopover() {
           )}
         >
           <Row className="flex items-center justify-between">
-            <Item iconSrc="/icons/media-telegram.svg" text="Telegram" />
+            <Item iconSrc="https://img.raydium.io/ui/icons/media-telegram.svg" text="Telegram" />
             <Icon
               heroIconName="chevron-right"
               size="sm"
@@ -860,7 +903,11 @@ function CommunityPopover() {
           </Row>
         </PageLayoutPopoverDrawer>
 
-        <Item href="https://raydium.medium.com/" iconSrc="/icons/media-medium.svg" text="Medium" />
+        <Item
+          href="https://raydium.medium.com/"
+          iconSrc="https://img.raydium.io/ui/icons/media-medium.svg"
+          text="Medium"
+        />
       </div>
     </>
   )
@@ -885,7 +932,10 @@ function RpcConnectionFace() {
       <Row className="items-center w-full mobile:justify-center">
         <div className="h-4 w-4 mobile:w-3 mobile:h-3 grid place-items-center mr-3 ">
           {isLoading ? (
-            <Icon iconClassName="h-4 w-4 mobile:w-3 mobile:h-3" iconSrc="/icons/loading-dual.svg" />
+            <Icon
+              iconClassName="h-4 w-4 mobile:w-3 mobile:h-3"
+              iconSrc="https://img.raydium.io/ui/icons/loading-dual.svg"
+            />
           ) : (
             <div
               className={`w-1.5 h-1.5 mobile:w-1 mobile:h-1 bg-[#2de680] text-[#2de680] rounded-full`}
@@ -979,7 +1029,11 @@ function RpcConnectionPanelPopover({ close: closePanel }: { close: () => void })
                   )}
                 </Row>
                 {isLoading && endPoint === currentEndPoint && (
-                  <Icon className="ml-3" iconClassName="h-4 w-4" iconSrc="/icons/loading-dual.svg" />
+                  <Icon
+                    className="ml-3"
+                    iconClassName="h-4 w-4"
+                    iconSrc="https://img.raydium.io/ui/icons/loading-dual.svg"
+                  />
                 )}
               </Row>
             </Row>

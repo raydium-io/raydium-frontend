@@ -1,15 +1,20 @@
+import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
+
+import { Fraction } from '@raydium-io/raydium-sdk'
+
+import Decimal from 'decimal.js'
+import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+
 import { PriceBoundaryReturn } from '@/application/concentrated/getNearistDataPoint'
 import { TimeBasis } from '@/application/concentrated/useConcentrated'
 import Icon from '@/components/Icon'
 import { getPlatformInfo } from '@/functions/dom/getPlatformInfo'
 import { formatDecimal as _formatDecimal } from '@/functions/numberish/formatDecimal'
-import { shakeZero } from '@/functions/numberish/shakeZero'
-import { mul } from '@/functions/numberish/operations'
 import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
+import { mul } from '@/functions/numberish/operations'
+import { shakeZero } from '@/functions/numberish/shakeZero'
 import { useEvent } from '@/hooks/useEvent'
-import { forwardRef, ReactNode, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { Area, AreaChart, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Fraction } from '@raydium-io/raydium-sdk'
+
 import {
   AREA_CONFIG,
   boundaryColor,
@@ -20,13 +25,12 @@ import {
   getLabel,
   getStrokeFill,
   HIGHLIGHT_COLOR,
+  parseFirstDigit,
   Range,
   toFixedNumber,
-  unitColor,
-  parseFirstDigit
+  unitColor
 } from './chartUtil'
 import PriceRangeInput from './PriceRangeInput'
-import Decimal from 'decimal.js'
 
 const maxDecimals = 15
 interface HighlightPoint extends ChartPoint {
@@ -684,7 +688,7 @@ export default forwardRef(function Chart(props: Props, ref) {
                 size="sm"
                 onClick={zoomReset}
                 className="saturate-50 brightness-125 cursor-pointer"
-                iconSrc="/icons/add-space.svg"
+                iconSrc="https://img.raydium.io/ui/icons/add-space.svg"
               />
             </div>
             <div style={chartControlStyle}>
@@ -692,7 +696,7 @@ export default forwardRef(function Chart(props: Props, ref) {
                 size="sm"
                 onClick={zoomOut}
                 className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
-                iconSrc="/icons/zoom-out.svg"
+                iconSrc="https://img.raydium.io/ui/icons/zoom-out.svg"
                 canLongClick
               />
             </div>
@@ -701,7 +705,7 @@ export default forwardRef(function Chart(props: Props, ref) {
                 size="sm"
                 className="text-[#abc4ff] saturate-50 brightness-125 cursor-pointer"
                 onClick={zoomIn}
-                iconSrc="/icons/zoom-in.svg"
+                iconSrc="https://img.raydium.io/ui/icons/zoom-in.svg"
                 canLongClick
               />
             </div>

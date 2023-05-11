@@ -1,9 +1,10 @@
+import React from 'react'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import { getRouterStackLength, routeBack } from '@/application/routeTools'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import Row from '@/components/Row'
-import React from 'react'
 
 export default function DisclaimerPage() {
   const isMobile = useAppSettings((s) => s.isMobile)
@@ -13,7 +14,7 @@ export default function DisclaimerPage() {
       style={{
         minHeight: '100vh',
         backgroundColor: '#141041',
-        backgroundImage: "url('/backgroundImages/home-page-bg-lights.webp')",
+        backgroundImage: "url('https://img.raydium.io/ui/backgroundImages/home-page-bg-lights.webp')",
         backgroundSize: '100% 100%',
         backgroundRepeat: 'no-repeat',
         display: 'flow-root'

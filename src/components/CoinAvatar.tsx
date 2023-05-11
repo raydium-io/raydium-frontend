@@ -67,8 +67,8 @@ export default function CoinAvatar({
       {isRewardEnd && (
         <Image
           className={`h-8 w-8 rounded-full overflow-hidden `}
-          src="/icons/diagonal.svg"
-          fallbackSrc="/coins/unknown.svg"
+          src="https://img.raydium.io/ui/icons/diagonal.svg"
+          fallbackSrc="https://img.raydium.io/ui/coins/unknown.svg"
           style={{ position: 'absolute', zIndex: 100, opacity: 20 }}
         />
       )}
@@ -93,7 +93,7 @@ export default function CoinAvatar({
                 hasOpacity ? 'scale-[.7]' : ''
               }`}
               src={src}
-              fallbackSrc="/coins/unknown.svg"
+              fallbackSrc="https://img.raydium.io/ui/coins/unknown.svg"
             />
             {false && (
               <Row className="items-center justify-center absolute top-0 left-[calc(100%-6px)] rounded-full bg-[#abc4ff]">
@@ -115,7 +115,7 @@ export default function CoinAvatar({
             <Image
               className={`front-face overflow-hidden transition-transform transform ${hasOpacity ? 'scale-[.7]' : ''}`}
               src={src}
-              fallbackSrc="/coins/unknown.svg"
+              fallbackSrc="https://img.raydium.io/ui/coins/unknown.svg"
             />
             <div className="line-group">
               <div className="line-out">
@@ -158,7 +158,7 @@ export default function CoinAvatar({
             <Image
               className={`back-face overflow-hidden transition-transform transform ${hasOpacity ? 'scale-[.7]' : ''}`}
               src={src}
-              fallbackSrc="/coins/unknown.svg"
+              fallbackSrc="https://img.raydium.io/ui/coins/unknown.svg"
             />
           </div>
         )}

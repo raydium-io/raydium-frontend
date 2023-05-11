@@ -266,7 +266,7 @@ export default function FarmEditPage() {
         >
           {!isMobile && (
             <div className="absolute -left-4 top-5 -translate-x-full">
-              <Icon iconSrc="/icons/create-farm-info-circle.svg" iconClassName="w-7 h-7" />
+              <Icon iconSrc="https://img.raydium.io/ui/icons/create-farm-info-circle.svg" iconClassName="w-7 h-7" />
             </div>
           )}
 

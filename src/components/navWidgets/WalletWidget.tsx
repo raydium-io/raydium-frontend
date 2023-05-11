@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useWallet from '@/application/wallet/useWallet'
+import { isInLocalhost } from '@/functions/judgers/isSSR'
 import useToggle from '@/hooks/useToggle'
 
 import { AddressItem } from '../AddressItem'
@@ -11,7 +12,6 @@ import Icon from '../Icon'
 import PageLayoutPopoverDrawer from '../PageLayoutPopoverDrawer'
 import Row from '../Row'
 import { RowItem } from '../RowItem'
-import { isInLocalhost } from '@/functions/judgers/isSSR'
 
 /** this should be used in ./Navbar.tsx */
 export default function WalletWidget() {
@@ -62,7 +62,13 @@ export default function WalletWidget() {
             <RowItem
               textClassName="text-white"
               className="py-3 px-6  cursor-pointer clickable clickable-filter-effect"
-              prefix={<Icon className="mr-3" size="sm" iconSrc="/icons/misc-recent-transactions.svg" />}
+              prefix={
+                <Icon
+                  className="mr-3"
+                  size="sm"
+                  iconSrc="https://img.raydium.io/ui/icons/misc-recent-transactions.svg"
+                />
+              }
               text="Recent Transactions"
               onClick={() => {
                 useAppSettings.setState({ isRecentTransactionDialogShown: true })
@@ -72,7 +78,9 @@ export default function WalletWidget() {
             <RowItem
               textClassName="text-white"
               className="py-3 px-6  cursor-pointer clickable clickable-filter-effect"
-              prefix={<Icon className="mr-3" size="sm" iconSrc="/icons/misc-disconnect-wallet.svg" />}
+              prefix={
+                <Icon className="mr-3" size="sm" iconSrc="https://img.raydium.io/ui/icons/misc-disconnect-wallet.svg" />
+              }
               text="Disconnect wallet"
               onClick={() => {
                 isInLocalhost && useWallet.setState({ userDisconnect: true })
@@ -94,7 +102,11 @@ export default function WalletWidget() {
           <Icon
             className="w-4 h-4"
             iconClassName="w-4 h-4"
-            iconSrc={connected ? '/icons/msic-wallet-connected.svg' : '/icons/msic-wallet.svg'}
+            iconSrc={
+              connected
+                ? 'https://img.raydium.io/ui/icons/msic-wallet-connected.svg'
+                : 'https://img.raydium.io/ui/icons/msic-wallet.svg'
+            }
           />
         </Button>
       ) : (
@@ -106,14 +118,14 @@ export default function WalletWidget() {
         >
           {connected ? (
             <Row className="items-center gap-3 my-0.5">
-              <Icon size="sm" iconSrc="/icons/msic-wallet-connected.svg" />
+              <Icon size="sm" iconSrc="https://img.raydium.io/ui/icons/msic-wallet-connected.svg" />
               <div className="text-sm font-medium text-white">
                 {String(publicKey).slice(0, 5)}...{String(publicKey).slice(-5)}
               </div>
             </Row>
           ) : (
             <Row className="items-center gap-3 my-0.5">
-              <Icon size="sm" iconSrc="/icons/msic-wallet.svg" />
+              <Icon size="sm" iconSrc="https://img.raydium.io/ui/icons/msic-wallet.svg" />
               <div className="text-sm font-medium text-[#39D0D8]">Connect Wallet</div>
             </Row>
           )}

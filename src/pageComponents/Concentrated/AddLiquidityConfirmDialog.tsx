@@ -1,23 +1,24 @@
 import React, * as react from 'react'
 
-import { twMerge } from 'tailwind-merge'
 import { Fraction } from '@raydium-io/raydium-sdk'
 
+import { twMerge } from 'tailwind-merge'
+
+import useAppSettings from '@/application/common/useAppSettings'
 import { SplToken } from '@/application/token/type'
+import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
+import Image from '@/components/Image'
 import Row from '@/components/Row'
-import { toString } from '@/functions/numberish/toString'
-import { Numberish } from '@/types/constants'
 import toPercentString from '@/functions/format/toPercentString'
 import { shakeZero } from '@/functions/numberish/shakeZero'
-import useAppSettings from '@/application/common/useAppSettings'
-import Image from '@/components/Image'
-import { AddressItem } from '@/components/AddressItem'
+import { toString } from '@/functions/numberish/toString'
+import { Numberish } from '@/types/constants'
 
 interface Props {
   open: boolean
@@ -163,14 +164,14 @@ export default function AddLiquidityConfirmDialog({
                   <span>
                     {inRange ? (
                       <Row className="items-center bg-[#142B45] rounded text-xs text-[#39D0D8] py-0.5 px-1 ml-2">
-                        <Icon size="xs" iconSrc={'/icons/check-circle.svg'} />
+                        <Icon size="xs" iconSrc={'https://img.raydium.io/ui/icons/check-circle.svg'} />
                         <div className="mobile:text-2xs font-normal" style={{ marginLeft: 4 }}>
                           In Range
                         </div>
                       </Row>
                     ) : (
                       <Row className="items-center bg-[#DA2EEF]/10 rounded text-xs text-[#DA2EEF] py-0.5 px-1 ml-2">
-                        <Icon size="xs" iconSrc={'/icons/warn-stick.svg'} />
+                        <Icon size="xs" iconSrc={'https://img.raydium.io/ui/icons/warn-stick.svg'} />
                         <div className="mobile:text-2xs font-normal" style={{ marginLeft: 4 }}>
                           Out of Range
                         </div>

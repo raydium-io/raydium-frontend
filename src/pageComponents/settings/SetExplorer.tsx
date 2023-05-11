@@ -20,7 +20,8 @@ export default function SetExplorer() {
             useAppSettings.setState({ explorerName: ExplorerName.EXPLORER, explorerUrl: ExplorerUrl.EXPLORER })
           }}
         >
-          <Icon className="m-auto" iconSrc="/logo/solana-explorer.png" size="sm" /> <div className="ml-2">Explorer</div>
+          <Icon className="m-auto" iconSrc="https://img.raydium.io/ui/logo/solana-explorer.png" size="sm" />{' '}
+          <div className="ml-2">Explorer</div>
         </div>
         <div
           className={`flex justify-around m-auto py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
@@ -30,7 +31,8 @@ export default function SetExplorer() {
             useAppSettings.setState({ explorerName: ExplorerName.SOLSCAN, explorerUrl: ExplorerUrl.SOLSCAN })
           }}
         >
-          <Icon className="m-auto" iconSrc="/logo/solscan.png" size="sm" /> <div className="ml-2">Solscan</div>
+          <Icon className="m-auto" iconSrc="https://img.raydium.io/ui/logo/solscan.png" size="sm" />{' '}
+          <div className="ml-2">Solscan</div>
         </div>
         <div
           className={`flex justify-around m-auto py-1 px-3 bg-[#141041] rounded-full text-[#F1F1F2] font-medium text-sm ${
@@ -40,7 +42,8 @@ export default function SetExplorer() {
             useAppSettings.setState({ explorerName: ExplorerName.SOLANAFM, explorerUrl: ExplorerUrl.SOLANAFM })
           }}
         >
-          <Icon className="m-auto" iconSrc="/logo/solanafm.png" size="sm" /> <div className="ml-2">SolanaFM</div>
+          <Icon className="m-auto" iconSrc="https://img.raydium.io/ui/logo/solanafm.png" size="sm" />{' '}
+          <div className="ml-2">SolanaFM</div>
         </div>
       </Row>
     </>

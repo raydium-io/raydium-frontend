@@ -259,11 +259,11 @@ export default function Icon({
 }
 
 export const socialIconSrcMap = {
-  website: '/icons/acceleraytor-global.svg',
-  twitter: '/icons/acceleraytor-twitter.svg',
-  telegram: '/icons/acceleraytor-telegram.svg',
-  discord: '/icons/acceleraytor-discord.svg',
-  medium: '/icons/acceleraytor-medium.svg',
-  twitch: '/icons/acceleraytor-twitch.svg',
-  youtube: '/icons/acceleraytor-youtube.svg'
+  website: 'https://img.raydium.io/ui/icons/acceleraytor-global.svg',
+  twitter: 'https://img.raydium.io/ui/icons/acceleraytor-twitter.svg',
+  telegram: 'https://img.raydium.io/ui/icons/acceleraytor-telegram.svg',
+  discord: 'https://img.raydium.io/ui/icons/acceleraytor-discord.svg',
+  medium: 'https://img.raydium.io/ui/icons/acceleraytor-medium.svg',
+  twitch: 'https://img.raydium.io/ui/icons/acceleraytor-twitch.svg',
+  youtube: 'https://img.raydium.io/ui/icons/acceleraytor-youtube.svg'
 }

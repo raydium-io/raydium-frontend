@@ -6,6 +6,7 @@ import { PublicKey } from '@solana/web3.js'
 import NextNProgress from 'nextjs-progressbar'
 
 import useAutoCleanSwapInfoCache from '@/application/ammV3PoolInfoAndLiquidity/useAutoCleanLiquidityInfoCache'
+import { useCLMMMigrationLoadInfo } from '@/application/clmmMigration/useCLMMMigrationLoadInfo'
 import { useClientInitialization, useInnerAppInitialization } from '@/application/common/initializationHooks'
 import { useAppInitVersionPostHeartBeat, useJudgeAppVersion } from '@/application/common/useAppVersion'
 import { useConcentratedAprCalcMethodSyncer } from '@/application/concentrated/useConcentratedAprCalcMethodSyncer'
@@ -47,7 +48,6 @@ import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionD
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 
 import '../styles/index.css'
-import { useCLMMMigrationLoadInfo } from '@/application/clmmMigration/useCLMMMigrationLoadInfo'
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const { pathname } = useRouter()
@@ -72,6 +72,14 @@ export default function MyApp({ Component, pageProps }: AppProps) {
         id: DRAWER_STACK_ID
       })
       document.body.append(drawerStackElement)
+    }
+
+    // favicon
+    if (inClient) {
+      const setFavicon = document.createElement('link')
+      setFavicon.setAttribute('rel', 'shortcut icon')
+      setFavicon.setAttribute('href', 'https://img.raydium.io/ui/favicon.ico')
+      document.head.append(setFavicon)
     }
   }, [])
 

@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import useTxHistory, { TxHistoryInfo } from '@/application/txHistory/useTxHistory'
 import useWallet from '@/application/wallet/useWallet'
@@ -12,7 +14,6 @@ import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { toUTC } from '@/functions/date/dateFormat'
 import toPubString from '@/functions/format/toMintString'
 import { isArray } from '@/functions/judgers/dateType'
-import { useMemo } from 'react'
 
 const iconSettings: Record<
   'success' | 'fail' | 'droped' | 'pending',
@@ -31,7 +32,7 @@ const iconSettings: Record<
     textColor: 'text-[#DA2EEF]'
   },
   pending: {
-    iconSrc: '/icons/loading-dual.svg'
+    iconSrc: 'https://img.raydium.io/ui/icons/loading-dual.svg'
   }
 }
 

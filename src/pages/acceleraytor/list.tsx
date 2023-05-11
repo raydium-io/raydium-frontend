@@ -1,44 +1,45 @@
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 
+import { twMerge } from 'tailwind-merge'
+
 import useAppSettings from '@/application/common/useAppSettings'
+import useConnection from '@/application/connection/useConnection'
+import txIdoClaim from '@/application/ido/txIdoClaim'
 import { HydratedIdoInfo } from '@/application/ido/type'
+import useAutoFetchIdoInfos from '@/application/ido/useAutoFetchIdoInfos'
 import useIdo from '@/application/ido/useIdo'
+import { routeTo } from '@/application/routeTools'
+import useStaking from '@/application/staking/useStaking'
 import useWallet from '@/application/wallet/useWallet'
+import AutoBox from '@/components/AutoBox'
 import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
-import IdoCountDownClock from '@/components/IdoCountDownClock'
+import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
+import { FadeIn } from '@/components/FadeIn'
+import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
+import IdoCountDownClock from '@/components/IdoCountDownClock'
+import Image from '@/components/Image'
+import Input from '@/components/Input'
 import Link from '@/components/Link'
+import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
+import Progress from '@/components/Progress'
 import Row from '@/components/Row'
 import Tabs from '@/components/Tabs'
 import { toUTC } from '@/functions/date/dateFormat'
+import { TimeStamp } from '@/functions/date/interface'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
+import formatNumber from '@/functions/format/formatNumber'
+import toPubString from '@/functions/format/toMintString'
+import toPercentNumber from '@/functions/format/toPercentNumber'
+import toPercentString from '@/functions/format/toPercentString'
 import { eq, gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
-import txIdoClaim from '@/application/ido/txIdoClaim'
-import Image from '@/components/Image'
-import CyberpunkStyleCard from '@/components/CyberpunkStyleCard'
-import formatNumber from '@/functions/format/formatNumber'
-import { routeTo } from '@/application/routeTools'
-import { FadeIn } from '@/components/FadeIn'
-import Grid from '@/components/Grid'
-import AutoBox from '@/components/AutoBox'
-import { useForceUpdate } from '@/hooks/useForceUpdate'
-import useStaking from '@/application/staking/useStaking'
-import toPercentString from '@/functions/format/toPercentString'
-import LoadingCircle from '@/components/LoadingCircle'
-import { twMerge } from 'tailwind-merge'
-import Progress from '@/components/Progress'
-import toPercentNumber from '@/functions/format/toPercentNumber'
-import Input from '@/components/Input'
-import useConnection from '@/application/connection/useConnection'
-import { TimeStamp } from '@/functions/date/interface'
 import { searchItems } from '@/functions/searchItems'
-import toPubString from '@/functions/format/toMintString'
-import useAutoFetchIdoInfos from '@/application/ido/useAutoFetchIdoInfos'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
 
 export default function AcceleRaytor() {
   useAutoFetchIdoInfos()
@@ -55,7 +56,7 @@ function AcceleRaytorHeaderCyberpunk() {
   return (
     <Col className="items-center gap-20 mb-11">
       <Col className="items-center cyberpunk-bg-light-acceleraytor mobile:scale-75 mobile:translate-y-4">
-        <Image src="/logo/accecleraytor-text-logo.svg" />
+        <Image src="https://img.raydium.io/ui/logo/accecleraytor-text-logo.svg" />
         <div className="text-[20px] mt-2 font-medium text-[#ABC4FF80] whitespace-nowrap">
           A launchpad for new Solana projects
         </div>
@@ -252,7 +253,10 @@ function AcceleRaytorCollapseItemFace({ open, info }: { open: boolean; info: Hyd
       </AutoBox>
       {isDateAfter(getChainDate(), info.endTime) && (
         <div className="mx-auto w-max -mt-3 -mb-3 translate-y-3 mobile:mt-3 mobile:mb-0">
-          <Icon iconSrc="/icons/acceleraytor-list-collapse-open.svg" className="clickable hover:brightness-110 " />
+          <Icon
+            iconSrc="https://img.raydium.io/ui/icons/acceleraytor-list-collapse-open.svg"
+            className="clickable hover:brightness-110 "
+          />
         </div>
       )}
     </div>
@@ -437,7 +441,7 @@ function AcceleRaytorCollapseItemContent({ info }: { info: HydratedIdoInfo }) {
           {!isMobile && (
             <div className="bg-[#141041cc] absolute bottom-0 w-full  ">
               <Row className="py-1 justify-center items-center">
-                <Icon className="mr-2" iconSrc="/icons/acceleraytor-list-medium.svg" />
+                <Icon className="mr-2" iconSrc="https://img.raydium.io/ui/icons/acceleraytor-list-medium.svg" />
                 <Link href={info.projectDetailLink} className="text-[#ABC4FF80] font-medium text-xs">
                   Read Full Details
                 </Link>

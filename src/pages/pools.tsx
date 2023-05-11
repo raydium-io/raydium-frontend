@@ -15,10 +15,12 @@ import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
 import { Badge } from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
@@ -58,8 +60,6 @@ import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
-import { AddressItem } from '@/components/AddressItem'
-import CoinAvatar from '@/components/CoinAvatar'
 
 /**
  * store:
@@ -649,7 +649,7 @@ function PoolCard() {
                 : 'opacity-0 group-hover:opacity-30'
             } transition`}
             size="sm"
-            iconSrc="/icons/msic-sort-only-down.svg"
+            iconSrc="https://img.raydium.io/ui/icons/msic-sort-only-down.svg"
           />
         </Row>
 
@@ -675,9 +675,9 @@ function PoolCard() {
               iconSrc={
                 sortConfig?.key === 'name' && sortConfig.mode !== 'none' && isSortLightOn
                   ? sortConfig?.mode === 'decrease'
-                    ? '/icons/msic-sort-down.svg'
-                    : '/icons/msic-sort-up.svg'
-                  : '/icons/msic-sort.svg'
+                    ? 'https://img.raydium.io/ui/icons/msic-sort-down.svg'
+                    : 'https://img.raydium.io/ui/icons/msic-sort-up.svg'
+                  : 'https://img.raydium.io/ui/icons/msic-sort.svg'
               }
             />
           </Row>
@@ -697,9 +697,9 @@ function PoolCard() {
             iconSrc={
               sortConfig?.key === 'liquidity' && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
-                  ? '/icons/msic-sort-down.svg'
-                  : '/icons/msic-sort-up.svg'
-                : '/icons/msic-sort.svg'
+                  ? 'https://img.raydium.io/ui/icons/msic-sort-down.svg'
+                  : 'https://img.raydium.io/ui/icons/msic-sort-up.svg'
+                : 'https://img.raydium.io/ui/icons/msic-sort.svg'
             }
           />
           <Filter target="liquidity" />
@@ -720,9 +720,9 @@ function PoolCard() {
             iconSrc={
               sortConfig?.key.startsWith('volume') && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
-                  ? '/icons/msic-sort-down.svg'
-                  : '/icons/msic-sort-up.svg'
-                : '/icons/msic-sort.svg'
+                  ? 'https://img.raydium.io/ui/icons/msic-sort-down.svg'
+                  : 'https://img.raydium.io/ui/icons/msic-sort-up.svg'
+                : 'https://img.raydium.io/ui/icons/msic-sort.svg'
             }
           />
           <Filter target="volume" />
@@ -743,9 +743,9 @@ function PoolCard() {
             iconSrc={
               sortConfig?.key.startsWith('fee') && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
-                  ? '/icons/msic-sort-down.svg'
-                  : '/icons/msic-sort-up.svg'
-                : '/icons/msic-sort.svg'
+                  ? 'https://img.raydium.io/ui/icons/msic-sort-down.svg'
+                  : 'https://img.raydium.io/ui/icons/msic-sort-up.svg'
+                : 'https://img.raydium.io/ui/icons/msic-sort.svg'
             }
           />
           <Filter target="fees" />
@@ -772,9 +772,9 @@ function PoolCard() {
             iconSrc={
               sortConfig?.key.startsWith('apr') && sortConfig.mode !== 'none' && isSortLightOn
                 ? sortConfig?.mode === 'decrease'
-                  ? '/icons/msic-sort-down.svg'
-                  : '/icons/msic-sort-up.svg'
-                : '/icons/msic-sort.svg'
+                  ? 'https://img.raydium.io/ui/icons/msic-sort-down.svg'
+                  : 'https://img.raydium.io/ui/icons/msic-sort-up.svg'
+                : 'https://img.raydium.io/ui/icons/msic-sort.svg'
             }
           />
           <Filter target="apr" />
@@ -935,7 +935,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
       <div className="w-12 self-center ml-6 mr-2">
         {isFavourite ? (
           <Icon
-            iconSrc="/icons/misc-star-filled.svg"
+            iconSrc="https://img.raydium.io/ui/icons/misc-star-filled.svg"
             onClick={({ ev }) => {
               ev.stopPropagation()
               onUnFavorite?.(info.ammId)
@@ -944,7 +944,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
           />
         ) : (
           <Icon
-            iconSrc="/icons/misc-star-empty.svg"
+            iconSrc="https://img.raydium.io/ui/icons/misc-star-empty.svg"
             onClick={({ ev }) => {
               ev.stopPropagation()
               onStartFavorite?.(info.ammId)
@@ -1006,7 +1006,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             {isFavourite ? (
               <Icon
                 className="clickable m-auto self-center"
-                iconSrc="/icons/misc-star-filled.svg"
+                iconSrc="https://img.raydium.io/ui/icons/misc-star-filled.svg"
                 onClick={({ ev }) => {
                   ev.stopPropagation()
                   onUnFavorite?.(info.ammId)
@@ -1016,7 +1016,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             ) : (
               <Icon
                 className="clickable opacity-30 hover:opacity-80 transition clickable-mask-offset-2 m-auto self-center"
-                iconSrc="/icons/misc-star-empty.svg"
+                iconSrc="https://img.raydium.io/ui/icons/misc-star-empty.svg"
                 onClick={({ ev }) => {
                   ev.stopPropagation()
                   onStartFavorite?.(info.ammId)
@@ -1165,7 +1165,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             />
             <Icon
               size="sm"
-              iconSrc="/icons/pools-remove-liquidity-entry.svg"
+              iconSrc="https://img.raydium.io/ui/icons/pools-remove-liquidity-entry.svg"
               className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect`}
               onClick={() => {
                 routeTo('/liquidity/add', {
@@ -1178,7 +1178,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             />
             <Icon
               size="sm"
-              iconSrc="/icons/msic-swap-h.svg"
+              iconSrc="https://img.raydium.io/ui/icons/msic-swap-h.svg"
               className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
               onClick={() => {
                 routeTo('/swap', {
@@ -1207,7 +1207,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             <Tooltip>
               <Icon
                 size="smi"
-                iconSrc="/icons/pools-farm-entry.svg"
+                iconSrc="https://img.raydium.io/ui/icons/pools-farm-entry.svg"
                 className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable-filter-effect ${
                   correspondingFarm ? 'clickable' : 'not-clickable'
                 }`}
@@ -1227,7 +1227,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             <Tooltip>
               <Icon
                 size="smi"
-                iconSrc="/icons/pools-remove-liquidity-entry.svg"
+                iconSrc="https://img.raydium.io/ui/icons/pools-remove-liquidity-entry.svg"
                 className={`grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] ${
                   hasLp ? 'opacity-100 clickable clickable-filter-effect' : 'opacity-50 not-clickable'
                 }`}
@@ -1245,7 +1245,7 @@ function PoolCardDatabaseBodyCollapseItemContent({ poolInfo: info }: { poolInfo:
             </Tooltip>
             <Tooltip>
               <Icon
-                iconSrc="/icons/msic-swap-h.svg"
+                iconSrc="https://img.raydium.io/ui/icons/msic-swap-h.svg"
                 size="smi"
                 className="grid place-items-center w-10 h-10 mobile:w-8 mobile:h-8 ring-inset ring-1 mobile:ring-1 ring-[rgba(171,196,255,.5)] rounded-xl mobile:rounded-lg text-[rgba(171,196,255,.5)] clickable clickable-filter-effect"
                 onClick={() => {

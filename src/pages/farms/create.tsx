@@ -1,4 +1,5 @@
 import { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+
 import { produce } from 'immer'
 import { twMerge } from 'tailwind-merge'
 
@@ -25,6 +26,7 @@ import { getDuration, parseDurationAbsolute } from '@/functions/date/parseDurati
 import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { div } from '@/functions/numberish/operations'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
+
 import { useChainDate } from '../../hooks/useChainDate'
 import { NewRewardIndicatorAndForm } from '../../pageComponents/createFarm/NewRewardIndicatorAndForm'
 import { PoolIdInputBlock, PoolIdInputBlockHandle } from '../../pageComponents/createFarm/PoolIdInputBlock'
@@ -76,7 +78,11 @@ function WarningBoard({ className }: { className: string }) {
     <FadeInStable show={needWarning}>
       <Row className={className}>
         {!isMoblie && (
-          <Icon iconSrc="/icons/create-farm-exclamation-circle.svg" className="my-4" iconClassName="w-8 h-8" />
+          <Icon
+            iconSrc="https://img.raydium.io/ui/icons/create-farm-exclamation-circle.svg"
+            className="my-4"
+            iconClassName="w-8 h-8"
+          />
         )}
         <Card
           className={`p-6 mobile:p-4 grow mx-4 mobile:mx-0 my-2 rounded-3xl mobile:rounded-2xl ring-1 ring-inset ring-[#DA2EEF] bg-[#1B1659]`}

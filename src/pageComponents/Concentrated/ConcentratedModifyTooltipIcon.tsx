@@ -1,3 +1,5 @@
+import { twMerge } from 'tailwind-merge'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import Button from '@/components/Button'
@@ -5,7 +7,6 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Tooltip from '@/components/Tooltip'
 import AprCalcDialog from '@/pageComponents/Concentrated/AprCalcDialog'
-import { twMerge } from 'tailwind-merge'
 
 export function ConcentratedModifyTooltipIcon({ iconClassName }: { iconClassName?: string }) {
   const aprCalcMode = useConcentrated((s) => s.aprCalcMode)
@@ -27,7 +28,11 @@ export function ConcentratedModifyTooltipIcon({ iconClassName }: { iconClassName
       <Icon
         className={twMerge('ml-1 cursor-help', iconClassName)}
         size="sm"
-        iconSrc={aprCalcMode === 'D' ? '/icons/clmm-modify-d.svg' : '/icons/clmm-modify-m.svg'}
+        iconSrc={
+          aprCalcMode === 'D'
+            ? 'https://img.raydium.io/ui/icons/clmm-modify-d.svg'
+            : 'https://img.raydium.io/ui/icons/clmm-modify-m.svg'
+        }
         onClick={
           isMobile
             ? undefined

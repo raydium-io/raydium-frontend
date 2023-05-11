@@ -1,3 +1,9 @@
+import { ReactNode } from 'react'
+
+import { Fraction, PublicKeyish } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import { txClaimAllCompensation } from '@/application/compensation/txClaimAllCompensation'
 import { txClaimCompensation } from '@/application/compensation/txClaimCompensation'
@@ -5,34 +11,31 @@ import { HydratedCompensationInfoItem } from '@/application/compensation/type'
 import { useCompensationMoney } from '@/application/compensation/useCompensation'
 import useCompensationMoneyInfoLoader from '@/application/compensation/useCompensationInfoLoader'
 import { TokenAmount } from '@/application/token/type'
+import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
+import { Badge } from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
-import Link from '@/components/Link'
 import Image from '@/components/Image'
+import Link from '@/components/Link'
 import LoadingCircle from '@/components/LoadingCircle'
 import PageLayout from '@/components/PageLayout'
+import RefreshCircle from '@/components/RefreshCircle'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
 import { toSentenceCase } from '@/functions/changeCase'
 import { toUTC } from '@/functions/date/dateFormat'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { add, div, getMax, minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-import { ReactNode } from 'react'
-import { twMerge } from 'tailwind-merge'
-import RefreshCircle from '@/components/RefreshCircle'
-import useToken from '@/application/token/useToken'
-import { Fraction, PublicKeyish } from '@raydium-io/raydium-sdk'
-import { Badge } from '@/components/Badge'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 /**
  * temporary pay money to user for be hacked by hacker page
@@ -109,7 +112,7 @@ export default function CompensationPage() {
             </div>
           ) : (
             <Grid className="justify-center mt-24">
-              <Image className="mx-auto" src="/backgroundImages/not-found.svg" />
+              <Image className="mx-auto" src="https://img.raydium.io/ui/backgroundImages/not-found.svg" />
               <div className="mt-10 mx-auto text-[#abc4ff] text-sm">You have no affected positions to claim</div>
               <div className="mt-3 mx-auto mobile:w-full">
                 <Link href="/pools">Go to Pools</Link>
@@ -123,7 +126,7 @@ export default function CompensationPage() {
         )
       ) : (
         <Grid className="justify-center mt-24">
-          <Image className="mx-auto" src="/backgroundImages/not-found.svg" />
+          <Image className="mx-auto" src="https://img.raydium.io/ui/backgroundImages/not-found.svg" />
           <div className="mt-10 mx-auto text-[#abc4ff] text-sm">Connect wallet to see LP position details</div>
           <div className="mt-14 mx-auto w-[400px] mobile:w-full">
             <Button

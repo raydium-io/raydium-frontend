@@ -1,11 +1,12 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
-import { isApiPoolInfoItem } from '@/application/swap/is'
 import { routeTo } from '@/application/routeTools'
+import { isApiPoolInfoItem } from '@/application/swap/is'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
 import txUnwrapAllWSOL from '@/application/swap/txUnwrapWSOL'
@@ -13,13 +14,14 @@ import { useSwap } from '@/application/swap/useSwap'
 import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
+import { verifyToken } from '@/application/token/getOnlineTokenInfo'
 import {
   isQuantumSOLVersionSOL,
   isQuantumSOLVersionWSOL,
   QuantumSOLVersionSOL,
   QuantumSOLVersionWSOL,
-  SOLDecimals,
   SOL_BASE_BALANCE,
+  SOLDecimals,
   toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
@@ -57,15 +59,16 @@ import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
+import useAsyncValue from '@/hooks/useAsyncValue'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import useToggle from '@/hooks/useToggle'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
+
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
+
 import { NewCompensationBanner } from './pools'
-import useAsyncValue from '@/hooks/useAsyncValue'
-import { verifyToken } from '@/application/token/getOnlineTokenInfo'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -381,7 +384,7 @@ function SwapCard() {
           >
             <Icon
               size="sm"
-              iconSrc="/icons/msic-swap.svg"
+              iconSrc="https://img.raydium.io/ui/icons/msic-swap.svg"
               className={`p-2 frosted-glass frosted-glass-teal rounded-full mr-4 ${
                 isApprovePanelShown ? 'not-clickable' : 'clickable'
               } select-none transition`}

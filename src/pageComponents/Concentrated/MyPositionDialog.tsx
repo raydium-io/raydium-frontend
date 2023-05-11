@@ -1,5 +1,6 @@
-import { twMerge } from 'tailwind-merge'
 import { Fraction, Token, TokenAmount } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import txHarvestConcentrated from '@/application/concentrated/txHarvestConcentrated'
@@ -557,14 +558,14 @@ function RangeTag({ positionAccount }: { positionAccount?: UserPositionAccount }
   if (!positionAccount) return null
   return positionAccount.inRange ? (
     <Row className="items-center bg-[#142B45] rounded text-xs text-[#39D0D8] py-0.5 px-1 ml-2">
-      <Icon size="xs" iconSrc={'/icons/check-circle.svg'} />
+      <Icon size="xs" iconSrc={'https://img.raydium.io/ui/icons/check-circle.svg'} />
       <div className="mobile:text-2xs font-normal" style={{ marginLeft: 4 }}>
         In Range
       </div>
     </Row>
   ) : (
     <Row className="items-center bg-[#DA2EEF]/10 rounded text-xs text-[#DA2EEF] py-0.5 px-1 ml-2">
-      <Icon size="xs" iconSrc={'/icons/warn-stick.svg'} />
+      <Icon size="xs" iconSrc={'https://img.raydium.io/ui/icons/warn-stick.svg'} />
       <div className="mobile:text-2xs font-normal" style={{ marginLeft: 4 }}>
         Out of Range
       </div>
