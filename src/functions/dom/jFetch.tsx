@@ -1,5 +1,6 @@
-import { useAppVersion } from '@/application/common/useAppVersion'
+import { refreshWindow } from '@/application/common/forceWindowRefresh'
 import useNotification from '@/application/notification/useNotification'
+import Button from '@/components/Button'
 import { MayPromise } from '@/types/constants'
 
 import assert from '../assert'
@@ -57,13 +58,11 @@ function onCostLongerThanMaxTime(key: string) {
   }
 }
 
-// 💩
 function onFetchError(key: string, response: Response) {
   if (!key.includes('api.raydium.io')) return
-  console.error(`fetch ${key} error, status: ${response.status}${response.statusText}`)
-  if (isInBonsaiTest || isInLocalhost) {
-    const { logError } = useNotification.getState()
-    logError(`fetch error`, `fetch ${key} error, status: ${response.status || '(none)'}${response.statusText ?? ''}`)
+  const { logError } = useNotification.getState()
+  if (response.status === 429) {
+    logError(`HTTP error 429`, 'Too many requests.')
   }
 }
 
@@ -88,8 +87,6 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
           Date.now() - resultCache.get(key)!.reponseTime! < (options.cacheFreshTime ?? 2000)
         : false)
     if (!canUseCache) {
-      const { currentVersion } = useAppVersion.getState()
-
       // log fetch info
       const timoutId = setTimeout(() => onCostLongerThanMaxTime(key), maxCostTime)
 
@@ -97,10 +94,7 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
       const response = (
         key.includes('api.raydium.io') ? fetch(input, { ...options, headers: options?.headers }) : fetch(input, options)
       )
-        .catch((r) => {
-          onFetchError(key, r)
-          return r
-        }) // add version for debug
+        // add version for debug
         .finally(() => {
           clearTimeout(timoutId)
         })
@@ -117,7 +111,7 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
           })
           .catch(() => undefined)
       })
-      const isOk: boolean = (await response).ok
+      const isOk = (await response).ok
       if (!isOk) {
         onFetchError(key, await response)
         resultCache.set(key, { rawText: Promise.resolve(undefined), reponseTime: Date.now() })
