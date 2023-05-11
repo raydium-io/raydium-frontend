@@ -28,7 +28,7 @@ export default function Link({
     <span
       tabIndex={0}
       className={twMerge(
-        `Link clickable ${noTextStyle ? '' : ' text-[#39D0D8] hover:underline underline-offset-1'}`,
+        `Link clickable ${noTextStyle ? '' : 'text-[#39D0D8] hover:underline underline-offset-1'}`,
         className
       )}
       onClick={() => {

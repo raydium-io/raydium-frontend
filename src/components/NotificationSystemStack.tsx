@@ -72,7 +72,7 @@ export default function NotificationSystemStack() {
       logTxid,
       logError(title: string | Error | unknown, description?: ReactNode) {
         const errorTitle = title instanceof Error ? title.name : title ? String(title) : ''
-        const errorDescription = title instanceof Error ? title.message : description ? String(description) : undefined
+        const errorDescription = title instanceof Error ? title.message : description
         log({ type: 'error', title: errorTitle, description: errorDescription })
       },
       logWarning(title: string, description?: ReactNode) {
