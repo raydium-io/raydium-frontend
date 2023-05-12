@@ -114,7 +114,7 @@ export default function PageLayout(props: {
         </>
       ) : (
         <>
-          <Navbar className="grid-area-a mobile:hidden" />
+          <Navbar className="grid-area-a" />
           <SideMenu className="flex-container grid-area-b mobile:hidden" />
         </>
       )}
@@ -373,12 +373,15 @@ function Navbar({
   const inDev = useAppSettings((s) => s.inDev) // show dev logo
 
   const pcNavContent = (
-    <Row className="justify-between items-center">
+    <Row className="justify-between items-center mobile:h-14 mobile:bg-cyberpunk-card-bg">
       <Link href="/">
-        <Image className={`cursor-pointer ${inDev ? 'hue-rotate-60' : ''}`} src="/logo/logo-with-text.svg" />
+        <Image
+          className={`cursor-pointer ${inDev ? 'hue-rotate-60' : ''} mobile:hidden`}
+          src="/logo/logo-with-text.svg"
+        />
       </Link>
 
-      <Row className="gap-8 items-center">
+      <Row className="gap-8 items-center mobile:hidden">
         <MessageBoardWidget />
         <WalletWidget />
       </Row>

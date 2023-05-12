@@ -1,11 +1,12 @@
 import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
-import { isApiPoolInfoItem } from '@/application/swap/is'
 import { routeTo } from '@/application/routeTools'
+import { isApiPoolInfoItem } from '@/application/swap/is'
 import { getCoingeckoChartPriceData } from '@/application/swap/klinePrice'
 import txSwap from '@/application/swap/txSwap'
 import txUnwrapAllWSOL from '@/application/swap/txUnwrapWSOL'
@@ -13,13 +14,14 @@ import { useSwap } from '@/application/swap/useSwap'
 import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
+import { verifyToken } from '@/application/token/getOnlineTokenInfo'
 import {
   isQuantumSOLVersionSOL,
   isQuantumSOLVersionWSOL,
   QuantumSOLVersionSOL,
   QuantumSOLVersionWSOL,
-  SOLDecimals,
   SOL_BASE_BALANCE,
+  SOLDecimals,
   toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
@@ -57,15 +59,16 @@ import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
+import useAsyncValue from '@/hooks/useAsyncValue'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import useToggle from '@/hooks/useToggle'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
+
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
+
 import { NewCompensationBanner } from './pools'
-import useAsyncValue from '@/hooks/useAsyncValue'
-import { verifyToken } from '@/application/token/getOnlineTokenInfo'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -1249,7 +1252,7 @@ function KLineChartItem({
   return (
     <FadeIn>
       {canShowKline && (
-        <div className="flex mobile:grid mobile:grid-cols-3 mobile:gap-2 p-4 mobile:py-4 w-[min(456px,100%)] self-center items-center">
+        <div className="flex mobile:grid mobile:grid-cols-3 mobile:gap-1 p-4 mobile:py-1 w-[min(456px,100%)] self-center items-center">
           <Row className="items-center mobile:justify-self-center w-16 mobile:w-8 flex-shrink-0">
             <Col className="gap-1 grow  mobile:items-center">
               <CoinAvatar token={coin} size={isMobile ? 'sm' : 'smi'} />
@@ -1279,7 +1282,7 @@ function KLineChartItem({
             </div>
           </Col>
           <KLineChartItemThumbnail
-            className="ml-10 w-36 mobile:w-full h-12 mobile:col-span-full  mobile:m-0 mobile:mt-4 flex-shrink-0"
+            className="ml-10 w-36 mobile:w-full h-12 mobile:col-span-full  mobile:m-0 mobile:mt-0 flex-shrink-0"
             isPositive={isPositive}
             isNegative={isNegative}
             pricePoints={pricePoints!}

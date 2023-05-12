@@ -15,10 +15,12 @@ import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
+import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
 import { Badge } from '@/components/Badge'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
+import CoinAvatar from '@/components/CoinAvatar'
 import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Collapse from '@/components/Collapse'
@@ -58,8 +60,6 @@ import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
-import { AddressItem } from '@/components/AddressItem'
-import CoinAvatar from '@/components/CoinAvatar'
 
 /**
  * store:
@@ -125,7 +125,7 @@ export function NewCompensationBanner() {
 
             {hasClaimDefaultBanner && !isClaimableBanner && (
               <Icon
-                className="text-[#fff] cursor-pointer absolute right-4 "
+                className="text-[#fff] cursor-pointer pr-2 "
                 heroIconName="x"
                 onClick={() => setHasClaimDefaultBanner(false)}
               />
