@@ -125,7 +125,7 @@ export function NewCompensationBanner() {
 
             {hasClaimDefaultBanner && !isClaimableBanner && (
               <Icon
-                className="text-[#fff] cursor-pointer pr-2 "
+                className="text-[#fff] cursor-pointer mobile:static mobile:pr-2 absolute right-4"
                 heroIconName="x"
                 onClick={() => setHasClaimDefaultBanner(false)}
               />
