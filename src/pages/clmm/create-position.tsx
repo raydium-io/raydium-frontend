@@ -35,7 +35,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { formatDecimal } from '@/functions/numberish/formatDecimal'
 import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
 import { div, mul, sub } from '@/functions/numberish/operations'
@@ -264,9 +264,13 @@ function ConcentratedCard() {
   )
 
   const haveEnoughCoin1 =
-    coin1 && checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }))
+    coin1 &&
+    (!isMeaningfulNumber(coin1Amount) ||
+      checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })))
   const haveEnoughCoin2 =
-    coin2 && checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true }))
+    coin2 &&
+    (!isMeaningfulNumber(coin2Amount) ||
+      checkWalletHasEnoughBalance(toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })))
 
   const cardRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -365,9 +369,7 @@ function ConcentratedCard() {
         baseIn: isMintEqual(currentAmmPool.state.mintA.mint, targetCoin?.mint),
         tick: nextTick
       })
-      if (isMin && formatDecimal({ val: price.toFixed(20) }) >= chartRef.current!.getPosition().max)
-        return toFraction(p)
-
+      if (isMin && gte(price.toFixed(20), chartRef.current!.getPosition().max.toFixed(20))) return toFraction(p)
       tickRef.current[tickKey] = nextTick
       isMin && useConcentrated.setState({ priceLower: price, priceLowerTick: nextTick })
       !isMin && useConcentrated.setState({ priceUpper: price, priceUpperTick: nextTick })
