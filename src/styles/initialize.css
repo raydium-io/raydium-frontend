@@ -52,6 +52,12 @@ input[type='number'] {
   }
 }
 
+@media screen and (max-width: 1000px) {
+  .side-menu {
+    display: none !important;
+  }
+}
+
 @font-face {
   font-family: 'Space Grotesk';
   src: url('/SpaceGrotesk[wght].woff2') format('woff2');

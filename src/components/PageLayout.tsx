@@ -1,12 +1,14 @@
 import React, { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 
-import { twMerge } from 'tailwind-merge'
 import { ZERO } from '@raydium-io/raydium-sdk'
+
+import { twMerge } from 'tailwind-merge'
 
 import { refreshWindow } from '@/application/common/forceWindowRefresh'
 import useAppSettings from '@/application/common/useAppSettings'
 import { useAppVersion } from '@/application/common/useAppVersion'
+import { extractRPCName } from '@/application/connection/extractRPCName'
 import useConnection from '@/application/connection/useConnection'
 import useNotification from '@/application/notification/useNotification'
 import useWallet from '@/application/wallet/useWallet'
@@ -19,10 +21,12 @@ import { isString } from '@/functions/judgers/dateType'
 import { inClient } from '@/functions/judgers/isSSR'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import useDocumentMetaTitle from '@/hooks/useDocumentMetaTitle'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
 import { useUrlQuery } from '@/hooks/useUrlQuery'
 import SetExplorer from '@/pageComponents/settings/SetExplorer'
 import SetTolerance from '@/pageComponents/settings/SetTolerance'
 import { LinkAddress } from '@/types/constants'
+
 import { Badge } from './Badge'
 import Button from './Button'
 import Card from './Card'
@@ -42,8 +46,6 @@ import PageLayoutPopoverDrawer from './PageLayoutPopoverDrawer'
 import ResponsiveDialogDrawer from './ResponsiveDialogDrawer'
 import Row from './Row'
 import Tooltip from './Tooltip'
-import { extractRPCName } from '@/application/connection/extractRPCName'
-import { useForceUpdate } from '@/hooks/useForceUpdate'
 
 /**
  * for easier to code and read
@@ -113,7 +115,7 @@ export default function PageLayout(props: {
       ) : (
         <>
           <Navbar className="grid-area-a" />
-          <SideMenu className="flex-container grid-area-b" />
+          <SideMenu className=" grid-area-b side-menu" />
         </>
       )}
       <main
