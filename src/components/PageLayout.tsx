@@ -555,9 +555,6 @@ function SideMenu({ className, onClickCloseBtn }: { className?: string; onClickC
         )}
         <Col className="grid grid-rows-[2fr,1fr,auto] flex-1 overflow-hidden">
           <div className="shrink overflow-y-auto min-h-[120px] py-4 space-y-1 mobile:py-0 px-2 mr-2 mobile:ml-2 mb-2">
-            <LinkItem icon="/icons/entry-icon-trade.svg" href="https://dex.raydium.io/">
-              Trading
-            </LinkItem>
             <LinkItem icon="/icons/entry-icon-swap.svg" href="/swap" isCurrentRoutePath={pathname === '/swap'}>
               Swap
             </LinkItem>
