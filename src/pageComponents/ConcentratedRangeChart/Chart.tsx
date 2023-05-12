@@ -154,7 +154,9 @@ export default forwardRef(function Chart(props: Props, ref) {
   )
 
   useEffect(() => {
+    const rate = chartOptions?.isStable ? 0.01 : 0.2
     setRate(chartOptions?.isStable ? 0.01 : 0.2)
+    onClickPercent(rate)
   }, [chartOptions?.isStable, poolFocusKey])
 
   useEffect(() => {
@@ -667,10 +669,12 @@ export default forwardRef(function Chart(props: Props, ref) {
   }
 
   let yAxisMax = 0
-  displayList.forEach((p) => {
+  const finalList = displayList.filter((p) => {
     if (p.x >= Number(xAxisDomain[0]) && p.x <= Number(xAxisDomain[1])) {
       yAxisMax = Math.max(yAxisMax, p.y)
+      return true
     }
+    return false
   })
 
   return (
@@ -731,7 +735,7 @@ export default forwardRef(function Chart(props: Props, ref) {
             height={400}
             margin={{ top: 15 }}
             defaultShowTooltip={false}
-            data={displayList || []}
+            data={finalList || []}
             onMouseDown={isMobile ? handleMouseDown(Range.Min) : undefined}
             onMouseMove={handleMove}
             onMouseUp={handleMouseUp}
