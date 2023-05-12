@@ -1282,7 +1282,7 @@ function KLineChartItem({
             </div>
           </Col>
           <KLineChartItemThumbnail
-            className="ml-10 w-36 mobile:w-full h-12 mobile:col-span-full  mobile:m-0 mobile:mt-0 flex-shrink-0"
+            className="ml-10 w-36 mobile:w-full h-12 mobile:col-span-full  mobile:m-0 mobile:mt-2 flex-shrink-0"
             isPositive={isPositive}
             isNegative={isNegative}
             pricePoints={pricePoints!}
