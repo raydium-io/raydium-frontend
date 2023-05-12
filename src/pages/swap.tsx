@@ -1252,7 +1252,7 @@ function KLineChartItem({
   return (
     <FadeIn>
       {canShowKline && (
-        <div className="flex mobile:grid mobile:grid-cols-3 mobile:gap-1 p-4 mobile:py-1 w-[min(456px,100%)] self-center items-center">
+        <div className="flex mobile:grid mobile:grid-cols-3 mobile:gap-1 p-4 mobile:p-2 w-[min(456px,100%)] self-center items-center">
           <Row className="items-center mobile:justify-self-center w-16 mobile:w-8 flex-shrink-0">
             <Col className="gap-1 grow  mobile:items-center">
               <CoinAvatar token={coin} size={isMobile ? 'sm' : 'smi'} />
