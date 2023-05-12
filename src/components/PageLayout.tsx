@@ -115,7 +115,7 @@ export default function PageLayout(props: {
       ) : (
         <>
           <Navbar className="grid-area-a" />
-          <SideMenu className=" grid-area-b side-menu" />
+          <SideMenu className="flex-container grid-area-b mobile:hidden" />
         </>
       )}
       <main
