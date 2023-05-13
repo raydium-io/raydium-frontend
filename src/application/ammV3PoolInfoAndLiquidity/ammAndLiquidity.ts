@@ -5,17 +5,8 @@
  */
 
 import {
-  AmmV3,
-  AmmV3PoolInfo,
-  AmmV3PoolPersonalPosition,
-  ApiAmmV3PoolsItem,
-  ApiPoolInfo,
-  PoolType,
-  PublicKeyish,
-  ReturnTypeFetchMultipleInfo,
-  ReturnTypeFetchMultiplePoolTickArrays,
-  ReturnTypeGetAllRouteComputeAmountOut,
-  TradeV2
+  AmmV3, AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolsItem, ApiPoolInfo, PoolType, PublicKeyish,
+  ReturnTypeFetchMultipleInfo, ReturnTypeFetchMultiplePoolTickArrays, ReturnTypeGetAllRouteComputeAmountOut, TradeV2
 } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
@@ -34,7 +25,9 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isArray, isObject, isPubKeyish } from '@/functions/judgers/dateType'
 import { isInBonsaiTest, isInLocalhost } from '@/functions/judgers/isSSR'
 import { Numberish } from '@/types/constants'
+
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
+
 import { BestResultStartTimeInfo } from './type'
 
 const apiCache = {} as {
@@ -229,7 +222,6 @@ export async function getAllSwapableRouteInfos({
   inputAmount: Numberish
 }) {
   const { ammV3, liquidity: apiPoolList } = await getApiInfos()
-  if (!connection) return
   assert(
     connection,
     "no connection provide. it will default useConnection's connection, but can still appointed by user"
@@ -280,9 +272,9 @@ function getBestCalcResult(
   chainTime: number
 ):
   | {
-      bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
-      bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
-    }
+    bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
+    bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
+  }
   | undefined {
   if (!routeList.length) return undefined
   const readyRoutes = routeList.filter((i) => i.poolReady)
