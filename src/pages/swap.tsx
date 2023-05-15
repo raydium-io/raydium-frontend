@@ -20,8 +20,8 @@ import {
   isQuantumSOLVersionWSOL,
   QuantumSOLVersionSOL,
   QuantumSOLVersionWSOL,
-  SOL_BASE_BALANCE,
   SOLDecimals,
+  SOL_BASE_BALANCE,
   toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
@@ -59,7 +59,6 @@ import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
-import useAsyncValue from '@/hooks/useAsyncValue'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import useToggle from '@/hooks/useToggle'
@@ -67,8 +66,6 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
-
-import { NewCompensationBanner } from './pools'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -88,7 +85,7 @@ export default function Swap() {
   return (
     <SwapUIContextProvider>
       <SwapEffect />
-      <PageLayout mobileBarTitle="Swap" metaTitle="Swap - Raydium" contentBanner={<NewCompensationBanner />}>
+      <PageLayout mobileBarTitle="Swap" metaTitle="Swap - Raydium">
         <SwapHead />
         <SwapCard />
         {/* <UnwrapWSOL /> */}

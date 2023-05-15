@@ -30,16 +30,10 @@ import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { StakingPageStakeLpDialog } from '../pageComponents/dialogs/StakingPageStakeLpDialog'
-import { NewCompensationBanner } from './pools'
 
 export default function StakingPage() {
   return (
-    <PageLayout
-      mobileBarTitle="Staking"
-      metaTitle="Staking - Raydium"
-      contentButtonPaddingShorter
-      contentBanner={<NewCompensationBanner />}
-    >
+    <PageLayout mobileBarTitle="Staking" metaTitle="Staking - Raydium" contentButtonPaddingShorter>
       <StakingHeader />
       <StakingCard />
 

@@ -52,18 +52,16 @@ import useToggle from '@/hooks/useToggle'
 import { SearchAmmDialog } from '@/pageComponents/dialogs/SearchAmmDialog'
 import { HexAddress } from '@/types/constants'
 
+import { useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
+import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConnection from '@/application/connection/useConnection'
 import { toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter } from '@/functions/date/judges'
 import parseDuration from '@/functions/date/parseDuration'
+import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
 import { Checkbox } from '../../components/Checkbox'
 import { RemoveLiquidityDialog } from '../../pageComponents/dialogs/RemoveLiquidityDialog'
 import TokenSelectorDialog from '../../pageComponents/dialogs/TokenSelectorDialog'
-import { NewCompensationBanner } from '../pools'
-import useConcentrated from '@/application/concentrated/useConcentrated'
-import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
-import { shouldLiquidityOrFarmBeenMigrate } from '@/application/clmmMigration/shouldLiquidityOrFarmBeenMigrate'
-import { useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 
 const { ContextProvider: LiquidityUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -76,7 +74,7 @@ export default function Liquidity() {
   return (
     <LiquidityUIContextProvider>
       <LiquidityEffect />
-      <PageLayout mobileBarTitle="Liquidity" metaTitle="Liquidity - Raydium" contentBanner={<NewCompensationBanner />}>
+      <PageLayout mobileBarTitle="Liquidity" metaTitle="Liquidity - Raydium">
         <LiquidityPageHead />
         <LiquidityCard />
         <UserLiquidityExhibition />

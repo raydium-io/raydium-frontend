@@ -4,8 +4,10 @@ import { PublicKeyish, TokenAmount } from '@raydium-io/raydium-sdk'
 
 import { twMerge } from 'tailwind-merge'
 
+import { useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
 import useAppSettings from '@/application/common/useAppSettings'
+import useConcentrated from '@/application/concentrated/useConcentrated'
 import useConnection from '@/application/connection/useConnection'
 import useCreateFarms from '@/application/createFarm/useCreateFarm'
 import { isHydratedFarmInfo, isJsonFarmInfo } from '@/application/farms/judgeFarmInfo'
@@ -73,11 +75,7 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
-import { NewCompensationBanner } from '../pools'
-import { shouldLiquidityOrFarmBeenMigrate } from '@/application/clmmMigration/shouldLiquidityOrFarmBeenMigrate'
-import useConcentrated from '@/application/concentrated/useConcentrated'
 import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
-import { useCLMMMigration } from '@/application/clmmMigration/useCLMMMigration'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -105,7 +103,6 @@ export default function FarmsPage() {
       }}
       contentButtonPaddingShorter
       metaTitle="Farms - Raydium"
-      contentBanner={<NewCompensationBanner />}
     >
       <FarmHeader />
       <FarmCard />

@@ -85,7 +85,6 @@ import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConc
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
 
-import { NewCompensationBanner } from '../pools'
 
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
@@ -107,7 +106,6 @@ export default function PoolsConcentratedPage() {
         drawerTitle: 'CONCENTRATED POOLS'
       }}
       metaTitle="Concentrated Pools - Raydium"
-      contentBanner={<NewCompensationBanner />}
     >
       <PoolHeader />
       <PoolCard />
