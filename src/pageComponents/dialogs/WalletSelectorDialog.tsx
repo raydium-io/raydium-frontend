@@ -44,7 +44,11 @@ function WalletSelectorPanelItem({
       } clickable clickable-filter-effect`}
       // TODO disable status
       onClick={() => {
-        if (wallet.readyState !== WalletReadyState.Installed && !extensionMap[wallet.adapter.name]?.autoHandle) {
+        if (
+          wallet.readyState !== WalletReadyState.Installed &&
+          wallet.readyState !== WalletReadyState.Loadable &&
+          !extensionMap[wallet.adapter.name]?.autoHandle
+        ) {
           logInfo(
             'Wallet installation required ',
             <div>
