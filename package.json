@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "scripts": {
     "dev": "next dev -p 3008",
-    "build": "next build",
+    "build": "next build && next export",
     "start": "next start",
     "build-analyze": "cross-env ANALYZE=true yarn build",
     "type-check": "tsc --pretty --noEmit",
