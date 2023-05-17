@@ -14,6 +14,7 @@ import {
 import { SplToken } from '@/application/token/type'
 import useToken, { SupportedTokenListSettingName } from '@/application/token/useToken'
 import { createSplToken } from '@/application/token/useTokenListsLoader'
+import { useTokenListSettingsUtils } from '@/application/token/useTokenUtils'
 import { RAYMint, USDCMint, USDTMint } from '@/application/token/wellknownToken.config'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
@@ -32,8 +33,9 @@ import Row from '@/components/Row'
 import Switcher from '@/components/Switcher'
 import { throttle } from '@/functions/debounce'
 import toPubString from '@/functions/format/toMintString'
-import { isMintEqual, isStringInsensitivelyEqual } from '@/functions/judgers/areEqual'
+import { isMintEqual } from '@/functions/judgers/areEqual'
 import { toString } from '@/functions/numberish/toString'
+import { searchItems } from '@/functions/searchItems'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import { useEvent } from '@/hooks/useEvent'
 import useToggle from '@/hooks/useToggle'
@@ -131,44 +133,23 @@ function TokenSelectorDialogContent({
 
   const sortedTokens = disableTokens?.length ? sourceTokens.filter((token) => !isTokenDisabled(token)) : sourceTokens
 
+  const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
   // by user's search text
   const originalSearchedTokens = useMemo(
     () =>
-      searchText
-        ? firstFullMatched(
-            sortedTokens.filter((token) =>
-              searchText
-                .split(' ')
-                .every(
-                  (keyWord) =>
-                    toPubString(token.id).startsWith(keyWord) ||
-                    new RegExp(`^.*${keyWord.toLowerCase()}.*$`).test(token.symbol?.toLowerCase() ?? '')
-                )
-            ),
-            searchText
-          )
-        : sortedTokens,
+      searchItems(sortedTokens, {
+        text: searchText,
+        matchConfigs: (i) => [
+          { text: i.id, entirely: true },
+          { text: toPubString(i?.mint), entirely: true },
+          !isTokenUnnamedAndNotUserCustomized(i.mint) ? i.symbol : undefined,
+          !isTokenUnnamedAndNotUserCustomized(i.mint) ? i.name : undefined
+        ]
+      }),
     [searchText, sortedTokens, balances]
   )
-  const searchedTokens = useDeferredValue(originalSearchedTokens)
 
-  function firstFullMatched(tokens: SplToken[], searchText: string): SplToken[] {
-    const fullMatched = tokens.filter((token) => token.symbol?.toLowerCase() === searchText.toLowerCase())
-    return [
-      ...fullMatched,
-      ...tokens.filter(
-        (t) =>
-          !fullMatched.some(
-            (f) =>
-              isMintEqual(f.mint, t.mint) &&
-              isStringInsensitivelyEqual(
-                f.symbol,
-                t.symbol
-              ) /* check mint and symbol to avoid QuantumSOL(sol and wsol has same mint) */
-          )
-      )
-    ]
-  }
+  const searchedTokens = useDeferredValue(originalSearchedTokens)
 
   // flag for can start user add mode
   const haveSearchResult = searchedTokens.length > 0
