@@ -9,13 +9,12 @@ import { eq, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import { useDebounce } from '@/hooks/useDebounce'
 import { useIdleEffect } from '@/hooks/useIdleEffect'
-
 import useAppSettings from '../common/useAppSettings'
 import useConnection from '../connection/useConnection'
 import useLiquidity from '../liquidity/useLiquidity'
 import useWallet from '../wallet/useWallet'
-
 import { useSwap } from './useSwap'
+import { useEffect } from 'react'
 
 export function useSwapAmountCalculator() {
   const { pathname } = useRouter()
@@ -40,7 +39,7 @@ export function useSwapAmountCalculator() {
   const jsonInfos = useLiquidity((s) => s.jsonInfos)
 
   // clean old data
-  useIdleEffect(async () => {
+  useEffect(() => {
     useSwap.setState({
       calcResult: undefined,
       selectedCalcResult: undefined,
@@ -85,7 +84,7 @@ export function useSwapAmountCalculator() {
       swapable,
       selectedCalcResultPoolStartTimes: bestResultStartTimes
     })
-  }, [connection, coin1, coin2])
+  }, [connection, coin1, coin2, directionReversed])
 
   const startCalc = useDebounce(
     () => {
