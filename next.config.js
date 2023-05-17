@@ -11,9 +11,10 @@ const moduleExports = {
   productionBrowserSourceMaps: false,
   // hmr: false,
 
-  generateBuildId: () => nextBuildId({ dir: __dirname }),
+  generateBuildId: () => nextBuildId({ dir: __dirname })
 
   /** @see https://nextjs.org/docs/advanced-features/i18n-routing */
+  /*
   i18n: {
     // locales: ['en-US', 'zh-CN'],
     locales: ['en-US'],
@@ -38,6 +39,7 @@ const moduleExports = {
       }
     ]
   }
+  */
   // async redirects() {
   //   return [
   //     {
