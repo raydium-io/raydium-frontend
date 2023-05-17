@@ -39,6 +39,7 @@ import { TimeStamp } from '@/functions/date/interface'
 import { searchItems } from '@/functions/searchItems'
 import toPubString from '@/functions/format/toMintString'
 import useAutoFetchIdoInfos from '@/application/ido/useAutoFetchIdoInfos'
+import { useTokenListSettingsUtils } from '@/application/token/useTokenUtils'
 
 export default function AcceleRaytor() {
   useAutoFetchIdoInfos()
@@ -82,6 +83,7 @@ function IdoList() {
   }
   const tabedPoolItems = currentTab === 'Upcoming Pools' ? upcomingPools : closedPools
 
+  const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
   const upcomingOrClosedPoolItems = useMemo(
     () =>
       searchItems(tabedPoolItems, {
@@ -91,8 +93,8 @@ function IdoList() {
           { text: toPubString(i.base?.mint), entirely: true },
           { text: toPubString(i.quote?.mint), entirely: true },
           i.projectName,
-          i.base?.symbol,
-          i.quote?.symbol
+          i.base && !isTokenUnnamedAndNotUserCustomized(i.base.mint) ? i.base.symbol : undefined,
+          i.quote && !isTokenUnnamedAndNotUserCustomized(i.quote.mint) ? i.quote.symbol : undefined
           // i.base?.name,
           // i.quote?.name
         ]

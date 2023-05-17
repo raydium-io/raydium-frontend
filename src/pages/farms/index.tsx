@@ -76,6 +76,7 @@ import { toggleSetItem } from '@/functions/setMethods'
 import useOnceEffect from '@/hooks/useOnceEffect'
 import useSort from '@/hooks/useSort'
 import ConcentratedMigrateDialog from '@/pageComponents/dialogs/ConcentratedMigrateDialog'
+import { useTokenListSettingsUtils } from '@/application/token/useTokenUtils'
 
 export default function FarmsPage() {
   const query = getURLQueryEntry()
@@ -457,6 +458,7 @@ function FarmCard() {
     [onlySelfFarms, searchText, onlySelfCreatedFarms, tabedDataSource, owner]
   )
 
+  const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
   const applySearchedDataSource = useDeferredValue(
     useMemo(
       () =>
@@ -469,8 +471,8 @@ function FarmCard() {
                   { text: i.ammId, entirely: true },
                   { text: toPubString(i.base?.mint), entirely: true },
                   { text: toPubString(i.quote?.mint), entirely: true },
-                  i.base?.symbol,
-                  i.quote?.symbol,
+                  i.base && !isTokenUnnamedAndNotUserCustomized(i.base.mint) ? i.base.symbol : undefined,
+                  i.quote && !isTokenUnnamedAndNotUserCustomized(i.quote.mint) ? i.quote.symbol : undefined,
                   { text: toPubString(i.lpMint), entirely: true }
                   // { text: toSentenceCase(i.base?.name ?? '').split(' '), entirely: true },
                   // { text: toSentenceCase(i.quote?.name ?? '').split(' '), entirely: true }

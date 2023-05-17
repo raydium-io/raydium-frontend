@@ -20,6 +20,7 @@ import listToMap from '@/functions/format/listToMap'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isPubKey, isValidPublicKey } from '@/functions/judgers/dateType'
 import { useClickOutside } from '@/hooks/useClickOutside'
+import { useTokenListSettingsUtils } from '@/application/token/useTokenUtils'
 
 export interface PoolIdInputBlockHandle {
   validate?: () => void
@@ -47,6 +48,8 @@ export function PoolIdInputBlock({
   const selectedPool = liquidityPoolJsons.find((i) => i.id === poolId)
   const selectedPoolPairInfo = pairInfos.find((i) => i.ammId === poolId)
 
+  const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
+
   const candidates = liquidityPoolJsons
     // .filter((p) => tokens[p.baseMint] && tokens[p.quoteMint])
     .map((pool) =>
@@ -57,8 +60,12 @@ export function PoolIdInputBlock({
           { text: i.id, entirely: true },
           { text: i.baseMint, entirely: true }, // Input Auto complete result sort setting
           { text: i.quoteMint, entirely: true },
-          tokens[i.baseMint]?.symbol,
-          tokens[i.quoteMint]?.symbol
+          tokens[i.baseMint] && !isTokenUnnamedAndNotUserCustomized(tokens[i.baseMint].mint)
+            ? tokens[i.baseMint].symbol
+            : undefined,
+          tokens[i.quoteMint] && !isTokenUnnamedAndNotUserCustomized(tokens[i.quoteMint].mint)
+            ? tokens[i.quoteMint].symbol
+            : undefined
           // tokens[i.baseMint]?.name,
           // tokens[i.quoteMint]?.name
         ]

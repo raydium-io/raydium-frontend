@@ -12,6 +12,7 @@ import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoad
 import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
+import { useTokenListSettingsUtils } from '@/application/token/useTokenUtils'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
 import AutoBox from '@/components/AutoBox'
@@ -449,6 +450,8 @@ function PoolCard() {
     [onlySelfPools, searchText, hydratedInfos, hasHydratedInfoLoaded, jsonInfos]
   ) as (JsonPairItemInfo | HydratedPairItemInfo)[]
 
+  const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
+
   const searched = useDeferredValue(
     useMemo(
       () =>
@@ -457,7 +460,8 @@ function PoolCard() {
           matchConfigs: (i) =>
             isHydratedPoolItemInfo(i)
               ? [
-                  i.name,
+                  i.base && !isTokenUnnamedAndNotUserCustomized(i.base.mint) ? i.base.symbol : undefined,
+                  i.quote && !isTokenUnnamedAndNotUserCustomized(i.quote.mint) ? i.quote.symbol : undefined,
                   { text: i.ammId, entirely: true },
                   { text: i.market, entirely: true },
                   { text: toPubString(i.base?.mint), entirely: true },
@@ -1290,38 +1294,11 @@ function TextInfoItem({ name, value }: { name: string; value?: any }) {
   )
 }
 
-/** for js set, basic minus operation */
-function setMinus<T>(source: T[] | Set<T>, ...minus: (T[] | Set<T> | undefined)[]) {
-  const result = new Set(source)
-  minus.forEach((m) => {
-    m?.forEach((item) => {
-      result.delete(item)
-    })
-  })
-  return result
-}
-
 function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
-  const tokenListSettings = useToken((s) => s.tokenListSettings)
-  const tokenJsonInfos = useToken((s) => s.tokenJsonInfos)
-  const blacklist = useToken((s) => s.blacklist)
-
-  const unnamedTokenMints = tokenListSettings['UnNamed Token List'].mints
-  const officialTokenMints = tokenListSettings['Raydium Token List'].mints
-  const unofficialTokenMints = tokenListSettings['Solana Token List'].mints
   const [showEditDialog, setShowEditDialog] = useState(false)
+  const { isTokenUnnamed } = useTokenListSettingsUtils()
 
-  const otherLiquiditySupportedTokenMints = setMinus(
-    Object.keys(tokenJsonInfos),
-    unnamedTokenMints,
-    officialTokenMints,
-    unofficialTokenMints,
-    blacklist
-  )
-
-  return token &&
-    (otherLiquiditySupportedTokenMints?.has(toPubString(token.mint)) ||
-      unnamedTokenMints?.has(toPubString(token.mint))) ? (
+  return token && isTokenUnnamed(token.mint) ? (
     <Row className="items-center">
       <div>{token?.symbol ?? 'UNKNOWN'}</div>
       <div>

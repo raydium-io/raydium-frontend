@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useState } from 'react'
+import { useDeferredValue, useMemo, useState } from 'react'
 
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
@@ -400,9 +400,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
   const editUserAddedToken = useToken((s) => s.editUserAddedToken)
   const getBalance = useWallet((s) => s.getBalance)
   const connected = useWallet((s) => s.connected)
-  const userCustomTokenSymbol = useToken((s) => s.userCustomTokenSymbol)
   const updateUserCustomTokenSymbol = useToken((s) => s.updateUserCustomTokenSymbol)
-  const isCustomTokenSymbolName = Boolean(userCustomTokenSymbol[toPubString(token.mint)])
 
   const [showUpdateInfo, setShowUpdateInfo] = useState(false)
   const [userCustomizedTokenInfo, setUserCustomizedTokenInfo] = useState({
