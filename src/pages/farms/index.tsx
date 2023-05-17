@@ -1654,7 +1654,7 @@ function CoinAvatarInfoItem({ info, className }: { info: HydratedFarmInfo | Farm
       className={twMerge('flex-wrap items-center mobile:items-start gap-x-2 gap-y-1', className)}
     >
       <CoinAvatarPair className="justify-self-center mr-2" size={isMobile ? 'sm' : 'md'} token1={base} token2={quote} />
-      <Row className="mobile:text-xs font-medium mobile:mt-px mr-1.5">
+      <Row className="mobile:text-xs font-medium items-center mobile:mt-px mr-1.5">
         <CoinAvatarInfoItemSymbol mint={info.baseMint} />-<CoinAvatarInfoItemSymbol mint={info.quoteMint} />
         {currentTab === 'Ecosystem' && (
           <Tooltip>

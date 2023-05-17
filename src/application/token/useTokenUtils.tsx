@@ -2,7 +2,7 @@ import { PublicKeyish } from '@raydium-io/raydium-sdk'
 import toPubString from '@/functions/format/toMintString'
 import useToken from './useToken'
 import { setMinus } from '@/functions/setMethods'
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useEvent } from '@/hooks/useEvent'
 
 /**
@@ -32,13 +32,15 @@ export function useTokenListSettingsUtils(): {
     [otherLiquidityComposedTokenMints.size, userTokenMints?.size]
   )
 
-  const isTokenUnnamed = useEvent((tokenMint: PublicKeyish) => {
-    return otherLiquidityComposedTokenMints.has(toPubString(tokenMint))
-  })
+  const isTokenUnnamed = useCallback(
+    (tokenMint: PublicKeyish) => otherLiquidityComposedTokenMints.has(toPubString(tokenMint)),
+    [otherLiquidityComposedTokenMints]
+  )
 
-  const isTokenUnnamedAndNotUserCustomized = useEvent((tokenMint: PublicKeyish) => {
-    return otherLiquidityComposedTokenMintsWithoutUserCustomized.has(toPubString(tokenMint))
-  })
+  const isTokenUnnamedAndNotUserCustomized = useCallback(
+    (tokenMint: PublicKeyish) => otherLiquidityComposedTokenMintsWithoutUserCustomized.has(toPubString(tokenMint)),
+    [otherLiquidityComposedTokenMintsWithoutUserCustomized]
+  )
 
   return {
     isTokenUnnamed,
