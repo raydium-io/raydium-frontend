@@ -23,7 +23,6 @@ export function hydratedPairInfo(
   const lp = payload.lpToken
   const base = lp?.base
   const quote = lp?.quote
-  let newPairName = ''
 
   const tokenAmountBase = base ? toTokenAmount(base, pair.tokenAmountCoin, { alreadyDecimaled: true }) ?? null : null
   const tokenAmountQuote = quote ? toTokenAmount(quote, pair.tokenAmountPc, { alreadyDecimaled: true }) ?? null : null
@@ -34,32 +33,6 @@ export function hydratedPairInfo(
     { tokenAmountBase, tokenAmountQuote, tokenAmountLp },
     { lpToken: lp, baseToken: base, quoteToken: quote, lpBalance }
   )
-
-  const nameParts = pair.name.split('-')
-  const basePubString = toPubString(base?.mint)
-  const quotePubString = toPubString(quote?.mint)
-
-  if (base && payload.userCustomTokenSymbol[basePubString]) {
-    base.symbol = payload.userCustomTokenSymbol[basePubString].symbol
-    base.name = payload.userCustomTokenSymbol[basePubString].name
-      ? payload.userCustomTokenSymbol[basePubString].name
-      : base.symbol
-    nameParts[0] = base.symbol
-  } else if (nameParts[0] === 'unknown') {
-    nameParts[0] = base?.symbol?.substring(0, 6) ?? nameParts[0]
-  }
-
-  if (quote && payload.userCustomTokenSymbol[quotePubString]) {
-    quote.symbol = payload.userCustomTokenSymbol[quotePubString].symbol
-    quote.name = payload.userCustomTokenSymbol[quotePubString].name
-      ? payload.userCustomTokenSymbol[quotePubString].name
-      : quote.symbol
-    nameParts[1] = quote.symbol
-  } else if (nameParts[1] === 'unknown') {
-    nameParts[1] = quote?.symbol?.substring(0, 6) ?? nameParts[0]
-  }
-
-  newPairName = nameParts.join('-')
 
   return {
     ...pair,
@@ -90,8 +63,7 @@ export function hydratedPairInfo(
       sharePercent: calcLpUserLedgerInfoResult?.sharePercent,
       price: base ? toTokenPrice(base, pair.price) : null,
       isStablePool: Boolean(payload.isStable),
-      isOpenBook: Boolean(payload.isOpenBook),
-      name: newPairName ? newPairName : pair.name
+      isOpenBook: Boolean(payload.isOpenBook)
     }
   }
 }

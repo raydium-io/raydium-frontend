@@ -1,6 +1,6 @@
 import { createRef, MutableRefObject, useRef } from 'react'
 
-import { isExist, isNullish } from '@/functions/judgers/nil'
+import { isExist } from '@/functions/judgers/nil'
 
 export type UseCallbackRefOptions<T> = {
   defaultValue?: T
