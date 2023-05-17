@@ -1,0 +1,40 @@
+[
+  {
+    "id": "7zk92r3Hiy6JWHTc2FaqGGxyP3arhxpTyqairGiWa25M",
+    "version": 3,
+    "snapshotVersion": 1,
+    "programId": "9HzJyW1qZsEiSfMUf6L2jo3CcTKAyBmSyKdwQeYisHrC",
+    "snapshotProgramId": "4kCccBVdQpsonm2jL2TRV1noMdarsWR2mhwwkxUTqW3W",
+    "seedId": "FBcHy7dPGZMMaEKd1tNH5bzERMP1R1CqSTvgem4acXKx",
+    "authority": "5uTzwn1MX3si9QCUofUQjbGU5rotNd86NpBDV26cS5aj",
+    "baseVault": "4nuhCrBekDVeJeJpoyGSKqe9C371CLNBEpkYo7Cx2MTP",
+    "quoteVault": "8eUGYBMdB55E6r4iKxGpqdPyHtiMNVbq95bnpXXB7NVW",
+    "baseMint": "7WVMpKPcpDp6ezRp5uw4R1MZchQkDuFGaudCa87MA1aR",
+    "quoteMint": "2nkxLptGxQCfaar541Cr87G4v6VuA6BvVWqxsHNVCYoA",
+    "projectName": "TEST PROJECT",
+    "projectDocs": {
+      "website": "https://realy.pro/"
+    },
+    "projectSocials": {
+      "Discord": "https://t.co/9O42ibMcNM?amp=1",
+      "Twitter": "https://twitter.com/RealyOfficial"
+    },
+    "projectPosters": "https://miro.medium.com/max/1400/0*7Sqwmm63VyBf3ZXD",
+    "projectDetailLink": "https://raydium.medium.com/hawksight-is-launching-on-acceleraytor-88b5e8f9f2a8",
+    "baseSymbol": "Test Base",
+    "baseDecimals": 9,
+    "baseIcon": "",
+    "quoteSymbol": "Test Quote",
+    "quoteDecimals": 6,
+    "quoteIcon": "",
+    "startTime": 1650448800,
+    "endTime": 1660492000,
+    "startWithdrawTime": 1660535200,
+    "stakeTimeEnd": 1649844000,
+    "stakeMinSize": 100,
+    "price": 0.012,
+    "raise": 30000000,
+    "maxWinLotteries": 6000,
+    "raisedLotteries": 369553
+  }
+]
