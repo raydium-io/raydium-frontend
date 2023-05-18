@@ -353,7 +353,7 @@ export function CreatePoolCard() {
   return (
     <Card
       className={twMerge(
-        `flex gap-4 p-6 mobile:py-4 mobile:px-2 rounded-3xl w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card`
+        `flex mobile:flex-col gap-4 p-6 mobile:py-4 mobile:px-2 rounded-3xl w-full border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card`
       )}
       size="lg"
     >
@@ -364,7 +364,7 @@ export function CreatePoolCard() {
         }}
       ></RefreshCircle> */}
       {/* left */}
-      <Col className="gap-6 w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
+      <Col className="gap-6 w-1/2 mobile:w-full border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
         <div>
           <div className="font-medium text-[#abc4ff] mb-2">Select Tokens</div>
           <Grid className="grid-cols-2 gap-4">
@@ -446,7 +446,7 @@ export function CreatePoolCard() {
         )}
       </Col>
       {/* right */}
-      <Col className="gap-4 w-1/2 border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
+      <Col className="gap-4 w-1/2 mobile:w-full border-1.5 border-[#abc4ff40] rounded-xl p-3 mobile:p-2 mobile:mt-3">
         <div className={currentAmmPool ? '' : 'opacity-50 pointer-events-none'}>
           <Row className="text-secondary-title justify-between mb-2">
             <div className="font-medium text-[#abc4ff] my-1">Deposit Amount</div>
