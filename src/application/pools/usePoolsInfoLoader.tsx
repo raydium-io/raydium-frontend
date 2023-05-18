@@ -1,5 +1,5 @@
-import { useRouter } from 'next/router'
 import { useEffect, useMemo } from 'react'
+import { useRouter } from 'next/router'
 
 import { Price } from '@raydium-io/raydium-sdk'
 
@@ -12,6 +12,7 @@ import toPubString from '@/functions/format/toMintString'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import { isPubEqual } from '@/functions/judgers/areEqual'
 import { lazyMap } from '@/functions/lazyMap'
+import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress } from '@/types/constants'
 
@@ -24,7 +25,6 @@ import useWallet from '../wallet/useWallet'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
-import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -35,9 +35,9 @@ export default function usePoolsInfoLoader() {
     [liquidityJsonInfos]
   )
 
+  const userAddedTokens = useToken((s) => s.userAddedTokens)
   const getLpToken = useToken((s) => s.getLpToken)
   const lpTokens = useToken((s) => s.lpTokens)
-  const userCustomTokenSymbol = useToken((s) => s.userCustomTokenSymbol)
   const balances = useWallet((s) => s.balances)
   const { pathname } = useRouter()
   const refreshCount = usePools((s) => s.refreshCount)
@@ -108,11 +108,10 @@ export default function usePoolsInfoLoader() {
           lpToken: getLpToken(pair.lpMint),
           lpBalance: balances[toPubString(pair.lpMint)],
           isStable: stableLiquidityJsonInfoLpMints.includes(pair.lpMint),
-          isOpenBook: isPairInfoOpenBook(pair.ammId),
-          userCustomTokenSymbol: userCustomTokenSymbol
+          isOpenBook: isPairInfoOpenBook(pair.ammId)
         }),
       options: { priority: pathname.includes('pools') || pathname.includes('liquidity') ? 1 : 0 }
     })
     usePools.setState({ hydratedInfos })
-  }, [jsonInfos, lpTokens, getLpToken, balances, stableLiquidityJsonInfoLpMints, userCustomTokenSymbol])
+  }, [jsonInfos, lpTokens, getLpToken, balances, stableLiquidityJsonInfoLpMints, userAddedTokens])
 }

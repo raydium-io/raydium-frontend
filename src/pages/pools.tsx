@@ -12,6 +12,8 @@ import usePoolSummeryInfoLoader from '@/application/pools/usePoolSummeryInfoLoad
 import { routeTo } from '@/application/routeTools'
 import { SplToken } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
+import useTokenListSettingsLocalStorage from '@/application/token/useTokenListSettingsLocalStorage'
+import { createSplToken } from '@/application/token/useTokenListsLoader'
 import { useTokenListSettingsUtils } from '@/application/token/useTokenUtils'
 import useWallet from '@/application/wallet/useWallet'
 import { AddressItem } from '@/components/AddressItem'
@@ -50,6 +52,7 @@ import toTotalPrice from '@/functions/format/toTotalPrice'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { add } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { objectFilter, objectShakeFalsy } from '@/functions/objectMethods'
 import { searchItems } from '@/functions/searchItems'
@@ -1334,17 +1337,15 @@ function CoinAvatarInfoItemSymbol({ token }: { token: SplToken | undefined }) {
 }
 
 function EditTokenDialog({ open, token, onClose }: { open: boolean; token: SplToken; onClose: () => void }) {
-  const userCustomTokenSymbol = useToken((s) => s.userCustomTokenSymbol)
-  const updateUserCustomTokenSymbol = useToken((s) => s.updateUserCustomTokenSymbol)
+  const addUserAddedToken = useToken((s) => s.addUserAddedToken)
+  const editUserAddedToken = useToken((s) => s.editUserAddedToken)
+  const refreshTokenList = useToken((s) => s.refreshTokenList)
+  const userAddedTokens = useToken((s) => s.userAddedTokens)
 
   // if we got custom symbol/name, use them, otherwise use token original symbol/name
   const [newInfo, setNewInfo] = useState({
-    symbol: userCustomTokenSymbol[toPubString(token.mint)]
-      ? userCustomTokenSymbol[toPubString(token.mint)].symbol
-      : token.symbol,
-    name: userCustomTokenSymbol[toPubString(token.mint)]
-      ? userCustomTokenSymbol[toPubString(token.mint)].name
-      : token.name
+    symbol: userAddedTokens[toPubString(token.mint)] ? userAddedTokens[toPubString(token.mint)].symbol : token.symbol,
+    name: userAddedTokens[toPubString(token.mint)] ? userAddedTokens[toPubString(token.mint)].name : token.name
   })
 
   return (
@@ -1383,7 +1384,20 @@ function EditTokenDialog({ open, token, onClose }: { open: boolean; token: SplTo
             <Button
               className="frosted-glass-teal"
               onClick={() => {
-                updateUserCustomTokenSymbol(token, newInfo.symbol ?? '', newInfo.name ?? '')
+                const mintPubString = toPubString(token.mint)
+                if (userAddedTokens[mintPubString]) {
+                  editUserAddedToken({ symbol: newInfo.symbol ?? '', name: newInfo.name ?? '' }, token.mint)
+                } else {
+                  const newToken: SplToken = {
+                    ...token,
+                    symbol: newInfo.symbol ?? '',
+                    name: newInfo.name ?? '',
+                    userAdded: true,
+                    equals: token.equals
+                  }
+                  addUserAddedToken(newToken)
+                }
+                refreshTokenList()
                 close()
               }}
               validators={[{ should: newInfo.symbol }]}

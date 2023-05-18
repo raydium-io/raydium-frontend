@@ -15,14 +15,13 @@ import { getTokenFromLocalStorage } from './getTokenFromLocalStorage'
 import { SOLANA_TOKEN_LIST_NAME, USER_ADDED_TOKEN_LIST_NAME, useToken } from './useToken'
 
 export default function useTokenListSettingsLocalStorage() {
+  const refreshTokenListCount = useToken((s) => s.refreshTokenListCount)
   const connection = useConnection((s) => s.connection)
 
   // whenever app start , get tokenListSettings from localStorage
   useAsyncEffect(async () => {
     const userAddedTokens = getLocalItem<SplTokenJsonInfo[]>('USER_ADDED_TOKENS') ?? []
     const tokenListSwitchSettings = getLocalItem<{ [mapName: string]: boolean }>('TOKEN_LIST_SWITCH_SETTINGS') ?? {}
-    const userCustomTokenSymbol =
-      getLocalItem<{ [x: string]: { symbol: string; name: string } }>('USER_CUSTOM_TOKEN_SYMBOL') ?? {}
 
     useToken.setState((s) => ({
       tokenListSettings: {
@@ -37,8 +36,7 @@ export default function useTokenListSettingsLocalStorage() {
           isOn:
             tokenListSwitchSettings[USER_ADDED_TOKEN_LIST_NAME] ?? s.tokenListSettings[USER_ADDED_TOKEN_LIST_NAME].isOn
         }
-      },
-      userCustomTokenSymbol
+      }
     }))
 
     if (connection) {
@@ -55,7 +53,7 @@ export default function useTokenListSettingsLocalStorage() {
         }
       })
     }
-  }, [connection])
+  }, [connection, refreshTokenListCount])
 
   const tokenListSettings = useToken((s) => s.tokenListSettings)
 

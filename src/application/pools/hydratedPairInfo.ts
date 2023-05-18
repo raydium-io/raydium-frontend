@@ -1,6 +1,5 @@
 import { TokenAmount } from '@raydium-io/raydium-sdk'
 
-import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import toUsdCurrency from '@/functions/format/toUsdCurrency'
@@ -17,7 +16,6 @@ export function hydratedPairInfo(
     lpBalance?: TokenAmount
     isStable?: boolean
     isOpenBook?: boolean
-    userCustomTokenSymbol: { [x: string]: { symbol: string; name: string } }
   }
 ): HydratedPairItemInfo {
   const lp = payload.lpToken
