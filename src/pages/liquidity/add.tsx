@@ -241,6 +241,7 @@ function LiquidityCard() {
     unslippagedCoin2Amount,
     focusSide,
     currentJsonInfo,
+    jsonInfos,
     currentHydratedInfo,
     isSearchAmmDialogOpen,
     refreshLiquidity
@@ -249,6 +250,7 @@ function LiquidityCard() {
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
     useLiquidityContextStore()
+  const hasLoadLiquidityPools = useMemo(() => jsonInfos.length > 0, [jsonInfos])
   const hasFoundLiquidityPool = useMemo(() => Boolean(currentJsonInfo), [currentJsonInfo])
   const hasHydratedLiquidityPool = useMemo(() => Boolean(currentHydratedInfo), [currentHydratedInfo])
 
@@ -409,12 +411,24 @@ function LiquidityCard() {
         isLoading={isApprovePanelShown}
         validators={[
           {
-            should: hasFoundLiquidityPool,
-            fallbackProps: { children: `Pool not found` }
+            should: hasLoadLiquidityPools,
+            fallbackProps: { children: 'Finding Pool ...' }
+          },
+          {
+            should: coin1 && coin2,
+            fallbackProps: { children: 'Select a token' }
           },
           {
             should: poolIsOpen,
             fallbackProps: { children: remainTimeText }
+          },
+          {
+            should: hasFoundLiquidityPool,
+            fallbackProps: { children: `Pool not found` }
+          },
+          {
+            should: coin1Amount && isMeaningfulNumber(coin1Amount) && coin2Amount && isMeaningfulNumber(coin2Amount),
+            fallbackProps: { children: 'Enter an amount' }
           },
           {
             should: connected,
@@ -423,14 +437,6 @@ function LiquidityCard() {
               onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
               children: 'Connect Wallet'
             }
-          },
-          {
-            should: coin1 && coin2,
-            fallbackProps: { children: 'Select a token' }
-          },
-          {
-            should: coin1Amount && isMeaningfulNumber(coin1Amount) && coin2Amount && isMeaningfulNumber(coin2Amount),
-            fallbackProps: { children: 'Enter an amount' }
           },
           {
             should: !needConfirmPanel || hasUserTemporaryConfirmed,

@@ -101,22 +101,22 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
 
       resultCache.set(key, {
         rawText: response
-          .then((r) => r.clone())
-          .then((r) => r.text())
           .then((r) => {
+            if (r.ok) return r.clone()
+            else {
+              onFetchError(key, r.clone())
+              throw new Error('not ok')
+            }
+          })
+          .then((r) => r.text())
+          .catch(() => undefined)
+          .finally(() => {
             if (resultCache.has(key)) {
               resultCache.get(key)!.reponseTime = Date.now()
             }
-            return r
           })
           .catch(() => undefined)
       })
-      const isOk = (await response).ok
-      if (!isOk) {
-        onFetchError(key, await response)
-        resultCache.set(key, { rawText: Promise.resolve(undefined), reponseTime: Date.now() })
-        return undefined
-      }
 
       const rawText = await response
         .then((r) => r.text())
@@ -125,7 +125,6 @@ export async function tryFetch(input: RequestInfo, options?: TryFetchOptions): P
           return undefined
         })
       assert(isString(rawText))
-      resultCache.set(key, { rawText: Promise.resolve(rawText), reponseTime: Date.now() })
       return rawText
     } else {
       return resultCache.get(key)?.rawText

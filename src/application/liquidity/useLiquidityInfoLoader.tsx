@@ -50,6 +50,7 @@ export default function useLiquidityInfoLoader({ disabled }: { disabled?: boolea
     const response = await jFetch<ApiPoolInfo>(poolInfoUrl, {
       cacheFreshTime: 1000 * 30
     })
+
     // const blacklist = await jFetch<HexAddress[]>('/amm-blacklist.json')
     const liquidityInfoList = [...(response?.official ?? []), ...(response?.unOfficial ?? [])]
     // no raydium blacklist amm
