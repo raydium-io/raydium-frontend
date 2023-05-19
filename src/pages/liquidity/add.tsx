@@ -419,8 +419,8 @@ function LiquidityCard() {
             fallbackProps: { children: 'Select a token' }
           },
           {
-            should: poolIsOpen,
-            fallbackProps: { children: remainTimeText }
+            should: currentHydratedInfo ? poolIsOpen : true,
+            fallbackProps: { children: remainTimeText ?? 'Calculating...' }
           },
           {
             should: hasFoundLiquidityPool,
