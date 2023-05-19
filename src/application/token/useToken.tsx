@@ -15,14 +15,8 @@ import useWallet from '../wallet/useWallet'
 
 import { verifyToken } from './getOnlineTokenInfo'
 import {
-  isQuantumSOL,
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  QuantumSOLToken,
-  QuantumSOLVersionSOL,
-  QuantumSOLVersionWSOL,
-  SOLUrlMint,
-  WSOLMint
+  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLToken, QuantumSOLVersionSOL,
+  QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint
 } from './quantumSOL'
 import { LpToken, SplToken, TokenJson } from './type'
 import { createSplToken } from './useTokenListsLoader'
@@ -112,9 +106,8 @@ export type TokenStore = {
   refreshTokenCount: number
   refreshTokenPrice(): void
 
-  // for customize token symbol/name (rename feature for other liquidity pools' unknown token)
-  userCustomTokenSymbol: { [x: string]: { symbol: string; name: string } }
-  updateUserCustomTokenSymbol(token: SplToken, symbol: string, name: string): void
+  refreshTokenListCount: number
+  refreshTokenList(): void
 }
 
 export const RAYDIUM_MAINNET_TOKEN_LIST_NAME_DEPRECATED = 'Raydium Mainnet Token List'
@@ -310,20 +303,9 @@ export const useToken = create<TokenStore>((set, get) => ({
     set({ refreshTokenCount: get().refreshTokenCount + 1 })
   },
 
-  userCustomTokenSymbol: {},
-  updateUserCustomTokenSymbol: (token: SplToken, symbol: string, name: string) => {
-    set((s) =>
-      produce(s, (draft) => {
-        draft.userCustomTokenSymbol = {
-          ...s.userCustomTokenSymbol,
-          [toPubString(token.mint)]: {
-            symbol: symbol,
-            name: name ? name : symbol
-          }
-        }
-        setLocalItem('USER_CUSTOM_TOKEN_SYMBOL', draft.userCustomTokenSymbol)
-      })
-    )
+  refreshTokenListCount: 0,
+  refreshTokenList() {
+    set({ refreshTokenListCount: get().refreshTokenListCount + 1 })
   }
 }))
 // TODO: useLocalStorge to record user's token list

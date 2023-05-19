@@ -12,7 +12,6 @@ import useToken, { USER_ADDED_TOKEN_LIST_NAME } from './useToken'
 export default function useAutoUpdateSelectableTokens() {
   const verboseTokens = useToken((s) => s.verboseTokens)
   const userAddedTokens = useToken((s) => s.userAddedTokens)
-  const userCustomTokenSymbol = useToken((s) => s.userCustomTokenSymbol)
   const tokenListSettings = useToken((s) => s.tokenListSettings)
   const userFlaggedTokenMints = useToken((s) => s.userFlaggedTokenMints)
   const sortTokens = useToken((s) => s.sortTokensWithBalance)
@@ -44,15 +43,15 @@ export default function useAutoUpdateSelectableTokens() {
       })
       .map((t) => {
         const tPubString = toPubString(t.mint)
-        if (userCustomTokenSymbol[tPubString]) {
-          t.symbol = userCustomTokenSymbol[tPubString].symbol
-          t.name = userCustomTokenSymbol[tPubString].name
-            ? userCustomTokenSymbol[tPubString].name
-            : userCustomTokenSymbol[tPubString].symbol
+        if (userAddedTokens[tPubString]) {
+          t.symbol = userAddedTokens[tPubString].symbol
+          t.name = userAddedTokens[tPubString].name
+            ? userAddedTokens[tPubString].name
+            : userAddedTokens[tPubString].symbol
         }
         return t
       })
-  }, [verboseTokens, userAddedTokens, tokenListSettings, userCustomTokenSymbol])
+  }, [verboseTokens, userAddedTokens, tokenListSettings, userAddedTokens])
 
   // have sorted
   const sortedTokens = useMemo(
