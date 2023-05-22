@@ -13,11 +13,14 @@ export function toUTC(
   const utcString = (timestamp ? new Date(Number(timestamp)) : new Date()).toISOString() // '2021-09-09T10:32:32.498Z'
   const matchInfo = utcString.match(/^([\d-]+)T(\d+):(\d+):(\d+)/)
   const [, date, hour, minutes, seconds] = matchInfo ?? []
+  const dateRegex = /^(\d{4})-(\d{2})-(\d{2})$/
+  const [, year, month, day] = date.match(dateRegex) ?? []
+  const formatedDate = `${month}/${day}/${year.slice(-2)}`
   return options?.hideHourMinuteSecond
-    ? `${date}`
+    ? `${formatedDate}`
     : options?.showSeconds
-    ? `${date} ${hour}:${minutes}:${seconds}${options.hideUTCBadge ? '' : ' UTC'}`
-    : `${date} ${hour}:${minutes}${options?.hideUTCBadge ? '' : ' UTC'}`
+    ? `${formatedDate} ${hour}:${minutes}:${seconds}${options.hideUTCBadge ? '' : ' UTC'}`
+    : `${formatedDate} ${hour}:${minutes}${options?.hideUTCBadge ? '' : ' UTC'}`
 }
 
 export function toTimestampNumber(a: TimeStamp) {
