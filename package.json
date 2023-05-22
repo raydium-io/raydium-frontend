@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "scripts": {
     "dev": "next dev -p 3008",
-    "build": "next build",
+    "build": "next build && next export",
     "start": "next start",
     "build-analyze": "cross-env ANALYZE=true yarn build",
     "type-check": "tsc --pretty --noEmit",
@@ -67,6 +67,7 @@
     "@types/react-dom": "^18.2.3",
     "@typescript-eslint/eslint-plugin": "^5.59.2",
     "@typescript-eslint/parser": "^5.59.2",
+    "armada-cli": "^0.3.2",
     "autoprefixer": "^10.4.14",
     "cross-env": "^7.0.3",
     "decimal.js": "^10.4.3",
