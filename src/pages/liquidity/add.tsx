@@ -246,6 +246,13 @@ function LiquidityCard() {
     isSearchAmmDialogOpen,
     refreshLiquidity
   } = useLiquidity()
+
+  const tokens = useToken((s) => s.tokens)
+  const tokensLoaded = Object.keys(tokens).length > 2 // loading tokens ...
+
+  const poolsJson = useLiquidity((s) => s.jsonInfos)
+  const poolsLoaded = poolsJson.length > 0 // loading pools ...
+
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
 
   const { coinInputBox1ComponentRef, coinInputBox2ComponentRef, liquidityButtonComponentRef } =
@@ -410,6 +417,18 @@ function LiquidityCard() {
         componentRef={liquidityButtonComponentRef}
         isLoading={isApprovePanelShown}
         validators={[
+          {
+            should: tokensLoaded,
+            fallbackProps: {
+              children: 'Loading Tokens ...'
+            }
+          },
+          {
+            should: poolsLoaded,
+            fallbackProps: {
+              children: 'Loading Pools ...'
+            }
+          },
           {
             should: hasLoadLiquidityPools,
             fallbackProps: { children: 'Finding Pool ...' }

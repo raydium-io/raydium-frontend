@@ -66,6 +66,7 @@ import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
+import useLiquidity from '@/application/liquidity/useLiquidity'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -248,6 +249,12 @@ function SwapCard() {
   const balances = useWallet((s) => s.balances)
   const preflightCalcResult = useSwap((s) => s.preflightCalcResult)
   const isFindingPool = !preflightCalcResult // finding Pools ...
+
+  const tokens = useToken((s) => s.tokens)
+  const tokensLoaded = Object.keys(tokens).length > 2 // loading tokens ...
+
+  const poolsJson = useLiquidity((s) => s.jsonInfos)
+  const poolsLoaded = poolsJson.length > 0 // loading pools ...
 
   // -------- pool ready time --------
   const swapable = useSwap((s) => s.swapable) // Pool not ready (not open yet )
@@ -451,6 +458,18 @@ function SwapCard() {
         componentRef={swapButtonComponentRef}
         isLoading={isApprovePanelShown}
         validators={[
+          {
+            should: tokensLoaded,
+            fallbackProps: {
+              children: 'Loading Tokens ...'
+            }
+          },
+          {
+            should: poolsLoaded,
+            fallbackProps: {
+              children: 'Loading Pools ...'
+            }
+          },
           {
             should: walletConnected,
             forceActive: true,
