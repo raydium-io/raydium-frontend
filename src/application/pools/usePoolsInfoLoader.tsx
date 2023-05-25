@@ -25,6 +25,7 @@ import useWallet from '../wallet/useWallet'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
+import { useEvent } from '@/hooks/useEvent'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -95,10 +96,11 @@ export default function usePoolsInfoLoader() {
   }, [lpPrices])
 
   const liquidityJsonInfosMap = useMemo(() => listToMap(liquidityJsonInfos, (i) => i.id), [liquidityJsonInfos])
-  const isPairInfoOpenBook = (ammId: string) => {
+  const isPairInfoOpenBook = useEvent((ammId: string) => {
     const itemMarketProgramId = liquidityJsonInfosMap[ammId]?.marketProgramId as string | undefined
     return isPubEqual(itemMarketProgramId, programIds.OPENBOOK_MARKET)
-  }
+  })
+
   useTransitionedEffect(async () => {
     const hydratedInfos = await lazyMap({
       source: jsonInfos,

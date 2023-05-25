@@ -75,8 +75,7 @@ export default function IntervalCircle({
   }, [documentVisible])
 
   useEffect(() => {
-    if (progressPercent == 0) return
-    if (Math.round(progressPercent * 100) / 100 !== 0) return
+    if (Math.floor(progressPercent) == 0) return
     const timoutId = setTimeout(() => {
       if (hasInvokedEndCallback.current) return
       hasInvokedEndCallback.current = true
@@ -86,7 +85,7 @@ export default function IntervalCircle({
       }, 0)
     }, 0)
     return () => clearTimeout(timoutId)
-  }, [progressPercent])
+  }, [Math.floor(progressPercent)])
 
   useImperativeHandle(
     componentRef,
