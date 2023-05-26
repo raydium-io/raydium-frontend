@@ -439,19 +439,24 @@ function PoolCard() {
   const [isSortLightOn, setIsSortLightOn] = useState(false)
   const [sorted, setSortedData] = useState<(JsonPairItemInfo | HydratedPairItemInfo)[] | undefined>(undefined)
   const [showCount, setShowCount] = useState(false)
+  const [dataSource, setDataSource] = useState<(JsonPairItemInfo | HydratedPairItemInfo)[]>([])
 
   const hasHydratedInfoLoaded = hydratedInfos.length > 0
-  const dataSource = useMemo(
-    () =>
-      hasHydratedInfoLoaded
-        ? hydratedInfos
-            .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
-            .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)) // Switch
-        : jsonInfos.filter((i) =>
-            currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official
-          ) /* Tab*/, // Tab
-    [onlySelfPools, searchText, hydratedInfos, hasHydratedInfoLoaded, jsonInfos]
-  ) as (JsonPairItemInfo | HydratedPairItemInfo)[]
+  useEffect(() => {
+    setDataSource(
+      jsonInfos.filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official))
+    )
+  }, [jsonInfos, currentTab])
+
+  useEffect(() => {
+    if (hasHydratedInfoLoaded) {
+      setDataSource(
+        hydratedInfos
+          .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
+          .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)) // Switch
+      )
+    }
+  }, [hasHydratedInfoLoaded, currentTab, onlySelfPools, hydratedInfos])
 
   const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
 
