@@ -21,13 +21,13 @@ export default function usePoolSummeryInfoLoader() {
   const infoUrl = useAppAdvancedSettings((s) => s.apiUrls.info)
 
   const fetchSummeryInfo = async () => {
-    const summeryInfo = await jFetch<InfoResponse>(infoUrl, {
+    const summaryInfo = await jFetch<InfoResponse>(infoUrl, {
       cacheFreshTime: 290000 // 4min50sec
     })
-    if (!summeryInfo) return
+    if (!summaryInfo) return
     // eslint-disable-next-line no-console
-    console.log('summeryInfo:', summeryInfo)
-    usePools.setState({ tvl: summeryInfo.tvl, volume24h: summeryInfo.volume24h })
+    console.log('summaryInfo:', summaryInfo)
+    usePools.setState({ tvl: summaryInfo.tvl, volume24h: summaryInfo.volume24h })
   }
 
   useInit(() => {
