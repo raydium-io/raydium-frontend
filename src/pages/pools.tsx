@@ -49,6 +49,7 @@ import formatNumber from '@/functions/format/formatNumber'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import toTotalPrice from '@/functions/format/toTotalPrice'
+import toUsdCurrency from '@/functions/format/toUsdCurrency'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt, gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
@@ -439,24 +440,66 @@ function PoolCard() {
   const [isSortLightOn, setIsSortLightOn] = useState(false)
   const [sorted, setSortedData] = useState<(JsonPairItemInfo | HydratedPairItemInfo)[] | undefined>(undefined)
   const [showCount, setShowCount] = useState(false)
-  const [dataSource, setDataSource] = useState<(JsonPairItemInfo | HydratedPairItemInfo)[]>([])
+  // const [dataSource, setDataSource] = useState<(JsonPairItemInfo | HydratedPairItemInfo)[]>([])
 
   const hasHydratedInfoLoaded = hydratedInfos.length > 0
-  useEffect(() => {
-    setDataSource(
-      jsonInfos.filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official))
-    )
-  }, [jsonInfos, currentTab])
 
-  useEffect(() => {
-    if (hasHydratedInfoLoaded) {
-      setDataSource(
-        hydratedInfos
-          .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
-          .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)) // Switch
-      )
-    }
-  }, [hasHydratedInfoLoaded, currentTab, onlySelfPools, hydratedInfos])
+  const dataSource = useMemo(
+    () =>
+      hasHydratedInfoLoaded
+        ? hydratedInfos
+            .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
+            .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)) // Switch
+        : jsonInfos.filter((i) =>
+            currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official
+          ) /* Tab*/, // Tab
+    [onlySelfPools, searchText, hydratedInfos, hasHydratedInfoLoaded, jsonInfos]
+  ) as (JsonPairItemInfo | HydratedPairItemInfo)[]
+  // useEffect(() => {
+  //   setDataSource((p) => {
+  //     if (hasHydratedInfoLoaded) {
+  //       // eslint-disable-next-line
+  //       console.log('in jsonInfos, hasHydratedInfoLoaded, pick update')
+  //       return p.map((pool) => {
+  //         const updateTarget = jsonInfos.find((i) => i.lpMint === pool.lpMint)
+  //         if (updateTarget) {
+  //           pool.liquidity = toUsdCurrency(Math.round(updateTarget.liquidity))
+  //           pool.volume24h = toUsdCurrency(Math.round(updateTarget.volume24h))
+  //           pool.volume7d = toUsdCurrency(Math.round(updateTarget.volume7d))
+  //           pool.volume30d = toUsdCurrency(Math.round(updateTarget.volume30d))
+  //           pool.volume24hQuote = toUsdCurrency(Math.round(updateTarget.volume24hQuote))
+  //           pool.volume7dQuote = toUsdCurrency(Math.round(updateTarget.volume7dQuote))
+  //           pool.volume30dQuote = toUsdCurrency(Math.round(updateTarget.volume30dQuote))
+  //           pool.fee24h = toUsdCurrency(Math.round(updateTarget.fee24h))
+  //           pool.fee7d = toUsdCurrency(Math.round(updateTarget.fee7d))
+  //           pool.fee30d = toUsdCurrency(Math.round(updateTarget.fee30d))
+  //           pool.fee24hQuote = toUsdCurrency(Math.round(updateTarget.fee24hQuote))
+  //           pool.fee7dQuote = toUsdCurrency(Math.round(updateTarget.fee7dQuote))
+  //           pool.fee30dQuote = toUsdCurrency(Math.round(updateTarget.fee30dQuote))
+  //         }
+  //         return pool
+  //       })
+  //     }
+
+  //     // eslint-disable-next-line
+  //     console.log('in jsonInfos, no hydrate, force jsonInfos update')
+  //     return jsonInfos.filter((i) =>
+  //       currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official
+  //     )
+  //   })
+  // }, [jsonInfos, currentTab, hasHydratedInfoLoaded])
+
+  // useEffect(() => {
+  //   if (hasHydratedInfoLoaded) {
+  //     // eslint-disable-next-line
+  //     console.log('in hydrateInfos, hasHydratedInfoLoaded, update w/ hydrate')
+  //     setDataSource(
+  //       hydratedInfos
+  //         .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
+  //         .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)) // Switch
+  //     )
+  //   }
+  // }, [hasHydratedInfoLoaded, currentTab, onlySelfPools, hydratedInfos])
 
   const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
 

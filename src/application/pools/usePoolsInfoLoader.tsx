@@ -6,12 +6,14 @@ import { Price } from '@raydium-io/raydium-sdk'
 import { shallow } from 'zustand/shallow'
 
 import { unifyItem } from '@/functions/arrayMethods'
+import { formatDate } from '@/functions/date/dateFormat'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
 import toTokenPrice from '@/functions/format/toTokenPrice'
 import { isPubEqual } from '@/functions/judgers/areEqual'
 import { lazyMap } from '@/functions/lazyMap'
+import { useEvent } from '@/hooks/useEvent'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useTransitionedEffect } from '@/hooks/useTransitionedEffect'
 import { HexAddress } from '@/types/constants'
@@ -25,7 +27,6 @@ import useWallet from '../wallet/useWallet'
 import { hydratedPairInfo } from './hydratedPairInfo'
 import { JsonPairItemInfo } from './type'
 import { usePools } from './usePools'
-import { useEvent } from '@/hooks/useEvent'
 
 export default function usePoolsInfoLoader() {
   const jsonInfos = usePools((s) => s.jsonInfos, shallow)
@@ -59,8 +60,13 @@ export default function usePoolsInfoLoader() {
       )
         return
       const pairJsonInfo = await jFetch<JsonPairItemInfo[]>(pairsUrl, {
-        cacheFreshTime: 5 * 60 * 1000
+        cacheFreshTime: 290000 // 4min50sec
       })
+      // eslint-disable-next-line no-console
+      console.log(
+        'pairJsonInfo:',
+        pairJsonInfo?.slice(0, 10).map((pair) => ({ name: pair.name, liquidity: pair.liquidity }))
+      )
       if (!pairJsonInfo) return
       usePools.setState({
         jsonInfos: pairJsonInfo,
