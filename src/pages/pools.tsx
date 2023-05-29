@@ -60,6 +60,7 @@ import { searchItems } from '@/functions/searchItems'
 import { toggleSetItem } from '@/functions/setMethods'
 import { useDebounce } from '@/hooks/useDebounce'
 import useSort, { SimplifiedSortConfig, SortConfigItem } from '@/hooks/useSort'
+import listToMap from '@/functions/format/listToMap'
 
 /**
  * store:
@@ -455,51 +456,6 @@ function PoolCard() {
           ) /* Tab*/, // Tab
     [onlySelfPools, searchText, hydratedInfos, hasHydratedInfoLoaded, jsonInfos]
   ) as (JsonPairItemInfo | HydratedPairItemInfo)[]
-  // useEffect(() => {
-  //   setDataSource((p) => {
-  //     if (hasHydratedInfoLoaded) {
-  //       // eslint-disable-next-line
-  //       console.log('in jsonInfos, hasHydratedInfoLoaded, pick update')
-  //       return p.map((pool) => {
-  //         const updateTarget = jsonInfos.find((i) => i.lpMint === pool.lpMint)
-  //         if (updateTarget) {
-  //           pool.liquidity = toUsdCurrency(Math.round(updateTarget.liquidity))
-  //           pool.volume24h = toUsdCurrency(Math.round(updateTarget.volume24h))
-  //           pool.volume7d = toUsdCurrency(Math.round(updateTarget.volume7d))
-  //           pool.volume30d = toUsdCurrency(Math.round(updateTarget.volume30d))
-  //           pool.volume24hQuote = toUsdCurrency(Math.round(updateTarget.volume24hQuote))
-  //           pool.volume7dQuote = toUsdCurrency(Math.round(updateTarget.volume7dQuote))
-  //           pool.volume30dQuote = toUsdCurrency(Math.round(updateTarget.volume30dQuote))
-  //           pool.fee24h = toUsdCurrency(Math.round(updateTarget.fee24h))
-  //           pool.fee7d = toUsdCurrency(Math.round(updateTarget.fee7d))
-  //           pool.fee30d = toUsdCurrency(Math.round(updateTarget.fee30d))
-  //           pool.fee24hQuote = toUsdCurrency(Math.round(updateTarget.fee24hQuote))
-  //           pool.fee7dQuote = toUsdCurrency(Math.round(updateTarget.fee7dQuote))
-  //           pool.fee30dQuote = toUsdCurrency(Math.round(updateTarget.fee30dQuote))
-  //         }
-  //         return pool
-  //       })
-  //     }
-
-  //     // eslint-disable-next-line
-  //     console.log('in jsonInfos, no hydrate, force jsonInfos update')
-  //     return jsonInfos.filter((i) =>
-  //       currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official
-  //     )
-  //   })
-  // }, [jsonInfos, currentTab, hasHydratedInfoLoaded])
-
-  // useEffect(() => {
-  //   if (hasHydratedInfoLoaded) {
-  //     // eslint-disable-next-line
-  //     console.log('in hydrateInfos, hasHydratedInfoLoaded, update w/ hydrate')
-  //     setDataSource(
-  //       hydratedInfos
-  //         .filter((i) => (currentTab === 'All' ? true : currentTab === 'Raydium' ? i.official : !i.official)) // Tab
-  //         .filter((i) => (onlySelfPools ? Object.keys(unZeroBalances).includes(i.lpMint) : true)) // Switch
-  //     )
-  //   }
-  // }, [hasHydratedInfoLoaded, currentTab, onlySelfPools, hydratedInfos])
 
   const { isTokenUnnamedAndNotUserCustomized } = useTokenListSettingsUtils()
 
@@ -837,6 +793,7 @@ function PoolCardDatabaseBody({
   searchedItemsLength: number
 }) {
   const jsonInfos = usePools((s) => s.jsonInfos)
+  const jsonInfoMap = useMemo(() => listToMap(jsonInfos, (i) => i.ammId), [jsonInfos])
   const hydratedInfos = usePools((s) => s.hydratedInfos)
   const loading = jsonInfos.length == 0 && hydratedInfos.length === 0
   const expandedPoolIds = usePools((s) => s.expandedPoolIds)
@@ -858,6 +815,7 @@ function PoolCardDatabaseBody({
                 <PoolCardDatabaseBodyCollapseItemFace
                   open={isOpen}
                   info={info}
+                  correspondingJsonInfo={jsonInfoMap[info.ammId]}
                   isFavourite={favouriteIds?.includes(info.ammId)}
                   onUnFavorite={(ammId) => {
                     setFavouriteIds((ids) => removeItem(ids ?? [], ammId))
@@ -885,12 +843,14 @@ function PoolCardDatabaseBody({
 function PoolCardDatabaseBodyCollapseItemFace({
   open,
   info,
+  correspondingJsonInfo,
   isFavourite,
   onUnFavorite,
   onStartFavorite
 }: {
   open: boolean
   info: JsonPairItemInfo | HydratedPairItemInfo
+  correspondingJsonInfo?: JsonPairItemInfo
   isFavourite?: boolean
   onUnFavorite?: (ammId: string) => void
   onStartFavorite?: (ammId: string) => void
@@ -904,7 +864,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
      and that the pool has sufficient liquidity before trading.`
     return (
       <Row className="flex justify-start items-center">
-        {toUsdVolume(info.liquidity, { autoSuffix: isTablet, decimalPlace: 0 })}
+        {toUsdVolume((correspondingJsonInfo ?? info).liquidity, { autoSuffix: isTablet, decimalPlace: 0 })}
         {lt(info?.liquidity.toFixed(0) ?? 0, 100000) && (
           <Tooltip placement="right">
             <Icon size="sm" heroIconName="question-mark-circle" className="cursor-help ml-1" />
@@ -953,30 +913,30 @@ function PoolCardDatabaseBodyCollapseItemFace({
         name={`Volume(${timeBasis})`}
         value={
           timeBasis === '24H'
-            ? toUsdVolume(info.volume24h, { autoSuffix: isTablet, decimalPlace: 0 })
+            ? toUsdVolume((correspondingJsonInfo ?? info).volume24h, { autoSuffix: isTablet, decimalPlace: 0 })
             : timeBasis === '7D'
-            ? toUsdVolume(info.volume7d, { autoSuffix: isTablet, decimalPlace: 0 })
-            : toUsdVolume(info.volume30d, { autoSuffix: isTablet, decimalPlace: 0 })
+            ? toUsdVolume((correspondingJsonInfo ?? info).volume7d, { autoSuffix: isTablet, decimalPlace: 0 })
+            : toUsdVolume((correspondingJsonInfo ?? info).volume30d, { autoSuffix: isTablet, decimalPlace: 0 })
         }
       />
       <TextInfoItem
         name={`Fees(${timeBasis})`}
         value={
           timeBasis === '24H'
-            ? toUsdVolume(info.fee24h, { autoSuffix: isTablet, decimalPlace: 0 })
+            ? toUsdVolume((correspondingJsonInfo ?? info).fee24h, { autoSuffix: isTablet, decimalPlace: 0 })
             : timeBasis === '7D'
-            ? toUsdVolume(info.fee7d, { autoSuffix: isTablet, decimalPlace: 0 })
-            : toUsdVolume(info.fee30d, { autoSuffix: isTablet, decimalPlace: 0 })
+            ? toUsdVolume((correspondingJsonInfo ?? info).fee7d, { autoSuffix: isTablet, decimalPlace: 0 })
+            : toUsdVolume((correspondingJsonInfo ?? info).fee30d, { autoSuffix: isTablet, decimalPlace: 0 })
         }
       />
       <TextInfoItem
         name={`APR(${timeBasis})`}
         value={
           timeBasis === '24H'
-            ? formatApr(info.apr24h, { alreadyPercented: true })
+            ? formatApr((correspondingJsonInfo ?? info).apr24h, { alreadyPercented: true })
             : timeBasis === '7D'
-            ? formatApr(info.apr7d, { alreadyPercented: true })
-            : formatApr(info.apr30d, { alreadyPercented: true })
+            ? formatApr((correspondingJsonInfo ?? info).apr7d, { alreadyPercented: true })
+            : formatApr((correspondingJsonInfo ?? info).apr30d, { alreadyPercented: true })
         }
       />
       <Grid className="w-9 h-9 mr-8 place-items-center">
@@ -1026,10 +986,10 @@ function PoolCardDatabaseBodyCollapseItemFace({
             value={
               isHydratedPoolItemInfo(info)
                 ? timeBasis === '24H'
-                  ? toPercentString(info.apr24h, { alreadyPercented: true })
+                  ? toPercentString((correspondingJsonInfo ?? info).apr24h, { alreadyPercented: true })
                   : timeBasis === '7D'
-                  ? toPercentString(info.apr7d, { alreadyPercented: true })
-                  : toPercentString(info.apr30d, { alreadyPercented: true })
+                  ? toPercentString((correspondingJsonInfo ?? info).apr7d, { alreadyPercented: true })
+                  : toPercentString((correspondingJsonInfo ?? info).apr30d, { alreadyPercented: true })
                 : undefined
             }
           />
@@ -1050,7 +1010,7 @@ function PoolCardDatabaseBodyCollapseItemFace({
             name="Volume(7d)"
             value={
               isHydratedPoolItemInfo(info)
-                ? toUsdVolume(info.volume7d, { autoSuffix: true, decimalPlace: 0 })
+                ? toUsdVolume((correspondingJsonInfo ?? info).volume7d, { autoSuffix: true, decimalPlace: 0 })
                 : undefined
             }
           />
@@ -1058,14 +1018,16 @@ function PoolCardDatabaseBodyCollapseItemFace({
             name="Volume(24h)"
             value={
               isHydratedPoolItemInfo(info)
-                ? toUsdVolume(info.volume24h, { autoSuffix: true, decimalPlace: 0 })
+                ? toUsdVolume((correspondingJsonInfo ?? info).volume24h, { autoSuffix: true, decimalPlace: 0 })
                 : undefined
             }
           />
           <TextInfoItem
             name="Fees(7d)"
             value={
-              isHydratedPoolItemInfo(info) ? toUsdVolume(info.fee7d, { autoSuffix: true, decimalPlace: 0 }) : undefined
+              isHydratedPoolItemInfo(info)
+                ? toUsdVolume((correspondingJsonInfo ?? info).fee7d, { autoSuffix: true, decimalPlace: 0 })
+                : undefined
             }
           />
 

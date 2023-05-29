@@ -1,12 +1,9 @@
-import { useEffect, useMemo } from 'react'
-import { useRouter } from 'next/router'
-
 import { Price } from '@raydium-io/raydium-sdk'
-
+import { useRouter } from 'next/router'
+import { useEffect, useMemo } from 'react'
 import { shallow } from 'zustand/shallow'
 
 import { unifyItem } from '@/functions/arrayMethods'
-import { formatDate } from '@/functions/date/dateFormat'
 import jFetch from '@/functions/dom/jFetch'
 import listToMap from '@/functions/format/listToMap'
 import toPubString from '@/functions/format/toMintString'
@@ -49,7 +46,6 @@ export default function usePoolsInfoLoader() {
   const pairsUrl = useAppAdvancedSettings((s) => s.apiUrls.pairs)
 
   const shouldLoadInfo = useMemo(() => !pathname.includes('swap'), [pathname.includes('swap')])
-
   useRecordedEffect(
     async ([prevRefreshCount, prevFarmRefreshCount]) => {
       if (!shouldLoadInfo) return
@@ -60,13 +56,9 @@ export default function usePoolsInfoLoader() {
       )
         return
       const pairJsonInfo = await jFetch<JsonPairItemInfo[]>(pairsUrl, {
-        cacheFreshTime: 290000 // 4min50sec
+        cacheFreshTime: 5 * 60 * 1000
       })
-      // eslint-disable-next-line no-console
-      console.log(
-        'pairJsonInfo:',
-        pairJsonInfo?.slice(0, 10).map((pair) => ({ name: pair.name, liquidity: pair.liquidity }))
-      )
+
       if (!pairJsonInfo) return
       usePools.setState({
         jsonInfos: pairJsonInfo,

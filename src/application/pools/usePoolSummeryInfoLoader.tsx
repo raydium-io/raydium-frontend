@@ -1,4 +1,3 @@
-import { formatDate } from '@/functions/date/dateFormat'
 import jFetch from '@/functions/dom/jFetch'
 import useInit from '@/hooks/useInit'
 import useUpdate from '@/hooks/useUpdate'
@@ -21,12 +20,8 @@ export default function usePoolSummeryInfoLoader() {
   const infoUrl = useAppAdvancedSettings((s) => s.apiUrls.info)
 
   const fetchSummeryInfo = async () => {
-    const summaryInfo = await jFetch<InfoResponse>(infoUrl, {
-      cacheFreshTime: 290000 // 4min50sec
-    })
+    const summaryInfo = await jFetch<InfoResponse>(infoUrl)
     if (!summaryInfo) return
-    // eslint-disable-next-line no-console
-    console.log('summaryInfo:', summaryInfo)
     usePools.setState({ tvl: summaryInfo.tvl, volume24h: summaryInfo.volume24h })
   }
 
