@@ -53,7 +53,8 @@ export default async function txFarmWithdraw(
         wallet: owner,
         tokenAccounts: tokenAccountRawInfos
       },
-      amount: options.amount.raw
+      amount: options.amount.raw,
+      checkCreateATAOwner: true
     })
     piecesCollector.addInnerTransactions(...(await depositInstruction).innerTransactions)
 

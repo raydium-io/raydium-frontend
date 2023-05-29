@@ -41,7 +41,8 @@ export default function txDecreaseConcentrated(options?: { closePosition?: boole
         },
         // slippage: Number(toString(slippageTolerance)),
         ownerPosition: targetUserPositionAccount.sdkParsed,
-        computeBudgetConfig: await getComputeBudgetConfig()
+        computeBudgetConfig: await getComputeBudgetConfig(),
+        checkCreateATAOwner: true
       })
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {
@@ -67,7 +68,8 @@ export default function txDecreaseConcentrated(options?: { closePosition?: boole
         amountMinB: toBN(coin2AmountMin),
         // slippage: Number(toString(slippageTolerance)),
         ownerPosition: targetUserPositionAccount.sdkParsed,
-        computeBudgetConfig: await getComputeBudgetConfig()
+        computeBudgetConfig: await getComputeBudgetConfig(),
+        checkCreateATAOwner: true
       })
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {

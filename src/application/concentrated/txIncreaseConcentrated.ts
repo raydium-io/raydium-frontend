@@ -44,7 +44,8 @@ export default function txIncreaseConcentrated({
       },
       slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed,
-      computeBudgetConfig: await getComputeBudgetConfig()
+      computeBudgetConfig: await getComputeBudgetConfig(),
+      checkCreateATAOwner: true
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

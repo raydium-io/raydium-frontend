@@ -21,7 +21,8 @@ export const txClaimAllCompensation = createTxHandler(
         ownerInfo: {
           wallet: owner,
           tokenAccounts: tokenAccountRawInfos,
-          associatedOnly: true
+          associatedOnly: true,
+          checkCreateATAOwner: true
         }
       })
 

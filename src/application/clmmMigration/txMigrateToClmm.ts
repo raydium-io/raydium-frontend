@@ -77,7 +77,8 @@ export default function txMigrateToClmm({
         tokenAccounts: tokenAccountRawInfos,
         owner
       },
-      computeBudgetConfig: await getComputeBudgetConfig()
+      computeBudgetConfig: await getComputeBudgetConfig(),
+      checkCreateATAOwner: true
     })
     const listenerId = addWalletAccountChangeListener(
       () => {
