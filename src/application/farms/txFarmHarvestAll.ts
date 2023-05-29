@@ -27,7 +27,8 @@ const txFarmHarvestAll = createTxHandler(
           tokenAccounts: tokenAccountRawInfos,
           useSOLBalance: true
         },
-        associatedOnly: false
+        associatedOnly: false,
+        checkCreateATAOwner: true
       })
       const listenerId = addWalletAccountChangeListener(
         () => {

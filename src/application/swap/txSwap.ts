@@ -57,7 +57,8 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
     ownerInfo: {
       wallet: owner,
       tokenAccounts: tokenAccountRawInfos,
-      associatedOnly: true
+      associatedOnly: true,
+      checkCreateATAOwner: true
     },
     checkTransaction: true,
     computeBudgetConfig: await getComputeBudgetConfig()
@@ -68,8 +69,9 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
     {
       txHistoryInfo: {
         title: 'Swap',
-        description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${downCoin.symbol
-          }`,
+        description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
+          downCoin.symbol
+        }`,
         subtransactionDescription: translationSwapTxDescription(tx, idx, allTxs)
       } as TxHistoryInfo
     }

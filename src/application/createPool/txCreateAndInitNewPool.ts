@@ -114,7 +114,8 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
       baseAmount: toBN(mul(baseDecimaledAmount, 10 ** baseDecimals)),
       quoteAmount: toBN(mul(quoteDecimaledAmount, 10 ** quoteDecimals)),
 
-      computeBudgetConfig: await getComputeBudgetConfig()
+      computeBudgetConfig: await getComputeBudgetConfig(),
+      checkCreateATAOwner: true
     })
     transactionCollector.add(innerTransactions, {
       onTxSuccess() {

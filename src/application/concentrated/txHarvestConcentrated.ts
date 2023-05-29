@@ -38,7 +38,8 @@ export default function txHarvestConcentrated({
       },
       slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed,
-      computeBudgetConfig: await getComputeBudgetConfig()
+      computeBudgetConfig: await getComputeBudgetConfig(),
+      checkCreateATAOwner: true
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {
@@ -74,7 +75,8 @@ export async function txHarvestAllConcentrated() {
       tokenAccounts: tokenAccountRawInfos,
       useSOLBalance: true
     },
-    associatedOnly: true
+    associatedOnly: true,
+    checkCreateATAOwner: true
   })
 
   // no harvestable position, show notification

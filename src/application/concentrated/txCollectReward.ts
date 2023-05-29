@@ -32,7 +32,8 @@ export default function txCollectReward({
       },
       rewardMint,
       associatedOnly: false,
-      computeBudgetConfig: await getComputeBudgetConfig()
+      computeBudgetConfig: await getComputeBudgetConfig(),
+      checkCreateATAOwner: true
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

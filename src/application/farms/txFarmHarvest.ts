@@ -53,7 +53,8 @@ export default async function txFarmHarvest(
         wallet: owner,
         tokenAccounts: tokenAccountRawInfos
       },
-      amount: toBN(0)
+      amount: toBN(0),
+      checkCreateATAOwner: true
     })
     innerTransactions.push(...makeInstructions)
 

@@ -67,7 +67,8 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
         ...commonParams,
         chainTime,
         rewardInfos: updatedRewardInfos,
-        computeBudgetConfig: await getComputeBudgetConfig()
+        computeBudgetConfig: await getComputeBudgetConfig(),
+        checkCreateATAOwner: true
       })
 
       transactionCollector.add(innerTransactions, {
@@ -83,7 +84,8 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
       const { innerTransactions } = await AmmV3.makeInitRewardsInstructionSimple({
         ...commonParams,
         rewardInfos: newRewardInfos,
-        computeBudgetConfig: await getComputeBudgetConfig()
+        computeBudgetConfig: await getComputeBudgetConfig(),
+        checkCreateATAOwner: true
       })
       transactionCollector.add(innerTransactions, {
         txHistoryInfo: {

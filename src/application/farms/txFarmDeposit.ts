@@ -58,7 +58,8 @@ export default async function txFarmDeposit(
       //   owner,
       //   rewardTokenAccounts: rewardTokenAccountsPublicKeys
       // },
-      amount: options.amount.raw
+      amount: options.amount.raw,
+      checkCreateATAOwner: true
     })
     innerTransactions.push(...depositInstruction)
 
