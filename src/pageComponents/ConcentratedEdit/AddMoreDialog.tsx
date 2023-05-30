@@ -1,24 +1,27 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
 import { Fraction } from '@raydium-io/raydium-sdk'
+
 import useAppSettings from '@/application/common/useAppSettings'
-import useWallet from '@/application/wallet/useWallet'
-import Row from '@/components/Row'
-import Col from '@/components/Col'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
+import useWallet from '@/application/wallet/useWallet'
 import Button from '@/components/Button'
-import CoinInputBox from '@/components/CoinInputBox'
-import InputBox from '@/components/InputBox'
-import DateInput from '@/components/DateInput'
-import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Card from '@/components/Card'
-import { Unpacked } from '@/types/generics'
-import { offsetDateTime, getDate } from '@/functions/date/dateFormat'
+import CoinInputBox from '@/components/CoinInputBox'
+import Col from '@/components/Col'
+import DateInput from '@/components/DateInput'
+import InputBox from '@/components/InputBox'
+import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
+import Row from '@/components/Row'
+import { getDate, offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
-import { div, sub, mul } from '@/functions/numberish/operations'
+import { gte, isMeaningfulNumber, lte } from '@/functions/numberish/compare'
 import { trimTailingZero } from '@/functions/numberish/handleZero'
-import { isMeaningfulNumber, gte, lte } from '@/functions/numberish/compare'
+import { div, mul, sub } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
-import { MIN_DURATION, MAX_DURATION, DAY_SECONDS, getDurationFromString } from './utils'
+import { Unpacked } from '@/types/generics'
+
+import { DAY_SECONDS, getDurationFromString, MAX_DURATION, MIN_DURATION } from './utils'
 
 export interface UpdateData {
   openTime: number
@@ -57,7 +60,7 @@ export default function AddMoreDialog({
     amount: '',
     perWeek: ''
   })
-  const decimals = reward?.rewardToken?.decimals || 6
+  const decimals = reward?.rewardToken?.decimals ?? 6
   const currentBlockChainDate = new Date(Date.now() + (chainTimeOffset || 0))
   const { isRewardEnded } = reward || {}
 

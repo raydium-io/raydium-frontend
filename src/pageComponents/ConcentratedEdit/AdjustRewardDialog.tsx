@@ -1,32 +1,34 @@
 import { useEffect, useMemo, useState } from 'react'
+
 import { Fraction } from '@raydium-io/raydium-sdk'
-import useToken from '@/application/token/useToken'
+
 import useAppSettings from '@/application/common/useAppSettings'
+import { HydratedConcentratedInfo } from '@/application/concentrated/type'
+import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
-import Row from '@/components/Row'
+import Button from '@/components/Button'
+import Card from '@/components/Card'
+import CoinInputBox from '@/components/CoinInputBox'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
-import { HydratedConcentratedInfo } from '@/application/concentrated/type'
-import Button from '@/components/Button'
-import CoinInputBox from '@/components/CoinInputBox'
 import InputBox from '@/components/InputBox'
+import ListTable from '@/components/ListTable'
 import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
-import Card from '@/components/Card'
+import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
-import { Unpacked } from '@/types/generics'
-import { toUTC } from '@/functions/date/dateFormat'
-import { div, mul, plus } from '@/functions/numberish/operations'
-import { lt } from '@/functions/numberish/compare'
-import { offsetDateTime } from '@/functions/date/dateFormat'
-import { isMeaningfulNumber, gte, lte } from '@/functions/numberish/compare'
+import { offsetDateTime, toUTC } from '@/functions/date/dateFormat'
 import formatNumber from '@/functions/format/formatNumber'
 import toPercentString from '@/functions/format/toPercentString'
-import { MIN_DURATION, MAX_DURATION, DAY_SECONDS } from './utils'
-import ListTable from '@/components/ListTable'
-import toUsdVolume from '@/functions/format/toUsdVolume'
 import toTotalPrice from '@/functions/format/toTotalPrice'
+import toUsdVolume from '@/functions/format/toUsdVolume'
+import { gte, isMeaningfulNumber, lt, lte } from '@/functions/numberish/compare'
+import { div, mul, plus } from '@/functions/numberish/operations'
+import { Unpacked } from '@/types/generics'
+
 import { UpdateData } from './AddMoreDialog'
+import { DAY_SECONDS, MAX_DURATION, MIN_DURATION } from './utils'
+
 interface Props {
   onClose: () => void
   onConfirm: (props: { rewardMint: string; data: UpdateData }) => void
@@ -61,7 +63,7 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
   const { endTime, rewardToken, perSecond, apr, rewardPerWeek, tvl } = reward || {}
 
   const haveBalance = Boolean(rewardToken && gte(getBalance(rewardToken), values.amount))
-  const rewardDecimals = rewardToken?.decimals || 6
+  const rewardDecimals = rewardToken?.decimals ?? 6
   const remainSeconds = useMemo(() => Math.floor(((endTime || 0) - onlineCurrentDate) / 1000), [reward])
 
   const remainDays = Math.ceil(remainSeconds / DAY_SECONDS)

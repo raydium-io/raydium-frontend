@@ -1,9 +1,7 @@
 import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
 
 import {
-  decimalToFraction,
-  fractionToDecimal,
-  recursivelyDecimalToFraction
+  decimalToFraction, fractionToDecimal, recursivelyDecimalToFraction
 } from '@/application/txTools/decimal2Fraction'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { div, getMax, mul } from '@/functions/numberish/operations'
@@ -35,11 +33,11 @@ interface GetChartDataProps {
 
 export type PriceBoundaryReturn =
   | {
-      priceLowerTick: number
-      priceLower: Fraction
-      priceUpperTick: number
-      priceUpper: Fraction
-    }
+    priceLowerTick: number
+    priceLower: Fraction
+    priceUpperTick: number
+    priceUpper: Fraction
+  }
   | undefined
 
 export function getPriceBoundary({
@@ -54,8 +52,8 @@ export function getPriceBoundary({
     const decimals = maxDecimals
       ? maxDecimals
       : coin1 || coin2
-      ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0)
-      : 6
+        ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0)
+        : 6
     const isStable = ammPool.ammConfig.tradeFeeRate === 100
     const diff = isStable ? 0.01 : 0.2
     const currentPrice = decimalToFraction(ammPool?.state.currentPrice)
@@ -106,7 +104,7 @@ export function getPriceTick({ p, coin1, coin2, reverse, ammPool, maxDecimals }:
     const { price, tick } = getPriceAndTick({
       poolInfo: ammPool.state,
       baseIn: isMintEqual(ammPool.state.mintA.mint, targetCoin?.mint),
-      price: fractionToDecimal(toFraction(Math.max(Number(p), 1 / 10 ** (maxDecimals || 6))))
+      price: fractionToDecimal(toFraction(Math.max(Number(p), 1 / 10 ** (maxDecimals ?? 6))))
     })
     return { price, tick }
   } catch (err) {
@@ -122,7 +120,7 @@ export function calLowerUpper({
   reverse,
   ammPool,
   maxDecimals
-}: GetPriceTick & { [Range.Min]: number; [Range.Max]: number }): PriceBoundaryReturn {
+}: GetPriceTick & { [Range.Min]: number;[Range.Max]: number }): PriceBoundaryReturn {
   const resLower = getPriceTick({
     p: min,
     coin1,

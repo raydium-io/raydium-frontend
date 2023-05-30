@@ -1,29 +1,32 @@
 import { useCallback, useEffect, useState } from 'react'
+
 import { Fraction } from '@raydium-io/raydium-sdk'
+
 import useAppSettings from '@/application/common/useAppSettings'
-import useConnection from '@/application/connection/useConnection'
-import useConcentrated from '@/application/concentrated/useConcentrated'
-import useToken from '@/application/token/useToken'
-import Row from '@/components/Row'
+import txCollectReward from '@/application/concentrated/txCollectReward'
 import { HydratedConcentratedInfo } from '@/application/concentrated/type'
+import useConcentrated from '@/application/concentrated/useConcentrated'
+import useConnection from '@/application/connection/useConnection'
+import useToken from '@/application/token/useToken'
+import { Badge } from '@/components/Badge'
+import Button from '@/components/Button'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
+import Icon from '@/components/Icon'
 import ListTable from '@/components/ListTable'
-import { Badge } from '@/components/Badge'
-import { mul, div, getMax } from '@/functions/numberish/operations'
+import Row from '@/components/Row'
 import { toUTC } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
+import parseDuration, { getDuration } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
 import toPercentString from '@/functions/format/toPercentString'
-import parseDuration, { getDuration } from '@/functions/date/parseDuration'
-import Button from '@/components/Button'
 import { gt, isMeaningfulNumber } from '@/functions/numberish/compare'
-import Icon from '@/components/Icon'
+import { div, getMax, mul } from '@/functions/numberish/operations'
 import { Unpacked } from '@/types/generics'
+
 import AddMoreDialog, { UpdateData } from './AddMoreDialog'
 import AdjustRewardDialog from './AdjustRewardDialog'
-import txCollectReward from '@/application/concentrated/txCollectReward'
 import { DAY_SECONDS } from './utils'
 
 interface Props {
@@ -104,7 +107,7 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
             return duration.hours ? `${duration.days}D ${duration.hours}H` : `${duration.days}D`
           }
 
-          const rewardDecimals = rewardToken?.decimals || 6
+          const rewardDecimals = rewardToken?.decimals ?? 6
           const updateReward = updateData.get(reward.rewardToken!.mint.toBase58())
           const updateDuration = updateReward ? getDuration(updateReward.endTime, updateReward.openTime) : 0
 
@@ -311,8 +314,8 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
                     <span className="text-[#abc4ff80]">
                       {div(
                         reward.remainingRewards ? getMax(reward.remainingRewards, 0) : reward.remainingRewards,
-                        10 ** (reward.rewardToken?.decimals || 6)
-                      )?.toSignificant(reward.rewardToken?.decimals || 6)}{' '}
+                        10 ** (reward.rewardToken?.decimals ?? 6)
+                      )?.toSignificant(reward.rewardToken?.decimals ?? 6)}{' '}
                       {reward.rewardToken?.symbol}
                     </span>
                   </Col>

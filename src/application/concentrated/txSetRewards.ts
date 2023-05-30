@@ -1,13 +1,16 @@
+import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
+
 import { SplToken } from '@/application/token/type'
 import assert from '@/functions/assert'
 import { div, mul } from '@/functions/numberish/operations'
-import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
-import { PublicKey } from '@solana/web3.js'
+
 import useConnection from '../connection/useConnection'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
+
 import { HydratedConcentratedInfo } from './type'
 
 interface Props {
@@ -46,7 +49,7 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
       mint: r.token.mint,
       openTime: Math.floor(r.openTime.valueOf() / 1000),
       endTime: Math.floor(r.endTime.valueOf() / 1000),
-      perSecond: fractionToDecimal(div(mul(r.perWeek || 0, 10 ** (r.token.decimals || 6)), 7 * 60 * 60 * 24), 20)
+      perSecond: fractionToDecimal(div(mul(r.perWeek || 0, 10 ** (r.token.decimals)), 7 * 60 * 60 * 24), 20)
     }))
 
     const commonParams = {

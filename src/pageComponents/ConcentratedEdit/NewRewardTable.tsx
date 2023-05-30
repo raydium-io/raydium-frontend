@@ -1,20 +1,22 @@
 import { CurrencyAmount } from '@raydium-io/raydium-sdk'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import useToken from '@/application/token/useToken'
-import Row from '@/components/Row'
+import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
-import CoinAvatar from '@/components/CoinAvatar'
 import ListTable from '@/components/ListTable'
+import Row from '@/components/Row'
+import { toUTC } from '@/functions/date/dateFormat'
 import parseDuration, { getDuration } from '@/functions/date/parseDuration'
 import formatNumber from '@/functions/format/formatNumber'
-import { toUTC } from '@/functions/date/dateFormat'
-import { mul, div } from '@/functions/numberish/operations'
 import toPercentString from '@/functions/format/toPercentString'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { div, mul } from '@/functions/numberish/operations'
+
 import { NewReward } from './AddNewReward'
 import { DAY_SECONDS } from './utils'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
 
 interface Props {
   newRewards: NewReward[]
@@ -121,7 +123,7 @@ export default function NewRewardTable({ newRewards, tvl, onClickRow, onDelete }
             <Grid className="gap-4 h-full">
               <Col className="grow justify-center text-xs">
                 <div>
-                  {formatNumber(mul(perDay, 7), { fractionLength: token?.decimals || 6 })}
+                  {formatNumber(mul(perDay, 7), { fractionLength: token?.decimals ?? 6 })}
                   /week
                 </div>
                 <div>

@@ -1,21 +1,24 @@
-import { useEffect, useMemo, useState, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
+import { SplToken } from '@/application/token/type'
 import useWallet from '@/application/wallet/useWallet'
-import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
-import InputBox from '@/components/InputBox'
-import DateInput from '@/components/DateInput'
 import Card from '@/components/Card'
+import CoinInputBoxWithTokenSelector from '@/components/CoinInputBoxWithTokenSelector'
+import DateInput from '@/components/DateInput'
 import Grid from '@/components/Grid'
+import InputBox from '@/components/InputBox'
 import Row from '@/components/Row'
-import { offsetDateTime, getDate } from '@/functions/date/dateFormat'
+import { getDate, offsetDateTime } from '@/functions/date/dateFormat'
 import { isDateAfter, isDateBefore } from '@/functions/date/judges'
-import { isMeaningfulNumber, isMeaninglessNumber, gt, lt, gte } from '@/functions/numberish/compare'
 import { getDuration } from '@/functions/date/parseDuration'
+import { gt, gte, isMeaningfulNumber, isMeaninglessNumber, lt } from '@/functions/numberish/compare'
 import { trimTailingZero } from '@/functions/numberish/handleZero'
 import { div, mul } from '@/functions/numberish/operations'
-import { SplToken } from '@/application/token/type'
-import { MIN_DURATION, MAX_DURATION, DAY_SECONDS } from './utils'
+
+import { DAY_SECONDS, MAX_DURATION, MIN_DURATION } from './utils'
+
 interface Props {
   dataIndex: number
   defaultData?: NewReward
@@ -91,7 +94,7 @@ export default function AddNewReward(props: Props) {
   useEffect(() => {
     if (!hasInput) return
     setNewReward((values) => {
-      const decimals = values.token?.decimals || 6
+      const decimals = values.token?.decimals ?? 6
       const perWeek =
         isMeaningfulNumber(values.amount) && isMeaningfulNumber(values.duration)
           ? trimTailingZero(mul(div(values.amount, values.duration), 7).toFixed(decimals))
@@ -213,7 +216,7 @@ export default function AddNewReward(props: Props) {
                 ...values,
                 perWeek,
                 amount: isMeaningfulNumber(values.duration)
-                  ? trimTailingZero(mul(div(perWeek, 7), values.duration).toFixed(values.token?.decimals || 6))
+                  ? trimTailingZero(mul(div(perWeek, 7), values.duration).toFixed(values.token?.decimals ?? 6))
                   : '0'
               }))
             }
