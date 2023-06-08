@@ -525,8 +525,9 @@ function SwapCard() {
             should: upCoinAmount && isMeaningfulNumber(upCoinAmount),
             fallbackProps: { children: 'Enter an amount' }
           },
+          { should: !isCalculating, fallbackProps: { children: 'Calculating ...' } },
           {
-            should: isCalculating || !eq(downCoinAmount, 0),
+            should: !eq(downCoinAmount, 0),
             fallbackProps: { children: 'Swap Amount Too Small' }
           },
           {
