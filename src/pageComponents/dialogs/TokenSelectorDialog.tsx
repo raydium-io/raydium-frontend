@@ -6,7 +6,10 @@ import useAppSettings from '@/application/common/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
 import { getOnlineTokenInfo, verifyToken } from '@/application/token/getOnlineTokenInfo'
 import {
-  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL
+  isQuantumSOL,
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  QuantumSOLVersionSOL
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { SupportedTokenListSettingName } from '@/application/token/useToken'
@@ -218,7 +221,8 @@ function TokenSelectorDialogContent({
       extensions: {},
       name: info.name ? info.name.slice(0, 16) : info.symbol.slice(0, 8),
       userAdded: true,
-      hasFreeze
+      hasFreeze,
+      isToken2022: onlineTokenMintInfo.is2022Token
     })
     addUserAddedToken(newToken)
   }
@@ -384,6 +388,7 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
   })
 
   const balance = getBalance(token)
+  const isToken2022 = token.extensions?.version === 'TOKEN2022'
   return (
     <div className="group w-full">
       <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2">
@@ -391,9 +396,12 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
           <CoinAvatar token={token} className="mr-2" />
           <Col className="mr-2">
             <Row>
-              <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
-                {token.symbol}
-              </div>
+              <Row className="items-center gap-1">
+                <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
+                  {token.symbol}
+                </div>
+                {isToken2022 && <div className="text-2xs text-[#141041] bg-[#abc4ff80] px-1 rounded-sm">2022</div>}
+              </Row>
               {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
                 <Row
                   onClick={(ev) => {

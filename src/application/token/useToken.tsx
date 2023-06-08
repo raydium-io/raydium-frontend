@@ -15,8 +15,14 @@ import useWallet from '../wallet/useWallet'
 
 import { verifyToken } from './getOnlineTokenInfo'
 import {
-  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLToken, QuantumSOLVersionSOL,
-  QuantumSOLVersionWSOL, SOLUrlMint, WSOLMint
+  isQuantumSOL,
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  QuantumSOLToken,
+  QuantumSOLVersionSOL,
+  QuantumSOLVersionWSOL,
+  SOLUrlMint,
+  WSOLMint
 } from './quantumSOL'
 import { LpToken, SplToken, TokenJson } from './type'
 import { createSplToken } from './useTokenListsLoader'
@@ -185,8 +191,8 @@ export const useToken = create<TokenStore>((set, get) => ({
 
   userAddedTokens: {},
   addUserAddedToken: async (rawToken: SplToken) => {
-    const isFreezed = await verifyToken(rawToken.mint, { noLog: true })
-    const token = Object.assign(rawToken, { hasFreeze: !isFreezed } as Partial<SplToken>)
+    const isVarified = await verifyToken(rawToken.mint, { noLog: true })
+    const token = Object.assign(rawToken, { hasFreeze: !isVarified } as Partial<SplToken>)
     set((s) =>
       produce(s, (draft) => {
         if (!draft.userAddedTokens[toPubString(token.mint)]) {

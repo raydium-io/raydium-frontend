@@ -323,6 +323,7 @@ export function createSplToken(
     mint: HexAddress
     decimals: number
     userAdded?: boolean /* only if token is added by user */
+    isToken2022?: boolean
   },
   customTokenIcons?: Record<string, SrcAddress>
 ): SplToken {
@@ -332,6 +333,9 @@ export function createSplToken(
   const splToken = Object.assign(new Token(mint, decimals, symbol, name ?? symbol), { id: mint }, rest)
   if (customTokenIcons?.[mint]) {
     splToken.icon = customTokenIcons[mint]
+  }
+  if (info.isToken2022) {
+    splToken.extensions = { ...splToken.extensions, version: 'TOKEN2022' }
   }
   return splToken
 }
