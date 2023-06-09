@@ -1,6 +1,6 @@
 import { RefObject, useRef } from 'react'
 import { useEvent } from '@/hooks/useEvent'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 
 type InterSectionObserverCallback<Item extends HTMLElement> = (utils: {
   el: Item

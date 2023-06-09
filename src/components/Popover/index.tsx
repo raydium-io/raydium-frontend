@@ -3,7 +3,7 @@ import addPropsToReactElement from '@/functions/react/addPropsToReactElement'
 import { pickReactChild } from '@/functions/react/pickChild'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import useCallbackRef from '@/hooks/useCallbackRef'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import { MayFunction } from '@/types/constants'
 import { Transition } from '@headlessui/react'
 import {

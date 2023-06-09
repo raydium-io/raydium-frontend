@@ -3,7 +3,7 @@ import React, { ReactNode, useRef } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import { shrinkToValue } from '@/functions/shrinkToValue'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import AutoBox from './AutoBox'
 import Row from './Row'
 import toPercentString from '@/functions/format/toPercentString'

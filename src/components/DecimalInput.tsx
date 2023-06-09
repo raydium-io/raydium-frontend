@@ -4,7 +4,7 @@ import { isNumberish } from '@/functions/judgers/dateType'
 import { add, clamp, minus } from '@/functions/numberish/operations'
 import { toString, ToStringOptions } from '@/functions/numberish/toString'
 import mergeRef from '@/functions/react/mergeRef'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import { useSignalState } from '@/hooks/useSignalState'
 import { Numberish } from '@/types/constants'
 

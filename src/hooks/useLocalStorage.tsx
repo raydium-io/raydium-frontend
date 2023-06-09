@@ -4,7 +4,7 @@ import { getLocalItem, setLocalItem } from '@/functions/dom/jStorage'
 import { MayFunction } from '@/types/constants'
 
 import useXState from './useXState'
-import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect'
 
 /** auto json stringify and json parse */
 export default function useLocalStorageItem<T, E = T>(

@@ -1,4 +1,4 @@
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import { addQuery, getURLQuery } from '@/functions/dom/getURLQueryEntries'
 import useUpdate from '@/hooks/useUpdate'
 

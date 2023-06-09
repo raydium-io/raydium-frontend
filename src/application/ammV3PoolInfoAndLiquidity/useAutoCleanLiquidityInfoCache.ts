@@ -1,5 +1,5 @@
 import { clearSdkCache } from '@/application/ammV3PoolInfoAndLiquidity/ammAndLiquidity'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import useLiquidity from '../liquidity/useLiquidity'
 import { useSwap } from '../swap/useSwap'
 

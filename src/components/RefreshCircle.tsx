@@ -6,7 +6,7 @@ import IntervalCircle, { IntervalCircleHandler } from '@/components/IntervalCirc
 import Tooltip from '@/components/Tooltip'
 import { inServer } from '@/functions/judgers/isSSR'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import { useSignalState } from '@/hooks/useSignalState'
 import { AnyFn } from '@/types/constants'
 import { useDocumentVisibility } from '../hooks/useDocumentVisibility'

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect'
 
 import { useRecordedEffect } from './useRecordedEffect'
 

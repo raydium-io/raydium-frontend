@@ -1,5 +1,5 @@
 import { useRef, useLayoutEffect, useCallback } from 'react'
-import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect'
 
 /**@see https://juejin.cn/post/7094453522535546893 */
 export function useEvent<T>(handler: T): T {

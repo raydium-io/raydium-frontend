@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect'
 
 /**
  * @see https://usehooks.com/useMedia/

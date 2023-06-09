@@ -8,7 +8,7 @@ import { inClient, inServer, isInBonsaiTest, isInLocalhost } from '@/functions/j
 import { eq, gt, lt } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
 import useDevice from '@/hooks/useDevice'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 

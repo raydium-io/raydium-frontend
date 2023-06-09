@@ -42,7 +42,7 @@ import { SolanaWalletProviders } from '@/components/SolanaWallets/SolanaWallets'
 import { createDOMElement } from '@/functions/dom/createDOMElement'
 import toPubString from '@/functions/format/toMintString'
 import { inClient } from '@/functions/judgers/isSSR'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import RecentTransactionDialog from '@/pageComponents/dialogs/RecentTransactionDialog'
 import WalletSelectorDialog from '@/pageComponents/dialogs/WalletSelectorDialog'
 

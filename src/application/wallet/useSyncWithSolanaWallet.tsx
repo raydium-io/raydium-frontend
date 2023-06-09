@@ -6,7 +6,7 @@ import { PublicKey, Transaction, VersionedTransaction } from '@solana/web3.js'
 import useConnection from '@/application/connection/useConnection'
 
 import useWallet from './useWallet'
-import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import { isValidPublicKey } from '@/functions/judgers/dateType'
 
 /**
