@@ -67,6 +67,7 @@ import { HexAddress, Numberish } from '@/types/constants'
 
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
 import useLiquidity from '@/application/liquidity/useLiquidity'
+import { useToken2022ConfirmPanel } from '../application/token/useToken2022ConfirmPanel'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -116,7 +117,7 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
   )
 
   const [hasUserTemporaryConfirmed, setHasUserTemporaryConfirmed] = useState(false)
-  const [isConfirmPanelOn, setIsConfirmPanelOn] = useState(false)
+  const [notOfficialTokenConfirmPanelOn, setNotOfficialTokenConfirmPanelOn] = useState(false)
 
   useEffect(() => {
     setHasUserTemporaryConfirmed(false)
@@ -124,9 +125,9 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
 
   const freezed = useMemo(() => downCoin && isFreezedToken(downCoin), [toPubString(downCoin?.mint)])
 
-  const popConfirm = () => {
-    if (isConfirmPanelOn) return
-    setIsConfirmPanelOn(true)
+  const popNotOfficialTokenConfirm = () => {
+    if (notOfficialTokenConfirmPanelOn) return
+    setNotOfficialTokenConfirmPanelOn(true)
     useNotification.getState().popConfirm({
       cardWidth: 'lg',
       type: 'warning',
@@ -161,12 +162,12 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
       confirmButtonText: 'Confirm',
       onConfirm: () => {
         setHasUserTemporaryConfirmed(true)
-        setIsConfirmPanelOn(false)
+        setNotOfficialTokenConfirmPanelOn(false)
         downCoin?.mint && setUserPermanentConfirmedTokenMints((old) => addItem(old ?? [], String(downCoin.mint)))
       },
       onCancel: () => {
         setHasUserTemporaryConfirmed(false)
-        setIsConfirmPanelOn(false)
+        setNotOfficialTokenConfirmPanelOn(false)
         useSwap.setState(directionReversed ? { coin1: undefined } : { coin2: undefined })
       }
     })
@@ -175,10 +176,10 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
   const hasConfirmed = isDownCoinOfficial || hasUserPermanentConfirmed || hasUserTemporaryConfirmed
 
   useEffect(() => {
-    if (!hasConfirmed && downCoin) popConfirm()
+    if (!hasConfirmed && downCoin) popNotOfficialTokenConfirm()
   }, [downCoin, hasConfirmed])
 
-  return { hasConfirmed, popConfirm }
+  return { hasConfirmed, popConfirm: popNotOfficialTokenConfirm }
 }
 
 function SwapHead() {
@@ -276,7 +277,23 @@ function SwapCard() {
   const canFindPools = useSwap((s) => s.canFindPools) // Pool not found
   const isInsufficientLiquidity = useSwap((s) => s.isInsufficientLiquidity) // Pool found but insufficient liquidity
   const refreshTokenPrice = useToken((s) => s.refreshTokenPrice)
-  const { hasConfirmed, popConfirm: popUnofficialConfirm } = useUnofficialTokenConfirmState()
+
+  // unofficial swap token confirm
+  const { hasConfirmed: hasConfirmedUnofficialToken, popConfirm: popUnofficialConfirm } =
+    useUnofficialTokenConfirmState()
+
+  // token 2022 confirm
+  const { hasConfirmed: hasConfirmedCoin1Token2022, popConfirm: popCoin1Token2022Confirm } = useToken2022ConfirmPanel({
+    coin: coin1,
+    onCancel: () => useSwap.setState({ coin1: undefined })
+  })
+
+  // token 2022 confirm
+  const { hasConfirmed: hasConfirmedCoin2Token2022, popConfirm: popCoin2Token2022Confirm } = useToken2022ConfirmPanel({
+    coin: coin2,
+    onCancel: () => useSwap.setState({ coin2: undefined })
+  })
+
   const { hasAcceptedPriceChange, swapButtonComponentRef, coinInputBox1ComponentRef, coinInputBox2ComponentRef } =
     useSwapContextStore()
 
@@ -483,11 +500,27 @@ function SwapCard() {
             fallbackProps: { children: 'Select a token' }
           },
           {
-            should: hasConfirmed,
+            should: hasConfirmedUnofficialToken,
             forceActive: true,
             fallbackProps: {
               onClick: popUnofficialConfirm,
               children: 'Confirm unOfficial warning' // user may never see this
+            }
+          },
+          {
+            should: hasConfirmedCoin1Token2022,
+            forceActive: true,
+            fallbackProps: {
+              onClick: popCoin1Token2022Confirm,
+              children: 'Confirm token 2022 warning' // user may never see this
+            }
+          },
+          {
+            should: hasConfirmedCoin2Token2022,
+            forceActive: true,
+            fallbackProps: {
+              onClick: popCoin2Token2022Confirm,
+              children: 'Confirm token 2022 warning' // user may never see this
             }
           },
           {
