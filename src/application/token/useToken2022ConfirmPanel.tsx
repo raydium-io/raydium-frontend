@@ -1,32 +1,43 @@
-import { useEffect, useMemo, useState } from 'react'
 import useNotification from '@/application/notification/useNotification'
+import { isToken2022 } from '@/application/token/isToken2022'
 import { SplToken } from '@/application/token/type'
 import { AddressItem } from '@/components/AddressItem'
 import CoinAvatar from '@/components/CoinAvatar'
 import Row from '@/components/Row'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
-import { isToken2022 } from '@/application/token/isToken2022'
+import { MayArray } from '@/types/generics'
+import { useEffect, useMemo, useState } from 'react'
+import { AsyncAwait } from '../../components/AsyncAwait'
+import { getOnlineTokenInfo } from './getOnlineTokenInfo'
 
 /**
  * not just data, also ui
  */
 export function useToken2022ConfirmPanel(payload: {
-  coin: SplToken | undefined
+  coin: MayArray<SplToken | undefined>
   onCancel?(): void
   onConfirm?(): void
 }): {
   hasConfirmed: boolean
-  popConfirm: () => void
+  popConfirm(): void
 } {
-  const targetCoin = payload.coin
-  const isTargetCoinToken2022 = useMemo(() => targetCoin && isToken2022(targetCoin), [toPubString(targetCoin?.mint)])
-
+  const targetCoins = [payload.coin].flat()
+  const targetCoinsMints = useMemo(
+    () => targetCoins.filter(Boolean)?.map((coin) => toPubString(coin!.mint)),
+    [toPubString(targetCoins?.[0]?.mint)]
+  )
+  const targetCoinToken2022s = useMemo(
+    () => shakeUndifindedItem(targetCoins?.filter((coin) => coin && isToken2022(coin))),
+    [targetCoinsMints]
+  )
+  const hasCoinToken2022 = targetCoinToken2022s.length > 0
   const [hasUserTemporaryConfirmed, setHasUserTemporaryConfirmed] = useState(false)
   const [isPanelOn, setPanelOn] = useState(false)
 
   useEffect(() => {
     setHasUserTemporaryConfirmed(false)
-  }, [toPubString(targetCoin?.mint)])
+  }, [targetCoinsMints])
 
   const popNotOfficialTokenConfirm = () => {
     if (isPanelOn) return
@@ -39,23 +50,25 @@ export function useToken2022ConfirmPanel(payload: {
         <div className="space-y-2 text-left">
           <p className="text-center">balabalabala. Confirm this is the token that you want to trade.</p>
 
-          <Row className="justify-center items-center gap-2 my-4 bg-[#141041] rounded py-3 w-full">
-            <CoinAvatar token={targetCoin} />
-            <div className="font-semibold">{targetCoin?.symbol}</div>
-            <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
-              {targetCoin?.mint}
-            </AddressItem>
-          </Row>
-          {/* {freezed && (
-                      <div>
-                        <div className="text-center my-4 text-[#FED33A] font-bold">Freeze Authority Warning</div>
-                        <div className="text-center my-2  text-xs text-[#FED33A]">
-                          This token has freeze authority enabled and could
-                          <br />
-                          prevent you from transferring or trading the token later.
-                        </div>
-                      </div>
-                    )} */}
+          {targetCoinToken2022s.map((targetCoin) => {
+            return (
+              <Row
+                key={toPubString(targetCoin?.mint)}
+                className="flex-col items-center gap-2 my-4 bg-[#141041] rounded py-3 w-full"
+              >
+                <Row className="items-center gap-2">
+                  <CoinAvatar token={targetCoin} />
+                  <div className="font-semibold">{targetCoin?.symbol}</div>
+                  <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
+                    {targetCoin?.mint}
+                  </AddressItem>
+                </Row>
+                <AsyncAwait promise={getOnlineTokenInfo(targetCoin?.mint)} fallback="loading...">
+                  {(solved) => <div>decimals: {solved?.decimals}</div>}
+                </AsyncAwait>
+              </Row>
+            )
+          })}
         </div>
       ),
       confirmButtonIsMainButton: true,
@@ -74,11 +87,11 @@ export function useToken2022ConfirmPanel(payload: {
     })
   }
 
-  const hasConfirmed = !isTargetCoinToken2022 || hasUserTemporaryConfirmed
+  const hasConfirmed = !hasCoinToken2022 || hasUserTemporaryConfirmed
 
   useEffect(() => {
-    if (!hasConfirmed && targetCoin) popNotOfficialTokenConfirm()
-  }, [targetCoin, hasConfirmed])
+    if (!hasConfirmed && targetCoinsMints.length > 0) popNotOfficialTokenConfirm()
+  }, [targetCoinsMints, hasConfirmed])
 
   return { hasConfirmed, popConfirm: popNotOfficialTokenConfirm }
 }
