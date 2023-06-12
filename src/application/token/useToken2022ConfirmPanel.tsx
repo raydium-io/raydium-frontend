@@ -10,6 +10,8 @@ import { MayArray } from '@/types/generics'
 import { useEffect, useMemo, useState } from 'react'
 import { AsyncAwait } from '../../components/AsyncAwait'
 import { getOnlineTokenInfo } from './getOnlineTokenInfo'
+import Col from '@/components/Col'
+import { toString } from '@/functions/numberish/toString'
 
 /**
  * not just data, also ui
@@ -39,46 +41,53 @@ export function useToken2022ConfirmPanel(payload: {
     setHasUserTemporaryConfirmed(false)
   }, [targetCoinsMints])
 
-  const [hasLoaded, setHasLoaded] = useState(false)
-
   const popNotOfficialTokenConfirm = () => {
     if (isPanelOn) return
     setPanelOn(true)
+    const infos = Object.fromEntries(
+      targetCoinToken2022s.map((targetCoin) => [toPubString(targetCoin.mint), getOnlineTokenInfo(targetCoin.mint)])
+    )
     useNotification.getState().popConfirm({
       cardWidth: 'lg',
       type: 'warning',
       title: 'Confirm Token 2022',
-      description: (
+      description: ({ updateConfig }) => (
         <div className="space-y-2 text-left">
           <p className="text-center">balabalabala. Confirm this is the token that you want to trade.</p>
 
-          {targetCoinToken2022s.map((targetCoin) => {
-            return (
-              <Row
-                key={toPubString(targetCoin?.mint)}
-                className="flex-col items-center gap-2 my-4 bg-[#141041] rounded py-3 w-full"
-              >
-                <Row className="items-center gap-2">
-                  <CoinAvatar token={targetCoin} />
-                  <div className="font-semibold">{targetCoin?.symbol}</div>
-                  <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
-                    {targetCoin?.mint}
-                  </AddressItem>
-                </Row>
-                <AsyncAwait
-                  promise={getOnlineTokenInfo(targetCoin?.mint)}
-                  onFullfilled={() => setHasLoaded(true)}
-                  fallback="loading..."
-                >
-                  {(solved) => <div>decimals: {solved?.decimals}</div>}
-                </AsyncAwait>
+          {targetCoinToken2022s.map((targetCoin) => (
+            <Row
+              key={toPubString(targetCoin?.mint)}
+              className="flex-col items-center gap-2 my-4 bg-[#141041] rounded py-3 w-full"
+            >
+              <Row className="items-center gap-2">
+                <CoinAvatar token={targetCoin} />
+                <div className="font-semibold">{targetCoin?.symbol}</div>
+                <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
+                  {targetCoin?.mint}
+                </AddressItem>
               </Row>
-            )
-          })}
+              <AsyncAwait
+                promise={infos[toPubString(targetCoin.mint)]}
+                onFullfilled={() => updateConfig({ disableConfirmButton: false })}
+                fallback="loading..."
+              >
+                {(tokenMintInfo) => (
+                  <Col>
+                    <div>mint: {tokenMintInfo.mint}</div>
+                    <div>decimals: {tokenMintInfo.decimals}</div>
+                    <div>freezon: {String(Boolean(tokenMintInfo.freezeAuthority))}</div>
+                    <div>transferFeeBasisPoints: {tokenMintInfo.transferFeeBasisPoints}</div>
+                    <div>maximumFee: {toString(tokenMintInfo.maximumFee)}</div>
+                  </Col>
+                )}
+              </AsyncAwait>
+            </Row>
+          ))}
         </div>
       ),
       confirmButtonIsMainButton: true,
-      disableConfirmButton: !hasLoaded,
+      disableConfirmButton: true,
       cancelButtonText: 'Cancel',
       confirmButtonText: 'Confirm',
       onConfirm: () => {

@@ -1,9 +1,7 @@
-import React, { ReactNode, RefObject, useCallback, useRef } from 'react'
-
-import { twMerge } from 'tailwind-merge'
-
+import { shrinkToValue } from '@/functions/shrinkToValue'
 import useToggle from '@/hooks/useToggle'
-
+import { ReactNode, RefObject, useCallback, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
 import Button from '../../components/Button'
 import Card from '../../components/Card'
 import Col from '../../components/Col'
@@ -16,7 +14,7 @@ export interface ConfirmDialogInfo {
   type?: 'success' | 'warning' | 'error' | 'info' | 'no-head-icon'
   title?: ReactNode
   subtitle?: ReactNode
-  description?: ReactNode
+  description?: ReactNode | ((utils: { updateConfig: (newInfo: Partial<ConfirmDialogInfo>) => void }) => ReactNode)
 
   additionalContent?: ReactNode
   onlyConfirmButton?: boolean
@@ -61,7 +59,8 @@ const colors: Record<
   }
 }
 
-export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefObject<HTMLDivElement> }) {
+export default function ConfirmDialog(rawProps: ConfirmDialogInfo & { domRef?: RefObject<HTMLDivElement> }) {
+  const [props, setProps] = useState(rawProps)
   const [isOpen, { off: _close }] = useToggle(true)
   const hasConfirmed = useRef(false)
 
@@ -75,6 +74,12 @@ export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefO
     _close()
     if (!hasConfirmed.current) props.onCancel?.()
   }, [_close])
+
+  const controller = useRef({
+    updateConfig(newInfo: Partial<ConfirmDialogInfo>) {
+      setProps({ ...props, ...newInfo })
+    }
+  })
 
   return (
     <Dialog open={isOpen} onClose={close}>
@@ -99,7 +104,11 @@ export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefO
             <div className="mb-6 text-center">
               <div className="font-semibold text-xl text-white mb-3">{props.title}</div>
               {props.subtitle && <div className="font-semibold text-xl text-white">{props.subtitle}</div>}
-              {props.description && <div className="font-normal text-base text-[#ABC4FF]">{props.description}</div>}
+              {props.description && (
+                <div className="font-normal text-base text-[#ABC4FF]">
+                  {shrinkToValue(props.description, [controller.current])}
+                </div>
+              )}
             </div>
 
             <div className="self-stretch">
