@@ -24,6 +24,8 @@ export interface ConfirmDialogInfo {
   /** Defaultly cancel button is main button */
   confirmButtonIsMainButton?: boolean
   confirmButtonText?: ReactNode
+  /** sometimes it has not load enough info to confirm */
+  disableConfirmButton?: boolean
   cancelButtonText?: ReactNode
   onCancel?(): void
   onConfirm?(): void
@@ -105,6 +107,7 @@ export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefO
               <Col>
                 {!props.onlyConfirmButton && (
                   <Button
+                    disabled={props.confirmButtonIsMainButton && props.disableConfirmButton}
                     className="text-[#ABC4FF] frosted-glass-skygray"
                     onClick={props.confirmButtonIsMainButton ? confirm : close}
                   >
@@ -114,15 +117,16 @@ export default function ConfirmDialog(props: ConfirmDialogInfo & { domRef?: RefO
                   </Button>
                 )}
                 <Button
+                  disabled={!props.confirmButtonIsMainButton && props.disableConfirmButton}
                   className={`text-[#ABC4FF] ${props.onlyConfirmButton ? 'frosted-glass-skygray' : ''} text-sm ${
                     !props.onlyConfirmButton ? '-mb-4' : ''
                   }`}
                   type="text"
                   onClick={props.confirmButtonIsMainButton ? close : confirm}
                 >
-                  {props.confirmButtonIsMainButton
-                    ? props.cancelButtonText ?? 'Cancel'
-                    : props.confirmButtonText ?? 'OK'}
+                  {!props.confirmButtonIsMainButton
+                    ? props.confirmButtonText ?? 'OK'
+                    : props.cancelButtonText ?? 'Cancel'}
                 </Button>
               </Col>
             </div>

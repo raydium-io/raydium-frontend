@@ -39,6 +39,8 @@ export function useToken2022ConfirmPanel(payload: {
     setHasUserTemporaryConfirmed(false)
   }, [targetCoinsMints])
 
+  const [hasLoaded, setHasLoaded] = useState(false)
+
   const popNotOfficialTokenConfirm = () => {
     if (isPanelOn) return
     setPanelOn(true)
@@ -63,7 +65,11 @@ export function useToken2022ConfirmPanel(payload: {
                     {targetCoin?.mint}
                   </AddressItem>
                 </Row>
-                <AsyncAwait promise={getOnlineTokenInfo(targetCoin?.mint)} fallback="loading...">
+                <AsyncAwait
+                  promise={getOnlineTokenInfo(targetCoin?.mint)}
+                  onFullfilled={() => setHasLoaded(true)}
+                  fallback="loading..."
+                >
                   {(solved) => <div>decimals: {solved?.decimals}</div>}
                 </AsyncAwait>
               </Row>
@@ -72,6 +78,7 @@ export function useToken2022ConfirmPanel(payload: {
         </div>
       ),
       confirmButtonIsMainButton: true,
+      disableConfirmButton: !hasLoaded,
       cancelButtonText: 'Cancel',
       confirmButtonText: 'Confirm',
       onConfirm: () => {

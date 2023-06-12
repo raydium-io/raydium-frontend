@@ -1,4 +1,4 @@
-import { SPL_MINT_LAYOUT, TOKEN_PROGRAM_ID } from '@raydium-io/raydium-sdk'
+import { Fraction, TOKEN_PROGRAM_ID } from '@raydium-io/raydium-sdk'
 import { AccountInfo } from '@solana/web3.js'
 
 import toPubString, { toPub } from '@/functions/format/toMintString'
@@ -7,11 +7,13 @@ import { PublicKeyish } from '@/types/constants'
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 
-import useToken from './useToken'
+import assert from '@/functions/assert'
 import { isPubEqual } from '@/functions/judgers/areEqual'
-import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
+import { div } from '@/functions/numberish/operations'
+import { TOKEN_2022_PROGRAM_ID, getTransferFeeConfig, unpackMint } from '@solana/spl-token'
+import useToken from './useToken'
 
-const verifyWhiteList = ['Fishy64jCaa3ooqXw7BHtKvYD8BTkSyAPh6RNE3xZpcN'] // Temporary force white list
+const verifyWhiteList = [{ mint: 'Fishy64jCaa3ooqXw7BHtKvYD8BTkSyAPh6RNE3xZpcN', decimals: 6, is2022Token: false }] // Temporary force white list
 
 export async function verifyToken(
   mintish: PublicKeyish,
@@ -21,72 +23,74 @@ export async function verifyToken(
     cachedAccountInfo?: AccountInfo<Buffer>
     canWhiteList?: boolean
   }
-): Promise<{ is2022Token?: boolean } | false | undefined> {
-  if (options?.canWhiteList && verifyWhiteList.includes(toPubString(mintish))) return {} // Temporary force
-  try {
-    const { connection } = useConnection.getState() // TEST devnet
-    if (!connection) return undefined
-    const tokenAccount = options?.cachedAccountInfo ?? (await connection.getAccountInfo(toPub(mintish)))
-    if (!tokenAccount) return false
-    const isNormalToken = isPubEqual(tokenAccount.owner, TOKEN_PROGRAM_ID)
-    const is2022Token = isPubEqual(tokenAccount.owner, TOKEN_2022_PROGRAM_ID)
-    if (!isNormalToken && !is2022Token) return false
-    if (tokenAccount.data.length !== SPL_MINT_LAYOUT.span) return false
+): Promise<TokenMintInfo | false | undefined> {
+  if (options?.canWhiteList && verifyWhiteList.find((i) => i.mint === toPubString(mintish)))
+    return verifyWhiteList.find((i) => i.mint === toPubString(mintish))! // Temporary force
+  const { connection } = useConnection.getState() // TEST devnet
+  if (!connection) return undefined
+  const info = await getOnlineTokenInfo(mintish, { cachedAccountInfo: options?.cachedAccountInfo })
+  if (!info) return false
+  const { decimals, freezeAuthority } = info
 
-    const layout = SPL_MINT_LAYOUT.decode(tokenAccount.data)
+  const { tokenListSettings } = useToken.getState()
+  const { logError } = useNotification.getState()
+  const isAPIToken =
+    tokenListSettings['Raydium Token List'].mints?.has(toPubString(mintish)) ||
+    tokenListSettings['Solana Token List'].mints?.has(toPubString(mintish))
 
-    const { tokenListSettings } = useToken.getState()
-    const { logError } = useNotification.getState()
-    const { decimals, freezeAuthorityOption } = layout ?? {}
-    const isAPIToken =
-      tokenListSettings['Raydium Token List'].mints?.has(toPubString(mintish)) ||
-      tokenListSettings['Solana Token List'].mints?.has(toPubString(mintish))
-
-    if (decimals != null && !isAPIToken && freezeAuthorityOption === 1) {
-      if (!options?.noLog) {
-        logError('Token Verify Error', 'Token freeze authority enabled')
-      }
-      return false
+  if (decimals != null && !isAPIToken && Boolean(freezeAuthority)) {
+    if (!options?.noLog) {
+      logError('Token Verify Error', 'Token freeze authority enabled')
     }
-    return { is2022Token }
-  } catch {
     return false
   }
+  return info
+}
+
+type TokenMintInfo = {
+  is2022Token: boolean
+  mint: string
+  decimals: number
+  freezeAuthority?: string
+  transferFeeBasisPoints?: number
+  maximumFee?: Fraction
 }
 /**
  * need connection
  */
-export async function getOnlineTokenInfo(mintish: PublicKeyish, options?: { shouldVerification?: boolean }) {
-  try {
-    const { connection } = useConnection.getState() // TEST devnet
-    if (!connection) return
-    const tokenAccount = await connection.getAccountInfo(toPub(mintish))
-    if (!tokenAccount) return
-    const isNormalToken = isPubEqual(tokenAccount.owner, TOKEN_PROGRAM_ID)
-    const is2022Token = isPubEqual(tokenAccount.owner, TOKEN_2022_PROGRAM_ID)
-    if (!isNormalToken && !is2022Token) return
-    if (tokenAccount.data.length !== SPL_MINT_LAYOUT.span) return
-    const layout = SPL_MINT_LAYOUT.decode(tokenAccount.data)
-
-    if (options?.shouldVerification) {
-      const { tokens } = useToken.getState()
-      const logError = useNotification((s) => s.logError)
-      const { decimals, freezeAuthorityOption } = layout ?? {}
-      if (decimals != null && !tokens[toPubString(mintish)] && freezeAuthorityOption === 1) {
-        logError('Token Verify Error', 'Token freeze authority enabled')
-        return undefined
-      }
-    }
-    return { ...layout, is2022Token }
-  } catch {
-    return
+export async function getOnlineTokenInfo(
+  mintish: PublicKeyish,
+  options?: { cachedAccountInfo?: AccountInfo<Buffer> }
+): Promise<TokenMintInfo> {
+  const { connection } = useConnection.getState() // TEST devnet
+  assert(connection, "must set connection to get token's online token info")
+  const mintAccount = options?.cachedAccountInfo ?? (await connection.getAccountInfo(toPub(mintish)))
+  assert(mintAccount, "can't fetch mintAccount")
+  const isNormalToken = isPubEqual(mintAccount.owner, TOKEN_PROGRAM_ID)
+  const is2022Token = isPubEqual(mintAccount.owner, TOKEN_2022_PROGRAM_ID)
+  assert(isNormalToken || is2022Token, 'input mint is not token ')
+  const mintData = unpackMint(toPub(mintish), mintAccount, is2022Token ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID)
+  const dfee = getTransferFeeConfig(mintData)
+  return {
+    is2022Token,
+    mint: toPubString(mintish),
+    decimals: mintData.decimals,
+    freezeAuthority: toPubString(mintData.freezeAuthority) || undefined,
+    transferFeeBasisPoints:
+      dfee?.newerTransferFee.transferFeeBasisPoints != null
+        ? dfee.newerTransferFee.transferFeeBasisPoints / 10_000
+        : undefined,
+    maximumFee:
+      dfee?.newerTransferFee.maximumFee != null
+        ? div(dfee.newerTransferFee.maximumFee, 10 ** mintData.decimals)
+        : undefined
   }
 }
 
 /**
  * need connection
  */
-export async function getOnlineTokenDecimals(mintish: PublicKeyish, options?: { shouldVerification?: boolean }) {
-  const { decimals } = (await getOnlineTokenInfo(mintish, options)) ?? {}
+export async function getOnlineTokenDecimals(mintish: PublicKeyish) {
+  const { decimals } = (await getOnlineTokenInfo(mintish)) ?? {}
   return decimals
 }

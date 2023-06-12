@@ -1,4 +1,4 @@
-import { Liquidity, MARKET_STATE_LAYOUT_V3, PublicKeyish, SPL_MINT_LAYOUT } from '@raydium-io/raydium-sdk'
+import { Liquidity, MARKET_STATE_LAYOUT_V3, PublicKeyish } from '@raydium-io/raydium-sdk'
 import { PublicKey } from '@solana/web3.js'
 
 import useConnection from '@/application/connection/useConnection'
@@ -11,7 +11,7 @@ import toPubString from '@/functions/format/toMintString'
 import { isPubEqual } from '@/functions/judgers/areEqual'
 
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
-import { getOnlineTokenDecimals, verifyToken } from '../token/getOnlineTokenInfo'
+import { verifyToken } from '../token/getOnlineTokenInfo'
 
 import useCreatePool from './useCreatePool'
 
@@ -41,21 +41,16 @@ export async function updateCreatePoolInfo(txParam: { marketId: PublicKeyish }):
     //   ).slice(0, 4)}...${toPubString(quoteMint).slice(-4)} is not avaliable`
     // )
 
-    const baseTokenBufferInfo = await connection.getAccountInfo(new PublicKey(baseMint))
-    assert(baseTokenBufferInfo?.data, `can't find token ${baseMint}`)
-    const { decimals: baseDecimals } = SPL_MINT_LAYOUT.decode(baseTokenBufferInfo.data)
-    assert(baseDecimals != null, 'base decimal must exist')
-    const isBaseVerifyed = await verifyToken(baseMint, { cachedAccountInfo: baseTokenBufferInfo, canWhiteList: true })
+    const isBaseVerifyed = await verifyToken(baseMint, { canWhiteList: true })
+    assert(isBaseVerifyed, 'base token verify failed')
     if (!isBaseVerifyed) return { isSuccess: false }
-    const quoteTokenBufferInfo = await connection.getAccountInfo(new PublicKey(quoteMint))
-    assert(quoteTokenBufferInfo?.data, `can't find token ${quoteMint}`)
-    const { decimals: quoteDecimals } = SPL_MINT_LAYOUT.decode(quoteTokenBufferInfo.data)
-    assert(quoteDecimals != null, 'quote decimal must exist')
+    const baseDecimals = isBaseVerifyed.decimals
     const isQuoteVerifyed = await verifyToken(quoteMint, {
-      cachedAccountInfo: quoteTokenBufferInfo,
       canWhiteList: true
     })
+    assert(isQuoteVerifyed, 'quote token verify failed')
     if (!isQuoteVerifyed) return { isSuccess: false }
+    const quoteDecimals = isQuoteVerifyed.decimals
 
     // assert user has eligible base and quote
     const { tokenAccounts, allTokenAccounts } = useWallet.getState()

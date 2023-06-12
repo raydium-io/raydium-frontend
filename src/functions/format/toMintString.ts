@@ -9,7 +9,7 @@ import tryCatch from '../tryCatch'
 const mintCache = new WeakMap<PublicKey, string>()
 
 //TODO: no token
-export default function toPubString(mint: PublicKeyish | undefined): string {
+export default function toPubString(mint: PublicKeyish | undefined | null): string {
   if (!mint) return ''
   if (isString(mint)) return mint
   if (mintCache.has(mint)) {

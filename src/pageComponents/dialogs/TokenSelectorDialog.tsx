@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from 'react'
+import { useDeferredValue, useEffect, useMemo, useState } from 'react'
 
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
 
@@ -153,6 +153,7 @@ function TokenSelectorDialogContent({
 
   // flag for can start user add mode
   const haveSearchResult = searchedTokens.length > 0
+
   const onlineTokenMintInfo = useAsyncValue(
     !haveSearchResult && searchText ? getOnlineTokenInfo(searchText) : undefined,
     undefined,
@@ -208,7 +209,7 @@ function TokenSelectorDialogContent({
     if (!info.symbol) return
     const { addUserAddedToken } = useToken.getState()
     const decimals = onlineTokenMintInfo?.decimals
-    const hasFreeze = Boolean(onlineTokenMintInfo?.freezeAuthorityOption)
+    const hasFreeze = Boolean(onlineTokenMintInfo?.freezeAuthority)
     if (!onlineTokenMintInfo || decimals === undefined) {
       logWarning(`the mint address is invalid`)
       return
