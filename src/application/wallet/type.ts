@@ -4,6 +4,7 @@ import BN from 'bn.js'
 import { TokenAccount as _TokenAccount } from '@raydium-io/raydium-sdk'
 
 export interface ITokenAccount {
+  programId?: PublicKey
   publicKey?: PublicKey
   mint?: PublicKey
   isAssociated?: boolean

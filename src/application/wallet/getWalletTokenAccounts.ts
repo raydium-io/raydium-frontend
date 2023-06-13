@@ -39,16 +39,10 @@ export async function getWalletTokenAccounts({
   const accounts: ITokenAccount[] = []
   const rawInfos: TokenAccountRawInfo[] = []
 
-  for (const { pubkey, account } of tokenRes.value) {
-    // double check layout length
-    if (account.data.length !== SPL_ACCOUNT_LAYOUT.span) {
-      return logger.throwArgumentError('invalid token account layout length', 'publicKey', pubkey.toBase58())
-    }
-
+  for (const { pubkey, account } of [...tokenRes.value, ...token2022Res.value]) {
     const rawResult = SPL_ACCOUNT_LAYOUT.decode(account.data)
     const { mint, amount } = rawResult
-
-    const associatedTokenAddress = Spl.getAssociatedTokenAccount({ mint, owner, programId: TOKEN_PROGRAM_ID })
+    const associatedTokenAddress = Spl.getAssociatedTokenAccount({ mint, owner, programId: account.owner })
     accounts.push({
       publicKey: pubkey,
       mint,
@@ -56,27 +50,7 @@ export async function getWalletTokenAccounts({
       amount,
       isNative: false
     })
-    rawInfos.push({ pubkey, accountInfo: rawResult })
-  }
-
-  for (const { pubkey, account } of token2022Res.value) {
-    // double check layout length
-    if (account.data.length < SPL_ACCOUNT_LAYOUT.span) {
-      return logger.throwArgumentError('invalid token 2022 account layout length', 'publicKey', pubkey.toBase58())
-    }
-
-    const rawResult = SPL_ACCOUNT_LAYOUT.decode(account.data)
-    const { mint, amount } = rawResult
-
-    const associatedTokenAddress = Spl.getAssociatedTokenAccount({ mint, owner, programId: TOKEN_2022_PROGRAM_ID })
-    accounts.push({
-      publicKey: pubkey,
-      mint,
-      isAssociated: associatedTokenAddress.equals(pubkey),
-      amount,
-      isNative: false
-    })
-    rawInfos.push({ pubkey, accountInfo: rawResult })
+    rawInfos.push({ pubkey, accountInfo: rawResult, programId: account.owner } as TokenAccountRawInfo)
   }
 
   accounts.push({
