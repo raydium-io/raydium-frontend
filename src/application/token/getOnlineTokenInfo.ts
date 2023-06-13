@@ -77,9 +77,7 @@ export async function getOnlineTokenInfo(
     decimals: mintData.decimals,
     freezeAuthority: toPubString(mintData.freezeAuthority) || undefined,
     transferFeeBasisPoints:
-      dfee?.newerTransferFee.transferFeeBasisPoints != null
-        ? dfee.newerTransferFee.transferFeeBasisPoints / 10_000
-        : undefined,
+      dfee?.newerTransferFee.transferFeeBasisPoints != null ? dfee.newerTransferFee.transferFeeBasisPoints : undefined,
     maximumFee:
       dfee?.newerTransferFee.maximumFee != null
         ? div(dfee.newerTransferFee.maximumFee, 10 ** mintData.decimals)

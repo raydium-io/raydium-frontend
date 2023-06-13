@@ -12,6 +12,7 @@ import { AsyncAwait } from '../../components/AsyncAwait'
 import { getOnlineTokenInfo } from './getOnlineTokenInfo'
 import Col from '@/components/Col'
 import { toString } from '@/functions/numberish/toString'
+import { capitalize } from '@/functions/changeCase'
 
 /**
  * not just data, also ui
@@ -73,12 +74,25 @@ export function useToken2022ConfirmPanel(payload: {
                 fallback="loading..."
               >
                 {(tokenMintInfo) => (
-                  <Col>
-                    <div>mint: {tokenMintInfo.mint}</div>
-                    <div>decimals: {tokenMintInfo.decimals}</div>
-                    <div>freezon: {String(Boolean(tokenMintInfo.freezeAuthority))}</div>
-                    <div>transferFeeBasisPoints: {tokenMintInfo.transferFeeBasisPoints}</div>
-                    <div>maximumFee: {toString(tokenMintInfo.maximumFee)}</div>
+                  <Col className="table">
+                    <Row className="table-row">
+                      <div className="table-cell px-2 font-medium">Decimals:</div>
+                      <div className="table-cell px-2">{tokenMintInfo.decimals}</div>
+                    </Row>
+                    <Row className="table-row">
+                      <div className="table-cell px-2 font-medium">Frozen:</div>
+                      <div className="table-cell px-2">
+                        {capitalize(String(Boolean(tokenMintInfo.freezeAuthority)))}
+                      </div>
+                    </Row>
+                    <Row className="table-row">
+                      <div className="table-cell px-2 font-medium">Transfer Fee BPS:</div>
+                      <div className="table-cell px-2">{tokenMintInfo.transferFeeBasisPoints}</div>
+                    </Row>
+                    <Row className="table-row">
+                      <div className="table-cell px-2 font-medium">Transfer Fee Max:</div>
+                      <div className="table-cell px-2">{toString(tokenMintInfo.maximumFee)}</div>
+                    </Row>
                   </Col>
                 )}
               </AsyncAwait>
