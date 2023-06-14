@@ -88,7 +88,7 @@ async function getParsedAmmV3PoolInfo({
   apiAmmPools: ApiAmmV3PoolsItem[]
   chainTimeOffset?: number
 }) {
-  const needRefetchApiAmmPools = apiAmmPools.filter(({ id }) => !parsedAmmV3PoolInfoCache.has(toPubString(id)))
+  const needRefetchApiAmmPools = apiAmmPools
 
   if (needRefetchApiAmmPools.length) {
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
