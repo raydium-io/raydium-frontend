@@ -17,7 +17,9 @@ import Row from '@/components/Row'
 import toPercentString from '@/functions/format/toPercentString'
 import { shakeZero } from '@/functions/numberish/shakeZero'
 import { toString } from '@/functions/numberish/toString'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { Numberish } from '@/types/constants'
+import { useTimeoutDetector } from '../../hooks/useTimeoutDetector'
 
 interface Props {
   open: boolean
@@ -73,6 +75,12 @@ export default function AddLiquidityConfirmDialog({
     onClose()
   }, [onClose])
 
+  const { isTimeover: isOutOfDate, restart } = useTimeoutDetector(1000 * 60, { disabled: !open })
+  useIsomorphicLayoutEffect(() => {
+    if (open) {
+      restart()
+    }
+  }, [open])
   return (
     <Dialog open={open} onClose={close}>
       {({ close }) => (
@@ -209,6 +217,14 @@ export default function AddLiquidityConfirmDialog({
                     <Button
                       className={`frosted-glass-teal`}
                       isLoading={isApprovePanelShown}
+                      validators={[
+                        {
+                          should: !isOutOfDate,
+                          fallbackProps: {
+                            children: 'Out Of Date'
+                          }
+                        }
+                      ]}
                       onClick={() => confirm(close)}
                     >
                       Confirm Deposit
