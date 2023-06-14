@@ -65,18 +65,7 @@ export default function txCreateConcentratedPosotion({
   })
 }
 
-export async function generateCreateClmmPositionTx({
-  priceLower = useConcentrated.getState().priceLower,
-  priceUpper = useConcentrated.getState().priceUpper,
-  coin1 = useConcentrated.getState().coin1,
-  coin2 = useConcentrated.getState().coin2,
-  coin1Amount = useConcentrated.getState().coin1Amount,
-  coin2Amount = useConcentrated.getState().coin2Amount,
-  liquidity = useConcentrated.getState().liquidity,
-  priceLowerTick = useConcentrated.getState().priceLowerTick,
-  priceUpperTick = useConcentrated.getState().priceUpperTick,
-  currentAmmPool = useConcentrated.getState().currentAmmPool
-}: Pick<
+export type GenerateCreateClmmPositionTxFnParams = Pick<
   ConcentratedStore,
   | 'coin1'
   | 'coin2'
@@ -88,7 +77,22 @@ export async function generateCreateClmmPositionTx({
   | 'priceLowerTick'
   | 'priceUpperTick'
   | 'currentAmmPool'
-> = {}) {
+>
+
+export async function generateCreateClmmPositionTx(
+  {
+    priceLower = useConcentrated.getState().priceLower,
+    priceUpper = useConcentrated.getState().priceUpper,
+    coin1 = useConcentrated.getState().coin1,
+    coin2 = useConcentrated.getState().coin2,
+    coin1Amount = useConcentrated.getState().coin1Amount,
+    coin2Amount = useConcentrated.getState().coin2Amount,
+    liquidity = useConcentrated.getState().liquidity,
+    priceLowerTick = useConcentrated.getState().priceLowerTick,
+    priceUpperTick = useConcentrated.getState().priceUpperTick,
+    currentAmmPool = useConcentrated.getState().currentAmmPool
+  }: GenerateCreateClmmPositionTxFnParams = useConcentrated.getState()
+) {
   const { tokenAccountRawInfos } = useWallet.getState()
   const { connection } = useConnection.getState()
   const { owner } = useWallet.getState()
