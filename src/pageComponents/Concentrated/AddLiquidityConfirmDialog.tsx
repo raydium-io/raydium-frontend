@@ -1,23 +1,23 @@
-import React, * as react from 'react'
+import * as react from 'react'
 
-import { twMerge } from 'tailwind-merge'
 import { Fraction } from '@raydium-io/raydium-sdk'
+import { twMerge } from 'tailwind-merge'
 
+import useAppSettings from '@/application/common/useAppSettings'
 import { SplToken } from '@/application/token/type'
+import { AddressItem } from '@/components/AddressItem'
 import Button from '@/components/Button'
 import Card from '@/components/Card'
 import CoinAvatar from '@/components/CoinAvatar'
 import Col from '@/components/Col'
 import Dialog from '@/components/Dialog'
 import Icon from '@/components/Icon'
+import Image from '@/components/Image'
 import Row from '@/components/Row'
-import { toString } from '@/functions/numberish/toString'
-import { Numberish } from '@/types/constants'
 import toPercentString from '@/functions/format/toPercentString'
 import { shakeZero } from '@/functions/numberish/shakeZero'
-import useAppSettings from '@/application/common/useAppSettings'
-import Image from '@/components/Image'
-import { AddressItem } from '@/components/AddressItem'
+import { toString } from '@/functions/numberish/toString'
+import { Numberish } from '@/types/constants'
 
 interface Props {
   open: boolean
@@ -25,7 +25,7 @@ interface Props {
   coin2?: SplToken
   coin1Amount?: Numberish
   coin2Amount?: Numberish
-  decimals: number
+  decimals?: number
   currentPrice?: Fraction
   position?: { min: number; max: number }
   gettedNFTAddress?: string
@@ -34,7 +34,7 @@ interface Props {
   onConfirm?: (close: () => void) => void
   onClose: () => void
   feeRate?: number
-  inRange: boolean
+  inRange?: boolean
 }
 
 export default function AddLiquidityConfirmDialog({
@@ -55,7 +55,7 @@ export default function AddLiquidityConfirmDialog({
   onClose
 }: Props) {
   const hasConfirmed = react.useRef(false)
-  const decimalPlace = Math.min(decimals, 6)
+  const decimalPlace = Math.min(decimals ?? 6, 6)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
   const confirm = react.useCallback(
