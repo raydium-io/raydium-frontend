@@ -27,6 +27,8 @@ interface Props {
   isSnapshotDataFresh: boolean
   haveEnoughCoin1: boolean | undefined
   haveEnoughCoin2: boolean | undefined
+  // after update, price range may be out of settinged range
+  inRange?: boolean
 
   open: boolean
   coin1?: SplToken
@@ -42,7 +44,6 @@ interface Props {
   onConfirm?: (close: () => void) => void
   onClose: () => void
   feeRate?: number
-  inRange?: boolean
 }
 
 export default function AddLiquidityConfirmDialog({
@@ -238,6 +239,10 @@ export default function AddLiquidityConfirmDialog({
                             },
                             children: 'Refresh Position'
                           }
+                        },
+                        {
+                          should: inRange,
+                          fallbackProps: { children: 'Out of Range' }
                         },
                         {
                           should: haveEnoughCoin1,
