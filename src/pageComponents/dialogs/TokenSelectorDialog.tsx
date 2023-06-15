@@ -1,12 +1,13 @@
 import { useDeferredValue, useMemo, useState } from 'react'
 
 import { PublicKeyish } from '@raydium-io/raydium-sdk'
+import { PublicKey } from '@solana/web3.js'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useNotification from '@/application/notification/useNotification'
 import { getOnlineTokenInfo, verifyToken } from '@/application/token/getOnlineTokenInfo'
 import {
-  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL
+  isQuantumSOL, isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL, WSOLMint
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { SupportedTokenListSettingName } from '@/application/token/useToken'
@@ -147,6 +148,9 @@ function TokenSelectorDialogContent({
   )
 
   const searchedTokens = useDeferredValue(originalSearchedTokens)
+
+  // eslint-disable-next-line
+  console.log('searchedTokens:', searchedTokens, 'originalSearchedTokens:', originalSearchedTokens)
 
   // flag for can start user add mode
   const haveSearchResult = searchedTokens.length > 0
@@ -319,7 +323,7 @@ function TokenSelectorDialogContent({
             </Row>
             {haveSearchResult ? (
               cachedTokenList
-            ) : onlineTokenMintInfo ? (
+            ) : onlineTokenMintInfo && toPubString(WSOLMint) !== searchText ? (
               <Col className="p-8  gap-4">
                 <InputBox
                   label="input a symbol for this token"
