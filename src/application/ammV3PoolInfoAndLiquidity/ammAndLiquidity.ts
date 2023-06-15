@@ -5,8 +5,17 @@
  */
 
 import {
-  AmmV3, AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolsItem, ApiPoolInfo, PoolType, PublicKeyish,
-  ReturnTypeFetchMultipleInfo, ReturnTypeFetchMultiplePoolTickArrays, ReturnTypeGetAllRouteComputeAmountOut, TradeV2
+  AmmV3,
+  AmmV3PoolInfo,
+  AmmV3PoolPersonalPosition,
+  ApiAmmV3PoolsItem,
+  ApiPoolInfo,
+  PoolType,
+  PublicKeyish,
+  ReturnTypeFetchMultipleInfo,
+  ReturnTypeFetchMultiplePoolTickArrays,
+  ReturnTypeGetAllRouteComputeAmountOut,
+  TradeV2
 } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
@@ -79,6 +88,10 @@ const parsedAmmV3PoolInfoCache = new Map<
   }
 >()
 
+export function clearRpcCache() {
+  parsedAmmV3PoolInfoCache.clear()
+}
+
 async function getParsedAmmV3PoolInfo({
   connection,
   apiAmmPools,
@@ -88,8 +101,7 @@ async function getParsedAmmV3PoolInfo({
   apiAmmPools: ApiAmmV3PoolsItem[]
   chainTimeOffset?: number
 }) {
-  const needRefetchApiAmmPools = apiAmmPools
-
+  const needRefetchApiAmmPools = apiAmmPools.filter(({ id }) => !parsedAmmV3PoolInfoCache.has(toPubString(id)))
   if (needRefetchApiAmmPools.length) {
     const sdkParsed = await AmmV3.fetchMultiplePoolInfos({
       poolKeys: needRefetchApiAmmPools,
@@ -272,9 +284,9 @@ function getBestCalcResult(
   chainTime: number
 ):
   | {
-    bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
-    bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
-  }
+      bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
+      bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
+    }
   | undefined {
   if (!routeList.length) return undefined
   const readyRoutes = routeList.filter((i) => i.poolReady)
