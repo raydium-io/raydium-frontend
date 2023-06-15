@@ -1,5 +1,3 @@
-import * as react from 'react'
-
 import { Fraction } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
@@ -19,7 +17,7 @@ import { shakeZero } from '@/functions/numberish/shakeZero'
 import { toString } from '@/functions/numberish/toString'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { Numberish } from '@/types/constants'
-import { useTimeoutDetector } from '../../hooks/useTimeoutDetector'
+import { useCallback, useRef, useState } from 'react'
 
 interface Props {
   onRefreshSnapshot(): void
@@ -45,6 +43,18 @@ interface Props {
   onClose: () => void
   feeRate?: number
 }
+function useHaveUpdated(payload: { freshState?: boolean; restartState: unknown }) {
+  const [hasUpdated, setHasUpdated] = useState(false)
+  useIsomorphicLayoutEffect(() => {
+    setHasUpdated(false)
+  }, [payload.restartState])
+  useIsomorphicLayoutEffect(() => {
+    if (payload.freshState) {
+      setHasUpdated(true)
+    }
+  }, [payload.freshState])
+  return hasUpdated
+}
 
 export default function AddLiquidityConfirmDialog({
   open,
@@ -68,11 +78,13 @@ export default function AddLiquidityConfirmDialog({
   onRefreshSnapshot,
   isSnapshotDataFresh
 }: Props) {
-  const hasConfirmed = react.useRef(false)
+  const hasUpdated = useHaveUpdated({ freshState: isSnapshotDataFresh, restartState: open })
+
+  const hasConfirmed = useRef(false)
   const decimalPlace = Math.min(decimals ?? 6, 6)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
-  const confirm = react.useCallback(
+  const confirm = useCallback(
     (close: () => void) => {
       onConfirm?.(close)
       hasConfirmed.current = true
@@ -83,16 +95,10 @@ export default function AddLiquidityConfirmDialog({
   const nftHasLoaded = Boolean(gettedNFTAddress)
   const nftThumbnail = 'https://cloudflare-ipfs.com/ipfs/Qme9ErqmQaznzpfDACncEW48NyXJPFP7HgzfoNdto9xQ9P/02.jpg'
 
-  const close = react.useCallback(() => {
+  const close = useCallback(() => {
     onClose()
   }, [onClose])
 
-  const { isTimeover: isOutOfDate, restart } = useTimeoutDetector(1000 * 60, { disabled: !open })
-  useIsomorphicLayoutEffect(() => {
-    if (open) {
-      restart()
-    }
-  }, [open])
   return (
     <Dialog open={open} onClose={close}>
       {({ close }) => (
@@ -240,10 +246,12 @@ export default function AddLiquidityConfirmDialog({
                             children: 'Refresh Position'
                           }
                         },
-                        {
-                          should: inRange,
-                          fallbackProps: { children: 'Out of Range' }
-                        },
+                        hasUpdated
+                          ? {
+                              should: inRange,
+                              fallbackProps: { children: 'Out of Range' }
+                            }
+                          : undefined,
                         {
                           should: haveEnoughCoin1,
                           fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
