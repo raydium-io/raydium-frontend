@@ -22,6 +22,12 @@ import { Numberish } from '@/types/constants'
 import { useTimeoutDetector } from '../../hooks/useTimeoutDetector'
 
 interface Props {
+  onRefreshSnapshot(): void
+  // input data is snapshot which may out of date
+  isSnapshotDataFresh: boolean
+  haveEnoughCoin1: boolean | undefined
+  haveEnoughCoin2: boolean | undefined
+
   open: boolean
   coin1?: SplToken
   coin2?: SplToken
@@ -41,6 +47,8 @@ interface Props {
 
 export default function AddLiquidityConfirmDialog({
   open,
+  haveEnoughCoin1,
+  haveEnoughCoin2,
   coin1,
   coin2,
   coin1Amount,
@@ -54,7 +62,10 @@ export default function AddLiquidityConfirmDialog({
   inRange,
   onBackToAllMyPools,
   onConfirm,
-  onClose
+  onClose,
+
+  onRefreshSnapshot,
+  isSnapshotDataFresh
 }: Props) {
   const hasConfirmed = react.useRef(false)
   const decimalPlace = Math.min(decimals ?? 6, 6)
@@ -219,10 +230,22 @@ export default function AddLiquidityConfirmDialog({
                       isLoading={isApprovePanelShown}
                       validators={[
                         {
-                          should: !isOutOfDate,
+                          should: isSnapshotDataFresh,
+                          forceActive: true,
                           fallbackProps: {
-                            children: 'Out Of Date'
+                            onClick: () => {
+                              onRefreshSnapshot()
+                            },
+                            children: 'Refresh Position'
                           }
+                        },
+                        {
+                          should: haveEnoughCoin1,
+                          fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
+                        },
+                        {
+                          should: haveEnoughCoin2,
+                          fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
                         }
                       ]}
                       onClick={() => confirm(close)}

@@ -37,7 +37,7 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
-import { gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
+import { eq, gt, gte, isMeaningfulNumber } from '@/functions/numberish/compare'
 import { formatDecimal } from '@/functions/numberish/formatDecimal'
 import { getFirstNonZeroDecimal } from '@/functions/numberish/handleZero'
 import { div, mul, sub } from '@/functions/numberish/operations'
@@ -262,6 +262,7 @@ function ConcentratedCard() {
     coin1 &&
     (!isMeaningfulNumber(coin1Amount) ||
       checkWalletHasEnoughBalance(toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })))
+
   const haveEnoughCoin2 =
     coin2 &&
     (!isMeaningfulNumber(coin2Amount) ||
@@ -373,7 +374,7 @@ function ConcentratedCard() {
     [coin1?.mint, coin2?.mint, currentAmmPool?.idString, tickDirection, decimals]
   )
 
-  const handleClickCreatePool = useCallback(() => {
+  const refreshSnapshot = useEvent(() => {
     setPoolSnapShot({
       ...useConcentrated.getState(),
       coin1: coin1,
@@ -391,6 +392,15 @@ function ConcentratedCard() {
         : undefined,
       currentAmmPool: currentAmmPool
     })
+  })
+
+  const isSnapshotDataFresh = useMemo(
+    () => eq(poolSnapShot.coin1Amount, coin1Amount) && eq(poolSnapShot.coin2Amount, coin2Amount),
+    [coin1Amount, coin2Amount, poolSnapShot]
+  )
+
+  const handleClickCreatePool = useCallback(() => {
+    refreshSnapshot()
     onConfirmOpen()
   }, [onConfirmOpen, coin1, coin2, coin1Amount, coin2Amount, decimals, totalDeposit, currentAmmPool, inputDisable])
 
@@ -621,6 +631,10 @@ function ConcentratedCard() {
         </div>
       </div>
       <AddLiquidityConfirmDialog
+        onRefreshSnapshot={refreshSnapshot}
+        isSnapshotDataFresh={isSnapshotDataFresh}
+        haveEnoughCoin1={haveEnoughCoin1}
+        haveEnoughCoin2={haveEnoughCoin2}
         open={isConfirmOn}
         coin1={poolSnapShot.coin1}
         coin2={poolSnapShot.coin2}
