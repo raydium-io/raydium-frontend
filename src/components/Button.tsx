@@ -9,6 +9,7 @@ import { MayArray } from '@/types/generics'
 import Row from './Row'
 import LoadingCircle from './LoadingCircle'
 import LoadingCircleSmall from './LoadingCircleSmall'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
 export interface ButtonHandle {
   click?: () => void
@@ -27,16 +28,19 @@ export interface ButtonProps {
   className?: string
   isLoading?: boolean
   /** must all condition passed */
-  validators?: MayArray<{
-    /** must return true to pass this validator */
-    should?: MayFunction<BooleanLike>
-    /** it is reversed version of `should` */
-    not?: MayFunction<BooleanLike>
-    // used in "connect wallet" button, it's order is over props: disabled
-    forceActive?: boolean
-    /**  items are button's setting which will apply when corresponding validator has failed */
-    fallbackProps?: Omit<ButtonProps, 'validators' | 'disabled'>
-  }>
+  validators?: MayArray<
+    | {
+        /** must return true to pass this validator */
+        should?: MayFunction<BooleanLike>
+        /** it is reversed version of `should` */
+        not?: MayFunction<BooleanLike>
+        // used in "connect wallet" button, it's order is over props: disabled
+        forceActive?: boolean
+        /**  items are button's setting which will apply when corresponding validator has failed */
+        fallbackProps?: Omit<ButtonProps, 'validators' | 'disabled'>
+      }
+    | undefined
+  >
   children?: ReactNode
   /** normally, it's an icon  */
   prefix?: ReactNode
@@ -48,8 +52,8 @@ export interface ButtonProps {
 
 /** has loaded **twMerge** */
 export default function Button({ validators, ...restProps }: ButtonProps) {
-  const failedValidator = (isArray(validators) ? validators.length > 0 : validators)
-    ? [validators!].flat().find(({ should, not }) => !shrinkToValue(should) || shrinkToValue(not))
+  const failedValidator = (isArray(validators) ? shakeUndifindedItem(validators).length > 0 : validators)
+    ? shakeUndifindedItem([validators!].flat()).find(({ should, not }) => !shrinkToValue(should) || shrinkToValue(not))
     : undefined
   const mergedProps = {
     ...restProps,

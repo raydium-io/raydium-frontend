@@ -1,5 +1,3 @@
-import * as react from 'react'
-
 import { Fraction } from '@raydium-io/raydium-sdk'
 import { twMerge } from 'tailwind-merge'
 
@@ -17,9 +15,19 @@ import Row from '@/components/Row'
 import toPercentString from '@/functions/format/toPercentString'
 import { shakeZero } from '@/functions/numberish/shakeZero'
 import { toString } from '@/functions/numberish/toString'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect '
 import { Numberish } from '@/types/constants'
+import { useCallback, useRef, useState } from 'react'
 
 interface Props {
+  onRefreshSnapshot(): void
+  // input data is snapshot which may out of date
+  isSnapshotDataFresh: boolean
+  haveEnoughCoin1: boolean | undefined
+  haveEnoughCoin2: boolean | undefined
+  // after update, price range may be out of settinged range
+  inRange?: boolean
+
   open: boolean
   coin1?: SplToken
   coin2?: SplToken
@@ -34,11 +42,24 @@ interface Props {
   onConfirm?: (close: () => void) => void
   onClose: () => void
   feeRate?: number
-  inRange?: boolean
+}
+function useHaveUpdated(payload: { freshState?: boolean; restartState: unknown }) {
+  const [hasUpdated, setHasUpdated] = useState(false)
+  useIsomorphicLayoutEffect(() => {
+    setHasUpdated(false)
+  }, [payload.restartState])
+  useIsomorphicLayoutEffect(() => {
+    if (payload.freshState) {
+      setHasUpdated(true)
+    }
+  }, [payload.freshState])
+  return hasUpdated
 }
 
 export default function AddLiquidityConfirmDialog({
   open,
+  haveEnoughCoin1,
+  haveEnoughCoin2,
   coin1,
   coin2,
   coin1Amount,
@@ -52,13 +73,18 @@ export default function AddLiquidityConfirmDialog({
   inRange,
   onBackToAllMyPools,
   onConfirm,
-  onClose
+  onClose,
+
+  onRefreshSnapshot,
+  isSnapshotDataFresh
 }: Props) {
-  const hasConfirmed = react.useRef(false)
+  const hasUpdated = useHaveUpdated({ freshState: isSnapshotDataFresh, restartState: open })
+
+  const hasConfirmed = useRef(false)
   const decimalPlace = Math.min(decimals ?? 6, 6)
   const isApprovePanelShown = useAppSettings((s) => s.isApprovePanelShown)
 
-  const confirm = react.useCallback(
+  const confirm = useCallback(
     (close: () => void) => {
       onConfirm?.(close)
       hasConfirmed.current = true
@@ -69,7 +95,7 @@ export default function AddLiquidityConfirmDialog({
   const nftHasLoaded = Boolean(gettedNFTAddress)
   const nftThumbnail = 'https://cloudflare-ipfs.com/ipfs/Qme9ErqmQaznzpfDACncEW48NyXJPFP7HgzfoNdto9xQ9P/02.jpg'
 
-  const close = react.useCallback(() => {
+  const close = useCallback(() => {
     onClose()
   }, [onClose])
 
@@ -209,6 +235,32 @@ export default function AddLiquidityConfirmDialog({
                     <Button
                       className={`frosted-glass-teal`}
                       isLoading={isApprovePanelShown}
+                      validators={[
+                        {
+                          should: isSnapshotDataFresh,
+                          forceActive: true,
+                          fallbackProps: {
+                            onClick: () => {
+                              onRefreshSnapshot()
+                            },
+                            children: 'Refresh Position'
+                          }
+                        },
+                        hasUpdated
+                          ? {
+                              should: inRange,
+                              fallbackProps: { children: 'Out of Range' }
+                            }
+                          : undefined,
+                        {
+                          should: haveEnoughCoin1,
+                          fallbackProps: { children: `Insufficient ${coin1?.symbol ?? ''} balance` }
+                        },
+                        {
+                          should: haveEnoughCoin2,
+                          fallbackProps: { children: `Insufficient ${coin2?.symbol ?? ''} balance` }
+                        }
+                      ]}
                       onClick={() => confirm(close)}
                     >
                       Confirm Deposit
