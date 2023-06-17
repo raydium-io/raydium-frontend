@@ -149,9 +149,6 @@ function TokenSelectorDialogContent({
 
   const searchedTokens = useDeferredValue(originalSearchedTokens)
 
-  // eslint-disable-next-line
-  console.log('searchedTokens:', searchedTokens, 'originalSearchedTokens:', originalSearchedTokens)
-
   // flag for can start user add mode
   const haveSearchResult = searchedTokens.length > 0
   const onlineTokenMintInfo = useAsyncValue(
