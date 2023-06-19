@@ -1,5 +1,5 @@
 export default function useMessageBoardFileLoader() {
-  // currently don't use
+  // 🚑 currently don't use
   // // whenever app start , get messageBoardItems from `raydium-message-board.json`
   // useAsyncEffect(async () => {
   //   const messageItems = (await jFetch('/raydium-message-board.json')) as MessageBoardItem[]
