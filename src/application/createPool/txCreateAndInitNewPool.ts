@@ -19,6 +19,7 @@ import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { getMaxBalanceBNIfNotATA } from '../token/getMaxBalanceIfNotATA'
 import { recordCreatedPool } from './recordCreatedPool'
 import useCreatePool from './useCreatePool'
+import { getTokenProgramId } from '../token/isToken2022'
 
 export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSuccess?: () => void }) {
   return txHandler(async ({ transactionCollector, baseUtils: { owner, connection } }) => {
@@ -64,8 +65,12 @@ export default async function txCreateAndInitNewPool({ onAllSuccess }: { onAllSu
     // assert user has eligible base and quote
     const { tokenAccountRawInfos } = useWallet.getState()
 
-    const baseToken = getToken(baseMint) || new Token(baseMint, baseDecimals)
-    const quoteToken = getToken(quoteMint) || new Token(quoteMint, quoteDecimals)
+    const [baseTokenProgramId, quoteTokenProgramId] = await Promise.all([
+      getTokenProgramId(baseMint),
+      getTokenProgramId(quoteMint)
+    ])
+    const baseToken = getToken(baseMint) || new Token(baseTokenProgramId, baseMint, baseDecimals)
+    const quoteToken = getToken(quoteMint) || new Token(quoteTokenProgramId, quoteMint, quoteDecimals)
 
     assert(
       gte(

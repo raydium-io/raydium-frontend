@@ -7,6 +7,7 @@ import { Fraction, Token, TokenAmount } from '@raydium-io/raydium-sdk'
 import { AnyFn, Numberish, Primitive, StringNumber } from '@/types/constants'
 
 import toPubString, { toPub } from '../format/toMintString'
+import tryCatch from '../tryCatch'
 
 export const isArray = Array.isArray
 export const isSet = (v: unknown): v is Set<unknown> => {
@@ -126,8 +127,10 @@ export function isPubKey(val: unknown): val is PublicKey {
   return val instanceof PublicKey
 }
 
-export function isPubKeyish<T extends PublicKey | string>(val: T): val is T {
-  return isPubKey(toPub(val))
+export function isPubKeyish<T extends PublicKey | string>(val: T): val is T
+export function isPubKeyish(val: any): val is PublicKey | string
+export function isPubKeyish(val: any): val is PublicKey | string {
+  return typeof val === 'string' || val instanceof PublicKey
 }
 
 export function isDecimal(val: unknown): val is Decimal {

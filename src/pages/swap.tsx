@@ -875,7 +875,7 @@ function SwapCardInfo({ className }: { className?: string }) {
       ) : currentCalcResult?.routeType === 'route' ? (
         <SwappingThrough
           startSymbol={upCoin?.symbol ?? ''}
-          middleSymbol={getToken(currentCalcResult?.middleMint)?.symbol ?? ''}
+          middleSymbol={getToken(currentCalcResult?.middleMintInfo?.mint)?.symbol ?? ''}
           endSymbol={downCoin?.symbol ?? ''}
           poolTypes={currentCalcResult.poolType}
         />

@@ -1,18 +1,15 @@
-import { InnerTransaction, InstructionType, Spl, WSOL } from '@raydium-io/raydium-sdk'
-import { PublicKey, Signer, TransactionInstruction } from '@solana/web3.js'
-
-import { createTransactionCollector } from '@/application/txTools/createTransaction'
 import txHandler, { HandleFnOptions, SingleTxOption } from '@/application/txTools/handleTx'
 import assert from '@/functions/assert'
 import { mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { Numberish } from '@/types/constants'
-
+import { InstructionType, Spl, TOKEN_PROGRAM_ID, WSOL } from '@raydium-io/raydium-sdk'
+import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
+import { PublicKey, Signer, TransactionInstruction } from '@solana/web3.js'
+import { getTokenProgramId, isToken2022 } from '../token/isToken2022'
 import { toInnerTransactionsFromInstructions } from '../txTools/toInnerTransactionsFromInstructions'
-
 import { Ido, Snapshot } from './sdk'
 import { HydratedIdoInfo } from './type'
-import useWallet from '../wallet/useWallet'
 
 export default async function txIdoPurchase({
   idoInfo,
@@ -34,8 +31,19 @@ export default async function txIdoPurchase({
       const signer: Signer[] = []
       const instructionsTypeCollector: InstructionType[] = [] // methods like `Spl.makeCreateAssociatedTokenAccountInstruction` will add info to instructionsTypeCollector. so eventurally , it won't be an empty array
 
-      const baseTokenAccount = await Spl.getAssociatedTokenAccount({ mint: idoInfo.base.mint, owner })
-      let quoteTokenAccount = await Spl.getAssociatedTokenAccount({ mint: idoInfo.quote.mint, owner })
+      const baseProgramId = await getTokenProgramId(idoInfo.base.mint)
+      const quoteProgramId = await getTokenProgramId(idoInfo.quote.mint)
+
+      const baseTokenAccount = Spl.getAssociatedTokenAccount({
+        mint: idoInfo.base.mint,
+        owner,
+        programId: baseProgramId
+      })
+      let quoteTokenAccount = Spl.getAssociatedTokenAccount({
+        mint: idoInfo.quote.mint,
+        owner,
+        programId: quoteProgramId
+      })
 
       // TODO fix
       if (idoInfo.quote.mint.toBase58() === WSOL.mint) {
@@ -53,6 +61,7 @@ export default async function txIdoPurchase({
 
         instructionsCollector.push(
           Spl.makeCloseAccountInstruction({
+            programId: quoteProgramId,
             tokenAccount: quoteTokenAccount,
             owner,
             payer: owner,
@@ -63,6 +72,7 @@ export default async function txIdoPurchase({
         if (!tokenAccounts.find((tokenAmount) => tokenAmount.publicKey?.equals(quoteTokenAccount))) {
           instructionsCollector.push(
             Spl.makeCreateAssociatedTokenAccountInstruction({
+              programId: quoteProgramId,
               mint: idoInfo.quote.mint,
               associatedAccount: quoteTokenAccount,
               owner,
@@ -76,6 +86,7 @@ export default async function txIdoPurchase({
       if (!tokenAccounts.find((tokenAmount) => tokenAmount.publicKey?.equals(baseTokenAccount))) {
         instructionsCollector.push(
           Spl.makeCreateAssociatedTokenAccountInstruction({
+            programId: baseProgramId,
             mint: idoInfo.base.mint,
             associatedAccount: baseTokenAccount,
             owner,

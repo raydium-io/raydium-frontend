@@ -5,8 +5,17 @@
  */
 
 import {
-  AmmV3, AmmV3PoolInfo, AmmV3PoolPersonalPosition, ApiAmmV3PoolsItem, ApiPoolInfo, PoolType, PublicKeyish,
-  ReturnTypeFetchMultipleInfo, ReturnTypeFetchMultiplePoolTickArrays, ReturnTypeGetAllRouteComputeAmountOut, TradeV2
+  AmmV3,
+  AmmV3PoolInfo,
+  AmmV3PoolPersonalPosition,
+  ApiAmmV3PoolsItem,
+  ApiPoolInfo,
+  PoolType,
+  PublicKeyish,
+  ReturnTypeFetchMultipleInfo,
+  ReturnTypeFetchMultiplePoolTickArrays,
+  ReturnTypeGetAllRouteComputeAmountOut,
+  TradeV2
 } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
@@ -37,17 +46,16 @@ const apiCache = {} as {
 
 type PairKeyString = string
 
-type SimulatePoolCacheType = Promise<Awaited<ReturnType<(typeof TradeV2)['fetchMultipleInfo']>> | undefined>
-
-type TickCache = Promise<ReturnTypeFetchMultiplePoolTickArrays | undefined>
+type TickCache = Promise<ReturnTypeFetchMultiplePoolTickArrays>
 
 // TODO: timeout-map
 const sdkCaches: Map<
   PairKeyString,
   {
+    mintInfos: ReturnType<(typeof TradeV2)['fetchMultipleMintInfos']>
     routes: ReturnType<(typeof TradeV2)['getAllRoute']>
-    tickCache: TickCache
-    poolInfosCache: SimulatePoolCacheType
+    tickCache: Promise<ReturnTypeFetchMultiplePoolTickArrays>
+    poolInfosCache: ReturnType<(typeof TradeV2)['fetchMultipleInfo']>
   }
 > = new Map()
 
@@ -149,13 +157,20 @@ function getSDKCacheInfos({
       apiPoolList: apiPoolList,
       ammV3List: Object.values(sdkParsedAmmV3PoolInfo).map((i) => i.state)
     })
+    const mintInfos = TradeV2.fetchMultipleMintInfos({
+      connection,
+      mints: routes.needCheckToken
+    }).catch((err) => {
+      sdkCaches.delete(key)
+      throw err
+    })
     const tickCache = AmmV3.fetchMultiplePoolTickArrays({
       connection,
       poolKeys: routes.needTickArray,
       batchRequest: !isInLocalhost && !isInBonsaiTest
     }).catch((err) => {
       sdkCaches.delete(key)
-      return undefined
+      throw err
     })
     const poolInfosCache = TradeV2.fetchMultipleInfo({
       connection,
@@ -163,10 +178,10 @@ function getSDKCacheInfos({
       batchRequest: !isInLocalhost && !isInBonsaiTest
     }).catch((err) => {
       sdkCaches.delete(key)
-      return undefined
+      throw err
     })
 
-    sdkCaches.set(key, { routes, tickCache, poolInfosCache })
+    sdkCaches.set(key, { routes, tickCache, poolInfosCache, mintInfos })
   }
   return sdkCaches.get(key)!
 }
@@ -233,7 +248,7 @@ export async function getAllSwapableRouteInfos({
   const chainTime = ((chainTimeOffset ?? 0) + Date.now()) / 1000
 
   const sdkParsedAmmV3PoolInfo = await getParsedAmmV3PoolInfo({ connection, apiAmmPools: ammV3 })
-  const { routes, poolInfosCache, tickCache } = getSDKCacheInfos({
+  const { routes, poolInfosCache, tickCache, mintInfos } = getSDKCacheInfos({
     connection,
     inputMint: input.mint,
     outputMint: output.mint,
@@ -241,13 +256,22 @@ export async function getAllSwapableRouteInfos({
     sdkParsedAmmV3PoolInfo: sdkParsedAmmV3PoolInfo
   })
 
-  const awaitedSimulateCache = await poolInfosCache
-  if (!awaitedSimulateCache) return
+  const [simulateResult, tickResult, mintInfosResult, nowEpochResult] = await Promise.allSettled([
+    poolInfosCache,
+    tickCache,
+    mintInfos,
+    connection.getEpochInfo().then((info) => info.epoch)
+  ])
+  if (simulateResult.status === 'rejected') return
+  const awaitedSimulateCache = simulateResult.value
+  if (tickResult.status === 'rejected') return
+  const awaitedTickCache = tickResult.value
+  if (mintInfosResult.status === 'rejected') return
+  const awaitedMintInfos = mintInfosResult.value
+  if (nowEpochResult.status === 'rejected') return
+  const nowEpoch = nowEpochResult.value
 
-  const awaitedTickCache = await tickCache
-  if (!awaitedTickCache) return
-
-  const routeList = await TradeV2.getAllRouteComputeAmountOut({
+  const routeList = TradeV2.getAllRouteComputeAmountOut({
     directPath: routes.directPath,
     routePathDict: routes.routePathDict,
     simulateCache: awaitedSimulateCache,
@@ -255,7 +279,9 @@ export async function getAllSwapableRouteInfos({
     inputTokenAmount: deUITokenAmount(toTokenAmount(input, inputAmount, { alreadyDecimaled: true })),
     outputToken: deUIToken(output),
     slippage: toPercent(slippageTolerance),
-    chainTime
+    chainTime,
+    nowEpoch,
+    mintInfos: awaitedMintInfos
   })
 
   // insufficientLiquidity
@@ -272,9 +298,9 @@ function getBestCalcResult(
   chainTime: number
 ):
   | {
-    bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
-    bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
-  }
+      bestResult: ReturnTypeGetAllRouteComputeAmountOut[number]
+      bestResultStartTimes?: BestResultStartTimeInfo[] /* only when bestResult is not ready */
+    }
   | undefined {
   if (!routeList.length) return undefined
   const readyRoutes = routeList.filter((i) => i.poolReady)

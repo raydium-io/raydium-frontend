@@ -1,16 +1,15 @@
-import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
-import { PublicKey } from '@solana/web3.js'
-
 import { SplToken } from '@/application/token/type'
 import assert from '@/functions/assert'
+import asyncMap from '@/functions/asyncMap'
+import { toPub } from '@/functions/format/toMintString'
 import { div, mul } from '@/functions/numberish/operations'
-
+import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
 import useConnection from '../connection/useConnection'
+import { getTokenProgramId } from '../token/isToken2022'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
-
 import { HydratedConcentratedInfo } from './type'
 
 interface Props {
@@ -38,18 +37,20 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
 
     assert(currentAmmPool, 'not seleted amm pool')
 
-    const updatedRewardInfos = Array.from(updateRewards).map((r) => ({
-      mint: new PublicKey(r[0]),
+    const updatedRewardInfos = await asyncMap(Array.from(updateRewards), async (r) => ({
+      programId: await getTokenProgramId(r[0]),
+      mint: toPub(r[0]),
       openTime: Math.floor(r[1].openTime.valueOf() / 1000),
       endTime: Math.floor(r[1].endTime.valueOf() / 1000),
       perSecond: fractionToDecimal(r[1].perSecond, 20)
     }))
 
-    const newRewardInfos = newRewards.map((r) => ({
+    const newRewardInfos = await asyncMap(newRewards, async (r) => ({
+      programId: await getTokenProgramId(r.token.mint),
       mint: r.token.mint,
       openTime: Math.floor(r.openTime.valueOf() / 1000),
       endTime: Math.floor(r.endTime.valueOf() / 1000),
-      perSecond: fractionToDecimal(div(mul(r.perWeek || 0, 10 ** (r.token.decimals)), 7 * 60 * 60 * 24), 20)
+      perSecond: fractionToDecimal(div(mul(r.perWeek || 0, 10 ** r.token.decimals), 7 * 60 * 60 * 24), 20)
     }))
 
     const commonParams = {

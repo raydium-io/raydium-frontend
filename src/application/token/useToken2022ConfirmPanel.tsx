@@ -13,6 +13,8 @@ import { getOnlineTokenInfo } from './getOnlineTokenInfo'
 import Col from '@/components/Col'
 import { toString } from '@/functions/numberish/toString'
 import { capitalize } from '@/functions/changeCase'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
+import asyncMap from '@/functions/asyncMap'
 
 /**
  * not just data, also ui
@@ -30,9 +32,11 @@ export function useToken2022ConfirmPanel(payload: {
     () => targetCoins.filter(Boolean)?.map((coin) => toPubString(coin!.mint)),
     [toPubString(targetCoins?.[0]?.mint)]
   )
-  const targetCoinToken2022s = useMemo(
-    () => shakeUndifindedItem(targetCoins?.filter((coin) => coin && isToken2022(coin))),
-    [targetCoinsMints]
+  const targetCoinToken2022s = useAsyncMemo(
+    () =>
+      asyncMap(targetCoins, (coin) => isToken2022(coin).then((b) => (b ? coin : undefined))).then(shakeUndifindedItem),
+    [targetCoinsMints],
+    []
   )
   const hasCoinToken2022 = targetCoinToken2022s.length > 0
   const [hasUserTemporaryConfirmed, setHasUserTemporaryConfirmed] = useState(false)

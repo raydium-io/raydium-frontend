@@ -92,3 +92,16 @@ export async function getOnlineTokenDecimals(mintish: PublicKeyish) {
   const { decimals } = (await getOnlineTokenInfo(mintish)) ?? {}
   return decimals
 }
+
+const cache = new Map<string, boolean>()
+
+export async function isOnlineToken2022(mintish: PublicKeyish) {
+  if (cache.has(toPubString(mintish))) return cache.get(toPubString(mintish))!
+  const { connection } = useConnection.getState() // TEST devnet
+  assert(connection, "must set connection to get token's online token info")
+  const mintAccount = await connection.getAccountInfo(toPub(mintish))
+  assert(mintAccount, "can't fetch mintAccount")
+  const is2022Token = isPubEqual(mintAccount.owner, TOKEN_2022_PROGRAM_ID)
+  cache.set(toPubString(mintish), is2022Token)
+  return is2022Token
+}

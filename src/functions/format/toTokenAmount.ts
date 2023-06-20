@@ -3,7 +3,12 @@ import { Fraction, Token, TokenAmount } from '@raydium-io/raydium-sdk'
 import BN from 'bn.js'
 
 import {
-  isQuantumSOL, isQuantumSOLVersionSOL, QuantumSOLAmount, QuantumSOLToken, toQuantumSolAmount, WSOLMint
+  isQuantumSOL,
+  isQuantumSOLVersionSOL,
+  QuantumSOLAmount,
+  QuantumSOLToken,
+  toQuantumSolAmount,
+  WSOLMint
 } from '@/application/token/quantumSOL'
 import { HydratedTokenJsonInfo } from '@/application/token/type'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
@@ -12,6 +17,7 @@ import { Numberish } from '@/types/constants'
 
 import { isToken } from '../judgers/dateType'
 import toFraction from '../numberish/toFraction'
+import { getTokenProgramId, getTokenProgramIdSync, isToken2022 } from '@/application/token/isToken2022'
 
 /**
  *
@@ -58,7 +64,10 @@ export function toTokenAmount(
     alreadyDecimaled?: boolean // may cause bug, havn't test it
   }
 ): TokenAmount | QuantumSOLAmount {
-  const parsedToken = isToken(token) ? token : new Token(token.mint, token.decimals, token.symbol, token.name)
+  const programId = getTokenProgramIdSync(token.mint)
+  const parsedToken = isToken(token)
+    ? token
+    : new Token(programId, token.mint, token.decimals, token.symbol, token.name)
 
   const numberDetails = parseNumberInfo(amount)
 

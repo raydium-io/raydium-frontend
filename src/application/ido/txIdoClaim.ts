@@ -1,13 +1,11 @@
-import { InnerTransaction, InstructionType, Spl, WSOL } from '@raydium-io/raydium-sdk'
-import { PublicKey, Signer, TransactionInstruction } from '@solana/web3.js'
-
 import txHandler, { HandleFnOptions, SingleTxOption } from '@/application/txTools/handleTx'
 import { padZero } from '@/functions/numberish/handleZero'
 import { div } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
-
+import { InstructionType, Spl, WSOL } from '@raydium-io/raydium-sdk'
+import { PublicKey, Signer, TransactionInstruction } from '@solana/web3.js'
+import { getTokenProgramId } from '../token/isToken2022'
 import { toInnerTransactionsFromInstructions } from '../txTools/toInnerTransactionsFromInstructions'
-
 import { Ido, Snapshot } from './sdk'
 import { HydratedIdoInfo } from './type'
 
@@ -23,8 +21,18 @@ export default async function txIdoClaim(
       const signer: Signer[] = []
       const instructionsTypeCollector: InstructionType[] = [] // methods like `Spl.makeCreateAssociatedTokenAccountInstruction` will add info to instructionsTypeCollector. so eventurally , it won't be an empty array
 
-      const baseTokenAccount = Spl.getAssociatedTokenAccount({ mint: idoInfo.base.mint, owner })
-      let quoteTokenAccount = Spl.getAssociatedTokenAccount({ mint: idoInfo.quote.mint, owner })
+      const baseProgramId = await getTokenProgramId(idoInfo.base.mint)
+      const quoteProgramId = await getTokenProgramId(idoInfo.quote.mint)
+      const baseTokenAccount = Spl.getAssociatedTokenAccount({
+        mint: idoInfo.base.mint,
+        owner,
+        programId: baseProgramId
+      })
+      let quoteTokenAccount = Spl.getAssociatedTokenAccount({
+        mint: idoInfo.quote.mint,
+        owner,
+        programId: quoteProgramId
+      })
 
       // TODO fix
       if (idoInfo.quote.mint.toBase58() === WSOL.mint) {
@@ -41,6 +49,7 @@ export default async function txIdoClaim(
 
         instructionsCollector.push(
           Spl.makeCloseAccountInstruction({
+            programId: quoteProgramId,
             tokenAccount: quoteTokenAccount,
             owner,
             payer: owner,
@@ -51,6 +60,7 @@ export default async function txIdoClaim(
         if (!tokenAccounts.find((tokenAmount) => tokenAmount.publicKey?.equals(quoteTokenAccount))) {
           instructionsCollector.push(
             Spl.makeCreateAssociatedTokenAccountInstruction({
+              programId: quoteProgramId,
               mint: idoInfo.quote.mint,
               associatedAccount: quoteTokenAccount,
               owner,
@@ -63,6 +73,7 @@ export default async function txIdoClaim(
       if (!tokenAccounts.find((tokenAmount) => tokenAmount.publicKey?.equals(baseTokenAccount))) {
         instructionsCollector.push(
           Spl.makeCreateAssociatedTokenAccountInstruction({
+            programId: baseProgramId,
             mint: idoInfo.base.mint,
             associatedAccount: baseTokenAccount,
             owner,

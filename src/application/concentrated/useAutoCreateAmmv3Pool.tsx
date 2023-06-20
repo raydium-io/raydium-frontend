@@ -15,6 +15,7 @@ import { jsonInfo2PoolKeys } from '../txTools/jsonInfo2PoolKeys'
 import useWallet from '../wallet/useWallet'
 import hydrateConcentratedInfo from './hydrateConcentratedInfo'
 import useConcentrated from './useConcentrated'
+import { getTokenProgramId } from '../token/isToken2022'
 
 export function useAutoCreateAmmv3Pool() {
   const { coin1, coin2, userSelectedAmmConfigFeeOption, userSettedCurrentPrice, ammPoolStartTime } = useConcentrated()
@@ -61,11 +62,13 @@ async function createNewConcentratedPool() {
     : toFraction(0)
 
   const startTime = toBN((ammPoolStartTime?.getTime() ?? 0) / 1000)
+  const mint1TokenProgramId = await getTokenProgramId(coin1.mint)
+  const mint2TokenProgramId = await getTokenProgramId(coin2.mint)
   const { innerTransactions, address } = await AmmV3.makeCreatePoolInstructionSimple({
     connection: connection,
     programId: programIds.CLMM,
-    mint1: { mint: coin1.mint, decimals: coin1.decimals },
-    mint2: { mint: coin2.mint, decimals: coin2.decimals },
+    mint1: { programId: mint1TokenProgramId, mint: coin1.mint, decimals: coin1.decimals },
+    mint2: { programId: mint2TokenProgramId, mint: coin2.mint, decimals: coin2.decimals },
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
     initialPrice: fractionToDecimal(currentPrice, 15),
     owner: owner ?? PublicKey.default,
@@ -74,8 +77,8 @@ async function createNewConcentratedPool() {
   })
   const mockPoolInfo = AmmV3.makeMockPoolInfo({
     ammConfig: jsonInfo2PoolKeys(userSelectedAmmConfigFeeOption.original) as unknown as AmmV3ConfigInfo,
-    mint1: { mint: coin1.mint, decimals: coin1.decimals },
-    mint2: { mint: coin2.mint, decimals: coin2.decimals },
+    mint1: { programId: mint1TokenProgramId, mint: coin1.mint, decimals: coin1.decimals },
+    mint2: { programId: mint2TokenProgramId, mint: coin2.mint, decimals: coin2.decimals },
     owner: owner ?? PublicKey.default,
     programId: programIds.CLMM,
     createPoolInstructionSimpleAddress: address,

@@ -39,6 +39,7 @@ import useToken, {
   SupportedTokenListSettingName
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
+import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -328,9 +329,12 @@ export function createSplToken(
   customTokenIcons?: Record<string, SrcAddress>
 ): SplToken {
   const { mint, symbol, name, decimals, ...rest } = info
-
   // TODO: recordPubString(token.mint)
-  const splToken = Object.assign(new Token(mint, decimals, symbol, name ?? symbol), { id: mint }, rest)
+  const splToken = Object.assign(
+    new Token(info.isToken2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID, mint, decimals, symbol, name ?? symbol),
+    { id: mint },
+    rest
+  )
   if (customTokenIcons?.[mint]) {
     splToken.icon = customTokenIcons[mint]
   }

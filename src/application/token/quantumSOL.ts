@@ -1,17 +1,22 @@
 import { PublicKey } from '@solana/web3.js'
-
 import BN from 'bn.js'
-import { Currency, CurrencyAmount, PublicKeyish, Token, TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
-
+import {
+  Currency,
+  CurrencyAmount,
+  PublicKeyish,
+  TOKEN_PROGRAM_ID,
+  Token,
+  TokenAmount,
+  ZERO
+} from '@raydium-io/raydium-sdk'
 import toPubString from '@/functions/format/toMintString'
 import { isToken, isTokenAmount } from '@/functions/judgers/dateType'
 import { omit } from '@/functions/objectMethods'
-
 import { HydratedTokenJsonInfo, SplToken } from './type'
 
 export const WSOLMint = new PublicKey('So11111111111111111111111111111111111111112')
 export const SOLDecimals = 9
-export const WSOL = new Token(WSOLMint, SOLDecimals, 'WSOL', 'wrapped solana')
+export const WSOL = new Token(TOKEN_PROGRAM_ID, WSOLMint, SOLDecimals, 'WSOL', 'wrapped solana')
 export const SOL = new Currency(SOLDecimals, 'SOL', 'solana')
 export const SOL_BASE_BALANCE = '0.05'
 
@@ -51,6 +56,7 @@ export const quantumSOLHydratedTokenJsonInfo: QuantumSOLJsonInfo = {
 
 export const QuantumSOL = Object.assign(
   new Token(
+    TOKEN_PROGRAM_ID,
     quantumSOLHydratedTokenJsonInfo.mint,
     quantumSOLHydratedTokenJsonInfo.decimals,
     quantumSOLHydratedTokenJsonInfo.symbol,
@@ -77,6 +83,7 @@ export const quantumSOLVersionSOLTokenJsonInfo: QuantumSOLJsonInfo = {
 
 export const QuantumSOLVersionSOL = Object.assign(
   new Token(
+    TOKEN_PROGRAM_ID,
     quantumSOLVersionSOLTokenJsonInfo.mint,
     quantumSOLVersionSOLTokenJsonInfo.decimals,
     quantumSOLVersionSOLTokenJsonInfo.symbol,
@@ -103,6 +110,7 @@ export const quantumSOLVersionWSOLTokenJsonInfo: QuantumSOLJsonInfo = {
 
 export const QuantumSOLVersionWSOL = Object.assign(
   new Token(
+    TOKEN_PROGRAM_ID,
     quantumSOLVersionWSOLTokenJsonInfo.mint,
     quantumSOLVersionWSOLTokenJsonInfo.decimals,
     quantumSOLVersionWSOLTokenJsonInfo.symbol,
