@@ -62,6 +62,7 @@ export async function getOnlineTokenInfo(
   mintish: PublicKeyish,
   options?: { cachedAccountInfo?: AccountInfo<Buffer> }
 ): Promise<TokenMintInfo> {
+  if (!mintish) return Promise.reject('mintish is empty')
   const { connection } = useConnection.getState() // TEST devnet
   assert(connection, "must set connection to get token's online token info")
   const mintAccount = options?.cachedAccountInfo ?? (await connection.getAccountInfo(toPub(mintish)))

@@ -14,6 +14,7 @@ import { createSplToken } from './useTokenListsLoader'
  * @returns
  */
 export async function getUserTokenEvenNotExist(mintish: PublicKeyish, symbol?: string): Promise<SplToken | undefined> {
+  if (!mintish) return undefined
   const tokens = useToken.getState().tokens
   const userAddedTokens = useToken.getState().userAddedTokens
   const tokensHasLoaded = Object.keys(tokens).length > 0

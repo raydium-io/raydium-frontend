@@ -848,6 +848,8 @@ function SwapCardPriceIndicator({ className }: { className?: string }) {
 }
 
 function SwapCardInfo({ className }: { className?: string }) {
+  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
+  const getToken = useToken((s) => s.getToken)
   const priceImpact = useSwap((s) => s.priceImpact)
   const coin1 = useSwap((s) => s.coin1)
   const coin2 = useSwap((s) => s.coin2)
@@ -862,8 +864,20 @@ function SwapCardInfo({ className }: { className?: string }) {
   const selectedCalcResult = useSwap((s) => s.selectedCalcResult)
   const selectedCalcResultPoolStartTimes = useSwap((s) => s.selectedCalcResultPoolStartTimes)
   const currentCalcResult = selectedCalcResult
-  const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
-  const getToken = useToken((s) => s.getToken)
+  const transferFeeUpCoin =
+    upCoin &&
+    toTokenAmount(
+      upCoin,
+      directionReversed ? currentCalcResult?.mintTransferFee.output : currentCalcResult?.mintTransferFee.input
+    )
+  const transferFeeDownCoin =
+    downCoin &&
+    toTokenAmount(
+      downCoin,
+      directionReversed ? currentCalcResult?.mintTransferFee.input : currentCalcResult?.mintTransferFee.output
+    )
+  const routeToken = getToken(currentCalcResult?.middleMintInfo?.mint)
+  const transferFeeRouteToken = routeToken && toTokenAmount(routeToken, currentCalcResult?.mintTransferFee.route)
 
   const isDangerousPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.05), [priceImpact])
   const isWarningPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.01), [priceImpact])
@@ -875,7 +889,7 @@ function SwapCardInfo({ className }: { className?: string }) {
       ) : currentCalcResult?.routeType === 'route' ? (
         <SwappingThrough
           startSymbol={upCoin?.symbol ?? ''}
-          middleSymbol={getToken(currentCalcResult?.middleMintInfo?.mint)?.symbol ?? ''}
+          middleSymbol={routeToken?.symbol ?? ''}
           endSymbol={downCoin?.symbol ?? ''}
           poolTypes={currentCalcResult.poolType}
         />
@@ -937,6 +951,24 @@ function SwapCardInfo({ className }: { className?: string }) {
         fieldValueTextColor={isDangerousPrice ? '#DA2EEF' : isWarningPrice ? '#D8CB39' : '#39D0D8'}
         tooltipContent="The difference between the market price and estimated price due to trade size"
       />
+      {gt(transferFeeUpCoin, 0) && (
+        <SwapCardItem
+          fieldName={`Transaction Fee (${upCoin?.symbol ?? '--'})`}
+          fieldValue={`${toString(transferFeeUpCoin)} ${upCoin?.symbol ?? '--'}`}
+        />
+      )}
+      {gt(transferFeeRouteToken, 0) && (
+        <SwapCardItem
+          fieldName={`Transaction Fee (${routeToken?.symbol ?? '--'})`}
+          fieldValue={`${toString(transferFeeRouteToken)} ${routeToken?.symbol ?? '--'}`}
+        />
+      )}
+      {gt(transferFeeDownCoin, 0) && (
+        <SwapCardItem
+          fieldName={`Transaction Fee (${downCoin?.symbol ?? '--'})`}
+          fieldValue={`${toString(transferFeeDownCoin)} ${downCoin?.symbol ?? '--'}`}
+        />
+      )}
 
       <Collapse openDirection="upwards" className="w-full">
         <Collapse.Body>
