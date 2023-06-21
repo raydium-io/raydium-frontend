@@ -38,7 +38,7 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
     assert(currentAmmPool, 'not seleted amm pool')
 
     const updatedRewardInfos = await asyncMap(Array.from(updateRewards), async (r) => ({
-      programId: await getTokenProgramId(r[0]),
+      programId: getTokenProgramId(r[0]),
       mint: toPub(r[0]),
       openTime: Math.floor(r[1].openTime.valueOf() / 1000),
       endTime: Math.floor(r[1].endTime.valueOf() / 1000),
@@ -46,7 +46,7 @@ export default function txSetRewards({ currentAmmPool, updateRewards, newRewards
     }))
 
     const newRewardInfos = await asyncMap(newRewards, async (r) => ({
-      programId: await getTokenProgramId(r.token.mint),
+      programId: getTokenProgramId(r.token.mint),
       mint: r.token.mint,
       openTime: Math.floor(r.openTime.valueOf() / 1000),
       endTime: Math.floor(r.endTime.valueOf() / 1000),

@@ -21,8 +21,8 @@ export default async function txIdoClaim(
       const signer: Signer[] = []
       const instructionsTypeCollector: InstructionType[] = [] // methods like `Spl.makeCreateAssociatedTokenAccountInstruction` will add info to instructionsTypeCollector. so eventurally , it won't be an empty array
 
-      const baseProgramId = await getTokenProgramId(idoInfo.base.mint)
-      const quoteProgramId = await getTokenProgramId(idoInfo.quote.mint)
+      const baseProgramId = getTokenProgramId(idoInfo.base.mint)
+      const quoteProgramId = getTokenProgramId(idoInfo.quote.mint)
       const baseTokenAccount = Spl.getAssociatedTokenAccount({
         mint: idoInfo.base.mint,
         owner,

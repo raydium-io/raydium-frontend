@@ -62,8 +62,8 @@ async function createNewConcentratedPool() {
     : toFraction(0)
 
   const startTime = toBN((ammPoolStartTime?.getTime() ?? 0) / 1000)
-  const mint1TokenProgramId = await getTokenProgramId(coin1.mint)
-  const mint2TokenProgramId = await getTokenProgramId(coin2.mint)
+  const mint1TokenProgramId = getTokenProgramId(coin1.mint)
+  const mint2TokenProgramId = getTokenProgramId(coin2.mint)
   const { innerTransactions, address } = await AmmV3.makeCreatePoolInstructionSimple({
     connection: connection,
     programId: programIds.CLMM,

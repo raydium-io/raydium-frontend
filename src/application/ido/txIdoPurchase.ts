@@ -3,10 +3,9 @@ import assert from '@/functions/assert'
 import { mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { Numberish } from '@/types/constants'
-import { InstructionType, Spl, TOKEN_PROGRAM_ID, WSOL } from '@raydium-io/raydium-sdk'
-import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
+import { InstructionType, Spl, WSOL } from '@raydium-io/raydium-sdk'
 import { PublicKey, Signer, TransactionInstruction } from '@solana/web3.js'
-import { getTokenProgramId, isToken2022 } from '../token/isToken2022'
+import { getTokenProgramId } from '../token/isToken2022'
 import { toInnerTransactionsFromInstructions } from '../txTools/toInnerTransactionsFromInstructions'
 import { Ido, Snapshot } from './sdk'
 import { HydratedIdoInfo } from './type'
@@ -31,8 +30,8 @@ export default async function txIdoPurchase({
       const signer: Signer[] = []
       const instructionsTypeCollector: InstructionType[] = [] // methods like `Spl.makeCreateAssociatedTokenAccountInstruction` will add info to instructionsTypeCollector. so eventurally , it won't be an empty array
 
-      const baseProgramId = await getTokenProgramId(idoInfo.base.mint)
-      const quoteProgramId = await getTokenProgramId(idoInfo.quote.mint)
+      const baseProgramId = getTokenProgramId(idoInfo.base.mint)
+      const quoteProgramId = getTokenProgramId(idoInfo.quote.mint)
 
       const baseTokenAccount = Spl.getAssociatedTokenAccount({
         mint: idoInfo.base.mint,
