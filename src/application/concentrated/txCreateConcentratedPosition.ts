@@ -44,8 +44,8 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
     coin2,
     coin1Amount,
     coin2Amount,
-    coin1SplippageAmount,
-    coin2SplippageAmount,
+    coin1SlippageAmount,
+    coin2SlippageAmount,
     liquidity,
     priceLowerTick,
     priceUpperTick
@@ -64,8 +64,6 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
   assert(coin1Amount, 'not set coin1Amount')
   assert(coin2, 'not set coin2')
   assert(coin2Amount, 'not set coin2Amount')
-  assert(coin1SplippageAmount, 'not set coin1SplippageAmount')
-  assert(coin2SplippageAmount, 'not set coin2SplippageAmount')
 
   assert(liquidity, 'not set liquidity')
   const isSol = isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
@@ -81,10 +79,8 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
     },
     tickLower: Math.min(priceLowerTick, priceUpperTick),
     tickUpper: Math.max(priceLowerTick, priceUpperTick),
-    // priceLower: fractionToDecimal(toFraction(priceLower), 20),
-    // priceUpper: fractionToDecimal(toFraction(priceUpper), 20),
-    amountSlippageA: toBN(coin1SplippageAmount, coin1.decimals),
-    amountSlippageB: toBN(coin2SplippageAmount, coin2.decimals),
+    amountSlippageA: toBN(coin1SlippageAmount ?? coin1Amount, coin1.decimals),
+    amountSlippageB: toBN(coin2SlippageAmount ?? coin2Amount, coin2.decimals),
     slippage: 0.015,
     computeBudgetConfig: await getComputeBudgetConfig(),
     checkCreateATAOwner: true

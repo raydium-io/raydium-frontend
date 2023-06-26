@@ -115,6 +115,7 @@ export default function useConcentratedAmountCalculator() {
 
       useConcentrated.setState({
         coin2Amount: coinAmount,
+        coin2SlippageAmount: coinAmount,
         coin2AmountFee: coinAmountFee,
         coin2ExpirationTime: coinExpirationTime
       })
@@ -133,6 +134,7 @@ export default function useConcentratedAmountCalculator() {
 
       useConcentrated.setState({
         coin1Amount: coinAmount,
+        coin1SlippageAmount: coinAmount,
         coin1AmountFee: coinAmountFee,
         coin1ExpirationTime: coinExpirationTime
       })

@@ -23,7 +23,7 @@ export default function txIncreaseConcentrated({
   targetUserPositionAccount?: UserPositionAccount
 } = {}) {
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
-    const { coin1, coin2, coin1Amount, coin2Amount, coin1SplippageAmount, coin2SplippageAmount, liquidity } =
+    const { coin1, coin2, coin1Amount, coin2Amount, coin1SlippageAmount, coin2SlippageAmount, liquidity } =
       useConcentrated.getState()
     const { tokenAccountRawInfos } = useWallet.getState()
     assert(currentAmmPool, 'not seleted amm pool')
@@ -31,8 +31,6 @@ export default function txIncreaseConcentrated({
     assert(coin1Amount, 'not set coin1Amount')
     assert(coin2, 'not set coin2')
     assert(coin2Amount, 'not set coin2Amount')
-    assert(coin1SplippageAmount, 'not set coin1SplippageAmount')
-    assert(coin2SplippageAmount, 'not set coin2SplippageAmount')
     assert(isMeaningfulNumber(liquidity), 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
     const { innerTransactions } = await AmmV3.makeIncreaseLiquidityInstructionSimple({
@@ -48,8 +46,8 @@ export default function txIncreaseConcentrated({
       ownerPosition: targetUserPositionAccount.sdkParsed,
       computeBudgetConfig: await getComputeBudgetConfig(),
       checkCreateATAOwner: true,
-      amountSlippageA: toBN(coin1SplippageAmount, coin1.decimals),
-      amountSlippageB: toBN(coin2SplippageAmount, coin2.decimals)
+      amountSlippageA: toBN(coin1SlippageAmount ?? coin1Amount, coin1.decimals),
+      amountSlippageB: toBN(coin2SlippageAmount ?? coin2Amount, coin2.decimals)
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

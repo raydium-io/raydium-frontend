@@ -75,14 +75,14 @@ export type ConcentratedStore = {
   coin1AmountFee?: Numberish
   coin1ExpirationTime?: number
   coin1AmountMin?: Numberish // decrease liquidity
-  coin1SplippageAmount?: Numberish
+  coin1SlippageAmount?: Numberish // if coinSlippageAmount is empty (like user input is coin1Amount, so can only calculate coin2SlippageAmount), then use coinAmount as coinSlippageAmount
 
   coin2?: SplToken
   coin2Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
   coin2AmountFee?: Numberish
   coin2ExpirationTime?: number
   coin2AmountMin?: Numberish // decrease liquidity
-  coin2SplippageAmount?: Numberish
+  coin2SlippageAmount?: Numberish // if coinSlippageAmount is empty (like user input is coin1Amount, so can only calculate coin2SlippageAmount), then use coinAmount as coinSlippageAmount
 
   /** a create new clmm pool option */
   ammPoolStartTime?: Date

@@ -31,7 +31,14 @@ import useInit from '@/hooks/useInit'
 export function AddConcentratedLiquidityDialog() {
   useConcentratedAmountCalculator()
   useInit(() => {
-    useConcentrated.setState({ coin1Amount: undefined, coin2Amount: undefined })
+    useConcentrated.setState({
+      coin1Amount: undefined,
+      coin2Amount: undefined,
+      coin1AmountFee: undefined,
+      coin2AmountFee: undefined,
+      coin1ExpirationTime: undefined,
+      coin2ExpirationTime: undefined
+    })
   })
   const getBalance = useWallet((s) => s.getBalance)
   const open = useConcentrated((s) => s.isAddDialogOpen)
@@ -277,7 +284,13 @@ export function AddConcentratedLiquidityDialog() {
                     useConcentrated.setState({
                       isAddDialogOpen: false,
                       coin1Amount: undefined,
-                      coin2Amount: undefined
+                      coin2Amount: undefined,
+                      coin1AmountFee: undefined,
+                      coin2AmountFee: undefined,
+                      coin1SlippageAmount: undefined,
+                      coin2SlippageAmount: undefined,
+                      coin1ExpirationTime: undefined,
+                      coin2ExpirationTime: undefined
                     })
                   }
                 })

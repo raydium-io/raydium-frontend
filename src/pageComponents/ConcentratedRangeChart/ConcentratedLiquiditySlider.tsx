@@ -62,12 +62,12 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
       })
 
       useConcentrated.setState({
-        coin1Amount: toString(toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.amount), {
-          decimalLength: `auto ${currentAmmPool.base!.decimals}`
-        }),
-        coin2Amount: toString(toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.amount), {
-          decimalLength: `auto ${currentAmmPool.quote!.decimals}`
-        }),
+        coin1Amount: toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.amount),
+        coin2Amount: toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.amount),
+        coin1AmountFee: toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.fee),
+        coin2AmountFee: toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.fee),
+        coin1ExpirationTime: amountFromLiquidity.amountSlippageA.expirationTime,
+        coin2ExpirationTime: amountFromLiquidity.amountSlippageB.expirationTime,
         isInput: false,
         liquidity: bnValue
       })
