@@ -30,9 +30,9 @@ import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useInit from '@/hooks/useInit'
 import { Numberish } from '@/types/constants'
 
+import { getEpochInfo } from '@/application/clmmMigration/getEpochInfo'
+import { getMultiMintInfos } from '@/application/clmmMigration/getMultiMintInfos'
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
-import { fetchMultiMintInfos, getEpochInfo } from '@/application/clmmMigration/fetchMultiMintInfos'
-import useConnection from '@/application/connection/useConnection'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   useInit(() => {
@@ -110,7 +110,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const calculateMaxLiquidity = useCallback(async () => {
     if (!position || !currentAmmPool || !coinBase || !coinQuote) return
     const [token2022Infos, epochInfo] = await Promise.all([
-      fetchMultiMintInfos({ mints: [currentAmmPool.state.mintA.mint, currentAmmPool.state.mintB.mint] }),
+      getMultiMintInfos({ mints: [currentAmmPool.state.mintA.mint, currentAmmPool.state.mintB.mint] }),
       getEpochInfo()
     ])
     const amountFromLiquidity = AmmV3.getAmountsFromLiquidity({

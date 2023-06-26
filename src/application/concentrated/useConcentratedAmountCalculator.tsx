@@ -10,8 +10,8 @@ import { AmmV3, GetTransferAmountFee, getTransferAmountFee } from '@raydium-io/r
 import { EpochInfo } from '@solana/web3.js'
 import BN from 'bn.js'
 import { useCallback, useEffect, useMemo } from 'react'
-import { fetchMultiMintInfos, getEpochInfo } from '../clmmMigration/fetchMultiMintInfos'
-import useConnection from '../connection/useConnection'
+import { getEpochInfo } from '../clmmMigration/getEpochInfo'
+import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import useConcentrated from './useConcentrated'
 
 /**
@@ -66,7 +66,7 @@ export default function useConcentratedAmountCalculator() {
       : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals))
 
     const [token2022Infos, epochInfo] = await Promise.all([
-      fetchMultiMintInfos({ mints: [coin1.mint, coin2.mint] }),
+      getMultiMintInfos({ mints: [coin1.mint, coin2.mint] }),
       getEpochInfo()
     ])
 
@@ -197,7 +197,7 @@ async function getRemoveLiquidityAmountOutFromAmountIn({
   const inputTokenMint = 'todo'
   const outputTokenMint = 'todo 2'
 
-  const mintInfos = await fetchMultiMintInfos({
+  const mintInfos = await getMultiMintInfos({
     mints: [inputTokenMint, outputTokenMint]
   })
   const inputMintInfo = mintInfos[inputTokenMint]

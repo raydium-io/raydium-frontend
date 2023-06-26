@@ -14,7 +14,8 @@ import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
 import useConnection from '@/application/connection/useConnection'
-import { fetchMultiMintInfos, getEpochInfo } from '@/application/clmmMigration/fetchMultiMintInfos'
+import { getMultiMintInfos } from '@/application/clmmMigration/getMultiMintInfos'
+import { getEpochInfo } from '@/application/clmmMigration/getEpochInfo'
 
 export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?: boolean }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
@@ -44,7 +45,7 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
       if (isArray(value) || !currentAmmPool || !position) return // ignore array (for current version)
 
       const [token2022Infos, epochInfo] = await Promise.all([
-        fetchMultiMintInfos({ mints: [currentAmmPool.state.mintA.mint, currentAmmPool.state.mintB.mint] }),
+        getMultiMintInfos({ mints: [currentAmmPool.state.mintA.mint, currentAmmPool.state.mintB.mint] }),
         getEpochInfo()
       ])
       const bnValue = toBN(mul(value, tick))

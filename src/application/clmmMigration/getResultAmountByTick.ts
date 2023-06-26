@@ -1,7 +1,7 @@
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { AmmV3, AmmV3PoolInfo, TokenAmount } from '@raydium-io/raydium-sdk'
-import { Connection, EpochInfo } from '@solana/web3.js'
-import { fetchMultiMintInfos, getEpochInfo } from './fetchMultiMintInfos'
+import { getMultiMintInfos } from './getMultiMintInfos'
+import { getEpochInfo } from './getEpochInfo'
 
 export async function getResultAmountByTick({
   info,
@@ -19,7 +19,7 @@ export async function getResultAmountByTick({
   slippage: number
 }) {
   const [token2022Infos, epochInfo] = await Promise.all([
-    fetchMultiMintInfos({ mints: [info.mintA.mint, info.mintB.mint] }),
+    getMultiMintInfos({ mints: [info.mintA.mint, info.mintB.mint] }),
     getEpochInfo()
   ])
   const { amountA, amountB, liquidity, amountSlippageA, amountSlippageB } = AmmV3.getLiquidityFromAmounts({
