@@ -202,7 +202,7 @@ export function useSwapAmountCalculator() {
           priceImpact,
           executionPrice,
           currentPrice,
-          minReceived: minAmountOut,
+          minReceived: minAmountOut?.amount,
           maxSpent: undefined,
           swapable,
           routeType,

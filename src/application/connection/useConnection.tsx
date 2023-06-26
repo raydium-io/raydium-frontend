@@ -1,4 +1,4 @@
-import { Connection } from '@solana/web3.js'
+import { Connection, EpochInfo } from '@solana/web3.js'
 
 import { create } from 'zustand'
 

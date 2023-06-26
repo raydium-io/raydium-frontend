@@ -13,9 +13,11 @@ import {
   PoolType,
   PublicKeyish,
   ReturnTypeFetchMultipleInfo,
+  ReturnTypeFetchMultipleMintInfos,
   ReturnTypeFetchMultiplePoolTickArrays,
   ReturnTypeGetAllRouteComputeAmountOut,
-  TradeV2
+  TradeV2,
+  fetchMultipleMintInfos
 } from '@raydium-io/raydium-sdk'
 import { Connection, PublicKey } from '@solana/web3.js'
 
@@ -52,7 +54,7 @@ type TickCache = Promise<ReturnTypeFetchMultiplePoolTickArrays>
 const sdkCaches: Map<
   PairKeyString,
   {
-    mintInfos: ReturnType<(typeof TradeV2)['fetchMultipleMintInfos']>
+    mintInfos: Promise<ReturnTypeFetchMultipleMintInfos>
     routes: ReturnType<(typeof TradeV2)['getAllRoute']>
     tickCache: Promise<ReturnTypeFetchMultiplePoolTickArrays>
     poolInfosCache: ReturnType<(typeof TradeV2)['fetchMultipleInfo']>
@@ -157,9 +159,9 @@ function getSDKCacheInfos({
       apiPoolList: apiPoolList,
       ammV3List: Object.values(sdkParsedAmmV3PoolInfo).map((i) => i.state)
     })
-    const mintInfos = TradeV2.fetchMultipleMintInfos({
+    const mintInfos = fetchMultipleMintInfos({
       connection,
-      mints: routes.needCheckToken
+      mints: routes.needCheckToken.map((i) => toPub(i))
     }).catch((err) => {
       sdkCaches.delete(key)
       throw err
@@ -260,7 +262,7 @@ export async function getAllSwapableRouteInfos({
     poolInfosCache,
     tickCache,
     mintInfos,
-    connection.getEpochInfo().then((info) => info.epoch)
+    connection.getEpochInfo()
   ])
   if (simulateResult.status === 'rejected') return
   const awaitedSimulateCache = simulateResult.value
@@ -269,7 +271,7 @@ export async function getAllSwapableRouteInfos({
   if (mintInfosResult.status === 'rejected') return
   const awaitedMintInfos = mintInfosResult.value
   if (nowEpochResult.status === 'rejected') return
-  const nowEpoch = nowEpochResult.value
+  const epochInfo = nowEpochResult.value
 
   const routeList = TradeV2.getAllRouteComputeAmountOut({
     directPath: routes.directPath,
@@ -280,7 +282,7 @@ export async function getAllSwapableRouteInfos({
     outputToken: deUIToken(output),
     slippage: toPercent(slippageTolerance),
     chainTime,
-    nowEpoch,
+    epochInfo,
     mintInfos: awaitedMintInfos
   })
 

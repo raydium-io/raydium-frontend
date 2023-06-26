@@ -1,7 +1,16 @@
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { AmmV3, AmmV3PoolInfo, TokenAmount } from '@raydium-io/raydium-sdk'
+import { Connection, EpochInfo } from '@solana/web3.js'
+import { fetchMultiMintInfos, getEpochInfo } from './fetchMultiMintInfos'
 
-export function getResultAmountByTick(params: {
+export async function getResultAmountByTick({
+  info,
+  baseAmount,
+  quoteAmount,
+  tickLower,
+  tickUpper,
+  slippage
+}: {
   info: AmmV3PoolInfo
   baseAmount: TokenAmount
   quoteAmount: TokenAmount
@@ -9,18 +18,24 @@ export function getResultAmountByTick(params: {
   tickUpper: number
   slippage: number
 }) {
+  const [token2022Infos, epochInfo] = await Promise.all([
+    fetchMultiMintInfos({ mints: [info.mintA.mint, info.mintB.mint] }),
+    getEpochInfo()
+  ])
   const { amountA, amountB, liquidity, amountSlippageA, amountSlippageB } = AmmV3.getLiquidityFromAmounts({
     add: true, // backend force
-    poolInfo: params.info,
-    amountA: params.baseAmount.raw,
-    amountB: params.quoteAmount.raw,
-    tickLower: Math.min(params.tickLower, params.tickUpper),
-    tickUpper: Math.max(params.tickLower, params.tickUpper),
-    slippage: params.slippage
+    poolInfo: info,
+    amountA: baseAmount.raw,
+    amountB: quoteAmount.raw,
+    tickLower: Math.min(tickLower, tickUpper),
+    tickUpper: Math.max(tickLower, tickUpper),
+    slippage: slippage,
+    token2022Infos,
+    epochInfo
   })
   return {
-    resultBaseAmount: toTokenAmount(params.baseAmount.token, amountA),
-    resultQuoteAmount: toTokenAmount(params.quoteAmount.token, amountB),
+    resultBaseAmount: toTokenAmount(baseAmount.token, amountA.amount),
+    resultQuoteAmount: toTokenAmount(quoteAmount.token, amountB.amount),
     liquidity,
     amountSlippageBase: amountSlippageA,
     amountSlippageQuote: amountSlippageB

@@ -31,10 +31,17 @@ import useInit from '@/hooks/useInit'
 import { Numberish } from '@/types/constants'
 
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
+import { fetchMultiMintInfos, getEpochInfo } from '@/application/clmmMigration/fetchMultiMintInfos'
+import useConnection from '@/application/connection/useConnection'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   useInit(() => {
-    useConcentrated.setState({ coin1Amount: undefined, coin2Amount: undefined })
+    useConcentrated.setState({
+      coin1Amount: undefined,
+      coin2Amount: undefined,
+      coin1AmountFee: undefined,
+      coin2AmountFee: undefined
+    })
   })
   // cache for UI
   const open = useConcentrated((s) => s.isRemoveDialogOpen)
@@ -62,12 +69,11 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const { pendingTotalVolume } = useConcentratedPendingYield(targetUserPositionAccount)
   const isMobile = useAppSettings((s) => s.isMobile)
   const [maxInfo, setMaxInfo] = useState<{
-    coin1Amount: string | undefined
-    coin2Amount: string | undefined
-  }>({
-    coin1Amount: undefined,
-    coin2Amount: undefined
-  })
+    coin1Amount?: Numberish
+    coin2Amount?: Numberish
+    coin1AmountFee?: Numberish
+    coin2AmountFee?: Numberish
+  }>({})
 
   useEffect(() => {
     if (!currentAmmPool || !targetUserPositionAccount) return
@@ -101,25 +107,33 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
     return undefined
   }, [currentAmmPool, targetUserPositionAccount])
 
-  const calculateMaxLiquidity = useCallback(() => {
+  const calculateMaxLiquidity = useCallback(async () => {
     if (!position || !currentAmmPool || !coinBase || !coinQuote) return
+    const [token2022Infos, epochInfo] = await Promise.all([
+      fetchMultiMintInfos({ mints: [currentAmmPool.state.mintA.mint, currentAmmPool.state.mintB.mint] }),
+      getEpochInfo()
+    ])
     const amountFromLiquidity = AmmV3.getAmountsFromLiquidity({
       poolInfo: currentAmmPool.state,
-      ownerPosition: position,
+      // ownerPosition: position,
       liquidity: position.liquidity,
       slippage: 0, // always 0, for remove liquidity only
-      add: false
+      add: false,
+      tickLower: position.tickLower,
+      tickUpper: position.tickUpper,
+      token2022Infos,
+      epochInfo
     })
 
-    const coin1Amount = toString(toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA), {
-      decimalLength: `auto ${currentAmmPool.base!.decimals}`
-    })
-    const coin2Amount = toString(toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB), {
-      decimalLength: `auto ${currentAmmPool.quote!.decimals}`
-    })
+    const coin1Amount = toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.amount)
+    const coin2Amount = toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.amount)
+    const coin1AmountFee = toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.fee)
+    const coin2AmountFee = toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.fee)
     setMaxInfo({
       coin1Amount: coin1Amount,
-      coin2Amount: coin2Amount
+      coin2Amount: coin2Amount,
+      coin1AmountFee: coin1AmountFee,
+      coin2AmountFee: coin2AmountFee
     })
   }, [currentAmmPool, position, coinBase, coinQuote])
 
@@ -132,6 +146,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
     useConcentrated.setState({
       coin1Amount: maxInfo.coin1Amount,
       coin2Amount: maxInfo.coin2Amount,
+      coin1AmountFee: maxInfo.coin1AmountFee,
+      coin2AmountFee: maxInfo.coin2AmountFee,
       isInput: true,
       liquidity: position.liquidity
     })
@@ -145,7 +161,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
         useConcentrated.setState({
           isRemoveDialogOpen: false,
           coin1Amount: undefined,
-          coin2Amount: undefined
+          coin2Amount: undefined,
+          coin1AmountFee: undefined,
+          coin2AmountFee: undefined
         })
       }}
     >
@@ -300,7 +318,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                       isRemoveDialogOpen: false,
                       isMyPositionDialogOpen: false,
                       coin1Amount: undefined,
-                      coin2Amount: undefined
+                      coin2Amount: undefined,
+                      coin1AmountFee: undefined,
+                      coin2AmountFee: undefined
                     })
                   }
                 })

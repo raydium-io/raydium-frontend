@@ -1,17 +1,15 @@
 import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
 
 import assert from '@/functions/assert'
-import { toString } from '@/functions/numberish/toString'
 
-import useAppSettings from '../common/useAppSettings'
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
-import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 
 export default function txHarvestConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -22,12 +20,13 @@ export default function txHarvestConcentrated({
 } = {}) {
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
     const { tokenAccountRawInfos } = useWallet.getState()
-    const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
     const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
       connection: connection,
       liquidity: ZERO,
+      amountMinA: ZERO,
+      amountMinB: ZERO,
       poolInfo: currentAmmPool.state,
       ownerInfo: {
         feePayer: owner,
@@ -36,7 +35,7 @@ export default function txHarvestConcentrated({
         useSOLBalance: true,
         closePosition: false
       },
-      slippage: Number(toString(slippageTolerance)),
+      // slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed,
       computeBudgetConfig: await getComputeBudgetConfig(),
       checkCreateATAOwner: true

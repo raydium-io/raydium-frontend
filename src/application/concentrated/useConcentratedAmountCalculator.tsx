@@ -1,8 +1,3 @@
-import { useCallback, useEffect, useMemo } from 'react'
-
-import BN from 'bn.js'
-import { AmmV3, ReturnTypeGetLiquidityAmountOutFromAmountIn } from '@raydium-io/raydium-sdk'
-
 import useAppSettings from '@/application/common/useAppSettings'
 import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
@@ -11,9 +6,12 @@ import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
-import toFraction from '@/functions/numberish/toFraction'
-import { toString } from '@/functions/numberish/toString'
-
+import { AmmV3, GetTransferAmountFee, getTransferAmountFee } from '@raydium-io/raydium-sdk'
+import { EpochInfo } from '@solana/web3.js'
+import BN from 'bn.js'
+import { useCallback, useEffect, useMemo } from 'react'
+import { fetchMultiMintInfos, getEpochInfo } from '../clmmMigration/fetchMultiMintInfos'
+import useConnection from '../connection/useConnection'
 import useConcentrated from './useConcentrated'
 
 /**
@@ -48,7 +46,7 @@ export default function useConcentratedAmountCalculator() {
     return undefined
   }, [currentAmmPool, targetUserPositionAccount])
 
-  const calcConcentratedPairsAmount = useCallback(() => {
+  const calcConcentratedPairsAmount = useCallback(async () => {
     assert(currentAmmPool, 'not pool info')
     assert(coin1, 'not set coin1')
     assert(priceUpperTick !== undefined, 'not set priceUpperTick')
@@ -67,20 +65,29 @@ export default function useConcentratedAmountCalculator() {
       ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
       : toBN(mul(coin2Amount ?? 0, 10 ** coin2.decimals))
 
+    const [token2022Infos, epochInfo] = await Promise.all([
+      fetchMultiMintInfos({ mints: [coin1.mint, coin2.mint] }),
+      getEpochInfo()
+    ])
+
     const { liquidity, amountSlippageA, amountSlippageB } =
       isRemoveDialogOpen &&
+      currentAmmPool &&
       position &&
       targetUserPositionAccount &&
       targetUserPositionAccount.amountA &&
       targetUserPositionAccount.amountB &&
       isMeaningfulNumber(position.liquidity)
-        ? getRemoveLiquidityAmountOutFromAmountIn(
+        ? await getRemoveLiquidityAmountOutFromAmountIn({
             inputAmountBN,
-            position?.liquidity,
-            toBN(position.amountA),
-            toBN(position.amountB),
-            isFocus1
-          )
+            maxLiquidity: position.liquidity,
+            mintA: toPubString(currentAmmPool.base?.mint),
+            mintB: toPubString(currentAmmPool.quote?.mint),
+            amountA: toBN(position.amountA),
+            amountB: toBN(position.amountB),
+            isFocus1,
+            epochInfo
+          })
         : AmmV3.getLiquidityAmountOutFromAmountIn({
             poolInfo: currentAmmPool.state,
             slippage: 0,
@@ -88,20 +95,46 @@ export default function useConcentratedAmountCalculator() {
             tickUpper: Math.max(priceUpperTick, priceLowerTick),
             tickLower: Math.min(priceLowerTick, priceUpperTick),
             amount: inputAmountBN,
-            add: !isRemoveDialogOpen // SDK flag for math round direction
+            add: !isRemoveDialogOpen, // SDK flag for math round direction
+            epochInfo,
+            token2022Infos
           })
 
     if (isFocus1) {
+      const coinAmount = hasInput
+        ? toTokenAmount(coin2, isCoin1Base ? amountSlippageB.amount : amountSlippageA.amount)
+        : undefined
+      const coinAmountFee = hasInput
+        ? toTokenAmount(coin2, isCoin1Base ? amountSlippageB.fee : amountSlippageA.fee)
+        : undefined
+      const coinExpirationTime = hasInput
+        ? isCoin1Base
+          ? amountSlippageB.expirationTime
+          : amountSlippageA.expirationTime
+        : undefined
+
       useConcentrated.setState({
-        coin2Amount: hasInput
-          ? toTokenAmount(coin2, isCoin1Base ? amountSlippageB : amountSlippageA).toFixed()
-          : undefined
+        coin2Amount: coinAmount,
+        coin2AmountFee: coinAmountFee,
+        coin2ExpirationTime: coinExpirationTime
       })
     } else {
+      const coinAmount = hasInput
+        ? toTokenAmount(coin1, isCoin1Base ? amountSlippageA.amount : amountSlippageB.amount)
+        : undefined
+      const coinAmountFee = hasInput
+        ? toTokenAmount(coin1, isCoin1Base ? amountSlippageA.fee : amountSlippageB.fee)
+        : undefined
+      const coinExpirationTime = hasInput
+        ? isCoin1Base
+          ? amountSlippageA.expirationTime
+          : amountSlippageB.expirationTime
+        : undefined
+
       useConcentrated.setState({
-        coin1Amount: hasInput
-          ? toTokenAmount(coin1, isCoin1Base ? amountSlippageA : amountSlippageB).toFixed()
-          : undefined
+        coin1Amount: coinAmount,
+        coin1AmountFee: coinAmountFee,
+        coin1ExpirationTime: coinExpirationTime
       })
     }
 
@@ -118,8 +151,7 @@ export default function useConcentratedAmountCalculator() {
     isRemoveDialogOpen,
     isInput,
     targetUserPositionAccount,
-    position,
-    slippageTolerance
+    position
   ])
 
   useEffect(() => {
@@ -133,22 +165,83 @@ export default function useConcentratedAmountCalculator() {
   }, [calcConcentratedPairsAmount])
 }
 
-function getRemoveLiquidityAmountOutFromAmountIn(
-  inputAmountBN: BN,
-  maxLiquidity: BN,
-  amountA: BN,
-  amountB: BN,
+async function getRemoveLiquidityAmountOutFromAmountIn({
+  inputAmountBN,
+  maxLiquidity,
+  mintA,
+  mintB,
+  amountA,
+  amountB,
+  epochInfo,
+  isFocus1
+}: {
+  inputAmountBN: BN
+  maxLiquidity: BN
+  mintA: string
+  mintB: string
+  amountA: BN
+  amountB: BN
+  epochInfo: EpochInfo
   isFocus1: boolean
-): ReturnTypeGetLiquidityAmountOutFromAmountIn {
+}): Promise<{
+  liquidity: BN
+  amountSlippageA: GetTransferAmountFee
+  amountSlippageB: GetTransferAmountFee
+  amountA: GetTransferAmountFee
+  amountB: GetTransferAmountFee
+}> {
   const maxDenominator = isFocus1 ? amountA : amountB
-  const newRatio = div(inputAmountBN, maxDenominator)
-  const outputAmount = toBN(isFocus1 ? mul(amountB, newRatio) : mul(amountA, newRatio))
+  const inputRatio = div(inputAmountBN, maxDenominator)
+  const outputAmount = toBN(isFocus1 ? mul(amountB, inputRatio) : mul(amountA, inputRatio))
 
+  const inputTokenMint = 'todo'
+  const outputTokenMint = 'todo 2'
+
+  const mintInfos = await fetchMultiMintInfos({
+    mints: [inputTokenMint, outputTokenMint]
+  })
+  const inputMintInfo = mintInfos[inputTokenMint]
+  const outputMintInfo = mintInfos[outputTokenMint]
   return {
-    liquidity: toBN(mul(maxLiquidity, newRatio)),
-    amountSlippageA: isFocus1 ? inputAmountBN : outputAmount,
-    amountSlippageB: isFocus1 ? outputAmount : inputAmountBN,
-    amountA: isFocus1 ? inputAmountBN : outputAmount,
-    amountB: isFocus1 ? outputAmount : inputAmountBN
+    liquidity: toBN(mul(maxLiquidity, inputRatio)),
+    amountA: getTransferAmountFee(
+      isFocus1 ? inputAmountBN : outputAmount,
+      (isFocus1 ? inputMintInfo : outputMintInfo).feeConfig,
+      epochInfo,
+      false
+    ),
+    amountB: getTransferAmountFee(
+      isFocus1 ? outputAmount : inputAmountBN,
+      (isFocus1 ? outputMintInfo : inputMintInfo).feeConfig,
+      epochInfo,
+      false
+    ),
+    amountSlippageA: getTransferAmountFee(
+      isFocus1 ? inputAmountBN : outputAmount,
+      (isFocus1 ? inputMintInfo : outputMintInfo).feeConfig,
+      epochInfo,
+      true
+    ),
+    amountSlippageB: getTransferAmountFee(
+      isFocus1 ? outputAmount : inputAmountBN,
+      (isFocus1 ? outputMintInfo : inputMintInfo).feeConfig,
+      epochInfo,
+      true
+    )
   }
 }
+
+// return {
+//   liquidity: toBN(mul(maxLiquidity, inputRatio)),
+
+//   // amountSlippageA: isFocus1 ? inputAmountBN : outputAmount,
+//   // amountSlippageB: isFocus1 ? outputAmount : inputAmountBN,
+//   // amountA: isFocus1 ? inputAmountBN : outputAmount,
+//   // amountB: isFocus1 ? outputAmount : inputAmountBN,
+//   amountA: {
+//     amount: isFocus1 ? inputAmountBN : outputAmount,
+//     fee: toBN(0),
+//     expirationTime
+//   }
+// }
+// }

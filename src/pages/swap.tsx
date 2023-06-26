@@ -864,20 +864,18 @@ function SwapCardInfo({ className }: { className?: string }) {
   const selectedCalcResult = useSwap((s) => s.selectedCalcResult)
   const selectedCalcResultPoolStartTimes = useSwap((s) => s.selectedCalcResultPoolStartTimes)
   const currentCalcResult = selectedCalcResult
+
   const transferFeeUpCoin =
     upCoin &&
-    toTokenAmount(
-      upCoin,
-      directionReversed ? currentCalcResult?.mintTransferFee.output : currentCalcResult?.mintTransferFee.input
-    )
+    toTokenAmount(upCoin, directionReversed ? currentCalcResult?.amountOut.fee : currentCalcResult?.amountIn.fee)
   const transferFeeDownCoin =
     downCoin &&
-    toTokenAmount(
-      downCoin,
-      directionReversed ? currentCalcResult?.mintTransferFee.input : currentCalcResult?.mintTransferFee.output
-    )
-  const routeToken = getToken(currentCalcResult?.middleMintInfo?.mint)
-  const transferFeeRouteToken = routeToken && toTokenAmount(routeToken, currentCalcResult?.mintTransferFee.route)
+    toTokenAmount(downCoin, directionReversed ? currentCalcResult?.amountIn.fee : currentCalcResult?.amountOut.fee)
+  const routeToken = getToken(
+    currentCalcResult?.routeType === 'route' ? currentCalcResult?.minMiddleAmountFee?.token.mint : undefined
+  )
+  const transferFeeRouteToken =
+    routeToken && currentCalcResult?.routeType === 'route' ? currentCalcResult?.minMiddleAmountFee : undefined
 
   const isDangerousPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.05), [priceImpact])
   const isWarningPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.01), [priceImpact])

@@ -11,6 +11,7 @@ import toFraction from './toFraction'
  */
 export default function toBN(n: undefined): undefined
 export default function toBN(n: Numberish, decimal?: BigNumberish): BN
+export default function toBN(n: Numberish | undefined, decimal?: BigNumberish): BN | undefined
 export default function toBN(n: Numberish | undefined, decimal: BigNumberish = 0): BN | undefined {
   if (n == null) return undefined
   if (n instanceof BN) return n

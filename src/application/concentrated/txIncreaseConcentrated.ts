@@ -13,6 +13,7 @@ import useWallet from '../wallet/useWallet'
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
+import toBN from '@/functions/numberish/toBN'
 
 export default function txIncreaseConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -21,15 +22,17 @@ export default function txIncreaseConcentrated({
   currentAmmPool?: HydratedConcentratedInfo
   targetUserPositionAccount?: UserPositionAccount
 } = {}) {
-  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
-    const { coin1, coin2, coin1Amount, coin2Amount, liquidity } = useConcentrated.getState()
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
+    const { coin1, coin2, coin1Amount, coin2Amount, coin1SplippageAmount, coin2SplippageAmount, liquidity } =
+      useConcentrated.getState()
     const { tokenAccountRawInfos } = useWallet.getState()
-    const { slippageTolerance } = useAppSettings.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(coin1, 'not set coin1')
     assert(coin1Amount, 'not set coin1Amount')
     assert(coin2, 'not set coin2')
     assert(coin2Amount, 'not set coin2Amount')
+    assert(coin1SplippageAmount, 'not set coin1SplippageAmount')
+    assert(coin2SplippageAmount, 'not set coin2SplippageAmount')
     assert(isMeaningfulNumber(liquidity), 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
     const { innerTransactions } = await AmmV3.makeIncreaseLiquidityInstructionSimple({
@@ -42,10 +45,11 @@ export default function txIncreaseConcentrated({
         tokenAccounts: tokenAccountRawInfos,
         useSOLBalance: isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
       },
-      slippage: Number(toString(slippageTolerance)),
       ownerPosition: targetUserPositionAccount.sdkParsed,
       computeBudgetConfig: await getComputeBudgetConfig(),
-      checkCreateATAOwner: true
+      checkCreateATAOwner: true,
+      amountSlippageA: toBN(coin1SplippageAmount, coin1.decimals),
+      amountSlippageB: toBN(coin2SplippageAmount, coin2.decimals)
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

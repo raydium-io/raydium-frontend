@@ -72,11 +72,17 @@ export type ConcentratedStore = {
 
   coin1?: SplToken
   coin1Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
-  coin1AmountMin?: Numberish
+  coin1AmountFee?: Numberish
+  coin1ExpirationTime?: number
+  coin1AmountMin?: Numberish // decrease liquidity
+  coin1SplippageAmount?: Numberish
 
   coin2?: SplToken
   coin2Amount?: Numberish // for coin may be not selected yet, so it can't be TokenAmount
-  coin2AmountMin?: Numberish
+  coin2AmountFee?: Numberish
+  coin2ExpirationTime?: number
+  coin2AmountMin?: Numberish // decrease liquidity
+  coin2SplippageAmount?: Numberish
 
   /** a create new clmm pool option */
   ammPoolStartTime?: Date

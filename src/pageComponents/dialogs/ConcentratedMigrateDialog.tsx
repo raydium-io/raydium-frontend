@@ -44,6 +44,7 @@ import { Numberish } from '@/types/constants'
 import { ConcentratedModifyTooltipIcon } from '../Concentrated/ConcentratedModifyTooltipIcon'
 import { useConcentratedTickAprCalc } from '../Concentrated/useConcentratedAprCalc'
 import { twMerge } from 'tailwind-merge'
+import useConnection from '@/application/connection/useConnection'
 
 export default function ConcentratedMigrateDialog({
   info,
@@ -187,6 +188,8 @@ function DetailPanel({
   clmmInfo?: HydratedConcentratedInfo
   onMigrateSuccess?: () => void
 }) {
+  const connection = useConnection((s) => s.connection)
+
   const pureRawBalances = useWallet((s) => s.pureRawBalances)
   const slippage = useAppSettings((s) => s.slippageTolerance)
   const slippageNumber = Number(toString(slippage))
@@ -380,8 +383,13 @@ function DetailPanel({
     }
 
     // calc result amount
-    if (stakedBaseAmount && stakedQuoteAmount && minExactTick != null && maxExactTick != null) {
+    if (!connection) {
+      setCalculatedPriceRangeLiquidity(undefined)
+      setResultAmountBaseCLMMPool(undefined)
+      setResultAmountQuoteCLMMPool(undefined)
+    } else if (stakedBaseAmount && stakedQuoteAmount && minExactTick != null && maxExactTick != null) {
       const params = {
+        connection,
         info: clmmInfo.state,
         baseAmount: stakedBaseAmount,
         quoteAmount: stakedQuoteAmount,
@@ -389,16 +397,18 @@ function DetailPanel({
         tickUpper: maxExactTick,
         slippage: slippageNumber
       }
-      const { resultBaseAmount, resultQuoteAmount, liquidity, amountSlippageBase, amountSlippageQuote } =
-        getResultAmountByTick(params)
-      otherInfoForTx.current = {
-        liquidity,
-        amountSlippageBase,
-        amountSlippageQuote
-      }
-      setCalculatedPriceRangeLiquidity(liquidity)
-      setResultAmountBaseCLMMPool(resultBaseAmount)
-      setResultAmountQuoteCLMMPool(resultQuoteAmount)
+      getResultAmountByTick(params).then(
+        ({ resultBaseAmount, resultQuoteAmount, liquidity, amountSlippageBase, amountSlippageQuote }) => {
+          otherInfoForTx.current = {
+            liquidity,
+            amountSlippageBase: amountSlippageBase.amount,
+            amountSlippageQuote: amountSlippageQuote.amount
+          }
+          setCalculatedPriceRangeLiquidity(liquidity)
+          setResultAmountBaseCLMMPool(resultBaseAmount)
+          setResultAmountQuoteCLMMPool(resultQuoteAmount)
+        }
+      )
     }
 
     // get clmm amount

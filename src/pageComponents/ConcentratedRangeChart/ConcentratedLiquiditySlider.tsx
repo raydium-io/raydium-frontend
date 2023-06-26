@@ -13,6 +13,8 @@ import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
 import { toString } from '@/functions/numberish/toString'
+import useConnection from '@/application/connection/useConnection'
+import { fetchMultiMintInfos, getEpochInfo } from '@/application/clmmMigration/fetchMultiMintInfos'
 
 export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?: boolean }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
@@ -38,22 +40,31 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
   }, [position?.liquidity])
 
   const onSliderChange = useCallback(
-    (value: number | number[]) => {
+    async (value: number | number[]) => {
       if (isArray(value) || !currentAmmPool || !position) return // ignore array (for current version)
+
+      const [token2022Infos, epochInfo] = await Promise.all([
+        fetchMultiMintInfos({ mints: [currentAmmPool.state.mintA.mint, currentAmmPool.state.mintB.mint] }),
+        getEpochInfo()
+      ])
       const bnValue = toBN(mul(value, tick))
       const amountFromLiquidity = AmmV3.getAmountsFromLiquidity({
         poolInfo: currentAmmPool.state,
-        ownerPosition: position,
+        // ownerPosition: position,
         liquidity: bnValue,
         slippage: 0, // always 0, for remove liquidity only
-        add: false
+        add: false,
+        tickLower: position.tickLower,
+        tickUpper: position.tickUpper,
+        token2022Infos,
+        epochInfo
       })
 
       useConcentrated.setState({
-        coin1Amount: toString(toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA), {
+        coin1Amount: toString(toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.amount), {
           decimalLength: `auto ${currentAmmPool.base!.decimals}`
         }),
-        coin2Amount: toString(toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB), {
+        coin2Amount: toString(toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.amount), {
           decimalLength: `auto ${currentAmmPool.quote!.decimals}`
         }),
         isInput: false,
