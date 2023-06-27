@@ -38,7 +38,7 @@ export default function List({
   const allListItems = useMemo(
     () =>
       pickReactChildren(children, List.Item, (el, idx) =>
-        addPropsToReactElement<ComponentProps<typeof List['Item']>>(el, {
+        addPropsToReactElement<ComponentProps<(typeof List)['Item']>>(el, {
           key: el.key ?? idx,
           $isRenderByMain: true,
           $observeFn: observe
@@ -122,7 +122,7 @@ List.Item = function ListItem({
   return (
     <VirtualBox show={isIntersecting} domRef={mergeRef(domRef, itemRef)} className="w-full shrink-0">
       {(detectRef) => (
-        <div className={`ListItem w-full ${className}`} ref={detectRef} style={style}>
+        <div className={`ListItem w-full flow-root ${className}`} ref={detectRef} style={style}>
           {shrinkToValue(children, [status])}
         </div>
       )}
