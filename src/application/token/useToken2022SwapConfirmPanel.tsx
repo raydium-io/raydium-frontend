@@ -17,36 +17,36 @@ import { getOnlineTokenInfo } from './getOnlineTokenInfo'
 /**
  * not just data, also ui
  */
-export function useToken2022ConfirmPanel(payload: {
-  coin: MayArray<SplToken | undefined>
+export function useToken2022SwapConfirmPanel(payload: {
+  token: MayArray<SplToken | undefined>
   onCancel?(): void
   onConfirm?(): void
 }): {
   hasConfirmed: boolean
   popConfirm(): void
 } {
-  const targetCoins = [payload.coin].flat()
-  const targetCoinsMints = useMemo(
-    () => targetCoins.filter(Boolean)?.map((coin) => toPubString(coin!.mint)),
-    [toPubString(targetCoins?.[0]?.mint)]
+  const targetTokens = [payload.token].flat()
+  const targetTokenMints = useMemo(
+    () => targetTokens.filter(Boolean)?.map((coin) => toPubString(coin!.mint)),
+    [toPubString(targetTokens?.[0]?.mint)]
   )
-  const targetCoinToken2022s = useMemo(
-    () => shakeUndifindedItem(targetCoins.map((coin) => (isToken2022(coin) ? coin : undefined))),
-    [targetCoinsMints]
+  const targetToken2022s = useMemo(
+    () => shakeUndifindedItem(targetTokens.map((coin) => (isToken2022(coin) ? coin : undefined))),
+    [targetTokenMints]
   )
-  const hasCoinToken2022 = targetCoinToken2022s.length > 0
+  const hasToken2022 = targetToken2022s.length > 0
   const [hasUserTemporaryConfirmed, setHasUserTemporaryConfirmed] = useState(false)
   const [isPanelOn, setPanelOn] = useState(false)
 
   useEffect(() => {
     setHasUserTemporaryConfirmed(false)
-  }, [targetCoinsMints])
+  }, [targetTokenMints])
 
   const popNotOfficialTokenConfirm = () => {
     if (isPanelOn) return
     setPanelOn(true)
     const infos = Object.fromEntries(
-      targetCoinToken2022s.map((targetCoin) => [toPubString(targetCoin.mint), getOnlineTokenInfo(targetCoin.mint)])
+      targetToken2022s.map((targetCoin) => [toPubString(targetCoin.mint), getOnlineTokenInfo(targetCoin.mint)])
     )
     useNotification.getState().popConfirm({
       cardWidth: 'lg',
@@ -56,7 +56,7 @@ export function useToken2022ConfirmPanel(payload: {
         <div className="space-y-2 text-left">
           <p className="text-center">balabalabala. Confirm this is the token that you want to trade.</p>
 
-          {targetCoinToken2022s.map((targetCoin) => (
+          {targetToken2022s.map((targetCoin) => (
             <Row
               key={toPubString(targetCoin?.mint)}
               className="flex-col items-center gap-2 my-4 bg-[#141041] rounded py-3 w-full"
@@ -117,11 +117,11 @@ export function useToken2022ConfirmPanel(payload: {
     })
   }
 
-  const hasConfirmed = !hasCoinToken2022 || hasUserTemporaryConfirmed
+  const hasConfirmed = !hasToken2022 || hasUserTemporaryConfirmed
 
   useEffect(() => {
-    if (!hasConfirmed && targetCoinsMints.length > 0) popNotOfficialTokenConfirm()
-  }, [targetCoinsMints, hasConfirmed])
+    if (!hasConfirmed && targetTokenMints.length > 0) popNotOfficialTokenConfirm()
+  }, [targetTokenMints, hasConfirmed])
 
   return { hasConfirmed, popConfirm: popNotOfficialTokenConfirm }
 }

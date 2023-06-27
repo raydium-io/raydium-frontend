@@ -85,7 +85,6 @@ import { AddConcentratedLiquidityDialog } from '@/pageComponents/dialogs/AddConc
 import { RemoveConcentratedLiquidityDialog } from '@/pageComponents/dialogs/RemoveConcentratedLiquidityDialog'
 import { Numberish } from '@/types/constants'
 
-
 export default function PoolsConcentratedPage() {
   const currentTab = useConcentrated((s) => s.currentTab)
   useConcentratedPoolUrlParser()

@@ -66,7 +66,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import useToggle from '@/hooks/useToggle'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
-import { useToken2022ConfirmPanel } from '../application/token/useToken2022ConfirmPanel'
+import { useToken2022SwapConfirmPanel } from '../application/token/useToken2022SwapConfirmPanel'
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
 
 function SwapEffect() {
@@ -283,16 +283,18 @@ function SwapCard() {
     useUnofficialTokenConfirmState()
 
   // token 2022 confirm
-  const { hasConfirmed: hasConfirmedCoin1Token2022, popConfirm: popCoin1Token2022Confirm } = useToken2022ConfirmPanel({
-    coin: coin1,
-    onCancel: () => useSwap.setState({ coin1: undefined })
-  })
+  const { hasConfirmed: hasConfirmedCoin1Token2022, popConfirm: popCoin1Token2022Confirm } =
+    useToken2022SwapConfirmPanel({
+      token: coin1,
+      onCancel: () => useSwap.setState({ coin1: undefined })
+    })
 
   // token 2022 confirm
-  const { hasConfirmed: hasConfirmedCoin2Token2022, popConfirm: popCoin2Token2022Confirm } = useToken2022ConfirmPanel({
-    coin: coin2,
-    onCancel: () => useSwap.setState({ coin2: undefined })
-  })
+  const { hasConfirmed: hasConfirmedCoin2Token2022, popConfirm: popCoin2Token2022Confirm } =
+    useToken2022SwapConfirmPanel({
+      token: coin2,
+      onCancel: () => useSwap.setState({ coin2: undefined })
+    })
 
   const { hasAcceptedPriceChange, swapButtonComponentRef, coinInputBox1ComponentRef, coinInputBox2ComponentRef } =
     useSwapContextStore()

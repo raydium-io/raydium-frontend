@@ -1,56 +1,72 @@
-import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
-
 import assert from '@/functions/assert'
+import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
 
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
+import { openToken2022ClmmHavestConfirmPanel } from '../token/useToken2022ClmmHavestConfirmPanel'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
-
-import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
 
-export default function txHarvestConcentrated({
+export default async function txHarvestConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
   targetUserPositionAccount = useConcentrated.getState().targetUserPositionAccount
 }: {
   currentAmmPool?: HydratedConcentratedInfo
   targetUserPositionAccount?: UserPositionAccount
 } = {}) {
-  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
-    const { tokenAccountRawInfos } = useWallet.getState()
-    assert(currentAmmPool, 'not seleted amm pool')
-    assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
-    const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
-      connection: connection,
-      liquidity: ZERO,
-      amountMinA: ZERO,
-      amountMinB: ZERO,
-      poolInfo: currentAmmPool.state,
-      ownerInfo: {
-        feePayer: owner,
-        wallet: owner,
-        tokenAccounts: tokenAccountRawInfos,
-        useSOLBalance: true,
-        closePosition: false
-      },
-      // slippage: Number(toString(slippageTolerance)),
-      ownerPosition: targetUserPositionAccount.sdkParsed,
-      computeBudgetConfig: await getComputeBudgetConfig(),
-      checkCreateATAOwner: true
+  const { logError } = useNotification.getState()
+
+  const needConfirm = true
+  let userHasConfirmed: boolean
+  if (needConfirm) {
+    const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ currentAmmPool })
+    userHasConfirmed = await hasConfirmed
+  } else {
+    userHasConfirmed = true
+  }
+
+  if (userHasConfirmed) {
+    return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
+      const { tokenAccountRawInfos } = useWallet.getState()
+      assert(currentAmmPool, 'not seleted amm pool')
+      assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
+      const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
+        connection: connection,
+        liquidity: ZERO,
+        amountMinA: ZERO,
+        amountMinB: ZERO,
+        poolInfo: currentAmmPool.state,
+        ownerInfo: {
+          feePayer: owner,
+          wallet: owner,
+          tokenAccounts: tokenAccountRawInfos,
+          useSOLBalance: true,
+          closePosition: false
+        },
+        // slippage: Number(toString(slippageTolerance)),
+        ownerPosition: targetUserPositionAccount.sdkParsed,
+        computeBudgetConfig: await getComputeBudgetConfig(),
+        checkCreateATAOwner: true
+      })
+      transactionCollector.add(innerTransactions, {
+        txHistoryInfo: {
+          title: 'Harvested Rewards',
+          description: `Harvested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
+        }
+      })
     })
-    transactionCollector.add(innerTransactions, {
-      txHistoryInfo: {
-        title: 'Harvested Rewards',
-        description: `Harvested: ${currentAmmPool.base?.symbol ?? '--'} - ${currentAmmPool.quote?.symbol ?? '--'}`
-      }
-    })
-  })
+  } else {
+    logError('User Cancel', 'User has canceled token 2022 confirm')
+    throw 'User has canceled token 2022 confirm'
+  }
 }
 
 export async function txHarvestAllConcentrated() {
-  const { originSdkParsedAmmPools } = useConcentrated.getState()
+  const { logError } = useNotification.getState()
+  const { originSdkParsedAmmPools, sdkParsedAmmPools } = useConcentrated.getState()
   const { tokenAccountRawInfos } = useWallet.getState()
   const { logInfo } = useNotification.getState()
   const connection = useConnection.getState().connection
@@ -62,6 +78,21 @@ export async function txHarvestAllConcentrated() {
       allSuccess: true,
       txids: []
     }
+  }
+
+  // assert whether need token 2022 check
+  const needConfirm = true
+  let userHasConfirmed: boolean
+  if (needConfirm) {
+    const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ currentAmmPool: sdkParsedAmmPools })
+    userHasConfirmed = await hasConfirmed
+  } else {
+    userHasConfirmed = true
+  }
+
+  if (!userHasConfirmed) {
+    logError('User Cancel', 'User has canceled token 2022 confirm')
+    throw 'User has canceled token 2022 confirm'
   }
 
   // call sdk to get the txs, and check if user has harvestable position
