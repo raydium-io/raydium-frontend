@@ -1,7 +1,7 @@
-import useAppAdvancedSettings from '@/application/common/useAppAdvancedSettings'
+import useAppAdvancedSettings, { DEFAULT_URL_ENDPOINT } from '@/application/common/useAppAdvancedSettings'
 import useTwoStateSyncer from '@/hooks/use2StateSyncer'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
-import { DEVNET_PROGRAM_ID, ENDPOINT, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
+import { DEVNET_PROGRAM_ID, MAINNET_PROGRAM_ID } from '@raydium-io/raydium-sdk'
 
 export function useAppAdvancedSettingsSyncer() {
   const mode = useAppAdvancedSettings((s) => s.mode)
@@ -30,7 +30,7 @@ export function useAppAdvancedSettingsSyncer() {
   const [localStorageApiUrlOrigin, setLocalStorageApiUrlOrigin] = useLocalStorageItem<string>(
     'ADVANCED_SETTINGS_ENDPOINT',
     {
-      defaultValue: ENDPOINT
+      defaultValue: DEFAULT_URL_ENDPOINT
     }
   )
 
