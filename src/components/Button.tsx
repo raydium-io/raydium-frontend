@@ -6,8 +6,6 @@ import { isArray } from '@/functions/judgers/dateType'
 import { shrinkToValue } from '@/functions/shrinkToValue'
 import { BooleanLike, MayFunction } from '@/types/constants'
 import { MayArray } from '@/types/generics'
-import Row from './Row'
-import LoadingCircle from './LoadingCircle'
 import LoadingCircleSmall from './LoadingCircleSmall'
 
 export interface ButtonHandle {
@@ -49,7 +47,7 @@ export interface ButtonProps {
 /** has loaded **twMerge** */
 export default function Button({ validators, ...restProps }: ButtonProps) {
   const failedValidator = (isArray(validators) ? validators.length > 0 : validators)
-    ? [validators!].flat().find(({ should, not }) => !shrinkToValue(should) || shrinkToValue(not))
+    ? [validators!].flat().find(({ should, not }) => (should != null ? !shrinkToValue(should) : shrinkToValue(not)))
     : undefined
   const mergedProps = {
     ...restProps,

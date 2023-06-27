@@ -5,12 +5,14 @@ import { useDocumentVisibility } from './useDocumentVisibility'
 export function useForceUpdate({
   loop = 1000,
   disable,
-  disableWhenDocumentInvisiable = true
+  disableWhenDocumentInvisiable = true,
+  onLoop
 }: {
   loop?: number
   disable?: boolean
   /** default don't when document is invisiable */
   disableWhenDocumentInvisiable?: boolean
+  onLoop?: () => void
 } = {}): [updateCount: number, forceUpdate: () => void] {
   const { documentVisible } = useDocumentVisibility()
   const [forceUpdateCount, setForceUpdateCount] = useState(0)
@@ -26,6 +28,7 @@ export function useForceUpdate({
     if (!loop) return
     if (canLooplyForceUpdate) {
       const id = globalThis.setInterval(() => {
+        onLoop?.()
         forceUpdate()
       }, loop)
       cacheTimer.current = id
@@ -33,7 +36,7 @@ export function useForceUpdate({
     } else {
       globalThis.clearInterval(cacheTimer.current)
     }
-  }, [canLooplyForceUpdate])
+  }, [canLooplyForceUpdate, loop])
 
   return [forceUpdateCount, forceUpdate]
 }

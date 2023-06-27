@@ -27,7 +27,11 @@ export function toPub(mint: undefined): undefined
 export function toPub(mint: PublicKeyish | undefined): PublicKey | undefined
 export function toPub(mint: PublicKeyish | undefined): PublicKey | undefined {
   if (!mint) return undefined
-  return new PublicKey(mint)
+  try {
+    return new PublicKey(mint)
+  } catch {
+    return undefined
+  }
 }
 
 export function tryToPub<T>(v: T): T | PublicKey {

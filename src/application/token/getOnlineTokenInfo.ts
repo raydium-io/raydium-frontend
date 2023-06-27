@@ -67,6 +67,7 @@ export async function getOnlineTokenInfo(
   assert(connection, "must set connection to get token's online token info")
   const mintAccount = options?.cachedAccountInfo ?? (await connection.getAccountInfo(toPub(mintish)))
   assert(mintAccount, "can't fetch mintAccount")
+
   const isNormalToken = isPubEqual(mintAccount.owner, TOKEN_PROGRAM_ID)
   const is2022Token = isPubEqual(mintAccount.owner, TOKEN_2022_PROGRAM_ID)
   assert(isNormalToken || is2022Token, 'input mint is not token ')

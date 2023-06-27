@@ -1,9 +1,9 @@
-import { createRef, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
+import { createRef, ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
+import useLiquidity from '@/application/liquidity/useLiquidity'
 import useNotification from '@/application/notification/useNotification'
 import { routeTo } from '@/application/routeTools'
 import { isApiPoolInfoItem } from '@/application/swap/is'
@@ -20,8 +20,8 @@ import {
   isQuantumSOLVersionWSOL,
   QuantumSOLVersionSOL,
   QuantumSOLVersionWSOL,
-  SOLDecimals,
   SOL_BASE_BALANCE,
+  SOLDecimals,
   toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
@@ -59,15 +59,15 @@ import { div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import createContextStore from '@/functions/react/createContextStore'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import useToggle from '@/hooks/useToggle'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
-
-import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
-import useLiquidity from '@/application/liquidity/useLiquidity'
 import { useToken2022ConfirmPanel } from '../application/token/useToken2022ConfirmPanel'
+import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -358,6 +358,10 @@ function SwapCard() {
     return []
   }, [targetCoinNo, coin1, coin2])
 
+  const currentCalcResult = useSwap((s) => s.selectedCalcResult)
+  const expirationTime = currentCalcResult?.expirationTime // (s)
+  /** token2022 related data is fresh */
+  const [isCurrentExpirationTimeRunOver, setIsCurrentExpirationTimeRunOver] = useState(expirationTime === 0)
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
@@ -465,7 +469,7 @@ function SwapCard() {
       </div>
       {/* info panel */}
       <FadeInStable show={hasSwapDetermined}>
-        <SwapCardInfo className="mt-5" />
+        <SwapCardInfo className="mt-5" onExpirationTimeRunToZero={() => setIsCurrentExpirationTimeRunOver(true)} />
       </FadeInStable>
       {/* alert user if price has accidently change  */}
       <SwapPriceAcceptChip />
@@ -526,6 +530,11 @@ function SwapCard() {
           {
             should: !isFindingPool,
             fallbackProps: { children: 'Finding Pool ...' }
+          },
+          {
+            /*  only for token 2022 */
+            not: isCurrentExpirationTimeRunOver,
+            fallbackProps: { children: 'Token 2022 Expired' }
           },
           {
             should: !isInsufficientLiquidity,
@@ -847,7 +856,14 @@ function SwapCardPriceIndicator({ className }: { className?: string }) {
   )
 }
 
-function SwapCardInfo({ className }: { className?: string }) {
+function SwapCardInfo({
+  className,
+  onExpirationTimeRunToZero
+}: {
+  className?: string
+  /** when expiration time come to zero, it can't swap anymore, until data is refreh */
+  onExpirationTimeRunToZero?: () => void
+}) {
   const slippageTolerance = useAppSettings((s) => s.slippageTolerance)
   const getToken = useToken((s) => s.getToken)
   const priceImpact = useSwap((s) => s.priceImpact)
@@ -865,20 +881,12 @@ function SwapCardInfo({ className }: { className?: string }) {
   const selectedCalcResultPoolStartTimes = useSwap((s) => s.selectedCalcResultPoolStartTimes)
   const currentCalcResult = selectedCalcResult
 
-  const transferFeeUpCoin =
-    upCoin &&
-    toTokenAmount(upCoin, directionReversed ? currentCalcResult?.amountOut.fee : currentCalcResult?.amountIn.fee)
-  const transferFeeDownCoin =
-    downCoin &&
-    toTokenAmount(downCoin, directionReversed ? currentCalcResult?.amountIn.fee : currentCalcResult?.amountOut.fee)
+  const isDangerousPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.05), [priceImpact])
+  const isWarningPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.01), [priceImpact])
+
   const routeToken = getToken(
     currentCalcResult?.routeType === 'route' ? currentCalcResult?.minMiddleAmountFee?.token.mint : undefined
   )
-  const transferFeeRouteToken =
-    routeToken && currentCalcResult?.routeType === 'route' ? currentCalcResult?.minMiddleAmountFee : undefined
-
-  const isDangerousPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.05), [priceImpact])
-  const isWarningPrice = useMemo(() => isMeaningfulNumber(priceImpact) && gte(priceImpact, 0.01), [priceImpact])
 
   const swapThrough =
     upCoin && downCoin ? (
@@ -902,6 +910,20 @@ function SwapCardInfo({ className }: { className?: string }) {
     () => Boolean(currentCalcResult?.poolKey?.some((t) => t.version === 5)),
     [selectedCalcResult]
   )
+
+  const transferFeeUpCoin =
+    upCoin &&
+    toTokenAmount(upCoin, directionReversed ? currentCalcResult?.amountOut.fee : currentCalcResult?.amountIn.fee)
+
+  const transferFeeDownCoin =
+    downCoin &&
+    toTokenAmount(downCoin, directionReversed ? currentCalcResult?.amountIn.fee : currentCalcResult?.amountOut.fee)
+
+  const transferFeeRouteToken =
+    routeToken && currentCalcResult?.routeType === 'route' ? currentCalcResult?.minMiddleAmountFee : undefined
+
+  const expirationTime = currentCalcResult?.expirationTime // (s)
+
   return (
     <Col
       className={twMerge(
@@ -965,6 +987,14 @@ function SwapCardInfo({ className }: { className?: string }) {
         <SwapCardItem
           fieldName={`Transaction Fee (${downCoin?.symbol ?? '--'})`}
           fieldValue={`${toString(transferFeeDownCoin)} ${downCoin?.symbol ?? '--'}`}
+        />
+      )}
+      {expirationTime && (
+        <SwapCardItem
+          fieldName={`Expiration Time`}
+          fieldValue={
+            <SwapExpirationTimeClock remainSeconds={expirationTime} onReachZeroSeconds={onExpirationTimeRunToZero} />
+          }
         />
       )}
 
@@ -1040,6 +1070,51 @@ function SwapCardInfo({ className }: { className?: string }) {
         </Collapse.Face>
       </Collapse>
     </Col>
+  )
+}
+
+function SwapExpirationTimeClock({
+  remainSeconds,
+  onReachZeroSeconds
+}: {
+  remainSeconds: number
+  onReachZeroSeconds?: () => void
+}) {
+  const [seconds, setTime] = useState(remainSeconds)
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
+
+  useLayoutEffect(() => {
+    setTime(remainSeconds)
+  }, [remainSeconds])
+
+  useIsomorphicLayoutEffect(() => {
+    if (seconds <= 0) {
+      onReachZeroSeconds?.()
+    }
+  }, [seconds <= 0])
+
+  const remainTimeIsBiggerThan24h = seconds > 60 * 60 * 24
+  const remainTimeIsBiggerThanHours = seconds > 60 * 60
+  const remainTimeIsBiggerThanMinutes = seconds > 60
+  const remainSecondsIsBiggerThanZero = seconds > 0
+
+  useForceUpdate({
+    loop: remainTimeIsBiggerThan24h ? 60 * 60 * 1000 : remainTimeIsBiggerThanHours ? 60 * 1000 : 1 * 1000,
+    disable: !remainSeconds,
+    disableWhenDocumentInvisiable: false,
+    onLoop: () => setTime((s) => (s > 0 ? s - 1 : s))
+  })
+
+  return (
+    <div className="inline-block">
+      {remainTimeIsBiggerThan24h
+        ? toUTC(Date.now() + chainTimeOffset + seconds)
+        : remainTimeIsBiggerThanHours
+        ? `rest: ${Math.floor(seconds / 60 / 60)}h ${Math.floor((seconds % 60) / 60)}m`
+        : remainTimeIsBiggerThanMinutes
+        ? `rest: ${Math.floor(seconds / 60)}m ${seconds % 60}s`
+        : `rest: ${seconds}s`}
+    </div>
   )
 }
 

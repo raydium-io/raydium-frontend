@@ -209,7 +209,7 @@ export function useSwapAmountCalculator() {
           canFindPools,
           isInsufficientLiquidity,
           ...{
-            [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountOut,
+            [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountOut?.amount,
             [focusSide === 'coin1' ? 'isCoin2CalculateTarget' : 'isCoin1CalculateTarget']: false
           }
         })
