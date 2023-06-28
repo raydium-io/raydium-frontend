@@ -275,7 +275,7 @@ function HarvestAll() {
     <Button
       className="frosted-glass-teal"
       isLoading={isApprovePanelShown}
-      // validators={[{ should: walletConnected }, { should: canHarvestAll }]}
+      validators={[{ should: walletConnected }, { should: canHarvestAll }]}
       onClick={() =>
         txHarvestAllConcentrated().then(({ allSuccess }) => {
           if (allSuccess) {
@@ -1919,8 +1919,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
                         children: 'Connect Wallet'
                       }
-                    },
-                    { should: isHarvestable }
+                    }
+                    // { should: isHarvestable }
                   ]}
                   onClick={() =>
                     txHarvestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(

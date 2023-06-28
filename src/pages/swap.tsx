@@ -400,6 +400,7 @@ function SwapCard() {
           onUserInput={(value) => {
             useSwap.setState({ focusSide: 'coin1', coin1Amount: value })
           }}
+          hideTransferFee
         />
 
         {/* swap button */}
@@ -467,6 +468,7 @@ function SwapCard() {
           onUserInput={(value) => {
             useSwap.setState({ focusSide: 'coin2', coin2Amount: value })
           }}
+          hideTransferFee
         />
       </div>
       {/* info panel */}

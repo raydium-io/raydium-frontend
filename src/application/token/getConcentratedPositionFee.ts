@@ -44,9 +44,7 @@ export async function getConcentratedPositionFee({
   )
   /** no token is token 2022, so empty checkMints array */
   if (checkMints.length === 0) return []
-  const mintInfos = await getMultiMintInfos({
-    mints: ['45bLAX9u3VVXddYmRCpELhGqbRoZrGmhSmxEDZy3pJAi', '6M4t1GyLdisCsX3X5A9zqABRBPkLPYxEeNb33eURtq9c']
-  })
+  const mintInfos = await getMultiMintInfos({ mints: checkMints })
   const showInfos = ammPools
     .filter((ammPool) =>
       ammPool.positionAccount?.find(
@@ -64,7 +62,7 @@ export async function getConcentratedPositionFee({
             type: 'tokenFeeA',
             transformAmountFee: getTransferAmountFee(
               position.tokenFeeAmountA,
-              mintInfos[ammPool.state.mintA.mint.toString()].feeConfig,
+              mintInfos[toPubString(ammPool.state.mintA.mint)]?.feeConfig,
               epochInfo,
               false
             )
@@ -73,7 +71,7 @@ export async function getConcentratedPositionFee({
             type: 'tokenFeeB',
             transformAmountFee: getTransferAmountFee(
               position.tokenFeeAmountB,
-              mintInfos[ammPool.state.mintB.mint.toString()].feeConfig,
+              mintInfos[toPubString(ammPool.state.mintB.mint)]?.feeConfig,
               epochInfo,
               false
             )
@@ -82,7 +80,7 @@ export async function getConcentratedPositionFee({
             type: 'reward',
             transformAmountFee: getTransferAmountFee(
               position.rewardInfos[index].pendingReward,
-              mintInfos[rewardInfo.tokenMint.toString()].feeConfig,
+              mintInfos[rewardInfo.tokenMint.toString()]?.feeConfig,
               epochInfo,
               false
             )

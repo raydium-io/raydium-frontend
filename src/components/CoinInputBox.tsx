@@ -1,13 +1,4 @@
-import React, {
-  CSSProperties,
-  ReactNode,
-  RefObject,
-  useEffect,
-  useImperativeHandle,
-  useMemo,
-  useRef,
-  useState
-} from 'react'
+import { CSSProperties, ReactNode, RefObject, useEffect, useImperativeHandle, useMemo, useRef } from 'react'
 
 import { twMerge } from 'tailwind-merge'
 
@@ -33,14 +24,18 @@ import { gt, gte, lt } from '@/functions/numberish/compare'
 import { mul, sub } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { useSignalState } from '@/hooks/useSignalState'
-import { MayArray, Numberish } from '@/types/constants'
+import { Numberish } from '@/types/constants'
 
 import Button from './Button'
 import CoinAvatar from './CoinAvatar'
 import DecimalInput from './DecimalInput'
 import Icon from './Icon'
-import Input from './Input'
 import Row from './Row'
+import { isToken2022 } from '@/application/token/isToken2022'
+import { getTransferFeeInfos } from '@/application/token/getTransferFeeInfos'
+import { AsyncAwait } from './AsyncAwait'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
+import Col from './Col'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -109,6 +104,17 @@ export interface CoinInputBoxProps {
   // by default, SOL balance will sub 0.05
   canFillFullBalance?: boolean
   showTokenSelectIcon?: boolean
+
+  /** only token is selected;  only part of token 2022 have transfer Fee */
+  /** sometimes there is no need for check fee, for example: in swap */
+  hideTransferFee?: boolean
+  /** only token is selected;  only part of token 2022 have transfer Fee */
+  transferFeeOption?: {
+    /** SDK have this options, In most case, it's true */
+    addMode?: boolean
+  }
+  /** only token is selected; only part of token 2022 have transfer Fee */
+  onCalculateTransferFee?(feeAmount: Numberish): void
 }
 
 // TODO: split into different customized component (to handle different use cases)
@@ -151,7 +157,11 @@ export default function CoinInputBox({
   haveHalfButton,
   haveCoinIcon,
   canFillFullBalance,
-  showTokenSelectIcon
+  showTokenSelectIcon,
+
+  hideTransferFee,
+  transferFeeOption,
+  onCalculateTransferFee
 }: CoinInputBoxProps) {
   const disabledInput = disabled || innerDisabledInput
   const disabledTokenSelect = disabled || innerDisabledTokenSelect
@@ -266,6 +276,18 @@ export default function CoinInputBox({
 
   const canSwitchSOLWSOL = disabledTokenSelect && allowSOLWSOLSwitch && isMintEqual(token?.mint, WSOLMint)
 
+  const needCheckFee = !hideTransferFee && token && isToken2022(token)
+  const transferFeeInfo = useAsyncMemo(
+    () =>
+      needCheckFee
+        ? getTransferFeeInfos({
+            amount: toTokenAmount(token, inputedAmount ?? '0'),
+            addFee: transferFeeOption?.addMode
+          })
+        : undefined,
+    [token, inputedAmount, needCheckFee]
+  )
+
   return (
     <Row
       className={twMerge(
@@ -333,13 +355,18 @@ export default function CoinInputBox({
               }}
             >
               {haveCoinIcon && token && <CoinAvatar token={token} size={isMobile ? 'smi' : 'md'} />}
-              <div
-                className={`text-[rgb(171,196,255)] max-w-[7em] ${
-                  token ? 'min-w-[2em]' : ''
-                } overflow-hidden text-ellipsis font-medium text-base flex-grow mobile:text-sm whitespace-nowrap`}
-              >
-                {token?.symbol ?? '--'}
-              </div>
+              <Col className="items-start">
+                <div
+                  className={`text-[rgb(171,196,255)] max-w-[7em] ${
+                    token ? 'min-w-[2em]' : ''
+                  } overflow-hidden text-ellipsis font-medium text-base flex-grow mobile:text-sm whitespace-nowrap`}
+                >
+                  {token?.symbol ?? '--'}
+                </div>
+                {isToken2022(token) && (
+                  <div className="text-2xs text-[#141041] bg-[#abc4ff80] px-1 rounded-sm">2022</div>
+                )}
+              </Col>
               {showTokenSelectIcon && !disabledTokenSelect && (
                 <Icon size="xs" heroIconName="chevron-down" className="text-[#ABC4FF]" />
               )}
@@ -401,16 +428,24 @@ export default function CoinInputBox({
         </Row>
       </Row>
 
-      {/* price-predictor */}
-      {!hidePricePredictor && (
-        <div
-          className={`text-xs mobile:text-2xs text-[rgba(171,196,255,.5)] ${
-            !inputedAmount || inputedAmount === '0' ? 'invisible' : ''
-          } text-ellipsis overflow-hidden text-right`}
-        >
-          {totalPrice ? toUsdVolume(totalPrice) : '--'}
-        </div>
-      )}
+      <Row className="items-center gap-2 justify-end text-xs mobile:text-2xs text-[rgba(171,196,255,.5)] ">
+        {/* token 2022 fee */}
+        {transferFeeInfo && <div>include fee: {toString(transferFeeInfo.fee)}</div>}
+
+        {/* divider */}
+        {transferFeeInfo && !hidePricePredictor && <div>|</div>}
+
+        {/* price-predictor */}
+        {!hidePricePredictor && (
+          <div
+            className={`${
+              !inputedAmount || inputedAmount === '0' ? 'invisible' : ''
+            } text-ellipsis overflow-hidden text-right`}
+          >
+            {totalPrice ? toUsdVolume(totalPrice) : '--'}
+          </div>
+        )}
+      </Row>
     </Row>
   )
 }
