@@ -15,9 +15,11 @@ import { isDateAfter, isDateBefore } from '@/functions/date/judges'
 import { getDuration } from '@/functions/date/parseDuration'
 import { gt, gte, isMeaningfulNumber, isMeaninglessNumber, lt } from '@/functions/numberish/compare'
 import { trimTailingZero } from '@/functions/numberish/handleZero'
-import { div, mul } from '@/functions/numberish/operations'
+import { add, div, minus, mul } from '@/functions/numberish/operations'
 
 import { DAY_SECONDS, MAX_DURATION, MIN_DURATION } from './utils'
+import { Numberish } from '@/types/constants'
+import { toString } from '@/functions/numberish/toString'
 
 interface Props {
   dataIndex: number
@@ -31,11 +33,18 @@ interface Props {
 
 export interface NewReward {
   token?: SplToken
-  amount?: string
+  amount?: {
+    /*  fee + pure */
+    total?: Numberish
+    /*  without fee */
+    pure?: Numberish
+    /* token 2022 may have fee */
+    fee?: Numberish
+  }
   duration?: string
   openTime?: Date
   endTime?: Date
-  perWeek?: string
+  perWeek?: Numberish
   isWhiteListReward?: boolean
 }
 
@@ -58,16 +67,20 @@ export default function AddNewReward(props: Props) {
         )
       : undefined
   const noTokenError = !newReward.token ? 'Confirm reward token' : undefined
-  const noAmountError = isMeaninglessNumber(newReward.amount)
+  const noAmountError = isMeaninglessNumber(newReward.amount?.pure)
     ? `Enter ${newReward.token?.symbol} token amount`
     : undefined
 
   const balanceError =
-    !newReward.token || !newReward.amount || gte(getBalance(newReward.token), newReward.amount)
+    !newReward.token ||
+    !newReward.amount ||
+    gte(getBalance(newReward.token), add(newReward.amount.pure, newReward.amount.fee ?? 0))
       ? undefined
       : `Insufficient ${newReward.token.symbol} balance`
   const needShowAmountAlert =
-    newReward.amount && lt(newReward.amount, minBoundary) ? 'Emission rewards is lower than min required' : undefined
+    newReward.amount && lt(newReward.amount.pure, minBoundary)
+      ? 'Emission rewards is lower than min required'
+      : undefined
 
   const topError = hasInput ? noTokenError || noAmountError || balanceError || needShowAmountAlert : undefined
 
@@ -95,10 +108,12 @@ export default function AddNewReward(props: Props) {
     if (!hasInput) return
     setNewReward((values) => {
       const decimals = values.token?.decimals ?? 6
+
       const perWeek =
-        isMeaningfulNumber(values.amount) && isMeaningfulNumber(values.duration)
-          ? trimTailingZero(mul(div(values.amount, values.duration), 7).toFixed(decimals))
+        isMeaningfulNumber(values.amount?.pure) && isMeaningfulNumber(values.duration)
+          ? trimTailingZero(mul(div(values.amount!.pure, values.duration), 7).toFixed(decimals))
           : '0'
+
       return {
         ...values,
         endTime:
@@ -137,13 +152,24 @@ export default function AddNewReward(props: Props) {
             topLeftLabel="Token"
             enableTokens={enableTokens}
             disableTokens={disableTokens}
-            value={newReward.amount || ''}
+            value={(newReward.amount?.pure != null && toString(newReward.amount.pure)) || ''}
             token={newReward.token}
             onSelectToken={(token) =>
               setNewReward((values) => ({ ...values, token, isWhiteListReward: !!enableTokens }))
             }
-            onUserInput={(amount) => {
-              setNewReward((values) => ({ ...values, amount }))
+            onUserInput={(totalAmount) => {
+              setNewReward((r) => {
+                const fee = r.amount?.fee ?? 0
+                const pure = minus(totalAmount, fee)
+                return { ...r, amount: { total: totalAmount, pure, fee } }
+              })
+            }}
+            onCalculateTransferFee={(fee) => {
+              setNewReward((r) => {
+                const total = r.amount?.total ?? fee
+                const pure = minus(total, fee)
+                return { ...r, amount: { total, pure, fee } }
+              })
             }}
           />
           <InputBox
@@ -211,16 +237,20 @@ export default function AddNewReward(props: Props) {
           <InputBox
             label="Estimated rewards / week"
             className="flex-[3]"
-            onUserInput={(perWeek) =>
+            onUserInput={(perWeek) => {
+              const cacledAmountPure = mul(div(perWeek, 7), newReward.duration)
+
               setNewReward((values) => ({
                 ...values,
                 perWeek,
-                amount: isMeaningfulNumber(values.duration)
-                  ? trimTailingZero(mul(div(perWeek, 7), values.duration).toFixed(values.token?.decimals ?? 6))
-                  : '0'
+                amount: {
+                  total: cacledAmountPure,
+                  pure: cacledAmountPure,
+                  fee: undefined
+                }
               }))
-            }
-            value={newReward.perWeek}
+            }}
+            value={newReward.perWeek ? toString(newReward.perWeek) : ''}
           />
         </Row>
         <div>

@@ -11,6 +11,7 @@ import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import { HydratedConcentratedInfo } from './type'
+import { Numberish } from '@/types/constants'
 
 interface Props {
   currentAmmPool: HydratedConcentratedInfo
@@ -26,7 +27,7 @@ interface Props {
     token: SplToken
     openTime: Date
     endTime: Date
-    perWeek: string
+    perWeek: Numberish
   }[]
   onTxSuccess?: () => void
 }

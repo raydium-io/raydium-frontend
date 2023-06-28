@@ -58,7 +58,7 @@ export default function NewRewardTable({ newRewards, tvl, onClickRow, onDelete }
       rowClassName={() => (onClickRow ? 'clickable hover:backdrop-brightness-95' : '')}
       onClickRow={({ index }) => onClickRow?.(index)}
       renderRowItem={({ item: reward, label }) => {
-        const { openTime, endTime, perWeek, token } = reward
+        const { openTime, endTime, perWeek, token, amount } = reward
         const perDay = div(perWeek, 7)
         const rewardDuration = getDuration(endTime || 0, openTime || 0)
         const hasPerDay = isMeaningfulNumber(perDay)
@@ -85,9 +85,19 @@ export default function NewRewardTable({ newRewards, tvl, onClickRow, onDelete }
             <Grid className="gap-4 h-full">
               {hasPerDay ? (
                 <Col className="grow break-all justify-center">
-                  {formatNumber(mul(perDay, Math.floor(rewardDuration / 1000) / DAY_SECONDS), {
-                    fractionLength: token?.decimals ?? 6
-                  })}
+                  <div>
+                    {formatNumber(amount?.total, {
+                      fractionLength: token?.decimals ?? 6
+                    })}
+                  </div>
+                  {isMeaningfulNumber(amount?.fee) && (
+                    <div className="text-2xs text-[#abc4ff80]">
+                      include fee:
+                      {formatNumber(amount?.fee, {
+                        fractionLength: token?.decimals ?? 6
+                      })}
+                    </div>
+                  )}
                 </Col>
               ) : undefined}
             </Grid>
@@ -123,7 +133,7 @@ export default function NewRewardTable({ newRewards, tvl, onClickRow, onDelete }
             <Grid className="gap-4 h-full">
               <Col className="grow justify-center text-xs">
                 <div>
-                  {formatNumber(mul(perDay, 7), { fractionLength: token?.decimals ?? 6 })}
+                  {formatNumber(perWeek, { fractionLength: token?.decimals ?? 6 })}
                   /week
                 </div>
                 <div>

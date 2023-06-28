@@ -11,7 +11,7 @@ import {
   SOL_BASE_BALANCE,
   WSOLMint
 } from '@/application/token/quantumSOL'
-import { Token } from '@/application/token/type'
+import { Token, TokenAmount } from '@/application/token/type'
 import useToken from '@/application/token/useToken'
 import useWallet from '@/application/wallet/useWallet'
 import toPubString from '@/functions/format/toMintString'
@@ -114,7 +114,7 @@ export interface CoinInputBoxProps {
     addMode?: boolean
   }
   /** only token is selected; only part of token 2022 have transfer Fee */
-  onCalculateTransferFee?(feeAmount: Numberish): void
+  onCalculateTransferFee?(feeAmount: TokenAmount | undefined): void
 }
 
 // TODO: split into different customized component (to handle different use cases)
@@ -287,6 +287,10 @@ export default function CoinInputBox({
         : undefined,
     [token, inputedAmount, needCheckFee]
   )
+
+  useEffect(() => {
+    if (needCheckFee) onCalculateTransferFee?.(transferFeeInfo?.fee)
+  }, [transferFeeInfo?.fee])
 
   return (
     <Row
