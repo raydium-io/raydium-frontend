@@ -16,6 +16,7 @@ export async function getMultiMintInfos({ mints }: { mints: PublicKeyish[] }) {
   const key = mints.map((i) => toPubString(i)).join(',')
   const v = mintInfoCache.get(key)
   if (!v) {
+    console.log(key)
     const i = fetchMultipleMintInfos({ connection, mints: mints.map((i) => toPub(i)) })
     mintInfoCache.set(key, i)
     return i

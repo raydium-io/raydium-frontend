@@ -13,6 +13,8 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import useConcentrated from './useConcentrated'
+import { toString } from '@/functions/numberish/toString'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 /**
  * will auto fresh  concentrated's coin1Amount and coin2Amount with concentrated's jsonInfos and coin1 and coin2
@@ -100,53 +102,32 @@ export default function useConcentratedAmountCalculator() {
             token2022Infos
           })
 
-    if (isFocus1) {
-      const coinAmount = hasInput
-        ? toTokenAmount(coin2, isCoin1Base ? amountSlippageB.amount : amountSlippageA.amount)
-        : undefined
-      const coinAmountFee = hasInput
-        ? toTokenAmount(coin2, isCoin1Base ? amountSlippageB.fee : amountSlippageA.fee)
-        : undefined
-      const coinExpirationTime = hasInput
-        ? isCoin1Base
-          ? amountSlippageB.expirationTime
-          : amountSlippageA.expirationTime
-        : undefined
+    const coin1SlippageResult = isCoin1Base ? amountSlippageA : amountSlippageB
+    const coin2SlippageResult = isCoin1Base ? amountSlippageB : amountSlippageA
+    const coin1SlippageAmount = toTokenAmount(coin1, coin1SlippageResult.amount)
+    const coin1AmountFee = coin1SlippageResult.fee && toTokenAmount(coin1, coin1SlippageResult.fee)
+    const coin1ExpirationTime = coin1SlippageResult.expirationTime
+    const coin2SlippageAmount = toTokenAmount(coin2, coin2SlippageResult.amount)
+    const coin2AmountFee = coin2SlippageResult.fee && toTokenAmount(coin2, coin2SlippageResult.fee)
+    const coin2ExpirationTime = coin2SlippageResult.expirationTime
 
-      useConcentrated.setState({
-        coin2Amount: coinAmount,
-        coin2SlippageAmount: coinAmount,
-        coin2AmountFee: coinAmountFee,
-        coin2ExpirationTime: coinExpirationTime
-      })
-    } else {
-      const coinAmount = hasInput
-        ? toTokenAmount(coin1, isCoin1Base ? amountSlippageA.amount : amountSlippageB.amount)
-        : undefined
-      const coinAmountFee = hasInput
-        ? toTokenAmount(coin1, isCoin1Base ? amountSlippageA.fee : amountSlippageB.fee)
-        : undefined
-      const coinExpirationTime = hasInput
-        ? isCoin1Base
-          ? amountSlippageA.expirationTime
-          : amountSlippageB.expirationTime
-        : undefined
-
-      useConcentrated.setState({
-        coin1Amount: coinAmount,
-        coin1SlippageAmount: coinAmount,
-        coin1AmountFee: coinAmountFee,
-        coin1ExpirationTime: coinExpirationTime
-      })
-    }
+    useConcentrated.setState({
+      coin1Amount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
+      coin1SlippageAmount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
+      coin1AmountFee: hasInput ? coin1AmountFee : undefined,
+      coin1ExpirationTime: hasInput ? coin1ExpirationTime : undefined,
+      coin2Amount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
+      coin2SlippageAmount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
+      coin2AmountFee: hasInput ? coin2AmountFee : undefined,
+      coin2ExpirationTime: hasInput ? coin2ExpirationTime : undefined
+    })
 
     useConcentrated.setState({ liquidity })
   }, [
     coin1,
-    coin1Amount,
+    toString(userCursorSide === 'coin1' ? coin1Amount : coin2Amount),
     priceUpperTick,
     coin2,
-    coin2Amount,
     priceLowerTick,
     userCursorSide,
     currentAmmPool,

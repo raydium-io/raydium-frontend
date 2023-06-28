@@ -275,7 +275,7 @@ function HarvestAll() {
     <Button
       className="frosted-glass-teal"
       isLoading={isApprovePanelShown}
-      validators={[{ should: walletConnected }, { should: canHarvestAll }]}
+      // validators={[{ should: walletConnected }, { should: canHarvestAll }]}
       onClick={() =>
         txHarvestAllConcentrated().then(({ allSuccess }) => {
           if (allSuccess) {

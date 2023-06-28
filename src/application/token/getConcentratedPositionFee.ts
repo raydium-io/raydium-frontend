@@ -17,6 +17,7 @@ export async function getConcentratedPositionFee({
 }) {
   const epochInfo = await getEpochInfo()
   const ammPools = shakeUndifindedItem([currentAmmPool].flat())
+
   if (ammPools.length === 0) return []
   const checkMints = unifyItem(
     ammPools
@@ -43,7 +44,9 @@ export async function getConcentratedPositionFee({
   )
   /** no token is token 2022, so empty checkMints array */
   if (checkMints.length === 0) return []
-  const mintInfos = await getMultiMintInfos({ mints: checkMints })
+  const mintInfos = await getMultiMintInfos({
+    mints: ['45bLAX9u3VVXddYmRCpELhGqbRoZrGmhSmxEDZy3pJAi', '6M4t1GyLdisCsX3X5A9zqABRBPkLPYxEeNb33eURtq9c']
+  })
   const showInfos = ammPools
     .filter((ammPool) =>
       ammPool.positionAccount?.find(

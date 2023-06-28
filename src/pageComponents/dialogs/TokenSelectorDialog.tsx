@@ -39,6 +39,7 @@ import { searchItems } from '@/functions/searchItems'
 import useAsyncValue from '@/hooks/useAsyncValue'
 import { useEvent } from '@/hooks/useEvent'
 import useToggle from '@/hooks/useToggle'
+import { isToken2022 } from '@/application/token/isToken2022'
 
 export type TokenSelectorProps = {
   open: boolean
@@ -389,7 +390,6 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
   })
 
   const balance = getBalance(token)
-  const isToken2022 = token.extensions?.version === 'TOKEN2022'
   return (
     <div className="group w-full">
       <Row onClick={onClick} className="group w-full gap-4 justify-between items-center p-2">
@@ -401,7 +401,9 @@ function TokenSelectorDialogTokenItem({ token, onClick }: { token: SplToken; onC
                 <div className="text-base  max-w-[7em] overflow-hidden text-ellipsis  font-normal text-[#ABC4FF]">
                   {token.symbol}
                 </div>
-                {isToken2022 && <div className="text-2xs text-[#141041] bg-[#abc4ff80] px-1 rounded-sm">2022</div>}
+                {isToken2022(token) && (
+                  <div className="text-2xs text-[#141041] bg-[#abc4ff80] px-1 rounded-sm">2022</div>
+                )}
               </Row>
               {isUserAddedToken && !canFlaggedTokenMints.has(toPubString(token.mint)) ? (
                 <Row

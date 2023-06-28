@@ -43,13 +43,13 @@ function CreateFeeSwitcherContent({
   const coin1 = useConcentrated((s) => s.coin1)
   const coin2 = useConcentrated((s) => s.coin2)
   return (
-    <Row className={twMerge('gap-2', className)}>
+    <Row className={twMerge('gap-2 item-grow', className)}>
       {configs?.map((config) => {
         const isCurrent = config.id === current?.id
         const isAlreadyCreated = existIds?.includes(config.id)
         const canSelect = coin1 && coin2 && !isAlreadyCreated
         return (
-          <Tooltip key={config.id} disable={!isAlreadyCreated}>
+          <Tooltip className="grow" key={config.id} disable={!isAlreadyCreated}>
             <div
               className={`relative grow items-stretch px-1.5 py-2 ${
                 isCurrent ? 'ring-inset ring-1.5 ring-[#abc4ff]' : 'ring-inset ring-1.5 ring-[#abc4ff60]'

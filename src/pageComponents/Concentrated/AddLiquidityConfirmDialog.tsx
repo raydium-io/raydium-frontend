@@ -18,13 +18,16 @@ import { shakeZero } from '@/functions/numberish/shakeZero'
 import useAppSettings from '@/application/common/useAppSettings'
 import Image from '@/components/Image'
 import { AddressItem } from '@/components/AddressItem'
+import { abs, minus } from '@/functions/numberish/operations'
 
 interface Props {
   open: boolean
   coin1?: SplToken
   coin2?: SplToken
   coin1Amount?: Numberish
+  coin1AmountFee?: Numberish
   coin2Amount?: Numberish
+  coin2AmountFee?: Numberish
   decimals: number
   currentPrice?: Fraction
   position?: { min: number; max: number }
@@ -42,7 +45,9 @@ export default function AddLiquidityConfirmDialog({
   coin1,
   coin2,
   coin1Amount,
+  coin1AmountFee,
   coin2Amount,
+  coin2AmountFee,
   decimals,
   currentPrice,
   position,
@@ -132,18 +137,32 @@ export default function AddLiquidityConfirmDialog({
                       <CoinAvatar className="inline-block mr-1" size="sm" token={coin1} />
                       {coin1?.symbol}
                     </span>
-                    <span>
-                      {toString(coin1Amount)} {coin1?.symbol}
-                    </span>
+                    <Col className="items-end">
+                      <span>
+                        {toString(coin1Amount)} {coin1?.symbol}
+                      </span>
+                      {coin1AmountFee != null && (
+                        <div className="text-xs text-[#abc4ff80]">
+                          Position: {toString(minus(coin1Amount, coin1AmountFee))} + Fee: {toString(coin1AmountFee)}
+                        </div>
+                      )}
+                    </Col>
                   </div>
                   <div className="flex justify-between">
                     <span className="flex items-center text-sm text-[#abc4ff]">
                       <CoinAvatar className="inline-block mr-1" size="sm" token={coin2} />
                       {coin2?.symbol}
                     </span>
-                    <span>
-                      {toString(coin2Amount)} {coin2?.symbol}
-                    </span>
+                    <Col className="items-end">
+                      <span>
+                        {toString(coin2Amount)} {coin2?.symbol}
+                      </span>
+                      {coin2AmountFee != null && (
+                        <div className="text-xs text-[#abc4ff80]">
+                          Position: {toString(minus(coin2Amount, coin2AmountFee))} + Fee: {toString(coin2AmountFee)}
+                        </div>
+                      )}
+                    </Col>
                   </div>
                   <div className="flex justify-between mt-2 pl-1">
                     <span className="flex items-center text-sm text-[#abc4ff]">Fee tier</span>

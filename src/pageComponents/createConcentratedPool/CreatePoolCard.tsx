@@ -73,6 +73,8 @@ export function CreatePoolCard() {
   const coin2 = useConcentrated((s) => s.coin2)
   const coin1Amount = useConcentrated((s) => s.coin1Amount)
   const coin2Amount = useConcentrated((s) => s.coin2Amount)
+  const coin1AmountFee = useConcentrated((s) => s.coin1AmountFee)
+  const coin2AmountFee = useConcentrated((s) => s.coin2AmountFee)
   const focusSide = useConcentrated((s) => s.focusSide)
   const priceLower = useConcentrated((s) => s.priceLower)
   const priceUpper = useConcentrated((s) => s.priceUpper)
@@ -588,6 +590,8 @@ export function CreatePoolCard() {
         coin2={coin2}
         coin1Amount={coin1Amount}
         coin2Amount={coin2Amount}
+        coin1AmountFee={coin1AmountFee}
+        coin2AmountFee={coin2AmountFee}
         focusSide={focusSide}
         decimals={decimals}
         currentPrice={toFraction(userSettedCurrentPrice!)}

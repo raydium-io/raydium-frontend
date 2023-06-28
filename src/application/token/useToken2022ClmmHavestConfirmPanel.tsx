@@ -22,6 +22,7 @@ export function openToken2022ClmmHavestConfirmPanel(payload: {
     reject = rej
   })
   const infos = getConcentratedPositionFee({ currentAmmPool: payload.currentAmmPool })
+  // infos.then((infos) => console.log('infos: ', infos))
   useNotification.getState().popConfirm({
     cardWidth: 'lg',
     type: 'warning',

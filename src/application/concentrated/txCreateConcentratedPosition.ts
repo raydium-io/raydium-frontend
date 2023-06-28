@@ -9,6 +9,7 @@ import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { HydratedConcentratedInfo } from './type'
 import useConcentrated from './useConcentrated'
 import toBN from '@/functions/numberish/toBN'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 export default function txCreateConcentratedPosotion({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -67,6 +68,7 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
 
   assert(liquidity, 'not set liquidity')
   const isSol = isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
+
   const { innerTransactions, address } = await AmmV3.makeOpenPositionInstructionSimple({
     connection: connection,
     liquidity,

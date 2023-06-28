@@ -8,6 +8,7 @@ export default function txCreateNewConcentratedPool() {
     const { tempDataCache } = useConcentrated.getState()
     assert(tempDataCache, 'should create pool first')
     const createPoolInnerTransaction = tempDataCache
+
     const { innerTransactions: openPositionInnerTransaction } = await generateCreateClmmPositionTx()
 
     transactionCollector.add(createPoolInnerTransaction, {

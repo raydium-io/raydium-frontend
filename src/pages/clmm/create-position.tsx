@@ -143,8 +143,10 @@ function ConcentratedCard() {
   const timeBasis = useConcentrated((s) => s.timeBasis)
   const coin1 = useConcentrated((s) => s.coin1)
   const coin1Amount = useConcentrated((s) => s.coin1Amount)
+  const coin1AmountFee = useConcentrated((s) => s.coin1AmountFee)
   const coin2 = useConcentrated((s) => s.coin2)
   const coin2Amount = useConcentrated((s) => s.coin2Amount)
+  const coin2AmountFee = useConcentrated((s) => s.coin2AmountFee)
   const focusSide = useConcentrated((s) => s.focusSide)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
@@ -157,6 +159,8 @@ function ConcentratedCard() {
     coin2: SplToken | undefined
     coin1Amount: Numberish | undefined
     coin2Amount: Numberish | undefined
+    coin1AmountFee?: Numberish
+    coin2AmountFee?: Numberish
     decimals: number
     totalDeposit: string | undefined
     feeRate: number | undefined
@@ -384,6 +388,8 @@ function ConcentratedCard() {
       coin2: coin2,
       coin1Amount: coin1Amount,
       coin2Amount: coin2Amount,
+      coin1AmountFee: coin1AmountFee,
+      coin2AmountFee: coin2AmountFee,
       decimals: decimals,
       totalDeposit: toUsdVolume(totalDeposit),
       feeRate: currentAmmPool?.ammConfig.tradeFeeRate,
@@ -628,7 +634,9 @@ function ConcentratedCard() {
         coin1={poolSnapShot.coin1}
         coin2={poolSnapShot.coin2}
         coin1Amount={poolSnapShot.coin1Amount}
+        coin1AmountFee={poolSnapShot.coin1AmountFee}
         coin2Amount={poolSnapShot.coin2Amount}
+        coin2AmountFee={poolSnapShot.coin2AmountFee}
         decimals={poolSnapShot.decimals}
         position={chartRef.current?.getPosition()}
         totalDeposit={poolSnapShot.totalDeposit ?? toUsdVolume(0)}
