@@ -4,7 +4,7 @@ import { TokenAmount, getTransferAmountFee } from '@raydium-io/raydium-sdk'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 
-type ITransferAmountFee = {
+export type ITransferAmountFee = {
   amount: TokenAmount
   fee?: TokenAmount
   /** unit: s */
@@ -21,7 +21,7 @@ export async function getTransferFeeInfos({ amount, addFee }: { amount: TokenAmo
 
   const info: ITransferAmountFee = {
     amount: toTokenAmount(amount.token, rawInfo.amount),
-    fee: rawInfo.fee ? toTokenAmount(amount.token, rawInfo.fee) : undefined,
+    fee: rawInfo.fee != null ? toTokenAmount(amount.token, rawInfo.fee) : undefined,
     expirationTime: rawInfo.expirationTime
   }
   return info

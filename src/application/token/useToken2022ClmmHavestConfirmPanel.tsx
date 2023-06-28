@@ -1,7 +1,11 @@
 import useNotification from '@/application/notification/useNotification'
 import { MayArray } from '@/types/generics'
-import { SDKParsedConcentratedInfo } from '../concentrated/type'
+import { SDKParsedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
 import { getConcentratedPositionFee } from './getConcentratedPositionFee'
+import { AsyncAwait } from '@/components/AsyncAwait'
+import Col from '@/components/Col'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { toString } from '@/functions/numberish/toString'
 
 type HasConfirmState = Promise<boolean>
 
@@ -10,6 +14,7 @@ type HasConfirmState = Promise<boolean>
  */
 export function openToken2022ClmmHavestConfirmPanel(payload: {
   currentAmmPool: MayArray<SDKParsedConcentratedInfo | undefined>
+  currentPosition?: MayArray<UserPositionAccount | undefined>
   onCancel?(): void
   onConfirm?(): void
 }): {
@@ -30,46 +35,38 @@ export function openToken2022ClmmHavestConfirmPanel(payload: {
       <div className="space-y-2 text-left">
         <p className="text-center">balabalabala. Confirm this token before transaction.</p>
 
-        {/* {targetToken2022s.map((targetCoin) => (
-          <Row
-            key={toPubString(targetCoin?.mint)}
-            className="flex-col items-center gap-2 my-4 bg-[#141041] rounded py-3 w-full"
-          >
-            <Row className="items-center gap-2">
-              <CoinAvatar token={targetCoin} />
-              <div className="font-semibold">{targetCoin?.symbol}</div>
-              <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
-                {targetCoin?.mint}
-              </AddressItem>
-            </Row>
-            <AsyncAwait
-              promise={infos[toPubString(targetCoin.mint)]}
-              onFullfilled={() => updateConfig({ disableConfirmButton: false })}
-              fallback="loading..."
-            >
-              {(tokenMintInfo) => (
-                <Col className="table">
-                  <Row className="table-row">
-                    <div className="table-cell px-2 font-medium">Decimals:</div>
-                    <div className="table-cell px-2">{tokenMintInfo.decimals}</div>
-                  </Row>
-                  <Row className="table-row">
-                    <div className="table-cell px-2 font-medium">Frozen:</div>
-                    <div className="table-cell px-2">{capitalize(String(Boolean(tokenMintInfo.freezeAuthority)))}</div>
-                  </Row>
-                  <Row className="table-row">
-                    <div className="table-cell px-2 font-medium">Transfer Fee BPS:</div>
-                    <div className="table-cell px-2">{tokenMintInfo.transferFeeBasisPoints}</div>
-                  </Row>
-                  <Row className="table-row">
-                    <div className="table-cell px-2 font-medium">Transfer Fee Max:</div>
-                    <div className="table-cell px-2">{toString(tokenMintInfo.maximumFee)}</div>
-                  </Row>
-                </Col>
-              )}
-            </AsyncAwait>
-          </Row>
-        ))} */}
+        <AsyncAwait promise={infos} fallback="loading...">
+          {(infos) => (
+            <Col className="space-y-2">
+              {Object.entries(infos).map(([poolId, value]) => (
+                <div key={poolId} className="flex items-center justify-between">
+                  <div className="text-sm">pool: {poolId.slice(0, 4)}</div>
+                  <div className="text-sm">
+                    {Object.entries(value).map(([positionNftMint, positionFeeInfos]) => (
+                      <div key={positionNftMint}>
+                        <div>position: {positionNftMint.slice(0, 4)}</div>
+                        <div>
+                          {positionFeeInfos.map(({ type, feeInfo }, idx) => (
+                            <AsyncAwait key={type + idx} promise={feeInfo}>
+                              {(feeInfo) =>
+                                isMeaningfulNumber(feeInfo?.fee) ? (
+                                  <Col>
+                                    <div>{type}</div>
+                                    <div>{toString(feeInfo!.fee)}</div>
+                                  </Col>
+                                ) : undefined
+                              }
+                            </AsyncAwait>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </Col>
+          )}
+        </AsyncAwait>
       </div>
     ),
     confirmButtonIsMainButton: true,
