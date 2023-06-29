@@ -1,38 +1,31 @@
 import { shakeUndifindedItem, unifyItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isArray, isEmptyObject, isMap, isSet } from '@/functions/judgers/dateType'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { MayArray } from '@/types/constants'
 import { ZERO } from '@raydium-io/raydium-sdk'
 import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
-import { SDKParsedConcentratedInfo } from '../concentrated/type'
-import { ITransferAmountFee, getTransferFeeInfos } from './getTransferFeeInfos'
-import useToken from './useToken'
+import { getEpochInfo } from '../clmmMigration/getEpochInfo'
+import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
+import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
+import { ITransferAmountFee, getTransferFeeInfosSync } from './getTransferFeeInfos'
 
-type PoolId = string
-type PositionId = string
+type FeeInfo = {
+  type: string
+  feeInfo?: ITransferAmountFee | undefined
+}
+
 /**
  * @description in clmm position, get token 2022 fee amount
  */
 export async function getConcentratedPositionFee({
-  currentAmmPool
+  ammPool: originalAmmPools
 }: {
-  currentAmmPool: MayArray<SDKParsedConcentratedInfo | undefined>
-}): Promise<
-  Record<
-    PoolId,
-    Record<
-      PositionId,
-      {
-        type: string
-        feeInfo: Promise<ITransferAmountFee> | undefined
-      }[]
-    >
-  >
-> {
-  const { getToken } = useToken.getState()
-  const ammPools = shakeUndifindedItem([currentAmmPool].flat())
+  ammPool: MayArray<HydratedConcentratedInfo | undefined>
+}): Promise<Map<HydratedConcentratedInfo, Map<UserPositionAccount, FeeInfo[]>>> {
+  const ammPools = shakeUndifindedItem([originalAmmPools].flat())
 
-  if (ammPools.length === 0) return {}
+  if (ammPools.length === 0) return new Map()
   const checkMints = unifyItem(
     ammPools
       .filter((ammPool) =>
@@ -40,7 +33,7 @@ export async function getConcentratedPositionFee({
           (position) =>
             position.tokenFeeAmountA.gt(ZERO) ||
             position.tokenFeeAmountB.gt(ZERO) ||
-            position.rewardInfos.filter((iii) => iii.pendingReward.gt(ZERO))
+            position.rewardInfos.filter((rewardInfo) => rewardInfo.pendingReward.gt(ZERO))
         )
       )
       .flatMap((ammPool) =>
@@ -57,53 +50,77 @@ export async function getConcentratedPositionFee({
       )
   )
   /** no token is token 2022, so empty checkMints array */
-  if (checkMints.length === 0) return {}
-  const showInfos = ammPools
-    .filter((ammPool) =>
-      ammPool.positionAccount?.find(
-        (position) =>
-          position.tokenFeeAmountA.gt(ZERO) ||
-          position.tokenFeeAmountB.gt(ZERO) ||
-          position.rewardInfos.filter((rewardInfo) => rewardInfo.pendingReward.gt(ZERO))
-      )
-    )
-    .map((ammPool) => ({
-      poolId: toPubString(ammPool.state.id),
-      positionAmountChange: Object.fromEntries(
-        (ammPool.positionAccount ?? []).map((position) => {
-          const tokenA = getToken(ammPool.state.mintA.mint)
-          const tokenB = getToken(ammPool.state.mintB.mint)
-          const tokenFeeARawAmount = tokenA && toTokenAmount(tokenA, position.tokenFeeAmountA)
-          const tokenFeeBRawAmount = tokenB && toTokenAmount(tokenB, position.tokenFeeAmountB)
-          return [
-            toPubString(position.nftMint),
-            [
-              {
-                type: 'tokenFeeA',
-                feeInfo: tokenFeeARawAmount && getTransferFeeInfos({ amount: tokenFeeARawAmount })
-              },
-              {
-                type: 'tokenFeeB',
-                feeInfo: tokenFeeBRawAmount && getTransferFeeInfos({ amount: tokenFeeBRawAmount })
-              },
-              ...ammPool.state.rewardInfos.map((rewardInfo, index) => {
-                const rewardToken = getToken(rewardInfo.tokenMint)
-                const rawAmount = rewardToken && toTokenAmount(rewardToken, position.rewardInfos[index].pendingReward)
-                return {
-                  type: 'reward',
-                  feeInfo:
-                    rawAmount &&
-                    getTransferFeeInfos({
-                      amount: rawAmount
-                    }),
-                  rawAmount
-                }
+  if (checkMints.length === 0) return new Map()
+  const [epochInfo, mintInfos] = await Promise.all([getEpochInfo(), getMultiMintInfos({ mints: checkMints })])
+  const infos = shakeMapEmptyValue(
+    new Map(
+      ammPools
+        .filter((ammPool) =>
+          ammPool.positionAccount?.find(
+            (position) =>
+              position.tokenFeeAmountA.gt(ZERO) ||
+              position.tokenFeeAmountB.gt(ZERO) ||
+              position.rewardInfos.filter((rewardInfo) => rewardInfo.pendingReward.gt(ZERO))
+          )
+        )
+        .map((ammPool) => [
+          ammPool,
+          shakeMapEmptyValue(
+            new Map(
+              (ammPool.userPositionAccount ?? []).map((position) => {
+                const feeInfos = [
+                  {
+                    type: 'TokenFeeA',
+                    feeInfo:
+                      position.tokenFeeAmountA &&
+                      getTransferFeeInfosSync({ amount: position.tokenFeeAmountA, mintInfos, epochInfo })
+                  },
+                  {
+                    type: 'TokenFeeB',
+                    feeInfo:
+                      position.tokenFeeAmountB &&
+                      getTransferFeeInfosSync({ amount: position.tokenFeeAmountB, mintInfos, epochInfo })
+                  },
+                  ...ammPool.state.rewardInfos.map((rewardInfo, index) => {
+                    const rawAmount = position.rewardInfos[index].penddingReward
+                    return {
+                      type: `Reward ${rawAmount?.token.symbol}`,
+                      feeInfo:
+                        rawAmount &&
+                        getTransferFeeInfosSync({
+                          amount: rawAmount,
+                          mintInfos,
+                          epochInfo
+                        }),
+                      rawAmount
+                    }
+                  })
+                ]
+                return [position, feeInfos.filter((i) => isMeaningfulNumber(i.feeInfo?.fee))]
               })
-            ]
-          ]
-        })
-      )
-    }))
-  const infos = Object.fromEntries(showInfos.map((info) => [info.poolId, info.positionAmountChange]))
+            )
+          )
+        ])
+    )
+  )
+
   return infos
+}
+
+function shakeMapEmptyValue<T extends Map<any, any>>(map: T): T {
+  function isEmpty(v: any): boolean {
+    return (
+      v === undefined ||
+      v === null ||
+      (isArray(v) && v.length === 0) ||
+      (isMap(v) && v.size === 0) ||
+      (isSet(v) && v.size === 0)
+    )
+  }
+  map.forEach((value, key, map) => {
+    if (isEmpty(value)) {
+      map.delete(key)
+    }
+  })
+  return map
 }

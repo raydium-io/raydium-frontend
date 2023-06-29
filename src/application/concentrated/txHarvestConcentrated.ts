@@ -9,6 +9,7 @@ import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
+import { isToken2022 } from '../token/isToken2022'
 
 export default async function txHarvestConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -19,10 +20,14 @@ export default async function txHarvestConcentrated({
 } = {}) {
   const { logError } = useNotification.getState()
 
-  const needConfirm = true
+  const needConfirm = [
+    targetUserPositionAccount?.tokenA,
+    targetUserPositionAccount?.tokenB,
+    ...(targetUserPositionAccount?.rewardInfos.map((i) => i.token) ?? [])
+  ].some((i) => isToken2022(i) && i)
   let userHasConfirmed: boolean
   if (needConfirm) {
-    const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ currentAmmPool })
+    const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ ammPool: currentAmmPool })
     userHasConfirmed = await hasConfirmed
   } else {
     userHasConfirmed = true
@@ -60,13 +65,12 @@ export default async function txHarvestConcentrated({
     })
   } else {
     logError('User Cancel', 'User has canceled token 2022 confirm')
-    throw 'User has canceled token 2022 confirm'
   }
 }
 
 export async function txHarvestAllConcentrated() {
   const { logError } = useNotification.getState()
-  const { originSdkParsedAmmPools, sdkParsedAmmPools } = useConcentrated.getState()
+  const { originSdkParsedAmmPools, sdkParsedAmmPools, hydratedAmmPools } = useConcentrated.getState()
   const { tokenAccountRawInfos } = useWallet.getState()
   const { logInfo } = useNotification.getState()
   const connection = useConnection.getState().connection
@@ -81,10 +85,12 @@ export async function txHarvestAllConcentrated() {
   }
 
   // assert whether need token 2022 check
-  const needConfirm = true
+  const needConfirm = hydratedAmmPools
+    .flatMap((i) => [i.base, i.quote, ...i.rewardInfos.map((i) => i.rewardToken)])
+    .some((i) => isToken2022(i))
   let userHasConfirmed: boolean
   if (needConfirm) {
-    const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ currentAmmPool: sdkParsedAmmPools })
+    const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ ammPool: hydratedAmmPools })
     userHasConfirmed = await hasConfirmed
   } else {
     userHasConfirmed = true
@@ -92,7 +98,7 @@ export async function txHarvestAllConcentrated() {
 
   if (!userHasConfirmed) {
     logError('User Cancel', 'User has canceled token 2022 confirm')
-    throw 'User has canceled token 2022 confirm'
+    return undefined
   }
 
   // call sdk to get the txs, and check if user has harvestable position

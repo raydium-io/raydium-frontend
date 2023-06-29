@@ -277,8 +277,8 @@ function HarvestAll() {
       isLoading={isApprovePanelShown}
       validators={[{ should: walletConnected }, { should: canHarvestAll }]}
       onClick={() =>
-        txHarvestAllConcentrated().then(({ allSuccess }) => {
-          if (allSuccess) {
+        txHarvestAllConcentrated().then((result) => {
+          if (result?.allSuccess) {
             refreshConcentrated()
           }
         })
@@ -1919,17 +1919,15 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         onClick: () => useAppSettings.setState({ isWalletSelectorShown: true }),
                         children: 'Connect Wallet'
                       }
-                    }
-                    // { should: isHarvestable }
+                    },
+                    { should: isHarvestable }
                   ]}
                   onClick={() =>
-                    txHarvestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then(
-                      ({ allSuccess }) => {
-                        if (allSuccess) {
-                          refreshConcentrated()
-                        }
+                    txHarvestConcentrated({ currentAmmPool: info, targetUserPositionAccount: p }).then((result) => {
+                      if (result?.allSuccess) {
+                        refreshConcentrated()
                       }
-                    )
+                    })
                   }
                 >
                   Harvest

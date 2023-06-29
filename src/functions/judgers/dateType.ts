@@ -13,6 +13,9 @@ export const isArray = Array.isArray
 export const isSet = (v: unknown): v is Set<unknown> => {
   return v instanceof Set
 }
+export const isMap = (v: unknown): v is Map<unknown, unknown> => {
+  return v instanceof Map
+}
 export function isFunction(value: unknown): value is AnyFn {
   return typeof value === 'function'
 }

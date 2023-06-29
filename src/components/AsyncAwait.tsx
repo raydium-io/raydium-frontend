@@ -10,7 +10,7 @@ export function AsyncAwait<T>(props: {
   fallback?: ReactNode | ((status: 'pending' | 'rejected' | 'fullfilled') => ReactNode)
   promise: T
   children?: (solvedValue: Awaited<T>) => ReactNode
-  onFullfilled?(): void
+  onFullfilled?(solvedValue: Awaited<T>): void
   onReject?(): void
 }): JSX.Element {
   const [promiseStatus, setStatus] = useState<'pending' | 'fullfilled' | 'rejected'>('pending')
@@ -19,10 +19,10 @@ export function AsyncAwait<T>(props: {
   useIsomorphicLayoutEffect(() => {
     const p = Promise.resolve(props.promise)
     p.then(
-      (res) => {
+      (solvedValue) => {
         setStatus('fullfilled')
-        props.onFullfilled?.()
-        return res
+        props.onFullfilled?.(solvedValue)
+        return solvedValue
       },
       (err) => {
         setStatus('rejected')

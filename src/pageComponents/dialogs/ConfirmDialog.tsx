@@ -16,7 +16,9 @@ export interface ConfirmDialogInfo {
   subtitle?: ReactNode
   description?: ReactNode | ((utils: { updateConfig: (newInfo: Partial<ConfirmDialogInfo>) => void }) => ReactNode)
 
-  additionalContent?: ReactNode
+  additionalContent?:
+    | ReactNode
+    | ((utils: { updateConfig: (newInfo: Partial<ConfirmDialogInfo>) => void }) => ReactNode)
   onlyConfirmButton?: boolean
 
   /** Defaultly cancel button is main button */
@@ -24,6 +26,7 @@ export interface ConfirmDialogInfo {
   confirmButtonText?: ReactNode
   /** sometimes it has not load enough info to confirm */
   disableConfirmButton?: boolean
+  disableAdditionalContent?: boolean
   cancelButtonText?: ReactNode
   onCancel?(): void
   onConfirm?(): void
@@ -112,8 +115,10 @@ export default function ConfirmDialog(rawProps: ConfirmDialogInfo & { domRef?: R
             </div>
 
             <div className="self-stretch">
-              {props.additionalContent}
-              <Col>
+              {props.additionalContent ? (
+                <div className="py-4">{shrinkToValue(props.additionalContent, [controller.current])}</div>
+              ) : undefined}
+              <Col className="w-full">
                 {!props.onlyConfirmButton && (
                   <Button
                     disabled={props.confirmButtonIsMainButton && props.disableConfirmButton}

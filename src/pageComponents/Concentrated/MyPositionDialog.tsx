@@ -239,8 +239,8 @@ function MyPositionCardPendingRewardInfo({ className }: { className?: string }) 
           size={isMobile ? 'sm' : undefined}
           isLoading={isApprovePanelShown}
           onClick={() =>
-            txHarvestConcentrated().then(({ allSuccess }) => {
-              if (allSuccess) {
+            txHarvestConcentrated().then((result) => {
+              if (result?.allSuccess) {
                 refreshConcentrated()
               }
             })
