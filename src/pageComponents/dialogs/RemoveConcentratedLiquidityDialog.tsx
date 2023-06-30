@@ -310,8 +310,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                 }
               ]}
               onClick={() => {
-                txDecreaseConcentrated().then(({ allSuccess }) => {
-                  if (allSuccess) {
+                txDecreaseConcentrated().then((res) => {
+                  if (res?.allSuccess) {
                     onClose?.()
                     refreshConcentrated()
                     useConcentrated.setState({

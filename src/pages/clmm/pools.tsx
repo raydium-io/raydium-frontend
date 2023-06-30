@@ -1970,8 +1970,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                         targetUserPositionAccount: p
                       })
                       setTimeout(() => {
-                        txDecreaseConcentrated({ closePosition: true }).then(({ allSuccess }) => {
-                          if (allSuccess) {
+                        txDecreaseConcentrated({ closePosition: true }).then((res) => {
+                          if (res?.allSuccess) {
                             refreshConcentrated()
                             useConcentrated.setState({
                               coin1Amount: undefined,
@@ -2033,8 +2033,8 @@ function PoolCardDatabaseBodyCollapsePositionContent({
                           targetUserPositionAccount: p
                         })
                         setTimeout(() => {
-                          txDecreaseConcentrated({ closePosition: true }).then(({ allSuccess }) => {
-                            if (allSuccess) {
+                          txDecreaseConcentrated({ closePosition: true }).then((res) => {
+                            if (res?.allSuccess) {
                               refreshConcentrated()
                               useConcentrated.setState({
                                 coin1Amount: undefined,

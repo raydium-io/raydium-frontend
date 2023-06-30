@@ -14,17 +14,44 @@ import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import toBN from '@/functions/numberish/toBN'
+import useNotification from '../notification/useNotification'
+import { openToken2022ClmmAmmPoolPositionConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
+import { isToken2022 } from '../token/isToken2022'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 
-export default function txIncreaseConcentrated({
+export default async function txIncreaseConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
   targetUserPositionAccount = useConcentrated.getState().targetUserPositionAccount
 }: {
   currentAmmPool?: HydratedConcentratedInfo
   targetUserPositionAccount?: UserPositionAccount
 } = {}) {
+  const { coin1, coin2, coin1Amount, coin2Amount, coin1SlippageAmount, coin2SlippageAmount, liquidity } =
+    useConcentrated.getState()
+  // check token 2022
+  const needConfirm = [
+    targetUserPositionAccount?.tokenA,
+    targetUserPositionAccount?.tokenB,
+    ...(targetUserPositionAccount?.rewardInfos.map((i) => i.token) ?? [])
+  ].some((i) => isToken2022(i) && i)
+  let userHasConfirmed: boolean
+  if (needConfirm) {
+    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({
+      ammPool: currentAmmPool,
+      position: targetUserPositionAccount,
+      additionalAmount: shakeUndifindedItem([toTokenAmount(coin1, coin1Amount), toTokenAmount(coin2, coin2Amount)])
+    })
+    userHasConfirmed = await hasConfirmed
+  } else {
+    userHasConfirmed = true
+  }
+  if (!userHasConfirmed) {
+    useNotification.getState().logError('User Cancel', 'User has canceled token 2022 confirm')
+    return
+  }
+
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
-    const { coin1, coin2, coin1Amount, coin2Amount, coin1SlippageAmount, coin2SlippageAmount, liquidity } =
-      useConcentrated.getState()
     const { tokenAccountRawInfos } = useWallet.getState()
     assert(currentAmmPool, 'not seleted amm pool')
     assert(coin1, 'not set coin1')

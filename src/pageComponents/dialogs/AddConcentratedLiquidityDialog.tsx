@@ -278,8 +278,8 @@ export function AddConcentratedLiquidityDialog() {
                 }
               ]}
               onClick={() => {
-                txIncreaseConcentrated().then(({ allSuccess }) => {
-                  if (allSuccess) {
+                txIncreaseConcentrated().then((result) => {
+                  if (result?.allSuccess) {
                     refreshConcentrated()
                     useConcentrated.setState({
                       isAddDialogOpen: false,

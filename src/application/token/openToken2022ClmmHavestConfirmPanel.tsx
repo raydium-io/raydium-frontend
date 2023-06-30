@@ -30,8 +30,16 @@ type HasConfirmState = Promise<boolean>
 /**
  * not just data, also ui
  */
-export function openToken2022ClmmAmmPoolPositionConfirmPanel(payload: {
+export function openToken2022ClmmAmmPoolPositionConfirmPanel({
+  ammPool,
+  position: inputPosition,
+  additionalAmount,
+  onCancel,
+  onConfirm
+}: {
   ammPool: MayArray<HydratedConcentratedInfo | undefined>
+  position?: MayArray<UserPositionAccount | undefined>
+  additionalAmount?: TokenAmount[]
   // onlyMints?: (SplToken | Token | PublicKeyish)[]
   onCancel?(): void
   onConfirm?(): void
@@ -44,58 +52,91 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel(payload: {
     resolve = res
     reject = rej
   })
-  const infos = getConcentratedPositionFee({ ammPool: payload.ammPool /*  checkMints: payload.onlyMints  */ })
+  const infos = getConcentratedPositionFee({ ammPool: ammPool /*  checkMints: onlyMints  */ })
+  const amounts = inputPosition ? shakeUndifindedItem([additionalAmount].flat()) : undefined
 
+  const feeInfo = amounts?.length ? getTransferFeeInfos({ amount: amounts }) : undefined
+  const combinedPromise = Promise.all([infos, feeInfo])
   useNotification.getState().popConfirm({
     cardWidth: 'lg',
     type: 'warning',
     title: 'Confirm Token 2022',
-    description: 'balabalabala. Confirm this token before transaction.',
+    description: '🚧💄🚧🚧🚧. Confirm this token before transaction.',
     additionalContent: ({ updateConfig }) => (
       <div className="space-y-2 text-left w-full">
         <AsyncAwait
-          promise={infos}
+          promise={combinedPromise}
           fallback="loading..."
-          onFullfilled={(solved) =>
+          onFullfilled={([solved]) => {
             updateConfig({ disableConfirmButton: false, disableAdditionalContent: solved.size === 0 })
-          }
+          }}
         >
-          {(infos) => (
-            <Col className="space-y-2 max-h-[50vh] overflow-auto">
-              {[...infos.entries()].map(([pool, value]) => (
+          {([infos, amountFeeInfos]) => (
+            <Col className="space-y-4 max-h-[50vh] overflow-auto">
+              {Array.from(infos).map(([pool, positionMap]) => (
                 <div key={toPubString(pool.id)} className="flex items-center justify-between">
                   <div className="text-sm w-full">
-                    {[...value.entries()].map(([position, feeInfos]) => (
-                      <div key={toPubString(position.nftMint)} className="py-2">
-                        <div className="py-2">
-                          <CoinAvatarInfoItem ammPool={pool} position={position} />
-                        </div>
+                    {Array.from(positionMap).map(([position, feeInfos]) => {
+                      const positionCanSee = inputPosition ? [inputPosition].flat().includes(position) : true
+                      if (!positionCanSee) return undefined
 
-                        <div className="flex-grow px-6 border-1.5 border-[rgba(171,196,255,.5)] rounded-xl">
-                          {feeInfos.map(({ type, feeInfo }, idx) =>
-                            feeInfo && isMeaningfulNumber(feeInfo?.amount) ? (
-                              <Col key={type + idx} className="py-4 gap-1 items-start">
-                                <div className="text-lg mobile:text-base font-semibold">
-                                  {feeInfo.amount.token.symbol}
-                                </div>
-                                <Row className="items-center gap-2">
-                                  <FormularItem value={toString(feeInfo.amount)} unit={feeInfo.amount.token} />
-                                  <FormularOperator operator="-" />
-                                  <FormularItem value={toString(feeInfo.fee)} unit={feeInfo.fee?.token} isFee />
-                                  <FormularOperator operator="=" />
-                                  <FormularItem
-                                    value={toString(minus(feeInfo.amount, feeInfo.fee), {
-                                      decimalLength: feeInfo.amount.token.decimals
-                                    })}
-                                    unit={feeInfo.amount.token}
-                                  />
-                                </Row>
-                              </Col>
-                            ) : undefined
-                          )}
+                      return (
+                        <div key={toPubString(position.nftMint)} className="py-2">
+                          {/* ammPool name */}
+                          <div className="py-2">
+                            <CoinAvatarInfoItem ammPool={pool} position={position} />
+                          </div>
+
+                          {/* position info */}
+                          <div className="flex-grow px-6 border-1.5 border-[rgba(171,196,255,.5)] rounded-xl">
+                            {feeInfos.map(({ type, feeInfo }, idx) =>
+                              feeInfo && isMeaningfulNumber(feeInfo?.amount) ? (
+                                <Col key={type + idx} className="py-4 gap-1 items-center overflow-auto">
+                                  <div className="text-lg mobile:text-base font-semibold">
+                                    {feeInfo.amount.token.symbol}
+                                  </div>
+                                  <Row className="items-center gap-2">
+                                    <FormularItem value={toString(feeInfo.amount)} unit={feeInfo.amount.token} />
+                                    <FormularOperator operator="-" />
+                                    <FormularItem value={toString(feeInfo.fee)} unit={feeInfo.fee?.token} isFee />
+                                    <FormularOperator operator="=" />
+                                    <FormularItem
+                                      value={toString(minus(feeInfo.amount, feeInfo.fee), {
+                                        decimalLength: feeInfo.amount.token.decimals
+                                      })}
+                                      unit={feeInfo.amount.token}
+                                    />
+                                  </Row>
+                                </Col>
+                              ) : undefined
+                            )}
+                          </div>
                         </div>
+                      )
+                    })}
+
+                    {/* additional amount */}
+                    {amountFeeInfos && (
+                      <div className="flex-grow px-6 border-1.5 border-[rgba(171,196,255,.5)] rounded-xl">
+                        {amountFeeInfos.map((info) => (
+                          <Col key={toPubString(info.amount.token.mint)} className="py-4 gap-1 items-center">
+                            <div className="text-lg mobile:text-base font-semibold">{info.amount.token.symbol}</div>
+                            <Row className="items-center  gap-2">
+                              <FormularItem value={toString(info.amount)} unit={info.amount.token} />
+                              <FormularOperator operator="-" />
+                              <FormularItem value={toString(info.fee)} unit={info.fee?.token} isFee />
+                              <FormularOperator operator="=" />
+                              <FormularItem
+                                value={toString(minus(info.amount, info.fee), {
+                                  decimalLength: info.amount.token.decimals
+                                })}
+                                unit={info.amount.token}
+                              />
+                            </Row>
+                          </Col>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
                 </div>
               ))}
@@ -110,11 +151,11 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel(payload: {
     confirmButtonText: 'Confirm',
     onConfirm: () => {
       resolve(true)
-      payload.onConfirm?.()
+      onConfirm?.()
     },
     onCancel: () => {
       resolve(false)
-      payload.onCancel?.()
+      onCancel?.()
     }
   })
 

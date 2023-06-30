@@ -11,10 +11,42 @@ import useWallet from '../wallet/useWallet'
 
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import useConcentrated from './useConcentrated'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import useNotification from '../notification/useNotification'
+import { isToken2022 } from '../token/isToken2022'
+import { openToken2022ClmmAmmPoolPositionConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
 
 export const MANUAL_ADJUST = 0.985 // ask Rudy for detail
 
-export default function txDecreaseConcentrated(options?: { closePosition?: boolean }) {
+export default async function txDecreaseConcentrated(options?: { closePosition?: boolean }) {
+  const { coin1, coin2, liquidity, targetUserPositionAccount, currentAmmPool, coin1AmountMin, coin2AmountMin } =
+    useConcentrated.getState()
+  // check token 2022
+  const needConfirm = [
+    targetUserPositionAccount?.tokenA,
+    targetUserPositionAccount?.tokenB,
+    ...(targetUserPositionAccount?.rewardInfos.map((i) => i.token) ?? [])
+  ].some((i) => isToken2022(i) && i)
+  let userHasConfirmed: boolean
+  if (needConfirm) {
+    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({
+      ammPool: currentAmmPool,
+      position: targetUserPositionAccount,
+      additionalAmount: shakeUndifindedItem([
+        toTokenAmount(coin1, coin1AmountMin),
+        toTokenAmount(coin2, coin2AmountMin)
+      ])
+    })
+    userHasConfirmed = await hasConfirmed
+  } else {
+    userHasConfirmed = true
+  }
+  if (!userHasConfirmed) {
+    useNotification.getState().logError('User Cancel', 'User has canceled token 2022 confirm')
+    return
+  }
+
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner, allTokenAccounts } }) => {
     const { coin1, coin2, liquidity, targetUserPositionAccount, currentAmmPool, coin1AmountMin, coin2AmountMin } =
       useConcentrated.getState()
