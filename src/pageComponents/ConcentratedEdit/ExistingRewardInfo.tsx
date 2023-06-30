@@ -154,6 +154,11 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           }
 
           if (label === 'Amount') {
+            const updateRewardAmount =
+              updateReward &&
+              rewardToken &&
+              toTokenAmount(rewardToken, mul(updateReward.perSecond, Math.floor(updateDuration / 1000)))
+            const updateFeeInfo = updateRewardAmount && getTransferFeeInfos({ amount: updateRewardAmount })
             return (
               <Grid className="gap-4 h-full">
                 {!showUpdateOnly && perSecond ? (
@@ -171,12 +176,10 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
                 ) : undefined}
                 {updateReward && (
                   <Col className="grow justify-center text-[#39d0d8]">
-                    {formatNumber(
-                      mul(div(updateReward.perSecond, 10 ** rewardDecimals), Math.floor(updateDuration / 1000)),
-                      {
-                        fractionLength: rewardDecimals
-                      }
-                    )}
+                    {toString(updateRewardAmount)}{' '}
+                    <AsyncAwait promise={updateFeeInfo} fallback="(loading)">
+                      {(feeInfo) => (feeInfo?.fee ? `(including fee: ${toString(feeInfo.fee)})` : '')}
+                    </AsyncAwait>
                   </Col>
                 )}
               </Grid>
@@ -280,8 +283,13 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
 
           if (!isRewardEnded && !previewMode) {
             return (
-              <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
+              <div
+                className={`flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden ${
+                  canAddMore ? '' : 'opacity-50 cursor-not-allowed'
+                }`}
+              >
                 <Button
+                  disabled={!canAddMore}
                   onClick={() =>
                     setAdjustReward({ ...reward, apr: toPercentString(pool.rewardApr24h[index]), tvl: pool.tvl })
                   }

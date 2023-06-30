@@ -49,8 +49,8 @@ export function toTokenAmount(
   }
 ): TokenAmount
 export function toTokenAmount(
-  token: HydratedTokenJsonInfo | Token | QuantumSOLToken,
-  amount: Numberish | undefined,
+  token?: HydratedTokenJsonInfo | Token,
+  amount?: Numberish | undefined,
   options?: {
     /**
      * without this options, inputed wsol will be quantumSol
@@ -60,7 +60,22 @@ export function toTokenAmount(
     /** defaultly {@link toTokenAmount} accept BN, use this to accpet pure number like:3.11 */
     alreadyDecimaled?: boolean // may cause bug, havn't test it
   }
-): TokenAmount | QuantumSOLAmount {
+): TokenAmount | undefined
+export function toTokenAmount(
+  token?: HydratedTokenJsonInfo | Token | QuantumSOLToken,
+  amount?: Numberish | undefined,
+  options?: {
+    /**
+     * without this options, inputed wsol will be quantumSol
+     * normally you should not use it
+     */
+    exact?: boolean
+    /** defaultly {@link toTokenAmount} accept BN, use this to accpet pure number like:3.11 */
+    alreadyDecimaled?: boolean // may cause bug, havn't test it
+  }
+): TokenAmount | QuantumSOLAmount | undefined {
+  if (!token) return undefined
+  if (amount == null) return undefined
   const programId = getTokenProgramId(token.mint)
   const parsedToken = isToken(token)
     ? token

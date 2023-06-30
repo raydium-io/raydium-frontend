@@ -618,9 +618,9 @@ export function CreatePoolCard() {
         inRange={!inputDisable.find((disabled) => disabled)}
         feeRate={toPercentString(userSelectedAmmConfigFeeOption?.tradeFeeRate)}
         onConfirm={() => {
-          txCreateNewConcentratedPool().then(({ allSuccess }) => {
+          txCreateNewConcentratedPool().then((result) => {
             closePreviewDialog()
-            if (allSuccess) {
+            if (result?.allSuccess) {
               useConcentrated.getState().refreshConcentrated()
               popCongratulations()
             }

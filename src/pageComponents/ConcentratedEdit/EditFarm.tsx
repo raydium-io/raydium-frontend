@@ -145,8 +145,9 @@ export default function EditFarm() {
   const handleSendRewardText = () => {
     const { newRewards, updateReward } = editedReward
     const formatReward: [string, UpdateData][] = Array.from(updateReward || new Map()).map((rewardData) => {
-      const r = currentAmmPool?.rewardInfos.find((r) => r.tokenMint.toBase58() === rewardData[0])
-      if (r && rewardData[1].openTime < r.endTime) return [rewardData[0], { ...rewardData[1], openTime: r.endTime }]
+      const reward = currentAmmPool?.rewardInfos.find((r) => r.tokenMint.toBase58() === rewardData[0])
+      if (reward && rewardData[1].openTime < reward.endTime)
+        return [rewardData[0], { ...rewardData[1], openTime: reward.endTime }]
       if (rewardData[1].openTime <= Date.now()) rewardData[1].openTime = Date.now() + 30000
       return rewardData
     })

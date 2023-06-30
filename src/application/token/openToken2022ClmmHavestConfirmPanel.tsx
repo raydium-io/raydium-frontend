@@ -9,24 +9,28 @@ import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { minus } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { MayArray } from '@/types/generics'
-import { TokenAmount } from '@raydium-io/raydium-sdk'
+import { Token, TokenAmount } from '@raydium-io/raydium-sdk'
 import useAppSettings from '../common/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
 import { getConcentratedPositionFee } from './getConcentratedPositionFee'
 import { getTransferFeeInfos } from './getTransferFeeInfos'
+import { Numberish } from '@/types/constants'
+import { SplToken } from './type'
+import { isToken } from '@/functions/judgers/dateType'
 
 type HasConfirmState = Promise<boolean>
 
 /**
  * not just data, also ui
  */
-export function openToken2022ClmmHavestConfirmPanel(payload: {
+export function openToken2022ClmmAmmPoolPositionConfirmPanel(payload: {
   ammPool: MayArray<HydratedConcentratedInfo | undefined>
   // onlyMints?: (SplToken | Token | PublicKeyish)[]
   onCancel?(): void
@@ -74,9 +78,18 @@ export function openToken2022ClmmHavestConfirmPanel(payload: {
                                 <div className="text-lg mobile:text-base font-semibold">
                                   {feeInfo.amount.token.symbol}
                                 </div>
-                                <div>
-                                  {toString(feeInfo.amount)} - {toString(feeInfo.fee)} fee = {toString(feeInfo.pure)}
-                                </div>
+                                <Row className="items-center gap-2">
+                                  <FormularItem value={toString(feeInfo.amount)} unit={feeInfo.amount.token} />
+                                  <FormularOperator operator="-" />
+                                  <FormularItem value={toString(feeInfo.fee)} unit={feeInfo.fee?.token} isFee />
+                                  <FormularOperator operator="=" />
+                                  <FormularItem
+                                    value={toString(minus(feeInfo.amount, feeInfo.fee), {
+                                      decimalLength: feeInfo.amount.token.decimals
+                                    })}
+                                    unit={feeInfo.amount.token}
+                                  />
+                                </Row>
                               </Col>
                             ) : undefined
                           )}
@@ -109,7 +122,7 @@ export function openToken2022ClmmHavestConfirmPanel(payload: {
 }
 
 export function openToken2022ClmmAmountConfirmPanel(payload: {
-  amount: TokenAmount
+  amount: MayArray<TokenAmount | undefined>
   onCancel?(): void
   onConfirm?(): void
 }): {
@@ -121,7 +134,9 @@ export function openToken2022ClmmAmountConfirmPanel(payload: {
     resolve = res
     reject = rej
   })
-  const feeInfo = getTransferFeeInfos({ amount: payload.amount })
+  const feeInfo = getTransferFeeInfos({
+    amount: shakeUndifindedItem([payload.amount].flat())
+  })
   useNotification.getState().popConfirm({
     cardWidth: 'lg',
     type: 'warning',
@@ -129,17 +144,46 @@ export function openToken2022ClmmAmountConfirmPanel(payload: {
     description: 'balabalabala. Confirm this token before transaction.',
     additionalContent: ({ updateConfig }) => (
       <AsyncAwait promise={feeInfo} onFullfilled={() => updateConfig({ disableConfirmButton: false })}>
-        {(feeInfo) => (
-          <div className="space-y-2 text-left w-full">
-            <Col key={toPubString(feeInfo.amount.token.mint)} className="py-4 gap-1 items-start">
-              {/* <div className="text-lg mobile:text-base font-semibold">{feeInfo.amount.token.symbol}</div> */}
-              <div>
-                {toString(feeInfo.amount)} {feeInfo.amount.token.symbol} - {toString(feeInfo.fee)} fee ={' '}
-                {toString(minus(feeInfo.amount, feeInfo.fee))} {feeInfo.amount.token.symbol}
-              </div>
-            </Col>
-          </div>
-        )}
+        {(feeInfo) =>
+          feeInfo.length > 1 ? (
+            <div className="space-y-2 text-left w-full">
+              {feeInfo.map((info) => (
+                <Col key={toPubString(info.amount.token.mint)} className="py-4 gap-1 items-center">
+                  <Row className="items-center gap-2">
+                    <FormularItem value={toString(info.amount)} unit={info.amount.token} />
+                    <FormularOperator operator="-" />
+                    <FormularItem value={toString(info.fee)} unit={info.fee?.token} isFee />
+                    <FormularOperator operator="=" />
+                    <FormularItem
+                      value={toString(minus(info.amount, info.fee), {
+                        decimalLength: info.amount.token.decimals
+                      })}
+                      unit={info.amount.token}
+                    />
+                  </Row>
+                </Col>
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-2 text-left w-full">
+              <Col key={toPubString(feeInfo[0].amount.token.mint)} className="py-4 gap-1 items-center">
+                <div className="text-lg mobile:text-base font-semibold">{feeInfo[0].amount.token.symbol}</div>
+                <Row className="items-center  gap-2">
+                  <FormularItem value={toString(feeInfo[0].amount)} unit={feeInfo[0].amount.token} />
+                  <FormularOperator operator="-" />
+                  <FormularItem value={toString(feeInfo[0].fee)} unit={feeInfo[0].fee?.token} isFee />
+                  <FormularOperator operator="=" />
+                  <FormularItem
+                    value={toString(minus(feeInfo[0].amount, feeInfo[0].fee), {
+                      decimalLength: feeInfo[0].amount.token.decimals
+                    })}
+                    unit={feeInfo[0].amount.token}
+                  />
+                </Row>
+              </Col>
+            </div>
+          )
+        }
       </AsyncAwait>
     ),
     confirmButtonIsMainButton: true,
@@ -157,6 +201,39 @@ export function openToken2022ClmmAmountConfirmPanel(payload: {
   })
 
   return { hasConfirmed }
+}
+
+function FormularItem({
+  value,
+  unit,
+  isFee
+}: {
+  value: Numberish
+  unit: SplToken | Token | undefined
+  isFee?: boolean
+}) {
+  return (
+    <Row className="items-center gap-1">
+      <div className="text-white">{toString(value)}</div>
+      {isToken(unit) ? (
+        <Row>
+          <Row className="gap-0.5 text-xs text-[#abc4ff]">
+            {isFee && <div>fee</div>}
+            <CoinAvatar size="xs" token={unit} />
+            <div>{unit.symbol}</div>
+          </Row>
+        </Row>
+      ) : (
+        <Row className="gap-0.5 text-xs text-[#abc4ff]">
+          {isFee && <div>fee</div>}
+          <div>{unit}</div>
+        </Row>
+      )}
+    </Row>
+  )
+}
+function FormularOperator({ operator }: { operator: '+' | '-' | '=' }) {
+  return <div className="text-[#abc4ff80] text-xl font-medium">{operator}</div>
 }
 
 function CoinAvatarInfoItem({

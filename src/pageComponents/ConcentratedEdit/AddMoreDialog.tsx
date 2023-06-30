@@ -22,6 +22,7 @@ import toFraction from '@/functions/numberish/toFraction'
 import { Unpacked } from '@/types/generics'
 
 import { DAY_SECONDS, getDurationFromString, MAX_DURATION, MIN_DURATION } from './utils'
+import { SplToken } from '@/application/token/type'
 
 export interface UpdateData {
   openTime: number
@@ -30,6 +31,7 @@ export interface UpdateData {
   amount?: string
   daysExtend?: string
 }
+
 interface Props {
   open: boolean
   onClose: () => void
@@ -65,11 +67,11 @@ export default function AddMoreDialog({
   const { isRewardEnded } = reward || {}
 
   const haveBalance = Boolean(reward?.rewardToken && gte(getBalance(reward.rewardToken), values.amount))
-  const estimatedValueDay = isRewardEnded
-    ? isMeaningfulNumber(values.amount) && isMeaningfulNumber(values.duration)
-      ? div(values.amount, values.duration).toSignificant(decimals)
-      : ''
-    : trimTailingZero(mul(div(reward?.perSecond, 10 ** decimals), DAY_SECONDS)?.toFixed(decimals) || '')
+  // const estimatedValueDay = isRewardEnded
+  //   ? isMeaningfulNumber(values.amount) && isMeaningfulNumber(values.duration)
+  //     ? div(values.amount, values.duration).toSignificant(decimals)
+  //     : ''
+  //   : trimTailingZero(mul(div(reward?.perSecond, 10 ** decimals), DAY_SECONDS)?.toFixed(decimals) || '')
 
   useEffect(() => {
     if (reward) {
@@ -161,16 +163,14 @@ export default function AddMoreDialog({
                 value={isRewardEnded ? values.openTime : getDate(reward?.endTime)}
                 disabled={!isRewardEnded}
                 disableDateBeforeCurrent
-                isValidDate={(date) => {
-                  return (
-                    isDateAfter(
-                      date,
-                      offsetDateTime(currentBlockChainDate, {
-                        seconds: -DAY_SECONDS
-                      })
-                    ) && isDateBefore(date, offsetDateTime(values.openTime, { seconds: MAX_DURATION * DAY_SECONDS }))
-                  )
-                }}
+                isValidDate={(date) =>
+                  isDateAfter(
+                    date,
+                    offsetDateTime(currentBlockChainDate, {
+                      seconds: -DAY_SECONDS
+                    })
+                  ) && isDateBefore(date, offsetDateTime(values.openTime, { seconds: MAX_DURATION * DAY_SECONDS }))
+                }
                 onDateChange={(selectedDate) => {
                   if (!selectedDate) return
                   setValues((preValues) => ({
@@ -187,10 +187,10 @@ export default function AddMoreDialog({
                 className="flex-[2]"
                 inputHTMLProps={{
                   min: 1,
-                  maxLength: 3,
+                  maxLength: 4,
                   step: 1
                 }}
-                pattern={/^\d{0,5}$/}
+                pattern={/^[\d.]{0,5}$/}
                 placeholder="7-90"
                 suffix={<span className="text-[#abc4ff80] text-xs">days</span>}
                 value={values.duration}

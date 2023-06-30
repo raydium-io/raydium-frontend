@@ -5,13 +5,17 @@ import { toPub } from '@/functions/format/toMintString'
 import { div, mul } from '@/functions/numberish/operations'
 import { AmmV3, Fraction } from '@raydium-io/raydium-sdk'
 import useConnection from '../connection/useConnection'
-import { getTokenProgramId } from '../token/isToken2022'
+import { getTokenProgramId, isToken2022 } from '../token/isToken2022'
 import { fractionToDecimal } from '../txTools/decimal2Fraction'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 import { HydratedConcentratedInfo } from './type'
 import { Numberish } from '@/types/constants'
+import useNotification from '../notification/useNotification'
+import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
+import useToken from '../token/useToken'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 interface Props {
   currentAmmPool: HydratedConcentratedInfo
@@ -32,27 +36,52 @@ interface Props {
   onTxSuccess?: () => void
 }
 
-export default function txSetRewards({ currentAmmPool, updateRewards, newRewards, onTxSuccess }: Props) {
+export default async function txSetRewards({ currentAmmPool, updateRewards, newRewards, onTxSuccess }: Props) {
+  const { getToken } = useToken.getState()
+  const updatedRewardInfos = await asyncMap(Array.from(updateRewards), async ([mint, reward]) => ({
+    programId: getTokenProgramId(mint),
+    mint: toPub(mint),
+    openTime: Math.floor(reward.openTime.valueOf() / 1000),
+    endTime: Math.floor(reward.endTime.valueOf() / 1000),
+    perSecond: fractionToDecimal(reward.perSecond, 20),
+    amount: toTokenAmount(getToken(mint), mul(reward.perSecond, (reward.endTime - reward.openTime) / 1000))
+  }))
+
+  const newRewardInfos = await asyncMap(newRewards, async (reward) => ({
+    programId: getTokenProgramId(reward.token.mint),
+    mint: reward.token.mint,
+    openTime: Math.floor(reward.openTime.valueOf() / 1000),
+    endTime: Math.floor(reward.endTime.valueOf() / 1000),
+    perSecond: fractionToDecimal(div(mul(reward.perWeek || 0, 10 ** reward.token.decimals), 7 * 60 * 60 * 24), 20),
+    amount: toTokenAmount(
+      reward.token,
+      mul(
+        div(mul(reward.perWeek || 0, 10 ** reward.token.decimals), 7 * 60 * 60 * 24),
+        (reward.endTime.getTime() - reward.openTime.getTime()) / 1000
+      )
+    )
+  }))
+  assert(currentAmmPool, 'not seleted amm pool')
+
+  const newAmount = [...updatedRewardInfos.map((i) => i.amount), ...newRewardInfos.map((i) => i.amount)]
+  // check token 2022
+  const needConfirm = [...updatedRewardInfos.map((i) => i.mint), ...newRewardInfos.map((i) => i.mint)].some(
+    (i) => isToken2022(i) && i
+  )
+  let userHasConfirmed: boolean
+  if (needConfirm) {
+    const { hasConfirmed } = openToken2022ClmmAmountConfirmPanel({ amount: newAmount })
+    userHasConfirmed = await hasConfirmed
+  } else {
+    userHasConfirmed = true
+  }
+  if (!userHasConfirmed) {
+    useNotification.getState().logError('User Cancel', 'User has canceled token 2022 confirm')
+    return
+  }
+
   return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
     const { tokenAccountRawInfos } = useWallet.getState()
-
-    assert(currentAmmPool, 'not seleted amm pool')
-
-    const updatedRewardInfos = await asyncMap(Array.from(updateRewards), async (r) => ({
-      programId: getTokenProgramId(r[0]),
-      mint: toPub(r[0]),
-      openTime: Math.floor(r[1].openTime.valueOf() / 1000),
-      endTime: Math.floor(r[1].endTime.valueOf() / 1000),
-      perSecond: fractionToDecimal(r[1].perSecond, 20)
-    }))
-
-    const newRewardInfos = await asyncMap(newRewards, async (r) => ({
-      programId: getTokenProgramId(r.token.mint),
-      mint: r.token.mint,
-      openTime: Math.floor(r.openTime.valueOf() / 1000),
-      endTime: Math.floor(r.endTime.valueOf() / 1000),
-      perSecond: fractionToDecimal(div(mul(r.perWeek || 0, 10 ** r.token.decimals), 7 * 60 * 60 * 24), 20)
-    }))
 
     const commonParams = {
       connection: connection,

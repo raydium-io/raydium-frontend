@@ -1,17 +1,15 @@
+import { ZERO } from '@raydium-io/raydium-sdk'
 import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
-import { PublicKeyish, Token, ZERO } from '@raydium-io/raydium-sdk'
 
 import { shakeUndifindedItem, unifyItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
-import { isArray, isMap, isObject, isSet } from '@/functions/judgers/dateType'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { shakeMapEmptyValue } from '@/functions/shakeMapEmptyValue'
 import { MayArray } from '@/types/constants'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
 import { ITransferAmountFee, getTransferFeeInfosSync } from './getTransferFeeInfos'
-import { SplToken } from './type'
-import { shakeMapEmptyValue } from '@/functions/shakeMapEmptyValue'
 
 type FeeInfo = {
   type: string

@@ -3,7 +3,7 @@ import { AmmV3, ZERO } from '@raydium-io/raydium-sdk'
 
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
-import { openToken2022ClmmHavestConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
+import { openToken2022ClmmAmmPoolPositionConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import txHandler, { TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
@@ -27,7 +27,7 @@ export default async function txHarvestConcentrated({
   ].some((i) => isToken2022(i) && i)
   let userHasConfirmed: boolean
   if (needConfirm) {
-    const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ ammPool: currentAmmPool })
+    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({ ammPool: currentAmmPool })
     userHasConfirmed = await hasConfirmed
   } else {
     userHasConfirmed = true
@@ -90,7 +90,7 @@ export async function txHarvestAllConcentrated() {
     .some((i) => isToken2022(i))
   let userHasConfirmed: boolean
   if (needConfirm) {
-    const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ ammPool: hydratedAmmPools })
+    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({ ammPool: hydratedAmmPools })
     userHasConfirmed = await hasConfirmed
   } else {
     userHasConfirmed = true
