@@ -34,8 +34,8 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
       ammPool: currentAmmPool,
       position: targetUserPositionAccount,
       additionalAmount: shakeUndifindedItem([
-        toTokenAmount(coin1, coin1AmountMin),
-        toTokenAmount(coin2, coin2AmountMin)
+        toTokenAmount(coin1, coin1AmountMin, { alreadyDecimaled: true }),
+        toTokenAmount(coin2, coin2AmountMin, { alreadyDecimaled: true })
       ])
     })
     userHasConfirmed = await hasConfirmed

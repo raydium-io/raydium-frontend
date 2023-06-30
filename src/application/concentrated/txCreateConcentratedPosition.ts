@@ -1,19 +1,18 @@
 import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
 import { AmmV3 } from '@raydium-io/raydium-sdk'
 import useConnection from '../connection/useConnection'
+import useNotification from '../notification/useNotification'
+import { isToken2022 } from '../token/isToken2022'
+import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import { HydratedConcentratedInfo } from './type'
 import useConcentrated from './useConcentrated'
-import toBN from '@/functions/numberish/toBN'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import { isToken2022 } from '../token/isToken2022'
-import useNotification from '../notification/useNotification'
-import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 export default async function txCreateConcentratedPosotion({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -24,8 +23,8 @@ export default async function txCreateConcentratedPosotion({
 } = {}) {
   const { coin1, coin2, coin1Amount, coin2Amount } = useConcentrated.getState()
 
-  const coin1TokenAmount = toTokenAmount(coin1, coin1Amount)
-  const coin2TokenAmount = toTokenAmount(coin2, coin2Amount)
+  const coin1TokenAmount = toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })
+  const coin2TokenAmount = toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })
   // check token 2022
   const needConfirm = [coin1, coin2].some((i) => isToken2022(i))
   let userHasConfirmed: boolean

@@ -100,7 +100,8 @@ export default function useConcentratedAmountCalculator() {
             amount: inputAmountBN,
             add: !isRemoveDialogOpen, // SDK flag for math round direction
             epochInfo,
-            token2022Infos
+            token2022Infos,
+            amountHasFee: true
           })
 
     const coin1SlippageResult = isCoin1Base ? amountSlippageA : amountSlippageB

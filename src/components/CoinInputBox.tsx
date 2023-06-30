@@ -26,16 +26,15 @@ import { toString } from '@/functions/numberish/toString'
 import { useSignalState } from '@/hooks/useSignalState'
 import { Numberish } from '@/types/constants'
 
+import { getTransferFeeInfos } from '@/application/token/getTransferFeeInfos'
+import { isToken2022 } from '@/application/token/isToken2022'
+import useAsyncMemo from '@/hooks/useAsyncMemo'
 import Button from './Button'
 import CoinAvatar from './CoinAvatar'
+import Col from './Col'
 import DecimalInput from './DecimalInput'
 import Icon from './Icon'
 import Row from './Row'
-import { isToken2022 } from '@/application/token/isToken2022'
-import { getTransferFeeInfos } from '@/application/token/getTransferFeeInfos'
-import { AsyncAwait } from './AsyncAwait'
-import useAsyncMemo from '@/hooks/useAsyncMemo'
-import Col from './Col'
 
 export interface CoinInputBoxHandle {
   focusInput?: () => void
@@ -281,7 +280,7 @@ export default function CoinInputBox({
     () =>
       needCheckFee
         ? getTransferFeeInfos({
-            amount: toTokenAmount(token, inputedAmount ?? '0'),
+            amount: toTokenAmount(token, inputedAmount ?? '0', { alreadyDecimaled: true }),
             addFee: transferFeeOption?.addMode
           })
         : undefined,

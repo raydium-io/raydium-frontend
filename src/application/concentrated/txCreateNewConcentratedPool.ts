@@ -10,8 +10,8 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 export default async function txCreateNewConcentratedPool() {
   const { coin1, coin2, coin1Amount, coin2Amount } = useConcentrated.getState()
 
-  const coin1TokenAmount = toTokenAmount(coin1, coin1Amount)
-  const coin2TokenAmount = toTokenAmount(coin2, coin2Amount)
+  const coin1TokenAmount = toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })
+  const coin2TokenAmount = toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })
   // check token 2022
   const needConfirm = [coin1, coin2].some((i) => isToken2022(i) && i)
   let userHasConfirmed: boolean

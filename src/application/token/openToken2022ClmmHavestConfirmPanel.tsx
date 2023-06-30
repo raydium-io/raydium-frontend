@@ -24,6 +24,7 @@ import { getTransferFeeInfos } from './getTransferFeeInfos'
 import { Numberish } from '@/types/constants'
 import { SplToken } from './type'
 import { isToken } from '@/functions/judgers/dateType'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 type HasConfirmState = Promise<boolean>
 
@@ -178,6 +179,7 @@ export function openToken2022ClmmAmountConfirmPanel(payload: {
   const feeInfo = getTransferFeeInfos({
     amount: shakeUndifindedItem([payload.amount].flat())
   })
+
   useNotification.getState().popConfirm({
     cardWidth: 'lg',
     type: 'warning',
@@ -190,6 +192,7 @@ export function openToken2022ClmmAmountConfirmPanel(payload: {
             <div className="space-y-2 text-left w-full">
               {feeInfo.map((info) => (
                 <Col key={toPubString(info.amount.token.mint)} className="py-4 gap-1 items-center">
+                  <div className="text-lg mobile:text-base font-semibold">{feeInfo[0].amount.token.symbol}</div>
                   <Row className="items-center gap-2">
                     <FormularItem value={toString(info.amount)} unit={info.amount.token} />
                     <FormularOperator operator="-" />
