@@ -616,10 +616,10 @@
     bs58 "^4.0.1"
     eventemitter3 "^4.0.7"
 
-"@raydium-io/raydium-sdk@npm:test-r-sdk@^1.2.198":
-  version "1.2.198"
-  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.198.tgz#e8e62b07f5b19bd4834b5ab8eba77a7077b645c0"
-  integrity sha512-tyWemUL6XbhSlWyGXGAruT1Uq8SLyb//R8xDBIn2iE1GUlRUi942feOJlI2dZ4cV9ArIBOZ9ieynLIsEBiKeGA==
+"@raydium-io/raydium-sdk@npm:test-r-sdk@^1.2.201":
+  version "1.2.201"
+  resolved "https://registry.yarnpkg.com/test-r-sdk/-/test-r-sdk-1.2.201.tgz#a667c4d57fc8c5efe0c304d6b045b7d66827815f"
+  integrity sha512-Qx74PXai6NcPZSEkkIb5M+cH3b86JTMwvciNz+HSM/iYIqS1ai4g6nZ/V/KIn+cwUpPL0IXDq0sH4o9fXx5c8g==
   dependencies:
     "@solana/buffer-layout" "^4.0.1"
     "@solana/spl-token" "^0.3.7"

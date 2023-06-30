@@ -1,11 +1,11 @@
 import useAppSettings from '@/application/common/useAppSettings'
-import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
+import { toString } from '@/functions/numberish/toString'
 import { AmmV3, GetTransferAmountFee, getTransferAmountFee } from '@raydium-io/raydium-sdk'
 import { EpochInfo } from '@solana/web3.js'
 import BN from 'bn.js'
@@ -13,8 +13,6 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import useConcentrated from './useConcentrated'
-import { toString } from '@/functions/numberish/toString'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 /**
  * will auto fresh  concentrated's coin1Amount and coin2Amount with concentrated's jsonInfos and coin1 and coin2
@@ -49,11 +47,14 @@ export default function useConcentratedAmountCalculator() {
   }, [currentAmmPool, targetUserPositionAccount])
 
   const calcConcentratedPairsAmount = useCallback(async () => {
-    assert(currentAmmPool, 'not pool info')
-    assert(coin1, 'not set coin1')
-    assert(priceUpperTick !== undefined, 'not set priceUpperTick')
-    assert(coin2, 'not set coin2')
-    assert(priceLowerTick !== undefined, 'not set priceLowerTick')
+    if (!currentAmmPool) return
+    // no set coin1 or coin2
+    if (!coin1) return
+    if (!coin2) return
+
+    // no set priceUpperTick or priceLowerTick
+    if (priceUpperTick == null) return
+    if (priceLowerTick == null) return
 
     if (isRemoveDialogOpen && isInput === false) return // while removing liquidity, need to know the source is from input or from slider
 
@@ -105,6 +106,7 @@ export default function useConcentratedAmountCalculator() {
     const coin1SlippageResult = isCoin1Base ? amountSlippageA : amountSlippageB
     const coin2SlippageResult = isCoin1Base ? amountSlippageB : amountSlippageA
     const coin1SlippageAmount = toTokenAmount(coin1, coin1SlippageResult.amount)
+
     const coin1AmountFee = coin1SlippageResult.fee && toTokenAmount(coin1, coin1SlippageResult.fee)
     const coin1ExpirationTime = coin1SlippageResult.expirationTime
     const coin2SlippageAmount = toTokenAmount(coin2, coin2SlippageResult.amount)
@@ -114,11 +116,12 @@ export default function useConcentratedAmountCalculator() {
     useConcentrated.setState({
       coin1Amount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
       coin1SlippageAmount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
-      coin1AmountFee: hasInput ? coin1AmountFee : undefined,
+      coin1AmountFee,
       coin1ExpirationTime: hasInput ? coin1ExpirationTime : undefined,
+
       coin2Amount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
       coin2SlippageAmount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
-      coin2AmountFee: hasInput ? coin2AmountFee : undefined,
+      coin2AmountFee,
       coin2ExpirationTime: hasInput ? coin2ExpirationTime : undefined
     })
 

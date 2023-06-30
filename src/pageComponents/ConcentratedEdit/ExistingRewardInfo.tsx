@@ -28,6 +28,11 @@ import { Unpacked } from '@/types/generics'
 import AddMoreDialog, { UpdateData } from './AddMoreDialog'
 import AdjustRewardDialog from './AdjustRewardDialog'
 import { DAY_SECONDS } from './utils'
+import CoinSymbol from '@/components/CoinSymbol'
+import { toString } from '@/functions/numberish/toString'
+import { getTransferFeeInfos } from '@/application/token/getTransferFeeInfos'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { AsyncAwait } from '@/components/AsyncAwait'
 
 interface Props {
   pool: HydratedConcentratedInfo
@@ -268,6 +273,11 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
             !updateData.get(reward.rewardToken!.mint.toBase58()) &&
             !previewMode
 
+          const feeInfo =
+            reward.remainingRewards &&
+            reward.rewardToken &&
+            getTransferFeeInfos({ amount: toTokenAmount(reward.rewardToken, reward.remainingRewards) })
+
           if (!isRewardEnded && !previewMode) {
             return (
               <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
@@ -286,6 +296,12 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
           }
 
           if (canAddMore) {
+            const claimableAmount =
+              reward.rewardToken &&
+              toTokenAmount(
+                reward.rewardToken,
+                reward.remainingRewards ? getMax(reward.remainingRewards, 0) : reward.remainingRewards
+              )
             return (
               <div className="flex bg-[#abc4ff1a] mobile:bg-transparent items-center rounded-md p-2 mobile:p-0 mb-4 mobile:mb-0 empty:hidden">
                 <Button
@@ -300,8 +316,15 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
                   noComponentCss
                   disabled={!hasUnClaimed || isApprovePanelShown}
                   onClick={() => {
-                    txCollectReward({ currentAmmPool: pool, rewardMint: reward.tokenMint }).then(() => {
-                      useConcentrated.getState().refreshConcentrated()
+                    if (!claimableAmount || !reward.rewardToken) return
+                    txCollectReward({
+                      currentAmmPool: pool,
+                      rewardInfo: reward,
+                      claimableAmount: claimableAmount
+                    }).then((result) => {
+                      if (result) {
+                        useConcentrated.getState().refreshConcentrated()
+                      }
                     })
                   }}
                   className={`flex flex-1 gap-1 justify-center items-center text-secondary-title text-xs font-medium ${
@@ -311,13 +334,15 @@ export default function ExistingRewardInfo({ pool, onUpdateReward, previewMode }
                   <Icon iconSrc="/icons/create-farm-roll-back.svg" size="xs" className="text-[#abc4ff80]" />
                   <Col className="items-start">
                     Claim unemmitted rewards
-                    <span className="text-[#abc4ff80]">
-                      {div(
-                        reward.remainingRewards ? getMax(reward.remainingRewards, 0) : reward.remainingRewards,
-                        10 ** (reward.rewardToken?.decimals ?? 6)
-                      )?.toSignificant(reward.rewardToken?.decimals ?? 6)}{' '}
+                    <Row className="text-[#abc4ff80] gap-1">
+                      <span>{toString(claimableAmount)} </span>
                       {reward.rewardToken?.symbol}
-                    </span>
+                      <div className="whitespace-nowrap">
+                        <AsyncAwait promise={feeInfo} fallback={'(loading)'}>
+                          {(feeInfo) => (feeInfo?.fee ? `(include ${toString(feeInfo.fee)} fee)` : undefined)}
+                        </AsyncAwait>
+                      </div>
+                    </Row>
                   </Col>
                 </Button>
               </div>

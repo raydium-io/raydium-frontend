@@ -1,14 +1,17 @@
+import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
+import { PublicKeyish, Token, ZERO } from '@raydium-io/raydium-sdk'
+
 import { shakeUndifindedItem, unifyItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
-import { isArray, isEmptyObject, isMap, isSet } from '@/functions/judgers/dateType'
+import { isArray, isMap, isObject, isSet } from '@/functions/judgers/dateType'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { MayArray } from '@/types/constants'
-import { ZERO } from '@raydium-io/raydium-sdk'
-import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
 import { ITransferAmountFee, getTransferFeeInfosSync } from './getTransferFeeInfos'
+import { SplToken } from './type'
+import { shakeMapEmptyValue } from '@/functions/shakeMapEmptyValue'
 
 type FeeInfo = {
   type: string
@@ -20,35 +23,40 @@ type FeeInfo = {
  */
 export async function getConcentratedPositionFee({
   ammPool: originalAmmPools
-}: {
+}: // checkMints: forceMints
+{
   ammPool: MayArray<HydratedConcentratedInfo | undefined>
+  /** only result checkMint infos */
+  // checkMints?: (SplToken | Token | PublicKeyish)[]
 }): Promise<Map<HydratedConcentratedInfo, Map<UserPositionAccount, FeeInfo[]>>> {
   const ammPools = shakeUndifindedItem([originalAmmPools].flat())
 
   if (ammPools.length === 0) return new Map()
-  const checkMints = unifyItem(
-    ammPools
-      .filter((ammPool) =>
-        ammPool.positionAccount?.find(
-          (position) =>
-            position.tokenFeeAmountA.gt(ZERO) ||
-            position.tokenFeeAmountB.gt(ZERO) ||
-            position.rewardInfos.filter((rewardInfo) => rewardInfo.pendingReward.gt(ZERO))
+  const checkMints =
+    // forceMints?.map((i) => toPubString(isObject(i) && 'mint' in i ? i.mint : i)) ??
+    unifyItem(
+      ammPools
+        .filter((ammPool) =>
+          ammPool.positionAccount?.find(
+            (position) =>
+              position.tokenFeeAmountA.gt(ZERO) ||
+              position.tokenFeeAmountB.gt(ZERO) ||
+              position.rewardInfos.filter((rewardInfo) => rewardInfo.pendingReward.gt(ZERO))
+          )
         )
-      )
-      .flatMap((ammPool) =>
-        [
-          ammPool.state.mintA,
-          ammPool.state.mintB,
-          ...ammPool.state.rewardInfos.map((rewardInfo) => ({
-            mint: rewardInfo.tokenMint,
-            programId: rewardInfo.tokenProgramId
-          }))
-        ]
-          .filter(({ programId }) => programId.equals(TOKEN_2022_PROGRAM_ID))
-          .map(({ mint }) => toPubString(mint))
-      )
-  )
+        .flatMap((ammPool) =>
+          [
+            ammPool.state.mintA,
+            ammPool.state.mintB,
+            ...ammPool.state.rewardInfos.map((rewardInfo) => ({
+              mint: rewardInfo.tokenMint,
+              programId: rewardInfo.tokenProgramId
+            }))
+          ]
+            .filter(({ programId }) => programId.equals(TOKEN_2022_PROGRAM_ID))
+            .map(({ mint }) => toPubString(mint))
+        )
+    )
   /** no token is token 2022, so empty checkMints array */
   if (checkMints.length === 0) return new Map()
   const [epochInfo, mintInfos] = await Promise.all([getEpochInfo(), getMultiMintInfos({ mints: checkMints })])
@@ -105,22 +113,4 @@ export async function getConcentratedPositionFee({
   )
 
   return infos
-}
-
-function shakeMapEmptyValue<T extends Map<any, any>>(map: T): T {
-  function isEmpty(v: any): boolean {
-    return (
-      v === undefined ||
-      v === null ||
-      (isArray(v) && v.length === 0) ||
-      (isMap(v) && v.size === 0) ||
-      (isSet(v) && v.size === 0)
-    )
-  }
-  map.forEach((value, key, map) => {
-    if (isEmpty(value)) {
-      map.delete(key)
-    }
-  })
-  return map
 }

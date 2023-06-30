@@ -14,9 +14,7 @@ import formatNumber from '@/functions/format/formatNumber'
 import toPercentString from '@/functions/format/toPercentString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
-
 import { NewReward } from './AddNewReward'
-import { DAY_SECONDS } from './utils'
 
 interface Props {
   newRewards: NewReward[]

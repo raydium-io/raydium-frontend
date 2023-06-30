@@ -98,11 +98,10 @@ function TokenSelectorDialogContent({
     closePanel?.()
   })
   const selectToken = useEvent(async (splToken: SplToken) => {
-    const isAPIToken =
-      tokenListSettings['Raydium Token List'][toPubString(splToken.mint)] ||
-      tokenListSettings['Solana Token List'][toPubString(splToken.mint)]
+    const isOfficialToken = tokenListSettings['Raydium Token List'].mints?.has(toPubString(splToken.mint))
+    // tokenListSettings['Solana Token List'][toPubString(splToken.mint)]
     const canSelect =
-      turnOnTokenVerification && !isAPIToken
+      turnOnTokenVerification && !isOfficialToken
         ? await verifyToken(splToken.mint, { canWhiteList: canSelectIfInWhiteList })
         : true
     if (canSelect) {

@@ -303,7 +303,11 @@ export default function AddMoreDialog({
               >
                 Save
               </Button>
-              <Button type="text" className="text-sm text-[#ABC4FF] bg-cancel-bg min-w-[120px]" onClick={closeDialog}>
+              <Button
+                type="text"
+                className="text-sm text-[#ABC4FF] frosted-glass-skygray min-w-[120px]"
+                onClick={closeDialog}
+              >
                 Cancel
               </Button>
             </Row>

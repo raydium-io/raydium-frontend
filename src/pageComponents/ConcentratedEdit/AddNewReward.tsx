@@ -179,10 +179,10 @@ export default function AddNewReward(props: Props) {
             inputMode="numeric"
             inputHTMLProps={{
               min: 1,
-              maxLength: 3,
+              maxLength: 4,
               step: 1
             }}
-            pattern={/^\d{0,5}$/}
+            pattern={/^[\d.]{0,5}$/}
             placeholder={`${MIN_DURATION} - ${MAX_DURATION}`}
             value={newReward.duration}
             suffix={<div className="font-medium text-sm text-[#abc4ff80]">Days</div>}

@@ -12,11 +12,14 @@ import Tooltip from '@/components/Tooltip'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { minus } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { MayArray } from '@/types/generics'
+import { TokenAmount } from '@raydium-io/raydium-sdk'
 import useAppSettings from '../common/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
 import { getConcentratedPositionFee } from './getConcentratedPositionFee'
+import { getTransferFeeInfos } from './getTransferFeeInfos'
 
 type HasConfirmState = Promise<boolean>
 
@@ -25,6 +28,7 @@ type HasConfirmState = Promise<boolean>
  */
 export function openToken2022ClmmHavestConfirmPanel(payload: {
   ammPool: MayArray<HydratedConcentratedInfo | undefined>
+  // onlyMints?: (SplToken | Token | PublicKeyish)[]
   onCancel?(): void
   onConfirm?(): void
 }): {
@@ -36,7 +40,7 @@ export function openToken2022ClmmHavestConfirmPanel(payload: {
     resolve = res
     reject = rej
   })
-  const infos = getConcentratedPositionFee({ ammPool: payload.ammPool })
+  const infos = getConcentratedPositionFee({ ammPool: payload.ammPool /*  checkMints: payload.onlyMints  */ })
 
   useNotification.getState().popConfirm({
     cardWidth: 'lg',
@@ -104,12 +108,63 @@ export function openToken2022ClmmHavestConfirmPanel(payload: {
   return { hasConfirmed }
 }
 
+export function openToken2022ClmmAmountConfirmPanel(payload: {
+  amount: TokenAmount
+  onCancel?(): void
+  onConfirm?(): void
+}): {
+  hasConfirmed: HasConfirmState
+} {
+  let resolve: (value: boolean | PromiseLike<boolean>) => void
+  let reject: (reason?: any) => void
+  const hasConfirmed = new Promise<boolean>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  const feeInfo = getTransferFeeInfos({ amount: payload.amount })
+  useNotification.getState().popConfirm({
+    cardWidth: 'lg',
+    type: 'warning',
+    title: 'Confirm Token 2022',
+    description: 'balabalabala. Confirm this token before transaction.',
+    additionalContent: ({ updateConfig }) => (
+      <AsyncAwait promise={feeInfo} onFullfilled={() => updateConfig({ disableConfirmButton: false })}>
+        {(feeInfo) => (
+          <div className="space-y-2 text-left w-full">
+            <Col key={toPubString(feeInfo.amount.token.mint)} className="py-4 gap-1 items-start">
+              {/* <div className="text-lg mobile:text-base font-semibold">{feeInfo.amount.token.symbol}</div> */}
+              <div>
+                {toString(feeInfo.amount)} {feeInfo.amount.token.symbol} - {toString(feeInfo.fee)} fee ={' '}
+                {toString(minus(feeInfo.amount, feeInfo.fee))} {feeInfo.amount.token.symbol}
+              </div>
+            </Col>
+          </div>
+        )}
+      </AsyncAwait>
+    ),
+    confirmButtonIsMainButton: true,
+    disableConfirmButton: true,
+    cancelButtonText: 'Cancel',
+    confirmButtonText: 'Confirm',
+    onConfirm: () => {
+      resolve(true)
+      payload.onConfirm?.()
+    },
+    onCancel: () => {
+      resolve(false)
+      payload.onCancel?.()
+    }
+  })
+
+  return { hasConfirmed }
+}
+
 function CoinAvatarInfoItem({
   ammPool,
   position
 }: {
   ammPool: HydratedConcentratedInfo
-  position: UserPositionAccount
+  position?: UserPositionAccount
 }) {
   const isMobile = useAppSettings((s) => s.isMobile)
 
@@ -161,17 +216,19 @@ function CoinAvatarInfoItem({
         </Row>
       </AutoBox>
 
-      <Grid className="items-center text-white mobile:text-sm">
-        {toString(position.priceLower, {
-          decimalLength: maxAcceptPriceDecimal,
-          maxSignificantCount: maxSignificantCount(6)
-        })}{' '}
-        -{' '}
-        {toString(position?.priceUpper, {
-          decimalLength: maxAcceptPriceDecimal,
-          maxSignificantCount: maxSignificantCount(6)
-        })}
-      </Grid>
+      {position && (
+        <Grid className="items-center text-white mobile:text-sm">
+          {toString(position.priceLower, {
+            decimalLength: maxAcceptPriceDecimal,
+            maxSignificantCount: maxSignificantCount(6)
+          })}{' '}
+          -{' '}
+          {toString(position?.priceUpper, {
+            decimalLength: maxAcceptPriceDecimal,
+            maxSignificantCount: maxSignificantCount(6)
+          })}
+        </Grid>
+      )}
     </Row>
   )
 }

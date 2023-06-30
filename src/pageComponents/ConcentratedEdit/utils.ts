@@ -1,4 +1,4 @@
-export const MIN_DURATION = 7
+export const MIN_DURATION = 0.01
 export const MAX_DURATION = 90
 export const DAY_SECONDS = 3600 * 24
 

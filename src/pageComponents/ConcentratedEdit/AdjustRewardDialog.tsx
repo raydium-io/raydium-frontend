@@ -61,6 +61,7 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
   })
 
   const { endTime, rewardToken, perSecond, apr, rewardPerWeek, tvl } = reward || {}
+  const haveLoadData = Boolean(values.amount && values.daysExtend)
 
   const haveBalance = Boolean(rewardToken && gte(getBalance(rewardToken), values.amount))
   const rewardDecimals = rewardToken?.decimals ?? 6
@@ -125,7 +126,6 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                 farming period. Any action that will decrease the reward rate can only be done within 72 hours of
                 current farm end time, and the period must be extended by at least 7 days.
               </div>
-
               <div className="text-secondary-title text-sm mb-3">Current rewards period</div>
               <ListTable
                 list={reward ? [reward] : []}
@@ -199,7 +199,6 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                   }
                 }}
               />
-
               <div className="flex items-center text-secondary-title text-sm mt-5 mb-3">
                 Additional rewards adjustment
                 <Tooltip>
@@ -244,113 +243,115 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
                   }}
                 />
               </Row>
-
               {errMsg && <div className="text-style-color-fuchsia mb-4">{errMsg}</div>}
+              {haveLoadData && (
+                <>
+                  <div className="flex items-center text-secondary-title text-sm mb-3">
+                    Updated rewards period
+                    <Tooltip>
+                      <Icon iconClassName="ml-1" size="sm" heroIconName="question-mark-circle" />
+                      <Tooltip.Panel>
+                        <div className="max-w-[300px]">
+                          Updated rewards combines remaining current rewards and additional rewards entered above.
+                          Calculations are for the adjusted farming period time and rewards rate.
+                        </div>
+                      </Tooltip.Panel>
+                    </Tooltip>
+                  </div>
+                  <ListTable
+                    list={reward && values.amount && values.daysExtend ? [reward] : []}
+                    type={isMobile ? 'item-card' : 'list-table'}
+                    className={isMobile ? 'gap-4' : ''}
+                    getItemKey={(r) => `${r.tokenMint.toBase58()}-${r.creator.toBase58()}`}
+                    labelMapper={[
+                      {
+                        label: 'Total amount',
+                        cssGridItemWidth: '.7fr'
+                      },
+                      {
+                        label: 'Farming ends'
+                      },
+                      {
+                        label: 'Rate',
+                        cssGridItemWidth: '1fr'
+                      }
+                    ]}
+                    renderRowItem={({ label }) => {
+                      const newApr =
+                        values.amount || values.daysExtend
+                          ? toPercentString(
+                              div(
+                                mul(
+                                  mul(newPerSecond, 3600 * 24 * 365),
+                                  rewardToken ? tokenPrices[rewardToken.mint.toBase58()] : 0
+                                ),
+                                tvl
+                              )
+                            )
+                          : apr
 
-              <div className="flex items-center text-secondary-title text-sm mb-3">
-                Updated rewards period
-                <Tooltip>
-                  <Icon iconClassName="ml-1" size="sm" heroIconName="question-mark-circle" />
-                  <Tooltip.Panel>
-                    <div className="max-w-[300px]">
-                      Updated rewards combines remaining current rewards and additional rewards entered above.
-                      Calculations are for the adjusted farming period time and rewards rate.
-                    </div>
-                  </Tooltip.Panel>
-                </Tooltip>
-              </div>
-              <ListTable
-                list={reward && values.amount && values.daysExtend ? [reward] : []}
-                type={isMobile ? 'item-card' : 'list-table'}
-                className={isMobile ? 'gap-4' : ''}
-                getItemKey={(r) => `${r.tokenMint.toBase58()}-${r.creator.toBase58()}`}
-                labelMapper={[
-                  {
-                    label: 'Total amount',
-                    cssGridItemWidth: '.7fr'
-                  },
-                  {
-                    label: 'Farming ends'
-                  },
-                  {
-                    label: 'Rate',
-                    cssGridItemWidth: '1fr'
-                  }
-                ]}
-                renderRowItem={({ label }) => {
-                  const newApr =
-                    values.amount || values.daysExtend
-                      ? toPercentString(
-                          div(
-                            mul(
-                              mul(newPerSecond, 3600 * 24 * 365),
-                              rewardToken ? tokenPrices[rewardToken.mint.toBase58()] : 0
-                            ),
-                            tvl
-                          )
+                      if (label === 'Total amount') {
+                        return (
+                          <Grid className="gap-4 h-full">
+                            {perSecond ? (
+                              <Col className="grow gap-2 break-all justify-center text-xs">
+                                <div className="text-white text-base">
+                                  {formatNumber(
+                                    isDecreaseSpeed
+                                      ? plus(values.amount, mul(newPerSecond, remainSeconds)).toFixed(rewardDecimals)
+                                      : plus(values.amount, remainAmount).toFixed(rewardDecimals),
+                                    {
+                                      fractionLength: rewardDecimals
+                                    }
+                                  )}
+                                </div>
+                                <div>
+                                  {toUsdVolume(
+                                    toTotalPrice(
+                                      plus(values.amount, remainAmount).toFixed(rewardDecimals),
+                                      tokenPrices[String(rewardToken?.mint)]
+                                    )
+                                  )}
+                                </div>
+                              </Col>
+                            ) : undefined}
+                          </Grid>
                         )
-                      : apr
+                      }
 
-                  if (label === 'Total amount') {
-                    return (
-                      <Grid className="gap-4 h-full">
-                        {perSecond ? (
-                          <Col className="grow gap-2 break-all justify-center text-xs">
-                            <div className="text-white text-base">
-                              {formatNumber(
-                                isDecreaseSpeed
-                                  ? plus(values.amount, mul(newPerSecond, remainSeconds)).toFixed(rewardDecimals)
-                                  : plus(values.amount, remainAmount).toFixed(rewardDecimals),
-                                {
-                                  fractionLength: rewardDecimals
-                                }
-                              )}
-                            </div>
-                            <div>
-                              {toUsdVolume(
-                                toTotalPrice(
-                                  plus(values.amount, remainAmount).toFixed(rewardDecimals),
-                                  tokenPrices[String(rewardToken?.mint)]
-                                )
-                              )}
-                            </div>
-                          </Col>
-                        ) : undefined}
-                      </Grid>
-                    )
-                  }
+                      if (label === 'Farming ends') {
+                        return (
+                          <Grid className="h-full">
+                            {endTime ? (
+                              <Col className="justify-center gap-2 text-xs">
+                                <span className="text-white text-base">
+                                  {toUTC(offsetDateTime(endTime, { days: Number(values.daysExtend || '0') }))}
+                                </span>
+                                <span>{remainDays + Number(values.daysExtend || '0')}D in Total</span>
+                              </Col>
+                            ) : undefined}
+                          </Grid>
+                        )
+                      }
 
-                  if (label === 'Farming ends') {
-                    return (
-                      <Grid className="h-full">
-                        {endTime ? (
-                          <Col className="justify-center gap-2 text-xs">
-                            <span className="text-white text-base">
-                              {toUTC(offsetDateTime(endTime, { days: Number(values.daysExtend || '0') }))}
-                            </span>
-                            <span>{remainDays + Number(values.daysExtend || '0')}D in Total</span>
-                          </Col>
-                        ) : undefined}
-                      </Grid>
-                    )
-                  }
-
-                  if (label === 'Rate') {
-                    return (
-                      <Grid className="gap-4 h-full">
-                        <Col className="grow justify-center text-xs gap-2">
-                          <div className=" text-base">
-                            <span className="text-white">{formatNumber(newPerWeek)}&nbsp;</span>
-                            {rewardToken?.symbol}
-                            /week
-                          </div>
-                          {newApr} APR
-                        </Col>
-                      </Grid>
-                    )
-                  }
-                }}
-              />
+                      if (label === 'Rate') {
+                        return (
+                          <Grid className="gap-4 h-full">
+                            <Col className="grow justify-center text-xs gap-2">
+                              <div className=" text-base">
+                                <span className="text-white">{formatNumber(newPerWeek)}&nbsp;</span>
+                                {rewardToken?.symbol}
+                                /week
+                              </div>
+                              {newApr} APR
+                            </Col>
+                          </Grid>
+                        )
+                      }
+                    }}
+                  />
+                </>
+              )}
             </div>
             <Row className="justify-between items-center mt-10 mobile:mb-2">
               <Button
@@ -401,7 +402,11 @@ export default function AdjustRewardDialog({ defaultData, reward, chainTimeOffse
               >
                 Save
               </Button>
-              <Button type="text" className="text-sm text-[#ABC4FF] bg-cancel-bg min-w-[120px]" onClick={closeDialog}>
+              <Button
+                type="text"
+                className="text-sm text-[#ABC4FF] frosted-glass-skygray min-w-[120px]"
+                onClick={closeDialog}
+              >
                 Cancel
               </Button>
             </Row>

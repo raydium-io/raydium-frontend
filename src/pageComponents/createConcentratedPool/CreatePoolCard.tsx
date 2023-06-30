@@ -26,7 +26,7 @@ import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { trimTailingZero } from '@/functions/numberish/handleZero'
-import { div, mul } from '@/functions/numberish/operations'
+import { div, minus, mul } from '@/functions/numberish/operations'
 import parseNumberInfo from '@/functions/numberish/parseNumberInfo'
 import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
@@ -36,7 +36,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import { useSwapTwoElements } from '@/hooks/useSwapTwoElements'
 import useToggle from '@/hooks/useToggle'
 import { Numberish } from '@/types/constants'
-import { TokenAmount } from '@raydium-io/raydium-sdk'
+import { TokenAmount, ZERO } from '@raydium-io/raydium-sdk'
 import Decimal from 'decimal.js'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
@@ -75,7 +75,12 @@ export function CreatePoolCard() {
   const coin2Amount = useConcentrated((s) => s.coin2Amount)
   const coin1AmountFee = useConcentrated((s) => s.coin1AmountFee)
   const coin2AmountFee = useConcentrated((s) => s.coin2AmountFee)
+  const liquidity = useConcentrated((s) => s.liquidity)
+
   const focusSide = useConcentrated((s) => s.focusSide)
+  const isFocus1 = focusSide === 'coin1'
+  const inputAmount = isFocus1 ? coin1Amount : coin2Amount
+
   const priceLower = useConcentrated((s) => s.priceLower)
   const priceUpper = useConcentrated((s) => s.priceUpper)
   const ammPoolStartTime = useConcentrated((s) => s.ammPoolStartTime)
@@ -121,7 +126,7 @@ export function CreatePoolCard() {
   )
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const isCoin1Base = isMintEqual(currentAmmPool?.state.mintA.mint, coin1)
-  const isFocus1 = focusSide === 'coin1'
+
   const tickDirection = useMemo(
     () => Math.pow(-1, isCoin1Base ? (isFocus1 ? 0 : 1) : isFocus1 ? 1 : 0),
     [isCoin1Base, isFocus1]
@@ -352,6 +357,7 @@ export function CreatePoolCard() {
       }
     })
   }
+
   return (
     <Card
       className={twMerge(
@@ -470,6 +476,9 @@ export function CreatePoolCard() {
                     useConcentrated.setState({ coin1Amount: amount, userCursorSide: 'coin1' })
                   }}
                   token={coin1}
+                  onCalculateTransferFee={(fee) => {
+                    useConcentrated.setState({ coin1AmountFee: fee })
+                  }}
                 />
               ) : (
                 <EmptyCoinInput />
@@ -491,6 +500,9 @@ export function CreatePoolCard() {
                     useConcentrated.setState({ coin2Amount: amount, userCursorSide: 'coin2' })
                   }}
                   token={coin2}
+                  onCalculateTransferFee={(fee) => {
+                    useConcentrated.setState({ coin2AmountFee: fee })
+                  }}
                 />
               ) : (
                 <EmptyCoinInput />
@@ -560,6 +572,10 @@ export function CreatePoolCard() {
               {
                 should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
                 fallbackProps: { children: 'Input Token Amount' }
+              },
+              {
+                not: isMeaningfulNumber(inputAmount) && liquidity && liquidity.eq(ZERO), // this is Rudy's logic, don't know why
+                fallbackProps: { children: 'Token Amount Fail to Create Pool' }
               },
               {
                 should: haveEnoughCoin1,

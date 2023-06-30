@@ -1,6 +1,6 @@
 import { createRef, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-import { Fraction } from '@raydium-io/raydium-sdk'
+import { Fraction, ZERO } from '@raydium-io/raydium-sdk'
 
 import Decimal from 'decimal.js'
 import { twMerge } from 'tailwind-merge'
@@ -148,6 +148,9 @@ function ConcentratedCard() {
   const coin2Amount = useConcentrated((s) => s.coin2Amount)
   const coin2AmountFee = useConcentrated((s) => s.coin2AmountFee)
   const focusSide = useConcentrated((s) => s.focusSide)
+  const isFocus1 = focusSide === 'coin1'
+  const inputAmount = isFocus1 ? coin1Amount : coin2Amount
+  const liquidity = useConcentrated((s) => s.liquidity)
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const hydratedAmmPools = useConcentrated((s) => s.hydratedAmmPools)
   const priceUpper = useConcentrated((s) => s.priceUpper)
@@ -186,7 +189,6 @@ function ConcentratedCard() {
   const tickRef = useRef<{ lower?: number; upper?: number }>({ lower: undefined, upper: undefined })
   const decimals = coin1 || coin2 ? Math.max(coin1?.decimals ?? 0, coin2?.decimals ?? 0) : 6
   const isCoin1Base = isMintEqual(currentAmmPool?.state.mintA.mint, coin1)
-  const isFocus1 = focusSide === 'coin1'
   const isPairPoolDirectionEq = (isFocus1 && isCoin1Base) || (!isCoin1Base && !isFocus1)
   const points = useMemo(() => {
     const formatPoints = chartPoints ? toXYChartFormat(chartPoints) : undefined
@@ -580,6 +582,10 @@ function ConcentratedCard() {
               {
                 should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
                 fallbackProps: { children: 'Enter an amount' }
+              },
+              {
+                not: isMeaningfulNumber(inputAmount) && liquidity && liquidity.eq(ZERO), // this is Rudy's logic, don't know why
+                fallbackProps: { children: 'Token Amount Fail to Create Position' }
               },
               {
                 should: haveEnoughCoin1,

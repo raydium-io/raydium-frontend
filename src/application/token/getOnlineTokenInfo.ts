@@ -24,6 +24,10 @@ export async function verifyToken(
     canWhiteList?: boolean
   }
 ): Promise<TokenMintInfo | false | undefined> {
+  const { tokenListSettings } = useToken.getState()
+  const { logError } = useNotification.getState()
+  const isOfficialToken = tokenListSettings['Raydium Token List'].mints?.has(toPubString(mintish))
+
   if (options?.canWhiteList && verifyWhiteList.find((i) => i.mint === toPubString(mintish)))
     return verifyWhiteList.find((i) => i.mint === toPubString(mintish))! // Temporary force
   const { connection } = useConnection.getState() // TEST devnet
@@ -32,13 +36,7 @@ export async function verifyToken(
   if (!info) return false
   const { decimals, freezeAuthority } = info
 
-  const { tokenListSettings } = useToken.getState()
-  const { logError } = useNotification.getState()
-  const isAPIToken =
-    tokenListSettings['Raydium Token List'].mints?.has(toPubString(mintish)) ||
-    tokenListSettings['Solana Token List'].mints?.has(toPubString(mintish))
-
-  if (decimals != null && !isAPIToken && Boolean(freezeAuthority)) {
+  if (decimals != null && !isOfficialToken && Boolean(freezeAuthority)) {
     if (!options?.noLog) {
       logError('Token Verify Error', 'Token freeze authority enabled')
     }
