@@ -6,7 +6,7 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
-import { AmmV3, GetTransferAmountFee, getTransferAmountFee } from '@raydium-io/raydium-sdk'
+import { AmmV3, GetTransferAmountFee, ONE, SqrtPriceMath, getTransferAmountFee } from '@raydium-io/raydium-sdk'
 import { EpochInfo } from '@solana/web3.js'
 import BN from 'bn.js'
 import { useCallback, useEffect, useMemo } from 'react'
@@ -73,6 +73,19 @@ export default function useConcentratedAmountCalculator() {
       getEpochInfo()
     ])
 
+    const params = {
+      poolInfo: currentAmmPool.state,
+      slippage: 0.001,
+      inputA: isPairPoolDirectionEq,
+      tickUpper: Math.max(priceUpperTick, priceLowerTick),
+      tickLower: Math.min(priceLowerTick, priceUpperTick),
+      amount: inputAmountBN.add(ONE),
+      add: !isRemoveDialogOpen,
+      epochInfo,
+      token2022Infos,
+      amountHasFee: true
+    }
+
     const { liquidity, amountSlippageA, amountSlippageB } =
       isRemoveDialogOpen &&
       currentAmmPool &&
@@ -91,18 +104,7 @@ export default function useConcentratedAmountCalculator() {
             isFocus1,
             epochInfo
           })
-        : AmmV3.getLiquidityAmountOutFromAmountIn({
-            poolInfo: currentAmmPool.state,
-            slippage: 0,
-            inputA: isPairPoolDirectionEq,
-            tickUpper: Math.max(priceUpperTick, priceLowerTick),
-            tickLower: Math.min(priceLowerTick, priceUpperTick),
-            amount: inputAmountBN,
-            add: !isRemoveDialogOpen, // SDK flag for math round direction
-            epochInfo,
-            token2022Infos,
-            amountHasFee: true
-          })
+        : AmmV3.getLiquidityAmountOutFromAmountIn(params)
 
     const coin1SlippageResult = isCoin1Base ? amountSlippageA : amountSlippageB
     const coin2SlippageResult = isCoin1Base ? amountSlippageB : amountSlippageA
