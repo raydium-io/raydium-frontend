@@ -1,4 +1,5 @@
 import { createRef, ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+
 import { twMerge } from 'tailwind-merge'
 
 import useAppSettings from '@/application/common/useAppSettings'
@@ -16,13 +17,8 @@ import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import { verifyToken } from '@/application/token/getOnlineTokenInfo'
 import {
-  isQuantumSOLVersionSOL,
-  isQuantumSOLVersionWSOL,
-  QuantumSOLVersionSOL,
-  QuantumSOLVersionWSOL,
-  SOL_BASE_BALANCE,
-  SOLDecimals,
-  toUITokenAmount
+  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOL_BASE_BALANCE,
+  SOLDecimals, toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -66,6 +62,7 @@ import { useRecordedEffect } from '@/hooks/useRecordedEffect'
 import useToggle from '@/hooks/useToggle'
 import TokenSelectorDialog from '@/pageComponents/dialogs/TokenSelectorDialog'
 import { HexAddress, Numberish } from '@/types/constants'
+
 import { useToken2022SwapConfirmPanel } from '../application/token/useToken2022SwapConfirmPanel'
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
 
@@ -255,7 +252,7 @@ function SwapCard() {
   const tokensLoaded = Object.keys(tokens).length > 2 // loading tokens ...
 
   const poolsJson = useLiquidity((s) => s.jsonInfos)
-  const poolsLoaded = poolsJson.length > 0 // loading pools ...
+  const poolsLoaded = true // poolsJson.length > 0 // loading pools ... // TODO: will fix
 
   // -------- pool ready time --------
   const swapable = useSwap((s) => s.swapable) // Pool not ready (not open yet )

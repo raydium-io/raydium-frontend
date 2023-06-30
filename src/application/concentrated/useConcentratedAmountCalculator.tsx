@@ -1,4 +1,14 @@
+import { useCallback, useEffect, useMemo } from 'react'
+
+import {
+  AmmV3, BNDivCeil, getTransferAmountFee, GetTransferAmountFee, LiquidityMath, ONE, SqrtPriceMath
+} from '@raydium-io/raydium-sdk'
+import { EpochInfo } from '@solana/web3.js'
+
+import BN from 'bn.js'
+
 import useAppSettings from '@/application/common/useAppSettings'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
@@ -6,12 +16,10 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
-import { AmmV3, GetTransferAmountFee, ONE, SqrtPriceMath, getTransferAmountFee } from '@raydium-io/raydium-sdk'
-import { EpochInfo } from '@solana/web3.js'
-import BN from 'bn.js'
-import { useCallback, useEffect, useMemo } from 'react'
+
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
+
 import useConcentrated from './useConcentrated'
 
 /**
@@ -75,11 +83,11 @@ export default function useConcentratedAmountCalculator() {
 
     const params = {
       poolInfo: currentAmmPool.state,
-      slippage: 0.001,
+      slippage: 0,
       inputA: isPairPoolDirectionEq,
       tickUpper: Math.max(priceUpperTick, priceLowerTick),
       tickLower: Math.min(priceLowerTick, priceUpperTick),
-      amount: inputAmountBN.add(ONE),
+      amount: inputAmountBN,
       add: !isRemoveDialogOpen,
       epochInfo,
       token2022Infos,

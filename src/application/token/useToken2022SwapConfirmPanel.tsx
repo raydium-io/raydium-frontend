@@ -1,3 +1,5 @@
+import { useEffect, useMemo, useState } from 'react'
+
 import useNotification from '@/application/notification/useNotification'
 import { isToken2022 } from '@/application/token/isToken2022'
 import { SplToken } from '@/application/token/type'
@@ -10,8 +12,9 @@ import { capitalize } from '@/functions/changeCase'
 import toPubString from '@/functions/format/toMintString'
 import { toString } from '@/functions/numberish/toString'
 import { MayArray } from '@/types/generics'
-import { useEffect, useMemo, useState } from 'react'
+
 import { AsyncAwait } from '../../components/AsyncAwait'
+
 import { getOnlineTokenInfo } from './getOnlineTokenInfo'
 
 /**
@@ -91,7 +94,9 @@ export function useToken2022SwapConfirmPanel(payload: {
                     </Row>
                     <Row className="table-row">
                       <div className="table-cell px-2 font-medium">Transfer Fee Max:</div>
-                      <div className="table-cell px-2">{toString(tokenMintInfo.maximumFee)}</div>
+                      <div className="table-cell px-2">
+                        {toString(tokenMintInfo.maximumFee, { decimalLength: tokenMintInfo.decimals })}
+                      </div>
                     </Row>
                   </Col>
                 )}

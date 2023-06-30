@@ -1,16 +1,19 @@
+import { AmmV3 } from '@raydium-io/raydium-sdk'
+
 import txHandler from '@/application/txTools/handleTx'
 import useWallet from '@/application/wallet/useWallet'
 import assert from '@/functions/assert'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
-import { AmmV3 } from '@raydium-io/raydium-sdk'
+
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 import { isToken2022 } from '../token/isToken2022'
 import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
+
 import { HydratedConcentratedInfo } from './type'
 import useConcentrated from './useConcentrated'
 
@@ -52,9 +55,8 @@ export default async function txCreateConcentratedPosotion({
       txHistoryInfo: {
         title: 'Position Created',
         forceErrorTitle: 'Error creating position',
-        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
-          coin2?.symbol ?? '--'
-        }`
+        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${coin2?.symbol ?? '--'
+          }`
       }
     })
   })
@@ -92,6 +94,11 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
   assert(liquidity, 'not set liquidity')
   const isSol = isQuantumSOLVersionSOL(coin1) || isQuantumSOLVersionSOL(coin2)
 
+  const coin1IsMintA = currentAmmPool.state.mintA.mint.equals(coin1.mint)
+
+  const _coin1Amount = toBN(coin1SlippageAmount ?? coin1Amount, coin1.decimals)
+  const _coin2Amount = toBN(coin2SlippageAmount ?? coin2Amount, coin2.decimals)
+
   const { innerTransactions, address } = await AmmV3.makeOpenPositionInstructionSimple({
     connection: connection,
     liquidity,
@@ -104,8 +111,8 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
     },
     tickLower: Math.min(priceLowerTick, priceUpperTick),
     tickUpper: Math.max(priceLowerTick, priceUpperTick),
-    amountSlippageA: toBN(coin1SlippageAmount ?? coin1Amount, coin1.decimals),
-    amountSlippageB: toBN(coin2SlippageAmount ?? coin2Amount, coin2.decimals),
+    amountSlippageA: coin1IsMintA ? _coin1Amount : _coin2Amount,
+    amountSlippageB: !coin1IsMintA ? _coin1Amount : _coin2Amount,
     slippage: 0.015,
     computeBudgetConfig: await getComputeBudgetConfig(),
     checkCreateATAOwner: true
