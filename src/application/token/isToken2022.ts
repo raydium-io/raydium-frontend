@@ -21,8 +21,7 @@ function tokenIsToken2022(token: SplToken | Token | PublicKeyish | HydratedToken
   }
   const mint = toPubString(isPubKeyish(token) ? token : token.mint)
   const { tokens, userAddedTokens } = useToken.getState()
-  const allTokens = { ...tokens, ...userAddedTokens }
-  return allTokens[mint]?.extensions?.version === 'TOKEN2022'
+  return (tokens[mint] ?? userAddedTokens[mint])?.extensions?.version === 'TOKEN2022'
 }
 
 /** get token programId to token or token2022 */
