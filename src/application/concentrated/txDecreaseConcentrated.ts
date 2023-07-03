@@ -96,13 +96,6 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
     } else {
       assert(coin1AmountMin, 'not set coin1AmountMin')
       assert(coin2AmountMin, 'not set coin2AmountMin')
-      // console.log(
-      //   'to: ',
-      //   toHumanReadable({
-      //     amount1: minus(coin1AmountMin, coin1AmountFee),
-      //     amount2: minus(coin2AmountMin, coin2AmountFee)
-      //   })
-      // )
       const { innerTransactions } = await AmmV3.makeDecreaseLiquidityInstructionSimple({
         connection: connection,
         liquidity,

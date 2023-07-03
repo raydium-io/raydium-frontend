@@ -1,14 +1,9 @@
+import { AmmV3, GetTransferAmountFee, getTransferAmountFee } from '@raydium-io/raydium-sdk'
+import { EpochInfo } from '@solana/web3.js'
+import BN from 'bn.js'
 import { useCallback, useEffect, useMemo } from 'react'
 
-import {
-  AmmV3, BNDivCeil, getTransferAmountFee, GetTransferAmountFee, LiquidityMath, ONE, SqrtPriceMath
-} from '@raydium-io/raydium-sdk'
-import { EpochInfo } from '@solana/web3.js'
-
-import BN from 'bn.js'
-
 import useAppSettings from '@/application/common/useAppSettings'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isMintEqual } from '@/functions/judgers/areEqual'
@@ -16,11 +11,10 @@ import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { div, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import { toString } from '@/functions/numberish/toString'
-
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
-
 import useConcentrated from './useConcentrated'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 /**
  * will auto fresh  concentrated's coin1Amount and coin2Amount with concentrated's jsonInfos and coin1 and coin2
@@ -71,6 +65,8 @@ export default function useConcentratedAmountCalculator() {
     const isPairPoolDirectionEq = (isFocus1 && isCoin1Base) || (!isCoin1Base && !isFocus1)
 
     const inputAmount = isFocus1 ? coin1Amount : coin2Amount
+    const inputMint = toPubString(isFocus1 ? coin1.mint : coin2.mint)
+    const outputMint = toPubString(isFocus1 ? coin2.mint : coin1.mint)
     const hasInput = inputAmount !== undefined && inputAmount !== ''
     const inputAmountBN = isFocus1
       ? toBN(mul(coin1Amount ?? 0, 10 ** coin1.decimals))
@@ -105,8 +101,8 @@ export default function useConcentratedAmountCalculator() {
         ? await getRemoveLiquidityAmountOutFromAmountIn({
             inputAmountBN,
             maxLiquidity: position.liquidity,
-            mintA: toPubString(currentAmmPool.base?.mint),
-            mintB: toPubString(currentAmmPool.quote?.mint),
+            inputMint,
+            outputMint,
             amountA: toBN(position.amountA),
             amountB: toBN(position.amountB),
             isFocus1,
@@ -165,8 +161,8 @@ export default function useConcentratedAmountCalculator() {
 async function getRemoveLiquidityAmountOutFromAmountIn({
   inputAmountBN,
   maxLiquidity,
-  mintA,
-  mintB,
+  inputMint,
+  outputMint,
   amountA,
   amountB,
   epochInfo,
@@ -174,8 +170,8 @@ async function getRemoveLiquidityAmountOutFromAmountIn({
 }: {
   inputAmountBN: BN
   maxLiquidity: BN
-  mintA: string
-  mintB: string
+  inputMint: string
+  outputMint: string
   amountA: BN
   amountB: BN
   epochInfo: EpochInfo
@@ -191,14 +187,11 @@ async function getRemoveLiquidityAmountOutFromAmountIn({
   const inputRatio = div(inputAmountBN, maxDenominator)
   const outputAmount = toBN(isFocus1 ? mul(amountB, inputRatio) : mul(amountA, inputRatio))
 
-  const inputTokenMint = 'todo'
-  const outputTokenMint = 'todo 2'
-
   const mintInfos = await getMultiMintInfos({
-    mints: [inputTokenMint, outputTokenMint]
+    mints: [inputMint, outputMint]
   })
-  const inputMintInfo = mintInfos[inputTokenMint]
-  const outputMintInfo = mintInfos[outputTokenMint]
+  const inputMintInfo = mintInfos[inputMint]
+  const outputMintInfo = mintInfos[outputMint]
   return {
     liquidity: toBN(mul(maxLiquidity, inputRatio)),
     amountA: getTransferAmountFee(

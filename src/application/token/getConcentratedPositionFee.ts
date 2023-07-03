@@ -3,13 +3,13 @@ import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
 
 import { shakeUndifindedItem, unifyItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
+import { gte } from '@/functions/numberish/compare'
 import { shakeMapEmptyValue } from '@/functions/shakeMapEmptyValue'
 import { MayArray } from '@/types/constants'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
 import { ITransferAmountFee, getTransferFeeInfosSync } from './getTransferFeeInfos'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
 
 type FeeInfo = {
   type: string
@@ -95,7 +95,7 @@ export async function getConcentratedPositionFee({
                   }
                 })
               ]
-              return [position, feeInfos.filter((i) => isMeaningfulNumber(i.feeInfo?.fee))]
+              return [position, feeInfos.filter((i) => gte(i.feeInfo?.fee, 0))]
             })
           )
         )
