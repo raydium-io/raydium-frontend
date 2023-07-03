@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-
 import { AmmV3, Token } from '@raydium-io/raydium-sdk'
-
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 
+import { getEpochInfo } from '@/application/clmmMigration/getEpochInfo'
+import { getMultiMintInfos } from '@/application/clmmMigration/getMultiMintInfos'
 import useAppSettings from '@/application/common/useAppSettings'
 import txDecreaseConcentrated, { MANUAL_ADJUST } from '@/application/concentrated/txDecreaseConcentrated'
 import useConcentrated from '@/application/concentrated/useConcentrated'
@@ -24,14 +24,11 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdVolume from '@/functions/format/toUsdVolume'
 import { isMintEqual } from '@/functions/judgers/areEqual'
 import { gt } from '@/functions/numberish/compare'
-import { mul } from '@/functions/numberish/operations'
+import { minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
 import useInit from '@/hooks/useInit'
 import { Numberish } from '@/types/constants'
-
-import { getEpochInfo } from '@/application/clmmMigration/getEpochInfo'
-import { getMultiMintInfos } from '@/application/clmmMigration/getMultiMintInfos'
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
@@ -125,8 +122,14 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       epochInfo
     })
 
-    const coin1Amount = toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.amount)
-    const coin2Amount = toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.amount)
+    const coin1Amount = toTokenAmount(
+      currentAmmPool.base!,
+      minus(amountFromLiquidity.amountSlippageA.amount, amountFromLiquidity.amountSlippageA.fee ?? 0)
+    )
+    const coin2Amount = toTokenAmount(
+      currentAmmPool.quote!,
+      minus(amountFromLiquidity.amountSlippageB.amount, amountFromLiquidity.amountSlippageB.fee ?? 0)
+    )
     const coin1AmountFee = toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.fee)
     const coin2AmountFee = toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.fee)
     setMaxInfo({

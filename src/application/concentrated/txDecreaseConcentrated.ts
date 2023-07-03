@@ -9,20 +9,19 @@ import { toString } from '@/functions/numberish/toString'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
-import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
-import useConcentrated from './useConcentrated'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { minus } from '@/functions/numberish/operations'
 import useNotification from '../notification/useNotification'
 import { isToken2022 } from '../token/isToken2022'
 import { openToken2022ClmmAmmPoolPositionConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
-import { minus } from '@/functions/numberish/operations'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
+import useConcentrated from './useConcentrated'
 
 export const MANUAL_ADJUST = 0.985 // ask Rudy for detail
 
 export default async function txDecreaseConcentrated(options?: { closePosition?: boolean }) {
-  const { coin1, coin2, liquidity, targetUserPositionAccount, currentAmmPool, coin1AmountMin, coin2AmountMin } =
+  const { coin1, coin2, liquidity, targetUserPositionAccount, currentAmmPool, coin1Amount, coin2Amount } =
     useConcentrated.getState()
   // check token 2022
   const needConfirm = [
@@ -36,8 +35,8 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
       ammPool: currentAmmPool,
       position: targetUserPositionAccount,
       additionalAmount: shakeUndifindedItem([
-        toTokenAmount(coin1, coin1AmountMin, { alreadyDecimaled: true }),
-        toTokenAmount(coin2, coin2AmountMin, { alreadyDecimaled: true })
+        toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }),
+        toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })
       ])
     })
     userHasConfirmed = await hasConfirmed

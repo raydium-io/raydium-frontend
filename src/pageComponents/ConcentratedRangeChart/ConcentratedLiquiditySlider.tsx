@@ -1,7 +1,8 @@
+import { AmmV3 } from '@raydium-io/raydium-sdk'
 import { useCallback, useMemo } from 'react'
 
-import { AmmV3 } from '@raydium-io/raydium-sdk'
-
+import { getEpochInfo } from '@/application/clmmMigration/getEpochInfo'
+import { getMultiMintInfos } from '@/application/clmmMigration/getMultiMintInfos'
 import useConcentrated from '@/application/concentrated/useConcentrated'
 import RangeSliderBox from '@/components/RangeSliderBox'
 import assert from '@/functions/assert'
@@ -9,13 +10,9 @@ import { throttle } from '@/functions/debounce'
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { isArray } from '@/functions/judgers/dateType'
-import { div, mul } from '@/functions/numberish/operations'
+import { div, minus, mul } from '@/functions/numberish/operations'
 import toBN from '@/functions/numberish/toBN'
 import toFraction from '@/functions/numberish/toFraction'
-import { toString } from '@/functions/numberish/toString'
-import useConnection from '@/application/connection/useConnection'
-import { getMultiMintInfos } from '@/application/clmmMigration/getMultiMintInfos'
-import { getEpochInfo } from '@/application/clmmMigration/getEpochInfo'
 
 export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?: boolean }) {
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
@@ -62,8 +59,14 @@ export default function ConcentratedLiquiditySlider({ isAdd = false }: { isAdd?:
       })
 
       useConcentrated.setState({
-        coin1Amount: toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.amount),
-        coin2Amount: toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.amount),
+        coin1Amount: toTokenAmount(
+          currentAmmPool.base!,
+          minus(amountFromLiquidity.amountSlippageA.amount, amountFromLiquidity.amountSlippageA.fee ?? 0)
+        ),
+        coin2Amount: toTokenAmount(
+          currentAmmPool.quote!,
+          minus(amountFromLiquidity.amountSlippageB.amount, amountFromLiquidity.amountSlippageB.fee ?? 0)
+        ),
         coin1AmountFee: toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.fee),
         coin2AmountFee: toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.fee),
         coin1ExpirationTime: amountFromLiquidity.amountSlippageA.expirationTime,
