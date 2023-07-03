@@ -17,8 +17,13 @@ import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
 import { verifyToken } from '@/application/token/getOnlineTokenInfo'
 import {
-  isQuantumSOLVersionSOL, isQuantumSOLVersionWSOL, QuantumSOLVersionSOL, QuantumSOLVersionWSOL, SOL_BASE_BALANCE,
-  SOLDecimals, toUITokenAmount
+  isQuantumSOLVersionSOL,
+  isQuantumSOLVersionWSOL,
+  QuantumSOLVersionSOL,
+  QuantumSOLVersionWSOL,
+  SOL_BASE_BALANCE,
+  SOLDecimals,
+  toUITokenAmount
 } from '@/application/token/quantumSOL'
 import { SplToken } from '@/application/token/type'
 import useToken, { RAYDIUM_MAINNET_TOKEN_LIST_NAME } from '@/application/token/useToken'
@@ -65,6 +70,7 @@ import { HexAddress, Numberish } from '@/types/constants'
 
 import { useToken2022SwapConfirmPanel } from '../application/token/useToken2022SwapConfirmPanel'
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -972,19 +978,19 @@ function SwapCardInfo({
         fieldValueTextColor={isDangerousPrice ? '#DA2EEF' : isWarningPrice ? '#D8CB39' : '#39D0D8'}
         tooltipContent="The difference between the market price and estimated price due to trade size"
       />
-      {gt(transferFeeUpCoin, 0) && (
+      {gte(transferFeeUpCoin, 0) && (
         <SwapCardItem
           fieldName={`Transaction Fee (${upCoin?.symbol ?? '--'})`}
           fieldValue={`${toString(transferFeeUpCoin)} ${upCoin?.symbol ?? '--'}`}
         />
       )}
-      {gt(transferFeeRouteToken, 0) && (
+      {gte(transferFeeRouteToken, 0) && (
         <SwapCardItem
           fieldName={`Transaction Fee (${routeToken?.symbol ?? '--'})`}
           fieldValue={`${toString(transferFeeRouteToken)} ${routeToken?.symbol ?? '--'}`}
         />
       )}
-      {gt(transferFeeDownCoin, 0) && (
+      {gte(transferFeeDownCoin, 0) && (
         <SwapCardItem
           fieldName={`Transaction Fee (${downCoin?.symbol ?? '--'})`}
           fieldValue={`${toString(transferFeeDownCoin)} ${downCoin?.symbol ?? '--'}`}
