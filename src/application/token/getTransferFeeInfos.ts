@@ -1,11 +1,12 @@
 import toPubString from '@/functions/format/toMintString'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
+import { isArray } from '@/functions/judgers/dateType'
+import { minus } from '@/functions/numberish/operations'
 import { ReturnTypeFetchMultipleMintInfos, TokenAmount, getTransferAmountFee } from '@raydium-io/raydium-sdk'
+import { EpochInfo } from '@solana/web3.js'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
-import { minus } from '@/functions/numberish/operations'
-import { EpochInfo } from '@solana/web3.js'
-import { isArray } from '@/functions/judgers/dateType'
+import { isToken2022 } from './isToken2022'
 
 export type ITransferAmountFee = {
   amount: TokenAmount
@@ -28,9 +29,15 @@ export async function getTransferFeeInfos<T extends TokenAmount | TokenAmount[]>
   fetchedEpochInfo?: Promise<EpochInfo> | EpochInfo
   /** provied for faster fetch */
   fetchedMints?: Promise<ReturnTypeFetchMultipleMintInfos> | ReturnTypeFetchMultipleMintInfos
-}): Promise<T extends any[] ? ITransferAmountFee[] : ITransferAmountFee> {
+}): Promise<(T extends any[] ? ITransferAmountFee[] : ITransferAmountFee) | undefined> {
   const [epochInfo, mintInfos] = await Promise.all([fetchedEpochInfo, fetchedMints])
-  return getTransferFeeInfosSync({ amount, addFee, mintInfos, epochInfo })
+  if (isArray(amount)) {
+    const innerAmount = amount.filter((i) => isToken2022(i.token))
+    return getTransferFeeInfosSync({ amount: innerAmount, addFee, mintInfos, epochInfo }) as any
+  } else {
+    if (!isToken2022(amount.token)) return undefined
+    return getTransferFeeInfosSync({ amount, addFee, mintInfos, epochInfo })
+  }
 }
 
 export function getTransferFeeInfosSync<T extends TokenAmount | TokenAmount[]>({

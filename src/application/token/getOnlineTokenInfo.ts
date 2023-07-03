@@ -53,6 +53,7 @@ type TokenMintInfo = {
   transferFeeBasisPoints?: number
   maximumFee?: Fraction
 }
+
 /**
  * need connection
  */

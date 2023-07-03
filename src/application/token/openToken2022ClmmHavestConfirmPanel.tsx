@@ -12,19 +12,18 @@ import Tooltip from '@/components/Tooltip'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
+import { isToken } from '@/functions/judgers/dateType'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { minus } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
+import { Numberish } from '@/types/constants'
 import { MayArray } from '@/types/generics'
 import { Token, TokenAmount } from '@raydium-io/raydium-sdk'
 import useAppSettings from '../common/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
 import { getConcentratedPositionFee } from './getConcentratedPositionFee'
 import { getTransferFeeInfos } from './getTransferFeeInfos'
-import { Numberish } from '@/types/constants'
 import { SplToken } from './type'
-import { isToken } from '@/functions/judgers/dateType'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 type HasConfirmState = Promise<boolean>
 
@@ -53,11 +52,12 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
     resolve = res
     reject = rej
   })
-  const infos = getConcentratedPositionFee({ ammPool: ammPool /*  checkMints: onlyMints  */ })
-  const amounts = inputPosition ? shakeUndifindedItem([additionalAmount].flat()) : undefined
 
-  const feeInfo = amounts?.length ? getTransferFeeInfos({ amount: amounts }) : undefined
-  const combinedPromise = Promise.all([infos, feeInfo])
+  const infos = getConcentratedPositionFee({ ammPool: ammPool /*  checkMints: onlyMints  */ }).then((s) => s)
+  const amount = inputPosition ? shakeUndifindedItem([additionalAmount].flat()) : undefined
+  const amountInfo = amount?.length ? getTransferFeeInfos({ amount }).then((a) => a) : undefined
+  const combinedPromise = Promise.all([infos, amountInfo])
+
   useNotification.getState().popConfirm({
     cardWidth: 'lg',
     type: 'warning',
@@ -68,79 +68,87 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
         <AsyncAwait
           promise={combinedPromise}
           fallback="loading..."
-          onFullfilled={([solved]) => {
-            updateConfig({ disableConfirmButton: false, disableAdditionalContent: solved.size === 0 })
+          onFullfilled={([infos, amountFeeInfos]) => {
+            updateConfig({
+              disableConfirmButton: false,
+              disableAdditionalContent: infos.size === 0 && amountFeeInfos?.length === 0
+            })
           }}
         >
           {([infos, amountFeeInfos]) => (
             <Col className="space-y-4 max-h-[50vh] overflow-auto">
+              {/* amm pool info */}
               {Array.from(infos).map(([pool, positionMap]) => (
-                <div key={toPubString(pool.id)} className="flex items-center justify-between">
+                <div key={toPubString(pool.id)} className="flex items-center justify-between overflow-auto">
                   <div className="text-sm w-full">
                     {Array.from(positionMap).map(([position, feeInfos]) => {
-                      const positionCanSee = inputPosition ? [inputPosition].flat().includes(position) : true
-                      if (!positionCanSee) return undefined
-
+                      const positionCanSee = inputPosition
+                        ? [inputPosition]
+                            .flat()
+                            .find((p) => p && toPubString(p.nftMint) === toPubString(position.nftMint))
+                        : true
                       return (
-                        <div key={toPubString(position.nftMint)} className="py-2">
-                          {/* ammPool name */}
-                          <div className="py-2">
-                            <CoinAvatarInfoItem ammPool={pool} position={position} />
-                          </div>
+                        positionCanSee && (
+                          <div key={toPubString(position.nftMint)} className="py-2">
+                            {/* ammPool name */}
+                            <div className="py-2">
+                              <CoinAvatarInfoItem ammPool={pool} position={position} />
+                            </div>
 
-                          {/* position info */}
-                          <div className="flex-grow px-6 border-1.5 border-[rgba(171,196,255,.5)] rounded-xl">
-                            {feeInfos.map(({ type, feeInfo }, idx) =>
-                              feeInfo && isMeaningfulNumber(feeInfo?.amount) ? (
-                                <Col key={type + idx} className="py-4 gap-1 items-center overflow-auto">
-                                  <div className="text-lg mobile:text-base font-semibold">
-                                    {feeInfo.amount.token.symbol}
-                                  </div>
-                                  <Row className="items-center gap-2">
-                                    <FormularItem value={toString(feeInfo.amount)} unit={feeInfo.amount.token} />
-                                    <FormularOperator operator="-" />
-                                    <FormularItem value={toString(feeInfo.fee)} unit={feeInfo.fee?.token} isFee />
-                                    <FormularOperator operator="=" />
-                                    <FormularItem
-                                      value={toString(minus(feeInfo.amount, feeInfo.fee), {
-                                        decimalLength: feeInfo.amount.token.decimals
-                                      })}
-                                      unit={feeInfo.amount.token}
-                                    />
-                                  </Row>
-                                </Col>
-                              ) : undefined
-                            )}
+                            {/* position info */}
+                            <div className="flex-grow px-6 border-1.5 border-[rgba(171,196,255,.5)] rounded-xl">
+                              {feeInfos.map(({ type, feeInfo }, idx) =>
+                                feeInfo && isMeaningfulNumber(feeInfo?.amount) ? (
+                                  <Col key={type + idx} className="py-4 gap-1 items-center">
+                                    <div className="text-lg mobile:text-base font-semibold">
+                                      {feeInfo.amount.token.symbol}
+                                    </div>
+                                    <Row className="items-center gap-2 flex-wrap">
+                                      <FormularItem value={toString(feeInfo.amount)} unit={feeInfo.amount.token} />
+                                      <FormularOperator operator="-" />
+                                      <FormularItem value={toString(feeInfo.fee)} unit={feeInfo.fee?.token} isFee />
+                                      <FormularOperator operator="=" />
+                                      <FormularItem
+                                        value={toString(minus(feeInfo.amount, feeInfo.fee), {
+                                          decimalLength: feeInfo.amount.token.decimals
+                                        })}
+                                        unit={feeInfo.amount.token}
+                                      />
+                                    </Row>
+                                  </Col>
+                                ) : undefined
+                              )}
+                            </div>
                           </div>
-                        </div>
+                        )
                       )
                     })}
-
-                    {/* additional amount */}
-                    {amountFeeInfos && (
-                      <div className="flex-grow px-6 border-1.5 border-[rgba(171,196,255,.5)] rounded-xl">
-                        {amountFeeInfos.map((info) => (
-                          <Col key={toPubString(info.amount.token.mint)} className="py-4 gap-1 items-center">
-                            <div className="text-lg mobile:text-base font-semibold">{info.amount.token.symbol}</div>
-                            <Row className="items-center  gap-2">
-                              <FormularItem value={toString(info.amount)} unit={info.amount.token} />
-                              <FormularOperator operator="-" />
-                              <FormularItem value={toString(info.fee)} unit={info.fee?.token} isFee />
-                              <FormularOperator operator="=" />
-                              <FormularItem
-                                value={toString(minus(info.amount, info.fee), {
-                                  decimalLength: info.amount.token.decimals
-                                })}
-                                unit={info.amount.token}
-                              />
-                            </Row>
-                          </Col>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
               ))}
+
+              {/* additional amount */}
+              {amountFeeInfos && (
+                <div className="flex-grow px-6 border-1.5 border-[rgba(171,196,255,.5)] rounded-xl">
+                  {amountFeeInfos.map((info) => (
+                    <Col key={toPubString(info.amount.token.mint)} className="py-4 gap-1 items-center">
+                      <div className="text-lg mobile:text-base font-semibold">{info.amount.token.symbol}</div>
+                      <Row className="items-center  gap-2">
+                        <FormularItem value={toString(info.amount)} unit={info.amount.token} />
+                        <FormularOperator operator="-" />
+                        <FormularItem value={toString(info.fee)} unit={info.fee?.token} isFee />
+                        <FormularOperator operator="=" />
+                        <FormularItem
+                          value={toString(minus(info.amount, info.fee), {
+                            decimalLength: info.amount.token.decimals
+                          })}
+                          unit={info.amount.token}
+                        />
+                      </Row>
+                    </Col>
+                  ))}
+                </div>
+              )}
             </Col>
           )}
         </AsyncAwait>
@@ -188,7 +196,7 @@ export function openToken2022ClmmAmountConfirmPanel(payload: {
     additionalContent: ({ updateConfig }) => (
       <AsyncAwait promise={feeInfo} onFullfilled={() => updateConfig({ disableConfirmButton: false })}>
         {(feeInfo) =>
-          feeInfo.length > 1 ? (
+          feeInfo && feeInfo.length > 1 ? (
             <div className="space-y-2 text-left w-full">
               {feeInfo.map((info) => (
                 <Col key={toPubString(info.amount.token.mint)} className="py-4 gap-1 items-center">
@@ -209,23 +217,25 @@ export function openToken2022ClmmAmountConfirmPanel(payload: {
               ))}
             </div>
           ) : (
-            <div className="space-y-2 text-left w-full">
-              <Col key={toPubString(feeInfo[0].amount.token.mint)} className="py-4 gap-1 items-center">
-                <div className="text-lg mobile:text-base font-semibold">{feeInfo[0].amount.token.symbol}</div>
-                <Row className="items-center  gap-2">
-                  <FormularItem value={toString(feeInfo[0].amount)} unit={feeInfo[0].amount.token} />
-                  <FormularOperator operator="-" />
-                  <FormularItem value={toString(feeInfo[0].fee)} unit={feeInfo[0].fee?.token} isFee />
-                  <FormularOperator operator="=" />
-                  <FormularItem
-                    value={toString(minus(feeInfo[0].amount, feeInfo[0].fee), {
-                      decimalLength: feeInfo[0].amount.token.decimals
-                    })}
-                    unit={feeInfo[0].amount.token}
-                  />
-                </Row>
-              </Col>
-            </div>
+            feeInfo && (
+              <div className="space-y-2 text-left w-full">
+                <Col key={toPubString(feeInfo[0].amount.token.mint)} className="py-4 gap-1 items-center">
+                  <div className="text-lg mobile:text-base font-semibold">{feeInfo[0].amount.token.symbol}</div>
+                  <Row className="items-center  gap-2">
+                    <FormularItem value={toString(feeInfo[0].amount)} unit={feeInfo[0].amount.token} />
+                    <FormularOperator operator="-" />
+                    <FormularItem value={toString(feeInfo[0].fee)} unit={feeInfo[0].fee?.token} isFee />
+                    <FormularOperator operator="=" />
+                    <FormularItem
+                      value={toString(minus(feeInfo[0].amount, feeInfo[0].fee), {
+                        decimalLength: feeInfo[0].amount.token.decimals
+                      })}
+                      unit={feeInfo[0].amount.token}
+                    />
+                  </Row>
+                </Col>
+              </div>
+            )
           )
         }
       </AsyncAwait>
