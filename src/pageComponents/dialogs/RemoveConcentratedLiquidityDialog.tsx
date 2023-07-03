@@ -202,6 +202,13 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                   useConcentrated.setState({ coin2Amount: value, userCursorSide: 'coin2' })
                 }
               }}
+              onCalculateTransferFee={(fee) => {
+                if (focusSide === 'coin1') {
+                  useConcentrated.setState({ coin1AmountFee: fee })
+                } else {
+                  useConcentrated.setState({ coin2AmountFee: fee })
+                }
+              }}
               onInputAmountClampInBalanceChange={({ negative, outOfMax }) => {
                 setAmountBaseIsNegative(negative)
                 setAmountBaseIsOutOfMax(outOfMax)
@@ -231,6 +238,13 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                   useConcentrated.setState({ coin2Amount: value, userCursorSide: 'coin2' })
                 } else {
                   useConcentrated.setState({ coin1Amount: value, userCursorSide: 'coin1' })
+                }
+              }}
+              onCalculateTransferFee={(fee) => {
+                if (focusSide === 'coin1') {
+                  useConcentrated.setState({ coin2AmountFee: fee })
+                } else {
+                  useConcentrated.setState({ coin1AmountFee: fee })
                 }
               }}
               onInputAmountClampInBalanceChange={({ negative, outOfMax }) => {
