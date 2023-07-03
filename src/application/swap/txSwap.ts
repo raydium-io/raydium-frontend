@@ -12,6 +12,7 @@ import { createTxHandler, TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import { useSwap } from './useSwap'
+import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
   const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()

@@ -40,6 +40,7 @@ import useToken, {
 } from './useToken'
 import { SOLMint } from './wellknownToken.config'
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { isToken2022 } from './isToken2022'
 
 export default function useTokenListsLoader() {
   const walletRefreshCount = useWallet((s) => s.refreshCount)
@@ -328,17 +329,17 @@ export function createSplToken(
   },
   customTokenIcons?: Record<string, SrcAddress>
 ): SplToken {
-  const { mint, symbol, name, decimals, ...rest } = info
+  const { mint, symbol, name, decimals, isToken2022: optIsToken2022 = isToken2022(info), ...rest } = info
   // TODO: recordPubString(token.mint)
   const splToken = Object.assign(
-    new Token(info.isToken2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID, mint, decimals, symbol, name ?? symbol),
+    new Token(optIsToken2022 ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID, mint, decimals, symbol, name ?? symbol),
     { id: mint },
     rest
   )
   if (customTokenIcons?.[mint]) {
     splToken.icon = customTokenIcons[mint]
   }
-  if (info.isToken2022) {
+  if (optIsToken2022) {
     splToken.extensions = { ...splToken.extensions, version: 'TOKEN2022' }
   }
   return splToken

@@ -3,11 +3,11 @@ import { isArray, isObject, isPubKeyish } from '@/functions/judgers/dateType'
 import { MayArray } from '@/types/generics'
 import { PublicKeyish, Token } from '@raydium-io/raydium-sdk'
 import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'
-import { HydratedTokenJsonInfo, SplToken } from './type'
+import { HydratedTokenJsonInfo, SplToken, TokenJson } from './type'
 import useToken from './useToken'
 
 export function isToken2022(
-  token: MayArray<SplToken | Token | HydratedTokenJsonInfo | PublicKeyish | undefined>
+  token: MayArray<SplToken | Token | HydratedTokenJsonInfo | TokenJson | PublicKeyish | undefined>
 ): boolean {
   return isArray(token) ? token.every(isToken2022) : token ? tokenIsToken2022(token) : false
 }
@@ -15,7 +15,7 @@ export function isToken2022(
 /**
  * !!! check inner token state
  */
-function tokenIsToken2022(token: SplToken | Token | PublicKeyish | HydratedTokenJsonInfo) {
+function tokenIsToken2022(token: SplToken | Token | PublicKeyish | HydratedTokenJsonInfo | TokenJson) {
   if (isObject(token) && 'extensions' in token) {
     return token.extensions?.version === 'TOKEN2022'
   }
@@ -25,6 +25,6 @@ function tokenIsToken2022(token: SplToken | Token | PublicKeyish | HydratedToken
 }
 
 /** get token programId to token or token2022 */
-export function getTokenProgramId(token: SplToken | Token | PublicKeyish | HydratedTokenJsonInfo) {
+export function getTokenProgramId(token: SplToken | Token | PublicKeyish | HydratedTokenJsonInfo | TokenJson) {
   return isToken2022(token) ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID
 }

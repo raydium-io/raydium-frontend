@@ -14,7 +14,6 @@ import { toString } from '@/functions/numberish/toString'
 import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import { getMultiMintInfos } from '../clmmMigration/getMultiMintInfos'
 import useConcentrated from './useConcentrated'
-import { toHumanReadable } from '@/functions/format/toHumanReadable'
 
 /**
  * will auto fresh  concentrated's coin1Amount and coin2Amount with concentrated's jsonInfos and coin1 and coin2
