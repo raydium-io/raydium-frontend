@@ -21,8 +21,8 @@ export default function txMigrateToClmm({
   tickLower,
   tickUpper,
   liquidity,
-  amountSlippageA,
-  amountSlippageB,
+  amountMaxA,
+  amountMaxB,
 
   farmInfo,
   liquidityInfo,
@@ -33,8 +33,8 @@ export default function txMigrateToClmm({
   tickLower: number
   tickUpper: number
   liquidity: BN
-  amountSlippageA: BN
-  amountSlippageB: BN
+  amountMaxA: BN
+  amountMaxB: BN
 
   /** only if it is from /farm page */
   farmInfo?: HydratedFarmInfo
@@ -65,8 +65,8 @@ export default function txMigrateToClmm({
         tickLower,
         tickUpper,
         liquidity: liquidity.mul(new BN(99)).div(new BN(100)),
-        amountSlippageA,
-        amountSlippageB
+        amountMaxA: amountMaxA,
+        amountMaxB: amountMaxB
       },
       removeLpAmount: liquidityLpAmount ?? ZERO,
       userKeys: {

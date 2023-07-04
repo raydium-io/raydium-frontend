@@ -47,7 +47,9 @@ export interface ButtonProps {
 /** has loaded **twMerge** */
 export default function Button({ validators, ...restProps }: ButtonProps) {
   const failedValidator = (isArray(validators) ? validators.length > 0 : validators)
-    ? [validators!].flat().find(({ should, not }) => (should != null ? !shrinkToValue(should) : shrinkToValue(not)))
+    ? [validators!]
+        .flat()
+        .find((config) => ('should' in config ? !shrinkToValue(config.should) : shrinkToValue(config.not)))
     : undefined
   const mergedProps = {
     ...restProps,

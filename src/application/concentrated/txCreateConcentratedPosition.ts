@@ -55,8 +55,9 @@ export default async function txCreateConcentratedPosotion({
       txHistoryInfo: {
         title: 'Position Created',
         forceErrorTitle: 'Error creating position',
-        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${coin2?.symbol ?? '--'
-          }`
+        description: `Added ${toString(coin1Amount)} ${coin1?.symbol ?? '--'} and ${toString(coin2Amount)} ${
+          coin2?.symbol ?? '--'
+        }`
       }
     })
   })
@@ -99,7 +100,7 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
   const _coin1Amount = toBN(coin1SlippageAmount ?? coin1Amount, coin1.decimals)
   const _coin2Amount = toBN(coin2SlippageAmount ?? coin2Amount, coin2.decimals)
 
-  const { innerTransactions, address } = await AmmV3.makeOpenPositionInstructionSimple({
+  const { innerTransactions, address } = await AmmV3.makeOpenPositionFromLiquidityInstructionSimple({
     connection: connection,
     liquidity,
     poolInfo: currentAmmPool.state,
@@ -111,8 +112,8 @@ export async function generateCreateClmmPositionTx(currentAmmPool = useConcentra
     },
     tickLower: Math.min(priceLowerTick, priceUpperTick),
     tickUpper: Math.max(priceLowerTick, priceUpperTick),
-    amountSlippageA: coin1IsMintA ? _coin1Amount : _coin2Amount,
-    amountSlippageB: !coin1IsMintA ? _coin1Amount : _coin2Amount,
+    amountMaxA: coin1IsMintA ? _coin1Amount : _coin2Amount,
+    amountMaxB: !coin1IsMintA ? _coin1Amount : _coin2Amount,
     slippage: 0.015,
     computeBudgetConfig: await getComputeBudgetConfig(),
     checkCreateATAOwner: true

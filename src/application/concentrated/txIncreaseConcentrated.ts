@@ -63,7 +63,7 @@ export default async function txIncreaseConcentrated({
     assert(coin2Amount, 'not set coin2Amount')
     assert(isMeaningfulNumber(liquidity), 'not set liquidity')
     assert(targetUserPositionAccount, 'not set targetUserPositionAccount')
-    const { innerTransactions } = await AmmV3.makeIncreaseLiquidityInstructionSimple({
+    const { innerTransactions } = await AmmV3.makeIncreasePositionFromLiquidityInstructionSimple({
       connection: connection,
       liquidity,
       poolInfo: currentAmmPool.state,
@@ -76,8 +76,8 @@ export default async function txIncreaseConcentrated({
       ownerPosition: targetUserPositionAccount.sdkParsed,
       computeBudgetConfig: await getComputeBudgetConfig(),
       checkCreateATAOwner: true,
-      amountSlippageA: toBN(coin1SlippageAmount ?? coin1Amount, coin1.decimals),
-      amountSlippageB: toBN(coin2SlippageAmount ?? coin2Amount, coin2.decimals)
+      amountMaxA: toBN(coin1SlippageAmount ?? coin1Amount, coin1.decimals),
+      amountMaxB: toBN(coin2SlippageAmount ?? coin2Amount, coin2.decimals)
     })
     transactionCollector.add(innerTransactions, {
       txHistoryInfo: {

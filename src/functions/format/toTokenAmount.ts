@@ -76,7 +76,7 @@ export function toTokenAmount(
 ): TokenAmount | QuantumSOLAmount | undefined {
   if (!token) return undefined
   if (amount == null) return undefined
-  const programId = getTokenProgramId(token.mint)
+  const programId = getTokenProgramId(token)
   const parsedToken = isToken(token)
     ? token
     : new Token(programId, token.mint, token.decimals, token.symbol, token.name)

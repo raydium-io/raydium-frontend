@@ -13,8 +13,10 @@ import useWallet from '../wallet/useWallet'
 
 import { useSwap } from './useSwap'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
 
 const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
+  const { programIds } = useAppAdvancedSettings.getState()
   const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
   const {
     coin1,
@@ -61,6 +63,7 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
       associatedOnly: true,
       checkCreateATAOwner: true
     },
+    routeProgram: programIds.Router,
     checkTransaction: true,
     computeBudgetConfig: await getComputeBudgetConfig()
   })

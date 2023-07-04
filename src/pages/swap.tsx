@@ -176,7 +176,7 @@ function useUnofficialTokenConfirmState(): { hasConfirmed: boolean; popConfirm: 
     })
   }
 
-  const hasConfirmed = isDownCoinOfficial || hasUserPermanentConfirmed || hasUserTemporaryConfirmed
+  const hasConfirmed = downCoin ? isDownCoinOfficial || hasUserPermanentConfirmed || hasUserTemporaryConfirmed : true
 
   useEffect(() => {
     if (!hasConfirmed && downCoin) popNotOfficialTokenConfirm()
@@ -309,6 +309,7 @@ function SwapCard() {
   const upCoinAmount = (directionReversed ? coin2Amount : coin1Amount) || '0'
 
   const downCoin = directionReversed ? coin1 : coin2
+
   // although info is included in routes, still need downCoinAmount to pop friendly feedback
   const downCoinAmount = (directionReversed ? coin1Amount : coin2Amount) || '0'
 
