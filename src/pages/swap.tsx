@@ -919,13 +919,18 @@ function SwapCardInfo({
     [selectedCalcResult]
   )
 
+  0
   const transferFeeUpCoin =
     upCoin &&
-    toTokenAmount(upCoin, directionReversed ? currentCalcResult?.amountOut.fee : currentCalcResult?.amountIn.fee)
+    toTokenAmount(upCoin, directionReversed ? currentCalcResult?.amountOut.fee : currentCalcResult?.amountIn.fee, {
+      alreadyDecimaled: true
+    })
 
   const transferFeeDownCoin =
     downCoin &&
-    toTokenAmount(downCoin, directionReversed ? currentCalcResult?.amountIn.fee : currentCalcResult?.amountOut.fee)
+    toTokenAmount(downCoin, directionReversed ? currentCalcResult?.amountIn.fee : currentCalcResult?.amountOut.fee, {
+      alreadyDecimaled: true
+    })
 
   const transferFeeRouteToken =
     routeToken && currentCalcResult?.routeType === 'route' ? currentCalcResult?.minMiddleAmountFee : undefined

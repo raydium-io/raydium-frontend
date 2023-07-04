@@ -6,6 +6,8 @@ import { ReactNode, useState } from 'react'
  * handle promise value
  */
 export function AsyncAwait<T>(props: {
+  /* for debug */
+  forceDebugStatus?: 'pending' | 'rejected' | 'fullfilled'
   /** pending fallback*/
   fallback?: ReactNode | ((status: 'pending' | 'rejected' | 'fullfilled') => ReactNode)
   promise: T
@@ -13,19 +15,21 @@ export function AsyncAwait<T>(props: {
   onFullfilled?(solvedValue: Awaited<T>): void
   onReject?(): void
 }): JSX.Element {
-  const [promiseStatus, setStatus] = useState<'pending' | 'fullfilled' | 'rejected'>('pending')
+  const [promiseStatus, setStatus] = useState<'pending' | 'fullfilled' | 'rejected'>(
+    props.forceDebugStatus ?? 'pending'
+  )
   // TODO: what if promise solved is null?🤔
   const [innerValue, setInnerValue] = useState<Awaited<T> | null>(null)
   useIsomorphicLayoutEffect(() => {
     const p = Promise.resolve(props.promise)
     p.then(
       (solvedValue) => {
-        setStatus('fullfilled')
+        if (!props.forceDebugStatus) setStatus('fullfilled')
         props.onFullfilled?.(solvedValue)
         return solvedValue
       },
       (err) => {
-        setStatus('rejected')
+        if (!props.forceDebugStatus) setStatus('rejected')
         props.onReject?.()
         return Promise.reject(err)
       }
@@ -33,5 +37,11 @@ export function AsyncAwait<T>(props: {
       setInnerValue(value)
     })
   }, [props.promise])
-  return <>{innerValue === null ? shrinkToValue(props.fallback, [promiseStatus]) : props.children?.(innerValue)}</>
+  return (
+    <>
+      {promiseStatus === 'pending' || !innerValue
+        ? shrinkToValue(props.fallback, [promiseStatus])
+        : props.children?.(innerValue)}
+    </>
+  )
 }

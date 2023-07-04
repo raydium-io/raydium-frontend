@@ -95,7 +95,7 @@ export function useToken2022SwapConfirmPanel(payload: {
                     <Row className="table-row">
                       <div className="table-cell px-2 font-medium">Transfer Fee Max:</div>
                       <div className="table-cell px-2">
-                        {toString(tokenMintInfo.maximumFee, { decimalLength: tokenMintInfo.decimals })}
+                        {toString(tokenMintInfo.maximumFee, { decimalLength: `auto ${tokenMintInfo.decimals}` })}
                       </div>
                     </Row>
                   </Col>

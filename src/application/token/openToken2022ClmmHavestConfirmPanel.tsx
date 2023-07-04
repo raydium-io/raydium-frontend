@@ -24,6 +24,7 @@ import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/t
 import { getConcentratedPositionFee } from './getConcentratedPositionFee'
 import { getTransferFeeInfos } from './getTransferFeeInfos'
 import { SplToken } from './type'
+import LoadingCircle from '@/components/LoadingCircle'
 
 type HasConfirmState = Promise<boolean>
 
@@ -37,7 +38,7 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
   onCancel,
   onConfirm
 }: {
-  ammPool: MayArray<HydratedConcentratedInfo | undefined>
+  ammPool?: MayArray<HydratedConcentratedInfo | undefined>
   position?: MayArray<UserPositionAccount | undefined>
   additionalAmount?: TokenAmount[]
   // onlyMints?: (SplToken | Token | PublicKeyish)[]
@@ -62,12 +63,13 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
     cardWidth: 'lg',
     type: 'warning',
     title: 'Confirm Token 2022',
-    description: '🚧💄🚧🚧🚧. Confirm this token before transaction.',
+    description:
+      'This token uses the Token2022 program that will cause transfer fee. Please confirm the affected token amount below:',
     additionalContent: ({ updateConfig }) => (
-      <div className="space-y-2 text-left w-full">
+      <Col className="gap-2 items-center w-full">
         <AsyncAwait
           promise={combinedPromise}
-          fallback="loading..."
+          fallback={<LoadingCircle className="mx-auto" />}
           onFullfilled={([infos, amountFeeInfos]) => {
             updateConfig({
               disableConfirmButton: false,
@@ -79,7 +81,7 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
             <Col className="space-y-4 max-h-[50vh] overflow-auto">
               {/* amm pool info */}
               {Array.from(infos).map(([pool, positionMap]) => (
-                <div key={toPubString(pool.id)} className="flex items-center justify-between overflow-auto">
+                <div key={toPubString(pool.id)} className="overflow-auto">
                   <div className="text-sm w-full">
                     {Array.from(positionMap).map(([position, feeInfos]) => {
                       const positionCanSee = inputPosition
@@ -152,7 +154,7 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
             </Col>
           )}
         </AsyncAwait>
-      </div>
+      </Col>
     ),
     confirmButtonIsMainButton: true,
     disableConfirmButton: true,
