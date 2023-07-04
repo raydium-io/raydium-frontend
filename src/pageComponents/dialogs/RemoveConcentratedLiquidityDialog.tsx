@@ -27,6 +27,7 @@ import { gt } from '@/functions/numberish/compare'
 import { minus, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useConcentratedPendingYield from '@/hooks/useConcentratedPendingYield'
+import { useEvent } from '@/hooks/useEvent'
 import useInit from '@/hooks/useInit'
 import { Numberish } from '@/types/constants'
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
@@ -104,7 +105,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
     return undefined
   }, [currentAmmPool, targetUserPositionAccount])
 
-  const calculateMaxLiquidity = useCallback(async () => {
+  const calculateMaxLiquidity = useEvent(async () => {
     if (!position || !currentAmmPool || !coinBase || !coinQuote) return
     const [token2022Infos, epochInfo] = await Promise.all([
       getMultiMintInfos({ mints: [currentAmmPool.state.mintA.mint, currentAmmPool.state.mintB.mint] }),
@@ -138,11 +139,11 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       coin1AmountFee: coin1AmountFee,
       coin2AmountFee: coin2AmountFee
     })
-  }, [currentAmmPool, position, coinBase, coinQuote])
+  })
 
   useEffect(() => {
     calculateMaxLiquidity()
-  }, [calculateMaxLiquidity])
+  }, [toPubString(position?.nftMint)])
 
   const removeMaxLiquidity = useCallback(() => {
     if (!position?.liquidity || !maxInfo.coin1Amount || !maxInfo.coin2Amount) return

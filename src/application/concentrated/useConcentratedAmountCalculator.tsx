@@ -76,19 +76,6 @@ export default function useConcentratedAmountCalculator() {
       getEpochInfo()
     ])
 
-    const params = {
-      poolInfo: currentAmmPool.state,
-      slippage: 0,
-      inputA: isPairPoolDirectionEq,
-      tickUpper: Math.max(priceUpperTick, priceLowerTick),
-      tickLower: Math.min(priceLowerTick, priceUpperTick),
-      amount: inputAmountBN,
-      add: !isRemoveDialogOpen,
-      epochInfo,
-      token2022Infos,
-      amountHasFee: true
-    }
-
     const { liquidity, amountSlippageA, amountSlippageB } =
       isRemoveDialogOpen &&
       currentAmmPool &&
@@ -107,7 +94,18 @@ export default function useConcentratedAmountCalculator() {
             isFocus1,
             epochInfo
           })
-        : AmmV3.getLiquidityAmountOutFromAmountIn(params)
+        : AmmV3.getLiquidityAmountOutFromAmountIn({
+            poolInfo: currentAmmPool.state,
+            slippage: 0,
+            inputA: isPairPoolDirectionEq,
+            tickUpper: Math.max(priceUpperTick, priceLowerTick),
+            tickLower: Math.min(priceLowerTick, priceUpperTick),
+            amount: inputAmountBN,
+            add: !isRemoveDialogOpen,
+            epochInfo,
+            token2022Infos,
+            amountHasFee: true
+          })
 
     const coin1SlippageResult = isCoin1Base ? amountSlippageA : amountSlippageB
     const coin2SlippageResult = isCoin1Base ? amountSlippageB : amountSlippageA
@@ -209,13 +207,13 @@ async function getRemoveLiquidityAmountOutFromAmountIn({
       isFocus1 ? inputAmountBN : outputAmount,
       (isFocus1 ? inputMintInfo : outputMintInfo).feeConfig,
       epochInfo,
-      true
+      false
     ),
     amountSlippageB: getTransferAmountFee(
       isFocus1 ? outputAmount : inputAmountBN,
       (isFocus1 ? outputMintInfo : inputMintInfo).feeConfig,
       epochInfo,
-      true
+      false
     )
   }
 }
