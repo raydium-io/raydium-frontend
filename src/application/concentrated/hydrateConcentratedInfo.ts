@@ -232,7 +232,7 @@ function hydrateUserPositionAccounnt(
     return {
       sdkParsed: info,
       ...recursivelyDecimalToFraction(info),
-      ammPoolInfo,
+      ammPool: ammPoolInfo,
       amountA,
       amountB,
       originAmountA,

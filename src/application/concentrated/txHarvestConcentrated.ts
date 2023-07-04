@@ -10,6 +10,7 @@ import useWallet from '../wallet/useWallet'
 import { HydratedConcentratedInfo, UserPositionAccount } from './type'
 import useConcentrated from './useConcentrated'
 import { isToken2022 } from '../token/isToken2022'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 
 export default async function txHarvestConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,
@@ -27,7 +28,7 @@ export default async function txHarvestConcentrated({
   ].some((i) => isToken2022(i) && i)
   let userHasConfirmed: boolean
   if (needConfirm) {
-    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({ ammPool: currentAmmPool })
+    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({ position: targetUserPositionAccount })
     userHasConfirmed = await hasConfirmed
   } else {
     userHasConfirmed = true
@@ -70,7 +71,7 @@ export default async function txHarvestConcentrated({
 
 export async function txHarvestAllConcentrated() {
   const { logError } = useNotification.getState()
-  const { originSdkParsedAmmPools, sdkParsedAmmPools, hydratedAmmPools } = useConcentrated.getState()
+  const { originSdkParsedAmmPools, hydratedAmmPools } = useConcentrated.getState()
   const { tokenAccountRawInfos } = useWallet.getState()
   const { logInfo } = useNotification.getState()
   const connection = useConnection.getState().connection
@@ -84,13 +85,23 @@ export async function txHarvestAllConcentrated() {
     }
   }
 
+  function needConfirmPosition(position: UserPositionAccount | undefined) {
+    return (
+      (isToken2022(position?.ammPool.base) ||
+        isToken2022(position?.ammPool.quote) ||
+        isToken2022(position?.ammPool.rewardInfos.map((i) => i.rewardToken))) &&
+      (isMeaningfulNumber(position?.tokenFeeAmountA) ||
+        isMeaningfulNumber(position?.tokenFeeAmountB) ||
+        position?.rewardInfos.some(({ penddingReward }) => isMeaningfulNumber(penddingReward)))
+    )
+  }
   // assert whether need token 2022 check
-  const needConfirm = hydratedAmmPools
-    .flatMap((i) => [i.base, i.quote, ...i.rewardInfos.map((i) => i.rewardToken)])
-    .some((i) => isToken2022(i))
+  const needConfirmPositions = hydratedAmmPools
+    .flatMap((i) => i.userPositionAccount)
+    .filter((p) => needConfirmPosition(p))
   let userHasConfirmed: boolean
-  if (needConfirm) {
-    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({ ammPool: hydratedAmmPools })
+  if (needConfirmPositions.length > 0) {
+    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({ position: needConfirmPositions })
     userHasConfirmed = await hasConfirmed
   } else {
     userHasConfirmed = true

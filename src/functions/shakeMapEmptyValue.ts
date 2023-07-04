@@ -1,6 +1,8 @@
 import { isArray, isMap, isSet } from '@/functions/judgers/dateType'
 
-export function shakeMapEmptyValue<T extends Map<any, any>>(map: T): T {
+export function shakeMapEmptyValue<T extends Map<any, any>>(
+  map: T
+): T extends Map<infer K, infer V> ? Map<K, NonNullable<V>> : never {
   function isEmpty(v: any): boolean {
     return (
       v === undefined ||
@@ -15,6 +17,8 @@ export function shakeMapEmptyValue<T extends Map<any, any>>(map: T): T {
       map.delete(key)
     }
   })
+
+  //@ts-expect-error force
   return map
 }
 

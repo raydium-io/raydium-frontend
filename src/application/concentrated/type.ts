@@ -148,7 +148,7 @@ export interface UserPositionAccount {
     apr7d: Percent
     apr30d: Percent
   }[]
-  ammPoolInfo: Omit<HydratedConcentratedInfo, 'userPositionAccount'>
+  ammPool: Omit<HydratedConcentratedInfo, 'userPositionAccount'>
   inRange: boolean
   poolId: PublicKey
   nftMint: PublicKey

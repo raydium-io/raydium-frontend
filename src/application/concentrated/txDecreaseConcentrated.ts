@@ -32,7 +32,6 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
   let userHasConfirmed: boolean
   if (needConfirm) {
     const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({
-      ammPool: currentAmmPool,
       position: targetUserPositionAccount,
       additionalAmount: shakeUndifindedItem([
         toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }),

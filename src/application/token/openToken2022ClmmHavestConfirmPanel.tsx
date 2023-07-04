@@ -32,13 +32,11 @@ type HasConfirmState = Promise<boolean>
  * not just data, also ui
  */
 export function openToken2022ClmmAmmPoolPositionConfirmPanel({
-  ammPool,
   position: inputPosition,
   additionalAmount,
   onCancel,
   onConfirm
 }: {
-  ammPool?: MayArray<HydratedConcentratedInfo | undefined>
   position?: MayArray<UserPositionAccount | undefined>
   additionalAmount?: TokenAmount[]
   // onlyMints?: (SplToken | Token | PublicKeyish)[]
@@ -54,7 +52,7 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
     reject = rej
   })
 
-  const infos = getConcentratedPositionFee({ ammPool: ammPool /*  checkMints: onlyMints  */ }).then((s) => s)
+  const infos = getConcentratedPositionFee({ positions: inputPosition }).then((s) => s)
   const amount = inputPosition ? shakeUndifindedItem([additionalAmount].flat()) : undefined
   const amountInfo = amount?.length ? getTransferFeeInfos({ amount }).then((a) => a) : undefined
   const combinedPromise = Promise.all([infos, amountInfo])
@@ -79,52 +77,34 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
         >
           {([infos, amountFeeInfos]) => (
             <Col className="space-y-4 max-h-[50vh] overflow-auto">
-              {/* amm pool info */}
-              {Array.from(infos).map(([pool, positionMap]) => (
-                <div key={toPubString(pool.id)} className="overflow-auto">
-                  <div className="text-sm w-full">
-                    {Array.from(positionMap).map(([position, feeInfos]) => {
-                      const positionCanSee = inputPosition
-                        ? [inputPosition]
-                            .flat()
-                            .find((p) => p && toPubString(p.nftMint) === toPubString(position.nftMint))
-                        : true
-                      return (
-                        positionCanSee && (
-                          <div key={toPubString(position.nftMint)} className="py-2">
-                            {/* ammPool name */}
-                            <div className="py-2">
-                              <CoinAvatarInfoItem ammPool={pool} position={position} />
-                            </div>
+              {Array.from(infos).map(([position, feeInfos]) => (
+                <div key={toPubString(position.nftMint)} className="py-2">
+                  {/* ammPool name */}
+                  <div className="py-2">
+                    <CoinAvatarInfoItem ammPool={position.ammPool} position={position} />
+                  </div>
 
-                            {/* position info */}
-                            <div className="flex-grow px-6 border-1.5 border-[rgba(171,196,255,.5)] rounded-xl">
-                              {feeInfos.map(({ type, feeInfo }, idx) =>
-                                feeInfo && isMeaningfulNumber(feeInfo?.amount) ? (
-                                  <Col key={type + idx} className="py-4 gap-1 items-center">
-                                    <div className="text-lg mobile:text-base font-semibold">
-                                      {feeInfo.amount.token.symbol}
-                                    </div>
-                                    <Row className="items-center gap-2 flex-wrap">
-                                      <FormularItem value={toString(feeInfo.amount)} unit={feeInfo.amount.token} />
-                                      <FormularOperator operator="-" />
-                                      <FormularItem value={toString(feeInfo.fee)} unit={feeInfo.fee?.token} isFee />
-                                      <FormularOperator operator="=" />
-                                      <FormularItem
-                                        value={toString(minus(feeInfo.amount, feeInfo.fee), {
-                                          decimalLength: feeInfo.amount.token.decimals
-                                        })}
-                                        unit={feeInfo.amount.token}
-                                      />
-                                    </Row>
-                                  </Col>
-                                ) : undefined
-                              )}
-                            </div>
-                          </div>
-                        )
-                      )
-                    })}
+                  {/* position info */}
+                  <div className="flex-grow px-6 border-1.5 border-[rgba(171,196,255,.5)] rounded-xl">
+                    {feeInfos.map(({ type, feeInfo }, idx) =>
+                      feeInfo && isMeaningfulNumber(feeInfo?.amount) ? (
+                        <Col key={type + idx} className="py-4 gap-1 items-center">
+                          <div className="text-lg mobile:text-base font-semibold">{feeInfo.amount.token.symbol}</div>
+                          <Row className="items-center gap-2 flex-wrap">
+                            <FormularItem value={toString(feeInfo.amount)} unit={feeInfo.amount.token} />
+                            <FormularOperator operator="-" />
+                            <FormularItem value={toString(feeInfo.fee)} unit={feeInfo.fee?.token} isFee />
+                            <FormularOperator operator="=" />
+                            <FormularItem
+                              value={toString(minus(feeInfo.amount, feeInfo.fee), {
+                                decimalLength: feeInfo.amount.token.decimals
+                              })}
+                              unit={feeInfo.amount.token}
+                            />
+                          </Row>
+                        </Col>
+                      ) : undefined
+                    )}
                   </div>
                 </div>
               ))}
