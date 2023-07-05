@@ -64,7 +64,8 @@ export function useToken2022SwapConfirmPanel(payload: {
               trade with caution.
             </p>
             <p className="text-center">
-              The Token2022 program includes Extensions, like Transfer Fees. Please confirm below.
+              The Token2022 program includes Extensions, like Transfer Fees and other transfer restrictions, which can
+              be changed. You will need a wallet that supports Token2022, like Backpack.
             </p>
           </div>
 
@@ -84,7 +85,7 @@ export function useToken2022SwapConfirmPanel(payload: {
                   fallback={<LoadingCircle className="mx-auto" />}
                 >
                   {(tokenMintInfo) => (
-                    <Col className="table">
+                    <Col className="table text-sm">
                       <Row className="table-row">
                         <div className="table-cell px-2 font-medium">Frozen:</div>
                         <div className="table-cell px-2">
