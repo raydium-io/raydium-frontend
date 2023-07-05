@@ -83,11 +83,13 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
     title: 'Confirm Token 2022',
     description: (
       <div>
-        <p className="mb-2">
+        <p className="mb-2 text-center">
           This token uses the Token2022 program that is unaudited and still in beta. This is an advanced feature, trade
           with caution.
         </p>
-        <p>The Token2022 program includes Extensions, like Transfer Fees. Please confirm below.</p>
+        <p className="text-center">
+          The Token2022 program includes Extensions, like Transfer Fees. Please confirm below.
+        </p>
       </div>
     ),
     additionalContent: ({ updateConfig }) => (
@@ -198,11 +200,13 @@ export function openToken2022ClmmAmountConfirmPanel({
     title: 'Confirm Token 2022',
     description: (
       <div>
-        <p className="mb-2">
+        <p className="mb-2 text-center">
           This token uses the Token2022 program that is unaudited and still in beta. This is an advanced feature, trade
           with caution.
         </p>
-        <p>The Token2022 program includes Extensions, like Transfer Fees. Please confirm below.</p>
+        <p className="text-center">
+          The Token2022 program includes Extensions, like Transfer Fees. Please confirm below.
+        </p>
       </div>
     ),
     additionalContent: ({ updateConfig }) => (

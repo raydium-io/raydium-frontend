@@ -16,6 +16,7 @@ import { MayArray } from '@/types/generics'
 import { AsyncAwait } from '../../components/AsyncAwait'
 
 import { getOnlineTokenInfo } from './getOnlineTokenInfo'
+import LoadingCircle from '@/components/LoadingCircle'
 
 /**
  * not just data, also ui
@@ -57,51 +58,54 @@ export function useToken2022SwapConfirmPanel(payload: {
       title: 'Confirm Token 2022',
       description: ({ updateConfig }) => (
         <div className="space-y-2 text-left">
-          <p className="text-center">balabalabala. Confirm this is the token that you want to trade.</p>
+          <div>
+            <p className="mb-2 text-center">
+              This token uses the Token2022 program that is unaudited and still in beta. This is an advanced feature,
+              trade with caution.
+            </p>
+            <p className="text-center">
+              The Token2022 program includes Extensions, like Transfer Fees. Please confirm below.
+            </p>
+          </div>
 
           {targetToken2022s.map((targetCoin) => (
-            <Row
-              key={toPubString(targetCoin?.mint)}
-              className="flex-col items-center gap-2 my-4 bg-[#141041] rounded py-3 w-full"
-            >
-              <Row className="items-center gap-2">
+            <Col key={toPubString(targetCoin?.mint)} className=" gap-2 my-4 bg-[#abc4ff1a] rounded-xl w-full">
+              <Row className="justify-center items-center gap-2 p-4 rounded-xl bg-[#141041]">
                 <CoinAvatar token={targetCoin} />
                 <div className="font-semibold">{targetCoin?.symbol}</div>
                 <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
                   {targetCoin?.mint}
                 </AddressItem>
               </Row>
-              <AsyncAwait
-                promise={infos[toPubString(targetCoin.mint)]}
-                onFullfilled={() => updateConfig({ disableConfirmButton: false })}
-                fallback="loading..."
-              >
-                {(tokenMintInfo) => (
-                  <Col className="table">
-                    <Row className="table-row">
-                      <div className="table-cell px-2 font-medium">Decimals:</div>
-                      <div className="table-cell px-2">{tokenMintInfo.decimals}</div>
-                    </Row>
-                    <Row className="table-row">
-                      <div className="table-cell px-2 font-medium">Frozen:</div>
-                      <div className="table-cell px-2">
-                        {capitalize(String(Boolean(tokenMintInfo.freezeAuthority)))}
-                      </div>
-                    </Row>
-                    <Row className="table-row">
-                      <div className="table-cell px-2 font-medium">Transfer Fee BPS:</div>
-                      <div className="table-cell px-2">{tokenMintInfo.transferFeeBasisPoints}</div>
-                    </Row>
-                    <Row className="table-row">
-                      <div className="table-cell px-2 font-medium">Transfer Fee Max:</div>
-                      <div className="table-cell px-2">
-                        {toString(tokenMintInfo.maximumFee, { decimalLength: `auto ${tokenMintInfo.decimals}` })}
-                      </div>
-                    </Row>
-                  </Col>
-                )}
-              </AsyncAwait>
-            </Row>
+              <div className="self-center py-2">
+                <AsyncAwait
+                  promise={infos[toPubString(targetCoin.mint)]}
+                  onFullfilled={() => updateConfig({ disableConfirmButton: false })}
+                  fallback={<LoadingCircle className="mx-auto" />}
+                >
+                  {(tokenMintInfo) => (
+                    <Col className="table">
+                      <Row className="table-row">
+                        <div className="table-cell px-2 font-medium">Frozen:</div>
+                        <div className="table-cell px-2">
+                          {capitalize(String(Boolean(tokenMintInfo.freezeAuthority)))}
+                        </div>
+                      </Row>
+                      <Row className="table-row">
+                        <div className="table-cell px-2 font-medium">Transfer Fee BPS:</div>
+                        <div className="table-cell px-2">{tokenMintInfo.transferFeeBasisPoints}</div>
+                      </Row>
+                      <Row className="table-row">
+                        <div className="table-cell px-2 font-medium">Transfer Fee Max:</div>
+                        <div className="table-cell px-2">
+                          {toString(tokenMintInfo.maximumFee, { decimalLength: `auto ${tokenMintInfo.decimals}` })}
+                        </div>
+                      </Row>
+                    </Col>
+                  )}
+                </AsyncAwait>
+              </div>
+            </Col>
           ))}
         </div>
       ),
