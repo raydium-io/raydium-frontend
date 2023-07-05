@@ -7,38 +7,58 @@ import CoinAvatarPair from '@/components/CoinAvatarPair'
 import Col from '@/components/Col'
 import Grid from '@/components/Grid'
 import Icon from '@/components/Icon'
+import LoadingCircle from '@/components/LoadingCircle'
 import Row from '@/components/Row'
 import Tooltip from '@/components/Tooltip'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
 import { isToken } from '@/functions/judgers/dateType'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { minus } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
 import { MayArray } from '@/types/generics'
 import { Token, TokenAmount } from '@raydium-io/raydium-sdk'
+import { twMerge } from 'tailwind-merge'
 import useAppSettings from '../common/useAppSettings'
-import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
+import { UserPositionAccount } from '../concentrated/type'
 import { getConcentratedPositionFee } from './getConcentratedPositionFee'
 import { getTransferFeeInfos } from './getTransferFeeInfos'
 import { SplToken } from './type'
-import LoadingCircle from '@/components/LoadingCircle'
 
 type HasConfirmState = Promise<boolean>
 
+const feeItemLabel = {
+  harvest: {
+    token: (token: Token) => `Harvest Pool ${token.symbol}`,
+    reward: (rewardToken: Token) => `Harvest Pool Reward ${rewardToken.symbol}`
+  },
+  openPosition: {
+    token: (token: Token) => `Open Position Pool ${token.symbol}`
+  },
+  increase: {
+    amount: (token: Token) => `Increase User input ${token.symbol}`
+  },
+  decrease: {
+    token: (token: Token) => `Harvest Pool ${token.symbol}`,
+    reward: (rewardToken: Token) => `Harvest Pool Reward ${rewardToken.symbol}`,
+    amount: (token: Token) => `Decrease User input ${token.symbol}`
+  }
+}
 /**
  * not just data, also ui
  */
 export function openToken2022ClmmAmmPoolPositionConfirmPanel({
+  caseName,
   position: inputPosition,
-  additionalAmount,
+  positionAdditionalAmount: additionalAmount,
   onCancel,
   onConfirm
 }: {
+  caseName: keyof typeof feeItemLabel
   position?: MayArray<UserPositionAccount | undefined>
-  additionalAmount?: TokenAmount[]
+  positionAdditionalAmount?: TokenAmount[]
+  additionalAmountCaseName?: string
   // onlyMints?: (SplToken | Token | PublicKeyish)[]
   onCancel?(): void
   onConfirm?(): void
@@ -52,19 +72,26 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
     reject = rej
   })
 
-  const infos = getConcentratedPositionFee({ positions: inputPosition }).then((s) => s)
+  const infos = getConcentratedPositionFee({ positions: inputPosition })
   const amount = inputPosition ? shakeUndifindedItem([additionalAmount].flat()) : undefined
-  const amountInfo = amount?.length ? getTransferFeeInfos({ amount }).then((a) => a) : undefined
+  const amountInfo = amount?.length ? getTransferFeeInfos({ amount }) : undefined
   const combinedPromise = Promise.all([infos, amountInfo])
 
   useNotification.getState().popConfirm({
     cardWidth: 'lg',
     type: 'warning',
     title: 'Confirm Token 2022',
-    description:
-      'This token uses the Token2022 program that will cause transfer fee. Please confirm the affected token amount below:',
+    description: (
+      <div>
+        <p className="mb-2">
+          This token uses the Token2022 program that is unaudited and still in beta. This is an advanced feature, trade
+          with caution.
+        </p>
+        <p>The Token2022 program includes Extensions, like Transfer Fees. Please confirm below.</p>
+      </div>
+    ),
     additionalContent: ({ updateConfig }) => (
-      <Col className="gap-2 items-center w-full">
+      <Col className="gap-2 w-full">
         <AsyncAwait
           promise={combinedPromise}
           fallback={<LoadingCircle className="mx-auto" />}
@@ -78,59 +105,37 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
           {([infos, amountFeeInfos]) => (
             <Col className="space-y-4 max-h-[50vh] overflow-auto">
               {Array.from(infos).map(([position, feeInfos]) => (
-                <div key={toPubString(position.nftMint)} className="py-2">
+                <div key={toPubString(position.nftMint)} className="bg-[#abc4ff1a] rounded-xl">
                   {/* ammPool name */}
-                  <div className="py-2">
-                    <CoinAvatarInfoItem ammPool={position.ammPool} position={position} />
-                  </div>
+                  <PositionHeader position={position} />
 
                   {/* position info */}
-                  <div className="flex-grow px-6 border-1.5 border-[rgba(171,196,255,.5)] rounded-xl">
+                  <div className="flex-grow px-6 rounded-xl divide-y-1.5 divide-[#abc4ff1a]">
                     {feeInfos.map(({ type, feeInfo }, idx) =>
-                      feeInfo && isMeaningfulNumber(feeInfo?.amount) ? (
-                        <Col key={type + idx} className="py-4 gap-1 items-center">
-                          <div className="text-lg mobile:text-base font-semibold">{feeInfo.amount.token.symbol}</div>
-                          <Row className="items-center gap-2 flex-wrap">
-                            <FormularItem value={toString(feeInfo.amount)} unit={feeInfo.amount.token} />
-                            <FormularOperator operator="-" />
-                            <FormularItem value={toString(feeInfo.fee)} unit={feeInfo.fee?.token} isFee />
-                            <FormularOperator operator="=" />
-                            <FormularItem
-                              value={toString(minus(feeInfo.amount, feeInfo.fee), {
-                                decimalLength: feeInfo.amount.token.decimals
-                              })}
-                              unit={feeInfo.amount.token}
-                            />
-                          </Row>
-                        </Col>
+                      feeInfo ? (
+                        <FeeInfoRow
+                          type={type}
+                          key={type + idx}
+                          className="py-4"
+                          amount={feeInfo.amount}
+                          fee={feeInfo.fee}
+                          caseName={caseName}
+                        />
                       ) : undefined
                     )}
+                    {amountFeeInfos?.map((info, idx) => (
+                      <FeeInfoRow
+                        type="amount"
+                        key={'amount' + idx}
+                        className="py-4"
+                        amount={info.amount}
+                        fee={info.fee}
+                        caseName={caseName}
+                      />
+                    ))}
                   </div>
                 </div>
               ))}
-
-              {/* additional amount */}
-              {amountFeeInfos && (
-                <div className="flex-grow px-6 border-1.5 border-[rgba(171,196,255,.5)] rounded-xl">
-                  {amountFeeInfos.map((info) => (
-                    <Col key={toPubString(info.amount.token.mint)} className="py-4 gap-1 items-center">
-                      <div className="text-lg mobile:text-base font-semibold">{info.amount.token.symbol}</div>
-                      <Row className="items-center  gap-2">
-                        <FormularItem value={toString(info.amount)} unit={info.amount.token} />
-                        <FormularOperator operator="-" />
-                        <FormularItem value={toString(info.fee)} unit={info.fee?.token} isFee />
-                        <FormularOperator operator="=" />
-                        <FormularItem
-                          value={toString(minus(info.amount, info.fee), {
-                            decimalLength: info.amount.token.decimals
-                          })}
-                          unit={info.amount.token}
-                        />
-                      </Row>
-                    </Col>
-                  ))}
-                </div>
-              )}
             </Col>
           )}
         </AsyncAwait>
@@ -268,25 +273,67 @@ function FormularItem({
     </Row>
   )
 }
+
+function FeeInfoRow({
+  name,
+  caseName,
+  className,
+  amount,
+  fee,
+  type: type
+}: {
+  name?: string
+  caseName?: keyof typeof feeItemLabel
+  className?: string
+  amount: TokenAmount
+  fee?: TokenAmount
+  type: 'token' | 'reward' | 'amount'
+}) {
+  return (
+    <Grid className={twMerge('grid-cols-2 mobile:grid-cols-1 gap-4 items-center text-[#abc4ff]', className)}>
+      <Col className="gap-3">
+        <div className="text-sm">{caseName ? feeItemLabel[caseName]?.[type]?.(amount.token) : undefined}</div>
+        <Row className="items-center gap-2">
+          <CoinAvatar token={amount.token} size="sm"></CoinAvatar>
+          <div className="text-white">
+            {toString(minus(amount, fee), { decimalLength: `auto ${amount.token.decimals}` })}
+          </div>
+          <div>{amount.token.symbol}</div>
+        </Row>
+      </Col>
+
+      <Row className="gap-2 text-xs flex-wrap justify-between">
+        <Col className="gap-4">
+          <div className="text-[#abc4ff80]">Initial amount</div>
+          <Row className="items-center gap-2">
+            <div>{toString(amount)}</div>
+            <div>{amount.token.symbol}</div>
+          </Row>
+        </Col>
+
+        <Col className="gap-4">
+          <div className="text-[#abc4ff80]">Token 2022 fee</div>
+          <Row className="items-center gap-2">
+            <div>{toString(fee ?? 0)}</div>
+            <div>{fee?.token.symbol}</div>
+          </Row>
+        </Col>
+      </Row>
+    </Grid>
+  )
+}
+
 function FormularOperator({ operator }: { operator: '+' | '-' | '=' }) {
   return <div className="text-[#abc4ff80] text-xl font-medium">{operator}</div>
 }
 
-function CoinAvatarInfoItem({
-  ammPool,
-  position
-}: {
-  ammPool: HydratedConcentratedInfo
-  position?: UserPositionAccount
-}) {
+function PositionHeader({ position }: { position: UserPositionAccount }) {
   const isMobile = useAppSettings((s) => s.isMobile)
-
   const maxAcceptPriceDecimal = 15
-
   const maxSignificantCount = (decimals: number) => Math.min(decimals + 2, maxAcceptPriceDecimal)
-
+  const ammPool = position.ammPool
   return (
-    <Row className="gap-4">
+    <Row className="gap-4 p-4 bg-[#141041] rounded-xl justify-between">
       <AutoBox is={isMobile ? 'Col' : 'Row'} className="clickable flex-wrap items-center mobile:items-start">
         <CoinAvatarPair
           className="justify-self-center mr-2"
@@ -297,7 +344,7 @@ function CoinAvatarInfoItem({
         <Row className="mobile:text-xs font-medium mobile:mt-px items-center flex-wrap gap-2">
           <Col>
             <Row className="items-center text-[#abc4ff]">
-              <div>{ammPool.name}</div>
+              <div className="text-[#fff]">{ammPool.name}</div>
               <Tooltip>
                 <Icon iconClassName="ml-1" size="sm" heroIconName="information-circle" />
                 <Tooltip.Panel>
@@ -324,23 +371,26 @@ function CoinAvatarInfoItem({
                 </Tooltip.Panel>
               </Tooltip>
             </Row>
-            <div className="font-medium text-xs text-[#ABC4FF]/50">Fee {toPercentString(ammPool.tradeFeeRate)}</div>
+            <div className="font-medium text-xs text-[#ABC4FF80]">Fee {toPercentString(ammPool.tradeFeeRate)}</div>
           </Col>
         </Row>
       </AutoBox>
 
       {position && (
-        <Grid className="items-center text-white mobile:text-sm">
-          {toString(position.priceLower, {
-            decimalLength: maxAcceptPriceDecimal,
-            maxSignificantCount: maxSignificantCount(6)
-          })}{' '}
-          -{' '}
-          {toString(position?.priceUpper, {
-            decimalLength: maxAcceptPriceDecimal,
-            maxSignificantCount: maxSignificantCount(6)
-          })}
-        </Grid>
+        <div>
+          <div className="text-xs text-[#abc4ff80] font-medium">My Position</div>
+          <Grid className="items-center text-[#abc4ff] mobile:text-sm">
+            {toString(position.priceLower, {
+              decimalLength: maxAcceptPriceDecimal,
+              maxSignificantCount: maxSignificantCount(6)
+            })}{' '}
+            -{' '}
+            {toString(position?.priceUpper, {
+              decimalLength: maxAcceptPriceDecimal,
+              maxSignificantCount: maxSignificantCount(6)
+            })}
+          </Grid>
+        </div>
       )}
     </Row>
   )

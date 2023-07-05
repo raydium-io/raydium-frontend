@@ -28,7 +28,10 @@ export default async function txHarvestConcentrated({
   ].some((i) => isToken2022(i) && i)
   let userHasConfirmed: boolean
   if (needConfirm) {
-    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({ position: targetUserPositionAccount })
+    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({
+      position: targetUserPositionAccount,
+      caseName: 'harvest'
+    })
     userHasConfirmed = await hasConfirmed
   } else {
     userHasConfirmed = true
@@ -101,7 +104,10 @@ export async function txHarvestAllConcentrated() {
     .filter((p) => needConfirmPosition(p))
   let userHasConfirmed: boolean
   if (needConfirmPositions.length > 0) {
-    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({ position: needConfirmPositions })
+    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({
+      position: needConfirmPositions,
+      caseName: 'harvest'
+    })
     userHasConfirmed = await hasConfirmed
   } else {
     userHasConfirmed = true

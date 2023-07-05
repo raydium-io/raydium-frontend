@@ -9,7 +9,8 @@ import Dialog from '../../components/Dialog'
 import Icon, { AppHeroIconName } from '../../components/Icon'
 
 export interface ConfirmDialogInfo {
-  cardWidth?: 'md' | 'lg'
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  cardWidth?: 'md' | 'lg' | (string & {})
 
   type?: 'success' | 'warning' | 'error' | 'info' | 'no-head-icon'
   title?: ReactNode
@@ -90,8 +91,8 @@ export default function ConfirmDialog(rawProps: ConfirmDialogInfo & { domRef?: R
         <Card
           className={twMerge(
             `p-8 rounded-3xl ${
-              props.cardWidth === 'lg' ? 'w-[min(560px,95vw)]' : 'w-[min(360px,80vw)]'
-            }  mx-8 border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card`
+              props.cardWidth === 'lg' ? 'w-[min(620px,95vw)]' : 'w-[min(360px,80vw)]'
+            } mx-8 border-1.5 border-[rgba(171,196,255,0.2)] bg-cyberpunk-card-bg shadow-cyberpunk-card`
           )}
           size="lg"
         >
@@ -116,7 +117,7 @@ export default function ConfirmDialog(rawProps: ConfirmDialogInfo & { domRef?: R
 
             <div className="self-stretch">
               {props.additionalContent ? (
-                <div className="py-4">{shrinkToValue(props.additionalContent, [controller.current])}</div>
+                <div className="pb-4">{shrinkToValue(props.additionalContent, [controller.current])}</div>
               ) : undefined}
               <Col className="w-full">
                 {!props.onlyConfirmButton && (

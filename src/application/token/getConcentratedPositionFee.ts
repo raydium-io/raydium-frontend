@@ -11,7 +11,7 @@ import { UserPositionAccount } from '../concentrated/type'
 import { ITransferAmountFee, getTransferFeeInfosSync } from './getTransferFeeInfos'
 
 type FeeInfo = {
-  type: string
+  type: 'token' | 'reward'
   feeInfo?: ITransferAmountFee | undefined
 }
 
@@ -51,13 +51,13 @@ export async function getConcentratedPositionFee({
       positions.map((position) => {
         const feeInfos = [
           {
-            type: 'TokenFeeA',
+            type: 'token',
             feeInfo:
               position.tokenFeeAmountA &&
               getTransferFeeInfosSync({ amount: position.tokenFeeAmountA, mintInfos, epochInfo })
           },
           {
-            type: 'TokenFeeB',
+            type: 'token',
             feeInfo:
               position.tokenFeeAmountB &&
               getTransferFeeInfosSync({ amount: position.tokenFeeAmountB, mintInfos, epochInfo })
@@ -65,7 +65,7 @@ export async function getConcentratedPositionFee({
           ...position.rewardInfos.map(({ penddingReward: rawAmount }, index) => {
             const rewardInfo = position.ammPool.state.rewardInfos[index]
             return {
-              type: `Reward ${rawAmount?.token.symbol}`,
+              type: `reward`,
               feeInfo:
                 rawAmount &&
                 getTransferFeeInfosSync({
@@ -74,9 +74,9 @@ export async function getConcentratedPositionFee({
                   epochInfo
                 }),
               rawAmount
-            }
+            } as const
           })
-        ]
+        ] as const
         const validFeeInfos = feeInfos.filter((i) => gte(i.feeInfo?.fee, 0))
 
         return [position, validFeeInfos.length ? validFeeInfos : undefined]

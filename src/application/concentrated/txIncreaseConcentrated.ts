@@ -38,8 +38,9 @@ export default async function txIncreaseConcentrated({
   let userHasConfirmed: boolean
   if (needConfirm) {
     const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({
+      caseName: 'increase',
       position: targetUserPositionAccount,
-      additionalAmount: shakeUndifindedItem([
+      positionAdditionalAmount: shakeUndifindedItem([
         toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }),
         toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })
       ])
