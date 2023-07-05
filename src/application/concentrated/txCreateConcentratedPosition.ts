@@ -24,7 +24,7 @@ export default async function txCreateConcentratedPosotion({
   currentAmmPool?: HydratedConcentratedInfo
   onSuccess?: (utils: { nftAddress: string }) => void
 } = {}) {
-  const { coin1, coin2, coin1Amount, coin2Amount } = useConcentrated.getState()
+  const { coin1, coin2, coin1Amount, coin2Amount, priceLower, priceUpper } = useConcentrated.getState()
 
   const coin1TokenAmount = toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true })
   const coin2TokenAmount = toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })
@@ -33,7 +33,16 @@ export default async function txCreateConcentratedPosotion({
   let userHasConfirmed: boolean
   if (needConfirm) {
     const { hasConfirmed } = openToken2022ClmmAmountConfirmPanel({
-      amount: [isToken2022(coin1) ? coin1TokenAmount : undefined, isToken2022(coin2) ? coin2TokenAmount : undefined]
+      amount: [isToken2022(coin1) ? coin1TokenAmount : undefined, isToken2022(coin2) ? coin2TokenAmount : undefined],
+      groupInfo:
+        currentAmmPool && priceLower && priceUpper
+          ? {
+              ammPool: currentAmmPool,
+              priceLower,
+              priceUpper
+            }
+          : undefined,
+      caseName: 'openPosition'
     })
     // const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ ammPool: currentAmmPool, onlyMints: [rewardInfo] })
     userHasConfirmed = await hasConfirmed
