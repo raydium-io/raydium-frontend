@@ -15,7 +15,10 @@ import useConcentrated from './useConcentrated'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import toBN from '@/functions/numberish/toBN'
 import useNotification from '../notification/useNotification'
-import { openToken2022ClmmAmmPoolPositionConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
+import {
+  openToken2022ClmmAmmPoolPositionConfirmPanel,
+  openToken2022ClmmAmountConfirmPanel
+} from '../token/openToken2022ClmmHavestConfirmPanel'
 import { isToken2022 } from '../token/isToken2022'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
@@ -37,10 +40,16 @@ export default async function txIncreaseConcentrated({
   ].some((i) => isToken2022(i) && i)
   let userHasConfirmed: boolean
   if (needConfirm) {
-    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({
+    const { hasConfirmed } = openToken2022ClmmAmountConfirmPanel({
       caseName: 'increase',
-      position: targetUserPositionAccount,
-      positionAdditionalAmount: shakeUndifindedItem([
+      groupInfo: targetUserPositionAccount
+        ? {
+            ammPool: targetUserPositionAccount.ammPool,
+            priceLower: targetUserPositionAccount.priceLower,
+            priceUpper: targetUserPositionAccount.priceUpper
+          }
+        : undefined,
+      amount: shakeUndifindedItem([
         toTokenAmount(coin1, coin1Amount, { alreadyDecimaled: true }),
         toTokenAmount(coin2, coin2Amount, { alreadyDecimaled: true })
       ])
