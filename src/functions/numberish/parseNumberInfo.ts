@@ -25,15 +25,16 @@ export default function parseNumberInfo(n: Numberish | undefined): {
   }
 
   const s = String(n)
+
+  if (s.match(/^\d+$/)) return { denominator: '1', numerator: s }
+
   const [, sign = '', int = '', dec = '', expN] = s.replace(',', '').match(/(-?)(\d*)\.?(\d*)(?:e(-?\d+))?/) ?? []
   if (expN) {
     // have scientific notion part
-    const nexpN = Number(expN)
-    const n = offsetDecimalDot(`${sign}${int}.${dec}`, nexpN)
+    const n = offsetDecimalDot(`${sign}${int}.${dec}`, Number(expN))
     return parseNumberInfo(n)
   } else {
-    const nexpN = Number(expN)
-    const denominator = '1' + '0'.repeat(dec.length + (nexpN < 0 ? -expN : 0))
+    const denominator = '1' + '0'.repeat(dec.length)
     const numerator = sign + (int === '0' ? '' : int) + dec || '0'
     return { denominator, numerator, sign, int, dec }
   }
