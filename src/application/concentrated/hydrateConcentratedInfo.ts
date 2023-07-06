@@ -7,7 +7,7 @@ import toPubString from '@/functions/format/toMintString'
 import { toPercent } from '@/functions/format/toPercent'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toUsdCurrency from '@/functions/format/toUsdCurrency'
-import { mergeObject } from '@/functions/merge'
+import { coverlyMergeObject, mergeObject } from '@/functions/merge'
 import { gt, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
 import toFraction from '@/functions/numberish/toFraction'
@@ -18,22 +18,27 @@ import { createSplToken } from '../token/useTokenListsLoader'
 import { decimalToFraction, recursivelyDecimalToFraction } from '../txTools/decimal2Fraction'
 
 import {
-  GetAprParameters, GetAprPoolTickParameters, GetAprPositionParameters, getPoolAprCore, getPoolTickAprCore,
+  GetAprParameters,
+  GetAprPoolTickParameters,
+  GetAprPositionParameters,
+  getPoolAprCore,
+  getPoolTickAprCore,
   getPositonAprCore
 } from './calcApr'
 import { HydratedConcentratedInfo, SDKParsedConcentratedInfo, UserPositionAccount } from './type'
 
 export default function hydrateConcentratedInfo(concentratedInfo: SDKParsedConcentratedInfo): HydratedConcentratedInfo {
-  const rawAmmPoolInfo = mergeObject(
-    concentratedInfo,
-    hydratePoolInfo(concentratedInfo),
-    hydrateFeeRate(concentratedInfo),
-    hydrateBaseInfo(concentratedInfo)
-  ) as Omit<HydratedConcentratedInfo, 'userPositionAccount'>
-  const getters = { ...hydrateAprGetter(rawAmmPoolInfo) }
-  const ammPoolInfo = { ...rawAmmPoolInfo, ...getters }
+  const hydrate1 = hydratePoolInfo(concentratedInfo)
+  const hydrate2 = hydrateFeeRate(concentratedInfo)
+  const hydrate3 = hydrateBaseInfo(concentratedInfo)
+  const rawAmmPoolInfo = mergeObject(concentratedInfo, hydrate1, hydrate2, hydrate3) as Omit<
+    HydratedConcentratedInfo,
+    'userPositionAccount'
+  >
+  const getters = hydrateAprGetter(rawAmmPoolInfo)
+  const ammPoolInfo = coverlyMergeObject(rawAmmPoolInfo, getters)
   const userPositionAccount = hydrateUserPositionAccounnt(ammPoolInfo)
-  return { ...ammPoolInfo, userPositionAccount }
+  return coverlyMergeObject(ammPoolInfo, { userPositionAccount })
 }
 
 /**
@@ -46,70 +51,136 @@ function hydrateBaseInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
   const tokenB = getToken(sdkConcentratedInfo.state.mintB.mint)
   const rewardLength = sdkConcentratedInfo.state.rewardInfos.length
 
-  return {
+  const newRewardInfos = sdkConcentratedInfo.state.rewardInfos.map((r) => {
+    const rewardToken = getToken(r.tokenMint)
+    return mergeObject(r, {
+      get perSecond() {
+        return toFraction(r.perSecond.toString())
+      },
+      get rewardToken() {
+        return rewardToken
+      },
+      get openTime() {
+        return r.openTime.toNumber() * 1000
+      },
+      get endTime() {
+        return r.endTime.toNumber() * 1000
+      },
+      get creator() {
+        return sdkConcentratedInfo.state.creator
+      },
+      get lastUpdateTime() {
+        return r.lastUpdateTime.toNumber() * 1000
+      },
+      get rewardClaimed() {
+        return rewardToken ? toTokenAmount(rewardToken, r.rewardClaimed) : undefined
+      },
+      get rewardTotalEmissioned() {
+        return rewardToken ? toTokenAmount(rewardToken, r.rewardTotalEmissioned) : undefined
+      },
+      get rewardPerWeek() {
+        return rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400 * 7))
+      },
+      get rewardPerDay() {
+        return rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400))
+      }
+    })
+  })
+
+  const part1 = {
     ammConfig: sdkConcentratedInfo.state.ammConfig,
     currentPrice,
     creator: sdkConcentratedInfo.state.creator,
-    rewardInfos: sdkConcentratedInfo.state.rewardInfos.map((r) => {
-      const rewardToken = getToken(r.tokenMint)
-      return {
-        ...r,
-        perSecond: toFraction(r.perSecond.toString()),
-        rewardToken,
-        openTime: r.openTime.toNumber() * 1000,
-        endTime: r.endTime.toNumber() * 1000,
-        creator: sdkConcentratedInfo.state.creator,
-        lastUpdateTime: r.lastUpdateTime.toNumber() * 1000,
-        rewardClaimed: rewardToken ? toTokenAmount(rewardToken, r.rewardClaimed) : undefined,
-        rewardTotalEmissioned: rewardToken ? toTokenAmount(rewardToken, r.rewardTotalEmissioned) : undefined,
-        rewardPerWeek: rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400 * 7)),
-        rewardPerDay: rewardToken && toTokenAmount(rewardToken, mul(decimalToFraction(r.perSecond), 86400))
-      }
-    }),
+    rewardInfos: newRewardInfos,
     idString: toPubString(sdkConcentratedInfo.state.id),
-    tvl: toUsdCurrency(sdkConcentratedInfo.state.tvl),
-
-    totalApr24h: toPercent(sdkConcentratedInfo.state.day.apr, { alreadyDecimaled: true }),
-    totalApr7d: toPercent(sdkConcentratedInfo.state.week.apr, { alreadyDecimaled: true }),
-    totalApr30d: toPercent(sdkConcentratedInfo.state.month.apr, { alreadyDecimaled: true }),
-    feeApr24h: toPercent(sdkConcentratedInfo.state.day.feeApr, { alreadyDecimaled: true }),
-    feeApr7d: toPercent(sdkConcentratedInfo.state.week.feeApr, { alreadyDecimaled: true }),
-    feeApr30d: toPercent(sdkConcentratedInfo.state.month.feeApr, { alreadyDecimaled: true }),
-    rewardApr24h: [
-      toPercent(sdkConcentratedInfo.state.day.rewardApr.A, { alreadyDecimaled: true }),
-      toPercent(sdkConcentratedInfo.state.day.rewardApr.B, { alreadyDecimaled: true }),
-      toPercent(sdkConcentratedInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
-    ].slice(0, rewardLength),
-    rewardApr7d: [
-      toPercent(sdkConcentratedInfo.state.week.rewardApr.A, { alreadyDecimaled: true }),
-      toPercent(sdkConcentratedInfo.state.week.rewardApr.B, { alreadyDecimaled: true }),
-      toPercent(sdkConcentratedInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
-    ].slice(0, rewardLength),
-    rewardApr30d: [
-      toPercent(sdkConcentratedInfo.state.month.rewardApr.A, { alreadyDecimaled: true }),
-      toPercent(sdkConcentratedInfo.state.month.rewardApr.B, { alreadyDecimaled: true }),
-      toPercent(sdkConcentratedInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
-    ].slice(0, rewardLength),
-
-    volume24h: toUsdCurrency(sdkConcentratedInfo.state.day.volume),
-    volume7d: toUsdCurrency(sdkConcentratedInfo.state.week.volume),
-    volume30d: toUsdCurrency(sdkConcentratedInfo.state.month.volume),
-
-    volumeFee24h: toUsdCurrency(sdkConcentratedInfo.state.day.volumeFee),
-    volumeFee7d: toUsdCurrency(sdkConcentratedInfo.state.week.volumeFee),
-    volumeFee30d: toUsdCurrency(sdkConcentratedInfo.state.month.volumeFee),
-
-    fee24hA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.day.feeA, { alreadyDecimaled: true }) : undefined,
-    fee24hB: tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.day.feeB, { alreadyDecimaled: true }) : undefined,
-    fee7dA: tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.week.feeA, { alreadyDecimaled: true }) : undefined,
-    fee7dB: tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.week.feeB, { alreadyDecimaled: true }) : undefined,
-    fee30dA: tokenA
-      ? toTokenAmount(tokenA, sdkConcentratedInfo.state.month.feeA, { alreadyDecimaled: true })
-      : undefined,
-    fee30dB: tokenB
-      ? toTokenAmount(tokenB, sdkConcentratedInfo.state.month.feeB, { alreadyDecimaled: true })
-      : undefined
+    tvl: toUsdCurrency(sdkConcentratedInfo.state.tvl)
   }
+
+  const part2 = {
+    get totalApr24h() {
+      return toPercent(sdkConcentratedInfo.state.day.apr, { alreadyDecimaled: true })
+    },
+    get totalApr7d() {
+      return toPercent(sdkConcentratedInfo.state.week.apr, { alreadyDecimaled: true })
+    },
+    get totalApr30d() {
+      return toPercent(sdkConcentratedInfo.state.month.apr, { alreadyDecimaled: true })
+    },
+    get feeApr24h() {
+      return toPercent(sdkConcentratedInfo.state.day.feeApr, { alreadyDecimaled: true })
+    },
+    get feeApr7d() {
+      return toPercent(sdkConcentratedInfo.state.week.feeApr, { alreadyDecimaled: true })
+    },
+    get feeApr30d() {
+      return toPercent(sdkConcentratedInfo.state.month.feeApr, { alreadyDecimaled: true })
+    },
+    get rewardApr24h() {
+      return [
+        toPercent(sdkConcentratedInfo.state.day.rewardApr.A, { alreadyDecimaled: true }),
+        toPercent(sdkConcentratedInfo.state.day.rewardApr.B, { alreadyDecimaled: true }),
+        toPercent(sdkConcentratedInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
+      ].slice(0, rewardLength)
+    },
+    get rewardApr7d() {
+      return [
+        toPercent(sdkConcentratedInfo.state.week.rewardApr.A, { alreadyDecimaled: true }),
+        toPercent(sdkConcentratedInfo.state.week.rewardApr.B, { alreadyDecimaled: true }),
+        toPercent(sdkConcentratedInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
+      ].slice(0, rewardLength)
+    },
+    get rewardApr30d() {
+      return [
+        toPercent(sdkConcentratedInfo.state.month.rewardApr.A, { alreadyDecimaled: true }),
+        toPercent(sdkConcentratedInfo.state.month.rewardApr.B, { alreadyDecimaled: true }),
+        toPercent(sdkConcentratedInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
+      ].slice(0, rewardLength)
+    }
+  }
+  const part3 = {
+    get volume24h() {
+      return toUsdCurrency(sdkConcentratedInfo.state.day.volume)
+    },
+    get volume7d() {
+      return toUsdCurrency(sdkConcentratedInfo.state.week.volume)
+    },
+    get volume30d() {
+      return toUsdCurrency(sdkConcentratedInfo.state.month.volume)
+    },
+    get volumeFee24h() {
+      return toUsdCurrency(sdkConcentratedInfo.state.day.volumeFee)
+    },
+    get volumeFee7d() {
+      return toUsdCurrency(sdkConcentratedInfo.state.week.volumeFee)
+    },
+    get volumeFee30d() {
+      return toUsdCurrency(sdkConcentratedInfo.state.month.volumeFee)
+    },
+    get fee24hA() {
+      return tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.day.feeA, { alreadyDecimaled: true }) : undefined
+    },
+    get fee24hB() {
+      return tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.day.feeB, { alreadyDecimaled: true }) : undefined
+    },
+    get fee7dA() {
+      return tokenA ? toTokenAmount(tokenA, sdkConcentratedInfo.state.week.feeA, { alreadyDecimaled: true }) : undefined
+    },
+    get fee7dB() {
+      return tokenB ? toTokenAmount(tokenB, sdkConcentratedInfo.state.week.feeB, { alreadyDecimaled: true }) : undefined
+    },
+    get fee30dA() {
+      return tokenA
+        ? toTokenAmount(tokenA, sdkConcentratedInfo.state.month.feeA, { alreadyDecimaled: true })
+        : undefined
+    },
+    get fee30dB() {
+      return tokenB
+        ? toTokenAmount(tokenB, sdkConcentratedInfo.state.month.feeB, { alreadyDecimaled: true })
+        : undefined
+    }
+  }
+
+  return mergeObject(part1, part2, part3)
 }
 /**
  * part of {@link hydrateConcentratedInfo}
@@ -142,14 +213,14 @@ function hydratePoolInfo(sdkConcentratedInfo: SDKParsedConcentratedInfo): Partia
     (base
       ? base.symbol
       : sdkConcentratedInfo.state.mintA.mint
-        ? toPubString(sdkConcentratedInfo.state.mintA.mint).substring(0, 6)
-        : 'unknown') +
+      ? toPubString(sdkConcentratedInfo.state.mintA.mint).substring(0, 6)
+      : 'unknown') +
     '-' +
     (quote
       ? quote?.symbol
       : sdkConcentratedInfo.state.mintB.mint
-        ? toPubString(sdkConcentratedInfo.state.mintB.mint).substring(0, 6)
-        : 'unknown')
+      ? toPubString(sdkConcentratedInfo.state.mintB.mint).substring(0, 6)
+      : 'unknown')
 
   return {
     id: sdkConcentratedInfo.state.id,
@@ -208,20 +279,20 @@ function hydrateUserPositionAccounnt(
           idx === 0
             ? toPercent(ammPoolInfo.state.day.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-              ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
+            ? toPercent(ammPoolInfo.state.day.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.day.rewardApr.C, { alreadyDecimaled: true })
         const apr7d =
           idx === 0
             ? toPercent(ammPoolInfo.state.week.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-              ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
+            ? toPercent(ammPoolInfo.state.week.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.week.rewardApr.C, { alreadyDecimaled: true })
         const apr30d =
           idx === 0
             ? toPercent(ammPoolInfo.state.month.rewardApr.A, { alreadyDecimaled: true })
             : idx === 1
-              ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
-              : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
+            ? toPercent(ammPoolInfo.state.month.rewardApr.B, { alreadyDecimaled: true })
+            : toPercent(ammPoolInfo.state.month.rewardApr.C, { alreadyDecimaled: true })
         return { penddingReward, apr24h, apr7d, apr30d, token }
       })
       .filter((info) => Boolean(info?.penddingReward)) as UserPositionAccount['rewardInfos']

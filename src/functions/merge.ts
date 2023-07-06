@@ -1,6 +1,6 @@
 import { AnyFn, ObjectNotArray } from '@/types/constants'
-import { isArray, isFunction, isObject, isUndefined } from './judgers/dateType'
-import { isExist } from './judgers/nil'
+import { unifyItem } from './arrayMethods'
+import { isArray, isFunction, isObject } from './judgers/dateType'
 
 /**
  * @example
@@ -9,22 +9,35 @@ import { isExist } from './judgers/nil'
  */
 export function _shallowMergeObjects<T extends ObjectNotArray>(
   objs: T[],
-  transformer: (key: string, valueA: unknown, valueB: unknown) => unknown
+  transformer: (key: string | symbol, valueA: unknown, valueB: unknown) => unknown
 ): T {
-  if (objs.length === 0) return {} as T
-  if (objs.length === 1) return objs[0]
+  const shrinkedObjs = objs.filter(isObject)
+  if (shrinkedObjs.length === 0) return {} as T
+  if (shrinkedObjs.length === 1) return shrinkedObjs[0]
+  return Object.defineProperties(
+    {},
+    getObjKey(shrinkedObjs).reduce((acc, key) => {
+      acc[key] = {
+        enumerable: true,
+        get() {
+          return getValue(shrinkedObjs, key, transformer)
+        }
+      }
+      return acc
+    }, {} as PropertyDescriptorMap)
+  ) as T
+}
 
-  const resultObj: any = { ...objs[0] }
-  for (const obj of objs.slice(1)) {
-    if (!isObject(obj)) continue
-    for (const [key, valueB] of Object.entries(obj)) {
-      const valueA = resultObj[key]
-      if (isUndefined(valueA) && isUndefined(valueB)) continue
-      const resultValue = transformer(key, valueA, valueB)
-      if (isExist(resultValue)) resultObj[key] = resultValue
-    }
-  }
-  return resultObj
+function getValue<T extends object>(
+  objs: T[],
+  key: string | symbol,
+  valueMatchRule: (key: string | symbol, valueA: unknown, valueB: unknown) => unknown
+) {
+  return objs.map((o) => o[key]).reduce((valueA, valueB) => valueMatchRule(key, valueA, valueB), undefined)
+}
+
+function getObjKey<T extends object>(objs: T[]) {
+  return unifyItem(objs.flatMap((obj) => Reflect.ownKeys(obj)))
 }
 
 /**
@@ -60,11 +73,21 @@ export function mergeFunction<T extends AnyFn>(...fns: T[]): (...params: Paramet
   }
 }
 
+export function mergeObject<T>(...objs: [T]): T
+export function mergeObject<T, U>(...objs: [T, U]): T & U
+export function mergeObject<T, U, W>(...objs: [T, U, W]): T & U & W
+export function mergeObject<T, U, W, K>(...objs: [T, U, W, K]): T & U & W & K
+export function mergeObject<T, U, W, K, V>(...objs: [T, U, W, K, V]): T & U & W & K & V
+export function mergeObject<T, U, W, K, V, X>(...objs: [T, U, W, K, V, X]): T & U & W & K & V & X
+export function mergeObject<T>(...objs: [T, ...any[]]): T
 export function mergeObject<T>(...objs: [T, ...any[]]): T {
   return _shallowMergeObjects(objs, (propertyName, v1, v2) => {
-    if (isArray(v1) && isArray(v2)) return [...v1, ...v2]
+    if (isArray(v1) && isArray(v2)) return v1.concat(v2)
     if (isObject(v1) && isObject(v2)) return mergeObject(v1, v2)
     if (isFunction(v1) && isFunction(v2)) return mergeFunction(v1, v2)
     return v2 == null ? v1 : v2
   })
+}
+export function coverlyMergeObject<T>(...objs: [T, ...any[]]): T {
+  return _shallowMergeObjects(objs, (propertyName, v1, v2) => v2 ?? v1)
 }

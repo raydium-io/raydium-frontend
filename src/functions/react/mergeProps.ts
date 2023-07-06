@@ -24,7 +24,7 @@ export default function mergeProps<P extends AnyProp | undefined>(...propsObjs: 
   if (trimedProps.length === 0) return {} as any
   if (trimedProps.length === 1) return trimedProps[0]
   return _shallowMergeObjects(trimedProps, (key, v1: any, v2: any) =>
-    parallelSwitch<string, any>(
+    parallelSwitch<keyof any, any>(
       key,
       [
         ['children', () => v2 ?? v1],
