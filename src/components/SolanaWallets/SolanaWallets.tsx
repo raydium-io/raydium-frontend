@@ -30,6 +30,7 @@ import {
 } from '@solana/wallet-adapter-wallets'
 import SquadsEmbeddedWalletAdapter, { detectEmbeddedInSquadsIframe } from './SquadsMultisig'
 import { clusterApiUrl } from '@solana/web3.js'
+import { OKXWalletAdapter } from './OKXAdapter'
 
 import useAppSettings from '@/application/common/useAppSettings'
 import useConnection from '@/application/connection/useConnection'
@@ -47,6 +48,7 @@ export function SolanaWalletProviders({ children }: { children?: ReactNode }) {
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
+      new OKXWalletAdapter(),
       new TrustWalletAdapter(),
       new SolflareWalletAdapter(),
       new SolletWalletAdapter(),
