@@ -57,7 +57,7 @@ export function useToken2022SwapConfirmPanel(payload: {
       type: 'warning',
       title: 'Confirm Token 2022',
       description: ({ updateConfig }) => (
-        <div className="space-y-2 text-left">
+        <div className="space-y-2 text-left ">
           <div>
             <p className="mb-2 text-center">
               This token uses the Token2022 program that is unaudited and still in beta. This is an advanced feature,
@@ -68,46 +68,47 @@ export function useToken2022SwapConfirmPanel(payload: {
               be changed. You will need a wallet that supports Token2022, like Backpack.
             </p>
           </div>
-
-          {targetToken2022s.map((targetCoin) => (
-            <Col key={toPubString(targetCoin?.mint)} className=" gap-2 my-4 bg-[#abc4ff1a] rounded-xl w-full">
-              <Row className="justify-center items-center gap-2 p-4 rounded-xl bg-[#141041]">
-                <CoinAvatar token={targetCoin} />
-                <div className="font-semibold">{targetCoin?.symbol}</div>
-                <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
-                  {targetCoin?.mint}
-                </AddressItem>
-              </Row>
-              <div className="self-center py-2">
-                <AsyncAwait
-                  promise={infos[toPubString(targetCoin.mint)]}
-                  onFullfilled={() => updateConfig({ disableConfirmButton: false })}
-                  fallback={<LoadingCircle className="mx-auto" />}
-                >
-                  {(tokenMintInfo) => (
-                    <Col className="table text-sm">
-                      <Row className="table-row">
-                        <div className="table-cell px-2 font-medium">Frozen:</div>
-                        <div className="table-cell px-2">
-                          {capitalize(String(Boolean(tokenMintInfo.freezeAuthority)))}
-                        </div>
-                      </Row>
-                      <Row className="table-row">
-                        <div className="table-cell px-2 font-medium">Transfer Fee BPS:</div>
-                        <div className="table-cell px-2">{tokenMintInfo.transferFeeBasisPoints}</div>
-                      </Row>
-                      <Row className="table-row">
-                        <div className="table-cell px-2 font-medium">Transfer Fee Max:</div>
-                        <div className="table-cell px-2">
-                          {toString(tokenMintInfo.maximumFee, { decimalLength: `auto ${tokenMintInfo.decimals}` })}
-                        </div>
-                      </Row>
-                    </Col>
-                  )}
-                </AsyncAwait>
-              </div>
-            </Col>
-          ))}
+          <div>
+            {targetToken2022s.map((targetCoin) => (
+              <Col key={toPubString(targetCoin?.mint)} className="my-4 bg-[#abc4ff1a] rounded-xl w-full">
+                <Row className="justify-center items-center gap-2 p-4 rounded-xl bg-[#141041]">
+                  <CoinAvatar token={targetCoin} />
+                  <div className="font-semibold">{targetCoin?.symbol}</div>
+                  <AddressItem textClassName="text-[#abc4ff80]" showDigitCount={8} canExternalLink>
+                    {targetCoin?.mint}
+                  </AddressItem>
+                </Row>
+                <div className="self-center py-3">
+                  <AsyncAwait
+                    promise={infos[toPubString(targetCoin.mint)]}
+                    onFullfilled={() => updateConfig({ disableConfirmButton: false })}
+                    fallback={<LoadingCircle className="mx-auto" />}
+                  >
+                    {(tokenMintInfo) => (
+                      <Col className="table text-sm">
+                        <Row className="table-row">
+                          <div className="table-cell px-2 font-medium">Frozen:</div>
+                          <div className="table-cell px-2">
+                            {capitalize(String(Boolean(tokenMintInfo.freezeAuthority)))}
+                          </div>
+                        </Row>
+                        <Row className="table-row">
+                          <div className="table-cell px-2 font-medium">Transfer Fee BPS:</div>
+                          <div className="table-cell px-2">{tokenMintInfo.transferFeeBasisPoints}</div>
+                        </Row>
+                        <Row className="table-row">
+                          <div className="table-cell px-2 font-medium">Transfer Fee Max:</div>
+                          <div className="table-cell px-2">
+                            {toString(tokenMintInfo.maximumFee, { decimalLength: `auto ${tokenMintInfo.decimals}` })}
+                          </div>
+                        </Row>
+                      </Col>
+                    )}
+                  </AsyncAwait>
+                </div>
+              </Col>
+            ))}
+          </div>
         </div>
       ),
       confirmButtonIsMainButton: true,
