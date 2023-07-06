@@ -88,6 +88,14 @@ export function mergeObject<T>(...objs: [T, ...any[]]): T {
     return v2 == null ? v1 : v2
   })
 }
+
+export function coverlyMergeObject<T>(...objs: [T]): T
+export function coverlyMergeObject<T, U>(...objs: [T, U]): T & U
+export function coverlyMergeObject<T, U, W>(...objs: [T, U, W]): T & U & W
+export function coverlyMergeObject<T, U, W, K>(...objs: [T, U, W, K]): T & U & W & K
+export function coverlyMergeObject<T, U, W, K, V>(...objs: [T, U, W, K, V]): T & U & W & K & V
+export function coverlyMergeObject<T, U, W, K, V, X>(...objs: [T, U, W, K, V, X]): T & U & W & K & V & X
+export function coverlyMergeObject<T>(...objs: [T, ...any[]]): T
 export function coverlyMergeObject<T>(...objs: [T, ...any[]]): T {
   return _shallowMergeObjects(objs, (propertyName, v1, v2) => v2 ?? v1)
 }
