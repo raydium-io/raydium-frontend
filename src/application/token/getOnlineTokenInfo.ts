@@ -12,6 +12,7 @@ import { isPubEqual } from '@/functions/judgers/areEqual'
 import { div } from '@/functions/numberish/operations'
 import { TOKEN_2022_PROGRAM_ID, getTransferFeeConfig, unpackMint } from '@solana/spl-token'
 import useToken from './useToken'
+import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 
 const verifyWhiteList = [{ mint: 'Fishy64jCaa3ooqXw7BHtKvYD8BTkSyAPh6RNE3xZpcN', decimals: 6, is2022Token: false }] // Temporary force white list
 
@@ -64,7 +65,10 @@ export async function getOnlineTokenInfo(
   if (!mintish) return Promise.reject('mintish is empty')
   const { connection } = useConnection.getState() // TEST devnet
   assert(connection, "must set connection to get token's online token info")
-  const mintAccount = options?.cachedAccountInfo ?? (await connection.getAccountInfo(toPub(mintish)))
+  const [mintAccount, epochInfo] = await Promise.all([
+    options?.cachedAccountInfo ?? connection.getAccountInfo(toPub(mintish)),
+    getEpochInfo()
+  ])
   assert(mintAccount, "can't fetch mintAccount")
 
   const isNormalToken = isPubEqual(mintAccount.owner, TOKEN_PROGRAM_ID)
