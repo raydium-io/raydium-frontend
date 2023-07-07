@@ -15,10 +15,10 @@ import { MayArray } from '@/types/generics'
 
 import { AsyncAwait } from '../../components/AsyncAwait'
 
-import { TokenMintInfo, getOnlineTokenInfo } from './getOnlineTokenInfo'
+import { getOnlineTokenInfo } from './getOnlineTokenInfo'
 import LoadingCircle from '@/components/LoadingCircle'
-import { lt } from '@/functions/numberish/compare'
 import toPercentString from '@/functions/format/toPercentString'
+import { parseMintInfo } from './parseMintInfo'
 
 /**
  * not just data, also ui
@@ -156,10 +156,4 @@ export function useToken2022SwapConfirmPanel(payload: {
   }, [targetTokenMints, hasConfirmed])
 
   return { hasConfirmed, popConfirm: popNotOfficialTokenConfirm }
-}
-
-function parseMintInfo(info: TokenMintInfo) {
-  return {
-    isTransferable: lt(info.transferFeePercent, 1 /*  BPS max 100% */)
-  }
 }

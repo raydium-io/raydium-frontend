@@ -15,7 +15,7 @@ import { useSwap } from '@/application/swap/useSwap'
 import { useSwapAmountCalculator } from '@/application/swap/useSwapAmountCalculator'
 import useSwapInitCoinFiller from '@/application/swap/useSwapInitCoinFiller'
 import useSwapUrlParser from '@/application/swap/useSwapUrlParser'
-import { verifyToken } from '@/application/token/getOnlineTokenInfo'
+import { getOnlineTokenInfo, verifyToken } from '@/application/token/getOnlineTokenInfo'
 import {
   isQuantumSOLVersionSOL,
   isQuantumSOLVersionWSOL,
@@ -71,6 +71,8 @@ import { HexAddress, Numberish } from '@/types/constants'
 import { useToken2022SwapConfirmPanel } from '../application/token/useToken2022SwapConfirmPanel'
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
+import { isTransactableToken, parseMintInfo } from '@/application/token/parseMintInfo'
+import { isToken2022 } from '@/application/token/isToken2022'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -368,6 +370,19 @@ function SwapCard() {
   const expirationTime = currentCalcResult?.expirationTime // (s)
   /** token2022 related data is fresh */
   const [isCurrentExpirationTimeRunOver, setIsCurrentExpirationTimeRunOver] = useState(expirationTime === 0)
+
+  // only if coin1 is token2022, then we need to check if it's transfer fee is 100%
+  const isCoin1Transactable = useAsyncMemo(
+    () => (coin1 ? isTransactableToken(coin1?.mint) : false),
+    [toPubString(coin1?.mint)]
+  )
+
+  // only if coin2 is token2022, then we need to check if it's transfer fee is 100%
+  const isCoin2Transactable = useAsyncMemo(
+    () => (coin2 ? isTransactableToken(coin2?.mint) : false),
+    [toPubString(coin2?.mint)]
+  )
+
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
@@ -481,6 +496,13 @@ function SwapCard() {
       </FadeInStable>
       {/* alert user if price has accidently change  */}
       <SwapPriceAcceptChip />
+
+      {/* alert 100% fee 2022 token can't swap */}
+      <SwapToken2022FeeTooHighWarningChip
+        needOpen={(coin1 && !isCoin1Transactable) || (coin2 && !isCoin2Transactable)}
+        notGoodToken={coin1 && !isCoin1Transactable ? coin1 : coin2 && !isCoin2Transactable ? coin2 : undefined}
+      />
+
       {/* swap sol and wsol */}
       <Button
         className="w-full frosted-glass-teal mt-5"
@@ -679,6 +701,30 @@ function areTokenPairSwapable(targetToken: SplToken | undefined, candidateToken:
 
 function areSameToken(originToken: SplToken | undefined, newSelected: SplToken): boolean {
   return originToken?.mint === newSelected.mint
+}
+
+/**
+ * alert 100% fee 2022 token can't swap
+ */
+function SwapToken2022FeeTooHighWarningChip({
+  needOpen,
+  notGoodToken
+}: {
+  needOpen?: boolean
+  notGoodToken?: SplToken
+}) {
+  return (
+    <FadeIn>
+      {needOpen && (
+        <Row className="mt-5 bg-[#da2eef1a] text-[#da2eef] rounded-xl py-3 px-3 mobile:px-2 items-center">
+          <Icon className="mr-1" heroIconName="exclamation-circle" size="smi" />
+          <div className="text-xs mobile:text-2xs">
+            The coin in amount are all used to cover transaction fee so the transaction can't not be finished.
+          </div>
+        </Row>
+      )}
+    </FadeIn>
+  )
 }
 
 function SwapPriceAcceptChip() {

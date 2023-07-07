@@ -1,22 +1,19 @@
 import { Fraction, TOKEN_PROGRAM_ID } from '@raydium-io/raydium-sdk'
-import {
-  getTransferFeeAmount, getTransferFeeConfig, TOKEN_2022_PROGRAM_ID, TransferFee, unpackMint
-} from '@solana/spl-token'
 import { AccountInfo } from '@solana/web3.js'
 
-import { BN } from 'bn.js'
-
-import assert from '@/functions/assert'
 import toPubString, { toPub } from '@/functions/format/toMintString'
-import { isPubEqual } from '@/functions/judgers/areEqual'
-import { div } from '@/functions/numberish/operations'
 import { PublicKeyish } from '@/types/constants'
 
-import { getEpochInfo } from '../clmmMigration/getEpochInfo'
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 
+import assert from '@/functions/assert'
+import { isPubEqual } from '@/functions/judgers/areEqual'
+import { div } from '@/functions/numberish/operations'
+import { TOKEN_2022_PROGRAM_ID, getTransferFeeConfig, unpackMint } from '@solana/spl-token'
 import useToken from './useToken'
+import { getEpochInfo } from '../clmmMigration/getEpochInfo'
+import { createTimeoutMap } from '@/functions/createTimeoutMap'
 
 const verifyWhiteList = [{ mint: 'Fishy64jCaa3ooqXw7BHtKvYD8BTkSyAPh6RNE3xZpcN', decimals: 6, is2022Token: false }] // Temporary force white list
 
@@ -57,10 +54,13 @@ export type TokenMintInfo = {
   freezeAuthority?: string
   transferFeePercent?: number // Percent
   maximumFee?: Fraction
-  nextTransferFeePercent?: number
+
+  nextTransferFeePercent?: number // Percent
   nextMaximumFee?: Fraction
   expirationTime?: number
 }
+
+const mintInfoCache = createTimeoutMap<string, Promise<TokenMintInfo>>({ maxAgeMs: 30 * 1000 })
 
 /**
  * need connection
@@ -70,6 +70,7 @@ export async function getOnlineTokenInfo(
   options?: { cachedAccountInfo?: AccountInfo<Buffer> }
 ): Promise<TokenMintInfo> {
   if (!mintish) return Promise.reject('mintish is empty')
+  if (mintInfoCache.has(toPubString(mintish))) return mintInfoCache.get(toPubString(mintish))!
   const { connection } = useConnection.getState() // TEST devnet
   assert(connection, "must set connection to get token's online token info")
   const [mintAccount, epochInfo] = await Promise.all([
@@ -83,37 +84,30 @@ export async function getOnlineTokenInfo(
   assert(isNormalToken || is2022Token, 'input mint is not token ')
   const mintData = unpackMint(toPub(mintish), mintAccount, is2022Token ? TOKEN_2022_PROGRAM_ID : TOKEN_PROGRAM_ID)
   const dfee = getTransferFeeConfig(mintData)
-
-  let transferFeePercent: number | undefined = undefined
-  let maximumFee: Fraction | undefined = undefined
-
-  let nextTransferFeePercent: number | undefined = undefined
-  let nextMaximumFee: Fraction | undefined = undefined
-
-  let expirationTime: number | undefined = undefined
-
-  if (dfee) {
-    const [nowFeeConfig, nextFeeConfig]: [TransferFee, TransferFee | undefined] = epochInfo.epoch < dfee.newerTransferFee.epoch ? [dfee.olderTransferFee, dfee.newerTransferFee] : [dfee.newerTransferFee, undefined]
-
-    transferFeePercent = nowFeeConfig.transferFeeBasisPoints / 10000
-    maximumFee = div(nowFeeConfig.maximumFee, 10 ** mintData.decimals)
-
-    expirationTime = nextFeeConfig && epochInfo.epoch < nextFeeConfig.epoch ? (Number(nextFeeConfig.epoch) * epochInfo.slotsInEpoch - epochInfo.absoluteSlot) * 400 / 1000 : undefined
-
-    nextTransferFeePercent = nextFeeConfig ? nextFeeConfig.transferFeeBasisPoints / 10000 : undefined
-    nextMaximumFee = nextFeeConfig ? div(nextFeeConfig.maximumFee, 10 ** mintData.decimals) : undefined
-  }
-  return {
+  const [nowFeeConfig, nextFeeConfig] = dfee
+    ? epochInfo.epoch < dfee.newerTransferFee.epoch
+      ? [dfee.olderTransferFee, dfee.newerTransferFee]
+      : [dfee.newerTransferFee, undefined]
+    : []
+  const tokenMintInfo = {
     is2022Token,
     mint: toPubString(mintish),
     decimals: mintData.decimals,
     freezeAuthority: toPubString(mintData.freezeAuthority) || undefined,
-    transferFeePercent,
-    maximumFee,
-    nextTransferFeePercent,
-    nextMaximumFee,
-    expirationTime,
+    // now
+    transferFeePercent: nowFeeConfig && nowFeeConfig.transferFeeBasisPoints / 10000 /* number unit */,
+    maximumFee: nowFeeConfig && div(nowFeeConfig.maximumFee, 10 ** mintData.decimals),
+    //next
+    nextTransferFeePercent: nextFeeConfig && nextFeeConfig.transferFeeBasisPoints / 10000,
+    nextMaximumFee: nextFeeConfig && div(nextFeeConfig.maximumFee, 10 ** mintData.decimals),
+    //time offset
+    expirationTimeOffset:
+      nextFeeConfig && epochInfo.epoch < nextFeeConfig.epoch
+        ? ((Number(nextFeeConfig.epoch) * epochInfo.slotsInEpoch - epochInfo.absoluteSlot) * 400) / 1000 // author: Rudy
+        : undefined
   }
+  mintInfoCache.set(toPubString(mintish), Promise.resolve(tokenMintInfo))
+  return tokenMintInfo
 }
 
 /**
