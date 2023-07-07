@@ -45,12 +45,12 @@ export async function verifyToken(
   return info
 }
 
-type TokenMintInfo = {
+export type TokenMintInfo = {
   is2022Token: boolean
   mint: string
   decimals: number
   freezeAuthority?: string
-  transferFeeBasisPoints?: number
+  transferFeePercent?: number // Percent
   maximumFee?: Fraction
 }
 
@@ -77,8 +77,10 @@ export async function getOnlineTokenInfo(
     mint: toPubString(mintish),
     decimals: mintData.decimals,
     freezeAuthority: toPubString(mintData.freezeAuthority) || undefined,
-    transferFeeBasisPoints:
-      dfee?.newerTransferFee.transferFeeBasisPoints != null ? dfee.newerTransferFee.transferFeeBasisPoints : undefined,
+    transferFeePercent:
+      dfee?.newerTransferFee.transferFeeBasisPoints != null
+        ? dfee.newerTransferFee.transferFeeBasisPoints / 10000 /* number unit */
+        : undefined,
     maximumFee:
       dfee?.newerTransferFee.maximumFee != null
         ? div(dfee.newerTransferFee.maximumFee, 10 ** mintData.decimals)

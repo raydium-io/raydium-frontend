@@ -15,8 +15,10 @@ import { MayArray } from '@/types/generics'
 
 import { AsyncAwait } from '../../components/AsyncAwait'
 
-import { getOnlineTokenInfo } from './getOnlineTokenInfo'
+import { TokenMintInfo, getOnlineTokenInfo } from './getOnlineTokenInfo'
 import LoadingCircle from '@/components/LoadingCircle'
+import { lt } from '@/functions/numberish/compare'
+import toPercentString from '@/functions/format/toPercentString'
 
 /**
  * not just data, also ui
@@ -70,7 +72,7 @@ export function useToken2022SwapConfirmPanel(payload: {
           </div>
           <div>
             {targetToken2022s.map((targetCoin) => (
-              <Col key={toPubString(targetCoin?.mint)} className="my-4 bg-[#abc4ff1a] rounded-xl w-full">
+              <Col key={toPubString(targetCoin?.mint)} className="mt-4 bg-[#abc4ff1a] rounded-xl w-full">
                 <Row className="justify-center items-center gap-2 p-4 rounded-xl bg-[#141041]">
                   <CoinAvatar token={targetCoin} />
                   <div className="font-semibold">{targetCoin?.symbol}</div>
@@ -81,29 +83,48 @@ export function useToken2022SwapConfirmPanel(payload: {
                 <div className="self-center py-3">
                   <AsyncAwait
                     promise={infos[toPubString(targetCoin.mint)]}
-                    onFullfilled={() => updateConfig({ disableConfirmButton: false })}
+                    onFullfilled={(tokenMintInfo) => {
+                      const { isTransferable } = parseMintInfo(tokenMintInfo)
+                      updateConfig({ disableConfirmButton: !isTransferable })
+                    }}
                     fallback={<LoadingCircle className="mx-auto" />}
                   >
-                    {(tokenMintInfo) => (
-                      <Col className="table text-sm">
-                        <Row className="table-row">
-                          <div className="table-cell px-2 font-medium">Frozen:</div>
-                          <div className="table-cell px-2">
-                            {capitalize(String(Boolean(tokenMintInfo.freezeAuthority)))}
-                          </div>
-                        </Row>
-                        <Row className="table-row">
-                          <div className="table-cell px-2 font-medium">Transfer Fee BPS:</div>
-                          <div className="table-cell px-2">{tokenMintInfo.transferFeeBasisPoints}</div>
-                        </Row>
-                        <Row className="table-row">
-                          <div className="table-cell px-2 font-medium">Transfer Fee Max:</div>
-                          <div className="table-cell px-2">
-                            {toString(tokenMintInfo.maximumFee, { decimalLength: `auto ${tokenMintInfo.decimals}` })}
-                          </div>
-                        </Row>
-                      </Col>
-                    )}
+                    {(tokenMintInfo) => {
+                      const { isTransferable } = parseMintInfo(tokenMintInfo)
+                      return (
+                        <div>
+                          <Col className="table text-sm">
+                            <Row className="table-row">
+                              <div className="table-cell px-2 font-medium">Frozen:</div>
+                              <div className="table-cell px-2">
+                                {capitalize(String(Boolean(tokenMintInfo.freezeAuthority)))}
+                              </div>
+                            </Row>
+                            <Row className="table-row">
+                              <div className="table-cell px-2 font-medium">Transfer Fee:</div>
+                              <div className="table-cell px-2">{toPercentString(tokenMintInfo.transferFeePercent)}</div>
+                            </Row>
+                            <Row className="table-row">
+                              <div className="table-cell px-2 font-medium">Max Transfer Fee:</div>
+                              <div className="table-cell px-2">
+                                {toString(tokenMintInfo.maximumFee, {
+                                  decimalLength: `auto ${tokenMintInfo.decimals}`
+                                })}{' '}
+                                {targetCoin.symbol}
+                              </div>
+                            </Row>
+                          </Col>
+
+                          {!isTransferable && (
+                            <div className="mt-4">
+                              <span className="text-sm italic text-[#da3eef]">
+                                This token can't make any transaction
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    }}
                   </AsyncAwait>
                 </div>
               </Col>
@@ -135,4 +156,10 @@ export function useToken2022SwapConfirmPanel(payload: {
   }, [targetTokenMints, hasConfirmed])
 
   return { hasConfirmed, popConfirm: popNotOfficialTokenConfirm }
+}
+
+function parseMintInfo(info: TokenMintInfo) {
+  return {
+    isTransferable: lt(info.transferFeePercent, 1 /*  BPS max 100% */)
+  }
 }
