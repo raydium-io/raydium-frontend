@@ -15,6 +15,7 @@ export function Checkbox({
   checkBoxSize = 'md',
   className,
   defaultChecked,
+  disabled,
 
   wrapperClassName,
   checkIconClassName,
@@ -26,6 +27,7 @@ export function Checkbox({
   checkBoxSize?: 'sm' | 'md'
   className?: string
   defaultChecked?: boolean
+  disabled?: boolean
   onChange?: (newChecked: boolean) => void
 
   wrapperClassName?: string
@@ -33,7 +35,7 @@ export function Checkbox({
   labelTextClassName?: string
   label?: ReactNode
 }) {
-  const [innerChecked, { toggle, set }] = useToggle(defaultChecked, {
+  const [innerChecked, { toggle, set, off, on }] = useToggle(defaultChecked, {
     onOn: () => onChange?.(true),
     onOff: () => onChange?.(false)
   })
@@ -42,7 +44,18 @@ export function Checkbox({
   }, [checked])
 
   return label ? (
-    <Row className={twMerge('items-center clickable no-clicable-transform-effect', className)} onClick={toggle}>
+    <Row
+      className={twMerge(
+        'items-center clickable no-clicable-transform-effect',
+        disabled && 'opacity-50 not-clickable-with-disallowed',
+        className
+      )}
+      onClick={() => {
+        if (!disabled) {
+          toggle()
+        }
+      }}
+    >
       <div
         className={twMerge(
           `inline-block p-[3px] ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-md`,
@@ -63,9 +76,14 @@ export function Checkbox({
     <div
       className={twMerge(
         'inline-block clickable no-clicable-transform-effect p-[3px] ring-inset ring-1.5 ring-[rgba(171,196,255,.5)] rounded-md',
+        disabled && 'opacity-50 not-clickable-with-disallowed',
         className
       )}
-      onClick={toggle}
+      onClick={() => {
+        if (!disabled) {
+          toggle()
+        }
+      }}
     >
       <Icon heroIconName={innerChecked ? 'check' : ' '} size="sm" />
     </div>
