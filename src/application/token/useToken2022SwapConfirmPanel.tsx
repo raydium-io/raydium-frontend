@@ -21,7 +21,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { AsyncAwait } from '../../components/AsyncAwait'
 import { getOnlineTokenInfo } from './getOnlineTokenInfo'
-import { parseMintInfo } from './parseMintInfo'
+import { isTransactableToken, parseMintInfo } from './parseMintInfo'
 
 /**
  * not just data, also ui
@@ -58,29 +58,26 @@ export function useToken2022SwapConfirmPanel({
     setHasUserWatchDialog(false)
   }, [mint])
 
-  const TokenConfirmDialog = useCallback(
-    () => (
-      <ConfirmDialog
-        onConfirm={() => {
-          onConfirm?.()
-          if (hasUserPermanentConfirmed) setUserConfirmedList((list) => unifyItem([...(list ?? []), mint]))
-          setHasUserWatchDialog(true)
-        }}
-        onCancel={() => {
-          onCancel?.()
-          setHasUserWatchDialog(true)
-        }}
-        onPermanentlyConfirm={setHasUserPermanentConfirmed}
-        onTemporarilyConfirm={setHasUserTemporaryConfirmed}
-        open={needCheck && !hasUserWatchDialog}
-        token={token}
-        temporarilyConfirm={hasUserTemporaryConfirmed}
-        permanentlyConfirm={hasUserPermanentConfirmed}
-      />
-    ),
-    [tokenIsToken2022, needCheck, hasUserWatchDialog, hasUserTemporaryConfirmed, hasUserPermanentConfirmed]
+  const TokenConfirmDialog = (
+    <ConfirmDialog
+      onConfirm={() => {
+        onConfirm?.()
+        if (hasUserPermanentConfirmed) setUserConfirmedList((list) => unifyItem([...(list ?? []), mint]))
+        setHasUserWatchDialog(true)
+      }}
+      onCancel={() => {
+        onCancel?.()
+        setHasUserWatchDialog(true)
+      }}
+      onPermanentlyConfirm={setHasUserPermanentConfirmed}
+      onTemporarilyConfirm={setHasUserTemporaryConfirmed}
+      open={needCheck && !hasUserWatchDialog}
+      token={token}
+      temporarilyConfirm={hasUserTemporaryConfirmed}
+      permanentlyConfirm={hasUserPermanentConfirmed}
+    />
   )
-  return { ConfirmDialog: TokenConfirmDialog, TokenConfirmDialog }
+  return { ConfirmDialog: TokenConfirmDialog }
 }
 
 function ConfirmDialog({
@@ -107,7 +104,7 @@ function ConfirmDialog({
   if (!token) return null
   const info = getOnlineTokenInfo(token.mint).catch(() => {})
   if (!info) return null
-  const [isTokenTransferable, setCanConfirm] = useState<boolean>(false)
+  const [canConfirm, setCanConfirm] = useState<boolean>(false)
   return (
     <ResponsiveDialogDrawer placement="from-bottom" open={Boolean(open)} canClosedByMask onCloseImmediately={onCancel}>
       <Card
@@ -206,7 +203,7 @@ function ConfirmDialog({
 
                 <Checkbox
                   checkBoxSize="sm"
-                  disabled={!isTokenTransferable}
+                  disabled={!canConfirm}
                   className="my-2 w-max"
                   checked={temporarilyConfirm}
                   onChange={onTemporarilyConfirm}
@@ -219,7 +216,7 @@ function ConfirmDialog({
 
                 <Checkbox
                   checkBoxSize="sm"
-                  disabled={!isTokenTransferable}
+                  disabled={!canConfirm}
                   className="my-2 w-max"
                   checked={permanentlyConfirm}
                   onChange={onPermanentlyConfirm}

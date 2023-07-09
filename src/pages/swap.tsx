@@ -71,7 +71,6 @@ import { HexAddress, Numberish } from '@/types/constants'
 import { useToken2022SwapConfirmPanel } from '../application/token/useToken2022SwapConfirmPanel'
 import { useSwapTwoElements } from '../hooks/useSwapTwoElements'
 import { useToken2022FeeTooHighWarningChecker } from '../hooks/useToken2022FeeTooHighWarningChecker'
-import { Token2022FeeTooHighWarningChip } from '../pageComponents/Token2022FeeTooHighWarningChip'
 
 function SwapEffect() {
   useSwapInitCoinFiller()
@@ -368,7 +367,10 @@ function SwapCard() {
   /** token2022 related data is fresh */
   const [isCurrentExpirationTimeRunOver, setIsCurrentExpirationTimeRunOver] = useState(expirationTime === 0)
 
-  const { needOpenWarningChip, badToken } = useToken2022FeeTooHighWarningChecker([coin1, coin2])
+  const { isWarningChipOpen, badToken, Token2022FeeTooHighWarningChip } = useToken2022FeeTooHighWarningChecker([
+    coin1,
+    coin2
+  ])
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
@@ -483,11 +485,11 @@ function SwapCard() {
       {/* alert user if price has accidently change  */}
       <SwapPriceAcceptChip />
 
-      <PopCoin1Token2022ConfirmDialog />
-      <PopCoin2Token2022ConfirmDialog />
+      {PopCoin1Token2022ConfirmDialog}
+      {PopCoin2Token2022ConfirmDialog}
 
       {/* alert 100% fee 2022 token can't swap */}
-      <Token2022FeeTooHighWarningChip needOpen={needOpenWarningChip} badToken={badToken} />
+      {Token2022FeeTooHighWarningChip}
 
       {/* swap sol and wsol */}
       <Button
@@ -527,6 +529,7 @@ function SwapCard() {
               children: 'Confirm unOfficial warning' // user may never see this
             }
           },
+          { not: isWarningChipOpen },
           {
             should: !isFindingPool,
             fallbackProps: { children: 'Finding Pool ...' }
