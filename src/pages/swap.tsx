@@ -287,18 +287,16 @@ function SwapCard() {
     useUnofficialTokenConfirmState()
 
   // token 2022 confirm
-  const { hasConfirmed: hasConfirmedCoin1Token2022, popConfirm: popCoin1Token2022Confirm } =
-    useToken2022SwapConfirmPanel({
-      token: coin1,
-      onCancel: () => useSwap.setState({ coin1: undefined })
-    })
+  const { ConfirmDialog: PopCoin1Token2022ConfirmDialog } = useToken2022SwapConfirmPanel({
+    token: coin1,
+    onCancel: () => useSwap.setState({ coin1: undefined })
+  })
 
   // token 2022 confirm
-  const { hasConfirmed: hasConfirmedCoin2Token2022, popConfirm: popCoin2Token2022Confirm } =
-    useToken2022SwapConfirmPanel({
-      token: coin2,
-      onCancel: () => useSwap.setState({ coin2: undefined })
-    })
+  const { ConfirmDialog: PopCoin2Token2022ConfirmDialog } = useToken2022SwapConfirmPanel({
+    token: coin2,
+    onCancel: () => useSwap.setState({ coin2: undefined })
+  })
 
   const { hasAcceptedPriceChange, swapButtonComponentRef, coinInputBox1ComponentRef, coinInputBox2ComponentRef } =
     useSwapContextStore()
@@ -485,6 +483,9 @@ function SwapCard() {
       {/* alert user if price has accidently change  */}
       <SwapPriceAcceptChip />
 
+      <PopCoin1Token2022ConfirmDialog />
+      <PopCoin2Token2022ConfirmDialog />
+
       {/* alert 100% fee 2022 token can't swap */}
       <Token2022FeeTooHighWarningChip needOpen={needOpenWarningChip} badToken={badToken} />
 
@@ -524,22 +525,6 @@ function SwapCard() {
             fallbackProps: {
               onClick: popUnofficialConfirm,
               children: 'Confirm unOfficial warning' // user may never see this
-            }
-          },
-          {
-            should: hasConfirmedCoin1Token2022,
-            forceActive: true,
-            fallbackProps: {
-              onClick: popCoin1Token2022Confirm,
-              children: 'Confirm token 2022 warning' // user may never see this
-            }
-          },
-          {
-            should: hasConfirmedCoin2Token2022,
-            forceActive: true,
-            fallbackProps: {
-              onClick: popCoin2Token2022Confirm,
-              children: 'Confirm token 2022 warning' // user may never see this
             }
           },
           {

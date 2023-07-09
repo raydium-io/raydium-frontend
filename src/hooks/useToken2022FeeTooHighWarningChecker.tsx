@@ -4,7 +4,10 @@ import toPubString from '@/functions/format/toMintString'
 import useAsyncMemo from '@/hooks/useAsyncMemo'
 import { isTransactableToken } from '@/application/token/parseMintInfo'
 
-/** for component `<Token2022FeeTooHighWarningChip />` */
+/**
+ *  for component `<Token2022FeeTooHighWarningChip />`
+ * @todo should like useToken2022SwapConfirmPanel.tsx
+ */
 export function useToken2022FeeTooHighWarningChecker<T extends Token | undefined>(coins: T[]) {
   const cointMints = useMemo(() => coins.map((coin) => toPubString(coin?.mint)), [coins])
 
