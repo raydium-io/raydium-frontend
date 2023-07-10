@@ -12,22 +12,21 @@ import ResponsiveDialogDrawer from '@/components/ResponsiveDialogDrawer'
 import Row from '@/components/Row'
 import { unifyItem } from '@/functions/arrayMethods'
 import { capitalize } from '@/functions/changeCase'
+import parseDuration from '@/functions/date/parseDuration'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
-import useLocalStorageItem from '@/hooks/useLocalStorage'
-import { HexAddress } from '@/types/constants'
-import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
-import { twMerge } from 'tailwind-merge'
-import { AsyncAwait } from '../../components/AsyncAwait'
-import { getOnlineTokenInfo } from './getOnlineTokenInfo'
-import { isTransactableToken, parseMintInfo } from './parseMintInfo'
-import { toUTC } from '@/functions/date/dateFormat'
 import { useForceUpdate } from '@/hooks/useForceUpdate'
 import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
+import useLocalStorageItem from '@/hooks/useLocalStorage'
+import { HexAddress } from '@/types/constants'
+import { useEffect, useRef, useState } from 'react'
+import { twMerge } from 'tailwind-merge'
+import { AsyncAwait } from '../../components/AsyncAwait'
 import useConnection from '../connection/useConnection'
-import parseDuration from '@/functions/date/parseDuration'
-import { isMeaningfulNumber } from '@/functions/numberish/compare'
+import { getOnlineTokenInfo } from './getOnlineTokenInfo'
+import { parseMintInfo } from './parseMintInfo'
 
 /**
  * not just data, also ui
@@ -110,9 +109,23 @@ function ConfirmDialog({
   if (!token) return null
   const info = getOnlineTokenInfo(token.mint).catch(() => {})
   if (!info) return null
+
+  const isClosedByConfirm = useRef(false)
+  useEffect(() => {
+    isClosedByConfirm.current = false
+  }, [toPubString(token.mint)])
+
   const [canConfirm, setCanConfirm] = useState<boolean>(false)
   return (
-    <ResponsiveDialogDrawer placement="from-bottom" open={Boolean(open)} canClosedByMask onCloseImmediately={onCancel}>
+    <ResponsiveDialogDrawer
+      placement="from-bottom"
+      open={Boolean(open)}
+      canClosedByMask
+      onCloseImmediately={() => {
+        if (isClosedByConfirm.current) return
+        onCancel?.()
+      }}
+    >
       <Card
         className={twMerge(
           `flex flex-col p-8 mobile:p-5 rounded-3xl mobile:rounded-b-none mobile:h-[80vh] w-[min(552px,100vw)] mobile:w-full border-1.5 border-[rgba(171,196,255,0.2)]`
@@ -253,7 +266,10 @@ function ConfirmDialog({
               <Button
                 disabled={!temporarilyConfirm}
                 className="text-[#ABC4FF] frosted-glass-skygray"
-                onClick={onConfirm}
+                onClick={() => {
+                  isClosedByConfirm.current = true
+                  onConfirm?.()
+                }}
               >
                 Confirm
               </Button>

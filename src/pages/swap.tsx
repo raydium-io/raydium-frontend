@@ -285,23 +285,6 @@ function SwapCard() {
   const { hasConfirmed: hasConfirmedUnofficialToken, popConfirm: popUnofficialConfirm } =
     useUnofficialTokenConfirmState()
 
-  // token 2022 confirm
-  const { ConfirmDialog: PopCoin1Token2022ConfirmDialog } = useToken2022SwapConfirmPanel({
-    token: coin1,
-    onCancel: () => useSwap.setState({ coin1: undefined })
-  })
-
-  // token 2022 confirm
-  const { ConfirmDialog: PopCoin2Token2022ConfirmDialog } = useToken2022SwapConfirmPanel({
-    token: coin2,
-    onCancel: () => useSwap.setState({ coin2: undefined })
-  })
-
-  const { hasAcceptedPriceChange, swapButtonComponentRef, coinInputBox1ComponentRef, coinInputBox2ComponentRef } =
-    useSwapContextStore()
-
-  const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
-
   const upCoin = directionReversed ? coin2 : coin1
   // although info is included in routes, still need upCoinAmount to pop friendly feedback
   const upCoinAmount = (directionReversed ? coin2Amount : coin1Amount) || '0'
@@ -310,6 +293,25 @@ function SwapCard() {
 
   // although info is included in routes, still need downCoinAmount to pop friendly feedback
   const downCoinAmount = (directionReversed ? coin1Amount : coin2Amount) || '0'
+
+  // token 2022 confirm
+  const { ConfirmDialog: PopCoin1Token2022ConfirmDialog } = useToken2022SwapConfirmPanel({
+    token: upCoin,
+    onConfirm: () => useSwap.setState(directionReversed ? { coin2: upCoin } : { coin1: upCoin }),
+    onCancel: () => useSwap.setState(directionReversed ? { coin2: undefined } : { coin1: undefined })
+  })
+
+  // token 2022 confirm
+  const { ConfirmDialog: PopCoin2Token2022ConfirmDialog } = useToken2022SwapConfirmPanel({
+    token: downCoin,
+    onConfirm: () => useSwap.setState({ coin2: downCoin }),
+    onCancel: () => useSwap.setState(directionReversed ? { coin1: undefined } : { coin2: undefined })
+  })
+
+  const { hasAcceptedPriceChange, swapButtonComponentRef, coinInputBox1ComponentRef, coinInputBox2ComponentRef } =
+    useSwapContextStore()
+
+  const checkWalletHasEnoughBalance = useWallet((s) => s.checkWalletHasEnoughBalance)
 
   const haveEnoughUpCoin = useMemo(
     () => upCoin && checkWalletHasEnoughBalance(toTokenAmount(upCoin, upCoinAmount, { alreadyDecimaled: true })),
