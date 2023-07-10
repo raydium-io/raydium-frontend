@@ -128,7 +128,7 @@ function ConfirmDialog({
           <Icon size="lg" heroIconName="exclamation" className={`text-[#D8CB39] mb-3`} />
 
           <div className="mb-6 text-center">
-            <div className="font-semibold text-xl text-white mb-3">Confirm Token 2022</div>
+            <div className="font-semibold text-xl text-white mb-3">Confirm Token2022</div>
             <div className="font-normal text-base text-[#ABC4FF]">
               <div>
                 <p className="mb-2 text-center">

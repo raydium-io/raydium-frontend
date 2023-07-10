@@ -80,15 +80,12 @@ export function openToken2022ClmmAmmPoolPositionConfirmPanel({
   useNotification.getState().popConfirm({
     cardWidth: 'lg',
     type: 'warning',
-    title: 'Confirm Token 2022',
+    title: 'Confirm Token2022',
     description: (
       <div>
         <p className="mb-2 text-center">
-          This token uses the Token2022 program that is unaudited and still in beta. This is an advanced feature, trade
-          with caution.
-        </p>
-        <p className="text-center">
-          The Token2022 program includes Extensions, like Transfer Fees. Please confirm below.
+          This token uses the Token2022 program, which is unaudited and still in beta. The token may include extensions,
+          such as transfer fees. Confirm that you understand the risks and interact with caution.
         </p>
       </div>
     ),
@@ -197,15 +194,12 @@ export function openToken2022ClmmAmountConfirmPanel({
   useNotification.getState().popConfirm({
     cardWidth: 'lg',
     type: 'warning',
-    title: 'Confirm Token 2022',
+    title: 'Confirm Token2022',
     description: (
       <div>
         <p className="mb-2 text-center">
-          This token uses the Token2022 program that is unaudited and still in beta. This is an advanced feature, trade
-          with caution.
-        </p>
-        <p className="text-center">
-          The Token2022 program includes Extensions, like Transfer Fees. Please confirm below.
+          This token uses the Token2022 program, which is unaudited and still in beta. The token may include extensions,
+          such as transfer fees. Confirm that you understand the risks and interact with caution.
         </p>
       </div>
     ),
