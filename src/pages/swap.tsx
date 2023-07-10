@@ -489,7 +489,7 @@ function SwapCard() {
       {PopCoin2Token2022ConfirmDialog}
 
       {/* alert 100% fee 2022 token can't swap */}
-      {Token2022FeeTooHighWarningChip}
+      {Token2022FeeTooHighWarningChip({ className: 'pt-5' })}
 
       {/* swap sol and wsol */}
       <Button

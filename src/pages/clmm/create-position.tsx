@@ -60,6 +60,7 @@ import { Numberish } from '@/types/constants'
 import AddLiquidityConfirmDialog from '../../pageComponents/Concentrated/AddLiquidityConfirmDialog'
 import Chart from '../../pageComponents/ConcentratedRangeChart/Chart'
 import { Range } from '../../pageComponents/ConcentratedRangeChart/chartUtil'
+import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
 
 const { ContextProvider: ConcentratedUIContextProvider, useStore: useLiquidityContextStore } = createContextStore({
   hasAcceptedPriceChange: false,
@@ -418,6 +419,9 @@ function ConcentratedCard() {
   )
 
   const [gettedNFTAddress, setGettedNFTAddress] = useState<string>()
+
+  const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([coin1, coin2])
+
   return (
     <CyberpunkStyleCard
       domRef={cardRef}
@@ -516,6 +520,7 @@ function ConcentratedCard() {
                 token={coin2}
               />
             </div>
+            {Token2022FeeTooHighWarningChip({ className: 'pt-2' })}
           </div>
 
           <div className="border-1.5 border-[#abc4ff40]  rounded-xl px-3 py-4">
@@ -579,6 +584,7 @@ function ConcentratedCard() {
                 should: coin1 && coin2,
                 fallbackProps: { children: 'Select a token' }
               },
+              { not: isWarningChipOpen },
               {
                 should: isMeaningfulNumber(coin1Amount) || isMeaningfulNumber(coin2Amount),
                 fallbackProps: { children: 'Enter an amount' }

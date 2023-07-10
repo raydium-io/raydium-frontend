@@ -31,6 +31,8 @@ import { useEvent } from '@/hooks/useEvent'
 import useInit from '@/hooks/useInit'
 import { Numberish } from '@/types/constants'
 import ConcentratedLiquiditySlider from '../ConcentratedRangeChart/ConcentratedLiquiditySlider'
+import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
+import tryCatch from '@/functions/tryCatch'
 
 export function RemoveConcentratedLiquidityDialog({ className, onClose }: { className?: string; onClose?(): void }) {
   useInit(() => {
@@ -111,34 +113,39 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       getMultiMintInfos({ mints: [currentAmmPool.state.mintA.mint, currentAmmPool.state.mintB.mint] }),
       getEpochInfo()
     ])
-    const amountFromLiquidity = AmmV3.getAmountsFromLiquidity({
-      poolInfo: currentAmmPool.state,
-      // ownerPosition: position,
-      liquidity: position.liquidity,
-      slippage: 0, // always 0, for remove liquidity only
-      add: false,
-      tickLower: position.tickLower,
-      tickUpper: position.tickUpper,
-      token2022Infos,
-      epochInfo
-    })
 
-    const coin1Amount = toTokenAmount(
-      currentAmmPool.base!,
-      minus(amountFromLiquidity.amountSlippageA.amount, amountFromLiquidity.amountSlippageA.fee ?? 0)
-    )
-    const coin2Amount = toTokenAmount(
-      currentAmmPool.quote!,
-      minus(amountFromLiquidity.amountSlippageB.amount, amountFromLiquidity.amountSlippageB.fee ?? 0)
-    )
-    const coin1AmountFee = toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.fee)
-    const coin2AmountFee = toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.fee)
-    setMaxInfo({
-      coin1Amount: coin1Amount,
-      coin2Amount: coin2Amount,
-      coin1AmountFee: coin1AmountFee,
-      coin2AmountFee: coin2AmountFee
-    })
+    try {
+      const amountFromLiquidity = AmmV3.getAmountsFromLiquidity({
+        poolInfo: currentAmmPool.state,
+        // ownerPosition: position,
+        liquidity: position.liquidity,
+        slippage: 0, // always 0, for remove liquidity only
+        add: false,
+        tickLower: position.tickLower,
+        tickUpper: position.tickUpper,
+        token2022Infos,
+        epochInfo
+      })
+
+      const coin1Amount = toTokenAmount(
+        currentAmmPool.base!,
+        minus(amountFromLiquidity.amountSlippageA.amount, amountFromLiquidity.amountSlippageA.fee ?? 0)
+      )
+      const coin2Amount = toTokenAmount(
+        currentAmmPool.quote!,
+        minus(amountFromLiquidity.amountSlippageB.amount, amountFromLiquidity.amountSlippageB.fee ?? 0)
+      )
+      const coin1AmountFee = toTokenAmount(currentAmmPool.base!, amountFromLiquidity.amountSlippageA.fee)
+      const coin2AmountFee = toTokenAmount(currentAmmPool.quote!, amountFromLiquidity.amountSlippageB.fee)
+      setMaxInfo({
+        coin1Amount: coin1Amount,
+        coin2Amount: coin2Amount,
+        coin1AmountFee: coin1AmountFee,
+        coin2AmountFee: coin2AmountFee
+      })
+    } catch (err) {
+      console.error(err)
+    }
   })
 
   useEffect(() => {
@@ -156,6 +163,11 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       liquidity: position.liquidity
     })
   }, [maxInfo, position])
+
+  const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([
+    coinBase,
+    coinQuote
+  ])
 
   return (
     <ResponsiveDialogDrawer
@@ -263,6 +275,8 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                 removeMaxLiquidity()
               }}
             />
+            {Token2022FeeTooHighWarningChip({})}
+
             <ConcentratedLiquiditySlider />
             <div className="py-3 px-3 ring-1 mobile:ring-1 ring-[#abc4ff40] rounded-xl mobile:rounded-xl ">
               <Col>
@@ -306,6 +320,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
                     children: 'Connect Wallet'
                   }
                 },
+                { not: isWarningChipOpen },
                 {
                   should: !amountBaseIsOutOfMax,
                   fallbackProps: { children: `${coinBase?.symbol ?? ''} Amount Too Large` }

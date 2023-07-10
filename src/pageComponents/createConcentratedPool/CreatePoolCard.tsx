@@ -49,6 +49,7 @@ import InputLocked from './InputLocked'
 import PriceRangeInput from './PriceRangeInput'
 import SwitchFocusTabs from './SwitchFocusTabs'
 import { Range } from './type'
+import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
 
 const getSideState = ({ side, price, tick }: { side: Range; price: Numberish; tick: number }) =>
   side === Range.Low ? { [side]: price, priceLowerTick: tick } : { [side]: price, priceUpperTick: tick }
@@ -358,6 +359,8 @@ export function CreatePoolCard() {
     })
   }
 
+  const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([coin1, coin2])
+
   return (
     <Card
       className={twMerge(
@@ -393,6 +396,7 @@ export function CreatePoolCard() {
               disableTokens={coin1 ? [coin1] : undefined}
             />
           </Grid>
+          {Token2022FeeTooHighWarningChip({ className: 'pt-4' })}
         </div>
 
         <div>
@@ -566,6 +570,7 @@ export function CreatePoolCard() {
                 }
               },
               { should: coin1 && coin2 },
+              { not: isWarningChipOpen },
               { should: currentAmmPool, fallbackProps: { children: 'Fail to find this pool' } },
               { should: isMeaningfulNumber(userSettedCurrentPrice), fallbackProps: { children: 'Input Price' } },
               { should: userSelectedAmmConfigFeeOption, fallbackProps: { children: 'Select a fee option' } },

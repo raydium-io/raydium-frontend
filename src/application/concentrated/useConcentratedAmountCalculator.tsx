@@ -76,60 +76,64 @@ export default function useConcentratedAmountCalculator() {
       getEpochInfo()
     ])
 
-    const { liquidity, amountSlippageA, amountSlippageB } =
-      isRemoveDialogOpen &&
-      currentAmmPool &&
-      position &&
-      targetUserPositionAccount &&
-      targetUserPositionAccount.amountA &&
-      targetUserPositionAccount.amountB &&
-      isMeaningfulNumber(position.liquidity)
-        ? await getRemoveLiquidityAmountOutFromAmountIn({
-            inputAmountBN,
-            maxLiquidity: position.liquidity,
-            inputMint,
-            outputMint,
-            amountA: toBN(position.amountA),
-            amountB: toBN(position.amountB),
-            isFocus1,
-            epochInfo
-          })
-        : AmmV3.getLiquidityAmountOutFromAmountIn({
-            poolInfo: currentAmmPool.state,
-            slippage: 0,
-            inputA: isPairPoolDirectionEq,
-            tickUpper: Math.max(priceUpperTick, priceLowerTick),
-            tickLower: Math.min(priceLowerTick, priceUpperTick),
-            amount: inputAmountBN,
-            add: !isRemoveDialogOpen,
-            epochInfo,
-            token2022Infos,
-            amountHasFee: true
-          })
+    try {
+      const { liquidity, amountSlippageA, amountSlippageB } =
+        isRemoveDialogOpen &&
+        currentAmmPool &&
+        position &&
+        targetUserPositionAccount &&
+        targetUserPositionAccount.amountA &&
+        targetUserPositionAccount.amountB &&
+        isMeaningfulNumber(position.liquidity)
+          ? await getRemoveLiquidityAmountOutFromAmountIn({
+              inputAmountBN,
+              maxLiquidity: position.liquidity,
+              inputMint,
+              outputMint,
+              amountA: toBN(position.amountA),
+              amountB: toBN(position.amountB),
+              isFocus1,
+              epochInfo
+            })
+          : AmmV3.getLiquidityAmountOutFromAmountIn({
+              poolInfo: currentAmmPool.state,
+              slippage: 0,
+              inputA: isPairPoolDirectionEq,
+              tickUpper: Math.max(priceUpperTick, priceLowerTick),
+              tickLower: Math.min(priceLowerTick, priceUpperTick),
+              amount: inputAmountBN,
+              add: !isRemoveDialogOpen,
+              epochInfo,
+              token2022Infos,
+              amountHasFee: true
+            })
 
-    const coin1SlippageResult = isCoin1Base ? amountSlippageA : amountSlippageB
-    const coin2SlippageResult = isCoin1Base ? amountSlippageB : amountSlippageA
-    const coin1SlippageAmount = toTokenAmount(coin1, coin1SlippageResult.amount)
+      const coin1SlippageResult = isCoin1Base ? amountSlippageA : amountSlippageB
+      const coin2SlippageResult = isCoin1Base ? amountSlippageB : amountSlippageA
+      const coin1SlippageAmount = toTokenAmount(coin1, coin1SlippageResult.amount)
 
-    const coin1AmountFee = coin1SlippageResult.fee && toTokenAmount(coin1, coin1SlippageResult.fee)
-    const coin1ExpirationTime = coin1SlippageResult.expirationTime
-    const coin2SlippageAmount = toTokenAmount(coin2, coin2SlippageResult.amount)
-    const coin2AmountFee = coin2SlippageResult.fee && toTokenAmount(coin2, coin2SlippageResult.fee)
-    const coin2ExpirationTime = coin2SlippageResult.expirationTime
+      const coin1AmountFee = coin1SlippageResult.fee && toTokenAmount(coin1, coin1SlippageResult.fee)
+      const coin1ExpirationTime = coin1SlippageResult.expirationTime
+      const coin2SlippageAmount = toTokenAmount(coin2, coin2SlippageResult.amount)
+      const coin2AmountFee = coin2SlippageResult.fee && toTokenAmount(coin2, coin2SlippageResult.fee)
+      const coin2ExpirationTime = coin2SlippageResult.expirationTime
 
-    useConcentrated.setState({
-      coin1Amount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
-      coin1SlippageAmount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
-      coin1AmountFee,
-      coin1ExpirationTime: hasInput ? coin1ExpirationTime : undefined,
+      useConcentrated.setState({
+        coin1Amount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
+        coin1SlippageAmount: isFocus1 ? coin1Amount : hasInput ? coin1SlippageAmount : undefined,
+        coin1AmountFee,
+        coin1ExpirationTime: hasInput ? coin1ExpirationTime : undefined,
 
-      coin2Amount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
-      coin2SlippageAmount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
-      coin2AmountFee,
-      coin2ExpirationTime: hasInput ? coin2ExpirationTime : undefined
-    })
+        coin2Amount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
+        coin2SlippageAmount: isFocus1 ? (hasInput ? coin2SlippageAmount : undefined) : coin2Amount,
+        coin2AmountFee,
+        coin2ExpirationTime: hasInput ? coin2ExpirationTime : undefined
+      })
 
-    useConcentrated.setState({ liquidity })
+      useConcentrated.setState({ liquidity })
+    } catch (err) {
+      console.error('err: ', err)
+    }
   }, [
     coin1,
     toString(userCursorSide === 'coin1' ? coin1Amount : coin2Amount),

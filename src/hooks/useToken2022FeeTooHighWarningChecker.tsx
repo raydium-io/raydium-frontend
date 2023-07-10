@@ -26,15 +26,18 @@ export function useToken2022FeeTooHighWarningChecker<T extends Token | undefined
     undefined
   )
 
-  const needWatchChip = useMemo(
-    () => coins.every((coin) => coin) && Boolean(notTransactableToken),
-    [coins, notTransactableToken]
+  const hasNotTransableToken = Boolean(notTransactableToken)
+
+  const WarningChip = ({ className }: { className?: string }) => (
+    <Token2022FeeTooHighWarningChip
+      className={className}
+      needOpen={hasNotTransableToken}
+      badToken={notTransactableToken}
+    />
   )
 
-  const WarningChip = <Token2022FeeTooHighWarningChip needOpen={needWatchChip} badToken={notTransactableToken} />
-
   return {
-    isWarningChipOpen: needWatchChip,
+    isWarningChipOpen: hasNotTransableToken,
     badToken: notTransactableToken,
     Token2022FeeTooHighWarningChip: WarningChip
   }
@@ -43,13 +46,23 @@ export function useToken2022FeeTooHighWarningChecker<T extends Token | undefined
 /**
  * alert 100% fee 2022 token can't swap
  */
-function Token2022FeeTooHighWarningChip({ needOpen, badToken }: { needOpen?: boolean; badToken?: Token }) {
+function Token2022FeeTooHighWarningChip({
+  className,
+  needOpen,
+  badToken
+}: {
+  className?: string
+  needOpen?: boolean
+  badToken?: Token
+}) {
   return (
     <FadeInStable show={needOpen}>
-      <Row className="mt-5 bg-[#da2eef1a] text-[#da2eef] rounded-xl py-3 px-3 mobile:px-2 items-center">
-        <Icon className="mr-1" heroIconName="exclamation-circle" size="smi" />
-        <div className="text-xs mobile:text-2xs">Transfer fee at 100%, transaction will fail.</div>
-      </Row>
+      <div className={className}>
+        <Row className="bg-[#da2eef1a] text-[#da2eef] rounded-xl py-3 px-3 mobile:px-2 items-center">
+          <Icon className="mr-1" heroIconName="exclamation-circle" size="smi" />
+          <div className="text-xs mobile:text-2xs">Transfer fee at 100%, transaction will fail.</div>
+        </Row>
+      </div>
     </FadeInStable>
   )
 }

@@ -4,24 +4,18 @@ import assert from '@/functions/assert'
 import toPubString from '@/functions/format/toMintString'
 import { isMeaningfulNumber } from '@/functions/numberish/compare'
 import { toString } from '@/functions/numberish/toString'
-
-import useAppSettings from '../common/useAppSettings'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import txHandler from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
-
-import { HydratedConcentratedInfo, UserPositionAccount } from './type'
-import useConcentrated from './useConcentrated'
-import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
+import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import toBN from '@/functions/numberish/toBN'
 import useNotification from '../notification/useNotification'
-import {
-  openToken2022ClmmAmmPoolPositionConfirmPanel,
-  openToken2022ClmmAmountConfirmPanel
-} from '../token/openToken2022ClmmHavestConfirmPanel'
 import { isToken2022 } from '../token/isToken2022'
-import { toTokenAmount } from '@/functions/format/toTokenAmount'
-import { shakeUndifindedItem } from '@/functions/arrayMethods'
+import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
+import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
+import { HydratedConcentratedInfo, UserPositionAccount } from './type'
+import useConcentrated from './useConcentrated'
 
 export default async function txIncreaseConcentrated({
   currentAmmPool = useConcentrated.getState().currentAmmPool,

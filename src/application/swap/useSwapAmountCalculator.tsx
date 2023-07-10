@@ -74,7 +74,7 @@ export function useSwapAmountCalculator() {
       output: coin2,
       inputAmount: 1,
       slippageTolerance: 0.05
-    })) ?? {}
+    }).catch((err) => console.error(err))) ?? {}
 
     const swapable = Boolean(bestResult?.poolReady)
     const canFindPools = Boolean(bestResult)

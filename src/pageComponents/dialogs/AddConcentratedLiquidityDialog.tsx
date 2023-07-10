@@ -27,6 +27,7 @@ import { gt, isMeaningfulNumber, lt } from '@/functions/numberish/compare'
 import { add, div, mul } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import useInit from '@/hooks/useInit'
+import { useToken2022FeeTooHighWarningChecker } from '@/hooks/useToken2022FeeTooHighWarningChecker'
 
 export function AddConcentratedLiquidityDialog() {
   useConcentratedAmountCalculator()
@@ -87,6 +88,12 @@ export function AddConcentratedLiquidityDialog() {
   const totalVolume = add(baseVolume, quoteVolume)
 
   const isMobile = useAppSettings((s) => s.isMobile)
+
+  const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([
+    coinBase,
+    coinQuote
+  ])
+
   return (
     <ResponsiveDialogDrawer
       placement="from-bottom"
@@ -222,6 +229,7 @@ export function AddConcentratedLiquidityDialog() {
                 buttonComponentRef.current?.click?.()
               }}
             />
+            {Token2022FeeTooHighWarningChip({ className: 'pt-1' })}
           </Col>
 
           <FadeInStable show={isMeaningfulNumber(coinBaseAmount)}>
@@ -257,6 +265,7 @@ export function AddConcentratedLiquidityDialog() {
                     children: 'Connect Wallet'
                   }
                 },
+                { not: isWarningChipOpen },
                 {
                   should: isMeaningfulNumber(coinBaseAmount) || isMeaningfulNumber(coinQuoteAmount)
                 },
