@@ -13,7 +13,7 @@ import useWallet from '../wallet/useWallet'
 import { HydratedConcentratedInfo } from './type'
 import { Numberish } from '@/types/constants'
 import useNotification from '../notification/useNotification'
-import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
+import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import useToken from '../token/useToken'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 

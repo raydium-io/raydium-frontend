@@ -7,7 +7,7 @@ import useWallet from '../wallet/useWallet'
 
 import useNotification from '../notification/useNotification'
 import { isToken2022 } from '../token/isToken2022'
-import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
+import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import { HydratedConcentratedInfo, HydratedConcentratedRewardInfo } from './type'
 
 export default async function txCollectReward({

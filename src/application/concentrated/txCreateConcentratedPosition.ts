@@ -10,7 +10,7 @@ import { toString } from '@/functions/numberish/toString'
 import useConnection from '../connection/useConnection'
 import useNotification from '../notification/useNotification'
 import { isToken2022 } from '../token/isToken2022'
-import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
+import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import { isQuantumSOLVersionSOL } from '../token/quantumSOL'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 

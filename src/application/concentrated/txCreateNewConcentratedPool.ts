@@ -4,7 +4,7 @@ import { generateCreateClmmPositionTx } from './txCreateConcentratedPosition'
 import useConcentrated from './useConcentrated'
 import useNotification from '../notification/useNotification'
 import { isToken2022 } from '../token/isToken2022'
-import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
+import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import { toTokenAmount } from '@/functions/format/toTokenAmount'
 
 export default async function txCreateNewConcentratedPool() {

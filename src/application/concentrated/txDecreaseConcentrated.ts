@@ -14,7 +14,7 @@ import { toTokenAmount } from '@/functions/format/toTokenAmount'
 import { minus } from '@/functions/numberish/operations'
 import useNotification from '../notification/useNotification'
 import { isToken2022 } from '../token/isToken2022'
-import { openToken2022ClmmAmmPoolPositionConfirmPanel } from '../token/openToken2022ClmmHavestConfirmPanel'
+import { openToken2022ClmmPositionConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
 import useConcentrated from './useConcentrated'
 
@@ -31,7 +31,7 @@ export default async function txDecreaseConcentrated(options?: { closePosition?:
   ].some((i) => isToken2022(i) && i)
   let userHasConfirmed: boolean
   if (needConfirm) {
-    const { hasConfirmed } = openToken2022ClmmAmmPoolPositionConfirmPanel({
+    const { hasConfirmed } = openToken2022ClmmPositionConfirmPanel({
       caseName: 'decrease',
       position: targetUserPositionAccount,
       positionAdditionalAmount: shakeUndifindedItem([

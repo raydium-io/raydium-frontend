@@ -13,7 +13,6 @@ import Tooltip from '@/components/Tooltip'
 import { shakeUndifindedItem } from '@/functions/arrayMethods'
 import toPubString from '@/functions/format/toMintString'
 import toPercentString from '@/functions/format/toPercentString'
-import { isToken } from '@/functions/judgers/dateType'
 import { minus } from '@/functions/numberish/operations'
 import { toString } from '@/functions/numberish/toString'
 import { Numberish } from '@/types/constants'
@@ -24,7 +23,6 @@ import useAppSettings from '../common/useAppSettings'
 import { HydratedConcentratedInfo, UserPositionAccount } from '../concentrated/type'
 import { getConcentratedPositionFee } from './getConcentratedPositionFee'
 import { getTransferFeeInfos } from './getTransferFeeInfos'
-import { SplToken } from './type'
 
 type HasConfirmState = Promise<boolean>
 
@@ -45,10 +43,11 @@ const feeItemLabel = {
     amount: (token: Token) => `Decrease User input ${token.symbol}`
   }
 }
+
 /**
  * not just data, also ui
  */
-export function openToken2022ClmmAmmPoolPositionConfirmPanel({
+export function openToken2022ClmmSwapConfirmPanel({
   caseName,
   position: inputPosition,
   positionAdditionalAmount: additionalAmount,
