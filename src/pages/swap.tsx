@@ -1080,39 +1080,36 @@ function SwapExpirationTimeClock({
   remainSeconds: number
   onReachZeroSeconds?: () => void
 }) {
-  const [seconds, setTime] = useState(remainSeconds)
   const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
-
-  useLayoutEffect(() => {
-    setTime(remainSeconds)
-  }, [remainSeconds])
+  const [restSeconds, setRestSeconds] = useState(Math.max((remainSeconds ?? 0) - chainTimeOffset / 1000, 0))
 
   useIsomorphicLayoutEffect(() => {
-    if (seconds <= 0) {
+    setRestSeconds(Math.max((remainSeconds ?? 0) - chainTimeOffset / 1000, 0))
+  }, [chainTimeOffset, remainSeconds])
+
+  useIsomorphicLayoutEffect(() => {
+    if (restSeconds <= 0) {
       onReachZeroSeconds?.()
     }
-  }, [seconds <= 0])
+  }, [restSeconds <= 0])
 
-  const remainTimeIsBiggerThan24h = seconds > 60 * 60 * 24
-  const remainTimeIsBiggerThanHours = seconds > 60 * 60
-  const remainTimeIsBiggerThanMinutes = seconds > 60
-  const remainSecondsIsBiggerThanZero = seconds > 0
+  const { days, hours, minutes, seconds } = parseDuration(restSeconds * 1000)
 
   useForceUpdate({
-    loop: remainTimeIsBiggerThan24h ? 60 * 60 * 1000 : remainTimeIsBiggerThanHours ? 60 * 1000 : 1 * 1000,
+    loop: days ? 60 * 60 * 1000 : hours ? 60 * 1000 : 1 * 1000,
     disable: !remainSeconds,
     disableWhenDocumentInvisiable: false,
-    onLoop: () => setTime((s) => (s > 0 ? s - 1 : s))
+    onLoop: () => setRestSeconds((s) => (s > 0 ? s - 1 : s))
   })
 
   return (
     <div className="inline-block">
-      {remainTimeIsBiggerThan24h
-        ? toUTC(Date.now() + chainTimeOffset + seconds)
-        : remainTimeIsBiggerThanHours
-        ? `rest: ${Math.floor(seconds / 60 / 60)}h ${Math.floor((seconds % 60) / 60)}m`
-        : remainTimeIsBiggerThanMinutes
-        ? `rest: ${Math.floor(seconds / 60)}m ${seconds % 60}s`
+      {days
+        ? toUTC(Date.now() + chainTimeOffset + restSeconds)
+        : hours
+        ? `rest: ${hours}h ${minutes}m`
+        : minutes
+        ? `rest: ${minutes}m ${seconds}s`
         : `rest: ${seconds}s`}
     </div>
   )

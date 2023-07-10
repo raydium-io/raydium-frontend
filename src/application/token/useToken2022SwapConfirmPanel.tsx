@@ -17,11 +17,17 @@ import toPercentString from '@/functions/format/toPercentString'
 import { toString } from '@/functions/numberish/toString'
 import useLocalStorageItem from '@/hooks/useLocalStorage'
 import { HexAddress } from '@/types/constants'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { twMerge } from 'tailwind-merge'
 import { AsyncAwait } from '../../components/AsyncAwait'
 import { getOnlineTokenInfo } from './getOnlineTokenInfo'
 import { isTransactableToken, parseMintInfo } from './parseMintInfo'
+import { toUTC } from '@/functions/date/dateFormat'
+import { useForceUpdate } from '@/hooks/useForceUpdate'
+import { useIsomorphicLayoutEffect } from '@/hooks/useIsomorphicLayoutEffect'
+import useConnection from '../connection/useConnection'
+import parseDuration from '@/functions/date/parseDuration'
+import { isMeaningfulNumber } from '@/functions/numberish/compare'
 
 /**
  * not just data, also ui
@@ -170,12 +176,14 @@ function ConfirmDialog({
                                   {capitalize(String(Boolean(tokenMintInfo.freezeAuthority)))}
                                 </div>
                               </Row>
+
                               <Row className="table-row">
                                 <div className="table-cell px-2 font-medium">Transfer Fee:</div>
                                 <div className="table-cell px-2">
                                   {toPercentString(tokenMintInfo.transferFeePercent)}
                                 </div>
                               </Row>
+
                               <Row className="table-row">
                                 <div className="table-cell px-2 font-medium">Max Transfer Fee:</div>
                                 <div className="table-cell px-2">
@@ -185,6 +193,21 @@ function ConfirmDialog({
                                   {token.symbol}
                                 </div>
                               </Row>
+
+                              {isMeaningfulNumber(tokenMintInfo.nextTransferFeePercent) && (
+                                <Row className="table-row">
+                                  <div className="table-cell px-2 font-medium">Fee change:</div>
+                                  <div className="table-cell px-2">
+                                    {toPercentString(tokenMintInfo.nextTransferFeePercent)}
+                                    {tokenMintInfo.expirationTimeOffset != null && (
+                                      <span>
+                                        {' '}
+                                        in <FeeChangeTime remainSeconds={tokenMintInfo.expirationTimeOffset} />
+                                      </span>
+                                    )}
+                                  </div>
+                                </Row>
+                              )}
                             </Col>
 
                             {!isTransferable && (
@@ -243,5 +266,50 @@ function ConfirmDialog({
         </Col>
       </Card>
     </ResponsiveDialogDrawer>
+  )
+}
+
+function FeeChangeTime({
+  remainSeconds,
+  onReachZeroSeconds
+}: {
+  remainSeconds?: number
+  onReachZeroSeconds?: () => void
+}) {
+  const chainTimeOffset = useConnection((s) => s.chainTimeOffset) ?? 0
+  const [restSeconds, setRestSeconds] = useState(Math.max((remainSeconds ?? 0) - chainTimeOffset / 1000, 0))
+
+  useIsomorphicLayoutEffect(() => {
+    const newRestSeconds = Math.max((remainSeconds ?? 0) - chainTimeOffset / 1000, 0)
+    setRestSeconds(newRestSeconds)
+  }, [chainTimeOffset, remainSeconds])
+
+  useIsomorphicLayoutEffect(() => {
+    if (restSeconds <= 0) {
+      onReachZeroSeconds?.()
+    }
+  }, [restSeconds <= 0])
+
+  const { days, hours, minutes, seconds } = parseDuration(restSeconds * 1000)
+
+  useForceUpdate({
+    loop: days > 0 ? 60 * 60 * 1000 : minutes ? 60 * 1000 : 1 * 1000,
+    disable: !remainSeconds,
+    disableWhenDocumentInvisiable: false,
+    onLoop: () => setRestSeconds((s) => (s > 0 ? s - 1 : s))
+  })
+
+  return (
+    <div className="inline-block">
+      {days
+        ? `${days}d ${hours}h ${minutes}m`
+        : hours
+        ? `${hours}h ${minutes}m`
+        : minutes
+        ? `${minutes}m`
+        : seconds
+        ? `${seconds}s`
+        : `<1m`}
+    </div>
   )
 }

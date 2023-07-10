@@ -57,7 +57,7 @@ export type TokenMintInfo = {
 
   nextTransferFeePercent?: number // Percent
   nextMaximumFee?: Fraction
-  expirationTime?: number
+  expirationTimeOffset?: number
 }
 
 const mintInfoCache = createTimeoutMap<string, Promise<TokenMintInfo>>({ maxAgeMs: 30 * 1000 })
@@ -102,9 +102,10 @@ export async function getOnlineTokenInfo(
     nextMaximumFee: nextFeeConfig && div(nextFeeConfig.maximumFee, 10 ** mintData.decimals),
     //time offset
     expirationTimeOffset:
-      nextFeeConfig && epochInfo.epoch < nextFeeConfig.epoch
-        ? ((Number(nextFeeConfig.epoch) * epochInfo.slotsInEpoch - epochInfo.absoluteSlot) * 400) / 1000 // author: Rudy
-        : undefined
+      // nextFeeConfig && epochInfo.epoch < nextFeeConfig.epoch
+      //   ? ((Number(nextFeeConfig.epoch) * epochInfo.slotsInEpoch - epochInfo.absoluteSlot) * 400) / 1000 // author: Rudy
+      //   : undefined
+      60 * 20 // dev
   }
   mintInfoCache.set(toPubString(mintish), Promise.resolve(tokenMintInfo))
   return tokenMintInfo

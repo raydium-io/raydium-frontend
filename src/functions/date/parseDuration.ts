@@ -39,6 +39,7 @@ export default function parseDuration(duration: number): ParsedDurationInfo {
 }
 
 /**
+ * each time property includes full time
  * @example
  * parseDurationAbsolute(5 * 60 * 1000) // {full: 5 * 60 * 1000, day: 5/24/60, hour: 5/60  minutes: 5, secends: 5 * 60, milliseconds: 5 * 60 * 1000 }
  */
