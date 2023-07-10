@@ -8,14 +8,18 @@ import { toString } from '@/functions/numberish/toString'
 
 import { TxHistoryInfo } from '../txHistory/useTxHistory'
 import { getComputeBudgetConfig } from '../txTools/getComputeBudgetConfig'
-import { createTxHandler, TransactionQueue } from '../txTools/handleTx'
+import txHandler, { createTxHandler, TransactionQueue } from '../txTools/handleTx'
 import useWallet from '../wallet/useWallet'
 
 import { useSwap } from './useSwap'
 import { toHumanReadable } from '@/functions/format/toHumanReadable'
 import useAppAdvancedSettings from '../common/useAppAdvancedSettings'
+import useNotification from '../notification/useNotification'
+import { isToken2022 } from '../token/isToken2022'
+import { openToken2022ClmmAmountConfirmPanel } from '../token/openToken2022ClmmPositionConfirmPanel'
+import { openToken2022SwapConfirmPanel } from '../token/openToken2022SwapConfirmPanel'
 
-const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: { connection, owner } }) => {
+export default async function txSwap() {
   const { programIds } = useAppAdvancedSettings.getState()
   const { checkWalletHasEnoughBalance, tokenAccountRawInfos } = useWallet.getState()
   const {
@@ -51,39 +55,55 @@ const txSwap = createTxHandler(() => async ({ transactionCollector, baseUtils: {
   const downCoinTokenAmount = toTokenAmount(downCoin, downCoinAmount, { alreadyDecimaled: true })
 
   assert(checkWalletHasEnoughBalance(upCoinTokenAmount), `not enough ${upCoin.symbol}`)
-
   assert(routeType, 'accidently routeType is undefined')
 
-  const { innerTransactions } = await TradeV2.makeSwapInstructionSimple({
-    connection,
-    swapInfo: selectedCalcResult,
-    ownerInfo: {
-      wallet: owner,
-      tokenAccounts: tokenAccountRawInfos,
-      associatedOnly: true,
-      checkCreateATAOwner: true
-    },
-    routeProgram: programIds.Router,
-    checkTransaction: true,
-    computeBudgetConfig: await getComputeBudgetConfig()
+  // check token 2022
+  const needConfirm = [coin1, coin2].some((i) => isToken2022(i))
+  let userHasConfirmed: boolean
+  if (needConfirm) {
+    const { hasConfirmed } = openToken2022SwapConfirmPanel({
+      routInfo: selectedCalcResult
+    })
+    // const { hasConfirmed } = openToken2022ClmmHavestConfirmPanel({ ammPool: currentAmmPool, onlyMints: [rewardInfo] })
+    userHasConfirmed = await hasConfirmed
+  } else {
+    userHasConfirmed = true
+  }
+  if (!userHasConfirmed) {
+    useNotification.getState().logError('User Cancel', 'User has canceled token 2022 confirm')
+    return
+  }
+
+  return txHandler(async ({ transactionCollector, baseUtils: { connection, owner } }) => {
+    const { innerTransactions } = await TradeV2.makeSwapInstructionSimple({
+      connection,
+      swapInfo: selectedCalcResult,
+      ownerInfo: {
+        wallet: owner,
+        tokenAccounts: tokenAccountRawInfos,
+        associatedOnly: true,
+        checkCreateATAOwner: true
+      },
+      routeProgram: programIds.Router,
+      checkTransaction: true,
+      computeBudgetConfig: await getComputeBudgetConfig()
+    })
+
+    const queue = innerTransactions.map((tx, idx, allTxs) => [
+      tx,
+      {
+        txHistoryInfo: {
+          title: 'Swap',
+          description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
+            downCoin.symbol
+          }`,
+          subtransactionDescription: translationSwapTxDescription(tx, idx, allTxs)
+        } as TxHistoryInfo
+      }
+    ]) as TransactionQueue
+    transactionCollector.add(queue, { sendMode: 'queue(all-settle)' })
   })
-
-  const queue = innerTransactions.map((tx, idx, allTxs) => [
-    tx,
-    {
-      txHistoryInfo: {
-        title: 'Swap',
-        description: `Swap ${toString(upCoinAmount)} ${upCoin.symbol} to ${toString(minReceived || maxSpent)} ${
-          downCoin.symbol
-        }`,
-        subtransactionDescription: translationSwapTxDescription(tx, idx, allTxs)
-      } as TxHistoryInfo
-    }
-  ]) as TransactionQueue
-  transactionCollector.add(queue, { sendMode: 'queue(all-settle)' })
-})
-
-export default txSwap
+}
 
 function translationSwapTxDescription(tx: InnerTransaction, idx: number, allTxs: InnerTransaction[]) {
   const swapFirstIdx = allTxs.findIndex((tx) => isSwapTransaction(tx))
