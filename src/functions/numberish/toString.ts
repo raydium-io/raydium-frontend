@@ -8,7 +8,7 @@ import { toFractionWithDecimals } from './toFraction'
 
 export interface ToStringOptions {
   /** @default 'auto' / 'auto [decimals]' */
-  decimalLength?: number | 'auto' | 'auto ' | `auto ${number}`
+  decimalLength?: number | 'auto' | 'auto ' | `auto ${number | undefined}`
   /** whether set zero decimal depends on how you get zero. if you get it from very samll number, */
   zeroDecimalNotAuto?: boolean
   /**
@@ -34,7 +34,7 @@ export function toString(n: Numberish | null | undefined, options?: ToStringOpti
     result = trimTailingZero(fr.toFixed(6)) // if it is not tokenAmount, it will have max 6 decimal
   } else if (isString(decimalLength) && decimalLength.startsWith('auto')) {
     const autoDecimalLength = Number(decimalLength.split(' ')[1])
-    result = trimTailingZero(fr.toFixed(autoDecimalLength))
+    result = trimTailingZero(fr.toFixed(isNaN(autoDecimalLength) ? 6 : autoDecimalLength))
   } else {
     result = fr.toFixed(decimalLength as number)
   }

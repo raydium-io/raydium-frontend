@@ -954,13 +954,15 @@ function SwapCardInfo({
       {maxSpent ? (
         <SwapCardItem
           fieldName="Maximum Spent"
-          fieldValue={`${toString(maxSpent ?? '')} ${upCoin?.symbol ?? '--'}`}
+          fieldValue={`${toString(maxSpent, { decimalLength: `auto ${upCoin?.decimals}` })} ${upCoin?.symbol ?? '--'}`}
           tooltipContent="The max amount of tokens you will spend on this trade"
         />
       ) : (
         <SwapCardItem
           fieldName="Minimum Received"
-          fieldValue={`${toString(minReceived ?? '')} ${downCoin?.symbol ?? '--'}`}
+          fieldValue={`${toString(minReceived, { decimalLength: `auto ${downCoin?.decimals}` })} ${
+            downCoin?.symbol ?? '--'
+          }`}
           tooltipContent="The least amount of tokens you will recieve on this trade"
         />
       )}

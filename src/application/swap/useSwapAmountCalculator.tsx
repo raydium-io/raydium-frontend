@@ -15,6 +15,7 @@ import useLiquidity from '../liquidity/useLiquidity'
 import useWallet from '../wallet/useWallet'
 import { useSwap } from './useSwap'
 import { useEffect } from 'react'
+import { minus } from '@/functions/numberish/operations'
 
 export function useSwapAmountCalculator() {
   const { pathname } = useRouter()
@@ -202,14 +203,15 @@ export function useSwapAmountCalculator() {
           priceImpact,
           executionPrice,
           currentPrice,
-          minReceived: minAmountOut?.amount,
+          minReceived: minAmountOut && minus(minAmountOut.amount, minAmountOut.fee),
           maxSpent: undefined,
           swapable,
           routeType,
           canFindPools,
           isInsufficientLiquidity,
           ...{
-            [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']: amountOut?.amount,
+            [focusSide === 'coin1' ? 'coin2Amount' : 'coin1Amount']:
+              amountOut && minus(amountOut.amount, amountOut.fee),
             [focusSide === 'coin1' ? 'isCoin2CalculateTarget' : 'isCoin1CalculateTarget']: false
           }
         })
