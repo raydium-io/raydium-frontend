@@ -225,7 +225,11 @@ export function openToken2022ClmmAmountConfirmPanel({
       </div>
     ),
     additionalContent: ({ updateConfig }) => (
-      <AsyncAwait promise={feeInfo} onFullfilled={() => updateConfig({ disableConfirmButton: false })}>
+      <AsyncAwait
+        promise={feeInfo}
+        fallback={<LoadingCircle className="mx-auto" />}
+        onFullfilled={() => updateConfig({ disableConfirmButton: false })}
+      >
         {(feeInfo) =>
           feeInfo && groupInfo ? (
             <div className="bg-[#abc4ff1a] rounded-xl">
@@ -306,9 +310,7 @@ function FeeInfoRow({
     <Grid className={twMerge('grid-cols-2 mobile:grid-cols-1 gap-4 items-center text-[#abc4ff]', className)}>
       <Col className="gap-3">
         <div className="text-sm">
-          {caseName && type
-            ? shrinkToValue(primaryFeeItemLabel[caseName]?.[type], [amount.token])
-            : amount.token.symbol}
+          {caseName && type ? shrinkToValue(primaryFeeItemLabel[caseName]?.[type], [amount.token]) : 'Deposit amount'}
         </div>
         <Row className="items-center gap-2">
           <CoinAvatar token={amount.token} size="sm"></CoinAvatar>
