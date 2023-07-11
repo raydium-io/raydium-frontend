@@ -24,7 +24,6 @@ export function useToken2022FeeTooHighWarningChecker(
     async () => {
       for (const { token, amount: userInputAmount } of checkTargets) {
         if (token) {
-          console.log('userInputAmount: ', userInputAmount)
           const isTransactable = await isTransactableToken(token.mint, userInputAmount)
           if (!isTransactable) return token
         }

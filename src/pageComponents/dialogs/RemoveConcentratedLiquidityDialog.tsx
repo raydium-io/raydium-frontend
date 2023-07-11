@@ -54,7 +54,11 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
   const currentAmmPool = useConcentrated((s) => s.currentAmmPool)
   const coinBase = currentAmmPool?.base
   const coinQuote = currentAmmPool?.quote
-  const targetUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const originalUserPositionAccount = useConcentrated((s) => s.targetUserPositionAccount)
+  const targetUserPositionAccount = useMemo(
+    () => currentAmmPool?.userPositionAccount?.find((p) => p.nftMint === originalUserPositionAccount?.nftMint),
+    [currentAmmPool]
+  )
   const originalCoin1 = useConcentrated((s) => s.coin1)
   const originalCoin2 = useConcentrated((s) => s.coin2)
   const originalCoin1Amount = useConcentrated((s) => s.coin1Amount)
@@ -151,9 +155,9 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
 
   useEffect(() => {
     calculateMaxLiquidity()
-  }, [toPubString(position?.nftMint)])
+  }, [toPubString(position?.nftMint), position?.liquidity])
 
-  const removeMaxLiquidity = useCallback(() => {
+  const removeMaxLiquidity = useEvent(() => {
     if (!position?.liquidity || !maxInfo.coin1Amount || !maxInfo.coin2Amount) return
     useConcentrated.setState({
       coin1Amount: maxInfo.coin1Amount,
@@ -163,7 +167,7 @@ export function RemoveConcentratedLiquidityDialog({ className, onClose }: { clas
       isInput: true,
       liquidity: position.liquidity
     })
-  }, [maxInfo, position])
+  })
 
   const { Token2022FeeTooHighWarningChip, isWarningChipOpen } = useToken2022FeeTooHighWarningChecker([
     { token: originalCoin1, amount: originalCoin1Amount },

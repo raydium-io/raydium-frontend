@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { use, useMemo } from 'react'
 import { useRouter } from 'next/router'
 
 import { AmmV3, ApiAmmV3PoolsItem } from '@raydium-io/raydium-sdk'
@@ -83,6 +83,7 @@ export default function useConcentratedInfoLoader() {
     if (!Object.keys(tokens).length) return // don't hydrate when token is not loaded
     if (!sdkParsedAmmPools || sdkParsedAmmPools.length === 0) return
     const sdkParsedAmmPoolsList = Object.values(sdkParsedAmmPools)
+
     const hydratedInfos = await lazyMap({
       source: sdkParsedAmmPoolsList,
       loopTaskName: 'hydrate clmm pool Info',
@@ -91,6 +92,23 @@ export default function useConcentratedInfoLoader() {
     })
 
     useConcentrated.setState({ hydratedAmmPools: hydratedInfos, loading: hydratedInfos.length === 0 })
+
+    // update current amm pool
+    const oldAmmPoolId = useConcentrated.getState().currentAmmPool?.id
+    if (oldAmmPoolId) {
+      const updateAmmPool = hydratedInfos.find((i) => i.id.equals(oldAmmPoolId))
+      if (updateAmmPool) {
+        useConcentrated.setState({ currentAmmPool: updateAmmPool })
+      }
+
+      const oldUserPositionNftMint = useConcentrated.getState().targetUserPositionAccount?.nftMint
+      const updatedUserPosition =
+        oldUserPositionNftMint &&
+        updateAmmPool?.userPositionAccount?.find((p) => p.nftMint.equals(oldUserPositionNftMint))
+      if (updatedUserPosition) {
+        useConcentrated.setState({ targetUserPositionAccount: updatedUserPosition })
+      }
+    }
   }, [sdkParsedAmmPools, connection, tokens, shouldLoadInfo])
 
   /** select pool chart data */
